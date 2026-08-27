@@ -239,7 +239,7 @@ describe("Config versions comparator Theme integration", () => {
 
   afterEach(cleanup);
 
-  it("renders tabs from every server-default Theme", async () => {
+  it("keeps categorized Themes out of the Installed Service comparison", async () => {
     renderComparator(themeResponse);
 
     expect(
@@ -247,8 +247,8 @@ describe("Config versions comparator Theme integration", () => {
     ).toBeTruthy();
     expect(screen.getByRole("tab", { name: "Advanced (0)" })).toBeTruthy();
     expect(
-      screen.getByRole("tab", { name: "Nondefault Database (0)" }),
-    ).toBeTruthy();
+      screen.queryByRole("tab", { name: "Nondefault Database (0)" }),
+    ).toBeNull();
     fireEvent.click(screen.getByRole("tab", { name: "Default Database (1)" }));
     expect(await screen.findByText("Default Property")).toBeTruthy();
   });

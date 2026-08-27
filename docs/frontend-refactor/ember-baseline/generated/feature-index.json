@@ -967,7 +967,7 @@
   },
   {
     "id": "SVC-ADD-008",
-    "summary": "Recovery and mutual exclusion",
+    "summary": "Recovery, cancellation, and mutual exclusion",
     "section": "Add Service Wizard",
     "moduleFile": "04-services-configs.md",
     "line": 117
@@ -7141,7 +7141,7 @@
   },
   {
     "id": "SVC-THEME-MAP-008",
-    "summary": "Does not guarantee inherited child ordering through every level",
+    "summary": "Preserves declaration order through inherited collection merges",
     "section": "Server Loading, Validation, Inheritance, and Deletion",
     "moduleFile": "14-service-theme-layout.md",
     "line": 135
@@ -7151,930 +7151,930 @@
     "summary": "Normalizes each Theme independently",
     "section": "Theme Data Model and Client Compilation",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 193
+    "line": 200
   },
   {
     "id": "SVC-THEME-MODEL-002",
     "summary": "Maps every declared layout",
     "section": "Theme Data Model and Client Compilation",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 194
+    "line": 201
   },
   {
     "id": "SVC-THEME-MODEL-003",
     "summary": "Preserves exact config identity",
     "section": "Theme Data Model and Client Compilation",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 195
+    "line": 202
   },
   {
     "id": "SVC-THEME-MODEL-004",
     "summary": "Creates parent-qualified layout identities",
     "section": "Theme Data Model and Client Compilation",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 196
+    "line": 203
   },
   {
     "id": "SVC-THEME-MODEL-005",
     "summary": "Keeps placement-scoped Widget metadata",
     "section": "Theme Data Model and Client Compilation",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 197
+    "line": 204
   },
   {
     "id": "SVC-THEME-MODEL-006",
     "summary": "Generates a service Advanced tab after mapping",
     "section": "Theme Data Model and Client Compilation",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 198
+    "line": 205
   },
   {
     "id": "SVC-THEME-MODEL-007",
     "summary": "Determines enhanced-layout support from named non-Advanced tabs",
     "section": "Theme Data Model and Client Compilation",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 199
+    "line": 206
   },
   {
     "id": "SVC-THEME-MODEL-008",
     "summary": "Keys Theme caches by stack/version and service set",
     "section": "Theme Data Model and Client Compilation",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 200
+    "line": 207
   },
   {
     "id": "SVC-THEME-LAYOUT-001",
     "summary": "Renders Theme tabs and Sections in metadata order",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 226
+    "line": 233
   },
   {
     "id": "SVC-THEME-LAYOUT-002",
     "summary": "Places Sections at exact row/column coordinates with row/column spans",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 227
+    "line": 234
   },
   {
     "id": "SVC-THEME-LAYOUT-003",
     "summary": "Places SubSections in the Section grid with exact coordinates/spans",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 228
+    "line": 235
   },
   {
     "id": "SVC-THEME-LAYOUT-004",
     "summary": "Applies SubSection presentation metadata",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 229
+    "line": 236
   },
   {
     "id": "SVC-THEME-LAYOUT-005",
     "summary": "Renders direct properties in placement order",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 230
+    "line": 237
   },
   {
     "id": "SVC-THEME-LAYOUT-006",
     "summary": "Renders `subsection-tabs` as nested selectable tabs",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 231
+    "line": 238
   },
   {
     "id": "SVC-THEME-LAYOUT-007",
     "summary": "Maintains a valid active nested tab",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 232
+    "line": 239
   },
   {
     "id": "SVC-THEME-LAYOUT-008",
     "summary": "Propagates search/filter visibility upward",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 233
+    "line": 240
   },
   {
     "id": "SVC-THEME-LAYOUT-009",
     "summary": "Aggregates errors only from effectively visible properties and overrides",
     "section": "Layout, Grid, Nested Tabs, and State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 234
+    "line": 241
   },
   {
     "id": "SVC-THEME-PLACEMENT-001",
     "summary": "Links by full `config-type/property-name` identity",
     "section": "Placement and Property-Attribute Semantics",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 247
+    "line": 254
   },
   {
     "id": "SVC-THEME-PLACEMENT-002",
     "summary": "Resolves enhanced-layout targets without losing canonical attributes",
     "section": "Placement and Property-Attribute Semantics",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 248
+    "line": 255
   },
   {
     "id": "SVC-THEME-PLACEMENT-003",
     "summary": "Preserves declaration order without duplicates",
     "section": "Placement and Property-Attribute Semantics",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 249
+    "line": 256
   },
   {
     "id": "SVC-THEME-PLACEMENT-004",
     "summary": "Requires a Widget for enhanced rendering",
     "section": "Placement and Property-Attribute Semantics",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 250
+    "line": 257
   },
   {
     "id": "SVC-THEME-PLACEMENT-005",
     "summary": "Creates a synthetic config only for explicit `ui_only_property=true`",
     "section": "Placement and Property-Attribute Semantics",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 251
+    "line": 258
   },
   {
     "id": "SVC-THEME-PLACEMENT-006",
     "summary": "Keeps static and conditional attributes layered",
     "section": "Placement and Property-Attribute Semantics",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 252
+    "line": 259
   },
   {
     "id": "SVC-THEME-WIDGET-001",
     "summary": "`text-field`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 291
+    "line": 298
   },
   {
     "id": "SVC-THEME-WIDGET-002",
     "summary": "`password`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 292
+    "line": 299
   },
   {
     "id": "SVC-THEME-WIDGET-003",
     "summary": "`checkbox`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 293
+    "line": 300
   },
   {
     "id": "SVC-THEME-WIDGET-004",
     "summary": "`toggle`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 294
+    "line": 301
   },
   {
     "id": "SVC-THEME-WIDGET-005",
     "summary": "`combo`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 295
+    "line": 302
   },
   {
     "id": "SVC-THEME-WIDGET-006",
     "summary": "`radio-buttons`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 296
+    "line": 303
   },
   {
     "id": "SVC-THEME-WIDGET-007",
     "summary": "`list`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 297
+    "line": 304
   },
   {
     "id": "SVC-THEME-WIDGET-008",
     "summary": "`directory`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 298
+    "line": 305
   },
   {
     "id": "SVC-THEME-WIDGET-009",
     "summary": "`directories`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 299
+    "line": 306
   },
   {
     "id": "SVC-THEME-WIDGET-010",
     "summary": "`slider`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 300
+    "line": 307
   },
   {
     "id": "SVC-THEME-WIDGET-011",
     "summary": "`time-interval-spinner`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 301
+    "line": 308
   },
   {
     "id": "SVC-THEME-WIDGET-012",
     "summary": "`text-area`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 302
+    "line": 309
   },
   {
     "id": "SVC-THEME-WIDGET-013",
     "summary": "`label`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 303
+    "line": 310
   },
   {
     "id": "SVC-THEME-WIDGET-014",
     "summary": "`test-db-connection`",
     "section": "Configuration Widget Dispatch",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 304
+    "line": 311
   },
   {
     "id": "SVC-THEME-ATTR-001",
     "summary": "Computes effective editability",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 338
+    "line": 345
   },
   {
     "id": "SVC-THEME-ATTR-002",
     "summary": "Displays effective metadata",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 339
+    "line": 346
   },
   {
     "id": "SVC-THEME-ATTR-003",
     "summary": "Preserves saved/default/recommended/current values",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 340
+    "line": 347
   },
   {
     "id": "SVC-THEME-ATTR-004",
     "summary": "Supports config-group overrides",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 341
+    "line": 348
   },
   {
     "id": "SVC-THEME-ATTR-005",
     "summary": "Excludes UI-only state from saves",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 342
+    "line": 349
   },
   {
     "id": "SVC-THEME-ATTR-006",
     "summary": "Re-evaluates dependent behavior after edits and recommendations",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 343
+    "line": 350
   },
   {
     "id": "SVC-THEME-ATTR-007",
     "summary": "Preserves filter and selection state safely",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 344
+    "line": 351
   },
   {
     "id": "SVC-THEME-ATTR-008",
     "summary": "Makes unsupported/malformed metadata diagnosable",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 345
+    "line": 352
   },
   {
     "id": "SVC-THEME-PERM-001",
     "summary": "View installed service configuration and its Theme layout",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 349
+    "line": 356
   },
   {
     "id": "SVC-THEME-PERM-002",
     "summary": "Edit/save installed service configuration, Widget controls, and overrides",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 350
+    "line": 357
   },
   {
     "id": "SVC-THEME-PERM-003",
     "summary": "Compare versions in the Theme hierarchy",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 351
+    "line": 358
   },
   {
     "id": "SVC-THEME-PERM-004",
     "summary": "Host Config Theme view",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 352
+    "line": 359
   },
   {
     "id": "SVC-THEME-PERM-005",
     "summary": "New-cluster Installer",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 353
+    "line": 360
   },
   {
     "id": "SVC-THEME-PERM-006",
     "summary": "Add Service",
     "section": "Shared Property Controls and Permissions",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 354
+    "line": 361
   },
   {
     "id": "SVC-THEME-COND-001",
     "summary": "Evaluates every `depends-on` entry in declaration order",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 373
+    "line": 380
   },
   {
     "id": "SVC-THEME-COND-002",
     "summary": "Supports exact config references",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 374
+    "line": 381
   },
   {
     "id": "SVC-THEME-COND-003",
     "summary": "Supports the shipped expression grammar",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 375
+    "line": 382
   },
   {
     "id": "SVC-THEME-COND-004",
     "summary": "Supports `resource=service`",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 376
+    "line": 383
   },
   {
     "id": "SVC-THEME-COND-005",
     "summary": "Applies `then` or `else` attributes",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 377
+    "line": 384
   },
   {
     "id": "SVC-THEME-COND-006",
     "summary": "Re-evaluates after dependency changes",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 378
+    "line": 385
   },
   {
     "id": "SVC-THEME-COND-007",
     "summary": "Separates base/static and condition-hidden state",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 379
+    "line": 386
   },
   {
     "id": "SVC-THEME-COND-008",
     "summary": "Propagates visibility and errors upward",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 380
+    "line": 387
   },
   {
     "id": "SVC-THEME-COND-009",
     "summary": "Rejects malformed or unsupported expressions without execution",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 381
+    "line": 388
   },
   {
     "id": "SVC-THEME-COND-010",
     "summary": "Handles missing references and duplicate basenames safely",
     "section": "Condition Evaluation and Effective Visibility",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 382
+    "line": 389
   },
   {
     "id": "SVC-THEME-CONSUME-001",
     "summary": "Installed Service Configs",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 404
+    "line": 411
   },
   {
     "id": "SVC-THEME-CONSUME-002",
     "summary": "Installed Service Config cache",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 405
+    "line": 412
   },
   {
     "id": "SVC-THEME-CONSUME-003",
     "summary": "Host Configs",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 406
+    "line": 413
   },
   {
     "id": "SVC-THEME-CONSUME-004",
     "summary": "Config version comparison",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 407
+    "line": 414
   },
   {
     "id": "SVC-THEME-CONSUME-005",
     "summary": "New Installer Step 7",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 408
+    "line": 415
   },
   {
     "id": "SVC-THEME-CONSUME-006",
     "summary": "Installer Credentials",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 409
+    "line": 416
   },
   {
     "id": "SVC-THEME-CONSUME-007",
     "summary": "Installer Databases",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 410
+    "line": 417
   },
   {
     "id": "SVC-THEME-CONSUME-008",
     "summary": "Installer Directories and Accounts",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 411
+    "line": 418
   },
   {
     "id": "SVC-THEME-CONSUME-009",
     "summary": "Installer All Configurations",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 412
+    "line": 419
   },
   {
     "id": "SVC-THEME-CONSUME-010",
     "summary": "Add Service Customize Services",
     "section": "Consumer Flows",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 413
+    "line": 420
   },
   {
     "id": "INST-7-THEME-001",
     "summary": "Stack configs precede batch Theme mapping",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 419
+    "line": 426
   },
   {
     "id": "INST-7-THEME-002",
     "summary": "Theme request settles before config creation",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 420
+    "line": 427
   },
   {
     "id": "INST-7-THEME-003",
     "summary": "Effective state is applied after values/recommendations",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 421
+    "line": 428
   },
   {
     "id": "INST-7-THEME-004",
     "summary": "Specialized edits use canonical configs",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 422
+    "line": 429
   },
   {
     "id": "INST-7-THEME-005",
     "summary": "Category navigation preserves valid state",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 423
+    "line": 430
   },
   {
     "id": "INST-7-THEME-006",
     "summary": "Credentials availability",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 424
+    "line": 431
   },
   {
     "id": "INST-7-THEME-007",
     "summary": "Credentials validation",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 425
+    "line": 432
   },
   {
     "id": "INST-7-THEME-008",
     "summary": "Databases availability",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 426
+    "line": 433
   },
   {
     "id": "INST-7-THEME-009",
     "summary": "Directories availability",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 427
+    "line": 434
   },
   {
     "id": "INST-7-THEME-010",
     "summary": "Accounts source",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 428
+    "line": 435
   },
   {
     "id": "INST-7-THEME-011",
     "summary": "All Configurations",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 429
+    "line": 436
   },
   {
     "id": "INST-7-THEME-012",
     "summary": "Re-entry",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 430
+    "line": 437
   },
   {
     "id": "INST-7-THEME-013",
     "summary": "Service conditions",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 431
+    "line": 438
   },
   {
     "id": "INST-7-THEME-014",
     "summary": "Recommendation context",
     "section": "New Installer Category State",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 432
+    "line": 439
   },
   {
     "id": "SVC-THEME-FALLBACK-001",
     "summary": "Named non-Advanced Theme tab exists",
     "section": "Fallback, Failure, Retry, and Known Classic Defects",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 445
+    "line": 452
   },
   {
     "id": "SVC-THEME-FALLBACK-002",
     "summary": "200 response has no usable Theme tab",
     "section": "Fallback, Failure, Retry, and Known Classic Defects",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 446
+    "line": 453
   },
   {
     "id": "SVC-THEME-FALLBACK-003",
     "summary": "Single-service Theme request returns 404/500/network error",
     "section": "Fallback, Failure, Retry, and Known Classic Defects",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 447
+    "line": 454
   },
   {
     "id": "SVC-THEME-FALLBACK-004",
     "summary": "Batch Theme request fails",
     "section": "Fallback, Failure, Retry, and Known Classic Defects",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 448
+    "line": 455
   },
   {
     "id": "SVC-THEME-FALLBACK-005",
     "summary": "One batch service/Theme is malformed",
     "section": "Fallback, Failure, Retry, and Known Classic Defects",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 449
+    "line": 456
   },
   {
     "id": "SVC-THEME-FALLBACK-006",
     "summary": "Retry succeeds after fallback edits",
     "section": "Fallback, Failure, Retry, and Known Classic Defects",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 450
+    "line": 457
   },
   {
     "id": "SVC-THEME-FALLBACK-007",
     "summary": "Condition or filter hides the active item",
     "section": "Fallback, Failure, Retry, and Known Classic Defects",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 451
+    "line": 458
   },
   {
     "id": "SVC-THEME-FALLBACK-008",
     "summary": "Stack/version/service set changes or component unmounts",
     "section": "Fallback, Failure, Retry, and Known Classic Defects",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 452
+    "line": 459
   },
   {
     "id": "SVC-THEME-TEST-001",
     "summary": "Compile real HIVE default Theme",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 492
+    "line": 499
   },
   {
     "id": "SVC-THEME-TEST-002",
     "summary": "Compile real HIVE database/credentials/directories Themes",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 493
+    "line": 500
   },
   {
     "id": "SVC-THEME-TEST-003",
     "summary": "Compile real Ranger default Theme",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 494
+    "line": 501
   },
   {
     "id": "SVC-THEME-TEST-004",
     "summary": "Compile real Ranger/Ranger KMS database Themes",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 495
+    "line": 502
   },
   {
     "id": "SVC-THEME-TEST-005",
     "summary": "Compile real YARN and MAPREDUCE2 Themes",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 496
+    "line": 503
   },
   {
     "id": "SVC-THEME-TEST-006",
     "summary": "Normalize single and batch response shapes",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 497
+    "line": 504
   },
   {
     "id": "SVC-THEME-TEST-007",
     "summary": "Preserve all layouts independently of `configuration-layout`",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 498
+    "line": 505
   },
   {
     "id": "SVC-THEME-TEST-008",
     "summary": "Protect full config identity",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 499
+    "line": 506
   },
   {
     "id": "SVC-THEME-TEST-009",
     "summary": "Protect graph identity",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 500
+    "line": 507
   },
   {
     "id": "SVC-THEME-TEST-010",
     "summary": "Validate placement targets",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 501
+    "line": 508
   },
   {
     "id": "SVC-THEME-TEST-011",
     "summary": "Isolate malformed metadata",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 502
+    "line": 509
   },
   {
     "id": "SVC-THEME-TEST-012",
     "summary": "Parse config conditions",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 503
+    "line": 510
   },
   {
     "id": "SVC-THEME-TEST-013",
     "summary": "Evaluate service conditions",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 504
+    "line": 511
   },
   {
     "id": "SVC-THEME-TEST-014",
     "summary": "Apply ordered mutations from every source mode",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 505
+    "line": 512
   },
   {
     "id": "SVC-THEME-TEST-015",
     "summary": "Preserve visibility and identity layers",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 506
+    "line": 513
   },
   {
     "id": "SVC-THEME-TEST-016",
     "summary": "Reject unsafe conditions",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 507
+    "line": 514
   },
   {
     "id": "SVC-THEME-TEST-017",
     "summary": "Render exact Section grid",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 508
+    "line": 515
   },
   {
     "id": "SVC-THEME-TEST-018",
     "summary": "Render exact SubSection grid",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 509
+    "line": 516
   },
   {
     "id": "SVC-THEME-TEST-019",
     "summary": "Operate top-level tabs",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 510
+    "line": 517
   },
   {
     "id": "SVC-THEME-TEST-020",
     "summary": "Operate nested tabs",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 511
+    "line": 518
   },
   {
     "id": "SVC-THEME-TEST-021",
     "summary": "Propagate filter/errors",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 512
+    "line": 519
   },
   {
     "id": "SVC-THEME-TEST-022",
     "summary": "Dispatch every Widget type",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 513
+    "line": 520
   },
   {
     "id": "SVC-THEME-TEST-023",
     "summary": "Round-trip entry Widgets",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 514
+    "line": 521
   },
   {
     "id": "SVC-THEME-TEST-024",
     "summary": "Round-trip text/directory Widgets",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 515
+    "line": 522
   },
   {
     "id": "SVC-THEME-TEST-025",
     "summary": "Convert slider units",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 516
+    "line": 523
   },
   {
     "id": "SVC-THEME-TEST-026",
     "summary": "Convert time spinner units",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 517
+    "line": 524
   },
   {
     "id": "SVC-THEME-TEST-027",
     "summary": "Exercise shared controls and raw fallback",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 518
+    "line": 525
   },
   {
     "id": "SVC-THEME-TEST-028",
     "summary": "Build DB action payloads",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 519
+    "line": 526
   },
   {
     "id": "SVC-THEME-TEST-029",
     "summary": "Complete DB task lifecycle",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 520
+    "line": 527
   },
   {
     "id": "SVC-THEME-TEST-030",
     "summary": "Load installed Service Config Theme",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 521
+    "line": 528
   },
   {
     "id": "SVC-THEME-TEST-031",
     "summary": "Load Host Config Theme",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 522
+    "line": 529
   },
   {
     "id": "SVC-THEME-TEST-032",
     "summary": "Compare config versions",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 523
+    "line": 530
   },
   {
     "id": "SVC-THEME-TEST-033",
     "summary": "Run new Installer category flow",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 524
+    "line": 531
   },
   {
     "id": "SVC-THEME-TEST-034",
     "summary": "Run Add Service flow",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 525
+    "line": 532
   },
   {
     "id": "SVC-THEME-TEST-035",
     "summary": "Preserve canonical save payload",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 526
+    "line": 533
   },
   {
     "id": "SVC-THEME-TEST-036",
     "summary": "Enforce permissions and modes",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 527
+    "line": 534
   },
   {
     "id": "SVC-THEME-TEST-037",
     "summary": "Test server parsing/filtering",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 528
+    "line": 535
   },
   {
     "id": "SVC-THEME-TEST-038",
     "summary": "Test server inheritance/removal",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 529
+    "line": 536
   },
   {
     "id": "SVC-THEME-TEST-039",
     "summary": "Test Theme resource provider",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 530
+    "line": 537
   },
   {
     "id": "SVC-THEME-TEST-040",
     "summary": "Real-cluster acceptance",
     "section": "Executable React and Server Test Contract",
     "moduleFile": "14-service-theme-layout.md",
-    "line": 531
+    "line": 538
   }
 ]

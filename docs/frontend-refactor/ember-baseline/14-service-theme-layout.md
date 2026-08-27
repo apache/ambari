@@ -190,7 +190,10 @@ Classic processes the response in this order: map every returned layout; link
 placements; attach Widget metadata; load mapped records; and generate an
 Advanced tab for requested services. It relies on stack configuration metadata
 having been loaded first. Installer/Add Service explicitly load stack configs
-before the batch Theme request.
+before the batch Theme request. Installed Service, Host Configs, and version
+comparison then reject categorized tabs (`Theme.name !== default`); those
+database, credentials, and directories layouts remain available only to their
+wizard categories.
 
 | ID | Compilation behavior | Required React identity or boundary | Classic evidence and limitation |
 | --- | --- | --- | --- |

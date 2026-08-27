@@ -819,86 +819,18 @@ export const normalizeThemeResponse = (
 
 /**
  * The server's default predicate selects Theme descriptors, not an inner
- * Theme.name. Installed Service and Host configuration pages must therefore
- * compile every returned artifact, as Classic does.
+ * Theme.name. Classic maps every returned artifact, then excludes categorized
+ * Themes from Installed Service and Host pages. Selecting the exact default
+ * Theme here preserves that consumer behavior without sharing mutable models.
  */
 export const normalizeDefaultThemeResponse = (
   response: unknown,
   requestedServices: readonly string[],
-): NormalizedThemes => {
-  const diagnostics: ThemeDiagnostic[] = [];
-  const candidates = collectCandidates(response, diagnostics);
-  const parsedByService: Record<string, ServiceTheme[]> = {};
-  const seenThemes = new Set<string>();
-
-  candidates.forEach((candidate) => {
-    const themeName = asString(candidate.theme.name);
-    if (!themeName) {
-      diagnostics.push({
-        code: "INVALID_THEME",
-        serviceName: candidate.serviceName,
-        sourceFile: candidate.sourceFile,
-        message: "ThemeInfo.theme_data.Theme is missing name.",
-      });
-      return;
-    }
-
-    const identity = `${candidate.serviceName}\u0000${themeName}`;
-    if (seenThemes.has(identity)) {
-      diagnostics.push({
-        code: "DUPLICATE_THEME",
-        serviceName: candidate.serviceName,
-        themeName,
-        sourceFile: candidate.sourceFile,
-        message: `Ignored duplicate ${themeName} theme for ${candidate.serviceName}.`,
-      });
-      return;
-    }
-    seenThemes.add(identity);
-
-    const parsed = parseCandidate(candidate, themeName, diagnostics);
-    if (!parsed || parsed.isFallback) return;
-    parsedByService[candidate.serviceName] ??= [];
-    parsedByService[candidate.serviceName].push(parsed);
-  });
-
-  const byService: Record<string, ServiceTheme> = {};
-  requestedServices.forEach((serviceName) => {
-    const serviceThemes = parsedByService[serviceName] ?? [];
-    if (!serviceThemes.length) {
-      byService[serviceName] = fallbackTheme(serviceName, "default");
-      return;
-    }
-
-    const tabs = serviceThemes.flatMap((theme) =>
-      theme.tabs.filter((tab) => !tab.isAdvanced),
-    );
-    tabs.push(advancedTab(serviceName));
-    byService[serviceName] = {
-      serviceName,
-      themeName: "*",
-      layoutNames: serviceThemes.flatMap((theme) => theme.layoutNames),
-      tabs,
-      placements: serviceThemes.flatMap((theme) => theme.placements),
-      // Renderers use placement.widget, preserving presentation metadata when
-      // the same config path appears in more than one Theme artifact.
-      widgetsByConfigPath: Object.assign(
-        {},
-        ...serviceThemes.map((theme) => theme.widgetsByConfigPath),
-      ),
-      isFallback: false,
-    };
-  });
-
-  return {
-    services: [...requestedServices],
-    themedServices: requestedServices.filter(
-      (serviceName) => !byService[serviceName]?.isFallback,
-    ),
-    byService,
-    diagnostics,
-  };
-};
+): NormalizedThemes => normalizeThemeResponse(
+  response,
+  "default",
+  requestedServices,
+);
 
 export const toConfigThemeView = (
   normalized: NormalizedThemes,

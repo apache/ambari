@@ -17,17 +17,14 @@
  */
 
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../store/context";
 
 const mocks = vi.hoisted(() => ({
-  fetchData: undefined as undefined | (() => Promise<void>),
   getAlertDefinition: vi.fn(),
   getAlerts: vi.fn(),
   getGroupFormattedAlertsNotifications: vi.fn(),
-  pausePolling: vi.fn(),
-  resumePolling: vi.fn(),
   updateAlertDefinitionState: vi.fn(),
 }));
 
@@ -45,18 +42,6 @@ vi.mock("../../hooks/useAuthorizationPolicy", () => ({
   default: () => ({ isAuthorized: () => true }),
 }));
 
-vi.mock("../../hooks/usePolling", () => ({
-  default: (callback: () => Promise<void>) => {
-    mocks.fetchData = callback;
-    return {
-      isPaused: false,
-      pausePolling: mocks.pausePolling,
-      resumePolling: mocks.resumePolling,
-      stopPolling: vi.fn(),
-    };
-  },
-}));
-
 vi.mock("../../hooks/usePagination", () => ({
   default: (items: unknown[]) => ({
     changePage: vi.fn(),
@@ -69,16 +54,38 @@ vi.mock("../../hooks/usePagination", () => ({
 }));
 
 vi.mock("../../components/Table", () => ({
-  default: ({ data }: { data: Array<{ label: string }> }) => (
+  default: ({
+    columns,
+    data,
+  }: {
+    columns: Array<{
+      accessorKey?: string;
+      cell?: (value: { row: { original: Record<string, unknown> } }) => ReactNode;
+    }>;
+    data: Array<{ label: string } & Record<string, unknown>>;
+  }) => (
     <div data-testid="alerts-table">
       {data.map((item) => <span key={item.label}>{item.label}</span>)}
+      {data.length
+        ? columns.find((column) => column.accessorKey === "enabled")?.cell?.({
+            row: { original: data[0] },
+          })
+        : null}
     </div>
   ),
 }));
 
 vi.mock("../../components/Paginator", () => ({ default: () => null }));
 vi.mock("../../components/LastStatusChanged", () => ({ default: () => null }));
-vi.mock("../../components/Modal", () => ({ default: () => null }));
+vi.mock("../../components/Modal", () => ({
+  default: ({
+    isOpen,
+    successCallback,
+  }: {
+    isOpen: boolean;
+    successCallback: () => void;
+  }) => isOpen ? <button onClick={successCallback}>Confirm alert state</button> : null,
+}));
 vi.mock("./MenuBar", () => ({
   default: ({ alertDefinitions }: { alertDefinitions: Array<{ label: string }> }) => (
     <div data-testid="alert-definitions">
@@ -103,7 +110,12 @@ const alertsResponse = (label: string) => ({
   items: [
     {
       AlertGroup: { default: false, definitions: [], name: label },
-      processed: { label, statuses: [] },
+      processed: {
+        alert_definition_id: 1,
+        enabled: true,
+        label,
+        statuses: [],
+      },
     },
   ],
 });
@@ -136,7 +148,6 @@ const renderAlerts = () => render(
 describe("Alerts request ordering", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.fetchData = undefined;
     mocks.getGroupFormattedAlertsNotifications.mockResolvedValue({
       alerts_summary_grouped: [],
     });
@@ -144,7 +155,7 @@ describe("Alerts request ordering", () => {
 
   afterEach(cleanup);
 
-  it("does not let an older poll overwrite a successful manual refresh", async () => {
+  it("does not let an older action refresh overwrite a newer refresh", async () => {
     let resolveOldAlerts: (value: ReturnType<typeof alertsResponse>) => void =
       () => undefined;
     let resolveOldDefinitions: (
@@ -162,28 +173,27 @@ describe("Alerts request ordering", () => {
     );
 
     mocks.getAlerts
-      .mockRejectedValueOnce(new Error("initial failure"))
+      .mockResolvedValueOnce(alertsResponse("initial alert"))
       .mockReturnValueOnce(oldAlerts)
       .mockResolvedValueOnce(alertsResponse("new alert"));
     mocks.getAlertDefinition
+      .mockResolvedValueOnce(definitionsResponse("initial definition"))
       .mockReturnValueOnce(oldDefinitions)
       .mockResolvedValueOnce(definitionsResponse("new definition"));
+    mocks.updateAlertDefinitionState.mockResolvedValue({});
     renderAlerts();
 
-    await act(async () => {
-      await mocks.fetchData?.();
-    });
-    expect(await screen.findByRole("button", { name: "Retry" })).toBeTruthy();
-
-    const oldPoll = mocks.fetchData?.();
-    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByText("initial alert")).toBeTruthy();
+    fireEvent.click(screen.getByText("Enabled"));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm alert state" }));
+    fireEvent.click(await screen.findByText("Disabled"));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm alert state" }));
     expect(await screen.findByText("new alert")).toBeTruthy();
     expect(await screen.findByText("new definition")).toBeTruthy();
 
     await act(async () => {
       resolveOldAlerts(alertsResponse("old alert"));
       resolveOldDefinitions(definitionsResponse("old definition"));
-      await oldPoll;
       await oldDefinitions;
     });
 
