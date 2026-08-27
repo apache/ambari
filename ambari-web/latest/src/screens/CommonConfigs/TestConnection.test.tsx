@@ -140,6 +140,7 @@ const renderConnection = ({
           services: installed
             ? [{ ServiceInfo: { service_name: "HIVE" } }]
             : [],
+          isClusterInstalled: installed,
           ambariProperties,
         } as unknown as ComponentProps<typeof AppContext.Provider>["value"]
       }

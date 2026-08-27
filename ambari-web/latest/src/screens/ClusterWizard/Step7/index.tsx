@@ -89,6 +89,12 @@ import {
   previousAddServiceStep,
 } from "../../Services/AddServiceWizard/addServiceNavigation";
 import { shouldWarnBeforeSkippingPreInstallChecks } from "../preInstallChecks";
+import {
+  classifyDefaultThemeResponse,
+  describeThemeRequestError,
+  ThemeLoadNotice,
+} from "../../CommonConfigs/themeLoadUtils";
+import { getCategoryClientErrors } from "./categoryValidation";
 
 type PropTypes = {
   wizardName?: string;
@@ -100,7 +106,9 @@ const createConfigurationStepPayload = (
   themes: unknown,
   configs: unknown,
   stackLevelConfigs: unknown,
-  preInstallChecksWereRun: boolean
+  preInstallChecksWereRun: boolean,
+  selectedTab: string,
+  selectedServicesByTab: Record<string, string>,
 ) => ({
   step,
   data: {
@@ -109,6 +117,10 @@ const createConfigurationStepPayload = (
     configs,
     stackLevelConfigs,
     preInstallChecksWereRun,
+    navigation: {
+      selectedTab,
+      selectedServicesByTab,
+    },
   },
 });
 
@@ -147,6 +159,13 @@ export const findPreviousEnabledConfigurationTab = (
     );
   }
   return previousTab;
+};
+
+export const findInitialConfigurationTab = (disabledTabs: string[]) => {
+  if (!disabledTabs.includes("credentials")) return "credentials";
+  if (!disabledTabs.includes("databases")) return "databases";
+  if (!disabledTabs.includes("directories")) return "directories";
+  return "allConfigurations";
 };
 
 const preserveEditedConfigValues = (
@@ -213,6 +232,10 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     "addServiceSteps.SERVICES.data.addServiceFlow",
     {},
   );
+  const storedConfigProperties =
+    getStepData("CONFIGURATION", "configProperties") || {};
+  const storedNavigation =
+    getStepData("CONFIGURATION", "navigation") || {};
   const [themes, setThemes] = useState<any>(
     getStepData("CONFIGURATION", "themes") || {}
   );
@@ -226,10 +249,17 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     getStepData("CONFIGURATION", "stackLevelConfigs") || {}
   );
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedTab, setSelectedTab] = useState<string>("credentials");
+  const [selectedTab, setSelectedTab] = useState<string>(() =>
+    !isEmpty(storedConfigProperties)
+      ? "allConfigurations"
+      : get(storedNavigation, "selectedTab", "credentials"),
+  );
+  const [selectedServicesByTab, setSelectedServicesByTab] = useState<
+    Record<string, string>
+  >(() => get(storedNavigation, "selectedServicesByTab", {}));
   const [disabledTabs, setDisabledTabs] = useState<string[]>([]);
   const [configProperties, setConfigProperties] = useState(
-    getStepData("CONFIGURATION", "configProperties") || {}
+    storedConfigProperties
   );
   const configPropertiesRef = useRef(configProperties);
   const themeRequestId = useRef(0);
@@ -249,7 +279,9 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   );
   const [showPreInstallChecks, setShowPreInstallChecks] = useState(false);
   const [showSkippedChecksWarning, setShowSkippedChecksWarning] = useState(false);
-  const [themeLoadError, setThemeLoadError] = useState("");
+  const [themeLoadNotice, setThemeLoadNotice] =
+    useState<ThemeLoadNotice | null>(null);
+  const [themeRetrying, setThemeRetrying] = useState(false);
 
   useEffect(() => {
     configPropertiesRef.current = configProperties;
@@ -319,7 +351,9 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         themes,
         configs,
         stackLevelConfigs,
-        preInstallChecksWereRun
+        preInstallChecksWereRun,
+        selectedTab,
+        selectedServicesByTab,
       ),
     });
   }, [
@@ -328,6 +362,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     themes,
     stackLevelConfigs,
     preInstallChecksWereRun,
+    selectedTab,
+    selectedServicesByTab,
   ]);
 
   const initialServiceComponents = get(
@@ -349,11 +385,16 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     return servicesData[service].selected;
   });
 
-  // Filter out Kerberos when in add service mode
+  const conditionServices = [
+    ...new Set([...(installedServices || []), ...services]),
+  ];
+
+  // Kerberos contributes condition/config context but does not get an ordinary
+  // Add Service configuration tab.
   const filteredServices =
     wizardName === "addService"
-      ? services.filter((service) => service !== "KERBEROS")
-    : services;
+      ? conditionServices.filter((service) => service !== "KERBEROS")
+      : services;
 
 
   const propertiesFileMap: { [key: string]: any } = {
@@ -400,7 +441,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       {
         hosts: hostsList,
         recommendations,
-        services: filteredServices,
+        services: conditionServices,
         validate: "configurations",
       }
     );
@@ -488,10 +529,6 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     set(validationErrorsCopy, "warnings", detailedWarnings);
     validationsRef.current = validationErrorsCopy;
     setValidationErrors(validationErrorsCopy);
-    setIsNextEnabled(
-      detailedCriticalErrors.length === 0 &&
-        (validationErrorsCopy.clientSideErrors?.length || 0) === 0,
-    );
   }
   function validateClientSideValidations() {
     //get all the keys which have hasError nn empty string
@@ -513,11 +550,35 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     set(validationErrorsCopy, "clientSideErrors", errorProperties);
     validationsRef.current = validationErrorsCopy;
     setValidationErrors(validationErrorsCopy);
-    setIsNextEnabled(
-      errorProperties.length === 0 &&
-        (validationErrorsCopy.criticalErrors?.length || 0) === 0,
-    );
   }
+
+  useEffect(() => {
+    if (selectedTab === "credentials") return;
+    if (selectedTab === "databases") {
+      setIsNextEnabled(
+        getCategoryClientErrors({
+          configProperties,
+          selectedTab,
+          serviceNames: conditionServices,
+          themes,
+        }).length === 0,
+      );
+      return;
+    }
+    if (selectedTab === "allConfigurations") {
+      setIsNextEnabled(
+        getCategoryClientErrors({
+          configProperties,
+          selectedTab,
+          serviceNames: conditionServices,
+          themes,
+        }).length === 0 &&
+          (validationErrors.criticalErrors?.length || 0) === 0,
+      );
+      return;
+    }
+    setIsNextEnabled(true);
+  }, [configProperties, selectedTab, themes, validationErrors]);
   useEffect(() => {
     if (configPropertiesLoaded) {
       if (wizardName === "clusterCreation") {
@@ -779,6 +840,14 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           stackVersion={stackVersion}
           hosts={hostsList}
           wizardName={wizardName}
+          selectedService={selectedServicesByTab.databases}
+          onServiceChange={(serviceName) =>
+            setSelectedServicesByTab((current) => ({
+              ...current,
+              databases: serviceName,
+            }))
+          }
+          conditionServices={conditionServices}
         />
       ),
     },
@@ -799,6 +868,14 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           stackVersion={stackVersion}
           hosts={hostsList}
           wizardName={wizardName}
+          selectedService={selectedServicesByTab.directories}
+          onServiceChange={(serviceName) =>
+            setSelectedServicesByTab((current) => ({
+              ...current,
+              directories: serviceName,
+            }))
+          }
+          conditionServices={conditionServices}
         />
       ),
     },
@@ -831,6 +908,14 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           stackVersion={stackVersion}
           hosts={hostsList}
           wizardName={wizardName}
+          selectedService={selectedServicesByTab.allConfigurations}
+          onServiceChange={(serviceName) =>
+            setSelectedServicesByTab((current) => ({
+              ...current,
+              allConfigurations: serviceName,
+            }))
+          }
+          conditionServices={conditionServices}
         />
       ),
     },
@@ -865,7 +950,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
 
   useEffect(() => {
     if (!isEmpty(configs)) {
-      const tempDisabledTabs = [];
+      const tempDisabledTabs: string[] = [];
       const credentialsData = processDataForCredentialsTab(configs, themes);
       if (!credentialsData.length) {
         tempDisabledTabs.push("credentials");
@@ -893,18 +978,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         tempDisabledTabs.push("directories");
       }
 
-      let tempSelectedTab = "credentials";
-      if (tempDisabledTabs.includes("credentials")) {
-        if (tempDisabledTabs.includes("databases")) {
-          tempSelectedTab = tempDisabledTabs.includes("directories")
-            ? "allConfigurations"
-            : "directories";
-        } else {
-          tempSelectedTab = "databases";
-        }
-      }
-      setSelectedTab(tempSelectedTab);
       setDisabledTabs(tempDisabledTabs);
+      setSelectedTab((currentTab) => {
+        if (!tempDisabledTabs.includes(currentTab)) return currentTab;
+        return findInitialConfigurationTab(tempDisabledTabs);
+      });
     }
   }, [configs, themes]);
 
@@ -2222,7 +2300,12 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       // Process initializers for newly added services
       updatedConfigProperties = initializeValues(updatedConfigProperties);
       updatedConfigProperties = updateVisibilityByForeignKeys(updatedConfigProperties);
-      updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themeData, "default", services.map(service => service));
+      updatedConfigProperties = updateVisibilityForDependsOn(
+        updatedConfigProperties,
+        themeData,
+        "default",
+        conditionServices,
+      );
       updatedConfigProperties = validateAllProperties(updatedConfigProperties);
       if (preserveCurrentValues) {
         updatedConfigProperties = preserveEditedConfigValues(
@@ -2252,7 +2335,12 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       updatedConfigProperties = onLoadOverrides(updatedConfigProperties);
       updatedConfigProperties = initializeValues(updatedConfigProperties);
       updatedConfigProperties = updateVisibilityByForeignKeys(updatedConfigProperties);
-      updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themeData, "default", filteredServices);
+      updatedConfigProperties = updateVisibilityForDependsOn(
+        updatedConfigProperties,
+        themeData,
+        "default",
+        conditionServices,
+      );
       updatedConfigProperties = validateAllProperties(updatedConfigProperties);
       if (preserveCurrentValues) {
         updatedConfigProperties = preserveEditedConfigValues(
@@ -2285,18 +2373,21 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
 
   const getThemes = async () => {
     const requestId = ++themeRequestId.current;
-    setThemeLoadError("");
+    setThemeLoadNotice(null);
+    setThemeRetrying(true);
     try {
       const response = await WizardApi.getStackThemes(
         stackName,
         stackVersion,
-        services.join(","),
+        conditionServices.join(","),
         "themes/*"
       );
       if (requestId !== themeRequestId.current) {
         return;
       }
+      const notice = classifyDefaultThemeResponse(response, conditionServices);
       setThemes(response);
+      setThemeLoadNotice(notice);
       if (!isEmpty(configPropertiesRef.current)) {
         await getConfigProperties(response, true, requestId);
       }
@@ -2304,15 +2395,17 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       if (requestId !== themeRequestId.current) {
         return;
       }
-      setThemes({});
-      setThemeLoadError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Service configuration layouts could not be loaded."
-      );
+      setThemeLoadNotice({
+        kind: "request",
+        message: describeThemeRequestError(
+          error,
+          "Service configuration layouts could not be loaded.",
+        ),
+      });
     } finally {
       if (requestId === themeRequestId.current) {
         setThemesSettled(true);
+        setThemeRetrying(false);
       }
     }
   };
@@ -2321,7 +2414,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     const response = await WizardApi.getStackConfigurations(
       stackName,
       stackVersion,
-      services.join(","),
+      conditionServices.join(","),
       "configurations/*,configurations/dependencies/*,StackServices/config_types/*"
     );
     setConfigs(response);
@@ -2428,7 +2521,9 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         themes,
         configs,
         stackLevelConfigs,
-        preInstallChecksWereRun
+        preInstallChecksWereRun,
+        selectedTab,
+        selectedServicesByTab,
       ),
     });
     if (wizardName === "addService") {
@@ -2491,6 +2586,19 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         stackVersion={stackVersion}
         hosts={hostsList}
         wizardName={wizardName}
+        selectedService={
+          selectedServicesByTab.allConfigurations ||
+          filteredServices.find(
+            (serviceName) => !installedServices.includes(serviceName),
+          )
+        }
+        onServiceChange={(serviceName) =>
+          setSelectedServicesByTab((current) => ({
+            ...current,
+            allConfigurations: serviceName,
+          }))
+        }
+        conditionServices={conditionServices}
       />
     );
   };
@@ -2540,19 +2648,31 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         </BootstrapModal.Footer>
       </BootstrapModal>
       <div>
-        {themeLoadError && (
-          <Alert variant="warning" className="mb-3">
+        {themeLoadNotice && (
+          <Alert
+            variant={themeLoadNotice.kind === "empty" ? "info" : "warning"}
+            className="mb-3"
+          >
             <div className="d-flex justify-content-between align-items-center gap-3">
-              <span>
-                {themeLoadError} Advanced configurations remain available.
-              </span>
-              <Button
-                size="sm"
-                variant="outline-warning"
-                onClick={() => void getThemes()}
-              >
-                Retry
-              </Button>
+              <div>
+                <div>
+                  {themeLoadNotice.kind === "empty"
+                    ? "No Theme layouts are defined for the selected services."
+                    : "Some service configuration layouts could not be loaded."}
+                  {" "}Advanced configurations remain available.
+                </div>
+                <small>{themeLoadNotice.message}</small>
+              </div>
+              {themeLoadNotice.kind !== "empty" && (
+                <Button
+                  size="sm"
+                  variant="outline-warning"
+                  disabled={themeRetrying}
+                  onClick={() => void getThemes()}
+                >
+                  {themeRetrying ? "Retrying..." : "Retry"}
+                </Button>
+              )}
             </div>
           </Alert>
         )}
@@ -2576,7 +2696,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         {wizardName === "addService" ? (
           addServiceTabMapping()
         ) : (
-          <Tab.Container activeKey={selectedTab}>
+          <Tab.Container activeKey={selectedTab} transition={false}>
             <Row className="ps-3 mb-3">
               <Nav variant="underline">
                 {Object.keys(tabMapping).map((tabKey) => (
@@ -2623,9 +2743,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         isNextEnabled={isNextEnabled}
         lifted
         onNext={() => void handleNext()}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onCancel={() => flushStateToDb("cancel")}
         onBack={async () => {
           if (wizardName === "addService") {
             const previousStep = previousAddServiceStep(4, addServiceFlow);

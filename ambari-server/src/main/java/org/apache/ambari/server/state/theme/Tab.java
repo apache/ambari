@@ -68,13 +68,16 @@ public class Tab implements ApiModel {
 
   public void mergeWithParent(Tab parentTab) {
     // null name is not expected due to theme structure
+    if (parentTab == null) {
+      return;
+    }
 
     if (displayName == null) {
       displayName = parentTab.displayName;
     }
     if (tabLayout == null) {
       tabLayout = parentTab.tabLayout;
-    } else {
+    } else if (parentTab.tabLayout != null) {
       tabLayout.mergeWithParent(parentTab.tabLayout);
     }
   }

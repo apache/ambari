@@ -128,30 +128,34 @@ and child files a second time.
 | SVC-THEME-MAP-001 | Parses and binds declared Theme JSON during stack loading | Missing files and Jackson I/O/binding errors mark that Theme module invalid. Bindable but semantically incomplete metadata can pass and must still be checked by the client | `stack/ThemeModule` constructor |
 | SVC-THEME-MAP-002 | Isolates a parse-invalid Theme from its service | Invalid modules are logged and omitted from `ServiceInfo.themes`; valid siblings and the service remain. Module errors are log-only and are not an API diagnostic | `stack/ServiceModule#populateThemeModules`; `StackManagerExtensionTest` |
 | SVC-THEME-MAP-003 | Inherits Theme files by exact file name | An absent child body inherits the parent body; a populated child Theme merges with the matching parent; a child `ThemeInfo.deleted=true` removes that file from `themesMap` | `ThemeModule#resolve`; `ServiceModule#mergeThemes` |
-| SVC-THEME-MAP-004 | Applies type-specific inheritance/removal sentinels | Layout, Widget, tab, section, subsection, and placement removal predicates are different; several incomplete additions can null-dereference. These are implementation facts requiring Java regression coverage, not one generic safe-deletion promise | `state/theme/*#mergeWithParent`, `isRemoved` |
-| SVC-THEME-MAP-005 | Merges collections by metadata identity | Layouts/tabs/sections/subsections use `name`; Widgets and placements use exact `config`. Outer layout/Widget/placement maps retain insertion order, while several nested maps do not | `ThemeConfiguration`, `Layout`, `TabLayout`, `Section`, `Placement` |
+| SVC-THEME-MAP-004 | Applies type-specific inheritance/removal sentinels | Layout, Widget, tab, section, subsection, and placement removal predicates remain different. Merge methods tolerate missing parents for complete child additions; a presentation-only subsection override is retained rather than mistaken for deletion | `state/theme/*#mergeWithParent`, `isRemoved`; `ThemeMergeTest` |
+| SVC-THEME-MAP-005 | Merges collections by metadata identity | Layouts/tabs/sections/subsections use `name`; Widgets and placements use exact `config`. All merge maps use insertion-preserving maps, so inherited declaration order is retained and complete child additions append in child declaration order | `ThemeConfiguration`, `Layout`, `TabLayout`, `Section`, `Placement`; `ThemeMergeTest` |
 | SVC-THEME-MAP-006 | Applies field-specific scalar inheritance | Theme, tab, tab-layout, section, and existing-subsection missing fields inherit. A retained placement inherits only `subsection-name`; nested-tab target, attributes, and conditions replace rather than field-merge | `Theme`, `Tab`, `TabLayout`, `Section`, `Subsection`, `ConfigPlacement` |
 | SVC-THEME-MAP-007 | Preserves resolved server-side Theme identity and default metadata | The API reads the resolved `ServiceInfo.themesMap`, keyed by file name. Existing extension tests inspect the pre-resolution `getThemes()` list and therefore do not prove API-map deletion/filtering | `ServiceInfo#getThemesMap`; `ThemeArtifactResourceProvider#getThemes`; `StackManagerExtensionTest` |
-| SVC-THEME-MAP-008 | Does not guarantee inherited child ordering through every level | Several nested merge implementations use `HashMap`; React must use the order received from the API and must not derive order from object keys or file discovery | `Layout#mergeTabs`, `TabLayout#mergedSections`, `Section#mergeSubsections` |
+| SVC-THEME-MAP-008 | Preserves declaration order through inherited collection merges | Nested layout, tab, section, subsection, placement, and Widget merges use `LinkedHashMap`. React must still use the API array order and select resources by exact metadata rather than depending on REST collection or file discovery order | `Layout#mergeTabs`, `TabLayout#mergedSections`, `Section#mergeSubsections`; `ThemeMergeTest` |
 
 The implemented deep-merge matrix is exact and intentionally recorded with its
-hazards. It needs focused Java tests before custom inherited Themes can be
-declared supported end to end:
+type-specific removal rules. Focused Java tests cover its core additions,
+removals, replacements, ordering, descriptor deletion, and parent isolation;
+custom inherited Themes still need real-stack integration acceptance:
 
 | Record | Identity and merge behavior | Removal or known hazard |
 | --- | --- | --- |
 | Theme file | Descriptor `fileName`; a child body merges with the same parent file | `ThemeInfo.deleted=true` skips the child file and removes that key from the resolved map. A parse-invalid child is filtered before merge, so its valid parent can survive |
-| Theme/configuration | Non-null child `name`, `description`, and `configuration` win | Missing child objects can inherit by shared reference; no semantic validation or defensive copy is guaranteed |
+| Theme/configuration | Non-null child `name`, `description`, and `configuration` win | `ThemeModule.resolve` deep-copies inherited parent Theme data before assigning or merging it into a child, preventing resolved child mutation from aliasing the parent. Semantic validation is still intentionally limited |
 | Placement | `configuration-layout` inherits when absent; config entries merge by exact full `config` in insertion order | Missing child `subsection-name` means removal even if nested-tab target, attributes, or conditions are present. A retained entry inherits only `subsection-name` |
 | Widget | Exact full `config`; a non-null child replaces the complete Widget entry | `widget=null` deletes. Widget type, units, display name, and required-properties do not field-merge |
-| Layout and tab | Layout/tab `name`; existing entries deep-merge | `tabs=null` deletes a layout; a tab with both display name and layout absent deletes. Adding a new layout or tab beside inherited entries can null-dereference |
-| Section | Section `name`; existing scalars/subsections inherit and complete new sections can be added | A section with every field other than identity absent removes. Nested merge uses `HashMap`, so order is not guaranteed |
-| SubSection | SubSection `name`; existing missing fields inherit; `depends-on` and `subsection-tabs` replace as whole lists | Removal checks coordinates/spans, conditions, and nested tabs but ignores display/border/splitter; an override containing only those presentation fields is treated as removal. Incomplete new subsections can null-dereference |
+| Layout and tab | Layout/tab `name`; existing entries deep-merge and complete new entries append | `tabs=null` deletes a layout; a tab with both display name and layout absent deletes |
+| Section | Section `name`; existing scalars/subsections inherit and complete new sections append in declaration order | A section with every field other than identity absent removes |
+| SubSection | SubSection `name`; existing missing fields inherit; `depends-on` and `subsection-tabs` replace as whole lists | Removal checks coordinates/spans, presentation fields, conditions, and nested tabs. An entry containing only `display-name`, `border`, or `left-vertical-splitter` is a retained override; a truly empty identity-only entry removes |
 
-`ThemeModuleTest` currently proves only a representative parent-layout inherit
-and a 10-plus-2 placement/Widget merge. It does not cover the complete matrix,
-exact keys/order, removal, default/deleted metadata, malformed-but-bindable
-input, conditions, nested tabs, or the null-parent addition failures.
+`ThemeModuleTest` covers representative inheritance, missing/syntax/binding
+failures, deleted descriptors, and parent-object isolation. `ThemeMergeTest`
+covers nested additions and declaration order at every collection level,
+presentation-only subsection overrides, conditions and nested tabs, and
+type-specific layout/tab/section/subsection/placement/Widget removals and
+replacements. Valid-sibling/custom-directory stack integration and the full
+semantically malformed matrix remain separate acceptance obligations.
 
 ## Theme Data Model and Client Compilation
 
@@ -186,7 +190,10 @@ Classic processes the response in this order: map every returned layout; link
 placements; attach Widget metadata; load mapped records; and generate an
 Advanced tab for requested services. It relies on stack configuration metadata
 having been loaded first. Installer/Add Service explicitly load stack configs
-before the batch Theme request.
+before the batch Theme request. Installed Service, Host Configs, and version
+comparison then reject categorized tabs (`Theme.name !== default`); those
+database, credentials, and directories layouts remain available only to their
+wizard categories.
 
 | ID | Compilation behavior | Required React identity or boundary | Classic evidence and limitation |
 | --- | --- | --- | --- |

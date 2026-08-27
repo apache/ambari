@@ -182,7 +182,9 @@ export default function CredentialsTab({
           <Form>
             {allCredentials.map((config) => {
               return (
-                <div key={get(config, "name", "")}>
+                <div
+                  key={`${get(config, "serviceName", "")}:${get(config, "name", "")}`}
+                >
                   <div className="d-flex text-muted">
                     <div className="w-25 pt-3 ps-2">
                       {get(config, "display-name", "")}
@@ -244,7 +246,10 @@ export const processDataForCredentialsTab = (
             get(tab, "layout.sections", []).forEach((section) => {
               get(section, "subsections", []).forEach((subsection: any) => {
                 if (subsection) {
-                  currCredLayout.push(cloneDeep(subsection));
+                  currCredLayout.push({
+                    ...cloneDeep(subsection),
+                    serviceName: themeServiceName,
+                  });
                 }
               });
             });

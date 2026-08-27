@@ -23,6 +23,7 @@ import { ContextWrapper } from ".";
 
 const mocks = vi.hoisted(() => ({
   getServices: vi.fn(),
+  onCancel: undefined as undefined | (() => unknown),
 }));
 
 vi.mock("../../api/chooseServicesApi", () => ({
@@ -39,7 +40,10 @@ vi.mock("../../components/Spinner", () => ({
   default: () => <div>Loading services</div>,
 }));
 vi.mock("../../components/StepWizard/WizardFooter", () => ({
-  default: () => null,
+  default: ({ onCancel }: { onCancel: () => unknown }) => {
+    mocks.onCancel = onCancel;
+    return null;
+  },
 }));
 
 import Step4 from "./Step4";
@@ -64,6 +68,7 @@ const stackService = (
 describe("Choose Services stack metadata", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.onCancel = undefined;
     mocks.getServices.mockResolvedValue({
       items: [
         stackService("HDFS", "HDFS"),
@@ -73,10 +78,13 @@ describe("Choose Services stack metadata", () => {
     });
   });
 
-  function renderStep(wizardName: "clusterCreation" | "addService") {
+  function renderStep(
+    wizardName: "clusterCreation" | "addService",
+    flushStateToDb = vi.fn(),
+  ) {
     const value = {
       dispatch: vi.fn(),
-      flushStateToDb: vi.fn(),
+      flushStateToDb,
       handleBackImperitive: vi.fn(),
       installedServices: [],
       state: {
@@ -117,4 +125,14 @@ describe("Choose Services stack metadata", () => {
       expect(mocks.getServices).toHaveBeenCalledWith("HDP", "3.1");
     },
   );
+
+  it("returns Add Service cancellation persistence to the confirmation dialog", async () => {
+    const cancellation = Promise.resolve();
+    const flushStateToDb = vi.fn().mockReturnValue(cancellation);
+    renderStep("addService", flushStateToDb);
+
+    await waitFor(() => expect(mocks.onCancel).toBeTypeOf("function"));
+    expect(mocks.onCancel?.()).toBe(cancellation);
+    expect(flushStateToDb).toHaveBeenCalledWith("cancel");
+  });
 });

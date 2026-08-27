@@ -16,14 +16,66 @@
  * limitations under the License.
  */
 
-export const formatParamsForDisplay = (_value: string, _displayType?: string): string => {
-  return "In Progress";
-}
+const splitQuotedParameters = (value: string): string[] => {
+  const parameters: string[] = [];
+  let current = "";
+  let quote = "";
+  let escaped = false;
 
-export const formatParamsForSave = (_value: string): string => {
-  return "In Progress";
-}
+  for (const character of value) {
+    if (escaped) {
+      current += character;
+      escaped = false;
+      continue;
+    }
+    if (character === "\\") {
+      current += character;
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      current += character;
+      if (character === quote) quote = "";
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      current += character;
+      quote = character;
+      continue;
+    }
+    if (/\s/.test(character)) {
+      if (current) parameters.push(current);
+      current = "";
+      continue;
+    }
+    current += character;
+  }
+  if (current) parameters.push(current);
+  return parameters;
+};
 
-export const shouldUseMultilineFormatting = (_value: string, _displayType?: string): string => {
-  return "In Progress";
-}
+const startsLikeJvmOption = (value: string) =>
+  /^(?:-X|-D|-XX:|-server$|-client$|--add-(?:opens|exports)=)/.test(value);
+
+export const formatParamsForDisplay = (
+  value: string,
+  _displayType?: string,
+): string => splitQuotedParameters(String(value ?? "")).join("\n");
+
+export const formatParamsForSave = (value: string): string =>
+  splitQuotedParameters(String(value ?? "")).join(" ");
+
+export const shouldUseMultilineFormatting = (
+  value: string,
+  displayType?: string,
+): boolean => {
+  if (
+    ["content", "directories", "directory", "multiLine"].includes(
+      String(displayType),
+    )
+  ) {
+    return false;
+  }
+  const parameters = splitQuotedParameters(String(value ?? ""));
+  return parameters.length > 1 && parameters.every(startsLikeJvmOption);
+};

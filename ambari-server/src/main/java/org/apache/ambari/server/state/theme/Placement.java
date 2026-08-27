@@ -55,6 +55,10 @@ public class Placement{
   }
 
   public void mergeWithParent(Placement parent) {
+    if (parent == null) {
+      return;
+    }
+
     if (configurationLayout == null) {
       configurationLayout = parent.configurationLayout;
     }

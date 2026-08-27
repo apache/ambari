@@ -53,6 +53,7 @@ const property = (name: string, value: string, previousValue: string) => ({
   foundInPropertyValues: true,
   isRequiredByAgent: true,
   propertyType: ["TEXT"],
+  confirmPassword: `confirm-${name}`,
 });
 
 const configProperties: ConfigPropertiesType = {
@@ -67,6 +68,18 @@ const configProperties: ConfigPropertiesType = {
           value: null,
           isVisible: false,
         },
+        uiOnly: {
+          ...property("uiOnly", "ui-state", "old-ui-state"),
+          isRequiredByAgent: false,
+        },
+      },
+    },
+  },
+  YARN: {
+    "Advanced shared hdfs-site": {
+      errors: 0,
+      properties: {
+        yarnOnly: property("yarnOnly", "keep-yarn", "keep-yarn"),
       },
     },
   },
@@ -166,5 +179,68 @@ describe("configuration save lifecycle", () => {
     expect(result.current.saveInProgress).toBe(false);
     expect(setSubmitDisabled).toHaveBeenLastCalledWith(false);
     expect(mocks.showModal).toHaveBeenCalled();
+  });
+
+  it("saves override final state only in the selected config group", async () => {
+    mocks.updateConfigGroupProperties.mockResolvedValue({ saved: true });
+    const groupConfigs = structuredClone(configProperties);
+    const changed = groupConfigs.HDFS["Advanced hdfs-site"].properties.changed;
+    changed.value = "default-value";
+    changed.previousValue = "default-value";
+    changed.overrideValues = [
+      {
+        groupName: "Blue",
+        value: "group-value",
+        previousValue: "group-value",
+        final: "true",
+        savedFinal: "false",
+      },
+    ];
+    const setSubmitDisabled = vi.fn();
+    const { result } = renderHook(
+      () =>
+        useConfigSaver(
+          false,
+          setSubmitDisabled,
+          "Blue",
+          groupConfigs,
+          "HDFS",
+          [
+            {
+              ConfigGroup: {
+                id: 17,
+                group_name: "Blue",
+                tag: "HDFS",
+                description: "Blue hosts",
+                hosts: [{ host_name: "host1" }],
+              },
+            },
+          ],
+          "Group final state",
+        ),
+      { wrapper },
+    );
+
+    await act(async () => {
+      expect(await result.current.saveStepConfigs()).toBe(true);
+    });
+
+    expect(mocks.updateConfigGroupProperties).toHaveBeenCalledWith(
+      "c1",
+      17,
+      expect.objectContaining({
+        ConfigGroup: expect.objectContaining({
+          desired_configs: [
+            expect.objectContaining({
+              type: "hdfs-site",
+              properties: { changed: "group-value" },
+              properties_attributes: expect.objectContaining({
+                final: { changed: "true" },
+              }),
+            }),
+          ],
+        }),
+      }),
+    );
   });
 });

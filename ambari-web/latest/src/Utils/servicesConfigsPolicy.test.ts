@@ -26,6 +26,7 @@ vi.mock("../api/clusterApi", () => ({
 import {
   buildClearedAddServiceState,
   clearAddServiceWizardState,
+  reloadAtHashRoute,
 } from "./addServicePersistence";
 import { canManageServices } from "./servicePermissions";
 
@@ -75,5 +76,25 @@ describe("services and configs policy", () => {
 
     await clearAddServiceWizardState({ addServiceSteps: {} }, 7);
     expect(mocks.postPersistData).toHaveBeenCalledWith(payload);
+  });
+
+  it("updates the hash route before reloading the current frontend deployment", () => {
+    const calls: string[] = [];
+    const location = {
+      _hash: "#/main/service/add/step1",
+      get hash() {
+        return this._hash;
+      },
+      set hash(value: string) {
+        calls.push(`hash:${value}`);
+        this._hash = value;
+      },
+      reload: () => calls.push("reload"),
+    };
+
+    reloadAtHashRoute("main/services", location);
+
+    expect(calls).toEqual(["hash:/main/services", "reload"]);
+    expect(location.hash).toBe("/main/services");
   });
 });

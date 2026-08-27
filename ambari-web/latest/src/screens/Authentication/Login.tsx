@@ -112,21 +112,29 @@ export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
                 ) : (
                   ""
                 )}
-                <Form.Group className="my-3" controlId="loginFields">
-                  <Form.Label className="fw-bold">Username</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="form-control mb-4 rounded-0"
-                  />
-                  <Form.Label className="fw-bold">Password</Form.Label>
-                  <Form.Control
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="form-control mb-1 rounded-0"
-                  />
+                <div className="my-3">
+                  <Form.Group controlId="ambari-login-username">
+                    <Form.Label className="fw-bold">Username</Form.Label>
+                    <Form.Control
+                      type="text"
+                      autoComplete="username"
+                      value={username}
+                      disabled={isLoading}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="form-control mb-4 rounded-0"
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="ambari-login-password">
+                    <Form.Label className="fw-bold">Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      disabled={isLoading}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="form-control mb-1 rounded-0"
+                    />
+                  </Form.Group>
                   <Button
                     variant="primary"
                     type="submit"
@@ -140,7 +148,7 @@ export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
                       Sign in with local credentials
                     </a>
                   ) : null}
-                </Form.Group>
+                </div>
               </Form>
             </Card>
           </Col>

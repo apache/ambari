@@ -142,7 +142,7 @@ describe("Config versions comparator Theme adapter", () => {
     });
   });
 
-  it("uses only the default Theme and retains full config paths", () => {
+  it("uses only the Installed Service default Theme and retains full config paths", () => {
     const input = response(
       theme(
         "database",
@@ -204,9 +204,8 @@ describe("Config versions comparator Theme adapter", () => {
     ]);
     expect(result.HIVE.widgets["hive-site/shared"].type).toBe("text-field");
     expect(result.HIVE.widgets["other-site/shared"].type).toBe("password");
-    expect(
-      result.HIVE.subsectionProperties["database-subsection"],
-    ).toBeUndefined();
+    expect(result.HIVE.subsectionProperties["database-subsection"])
+      .toBeUndefined();
   });
 
   it("locates same-named properties by config type and property name", () => {

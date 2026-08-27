@@ -114,7 +114,7 @@ types, conditions, fallback, and React test obligations.
 | SVC-ADD-005 | Review | Summarizes and confirms service, component, and configuration changes | No mutation |
 | SVC-ADD-006 | Install, Start and Test | Creates services/components/host-components, saves configs, installs, starts, and runs service checks. The Deploy route's `unroutePath()` unconditionally returns `false`; Add Service does not inherit the new Installer's leave exceptions for Admin View/Views | Common service/component/config/request APIs |
 | SVC-ADD-007 | Summary | Displays completion/warnings/failures and refreshes the existing cluster's service menu. Complete closes the wizard and does not write cluster provisioning state `INSTALLED`; that write belongs only to the new Installer Complete flow | Service/cluster refresh; no provisioning mutation |
-| SVC-ADD-008 | Recovery and mutual exclusion | Persists the current step; other users are marked non-wizard users and wait in read-only mode | Cluster status/persist |
+| SVC-ADD-008 | Recovery, cancellation, and mutual exclusion | Persists the current step; other users are marked non-wizard users and wait in read-only mode. Cancel first confirms the exit (with a deployment-specific warning on Step 6), then resets wizard ownership and persisted state, hides the wizard, and returns to the stored `onClosePath` or the first installed service Summary before reloading | Cluster status/persist |
 
 ## Reassign Master Wizard
 

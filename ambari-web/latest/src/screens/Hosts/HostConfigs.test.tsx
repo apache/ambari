@@ -80,6 +80,11 @@ vi.mock("../CommonConfigs/Config", () => ({
     const hdfsPropertyNames = Object.values(hdfsSections).flatMap((section) =>
       Object.keys(section.properties || {}),
     );
+    const properties = Object.values(configProperties || {}).flatMap(
+      (sections: any) => Object.values(sections).flatMap(
+        (section: any) => Object.values(section.properties || {}),
+      ),
+    ) as Array<{ isEditable?: boolean }>;
     return (
       <div>
         <div data-testid="config-probe">
@@ -88,6 +93,9 @@ vi.mock("../CommonConfigs/Config", () => ({
         <div data-testid="theme-item-count">{themeData?.items?.length || 0}</div>
         <div data-testid="hdfs-sections">{Object.keys(hdfsSections).join(",")}</div>
         <div data-testid="hdfs-properties">{hdfsPropertyNames.join(",")}</div>
+        <div data-testid="all-properties-read-only">
+          {String(properties.every((property) => property.isEditable === false))}
+        </div>
         {servicesList.map((serviceName: string) => (
           <button key={serviceName} onClick={() => onServiceChange(serviceName)}>
             Show {serviceName}
@@ -231,9 +239,73 @@ describe("Host Configs", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry Theme" }));
     await waitFor(() => expect(mocks.getStackThemes).toHaveBeenCalledTimes(2));
     await waitFor(() =>
-      expect(screen.queryByRole("alert")).toBeNull(),
+      expect(screen.getByRole("alert").textContent).toContain(
+        "No host configuration Theme layout is defined.",
+      ),
     );
     expect(screen.getByTestId("theme-item-count").textContent).toBe("0");
+  });
+
+  it("reports a successful empty Theme response without offering a retry", async () => {
+    renderHostConfigs();
+
+    expect(await screen.findByText("Read-only group: HDFS Blue")).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain(
+      "No default Theme is available for HDFS, YARN.",
+    );
+    expect(screen.queryByRole("button", { name: "Retry Theme" })).toBeNull();
+  });
+
+  it("isolates malformed Theme metadata and keeps every host property read-only", async () => {
+    mocks.getStackConfigurations.mockResolvedValue({
+      items: [{ configurations: [{ StackConfigurations: {
+        type: "core-site.xml",
+        property_name: "fs.defaultFS",
+        service_name: "HDFS",
+        property_value: "hdfs://cluster",
+        property_value_attributes: { type: "text" },
+      } }] }],
+    });
+    mocks.getStackThemes.mockResolvedValue({
+      items: [{ StackServices: { service_name: "HDFS" }, themes: "invalid" }],
+    });
+
+    renderHostConfigs();
+
+    expect(await screen.findByText("Read-only group: HDFS Blue")).toBeTruthy();
+    expect(screen.getByRole("alert").textContent).toContain("themes must be an array.");
+    expect(screen.getByTestId("all-properties-read-only").textContent).toBe("true");
+    expect(screen.getByRole("button", { name: "Retry Theme" })).toBeTruthy();
+  });
+
+  it("keeps a custom group-only property read-only instead of failing the host view", async () => {
+    mocks.getStackConfigurations.mockResolvedValue({
+      items: [{ configurations: [{ StackConfigurations: {
+        type: "core-site.xml",
+        property_name: "known",
+        service_name: "HDFS",
+        property_value: "default",
+        property_value_attributes: { type: "text" },
+      } }] }],
+    });
+    mocks.getConfigValues.mockResolvedValue({
+      items: [{
+        service_name: "HDFS",
+        group_name: "HDFS Blue",
+        configurations: [{
+          type: "core-site",
+          properties: { "group.only": "override" },
+        }],
+      }],
+    });
+
+    renderHostConfigs();
+
+    expect(await screen.findByText("Read-only group: HDFS Blue")).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByTestId("hdfs-properties").textContent).toContain("group.only"),
+    );
+    expect(screen.getByTestId("all-properties-read-only").textContent).toBe("true");
   });
 
   it("filters traditional NAMENODE categories without pruning Theme properties", async () => {

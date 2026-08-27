@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import {ambariApi} from "./config/axiosConfig";
+import {ambariApi, supressErrorAmbariApi} from "./config/axiosConfig";
 import {misc} from "../Utils/misc";
 import Cookies from 'js-cookie';
 
@@ -38,6 +38,7 @@ const LoginApi = {
       method: "POST",
       headers: {
         'Content-Type': 'text/plain',
+        'X-Requested-By': 'X-Requested-By',
         Authorization: "Basic " + hashForUserNamePassword,
       },
       skipAuthRedirect: true,
@@ -79,7 +80,7 @@ const LoginApi = {
   },
   loadLoginMessage: async function(): Promise<LoginMessage | null> {
     try {
-      const response = await ambariApi.request({
+      const response = await supressErrorAmbariApi.request({
         url: "/settings/motd",
         method: "GET",
       });

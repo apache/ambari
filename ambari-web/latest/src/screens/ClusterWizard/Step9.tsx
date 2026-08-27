@@ -606,7 +606,7 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
           handleNextImperitive();
         }}
         onCancel={() => {
-          if (!working) void flushStateToDb("cancel");
+          if (!working) return flushStateToDb("cancel");
         }}
         onBack={() => {}}
       />

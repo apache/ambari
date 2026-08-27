@@ -41,6 +41,7 @@ import modalManager from "../../../../store/ModalManager";
 import {
   CANCEL_ADD_SERVICE_WIZARD_EVENT,
   clearAddServiceWizardState,
+  reloadAtHashRoute,
 } from "../../../../Utils/addServicePersistence";
 import { Alert, Button } from "react-bootstrap";
 import { claimWizard, releaseWizard } from "../../../../Utils/wizardOwnership";
@@ -418,11 +419,10 @@ export const AddServiceProvider: React.FC<{
       throw error;
     }
     const returnPath = localStorage.getItem("module06WizardReturnPath")
-      || "/main/dashboard/metrics";
+      || "/main/services";
     localStorage.removeItem("module06WizardReturnPath");
     modalManager.hide();
-    window.location.href = `/#${returnPath}`;
-    window.location.reload();
+    reloadAtHashRoute(returnPath);
   }
 
   cancelWizardRef.current = flushOnCancel;

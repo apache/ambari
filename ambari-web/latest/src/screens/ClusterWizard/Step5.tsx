@@ -151,9 +151,7 @@ function Step5({ wizardName = "clusterCreation" }) {
             handleNextImperitive();
           }
         }}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onCancel={() => flushStateToDb("cancel")}
         onBack={async () => {
           if (wizardName === "addService") {
             const previousStep = previousAddServiceStep(2, addServiceFlow);

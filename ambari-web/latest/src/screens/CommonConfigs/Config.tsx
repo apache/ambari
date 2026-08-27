@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useState, useTransition } from "react";
+import type { KeyboardEvent } from "react";
 import {
   Card,
   Col,
@@ -51,7 +52,12 @@ import CustomSlider from "../../components/CustomSlider";
 import AdvancedConfigs from "./AdvancedConfigs";
 import ChooseConfigGroup from "./ChooseConfigGroup";
 import ManageConfigGroups from "../ConfigGroups/ManageConfigGroups";
-import { PropertyType, configGroupOverrides, TruthValues } from "./types";
+import {
+  ConfigPropertiesType,
+  PropertyType,
+  configGroupOverrides,
+  TruthValues,
+} from "./types";
 import TestConnection from "./TestConnection";
 import Spinner from "../../components/Spinner";
 import {
@@ -64,6 +70,7 @@ import {
   formatPropertyValue,
   evaluateDependsOnForConfig,
   getSectionErrorCount,
+  getThemePlacementProperty,
 } from "./ConfigUtils";
 import useEnhancedConfigs from "../../hooks/useEnhancedConfigs";
 import OverlayBackdrop from "../../components/OverlayBackdrop";
@@ -73,9 +80,8 @@ import {
   formatTickLabel,
   getDisplayUnitLabel,
   getConfigUnitInfo,
-  convertValue,
-  parseTimeInterval,
-  composeTimeInterval,
+  getTimeIntervalCompatibility,
+  normalizeTimeIntervalUnits,
 } from "../../Utils/unitConversionUtils";
 import Modal from "../../components/Modal";
 import Table from "../../components/Table";
@@ -92,8 +98,12 @@ import {
 import {
   ConfigThemeView,
   findThemeConfigProperty,
+  normalizeDefaultThemeResponse,
   normalizeThemeResponse,
   resolveThemeConditionAttributes,
+  ThemeCondition,
+  ThemeConditionDiagnostic,
+  ThemeDiagnostic,
   ThemePlacement,
   ThemeWidget,
   toConfigThemeView,
@@ -111,7 +121,9 @@ import {
   getThemeCheckboxState,
   getThemeWidgetEntries,
   isThemeCheckboxValueSupported,
+  validateThemeListValue,
 } from "./themeWidgetUtils";
+import ThemeTimeIntervalControl from "./ThemeTimeIntervalControl";
 
 dayjs.extend(duration);
 
@@ -120,6 +132,63 @@ const isThemeAttributeTrue = (value: unknown) =>
 
 const isThemeAttributeFalse = (value: unknown) =>
   value === false || value === 0 || value === "0" || value === "false";
+
+const operateThemeTabs = (event: KeyboardEvent<HTMLElement>) => {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+    return;
+  }
+
+  const tabList = event.currentTarget.closest('[role="tablist"]');
+  const tabs = Array.from(
+    tabList?.querySelectorAll<HTMLElement>(
+      '[role="tab"]:not([aria-disabled="true"])',
+    ) ?? [],
+  );
+  const currentIndex = tabs.indexOf(event.currentTarget);
+  if (currentIndex < 0 || tabs.length < 2) return;
+
+  event.preventDefault();
+  const nextIndex =
+    event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? tabs.length - 1
+        : event.key === "ArrowRight"
+          ? (currentIndex + 1) % tabs.length
+          : (currentIndex - 1 + tabs.length) % tabs.length;
+  tabs[nextIndex].focus();
+  tabs[nextIndex].click();
+};
+
+const ThemeRawModeButton = ({
+  rawMode,
+  disabled,
+  onClick,
+  controlName,
+}: {
+  rawMode: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  controlName: string;
+}) => {
+  const label = rawMode
+    ? `Use ${controlName} control`
+    : `Edit ${controlName} as raw text`;
+  return (
+    <Tooltip message={label} placement="top">
+      <Button
+        type="button"
+        variant="link"
+        className={`ms-3 p-1 ${rawMode ? "text-primary" : "text-secondary"}`}
+        aria-label={label}
+        onClick={onClick}
+        disabled={disabled}
+      >
+        <FontAwesomeIcon icon={faPen} />
+      </Button>
+    </Tooltip>
+  );
+};
 
 type ConfigProps = {
   configSection: string;
@@ -145,8 +214,10 @@ type ConfigProps = {
   stackVersion?: string;
   hosts?: string[];
   validationErrors?: any;
+  selectedService?: string;
   onServiceChange?: (serviceName: string) => void;
   configsLoading?: boolean;
+  allThemes?: boolean;
 };
 
 interface PropertyFilter {
@@ -178,10 +249,14 @@ export default function Config({
   stackVersion,
   hosts = [],
   validationErrors = [],
+  selectedService,
   onServiceChange,
   configsLoading = false,
+  allThemes = false,
 }: ConfigProps) {
-  const [chosenService, setChosenService] = useState<string>("");
+  const [chosenService, setChosenService] = useState<string>(
+    selectedService || "",
+  );
   const [chosenTab, setChosenTab] = useState<string>("");
   const [theme, setTheme] = useState<ConfigThemeView>({});
   const [services, setServices] = useState<string[]>([]);
@@ -194,6 +269,9 @@ export default function Config({
   const [activeSubsectionTabs, setActiveSubsectionTabs] = useState<
     Record<string, string>
   >({});
+  const [normalizationDiagnostics, setNormalizationDiagnostics] = useState<
+    ThemeDiagnostic[]
+  >([]);
   // @ts-ignore
   const [isFullyLoaded, setIsFullyLoaded] = useState(false);
   const [isServiceSwitching, setIsServiceSwitching] = useState(false);
@@ -249,6 +327,15 @@ export default function Config({
     },
   ]);
 
+  const applyCurrentThemeState = (configs: ConfigPropertiesType) =>
+    updateVisibilityForDependsOn(
+      updateVisibilityByForeignKeys(configs),
+      themeData,
+      configSection,
+      installer ? servicesList : installedServices || [],
+      allThemes,
+    );
+
   const {
     onValueUpdate,
     processingConfig,
@@ -263,6 +350,7 @@ export default function Config({
     stack,
     stackVersion,
     hosts,
+    applyCurrentThemeState,
   );
 
   const handleRecommendationChange = (
@@ -281,7 +369,7 @@ export default function Config({
       };
 
       // Create a new config properties object and find the property to update
-      const newConfigs = cloneDeep(configProperties);
+      let newConfigs = cloneDeep(configProperties);
       let propertyFound = false;
 
       // Search through all services and config types to find the property
@@ -329,6 +417,7 @@ export default function Config({
       }
 
       if (propertyFound) {
+        newConfigs = applyCurrentThemeState(newConfigs);
         setConfigProperties(newConfigs);
       }
     }
@@ -414,12 +503,7 @@ export default function Config({
       );
     }
 
-    configsCopy = updateVisibilityForDependsOn(
-      configsCopy,
-      themeData,
-      configSection,
-      installedServices || [],
-    );
+    configsCopy = applyCurrentThemeState(configsCopy);
 
     setConfigProperties(configsCopy);
   };
@@ -443,29 +527,22 @@ export default function Config({
       requestedServices.push("MISC");
     }
 
-    const normalized = normalizeThemeResponse(
-      themeData,
-      configSection,
-      requestedServices,
-    );
+    const normalized = allThemes
+      ? normalizeDefaultThemeResponse(themeData, requestedServices)
+      : normalizeThemeResponse(themeData, configSection, requestedServices);
     const nextTheme = toConfigThemeView(normalized);
     const firstService = normalized.services[0] ?? "";
 
     setTheme(nextTheme);
+    setNormalizationDiagnostics(normalized.diagnostics);
     setServices(normalized.services);
-    setChosenService((currentService) =>
-      normalized.services.includes(currentService)
+    setChosenService((currentService) => {
+      if (selectedService && normalized.services.includes(selectedService)) {
+        return selectedService;
+      }
+      return normalized.services.includes(currentService)
         ? currentService
-        : firstService,
-    );
-    setChosenTab((currentTab) => {
-      const service = normalized.services.includes(chosenService)
-        ? chosenService
         : firstService;
-      const serviceTabs = Object.keys(nextTheme[service]?.tabs ?? {});
-      return serviceTabs.includes(currentTab)
-        ? currentTab
-        : (serviceTabs[0] ?? "");
     });
   };
 
@@ -477,7 +554,23 @@ export default function Config({
 
   useEffect(() => {
     getTheme();
-  }, [themeData, configPropertiesData, JSON.stringify(servicesList)]);
+  }, [
+    themeData,
+    configPropertiesData,
+    configSection,
+    allThemes,
+    selectedService,
+    JSON.stringify(servicesList),
+  ]);
+
+  useEffect(() => {
+    setChosenTab((currentTab) => {
+      const serviceTabs = Object.keys(theme[chosenService]?.tabs ?? {});
+      return serviceTabs.includes(currentTab)
+        ? currentTab
+        : (serviceTabs[0] ?? "");
+    });
+  }, [chosenService, theme]);
 
   // Track service changes and set switching state
   useEffect(() => {
@@ -536,18 +629,20 @@ export default function Config({
   ]);
 
   const handleUndo = (configType: string, property: PropertyType) => {
-    const newConfigs = cloneDeep(configProperties);
+    let newConfigs = cloneDeep(configProperties);
     newConfigs[chosenService][configType].properties[
       property.propertyName
     ].value = property.previousValue;
+    newConfigs = applyCurrentThemeState(newConfigs);
     setConfigProperties(newConfigs);
   };
 
   const setToDefault = (configType: string, property: PropertyType) => {
-    const newConfigs = cloneDeep(configProperties);
+    let newConfigs = cloneDeep(configProperties);
     newConfigs[chosenService][configType].properties[
       property.propertyName
     ].value = formatPropertyValue(property, property.propertyValue);
+    newConfigs = applyCurrentThemeState(newConfigs);
     setConfigProperties(newConfigs);
   };
 
@@ -560,16 +655,101 @@ export default function Config({
     );
   };
 
+  const getThemeDiagnostics = () => {
+    const diagnostics = new Map<
+      string,
+      { scope: string; message: string }
+    >();
+    normalizationDiagnostics.forEach((diagnostic) => {
+      const scope = [
+        diagnostic.serviceName,
+        diagnostic.themeName ?? diagnostic.sourceFile,
+      ]
+        .filter(Boolean)
+        .join(" / ");
+      diagnostics.set(
+        `${diagnostic.code}:${scope}:${diagnostic.message}`,
+        {
+          scope: scope || "Service Theme",
+          message: diagnostic.message,
+        },
+      );
+    });
+
+    const addConditionDiagnostics = (
+      serviceName: string,
+      scope: string,
+      dependsOn: readonly ThemeCondition[],
+    ) => {
+      const conditionDiagnostics: ThemeConditionDiagnostic[] = [];
+      resolveThemeConditionAttributes(
+        dependsOn,
+        configProperties,
+        serviceName,
+        installer ? servicesList : installedServices,
+        conditionDiagnostics,
+      );
+      conditionDiagnostics.forEach((diagnostic) => {
+        diagnostics.set(
+          `${diagnostic.code}:${scope}:${diagnostic.statement ?? ""}`,
+          { scope, message: diagnostic.message },
+        );
+      });
+    };
+
+    services.forEach((serviceName) => {
+      const serviceTheme = theme[serviceName];
+      if (!serviceTheme) return;
+      Object.values(serviceTheme.subsectionProperties).forEach(
+        ({ properties }) => {
+          properties.forEach((placement) =>
+            addConditionDiagnostics(
+              serviceName,
+              `${serviceName} / ${placement.themeName} / ${placement.configPath}`,
+              placement.dependsOn,
+            ),
+          );
+        },
+      );
+      Object.values(serviceTheme.tabs).forEach((tab) => {
+        tab.sections.forEach((section) => {
+          section.subsections.forEach((subsection) => {
+            addConditionDiagnostics(
+              serviceName,
+              `${serviceName} / ${tab.displayName} / ${subsection.displayName || subsection.name}`,
+              subsection.dependsOn,
+            );
+            subsection.tabs.forEach((subsectionTab) =>
+              addConditionDiagnostics(
+                serviceName,
+                `${serviceName} / ${tab.displayName} / ${subsectionTab.displayName}`,
+                subsectionTab.dependsOn,
+              ),
+            );
+          });
+        });
+      });
+    });
+
+    return Array.from(diagnostics.entries()).map(([id, diagnostic]) => ({
+      id,
+      ...diagnostic,
+    }));
+  };
+
   const getPlacementErrorCount = (
     serviceName: string,
     placements: ThemePlacement[],
   ) =>
     placements.filter((placement) => {
-      const property = findThemeConfigProperty(
+      const sourceProperty = findThemeConfigProperty(
         configProperties,
         serviceName,
         placement.configPath,
       )?.property;
+      const property = sourceProperty
+        ? getThemePlacementProperty(sourceProperty, placement.id)
+        : undefined;
       if (!property || property.isVisible === false || property.isHidden) {
         return false;
       }
@@ -642,11 +822,14 @@ export default function Config({
               ...(activeTab?.placements ?? []),
             ];
             const hasProperties = placements.some((config: ThemePlacement) => {
-              const property = findThemeConfigProperty(
+              const sourceProperty = findThemeConfigProperty(
                 configProperties,
                 serviceName,
                 config.configPath,
               )?.property;
+              const property = sourceProperty
+                ? getThemePlacementProperty(sourceProperty, config.id)
+                : undefined;
 
               const isPropertyVisible = config.dependsOn.length
                 ? evaluateDependsOnForConfig(
@@ -685,6 +868,7 @@ export default function Config({
     property: PropertyType,
     onChange: any,
     widgetStateKey: string,
+    onPreviewChange: any = onChange,
   ) => {
     switch (widgetType) {
       case "directory":
@@ -714,13 +898,13 @@ export default function Config({
         };
 
         // Convert boundaries and step from config units to widget units
-        let minimum = widgetValueByConfigAttributes(
+        const minimum = widgetValueByConfigAttributes(
           getSliderAttribute("minimum", 0),
           configUnit,
           widgetUnit,
           dimensionType,
         );
-        let maximum = widgetValueByConfigAttributes(
+        const maximum = widgetValueByConfigAttributes(
           getSliderAttribute("maximum", 100),
           configUnit,
           widgetUnit,
@@ -730,7 +914,7 @@ export default function Config({
           "increment_step",
           configType === "int" ? 1 : 0.1,
         );
-        let step = widgetValueByConfigAttributes(
+        const step = widgetValueByConfigAttributes(
           configuredStep > 0
             ? configuredStep
             : configType === "int"
@@ -742,12 +926,18 @@ export default function Config({
         );
 
         // Convert current value from config units to widget units
-        let value = widgetValueByConfigAttributes(
-          Number(property.value) || 0,
+        const numericConfigValue = Number(property.value);
+        const value = widgetValueByConfigAttributes(
+          Number.isFinite(numericConfigValue) ? numericConfigValue : 0,
           configUnit,
           widgetUnit,
           dimensionType,
         );
+        const sliderValueIsCompatible =
+          Number.isFinite(numericConfigValue) &&
+          value >= minimum &&
+          value <= maximum &&
+          step > 0;
 
         // Get display unit label (will be empty for int/float)
         const displayUnit = getDisplayUnitLabel(widgetUnit);
@@ -773,15 +963,68 @@ export default function Config({
         };
 
         // Check if this slider is in text input mode
-        const isTextMode = widgetTextModeMap[widgetStateKey] || false;
+        const isTextMode =
+          Boolean(widgetTextModeMap[widgetStateKey]) ||
+          !sliderValueIsCompatible;
 
         // Toggle between slider and text input mode
         const toggleMode = () => {
           setWidgetTextModeMap((prev) => ({
             ...prev,
-            [widgetStateKey]: !prev[widgetStateKey],
+            [widgetStateKey]: !isTextMode,
           }));
         };
+
+        const toConfigValue = (sliderValue: number) =>
+          configValueByWidget(
+            sliderValue,
+            widgetUnit,
+            configUnit,
+            configType,
+            dimensionType,
+          );
+        const toWidgetValue = (configValue: unknown) => {
+          if (configValue === null || configValue === undefined || configValue === "") {
+            return null;
+          }
+          const numericValue = Number(configValue);
+          if (!Number.isFinite(numericValue)) return null;
+          return widgetValueByConfigAttributes(
+            numericValue,
+            configUnit,
+            widgetUnit,
+            dimensionType,
+          );
+        };
+        const defaultSliderValue = toWidgetValue(property.propertyValue);
+        const recommendedSliderValue = toWidgetValue(
+          property.recommendedValue,
+        );
+        const sliderMarkers = [
+          {
+            kind: "current" as const,
+            value,
+          },
+          ...(defaultSliderValue === null
+            ? []
+            : [
+                {
+                  kind: "default" as const,
+                  value: defaultSliderValue,
+                  onSelect: () => onChange(toConfigValue(defaultSliderValue)),
+                },
+              ]),
+          ...(recommendedSliderValue === null
+            ? []
+            : [
+                {
+                  kind: "recommended" as const,
+                  value: recommendedSliderValue,
+                  onSelect: () =>
+                    onChange(toConfigValue(recommendedSliderValue)),
+                },
+              ]),
+        ];
 
         return (
           <div className="d-flex align-items-center">
@@ -797,6 +1040,11 @@ export default function Config({
                 {rawDisplayUnit && (
                   <InputGroup.Text>{rawDisplayUnit}</InputGroup.Text>
                 )}
+                {!sliderValueIsCompatible && (
+                  <Form.Text className="text-warning" role="status">
+                    Enter a numeric value within the configured slider range.
+                  </Form.Text>
+                )}
               </InputGroup>
             ) : (
               <div className="flex-grow-1">
@@ -807,39 +1055,24 @@ export default function Config({
                   marks={marks}
                   value={value}
                   unit={displayUnit || ""}
-                  onChange={(sliderValue: any) => {
-                    // Convert slider value back to config units before saving
-                    const configValue = configValueByWidget(
-                      sliderValue,
-                      widgetUnit,
-                      configUnit,
-                      configType,
-                      dimensionType,
-                    );
-                    onChange(configValue);
-                  }}
+                  markers={sliderMarkers}
+                  onChange={(sliderValue) =>
+                    onPreviewChange(toConfigValue(sliderValue))
+                  }
+                  onChangeComplete={(sliderValue) =>
+                    onChange(toConfigValue(sliderValue))
+                  }
                   disabled={!property.isEditable}
-                  propertyUnit={displayUnit}
                 />
               </div>
             )}
             {!hostConfigs && canEditConfigsInContext && (
-              <Tooltip
-                message={
-                  isTextMode
-                    ? "Switch back to slider mode"
-                    : "Switch to text input mode"
-                }
-                placement="top"
-              >
-                <FontAwesomeIcon
-                  icon={faPen}
-                  className={`ms-4 ${isTextMode ? "text-primary" : ""} ${
-                    property.isEditable ? "pointer" : ""
-                  }`}
-                  onClick={property.isEditable ? toggleMode : undefined}
-                />
-              </Tooltip>
+              <ThemeRawModeButton
+                rawMode={isTextMode}
+                disabled={!property.isEditable}
+                onClick={toggleMode}
+                controlName="slider"
+              />
             )}
           </div>
         );
@@ -856,6 +1089,9 @@ export default function Config({
             <Form.Control
               type="text"
               value={property.value}
+              aria-label={
+                property.propertyDisplayname || property.propertyName
+              }
               onChange={(e) => onChange(e.target.value)}
               placeholder={property.propertyValue}
               disabled={!property.isEditable}
@@ -876,7 +1112,6 @@ export default function Config({
         const comboEntries = getThemeWidgetEntries(property);
         const hasUnsupportedComboValue =
           getUnsupportedThemeEntryValues(property).length > 0;
-        const showComboTextMode = isComboTextMode || hasUnsupportedComboValue;
 
         // Toggle between combo and text input mode
         const toggleComboMode = () => {
@@ -888,7 +1123,7 @@ export default function Config({
 
         return (
           <div className="d-flex align-items-center">
-            {showComboTextMode ? (
+            {isComboTextMode ? (
               <InputGroup className="w-50 me-2">
                 <Form.Control
                   type="text"
@@ -908,28 +1143,22 @@ export default function Config({
                   options={comboEntries}
                   isDisabled={!property.isEditable}
                 />
+                {hasUnsupportedComboValue && (
+                  <Form.Text className="text-warning" role="status">
+                    The current value is not one of the configured options.
+                  </Form.Text>
+                )}
               </div>
             )}
             {!hostConfigs &&
-              !hasUnsupportedComboValue &&
               allowSwitchToTextBox &&
               canEditConfigsInContext && (
-                <Tooltip
-                  message={
-                    isComboTextMode
-                      ? "Switch back to dropdown mode"
-                      : "Switch to text input mode"
-                  }
-                  placement="top"
-                >
-                  <FontAwesomeIcon
-                    icon={faPen}
-                    className={`ms-4 ${isComboTextMode ? "text-primary" : ""} ${
-                      property.isEditable ? "pointer" : ""
-                    }`}
-                    onClick={property.isEditable ? toggleComboMode : undefined}
-                  />
-                </Tooltip>
+                <ThemeRawModeButton
+                  rawMode={isComboTextMode}
+                  disabled={!property.isEditable}
+                  onClick={toggleComboMode}
+                  controlName="dropdown"
+                />
               )}
           </div>
         );
@@ -941,70 +1170,28 @@ export default function Config({
           property?.propertyAttributes?.unit ||
           "milliseconds";
 
-        // Parse the time interval using the unit conversion utilities
-        const timeComponents = parseTimeInterval(
-          Number(property.value) || 0,
-          timeConfigUnit,
-        );
-
         // Check if this time-interval is in text input mode
-        const isTimeTextMode = widgetTextModeMap[widgetStateKey] || false;
+        const configuredTimeUnits = normalizeTimeIntervalUnits(
+          property.widget?.units?.[0]?.["unit-name"] ||
+            property.widget?.units?.[0]?.unit ||
+            "days,hours,minutes,seconds",
+        );
+        const timeCompatibility = getTimeIntervalCompatibility(
+          property.value,
+          timeConfigUnit,
+          configuredTimeUnits,
+          property.propertyAttributes ?? {},
+        );
+        const isTimeTextMode =
+          Boolean(widgetTextModeMap[widgetStateKey]) ||
+          !timeCompatibility.compatible;
 
         // Toggle between time-interval and text input mode
         const toggleTimeMode = () => {
           setWidgetTextModeMap((prev) => ({
             ...prev,
-            [widgetStateKey]: !prev[widgetStateKey],
+            [widgetStateKey]: !isTimeTextMode,
           }));
-        };
-
-        const configuredTimeUnits = String(
-          property.widget?.units?.[0]?.["unit-name"] ||
-            property.widget?.units?.[0]?.unit ||
-            "days,hours,minutes,seconds",
-        )
-          .split(",")
-          .map((unit) => unit.trim().toLowerCase())
-          .filter((unit) =>
-            ["days", "hours", "minutes", "seconds", "milliseconds"].includes(
-              unit,
-            ),
-          );
-        const timeUnitValues = {
-          days: timeComponents.days,
-          hours: timeComponents.hours,
-          minutes: timeComponents.minutes,
-          seconds: timeComponents.seconds,
-          milliseconds: timeComponents.milliseconds,
-        };
-        const timeUnitLabels = {
-          days: "Days",
-          hours: "Hours",
-          minutes: "Minutes",
-          seconds: "Seconds",
-          milliseconds: "Milliseconds",
-        };
-        const timeUnitMaximums = {
-          days: 365,
-          hours: 23,
-          minutes: 59,
-          seconds: 59,
-          milliseconds: 999,
-        };
-        const updateTimeUnit = (
-          unit: keyof typeof timeUnitValues,
-          nextValue: number,
-        ) => {
-          onChange(
-            composeTimeInterval(
-              unit === "days" ? nextValue : timeComponents.days,
-              unit === "hours" ? nextValue : timeComponents.hours,
-              unit === "minutes" ? nextValue : timeComponents.minutes,
-              unit === "seconds" ? nextValue : timeComponents.seconds,
-              timeConfigUnit,
-              unit === "milliseconds" ? nextValue : timeComponents.milliseconds,
-            ),
-          );
         };
 
         return (
@@ -1021,72 +1208,34 @@ export default function Config({
                 {timeConfigUnit && (
                   <InputGroup.Text>{timeConfigUnit}</InputGroup.Text>
                 )}
+                {!timeCompatibility.compatible && (
+                  <Form.Text className="text-warning" role="status">
+                    {timeCompatibility.reason}
+                  </Form.Text>
+                )}
               </InputGroup>
             ) : (
-              <div className="d-flex w-75">
-                {configuredTimeUnits.map((unit, index) => {
-                  const typedUnit = unit as keyof typeof timeUnitValues;
-                  return (
-                    <div className="d-flex flex-column me-2" key={typedUnit}>
-                      <Form.Control
-                        type="number"
-                        aria-label={timeUnitLabels[typedUnit]}
-                        min={0}
-                        max={timeUnitMaximums[typedUnit]}
-                        step={
-                          index === configuredTimeUnits.length - 1
-                            ? Number(
-                                convertValue(
-                                  Number(
-                                    property.propertyAttributes
-                                      ?.increment_step || 1,
-                                  ),
-                                  timeConfigUnit,
-                                  typedUnit,
-                                ),
-                              ) || 1
-                            : 1
-                        }
-                        value={timeUnitValues[typedUnit]}
-                        onChange={(event) => {
-                          const nextValue = Number(event.target.value);
-                          if (Number.isFinite(nextValue)) {
-                            updateTimeUnit(typedUnit, nextValue);
-                          }
-                        }}
-                        disabled={!property.isEditable}
-                      />
-                      <small>{timeUnitLabels[typedUnit]}</small>
-                    </div>
-                  );
-                })}
-              </div>
+              <ThemeTimeIntervalControl
+                property={property}
+                onChange={onChange}
+              />
             )}
             {!hostConfigs && canEditConfigsInContext && (
-              <Tooltip
-                message={
-                  isTimeTextMode
-                    ? "Switch back to time interval mode"
-                    : "Switch to text input mode"
-                }
-                placement="top"
-              >
-                <FontAwesomeIcon
-                  icon={faPen}
-                  className={`ms-4 ${isTimeTextMode ? "text-primary" : ""} ${
-                    property.isEditable ? "pointer" : ""
-                  }`}
-                  onClick={property.isEditable ? toggleTimeMode : undefined}
-                />
-              </Tooltip>
+              <ThemeRawModeButton
+                rawMode={isTimeTextMode}
+                disabled={!property.isEditable}
+                onClick={toggleTimeMode}
+                controlName="time interval"
+              />
             )}
           </div>
         );
 
       case "toggle":
         const entries = getThemeWidgetEntries(property);
+        const toggleId = `config-toggle-${widgetStateKey}`;
         const hasUnsupportedToggleValue =
-          entries.length < 2 ||
+          entries.length !== 2 ||
           getUnsupportedThemeEntryValues(property).length > 0;
         const valueLabel =
           entries.find(
@@ -1125,6 +1274,7 @@ export default function Config({
               <div className="flex-grow-1">
                 <Form>
                   <Form.Check
+                    id={toggleId}
                     type="switch"
                     className="labelled-switch ms-2"
                     label={valueLabel}
@@ -1138,22 +1288,12 @@ export default function Config({
             {!hostConfigs &&
               !hasUnsupportedToggleValue &&
               canEditConfigsInContext && (
-                <Tooltip
-                  message={
-                    isToggleTextMode
-                      ? "Switch back to toggle mode"
-                      : "Switch to text input mode"
-                  }
-                  placement="top"
-                >
-                  <FontAwesomeIcon
-                    icon={faPen}
-                    className={`ms-4 ${isToggleTextMode ? "text-primary" : ""} ${
-                      property.isEditable ? "pointer" : ""
-                    }`}
-                    onClick={property.isEditable ? toggleToggleMode : undefined}
-                  />
-                </Tooltip>
+                <ThemeRawModeButton
+                  rawMode={isToggleTextMode}
+                  disabled={!property.isEditable}
+                  onClick={toggleToggleMode}
+                  controlName="toggle"
+                />
               )}
           </div>
         );
@@ -1162,20 +1302,19 @@ export default function Config({
         const checkboxId = `config-checkbox-${widgetStateKey}`;
         if (!isThemeCheckboxValueSupported(property)) {
           return (
-            <Form.Control
-              id={checkboxId}
-              type="text"
-              value={String(property.value ?? "")}
-              aria-label={property.propertyDisplayname || property.propertyName}
-              onChange={(event) => onChange(event.target.value)}
-              disabled={!property.isEditable}
-            />
+            <Alert variant="warning" role="status" className="mb-0">
+              Unsupported checkbox value. Edit this property from Advanced
+              configurations.
+            </Alert>
           );
         }
         const checkboxState = getThemeCheckboxState(property);
         return (
           <Form.Check
             id={checkboxId}
+            aria-label={
+              property.propertyDisplayname || property.propertyName
+            }
             checked={checkboxState.checked}
             onChange={onChange}
             disabled={!property.isEditable}
@@ -1205,6 +1344,9 @@ export default function Config({
             as="textarea"
             rows={10}
             value={displayValue}
+            aria-label={
+              property.propertyDisplayname || property.propertyName
+            }
             onChange={(e) => {
               // Format the value for saving if it's a multiline config
               const valueToSave = useMultilineFormatting
@@ -1221,7 +1363,11 @@ export default function Config({
             <Col md={6}>
               <Form.Control
                 type="password"
-                value={property.value}
+                value={String(property.value ?? "")}
+                aria-label={`${
+                  property.propertyDisplayname || property.propertyName
+                } password`}
+                autoComplete="new-password"
                 onChange={(e) => onChange(e.target.value, false)}
                 placeholder="Type password"
                 disabled={!property.isEditable}
@@ -1230,7 +1376,11 @@ export default function Config({
             <Col md={6}>
               <Form.Control
                 type="password"
-                value={property.confirmPassword}
+                value={String(property.confirmPassword ?? "")}
+                aria-label={`Confirm ${
+                  property.propertyDisplayname || property.propertyName
+                } password`}
+                autoComplete="new-password"
                 onChange={(e) => onChange(e.target.value, true)}
                 disabled={!property.isEditable}
               />
@@ -1249,6 +1399,9 @@ export default function Config({
             <Form.Control
               type="text"
               value={property.value}
+              aria-label={
+                property.propertyDisplayname || property.propertyName
+              }
               onChange={(e) => onChange(e.target.value)}
               placeholder={property.propertyValue}
               disabled={!property.isEditable}
@@ -1306,6 +1459,7 @@ export default function Config({
     value: any,
     widgetType: string,
     confirmPassword?: boolean,
+    requestRecommendations = true,
   ) => {
     let newConfigs = cloneDeep(configProperties);
     switch (widgetType) {
@@ -1352,32 +1506,38 @@ export default function Config({
     }
 
     // Only validate the specific property that was changed
-    newConfigs[chosenService][configType].properties[
-      property.propertyName
-    ].errorMessage = validateInput(
-      newConfigs[chosenService][configType].properties[property.propertyName],
-      value,
-    );
+    const updatedProperty =
+      newConfigs[chosenService][configType].properties[property.propertyName];
+    const validationProperty =
+      widgetType === "password"
+        ? {
+            ...updatedProperty,
+            propertyAttributes: {
+              ...updatedProperty.propertyAttributes,
+              type: "password",
+            },
+          }
+        : updatedProperty;
+    updatedProperty.errorMessage =
+      widgetType === "list"
+        ? validateThemeListValue(updatedProperty, updatedProperty.value)
+        : validateInput(validationProperty, updatedProperty.value);
 
     // Update section error count for the specific config type
     newConfigs[chosenService][configType].errors = getSectionErrorCount(
       newConfigs[chosenService][configType].properties,
     );
 
-    newConfigs = updateVisibilityByForeignKeys(newConfigs);
-    newConfigs = updateVisibilityForDependsOn(
-      newConfigs,
-      themeData,
-      configSection,
-      installedServices || [],
-    );
+    newConfigs = applyCurrentThemeState(newConfigs);
     // Remove global validation - only validate the changed property above
 
     setConfigProperties(newConfigs);
-    onValueUpdate(
-      newConfigs[chosenService][configType].properties[property.propertyName],
-      newConfigs,
-    );
+    if (requestRecommendations) {
+      onValueUpdate(
+        newConfigs[chosenService][configType].properties[property.propertyName],
+        newConfigs,
+      );
+    }
   };
 
   const handleInputChangeWidgetForOverrideValues = (
@@ -1469,13 +1629,7 @@ export default function Config({
       newConfigs[chosenService][configType].properties,
     );
 
-    newConfigs = updateVisibilityByForeignKeys(newConfigs);
-    newConfigs = updateVisibilityForDependsOn(
-      newConfigs,
-      themeData,
-      configSection,
-      installedServices || [],
-    );
+    newConfigs = applyCurrentThemeState(newConfigs);
     // Remove global validation - only validate the changed property above
 
     setConfigProperties(newConfigs);
@@ -1815,6 +1969,8 @@ export default function Config({
     },
   ];
 
+  const themeDiagnostics = getThemeDiagnostics();
+
   return (
     <>
       <Modal
@@ -1915,6 +2071,20 @@ export default function Config({
         )}
       </div>
       <div className="mx-3 mt-3">
+        {themeDiagnostics.length > 0 && (
+          <Alert variant="warning" data-testid="theme-diagnostics">
+            <Alert.Heading>
+              Some service Theme metadata could not be applied.
+            </Alert.Heading>
+            <ul className="mb-0">
+              {themeDiagnostics.map((diagnostic) => (
+                <li key={diagnostic.id}>
+                  <strong>{diagnostic.scope}:</strong> {diagnostic.message}
+                </li>
+              ))}
+            </ul>
+          </Alert>
+        )}
         {!installer &&
           recommendedChanges &&
           renderRecommendedChangesAlert(recommendedChanges)}
@@ -2290,6 +2460,8 @@ export default function Config({
                                 <Nav
                                   variant="underline"
                                   className="d-flex flex-row"
+                                  role="tablist"
+                                  aria-label={`${serviceKey} configuration sections`}
                                 >
                                   {theme[serviceKey]?.tabs &&
                                     Object.keys(theme[serviceKey].tabs).length >
@@ -2309,18 +2481,23 @@ export default function Config({
                                                 ? undefined
                                                 : "disabled"
                                             }
-                                            onClick={() => {
-                                              if (tabIsVisible) {
-                                                setChosenTab(tabName);
-                                              }
-                                            }}
                                           >
                                             <Nav.Link
                                               eventKey={tabName}
-                                              as="div"
+                                              as="button"
+                                              type="button"
+                                              role="tab"
+                                              active={chosenTab === tabName}
                                               className="ambari-tabs nav-link nav-link-underlined"
                                               aria-disabled={!tabIsVisible}
+                                              aria-selected={chosenTab === tabName}
                                               tabIndex={tabIsVisible ? 0 : -1}
+                                              onClick={() => {
+                                                if (tabIsVisible) {
+                                                  setChosenTab(tabName);
+                                                }
+                                              }}
+                                              onKeyDown={operateThemeTabs}
                                             >
                                               {
                                                 theme[serviceKey].tabs[tabName]
@@ -2451,6 +2628,15 @@ export default function Config({
                                                               ...(activeSubsectionTab?.placements ??
                                                                 []),
                                                             ];
+                                                          const rowHasTitle =
+                                                            section.subsections.some(
+                                                              (candidate) =>
+                                                                candidate.rowIndex ===
+                                                                  subsection.rowIndex &&
+                                                                Boolean(
+                                                                  candidate.displayName,
+                                                                ),
+                                                            );
 
                                                           return (
                                                             <div
@@ -2473,6 +2659,12 @@ export default function Config({
                                                                 subsection.leftVerticalSplitter
                                                                   ? "service-theme-subsection-split"
                                                                   : ""
+                                                              } ${
+                                                                subsection.rowIndex >
+                                                                  0 &&
+                                                                !subsection.border
+                                                                  ? "service-theme-subsection-top-split"
+                                                                  : ""
                                                               }`}
                                                               style={{
                                                                 gridColumn: `${subsection.columnIndex + 1} / span ${subsection.columnSpan}`,
@@ -2484,13 +2676,18 @@ export default function Config({
                                                               }
                                                             >
                                                               <div className="p-3">
-                                                                {subsection.displayName &&
-                                                                  subsection.displayName}
+                                                                {rowHasTitle && (
+                                                                  <div className="service-theme-subsection-title">
+                                                                    {subsection.displayName ||
+                                                                      "\u00a0"}
+                                                                  </div>
+                                                                )}
                                                                 {subsectionTabs.length >
                                                                   0 && (
                                                                   <Nav
                                                                     variant="tabs"
                                                                     className="mt-3"
+                                                                    role="tablist"
                                                                     aria-label={`${subsection.displayName || subsection.name} configuration groups`}
                                                                   >
                                                                     {subsectionTabs.map(
@@ -2511,7 +2708,14 @@ export default function Config({
                                                                             <Nav.Link
                                                                               as="button"
                                                                               type="button"
+                                                                              role="tab"
+                                                                              id={`theme-subtab-${subsectionTab.id}`}
+                                                                              aria-controls={`theme-subtab-panel-${subsection.id}`}
                                                                               active={
+                                                                                activeSubsectionTabName ===
+                                                                                subsectionTab.name
+                                                                              }
+                                                                              aria-selected={
                                                                                 activeSubsectionTabName ===
                                                                                 subsectionTab.name
                                                                               }
@@ -2526,6 +2730,9 @@ export default function Config({
                                                                                   }),
                                                                                 );
                                                                               }}
+                                                                              onKeyDown={
+                                                                                operateThemeTabs
+                                                                              }
                                                                             >
                                                                               {
                                                                                 subsectionTab.displayName
@@ -2549,7 +2756,23 @@ export default function Config({
                                                                   </Nav>
                                                                 )}
                                                                 {subsectionPlacements && (
-                                                                  <Row>
+                                                                  <Row
+                                                                    role={
+                                                                      subsectionTabs.length
+                                                                        ? "tabpanel"
+                                                                        : undefined
+                                                                    }
+                                                                    id={
+                                                                      subsectionTabs.length
+                                                                        ? `theme-subtab-panel-${subsection.id}`
+                                                                        : undefined
+                                                                    }
+                                                                    aria-labelledby={
+                                                                      activeSubsectionTab
+                                                                        ? `theme-subtab-${activeSubsectionTab.id}`
+                                                                        : undefined
+                                                                    }
+                                                                  >
                                                                     {subsectionPlacements.map(
                                                                       (
                                                                         config: ThemePlacement,
@@ -2566,7 +2789,12 @@ export default function Config({
                                                                         const propertyName =
                                                                           config.propertyName;
                                                                         const sourceProperty =
-                                                                          propertyLocation?.property;
+                                                                          propertyLocation?.property
+                                                                            ? getThemePlacementProperty(
+                                                                                propertyLocation.property,
+                                                                                config.id,
+                                                                              )
+                                                                            : undefined;
                                                                         const effectiveValueAttributes =
                                                                           {
                                                                             ...config.valueAttributes,
@@ -2625,6 +2853,7 @@ export default function Config({
                                                                                 >)
                                                                             : undefined;
                                                                         const widget =
+                                                                          config.widget ??
                                                                           theme[
                                                                             serviceKey
                                                                           ]
@@ -2647,8 +2876,7 @@ export default function Config({
                                                                               )
                                                                             : true;
                                                                         if (
-                                                                          !isVisible ||
-                                                                          !widget
+                                                                          !isVisible
                                                                         )
                                                                           return null;
 
@@ -2712,11 +2940,12 @@ export default function Config({
                                                                                     }
                                                                                   >
                                                                                     {renderWidgets(
-                                                                                      widget.type,
+                                                                                      widget?.type ??
+                                                                                        "(missing)",
                                                                                       {
                                                                                         ...property,
                                                                                         widget:
-                                                                                          widget.metadata,
+                                                                                          widget?.metadata,
                                                                                         isEditable:
                                                                                           !hostConfigs &&
                                                                                           canEditConfigsInContext &&
@@ -2732,11 +2961,25 @@ export default function Config({
                                                                                           type,
                                                                                           property,
                                                                                           e,
-                                                                                          widget.type,
+                                                                                          widget?.type ??
+                                                                                            "(missing)",
                                                                                           confirmPassword,
                                                                                         );
                                                                                       },
                                                                                       config.configPath,
+                                                                                      function (
+                                                                                        e: any,
+                                                                                      ) {
+                                                                                        handleInputChangeWidget(
+                                                                                          type,
+                                                                                          property,
+                                                                                          e,
+                                                                                          widget?.type ??
+                                                                                            "(missing)",
+                                                                                          false,
+                                                                                          false,
+                                                                                        );
+                                                                                      },
                                                                                     )}
                                                                                   </div>
                                                                                 </Tooltip>
@@ -2848,6 +3091,8 @@ export default function Config({
                                                                                 >
                                                                                   {!hostConfigs &&
                                                                                     canEditConfigsInContext &&
+                                                                                    currentConfigGroup ===
+                                                                                      "Default" &&
                                                                                     property.isEditable &&
                                                                                     property?.supportsFinal && (
                                                                                       <Tooltip
@@ -2894,6 +3139,8 @@ export default function Config({
                                                                                     )}
                                                                                   {property.isEditable ===
                                                                                     false ||
+                                                                                  property.final ===
+                                                                                    "true" ||
                                                                                   property.isOverridable ===
                                                                                     false ||
                                                                                   property
@@ -2971,6 +3218,12 @@ export default function Config({
                                                                                                       property.value,
                                                                                                     groupName:
                                                                                                       currentConfigGroup,
+                                                                                                    previousValue:
+                                                                                                      property.value,
+                                                                                                    final:
+                                                                                                      "false",
+                                                                                                    savedFinal:
+                                                                                                      "false",
                                                                                                   },
                                                                                                 );
 
@@ -3074,7 +3327,9 @@ export default function Config({
                                                                                                   "Default" &&
                                                                                                 property.isEditable &&
                                                                                                 property.isOverridable !==
-                                                                                                  false,
+                                                                                                  false &&
+                                                                                                property.final !==
+                                                                                                  "true",
                                                                                             },
                                                                                             function (
                                                                                               e: any,
@@ -3145,6 +3400,53 @@ export default function Config({
                                                                                                   2
                                                                                                 }
                                                                                               >
+                                                                                                {property.supportsFinal && (
+                                                                                                  <Tooltip
+                                                                                                    message={
+                                                                                                      overrideValue.final ===
+                                                                                                      "true"
+                                                                                                        ? "This override is marked as final. Click to make it overridable."
+                                                                                                        : "Click to mark this override as final."
+                                                                                                    }
+                                                                                                    placement="top"
+                                                                                                  >
+                                                                                                    <FontAwesomeIcon
+                                                                                                      icon={
+                                                                                                        faLock
+                                                                                                      }
+                                                                                                      className={
+                                                                                                        overrideValue.final ===
+                                                                                                        "true"
+                                                                                                          ? "lock-selected pointer"
+                                                                                                          : "text-light pointer"
+                                                                                                      }
+                                                                                                      onClick={() => {
+                                                                                                        const configsCopy =
+                                                                                                          cloneDeep(
+                                                                                                            configProperties,
+                                                                                                          );
+                                                                                                        const currentOverride =
+                                                                                                          configsCopy[
+                                                                                                            serviceKey
+                                                                                                          ][
+                                                                                                            type
+                                                                                                          ].properties[
+                                                                                                            propertyName
+                                                                                                          ].overrideValues[
+                                                                                                            index
+                                                                                                          ];
+                                                                                                        currentOverride.final =
+                                                                                                          currentOverride.final ===
+                                                                                                          "true"
+                                                                                                            ? "false"
+                                                                                                            : "true";
+                                                                                                        setConfigProperties(
+                                                                                                          configsCopy,
+                                                                                                        );
+                                                                                                      }}
+                                                                                                    />
+                                                                                                  </Tooltip>
+                                                                                                )}
                                                                                                 <FontAwesomeIcon
                                                                                                   className="text-danger pointer"
                                                                                                   icon={

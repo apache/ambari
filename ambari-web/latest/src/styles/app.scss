@@ -1648,6 +1648,31 @@ pre {
   border-color: #5cb85c transparent transparent transparent;
 }
 
+.custom-slider-markers {
+  position: relative;
+  height: 12px;
+}
+
+.custom-slider-marker {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 1px solid #495057;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.custom-slider-marker-current {
+  background: #495057;
+}
+
+.custom-slider-marker-recommended {
+  border-color: #198754;
+  background: #198754;
+}
+
 .min-w-0 {
   min-width: 0 !important;
 }
@@ -1702,6 +1727,17 @@ pre {
 
 .service-theme-subsection-split {
   border-left: 1px solid #d7dde3;
+}
+
+.service-theme-subsection-top-split {
+  border-top: 1px solid #d7dde3;
+  padding-top: 0.5rem;
+}
+
+.service-theme-subsection-title {
+  min-height: 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 @media (max-width: 991.98px) {

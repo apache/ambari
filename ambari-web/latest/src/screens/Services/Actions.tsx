@@ -414,7 +414,8 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
       }
 
       // Use cached service_check_supported from initial stack configs fetch (like Ember's App.services.supportsServiceCheck)
-      const isServiceCheckSupportedFromStack = serviceCheckSupportedMap[serviceName] || false;
+      const isServiceCheckSupportedFromStack =
+        serviceCheckSupportedMap?.[serviceName] ?? false;
 
       // Apply Ember.js isSmokeTestDisabled logic
       let isSmokeTestDisabled = false;

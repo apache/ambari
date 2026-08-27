@@ -17,7 +17,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { isFailed, isFinished } from "./Utility";
+import { commandDetail, isFailed, isFinished } from "./Utility";
 
 describe("operation terminal states", () => {
   it.each(["FAILED", "TIMEDOUT", "ABORTED"])(
@@ -32,4 +32,27 @@ describe("operation terminal states", () => {
     expect(isFinished("COMPLETED")).toBe(true);
     expect(isFailed("COMPLETED")).toBe(false);
   });
+});
+
+describe("background operation command details", () => {
+  it("formats a complete ZooKeeper command detail", () => {
+    expect(commandDetail(
+      "RESTART ZOOKEEPER/ZOOKEEPER_SERVER",
+      null,
+      null,
+    )).toBe(" Restart ZooKeeper Server");
+  });
+
+  it("uses the operation display name without requiring a command detail", () => {
+    expect(commandDetail(undefined, null, "Restart ZooKeeper")).toBe(
+      " Restart ZooKeeper",
+    );
+  });
+
+  it.each([null, undefined])(
+    "returns an empty label when command detail is %s",
+    (detail) => {
+      expect(commandDetail(detail, null, null)).toBe("");
+    },
+  );
 });

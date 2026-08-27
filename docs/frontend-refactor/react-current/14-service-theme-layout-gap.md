@@ -186,12 +186,12 @@ IDs. No row is a completion claim.
 | Baseline area | Current React evidence | Remaining acceptance gaps |
 | --- | --- | --- |
 | `SVC-THEME-API-*` | Service, Host, Installer, and comparator call sites contain Theme loading paths and response adapters; provider tests cover default/named-file filtering, nested projection, collection/batch predicates, errors, and primary-key identity | REST child isolation, order independence, single/batch equivalence across real stacks, and custom Theme integration remain incomplete |
-| `SVC-THEME-MAP-*` | React consumes the server projection and does not attempt server inheritance | Server parsing, removal, inheritance, invalid-child fallback, ordering, and provider primary-key behavior remain server-test obligations |
+| `SVC-THEME-MAP-*` | React consumes the server projection and does not attempt server inheritance; server tests cover nested additions/order, type-specific removals/replacements, deleted descriptors, parse failures, and parent isolation | Valid-sibling/custom-directory loading, invalid-child fallback, REST ordering, and real custom Theme integration remain incomplete |
 | `SVC-THEME-MODEL-*` | A shared normalizer parses all returned layouts, keeps full paths, layout-qualifies duplicate tab names, creates Advanced fallback, and isolates malformed siblings | Complete graph identity, diagnostics, cache/reset, and service/file isolation are incomplete |
 | `SVC-THEME-LAYOUT-*` | CSS grid coordinates, spans, declaration order, one splitter, nested tabs, first-visible top-tab selection, hidden-active handoff, lazy Pane rendering, filter propagation, and visible-only errors have executable evidence | Focus order, empty cells, overlap, top splitters, keyboard behavior, and responsive viewport behavior remain incomplete |
 | `SVC-THEME-PLACEMENT-*` | Full config paths, direct/nested placement, orphan Advanced-only retention, and ambiguous layout-attachment rejection are executable | Duplicate declarations, nested UI-only synthesis, and the full layered-attribute matrix are incomplete |
 | `SVC-THEME-WIDGET-*` | All dispatcher cases exist in source; entry/directory controls, checkbox mappings, slider unit/percent conversion, config-group bounds, raw-unit labels, zero values, precision, and unsupported Widget state have tests | The complete 14-type table, secrets, slider recommendation marker and slide-stop boundary, time composition, final/recommendation/override behavior, and exact save round trips are not proved |
-| `SVC-THEME-ATTR-*`, `PERM-*` | Base visibility, semantic negative attributes, some recommendation/edit state, Host read-only rendering, disabled Host UI-only actions, password comparison exclusion, and diagnostic redaction have tests | Full permission/mode/override/final matrix, UI-only save exclusion, and complete password-log regression coverage are incomplete |
+| `SVC-THEME-ATTR-*`, `PERM-*` | Installed-service inputs honor `SERVICE.MODIFY_CONFIGS`, `read_only`, `editable_only_at_install`, parent final state, and config-group ownership; group override values/final flags save independently; Installer/Add Service retains its wizard edit boundary; UI-only properties are excluded | The complete role/compare/Host/recommendation/debounce matrix and password-log regression coverage remain incomplete |
 | `SVC-THEME-COND-*` | Config/service conditions, closed parsing, structured unsafe/missing diagnostics, ordered attributes, and some container visibility execute without `eval` | Consumer diagnostics, repeated parent names, all shipped expressions, every canonical dependency source, and complete visibility layers are incomplete |
 | `SVC-THEME-CONSUME-*` | Service Configs, Host Configs, comparison, Installer credentials, and Step 7 have focused partial evidence | No consumer satisfies its complete load/switch/retry/save matrix; Add Service and canonical payload integration remain especially incomplete |
 | `SVC-THEME-FALLBACK-*` | Service and Host retries are scoped; Service ordinary/Theme responses reject prior-service results; Step 7 recompiles a successful retry while preserving edits; comparator effects reject stale writes | Empty/malformed distinctions, stack-version changes, request deduplication, cache invalidation, and active-item handoff remain incomplete |
@@ -230,7 +230,7 @@ partial row must not be promoted because one assertion in the scenario passes.
 | `SVC-THEME-TEST-024` | `PARTIAL` | Text and directory-family rendering has partial DOM evidence | Password confirmation/secrecy, text-area, exact delimiters, validation, label non-saveability, and all round trips are incomplete |
 | `SVC-THEME-TEST-025` | `PARTIAL` | Tests cover B-KB-MB-GB-TB and integer/float percent conversion, zero bounds/steps, precision, config-group min/max/increment overrides, and canonical raw-unit labels | Recommendation markers, recommendation/undo integration, true slide-stop boundaries, raw round trips, and exact saves remain incomplete |
 | `SVC-THEME-TEST-026` | `PARTIAL` | Configured spinner units render and the implementation retains a configured milliseconds field | Composition, cap/overflow, modulo, min/max, raw, exact-save, and live-condition tests remain absent |
-| `SVC-THEME-TEST-027` | `PARTIAL` | Shared controls exist and the Host consumer disables its UI-only connection action | No complete permission/final/install-only/override/recommendation/debounce/host/compare interaction suite |
+| `SVC-THEME-TEST-027` | `PARTIAL` | Theme and Advanced controls cover installed-service permission, read-only/install-only attributes, parent final state, independent group override values/final flags, default/non-default group editing, and Installer/Add Service edit mode; Host disables its UI-only connection action | Recommendation/undo/debounce/raw-mode and full Host/compare interaction coverage remain incomplete |
 | `SVC-THEME-TEST-028` | `PARTIAL` | Payload and component tests cover HIVE and Ranger normal/root, full-path collision handling, Theme JDK fields, and installed versus uninstalled custom-action API paths | Ranger KMS, multiple hosts, and an explicit password-log exclusion spy are incomplete |
 | `SVC-THEME-TEST-029` | `PARTIAL` | DB action tests cover request creation, polling failures, missing IDs, terminal recovery, missing structured success, and redacted diagnostic rendering | Stale and unmounted response handling plus the complete server-output shape matrix are incomplete |
 | `SVC-THEME-TEST-030` | `PARTIAL` | Service Configs covers selected-service requests, fallback, Retry, edit retention, service switching, and rejection of late Theme, configuration, and value responses | Empty/404/500/malformed distinctions, stack-version changes, and request deduplication are incomplete |
@@ -238,16 +238,28 @@ partial row must not be promoted because one assertion in the scenario passes.
 | `SVC-THEME-TEST-032` | `PARTIAL` | Comparator tests use real HIVE data, default selection, full paths, declaration order, fallback, basic DOM, and added/removed password exclusion | Added/removed/unchanged non-secret fields, nested flattening, filters, `Undefined`, UI-only controls, and stale-response interaction coverage remain incomplete |
 | `SVC-THEME-TEST-033` | `PARTIAL` | Credentials exact paths, disabled-category skipping, and edit-preserving new-install Theme fallback/Retry have tests | Five-category availability, service switch, conditions, full validation, Review payload, re-entry, and refresh persistence are incomplete |
 | `SVC-THEME-TEST-034` | `PARTIAL` | Add Service preserves current values before a category jump | Ordinary template, installed/new merge, AddService recommendations, groups, Kerberos, dependent changes, exact tags, and fallback/retry are incomplete |
-| `SVC-THEME-TEST-035` | `PARTIAL` | `buildConfigsJSON` proves that a Theme UI-only property is excluded while same-named canonical properties retain full-path identity | No consumer integration test proves one canonical occurrence per edited config and complete confirmation-field exclusion |
-| `SVC-THEME-TEST-036` | `PARTIAL` | Scattered read-only/fallback assertions and a disabled Host UI-only action exist | No real-renderer matrix covers view-only, modify, compare, Host, Installer, and Add Service permissions/modes |
-| `SVC-THEME-TEST-037` | `PARTIAL` | `ThemeModuleTest` and `StackManagerExtensionTest` provide narrow parsing/inheritance evidence | Required missing/syntax/binding/log-only/sibling/custom-directory/invalid-child matrix is incomplete and was not run in this checkpoint |
-| `SVC-THEME-TEST-038` | `PARTIAL` | Existing Java tests cover representative parent merge behavior | Exact merge/removal matrix, ordering, aliasing, conditions/tabs, additions, deletion, and documented null-parent hazards are not covered or executed |
+| `SVC-THEME-TEST-035` | `PARTIAL` | `buildConfigsJSON` excludes Theme UI-only properties and confirmation values; service-scoped collection prevents same-filename properties from other services entering a payload; canonical same-named properties retain full-path identity | A real consumer save/reload test must still prove exactly one occurrence for every edited config across default and non-default groups |
+| `SVC-THEME-TEST-036` | `PARTIAL` | Real Theme and Advanced renderers cover view-only versus modify, read-only/install-only, parent-final, config-group override, and Installer/Add Service editing; Host disables its UI-only action | Compare and full Host real-renderer matrices plus all action/undo/recommendation states remain incomplete |
+| `SVC-THEME-TEST-037` | `PARTIAL` | `ThemeModuleTest` covers missing, syntax, binding, deleted-descriptor, inheritance, and parent-isolation behavior and passed in this checkpoint | Log-only valid-sibling, custom-directory, semantically malformed, and invalid-child fallback integration remain incomplete |
+| `SVC-THEME-TEST-038` | `PARTIAL` | `ThemeMergeTest` covers nested additions/order, presentation-only subsection overrides, conditions/tabs, exact placement/Widget replacement, type-specific removals, and null-parent safety; `ThemeModuleTest` covers deletion and parent isolation; both passed | Exhaustive scalar/list permutations and real inherited custom-stack integration remain incomplete |
 | `SVC-THEME-TEST-039` | `PARTIAL` | `ThemeArtifactResourceProviderTest` has 14 passing tests for nested projection, logical/file identity, collection and batch predicates, default filtering, whole-stack behavior, missing stack/service/file errors, primary-key IDs, and unsupported mutations | REST child-resource isolation, ordering through the full request framework, and real/custom-stack integration remain incomplete |
 | `SVC-THEME-TEST-040` | `MISSING` | No automated real-cluster evidence was found | Install/Add Service, all named service fixtures, custom service, groups, Kerberos, injected failures, retry, save/reload, and comparison remain required |
 
 ## Test Execution Checkpoint
 
-The following focused command completed successfully during the audit:
+The aggregate frontend command completed successfully during this checkpoint:
+
+```bash
+npm test -- --run
+```
+
+Result: 185 test files and 976 tests passed. The run includes Theme engine,
+renderer, Service Configs, Host Configs, Config Versions, Installer/Add Service,
+permissions, config-group override/final, and save-payload coverage. Vitest
+emitted existing `TimeoutNaNWarning` messages but returned zero failures.
+
+The following earlier focused command remains useful for a faster Theme-only
+audit:
 
 ```bash
 npx vitest run \
@@ -270,22 +282,24 @@ engine and controls plus Service Configs, Host Configs, Config Versions
 comparison, Installer/Add Service Step 7, and Test Connection. Vitest emitted
 one existing `TimeoutNaNWarning` but returned zero failures.
 
-The focused server provider command also completed successfully:
+The focused server Theme command also completed successfully in a JDK 17
+Maven container:
 
 ```bash
-/tmp/apache-maven-3.9.11/bin/mvn \
-  -s /tmp/ambari-maven-settings.xml \
+docker run --rm -v "$PWD":/workspace -w /workspace \
+  maven:3.9.11-eclipse-temurin-17 \
+  mvn \
   -pl ambari-server \
-  -Dtest=ThemeArtifactResourceProviderTest \
+  -Dtest=ThemeMergeTest,ThemeModuleTest,ThemeArtifactResourceProviderTest \
   -Dcheckstyle.skip \
   -Drat.skip=true \
   -DskipPythonTests test
 ```
 
-Result: 14 tests passed with no failures, errors, or skips.
+Result: 21 tests passed with no failures, errors, or skips: 2 merge tests, 5
+module tests, and 14 provider tests.
 
-Before the module can be promoted, run the final aggregate frontend suite at a
-fixed commit, complete and run the server suites for `TEST-037` and `TEST-038`,
-extend the provider integration boundary for `TEST-039`,
-and record `TEST-040` against a real cluster. A passing aggregate still does
-not close a row unless all assertions listed in Module 14 are executable.
+Before the module can be promoted, repeat the aggregate suite at the eventual
+PR commit, extend the remaining server/provider integration boundaries, and
+record `TEST-040` against a real cluster. A passing aggregate still does not
+close a row unless all assertions listed in Module 14 are executable.

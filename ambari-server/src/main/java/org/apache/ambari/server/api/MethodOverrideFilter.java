@@ -18,14 +18,20 @@
 
 package org.apache.ambari.server.api;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,12 +40,14 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpMethod;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class MethodOverrideFilter implements Filter {
   private static final String HEADER_NAME = "X-Http-Method-Override";
-  //limit override to GET method only (no need for others now)
-  private static final List<String> ALLOWED_METHODS = new ArrayList<String>(){{
-    add("GET");
-  }};
+  private static final Set<String> ALLOWED_METHODS = Set.of("GET");
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
@@ -55,18 +63,17 @@ public class MethodOverrideFilter implements Filter {
       if (method != null) {
         if (ALLOWED_METHODS.contains(method.toUpperCase())) {
           final HttpMethod httpMethod = HttpMethod.valueOf(method.toUpperCase());
-          HttpServletRequestWrapper requestWrapper = new HttpServletRequestWrapper(httpServletRequest){
-            @Override
-            public String getMethod() {
-              return httpMethod.toString();
-            }
-          };
+          byte[] body = httpServletRequest.getInputStream().readAllBytes();
+          String bodyQuery = getBodyQuery(body);
+          HttpServletRequestWrapper requestWrapper = new MethodOverrideRequestWrapper(
+              httpServletRequest, httpMethod, bodyQuery, body);
 
           chain.doFilter(requestWrapper, response);
           return;
         } else {
           HttpServletResponse httpResponse = (HttpServletResponse) response;
           httpResponse.sendError(400, "Incorrect HTTP method for override: "+ method + ". Allowed values: "+ ALLOWED_METHODS);
+          return;
         }
       }
     }
@@ -76,5 +83,82 @@ public class MethodOverrideFilter implements Filter {
   @Override
   public void destroy() {
 
+  }
+
+  private String getBodyQuery(byte[] body) throws IOException {
+    if (body.length == 0) {
+      return null;
+    }
+
+    try {
+      JsonNode query = OBJECT_MAPPER.readTree(body).path("RequestInfo").path("query");
+      return query.isTextual() && !query.textValue().isEmpty() ? query.textValue() : null;
+    } catch (JsonProcessingException ignored) {
+      return null;
+    }
+  }
+
+  private static final class MethodOverrideRequestWrapper extends HttpServletRequestWrapper {
+    private final HttpMethod method;
+    private final String queryString;
+    private final byte[] body;
+
+    private MethodOverrideRequestWrapper(HttpServletRequest request, HttpMethod method, String bodyQuery,
+        byte[] body) {
+      super(request);
+      this.method = method;
+      this.body = body;
+      String originalQuery = request.getQueryString();
+      if (originalQuery == null || originalQuery.isEmpty()) {
+        queryString = bodyQuery;
+      } else if (bodyQuery == null || bodyQuery.isEmpty()) {
+        queryString = originalQuery;
+      } else {
+        queryString = originalQuery + "&" + bodyQuery;
+      }
+    }
+
+    @Override
+    public String getMethod() {
+      return method.toString();
+    }
+
+    @Override
+    public String getQueryString() {
+      return queryString;
+    }
+
+    @Override
+    public ServletInputStream getInputStream() {
+      ByteArrayInputStream input = new ByteArrayInputStream(body);
+      return new ServletInputStream() {
+        @Override
+        public int read() {
+          return input.read();
+        }
+
+        @Override
+        public boolean isFinished() {
+          return input.available() == 0;
+        }
+
+        @Override
+        public boolean isReady() {
+          return true;
+        }
+
+        @Override
+        public void setReadListener(ReadListener readListener) {
+          throw new UnsupportedOperationException("Asynchronous reads are not supported");
+        }
+      };
+    }
+
+    @Override
+    public BufferedReader getReader() {
+      String encoding = getCharacterEncoding();
+      Charset charset = encoding == null ? StandardCharsets.UTF_8 : Charset.forName(encoding);
+      return new BufferedReader(new InputStreamReader(getInputStream(), charset));
+    }
   }
 }

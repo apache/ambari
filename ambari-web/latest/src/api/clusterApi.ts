@@ -19,6 +19,20 @@
 import { set } from "lodash";
 import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
 
+let pendingPersistDataRequest: Promise<any> | null = null;
+
+const loadPersistData = async () => {
+  if (!pendingPersistDataRequest) {
+    pendingPersistDataRequest = supressErrorAmbariApi.request({
+      url: "/persist",
+      method: "GET",
+    }).then((response) => response.data).finally(() => {
+      pendingPersistDataRequest = null;
+    });
+  }
+  return pendingPersistDataRequest;
+};
+
 const ClusterApi = {
   loadAmbariProperties: async (fields = "") => {
     const url = `/services/AMBARI/components/AMBARI_SERVER${fields}`;
@@ -130,12 +144,8 @@ const ClusterApi = {
     return response.data;
   },
   getPersistData: async function (key?: any) {
-    const url = key ? `/persist/${key}` : '/persist';
-    const response = await supressErrorAmbariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
+    const persistData = await loadPersistData();
+    return key === undefined ? persistData : persistData?.[key];
   },
   postPersistData: async function (data:any) {
     const url = `/persist`;
