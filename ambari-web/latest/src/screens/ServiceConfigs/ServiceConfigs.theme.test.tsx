@@ -141,6 +141,11 @@ vi.mock("../CommonConfigs/Config", () => ({
         }))
     )[0];
     const property = locatedProperty?.property;
+    const properties = Object.values(configProperties).flatMap((sections) =>
+      Object.values(sections).flatMap((section) =>
+        Object.values(section.properties || {}),
+      ),
+    );
     const layoutName = property?.tabName
       ? `Theme ${property.tabName}`
       : locatedProperty?.section.displayName || locatedProperty?.sectionName;
@@ -151,6 +156,9 @@ vi.mock("../CommonConfigs/Config", () => ({
         <div data-testid="property-value">{String(property?.value || "")}</div>
         <div data-testid="theme-count">{themeData?.items?.length || 0}</div>
         <div data-testid="all-themes">{String(Boolean(allThemes))}</div>
+        <div data-testid="all-properties-read-only">
+          {String(properties.every((item) => item.isEditable === false))}
+        </div>
         <button
           onClick={() => {
             const updated = structuredClone(configProperties);
@@ -358,7 +366,35 @@ describe("Service Configs Theme loading", () => {
     );
   });
 
-  it("renders a non-default named Theme without a hardcoded service model", async () => {
+  it("keeps stack and custom properties read-only without modify permission", async () => {
+    mocks.hasAuthorization.mockReturnValue(false);
+    mocks.getConfigValues.mockResolvedValue({
+      ...propertyValues,
+      items: propertyValues.items.map((item) => ({
+        ...item,
+        configurations: item.configurations.map((configuration) => ({
+          ...configuration,
+          properties: {
+            ...configuration.properties,
+            "custom.property": "custom-value",
+          },
+        })),
+      })),
+    });
+
+    renderServiceConfigs();
+
+    expect(await screen.findByText("Theme settings")).toBeTruthy();
+    expect(screen.getByTestId("all-properties-read-only").textContent).toBe(
+      "true",
+    );
+    expect(
+      (screen.getByRole("button", { name: "SAVE" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+  });
+
+  it("keeps a categorized Theme out of Installed Service Configs", async () => {
     const zookeeperConfigurations = fixtureForService(
       stackConfigurations,
       "ZOOKEEPER",
@@ -380,7 +416,10 @@ describe("Service Configs Theme loading", () => {
       { ServiceInfo: { service_name: "ZOOKEEPER" } },
     ]);
 
-    expect(await screen.findByText("Theme directories")).toBeTruthy();
+    expect(await screen.findByText("Advanced core-site")).toBeTruthy();
+    expect(
+      screen.getByText(/No Theme layout is defined for ZOOKEEPER\./),
+    ).toBeTruthy();
     expect(screen.getByTestId("all-themes").textContent).toBe("true");
     expect(mocks.getTheme).toHaveBeenCalledWith("HDP", "3.1", "ZOOKEEPER");
   });

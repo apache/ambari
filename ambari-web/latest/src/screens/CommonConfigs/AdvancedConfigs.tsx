@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useEffect, useState, useTransition } from "react";
+import { Fragment, useEffect, useState } from "react";
 import {
   configGroupOverrides,
   InputType,
@@ -128,12 +128,11 @@ function AdvancedConfigs({
 }: AdvancedConfigsType) {
   const [advancedConfigs, setAdvancedConfigs] = useState(configPropertiesData);
   const [configPropertiesLoading] = useState(false);
-  const [, startTransition] = useTransition();
   const [showAddPropertyModal, setShowAddPropertyModal] =
     useState<boolean>(false);
   const { isAuthorized } = useAuthorizationPolicy();
   const canEditConfigs = isAuthorized("SERVICE.MODIFY_CONFIGS");
-  const canEditProperties = canEdit ?? canEditConfigs;
+  const canEditProperties = canEdit ?? (installer || canEditConfigs);
   const newPropertyFields = {
     propertyName: "",
     propertyAttributes: { 
@@ -154,6 +153,30 @@ function AdvancedConfigs({
   const [multiPropertyErrors, setMultiPropertyErrors] = useState<string[]>([]);
   const [isMultiPropertyMode, setIsMultiPropertyMode] = useState<boolean>(false);
   const [selectedPropertyTypes, setSelectedPropertyTypes] = useState<string[]>([]);
+
+  const configSectionNames = Object.keys(
+    advancedConfigs?.[chosenService] || {},
+  ).sort((left, right) => {
+    const displayName = (name: string) =>
+      advancedConfigs?.[chosenService]?.[name]?.displayName || name;
+    const categoryRank = (name: string) =>
+      displayName(name).startsWith("Advanced ")
+        ? 1
+        : displayName(name).startsWith("Custom ")
+          ? 2
+          : 0;
+    return categoryRank(left) - categoryRank(right) ||
+      displayName(left).localeCompare(displayName(right));
+  });
+  const defaultOpenSections = configSectionNames.filter(
+    (name) => {
+      const displayName =
+        advancedConfigs?.[chosenService]?.[name]?.displayName || name;
+      return !displayName.includes("Advanced") &&
+        !displayName.includes("CapacityScheduler") &&
+        !displayName.includes("Custom");
+    },
+  );
 
   // Property type options matching Ember.js implementation
   const propertyTypeOptions = [
@@ -180,15 +203,15 @@ function AdvancedConfigs({
 
   const onValueUpdate = onValueUpdateProp || onValueUpdateHook;
 
-  useEffect(() => {
-    startTransition(() => {
-      setConfigProperties(advancedConfigs);
-      setTabErrors(setTabErrorCounts(advancedConfigs));
-    });
-  }, [advancedConfigs]);
+  const commitAdvancedConfigs = (nextConfigs: any) => {
+    setAdvancedConfigs(nextConfigs);
+    setConfigProperties(nextConfigs);
+    setTabErrors(setTabErrorCounts(nextConfigs));
+  };
 
   useEffect(() => {
     setAdvancedConfigs(configPropertiesData);
+    setTabErrors(setTabErrorCounts(configPropertiesData));
   }, [configPropertiesData]);
 
   const handleChange = (
@@ -259,7 +282,7 @@ function AdvancedConfigs({
     advancedDataCopy = updateVisibilityByForeignKeys(advancedDataCopy);
     advancedDataCopy = validateAllProperties(advancedDataCopy);
 
-    setAdvancedConfigs(advancedDataCopy);
+    commitAdvancedConfigs(advancedDataCopy);
 
     onValueUpdate(
       advancedDataCopy[chosenService][section]["properties"][property],
@@ -336,7 +359,7 @@ function AdvancedConfigs({
     advancedDataCopy = updateVisibilityByForeignKeys(advancedDataCopy);
     advancedDataCopy = validateAllProperties(advancedDataCopy);
 
-    setAdvancedConfigs(advancedDataCopy);
+    commitAdvancedConfigs(advancedDataCopy);
 
 
   };
@@ -537,7 +560,7 @@ function AdvancedConfigs({
       newConfigs[chosenService][configType].properties
     );
 
-    setAdvancedConfigs(newConfigs);
+    commitAdvancedConfigs(newConfigs);
   };
 
   const setToDefault = (configType: string, property: PropertyType) => {
@@ -557,7 +580,7 @@ function AdvancedConfigs({
       newConfigs[chosenService][configType].properties
     );
 
-    setAdvancedConfigs(newConfigs);
+    commitAdvancedConfigs(newConfigs);
   };
 
   const parseMultiPropertyInput = (input: string) => {
@@ -627,7 +650,7 @@ function AdvancedConfigs({
           };
         });
 
-        setAdvancedConfigs(advancedConfigsCopy);
+        commitAdvancedConfigs(advancedConfigsCopy);
         setShowAddPropertyModal(false);
         setMultiPropertyInput("");
         setMultiPropertyErrors([]);
@@ -660,7 +683,7 @@ function AdvancedConfigs({
           foundInPropertyValues: false,
         };
 
-        setAdvancedConfigs(advancedConfigsCopy);
+        commitAdvancedConfigs(advancedConfigsCopy);
         setShowAddPropertyModal(false);
         setNewCustomProperty(newPropertyFields);
         setCustomPropertyType("");
@@ -707,18 +730,17 @@ function AdvancedConfigs({
       <OverlayBackdrop isOpen={processingConfig} />
       <Accordion
         alwaysOpen
+        defaultActiveKey={defaultOpenSections}
         activeKey={
           searchString
-            ? Object.keys(advancedConfigs?.[chosenService] || {}).map(
-                (_, index) => index.toString()
-              )
+            ? configSectionNames
             : undefined
         }
       >
         {advancedConfigs &&
           advancedConfigs[chosenService] &&
-          Object.keys(advancedConfigs?.[chosenService])?.map(
-            (config, index) => {
+          configSectionNames.map(
+            (config) => {
               const currentConfigValue = advancedConfigs[chosenService][config];
               const errorCount = advancedConfigs[chosenService][config].errors;
               const filteredPropertiesCount = Object.keys(
@@ -750,7 +772,7 @@ function AdvancedConfigs({
               }
 
               return (
-                <Accordion.Item key={index} eventKey={index.toString()}>
+                <Accordion.Item key={config} eventKey={config}>
                   <Accordion.Header>
                     <div className="d-flex align-items-center fs-18">
                       {advancedConfigs[chosenService][config].displayName
@@ -774,7 +796,7 @@ function AdvancedConfigs({
                           !!!currentConfigPropertyValue?.isHidden
                         ) {
                           return (
-                            <>
+                            <Fragment key={configProperty}>
                               <Row
                                 className="mt-2 align-items-center"
                                 key={configProperty}
@@ -850,7 +872,8 @@ function AdvancedConfigs({
                                       {configGroup === "Default" &&
                                       !hostConfigs &&
                                       currentConfigPropertyValue?.supportsFinal &&
-                                      canEditConfigs ? (
+                                      canEditProperties &&
+                                      currentConfigPropertyValue.isEditable ? (
                                         <Tooltip
                                           message={
                                             currentConfigPropertyValue.final === "true"
@@ -877,7 +900,7 @@ function AdvancedConfigs({
                                                 "true"
                                                   ? "false"
                                                   : "true";
-                                              setAdvancedConfigs(
+                                              commitAdvancedConfigs(
                                                 advancedConfigsCopy
                                               );
                                             }}
@@ -887,12 +910,14 @@ function AdvancedConfigs({
                                       {currentConfigPropertyValue
                                         ?.propertyAttributes?.overridable ===
                                         false ||
+                                      currentConfigPropertyValue.final === "true" ||
+                                      currentConfigPropertyValue.isEditable === false ||
                                       (configGroup !== "Default" &&
                                         currentConfigPropertyValue
                                           ?.overrideValues?.some((overrideValue:any)=> overrideValue.value !== null))
                                         ? null
                                         : !hostConfigs &&
-                                          canEditConfigs && (
+                                          canEditProperties && (
                                             <Tooltip
                                               message={
                                                 configGroup === "Default"
@@ -942,6 +967,9 @@ function AdvancedConfigs({
                                                     ].overrideValues.push({
                                                       value: "",
                                                       groupName: configGroup,
+                                                      previousValue: "",
+                                                      final: "false",
+                                                      savedFinal: "false",
                                                       errorMessage: errorMessage,
                                                     });
                                                     advancedConfigsCopy[
@@ -952,7 +980,7 @@ function AdvancedConfigs({
                                                           chosenService
                                                         ][config].properties
                                                       );
-                                                    setAdvancedConfigs(
+                                                    commitAdvancedConfigs(
                                                       advancedConfigsCopy
                                                     );
                                                   }
@@ -963,7 +991,8 @@ function AdvancedConfigs({
 
                                       {!hostConfigs &&
                                         config.includes("Custom") &&
-                                        canEditConfigs && (
+                                        canEditProperties &&
+                                        currentConfigPropertyValue.isEditable && (
                                           <Tooltip
                                             message="Remove this custom property"
                                             placement="top"
@@ -985,7 +1014,7 @@ function AdvancedConfigs({
                                                 // Preserve the foundInPropertyValues flag to help with change detection
                                                 foundInPropertyValues: currentConfigPropertyValue.foundInPropertyValues,
                                               };
-                                              setAdvancedConfigs(
+                                              commitAdvancedConfigs(
                                                 advancedConfigsCopy
                                               );
                                             }}
@@ -995,7 +1024,8 @@ function AdvancedConfigs({
 
                                       {!hostConfigs &&
                                       displayUndoRedo &&
-                                      canEditConfigs &&
+                                      canEditProperties &&
+                                      currentConfigPropertyValue.isEditable &&
                                       currentConfigPropertyValue.value !==
                                         currentConfigPropertyValue.previousValue &&
                                       configGroup === "Default" ? (
@@ -1015,7 +1045,11 @@ function AdvancedConfigs({
                                         />
                                         </Tooltip>
                                       ) : null}
-                                      {!hostConfigs && displayUndoRedo && canEditConfigs && configGroup === "Default" && (
+                                      {!hostConfigs &&
+                                        displayUndoRedo &&
+                                        canEditProperties &&
+                                        currentConfigPropertyValue.isEditable &&
+                                        configGroup === "Default" && (
                                         <Tooltip
                                           message="Reset to default value"
                                           placement="top"
@@ -1067,8 +1101,12 @@ function AdvancedConfigs({
                                                     overrideValue.previousValue,
                                                   isEditable:
                                                     !hostConfigs &&
-                                                    canEditConfigs &&
-                                                    configGroup !== "Default",
+                                                    canEditProperties &&
+                                                    configGroup !== "Default" &&
+                                                    currentConfigPropertyValue.isEditable &&
+                                                    currentConfigPropertyValue.isOverridable !== false &&
+                                                    currentConfigPropertyValue.propertyAttributes?.overridable !== false &&
+                                                    currentConfigPropertyValue.final !== "true",
                                                 },
                                                 function (
                                                   e: any,
@@ -1103,11 +1141,51 @@ function AdvancedConfigs({
                                                 Switch to{" "}
                                                 {overrideValue.groupName}
                                               </h4>
-                                            ) : (
+                                            ) : canEditProperties &&
+                                              currentConfigPropertyValue.isEditable &&
+                                              currentConfigPropertyValue.isOverridable !== false &&
+                                              currentConfigPropertyValue.propertyAttributes?.overridable !== false &&
+                                              currentConfigPropertyValue.final !== "true" ? (
                                               <Stack
                                                 direction="horizontal"
                                                 gap={2}
                                               >
+                                                {currentConfigPropertyValue.supportsFinal && (
+                                                  <Tooltip
+                                                    message={
+                                                      overrideValue.final === "true"
+                                                        ? "This override is marked as final. Click to make it overridable."
+                                                        : "Click to mark this override as final."
+                                                    }
+                                                    placement="top"
+                                                  >
+                                                    <FontAwesomeIcon
+                                                      icon={faLock}
+                                                      className={
+                                                        overrideValue.final === "true"
+                                                          ? "lock-selected pointer"
+                                                          : "text-light pointer"
+                                                      }
+                                                      onClick={() => {
+                                                        const advancedConfigsCopy =
+                                                          cloneDeep(advancedConfigs);
+                                                        const currentOverride =
+                                                          advancedConfigsCopy[
+                                                            chosenService
+                                                          ][config].properties[
+                                                            configProperty
+                                                          ].overrideValues[index];
+                                                        currentOverride.final =
+                                                          currentOverride.final === "true"
+                                                            ? "false"
+                                                            : "true";
+                                                        commitAdvancedConfigs(
+                                                          advancedConfigsCopy
+                                                        );
+                                                      }}
+                                                    />
+                                                  </Tooltip>
+                                                )}
                                                 <Tooltip
                                                   message="Remove this override value"
                                                   placement="top"
@@ -1128,27 +1206,27 @@ function AdvancedConfigs({
                                                       
                                                       // Recalculate error counts after removing override
                                                       const validatedConfigs = validateAllProperties(advancedConfigsCopy);
-                                                      setAdvancedConfigs(
+                                                      commitAdvancedConfigs(
                                                         validatedConfigs
                                                       );
                                                     }}
                                                   />
                                                 </Tooltip>
                                               </Stack>
-                                            ))}
+                                            ) : null)}
                                           </Col>
                                         </Row>
                                       );
                                     }
                                   )
                                 : null}
-                            </>
+                            </Fragment>
                           );
                         }
                         return null;
                       }
                     )}
-                    {!hostConfigs && canEditConfigs && config.includes("Custom") ? (
+                    {!hostConfigs && canEditProperties && config.includes("Custom") ? (
                       <h4
                         className="text-info ms-2 mt-2"
                         onClick={() => {

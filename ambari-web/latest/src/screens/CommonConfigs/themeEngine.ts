@@ -880,8 +880,8 @@ export const normalizeDefaultThemeResponse = (
       layoutNames: serviceThemes.flatMap((theme) => theme.layoutNames),
       tabs,
       placements: serviceThemes.flatMap((theme) => theme.placements),
-      // Kept for single-path compatibility. Renderers use placement.widget so
-      // presentation metadata remains isolated when paths repeat.
+      // Renderers use placement.widget, preserving presentation metadata when
+      // the same config path appears in more than one Theme artifact.
       widgetsByConfigPath: Object.assign(
         {},
         ...serviceThemes.map((theme) => theme.widgetsByConfigPath),

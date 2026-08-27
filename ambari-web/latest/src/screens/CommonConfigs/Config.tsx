@@ -3091,6 +3091,8 @@ export default function Config({
                                                                                 >
                                                                                   {!hostConfigs &&
                                                                                     canEditConfigsInContext &&
+                                                                                    currentConfigGroup ===
+                                                                                      "Default" &&
                                                                                     property.isEditable &&
                                                                                     property?.supportsFinal && (
                                                                                       <Tooltip
@@ -3137,6 +3139,8 @@ export default function Config({
                                                                                     )}
                                                                                   {property.isEditable ===
                                                                                     false ||
+                                                                                  property.final ===
+                                                                                    "true" ||
                                                                                   property.isOverridable ===
                                                                                     false ||
                                                                                   property
@@ -3214,6 +3218,12 @@ export default function Config({
                                                                                                       property.value,
                                                                                                     groupName:
                                                                                                       currentConfigGroup,
+                                                                                                    previousValue:
+                                                                                                      property.value,
+                                                                                                    final:
+                                                                                                      "false",
+                                                                                                    savedFinal:
+                                                                                                      "false",
                                                                                                   },
                                                                                                 );
 
@@ -3317,7 +3327,9 @@ export default function Config({
                                                                                                   "Default" &&
                                                                                                 property.isEditable &&
                                                                                                 property.isOverridable !==
-                                                                                                  false,
+                                                                                                  false &&
+                                                                                                property.final !==
+                                                                                                  "true",
                                                                                             },
                                                                                             function (
                                                                                               e: any,
@@ -3388,6 +3400,53 @@ export default function Config({
                                                                                                   2
                                                                                                 }
                                                                                               >
+                                                                                                {property.supportsFinal && (
+                                                                                                  <Tooltip
+                                                                                                    message={
+                                                                                                      overrideValue.final ===
+                                                                                                      "true"
+                                                                                                        ? "This override is marked as final. Click to make it overridable."
+                                                                                                        : "Click to mark this override as final."
+                                                                                                    }
+                                                                                                    placement="top"
+                                                                                                  >
+                                                                                                    <FontAwesomeIcon
+                                                                                                      icon={
+                                                                                                        faLock
+                                                                                                      }
+                                                                                                      className={
+                                                                                                        overrideValue.final ===
+                                                                                                        "true"
+                                                                                                          ? "lock-selected pointer"
+                                                                                                          : "text-light pointer"
+                                                                                                      }
+                                                                                                      onClick={() => {
+                                                                                                        const configsCopy =
+                                                                                                          cloneDeep(
+                                                                                                            configProperties,
+                                                                                                          );
+                                                                                                        const currentOverride =
+                                                                                                          configsCopy[
+                                                                                                            serviceKey
+                                                                                                          ][
+                                                                                                            type
+                                                                                                          ].properties[
+                                                                                                            propertyName
+                                                                                                          ].overrideValues[
+                                                                                                            index
+                                                                                                          ];
+                                                                                                        currentOverride.final =
+                                                                                                          currentOverride.final ===
+                                                                                                          "true"
+                                                                                                            ? "false"
+                                                                                                            : "true";
+                                                                                                        setConfigProperties(
+                                                                                                          configsCopy,
+                                                                                                        );
+                                                                                                      }}
+                                                                                                    />
+                                                                                                  </Tooltip>
+                                                                                                )}
                                                                                                 <FontAwesomeIcon
                                                                                                   className="text-danger pointer"
                                                                                                   icon={

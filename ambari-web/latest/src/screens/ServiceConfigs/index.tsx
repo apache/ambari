@@ -344,8 +344,9 @@ export default function ServiceConfigs({
               const overrideValuesChanged = prop.overrideValues && 
                 Array.isArray(prop.overrideValues) && 
                 prop.overrideValues.some(override => 
-                  // Skip override values that are null (removed)
-                  override.value !== null && override.value !== override.previousValue
+                  override.value === null ||
+                  override.value !== override.previousValue ||
+                  override.final !== override.savedFinal
                 );
               
               const finalChanged = prop.final !== prop.savedFinal;
@@ -583,8 +584,11 @@ export default function ServiceConfigs({
             propertyType: propertyType ? propertyType : [],
             type: configType,
             serviceName: serviceName,
-            isEditable: config.StackConfigurations.property_value_attributes.editable_only_at_install ? false :
-              configGroup === "Default" &&
+            isEditable:
+              config.StackConfigurations.property_value_attributes?.editable_only_at_install !== true &&
+              config.StackConfigurations.property_value_attributes?.editable_only_at_install !== "true" &&
+              config.StackConfigurations.property_value_attributes?.read_only !== true &&
+              config.StackConfigurations.property_value_attributes?.read_only !== "true" &&
               selectedVersion === defaultVersionNumber &&
               canModifyConfigs,
             isVisible: config.StackConfigurations.property_value_attributes.visible === false ?  false : true,
@@ -687,7 +691,7 @@ export default function ServiceConfigs({
       item?.configurations?.forEach((config: any) => {
         const type = config.type;
         const properties = config.properties;
-        const propertyAttributes = config.properties_attributes;
+        const propertyAttributes = config.properties_attributes || {};
         const serviceName = get(item, "service_name", "");
 
         Object.keys(properties).forEach((propertyName: string) => {
@@ -734,8 +738,7 @@ export default function ServiceConfigs({
                     propertyType: [],
                     type: type,
                     isEditable:
-                      configGroup === "Default" &&
-                      selectedVersion === defaultVersionNumber,
+                      selectedVersion === defaultVersionNumber && canModifyConfigs,
                     foundInPropertyValues: true, // Mark as found since it's being added from propertyValues
                   };
               }
@@ -780,10 +783,12 @@ export default function ServiceConfigs({
       item?.configurations?.forEach((config: any) => {
         const type = config.type;
         const properties = config.properties;
+        const propertyAttributes = config.properties_attributes || {};
         const serviceName = get(item, "service_name", "");
         const groupName = get(item, "group_name", "");
 
         Object.keys(properties).forEach((propertyName: string) => {
+          const overrideFinal = propertyAttributes.final?.[propertyName] ?? "false";
           if (result[serviceName]?.[type]) {
             if (result[serviceName][type]?.properties[propertyName]) {
               // Mark this property as found in propertyValues
@@ -811,6 +816,8 @@ export default function ServiceConfigs({
                   result[serviceName][type]?.properties[propertyName],
                   properties[propertyName]
                 ),
+                final: overrideFinal,
+                savedFinal: overrideFinal,
               });
             } else {
               if (
@@ -833,8 +840,7 @@ export default function ServiceConfigs({
                     type: type,
                     serviceName: serviceName, // Explicitly set the serviceName to ensure correct association
                     isEditable:
-                      configGroup === "Default" &&
-                      selectedVersion === defaultVersionNumber,
+                      selectedVersion === defaultVersionNumber && canModifyConfigs,
                     foundInPropertyValues: true, // Mark as found since it's being added from propertyValues
                   };
                 }
@@ -854,6 +860,8 @@ export default function ServiceConfigs({
                 value: properties[propertyName],
                 groupName: groupName,
                 previousValue: properties[propertyName],
+                final: overrideFinal,
+                savedFinal: overrideFinal,
               });
             }
           }
@@ -1352,7 +1360,8 @@ export default function ServiceConfigs({
       value: "TEST KDC CONNECTION",
       final: "false",
       savedFinal : "false",
-      isEditable: true,
+      isEditable: canModifyConfigs,
+      isRequiredByAgent: false,
     };
 
     return updatedConfigs;
@@ -1525,6 +1534,7 @@ export default function ServiceConfigs({
                     {themeLoadNotice.kind === "empty"
                       ? `No Theme layout is defined for ${serviceName}.`
                       : `Theme layout for ${serviceName} could not be loaded.`}
+                    {" "}
                     Configuration properties remain available in the Advanced
                     tab.
                   </div>

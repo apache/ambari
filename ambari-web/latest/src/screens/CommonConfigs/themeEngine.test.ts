@@ -176,7 +176,7 @@ const configs: ConfigPropertiesType = {
 };
 
 describe("Service Theme normalizer", () => {
-  it("compiles every server-default artifact for an installed custom service", () => {
+  it("keeps a categorized directories Theme out of Installed Service Configs", () => {
     const zookeeper = readTheme(
       "ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/ZOOKEEPER/themes/directories.json",
     );
@@ -188,25 +188,13 @@ describe("Service Theme normalizer", () => {
     );
     const theme = result.byService.CUSTOM_ZK;
 
-    expect(theme.isFallback).toBe(false);
-    expect(theme.tabs.map((tab) => tab.name)).toEqual([
-      "directories",
-      "Advanced",
-    ]);
-    expect(theme.tabs[0].sections.map((section) => section.displayName)).toEqual([
-      "DATA DIRS",
-      "LOG DIRS",
-      "PID DIRS",
-    ]);
-    expect(theme.placements.map((placement) => placement.widget?.type)).toEqual([
-      "text-field",
-      "text-field",
-      "text-field",
-    ]);
+    expect(theme.isFallback).toBe(true);
+    expect(theme.tabs.map((tab) => tab.name)).toEqual(["Advanced"]);
+    expect(theme.placements).toEqual([]);
     expect(result.diagnostics).toEqual([]);
   });
 
-  it("keeps Widget metadata scoped to its placement across returned Themes", () => {
+  it("does not let categorized Widget metadata override the installed default Theme", () => {
     const themed = (name: string, type: string) => ({
       name,
       configuration: {
@@ -234,19 +222,23 @@ describe("Service Theme normalizer", () => {
         ],
       },
     });
+    const response = responseFor("CUSTOM", [
+      { fileName: "default.json", theme: themed("default", "text-field") },
+      { fileName: "directories.json", theme: themed("directories", "toggle") },
+    ]);
     const theme = normalizeDefaultThemeResponse(
-      responseFor("CUSTOM", [
-        { fileName: "first.json", theme: themed("first", "text-field") },
-        { fileName: "second.json", theme: themed("second", "toggle") },
-      ]),
+      response,
       ["CUSTOM"],
     ).byService.CUSTOM;
 
+    expect(theme.themeName).toBe("default");
+    expect(theme.tabs.map((tab) => tab.name)).toEqual([
+      "default-tab",
+      "Advanced",
+    ]);
     expect(theme.placements.map((placement) => placement.widget?.type)).toEqual([
       "text-field",
-      "toggle",
     ]);
-    expect(theme.placements[0].id).not.toBe(theme.placements[1].id);
   });
 
   it("preserves the real BIGTOP HIVE grid, placements, widgets, and UI-only metadata", () => {

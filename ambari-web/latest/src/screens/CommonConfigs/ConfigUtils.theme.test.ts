@@ -323,7 +323,7 @@ describe("Service Theme config visibility", () => {
     expect(restored.SVC["type-b"].properties.shared.isVisible).toBe(true);
   });
 
-  it("keeps visibility and attributes isolated for repeated paths across Themes", () => {
+  it("applies only the default Theme on an Installed Service page", () => {
     const directories = themeResponse({
       themeName: "directories",
       placements: [
@@ -346,8 +346,7 @@ describe("Service Theme config visibility", () => {
     directories.items[0].themes.push(hiddenDefault.items[0].themes[0]);
 
     const normalized = normalizeDefaultThemeResponse(directories, ["SVC"]);
-    const [directoriesPlacement, defaultPlacement] =
-      normalized.byService.SVC.placements;
+    const [defaultPlacement] = normalized.byService.SVC.placements;
     const property = updateVisibilityForDependsOn(
       configs(),
       directories,
@@ -356,11 +355,9 @@ describe("Service Theme config visibility", () => {
       true,
     ).SVC["type-a"].properties.shared;
 
-    expect(property.isVisible).toBe(true);
-    expect(property.propertyAttributes.visible).toBe(true);
-    expect(
-      getThemePlacementProperty(property, directoriesPlacement.id),
-    ).toMatchObject({ isVisible: true, isEditable: false });
+    expect(normalized.byService.SVC.placements).toHaveLength(1);
+    expect(property.isVisible).toBe(false);
+    expect(property.propertyAttributes.visible).toBe(false);
     expect(
       getThemePlacementProperty(property, defaultPlacement.id),
     ).toMatchObject({ isVisible: false, isEditable: true });

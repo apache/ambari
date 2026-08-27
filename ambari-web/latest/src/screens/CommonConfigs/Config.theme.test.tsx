@@ -25,6 +25,7 @@ import Config from "./Config";
 import { ConfigPropertiesType } from "./types";
 
 const mocks = vi.hoisted(() => ({
+  hasAuthorization: vi.fn(() => true),
   testConnectionProps: vi.fn(),
   recommendedChanges: {} as Record<string, Record<string, unknown>>,
   setRecommendedChanges: vi.fn(),
@@ -32,8 +33,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("../../hooks/useAuth", () => ({
   useAuth: () => ({
-    havePermissions: () => true,
-    hasAuthorization: () => true,
+    havePermissions: mocks.hasAuthorization,
+    hasAuthorization: mocks.hasAuthorization,
   }),
 }));
 vi.mock("../../hooks/useEnhancedConfigs", () => ({
@@ -305,12 +306,17 @@ function renderConfig(
 function StatefulConfig({
   themeData,
   initialConfigs,
+  configProps = {},
 }: {
   themeData: unknown;
   initialConfigs: ConfigPropertiesType;
+  configProps?: Record<string, unknown>;
 }) {
   const [configProperties, setConfigProperties] = useState(initialConfigs);
-  return configElement(themeData, configProperties, { setConfigProperties });
+  return configElement(themeData, configProperties, {
+    ...configProps,
+    setConfigProperties,
+  });
 }
 
 const compactTheme = (
@@ -477,6 +483,7 @@ const geometryTheme = () => {
 
 describe("Ember Service Theme page integration", () => {
   beforeEach(() => {
+    mocks.hasAuthorization.mockReturnValue(true);
     mocks.testConnectionProps.mockClear();
     mocks.setRecommendedChanges.mockClear();
     Object.keys(mocks.recommendedChanges).forEach(
@@ -486,7 +493,7 @@ describe("Ember Service Theme page integration", () => {
 
   afterEach(cleanup);
 
-  it("renders every section from a non-default named installed-service Theme", async () => {
+  it("keeps a categorized Theme out of the Installed Service default editor", async () => {
     type MutableThemeBody = {
       name: string;
       configuration: {
@@ -550,13 +557,11 @@ describe("Ember Service Theme page integration", () => {
 
     renderConfig(directoriesTheme, configs(), { allThemes: true });
 
-    expect(await screen.findByRole("tab", { name: "Directories" })).toBeTruthy();
-    expect(screen.getByText("DATA DIRS")).toBeTruthy();
-    expect(screen.getByText("LOG DIRS")).toBeTruthy();
-    expect(screen.getByText("PID DIRS")).toBeTruthy();
-    expect(screen.getByDisplayValue("primary value")).toBeTruthy();
-    expect(screen.getByDisplayValue("secondary value")).toBeTruthy();
-    expect(screen.getByDisplayValue("show")).toBeTruthy();
+    expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+    expect(screen.queryByRole("tab", { name: "Directories" })).toBeNull();
+    expect(screen.queryByText("DATA DIRS")).toBeNull();
+    expect(screen.queryByText("LOG DIRS")).toBeNull();
+    expect(screen.queryByText("PID DIRS")).toBeNull();
   });
 
   it("selects the first visible top tab, rejects disabled tabs, and renders on demand", async () => {
@@ -765,6 +770,76 @@ describe("Ember Service Theme page integration", () => {
     });
 
     expect((button as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("keeps the complete installed-service Theme read-only without modify permission", async () => {
+    mocks.hasAuthorization.mockReturnValue(false);
+    const readOnlyConfigs = configs();
+    readOnlyConfigs.SVC.site.properties.primary.supportsFinal = true;
+    const { container } = renderConfig(theme, readOnlyConfigs);
+
+    expect(
+      (await screen.findByDisplayValue("primary value") as HTMLInputElement)
+        .disabled,
+    ).toBe(true);
+    fireEvent.click(await screen.findByRole("tab", { name: "Secondary group" }));
+    expect(
+      (await screen.findByRole("button", {
+        name: "Verify custom database",
+      }) as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(container.querySelector('[data-icon="lock"]')).toBeNull();
+    expect(container.querySelector('[data-icon="circle-plus"]')).toBeNull();
+  });
+
+  it("allows Installer Theme controls through the wizard permission boundary", async () => {
+    mocks.hasAuthorization.mockReturnValue(false);
+    renderConfig(theme, configs(), { installer: true });
+
+    expect(
+      (await screen.findByDisplayValue("primary value") as HTMLInputElement)
+        .disabled,
+    ).toBe(false);
+    fireEvent.click(await screen.findByRole("tab", { name: "Secondary group" }));
+    expect(
+      (await screen.findByRole("button", {
+        name: "Verify custom database",
+      }) as HTMLButtonElement).disabled,
+    ).toBe(false);
+  });
+
+  it("keeps override final state on the selected config group", async () => {
+    const groupConfigs = configs();
+    const primary = groupConfigs.SVC.site.properties.primary;
+    primary.supportsFinal = true;
+    primary.overrideValues = [
+      {
+        value: "group override",
+        previousValue: "group override",
+        groupName: "Blue",
+        final: "false",
+        savedFinal: "false",
+      },
+    ];
+
+    render(
+      <StatefulConfig
+        themeData={theme}
+        initialConfigs={groupConfigs}
+        configProps={{ configGroup: "Blue" }}
+      />,
+    );
+
+    expect(
+      (await screen.findByDisplayValue("group override") as HTMLInputElement)
+        .disabled,
+    ).toBe(false);
+    const locks = document.querySelectorAll('[data-icon="lock"]');
+    expect(locks).toHaveLength(1);
+    fireEvent.click(locks[0]);
+    await waitFor(() =>
+      expect(locks[0].classList.contains("lock-selected")).toBe(true),
+    );
   });
 
   it("applies Theme read-only and non-overridable state to every mutation control", async () => {
