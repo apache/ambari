@@ -17,7 +17,7 @@
  */
 
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ComponentProps, ReactNode } from "react";
+import { StrictMode, type ComponentProps, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { AppContext } from "../../store/context";
@@ -122,11 +122,13 @@ vi.mock("../CommonConfigs/Config", () => ({
     servicesList,
     setConfigProperties,
     themeData,
+    allThemes,
   }: {
     configProperties: ConfigPropertiesType;
     servicesList: string[];
     setConfigProperties: (configs: ConfigPropertiesType) => void;
     themeData: { items?: unknown[] };
+    allThemes?: boolean;
   }) => {
     const serviceName = servicesList[0];
     const sections = configProperties[serviceName] || {};
@@ -139,6 +141,11 @@ vi.mock("../CommonConfigs/Config", () => ({
         }))
     )[0];
     const property = locatedProperty?.property;
+    const properties = Object.values(configProperties).flatMap((sections) =>
+      Object.values(sections).flatMap((section) =>
+        Object.values(section.properties || {}),
+      ),
+    );
     const layoutName = property?.tabName
       ? `Theme ${property.tabName}`
       : locatedProperty?.section.displayName || locatedProperty?.sectionName;
@@ -148,6 +155,10 @@ vi.mock("../CommonConfigs/Config", () => ({
         <div>{layoutName}</div>
         <div data-testid="property-value">{String(property?.value || "")}</div>
         <div data-testid="theme-count">{themeData?.items?.length || 0}</div>
+        <div data-testid="all-themes">{String(Boolean(allThemes))}</div>
+        <div data-testid="all-properties-read-only">
+          {String(properties.every((item) => item.isEditable === false))}
+        </div>
         <button
           onClick={() => {
             const updated = structuredClone(configProperties);
@@ -272,29 +283,34 @@ const themeResponse = {
 const fixtureForService = <T,>(fixture: T, serviceName: string): T =>
   JSON.parse(JSON.stringify(fixture).replaceAll('"HDFS"', `"${serviceName}"`));
 
-function serviceConfigsElement(serviceName = "hdfs") {
+function serviceConfigsElement(
+  serviceName = "hdfs",
+  allServiceModels: Record<string, unknown> = {
+    hdfs: {
+      isClientOnlyService: true,
+      masterComponents: [],
+      slaveComponents: [],
+    },
+    yarn: {
+      isClientOnlyService: true,
+      masterComponents: [],
+      slaveComponents: [],
+    },
+  },
+  contextServices = services,
+  stackVersion = "3.1",
+) {
   const appContextValue = {
     clusterName: "cluster1",
     cluster: {
       cluster_id: 1,
       stack: "HDP",
-      versionNum: "3.1",
+      versionNum: stackVersion,
     },
-    services,
+    services: contextServices,
   } as unknown as ComponentProps<typeof AppContext.Provider>["value"];
   const serviceContextValue = {
-    allServiceModels: {
-      hdfs: {
-        isClientOnlyService: true,
-        masterComponents: [],
-        slaveComponents: [],
-      },
-      yarn: {
-        isClientOnlyService: true,
-        masterComponents: [],
-        slaveComponents: [],
-      },
-    },
+    allServiceModels,
   } as unknown as ComponentProps<typeof ServiceContext.Provider>["value"];
 
   return (
@@ -308,8 +324,14 @@ function serviceConfigsElement(serviceName = "hdfs") {
   );
 }
 
-function renderServiceConfigs(serviceName = "hdfs") {
-  return render(serviceConfigsElement(serviceName));
+function renderServiceConfigs(
+  serviceName = "hdfs",
+  allServiceModels?: Record<string, unknown>,
+  contextServices = services,
+) {
+  return render(
+    serviceConfigsElement(serviceName, allServiceModels, contextServices),
+  );
 }
 
 describe("Service Configs Theme loading", () => {
@@ -344,6 +366,64 @@ describe("Service Configs Theme loading", () => {
     );
   });
 
+  it("keeps stack and custom properties read-only without modify permission", async () => {
+    mocks.hasAuthorization.mockReturnValue(false);
+    mocks.getConfigValues.mockResolvedValue({
+      ...propertyValues,
+      items: propertyValues.items.map((item) => ({
+        ...item,
+        configurations: item.configurations.map((configuration) => ({
+          ...configuration,
+          properties: {
+            ...configuration.properties,
+            "custom.property": "custom-value",
+          },
+        })),
+      })),
+    });
+
+    renderServiceConfigs();
+
+    expect(await screen.findByText("Theme settings")).toBeTruthy();
+    expect(screen.getByTestId("all-properties-read-only").textContent).toBe(
+      "true",
+    );
+    expect(
+      (screen.getByRole("button", { name: "SAVE" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+  });
+
+  it("keeps a categorized Theme out of Installed Service Configs", async () => {
+    const zookeeperConfigurations = fixtureForService(
+      stackConfigurations,
+      "ZOOKEEPER",
+    );
+    const zookeeperValues = fixtureForService(propertyValues, "ZOOKEEPER");
+    const zookeeperTheme = fixtureForService(themeResponse, "ZOOKEEPER");
+    zookeeperTheme.items[0].themes[0].ThemeInfo.file_name = "directories.json";
+    zookeeperTheme.items[0].themes[0].ThemeInfo.theme_data.Theme.name =
+      "directories";
+    zookeeperTheme.items[0].themes[0].ThemeInfo.theme_data.Theme.configuration.layouts[0].name =
+      "directories";
+    zookeeperTheme.items[0].themes[0].ThemeInfo.theme_data.Theme.configuration.layouts[0].tabs[0].name =
+      "directories";
+    mocks.getServiceConfigurations.mockResolvedValue(zookeeperConfigurations);
+    mocks.getConfigValues.mockResolvedValue(zookeeperValues);
+    mocks.getTheme.mockResolvedValue(zookeeperTheme);
+
+    renderServiceConfigs("zookeeper", {}, [
+      { ServiceInfo: { service_name: "ZOOKEEPER" } },
+    ]);
+
+    expect(await screen.findByText("Advanced core-site")).toBeTruthy();
+    expect(
+      screen.getByText(/No Theme layout is defined for ZOOKEEPER\./),
+    ).toBeTruthy();
+    expect(screen.getByTestId("all-themes").textContent).toBe("true");
+    expect(mocks.getTheme).toHaveBeenCalledWith("HDP", "3.1", "ZOOKEEPER");
+  });
+
   it("renders Advanced configs after Theme failure and recovers without losing edits", async () => {
     mocks.getTheme
       .mockRejectedValueOnce(new Error("Theme unavailable"))
@@ -372,6 +452,68 @@ describe("Service Configs Theme loading", () => {
     expect(screen.getByTestId("property-value").textContent).toBe(
       "edited-during-fallback"
     );
+  });
+
+  it("distinguishes a successful empty Theme collection from a request failure", async () => {
+    mocks.getTheme.mockResolvedValueOnce({ items: [] });
+    renderServiceConfigs();
+
+    expect(await screen.findByText("Advanced core-site")).toBeTruthy();
+    expect(screen.getByText(/No Theme layout is defined for HDFS\./)).toBeTruthy();
+    expect(screen.getByText("No default Theme is available for HDFS.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+  });
+
+  it("isolates a malformed Theme response and allows it to be retried", async () => {
+    mocks.getTheme
+      .mockResolvedValueOnce({ items: "not-a-collection" })
+      .mockResolvedValueOnce(themeResponse);
+    renderServiceConfigs();
+
+    expect(await screen.findByText("Advanced core-site")).toBeTruthy();
+    expect(screen.getByText("items must be an array.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByText("Theme settings")).toBeTruthy();
+    expect(mocks.getTheme).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    [404, "Theme resource not found"],
+    [500, "Theme provider failed"],
+  ])("reports an HTTP %s Theme failure without blocking Advanced configs", async (status, message) => {
+    mocks.getTheme.mockRejectedValueOnce({
+      response: { status, data: { message } },
+    });
+    renderServiceConfigs();
+
+    expect(await screen.findByText("Advanced core-site")).toBeTruthy();
+    expect(screen.getByText(`HTTP ${status}: ${message}`)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+  });
+
+  it("deduplicates an in-flight Theme request for the same stack context", async () => {
+    let resolveTheme: (value: typeof themeResponse) => void = () => undefined;
+    const pendingTheme = new Promise<typeof themeResponse>((resolve) => {
+      resolveTheme = resolve;
+    });
+    mocks.getTheme.mockReturnValue(pendingTheme);
+
+    render(<StrictMode>{serviceConfigsElement()}</StrictMode>);
+    await waitFor(() => expect(mocks.getTheme).toHaveBeenCalledTimes(1));
+    await act(async () => resolveTheme(themeResponse));
+
+    expect(await screen.findByText("Theme settings")).toBeTruthy();
+  });
+
+  it("invalidates the Theme cache when the stack version changes", async () => {
+    const view = renderServiceConfigs();
+    expect(await screen.findByText("Theme settings")).toBeTruthy();
+
+    view.rerender(serviceConfigsElement("hdfs", undefined, services, "3.2"));
+
+    await waitFor(() => expect(mocks.getTheme).toHaveBeenCalledTimes(2));
+    expect(mocks.getTheme).toHaveBeenLastCalledWith("HDP", "3.2", "HDFS");
   });
 
   it("ignores an older configuration version response that finishes last", async () => {

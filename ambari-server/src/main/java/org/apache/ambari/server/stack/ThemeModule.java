@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -96,12 +97,38 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
 
     if (parent.getModuleInfo() != null && !moduleInfo.isDeleted()) {
       if (moduleInfo.getThemeMap() == null || moduleInfo.getThemeMap().isEmpty()) {
-        moduleInfo.setThemeMap(parentModuleInfo.getThemeMap());
+        moduleInfo.setThemeMap(copyThemeMap(parentModuleInfo.getThemeMap()));
       } else if(parentModuleInfo.getThemeMap() != null && !parentModuleInfo.getThemeMap().isEmpty()) {
         Theme childTheme = moduleInfo.getThemeMap().get(THEME_KEY);
-        Theme parentTheme = parentModuleInfo.getThemeMap().get(THEME_KEY);
-        childTheme.mergeWithParent(parentTheme);
+        Theme parentTheme = copyTheme(parentModuleInfo.getThemeMap().get(THEME_KEY));
+        if (childTheme != null) {
+          childTheme.mergeWithParent(parentTheme);
+        }
       }
+    }
+  }
+
+  private Map<String, Theme> copyThemeMap(Map<String, Theme> themeMap) throws AmbariException {
+    if (themeMap == null) {
+      return null;
+    }
+
+    Map<String, Theme> copy = new LinkedHashMap<>();
+    for (Map.Entry<String, Theme> entry : themeMap.entrySet()) {
+      copy.put(entry.getKey(), copyTheme(entry.getValue()));
+    }
+    return copy;
+  }
+
+  private Theme copyTheme(Theme theme) throws AmbariException {
+    if (theme == null) {
+      return null;
+    }
+
+    try {
+      return mapper.readValue(mapper.writeValueAsBytes(theme), Theme.class);
+    } catch (IOException e) {
+      throw new AmbariException("Unable to copy inherited theme " + moduleInfo.getFileName(), e);
     }
   }
 
@@ -112,7 +139,7 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
 
   @Override
   public boolean isDeleted() {
-    return false;
+    return moduleInfo.isDeleted();
   }
 
   @Override

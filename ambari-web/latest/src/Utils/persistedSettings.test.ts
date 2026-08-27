@@ -34,6 +34,9 @@ describe("persisted settings", () => {
 
   it("uses the fallback for empty or invalid persisted data", () => {
     expect(parsePersistedValue(undefined, true)).toBe(true);
+    expect(parsePersistedValue(null, true)).toBe(true);
+    expect(parsePersistedValue("", "Browser")).toBe("Browser");
+    expect(parsePersistedValue("null", { userName: "" })).toEqual({ userName: "" });
     expect(parsePersistedValue("not-json", "Browser")).toBe("Browser");
   });
 });

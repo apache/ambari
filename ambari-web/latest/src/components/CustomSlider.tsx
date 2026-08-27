@@ -16,10 +16,16 @@
  * limitations under the License.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
-import Slider from 'rc-slider';
-import 'rc-slider/assets/index.css';
-import { convertValue, formatTickLabel } from '../Utils/unitConversionUtils';
+import { useEffect, useRef, useState } from "react";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
+import { extraRound, formatTickLabel } from "../Utils/unitConversionUtils";
+
+export type SliderMarker = {
+  kind: "current" | "default" | "recommended";
+  value: number;
+  onSelect?: () => void;
+};
 
 interface CustomSliderProps {
   min: number;
@@ -27,10 +33,11 @@ interface CustomSliderProps {
   step: number;
   value: number;
   unit?: string;
-  onChange: (value: number | number[]) => void;
+  onChange: (value: number) => void;
+  onChangeComplete?: (value: number) => void;
   disabled?: boolean;
   marks?: Record<number, string>;
-  propertyUnit: string;
+  markers?: SliderMarker[];
 }
 
 const CustomSlider: React.FC<CustomSliderProps> = ({
@@ -38,37 +45,22 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
   max,
   step,
   value,
-  unit = '',
+  unit = "",
   onChange,
+  onChangeComplete,
   disabled = false,
   marks,
-  propertyUnit
+  markers = [],
 }) => {
   const [tooltipPosition, setTooltipPosition] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
-  
-  /**
-   * Round number to 3 digits after "."
-   * Used for all slider's ticks (matches Ember _extraRound method)
-   */
-  const extraRound = (v: number): number => {
-    return parseFloat(v.toFixed(3));
-  };
+  const displayValue = extraRound(value);
 
-  /**
-   * Format tooltip value using the centralized formatTickLabel function
-   */
-  const formatTooltipValue = (tick: number): string => {
-    return formatTickLabel(tick, unit || '', '');
-  };
-
-  // Convert value from property unit to widget unit for display
-  const displayValue: number = extraRound(convertValue(value, propertyUnit, unit, false) as number);
-  
   // Update tooltip position when value changes
   useEffect(() => {
     if (sliderRef.current) {
-      let percentage = ((displayValue - min) / (max - min)) * 100;
+      let percentage =
+        max === min ? 50 : ((displayValue - min) / (max - min)) * 100;
 
       if (percentage < 1) percentage = 1;
       if (percentage > 99) percentage = 99;
@@ -76,32 +68,74 @@ const CustomSlider: React.FC<CustomSliderProps> = ({
       setTooltipPosition(percentage);
     }
   }, [displayValue, min, max]);
-  
+
+  const markerPosition = (markerValue: number) =>
+    max === min ? 50 : ((markerValue - min) / (max - min)) * 100;
+  const markerLabel = (marker: SliderMarker) =>
+    `${marker.kind[0].toUpperCase()}${marker.kind.slice(1)} value: ${formatTickLabel(
+      marker.value,
+      unit,
+      unit ? " " : "",
+    )}`;
+
   return (
     <div className="custom-slider-container" ref={sliderRef}>
-      {/* Value tooltip - matches Ember formatter function behavior */}
-      <div 
+      <output
+        aria-label="Current slider value"
         className="custom-slider-tooltip"
-        style={{ 
+        style={{
           left: `${tooltipPosition}%`,
         }}
       >
-        {formatTooltipValue(displayValue)}
-      </div>
-      
+        {formatTickLabel(displayValue, unit, "")}
+      </output>
+
       <Slider
         min={min}
         max={max}
         step={step}
         marks={marks}
         value={displayValue}
-        onChange={(val) => {
-          // Convert the slider value back to the original unit before passing to parent
-          const originalUnitValue = convertValue(val as number, unit, propertyUnit, false) as number;
-          onChange(originalUnitValue);
-        }}
+        onChange={(nextValue) => onChange(nextValue as number)}
+        onChangeComplete={(nextValue) =>
+          onChangeComplete?.(nextValue as number)
+        }
         disabled={disabled}
       />
+      <div className="custom-slider-markers" aria-label="Slider value markers">
+        {markers
+          .filter((marker) => marker.value >= min && marker.value <= max)
+          .map((marker) => {
+            const label = markerLabel(marker);
+            const markerStyle = {
+              left: `${markerPosition(marker.value)}%`,
+            };
+            return marker.onSelect ? (
+              <button
+                key={`${marker.kind}-${marker.value}`}
+                type="button"
+                className={`custom-slider-marker custom-slider-marker-${marker.kind}`}
+                style={markerStyle}
+                aria-label={`Use ${marker.kind} value: ${formatTickLabel(
+                  marker.value,
+                  unit,
+                  unit ? " " : "",
+                )}`}
+                title={label}
+                disabled={disabled}
+                onClick={marker.onSelect}
+              />
+            ) : (
+              <span
+                key={`${marker.kind}-${marker.value}`}
+                className={`custom-slider-marker custom-slider-marker-${marker.kind}`}
+                style={markerStyle}
+                aria-label={label}
+                title={label}
+              />
+            );
+          })}
+      </div>
     </div>
   );
 };

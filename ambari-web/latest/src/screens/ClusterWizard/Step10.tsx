@@ -344,7 +344,7 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
         isCancelEnabled={!isFinishing}
         step={{ ...currentStep, nextLabel: "COMPLETE" }}
         onNext={() => void finish()}
-        onCancel={() => void finish()}
+        onCancel={() => finish()}
         onBack={() => {}}
       />
     </>

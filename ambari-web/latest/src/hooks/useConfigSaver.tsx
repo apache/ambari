@@ -126,7 +126,11 @@ export const useConfigSaver = (
         (ov: any) => ov.groupName === selectedConfigGroup
       );
       
-      return override && override.value !== override.previousValue;
+      return override && (
+        override.value === null ||
+        override.value !== override.previousValue ||
+        override.final !== override.savedFinal
+      );
     });
 
     return hasChangedConfigs;
@@ -206,24 +210,31 @@ export const useConfigSaver = (
   //   return dirChanged;
   // };
 
-  const getModifiedConfigs = (configProperties: ConfigPropertiesType) => {
+  const getModifiedConfigs = (
+    configProperties: ConfigPropertiesType,
+    serviceName: string
+  ) => {
     let modifiedConfigs: any[] = [];
 
-    Object.keys(configProperties).forEach((serviceName) => {
-      const serviceConfigs = configProperties[serviceName];
+    const serviceConfigs = configProperties[serviceName];
+    if (!serviceConfigs) {
+      return modifiedConfigs;
+    }
 
-      Object.keys(serviceConfigs).forEach((configType) => {
-        const properties = serviceConfigs[configType].properties;
+    Object.keys(serviceConfigs).forEach((configType) => {
+      const properties = serviceConfigs[configType].properties;
 
-        Object.keys(properties).forEach((propertyName) => {
-          const property = properties[propertyName];
+      Object.keys(properties).forEach((propertyName) => {
+        const property = properties[propertyName];
 
-          if (property.value !== property.previousValue || 
-              property.final !== property.savedFinal ||
-              (property.foundInPropertyValues === false && property.value !== null)) {
-            modifiedConfigs.push(property);
-          }
-        });
+        if (
+          property.isRequiredByAgent !== false &&
+          (property.value !== property.previousValue ||
+            property.final !== property.savedFinal ||
+            (property.foundInPropertyValues === false && property.value !== null))
+        ) {
+          modifiedConfigs.push(property);
+        }
       });
     });
 
@@ -232,15 +243,11 @@ export const useConfigSaver = (
     ];
 
     const configsByFile = uniqueFilenames.flatMap((filename) =>
-      Object.keys(configProperties).flatMap((serviceName) => {
-        const serviceConfigs = configProperties[serviceName];
-
-        return Object.keys(serviceConfigs).flatMap((configType) => {
+      Object.keys(serviceConfigs).flatMap((configType) => {
           const properties = serviceConfigs[configType].properties;
           return Object.values(properties).filter(
             (property) => property.fileName === filename
           );
-        });
       })
     );
 
@@ -283,7 +290,7 @@ export const useConfigSaver = (
     //   configProperties = textareaIntoFileConfigs(configProperties, 'capacity-scheduler.xml');
     // }
 
-    const modifiedConfigs = getModifiedConfigs(configProperties);
+    const modifiedConfigs = getModifiedConfigs(configProperties, serviceName);
 
     const serviceFileNames = getUniqueServiceFileNames(
       configProperties[serviceName]
@@ -514,7 +521,10 @@ export const useConfigSaver = (
         // For non-default groups, we need to use the override value for this specific group
         value: (config.overrideValues || []).find(
           (ov: any) => ov.groupName === selectedConfigGroup
-        )?.value ?? config.value
+        )?.value ?? config.value,
+        final: (config.overrideValues || []).find(
+          (ov: any) => ov.groupName === selectedConfigGroup
+        )?.final ?? "false"
       };
     });
 

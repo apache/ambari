@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -32,6 +32,11 @@ vi.mock("../../api/configsApi", () => ({
 }));
 vi.mock("../../components/Spinner", () => ({
   default: () => <div>Loading comparator</div>,
+}));
+vi.mock("./ComparatorFilter", () => ({
+  default: ({ setSelectedFilters }: { setSelectedFilters: (filters: unknown[]) => void }) => (
+    <button onClick={() => setSelectedFilters([])}>Show all properties</button>
+  ),
 }));
 
 import ConfigsComparator from "./ConfigsComparator";
@@ -139,6 +144,7 @@ const themeResponse = {
                       {
                         config: "hive-site/shared",
                         "subsection-name": "default-subsection",
+                        "subsection-tab-name": "connection",
                       },
                     ],
                   },
@@ -169,6 +175,12 @@ const themeResponse = {
                                     "column-index": 0,
                                     "row-span": 1,
                                     "column-span": 1,
+                                    "subsection-tabs": [
+                                      {
+                                        name: "connection",
+                                        "display-name": "Connection",
+                                      },
+                                    ],
                                   },
                                 ],
                               },
@@ -189,18 +201,25 @@ const themeResponse = {
   ],
 };
 
+const comparatorElement = (
+  themeData: unknown,
+  stackConfigData = stackConfigs,
+  clusterName = "c1",
+) =>
+  <ConfigsComparator
+    version1="1"
+    version2="2"
+    defaultVersion="2"
+    clusterName={clusterName}
+    serviceName="HIVE"
+    configs={stackConfigData}
+    themeData={themeData}
+    currentVersion="2"
+  />;
+
 const renderComparator = (themeData: unknown, stackConfigData = stackConfigs) =>
   render(
-    <ConfigsComparator
-      version1="1"
-      version2="2"
-      defaultVersion="2"
-      clusterName="c1"
-      serviceName="HIVE"
-      configs={stackConfigData}
-      themeData={themeData}
-      currentVersion="2"
-    />,
+    comparatorElement(themeData, stackConfigData),
   );
 
 const deepFreeze = (value: unknown): unknown => {
@@ -220,7 +239,7 @@ describe("Config versions comparator Theme integration", () => {
 
   afterEach(cleanup);
 
-  it("renders tabs and property categories from only the default Theme", async () => {
+  it("keeps categorized Themes out of the Installed Service comparison", async () => {
     renderComparator(themeResponse);
 
     expect(
@@ -228,8 +247,9 @@ describe("Config versions comparator Theme integration", () => {
     ).toBeTruthy();
     expect(screen.getByRole("tab", { name: "Advanced (0)" })).toBeTruthy();
     expect(
-      screen.queryByRole("tab", { name: /Nondefault Database/ }),
+      screen.queryByRole("tab", { name: "Nondefault Database (0)" }),
     ).toBeNull();
+    fireEvent.click(screen.getByRole("tab", { name: "Default Database (1)" }));
     expect(await screen.findByText("Default Property")).toBeTruthy();
   });
 
@@ -321,6 +341,7 @@ describe("Config versions comparator Theme integration", () => {
     defaultTheme.configuration.placement.configs.push({
       config: "other-site/shared",
       "subsection-name": "default-subsection",
+      "subsection-tab-name": "connection",
     });
     mocks.getMultipleVersionConfigValues.mockResolvedValueOnce(
       responseWithCollision,
@@ -334,5 +355,160 @@ describe("Config versions comparator Theme integration", () => {
     expect(screen.getByText("two")).toBeTruthy();
     expect(screen.getByText("other-one")).toBeTruthy();
     expect(screen.getByText("other-two")).toBeTruthy();
+  });
+
+  it("renders added, removed, changed, and unchanged values with exact fallback semantics", async () => {
+    const response = structuredClone(versionResponse);
+    response.items[0].configurations[0].properties = {
+      shared: "one",
+      removed: "old-only",
+      unchanged: "same",
+      empty: "",
+      db_password: "secret-one",
+      ui_action: "run-one",
+      stack_ui_action: "stack-run-one",
+    };
+    response.items[1].configurations[0].properties = {
+      shared: "two",
+      added: "new-only",
+      unchanged: "same",
+      empty: "",
+      db_password: "secret-two",
+      ui_action: "run-two",
+      stack_ui_action: "stack-run-two",
+    };
+    const stackData: any = structuredClone(stackConfigs);
+    const configurations = stackData.items[0].configurations;
+    ["removed", "unchanged", "empty", "added"].forEach((propertyName) => {
+      configurations.push({
+        StackConfigurations: {
+          type: "hive-site.xml",
+          property_name: propertyName,
+          property_display_name:
+            propertyName === "removed" ? "Legacy Removed Setting" : propertyName,
+          property_value: "",
+          property_value_attributes: {},
+          property_type: [] as string[],
+          service_name: "HIVE",
+        },
+      });
+    });
+    configurations.push({
+      StackConfigurations: {
+        type: "hive-site.xml",
+        property_name: "db_password",
+        property_display_name: "Database Password",
+        property_value: "stack-secret",
+        property_value_attributes: {},
+        property_type: ["PASSWORD"],
+        service_name: "HIVE",
+      },
+    });
+    configurations.push({
+      StackConfigurations: {
+        type: "hive-site.xml",
+        property_name: "stack_ui_action",
+        property_display_name: "Stack UI Action",
+        property_value: "run",
+        property_value_attributes: {},
+        property_type: [] as string[],
+        is_required_by_agent: false,
+        service_name: "HIVE",
+      },
+    });
+    const themeWithUiOnly = structuredClone(themeResponse);
+    themeWithUiOnly.items[0].themes[1].ThemeInfo.theme_data.Theme.configuration
+      .placement.configs.push({
+        config: "hive-site/ui_action",
+        "subsection-name": "default-subsection",
+        property_value_attributes: { ui_only_property: true },
+      } as any);
+    configurations.push({
+      StackConfigurations: {
+        type: "hive-site.xml",
+        property_name: "ui_action",
+        property_display_name: "UI Action",
+        property_value: "run",
+        property_value_attributes: {},
+        property_type: [] as string[],
+        service_name: "HIVE",
+      },
+    });
+    mocks.getMultipleVersionConfigValues.mockResolvedValueOnce(response);
+
+    const { container } = renderComparator(themeWithUiOnly, stackData);
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Advanced (2)" }));
+    expect(container.querySelector('[data-config-path="hive-site/removed"]')).toBeTruthy();
+    expect(container.querySelector('[data-config-path="hive-site/added"]')).toBeTruthy();
+    expect(screen.getAllByText("Undefined")).toHaveLength(2);
+    expect(document.body.textContent).not.toContain("secret-one");
+    expect(document.body.textContent).not.toContain("secret-two");
+    expect(screen.queryByText("UI Action")).toBeNull();
+    expect(screen.queryByText("Stack UI Action")).toBeNull();
+
+    fireEvent.change(screen.getByPlaceholderText("Search properties..."), {
+      target: { value: "Legacy Removed" },
+    });
+    expect(container.querySelector('[data-config-path="hive-site/removed"]')).toBeTruthy();
+    expect(container.querySelector('[data-config-path="hive-site/added"]')).toBeNull();
+    fireEvent.change(screen.getByPlaceholderText("Search properties..."), {
+      target: { value: "" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Show all properties" }));
+    expect(await screen.findByText("unchanged")).toBeTruthy();
+    const emptyRow = container.querySelector('[data-config-path="hive-site/empty"]');
+    expect(emptyRow).toBeTruthy();
+    expect(emptyRow?.textContent).not.toContain("Undefined");
+  });
+
+  it("ignores a comparison response from an obsolete cluster context", async () => {
+    let resolveOld: (value: typeof versionResponse) => void = () => undefined;
+    let resolveNew: (value: typeof versionResponse) => void = () => undefined;
+    const oldRequest = new Promise<typeof versionResponse>((resolve) => {
+      resolveOld = resolve;
+    });
+    const newRequest = new Promise<typeof versionResponse>((resolve) => {
+      resolveNew = resolve;
+    });
+    mocks.getMultipleVersionConfigValues
+      .mockReset()
+      .mockReturnValueOnce(oldRequest)
+      .mockReturnValueOnce(newRequest);
+
+    const view = render(comparatorElement(themeResponse, stackConfigs, "old"));
+    await waitFor(() =>
+      expect(mocks.getMultipleVersionConfigValues).toHaveBeenCalledWith(
+        "old", "HIVE", "1", "2",
+      ),
+    );
+    view.rerender(comparatorElement(themeResponse, stackConfigs, "new"));
+
+    const newResponse = structuredClone(versionResponse);
+    newResponse.items[0].configurations[0].properties.shared = "new-one";
+    newResponse.items[1].configurations[0].properties.shared = "new-two";
+    await act(async () => resolveNew(newResponse));
+    expect(await screen.findByText("new-one")).toBeTruthy();
+
+    const oldResponse = structuredClone(versionResponse);
+    oldResponse.items[0].configurations[0].properties.shared = "stale-one";
+    oldResponse.items[1].configurations[0].properties.shared = "stale-two";
+    await act(async () => resolveOld(oldResponse));
+    expect(screen.queryByText("stale-one")).toBeNull();
+    expect(screen.getByText("new-one")).toBeTruthy();
+  });
+
+  it("recovers after the comparison request fails", async () => {
+    mocks.getMultipleVersionConfigValues
+      .mockRejectedValueOnce(new Error("Version request failed"))
+      .mockResolvedValueOnce(versionResponse);
+    renderComparator(themeResponse);
+
+    expect(await screen.findByText("Version request failed")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Retry comparison" }));
+
+    expect(await screen.findByText("one")).toBeTruthy();
+    expect(mocks.getMultipleVersionConfigValues).toHaveBeenCalledTimes(2);
   });
 });

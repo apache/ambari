@@ -176,6 +176,7 @@ export default function CommonConfig() {
     <div>
       <Config
         configSection="default"
+        allThemes
         configProperties={configProperties}
         setConfigProperties={setConfigProperties}
         themeData={themes}

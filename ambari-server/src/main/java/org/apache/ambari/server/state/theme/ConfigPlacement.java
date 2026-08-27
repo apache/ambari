@@ -101,6 +101,10 @@ public class ConfigPlacement {
   }
 
   public void mergeWithParent(ConfigPlacement parent) {
+    if (parent == null) {
+      return;
+    }
+
     if (subsectionName == null) {
       subsectionName = parent.subsectionName;
     }

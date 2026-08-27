@@ -149,6 +149,9 @@ vi.mock("./RestAllTabs", () => ({
   default: ({
     configProperties,
     setConfigProperties,
+    services,
+    selectedService,
+    onServiceChange,
     tabName,
   }: {
     configProperties: TestConfigProperties;
@@ -157,6 +160,9 @@ vi.mock("./RestAllTabs", () => ({
         | TestConfigProperties
         | ((current: TestConfigProperties) => TestConfigProperties),
     ) => void;
+    services: string[];
+    selectedService?: string;
+    onServiceChange?: (serviceName: string) => void;
     tabName: string;
   }) => {
     const properties = Object.values(configProperties).flatMap((service) =>
@@ -170,6 +176,18 @@ vi.mock("./RestAllTabs", () => ({
     return (
       <div data-testid={`config-${tabName}`}>
         {String(existingProperty?.value ?? "missing")}
+        <span data-testid={`selected-service-${tabName}`}>
+          {selectedService || services[0] || ""}
+        </span>
+        {services.map((serviceName) => (
+          <button
+            key={serviceName}
+            aria-label={`${tabName} service ${serviceName}`}
+            onClick={() => onServiceChange?.(serviceName)}
+          >
+            {serviceName}
+          </button>
+        ))}
         <button
           onClick={() =>
             setConfigProperties((current) => {
@@ -268,6 +286,64 @@ const wizardSteps = {
   SLAVES_AND_CLIENTS: { data: { serviceComponents: [] } },
 };
 
+type WizardStepsFixture = Omit<typeof wizardSteps, "SERVICES"> & {
+  SERVICES: {
+    data: {
+      services: Record<string, { selected: boolean }>;
+    };
+  };
+  CONFIGURATION?: { data: Record<string, unknown> };
+};
+
+const createWizardSteps = () =>
+  structuredClone(wizardSteps) as unknown as WizardStepsFixture;
+
+const themeResource = (serviceName: string, themeName: string) => ({
+  ThemeInfo: {
+    service_name: serviceName,
+    file_name: `${themeName}.json`,
+    theme_data: {
+      Theme: {
+        name: themeName,
+        configuration: {
+          layouts: [
+            {
+              name: themeName,
+              tabs: [
+                {
+                  name: themeName,
+                  layout: {
+                    sections: [
+                      {
+                        name: themeName,
+                        subsections: [{ name: `${themeName}-settings` }],
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+          placement: { configs: [] },
+          widgets: [],
+        },
+      },
+    },
+  },
+});
+
+const themedServicesResponse = (
+  services: string[],
+  themeNames = ["credentials", "database", "directories", "default"],
+) => ({
+  items: services.map((serviceName) => ({
+    StackServices: { service_name: serviceName },
+    themes: themeNames.map((themeName) =>
+      themeResource(serviceName, themeName),
+    ),
+  })),
+});
+
 const findStoredProperty = (
   payload: ConfigurationPayload,
   propertyName = "existing.property"
@@ -280,9 +356,12 @@ const findStoredProperty = (
   ).find((property) => property.propertyName === propertyName);
 };
 
-function renderStep(wizardName: "clusterCreation" | "addService") {
+function renderStep(
+  wizardName: "clusterCreation" | "addService",
+  steps: WizardStepsFixture = createWizardSteps(),
+) {
   const state = {
-    [`${wizardName}Steps`]: structuredClone(wizardSteps),
+    [`${wizardName}Steps`]: steps,
   };
   const contextValue = {
     dispatch: mocks.dispatch,
@@ -392,6 +471,165 @@ describe("Step 7 Theme fallback", () => {
     expect(
       (await screen.findByTestId("config-default")).textContent
     ).toContain("stack-default");
+  });
+
+  it("enables all five new-cluster categories when selected services define every specialized Theme", async () => {
+    mocks.getStackThemes.mockReset();
+    mocks.getStackThemes.mockResolvedValueOnce(
+      themedServicesResponse(["HDFS"]),
+    );
+
+    renderStep("clusterCreation");
+
+    for (const tabName of [
+      "CREDENTIALS",
+      "DATABASES",
+      "DIRECTORIES",
+      "ACCOUNTS",
+      "ALL CONFIGURATIONS",
+    ]) {
+      expect(
+        (
+          await screen.findByRole("tab", { name: new RegExp(tabName) })
+        ).getAttribute("aria-disabled"),
+      ).not.toBe("true");
+    }
+  });
+
+  it("keeps the active category when a malformed Theme response is retried", async () => {
+    const steps = createWizardSteps();
+    steps.SERVICES.data.services = {
+      HDFS: { selected: true },
+      HIVE: { selected: true },
+    };
+    mocks.getStackThemes.mockReset();
+    mocks.getStackThemes.mockResolvedValueOnce({
+      items: [
+        themedServicesResponse(["HDFS"]).items[0],
+        {
+          StackServices: { service_name: "HIVE" },
+          themes: [{ ThemeInfo: { service_name: "HIVE" } }],
+        },
+      ],
+    });
+
+    renderStep("clusterCreation", steps);
+
+    fireEvent.click(
+      await screen.findByRole("tab", { name: /DIRECTORIES/ }),
+    );
+    expect(screen.getByTestId("config-directories")).toBeTruthy();
+    expect(screen.getByText(/missing service_name or theme_data.Theme/)).toBeTruthy();
+
+    mocks.getStackThemes.mockResolvedValueOnce(
+      themedServicesResponse(["HDFS", "HIVE"]),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    await waitFor(() => expect(mocks.getStackThemes).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("tab", { name: /DIRECTORIES/ }).getAttribute(
+          "aria-selected",
+        ),
+      ).toBe("true"),
+    );
+    expect(screen.getByTestId("config-directories")).toBeTruthy();
+  });
+
+  it("restores the selected service independently for each specialized category", async () => {
+    const steps = createWizardSteps();
+    steps.SERVICES.data.services = {
+      HDFS: { selected: true },
+      HIVE: { selected: true },
+    };
+    mocks.getStackThemes.mockReset();
+    mocks.getStackThemes.mockResolvedValueOnce(
+      themedServicesResponse(["HDFS", "HIVE"]),
+    );
+
+    renderStep("clusterCreation", steps);
+
+    fireEvent.click(await screen.findByRole("tab", { name: /DATABASES/ }));
+    fireEvent.click(screen.getByRole("button", { name: "database service HIVE" }));
+    expect(screen.getByTestId("selected-service-database").textContent).toBe(
+      "HIVE",
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: /DIRECTORIES/ }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "directories service HDFS" }),
+    );
+    fireEvent.click(screen.getByRole("tab", { name: /DATABASES/ }));
+
+    expect(screen.getByTestId("selected-service-database").textContent).toBe(
+      "HIVE",
+    );
+    const storedNavigation = mocks.dispatch.mock.calls
+      .map(([action]) => action.payload?.data?.navigation)
+      .filter(Boolean)
+      .at(-1);
+    expect(storedNavigation.selectedServicesByTab).toMatchObject({
+      databases: "HIVE",
+      directories: "HDFS",
+    });
+  });
+
+  it("opens All Configurations when stored Step 7 values are re-entered", async () => {
+    const steps = createWizardSteps();
+    steps.CONFIGURATION = {
+      data: {
+        configProperties: {
+          HDFS: {
+            "hdfs-site": {
+              errors: 0,
+              properties: {
+                "existing.property": {
+                  propertyName: "existing.property",
+                  propertyDisplayname: "Existing property",
+                  propertyValue: "saved-value",
+                  propertyAttributes: { type: "string" },
+                  previousValue: "saved-value",
+                  value: "saved-value",
+                  final: "false",
+                  type: "hdfs-site",
+                  serviceName: "HDFS",
+                  isEditable: true,
+                },
+              },
+            },
+          },
+        },
+        configs: stackConfigurations,
+        stackLevelConfigs: { configurations: [] },
+        themes: themedServicesResponse(["HDFS"]),
+        navigation: { selectedTab: "databases" },
+      },
+    };
+
+    renderStep("clusterCreation", steps);
+
+    expect(
+      (
+        await screen.findByRole("tab", { name: /ALL CONFIGURATIONS/ })
+      ).getAttribute("aria-selected"),
+    ).toBe("true");
+    expect(screen.getByTestId("config-default").textContent).toContain(
+      "saved-value",
+    );
+  });
+
+  it("treats a successful empty Theme collection as non-retryable fallback", async () => {
+    mocks.getStackThemes.mockReset();
+    mocks.getStackThemes.mockResolvedValueOnce({ items: [] });
+
+    renderStep("clusterCreation");
+
+    expect(
+      await screen.findByText(/No Theme layouts are defined/),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(screen.getByTestId("config-default")).toBeTruthy();
   });
 
   it("keeps new-cluster Advanced configurations usable when Theme loading fails", async () => {
@@ -511,5 +749,43 @@ describe("Step 7 Theme fallback", () => {
       mocks.flushStateToDb.mock.invocationCallOrder[0]
     );
     expect(mocks.jumpToStep).toHaveBeenCalledWith(5);
+  });
+
+  it("loads installed and newly selected Add Service context while recommending only new services", async () => {
+    const steps = createWizardSteps();
+    steps.SERVICES.data.services = { HIVE: { selected: true } };
+
+    renderStep("addService", steps);
+
+    await waitFor(() =>
+      expect(mocks.getStackThemes).toHaveBeenCalledWith(
+        "BIGTOP",
+        "3.3.0",
+        "HDFS,HIVE",
+        "themes/*",
+      ),
+    );
+    expect(mocks.getStackConfigurations).toHaveBeenCalledWith(
+      "BIGTOP",
+      "3.3.0",
+      "HDFS,HIVE",
+      "configurations/*,configurations/dependencies/*,StackServices/config_types/*",
+    );
+    await waitFor(() =>
+      expect(mocks.loadAddServiceRecommendations).toHaveBeenCalled(),
+    );
+    expect(mocks.loadAddServiceRecommendations.mock.calls[0][1]).toEqual([
+      "HIVE",
+    ]);
+  });
+
+  it("uses ClusterCreate recommendation context for a new cluster", async () => {
+    renderStep("clusterCreation");
+
+    await waitFor(() => expect(mocks.getRecommendations).toHaveBeenCalled());
+    expect(mocks.getRecommendations.mock.calls[0][2]).toMatchObject({
+      services: ["HDFS"],
+      user_context: { operation: "ClusterCreate" },
+    });
   });
 });

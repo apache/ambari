@@ -117,7 +117,7 @@ describe("services and configs API contracts", () => {
     await QuicklinksApi.getQuicklinks("3.2.0", "BIGTOP", "HDFS");
     await QuicklinksApi.getPublicHostNames("c1", ["host/one", "host2"]);
     expect(mocks.request).toHaveBeenNthCalledWith(1, {
-      url: "/stacks/BIGTOP/versions/3.2.0/services/HDFS/quicklinks?QuickLinkInfo/default=true&fields=*&_=1234",
+      url: "/stacks/BIGTOP/versions/3.2.0/services/HDFS/quicklinks?QuickLinkInfo/default=true&fields=*",
       method: "GET",
     });
     expect(mocks.request).toHaveBeenNthCalledWith(2, {

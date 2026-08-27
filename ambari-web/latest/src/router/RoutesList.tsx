@@ -40,7 +40,9 @@ import ServiceAutoStart from "../screens/ServiceAutoStart";
 import ServiceAccounts from "../screens/ServiceAccounts";
 import EnableKerberos from "../screens/KerberosWizard/EnableKerberos";
 import { Actions } from "../screens/Services/Actions";
-import ServiceDashboard from "../screens/Services/ServiceDashboard";
+import ServiceDashboard, {
+  ServiceIndexRedirect,
+} from "../screens/Services/ServiceDashboard";
 import ServiceLoader from "../screens/Services/ServiceLoader";
 import AddWizardUrlMapping from "../screens/Services/AddWizardUrlMapping";
 import ViewDetails from "../screens/Views/ViewDetails";
@@ -151,6 +153,7 @@ const RoutesList: RouteObject[] = [
                 path: "services",
                 element: <Outlet />,
                 children: [
+                  { index: true, element: <ServiceIndexRedirect /> },
                   {
                     path: ":serviceName",
                     element: <Outlet />,

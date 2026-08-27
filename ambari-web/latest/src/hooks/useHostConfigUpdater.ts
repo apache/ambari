@@ -44,7 +44,6 @@ export const useHostConfigUpdater = (
   setTotalItems?: Function,
   setPaginationLoading?: Function
 ) => {
-  const [hostsData, setHostsData] = useState<any>({});
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
@@ -116,12 +115,6 @@ export const useHostConfigUpdater = (
     get(cluster, "versionNum", ""),
     supports.displayOlderVersions,
   ]);
-
-  useEffect(() => {
-    if (!isEmpty(hostsData)) {
-      populateHostModels();
-    }
-  }, [hostsData]);
 
   const getHostMetrics = async () => {
     if (isEmpty(queryData.current)) return;
@@ -217,7 +210,7 @@ export const useHostConfigUpdater = (
       newQueryString = await getHostNamesForCurrentFilters(queryString);
       if (!newQueryString) {
         // If no host names are found, we can return early
-        setHostsData({ items: [], itemTotal: 0 });
+        populateHostModels({ items: [], itemTotal: 0 });
         return;
       }
       data.RequestInfo.query = newQueryString;
@@ -319,7 +312,7 @@ export const useHostConfigUpdater = (
         );
       }
     });
-    setHostsData(response);
+    populateHostModels(response);
   };
 
   const populateHostComponentModels = (hostComponent: any) => {
@@ -354,7 +347,7 @@ export const useHostConfigUpdater = (
     return hostStackVersionModel;
   };
 
-  const populateHostModels = () => {
+  const populateHostModels = (hostsData: any) => {
     const allHostModelsCopy = [] as Host[];
     forEach(get(hostsData, "items", []), (host: any, index: number) => {
       const hostModel = new Host({} as IHost);

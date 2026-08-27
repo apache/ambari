@@ -135,6 +135,18 @@ describe("Config History", () => {
     expect(target.textContent).toContain('"configGroupId":4');
   });
 
+  it("renders config versions whose note is null", async () => {
+    api.fetchConfigHistory.mockResolvedValue({
+      items: [{ ...historyItem, service_config_version_note: null }],
+      itemTotal: 1,
+    });
+
+    renderHistory();
+
+    expect(await screen.findByRole("button", { name: /HDFS/ })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: ">> More" })).toBeNull();
+  });
+
   it("refreshes the page and total when a config event arrives", async () => {
     const rendered = renderHistory();
     await waitFor(() => expect(api.fetchConfigHistory).toHaveBeenCalledTimes(1));

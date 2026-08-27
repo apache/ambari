@@ -19,7 +19,7 @@
 package org.apache.ambari.server.state.theme;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -70,6 +70,10 @@ public class TabLayout {
   }
 
   public void mergeWithParent(TabLayout parent) {
+    if (parent == null) {
+      return;
+    }
+
     if (tabColumns == null) {
       tabColumns = parent.tabColumns;
     }
@@ -86,7 +90,7 @@ public class TabLayout {
   }
 
   private List<Section> mergedSections(List<Section> parentSections, List<Section> childSections) {
-    Map<String, Section> mergedSections = new HashMap<>();
+    Map<String, Section> mergedSections = new LinkedHashMap<>();
     for (Section parentSection : parentSections) {
       mergedSections.put(parentSection.getName(), parentSection);
     }
@@ -96,11 +100,9 @@ public class TabLayout {
         if (childSection.isRemoved()) {
           mergedSections.remove(childSection.getName());
         } else {
-          if(mergedSections.containsKey(childSection.getName())) {
-            Section parentSection = mergedSections.get(childSection.getName());
+          Section parentSection = mergedSections.get(childSection.getName());
+          if (parentSection != null) {
             childSection.mergeWithParent(parentSection);
-          }else{
-            childSection.mergeWithParent(childSection);
           }
           mergedSections.put(childSection.getName(), childSection);
         }

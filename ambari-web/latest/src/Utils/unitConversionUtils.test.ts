@@ -19,9 +19,14 @@
 import { describe, expect, it } from "vitest";
 import {
   composeTimeInterval,
+  composeTimeIntervalParts,
   configValueByWidget,
   convertValue,
+  decomposeTimeInterval,
   formatTickLabel,
+  getTimeIntervalCompatibility,
+  getTimeIntervalStep,
+  normalizeTimeIntervalUnits,
   parseTimeInterval,
   widgetValueByConfigAttributes,
 } from "./unitConversionUtils";
@@ -50,13 +55,7 @@ describe("Theme unit conversion", () => {
       ),
     ).toBe(75);
     expect(
-      configValueByWidget(
-        75,
-        "percent",
-        "int",
-        "int",
-        "percent.percent_int",
-      ),
+      configValueByWidget(75, "percent", "int", "int", "percent.percent_int"),
     ).toBe(75);
   });
 
@@ -88,9 +87,7 @@ describe("Theme unit conversion", () => {
       seconds: 30,
       milliseconds: 1,
     });
-    expect(composeTimeInterval(0, 0, 1, 30, "milliseconds", 1)).toBe(
-      90_001,
-    );
+    expect(composeTimeInterval(0, 0, 1, 30, "milliseconds", 1)).toBe(90_001);
   });
 
   it("converts a base-unit increment into the displayed spinner unit", () => {
@@ -118,5 +115,70 @@ describe("Theme unit conversion", () => {
     expect(convertValue(1537, "b", "kb")).toBe(1.501);
     expect(formatTickLabel(0, "percent", " ")).toBe("0 %");
     expect(formatTickLabel(0, "b", " ")).toBe("0 B");
+  });
+
+  it("decomposes and composes every time-spinner unit without precision loss", () => {
+    const units = normalizeTimeIntervalUnits(
+      "days,hours,minutes,seconds,milliseconds",
+    );
+    const value = 90_061_001;
+    expect(decomposeTimeInterval(value, "milliseconds", units)).toEqual({
+      days: 1,
+      hours: 1,
+      minutes: 1,
+      seconds: 1,
+      milliseconds: 1,
+    });
+    expect(
+      composeTimeIntervalParts(
+        {
+          days: 1,
+          hours: 1,
+          minutes: 1,
+          seconds: 1,
+          milliseconds: 1,
+        },
+        "milliseconds",
+      ),
+    ).toBe(value);
+  });
+
+  it("validates time-spinner bounds, increments, and exact representation", () => {
+    const units = normalizeTimeIntervalUnits("minutes,seconds");
+    const attributes = {
+      minimum: 10_000,
+      maximum: 180_000,
+      increment_step: 10_000,
+    };
+    expect(
+      getTimeIntervalCompatibility(90_000, "milliseconds", units, attributes),
+    ).toEqual({ compatible: true, reason: "" });
+    expect(
+      getTimeIntervalCompatibility(5_000, "milliseconds", units, attributes)
+        .reason,
+    ).toContain("minimum");
+    expect(
+      getTimeIntervalCompatibility(190_000, "milliseconds", units, attributes)
+        .reason,
+    ).toContain("maximum");
+    expect(
+      getTimeIntervalCompatibility(95_000, "milliseconds", units, attributes)
+        .reason,
+    ).toContain("increment");
+    expect(
+      getTimeIntervalCompatibility(90_001, "milliseconds", units, {
+        minimum: 0,
+        maximum: 180_000,
+      }).reason,
+    ).toContain("exactly");
+    expect(
+      getTimeIntervalCompatibility("invalid", "milliseconds", units, attributes)
+        .compatible,
+    ).toBe(false);
+  });
+
+  it("converts the increment to the final spinner unit", () => {
+    expect(getTimeIntervalStep(10_000, "milliseconds", "seconds")).toBe(10);
+    expect(getTimeIntervalStep(60_000, "milliseconds", "seconds")).toBe(60);
   });
 });

@@ -20,7 +20,7 @@ package org.apache.ambari.server.state.theme;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,11 +62,14 @@ public class Layout{
 
   public void mergeWithParent(Layout parentLayout) {
     //merge Tabs only due to theme structure
+    if (parentLayout == null || parentLayout.tabs == null) {
+      return;
+    }
     tabs = mergeTabs(parentLayout.tabs, tabs);
   }
 
   private List<Tab> mergeTabs(List<Tab> parentTabs, List<Tab> childTabs) {
-    Map<String, Tab> mergedTabs = new HashMap<>();
+    Map<String, Tab> mergedTabs = new LinkedHashMap<>();
     for (Tab parentTab : parentTabs) {
       mergedTabs.put(parentTab.getName(), parentTab);
     }

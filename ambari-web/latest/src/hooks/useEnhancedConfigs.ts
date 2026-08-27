@@ -23,7 +23,6 @@ import {
 } from "../screens/CommonConfigs/types";
 import { AppContext } from "../store/context";
 import ConfigsApi from "../api/configsApi";
-import ClusterApi from "../api/clusterApi";
 import {
   cloneDeep,
   flatten,
@@ -44,8 +43,7 @@ import {
 import { useDebounce } from "./useDebounce";
 import { groupPropertyValues } from "../Utils/dataUtils";
 import useHostComponents from "../screens/ClusterWizard/hooks/useHostComponents";
-import { getClusterEnvProperties } from "../Utils/clusterConfigUtils";
-import WizardApi from "../api/wizardApi";
+import { buildAddServiceRecommendationPayload } from "./addServiceRecommendationPayload";
 
 // List of config types that always need to be processed
 const ALWAYS_PROCESS_CONFIG_TYPES = ["capacity-scheduler"];
@@ -123,7 +121,10 @@ function useEnhancedConfigs(
   controllerName?: string,
   STACK?: string,
   VERSION?: string,
-  HOSTS?: string[]
+  HOSTS?: string[],
+  transformConfigProperties?: (
+    configs: ConfigPropertiesType,
+  ) => ConfigPropertiesType,
 ) {
   const {
     cluster: { stack, versionNum, cluster_id: clusterId },
@@ -500,7 +501,9 @@ function useEnhancedConfigs(
       addByRecommendations(configurations, configsCopy);
       cleanUpRecommendations();
     }
-    configsCopy = updateVisibilityByForeignKeys(configsCopy);
+    configsCopy = transformConfigProperties
+      ? transformConfigProperties(configsCopy)
+      : updateVisibilityByForeignKeys(configsCopy);
     configsCopy = validateAllProperties(configsCopy);
     setConfigProperties(configsCopy);
   }
@@ -634,51 +637,6 @@ function useEnhancedConfigs(
             };
           }
         }
-      }
-    }
-  }
-
-  function processNewServiceStackConfigs(
-    newServiceConfigs: any,
-    selectedServices: string[]
-  ) {
-    const newServices = selectedServices;
-    
-    
-    // Process stack configurations for new services directly into recommendations
-    for (const configType in newServiceConfigs) {
-      const configData = newServiceConfigs[configType];
-      if (configData && configData.properties) {
-        const properties = configData.properties;
-        
-        // Use dynamic config type to service mapping
-        const targetServiceName = configTypeToServiceMap[configType] || 'MISC';
-        
-        // Only process if this config type belongs to a newly adding service
-        if (newServices.includes(targetServiceName)) {
-          for (const propertyName in properties) {
-            const recommendedValue = properties[propertyName];
-            
-            if (recommendedValue != null && recommendedValue !== "") {
-              recommededConfigsRef.current[propertyName + configType + ".xml"] = {
-                propertyName: propertyName,
-                recommendedValue: recommendedValue,
-                initialValue: null,
-                originalValue: null,
-                type: configType,
-                fileName: configType + ".xml",
-                serviceName: targetServiceName,
-                serviceDisplayName: targetServiceName,
-                isChanged: true,
-                configGroup: "Default",
-                saveRecommended: true,
-                isEditable: true,
-                propertyDependsOn: [],
-                propertyDependedBy: [],
-              };
-            }
-          }
-        } 
       }
     }
   }
@@ -943,150 +901,20 @@ function useEnhancedConfigs(
   ) => {
     setProcessingConfig(true);
     setRecommendationsInProgress(true);
-
-    let recommendationsDataToSend = recommendationsInPayload || {};
-    
-    const existingConfigs = buildConfigsJSON(configProperties, false);
-    
-    // Add default configurations for newly selected services
-    const extractNewServiceConfigs = async () => {
-      const newServiceConfigs: any = {};
-      
-      // Find services that are being newly added (not in installedServices)
-      const newServices = selectedServices.filter(service => 
-        !installedServices?.includes(service)
-      );
-      
-      if (newServices.length > 0) {
-        try {
-          // Fetch default configurations for new services from stack
-          const stackConfigs = await WizardApi.getStackConfigurations(
-            stack,
-            versionNum,
-            newServices.join(','),
-            'configurations/StackConfigurations/property_name,configurations/StackConfigurations/property_value,configurations/StackConfigurations/type'
-          );
-          
-          if (stackConfigs?.items) {
-            stackConfigs.items.forEach((serviceItem: any) => {
-              if (serviceItem.configurations) {
-                serviceItem.configurations.forEach((config: any) => {
-                  const configType = config.StackConfigurations.type;
-                  const propertyName = config.StackConfigurations.property_name;
-                  const propertyValue = config.StackConfigurations.property_value;
-                  
-                  if (!newServiceConfigs[configType]) {
-                    newServiceConfigs[configType] = { properties: {} };
-                  }
-                  
-                  newServiceConfigs[configType].properties[propertyName] = propertyValue;
-                });
-              }
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching default configurations for new services:", error);
-        }
-      }
-      
-      return newServiceConfigs;
-    };
-        
-    // Add Kerberos related configs - extract from existing configProperties
-    const extractKerberosConfigs = () => {
-      const kerberosConfigs: any = {};
-      
-      const hasKerberosService = selectedServices.includes('KERBEROS') || installedServices?.includes('KERBEROS');
-      
-      if (hasKerberosService) {
-        for (const serviceName in configProperties) {
-          if (configProperties[serviceName]['kerberos-env']) {
-            kerberosConfigs['kerberos-env'] = configProperties[serviceName]['kerberos-env'];
-          }
-          if (configProperties[serviceName]['krb5-conf']) {
-            kerberosConfigs['krb5-conf'] = configProperties[serviceName]['krb5-conf'];
-          }
-        }
-      }
-      
-      return kerberosConfigs;
-    };
-
-    // Add cluster-env configuration - fetch from cluster API
-    const extractClusterEnvConfigs = async () => {
-      try {
-        const clusterName = await ClusterApi.getClusterName();
-        if (clusterName) {
-          const clusterEnvProperties = await getClusterEnvProperties(clusterName);
-          return {
-            'cluster-env': {
-              properties: clusterEnvProperties
-            }
-          };
-        }
-      } catch (error) {
-        console.error("Error fetching cluster-env configs:", error);
-      }
-      return {};
-    };
-    
-    const newServiceConfigs = await extractNewServiceConfigs();
-    const kerberosConfigs = extractKerberosConfigs();
-    const clusterEnvConfigs = await extractClusterEnvConfigs();
-    
-    const additionalConfigs = {
-      ...newServiceConfigs,
-      ...kerberosConfigs,
-      ...clusterEnvConfigs,
-    };
-    
-    recommendationsDataToSend.blueprint.configurations = {
-      ...existingConfigs,
-      ...additionalConfigs
-    };
-    
-    if (!recommendationsDataToSend.blueprint_cluster_binding) {
-      recommendationsDataToSend.blueprint_cluster_binding = {
-        host_groups: recommendationsDataToSend.blueprint.host_groups.map((hostGroup: any, index: number) => ({
-          name: hostGroup.name,
-          hosts: [{ fqdn: allHostNames[index] || allHostNames[0] }]
-        }))
-      };
-    }
-    
     try {
-      const allServices = [...(installedServices || []), ...selectedServices, "MISC"].filter((service, index, arr) => 
-        arr.indexOf(service) === index // Remove duplicates but keep MISC
-      );
-      
-      const newServices = selectedServices; // selectedServices are already filtered to be new services
-      const primaryNewService = newServices.length > 0 ? newServices[0] : serviceName;
-      
-      const operationDetails = newServices.length > 0 ? newServices.join(',') : (primaryNewService || "AddService");
-      
-      const payload = {
-        recommend: "configurations",
-        hosts: allHostNames,
-        services: allServices,
-        user_context: {
-          operation: "AddService",
-          operation_details: operationDetails
-        },
-        recommendations: recommendationsDataToSend,
-        clusterId: clusterId,
-        autoComplete: "false",
-        configsResponse: "false",
-      };
-      
+      const payload = buildAddServiceRecommendationPayload({
+        clusterId,
+        configProperties,
+        hosts: HOSTS?.length ? HOSTS : allHostNames,
+        installedServices: installedServices || [],
+        recommendations: recommendationsInPayload || {},
+        selectedServices,
+      });
       const recommendationsResponse = await ConfigsApi.getRecommendations(
-        stack,
-        versionNum,
+        STACK || stack,
+        VERSION || versionNum,
         payload
       );
-      
-      // Process stack configurations for new services before processing recommendations
-      processNewServiceStackConfigs(newServiceConfigs, selectedServices);
-      
       processRecommendations(recommendationsResponse, configProperties);
     } catch (error) {
       console.error("Error loading add service recommendations:", error);

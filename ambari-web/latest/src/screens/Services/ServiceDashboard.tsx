@@ -66,6 +66,23 @@ const serviceTabs: Record<string, string[]> = {
   PINOT: ["summary", "configs"],
 };
 
+export function ServiceIndexRedirect() {
+  const { services, clusterName } = useContext(AppContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!clusterName || !services?.length) {
+      return;
+    }
+    const firstService = map(services, "ServiceInfo.service_name").find(Boolean);
+    if (firstService) {
+      navigate(`/main/services/${firstService}/summary`, { replace: true });
+    }
+  }, [clusterName, navigate, services]);
+
+  return null;
+}
+
 function ServiceDashboard({
   serviceName: serviceNameProps,
 }: {

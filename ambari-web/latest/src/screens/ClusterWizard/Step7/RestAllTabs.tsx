@@ -32,6 +32,9 @@ type RestAllTabsProps = {
   hosts: string[];
   validationErrors?: any;
   wizardName?: string;
+  selectedService?: string;
+  onServiceChange?: (serviceName: string) => void;
+  conditionServices?: string[];
 };
 
 export default function RestAllTabs({
@@ -47,6 +50,9 @@ export default function RestAllTabs({
   hosts,
   validationErrors = [],
   wizardName = "clusterCreation",
+  selectedService,
+  onServiceChange,
+  conditionServices,
 }: RestAllTabsProps) {
   return (
     <>
@@ -57,7 +63,7 @@ export default function RestAllTabs({
         themeData={themes}
         configPropertiesData={configs}
         servicesList={services}
-        installedServices={services}
+        installedServices={conditionServices || services}
         recommendationsDataToSend={recommendationsDataToSend}
         installer={true}
         wizardName={wizardName}
@@ -65,6 +71,8 @@ export default function RestAllTabs({
         stackVersion={stackVersion}
         hosts={hosts}
         validationErrors={validationErrors}
+        selectedService={selectedService}
+        onServiceChange={onServiceChange}
       />
     </>
   );

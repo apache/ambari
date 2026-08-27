@@ -20,7 +20,7 @@ package org.apache.ambari.server.state.theme;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -152,6 +152,10 @@ public class Section implements ApiModel {
   }
 
   public void mergeWithParent(Section parentSection) {
+    if (parentSection == null) {
+      return;
+    }
+
     if (displayName == null) {
       displayName = parentSection.displayName;
     }
@@ -182,7 +186,7 @@ public class Section implements ApiModel {
 
   private List<Subsection> mergeSubsections(List<Subsection> parentSubsections, List<Subsection> childSubsections) {
 
-    Map<String, Subsection> mergedSubsections = new HashMap<>();
+    Map<String, Subsection> mergedSubsections = new LinkedHashMap<>();
     for (Subsection parentSubsection : parentSubsections) {
       mergedSubsections.put(parentSubsection.getName(), parentSubsection);
     }

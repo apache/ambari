@@ -20,10 +20,12 @@ import { describe, expect, it } from "vitest";
 import {
   buildConfigsJSON,
   filterConfigProperties,
+  getThemePlacementProperty,
   setTabErrorCounts,
   updateVisibilityForDependsOn,
 } from "./ConfigUtils";
 import { ConfigPropertiesType } from "./types";
+import { normalizeDefaultThemeResponse } from "./themeEngine";
 
 type Placement = {
   config: string;
@@ -186,6 +188,35 @@ describe("Service Theme config visibility", () => {
     expect(result.SVC["type-b"].properties.shared.isVisible).toBe(false);
   });
 
+  it("never indexes password values while retaining password metadata search", () => {
+    const source = configs();
+    const password = source.SVC["type-a"].properties.shared;
+    password.propertyDisplayname = "Database password";
+    password.propertyAttributes = { type: "password" };
+    password.value = "current-secret";
+    password.savedValue = "saved-secret";
+    password.overrideValues = [
+      { value: "override-secret", groupName: "Sensitive group" },
+    ];
+
+    expect(
+      filterConfigProperties(source, "current-secret").SVC["type-a"].properties
+        .shared.isVisible,
+    ).toBe(false);
+    expect(
+      filterConfigProperties(source, "saved-secret").SVC["type-a"].properties
+        .shared.isVisible,
+    ).toBe(false);
+    expect(
+      filterConfigProperties(source, "override-secret").SVC["type-a"].properties
+        .shared.isVisible,
+    ).toBe(false);
+    expect(
+      filterConfigProperties(source, "Database password").SVC["type-a"]
+        .properties.shared.isVisible,
+    ).toBe(true);
+  });
+
   it("combines selected property filters with AND semantics", () => {
     const source = configs();
     source.SVC["type-a"].properties.shared.final = "true";
@@ -243,7 +274,22 @@ describe("Service Theme config visibility", () => {
       "type-a": { properties: { switch: "false", staticHidden: "value" } },
       "type-b": { properties: { shared: "b", tabbed: "value" } },
     });
-    expect(JSON.stringify(buildConfigsJSON(source))).not.toContain("shared\":\"a");
+    expect(JSON.stringify(buildConfigsJSON(source))).not.toContain(
+      'shared":"a',
+    );
+  });
+
+  it("saves a password value without its confirmation field", () => {
+    const source = configs();
+    const password = source.SVC["type-a"].properties.shared;
+    password.type = "type-a";
+    password.propertyAttributes = { type: "password" };
+    password.value = "saved-password";
+    password.confirmPassword = "saved-password";
+
+    const payload = buildConfigsJSON(source);
+    expect(payload["type-a"].properties.shared).toBe("saved-password");
+    expect(JSON.stringify(payload)).not.toContain("confirmPassword");
   });
 
   it("uses the full config path and restores a property when its condition changes", () => {
@@ -275,6 +321,46 @@ describe("Service Theme config visibility", () => {
     );
     expect(restored.SVC["type-a"].properties.shared.isVisible).toBe(true);
     expect(restored.SVC["type-b"].properties.shared.isVisible).toBe(true);
+  });
+
+  it("applies only the default Theme on an Installed Service page", () => {
+    const directories = themeResponse({
+      themeName: "directories",
+      placements: [
+        {
+          config: "type-a/shared",
+          "subsection-name": "main",
+          property_value_attributes: { read_only: true },
+        },
+      ],
+    });
+    const hiddenDefault = themeResponse({
+      placements: [
+        {
+          config: "type-a/shared",
+          "subsection-name": "main",
+          "depends-on": [condition("${type-a/switch}", true)],
+        },
+      ],
+    });
+    directories.items[0].themes.push(hiddenDefault.items[0].themes[0]);
+
+    const normalized = normalizeDefaultThemeResponse(directories, ["SVC"]);
+    const [defaultPlacement] = normalized.byService.SVC.placements;
+    const property = updateVisibilityForDependsOn(
+      configs(),
+      directories,
+      "default",
+      [],
+      true,
+    ).SVC["type-a"].properties.shared;
+
+    expect(normalized.byService.SVC.placements).toHaveLength(1);
+    expect(property.isVisible).toBe(false);
+    expect(property.propertyAttributes.visible).toBe(false);
+    expect(
+      getThemePlacementProperty(property, defaultPlacement.id),
+    ).toMatchObject({ isVisible: false, isEditable: true });
   });
 
   it("does not let a config condition reveal a statically hidden property", () => {

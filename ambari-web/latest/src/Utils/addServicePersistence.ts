@@ -21,6 +21,16 @@ import ClusterApi from "../api/clusterApi";
 export const CANCEL_ADD_SERVICE_WIZARD_EVENT =
   "ambari:cancel-add-service-wizard";
 
+type HashReloadLocation = Pick<Location, "hash" | "reload">;
+
+export const reloadAtHashRoute = (
+  route: string,
+  location: HashReloadLocation = window.location,
+) => {
+  location.hash = route.startsWith("/") ? route : `/${route}`;
+  location.reload();
+};
+
 export const buildClearedAddServiceState = (
   initialState: object,
   requestSequence = 0

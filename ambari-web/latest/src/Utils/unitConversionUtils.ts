@@ -380,6 +380,162 @@ export function composeTimeInterval(
   return convertValue(totalMilliseconds, 'milliseconds', configUnit) as number;
 }
 
+export const TIME_INTERVAL_UNITS = [
+  'days',
+  'hours',
+  'minutes',
+  'seconds',
+  'milliseconds',
+] as const;
+
+export type TimeIntervalUnit = (typeof TIME_INTERVAL_UNITS)[number];
+
+const timeIntervalMilliseconds: Record<TimeIntervalUnit, number> = {
+  days: 24 * 60 * 60 * 1000,
+  hours: 60 * 60 * 1000,
+  minutes: 60 * 1000,
+  seconds: 1000,
+  milliseconds: 1,
+};
+
+export const timeIntervalPartMaximum: Record<TimeIntervalUnit, number> = {
+  days: 365,
+  hours: 23,
+  minutes: 59,
+  seconds: 59,
+  milliseconds: 999,
+};
+
+export function normalizeTimeIntervalUnits(value: unknown): TimeIntervalUnit[] {
+  const units = String(value ?? '')
+    .split(',')
+    .map((unit) => unit.trim().toLowerCase())
+    .filter((unit): unit is TimeIntervalUnit =>
+      TIME_INTERVAL_UNITS.includes(unit as TimeIntervalUnit),
+    );
+  return units.filter((unit, index) => units.indexOf(unit) === index);
+}
+
+function timeValueToMilliseconds(value: number, unit: string): number {
+  const factor = timeIntervalMilliseconds[unit.toLowerCase() as TimeIntervalUnit];
+  return factor === undefined ? Number.NaN : value * factor;
+}
+
+export function decomposeTimeInterval(
+  value: number,
+  configUnit: string,
+  units: TimeIntervalUnit[],
+): Record<TimeIntervalUnit, number> {
+  let remaining = timeValueToMilliseconds(value, configUnit);
+  const result = Object.fromEntries(
+    TIME_INTERVAL_UNITS.map((unit) => [unit, 0]),
+  ) as Record<TimeIntervalUnit, number>;
+  if (!Number.isFinite(remaining)) return result;
+
+  units.forEach((unit) => {
+    const factor = timeIntervalMilliseconds[unit];
+    const part = Math.floor(remaining / factor);
+    result[unit] = part;
+    remaining -= part * factor;
+  });
+  return result;
+}
+
+export function composeTimeIntervalParts(
+  parts: Partial<Record<TimeIntervalUnit, number>>,
+  configUnit: string,
+): number {
+  const configFactor =
+    timeIntervalMilliseconds[configUnit.toLowerCase() as TimeIntervalUnit];
+  if (configFactor === undefined) return Number.NaN;
+  const milliseconds = TIME_INTERVAL_UNITS.reduce(
+    (total, unit) =>
+      total + (Number(parts[unit]) || 0) * timeIntervalMilliseconds[unit],
+    0,
+  );
+  return milliseconds / configFactor;
+}
+
+export function getTimeIntervalStep(
+  increment: unknown,
+  configUnit: string,
+  displayedUnit: TimeIntervalUnit,
+): number {
+  const numericIncrement = Number(increment);
+  const sourceIncrement =
+    Number.isFinite(numericIncrement) && numericIncrement > 0
+      ? numericIncrement
+      : 1;
+  return (
+    timeValueToMilliseconds(sourceIncrement, configUnit) /
+    timeIntervalMilliseconds[displayedUnit]
+  );
+}
+
+export function getTimeIntervalCompatibility(
+  value: unknown,
+  configUnit: string,
+  units: TimeIntervalUnit[],
+  attributes: Record<string, unknown>,
+): { compatible: boolean; reason: string } {
+  const numericValue = Number(value);
+  if (
+    value === '' ||
+    !Number.isFinite(numericValue) ||
+    !Number.isInteger(numericValue)
+  ) {
+    return { compatible: false, reason: 'Enter a whole-number time interval.' };
+  }
+  if (!units.length || !Number.isFinite(timeValueToMilliseconds(1, configUnit))) {
+    return { compatible: false, reason: 'The configured time units are invalid.' };
+  }
+
+  const minimum = Number(attributes.minimum);
+  if (attributes.minimum !== undefined && Number.isFinite(minimum) && numericValue < minimum) {
+    return { compatible: false, reason: 'The value is below the configured minimum.' };
+  }
+  const maximum = Number(attributes.maximum);
+  if (attributes.maximum !== undefined && Number.isFinite(maximum) && numericValue > maximum) {
+    return { compatible: false, reason: 'The value exceeds the configured maximum.' };
+  }
+
+  const increment = Number(attributes.increment_step);
+  if (attributes.increment_step !== undefined) {
+    if (!Number.isFinite(increment) || increment <= 0) {
+      return { compatible: false, reason: 'The configured increment is invalid.' };
+    }
+    const remainder = Math.abs(numericValue % increment);
+    const tolerance = Number.EPSILON * Math.max(1, Math.abs(numericValue));
+    if (remainder > tolerance && Math.abs(increment - remainder) > tolerance) {
+      return {
+        compatible: false,
+        reason: 'The value is not aligned with the configured increment.',
+      };
+    }
+  }
+
+  const milliseconds = timeValueToMilliseconds(numericValue, configUnit);
+  const smallestFactor = timeIntervalMilliseconds[units[units.length - 1]];
+  if (!Number.isInteger(milliseconds / smallestFactor)) {
+    return {
+      compatible: false,
+      reason: 'The configured fields cannot represent this value exactly.',
+    };
+  }
+
+  const parts = decomposeTimeInterval(numericValue, configUnit, units);
+  const overflowingPart = units.slice(1).find(
+    (unit) => parts[unit] > timeIntervalPartMaximum[unit],
+  );
+  if (overflowingPart) {
+    return {
+      compatible: false,
+      reason: `The ${overflowingPart} field exceeds its supported range.`,
+    };
+  }
+  return { compatible: true, reason: '' };
+}
+
 /**
  * Get parse function based on unit type
  */

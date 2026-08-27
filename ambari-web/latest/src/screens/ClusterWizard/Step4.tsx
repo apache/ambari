@@ -637,7 +637,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
         onNext={() => {
           validateSelectedServices();
         }}
-        onCancel={() => void flushStateToDb("cancel")}
+        onCancel={() => flushStateToDb("cancel")}
         onBack={async () => {
           await Promise.resolve(flushStateToDb("back"));
           handleBackImperitive();

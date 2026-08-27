@@ -654,9 +654,7 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
       <WizardFooter
         isNextEnabled={nextEnabled}
         onNext={showValidationIssuesModal}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onCancel={() => flushStateToDb("cancel")}
         onBack={async () => {
           if (wizardName === "addService") {
             const previousStep = previousAddServiceStep(3, addServiceFlow);

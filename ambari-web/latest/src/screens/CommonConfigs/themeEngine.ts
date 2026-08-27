@@ -32,6 +32,9 @@ export type ThemeCondition = {
 };
 
 export type ThemePlacement = {
+  id: string;
+  themeName: string;
+  sourceFile?: string;
   configPath: string;
   configType: string;
   propertyName: string;
@@ -39,6 +42,7 @@ export type ThemePlacement = {
   subsectionTabName?: string;
   dependsOn: ThemeCondition[];
   valueAttributes: ThemeValueAttributes;
+  widget?: ThemeWidget;
 };
 
 export type ThemeWidget = {
@@ -404,6 +408,9 @@ const parsePlacements = (
     seenTargets.add(targetKey);
     return [
       {
+        id: `${serviceName}:${themeName}:${sourceFile ?? "(inline)"}:${configPath}:${subsectionName}:${subsectionTabName ?? ""}`,
+        themeName,
+        sourceFile,
         configPath,
         ...path,
         subsectionName,
@@ -698,6 +705,10 @@ const parseCandidate = (
     candidate.sourceFile,
     diagnostics,
   );
+  const placements = parsedPlacements.map((placement) => ({
+    ...placement,
+    widget: widgetsByConfigPath[placement.configPath],
+  }));
   const layouts = asThemeCollection(
     configuration.layouts,
     "configuration.layouts",
@@ -719,7 +730,7 @@ const parseCandidate = (
   }
 
   const layoutPlacements = validatePlacementTargets(
-    parsedPlacements,
+    placements,
     layouts,
     candidate.serviceName,
     themeName,
@@ -757,7 +768,7 @@ const parseCandidate = (
     sourceFile: candidate.sourceFile,
     layoutNames: layouts.map((layout) => asString(layout.name)).filter(Boolean),
     tabs,
-    placements: parsedPlacements,
+    placements,
     widgetsByConfigPath,
     isFallback: false,
   };
@@ -805,6 +816,21 @@ export const normalizeThemeResponse = (
     diagnostics,
   };
 };
+
+/**
+ * The server's default predicate selects Theme descriptors, not an inner
+ * Theme.name. Classic maps every returned artifact, then excludes categorized
+ * Themes from Installed Service and Host pages. Selecting the exact default
+ * Theme here preserves that consumer behavior without sharing mutable models.
+ */
+export const normalizeDefaultThemeResponse = (
+  response: unknown,
+  requestedServices: readonly string[],
+): NormalizedThemes => normalizeThemeResponse(
+  response,
+  "default",
+  requestedServices,
+);
 
 export const toConfigThemeView = (
   normalized: NormalizedThemes,
