@@ -73,6 +73,11 @@ import {
   ConfigHistoryNavigationState,
   resolveConfigHistorySelection,
 } from "../../Utils/configHistory";
+import {
+  classifyDefaultThemeResponse,
+  describeThemeRequestError,
+  ThemeLoadNotice,
+} from "../CommonConfigs/themeLoadUtils";
 
 type ServiceConfigsProps = {
   serviceName?: string;
@@ -105,13 +110,17 @@ export default function ServiceConfigs({
   const [loading, setLoading] = useState<boolean>(true);
   const [themes, setThemes] = useState<any>({});
   const [themeLoading, setThemeLoading] = useState<boolean>(false);
-  const [themeLoadError, setThemeLoadError] = useState<string | null>(null);
+  const [themeLoadNotice, setThemeLoadNotice] =
+    useState<ThemeLoadNotice | null>(null);
   const [themeRequestSettled, setThemeRequestSettled] =
     useState<boolean>(false);
   const themeRequestId = useRef<number>(0);
   const serviceRequestId = useRef<number>(0);
   const versionRequestId = useRef<number>(0);
   const preserveEditsForThemeRequest = useRef<boolean>(false);
+  const themeCache = useRef<Map<string, unknown>>(new Map());
+  const themeRequests = useRef<Map<string, Promise<unknown>>>(new Map());
+  const activeThemeContext = useRef<string>("");
   const [configs, setConfigs] = useState<any>({});
   const [configProperties, setConfigProperties] =
     useState<ConfigPropertiesType>({});
@@ -357,35 +366,68 @@ export default function ServiceConfigs({
     }
   };
 
-  const getThemes = async (preserveCurrentEdits = false) => {
+  const getThemes = async (
+    preserveCurrentEdits = false,
+    forceRefresh = false,
+  ) => {
+    const contextKey = `${stackName ?? ""}\u0000${stackVersion ?? ""}\u0000${serviceName}`;
     const requestId = ++themeRequestId.current;
+    const contextChanged = activeThemeContext.current !== contextKey;
+    activeThemeContext.current = contextKey;
     preserveEditsForThemeRequest.current = preserveCurrentEdits;
     setThemeLoading(true);
     setThemeRequestSettled(false);
-    setThemeLoadError(null);
-    setThemes({});
+    setThemeLoadNotice(null);
+    if (contextChanged || !preserveCurrentEdits) {
+      setThemes({});
+    }
 
     try {
-      const response = await ConfigsApi.getTheme(
-        stackName,
-        stackVersion,
-        serviceName
-      );
-
-      if (requestId === themeRequestId.current) {
-        setThemes(response);
+      let response = !forceRefresh ? themeCache.current.get(contextKey) : undefined;
+      if (response === undefined) {
+        let request = !forceRefresh
+          ? themeRequests.current.get(contextKey)
+          : undefined;
+        if (!request) {
+          request = ConfigsApi.getTheme(stackName, stackVersion, serviceName);
+          themeRequests.current.set(contextKey, request);
+          void request
+            .finally(() => {
+              if (themeRequests.current.get(contextKey) === request) {
+                themeRequests.current.delete(contextKey);
+              }
+            })
+            .catch(() => undefined);
+        }
+        response = await request;
       }
+
+      if (
+        requestId !== themeRequestId.current ||
+        activeThemeContext.current !== contextKey
+      ) {
+        return;
+      }
+
+      const notice = classifyDefaultThemeResponse(response, [serviceName]);
+      if (!notice || notice.kind === "empty") {
+        themeCache.current.set(contextKey, response);
+      }
+      setThemes(response);
+      setThemeLoadNotice(notice);
     } catch (error: unknown) {
-      if (requestId !== themeRequestId.current) {
+      if (
+        requestId !== themeRequestId.current ||
+        activeThemeContext.current !== contextKey
+      ) {
         return;
       }
 
       setThemes({});
-      setThemeLoadError(
-        get(error as object, "response.data.message") ||
-          (error instanceof Error ? error.message : "") ||
-          "The Theme request failed."
-      );
+      setThemeLoadNotice({
+        kind: "request",
+        message: describeThemeRequestError(error),
+      });
       console.error("Error fetching service Themes.");
     } finally {
       if (requestId === themeRequestId.current) {
@@ -1473,27 +1515,31 @@ export default function ServiceConfigs({
                 />
               </div>
             </div>
-            {themeLoadError && (
+            {themeLoadNotice && (
               <Alert
-                variant="warning"
+                variant={themeLoadNotice.kind === "empty" ? "info" : "warning"}
                 className="mx-3 d-flex justify-content-between align-items-center gap-3"
               >
                 <div>
                   <div>
-                    Theme layout for {serviceName} could not be loaded.
+                    {themeLoadNotice.kind === "empty"
+                      ? `No Theme layout is defined for ${serviceName}.`
+                      : `Theme layout for ${serviceName} could not be loaded.`}
                     Configuration properties remain available in the Advanced
                     tab.
                   </div>
-                  <small>{themeLoadError}</small>
+                  <small>{themeLoadNotice.message}</small>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline-warning"
-                  disabled={themeLoading}
-                  onClick={() => getThemes(true)}
-                >
-                  {themeLoading ? "Retrying..." : "Retry"}
-                </Button>
+                {themeLoadNotice.kind !== "empty" && (
+                  <Button
+                    size="sm"
+                    variant="outline-warning"
+                    disabled={themeLoading}
+                    onClick={() => getThemes(true, true)}
+                  >
+                    {themeLoading ? "Retrying..." : "Retry"}
+                  </Button>
+                )}
               </Alert>
             )}
             <Config

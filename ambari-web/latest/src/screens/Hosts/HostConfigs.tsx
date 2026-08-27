@@ -52,6 +52,11 @@ import {
   buildConfigGroupMembershipUpdates,
   buildHostConfigGroupState,
 } from "../../Utils/hostConfigs";
+import {
+  classifyDefaultThemeResponse,
+  describeThemeRequestError,
+  ThemeLoadNotice,
+} from "../CommonConfigs/themeLoadUtils";
 
 export default function Hostconfigs() {
   const params = useParams();
@@ -73,7 +78,8 @@ export default function Hostconfigs() {
     Record<string, string[]>
   >({});
   const [loadError, setLoadError] = useState("");
-  const [themeLoadError, setThemeLoadError] = useState("");
+  const [themeLoadNotice, setThemeLoadNotice] =
+    useState<ThemeLoadNotice | null>(null);
   const [themeLoading, setThemeLoading] = useState(false);
   const [groupChangeError, setGroupChangeError] = useState("");
   const [isChangingGroup, setIsChangingGroup] = useState(false);
@@ -114,7 +120,7 @@ export default function Hostconfigs() {
     const loadHostConfigurations = async () => {
       setLoading(true);
       setLoadError("");
-      setThemeLoadError("");
+      setThemeLoadNotice(null);
       try {
         const hostResponse = await HostsApi.getHostData(
           clusterName,
@@ -173,13 +179,19 @@ export default function Hostconfigs() {
             serviceNames,
             "themes/*",
           )
-            .then((response) => ({ response, error: "" }))
+            .then((response) => ({
+              response,
+              notice: classifyDefaultThemeResponse(response, servicesOnHost),
+            }))
             .catch((error: unknown) => ({
               response: { items: [] },
-              error:
-                get(error, "response.data.message") ||
-                (error instanceof Error ? error.message : "") ||
-                "The host configuration Theme request failed.",
+              notice: {
+                kind: "request" as const,
+                message: describeThemeRequestError(
+                  error,
+                  "The host configuration Theme request failed.",
+                ),
+              },
             })),
           ConfigGroupApi.getConfigGroupsForServices(clusterName, servicesOnHost),
           ConfigsApi.getConfigValues(clusterName, serviceNames),
@@ -194,7 +206,7 @@ export default function Hostconfigs() {
         const firstService = servicesOnHost[0];
         const firstGroup = groupState.assignedGroupByService[firstService] || "Default";
         setThemes(themeResult.response);
-        setThemeLoadError(themeResult.error);
+        setThemeLoadNotice(themeResult.notice);
         setPropertyValues(valueResponse);
         setGroupsByService(groupState.groupsByService);
         setAssignedGroupByService(groupState.assignedGroupByService);
@@ -247,14 +259,18 @@ export default function Hostconfigs() {
       );
       if (requestId !== themeRequestId.current) return;
       setThemes(response);
-      setThemeLoadError("");
+      setThemeLoadNotice(
+        classifyDefaultThemeResponse(response, hostServices),
+      );
     } catch (error: unknown) {
       if (requestId !== themeRequestId.current) return;
-      setThemeLoadError(
-        get(error, "response.data.message") ||
-          (error instanceof Error ? error.message : "") ||
+      setThemeLoadNotice({
+        kind: "request",
+        message: describeThemeRequestError(
+          error,
           "The host configuration Theme request failed.",
-      );
+        ),
+      });
     } finally {
       if (requestId === themeRequestId.current) setThemeLoading(false);
     }
@@ -463,40 +479,30 @@ export default function Hostconfigs() {
                   ),
                 });
               } else {
-                if (
-                  !configPropertiesCopy[serviceName]["Custom " + type]
-                    .properties[propertyName]
-                ) {
-                  if (configPropertiesCopy[serviceName]["Custom " + type]) {
-                    configPropertiesCopy[serviceName][
-                      "Custom " + type
-                    ].properties[propertyName] = {
-                      propertyName: propertyName,
-                      propertyDisplayname: propertyName,
-                      propertyValue: "Undefined",
-                      propertyAttributes: { type: "undefined" },
-                      previousValue: "Undefined",
-                      value: "Undefined",
-                      final: "",
-                      fileName: type + ".xml",
-                      propertyType: [],
+                const customSection =
+                  configPropertiesCopy[serviceName]["Custom " + type];
+                if (!customSection) return;
+                if (!customSection.properties[propertyName]) {
+                  customSection.properties[propertyName] = {
+                    propertyName: propertyName,
+                    propertyDisplayname: propertyName,
+                    propertyValue: "Undefined",
+                    propertyAttributes: { type: "undefined" },
+                    previousValue: "Undefined",
+                    value: "Undefined",
+                    final: "",
+                    fileName: type + ".xml",
+                    propertyType: [],
                     type: type,
                     isEditable: false,
-                    };
-                  }
+                  };
                 }
 
-                if (
-                  !configPropertiesCopy[serviceName]["Custom " + type]
-                    .properties[propertyName].overrideValues
-                ) {
-                  configPropertiesCopy[serviceName][
-                    "Custom " + type
-                  ].properties[propertyName].overrideValues = [];
+                const customProperty = customSection.properties[propertyName];
+                if (!customProperty.overrideValues) {
+                  customProperty.overrideValues = [];
                 }
-                configPropertiesCopy[serviceName]["Custom " + type].properties[
-                  propertyName
-                ].overrideValues?.push({
+                customProperty.overrideValues?.push({
                   value: properties[propertyName],
                   groupName: groupName,
                   previousValue: properties[propertyName],
@@ -895,18 +901,25 @@ export default function Hostconfigs() {
         />
       )}
       <div>
-        {themeLoadError && (
-          <Alert className="mx-5 mb-3" variant="warning">
-            Host configuration layout could not be loaded. Advanced
-            configurations remain available. {themeLoadError}{" "}
-            <Button
-              size="sm"
-              variant="outline-warning"
-              disabled={themeLoading}
-              onClick={() => void retryThemes()}
-            >
-              {themeLoading ? "Retrying Theme" : "Retry Theme"}
-            </Button>
+        {themeLoadNotice && (
+          <Alert
+            className="mx-5 mb-3"
+            variant={themeLoadNotice.kind === "empty" ? "info" : "warning"}
+          >
+            {themeLoadNotice.kind === "empty"
+              ? "No host configuration Theme layout is defined. "
+              : "Host configuration layout could not be loaded. "}
+            Advanced configurations remain available. {themeLoadNotice.message}{" "}
+            {themeLoadNotice.kind !== "empty" && (
+              <Button
+                size="sm"
+                variant="outline-warning"
+                disabled={themeLoading}
+                onClick={() => void retryThemes()}
+              >
+                {themeLoading ? "Retrying Theme" : "Retry Theme"}
+              </Button>
+            )}
           </Alert>
         )}
         <Card className="rounded-0 mx-5">

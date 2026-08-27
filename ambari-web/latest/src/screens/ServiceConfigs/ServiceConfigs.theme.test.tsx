@@ -17,7 +17,7 @@
  */
 
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ComponentProps, ReactNode } from "react";
+import { StrictMode, type ComponentProps, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { AppContext } from "../../store/context";
@@ -290,13 +290,14 @@ function serviceConfigsElement(
     },
   },
   contextServices = services,
+  stackVersion = "3.1",
 ) {
   const appContextValue = {
     clusterName: "cluster1",
     cluster: {
       cluster_id: 1,
       stack: "HDP",
-      versionNum: "3.1",
+      versionNum: stackVersion,
     },
     services: contextServices,
   } as unknown as ComponentProps<typeof AppContext.Provider>["value"];
@@ -412,6 +413,68 @@ describe("Service Configs Theme loading", () => {
     expect(screen.getByTestId("property-value").textContent).toBe(
       "edited-during-fallback"
     );
+  });
+
+  it("distinguishes a successful empty Theme collection from a request failure", async () => {
+    mocks.getTheme.mockResolvedValueOnce({ items: [] });
+    renderServiceConfigs();
+
+    expect(await screen.findByText("Advanced core-site")).toBeTruthy();
+    expect(screen.getByText(/No Theme layout is defined for HDFS\./)).toBeTruthy();
+    expect(screen.getByText("No default Theme is available for HDFS.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+  });
+
+  it("isolates a malformed Theme response and allows it to be retried", async () => {
+    mocks.getTheme
+      .mockResolvedValueOnce({ items: "not-a-collection" })
+      .mockResolvedValueOnce(themeResponse);
+    renderServiceConfigs();
+
+    expect(await screen.findByText("Advanced core-site")).toBeTruthy();
+    expect(screen.getByText("items must be an array.")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+
+    expect(await screen.findByText("Theme settings")).toBeTruthy();
+    expect(mocks.getTheme).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    [404, "Theme resource not found"],
+    [500, "Theme provider failed"],
+  ])("reports an HTTP %s Theme failure without blocking Advanced configs", async (status, message) => {
+    mocks.getTheme.mockRejectedValueOnce({
+      response: { status, data: { message } },
+    });
+    renderServiceConfigs();
+
+    expect(await screen.findByText("Advanced core-site")).toBeTruthy();
+    expect(screen.getByText(`HTTP ${status}: ${message}`)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+  });
+
+  it("deduplicates an in-flight Theme request for the same stack context", async () => {
+    let resolveTheme: (value: typeof themeResponse) => void = () => undefined;
+    const pendingTheme = new Promise<typeof themeResponse>((resolve) => {
+      resolveTheme = resolve;
+    });
+    mocks.getTheme.mockReturnValue(pendingTheme);
+
+    render(<StrictMode>{serviceConfigsElement()}</StrictMode>);
+    await waitFor(() => expect(mocks.getTheme).toHaveBeenCalledTimes(1));
+    await act(async () => resolveTheme(themeResponse));
+
+    expect(await screen.findByText("Theme settings")).toBeTruthy();
+  });
+
+  it("invalidates the Theme cache when the stack version changes", async () => {
+    const view = renderServiceConfigs();
+    expect(await screen.findByText("Theme settings")).toBeTruthy();
+
+    view.rerender(serviceConfigsElement("hdfs", undefined, services, "3.2"));
+
+    await waitFor(() => expect(mocks.getTheme).toHaveBeenCalledTimes(2));
+    expect(mocks.getTheme).toHaveBeenLastCalledWith("HDP", "3.2", "HDFS");
   });
 
   it("ignores an older configuration version response that finishes last", async () => {
