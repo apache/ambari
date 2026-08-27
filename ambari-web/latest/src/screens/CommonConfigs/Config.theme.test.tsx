@@ -1157,6 +1157,70 @@ describe("Ember Service Theme page integration", () => {
     },
   );
 
+  it("round-trips slider config units and preserves zero-value markers", async () => {
+    const propertyConfigs = configs();
+    propertyConfigs.SVC.site.properties.primary = {
+      ...configProperty("primary", "invalid", {
+        type: "int",
+        unit: "b",
+        minimum: 0,
+        maximum: 4096,
+        increment_step: 1,
+      }),
+      propertyValue: 0,
+      recommendedValue: 0,
+    };
+    const sliderTheme = compactTheme(
+      [{ config: "site/primary", "subsection-name": "subsection" }],
+      [
+        {
+          config: "site/primary",
+          widget: {
+            type: "slider",
+            units: [{ "unit-name": "kb" }],
+          },
+        },
+      ],
+    );
+    render(
+      <StatefulConfig
+        themeData={sliderTheme}
+        initialConfigs={propertyConfigs}
+      />,
+    );
+
+    expect((await screen.findByRole("status")).textContent).toContain(
+      "within the configured slider range",
+    );
+    fireEvent.change(screen.getByDisplayValue("invalid"), {
+      target: { value: "1537" },
+    });
+
+    expect(await screen.findByText("1.501KB")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Use default value: 0 KB" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Use recommended value: 0 KB" }),
+    ).toBeTruthy();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Edit slider as raw text" }),
+    );
+    expect(await screen.findByDisplayValue("1537")).toBeTruthy();
+    fireEvent.change(screen.getByDisplayValue("1537"), {
+      target: { value: "2048" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use slider control" }),
+    );
+    expect(await screen.findByText("2KB")).toBeTruthy();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Edit slider as raw text" }),
+    );
+    expect(await screen.findByDisplayValue("2048")).toBeTruthy();
+  });
+
   it("keeps an unknown combo value in the dropdown until raw mode is requested", async () => {
     const propertyConfigs = configs();
     propertyConfigs.SVC.site.properties.primary.value = "custom";

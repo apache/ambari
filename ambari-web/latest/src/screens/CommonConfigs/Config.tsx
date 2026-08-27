@@ -859,6 +859,7 @@ export default function Config({
     property: PropertyType,
     onChange: any,
     widgetStateKey: string,
+    onPreviewChange: any = onChange,
   ) => {
     switch (widgetType) {
       case "directory":
@@ -888,13 +889,13 @@ export default function Config({
         };
 
         // Convert boundaries and step from config units to widget units
-        let minimum = widgetValueByConfigAttributes(
+        const minimum = widgetValueByConfigAttributes(
           getSliderAttribute("minimum", 0),
           configUnit,
           widgetUnit,
           dimensionType,
         );
-        let maximum = widgetValueByConfigAttributes(
+        const maximum = widgetValueByConfigAttributes(
           getSliderAttribute("maximum", 100),
           configUnit,
           widgetUnit,
@@ -904,7 +905,7 @@ export default function Config({
           "increment_step",
           configType === "int" ? 1 : 0.1,
         );
-        let step = widgetValueByConfigAttributes(
+        const step = widgetValueByConfigAttributes(
           configuredStep > 0
             ? configuredStep
             : configType === "int"
@@ -916,12 +917,18 @@ export default function Config({
         );
 
         // Convert current value from config units to widget units
-        let value = widgetValueByConfigAttributes(
-          Number(property.value) || 0,
+        const numericConfigValue = Number(property.value);
+        const value = widgetValueByConfigAttributes(
+          Number.isFinite(numericConfigValue) ? numericConfigValue : 0,
           configUnit,
           widgetUnit,
           dimensionType,
         );
+        const sliderValueIsCompatible =
+          Number.isFinite(numericConfigValue) &&
+          value >= minimum &&
+          value <= maximum &&
+          step > 0;
 
         // Get display unit label (will be empty for int/float)
         const displayUnit = getDisplayUnitLabel(widgetUnit);
@@ -947,15 +954,68 @@ export default function Config({
         };
 
         // Check if this slider is in text input mode
-        const isTextMode = widgetTextModeMap[widgetStateKey] || false;
+        const isTextMode =
+          Boolean(widgetTextModeMap[widgetStateKey]) ||
+          !sliderValueIsCompatible;
 
         // Toggle between slider and text input mode
         const toggleMode = () => {
           setWidgetTextModeMap((prev) => ({
             ...prev,
-            [widgetStateKey]: !prev[widgetStateKey],
+            [widgetStateKey]: !isTextMode,
           }));
         };
+
+        const toConfigValue = (sliderValue: number) =>
+          configValueByWidget(
+            sliderValue,
+            widgetUnit,
+            configUnit,
+            configType,
+            dimensionType,
+          );
+        const toWidgetValue = (configValue: unknown) => {
+          if (configValue === null || configValue === undefined || configValue === "") {
+            return null;
+          }
+          const numericValue = Number(configValue);
+          if (!Number.isFinite(numericValue)) return null;
+          return widgetValueByConfigAttributes(
+            numericValue,
+            configUnit,
+            widgetUnit,
+            dimensionType,
+          );
+        };
+        const defaultSliderValue = toWidgetValue(property.propertyValue);
+        const recommendedSliderValue = toWidgetValue(
+          property.recommendedValue,
+        );
+        const sliderMarkers = [
+          {
+            kind: "current" as const,
+            value,
+          },
+          ...(defaultSliderValue === null
+            ? []
+            : [
+                {
+                  kind: "default" as const,
+                  value: defaultSliderValue,
+                  onSelect: () => onChange(toConfigValue(defaultSliderValue)),
+                },
+              ]),
+          ...(recommendedSliderValue === null
+            ? []
+            : [
+                {
+                  kind: "recommended" as const,
+                  value: recommendedSliderValue,
+                  onSelect: () =>
+                    onChange(toConfigValue(recommendedSliderValue)),
+                },
+              ]),
+        ];
 
         return (
           <div className="d-flex align-items-center">
@@ -971,6 +1031,11 @@ export default function Config({
                 {rawDisplayUnit && (
                   <InputGroup.Text>{rawDisplayUnit}</InputGroup.Text>
                 )}
+                {!sliderValueIsCompatible && (
+                  <Form.Text className="text-warning" role="status">
+                    Enter a numeric value within the configured slider range.
+                  </Form.Text>
+                )}
               </InputGroup>
             ) : (
               <div className="flex-grow-1">
@@ -981,19 +1046,14 @@ export default function Config({
                   marks={marks}
                   value={value}
                   unit={displayUnit || ""}
-                  onChange={(sliderValue: any) => {
-                    // Convert slider value back to config units before saving
-                    const configValue = configValueByWidget(
-                      sliderValue,
-                      widgetUnit,
-                      configUnit,
-                      configType,
-                      dimensionType,
-                    );
-                    onChange(configValue);
-                  }}
+                  markers={sliderMarkers}
+                  onChange={(sliderValue) =>
+                    onPreviewChange(toConfigValue(sliderValue))
+                  }
+                  onChangeComplete={(sliderValue) =>
+                    onChange(toConfigValue(sliderValue))
+                  }
                   disabled={!property.isEditable}
-                  propertyUnit={displayUnit}
                 />
               </div>
             )}
@@ -1444,6 +1504,7 @@ export default function Config({
     value: any,
     widgetType: string,
     confirmPassword?: boolean,
+    requestRecommendations = true,
   ) => {
     let newConfigs = cloneDeep(configProperties);
     switch (widgetType) {
@@ -1506,10 +1567,12 @@ export default function Config({
     // Remove global validation - only validate the changed property above
 
     setConfigProperties(newConfigs);
-    onValueUpdate(
-      newConfigs[chosenService][configType].properties[property.propertyName],
-      newConfigs,
-    );
+    if (requestRecommendations) {
+      onValueUpdate(
+        newConfigs[chosenService][configType].properties[property.propertyName],
+        newConfigs,
+      );
+    }
   };
 
   const handleInputChangeWidgetForOverrideValues = (
@@ -2939,6 +3002,19 @@ export default function Config({
                                                                                         );
                                                                                       },
                                                                                       config.configPath,
+                                                                                      function (
+                                                                                        e: any,
+                                                                                      ) {
+                                                                                        handleInputChangeWidget(
+                                                                                          type,
+                                                                                          property,
+                                                                                          e,
+                                                                                          widget?.type ??
+                                                                                            "(missing)",
+                                                                                          false,
+                                                                                          false,
+                                                                                        );
+                                                                                      },
                                                                                     )}
                                                                                   </div>
                                                                                 </Tooltip>

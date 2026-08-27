@@ -1648,6 +1648,31 @@ pre {
   border-color: #5cb85c transparent transparent transparent;
 }
 
+.custom-slider-markers {
+  position: relative;
+  height: 12px;
+}
+
+.custom-slider-marker {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 1px solid #495057;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.custom-slider-marker-current {
+  background: #495057;
+}
+
+.custom-slider-marker-recommended {
+  border-color: #198754;
+  background: #198754;
+}
+
 .min-w-0 {
   min-width: 0 !important;
 }
