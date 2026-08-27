@@ -70,6 +70,10 @@ When implementing or reviewing React frontend work:
   changing a feature. They document the legacy Ember behavior, entry points,
   permissions, feature flags, API calls, asynchronous flows, error handling,
   recovery behavior, and tests.
+- Before implementing or committing every React frontend fix, inspect both the
+  corresponding legacy Ember source and the relevant Ember baseline documents.
+  If the React behavior intentionally differs, record the reason and add focused
+  regression coverage for that decision.
 - Compare the React implementation with both the baseline and the actual Ember
   source. If the documentation conflicts with source code or runtime behavior,
   verify the behavior and update the baseline rather than guessing.
