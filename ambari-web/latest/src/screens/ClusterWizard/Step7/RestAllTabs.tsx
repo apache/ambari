@@ -32,6 +32,8 @@ type RestAllTabsProps = {
   hosts: string[];
   validationErrors?: any;
   wizardName?: string;
+  selectedService?: string;
+  onServiceChange?: (serviceName: string) => void;
 };
 
 export default function RestAllTabs({
@@ -47,6 +49,8 @@ export default function RestAllTabs({
   hosts,
   validationErrors = [],
   wizardName = "clusterCreation",
+  selectedService,
+  onServiceChange,
 }: RestAllTabsProps) {
   return (
     <>
@@ -65,6 +69,8 @@ export default function RestAllTabs({
         stackVersion={stackVersion}
         hosts={hosts}
         validationErrors={validationErrors}
+        selectedService={selectedService}
+        onServiceChange={onServiceChange}
       />
     </>
   );

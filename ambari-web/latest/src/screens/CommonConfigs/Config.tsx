@@ -214,6 +214,7 @@ type ConfigProps = {
   stackVersion?: string;
   hosts?: string[];
   validationErrors?: any;
+  selectedService?: string;
   onServiceChange?: (serviceName: string) => void;
   configsLoading?: boolean;
   allThemes?: boolean;
@@ -248,11 +249,14 @@ export default function Config({
   stackVersion,
   hosts = [],
   validationErrors = [],
+  selectedService,
   onServiceChange,
   configsLoading = false,
   allThemes = false,
 }: ConfigProps) {
-  const [chosenService, setChosenService] = useState<string>("");
+  const [chosenService, setChosenService] = useState<string>(
+    selectedService || "",
+  );
   const [chosenTab, setChosenTab] = useState<string>("");
   const [theme, setTheme] = useState<ConfigThemeView>({});
   const [services, setServices] = useState<string[]>([]);
@@ -532,19 +536,13 @@ export default function Config({
     setTheme(nextTheme);
     setNormalizationDiagnostics(normalized.diagnostics);
     setServices(normalized.services);
-    setChosenService((currentService) =>
-      normalized.services.includes(currentService)
+    setChosenService((currentService) => {
+      if (selectedService && normalized.services.includes(selectedService)) {
+        return selectedService;
+      }
+      return normalized.services.includes(currentService)
         ? currentService
-        : firstService,
-    );
-    setChosenTab((currentTab) => {
-      const service = normalized.services.includes(chosenService)
-        ? chosenService
         : firstService;
-      const serviceTabs = Object.keys(nextTheme[service]?.tabs ?? {});
-      return serviceTabs.includes(currentTab)
-        ? currentTab
-        : (serviceTabs[0] ?? "");
     });
   };
 
@@ -561,8 +559,18 @@ export default function Config({
     configPropertiesData,
     configSection,
     allThemes,
+    selectedService,
     JSON.stringify(servicesList),
   ]);
+
+  useEffect(() => {
+    setChosenTab((currentTab) => {
+      const serviceTabs = Object.keys(theme[chosenService]?.tabs ?? {});
+      return serviceTabs.includes(currentTab)
+        ? currentTab
+        : (serviceTabs[0] ?? "");
+    });
+  }, [chosenService, theme]);
 
   // Track service changes and set switching state
   useEffect(() => {
