@@ -93,3 +93,24 @@ export const findComparatorThemeLocation = (
   }
   return null;
 };
+
+const isThemeBooleanTrue = (value: unknown) =>
+  value === true || value === 1 || value === "1" || value === "true";
+
+export const isComparatorThemeUIOnly = (
+  theme: ConfigThemeView,
+  serviceName: string,
+  configType: string,
+  propertyName: string,
+) => {
+  const serviceTheme = theme[serviceName];
+  if (!serviceTheme) return false;
+  const configPath = `${configType}/${propertyName}`;
+  return Object.values(serviceTheme.subsectionProperties).some(({ properties }) =>
+    properties.some(
+      (placement) =>
+        placement.configPath === configPath &&
+        isThemeBooleanTrue(placement.valueAttributes.ui_only_property),
+    ),
+  );
+};

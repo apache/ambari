@@ -33,7 +33,7 @@ import { sqoop_properties } from "../../data/configs/services/sqoop_properties";
 import { tez_properties } from "../../data/configs/services/tez_properties";
 import { yarn_properties } from "../../data/configs/services/yarn_properties";
 import { zookeeper_properties } from "../../data/configs/services/zookeeper_properties";
-import { Tab, Accordion, Tabs, Form, InputGroup } from "react-bootstrap";
+import { Alert, Button, Tab, Accordion, Tabs, Form, InputGroup } from "react-bootstrap";
 import Spinner from "../../components/Spinner";
 import ComparatorFilter from "./ComparatorFilter";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -42,6 +42,7 @@ import { FilterLevels } from "./constants";
 import {
   findComparatorThemeLocation,
   getComparatorActiveTabs,
+  isComparatorThemeUIOnly,
   normalizeComparatorTheme,
 } from "./configsComparatorTheme";
 
@@ -77,6 +78,9 @@ export default function ConfigsComparator({
     useState<ConfigPropertiesType>({});
   const [transformedData, setTransformedData] = useState<any>({});
   const [configGroupsData, setConfigGroupsData] = useState<any[]>([]);
+  const [comparisonLoading, setComparisonLoading] = useState(true);
+  const [comparisonError, setComparisonError] = useState("");
+  const [comparisonRetry, setComparisonRetry] = useState(0);
   const theme = useMemo(
     () => normalizeComparatorTheme(themeData, serviceName),
     [themeData, serviceName],
@@ -162,6 +166,8 @@ export default function ConfigsComparator({
     let active = true;
     async function getCompareVersionConfigs() {
       if (firstVersion && secondVersion) {
+        setComparisonLoading(true);
+        setComparisonError("");
         try {
           const response = await ConfigsApi.getMultipleVersionConfigValues(
             clusterName,
@@ -172,8 +178,20 @@ export default function ConfigsComparator({
 
           // Process the response similar to Ember.js initCompareConfig
           if (active) processCompareVersionData(response);
-        } catch {
-          if (active) setTransformedData({ Advanced: {} });
+        } catch (error: any) {
+          if (active) {
+            setTransformedData({ Advanced: {} });
+            setConfigProperties({
+              [serviceName]: { placeholder: { errors: 0, properties: {} } },
+            });
+            setComparisonError(
+              error?.response?.data?.message ||
+                error?.message ||
+                "Ambari could not load the selected configuration versions.",
+            );
+          }
+        } finally {
+          if (active) setComparisonLoading(false);
         }
       }
     }
@@ -182,7 +200,7 @@ export default function ConfigsComparator({
     return () => {
       active = false;
     };
-  }, [firstVersion, secondVersion, clusterName, serviceName, theme]);
+  }, [firstVersion, secondVersion, clusterName, serviceName, theme, comparisonRetry]);
 
   // Process the compare version data and transform into tab/category structure
   const processCompareVersionData = (response: any) => {
@@ -196,7 +214,10 @@ export default function ConfigsComparator({
 
     // Process each version's configurations
     response.items?.forEach((item: any) => {
-      const versionNumber = item.service_config_version.toString();
+      const versionNumber = String(item.service_config_version ?? "");
+      if (!serviceVersionMap[versionNumber] || item.service_name !== serviceName) {
+        return;
+      }
       item.configurations?.forEach((configuration: any) => {
         const configType = configuration.type;
         const properties = configuration.properties || {};
@@ -638,6 +659,10 @@ export default function ConfigsComparator({
       return true;
     }
 
+    if (isComparatorThemeUIOnly(theme, serviceName, configType, propertyName)) {
+      return true;
+    }
+
     // 2. Check if property is marked as not visible in stack configs
     if (configs?.items) {
       const stackProperty = configs.items.find((service: any) =>
@@ -659,6 +684,13 @@ export default function ConfigsComparator({
         if (
           configData?.StackConfigurations?.property_value_attributes
             ?.visible === false
+        ) {
+          return true;
+        }
+        if (
+          configData?.StackConfigurations?.is_required_by_agent === false ||
+          configData?.StackConfigurations?.property_value_attributes
+            ?.ui_only_property === true
         ) {
           return true;
         }
@@ -702,6 +734,11 @@ export default function ConfigsComparator({
         if (
           configData?.StackConfigurations?.property_value_attributes?.type ===
           "password"
+        ) {
+          return true;
+        }
+        if (
+          configData?.StackConfigurations?.property_type?.includes?.("PASSWORD")
         ) {
           return true;
         }
@@ -902,11 +939,17 @@ export default function ConfigsComparator({
     }
 
     // Convert values to strings for comparison
-    const val1 = String(value1 || "").trim();
-    const val2 = String(value2 || "").trim();
+    const normalizeValue = (value: unknown) => {
+      if (Array.isArray(value)) {
+        return [...value].map(String).sort();
+      }
+      return String(value ?? "").trim();
+    };
+    const val1 = normalizeValue(value1);
+    const val2 = normalizeValue(value2);
 
     // Check if values are different or final attributes are different
-    return val1 !== val2 || isFinal1 !== isFinal2;
+    return JSON.stringify(val1) !== JSON.stringify(val2) || isFinal1 !== isFinal2;
   };
 
   // Get all categories for a specific tab, marking which properties have differences
@@ -968,7 +1011,7 @@ export default function ConfigsComparator({
         );
 
         // Check if property matches search string
-        const matchesSearch = matchesSearchString(propertyName);
+        const matchesSearch = matchesSearchString(propertyName, configType);
 
         // Debug logging for final properties filter
         const isFinal1 = version1Data?.isFinal || false;
@@ -1311,13 +1354,13 @@ export default function ConfigsComparator({
   };
 
   // Check if property matches search string
-  const matchesSearchString = (propertyName: string) => {
+  const matchesSearchString = (propertyName: string, configType: string) => {
     if (!searchString || searchString.trim() === "") {
       return true; // Show all properties if no search string
     }
 
     // Get display name for more comprehensive search
-    const displayName = getPropertyDisplayName(propertyName, "");
+    const displayName = getPropertyDisplayName(propertyName, configType);
 
     // Search in both property name and display name (case-insensitive)
     const searchTerm = searchString.toLowerCase().trim();
@@ -1364,7 +1407,7 @@ export default function ConfigsComparator({
     });
   };
 
-  if (isEmpty(configProperties)) {
+  if (isEmpty(configProperties) || comparisonLoading) {
     return <Spinner />;
   }
 
@@ -1390,7 +1433,19 @@ export default function ConfigsComparator({
           />
         </div>
       </div>
-      <Tabs className="ambari-tabs">
+      {comparisonError && (
+        <Alert variant="danger">
+          {comparisonError}{" "}
+          <Button
+            size="sm"
+            variant="outline-danger"
+            onClick={() => setComparisonRetry((value) => value + 1)}
+          >
+            Retry comparison
+          </Button>
+        </Alert>
+      )}
+      <Tabs className="ambari-tabs" transition={false}>
         {activeServiceTabs.map((tab) => {
           const tabData = getAllCategoriesWithDifferenceMarkers(
             tab.key,
@@ -1492,6 +1547,7 @@ export default function ConfigsComparator({
                               return (
                                 <div
                                   key={propertyKey}
+                                  data-config-path={propertyKey}
                                   className={`comparison-row border-bottom py-2 p-3 fs-14 ${
                                     hasDifference ? "bg-info-subtle" : ""
                                   }`}
@@ -1516,13 +1572,15 @@ export default function ConfigsComparator({
                                         ></i>
                                       )}
                                     </div>
-                                    <div className="d-flex align-items-center col-md-4 p-2 px-3 mw-100 overflow-scroll">
+                                    <div
+                                      className="d-flex align-items-center col-md-4 p-2 px-3 mw-100 overflow-scroll"
+                                      data-version={firstVersion}
+                                    >
                                       <div className="compare-config-cell">
                                         {version1Data ? (
                                           <div className="d-flex align-items-center">
                                             <div className="fs-14">
-                                              {version1Data.value ||
-                                                "UNDEFINED"}
+                                              {String(version1Data.value ?? "")}
                                             </div>
                                             {version1Data.isFinal &&
                                               shouldShowFinalIcon(
@@ -1537,18 +1595,20 @@ export default function ConfigsComparator({
                                           </div>
                                         ) : (
                                           <span className="text-muted">
-                                            UNDEFINED
+                                            Undefined
                                           </span>
                                         )}
                                       </div>
                                     </div>
-                                    <div className="col-md-4 p-2 px-3 mw-100 overflow-scroll">
+                                    <div
+                                      className="col-md-4 p-2 px-3 mw-100 overflow-scroll"
+                                      data-version={secondVersion}
+                                    >
                                       <div className="compare-config-cell">
                                         {version2Data ? (
                                           <div className="d-flex align-items-center">
                                             <div className="fs-14">
-                                              {version2Data.value ||
-                                                "UNDEFINED"}
+                                              {String(version2Data.value ?? "")}
                                             </div>
                                             {version2Data.isFinal &&
                                               shouldShowFinalIcon(
@@ -1563,7 +1623,7 @@ export default function ConfigsComparator({
                                           </div>
                                         ) : (
                                           <span className="text-muted">
-                                            UNDEFINED
+                                            Undefined
                                           </span>
                                         )}
                                       </div>
