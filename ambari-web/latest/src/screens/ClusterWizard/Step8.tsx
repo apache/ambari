@@ -35,7 +35,7 @@ import {
 import { ServicesResponse } from "./types/StackServiceComponent";
 import { ChooseServicesApi } from "../../api/chooseServicesApi";
 import Spinner from "../../components/Spinner";
-import { formatValuesBeforeSave, minToInstall } from "./utils";
+import { minToInstall } from "./utils";
 import { isHAComponentOnly } from "../../Utils/numberUtils";
 import VersionsApi from "../../api/versionsApi";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
@@ -55,6 +55,7 @@ import useKerberosMode from "../../hooks/useKerberosMode";
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
 import { buildBlueprintExport } from "./blueprintExport";
+import { buildClusterConfigurationPayload } from "./clusterConfigPayload";
 
 type Step8Props = {
   wizardName?: string;
@@ -1453,80 +1454,11 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   }
 
   async function applyConfigurationsToCluster() {
-    const applyConfigurationsPayload = [];
     const configurations = getStepData("CONFIGURATION", "configProperties");
-    Object.keys(configurations).map((service: string) => {
-      if (service === "MISC") return;
-      if (installedServices.includes(service)) return;
-      const serviceConfigurations = configurations[service];
-      const serviceConfigurationsTypes = {};
-      Object.keys(serviceConfigurations).map((configSection: string) => {
-        Object.keys(serviceConfigurations[configSection].properties).map(
-          (property: string) => {
-            const propertyName =
-              serviceConfigurations[configSection].properties[property]
-                .propertyName;
-            const propertyType =
-              serviceConfigurations[configSection].properties[property].type;
-
-            if (propertyType === "hosts") {
-              return;
-            }
-
-            if (!serviceConfigurationsTypes[propertyType]) {
-              serviceConfigurationsTypes[propertyType] = {};
-            }
-            if (
-              serviceConfigurations[configSection].properties[property]
-                .value !== null
-            ) {
-              serviceConfigurationsTypes[propertyType][propertyName] =
-                formatValuesBeforeSave(
-                  serviceConfigurations[configSection].properties[property]
-                );
-            }
-          }
-        );
-      });
-      Object.keys(configurations["MISC"]["Users and Groups"]?.properties)?.map(
-        (property: string) => {
-          const propertyName =
-            configurations["MISC"]["Users and Groups"]?.properties[property]
-              ?.propertyName;
-          const propertyType =
-            configurations["MISC"]["Users and Groups"]?.properties[property]
-              ?.type;
-          const serviceName =
-            configurations["MISC"]["Users and Groups"]?.properties[property]
-              ?.serviceName;
-          const value =
-            configurations["MISC"]["Users and Groups"]?.properties[property]
-              ?.value;
-          if (service === serviceName) {
-            if (!serviceConfigurationsTypes[propertyType]) {
-              serviceConfigurationsTypes[propertyType] = {};
-            }
-            serviceConfigurationsTypes[propertyType][propertyName] = value;
-          }
-        }
-      );
-
-      const desiredConfigs = [];
-
-      Object.keys(serviceConfigurationsTypes).map((type: string) => {
-        let inferredProperties = serviceConfigurationsTypes[type];
-        desiredConfigs.push({
-          type,
-          properties: inferredProperties,
-          service_config_version_note: `Initial version of ${service} configurations`,
-        });
-      });
-
-      applyConfigurationsPayload.push({
-        Clusters: {
-          desired_config: desiredConfigs,
-        },
-      });
+    const applyConfigurationsPayload = buildClusterConfigurationPayload({
+      configProperties: configurations,
+      includeInstalledChanges: isAddServiceWizard(),
+      installedServices,
     });
     if (!applyConfigurationsPayload.length) return;
     await ClusterDeploymentApi.applyClusterConfigs(

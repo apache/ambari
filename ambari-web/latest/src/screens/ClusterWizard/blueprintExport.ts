@@ -71,7 +71,13 @@ export function buildBlueprintConfigurations(configProperties: UnknownRecord) {
         const property = asRecord(propertyValue);
         const name = stringValue(property.propertyName) || stringValue(property.name);
         const type = configType(property, sectionName);
-        if (!name || !type || type === "hosts" || property.value == null) return;
+        if (
+          !name ||
+          !type ||
+          type === "hosts" ||
+          property.value == null ||
+          property.isRequiredByAgent === false
+        ) return;
         const current = configurations.get(type) || { properties: {} };
         try {
           current.properties[name] = formatValuesBeforeSave(property);

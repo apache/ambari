@@ -750,4 +750,42 @@ describe("Step 7 Theme fallback", () => {
     );
     expect(mocks.jumpToStep).toHaveBeenCalledWith(5);
   });
+
+  it("loads installed and newly selected Add Service context while recommending only new services", async () => {
+    const steps = createWizardSteps();
+    steps.SERVICES.data.services = { HIVE: { selected: true } };
+
+    renderStep("addService", steps);
+
+    await waitFor(() =>
+      expect(mocks.getStackThemes).toHaveBeenCalledWith(
+        "BIGTOP",
+        "3.3.0",
+        "HDFS,HIVE",
+        "themes/*",
+      ),
+    );
+    expect(mocks.getStackConfigurations).toHaveBeenCalledWith(
+      "BIGTOP",
+      "3.3.0",
+      "HDFS,HIVE",
+      "configurations/*,configurations/dependencies/*,StackServices/config_types/*",
+    );
+    await waitFor(() =>
+      expect(mocks.loadAddServiceRecommendations).toHaveBeenCalled(),
+    );
+    expect(mocks.loadAddServiceRecommendations.mock.calls[0][1]).toEqual([
+      "HIVE",
+    ]);
+  });
+
+  it("uses ClusterCreate recommendation context for a new cluster", async () => {
+    renderStep("clusterCreation");
+
+    await waitFor(() => expect(mocks.getRecommendations).toHaveBeenCalled());
+    expect(mocks.getRecommendations.mock.calls[0][2]).toMatchObject({
+      services: ["HDFS"],
+      user_context: { operation: "ClusterCreate" },
+    });
+  });
 });

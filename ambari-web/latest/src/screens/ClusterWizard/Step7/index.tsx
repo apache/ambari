@@ -94,6 +94,7 @@ import {
   describeThemeRequestError,
   ThemeLoadNotice,
 } from "../../CommonConfigs/themeLoadUtils";
+import { getCategoryClientErrors } from "./categoryValidation";
 
 type PropTypes = {
   wizardName?: string;
@@ -384,11 +385,16 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     return servicesData[service].selected;
   });
 
-  // Filter out Kerberos when in add service mode
+  const conditionServices = [
+    ...new Set([...(installedServices || []), ...services]),
+  ];
+
+  // Kerberos contributes condition/config context but does not get an ordinary
+  // Add Service configuration tab.
   const filteredServices =
     wizardName === "addService"
-      ? services.filter((service) => service !== "KERBEROS")
-    : services;
+      ? conditionServices.filter((service) => service !== "KERBEROS")
+      : services;
 
 
   const propertiesFileMap: { [key: string]: any } = {
@@ -435,7 +441,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       {
         hosts: hostsList,
         recommendations,
-        services: filteredServices,
+        services: conditionServices,
         validate: "configurations",
       }
     );
@@ -523,10 +529,6 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     set(validationErrorsCopy, "warnings", detailedWarnings);
     validationsRef.current = validationErrorsCopy;
     setValidationErrors(validationErrorsCopy);
-    setIsNextEnabled(
-      detailedCriticalErrors.length === 0 &&
-        (validationErrorsCopy.clientSideErrors?.length || 0) === 0,
-    );
   }
   function validateClientSideValidations() {
     //get all the keys which have hasError nn empty string
@@ -548,11 +550,35 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     set(validationErrorsCopy, "clientSideErrors", errorProperties);
     validationsRef.current = validationErrorsCopy;
     setValidationErrors(validationErrorsCopy);
-    setIsNextEnabled(
-      errorProperties.length === 0 &&
-        (validationErrorsCopy.criticalErrors?.length || 0) === 0,
-    );
   }
+
+  useEffect(() => {
+    if (selectedTab === "credentials") return;
+    if (selectedTab === "databases") {
+      setIsNextEnabled(
+        getCategoryClientErrors({
+          configProperties,
+          selectedTab,
+          serviceNames: conditionServices,
+          themes,
+        }).length === 0,
+      );
+      return;
+    }
+    if (selectedTab === "allConfigurations") {
+      setIsNextEnabled(
+        getCategoryClientErrors({
+          configProperties,
+          selectedTab,
+          serviceNames: conditionServices,
+          themes,
+        }).length === 0 &&
+          (validationErrors.criticalErrors?.length || 0) === 0,
+      );
+      return;
+    }
+    setIsNextEnabled(true);
+  }, [configProperties, selectedTab, themes, validationErrors]);
   useEffect(() => {
     if (configPropertiesLoaded) {
       if (wizardName === "clusterCreation") {
@@ -821,6 +847,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
               databases: serviceName,
             }))
           }
+          conditionServices={conditionServices}
         />
       ),
     },
@@ -848,6 +875,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
               directories: serviceName,
             }))
           }
+          conditionServices={conditionServices}
         />
       ),
     },
@@ -887,6 +915,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
               allConfigurations: serviceName,
             }))
           }
+          conditionServices={conditionServices}
         />
       ),
     },
@@ -2271,7 +2300,12 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       // Process initializers for newly added services
       updatedConfigProperties = initializeValues(updatedConfigProperties);
       updatedConfigProperties = updateVisibilityByForeignKeys(updatedConfigProperties);
-      updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themeData, "default", services.map(service => service));
+      updatedConfigProperties = updateVisibilityForDependsOn(
+        updatedConfigProperties,
+        themeData,
+        "default",
+        conditionServices,
+      );
       updatedConfigProperties = validateAllProperties(updatedConfigProperties);
       if (preserveCurrentValues) {
         updatedConfigProperties = preserveEditedConfigValues(
@@ -2301,7 +2335,12 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       updatedConfigProperties = onLoadOverrides(updatedConfigProperties);
       updatedConfigProperties = initializeValues(updatedConfigProperties);
       updatedConfigProperties = updateVisibilityByForeignKeys(updatedConfigProperties);
-      updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themeData, "default", filteredServices);
+      updatedConfigProperties = updateVisibilityForDependsOn(
+        updatedConfigProperties,
+        themeData,
+        "default",
+        conditionServices,
+      );
       updatedConfigProperties = validateAllProperties(updatedConfigProperties);
       if (preserveCurrentValues) {
         updatedConfigProperties = preserveEditedConfigValues(
@@ -2340,13 +2379,13 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       const response = await WizardApi.getStackThemes(
         stackName,
         stackVersion,
-        services.join(","),
+        conditionServices.join(","),
         "themes/*"
       );
       if (requestId !== themeRequestId.current) {
         return;
       }
-      const notice = classifyDefaultThemeResponse(response, services);
+      const notice = classifyDefaultThemeResponse(response, conditionServices);
       setThemes(response);
       setThemeLoadNotice(notice);
       if (!isEmpty(configPropertiesRef.current)) {
@@ -2375,7 +2414,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     const response = await WizardApi.getStackConfigurations(
       stackName,
       stackVersion,
-      services.join(","),
+      conditionServices.join(","),
       "configurations/*,configurations/dependencies/*,StackServices/config_types/*"
     );
     setConfigs(response);
@@ -2547,13 +2586,19 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         stackVersion={stackVersion}
         hosts={hostsList}
         wizardName={wizardName}
-        selectedService={selectedServicesByTab.allConfigurations}
+        selectedService={
+          selectedServicesByTab.allConfigurations ||
+          filteredServices.find(
+            (serviceName) => !installedServices.includes(serviceName),
+          )
+        }
         onServiceChange={(serviceName) =>
           setSelectedServicesByTab((current) => ({
             ...current,
             allConfigurations: serviceName,
           }))
         }
+        conditionServices={conditionServices}
       />
     );
   };
