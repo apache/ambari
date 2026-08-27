@@ -134,7 +134,9 @@ export function transformConfigHistoryItems(data: Record<string, unknown>[] = []
     createTime: item.createtime as number | undefined,
     serviceName: item.service_name as string,
     hosts: Array.isArray(item.hosts) ? item.hosts as string[] : [],
-    serviceConfigVersionNote: item.service_config_version_note as string | undefined,
+    serviceConfigVersionNote: typeof item.service_config_version_note === "string"
+      ? item.service_config_version_note
+      : "",
     isClusterCompatible: item.is_cluster_compatible as boolean | undefined,
     stackId: item.stack_id as string | undefined,
   }));
