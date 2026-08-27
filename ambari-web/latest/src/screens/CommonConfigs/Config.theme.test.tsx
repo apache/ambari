@@ -1067,7 +1067,174 @@ describe("Ember Service Theme page integration", () => {
     expect(screen.queryByDisplayValue("do not edit")).toBeNull();
   });
 
-  it("renders unsupported checkbox and toggle values without replacing them", async () => {
+  it.each([
+    ["text-field", "value", {}, "input[type='text']"],
+    ["password", "secret", {}, "input[type='password']"],
+    ["checkbox", "true", {}, "input[type='checkbox']"],
+    [
+      "toggle",
+      "on",
+      { entries: [{ value: "on" }, { value: "off" }] },
+      ".form-switch input",
+    ],
+    ["combo", "one", { entries: ["one", "two"] }, "[role='combobox']"],
+    [
+      "radio-buttons",
+      "one",
+      { entries: ["one", "two"] },
+      "input[type='radio']",
+    ],
+    ["list", "one", { entries: ["one", "two"] }, "input[type='checkbox']"],
+    ["directory", "/srv/data", {}, "input[type='text']"],
+    ["directories", "/data/one,/data/two", {}, "textarea[rows='4']"],
+    [
+      "slider",
+      5,
+      { type: "int", minimum: 0, maximum: 10, increment_step: 1 },
+      ".custom-slider-container",
+    ],
+    [
+      "time-interval-spinner",
+      1000,
+      {
+        type: "int",
+        unit: "milliseconds",
+        minimum: 0,
+        maximum: 10000,
+        increment_step: 1000,
+      },
+      "input[type='number']",
+    ],
+    ["text-area", "line one\nline two", {}, "textarea[rows='10']"],
+    ["label", "read only", {}, "output"],
+    ["test-db-connection", "", {}, "button"],
+    ["future-widget", "value", {}, "[role='status']"],
+    [undefined, "value", {}, "[role='status']"],
+  ])(
+    "dispatches the %s Theme widget without an implicit text fallback",
+    async (widgetType, value, propertyAttributes, expectedSelector) => {
+      const propertyConfigs = configs();
+      propertyConfigs.SVC.site.properties.primary = configProperty(
+        "primary",
+        value,
+        { type: "string", ...propertyAttributes },
+      );
+      const isUiOnly = widgetType === "test-db-connection";
+      const configPath = isUiOnly ? "site/action" : "site/primary";
+      const widget = widgetType
+        ? {
+            config: configPath,
+            widget: {
+              type: widgetType,
+              ...(widgetType === "time-interval-spinner"
+                ? { units: [{ "unit-name": "seconds,milliseconds" }] }
+                : {}),
+            },
+          }
+        : null;
+      const { container } = renderConfig(
+        compactTheme(
+          [
+            {
+              config: configPath,
+              "subsection-name": "subsection",
+              ...(isUiOnly
+                ? { property_value_attributes: { ui_only_property: true } }
+                : {}),
+            },
+          ],
+          widget ? [widget] : [],
+        ),
+        propertyConfigs,
+      );
+
+      await waitFor(() => {
+        expect(container.querySelector(expectedSelector)).not.toBeNull();
+      });
+      if (widgetType === "future-widget" || widgetType === undefined) {
+        expect(container.querySelector("input[type='text']")).toBeNull();
+      }
+    },
+  );
+
+  it("keeps an unknown combo value in the dropdown until raw mode is requested", async () => {
+    const propertyConfigs = configs();
+    propertyConfigs.SVC.site.properties.primary.value = "custom";
+    propertyConfigs.SVC.site.properties.primary.propertyAttributes = {
+      type: "string",
+      entries: ["one", "two"],
+      entries_editable: true,
+    };
+    const comboTheme = compactTheme(
+      [{ config: "site/primary", "subsection-name": "subsection" }],
+      [{ config: "site/primary", widget: { type: "combo" } }],
+    );
+    render(
+      <StatefulConfig
+        themeData={comboTheme}
+        initialConfigs={propertyConfigs}
+      />,
+    );
+
+    expect((await screen.findByRole("status")).textContent).toContain(
+      "not one of the configured options",
+    );
+    expect(screen.queryByDisplayValue("custom")).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Edit dropdown as raw text" }),
+    );
+    const rawInput = await screen.findByDisplayValue("custom");
+    fireEvent.change(rawInput, { target: { value: "one" } });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Use dropdown control" }),
+    );
+
+    expect(screen.queryByDisplayValue("one")).toBeNull();
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("round-trips an exact two-entry toggle and rejects extra entries", async () => {
+    const propertyConfigs = configs();
+    propertyConfigs.SVC.site.properties.primary.value = "enabled";
+    propertyConfigs.SVC.site.properties.primary.propertyAttributes = {
+      type: "string",
+      entries: [
+        { value: "enabled", label: "Enabled" },
+        { value: "disabled", label: "Disabled" },
+      ],
+    };
+    const toggleTheme = compactTheme(
+      [{ config: "site/primary", "subsection-name": "subsection" }],
+      [{ config: "site/primary", widget: { type: "toggle" } }],
+    );
+    const view = render(
+      <StatefulConfig
+        themeData={toggleTheme}
+        initialConfigs={propertyConfigs}
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole("checkbox", { name: "Enabled" }));
+    expect(await screen.findByRole("checkbox", { name: "Disabled" })).toBeTruthy();
+
+    const invalidEntries = configs();
+    invalidEntries.SVC.site.properties.primary.value = "enabled";
+    invalidEntries.SVC.site.properties.primary.propertyAttributes = {
+      type: "string",
+      entries: ["enabled", "disabled", "automatic"],
+    };
+    view.unmount();
+    render(
+      <StatefulConfig
+        themeData={toggleTheme}
+        initialConfigs={invalidEntries}
+      />,
+    );
+    expect(await screen.findByDisplayValue("enabled")).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+  });
+
+  it("protects unsupported checkbox values and preserves toggle values in raw mode", async () => {
     const propertyConfigs: ConfigPropertiesType = {
       SVC: {
         site: {
@@ -1099,7 +1266,10 @@ describe("Ember Service Theme page integration", () => {
       propertyConfigs,
     );
 
-    expect(await screen.findByDisplayValue("custom-checkbox")).toBeTruthy();
+    expect(
+      (await screen.findByRole("status")).textContent,
+    ).toContain("Unsupported checkbox value");
+    expect(screen.queryByDisplayValue("custom-checkbox")).toBeNull();
     expect(screen.getByDisplayValue("custom-toggle")).toBeTruthy();
     expect(screen.queryByRole("checkbox")).toBeNull();
   });

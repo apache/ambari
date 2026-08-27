@@ -159,6 +159,36 @@ const operateThemeTabs = (event: KeyboardEvent<HTMLElement>) => {
   tabs[nextIndex].click();
 };
 
+const ThemeRawModeButton = ({
+  rawMode,
+  disabled,
+  onClick,
+  controlName,
+}: {
+  rawMode: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  controlName: string;
+}) => {
+  const label = rawMode
+    ? `Use ${controlName} control`
+    : `Edit ${controlName} as raw text`;
+  return (
+    <Tooltip message={label} placement="top">
+      <Button
+        type="button"
+        variant="link"
+        className={`ms-3 p-1 ${rawMode ? "text-primary" : "text-secondary"}`}
+        aria-label={label}
+        onClick={onClick}
+        disabled={disabled}
+      >
+        <FontAwesomeIcon icon={faPen} />
+      </Button>
+    </Tooltip>
+  );
+};
+
 type ConfigProps = {
   configSection: string;
   themeData: any;
@@ -968,22 +998,12 @@ export default function Config({
               </div>
             )}
             {!hostConfigs && canEditConfigsInContext && (
-              <Tooltip
-                message={
-                  isTextMode
-                    ? "Switch back to slider mode"
-                    : "Switch to text input mode"
-                }
-                placement="top"
-              >
-                <FontAwesomeIcon
-                  icon={faPen}
-                  className={`ms-4 ${isTextMode ? "text-primary" : ""} ${
-                    property.isEditable ? "pointer" : ""
-                  }`}
-                  onClick={property.isEditable ? toggleMode : undefined}
-                />
-              </Tooltip>
+              <ThemeRawModeButton
+                rawMode={isTextMode}
+                disabled={!property.isEditable}
+                onClick={toggleMode}
+                controlName="slider"
+              />
             )}
           </div>
         );
@@ -1020,7 +1040,6 @@ export default function Config({
         const comboEntries = getThemeWidgetEntries(property);
         const hasUnsupportedComboValue =
           getUnsupportedThemeEntryValues(property).length > 0;
-        const showComboTextMode = isComboTextMode || hasUnsupportedComboValue;
 
         // Toggle between combo and text input mode
         const toggleComboMode = () => {
@@ -1032,7 +1051,7 @@ export default function Config({
 
         return (
           <div className="d-flex align-items-center">
-            {showComboTextMode ? (
+            {isComboTextMode ? (
               <InputGroup className="w-50 me-2">
                 <Form.Control
                   type="text"
@@ -1052,28 +1071,22 @@ export default function Config({
                   options={comboEntries}
                   isDisabled={!property.isEditable}
                 />
+                {hasUnsupportedComboValue && (
+                  <Form.Text className="text-warning" role="status">
+                    The current value is not one of the configured options.
+                  </Form.Text>
+                )}
               </div>
             )}
             {!hostConfigs &&
-              !hasUnsupportedComboValue &&
               allowSwitchToTextBox &&
               canEditConfigsInContext && (
-                <Tooltip
-                  message={
-                    isComboTextMode
-                      ? "Switch back to dropdown mode"
-                      : "Switch to text input mode"
-                  }
-                  placement="top"
-                >
-                  <FontAwesomeIcon
-                    icon={faPen}
-                    className={`ms-4 ${isComboTextMode ? "text-primary" : ""} ${
-                      property.isEditable ? "pointer" : ""
-                    }`}
-                    onClick={property.isEditable ? toggleComboMode : undefined}
-                  />
-                </Tooltip>
+                <ThemeRawModeButton
+                  rawMode={isComboTextMode}
+                  disabled={!property.isEditable}
+                  onClick={toggleComboMode}
+                  controlName="dropdown"
+                />
               )}
           </div>
         );
@@ -1207,30 +1220,21 @@ export default function Config({
               </div>
             )}
             {!hostConfigs && canEditConfigsInContext && (
-              <Tooltip
-                message={
-                  isTimeTextMode
-                    ? "Switch back to time interval mode"
-                    : "Switch to text input mode"
-                }
-                placement="top"
-              >
-                <FontAwesomeIcon
-                  icon={faPen}
-                  className={`ms-4 ${isTimeTextMode ? "text-primary" : ""} ${
-                    property.isEditable ? "pointer" : ""
-                  }`}
-                  onClick={property.isEditable ? toggleTimeMode : undefined}
-                />
-              </Tooltip>
+              <ThemeRawModeButton
+                rawMode={isTimeTextMode}
+                disabled={!property.isEditable}
+                onClick={toggleTimeMode}
+                controlName="time interval"
+              />
             )}
           </div>
         );
 
       case "toggle":
         const entries = getThemeWidgetEntries(property);
+        const toggleId = `config-toggle-${widgetStateKey}`;
         const hasUnsupportedToggleValue =
-          entries.length < 2 ||
+          entries.length !== 2 ||
           getUnsupportedThemeEntryValues(property).length > 0;
         const valueLabel =
           entries.find(
@@ -1269,6 +1273,7 @@ export default function Config({
               <div className="flex-grow-1">
                 <Form>
                   <Form.Check
+                    id={toggleId}
                     type="switch"
                     className="labelled-switch ms-2"
                     label={valueLabel}
@@ -1282,22 +1287,12 @@ export default function Config({
             {!hostConfigs &&
               !hasUnsupportedToggleValue &&
               canEditConfigsInContext && (
-                <Tooltip
-                  message={
-                    isToggleTextMode
-                      ? "Switch back to toggle mode"
-                      : "Switch to text input mode"
-                  }
-                  placement="top"
-                >
-                  <FontAwesomeIcon
-                    icon={faPen}
-                    className={`ms-4 ${isToggleTextMode ? "text-primary" : ""} ${
-                      property.isEditable ? "pointer" : ""
-                    }`}
-                    onClick={property.isEditable ? toggleToggleMode : undefined}
-                  />
-                </Tooltip>
+                <ThemeRawModeButton
+                  rawMode={isToggleTextMode}
+                  disabled={!property.isEditable}
+                  onClick={toggleToggleMode}
+                  controlName="toggle"
+                />
               )}
           </div>
         );
@@ -1306,20 +1301,19 @@ export default function Config({
         const checkboxId = `config-checkbox-${widgetStateKey}`;
         if (!isThemeCheckboxValueSupported(property)) {
           return (
-            <Form.Control
-              id={checkboxId}
-              type="text"
-              value={String(property.value ?? "")}
-              aria-label={property.propertyDisplayname || property.propertyName}
-              onChange={(event) => onChange(event.target.value)}
-              disabled={!property.isEditable}
-            />
+            <Alert variant="warning" role="status" className="mb-0">
+              Unsupported checkbox value. Edit this property from Advanced
+              configurations.
+            </Alert>
           );
         }
         const checkboxState = getThemeCheckboxState(property);
         return (
           <Form.Check
             id={checkboxId}
+            aria-label={
+              property.propertyDisplayname || property.propertyName
+            }
             checked={checkboxState.checked}
             onChange={onChange}
             disabled={!property.isEditable}
@@ -2854,8 +2848,7 @@ export default function Config({
                                                                               )
                                                                             : true;
                                                                         if (
-                                                                          !isVisible ||
-                                                                          !widget
+                                                                          !isVisible
                                                                         )
                                                                           return null;
 
@@ -2919,11 +2912,12 @@ export default function Config({
                                                                                     }
                                                                                   >
                                                                                     {renderWidgets(
-                                                                                      widget.type,
+                                                                                      widget?.type ??
+                                                                                        "(missing)",
                                                                                       {
                                                                                         ...property,
                                                                                         widget:
-                                                                                          widget.metadata,
+                                                                                          widget?.metadata,
                                                                                         isEditable:
                                                                                           !hostConfigs &&
                                                                                           canEditConfigsInContext &&
@@ -2939,7 +2933,8 @@ export default function Config({
                                                                                           type,
                                                                                           property,
                                                                                           e,
-                                                                                          widget.type,
+                                                                                          widget?.type ??
+                                                                                            "(missing)",
                                                                                           confirmPassword,
                                                                                         );
                                                                                       },

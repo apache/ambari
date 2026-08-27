@@ -209,11 +209,10 @@ describe("Ember-compatible Theme widget controls", () => {
     expect(onChange).toHaveBeenCalledWith("/srv/data");
 
     rerender(<ThemeLabelControl property={property("read only")} />);
-    const label = screen.getByRole("textbox", {
-      name: "Choice",
-    }) as HTMLInputElement;
-    expect(label.value).toBe("read only");
-    expect(label.readOnly).toBe(true);
+    const label = screen.getByLabelText("Choice");
+    expect(label.tagName).toBe("OUTPUT");
+    expect(label.textContent).toBe("read only");
+    expect(screen.queryByRole("textbox")).toBeNull();
   });
 
   it("keeps Ember directory and directories controls structurally distinct", () => {

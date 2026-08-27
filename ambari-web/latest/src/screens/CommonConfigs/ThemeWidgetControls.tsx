@@ -163,11 +163,11 @@ export function ThemeRadioControl({ property, onChange }: ThemeControlProps) {
 
 export function ThemeLabelControl({ property }: Pick<ThemeControlProps, "property">) {
   return (
-    <Form.Control
-      plaintext
-      readOnly
-      value={String(property.value ?? "")}
+    <output
+      className="form-control-plaintext"
       aria-label={property.propertyDisplayname || property.propertyName}
-    />
+    >
+      {String(property.value ?? "")}
+    </output>
   );
 }
