@@ -26,7 +26,7 @@ import org.apache.ambari.view.commons.hdfs.UploadService;
 import org.apache.ambari.view.commons.hdfs.UserService;
 import org.apache.ambari.view.commons.hdfs.ViewPropertyHelper;
 
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 import java.util.HashMap;
 import java.util.Map;
 
