@@ -2133,7 +2133,6 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
       <div className="btn-group position-relative">
         <button
           className={`btn btn-success dropdown-toggle ${isActionsDropdownOpen ? 'show' : ''}`}
-          data-bs-toggle="dropdown"
           aria-expanded={isActionsDropdownOpen}
           onClick={(e) => {
             e.stopPropagation();
@@ -2142,7 +2141,19 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
         >
           ACTIONS&nbsp; <span className="caret"></span>
         </button>
-        <ul className={`dropdown-menu dropdown-menu-end ${isActionsDropdownOpen ? 'show' : ''}`} style={{ top: '100%', marginTop: '2px' }}>
+        <ul
+          className={`dropdown-menu dropdown-menu-end ${isActionsDropdownOpen ? 'show' : ''}`}
+          style={{
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            left: 'auto',
+            width: 'max-content',
+            minWidth: '12rem',
+            maxWidth: 'calc(100vw - 2rem)',
+            marginTop: '2px',
+          }}
+        >
           {actionPolicy.create && (
             <li>
               <button
