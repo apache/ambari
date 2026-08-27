@@ -2743,9 +2743,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         isNextEnabled={isNextEnabled}
         lifted
         onNext={() => void handleNext()}
-        onCancel={() => {
-          flushStateToDb("cancel");
-        }}
+        onCancel={() => flushStateToDb("cancel")}
         onBack={async () => {
           if (wizardName === "addService") {
             const previousStep = previousAddServiceStep(4, addServiceFlow);

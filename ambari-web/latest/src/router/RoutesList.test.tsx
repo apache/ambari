@@ -22,6 +22,7 @@ import { describe, expect, it } from "vitest";
 import { ProtectedRoute } from "../components/AuthGuard";
 import FeatureRouteGuard from "../components/FeatureRouteGuard";
 import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
+import { ServiceIndexRedirect } from "../screens/Services/ServiceDashboard";
 import RoutesList, { HaPersistenceRouteGuard } from "./RoutesList";
 
 function child(route: RouteObject, path?: string) {
@@ -128,6 +129,19 @@ describe("operational authorization routes", () => {
     expect(permissionRoute.type).toBe(ProtectedRoute);
     expect(permissionRoute.props.requireAuthorization).toBe(permission);
     expect(permissionRoute.props.children.type).toBe(ServiceOperationRouteGuard);
+  });
+});
+
+describe("service routes", () => {
+  it("redirects the Services index to an installed service", () => {
+    const root = RoutesList[0];
+    const authenticated = child(root);
+    const main = child(authenticated, "main");
+    const services = child(main, "services");
+    const indexRoute = services.children?.find((route) => route.index);
+
+    expect(indexRoute).toBeDefined();
+    expect(element(indexRoute as RouteObject).type).toBe(ServiceIndexRedirect);
   });
 });
 

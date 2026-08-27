@@ -1775,7 +1775,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         isCancelEnabled={!deploymentTriggered}
         isBackEnabled={!deploymentTriggered}
         onNext={() => void deploy()}
-        onCancel={() => void flushStateToDb("cancel")}
+        onCancel={() => flushStateToDb("cancel")}
         onBack={async () => {
           if (isAddServiceWizard()) {
             const previousStep = previousAddServiceStep(5, addServiceFlow);
