@@ -65,6 +65,7 @@ import {
   formatPropertyValue,
   evaluateDependsOnForConfig,
   getSectionErrorCount,
+  getThemePlacementProperty,
 } from "./ConfigUtils";
 import useEnhancedConfigs from "../../hooks/useEnhancedConfigs";
 import OverlayBackdrop from "../../components/OverlayBackdrop";
@@ -601,11 +602,14 @@ export default function Config({
     placements: ThemePlacement[],
   ) =>
     placements.filter((placement) => {
-      const property = findThemeConfigProperty(
+      const sourceProperty = findThemeConfigProperty(
         configProperties,
         serviceName,
         placement.configPath,
       )?.property;
+      const property = sourceProperty
+        ? getThemePlacementProperty(sourceProperty, placement.id)
+        : undefined;
       if (!property || property.isVisible === false || property.isHidden) {
         return false;
       }
@@ -678,11 +682,14 @@ export default function Config({
               ...(activeTab?.placements ?? []),
             ];
             const hasProperties = placements.some((config: ThemePlacement) => {
-              const property = findThemeConfigProperty(
+              const sourceProperty = findThemeConfigProperty(
                 configProperties,
                 serviceName,
                 config.configPath,
               )?.property;
+              const property = sourceProperty
+                ? getThemePlacementProperty(sourceProperty, config.id)
+                : undefined;
 
               const isPropertyVisible = config.dependsOn.length
                 ? evaluateDependsOnForConfig(
@@ -2657,7 +2664,12 @@ export default function Config({
                                                                         const propertyName =
                                                                           config.propertyName;
                                                                         const sourceProperty =
-                                                                          propertyLocation?.property;
+                                                                          propertyLocation?.property
+                                                                            ? getThemePlacementProperty(
+                                                                                propertyLocation.property,
+                                                                                config.id,
+                                                                              )
+                                                                            : undefined;
                                                                         const effectiveValueAttributes =
                                                                           {
                                                                             ...config.valueAttributes,

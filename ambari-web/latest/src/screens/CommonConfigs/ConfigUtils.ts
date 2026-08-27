@@ -1161,6 +1161,7 @@ type ThemeAttributeState = {
 };
 
 const THEME_ATTRIBUTE_STATE = "__themeAttributeState";
+const THEME_PLACEMENT_STATES = "__themePlacementStates";
 
 const THEME_ATTRIBUTE_TARGETS: Record<string, string> = {
   type: "displayType",
@@ -1285,6 +1286,7 @@ const restorePropertyThemeState = (property: Record<string, unknown>) => {
     restoreSnapshot(property, target, state.base[target]);
   });
   delete property[THEME_ATTRIBUTE_STATE];
+  delete property[THEME_PLACEMENT_STATES];
 };
 
 const invertedThemeAttributes = new Set([
@@ -1372,10 +1374,10 @@ const placementThemeStates = (
   serviceName: string,
   installedServices: readonly string[],
 ) => {
-  const statesByPath = new Map<string, PlacementThemeState>();
+  const statesById = new Map<string, PlacementThemeState>();
 
   serviceTheme.placements.forEach((placement) => {
-    statesByPath.set(placement.configPath, {
+    statesById.set(placement.id, {
       placement,
       attributes: resolvedPlacementAttributes(
         placement,
@@ -1388,7 +1390,7 @@ const placementThemeStates = (
   });
 
   const constrain = (placement: ThemePlacement, containerVisible: boolean) => {
-    const state = statesByPath.get(placement.configPath);
+    const state = statesById.get(placement.id);
     if (state)
       state.containerVisible = state.containerVisible && containerVisible;
   };
@@ -1421,7 +1423,7 @@ const placementThemeStates = (
     });
   });
 
-  return statesByPath;
+  return statesById;
 };
 
 const constrainedThemeBooleanTargets = new Set([
@@ -1467,6 +1469,47 @@ const applyPlacementThemeState = (
   });
 };
 
+const canonicalPlacementThemeState = (
+  states: readonly PlacementThemeState[],
+): PlacementThemeState => {
+  const attributes = Object.assign(
+    {},
+    ...states.map((placementState) => placementState.attributes),
+  );
+  const isVisible = states.some(
+    (placementState) =>
+      placementState.containerVisible &&
+      placementState.attributes.isVisible !== false,
+  );
+  attributes.isVisible = isVisible;
+  attributes[propertyAttributeTarget("visible")] = isVisible;
+  return {
+    placement: states[states.length - 1].placement,
+    attributes,
+    containerVisible: true,
+  };
+};
+
+export const getThemePlacementProperty = <
+  T extends Record<string, unknown>,
+>(
+  property: T,
+  placementId: string,
+): T => {
+  const placementStates = property[THEME_PLACEMENT_STATES] as
+    | Record<string, PlacementThemeState>
+    | undefined;
+  const placementState = placementStates?.[placementId];
+  if (!placementState) return property;
+
+  const effectiveProperty = cloneDeep(property);
+  preparePropertyThemeState(effectiveProperty);
+  applyPlacementThemeState(effectiveProperty, placementState);
+  delete effectiveProperty[THEME_ATTRIBUTE_STATE];
+  delete effectiveProperty[THEME_PLACEMENT_STATES];
+  return effectiveProperty;
+};
+
 function updateVisibilityForDependsOn(
   configProperties: ConfigPropertiesType,
   themeData: unknown,
@@ -1484,6 +1527,7 @@ function updateVisibilityForDependsOn(
     Object.values(configsCopy[serviceName]).forEach((configType) => {
       Object.values(configType.properties).forEach((property) => {
         preparePropertyThemeState(property);
+        delete property[THEME_PLACEMENT_STATES];
       });
     });
 
@@ -1497,6 +1541,10 @@ function updateVisibilityForDependsOn(
       return;
     }
 
+    const propertyPlacementStates = new Map<
+      Record<string, unknown>,
+      PlacementThemeState[]
+    >();
     placementThemeStates(
       serviceTheme,
       configsCopy,
@@ -1509,7 +1557,22 @@ function updateVisibilityForDependsOn(
         placementState.placement,
       );
       if (!property) return;
-      applyPlacementThemeState(property, placementState);
+      const states = propertyPlacementStates.get(property) ?? [];
+      states.push(placementState);
+      propertyPlacementStates.set(property, states);
+    });
+
+    propertyPlacementStates.forEach((placementStates, property) => {
+      property[THEME_PLACEMENT_STATES] = Object.fromEntries(
+        placementStates.map((placementState) => [
+          placementState.placement.id,
+          placementState,
+        ]),
+      );
+      applyPlacementThemeState(
+        property,
+        canonicalPlacementThemeState(placementStates),
+      );
       if (!property.isVisible) property.errorMessage = "";
     });
 

@@ -20,10 +20,12 @@ import { describe, expect, it } from "vitest";
 import {
   buildConfigsJSON,
   filterConfigProperties,
+  getThemePlacementProperty,
   setTabErrorCounts,
   updateVisibilityForDependsOn,
 } from "./ConfigUtils";
 import { ConfigPropertiesType } from "./types";
+import { normalizeDefaultThemeResponse } from "./themeEngine";
 
 type Placement = {
   config: string;
@@ -275,6 +277,49 @@ describe("Service Theme config visibility", () => {
     );
     expect(restored.SVC["type-a"].properties.shared.isVisible).toBe(true);
     expect(restored.SVC["type-b"].properties.shared.isVisible).toBe(true);
+  });
+
+  it("keeps visibility and attributes isolated for repeated paths across Themes", () => {
+    const directories = themeResponse({
+      themeName: "directories",
+      placements: [
+        {
+          config: "type-a/shared",
+          "subsection-name": "main",
+          property_value_attributes: { read_only: true },
+        },
+      ],
+    });
+    const hiddenDefault = themeResponse({
+      placements: [
+        {
+          config: "type-a/shared",
+          "subsection-name": "main",
+          "depends-on": [condition("${type-a/switch}", true)],
+        },
+      ],
+    });
+    directories.items[0].themes.push(hiddenDefault.items[0].themes[0]);
+
+    const normalized = normalizeDefaultThemeResponse(directories, ["SVC"]);
+    const [directoriesPlacement, defaultPlacement] =
+      normalized.byService.SVC.placements;
+    const property = updateVisibilityForDependsOn(
+      configs(),
+      directories,
+      "default",
+      [],
+      true,
+    ).SVC["type-a"].properties.shared;
+
+    expect(property.isVisible).toBe(true);
+    expect(property.propertyAttributes.visible).toBe(true);
+    expect(
+      getThemePlacementProperty(property, directoriesPlacement.id),
+    ).toMatchObject({ isVisible: true, isEditable: false });
+    expect(
+      getThemePlacementProperty(property, defaultPlacement.id),
+    ).toMatchObject({ isVisible: false, isEditable: true });
   });
 
   it("does not let a config condition reveal a statically hidden property", () => {
