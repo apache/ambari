@@ -33,6 +33,7 @@ import {
   getThemeWidgetEntries,
   isThemeCheckboxValueSupported,
   parseSelectionCardinality,
+  validateThemeListValue,
 } from "./themeWidgetUtils";
 
 const property = (
@@ -104,6 +105,36 @@ describe("Ember-compatible Theme widget controls", () => {
     });
   });
 
+  it("validates zero, range, and ALL list cardinalities deterministically", () => {
+    expect(
+      validateThemeListValue(
+        property("", {
+          entries: ["one", "two"],
+          selection_cardinality: "0+",
+        }),
+        "",
+      ),
+    ).toBe("");
+    expect(
+      validateThemeListValue(
+        property("one", {
+          entries: ["one", "two", "three"],
+          selection_cardinality: " 2 - 3 ",
+        }),
+        " one ",
+      ),
+    ).toBe("Select at least 2 item(s).");
+    expect(
+      validateThemeListValue(
+        property("one,two", {
+          entries: ["one", "two", "three"],
+          selection_cardinality: "ALL",
+        }),
+        "one,two",
+      ),
+    ).toBe("Select at least 3 item(s).");
+  });
+
   it.each([
     ["true", undefined, true, "true", "false"],
     ["No", undefined, false, "Yes", "No"],
@@ -150,6 +181,22 @@ describe("Ember-compatible Theme widget controls", () => {
       (screen.getByRole("checkbox", { name: "three" }) as HTMLInputElement)
         .disabled,
     ).toBe(true);
+  });
+
+  it("preserves list selection order in the exact comma-separated value", () => {
+    const onChange = vi.fn();
+    render(
+      <ThemeListControl
+        property={property("two", {
+          entries: ["one", "two", "three"],
+          selection_cardinality: "1-3",
+        })}
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "one" }));
+    expect(onChange).toHaveBeenCalledWith("two,one");
   });
 
   it("preserves unsupported checkbox and entry values in raw controls", () => {
@@ -201,7 +248,10 @@ describe("Ember-compatible Theme widget controls", () => {
     expect(onChange).toHaveBeenCalledWith("two");
 
     rerender(
-      <ThemeDirectoryControl property={property("/data")} onChange={onChange} />,
+      <ThemeDirectoryControl
+        property={property("/data")}
+        onChange={onChange}
+      />,
     );
     fireEvent.change(screen.getByRole("textbox"), {
       target: { value: "/srv/data" },

@@ -121,6 +121,7 @@ import {
   getThemeCheckboxState,
   getThemeWidgetEntries,
   isThemeCheckboxValueSupported,
+  validateThemeListValue,
 } from "./themeWidgetUtils";
 import ThemeTimeIntervalControl from "./ThemeTimeIntervalControl";
 
@@ -1080,6 +1081,9 @@ export default function Config({
             <Form.Control
               type="text"
               value={property.value}
+              aria-label={
+                property.propertyDisplayname || property.propertyName
+              }
               onChange={(e) => onChange(e.target.value)}
               placeholder={property.propertyValue}
               disabled={!property.isEditable}
@@ -1332,6 +1336,9 @@ export default function Config({
             as="textarea"
             rows={10}
             value={displayValue}
+            aria-label={
+              property.propertyDisplayname || property.propertyName
+            }
             onChange={(e) => {
               // Format the value for saving if it's a multiline config
               const valueToSave = useMultilineFormatting
@@ -1348,7 +1355,11 @@ export default function Config({
             <Col md={6}>
               <Form.Control
                 type="password"
-                value={property.value}
+                value={String(property.value ?? "")}
+                aria-label={`${
+                  property.propertyDisplayname || property.propertyName
+                } password`}
+                autoComplete="new-password"
                 onChange={(e) => onChange(e.target.value, false)}
                 placeholder="Type password"
                 disabled={!property.isEditable}
@@ -1357,7 +1368,11 @@ export default function Config({
             <Col md={6}>
               <Form.Control
                 type="password"
-                value={property.confirmPassword}
+                value={String(property.confirmPassword ?? "")}
+                aria-label={`Confirm ${
+                  property.propertyDisplayname || property.propertyName
+                } password`}
+                autoComplete="new-password"
                 onChange={(e) => onChange(e.target.value, true)}
                 disabled={!property.isEditable}
               />
@@ -1376,6 +1391,9 @@ export default function Config({
             <Form.Control
               type="text"
               value={property.value}
+              aria-label={
+                property.propertyDisplayname || property.propertyName
+              }
               onChange={(e) => onChange(e.target.value)}
               placeholder={property.propertyValue}
               disabled={!property.isEditable}
@@ -1480,12 +1498,22 @@ export default function Config({
     }
 
     // Only validate the specific property that was changed
-    newConfigs[chosenService][configType].properties[
-      property.propertyName
-    ].errorMessage = validateInput(
-      newConfigs[chosenService][configType].properties[property.propertyName],
-      value,
-    );
+    const updatedProperty =
+      newConfigs[chosenService][configType].properties[property.propertyName];
+    const validationProperty =
+      widgetType === "password"
+        ? {
+            ...updatedProperty,
+            propertyAttributes: {
+              ...updatedProperty.propertyAttributes,
+              type: "password",
+            },
+          }
+        : updatedProperty;
+    updatedProperty.errorMessage =
+      widgetType === "list"
+        ? validateThemeListValue(updatedProperty, updatedProperty.value)
+        : validateInput(validationProperty, updatedProperty.value);
 
     // Update section error count for the specific config type
     newConfigs[chosenService][configType].errors = getSectionErrorCount(

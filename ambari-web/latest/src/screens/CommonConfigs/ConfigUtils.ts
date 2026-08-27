@@ -786,15 +786,17 @@ function filterConfigProperties(
           }
 
           // Text search filter
+          const isSensitive =
+            property.isSecureConfig === true ||
+            property.propertyAttributes?.type === InputType.PASSWORD;
           const searchableValues = [
             propertyName,
             property.propertyDisplayname,
             property.propertyDescription,
             property.description,
             property.property_description,
-            property.savedValue,
-            property.value,
-            ...(Array.isArray(property.overrideValues)
+            ...(!isSensitive ? [property.savedValue, property.value] : []),
+            ...(!isSensitive && Array.isArray(property.overrideValues)
               ? property.overrideValues.flatMap((override: any) => [
                   override?.value,
                   override?.groupName,

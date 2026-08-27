@@ -42,9 +42,7 @@ export const getThemeWidgetEntries = (
         return {
           value,
           label: String(item.label ?? labels[index] ?? value),
-          description: String(
-            item.description ?? descriptions[index] ?? "",
-          ),
+          description: String(item.description ?? descriptions[index] ?? ""),
         };
       }
       const value = String(entry);
@@ -94,6 +92,29 @@ export const parseSelectionCardinality = (
     : { minimum: 1, maximum: 1 };
 };
 
+export const validateThemeListValue = (
+  property: PropertyType,
+  value: unknown,
+): string => {
+  const entries = getThemeWidgetEntries(property);
+  const selected = String(value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const cardinality = parseSelectionCardinality(
+    property.propertyAttributes?.selection_cardinality,
+  );
+  const minimum = Number.isFinite(cardinality.minimum)
+    ? cardinality.minimum
+    : entries.length;
+  const maximum = Number.isFinite(cardinality.maximum)
+    ? cardinality.maximum
+    : entries.length;
+  if (selected.length < minimum) return `Select at least ${minimum} item(s).`;
+  if (selected.length > maximum) return `Select at most ${maximum} item(s).`;
+  return "";
+};
+
 const checkboxValuePairs: Array<[string, string]> = [
   ["true", "false"],
   ["Yes", "No"],
@@ -107,9 +128,7 @@ export const getThemeCheckboxState = (property: PropertyType) => {
     checkboxValuePairs.find((candidate) => candidate.includes(value)) ??
     checkboxValuePairs[0];
   const [positive, negative] =
-    property.displayType === "boolean-inverted"
-      ? [pair[1], pair[0]]
-      : pair;
+    property.displayType === "boolean-inverted" ? [pair[1], pair[0]] : pair;
   return {
     checked: value === positive,
     checkedValue: positive,

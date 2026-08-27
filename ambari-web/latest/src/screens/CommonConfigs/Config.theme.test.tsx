@@ -1284,6 +1284,133 @@ describe("Ember Service Theme page integration", () => {
     );
   });
 
+  it("validates password confirmation without rendering secrets as text", async () => {
+    const propertyConfigs = configs();
+    propertyConfigs.SVC.site.properties.primary = {
+      ...configProperty("primary", "initial-secret", { type: "password" }),
+      confirmPassword: "",
+      isSecureConfig: true,
+    };
+    const passwordTheme = compactTheme(
+      [{ config: "site/primary", "subsection-name": "subsection" }],
+      [{ config: "site/primary", widget: { type: "password" } }],
+    );
+    const { container } = render(
+      <StatefulConfig
+        themeData={passwordTheme}
+        initialConfigs={propertyConfigs}
+      />,
+    );
+    const password = await screen.findByLabelText("primary password");
+    const confirmation = screen.getByLabelText("Confirm primary password");
+    expect(password.getAttribute("type")).toBe("password");
+    expect(confirmation.getAttribute("type")).toBe("password");
+    expect(container.textContent).not.toContain("initial-secret");
+
+    fireEvent.change(password, { target: { value: "replacement-secret" } });
+    expect(await screen.findByText("Passwords do not match")).toBeTruthy();
+    fireEvent.change(confirmation, {
+      target: { value: "replacement-secret" },
+    });
+    await waitFor(() =>
+      expect(screen.queryByText("Passwords do not match")).toBeNull(),
+    );
+    expect(container.textContent).not.toContain("replacement-secret");
+  });
+
+  it("validates text and directory widgets while preserving multiline values", async () => {
+    const propertyConfigs: ConfigPropertiesType = {
+      SVC: {
+        site: {
+          errors: 0,
+          properties: {
+            text: configProperty("text", "value", {
+              type: "string",
+              empty_value_valid: false,
+            }),
+            directory: configProperty("directory", "/srv/data", {
+              type: "directory",
+            }),
+            area: configProperty("area", "first\nsecond", {
+              type: "string",
+            }),
+          },
+        },
+      },
+    };
+    const textTheme = compactTheme(
+      ["text", "directory", "area"].map((name) => ({
+        config: `site/${name}`,
+        "subsection-name": "subsection",
+      })),
+      [
+        { config: "site/text", widget: { type: "text-field" } },
+        { config: "site/directory", widget: { type: "directory" } },
+        { config: "site/area", widget: { type: "text-area" } },
+      ],
+    );
+    render(
+      <StatefulConfig themeData={textTheme} initialConfigs={propertyConfigs} />,
+    );
+
+    fireEvent.change(await screen.findByRole("textbox", { name: "text" }), {
+      target: { value: "" },
+    });
+    expect(await screen.findByText("This is required")).toBeTruthy();
+    fireEvent.change(screen.getByRole("textbox", { name: "directory" }), {
+      target: { value: "relative path" },
+    });
+    expect(
+      await screen.findByText(/Must be a slash or drive at the start/),
+    ).toBeTruthy();
+    const textArea = screen.getByRole("textbox", { name: "area" });
+    fireEvent.change(textArea, { target: { value: "first\nsecond\nthird" } });
+    expect((textArea as HTMLTextAreaElement).value).toBe(
+      "first\nsecond\nthird",
+    );
+  });
+
+  it("re-evaluates Theme conditions after a radio selection", async () => {
+    const propertyConfigs = configs();
+    propertyConfigs.SVC.site.properties.primary.value = "show";
+    propertyConfigs.SVC.site.properties.primary.propertyAttributes = {
+      type: "string",
+      entries: ["show", "hide"],
+    };
+    const radioTheme = compactTheme(
+      [
+        { config: "site/primary", "subsection-name": "subsection" },
+        {
+          config: "site/secondary",
+          "subsection-name": "subsection",
+          "depends-on": [
+            {
+              if: "${site/primary} === show",
+              then: { property_value_attributes: { visible: true } },
+              else: { property_value_attributes: { visible: false } },
+            },
+          ],
+        },
+      ],
+      [
+        { config: "site/primary", widget: { type: "radio-buttons" } },
+        { config: "site/secondary", widget: { type: "text-field" } },
+      ],
+    );
+    render(
+      <StatefulConfig
+        themeData={radioTheme}
+        initialConfigs={propertyConfigs}
+      />,
+    );
+
+    expect(await screen.findByDisplayValue("secondary value")).toBeTruthy();
+    fireEvent.click(screen.getByRole("radio", { name: "hide" }));
+    await waitFor(() =>
+      expect(screen.queryByDisplayValue("secondary value")).toBeNull(),
+    );
+  });
+
   it("keeps an unknown combo value in the dropdown until raw mode is requested", async () => {
     const propertyConfigs = configs();
     propertyConfigs.SVC.site.properties.primary.value = "custom";

@@ -23,6 +23,7 @@ import {
   getUnsupportedThemeEntryValues,
   getThemeWidgetEntries,
   parseSelectionCardinality,
+  validateThemeListValue,
 } from "./themeWidgetUtils";
 
 type ThemeControlProps = {
@@ -71,13 +72,11 @@ export function ThemeListControl({ property, onChange }: ThemeControlProps) {
   const cardinality = parseSelectionCardinality(
     property.propertyAttributes?.selection_cardinality,
   );
-  const minimum = Number.isFinite(cardinality.minimum)
-    ? cardinality.minimum
-    : entries.length;
   const maximum = Number.isFinite(cardinality.maximum)
     ? cardinality.maximum
     : entries.length;
   const unsupportedValues = getUnsupportedThemeEntryValues(property, true);
+  const validationMessage = validateThemeListValue(property, property.value);
 
   if (unsupportedValues.length) {
     return (
@@ -119,9 +118,9 @@ export function ThemeListControl({ property, onChange }: ThemeControlProps) {
           );
         })}
       </Stack>
-      {selected.length < minimum && (
-        <Form.Text className="text-danger">
-          Select at least {minimum} item(s).
+      {validationMessage && (
+        <Form.Text className="text-danger" role="alert">
+          {validationMessage}
         </Form.Text>
       )}
     </fieldset>
@@ -161,7 +160,9 @@ export function ThemeRadioControl({ property, onChange }: ThemeControlProps) {
   );
 }
 
-export function ThemeLabelControl({ property }: Pick<ThemeControlProps, "property">) {
+export function ThemeLabelControl({
+  property,
+}: Pick<ThemeControlProps, "property">) {
   return (
     <output
       className="form-control-plaintext"
