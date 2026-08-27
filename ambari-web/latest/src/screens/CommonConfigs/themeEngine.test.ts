@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ConfigPropertiesType } from "./types";
 import {
   evaluateConfigCondition,
@@ -39,6 +39,84 @@ const readTheme = (relativePath: string) =>
   JSON.parse(
     readFileSync(resolve(repoRoot, relativePath), "utf8"),
   );
+
+type ShippedCondition = {
+  sourceFile: string;
+  resource?: string;
+  if: string;
+};
+
+const collectConditions = (
+  value: unknown,
+  sourceFile: string,
+  result: ShippedCondition[],
+) => {
+  if (Array.isArray(value)) {
+    value.forEach((entry) => collectConditions(entry, sourceFile, result));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+
+  const record = value as Record<string, unknown>;
+  if (typeof record.if === "string") {
+    result.push({
+      sourceFile,
+      resource:
+        typeof record.resource === "string" ? record.resource : undefined,
+      if: record.if,
+    });
+  }
+  Object.values(record).forEach((entry) =>
+    collectConditions(entry, sourceFile, result),
+  );
+};
+
+const shippedThemeConditions = (): ShippedCondition[] => {
+  const result: ShippedCondition[] = [];
+  [
+    "ambari-server/src/main/resources/stacks",
+    "ambari-server/src/main/resources/common-services",
+  ].forEach((relativeRoot) => {
+    const root = resolve(repoRoot, relativeRoot);
+    const visit = (directory: string) => {
+      readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
+        const path = resolve(directory, entry.name);
+        if (entry.isDirectory()) {
+          visit(path);
+        } else if (
+          entry.name.endsWith(".json") &&
+          path.split("/").includes("themes") &&
+          !path.split("/").includes("AMBARI_METRICS")
+        ) {
+          collectConditions(
+            JSON.parse(readFileSync(path, "utf8")),
+            path.slice(repoRoot.length + 1),
+            result,
+          );
+        }
+      });
+    };
+    visit(root);
+  });
+  return result;
+};
+
+const configsForCondition = (statement: string): ConfigPropertiesType => {
+  const sections: ConfigPropertiesType[string] = {};
+  statement.split(/&&|\|\|/).forEach((rawAtom) => {
+    const atom = rawAtom.trim().match(/^\$\{([^{}]+)\}(?:\s*===\s*(.+))?$/);
+    if (!atom) return;
+    const slash = atom[1].indexOf("/");
+    const configType = atom[1].slice(0, slash);
+    const propertyName = atom[1].slice(slash + 1);
+    sections[configType] ??= { errors: 0, properties: {} };
+    sections[configType].properties[propertyName] = {
+      ...property(atom[2]?.trim() || "true", `${configType}.xml`),
+      propertyName,
+    };
+  });
+  return { SHIPPED_THEME: sections };
+};
 
 const responseFor = (
   serviceName: string,
@@ -779,6 +857,47 @@ describe("Service Theme normalizer", () => {
 });
 
 describe("Service Theme conditions", () => {
+  it("accepts every condition expression shipped by non-Metrics Theme JSON", () => {
+    const conditions = shippedThemeConditions();
+    const configConditions = conditions.filter(
+      (condition) => condition.resource?.toLowerCase() !== "service",
+    );
+    const serviceConditions = conditions.filter(
+      (condition) => condition.resource?.toLowerCase() === "service",
+    );
+
+    expect(configConditions.length).toBeGreaterThanOrEqual(53);
+    expect(serviceConditions.length).toBeGreaterThanOrEqual(9);
+    configConditions.forEach((condition) => {
+      const result = evaluateConfigConditionResult(
+        condition.if,
+        configsForCondition(condition.if),
+        "SHIPPED_THEME",
+      );
+      expect(result, `${condition.sourceFile}: ${condition.if}`).toMatchObject({
+        valid: true,
+        diagnostics: [],
+      });
+    });
+    serviceConditions.forEach((condition) => {
+      const diagnostics: ThemeConditionDiagnostic[] = [];
+      resolveThemeConditionAttributes(
+        [
+          {
+            resource: "service",
+            if: condition.if,
+            then: { property_value_attributes: { visible: true } },
+          },
+        ],
+        {},
+        "SHIPPED_THEME",
+        [condition.if],
+        diagnostics,
+      );
+      expect(diagnostics, `${condition.sourceFile}: ${condition.if}`).toEqual([]);
+    });
+  });
+
   it.each([
     ["${ranger-env/create_db_dbuser}", true],
     ["${ranger-env/create_db_dbuser} === true", true],
@@ -830,6 +949,30 @@ describe("Service Theme conditions", () => {
     expect(evaluateThemeVisibility(dependsOn, configs, "RANGER", ["HDFS"])).toBe(
       true,
     );
+  });
+
+  it("matches service conditions exactly and recomputes when the service set changes", () => {
+    const dependsOn: ThemeCondition[] = [
+      {
+        resource: "service",
+        if: "HDFS",
+        then: { property_value_attributes: { visible: true } },
+        else: { property_value_attributes: { visible: false } },
+      },
+    ];
+
+    expect(evaluateThemeVisibility(dependsOn, configs, "RANGER", [])).toBe(
+      false,
+    );
+    expect(
+      evaluateThemeVisibility(dependsOn, configs, "RANGER", ["hdfs"]),
+    ).toBe(false);
+    expect(
+      evaluateThemeVisibility(dependsOn, configs, "RANGER", ["HDFS"]),
+    ).toBe(true);
+    expect(
+      evaluateThemeVisibility(dependsOn, configs, "RANGER", ["YARN"]),
+    ).toBe(false);
   });
 
   it("defaults to visible when actions do not declare visibility", () => {
@@ -884,5 +1027,31 @@ describe("Service Theme conditions", () => {
     expect(diagnostics).toContainEqual(
       expect.objectContaining({ code: "INVALID_CONDITION" }),
     );
+  });
+
+  it("never invokes dynamic execution or script injection for hostile metadata", () => {
+    const evalSpy = vi.spyOn(globalThis, "eval");
+    const functionSpy = vi.spyOn(globalThis, "Function");
+    const createElementSpy = vi.spyOn(document, "createElement");
+
+    try {
+      [
+        "globalThis.compromised = true",
+        "${ranger-env/source} === ldap;globalThis.compromised=true",
+        "${ranger-env/source} || (() => true)()",
+        "${constructor/prototype} === polluted",
+      ].forEach((statement) => {
+        expect(
+          evaluateConfigConditionResult(statement, configs, "RANGER").valid,
+        ).toBe(false);
+      });
+      expect(evalSpy).not.toHaveBeenCalled();
+      expect(functionSpy).not.toHaveBeenCalled();
+      expect(createElementSpy).not.toHaveBeenCalled();
+    } finally {
+      evalSpy.mockRestore();
+      functionSpy.mockRestore();
+      createElementSpy.mockRestore();
+    }
   });
 });

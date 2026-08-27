@@ -123,7 +123,10 @@ function useEnhancedConfigs(
   controllerName?: string,
   STACK?: string,
   VERSION?: string,
-  HOSTS?: string[]
+  HOSTS?: string[],
+  transformConfigProperties?: (
+    configs: ConfigPropertiesType,
+  ) => ConfigPropertiesType,
 ) {
   const {
     cluster: { stack, versionNum, cluster_id: clusterId },
@@ -500,7 +503,9 @@ function useEnhancedConfigs(
       addByRecommendations(configurations, configsCopy);
       cleanUpRecommendations();
     }
-    configsCopy = updateVisibilityByForeignKeys(configsCopy);
+    configsCopy = transformConfigProperties
+      ? transformConfigProperties(configsCopy)
+      : updateVisibilityByForeignKeys(configsCopy);
     configsCopy = validateAllProperties(configsCopy);
     setConfigProperties(configsCopy);
   }

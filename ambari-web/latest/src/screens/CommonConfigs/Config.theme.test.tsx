@@ -17,7 +17,8 @@
  */
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ContextType } from "react";
+import { useState } from "react";
+import type { ContextType, ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../store/context";
 import Config from "./Config";
@@ -25,6 +26,8 @@ import { ConfigPropertiesType } from "./types";
 
 const mocks = vi.hoisted(() => ({
   testConnectionProps: vi.fn(),
+  recommendedChanges: {} as Record<string, Record<string, unknown>>,
+  setRecommendedChanges: vi.fn(),
 }));
 
 vi.mock("../../hooks/useAuth", () => ({
@@ -37,15 +40,21 @@ vi.mock("../../hooks/useEnhancedConfigs", () => ({
   default: () => ({
     onValueUpdate: vi.fn(),
     processingConfig: false,
-    recommendedChanges: {},
-    setRecommendedChanges: vi.fn(),
+    recommendedChanges: mocks.recommendedChanges,
+    setRecommendedChanges: mocks.setRecommendedChanges,
   }),
 }));
 vi.mock("../../components/Tooltip", () => ({
   default: ({ children }: { children: unknown }) => children,
 }));
 vi.mock("../../components/Modal", () => ({
-  default: () => null,
+  default: ({
+    isOpen,
+    modalBody,
+  }: {
+    isOpen: boolean;
+    modalBody: ReactNode;
+  }) => (isOpen ? <div role="dialog">{modalBody}</div> : null),
 }));
 vi.mock("./ChooseConfigGroup", () => ({
   default: () => null,
@@ -293,6 +302,17 @@ function renderConfig(
   return render(configElement(themeData, configProperties, configProps));
 }
 
+function StatefulConfig({
+  themeData,
+  initialConfigs,
+}: {
+  themeData: unknown;
+  initialConfigs: ConfigPropertiesType;
+}) {
+  const [configProperties, setConfigProperties] = useState(initialConfigs);
+  return configElement(themeData, configProperties, { setConfigProperties });
+}
+
 const compactTheme = (
   placements: Array<Record<string, unknown>>,
   widgets: Array<Record<string, unknown>>,
@@ -458,6 +478,10 @@ const geometryTheme = () => {
 describe("Ember Service Theme page integration", () => {
   beforeEach(() => {
     mocks.testConnectionProps.mockClear();
+    mocks.setRecommendedChanges.mockClear();
+    Object.keys(mocks.recommendedChanges).forEach(
+      (key) => delete mocks.recommendedChanges[key],
+    );
   });
 
   afterEach(cleanup);
@@ -792,6 +816,164 @@ describe("Ember Service Theme page integration", () => {
   it("falls back to Advanced when Theme data is malformed", async () => {
     renderConfig({ items: [{ StackServices: { service_name: "SVC" }, themes: [{}] }] });
     expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+    expect((await screen.findByTestId("theme-diagnostics")).textContent).toContain(
+      "ThemeInfo is missing service_name or theme_data.Theme.",
+    );
+  });
+
+  it("surfaces scoped condition diagnostics without discarding safe content", async () => {
+    renderConfig(
+      compactTheme(
+        [
+          {
+            config: "site/primary",
+            "subsection-name": "subsection",
+            "depends-on": [
+              {
+                if: "${site/missing} || globalThis.compromised=true",
+                then: { property_value_attributes: { visible: false } },
+              },
+            ],
+          },
+        ],
+        [{ config: "site/primary", widget: { type: "text-field" } }],
+      ),
+    );
+
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    const diagnostics = await screen.findByTestId("theme-diagnostics");
+    expect(diagnostics.textContent).toContain("SVC / default / site/primary");
+    expect(diagnostics.textContent).toContain(
+      "Condition atom uses unsupported syntax.",
+    );
+  });
+
+  it("re-evaluates placement conditions after an ordinary Widget edit", async () => {
+    const conditionTheme = compactTheme(
+      [
+        {
+          config: "site/mode",
+          "subsection-name": "subsection",
+        },
+        {
+          config: "site/primary",
+          "subsection-name": "subsection",
+          "depends-on": [
+            {
+              if: "${site/mode} === hide",
+              then: { property_value_attributes: { visible: false } },
+              else: { property_value_attributes: { visible: true } },
+            },
+          ],
+        },
+      ],
+      [
+        { config: "site/mode", widget: { type: "text-field" } },
+        { config: "site/primary", widget: { type: "text-field" } },
+      ],
+    );
+    render(<StatefulConfig themeData={conditionTheme} initialConfigs={configs()} />);
+
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    fireEvent.change(screen.getByDisplayValue("show"), {
+      target: { value: "hide" },
+    });
+
+    expect(await screen.findByDisplayValue("hide")).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.queryByDisplayValue("primary value")).toBeNull(),
+    );
+  });
+
+  it("re-evaluates placement conditions for recommendations and undo", async () => {
+    const conditionTheme = compactTheme(
+      [
+        { config: "site/mode", "subsection-name": "subsection" },
+        {
+          config: "site/primary",
+          "subsection-name": "subsection",
+          "depends-on": [
+            {
+              if: "${site/mode} === hide",
+              then: { property_value_attributes: { visible: false } },
+              else: { property_value_attributes: { visible: true } },
+            },
+          ],
+        },
+      ],
+      [
+        { config: "site/mode", widget: { type: "text-field" } },
+        { config: "site/primary", widget: { type: "text-field" } },
+      ],
+    );
+    mocks.recommendedChanges["modesite.xml"] = {
+      propertyName: "mode",
+      fileName: "site.xml",
+      serviceName: "SVC",
+      configGroup: "Default",
+      originalValue: "show",
+      recommendedValue: "hide",
+      isChanged: false,
+    };
+    const { container } = render(
+      <StatefulConfig themeData={conditionTheme} initialConfigs={configs()} />,
+    );
+
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    fireEvent.click(screen.getByText("More details"));
+    fireEvent.click(screen.getAllByRole("checkbox")[1]);
+
+    await waitFor(() =>
+      expect(screen.queryByDisplayValue("primary value")).toBeNull(),
+    );
+    expect(await screen.findByDisplayValue("hide")).toBeTruthy();
+    fireEvent.click(
+      container.querySelector('[data-icon="arrow-rotate-left"]') as Element,
+    );
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.getByDisplayValue("show")).toBeTruthy();
+  });
+
+  it("re-evaluates placement conditions after a time spinner edit", async () => {
+    const conditionTheme = compactTheme(
+      [
+        {
+          config: "site/interval",
+          "subsection-name": "subsection",
+        },
+        {
+          config: "site/primary",
+          "subsection-name": "subsection",
+          "depends-on": [
+            {
+              if: "${site/interval} === 90000000",
+              then: { property_value_attributes: { visible: true } },
+              else: { property_value_attributes: { visible: false } },
+            },
+          ],
+        },
+      ],
+      [
+        {
+          config: "site/interval",
+          widget: {
+            type: "time-interval-spinner",
+            units: [{ "unit-name": "hours,minutes" }],
+          },
+        },
+        { config: "site/primary", widget: { type: "text-field" } },
+      ],
+    );
+    render(<StatefulConfig themeData={conditionTheme} initialConfigs={configs()} />);
+
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Hours" }), {
+      target: { value: "24" },
+    });
+
+    await waitFor(() =>
+      expect(screen.queryByDisplayValue("primary value")).toBeNull(),
+    );
   });
 
   it("isolates widget mode state by full config path", async () => {

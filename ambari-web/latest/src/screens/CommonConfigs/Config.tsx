@@ -52,7 +52,12 @@ import CustomSlider from "../../components/CustomSlider";
 import AdvancedConfigs from "./AdvancedConfigs";
 import ChooseConfigGroup from "./ChooseConfigGroup";
 import ManageConfigGroups from "../ConfigGroups/ManageConfigGroups";
-import { PropertyType, configGroupOverrides, TruthValues } from "./types";
+import {
+  ConfigPropertiesType,
+  PropertyType,
+  configGroupOverrides,
+  TruthValues,
+} from "./types";
 import TestConnection from "./TestConnection";
 import Spinner from "../../components/Spinner";
 import {
@@ -97,6 +102,9 @@ import {
   normalizeDefaultThemeResponse,
   normalizeThemeResponse,
   resolveThemeConditionAttributes,
+  ThemeCondition,
+  ThemeConditionDiagnostic,
+  ThemeDiagnostic,
   ThemePlacement,
   ThemeWidget,
   toConfigThemeView,
@@ -226,6 +234,9 @@ export default function Config({
   const [activeSubsectionTabs, setActiveSubsectionTabs] = useState<
     Record<string, string>
   >({});
+  const [normalizationDiagnostics, setNormalizationDiagnostics] = useState<
+    ThemeDiagnostic[]
+  >([]);
   // @ts-ignore
   const [isFullyLoaded, setIsFullyLoaded] = useState(false);
   const [isServiceSwitching, setIsServiceSwitching] = useState(false);
@@ -281,6 +292,15 @@ export default function Config({
     },
   ]);
 
+  const applyCurrentThemeState = (configs: ConfigPropertiesType) =>
+    updateVisibilityForDependsOn(
+      updateVisibilityByForeignKeys(configs),
+      themeData,
+      configSection,
+      installer ? servicesList : installedServices || [],
+      allThemes,
+    );
+
   const {
     onValueUpdate,
     processingConfig,
@@ -295,6 +315,7 @@ export default function Config({
     stack,
     stackVersion,
     hosts,
+    applyCurrentThemeState,
   );
 
   const handleRecommendationChange = (
@@ -313,7 +334,7 @@ export default function Config({
       };
 
       // Create a new config properties object and find the property to update
-      const newConfigs = cloneDeep(configProperties);
+      let newConfigs = cloneDeep(configProperties);
       let propertyFound = false;
 
       // Search through all services and config types to find the property
@@ -361,6 +382,7 @@ export default function Config({
       }
 
       if (propertyFound) {
+        newConfigs = applyCurrentThemeState(newConfigs);
         setConfigProperties(newConfigs);
       }
     }
@@ -446,13 +468,7 @@ export default function Config({
       );
     }
 
-    configsCopy = updateVisibilityForDependsOn(
-      configsCopy,
-      themeData,
-      configSection,
-      installedServices || [],
-      allThemes,
-    );
+    configsCopy = applyCurrentThemeState(configsCopy);
 
     setConfigProperties(configsCopy);
   };
@@ -483,6 +499,7 @@ export default function Config({
     const firstService = normalized.services[0] ?? "";
 
     setTheme(nextTheme);
+    setNormalizationDiagnostics(normalized.diagnostics);
     setServices(normalized.services);
     setChosenService((currentService) =>
       normalized.services.includes(currentService)
@@ -573,18 +590,20 @@ export default function Config({
   ]);
 
   const handleUndo = (configType: string, property: PropertyType) => {
-    const newConfigs = cloneDeep(configProperties);
+    let newConfigs = cloneDeep(configProperties);
     newConfigs[chosenService][configType].properties[
       property.propertyName
     ].value = property.previousValue;
+    newConfigs = applyCurrentThemeState(newConfigs);
     setConfigProperties(newConfigs);
   };
 
   const setToDefault = (configType: string, property: PropertyType) => {
-    const newConfigs = cloneDeep(configProperties);
+    let newConfigs = cloneDeep(configProperties);
     newConfigs[chosenService][configType].properties[
       property.propertyName
     ].value = formatPropertyValue(property, property.propertyValue);
+    newConfigs = applyCurrentThemeState(newConfigs);
     setConfigProperties(newConfigs);
   };
 
@@ -595,6 +614,88 @@ export default function Config({
       dependsOn,
       installer ? servicesList : installedServices,
     );
+  };
+
+  const getThemeDiagnostics = () => {
+    const diagnostics = new Map<
+      string,
+      { scope: string; message: string }
+    >();
+    normalizationDiagnostics.forEach((diagnostic) => {
+      const scope = [
+        diagnostic.serviceName,
+        diagnostic.themeName ?? diagnostic.sourceFile,
+      ]
+        .filter(Boolean)
+        .join(" / ");
+      diagnostics.set(
+        `${diagnostic.code}:${scope}:${diagnostic.message}`,
+        {
+          scope: scope || "Service Theme",
+          message: diagnostic.message,
+        },
+      );
+    });
+
+    const addConditionDiagnostics = (
+      serviceName: string,
+      scope: string,
+      dependsOn: readonly ThemeCondition[],
+    ) => {
+      const conditionDiagnostics: ThemeConditionDiagnostic[] = [];
+      resolveThemeConditionAttributes(
+        dependsOn,
+        configProperties,
+        serviceName,
+        installer ? servicesList : installedServices,
+        conditionDiagnostics,
+      );
+      conditionDiagnostics.forEach((diagnostic) => {
+        diagnostics.set(
+          `${diagnostic.code}:${scope}:${diagnostic.statement ?? ""}`,
+          { scope, message: diagnostic.message },
+        );
+      });
+    };
+
+    services.forEach((serviceName) => {
+      const serviceTheme = theme[serviceName];
+      if (!serviceTheme) return;
+      Object.values(serviceTheme.subsectionProperties).forEach(
+        ({ properties }) => {
+          properties.forEach((placement) =>
+            addConditionDiagnostics(
+              serviceName,
+              `${serviceName} / ${placement.themeName} / ${placement.configPath}`,
+              placement.dependsOn,
+            ),
+          );
+        },
+      );
+      Object.values(serviceTheme.tabs).forEach((tab) => {
+        tab.sections.forEach((section) => {
+          section.subsections.forEach((subsection) => {
+            addConditionDiagnostics(
+              serviceName,
+              `${serviceName} / ${tab.displayName} / ${subsection.displayName || subsection.name}`,
+              subsection.dependsOn,
+            );
+            subsection.tabs.forEach((subsectionTab) =>
+              addConditionDiagnostics(
+                serviceName,
+                `${serviceName} / ${tab.displayName} / ${subsectionTab.displayName}`,
+                subsectionTab.dependsOn,
+              ),
+            );
+          });
+        });
+      });
+    });
+
+    return Array.from(diagnostics.entries()).map(([id, diagnostic]) => ({
+      id,
+      ...diagnostic,
+    }));
   };
 
   const getPlacementErrorCount = (
@@ -1407,14 +1508,7 @@ export default function Config({
       newConfigs[chosenService][configType].properties,
     );
 
-    newConfigs = updateVisibilityByForeignKeys(newConfigs);
-    newConfigs = updateVisibilityForDependsOn(
-      newConfigs,
-      themeData,
-      configSection,
-      installedServices || [],
-      allThemes,
-    );
+    newConfigs = applyCurrentThemeState(newConfigs);
     // Remove global validation - only validate the changed property above
 
     setConfigProperties(newConfigs);
@@ -1513,14 +1607,7 @@ export default function Config({
       newConfigs[chosenService][configType].properties,
     );
 
-    newConfigs = updateVisibilityByForeignKeys(newConfigs);
-    newConfigs = updateVisibilityForDependsOn(
-      newConfigs,
-      themeData,
-      configSection,
-      installedServices || [],
-      allThemes,
-    );
+    newConfigs = applyCurrentThemeState(newConfigs);
     // Remove global validation - only validate the changed property above
 
     setConfigProperties(newConfigs);
@@ -1860,6 +1947,8 @@ export default function Config({
     },
   ];
 
+  const themeDiagnostics = getThemeDiagnostics();
+
   return (
     <>
       <Modal
@@ -1960,6 +2049,20 @@ export default function Config({
         )}
       </div>
       <div className="mx-3 mt-3">
+        {themeDiagnostics.length > 0 && (
+          <Alert variant="warning" data-testid="theme-diagnostics">
+            <Alert.Heading>
+              Some service Theme metadata could not be applied.
+            </Alert.Heading>
+            <ul className="mb-0">
+              {themeDiagnostics.map((diagnostic) => (
+                <li key={diagnostic.id}>
+                  <strong>{diagnostic.scope}:</strong> {diagnostic.message}
+                </li>
+              ))}
+            </ul>
+          </Alert>
+        )}
         {!installer &&
           recommendedChanges &&
           renderRecommendedChangesAlert(recommendedChanges)}
