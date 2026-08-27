@@ -101,6 +101,73 @@ export type ThemeTab = {
   isAdvanced: boolean;
 };
 
+type ThemeGridItem = {
+  rowIndex: number;
+  rowSpan: number;
+  columnSpan: number;
+};
+
+export type ThemeGridCell<T extends ThemeGridItem> = {
+  item: T;
+  rowIndex: number;
+  columnIndex: number;
+  rowSpan: number;
+  columnSpan: number;
+};
+
+export const layoutThemeGrid = <T extends ThemeGridItem>(
+  items: readonly T[],
+) => {
+  const occupied = new Set<string>();
+  let columns = 1;
+  let rows = 1;
+  const cells: ThemeGridCell<T>[] = [];
+
+  items
+    .map((item, declarationIndex) => ({ item, declarationIndex }))
+    .sort(
+      (left, right) =>
+        left.item.rowIndex - right.item.rowIndex ||
+        left.declarationIndex - right.declarationIndex,
+    )
+    .forEach(({ item }) => {
+      const rowIndex = Math.max(0, item.rowIndex);
+      const rowSpan = Math.max(1, item.rowSpan);
+      const columnSpan = Math.max(1, item.columnSpan);
+      let columnIndex = 0;
+
+      const overlaps = (candidateColumn: number) => {
+        for (let row = rowIndex; row < rowIndex + rowSpan; row += 1) {
+          for (
+            let column = candidateColumn;
+            column < candidateColumn + columnSpan;
+            column += 1
+          ) {
+            if (occupied.has(`${row}:${column}`)) return true;
+          }
+        }
+        return false;
+      };
+
+      while (overlaps(columnIndex)) columnIndex += 1;
+      for (let row = rowIndex; row < rowIndex + rowSpan; row += 1) {
+        for (
+          let column = columnIndex;
+          column < columnIndex + columnSpan;
+          column += 1
+        ) {
+          occupied.add(`${row}:${column}`);
+        }
+      }
+
+      columns = Math.max(columns, columnIndex + columnSpan);
+      rows = Math.max(rows, rowIndex + rowSpan);
+      cells.push({ item, rowIndex, columnIndex, rowSpan, columnSpan });
+    });
+
+  return { cells, columns, rows };
+};
+
 export type ServiceTheme = {
   serviceName: string;
   themeName: string;

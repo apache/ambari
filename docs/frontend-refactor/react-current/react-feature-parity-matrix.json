@@ -3,7 +3,7 @@
   "schema_version": 1,
   "review_basis": "base_commit_plus_audited_worktree_diff",
   "reviewed_commit": "ccac716f9a1a7942887da697b90e7818f9bb1195",
-  "reviewed_diff_sha256": "65378d027f84a73ecf8335d338e5e96efcf5f10abdc0c7568c9271f62c26abb1",
+  "reviewed_diff_sha256": "4d87acc6a2d4da41ff6c73051ce28cbf7ec8c3d544ba95373f8eecd444401e31",
   "reviewed_paths": [
     "ambari-web/classic",
     "ambari-web/latest",
@@ -20633,7 +20633,7 @@
     },
     {
       "feature_id": "SVC-THEME-LAYOUT-002",
-      "legacy_summary": "Places Sections at exact row/column coordinates with row/column spans",
+      "legacy_summary": "Places Sections using Classic table-flow semantics",
       "legacy_doc": "ember-baseline/14-service-theme-layout.md:234",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
@@ -20653,7 +20653,7 @@
     },
     {
       "feature_id": "SVC-THEME-LAYOUT-003",
-      "legacy_summary": "Places SubSections in the Section grid with exact coordinates/spans",
+      "legacy_summary": "Places SubSections using the same collision-free table flow",
       "legacy_doc": "ember-baseline/14-service-theme-layout.md:235",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
@@ -20794,7 +20794,7 @@
     {
       "feature_id": "SVC-THEME-PLACEMENT-001",
       "legacy_summary": "Links by full `config-type/property-name` identity",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:254",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:255",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20814,7 +20814,7 @@
     {
       "feature_id": "SVC-THEME-PLACEMENT-002",
       "legacy_summary": "Resolves enhanced-layout targets without losing canonical attributes",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:255",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:256",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20834,7 +20834,7 @@
     {
       "feature_id": "SVC-THEME-PLACEMENT-003",
       "legacy_summary": "Preserves declaration order without duplicates",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:256",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:257",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20854,7 +20854,7 @@
     {
       "feature_id": "SVC-THEME-PLACEMENT-004",
       "legacy_summary": "Requires a Widget for enhanced rendering",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:257",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:258",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20874,7 +20874,7 @@
     {
       "feature_id": "SVC-THEME-PLACEMENT-005",
       "legacy_summary": "Creates a synthetic config only for explicit `ui_only_property=true`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:258",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:259",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20894,7 +20894,7 @@
     {
       "feature_id": "SVC-THEME-PLACEMENT-006",
       "legacy_summary": "Keeps static and conditional attributes layered",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:259",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:260",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20914,7 +20914,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-001",
       "legacy_summary": "`text-field`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:298",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:299",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20934,7 +20934,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-002",
       "legacy_summary": "`password`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:299",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:300",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20954,7 +20954,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-003",
       "legacy_summary": "`checkbox`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:300",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:301",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20974,7 +20974,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-004",
       "legacy_summary": "`toggle`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:301",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:302",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -20994,7 +20994,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-005",
       "legacy_summary": "`combo`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:302",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:303",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21014,7 +21014,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-006",
       "legacy_summary": "`radio-buttons`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:303",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:304",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21034,7 +21034,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-007",
       "legacy_summary": "`list`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:304",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:305",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21054,7 +21054,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-008",
       "legacy_summary": "`directory`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:305",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:306",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21074,7 +21074,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-009",
       "legacy_summary": "`directories`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:306",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:307",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21094,7 +21094,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-010",
       "legacy_summary": "`slider`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:307",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:308",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21114,7 +21114,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-011",
       "legacy_summary": "`time-interval-spinner`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:308",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:309",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21134,7 +21134,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-012",
       "legacy_summary": "`text-area`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:309",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:310",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21154,7 +21154,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-013",
       "legacy_summary": "`label`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:310",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:311",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21174,7 +21174,7 @@
     {
       "feature_id": "SVC-THEME-WIDGET-014",
       "legacy_summary": "`test-db-connection`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:311",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:312",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21194,7 +21194,7 @@
     {
       "feature_id": "SVC-THEME-ATTR-001",
       "legacy_summary": "Computes effective editability",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:345",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:346",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21214,7 +21214,7 @@
     {
       "feature_id": "SVC-THEME-ATTR-002",
       "legacy_summary": "Displays effective metadata",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:346",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:347",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21234,7 +21234,7 @@
     {
       "feature_id": "SVC-THEME-ATTR-003",
       "legacy_summary": "Preserves saved/default/recommended/current values",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:347",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:348",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21254,7 +21254,7 @@
     {
       "feature_id": "SVC-THEME-ATTR-004",
       "legacy_summary": "Supports config-group overrides",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:348",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:349",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21274,7 +21274,7 @@
     {
       "feature_id": "SVC-THEME-ATTR-005",
       "legacy_summary": "Excludes UI-only state from saves",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:349",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:350",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21294,7 +21294,7 @@
     {
       "feature_id": "SVC-THEME-ATTR-006",
       "legacy_summary": "Re-evaluates dependent behavior after edits and recommendations",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:350",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:351",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21314,7 +21314,7 @@
     {
       "feature_id": "SVC-THEME-ATTR-007",
       "legacy_summary": "Preserves filter and selection state safely",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:351",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:352",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21334,7 +21334,7 @@
     {
       "feature_id": "SVC-THEME-ATTR-008",
       "legacy_summary": "Makes unsupported/malformed metadata diagnosable",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:352",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:353",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21354,7 +21354,7 @@
     {
       "feature_id": "SVC-THEME-PERM-001",
       "legacy_summary": "View installed service configuration and its Theme layout",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:356",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:357",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21374,7 +21374,7 @@
     {
       "feature_id": "SVC-THEME-PERM-002",
       "legacy_summary": "Edit/save installed service configuration, Widget controls, and overrides",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:357",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:358",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21394,7 +21394,7 @@
     {
       "feature_id": "SVC-THEME-PERM-003",
       "legacy_summary": "Compare versions in the Theme hierarchy",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:358",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:359",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21414,7 +21414,7 @@
     {
       "feature_id": "SVC-THEME-PERM-004",
       "legacy_summary": "Host Config Theme view",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:359",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:360",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21434,7 +21434,7 @@
     {
       "feature_id": "SVC-THEME-PERM-005",
       "legacy_summary": "New-cluster Installer",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:360",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:361",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21454,7 +21454,7 @@
     {
       "feature_id": "SVC-THEME-PERM-006",
       "legacy_summary": "Add Service",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:361",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:362",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21474,7 +21474,7 @@
     {
       "feature_id": "SVC-THEME-COND-001",
       "legacy_summary": "Evaluates every `depends-on` entry in declaration order",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:380",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:381",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21494,7 +21494,7 @@
     {
       "feature_id": "SVC-THEME-COND-002",
       "legacy_summary": "Supports exact config references",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:381",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:382",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21514,7 +21514,7 @@
     {
       "feature_id": "SVC-THEME-COND-003",
       "legacy_summary": "Supports the shipped expression grammar",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:382",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:383",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21534,7 +21534,7 @@
     {
       "feature_id": "SVC-THEME-COND-004",
       "legacy_summary": "Supports `resource=service`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:383",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:384",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21554,7 +21554,7 @@
     {
       "feature_id": "SVC-THEME-COND-005",
       "legacy_summary": "Applies `then` or `else` attributes",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:384",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:385",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21574,7 +21574,7 @@
     {
       "feature_id": "SVC-THEME-COND-006",
       "legacy_summary": "Re-evaluates after dependency changes",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:385",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:386",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21594,7 +21594,7 @@
     {
       "feature_id": "SVC-THEME-COND-007",
       "legacy_summary": "Separates base/static and condition-hidden state",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:386",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:387",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21614,7 +21614,7 @@
     {
       "feature_id": "SVC-THEME-COND-008",
       "legacy_summary": "Propagates visibility and errors upward",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:387",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:388",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21634,7 +21634,7 @@
     {
       "feature_id": "SVC-THEME-COND-009",
       "legacy_summary": "Rejects malformed or unsupported expressions without execution",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:388",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:389",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21654,7 +21654,7 @@
     {
       "feature_id": "SVC-THEME-COND-010",
       "legacy_summary": "Handles missing references and duplicate basenames safely",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:389",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:390",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21674,7 +21674,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-001",
       "legacy_summary": "Installed Service Configs",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:411",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:412",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21694,7 +21694,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-002",
       "legacy_summary": "Installed Service Config cache",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:412",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:413",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21714,7 +21714,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-003",
       "legacy_summary": "Host Configs",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:413",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:414",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21734,7 +21734,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-004",
       "legacy_summary": "Config version comparison",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:414",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:415",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21754,7 +21754,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-005",
       "legacy_summary": "New Installer Step 7",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:415",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:416",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21774,7 +21774,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-006",
       "legacy_summary": "Installer Credentials",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:416",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:417",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21794,7 +21794,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-007",
       "legacy_summary": "Installer Databases",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:417",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:418",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21814,7 +21814,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-008",
       "legacy_summary": "Installer Directories and Accounts",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:418",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:419",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21834,7 +21834,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-009",
       "legacy_summary": "Installer All Configurations",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:419",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:420",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21854,7 +21854,7 @@
     {
       "feature_id": "SVC-THEME-CONSUME-010",
       "legacy_summary": "Add Service Customize Services",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:420",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:421",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21874,7 +21874,7 @@
     {
       "feature_id": "INST-7-THEME-001",
       "legacy_summary": "Stack configs precede batch Theme mapping",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:426",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:427",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21894,7 +21894,7 @@
     {
       "feature_id": "INST-7-THEME-002",
       "legacy_summary": "Theme request settles before config creation",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:427",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:428",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21914,7 +21914,7 @@
     {
       "feature_id": "INST-7-THEME-003",
       "legacy_summary": "Effective state is applied after values/recommendations",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:428",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:429",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21934,7 +21934,7 @@
     {
       "feature_id": "INST-7-THEME-004",
       "legacy_summary": "Specialized edits use canonical configs",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:429",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:430",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21954,7 +21954,7 @@
     {
       "feature_id": "INST-7-THEME-005",
       "legacy_summary": "Category navigation preserves valid state",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:430",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:431",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21974,7 +21974,7 @@
     {
       "feature_id": "INST-7-THEME-006",
       "legacy_summary": "Credentials availability",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:431",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:432",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -21994,7 +21994,7 @@
     {
       "feature_id": "INST-7-THEME-007",
       "legacy_summary": "Credentials validation",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:432",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:433",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22014,7 +22014,7 @@
     {
       "feature_id": "INST-7-THEME-008",
       "legacy_summary": "Databases availability",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:433",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:434",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22034,7 +22034,7 @@
     {
       "feature_id": "INST-7-THEME-009",
       "legacy_summary": "Directories availability",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:434",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:435",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22054,7 +22054,7 @@
     {
       "feature_id": "INST-7-THEME-010",
       "legacy_summary": "Accounts source",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:435",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:436",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22074,7 +22074,7 @@
     {
       "feature_id": "INST-7-THEME-011",
       "legacy_summary": "All Configurations",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:436",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:437",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22094,7 +22094,7 @@
     {
       "feature_id": "INST-7-THEME-012",
       "legacy_summary": "Re-entry",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:437",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:438",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22114,7 +22114,7 @@
     {
       "feature_id": "INST-7-THEME-013",
       "legacy_summary": "Service conditions",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:438",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:439",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22134,7 +22134,7 @@
     {
       "feature_id": "INST-7-THEME-014",
       "legacy_summary": "Recommendation context",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:439",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:440",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22154,7 +22154,7 @@
     {
       "feature_id": "SVC-THEME-FALLBACK-001",
       "legacy_summary": "Named non-Advanced Theme tab exists",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:452",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:453",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22174,7 +22174,7 @@
     {
       "feature_id": "SVC-THEME-FALLBACK-002",
       "legacy_summary": "200 response has no usable Theme tab",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:453",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:454",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22194,7 +22194,7 @@
     {
       "feature_id": "SVC-THEME-FALLBACK-003",
       "legacy_summary": "Single-service Theme request returns 404/500/network error",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:454",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:455",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22214,7 +22214,7 @@
     {
       "feature_id": "SVC-THEME-FALLBACK-004",
       "legacy_summary": "Batch Theme request fails",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:455",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:456",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22234,7 +22234,7 @@
     {
       "feature_id": "SVC-THEME-FALLBACK-005",
       "legacy_summary": "One batch service/Theme is malformed",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:456",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:457",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22254,7 +22254,7 @@
     {
       "feature_id": "SVC-THEME-FALLBACK-006",
       "legacy_summary": "Retry succeeds after fallback edits",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:457",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:458",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22274,7 +22274,7 @@
     {
       "feature_id": "SVC-THEME-FALLBACK-007",
       "legacy_summary": "Condition or filter hides the active item",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:458",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:459",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22294,7 +22294,7 @@
     {
       "feature_id": "SVC-THEME-FALLBACK-008",
       "legacy_summary": "Stack/version/service set changes or component unmounts",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:459",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:460",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22314,7 +22314,7 @@
     {
       "feature_id": "SVC-THEME-TEST-001",
       "legacy_summary": "Compile real HIVE default Theme",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:499",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:500",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22334,7 +22334,7 @@
     {
       "feature_id": "SVC-THEME-TEST-002",
       "legacy_summary": "Compile real HIVE database/credentials/directories Themes",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:500",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:501",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22354,7 +22354,7 @@
     {
       "feature_id": "SVC-THEME-TEST-003",
       "legacy_summary": "Compile real Ranger default Theme",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:501",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:502",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22374,7 +22374,7 @@
     {
       "feature_id": "SVC-THEME-TEST-004",
       "legacy_summary": "Compile real Ranger/Ranger KMS database Themes",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:502",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:503",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22394,7 +22394,7 @@
     {
       "feature_id": "SVC-THEME-TEST-005",
       "legacy_summary": "Compile real YARN and MAPREDUCE2 Themes",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:503",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:504",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22414,7 +22414,7 @@
     {
       "feature_id": "SVC-THEME-TEST-006",
       "legacy_summary": "Normalize single and batch response shapes",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:504",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:505",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22434,7 +22434,7 @@
     {
       "feature_id": "SVC-THEME-TEST-007",
       "legacy_summary": "Preserve all layouts independently of `configuration-layout`",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:505",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:506",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22454,7 +22454,7 @@
     {
       "feature_id": "SVC-THEME-TEST-008",
       "legacy_summary": "Protect full config identity",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:506",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:507",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22474,7 +22474,7 @@
     {
       "feature_id": "SVC-THEME-TEST-009",
       "legacy_summary": "Protect graph identity",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:507",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:508",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22494,7 +22494,7 @@
     {
       "feature_id": "SVC-THEME-TEST-010",
       "legacy_summary": "Validate placement targets",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:508",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:509",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22514,7 +22514,7 @@
     {
       "feature_id": "SVC-THEME-TEST-011",
       "legacy_summary": "Isolate malformed metadata",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:509",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:510",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22534,7 +22534,7 @@
     {
       "feature_id": "SVC-THEME-TEST-012",
       "legacy_summary": "Parse config conditions",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:510",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:511",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22554,7 +22554,7 @@
     {
       "feature_id": "SVC-THEME-TEST-013",
       "legacy_summary": "Evaluate service conditions",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:511",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:512",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22574,7 +22574,7 @@
     {
       "feature_id": "SVC-THEME-TEST-014",
       "legacy_summary": "Apply ordered mutations from every source mode",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:512",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:513",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22594,7 +22594,7 @@
     {
       "feature_id": "SVC-THEME-TEST-015",
       "legacy_summary": "Preserve visibility and identity layers",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:513",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:514",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22614,7 +22614,7 @@
     {
       "feature_id": "SVC-THEME-TEST-016",
       "legacy_summary": "Reject unsafe conditions",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:514",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:515",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22634,7 +22634,7 @@
     {
       "feature_id": "SVC-THEME-TEST-017",
       "legacy_summary": "Render exact Section grid",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:515",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:516",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22654,7 +22654,7 @@
     {
       "feature_id": "SVC-THEME-TEST-018",
       "legacy_summary": "Render exact SubSection grid",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:516",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:517",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22674,7 +22674,7 @@
     {
       "feature_id": "SVC-THEME-TEST-019",
       "legacy_summary": "Operate top-level tabs",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:517",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:518",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22694,7 +22694,7 @@
     {
       "feature_id": "SVC-THEME-TEST-020",
       "legacy_summary": "Operate nested tabs",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:518",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:519",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22714,7 +22714,7 @@
     {
       "feature_id": "SVC-THEME-TEST-021",
       "legacy_summary": "Propagate filter/errors",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:519",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:520",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22734,7 +22734,7 @@
     {
       "feature_id": "SVC-THEME-TEST-022",
       "legacy_summary": "Dispatch every Widget type",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:520",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:521",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22754,7 +22754,7 @@
     {
       "feature_id": "SVC-THEME-TEST-023",
       "legacy_summary": "Round-trip entry Widgets",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:521",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:522",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22774,7 +22774,7 @@
     {
       "feature_id": "SVC-THEME-TEST-024",
       "legacy_summary": "Round-trip text/directory Widgets",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:522",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:523",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22794,7 +22794,7 @@
     {
       "feature_id": "SVC-THEME-TEST-025",
       "legacy_summary": "Convert slider units",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:523",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:524",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22814,7 +22814,7 @@
     {
       "feature_id": "SVC-THEME-TEST-026",
       "legacy_summary": "Convert time spinner units",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:524",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:525",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22834,7 +22834,7 @@
     {
       "feature_id": "SVC-THEME-TEST-027",
       "legacy_summary": "Exercise shared controls and raw fallback",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:525",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:526",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22854,7 +22854,7 @@
     {
       "feature_id": "SVC-THEME-TEST-028",
       "legacy_summary": "Build DB action payloads",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:526",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:527",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22874,7 +22874,7 @@
     {
       "feature_id": "SVC-THEME-TEST-029",
       "legacy_summary": "Complete DB task lifecycle",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:527",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:528",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22894,7 +22894,7 @@
     {
       "feature_id": "SVC-THEME-TEST-030",
       "legacy_summary": "Load installed Service Config Theme",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:528",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:529",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22914,7 +22914,7 @@
     {
       "feature_id": "SVC-THEME-TEST-031",
       "legacy_summary": "Load Host Config Theme",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:529",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:530",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22934,7 +22934,7 @@
     {
       "feature_id": "SVC-THEME-TEST-032",
       "legacy_summary": "Compare config versions",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:530",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:531",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22954,7 +22954,7 @@
     {
       "feature_id": "SVC-THEME-TEST-033",
       "legacy_summary": "Run new Installer category flow",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:531",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:532",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22974,7 +22974,7 @@
     {
       "feature_id": "SVC-THEME-TEST-034",
       "legacy_summary": "Run Add Service flow",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:532",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:533",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -22994,7 +22994,7 @@
     {
       "feature_id": "SVC-THEME-TEST-035",
       "legacy_summary": "Preserve canonical save payload",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:533",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:534",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -23014,7 +23014,7 @@
     {
       "feature_id": "SVC-THEME-TEST-036",
       "legacy_summary": "Enforce permissions and modes",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:534",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:535",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -23034,7 +23034,7 @@
     {
       "feature_id": "SVC-THEME-TEST-037",
       "legacy_summary": "Test server parsing/filtering",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:535",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:536",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -23054,7 +23054,7 @@
     {
       "feature_id": "SVC-THEME-TEST-038",
       "legacy_summary": "Test server inheritance/removal",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:536",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:537",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -23074,7 +23074,7 @@
     {
       "feature_id": "SVC-THEME-TEST-039",
       "legacy_summary": "Test Theme resource provider",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:537",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:538",
       "legacy_evidence": "CONFIRMED",
       "react_status": "PARTIAL",
       "source_status": "PARTIAL",
@@ -23094,7 +23094,7 @@
     {
       "feature_id": "SVC-THEME-TEST-040",
       "legacy_summary": "Real-cluster acceptance",
-      "legacy_doc": "ember-baseline/14-service-theme-layout.md:538",
+      "legacy_doc": "ember-baseline/14-service-theme-layout.md:539",
       "legacy_evidence": "CONFIRMED",
       "react_status": "MISSING",
       "source_status": "MISSING",
