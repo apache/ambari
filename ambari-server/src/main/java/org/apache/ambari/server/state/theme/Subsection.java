@@ -144,10 +144,15 @@ public class Subsection {
 
   @ApiModelProperty( name = "removed")
   public boolean isRemoved() {
-    return rowIndex == null && rowSpan == null && columnIndex == null && columnSpan == null && dependsOn == null && subsectionTabs == null;
+    return rowIndex == null && rowSpan == null && columnIndex == null && columnSpan == null && displayName == null &&
+      border == null && leftVerticalSplitter == null && dependsOn == null && subsectionTabs == null;
   }
 
   public void mergeWithParent(Subsection parent) {
+    if (parent == null) {
+      return;
+    }
+
     if (rowSpan == null) {
       rowSpan = parent.rowSpan;
     }

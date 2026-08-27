@@ -19,17 +19,29 @@
 package org.apache.ambari.server.stack;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Set;
 
+import org.apache.ambari.server.state.ThemeInfo;
 import org.apache.ambari.server.state.theme.Theme;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.ImmutableSet;
 
 public class ThemeModuleTest {
+
+  @Rule
+  public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   @Test
   public void testResolve() throws Exception {
@@ -59,5 +71,63 @@ public class ThemeModuleTest {
     ThemeModule module = new ThemeModule((File) null);
     module.addErrors(errors);
     assertEquals(errors, ImmutableSet.copyOf(module.getErrors()));
+  }
+
+  @Test
+  public void testResolveCopiesInheritedObjects() throws Exception {
+    File parentThemeFile = new File(this.getClass().getClassLoader().getResource("parent-theme.json").getFile());
+    File childThemeFile = writeTheme("inheriting-theme.json", "{\"name\":\"child\"}");
+    ThemeModule parentModule = new ThemeModule(parentThemeFile);
+    ThemeModule childModule = new ThemeModule(childThemeFile);
+
+    childModule.resolve(parentModule, null, null, null);
+
+    Theme parentTheme = parentModule.getModuleInfo().getThemeMap().get(ThemeModule.THEME_KEY);
+    Theme childTheme = childModule.getModuleInfo().getThemeMap().get(ThemeModule.THEME_KEY);
+    assertNotSame(parentTheme.getThemeConfiguration(), childTheme.getThemeConfiguration());
+    assertNotSame(parentTheme.getThemeConfiguration().getLayouts(), childTheme.getThemeConfiguration().getLayouts());
+    assertNotSame(parentTheme.getThemeConfiguration().getLayouts().get(0),
+      childTheme.getThemeConfiguration().getLayouts().get(0));
+
+    childTheme.getThemeConfiguration().getLayouts().get(0).setName("child-layout");
+    assertEquals("default", parentTheme.getThemeConfiguration().getLayouts().get(0).getName());
+  }
+
+  @Test
+  public void testMissingAndInvalidThemeFilesAreRejected() throws Exception {
+    ThemeModule missing = new ThemeModule(new File(temporaryFolder.getRoot(), "missing-theme.json"));
+    ThemeModule malformed = new ThemeModule(writeTheme("malformed-theme.json", "{not-json"));
+    ThemeModule bindingFailure = new ThemeModule(writeTheme("binding-theme.json",
+      "{\"configuration\":{\"layouts\":{}}}"));
+
+    assertFalse(missing.isValid());
+    assertFalse(missing.getErrors().isEmpty());
+    assertFalse(malformed.isValid());
+    assertFalse(malformed.getErrors().isEmpty());
+    assertFalse(bindingFailure.isValid());
+    assertFalse(bindingFailure.getErrors().isEmpty());
+  }
+
+  @Test
+  public void testDeletedDescriptorSkipsLoadingAndInheritance() throws Exception {
+    ThemeInfo deletedInfo = new ThemeInfo();
+    deletedInfo.setFileName("deleted-theme.json");
+    deletedInfo.setDeleted(true);
+    ThemeModule deletedModule = new ThemeModule(
+      new File(temporaryFolder.getRoot(), "deleted-theme.json"), deletedInfo);
+    File parentThemeFile = new File(this.getClass().getClassLoader().getResource("parent-theme.json").getFile());
+    ThemeModule parentModule = new ThemeModule(parentThemeFile);
+
+    deletedModule.resolve(parentModule, null, null, null);
+
+    assertTrue(deletedModule.isValid());
+    assertTrue(deletedModule.isDeleted());
+    assertNull(deletedModule.getModuleInfo().getThemeMap());
+  }
+
+  private File writeTheme(String name, String contents) throws Exception {
+    File file = temporaryFolder.newFile(name);
+    Files.write(file.toPath(), contents.getBytes(StandardCharsets.UTF_8));
+    return file;
   }
 }
