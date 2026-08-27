@@ -46,6 +46,7 @@ export const useHostConfigUpdater = (
 ) => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEmptyResult, setIsEmptyResult] = useState<boolean | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const queryData = useRef({});
   const allHostModelsRef = useRef<Host[]>(allHostModels);
@@ -65,7 +66,10 @@ export const useHostConfigUpdater = (
   }, [allHostModels]);
 
   useEffect(() => {
-    if (parsedSocketMessages.length) {
+    // Ember ignores realtime updates for records that are not loaded yet. An
+    // empty update here can otherwise overwrite the initial REST response and
+    // make a valid Host Details route look like a missing host.
+    if (parsedSocketMessages.length && allHostModelsRef.current.length) {
       switch (get(parsedSocketMessages[0], "destination", "")) {
         case "/events/hostcomponents":
           setAllHostModels(
@@ -96,6 +100,7 @@ export const useHostConfigUpdater = (
   useEffect(() => {
     if (clusterName && !isEmpty(serviceComponentInfo)) {
       setLoadError(null);
+      setIsEmptyResult(null);
       setIsLoading(true);
       void getHostsData()
         .catch((error) => {
@@ -210,6 +215,7 @@ export const useHostConfigUpdater = (
       newQueryString = await getHostNamesForCurrentFilters(queryString);
       if (!newQueryString) {
         // If no host names are found, we can return early
+        setIsEmptyResult(true);
         populateHostModels({ items: [], itemTotal: 0 });
         return;
       }
@@ -241,6 +247,7 @@ export const useHostConfigUpdater = (
     }
 
     const response = await HostsApi.getHostsList(clusterName, url, data);
+    setIsEmptyResult(get(response, "items", []).length === 0);
 
     const stackName = get(cluster, "stack", "");
     const stackVersion = get(cluster, "versionNum", "");
@@ -381,6 +388,7 @@ export const useHostConfigUpdater = (
 
   return {
     error: loadError,
+    isEmptyResult,
     isLoading,
     retry: () => setRetryCount((value) => value + 1),
   };
