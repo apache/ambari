@@ -122,11 +122,13 @@ vi.mock("../CommonConfigs/Config", () => ({
     servicesList,
     setConfigProperties,
     themeData,
+    allThemes,
   }: {
     configProperties: ConfigPropertiesType;
     servicesList: string[];
     setConfigProperties: (configs: ConfigPropertiesType) => void;
     themeData: { items?: unknown[] };
+    allThemes?: boolean;
   }) => {
     const serviceName = servicesList[0];
     const sections = configProperties[serviceName] || {};
@@ -148,6 +150,7 @@ vi.mock("../CommonConfigs/Config", () => ({
         <div>{layoutName}</div>
         <div data-testid="property-value">{String(property?.value || "")}</div>
         <div data-testid="theme-count">{themeData?.items?.length || 0}</div>
+        <div data-testid="all-themes">{String(Boolean(allThemes))}</div>
         <button
           onClick={() => {
             const updated = structuredClone(configProperties);
@@ -272,7 +275,22 @@ const themeResponse = {
 const fixtureForService = <T,>(fixture: T, serviceName: string): T =>
   JSON.parse(JSON.stringify(fixture).replaceAll('"HDFS"', `"${serviceName}"`));
 
-function serviceConfigsElement(serviceName = "hdfs") {
+function serviceConfigsElement(
+  serviceName = "hdfs",
+  allServiceModels: Record<string, unknown> = {
+    hdfs: {
+      isClientOnlyService: true,
+      masterComponents: [],
+      slaveComponents: [],
+    },
+    yarn: {
+      isClientOnlyService: true,
+      masterComponents: [],
+      slaveComponents: [],
+    },
+  },
+  contextServices = services,
+) {
   const appContextValue = {
     clusterName: "cluster1",
     cluster: {
@@ -280,21 +298,10 @@ function serviceConfigsElement(serviceName = "hdfs") {
       stack: "HDP",
       versionNum: "3.1",
     },
-    services,
+    services: contextServices,
   } as unknown as ComponentProps<typeof AppContext.Provider>["value"];
   const serviceContextValue = {
-    allServiceModels: {
-      hdfs: {
-        isClientOnlyService: true,
-        masterComponents: [],
-        slaveComponents: [],
-      },
-      yarn: {
-        isClientOnlyService: true,
-        masterComponents: [],
-        slaveComponents: [],
-      },
-    },
+    allServiceModels,
   } as unknown as ComponentProps<typeof ServiceContext.Provider>["value"];
 
   return (
@@ -308,8 +315,14 @@ function serviceConfigsElement(serviceName = "hdfs") {
   );
 }
 
-function renderServiceConfigs(serviceName = "hdfs") {
-  return render(serviceConfigsElement(serviceName));
+function renderServiceConfigs(
+  serviceName = "hdfs",
+  allServiceModels?: Record<string, unknown>,
+  contextServices = services,
+) {
+  return render(
+    serviceConfigsElement(serviceName, allServiceModels, contextServices),
+  );
 }
 
 describe("Service Configs Theme loading", () => {
@@ -342,6 +355,33 @@ describe("Service Configs Theme loading", () => {
       "3.1",
       "HDFS,YARN"
     );
+  });
+
+  it("renders a non-default named Theme without a hardcoded service model", async () => {
+    const zookeeperConfigurations = fixtureForService(
+      stackConfigurations,
+      "ZOOKEEPER",
+    );
+    const zookeeperValues = fixtureForService(propertyValues, "ZOOKEEPER");
+    const zookeeperTheme = fixtureForService(themeResponse, "ZOOKEEPER");
+    zookeeperTheme.items[0].themes[0].ThemeInfo.file_name = "directories.json";
+    zookeeperTheme.items[0].themes[0].ThemeInfo.theme_data.Theme.name =
+      "directories";
+    zookeeperTheme.items[0].themes[0].ThemeInfo.theme_data.Theme.configuration.layouts[0].name =
+      "directories";
+    zookeeperTheme.items[0].themes[0].ThemeInfo.theme_data.Theme.configuration.layouts[0].tabs[0].name =
+      "directories";
+    mocks.getServiceConfigurations.mockResolvedValue(zookeeperConfigurations);
+    mocks.getConfigValues.mockResolvedValue(zookeeperValues);
+    mocks.getTheme.mockResolvedValue(zookeeperTheme);
+
+    renderServiceConfigs("zookeeper", {}, [
+      { ServiceInfo: { service_name: "ZOOKEEPER" } },
+    ]);
+
+    expect(await screen.findByText("Theme directories")).toBeTruthy();
+    expect(screen.getByTestId("all-themes").textContent).toBe("true");
+    expect(mocks.getTheme).toHaveBeenCalledWith("HDP", "3.1", "ZOOKEEPER");
   });
 
   it("renders Advanced configs after Theme failure and recovers without losing edits", async () => {

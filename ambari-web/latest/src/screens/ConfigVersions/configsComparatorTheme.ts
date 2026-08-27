@@ -18,7 +18,7 @@
 
 import {
   ConfigThemeView,
-  normalizeThemeResponse,
+  normalizeDefaultThemeResponse,
   toConfigThemeView,
 } from "../CommonConfigs/themeEngine";
 
@@ -34,7 +34,7 @@ export const normalizeComparatorTheme = (
 ): ConfigThemeView => {
   if (!serviceName) return {};
   const view = toConfigThemeView(
-    normalizeThemeResponse(response, "default", [serviceName]),
+    normalizeDefaultThemeResponse(response, [serviceName]),
   );
   const serviceTheme = view[serviceName];
   if (

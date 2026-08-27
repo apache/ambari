@@ -294,46 +294,26 @@ export default function ServiceConfigs({
   }, [isComparing, firstVersion, defaultVersionNumber]);
 
   useEffect(() => {
+    let cancelled = false;
     if (
       !isEmpty(configs) &&
       !isEmpty(propertyValues) &&
-      configsLoaded &&
       themeRequestSettled
     ) {
-      getConfigProperties(themes, preserveEditsForThemeRequest.current);
-      preserveEditsForThemeRequest.current = false;
+      void getConfigProperties(
+        themes,
+        preserveEditsForThemeRequest.current,
+      ).then(() => {
+        if (!cancelled) {
+          preserveEditsForThemeRequest.current = false;
+          setIsConfigsLoaded(true);
+        }
+      });
     }
-  }, [configs, propertyValues, configsLoaded, themes, themeRequestSettled]);
-
-  useEffect(() => {
-    function allMastersLoaded() {
-      let masterComponentsLoaded = false;
-      let slaveComponentsLoaded = false;
-      const mappedServiceName =
-        serviceNameModelMapping[serviceName.toUpperCase()];
-
-      if (
-        allServiceModels[mappedServiceName]?.masterComponents &&
-        allServiceModels[mappedServiceName].masterComponents.length > 0
-      ) {
-        masterComponentsLoaded = true;
-      }
-
-      if (
-        allServiceModels[mappedServiceName]?.slaveComponents &&
-        allServiceModels[mappedServiceName].slaveComponents.length > 0
-      ) {
-        slaveComponentsLoaded = true;
-      }
-      return (
-        masterComponentsLoaded ||
-        slaveComponentsLoaded ||
-        allServiceModels?.[serviceNameModelMapping[serviceName.toUpperCase()]]
-          ?.isClientOnlyService
-      );
-    }
-    setIsConfigsLoaded(allMastersLoaded());
-  }, [JSON.stringify(allServiceModels), serviceName]);
+    return () => {
+      cancelled = true;
+    };
+  }, [configs, propertyValues, themes, themeRequestSettled]);
 
  useEffect(() => {
   if (!isEmpty(configProperties)) {
@@ -1177,7 +1157,7 @@ export default function ServiceConfigs({
     // Initialize the configuration structure
     let configPropertiesCopy = initializeConfigStructure();
 
-    configPropertiesCopy = addTabNames(configPropertiesCopy, themeData);
+    configPropertiesCopy = addTabNames(configPropertiesCopy, themeData, true);
 
     // Process default and override configurations
     // Each function returns a new object without modifying the input
@@ -1223,7 +1203,13 @@ export default function ServiceConfigs({
     );
 
     updatedConfigProperties = updateVisibilityByForeignKeys(updatedConfigProperties);
-    updatedConfigProperties = updateVisibilityForDependsOn(updatedConfigProperties, themeData,"default", services.map(service => service.ServiceInfo.service_name) );
+    updatedConfigProperties = updateVisibilityForDependsOn(
+      updatedConfigProperties,
+      themeData,
+      "default",
+      services.map((service) => service.ServiceInfo.service_name),
+      true,
+    );
     
     // Hide component configs based on availability (following Ember.js logic)
     updatedConfigProperties = hideComponentConfigsBasedOnAvailability(updatedConfigProperties, allServiceModels);
@@ -1515,6 +1501,7 @@ export default function ServiceConfigs({
               setConfigProperties={setConfigProperties}
               configPropertiesData={configs}
               configSection="default"
+              allThemes
               themeData={themes}
               servicesList={[serviceName]}
               configGroup={configGroup}

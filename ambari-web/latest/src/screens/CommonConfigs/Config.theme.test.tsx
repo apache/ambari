@@ -386,6 +386,79 @@ describe("Ember Service Theme page integration", () => {
 
   afterEach(cleanup);
 
+  it("renders every section from a non-default named installed-service Theme", async () => {
+    type MutableThemeBody = {
+      name: string;
+      configuration: {
+        layouts: unknown[];
+        placement: { configs: unknown[] };
+        widgets: unknown[];
+      };
+    };
+    const directoriesTheme = structuredClone(theme) as unknown as {
+      items: Array<{
+        themes: Array<{
+          ThemeInfo: { theme_data: { Theme: MutableThemeBody } };
+        }>;
+      }>;
+    };
+    const themeBody =
+      directoriesTheme.items[0].themes[0].ThemeInfo.theme_data.Theme;
+    themeBody.name = "directories";
+    themeBody.configuration.layouts = [
+      {
+        name: "directories",
+        tabs: [
+          {
+            name: "directories",
+            "display-name": "Directories",
+            layout: {
+              "tab-columns": "1",
+              "tab-rows": "3",
+              sections: [
+                {
+                  name: "data-section",
+                  "display-name": "DATA DIRS",
+                  subsections: [{ name: "data-subsection" }],
+                },
+                {
+                  name: "log-section",
+                  "display-name": "LOG DIRS",
+                  subsections: [{ name: "log-subsection" }],
+                },
+                {
+                  name: "pid-section",
+                  "display-name": "PID DIRS",
+                  subsections: [{ name: "pid-subsection" }],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ];
+    themeBody.configuration.placement.configs = [
+      { config: "site/primary", "subsection-name": "data-subsection" },
+      { config: "site/secondary", "subsection-name": "log-subsection" },
+      { config: "site/mode", "subsection-name": "pid-subsection" },
+    ];
+    themeBody.configuration.widgets = [
+      { config: "site/primary", widget: { type: "text-field" } },
+      { config: "site/secondary", widget: { type: "text-field" } },
+      { config: "site/mode", widget: { type: "text-field" } },
+    ];
+
+    renderConfig(directoriesTheme, configs(), { allThemes: true });
+
+    expect(await screen.findByRole("tab", { name: "Directories" })).toBeTruthy();
+    expect(screen.getByText("DATA DIRS")).toBeTruthy();
+    expect(screen.getByText("LOG DIRS")).toBeTruthy();
+    expect(screen.getByText("PID DIRS")).toBeTruthy();
+    expect(screen.getByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.getByDisplayValue("secondary value")).toBeTruthy();
+    expect(screen.getByDisplayValue("show")).toBeTruthy();
+  });
+
   it("selects the first visible top tab, rejects disabled tabs, and renders on demand", async () => {
     const source = configs();
     source.SVC.site.properties.primary.isVisible = false;

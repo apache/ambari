@@ -34,6 +34,7 @@ import {
 } from "../Kerberos/Kerberos_identitites";
 import {
   evaluateThemeVisibility,
+  normalizeDefaultThemeResponse,
   normalizeThemeResponse,
   resolveThemeConditionAttributes,
   ServiceTheme,
@@ -954,10 +955,16 @@ function updateVisibilityByForeignKeys(configProperties: ConfigPropertiesType) {
   return configCopy;
 }
 
-function addTabNames(configProperties: ConfigPropertiesType, themes: any) {
+function addTabNames(
+  configProperties: ConfigPropertiesType,
+  themes: any,
+  allThemes = false,
+) {
   const configCopy = cloneDeep(configProperties);
   const services = Object.keys(configCopy);
-  const normalized = normalizeThemeResponse(themes, "default", services);
+  const normalized = allThemes
+    ? normalizeDefaultThemeResponse(themes, services)
+    : normalizeThemeResponse(themes, "default", services);
 
   services.forEach((serviceName) => {
     const serviceTheme = normalized.byService[serviceName];
@@ -972,7 +979,7 @@ function addTabNames(configProperties: ConfigPropertiesType, themes: any) {
         ]),
       );
       attachedPlacements.forEach((placement) => {
-        if (!serviceTheme.widgetsByConfigPath[placement.configPath]) return;
+        if (!placement.widget) return;
         const property =
           configCopy[serviceName]?.[placement.configType]?.properties?.[
             placement.propertyName
@@ -1465,14 +1472,13 @@ function updateVisibilityForDependsOn(
   themeData: unknown,
   configSection: string,
   installedServices: string[],
+  allThemes = false,
 ) {
   const configsCopy = cloneDeep(configProperties);
   const serviceNames = Object.keys(configsCopy);
-  const normalized = normalizeThemeResponse(
-    themeData,
-    configSection,
-    serviceNames,
-  );
+  const normalized = allThemes
+    ? normalizeDefaultThemeResponse(themeData, serviceNames)
+    : normalizeThemeResponse(themeData, configSection, serviceNames);
 
   serviceNames.forEach((serviceName) => {
     Object.values(configsCopy[serviceName]).forEach((configType) => {

@@ -142,7 +142,7 @@ describe("Config versions comparator Theme adapter", () => {
     });
   });
 
-  it("uses only the default Theme and retains full config paths", () => {
+  it("uses every server-default Theme and retains full config paths", () => {
     const input = response(
       theme(
         "database",
@@ -188,6 +188,7 @@ describe("Config versions comparator Theme adapter", () => {
     const result = normalizeComparatorTheme(input, "HIVE");
 
     expect(Object.keys(result.HIVE.tabs)).toEqual([
+      "database",
       "settings",
       "hive-database",
       "Advanced",
@@ -205,8 +206,11 @@ describe("Config versions comparator Theme adapter", () => {
     expect(result.HIVE.widgets["hive-site/shared"].type).toBe("text-field");
     expect(result.HIVE.widgets["other-site/shared"].type).toBe("password");
     expect(
-      result.HIVE.subsectionProperties["database-subsection"],
-    ).toBeUndefined();
+      result.HIVE.subsectionProperties["database-subsection"].properties[0],
+    ).toMatchObject({
+      configPath: "hive-site/shared",
+      themeName: "database",
+    });
   });
 
   it("locates same-named properties by config type and property name", () => {

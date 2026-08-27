@@ -957,6 +957,7 @@ export default function Hostconfigs() {
             setConfigProperties={setConfigProperties}
             configPropertiesData={configs}
             configSection="default"
+            allThemes
             themeData={themes}
             servicesList={hostServices}
             installedServices={serviceInCluster}

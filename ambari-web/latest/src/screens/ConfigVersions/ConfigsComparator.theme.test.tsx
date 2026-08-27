@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -220,7 +220,7 @@ describe("Config versions comparator Theme integration", () => {
 
   afterEach(cleanup);
 
-  it("renders tabs and property categories from only the default Theme", async () => {
+  it("renders tabs from every server-default Theme", async () => {
     renderComparator(themeResponse);
 
     expect(
@@ -228,8 +228,9 @@ describe("Config versions comparator Theme integration", () => {
     ).toBeTruthy();
     expect(screen.getByRole("tab", { name: "Advanced (0)" })).toBeTruthy();
     expect(
-      screen.queryByRole("tab", { name: /Nondefault Database/ }),
-    ).toBeNull();
+      screen.getByRole("tab", { name: "Nondefault Database (0)" }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: "Default Database (1)" }));
     expect(await screen.findByText("Default Property")).toBeTruthy();
   });
 

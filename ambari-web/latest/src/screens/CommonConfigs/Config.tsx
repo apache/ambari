@@ -92,6 +92,7 @@ import {
 import {
   ConfigThemeView,
   findThemeConfigProperty,
+  normalizeDefaultThemeResponse,
   normalizeThemeResponse,
   resolveThemeConditionAttributes,
   ThemePlacement,
@@ -147,6 +148,7 @@ type ConfigProps = {
   validationErrors?: any;
   onServiceChange?: (serviceName: string) => void;
   configsLoading?: boolean;
+  allThemes?: boolean;
 };
 
 interface PropertyFilter {
@@ -180,6 +182,7 @@ export default function Config({
   validationErrors = [],
   onServiceChange,
   configsLoading = false,
+  allThemes = false,
 }: ConfigProps) {
   const [chosenService, setChosenService] = useState<string>("");
   const [chosenTab, setChosenTab] = useState<string>("");
@@ -419,6 +422,7 @@ export default function Config({
       themeData,
       configSection,
       installedServices || [],
+      allThemes,
     );
 
     setConfigProperties(configsCopy);
@@ -443,11 +447,9 @@ export default function Config({
       requestedServices.push("MISC");
     }
 
-    const normalized = normalizeThemeResponse(
-      themeData,
-      configSection,
-      requestedServices,
-    );
+    const normalized = allThemes
+      ? normalizeDefaultThemeResponse(themeData, requestedServices)
+      : normalizeThemeResponse(themeData, configSection, requestedServices);
     const nextTheme = toConfigThemeView(normalized);
     const firstService = normalized.services[0] ?? "";
 
@@ -477,7 +479,13 @@ export default function Config({
 
   useEffect(() => {
     getTheme();
-  }, [themeData, configPropertiesData, JSON.stringify(servicesList)]);
+  }, [
+    themeData,
+    configPropertiesData,
+    configSection,
+    allThemes,
+    JSON.stringify(servicesList),
+  ]);
 
   // Track service changes and set switching state
   useEffect(() => {
@@ -1370,6 +1378,7 @@ export default function Config({
       themeData,
       configSection,
       installedServices || [],
+      allThemes,
     );
     // Remove global validation - only validate the changed property above
 
@@ -1475,6 +1484,7 @@ export default function Config({
       themeData,
       configSection,
       installedServices || [],
+      allThemes,
     );
     // Remove global validation - only validate the changed property above
 
@@ -2625,6 +2635,7 @@ export default function Config({
                                                                                 >)
                                                                             : undefined;
                                                                         const widget =
+                                                                          config.widget ??
                                                                           theme[
                                                                             serviceKey
                                                                           ]

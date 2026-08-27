@@ -25,6 +25,7 @@ import {
   evaluateConfigCondition,
   evaluateConfigConditionResult,
   evaluateThemeVisibility,
+  normalizeDefaultThemeResponse,
   normalizeThemeResponse,
   resolveThemeConditionAttributes,
   ThemeCondition,
@@ -97,6 +98,79 @@ const configs: ConfigPropertiesType = {
 };
 
 describe("Service Theme normalizer", () => {
+  it("compiles every server-default artifact for an installed custom service", () => {
+    const zookeeper = readTheme(
+      "ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/ZOOKEEPER/themes/directories.json",
+    );
+    const result = normalizeDefaultThemeResponse(
+      responseFor("CUSTOM_ZK", [
+        { fileName: "directories.json", theme: zookeeper },
+      ]),
+      ["CUSTOM_ZK"],
+    );
+    const theme = result.byService.CUSTOM_ZK;
+
+    expect(theme.isFallback).toBe(false);
+    expect(theme.tabs.map((tab) => tab.name)).toEqual([
+      "directories",
+      "Advanced",
+    ]);
+    expect(theme.tabs[0].sections.map((section) => section.displayName)).toEqual([
+      "DATA DIRS",
+      "LOG DIRS",
+      "PID DIRS",
+    ]);
+    expect(theme.placements.map((placement) => placement.widget?.type)).toEqual([
+      "text-field",
+      "text-field",
+      "text-field",
+    ]);
+    expect(result.diagnostics).toEqual([]);
+  });
+
+  it("keeps Widget metadata scoped to its placement across returned Themes", () => {
+    const themed = (name: string, type: string) => ({
+      name,
+      configuration: {
+        placement: {
+          configs: [{ config: "site/shared", "subsection-name": `${name}-sub` }],
+        },
+        widgets: [{ config: "site/shared", widget: { type } }],
+        layouts: [
+          {
+            name,
+            tabs: [
+              {
+                name: `${name}-tab`,
+                layout: {
+                  sections: [
+                    {
+                      name: `${name}-section`,
+                      subsections: [{ name: `${name}-sub` }],
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const theme = normalizeDefaultThemeResponse(
+      responseFor("CUSTOM", [
+        { fileName: "first.json", theme: themed("first", "text-field") },
+        { fileName: "second.json", theme: themed("second", "toggle") },
+      ]),
+      ["CUSTOM"],
+    ).byService.CUSTOM;
+
+    expect(theme.placements.map((placement) => placement.widget?.type)).toEqual([
+      "text-field",
+      "toggle",
+    ]);
+    expect(theme.placements[0].id).not.toBe(theme.placements[1].id);
+  });
+
   it("preserves the real BIGTOP HIVE grid, placements, widgets, and UI-only metadata", () => {
     const hive = readTheme(
       "ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HIVE/themes/theme.json",
