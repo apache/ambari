@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useState, useTransition } from "react";
+import type { KeyboardEvent } from "react";
 import {
   Card,
   Col,
@@ -121,6 +122,33 @@ const isThemeAttributeTrue = (value: unknown) =>
 
 const isThemeAttributeFalse = (value: unknown) =>
   value === false || value === 0 || value === "0" || value === "false";
+
+const operateThemeTabs = (event: KeyboardEvent<HTMLElement>) => {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+    return;
+  }
+
+  const tabList = event.currentTarget.closest('[role="tablist"]');
+  const tabs = Array.from(
+    tabList?.querySelectorAll<HTMLElement>(
+      '[role="tab"]:not([aria-disabled="true"])',
+    ) ?? [],
+  );
+  const currentIndex = tabs.indexOf(event.currentTarget);
+  if (currentIndex < 0 || tabs.length < 2) return;
+
+  event.preventDefault();
+  const nextIndex =
+    event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? tabs.length - 1
+        : event.key === "ArrowRight"
+          ? (currentIndex + 1) % tabs.length
+          : (currentIndex - 1 + tabs.length) % tabs.length;
+  tabs[nextIndex].focus();
+  tabs[nextIndex].click();
+};
 
 type ConfigProps = {
   configSection: string;
@@ -2300,6 +2328,8 @@ export default function Config({
                                 <Nav
                                   variant="underline"
                                   className="d-flex flex-row"
+                                  role="tablist"
+                                  aria-label={`${serviceKey} configuration sections`}
                                 >
                                   {theme[serviceKey]?.tabs &&
                                     Object.keys(theme[serviceKey].tabs).length >
@@ -2319,18 +2349,23 @@ export default function Config({
                                                 ? undefined
                                                 : "disabled"
                                             }
-                                            onClick={() => {
-                                              if (tabIsVisible) {
-                                                setChosenTab(tabName);
-                                              }
-                                            }}
                                           >
                                             <Nav.Link
                                               eventKey={tabName}
-                                              as="div"
+                                              as="button"
+                                              type="button"
+                                              role="tab"
+                                              active={chosenTab === tabName}
                                               className="ambari-tabs nav-link nav-link-underlined"
                                               aria-disabled={!tabIsVisible}
+                                              aria-selected={chosenTab === tabName}
                                               tabIndex={tabIsVisible ? 0 : -1}
+                                              onClick={() => {
+                                                if (tabIsVisible) {
+                                                  setChosenTab(tabName);
+                                                }
+                                              }}
+                                              onKeyDown={operateThemeTabs}
                                             >
                                               {
                                                 theme[serviceKey].tabs[tabName]
@@ -2461,6 +2496,15 @@ export default function Config({
                                                               ...(activeSubsectionTab?.placements ??
                                                                 []),
                                                             ];
+                                                          const rowHasTitle =
+                                                            section.subsections.some(
+                                                              (candidate) =>
+                                                                candidate.rowIndex ===
+                                                                  subsection.rowIndex &&
+                                                                Boolean(
+                                                                  candidate.displayName,
+                                                                ),
+                                                            );
 
                                                           return (
                                                             <div
@@ -2483,6 +2527,12 @@ export default function Config({
                                                                 subsection.leftVerticalSplitter
                                                                   ? "service-theme-subsection-split"
                                                                   : ""
+                                                              } ${
+                                                                subsection.rowIndex >
+                                                                  0 &&
+                                                                !subsection.border
+                                                                  ? "service-theme-subsection-top-split"
+                                                                  : ""
                                                               }`}
                                                               style={{
                                                                 gridColumn: `${subsection.columnIndex + 1} / span ${subsection.columnSpan}`,
@@ -2494,13 +2544,18 @@ export default function Config({
                                                               }
                                                             >
                                                               <div className="p-3">
-                                                                {subsection.displayName &&
-                                                                  subsection.displayName}
+                                                                {rowHasTitle && (
+                                                                  <div className="service-theme-subsection-title">
+                                                                    {subsection.displayName ||
+                                                                      "\u00a0"}
+                                                                  </div>
+                                                                )}
                                                                 {subsectionTabs.length >
                                                                   0 && (
                                                                   <Nav
                                                                     variant="tabs"
                                                                     className="mt-3"
+                                                                    role="tablist"
                                                                     aria-label={`${subsection.displayName || subsection.name} configuration groups`}
                                                                   >
                                                                     {subsectionTabs.map(
@@ -2521,7 +2576,14 @@ export default function Config({
                                                                             <Nav.Link
                                                                               as="button"
                                                                               type="button"
+                                                                              role="tab"
+                                                                              id={`theme-subtab-${subsectionTab.id}`}
+                                                                              aria-controls={`theme-subtab-panel-${subsection.id}`}
                                                                               active={
+                                                                                activeSubsectionTabName ===
+                                                                                subsectionTab.name
+                                                                              }
+                                                                              aria-selected={
                                                                                 activeSubsectionTabName ===
                                                                                 subsectionTab.name
                                                                               }
@@ -2536,6 +2598,9 @@ export default function Config({
                                                                                   }),
                                                                                 );
                                                                               }}
+                                                                              onKeyDown={
+                                                                                operateThemeTabs
+                                                                              }
                                                                             >
                                                                               {
                                                                                 subsectionTab.displayName
@@ -2559,7 +2624,23 @@ export default function Config({
                                                                   </Nav>
                                                                 )}
                                                                 {subsectionPlacements && (
-                                                                  <Row>
+                                                                  <Row
+                                                                    role={
+                                                                      subsectionTabs.length
+                                                                        ? "tabpanel"
+                                                                        : undefined
+                                                                    }
+                                                                    id={
+                                                                      subsectionTabs.length
+                                                                        ? `theme-subtab-panel-${subsection.id}`
+                                                                        : undefined
+                                                                    }
+                                                                    aria-labelledby={
+                                                                      activeSubsectionTab
+                                                                        ? `theme-subtab-${activeSubsectionTab.id}`
+                                                                        : undefined
+                                                                    }
+                                                                  >
                                                                     {subsectionPlacements.map(
                                                                       (
                                                                         config: ThemePlacement,

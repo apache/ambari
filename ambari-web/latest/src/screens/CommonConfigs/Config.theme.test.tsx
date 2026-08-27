@@ -338,8 +338,27 @@ const compactTheme = (
   ],
 });
 
+type MutableThemeConfiguration = {
+  layouts: Array<{ tabs: Array<Record<string, unknown>> }>;
+  placement: { configs: Array<Record<string, unknown>> };
+  widgets: Array<Record<string, unknown>>;
+};
+
+type MutableThemeResponse = {
+  items: Array<{
+    themes: Array<{
+      ThemeInfo: {
+        theme_data: { Theme: { configuration: MutableThemeConfiguration } };
+      };
+    }>;
+  }>;
+};
+
+const mutableTheme = () =>
+  structuredClone(theme) as unknown as MutableThemeResponse;
+
 const topTabTheme = () => {
-  const response: any = structuredClone(theme);
+  const response = mutableTheme();
   const configuration =
     response.items[0].themes[0].ThemeInfo.theme_data.Theme.configuration;
   configuration.layouts[0].tabs = [
@@ -375,6 +394,63 @@ const topTabTheme = () => {
   configuration.widgets = [
     { config: "site/primary", widget: { type: "text-field" } },
     { config: "site/secondary", widget: { type: "text-field" } },
+  ];
+  return response;
+};
+
+const geometryTheme = () => {
+  const response = mutableTheme();
+  const configuration =
+    response.items[0].themes[0].ThemeInfo.theme_data.Theme.configuration;
+  configuration.layouts[0].tabs = [
+    {
+      name: "geometry",
+      "display-name": "Geometry",
+      layout: {
+        "tab-columns": "3",
+        "tab-rows": "3",
+        sections: [
+          {
+            name: "late-section",
+            "row-index": "1",
+            "column-index": "1",
+            "row-span": "2",
+            "column-span": "2",
+            "section-columns": "2",
+            "section-rows": "2",
+            subsections: [
+              {
+                name: "no-title",
+                "row-index": "1",
+                "column-index": "1",
+              },
+              {
+                name: "with-title",
+                "display-name": "Named subsection",
+                "row-index": "1",
+                "column-index": "0",
+              },
+            ],
+          },
+          {
+            name: "early-section",
+            "row-index": "0",
+            "column-index": "0",
+            subsections: [{ name: "early-subsection" }],
+          },
+        ],
+      },
+    },
+  ];
+  configuration.placement.configs = [
+    { config: "site/secondary", "subsection-name": "no-title" },
+    { config: "site/mode", "subsection-name": "with-title" },
+    { config: "site/primary", "subsection-name": "early-subsection" },
+  ];
+  configuration.widgets = [
+    { config: "site/secondary", widget: { type: "text-field" } },
+    { config: "site/mode", widget: { type: "text-field" } },
+    { config: "site/primary", widget: { type: "text-field" } },
   ];
   return response;
 };
@@ -479,6 +555,25 @@ describe("Ember Service Theme page integration", () => {
     expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
   });
 
+  it("operates visible top-level tabs with the keyboard", async () => {
+    renderConfig(topTabTheme());
+    const firstTab = await screen.findByRole("tab", {
+      name: /First settings/,
+    });
+    const secondTab = screen.getByRole("tab", { name: /Second settings/ });
+
+    firstTab.focus();
+    fireEvent.keyDown(firstTab, { key: "ArrowRight" });
+
+    expect(document.activeElement).toBe(secondTab);
+    expect(secondTab.getAttribute("aria-selected")).toBe("true");
+    expect(await screen.findByDisplayValue("secondary value")).toBeTruthy();
+
+    fireEvent.keyDown(secondTab, { key: "Home" });
+    expect(document.activeElement).toBe(firstTab);
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+  });
+
   it("hands the active top tab to a visible sibling and reports an all-empty Theme", async () => {
     const view = renderConfig(topTabTheme());
     expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
@@ -525,7 +620,46 @@ describe("Ember Service Theme page integration", () => {
       true,
     );
     expect(subsection.style.gridColumn).toBe("2 / span 1");
-    expect(screen.queryByRole("button", { name: "Hidden group" })).toBeNull();
+    expect(screen.queryByRole("tab", { name: "Hidden group" })).toBeNull();
+  });
+
+  it("preserves empty grid cells, simultaneous spans, title gaps, and semantic focus order", async () => {
+    const { container } = renderConfig(geometryTheme());
+    await screen.findByTestId("theme-grid-SVC-geometry");
+    const sections = Array.from(
+      container.querySelectorAll<HTMLElement>("[data-theme-section]"),
+    );
+    expect(sections.map((section) => section.dataset.themeSection)).toEqual([
+      "late-section",
+      "early-section",
+    ]);
+    expect(sections[0].style.gridColumn).toBe("2 / span 2");
+    expect(sections[0].style.gridRow).toBe("2 / span 2");
+    expect(sections[1].style.gridColumn).toBe("1 / span 1");
+    expect(sections[1].style.gridRow).toBe("1 / span 1");
+
+    const subsections = Array.from(
+      sections[0].querySelectorAll<HTMLElement>("[data-theme-subsection]"),
+    );
+    expect(
+      subsections.map((subsection) => subsection.dataset.themeSubsection),
+    ).toEqual(["no-title", "with-title"]);
+    subsections.forEach((subsection) => {
+      expect(
+        subsection.classList.contains("service-theme-subsection-top-split"),
+      ).toBe(true);
+    });
+    expect(
+      subsections[0].querySelector(".service-theme-subsection-title")
+        ?.textContent,
+    ).toBe("\u00a0");
+    expect(screen.getByText("Named subsection")).toBeTruthy();
+
+    expect(
+      Array.from(container.querySelectorAll<HTMLInputElement>("input")).map(
+        (input) => input.value,
+      ),
+    ).toEqual(["secondary value", "show", "primary value"]);
   });
 
   it("switches subsection tabs and preserves Theme spinner units", async () => {
@@ -533,7 +667,7 @@ describe("Ember Service Theme page integration", () => {
     expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
     expect(screen.queryByDisplayValue("secondary value")).toBeNull();
 
-    fireEvent.click(screen.getByRole("button", { name: "Secondary group" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Secondary group" }));
     expect(await screen.findByDisplayValue("secondary value")).toBeTruthy();
     expect(screen.queryByDisplayValue("primary value")).toBeNull();
     expect(screen.getByRole("spinbutton", { name: "Hours" })).toBeTruthy();
@@ -542,11 +676,28 @@ describe("Ember Service Theme page integration", () => {
     expect(screen.queryByRole("spinbutton", { name: "Seconds" })).toBeNull();
   });
 
+  it("operates visible subsection tabs with the keyboard", async () => {
+    renderConfig();
+    const primaryTab = await screen.findByRole("tab", {
+      name: /Primary group/,
+    });
+    const secondaryTab = screen.getByRole("tab", {
+      name: /Secondary group/,
+    });
+
+    primaryTab.focus();
+    fireEvent.keyDown(primaryTab, { key: "End" });
+
+    expect(document.activeElement).toBe(secondaryTab);
+    expect(secondaryTab.getAttribute("aria-selected")).toBe("true");
+    expect(await screen.findByDisplayValue("secondary value")).toBeTruthy();
+  });
+
   it("hands off from a nested tab when its condition hides it", async () => {
     const visibleHiddenTab = configs();
     visibleHiddenTab.SVC.site.properties.mode.value = "hidden";
     const view = renderConfig(theme, visibleHiddenTab);
-    const hiddenTab = await screen.findByRole("button", {
+    const hiddenTab = await screen.findByRole("tab", {
       name: "Hidden group",
     });
 
@@ -559,7 +710,7 @@ describe("Ember Service Theme page integration", () => {
     view.rerender(configElement(theme, hiddenAgain));
 
     await waitFor(() =>
-      expect(screen.queryByRole("button", { name: "Hidden group" })).toBeNull(),
+      expect(screen.queryByRole("tab", { name: "Hidden group" })).toBeNull(),
     );
     expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
     expect(screen.queryByDisplayValue("secondary value")).toBeNull();
@@ -567,7 +718,7 @@ describe("Ember Service Theme page integration", () => {
 
   it("passes Theme display name and required-properties to the UI-only connection widget", async () => {
     renderConfig();
-    fireEvent.click(await screen.findByRole("button", { name: "Secondary group" }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Secondary group" }));
     expect(
       await screen.findByRole("button", { name: "Verify custom database" }),
     ).toBeTruthy();
@@ -584,7 +735,7 @@ describe("Ember Service Theme page integration", () => {
 
   it("disables UI-only Theme actions in the read-only Host consumer", async () => {
     renderConfig(theme, configs(), { hostConfigs: true });
-    fireEvent.click(await screen.findByRole("button", { name: "Secondary group" }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Secondary group" }));
     const button = await screen.findByRole("button", {
       name: "Verify custom database",
     });

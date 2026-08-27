@@ -1704,6 +1704,17 @@ pre {
   border-left: 1px solid #d7dde3;
 }
 
+.service-theme-subsection-top-split {
+  border-top: 1px solid #d7dde3;
+  padding-top: 0.5rem;
+}
+
+.service-theme-subsection-title {
+  min-height: 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
 @media (max-width: 991.98px) {
   .service-theme-grid,
   .service-theme-subsection-grid {
