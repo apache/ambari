@@ -24,7 +24,8 @@ export function parsePersistedValue<T>(value: unknown, fallback: T): T {
     return value as T;
   }
   try {
-    return JSON.parse(value) as T;
+    const parsed = JSON.parse(value);
+    return parsed === null ? fallback : parsed as T;
   } catch {
     return fallback;
   }

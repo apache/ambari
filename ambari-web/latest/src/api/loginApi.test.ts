@@ -18,15 +18,22 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ request: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  request: vi.fn(),
+  suppressedRequest: vi.fn(),
+}));
 vi.mock("./config/axiosConfig", () => ({
   ambariApi: { request: mocks.request },
+  supressErrorAmbariApi: { request: mocks.suppressedRequest },
 }));
 
 import LoginApi from "./loginApi";
 
 describe("login API", () => {
-  beforeEach(() => mocks.request.mockReset());
+  beforeEach(() => {
+    mocks.request.mockReset();
+    mocks.suppressedRequest.mockReset();
+  });
 
   it("sends UTF-8 Basic credentials without exposing them in the body", async () => {
     mocks.request.mockResolvedValue({});
@@ -36,6 +43,8 @@ describe("login API", () => {
       url: "/auth",
       method: "POST",
       headers: expect.objectContaining({
+        "Content-Type": "text/plain",
+        "X-Requested-By": "X-Requested-By",
         Authorization: `Basic ${Buffer.from("用户:päss", "utf8").toString("base64")}`,
       }),
       skipAuthRedirect: true,
@@ -48,5 +57,16 @@ describe("login API", () => {
     expect(mocks.request).toHaveBeenCalledWith(expect.objectContaining({
       url: "/users/user%2Fname%20%25?fields=*,privileges/PrivilegeInfo/*",
     }));
+  });
+
+  it("loads an optional MOTD without displaying the global API error toast", async () => {
+    mocks.suppressedRequest.mockRejectedValue({ response: { status: 404 } });
+
+    await expect(LoginApi.loadLoginMessage()).resolves.toBeNull();
+    expect(mocks.suppressedRequest).toHaveBeenCalledWith({
+      url: "/settings/motd",
+      method: "GET",
+    });
+    expect(mocks.request).not.toHaveBeenCalled();
   });
 });
