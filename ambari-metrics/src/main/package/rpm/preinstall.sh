@@ -34,3 +34,10 @@ if ! getent passwd "$metrics_user" >/dev/null; then
     --no-create-home --shell "$nologin_shell" --comment "Ambari Metrics" \
     "$metrics_user"
 fi
+
+install -d -m 0750 -o "$metrics_user" -g "$metrics_group" \
+  /etc/ambari-metrics \
+  /var/lib/ambari-metrics \
+  /var/lib/ambari-metrics/victoriametrics \
+  /var/log/ambari-metrics \
+  /var/run/ambari-metrics
