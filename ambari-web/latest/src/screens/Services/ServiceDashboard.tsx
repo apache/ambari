@@ -40,7 +40,7 @@ enum TabNames {
 const serviceTabs: Record<string, string[]> = {
   HDFS: ["summary", "configs", "metrics"],
   YARN: ["summary", "configs", "metrics"],
-  HIVE: ["summary", "configs"],
+  HIVE: ["summary", "configs", "metrics"],
   KAFKA: ["summary", "configs"],
   ZOOKEEPER: ["summary", "configs"],
   HBASE: ["summary", "configs", "metrics"],
