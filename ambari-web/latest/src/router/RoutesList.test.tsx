@@ -35,6 +35,9 @@ type GuardProps = {
   children: ReactElement<GuardProps>;
   feature?: string;
   requireAuthorization?: string;
+  redirectTo?: string;
+  replace?: boolean;
+  to?: string;
 };
 
 function element(route: RouteObject): ReactElement<GuardProps> {
