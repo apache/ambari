@@ -49,6 +49,7 @@ const serviceTabs: Record<string, string[]> = {
   RANGER_KMS: ["summary", "configs"],
   SOLR: ["summary", "configs"],
   FLUME: ["summary", "configs"],
+  VICTORIAMETRICS: ["summary", "configs"],
   AMBARI_INFRA_SOLR: ["summary", "configs"],
   LIVY: ["summary", "configs"],
   TEZ: ["summary", "configs"],

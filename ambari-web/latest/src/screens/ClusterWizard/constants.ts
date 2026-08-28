@@ -36,6 +36,7 @@ export const displayOrder: string[] = [
   "FLUME",
   "ACCUMULO",
   "AMBARI_INFRA_SOLR",
+  "VICTORIAMETRICS",
   "ATLAS",
   "KAFKA",
   "KNOX",
