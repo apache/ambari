@@ -352,6 +352,7 @@
             </package>
             <package>
               <name>ranger_${stack_version}-hdfs-plugin</name>
+              <condition>should_install_ranger_hdfs_plugin</condition>
             </package>
           </packages>
         </osSpecific>

@@ -1,35 +1,27 @@
 {
-  "name": "CapacityScheduler",
-  "description": "Package description",
-  "version": "0.0.1",
-  "homepage": "",
-  "repository": {
-    "type": "git",
-    "url": ""
-  },
-  "engines": {
-    "node": "~0.6.10 || 0.8 || 0.9"
-  },
+  "name": "ambari-capacity-scheduler-view",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "start": "brunch watch --server"
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run"
   },
   "dependencies": {
-    "javascript-brunch": "^1.7.1",
-    "css-brunch": "^1.7.0",
-    "uglify-js-brunch": "^1.7.7",
-    "clean-css-brunch": "^1.7.1",
-    "bower": "^1.2.8",
-    "brunch": "^1.7.13",
-    "scaffolt": "^0.4.3",
-    "ember-precompile-brunch": "^0.1.0",
-    "less-brunch": "^1.7.2"
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
-  "devDependencies": {},
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ]
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/react": "^19.0.3",
+    "@types/react-dom": "^19.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "jsdom": "^25.0.1",
+    "typescript": "~5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  }
 }

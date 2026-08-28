@@ -1,10 +1,12 @@
 <!---
 Licensed to the Apache Software Foundation (ASF) under one or more
-contributor license agreements.  See the NOTICE file distributed with
+contributor license agreements. See the NOTICE file distributed with
 this work for additional information regarding copyright ownership.
 The ASF licenses this file to You under the Apache License, Version 2.0
 (the "License"); you may not use this file except in compliance with
-the License.  You may obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,56 +15,43 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-# Files-view
+# Files View UI
 
-This README outlines the details of collaborating on this Ember application.
-A short introduction of this app could easily go here.
+This directory contains the React and TypeScript frontend for Ambari's HDFS
+Files View. The Java View services remain in the parent Maven module and expose
+the HDFS operations used by this application.
 
 ## Prerequisites
 
-You will need the following things properly installed on your computer.
+- Node.js 20 or newer
+- npm 10 or newer
 
-* [Git](http://git-scm.com/)
-* [Node.js](http://nodejs.org/) (with NPM)
-* [Bower](http://bower.io/)
-* [Ember CLI](http://www.ember-cli.com/)
-* [PhantomJS](http://phantomjs.org/)
+## Install
 
-## Installation
+```bash
+npm ci
+```
 
-* `git clone <repository-url>` this repository
-* change into the new directory
-* `npm install`
-* `bower install`
+## Test
 
-## Running / Development
+```bash
+npm test
+```
 
-* `ember server`
-* Visit your app at [http://localhost:4200](http://localhost:4200).
+## Build
 
-### Code Generators
+```bash
+npm run build
+```
 
-Make use of the many generators for code, try `ember help generate` for more details
+Vite writes deployable resources to `dist`. Maven runs `npm ci` and the
+production build before packaging that directory into the Files View JAR.
 
-### Running Tests
+The production application derives its View name, version, and instance from
+the Ambari URL. A standalone development server therefore needs an Ambari API
+proxy or mocked API responses.
 
-* `ember test`
-* `ember test --server`
-
-### Building
-
-* `ember build` (development)
-* `ember build --environment production` (production)
-
-### Deploying
-
-Specify what it takes to deploy your app.
-
-## Further Reading / Useful Links
-
-* [ember.js](http://emberjs.com/)
-* [ember-cli](http://www.ember-cli.com/)
-* Development Browser Extensions
-  * [ember inspector for chrome](https://chrome.google.com/webstore/detail/ember-inspector/bmdblncegkenkacieihfhpjfppoconhi)
-  * [ember inspector for firefox](https://addons.mozilla.org/en-US/firefox/addon/ember-inspector/)
-
+The UI preserves the existing Files View REST contract under
+`resources/files`: service health, home/trash discovery, directory listing,
+upload, preview, file operations, archive downloads, and concatenated file
+downloads.

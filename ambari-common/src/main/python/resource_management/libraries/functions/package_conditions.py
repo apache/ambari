@@ -25,6 +25,10 @@ __all__ = [
   "should_install_ams_collector",
   "should_install_ams_grafana",
   "should_install_mysql",
+  "should_install_ranger_hbase_plugin",
+  "should_install_ranger_hdfs_plugin",
+  "should_install_ranger_hive_plugin",
+  "should_install_ranger_yarn_plugin",
   "should_install_ranger_tagsync",
 ]
 
@@ -108,6 +112,35 @@ def should_install_mysql_connector():
     return False
   return _has_applicable_local_component(
     config, ["MYSQL_SERVER", "HIVE_METASTORE", "HIVE_SERVER", "HIVE_SERVER_INTERACTIVE"]
+  )
+
+
+def _is_configuration_enabled(config_type, property_name):
+  value = default(f"/configurations/{config_type}/{property_name}", "No")
+  return str(value).lower() == "yes"
+
+
+def should_install_ranger_hdfs_plugin():
+  return _is_configuration_enabled(
+    "ranger-hdfs-plugin-properties", "ranger-hdfs-plugin-enabled"
+  )
+
+
+def should_install_ranger_yarn_plugin():
+  return _is_configuration_enabled(
+    "ranger-yarn-plugin-properties", "ranger-yarn-plugin-enabled"
+  )
+
+
+def should_install_ranger_hive_plugin():
+  return _is_configuration_enabled(
+    "ranger-hive-plugin-properties", "ranger-hive-plugin-enabled"
+  )
+
+
+def should_install_ranger_hbase_plugin():
+  return _is_configuration_enabled(
+    "ranger-hbase-plugin-properties", "ranger-hbase-plugin-enabled"
   )
 
 

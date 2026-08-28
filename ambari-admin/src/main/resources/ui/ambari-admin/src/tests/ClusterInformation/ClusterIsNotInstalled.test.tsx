@@ -143,7 +143,7 @@ describe('Cluster is not installed', () => {
             await userEvent.click(launchInstallWizardButton);
 
             // Wait for the URL to change
-            expect(window.location.href).toBe('/#/installer/step0');
+            expect(window.location.href).toBe('/latest/#/installer/step0');
         });
     });
 

@@ -26,7 +26,7 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.util.HashMap;

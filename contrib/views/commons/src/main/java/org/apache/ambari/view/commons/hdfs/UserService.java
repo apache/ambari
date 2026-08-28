@@ -23,12 +23,12 @@ import org.apache.ambari.view.commons.exceptions.NotFoundFormattedException;
 import org.apache.ambari.view.commons.exceptions.ServiceFormattedException;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.io.FileNotFoundException;
 import java.util.Map;
 

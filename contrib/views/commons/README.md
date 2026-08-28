@@ -30,7 +30,7 @@ In the service class for the project use `commons` projects code in the way desc
 ```java
 package org.apache.ambari.view.filebrowser;
 
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 
 import org.apache.ambari.view.ViewContext;
 

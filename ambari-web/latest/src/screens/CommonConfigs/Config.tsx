@@ -98,6 +98,7 @@ import {
 import {
   ConfigThemeView,
   findThemeConfigProperty,
+  layoutThemeGrid,
   normalizeDefaultThemeResponse,
   normalizeThemeResponse,
   resolveThemeConditionAttributes,
@@ -702,13 +703,21 @@ export default function Config({
       if (!serviceTheme) return;
       Object.values(serviceTheme.subsectionProperties).forEach(
         ({ properties }) => {
-          properties.forEach((placement) =>
-            addConditionDiagnostics(
-              serviceName,
-              `${serviceName} / ${placement.themeName} / ${placement.configPath}`,
-              placement.dependsOn,
-            ),
-          );
+          properties.forEach((placement) => {
+            if (
+              findThemeConfigProperty(
+                configProperties,
+                serviceName,
+                placement.configPath,
+              )
+            ) {
+              addConditionDiagnostics(
+                serviceName,
+                `${serviceName} / ${placement.themeName} / ${placement.configPath}`,
+                placement.dependsOn,
+              );
+            }
+          });
         },
       );
       Object.values(serviceTheme.tabs).forEach((tab) => {
@@ -2540,16 +2549,23 @@ export default function Config({
                                             data-testid={`theme-grid-${serviceKey}-${key}`}
                                             style={{
                                               display: "grid",
-                                              gridTemplateColumns: `repeat(${theme[serviceKey].tabs[key].columns}, minmax(0, 1fr))`,
-                                              gridTemplateRows: `repeat(${theme[serviceKey].tabs[key].rows}, minmax(min-content, auto))`,
+                                              gridTemplateColumns: `repeat(${layoutThemeGrid(theme[serviceKey].tabs[key].sections).columns}, minmax(0, 1fr))`,
+                                              gridTemplateRows: `repeat(${layoutThemeGrid(theme[serviceKey].tabs[key].sections).rows}, minmax(min-content, auto))`,
                                               gap: "0.5rem",
                                             }}
                                           >
                                             {theme[serviceKey]?.tabs[key]
                                               ?.sections &&
-                                              theme[serviceKey].tabs[
-                                                key
-                                              ].sections.map((section) => (
+                                              layoutThemeGrid(
+                                                theme[serviceKey].tabs[key]
+                                                  .sections,
+                                              ).cells.map(({
+                                                item: section,
+                                                rowIndex: sectionRowIndex,
+                                                columnIndex: sectionColumnIndex,
+                                                rowSpan: sectionRowSpan,
+                                                columnSpan: sectionColumnSpan,
+                                              }) => (
                                                 <div
                                                   className="p-1"
                                                   data-theme-section={
@@ -2562,8 +2578,8 @@ export default function Config({
                                                     section.columnIndex
                                                   }
                                                   style={{
-                                                    gridColumn: `${section.columnIndex + 1} / span ${section.columnSpan}`,
-                                                    gridRow: `${section.rowIndex + 1} / span ${section.rowSpan}`,
+                                                    gridColumn: `${sectionColumnIndex + 1} / span ${sectionColumnSpan}`,
+                                                    gridRow: `${sectionRowIndex + 1} / span ${sectionRowSpan}`,
                                                     minWidth: 0,
                                                   }}
                                                   key={section.id}
@@ -2576,12 +2592,24 @@ export default function Config({
                                                       className="service-theme-subsection-grid"
                                                       style={{
                                                         display: "grid",
-                                                        gridTemplateColumns: `repeat(${section.columns}, minmax(0, 1fr))`,
-                                                        gridTemplateRows: `repeat(${section.rows}, minmax(min-content, auto))`,
+                                                        gridTemplateColumns: `repeat(${layoutThemeGrid(section.subsections).columns}, minmax(0, 1fr))`,
+                                                        gridTemplateRows: `repeat(${layoutThemeGrid(section.subsections).rows}, minmax(min-content, auto))`,
                                                       }}
                                                     >
-                                                      {section.subsections.map(
-                                                        (subsection) => {
+                                                      {layoutThemeGrid(
+                                                        section.subsections,
+                                                      ).cells.map(
+                                                        ({
+                                                          item: subsection,
+                                                          rowIndex:
+                                                            subsectionRowIndex,
+                                                          columnIndex:
+                                                            subsectionColumnIndex,
+                                                          rowSpan:
+                                                            subsectionRowSpan,
+                                                          columnSpan:
+                                                            subsectionColumnSpan,
+                                                        }) => {
                                                           const isVisible =
                                                             subsection.dependsOn
                                                               .length
@@ -2667,8 +2695,8 @@ export default function Config({
                                                                   : ""
                                                               }`}
                                                               style={{
-                                                                gridColumn: `${subsection.columnIndex + 1} / span ${subsection.columnSpan}`,
-                                                                gridRow: `${subsection.rowIndex + 1} / span ${subsection.rowSpan}`,
+                                                                gridColumn: `${subsectionColumnIndex + 1} / span ${subsectionColumnSpan}`,
+                                                                gridRow: `${subsectionRowIndex + 1} / span ${subsectionRowSpan}`,
                                                                 minWidth: 0,
                                                               }}
                                                               key={

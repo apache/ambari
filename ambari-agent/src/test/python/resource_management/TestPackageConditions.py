@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+"""
+
+from unittest import TestCase
+
+from mock.mock import patch
+
+from resource_management.libraries.functions import package_conditions
+
+
+class TestPackageConditions(TestCase):
+  RANGER_PLUGIN_CONDITIONS = (
+    (
+      package_conditions.should_install_ranger_hdfs_plugin,
+      "/configurations/ranger-hdfs-plugin-properties/ranger-hdfs-plugin-enabled",
+    ),
+    (
+      package_conditions.should_install_ranger_yarn_plugin,
+      "/configurations/ranger-yarn-plugin-properties/ranger-yarn-plugin-enabled",
+    ),
+    (
+      package_conditions.should_install_ranger_hive_plugin,
+      "/configurations/ranger-hive-plugin-properties/ranger-hive-plugin-enabled",
+    ),
+    (
+      package_conditions.should_install_ranger_hbase_plugin,
+      "/configurations/ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled",
+    ),
+  )
+
+  def test_ranger_plugin_packages_are_installed_only_when_enabled(self):
+    for condition, path in self.RANGER_PLUGIN_CONDITIONS:
+      with self.subTest(condition=condition.__name__):
+        with patch.object(package_conditions, "default", return_value="No") as default:
+          self.assertFalse(condition())
+          default.assert_called_once_with(path, "No")
+
+        with patch.object(package_conditions, "default", return_value="Yes") as default:
+          self.assertTrue(condition())
+          default.assert_called_once_with(path, "No")

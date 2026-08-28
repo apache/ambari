@@ -38,6 +38,7 @@ import { ClusterProgressStatus } from "../../../../constants";
 import { Alert, Button } from "react-bootstrap";
 import { claimWizard, releaseWizard } from "../../../../Utils/wizardOwnership";
 import { resolveRecoveryStep } from "../../../ClusterWizard/wizardRecovery";
+import { useNavigate } from "react-router-dom";
 
 interface AddHostContextProps {
   state: State;
@@ -58,6 +59,7 @@ export const AddHostProvider: React.FC<{
   stepWizardUtilities: any;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
+  const navigate = useNavigate();
   const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [currStepData, setCurrStepData] = useState({});
   const [installedHosts, setInstalledHosts] = useState([]);
@@ -389,7 +391,7 @@ export const AddHostProvider: React.FC<{
       }),
     ));
     await releaseWizard();
-    window.location.assign("/main/hosts");
+    navigate("/main/hosts", { replace: true });
   }
 
   async function flushOnStepChange(nextStep: number, clusterState?: string) {

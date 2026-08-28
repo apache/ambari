@@ -625,18 +625,18 @@ describe("Ember Service Theme page integration", () => {
     );
   });
 
-  it("renders Theme grid geometry, borders, splitters, and filtered subsection tabs", async () => {
+  it("renders Ember-compatible Theme geometry, splitters, and filtered subsection tabs", async () => {
     const { container } = renderConfig();
     const grid = await screen.findByTestId("theme-grid-SVC-general");
-    expect(grid.style.gridTemplateColumns).toBe("repeat(3, minmax(0, 1fr))");
+    expect(grid.style.gridTemplateColumns).toBe("repeat(2, minmax(0, 1fr))");
     expect(grid.style.gridTemplateRows).toBe(
-      "repeat(4, minmax(min-content, auto))",
+      "repeat(3, minmax(min-content, auto))",
     );
 
     const section = container.querySelector(
       '[data-theme-section="main-section"]',
     ) as HTMLElement;
-    expect(section.style.gridColumn).toBe("2 / span 2");
+    expect(section.style.gridColumn).toBe("1 / span 2");
     expect(section.style.gridRow).toBe("2 / span 2");
 
     const subsection = container.querySelector(
@@ -648,27 +648,29 @@ describe("Ember Service Theme page integration", () => {
     expect(subsection.classList.contains("service-theme-subsection-split")).toBe(
       true,
     );
-    expect(subsection.style.gridColumn).toBe("2 / span 1");
+    expect(subsection.style.gridColumn).toBe("1 / span 1");
     expect(screen.queryByRole("tab", { name: "Hidden group" })).toBeNull();
   });
 
-  it("preserves empty grid cells, simultaneous spans, title gaps, and semantic focus order", async () => {
+  it("uses Ember row order and automatic columns with spans and title gaps", async () => {
     const { container } = renderConfig(geometryTheme());
     await screen.findByTestId("theme-grid-SVC-geometry");
     const sections = Array.from(
       container.querySelectorAll<HTMLElement>("[data-theme-section]"),
     );
     expect(sections.map((section) => section.dataset.themeSection)).toEqual([
-      "late-section",
       "early-section",
+      "late-section",
     ]);
-    expect(sections[0].style.gridColumn).toBe("2 / span 2");
-    expect(sections[0].style.gridRow).toBe("2 / span 2");
-    expect(sections[1].style.gridColumn).toBe("1 / span 1");
-    expect(sections[1].style.gridRow).toBe("1 / span 1");
+    const earlySection = sections[0];
+    const lateSection = sections[1];
+    expect(earlySection.style.gridColumn).toBe("1 / span 1");
+    expect(earlySection.style.gridRow).toBe("1 / span 1");
+    expect(lateSection.style.gridColumn).toBe("1 / span 2");
+    expect(lateSection.style.gridRow).toBe("2 / span 2");
 
     const subsections = Array.from(
-      sections[0].querySelectorAll<HTMLElement>("[data-theme-subsection]"),
+      lateSection.querySelectorAll<HTMLElement>("[data-theme-subsection]"),
     );
     expect(
       subsections.map((subsection) => subsection.dataset.themeSubsection),
@@ -683,12 +685,14 @@ describe("Ember Service Theme page integration", () => {
         ?.textContent,
     ).toBe("\u00a0");
     expect(screen.getByText("Named subsection")).toBeTruthy();
+    expect(subsections[0].style.gridColumn).toBe("1 / span 1");
+    expect(subsections[1].style.gridColumn).toBe("2 / span 1");
 
     expect(
       Array.from(container.querySelectorAll<HTMLInputElement>("input")).map(
         (input) => input.value,
       ),
-    ).toEqual(["secondary value", "show", "primary value"]);
+    ).toEqual(["primary value", "secondary value", "show"]);
   });
 
   it("switches subsection tabs and preserves Theme spinner units", async () => {
@@ -921,6 +925,34 @@ describe("Ember Service Theme page integration", () => {
     expect(diagnostics.textContent).toContain(
       "Condition atom uses unsupported syntax.",
     );
+  });
+
+  it("ignores condition diagnostics for placements whose target config is absent", async () => {
+    renderConfig(
+      compactTheme(
+        [
+          {
+            config: "site/missing-target",
+            "subsection-name": "subsection",
+            "depends-on": [
+              {
+                if: "${site/missing-source}",
+                then: { property_value_attributes: { visible: false } },
+              },
+            ],
+          },
+        ],
+        [
+          {
+            config: "site/missing-target",
+            widget: { type: "text-field" },
+          },
+        ],
+      ),
+    );
+
+    expect(await screen.findByRole("tab", { name: "settings" })).toBeTruthy();
+    expect(screen.queryByTestId("theme-diagnostics")).toBeNull();
   });
 
   it("re-evaluates placement conditions after an ordinary Widget edit", async () => {

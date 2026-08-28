@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 import {Button} from "react-bootstrap";
+import { latestAmbariUrl } from "../utils/navigation";
 
 interface InstallClusterButtonProps {
     onButtonClick: () => void;
@@ -25,7 +26,7 @@ interface InstallClusterButtonProps {
 const InstallClusterButton: React.FC<InstallClusterButtonProps> = ({ onButtonClick, setInstallWizardLaunched }) => {
     const handleRedirectToInstallCluster = () => {
         setInstallWizardLaunched(false);
-        window.location.href = "/#/installer/step0";
+        window.location.href = latestAmbariUrl("/installer/step0");
         onButtonClick();
     };
 
