@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.service.metrics;
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
@@ -30,11 +31,14 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
-/** Creates the default datasource for an installed, unauthenticated VictoriaMetrics service. */
+/** Creates or synchronizes the datasource for an Ambari-managed VictoriaMetrics service. */
 @Singleton
 public class BuiltinDatasourceProvisioner {
   static final String DATASOURCE_NAME = "Ambari VictoriaMetrics";
@@ -44,6 +48,7 @@ public class BuiltinDatasourceProvisioner {
   private static final String VMAUTH_COMPONENT = "VMAUTH";
   private static final String SERVER_COMPONENT = "VICTORIAMETRICS_SERVER";
   private static final String VMSELECT_COMPONENT = "VMSELECT";
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private final DatasourceDAO datasourceDAO;
   private final Provider<Clusters> clusters;
@@ -55,7 +60,8 @@ public class BuiltinDatasourceProvisioner {
   }
 
   public void provision(String clusterName) {
-    if (datasourceDAO.findByNameAndCluster(DATASOURCE_NAME, clusterName) != null) {
+    DatasourceEntity existing = datasourceDAO.findByNameAndCluster(DATASOURCE_NAME, clusterName);
+    if (existing != null && !isManaged(existing)) {
       return;
     }
     try {
@@ -66,7 +72,7 @@ public class BuiltinDatasourceProvisioner {
       }
       Config authConfig = cluster.getDesiredConfigByType("victoriametrics-auth");
       Map<String, String> auth = authConfig == null ? Map.of() : authConfig.getProperties();
-      if (Boolean.parseBoolean(auth.getOrDefault("require_authentication", "false"))) {
+      if (existing == null && Boolean.parseBoolean(auth.getOrDefault("require_authentication", "false"))) {
         LOG.info("Skipping managed VictoriaMetrics datasource for cluster {} because VMAUTH authentication is enabled",
             clusterName);
         return;
@@ -74,6 +80,10 @@ public class BuiltinDatasourceProvisioner {
 
       String url = endpoint(service, cluster, auth);
       if (url == null) {
+        return;
+      }
+      if (existing != null) {
+        synchronizeEndpoint(existing, url);
         return;
       }
       DatasourceEntity entity = new DatasourceEntity();
@@ -92,10 +102,39 @@ public class BuiltinDatasourceProvisioner {
       entity.setUpdatedBy("system");
       datasourceDAO.create(entity);
     } catch (AmbariException | RuntimeException e) {
-      if (datasourceDAO.findByNameAndCluster(DATASOURCE_NAME, clusterName) == null) {
-        LOG.warn("Unable to provision the managed VictoriaMetrics datasource for cluster {}", clusterName, e);
-      }
+      LOG.warn("Unable to provision or synchronize the managed VictoriaMetrics datasource for cluster {}",
+          clusterName, e);
     }
+  }
+
+  private boolean isManaged(DatasourceEntity entity) {
+    try {
+      JsonNode settings = OBJECT_MAPPER.readTree(entity.getSettings());
+      return settings != null && settings.isObject()
+          && settings.path("managed").asBoolean(false)
+          && "victoriametrics".equals(settings.path("provider").asText());
+    } catch (IOException | RuntimeException e) {
+      return false;
+    }
+  }
+
+  private void synchronizeEndpoint(DatasourceEntity entity, String url) {
+    ObjectNode http = OBJECT_MAPPER.createObjectNode();
+    try {
+      JsonNode existingHttp = OBJECT_MAPPER.readTree(entity.getHttp());
+      if (existingHttp != null && existingHttp.isObject()) {
+        http = (ObjectNode) existingHttp.deepCopy();
+      }
+    } catch (IOException | RuntimeException e) {
+      LOG.warn("Replacing invalid HTTP configuration for managed datasource {}", entity.getId());
+    }
+    if (url.equals(http.path("url").asText())) {
+      return;
+    }
+    http.put("url", url);
+    entity.setHttp(http.toString());
+    entity.setUpdatedBy("system");
+    datasourceDAO.merge(entity);
   }
 
   private String endpoint(Service service, Cluster cluster, Map<String, String> auth) {

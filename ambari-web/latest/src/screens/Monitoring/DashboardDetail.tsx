@@ -27,7 +27,7 @@ import { AppContext } from "../../store/context";
 import { useAuth } from "../../hooks/useAuth";
 import { Dashboard, DashboardPanel as Panel, DashboardPayload, Datasource, JsonObject } from "./types";
 import DashboardPanel from "./DashboardPanel";
-import { RESERVED_DASHBOARD_VARIABLES } from "./utils";
+import { parseDashboardPayload, RESERVED_DASHBOARD_VARIABLES } from "./utils";
 
 const toLocalInput = (date: Date) => {
   const offset = date.getTimezoneOffset() * 60_000;
@@ -70,7 +70,7 @@ export default function DashboardDetail({ dashboardId: dashboardIdProp, embedded
         MetricsApi.listDatasources(clusterName),
       ]);
       const raw = detail.configs || "{}";
-      const parsed = JSON.parse(raw) as DashboardPayload;
+      const parsed = parseDashboardPayload(raw);
       setDashboard(detail);
       setRawPayload(raw);
       setPayload(parsed);
@@ -104,7 +104,7 @@ export default function DashboardDetail({ dashboardId: dashboardIdProp, embedded
     if (!dashboard) return;
     setSaving(true);
     try {
-      const parsed = JSON.parse(rawPayload) as DashboardPayload;
+      const parsed = parseDashboardPayload(rawPayload);
       await MetricsApi.updateDashboardConfigs(clusterName, dashboard.id, rawPayload);
       setPayload(parsed);
       setShowJson(false);

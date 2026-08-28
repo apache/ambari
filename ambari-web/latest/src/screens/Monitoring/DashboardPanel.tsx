@@ -30,6 +30,7 @@ import {
   PrometheusResult,
 } from "./types";
 import {
+  normalizePrometheusResults,
   replaceDashboardVariables,
   resolvePanelDatasourceId,
   withDashboardBuiltIns,
@@ -109,7 +110,8 @@ export default function DashboardPanel({
 
   useEffect(() => {
     if (isStatic) return;
-    const targets = (panel.targets || []).filter((target) => !target.hide && target.expr);
+    const targets = (Array.isArray(panel.targets) ? panel.targets : []).filter((target) => !target.hide
+      && typeof target.expr === "string" && target.expr.trim());
     if (panelCategory !== "prometheus" || !selectedDatasourceId || targets.length === 0) {
       setResults([]);
       setError(panelCategory !== "prometheus"
@@ -139,7 +141,7 @@ export default function DashboardPanel({
       responses.forEach((response, targetIndex) => {
         if (response.status === "fulfilled" && response.value.status === "success") {
           const target = targets[targetIndex];
-          (response.value.data?.result || []).forEach((result, resultIndex) => {
+          normalizePrometheusResults(response.value.data?.result).forEach((result, resultIndex) => {
             values.push({
               ...result,
               displayName: resolveTargetLegend(
@@ -176,9 +178,12 @@ export default function DashboardPanel({
           ...panel,
           datasourceValue: selectedDatasourceId,
           datasourceName,
-          targets: (panel.targets || []).map((target) => ({
+          targets: (Array.isArray(panel.targets) ? panel.targets : []).map((target) => ({
             ...target,
-            expr: replaceDashboardVariables(target.expr || "", effectiveVariables),
+            expr: replaceDashboardVariables(
+              typeof target.expr === "string" ? target.expr : "",
+              effectiveVariables,
+            ),
           })),
           range: { start, end },
         },

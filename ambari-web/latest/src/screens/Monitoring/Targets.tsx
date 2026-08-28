@@ -48,7 +48,11 @@ export default function Targets() {
     setError("");
     try {
       const response = await MetricsApi.targets(datasourceId);
-      setTargets((response.data?.activeTargets || []) as PrometheusTarget[]);
+      const activeTargets = response.data?.activeTargets;
+      setTargets(Array.isArray(activeTargets)
+        ? activeTargets.filter((target): target is PrometheusTarget => target !== null
+          && typeof target === "object" && !Array.isArray(target))
+        : []);
     } catch (caught: unknown) {
       setTargets([]);
       setError(caught instanceof Error ? caught.message : "Unable to load scrape targets");

@@ -16,11 +16,63 @@
  * limitations under the License.
  */
 
-import { ChartShare, Dashboard, DashboardPanel, Datasource, JsonObject } from "./types";
+import {
+  ChartShare,
+  Dashboard,
+  DashboardPanel,
+  DashboardPayload,
+  Datasource,
+  JsonObject,
+  PrometheusResult,
+} from "./types";
 
 export type DashboardVariables = Record<string, string | number | string[]>;
 
 export const RESERVED_DASHBOARD_VARIABLES = new Set(["cluster", "__rate_interval"]);
+
+const isJsonObject = (value: unknown): value is JsonObject => value !== null
+  && typeof value === "object"
+  && !Array.isArray(value);
+
+const normalizeDashboardPanel = (value: JsonObject): DashboardPanel => ({
+  ...value,
+  targets: Array.isArray(value.targets) ? value.targets.filter(isJsonObject) : [],
+}) as DashboardPanel;
+
+export const normalizeDashboardPayload = (value: unknown): DashboardPayload => {
+  const payload = isJsonObject(value) ? value : {};
+  return {
+    ...payload,
+    var: Array.isArray(payload.var) ? payload.var.filter(isJsonObject) : [],
+    panels: Array.isArray(payload.panels)
+      ? payload.panels.filter(isJsonObject).map(normalizeDashboardPanel)
+      : [],
+  };
+};
+
+export const parseDashboardPayload = (value: string): DashboardPayload => normalizeDashboardPayload(
+  JSON.parse(value) as unknown,
+);
+
+const isPrometheusSample = (value: unknown): value is [number, string] => Array.isArray(value)
+  && typeof value[0] === "number"
+  && typeof value[1] === "string";
+
+export const normalizePrometheusResults = (value: unknown): PrometheusResult[] => {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isJsonObject).flatMap((result) => {
+    if (!isJsonObject(result.metric)) return [];
+    const metric = Object.fromEntries(
+      Object.entries(result.metric).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+    );
+    return [{
+      ...result,
+      metric,
+      value: isPrometheusSample(result.value) ? result.value : undefined,
+      values: Array.isArray(result.values) ? result.values.filter(isPrometheusSample) : undefined,
+    } as PrometheusResult];
+  });
+};
 
 export const escapePrometheusLabelValue = (value: string) => value
   .replaceAll("\\", "\\\\")
@@ -84,10 +136,10 @@ export const panelFromShare = (share: ChartShare): DashboardPanel | null => {
     const parsed = JSON.parse(share.configs) as JsonObject;
     const dataProps = parsed.dataProps;
     if (!dataProps || Array.isArray(dataProps) || typeof dataProps !== "object") return null;
-    return {
+    return normalizeDashboardPanel({
       ...(dataProps as JsonObject),
       datasourceValue: share.datasource_id || (dataProps as JsonObject).datasourceValue,
-    } as DashboardPanel;
+    });
   } catch {
     return null;
   }

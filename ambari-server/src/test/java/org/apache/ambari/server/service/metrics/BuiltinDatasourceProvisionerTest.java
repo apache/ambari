@@ -93,4 +93,58 @@ public class BuiltinDatasourceProvisionerTest {
 
     verify(datasourceDAO, never()).create(org.mockito.ArgumentMatchers.any(DatasourceEntity.class));
   }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testUpdatesManagedDatasourceAfterClusterTopologyChanges() throws Exception {
+    DatasourceDAO datasourceDAO = mock(DatasourceDAO.class);
+    Provider<Clusters> clustersProvider = mock(Provider.class);
+    Clusters clusters = mock(Clusters.class);
+    Cluster cluster = mock(Cluster.class);
+    Service service = mock(Service.class);
+    ServiceComponent vmselect = mock(ServiceComponent.class);
+    Config metricsConfig = mock(Config.class);
+    DatasourceEntity existing = new DatasourceEntity();
+    existing.setId(7L);
+    existing.setSettings("{\"managed\":true,\"provider\":\"victoriametrics\"}");
+    existing.setHttp("{\"connect_timeout\":\"5s\",\"url\":\"http://old.example.test:8428\"}");
+    when(datasourceDAO.findByNameAndCluster("Ambari VictoriaMetrics", "west")).thenReturn(existing);
+    when(clustersProvider.get()).thenReturn(clusters);
+    when(clusters.getCluster("west")).thenReturn(cluster);
+    when(cluster.getServices()).thenReturn(Map.of("VICTORIAMETRICS", service));
+    when(cluster.getDesiredConfigByType("victoriametrics")).thenReturn(metricsConfig);
+    when(metricsConfig.getProperties()).thenReturn(Map.of(
+        "deployment_mode", "cluster", "vmselect_http_port", "18481", "tenant_id", "9"));
+    when(service.getServiceComponents()).thenReturn(Map.of("VMSELECT", vmselect));
+    when(vmselect.getServiceComponentHosts()).thenReturn(
+        Map.of("select-west.example.test", mock(ServiceComponentHost.class)));
+    BuiltinDatasourceProvisioner provisioner =
+        new BuiltinDatasourceProvisioner(datasourceDAO, clustersProvider);
+
+    provisioner.provision("west");
+
+    verify(datasourceDAO).merge(existing);
+    Assert.assertEquals(
+        "{\"connect_timeout\":\"5s\",\"url\":\"http://select-west.example.test:18481/select/9/prometheus\"}",
+        existing.getHttp());
+    Assert.assertEquals("system", existing.getUpdatedBy());
+    verify(datasourceDAO, never()).create(org.mockito.ArgumentMatchers.any(DatasourceEntity.class));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testDoesNotModifySameNamedUserDatasource() throws Exception {
+    DatasourceDAO datasourceDAO = mock(DatasourceDAO.class);
+    Provider<Clusters> clustersProvider = mock(Provider.class);
+    DatasourceEntity existing = new DatasourceEntity();
+    existing.setSettings("{\"managed\":false,\"provider\":\"victoriametrics\"}");
+    when(datasourceDAO.findByNameAndCluster("Ambari VictoriaMetrics", "west")).thenReturn(existing);
+    BuiltinDatasourceProvisioner provisioner =
+        new BuiltinDatasourceProvisioner(datasourceDAO, clustersProvider);
+
+    provisioner.provision("west");
+
+    verify(datasourceDAO, never()).merge(org.mockito.ArgumentMatchers.any(DatasourceEntity.class));
+    verify(datasourceDAO, never()).create(org.mockito.ArgumentMatchers.any(DatasourceEntity.class));
+  }
 }

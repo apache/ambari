@@ -23,6 +23,7 @@ import { faPlay, faRotate } from "@fortawesome/free-solid-svg-icons";
 import MetricsApi from "../../api/metricsApi";
 import { AppContext } from "../../store/context";
 import { Datasource, PrometheusResult } from "./types";
+import { normalizePrometheusResults } from "./utils";
 import PrometheusChart from "./PrometheusChart";
 
 const toLocalInput = (date: Date) => {
@@ -33,6 +34,15 @@ const toLocalInput = (date: Date) => {
 const metricLabel = (metric: Record<string, string>) => Object.entries(metric)
   .map(([name, value]) => `${name}="${value}"`)
   .join(", ");
+
+const queryHistory = (): string[] => {
+  try {
+    const value = JSON.parse(localStorage.getItem("ambari-promql-history") || "[]") as unknown;
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+};
 
 export default function Explorer() {
   const { clusterName } = useContext(AppContext);
@@ -63,7 +73,11 @@ export default function Explorer() {
       setLabels([]);
       return;
     }
-    void MetricsApi.labels(datasourceId).then((response) => setLabels(response.data || [])).catch(() => setLabels([]));
+    void MetricsApi.labels(datasourceId).then((response) => {
+      setLabels(Array.isArray(response.data)
+        ? response.data.filter((label): label is string => typeof label === "string")
+        : []);
+    }).catch(() => setLabels([]));
   }, [datasourceId]);
 
   const execute = async (event?: FormEvent) => {
@@ -81,8 +95,8 @@ export default function Explorer() {
       if (response.status !== "success") {
         throw new Error(response.error || "Prometheus query failed");
       }
-      setResults(response.data?.result || []);
-      const history = JSON.parse(localStorage.getItem("ambari-promql-history") || "[]") as string[];
+      setResults(normalizePrometheusResults(response.data?.result));
+      const history = queryHistory();
       localStorage.setItem("ambari-promql-history", JSON.stringify(
         [query.trim(), ...history.filter((item) => item !== query.trim())].slice(0, 20),
       ));

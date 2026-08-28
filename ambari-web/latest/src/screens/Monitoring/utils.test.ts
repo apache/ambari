@@ -21,6 +21,8 @@ import { ChartShare, Dashboard, DashboardPanel, Datasource } from "./types";
 import {
   dashboardAppearsAt,
   escapePrometheusLabelValue,
+  normalizeDashboardPayload,
+  normalizePrometheusResults,
   panelFromShare,
   replaceDashboardVariables,
   resolvePanelDatasourceId,
@@ -121,5 +123,42 @@ describe("monitoring dashboard compatibility helpers", () => {
 
     expect(panel?.datasourceValue).toBe(9);
     expect(panel?.customPluginState).toEqual({ mode: "future" });
+  });
+
+  it("normalizes malformed dashboard collections without dropping unknown fields", () => {
+    const payload = normalizeDashboardPayload({
+      future_option: { mode: "future" },
+      var: { name: "invalid" },
+      panels: [
+        null,
+        "invalid",
+        { name: "Valid panel", targets: { expr: "up" }, future_panel_option: true },
+      ],
+    });
+
+    expect(payload.var).toEqual([]);
+    expect(payload.panels).toEqual([{
+      name: "Valid panel",
+      targets: [],
+      future_panel_option: true,
+    }]);
+    expect(payload.future_option).toEqual({ mode: "future" });
+    expect(normalizeDashboardPayload(null)).toEqual({ var: [], panels: [] });
+  });
+
+  it("normalizes malformed Prometheus result collections", () => {
+    expect(normalizePrometheusResults([
+      null,
+      { metric: null, value: [1, "ignored"] },
+      {
+        metric: { __name__: "up", invalid: 1 },
+        value: [1, "1"],
+        values: [[1, "1"], [2, 0]],
+      },
+    ])).toEqual([{
+      metric: { __name__: "up" },
+      value: [1, "1"],
+      values: [[1, "1"]],
+    }]);
   });
 });
