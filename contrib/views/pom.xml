@@ -38,7 +38,6 @@
     <module>utils</module>
     <module>commons</module>
     <module>files</module>
-<!--    <module>pig</module>-->
     <module>capacity-scheduler</module>
 <!--    <module>wfmanager</module>-->
     <!--ambari-views-package should be last in the module list for it to function properly-->
