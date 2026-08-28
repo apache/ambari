@@ -51,6 +51,9 @@ public class PrometheusScrapeContractTest {
       + "VICTORIAMETRICS/package/scripts/victoriametrics.py";
   private static final String SERVICE_ADVISOR = STACK_ROOT
       + "VICTORIAMETRICS/service_advisor.py";
+  private static final String SERVICE_METADATA = STACK_ROOT
+      + "VICTORIAMETRICS/metainfo.xml";
+  private static final String STACK_PACKAGES = "/stacks/BIGTOP/3.2.0/properties/stack_packages.json";
   private static final Pattern SELECTOR = Pattern.compile(
       "([A-Za-z_:][A-Za-z0-9_:]*)\\{((?:\\$\\{[^}]+}|[^}])*)}");
   private static final Pattern COMPONENT = Pattern.compile(
@@ -199,6 +202,17 @@ public class PrometheusScrapeContractTest {
         advisor.contains("External remote-write storage must deduplicate samples"));
     assertTrue("Storage and scrape replication must be distinguished in managed documentation",
         storageConfig.contains("Replicated VMAGENT scrapes instead use the managed scrape interval"));
+  }
+
+  @Test
+  public void testMetricsRpmIsNotManagedByBigtopSelect() throws Exception {
+    JsonNode stackSelect = readJson(STACK_PACKAGES).path("BIGTOP").path("stack-select");
+    String metadata = readText(SERVICE_METADATA);
+
+    assertFalse("The private Ambari Metrics provider is not a bigtop-select component",
+        stackSelect.has("VICTORIAMETRICS"));
+    assertTrue("VictoriaMetrics service must install the Ambari Metrics provider RPM",
+        metadata.contains("<name>ambari-metrics</name>"));
   }
 
   private void verifyDashboardExpression(Pattern allowlist, String dashboard, String expression) {
