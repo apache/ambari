@@ -77,6 +77,8 @@ public class BuiltinDashboardContractTest {
     DASHBOARDS.put("YARN_NodeManager.json", new DashboardContract("YARN", "NODEMANAGER", 20));
     DASHBOARDS.put("YARN_ResourceManager.json", new DashboardContract("YARN", "RESOURCEMANAGER", 30));
     DASHBOARDS.put("YARN_ResourceManager_Sys.json", new DashboardContract("YARN", "RESOURCEMANAGER", 22));
+    DASHBOARDS.put("Linux_Fleet_Overview.json", new DashboardContract(21, false));
+    DASHBOARDS.put("Linux_Host_Detail.json", new DashboardContract(43, true));
   }
 
   @Test
@@ -174,6 +176,10 @@ public class BuiltinDashboardContractTest {
           metricTypes.containsKey(metricName));
       assertTrue("Missing cluster scope in " + expression,
           labels.contains("cluster=\"${cluster}\""));
+      if (contract.hostDashboard) {
+        assertTrue("Linux dashboard must use Agent host metrics in " + expression,
+            metricName.startsWith("ambari_agent_"));
+      }
       if (fileName.equals("HDFS.json") && metricName.startsWith("fs_namesystem_")) {
         assertTrue("FSNamesystem gauge must select the active NameNode in " + expression,
             labels.contains("hastate=\"active\""));
@@ -181,6 +187,10 @@ public class BuiltinDashboardContractTest {
       if (metricName.startsWith("ambari_agent_")) {
         assertTrue("Host metric is not restricted to host targets in " + expression,
             labels.contains("ambari_target=\"host\""));
+        if (contract.hostVariable) {
+          assertTrue("Host detail metric is missing the host selector in " + expression,
+              labels.contains("host=~\"${host}\""));
+        }
       } else {
         assertTrue("Missing service scope in " + expression,
             labels.contains("service=\"" + contract.service + "\""));
@@ -293,11 +303,23 @@ public class BuiltinDashboardContractTest {
     private final String service;
     private final String component;
     private final int expectedQueries;
+    private final boolean hostDashboard;
+    private final boolean hostVariable;
 
     private DashboardContract(String service, String component, int expectedQueries) {
       this.service = service;
       this.component = component;
       this.expectedQueries = expectedQueries;
+      hostDashboard = false;
+      hostVariable = false;
+    }
+
+    private DashboardContract(int expectedQueries, boolean hostVariable) {
+      service = null;
+      component = null;
+      this.expectedQueries = expectedQueries;
+      hostDashboard = true;
+      this.hostVariable = hostVariable;
     }
   }
 }

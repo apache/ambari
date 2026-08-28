@@ -45,7 +45,9 @@ public class BuiltinDashboardProvisioner {
       new DashboardResource("HIVE_Server2.json", "HIVE"),
       new DashboardResource("YARN_NodeManager.json", "YARN"),
       new DashboardResource("YARN_ResourceManager.json", "YARN"),
-      new DashboardResource("YARN_ResourceManager_Sys.json", "YARN"));
+      new DashboardResource("YARN_ResourceManager_Sys.json", "YARN"),
+      new DashboardResource("Linux_Fleet_Overview.json", "Dashboard"),
+      new DashboardResource("Linux_Host_Detail.json", "Dashboard"));
 
   private final BoardDAO boardDAO;
   private final BoardPayloadDAO payloadDAO;

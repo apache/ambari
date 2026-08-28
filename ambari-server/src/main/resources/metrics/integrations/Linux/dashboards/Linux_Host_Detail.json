@@ -1,0 +1,607 @@
+{
+  "name": "Linux Host Detail",
+  "tags": "Linux host infrastructure",
+  "group_id": 0,
+  "ident": "LINUX_HOST_DETAIL",
+  "id": 0,
+  "create_at": 0,
+  "create_by": "",
+  "update_at": 0,
+  "update_by": "",
+  "public": 0,
+  "public_cate": 0,
+  "built_in": 0,
+  "hide": 0,
+  "configs": {
+    "var": [
+      {
+        "name": "host",
+        "label": "Host",
+        "type": "textbox",
+        "definition": "Host name or regular expression",
+        "value": ".*"
+      }
+    ],
+    "panels": [
+      {
+        "type": "row",
+        "id": "linux-host-overview-row",
+        "name": "Host overview",
+        "collapsed": false,
+        "layout": { "h": 1, "w": 24, "x": 0, "y": 0, "i": "linux-host-overview-row", "isResizable": false },
+        "panels": []
+      },
+      {
+        "type": "stat",
+        "id": "linux-host-uptime",
+        "name": "System uptime",
+        "layout": { "h": 4, "w": 6, "x": 0, "y": 1, "i": "linux-host-uptime", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host) (ambari_agent_system_uptime_seconds{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}}",
+            "instant": true
+          }
+        ],
+        "options": { "standardOptions": { "util": "seconds", "min": 0, "decimals": 0 } }
+      },
+      {
+        "type": "stat",
+        "id": "linux-host-cpu-busy",
+        "name": "CPU busy ratio",
+        "layout": { "h": 4, "w": 6, "x": 6, "y": 1, "i": "linux-host-cpu-busy", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "1 - avg by (host) (rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",cpu!=\"total\",mode=\"idle\"}[$__rate_interval]))",
+            "legend": "{{host}}",
+            "instant": true
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "stat",
+        "id": "linux-host-memory-used",
+        "name": "Memory used ratio",
+        "layout": { "h": 4, "w": 6, "x": 12, "y": 1, "i": "linux-host-memory-used", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "1 - max by (host) (ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) / clamp_min(max by (host) (ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
+            "legend": "{{host}}",
+            "instant": true
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "stat",
+        "id": "linux-host-load-per-cpu",
+        "name": "One-minute load per CPU",
+        "layout": { "h": 4, "w": 6, "x": 18, "y": 1, "i": "linux-host-load-per-cpu", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host) (ambari_agent_system_load1{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) / clamp_min(max by (host) (ambari_agent_system_cpu_count{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
+            "legend": "{{host}}",
+            "instant": true
+          }
+        ],
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-cpu-modes",
+        "name": "CPU time ratio by mode",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 5, "i": "linux-host-cpu-modes", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "avg by (host, mode) (rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",cpu!=\"total\"}[$__rate_interval]))",
+            "legend": "{{host}} {{mode}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-load-average",
+        "name": "Load average",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 5, "i": "linux-host-load-average", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host) (ambari_agent_system_load1{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} 1m"
+          },
+          {
+            "refId": "B",
+            "expr": "max by (host) (ambari_agent_system_load5{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} 5m"
+          },
+          {
+            "refId": "C",
+            "expr": "max by (host) (ambari_agent_system_load15{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} 15m"
+          }
+        ],
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-memory",
+        "name": "Memory capacity and composition",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 11, "i": "linux-host-memory", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host) (ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} total"
+          },
+          {
+            "refId": "B",
+            "expr": "max by (host) (ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} available"
+          },
+          {
+            "refId": "C",
+            "expr": "max by (host) (ambari_agent_memory_cached_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} page cache"
+          },
+          {
+            "refId": "D",
+            "expr": "max by (host) (ambari_agent_memory_active_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} active"
+          },
+          {
+            "refId": "E",
+            "expr": "max by (host) (ambari_agent_memory_inactive_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} inactive"
+          },
+          {
+            "refId": "F",
+            "expr": "max by (host) (ambari_agent_memory_buffers_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} buffers"
+          },
+          {
+            "refId": "G",
+            "expr": "max by (host) (ambari_agent_memory_slab_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} slab"
+          }
+        ],
+        "options": { "standardOptions": { "util": "bytesIEC", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-swap",
+        "name": "Swap used ratio",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 11, "i": "linux-host-swap", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(max by (host) (ambari_agent_memory_swap_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) - max by (host) (ambari_agent_memory_swap_free_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})) / clamp_min(max by (host) (ambari_agent_memory_swap_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "row",
+        "id": "linux-host-storage-row",
+        "name": "Filesystems and disks",
+        "collapsed": false,
+        "layout": { "h": 1, "w": 24, "x": 0, "y": 17, "i": "linux-host-storage-row", "isResizable": false },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-filesystem-used",
+        "name": "Filesystem utilization ratio",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 18, "i": "linux-host-filesystem-used", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "1 - max by (host, device, mountpoint) (ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}) / clamp_min(max by (host, device, mountpoint) (ambari_agent_filesystem_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}), 1)",
+            "legend": "{{host}} {{mountpoint}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-filesystem-available",
+        "name": "Filesystem available capacity",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 18, "i": "linux-host-filesystem-available", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host, device, mountpoint) (ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"})",
+            "legend": "{{host}} {{mountpoint}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "bytesIEC", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-inodes",
+        "name": "Filesystem inode utilization ratio",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 24, "i": "linux-host-inodes", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "1 - max by (host, device, mountpoint) (ambari_agent_filesystem_files_free{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}) / clamp_min(max by (host, device, mountpoint) (ambari_agent_filesystem_files{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}), 1)",
+            "legend": "{{host}} {{mountpoint}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-disk-throughput",
+        "name": "Disk throughput",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 24, "i": "linux-host-disk-throughput", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host, device) (rate(ambari_agent_disk_read_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} read"
+          },
+          {
+            "refId": "B",
+            "expr": "sum by (host, device) (rate(ambari_agent_disk_written_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} write"
+          }
+        ],
+        "options": { "standardOptions": { "util": "bytesSecIEC", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-disk-operations",
+        "name": "Disk operation rate",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 30, "i": "linux-host-disk-operations", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host, device) (rate(ambari_agent_disk_reads_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} reads"
+          },
+          {
+            "refId": "B",
+            "expr": "sum by (host, device) (rate(ambari_agent_disk_writes_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} writes"
+          }
+        ],
+        "options": { "standardOptions": { "util": "reqps", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-disk-latency",
+        "name": "Average disk operation duration",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 30, "i": "linux-host-disk-latency", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host, device) (rate(ambari_agent_disk_read_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])) / clamp_min(sum by (host, device) (rate(ambari_agent_disk_reads_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])), 0.001)",
+            "legend": "{{host}} {{device}} read"
+          },
+          {
+            "refId": "B",
+            "expr": "sum by (host, device) (rate(ambari_agent_disk_write_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])) / clamp_min(sum by (host, device) (rate(ambari_agent_disk_writes_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])), 0.001)",
+            "legend": "{{host}} {{device}} write"
+          }
+        ],
+        "options": { "standardOptions": { "util": "seconds", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-disk-queue",
+        "name": "Disk operations in progress",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 36, "i": "linux-host-disk-queue", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host, device) (ambari_agent_disk_io_in_progress{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} {{device}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-disk-busy",
+        "name": "Disk busy ratio",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 36, "i": "linux-host-disk-busy", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host, device) (rate(ambari_agent_disk_io_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "row",
+        "id": "linux-host-network-row",
+        "name": "Network",
+        "collapsed": false,
+        "layout": { "h": 1, "w": 24, "x": 0, "y": 42, "i": "linux-host-network-row", "isResizable": false },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-network-throughput",
+        "name": "Network throughput",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 43, "i": "linux-host-network-throughput", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host, device) (rate(ambari_agent_network_receive_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} receive"
+          },
+          {
+            "refId": "B",
+            "expr": "sum by (host, device) (rate(ambari_agent_network_transmit_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} transmit"
+          }
+        ],
+        "options": { "standardOptions": { "util": "bytesSecIEC", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-network-packets",
+        "name": "Network packet rate",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 43, "i": "linux-host-network-packets", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host, device) (rate(ambari_agent_network_receive_packets_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} receive"
+          },
+          {
+            "refId": "B",
+            "expr": "sum by (host, device) (rate(ambari_agent_network_transmit_packets_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} transmit"
+          }
+        ],
+        "options": { "standardOptions": { "util": "reqps", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-network-failures",
+        "name": "Network failure rate",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 49, "i": "linux-host-network-failures", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host, device) (rate(ambari_agent_network_receive_errors_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) + rate(ambari_agent_network_receive_dropped_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} receive"
+          },
+          {
+            "refId": "B",
+            "expr": "sum by (host, device) (rate(ambari_agent_network_transmit_errors_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) + rate(ambari_agent_network_transmit_dropped_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{device}} transmit"
+          }
+        ],
+        "options": { "standardOptions": { "util": "reqps", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-tcp",
+        "name": "TCP connections by state",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 49, "i": "linux-host-tcp", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host, state) (ambari_agent_tcp_connections{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} {{state}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
+      },
+      {
+        "type": "row",
+        "id": "linux-host-process-row",
+        "name": "Processes and kernel",
+        "collapsed": false,
+        "layout": { "h": 1, "w": 24, "x": 0, "y": 55, "i": "linux-host-process-row", "isResizable": false },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-processes",
+        "name": "Process and thread counts",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 56, "i": "linux-host-processes", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host, state) (ambari_agent_processes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} processes {{state}}"
+          },
+          {
+            "refId": "B",
+            "expr": "max by (host) (ambari_agent_process_threads{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}} threads"
+          }
+        ],
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-process-forks",
+        "name": "Process fork rate",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 56, "i": "linux-host-process-forks", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host) (rate(ambari_agent_system_processes_forked_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "cps", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-kernel-events",
+        "name": "Kernel event rate",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 62, "i": "linux-host-kernel-events", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host) (rate(ambari_agent_system_context_switches_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} context switches"
+          },
+          {
+            "refId": "B",
+            "expr": "sum by (host) (rate(ambari_agent_system_interrupts_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} interrupts"
+          }
+        ],
+        "options": { "standardOptions": { "util": "cps", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-file-descriptors",
+        "name": "File descriptor utilization ratio",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 62, "i": "linux-host-file-descriptors", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host) (ambari_agent_file_descriptors_allocated{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) / clamp_min(max by (host) (ambari_agent_file_descriptors_maximum{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-conntrack",
+        "name": "Conntrack utilization ratio",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 68, "i": "linux-host-conntrack", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host) (ambari_agent_conntrack_entries{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) / clamp_min(max by (host) (ambari_agent_conntrack_entries_limit{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-host-entropy",
+        "name": "Kernel entropy available",
+        "layout": { "h": 6, "w": 6, "x": 12, "y": 68, "i": "linux-host-entropy", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "max by (host) (ambari_agent_entropy_available_bits{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
+      },
+      {
+        "type": "stat",
+        "id": "linux-host-oom-kills",
+        "name": "OOM kills in interval",
+        "layout": { "h": 6, "w": 6, "x": 18, "y": 68, "i": "linux-host-oom-kills", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (host) (increase(ambari_agent_oom_kills_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}}",
+            "instant": true
+          }
+        ],
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
+      }
+    ],
+    "version": "3.0.0",
+    "graphTooltip": "default",
+    "graphZoom": "default"
+  }
+}

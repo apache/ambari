@@ -206,6 +206,14 @@ Required runtime behavior:
 
 - VictoriaMetrics location, port, TLS, and authentication come from Ambari
   configuration, never source literals.
+- Ambari Server and Agent cache only validated discovery assignments, telemetry
+  profiles, and other collection configuration. Each host or component scrape
+  reads current values; neither layer caches metric values or transports them
+  in Agent heartbeat payloads.
+- HTTP service discovery identifies Agent host targets with authoritative
+  `cluster`, `host`, and `ambari_target="host"` labels. The managed vmagent
+  allowlist accepts `host;;ambari_agent_.*`; built-in host PromQL must include
+  `cluster="${cluster}",ambari_target="host"`.
 - Service checks do not place credentials on a command line or in logs.
 - Package selection covers supported RPM and DEB families from the target
   stack matrix.
@@ -372,7 +380,10 @@ Exit criteria:
 2. Port dashboard layout, variable resolution, panel query execution, time
    range, refresh, tooltip, and empty states.
 3. Port chart sharing through a protected native route.
-4. Port built-in HDFS, HBase, YARN, process, host, and Linux dashboards.
+4. Port built-in HDFS, HBase, and YARN dashboards. Semantically migrate the
+   source Categraf and Telegraf process, host, and Linux templates into `Linux
+   Fleet Overview` and `Linux Host Detail`; do not retain their metric names,
+   duplicate layouts, or collector-specific assumptions.
 5. Add panel serialization, dashboard recovery, partial query failure, and
    visual regression tests.
 
@@ -382,6 +393,13 @@ Exit criteria:
   deterministic migration function.
 - A single failed panel does not blank the dashboard.
 - Imported built-in dashboards resolve their datasource and variables.
+- `Linux Fleet Overview` covers cluster-wide capacity, utilization, and Top-N
+  host signals. `Linux Host Detail` defaults its `host` regex variable to `.*`
+  and applies `host=~"${host}"` together with the required cluster and host-target
+  labels.
+- The Agent may aggregate bounded `/proc` values required by these dashboards,
+  including total process threads, but does not reproduce per-process Categraf
+  labels or other unbounded process identity.
 
 ### Phase 6: Targets, cluster metrics, and service metrics
 

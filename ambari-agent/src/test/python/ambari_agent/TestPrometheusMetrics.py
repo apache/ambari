@@ -119,7 +119,8 @@ class TestLinuxCollectors(unittest.TestCase):
       "stat",
       "cpu  100 20 30 400 50 6 7 8 10 2\n"
       "cpu0 60 10 20 200 30 4 5 6 5 1\n"
-      "intr 100\n"
+      "intr 100 10 20\n"
+      "ctxt 4321\n"
       "btime 1700000000\n"
       "processes 1234\n"
       "procs_running 3\n"
@@ -140,6 +141,26 @@ class TestLinuxCollectors(unittest.TestCase):
     )
     self._write("loadavg", "1.25 0.75 0.50 2/100 123\n")
     self._write("uptime", "3600.50 7200.00\n")
+    self._write("sys/fs/file-nr", "256 0 9223372036854775807\n")
+    self._write("sys/fs/file-max", "4096\n")
+    self._write("sys/kernel/random/entropy_avail", "192\n")
+    self._write("sys/net/netfilter/nf_conntrack_count", "23\n")
+    self._write("sys/net/netfilter/nf_conntrack_max", "1024\n")
+    self._write("vmstat", "pgfault 500\noom_kill 4\n")
+    self._write(
+      "net/tcp",
+      "  sl  local_address rem_address   st tx_queue rx_queue\n"
+      "   0: 0100007F:0016 00000000:0000 0A 00000000:00000000\n"
+      "   1: 0100007F:1234 0100007F:5678 01 00000000:00000000\n",
+    )
+    self._write(
+      "net/tcp6",
+      "  sl  local_address rem_address   st tx_queue rx_queue\n"
+      "   0: 00000000000000000000000000000000:0016 "
+      "00000000000000000000000000000000:0000 0A 00000000:00000000\n"
+      "   1: 00000000000000000000000000000001:1234 "
+      "00000000000000000000000000000001:5678 06 00000000:00000000\n",
+    )
     self._write(
       "diskstats",
       "8 0 sda 10 1 20 300 40 2 50 600 3 700 800\n",
@@ -158,8 +179,12 @@ class TestLinuxCollectors(unittest.TestCase):
       "/dev/sda1 /data\\040disk ext4 rw,relatime 0 0\n"
       "/dev/sdb1 /missing ext4 rw,relatime 0 0\n",
     )
-    self._write("1/stat", "1 (init process) S 0 0 0 0\n")
-    self._write("2/stat", "2 (worker) R 0 0 0 0\n")
+    self._write(
+      "1/stat", "1 (init process) S 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 5\n"
+    )
+    self._write(
+      "2/stat", "2 (worker) R 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3\n"
+    )
     self._write("3/stat", "3 (exited) Z 0 0 0 0\n")
 
   def tearDown(self):
@@ -212,9 +237,68 @@ class TestLinuxCollectors(unittest.TestCase):
       families["ambari_agent_system_processes_forked_total"].samples[0].value,
     )
     self.assertEqual(
+      4321,
+      families["ambari_agent_system_context_switches_total"].samples[0].value,
+    )
+    self.assertEqual(
+      100, families["ambari_agent_system_interrupts_total"].samples[0].value
+    )
+    for metric_name in (
+      "ambari_agent_system_context_switches_total",
+      "ambari_agent_system_interrupts_total",
+      "ambari_agent_file_descriptors_allocated",
+      "ambari_agent_file_descriptors_maximum",
+      "ambari_agent_entropy_available_bits",
+      "ambari_agent_oom_kills_total",
+      "ambari_agent_conntrack_entries",
+      "ambari_agent_conntrack_entries_limit",
+    ):
+      self.assertEqual(1, len(families[metric_name].samples))
+    self.assertEqual(
+      256, families["ambari_agent_file_descriptors_allocated"].samples[0].value
+    )
+    self.assertEqual(
+      4096, families["ambari_agent_file_descriptors_maximum"].samples[0].value
+    )
+    self.assertEqual(
+      192, families["ambari_agent_entropy_available_bits"].samples[0].value
+    )
+    self.assertEqual(4, families["ambari_agent_oom_kills_total"].samples[0].value)
+    self.assertEqual(23, families["ambari_agent_conntrack_entries"].samples[0].value)
+    self.assertEqual(
+      1024, families["ambari_agent_conntrack_entries_limit"].samples[0].value
+    )
+    tcp_samples = {
+      sample.labels["state"]: sample.value
+      for sample in families["ambari_agent_tcp_connections"].samples
+    }
+    self.assertEqual(1, tcp_samples["established"])
+    self.assertEqual(2, tcp_samples["listen"])
+    self.assertEqual(1, tcp_samples["time_wait"])
+    self.assertEqual(0, tcp_samples["close_wait"])
+    self.assertEqual(
       {"hostname": "host.example.com"},
       families["ambari_agent_host_info"].samples[0].labels,
     )
+
+  def test_system_collector_ignores_missing_optional_kernel_files(self):
+    for relative_path in (
+      "sys/fs/file-nr",
+      "sys/fs/file-max",
+      "sys/kernel/random/entropy_avail",
+      "sys/net/netfilter/nf_conntrack_count",
+      "sys/net/netfilter/nf_conntrack_max",
+      "vmstat",
+      "net/tcp",
+      "net/tcp6",
+    ):
+      os.remove(os.path.join(self.proc_root, relative_path))
+
+    families = self._families_by_name(SystemCollector(self.proc_root))
+
+    self.assertEqual(1.25, families["ambari_agent_system_load1"].samples[0].value)
+    self.assertNotIn("ambari_agent_file_descriptors_allocated", families)
+    self.assertNotIn("ambari_agent_tcp_connections", families)
 
   def test_filesystem_collector_skips_pseudo_filesystems(self):
     StatVfs = namedtuple(
@@ -265,7 +349,7 @@ class TestLinuxCollectors(unittest.TestCase):
     )
 
   def test_process_collector_exports_low_cardinality_state_counts(self):
-    family = ProcessCollector(self.proc_root).collect()[0]
+    family, thread_family = ProcessCollector(self.proc_root).collect()
     samples = {sample.labels["state"]: sample.value for sample in family.samples}
 
     self.assertEqual(3, samples["total"])
@@ -273,6 +357,7 @@ class TestLinuxCollectors(unittest.TestCase):
     self.assertEqual(1, samples["sleeping"])
     self.assertEqual(1, samples["zombie"])
     self.assertEqual(0, samples["unknown"])
+    self.assertEqual(8, thread_family.samples[0].value)
 
   def test_default_collectors_require_proc(self):
     self.assertEqual([], default_collectors(os.path.join(self.proc_root, "missing")))

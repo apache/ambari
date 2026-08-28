@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class BuiltinDashboardProvisionerTest {
   @Test
-  public void testCreatesNinePackagedDashboardsOnlyOnce() throws Exception {
+  public void testCreatesElevenPackagedDashboardsOnlyOnce() throws Exception {
     BoardDAO boardDAO = mock(BoardDAO.class);
     BoardPayloadDAO payloadDAO = mock(BoardPayloadDAO.class);
     AtomicLong sequence = new AtomicLong();
@@ -54,15 +54,17 @@ public class BuiltinDashboardProvisionerTest {
     provisioner.provision();
     provisioner.provision();
 
-    verify(boardDAO, times(9)).create(any(BoardEntity.class));
+    verify(boardDAO, times(11)).create(any(BoardEntity.class));
     ArgumentCaptor<BoardEntity> boards = ArgumentCaptor.forClass(BoardEntity.class);
-    verify(boardDAO, times(9)).create(boards.capture());
+    verify(boardDAO, times(11)).create(boards.capture());
     for (BoardEntity board : boards.getAllValues()) {
       Assert.assertEquals(BoardEntity.BUILTIN_CLUSTER, board.getClusterName());
     }
+    Assert.assertEquals("Dashboard", boardByIdent(boards, "LINUX_FLEET_OVERVIEW").getDisplayLocations());
+    Assert.assertEquals("Dashboard", boardByIdent(boards, "LINUX_HOST_DETAIL").getDisplayLocations());
     ArgumentCaptor<BoardPayloadEntity> payloads = ArgumentCaptor.forClass(BoardPayloadEntity.class);
-    verify(payloadDAO, times(9)).create(payloads.capture());
-    Assert.assertEquals(9, payloads.getAllValues().size());
+    verify(payloadDAO, times(11)).create(payloads.capture());
+    Assert.assertEquals(11, payloads.getAllValues().size());
     for (BoardPayloadEntity payload : payloads.getAllValues()) {
       Assert.assertTrue(new ObjectMapper().readTree(payload.getPayload()).isObject());
     }
@@ -82,5 +84,12 @@ public class BuiltinDashboardProvisionerTest {
 
     verify(boardDAO, never()).create(any(BoardEntity.class));
     verify(payloadDAO, never()).create(any(BoardPayloadEntity.class));
+  }
+
+  private BoardEntity boardByIdent(ArgumentCaptor<BoardEntity> boards, String ident) {
+    return boards.getAllValues().stream()
+        .filter(board -> ident.equals(board.getIdent()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("Missing built-in dashboard " + ident));
   }
 }

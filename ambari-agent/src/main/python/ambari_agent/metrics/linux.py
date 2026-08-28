@@ -49,6 +49,20 @@ MEMORY_FIELDS = {
   "SwapTotal": "memory_swap_total_bytes",
   "SwapFree": "memory_swap_free_bytes",
 }
+TCP_STATES = {
+  "01": "established",
+  "02": "syn_sent",
+  "03": "syn_received",
+  "04": "fin_wait1",
+  "05": "fin_wait2",
+  "06": "time_wait",
+  "07": "close",
+  "08": "close_wait",
+  "09": "last_ack",
+  "0A": "listen",
+  "0B": "closing",
+  "0C": "new_syn_received",
+}
 PSEUDO_FILESYSTEMS = frozenset(
   (
     "autofs",
@@ -78,6 +92,12 @@ class LinuxCollector:
   def _read(self, name):
     with open(os.path.join(self.proc_root, name), encoding="utf-8") as stream:
       return stream.read()
+
+  def _read_optional(self, name):
+    try:
+      return self._read(name)
+    except OSError:
+      return None
 
 
 class CpuCollector(LinuxCollector):
@@ -145,8 +165,10 @@ class SystemCollector(LinuxCollector):
     stat_values = {}
     for line in self._read("stat").splitlines():
       fields = line.split()
-      if len(fields) == 2 and fields[0] in (
+      if len(fields) >= 2 and fields[0] in (
         "btime",
+        "ctxt",
+        "intr",
         "processes",
         "procs_running",
         "procs_blocked",
@@ -188,12 +210,80 @@ class SystemCollector(LinuxCollector):
         "gauge",
         stat_values.get("procs_blocked", 0),
       ),
+      (
+        "system_context_switches_total",
+        "Total number of context switches since boot.",
+        "counter",
+        stat_values.get("ctxt", 0),
+      ),
+      (
+        "system_interrupts_total",
+        "Total number of interrupts serviced since boot.",
+        "counter",
+        stat_values.get("intr", 0),
+      ),
     )
 
     families = []
     for name, help_text, metric_type, value in metrics:
       family = MetricFamily(f"{NAMESPACE}_{name}", help_text, metric_type)
       family.add_sample(value)
+      families.append(family)
+
+    optional_metrics = (
+      (
+        "file_descriptors_allocated",
+        "Number of allocated file descriptors.",
+        "gauge",
+        self._first_int("sys/fs/file-nr"),
+      ),
+      (
+        "file_descriptors_maximum",
+        "System-wide maximum number of file descriptors.",
+        "gauge",
+        self._first_int("sys/fs/file-max"),
+      ),
+      (
+        "entropy_available_bits",
+        "Available kernel entropy in bits.",
+        "gauge",
+        self._first_int("sys/kernel/random/entropy_avail"),
+      ),
+      (
+        "oom_kills_total",
+        "Total number of processes killed by the out-of-memory killer.",
+        "counter",
+        self._vmstat_value("oom_kill"),
+      ),
+      (
+        "conntrack_entries",
+        "Number of currently tracked network connections.",
+        "gauge",
+        self._first_int("sys/net/netfilter/nf_conntrack_count"),
+      ),
+      (
+        "conntrack_entries_limit",
+        "Maximum number of tracked network connections.",
+        "gauge",
+        self._first_int("sys/net/netfilter/nf_conntrack_max"),
+      ),
+    )
+    for name, help_text, metric_type, value in optional_metrics:
+      if value is None:
+        continue
+      family = MetricFamily(f"{NAMESPACE}_{name}", help_text, metric_type)
+      family.add_sample(value)
+      families.append(family)
+
+    tcp_connections = self._tcp_connections()
+    if tcp_connections is not None:
+      family = MetricFamily(
+        f"{NAMESPACE}_tcp_connections",
+        "Number of IPv4 and IPv6 TCP connections by state.",
+        "gauge",
+      )
+      for state in TCP_STATES.values():
+        family.add_sample(tcp_connections[state], {"state": state})
       families.append(family)
 
     info = MetricFamily(
@@ -204,6 +294,45 @@ class SystemCollector(LinuxCollector):
     info.add_sample(1, {"hostname": socket.getfqdn()})
     families.append(info)
     return families
+
+  def _first_int(self, name):
+    content = self._read_optional(name)
+    if content is None:
+      return None
+    try:
+      return int(content.split()[0])
+    except (IndexError, ValueError):
+      return None
+
+  def _vmstat_value(self, key):
+    content = self._read_optional("vmstat")
+    if content is None:
+      return None
+    for line in content.splitlines():
+      fields = line.split()
+      if len(fields) == 2 and fields[0] == key:
+        try:
+          return int(fields[1])
+        except ValueError:
+          return None
+    return None
+
+  def _tcp_connections(self):
+    counts = {state: 0 for state in TCP_STATES.values()}
+    source_available = False
+    for name in ("net/tcp", "net/tcp6"):
+      content = self._read_optional(name)
+      if content is None:
+        continue
+      source_available = True
+      for line in content.splitlines()[1:]:
+        fields = line.split()
+        if len(fields) < 4:
+          continue
+        state = TCP_STATES.get(fields[3].upper())
+        if state is not None:
+          counts[state] += 1
+    return counts if source_available else None
 
 
 class FilesystemCollector(LinuxCollector):
@@ -352,6 +481,7 @@ class ProcessCollector(LinuxCollector):
     counts = {state: 0 for state in set(self.PROCESS_STATES.values())}
     counts["unknown"] = 0
     counts["total"] = 0
+    threads = 0
 
     for entry in os.listdir(self.proc_root):
       if not entry.isdigit():
@@ -365,8 +495,17 @@ class ProcessCollector(LinuxCollector):
       if command_end < 0 or len(stat) <= command_end + 2:
         counts["unknown"] += 1
       else:
-        state = stat[command_end + 2]
-        counts[self.PROCESS_STATES.get(state, "unknown")] += 1
+        stat_fields = stat[command_end + 2 :].split()
+        if not stat_fields:
+          counts["unknown"] += 1
+        else:
+          state = stat_fields[0]
+          counts[self.PROCESS_STATES.get(state, "unknown")] += 1
+        if len(stat_fields) > 17:
+          try:
+            threads += int(stat_fields[17])
+          except ValueError:
+            pass
       counts["total"] += 1
 
     family = MetricFamily(
@@ -376,7 +515,13 @@ class ProcessCollector(LinuxCollector):
     )
     for state in sorted(counts):
       family.add_sample(counts[state], {"state": state})
-    return [family]
+    thread_family = MetricFamily(
+      f"{NAMESPACE}_process_threads",
+      "Total number of threads across processes visible to Ambari Agent.",
+      "gauge",
+    )
+    thread_family.add_sample(threads)
+    return [family, thread_family]
 
 
 def default_collectors(proc_root="/proc"):
