@@ -77,6 +77,7 @@ import { messages } from "../messages";
 import { ServiceContext } from "../../store/ServiceContext";
 import ManageJournalNodes from "./highAvailibility/journalNode/index";
 import EnableNamenodeFederation from "./highAvailibility/Federation/index";
+import AddObserverNamenode from "./highAvailibility/observerNameNode/index";
 import useComponentAddDelete from "../Hosts/hooks/useComponentAddDelete";
 import { useConfigs } from "../../hooks/useConfigs";
 import useStackServices from "../../hooks/useStackServices";
@@ -2306,6 +2307,10 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
         {/* Add New HDFS Namespace (Federation) - Requires SERVICE.ENABLE_HA authorization, HDFS service, and FEDERATION serviceType (matches Ember.js logic) */}
         {canEnableHA && canPersistWorkflow && serviceName === "HDFS" && (
           <EnableNamenodeFederation />
+        )}
+        {/* Add Observer Namenode - Requires SERVICE.ENABLE_HA authorization, HDFS service, and NameNode HA enabled (matches Ember.js logic) */}
+        {canEnableHA && canPersistWorkflow && serviceName === "HDFS" && isHAEnabled() && (
+          <AddObserverNamenode />
         )}
         <WorkflowActions
           serviceName={serviceName}

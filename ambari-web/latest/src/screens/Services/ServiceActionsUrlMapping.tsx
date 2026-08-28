@@ -20,6 +20,7 @@ import { matchPath, useLocation, useParams } from "react-router-dom";
 import EnableHighAvailibilityNameNode from "./highAvailibility/nameNode";
 import ManageJournalNodes from "./highAvailibility/journalNode";
 import EnableNamenodeFederation from "./highAvailibility/Federation";
+import AddObserverNamenode from "./highAvailibility/observerNameNode";
 import EnableHighAvailibilityRangerAdmin from "./highAvailibility/rangerAdmin";
 import EnableHighAvailibilityResourceManger from "./highAvailibility/resourceManager";
 import ReassignComponent from "./reassign";
@@ -46,6 +47,12 @@ function ServiceActionsUrlMapping({ serviceName }: { serviceName: string }) {
   }
   if (location.pathname.includes("federation") && componentName === "NameNode") {
     return <EnableNamenodeFederation isMappingOnly />;
+  }
+  if (
+    location.pathname.includes("observerNamenode") &&
+    componentName === "NameNode"
+  ) {
+    return <AddObserverNamenode isMappingOnly />;
   }
   if (
     hawqMatch?.params.componentName?.toLowerCase() === "hawq" &&

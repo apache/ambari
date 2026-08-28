@@ -31,6 +31,7 @@ export const ServiceActionEnums = {
   enableHighAvailibility: "Enable Namenode HA",
   enableRmHighAvailability:"Enable ResourceManager HA",
   enableNamenodeFederation: "Add New HDFS Namespace",
+  addObserverNamenode: "Add Observer Namenode",
   addDfsRouter: "Add DFSRouter",
   addHawqStandby: "Add HAWQ Standby",
   removeHawqStandby: "Remove HAWQ Standby",
