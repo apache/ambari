@@ -560,6 +560,7 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>contrib/views</module>
         <module>ambari-server</module>
         <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
@@ -588,6 +589,7 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>contrib/views</module>
         <module>ambari-server</module>
         <module>ambari-server-spi</module>
         <module>ambari-funtest</module>
