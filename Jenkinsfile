@@ -23,7 +23,6 @@
  Ambari WebUI ->  ambari-web, ambari-admin
  Ambari Agent ->  ambari-agent, ambari-utility
  Ambari Server -> ambari-server, ambari-views
- Ambari Metrics ->  (cd) -> ambari-metrics  (only build, no checks)
  ServiceAdvisor -> ambari-serviceadvisor
  Ambari LogSearch ->  (cd) -> ambari-logsearch
  Ambari Infra -> (cd) -> ambari-infra
@@ -81,21 +80,6 @@ pipeline {
                 stage('JIRA Integration') {
                     steps {
                        publishPRLink env.CHANGE_ID, env.CHANGE_URL, env.CHANGE_TITLE
-                    }
-                }
-                stage('Ambari Metrics Build (deps)') {
-                    steps {
-                        script{
-                           def dirExists = fileExists 'ambari-metrics'
-                           if (dirExists) {
-                               echo "Ambari-Metrics is here!"
-                                dir('ambari-metrics') {
-                                    sh 'mvn -T 3C install -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10 -X'
-                                }
-                            } else {
-                                echo "Ignoring ambari-metrics, as no such directory found"
-                            }
-                        }
                     }
                 }
                 stage('Ambari Service Advisor') {

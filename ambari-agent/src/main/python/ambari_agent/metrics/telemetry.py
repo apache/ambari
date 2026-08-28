@@ -293,6 +293,18 @@ def _validate_metric_definition(definition, families):
   scale = definition.get("scale", 1.0)
   if isinstance(scale, bool) or not isinstance(scale, (int, float)) or not math.isfinite(scale):
     raise TelemetryConfigError('Metric "{}" scale must be finite'.format(name))
+  value_map = definition.get("valueMap")
+  if value_map is not None:
+    if not isinstance(value_map, dict) or not value_map:
+      raise TelemetryConfigError('Metric "{}" valueMap must be a non-empty object'.format(name))
+    for source_value, mapped_value in value_map.items():
+      if (
+        not isinstance(source_value, str)
+        or isinstance(mapped_value, bool)
+        or not isinstance(mapped_value, (int, float))
+        or not math.isfinite(mapped_value)
+      ):
+        raise TelemetryConfigError('Metric "{}" valueMap must map strings to finite numbers'.format(name))
 
   metadata = (metric_type, help_text)
   existing = families.get(name)
@@ -536,6 +548,10 @@ def convert_jmx_json(payload, profile):
       labels = _rule_labels(rule.get("labels", {}), properties)
       for source_name, definition in rule["attributes"].items():
         value = _attribute_value(bean, source_name)
+        value_map = definition.get("valueMap")
+        if value_map is not None:
+          lookup_value = str(value).lower() if isinstance(value, bool) else str(value)
+          value = value_map.get(lookup_value)
         if isinstance(value, bool) or not isinstance(value, (int, float)):
           continue
         scale = definition.get("scale", 1)
@@ -630,6 +646,8 @@ def _rule_labels(label_definitions, properties):
 
 
 def _attribute_value(bean, source_name):
+  if source_name in bean:
+    return bean[source_name]
   value = bean
   for part in source_name.split("."):
     if not isinstance(value, dict) or part not in value:

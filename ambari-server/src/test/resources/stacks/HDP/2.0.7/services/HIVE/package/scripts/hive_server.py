@@ -56,7 +56,6 @@ class HiveServer(Script):
 
     env.set_params(status_params)
     pid_file = format("{hive_pid_dir}/{hive_pid}")
-    # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
 
 

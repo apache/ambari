@@ -35,7 +35,6 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,23 +45,12 @@ import com.google.common.collect.ImmutableList;
  */
 public class PropertyHelper {
 
-  private static final String GANGLIA_PROPERTIES_FILE = "ganglia_properties.json";
   private static final String SQLSERVER_PROPERTIES_FILE = "sqlserver_properties.json";
   private static final String JMX_PROPERTIES_FILE = "jmx_properties.json";
   public static final char EXTERNAL_PATH_SEP = '/';
 
-  /**
-   * Aggregate functions implicitly supported by the Metrics Service
-   */
-  public static final List<String> AGGREGATE_FUNCTION_IDENTIFIERS =
-    ImmutableList.of("._sum", "._max", "._min", "._avg", "._rate");
-
-  private static final List<Resource.InternalType> REPORT_METRIC_RESOURCES =
-    ImmutableList.of(Resource.InternalType.Cluster, Resource.InternalType.Host);
-
   private static final Map<Resource.InternalType, Set<String>> PROPERTY_IDS = new HashMap<>();
   private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> JMX_PROPERTY_IDS = readPropertyProviderIds(JMX_PROPERTIES_FILE);
-  private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> GANGLIA_PROPERTY_IDS = readPropertyProviderIds(GANGLIA_PROPERTIES_FILE);
   private static final Map<Resource.InternalType, Map<String, Map<String, PropertyInfo>>> SQLSERVER_PROPERTY_IDS = readPropertyProviderIds(SQLSERVER_PROPERTIES_FILE);
   private static final Map<Resource.InternalType, Map<Resource.Type, String>> KEY_PROPERTY_IDS = new HashMap<>();
 
@@ -133,10 +121,6 @@ public class PropertyHelper {
       propertyIds.addAll(entry.getValue().keySet());
     }
     return propertyIds;
-  }
-
-  public static Map<String, Map<String, PropertyInfo>> getMetricPropertyIds(Resource.Type resourceType) {
-    return GANGLIA_PROPERTY_IDS.get(resourceType.getInternalType());
   }
 
   public static Map<String, Map<String, PropertyInfo>> getSQLServerPropertyIds(Resource.Type resourceType) {
@@ -459,15 +443,10 @@ public class PropertyHelper {
             Metric metric   = metricEntry.getValue();
             PropertyInfo propertyInfo = new PropertyInfo(metric.getMetric(),
               metric.isTemporal(), metric.isPointInTime());
-            propertyInfo.setAmsId(metric.getAmsId());
-            propertyInfo.setAmsHostMetric(metric.isAmsHostMetric());
             propertyInfo.setUnit(metric.getUnit());
             metrics.put(property, propertyInfo);
           }
           componentMetrics.put(componentEntry.getKey(), metrics);
-        }
-        if (REPORT_METRIC_RESOURCES.contains(resourceEntry.getKey())) {
-          updateMetricsWithAggregateFunctionSupport(componentMetrics);
         }
         resourceMetrics.put(resourceEntry.getKey(), componentMetrics);
       }
@@ -518,8 +497,6 @@ public class PropertyHelper {
     private String metric;
     private boolean pointInTime;
     private boolean temporal;
-    private String amsId;
-    private boolean amsHostMetric;
     private String unit = "unitless";
 
     private Metric() {
@@ -556,22 +533,6 @@ public class PropertyHelper {
       this.temporal = temporal;
     }
 
-    public String getAmsId() {
-      return amsId;
-    }
-
-    public void setAmsId(String amsId) {
-      this.amsId = amsId;
-    }
-
-    public boolean isAmsHostMetric() {
-      return amsHostMetric;
-    }
-
-    public void setAmsHostMetric(boolean amsHostMetric) {
-      this.amsHostMetric = amsHostMetric;
-    }
-
     public void setUnit(String unit) {
       this.unit = unit;
     }
@@ -579,67 +540,6 @@ public class PropertyHelper {
     public String getUnit() {
       return unit;
     }
-  }
-
-  /**
-   * This method adds supported propertyInfo for component metrics with
-   * aggregate function ids. API calls with multiple aggregate functions
-   * applied to a single metric need this support.
-   *
-   * Currently this support is added only for Component & Report metrics.
-   * This can be easily extended by making the call from the appropriate
-   * sub class of: @AMSPropertyProvider.
-   *
-   */
-  public static void updateMetricsWithAggregateFunctionSupport(Map<String, Map<String, PropertyInfo>> metrics) {
-
-    if (metrics == null || metrics.isEmpty()) {
-      return;
-    }
-
-    // For every component
-    for (Map.Entry<String, Map<String, PropertyInfo>> metricInfoEntry : metrics.entrySet()) {
-      Map<String, PropertyInfo> metricInfo = metricInfoEntry.getValue();
-
-      Map<String, PropertyInfo> aggregateMetrics = new HashMap<>();
-      // For every metric
-      for (Map.Entry<String, PropertyInfo> metricEntry : metricInfo.entrySet()) {
-        // For each aggregate function id
-        for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
-          String metricInfoKey = metricEntry.getKey() + identifierToAdd;
-          // This disallows metric key suffix of the form "._sum._sum" for
-          // the sake of avoiding duplicates
-          if (metricInfo.containsKey(metricInfoKey)) {
-            continue;
-          }
-
-          PropertyInfo propertyInfo = metricEntry.getValue();
-          PropertyInfo metricInfoValue = new PropertyInfo(
-            propertyInfo.getPropertyId() + identifierToAdd,
-            propertyInfo.isTemporal(),
-            propertyInfo.isPointInTime());
-          metricInfoValue.setAmsHostMetric(propertyInfo.isAmsHostMetric());
-          metricInfoValue.setAmsId(!StringUtils.isEmpty(propertyInfo.getAmsId()) ?
-            propertyInfo.getAmsId() + identifierToAdd : null);
-          metricInfoValue.setUnit(propertyInfo.getUnit());
-
-          aggregateMetrics.put(metricInfoKey, metricInfoValue);
-        }
-      }
-      metricInfo.putAll(aggregateMetrics);
-    }
-  }
-
-  /**
-   * Check if property ends with a trailing suffix of function id.
-   */
-  public static boolean hasAggregateFunctionSuffix(String propertyId) {
-    for (String aggregateFunctionId : AGGREGATE_FUNCTION_IDENTIFIERS) {
-      if (propertyId.endsWith(aggregateFunctionId)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -657,18 +557,9 @@ public class PropertyHelper {
           replacementMap = new HashMap<>();
           for (String suffix : entry.getValue()) {
             String newMetricName;
-            if ("jmx".equals(metricType)) {
-              newMetricName = insertTagIntoCategoty(suffix, metric.getName());
-            } else {
-              newMetricName = insertTagInToMetricName(suffix, metric.getName(), prefix);
-            }
+            newMetricName = insertTagIntoCategoty(suffix, metric.getName());
             org.apache.ambari.server.state.stack.Metric newMetric = new org.apache.ambari.server.state.stack.Metric(
-              newMetricName,
-              metric.isPointInTime(),
-              metric.isTemporal(),
-              metric.isAmsHostMetric(),
-              metric.getUnit()
-            );
+              newMetricName, metric.isPointInTime(), metric.isTemporal(), metric.getUnit());
 
             replacementMap.put(insertTagInToMetricName(suffix, propertyId, prefix), newMetric);
           }

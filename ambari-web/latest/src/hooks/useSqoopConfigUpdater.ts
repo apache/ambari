@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, get, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -81,17 +81,17 @@ export const useSqoopConfigUpdater = () => {
         const sqoopClientsStarted = componentData.startedCount;
         const sqoopClientsTotal = componentData.totalCount;
         
-        currentConfig[ServiceComponentMetricsEnums.SQOOP.sqoopClientsInstalled] =
+        currentConfig[ServiceComponentFields.SQOOP.sqoopClientsInstalled] =
           sqoopClientsInstalled;
-        currentConfig[ServiceComponentMetricsEnums.SQOOP.sqoopClientsStarted] =
+        currentConfig[ServiceComponentFields.SQOOP.sqoopClientsStarted] =
           sqoopClientsStarted;
-        currentConfig[ServiceComponentMetricsEnums.SQOOP.sqoopClientsTotal] =
+        currentConfig[ServiceComponentFields.SQOOP.sqoopClientsTotal] =
           sqoopClientsTotal;
         clientComponents.push(componentData);
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.SQOOP.clientComponents] =
+    currentConfig[ServiceComponentFields.SQOOP.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["sqoop"], currentConfig)) {

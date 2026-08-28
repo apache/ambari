@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, find, get, has, isEmpty, isEqual } from "lodash";
 import { ServiceApi } from "../api/serviceApi";
 import { cachedServiceApi } from "../api/cachedServiceApi";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -191,7 +191,7 @@ export const useTrinoConfigUpdater = () => {
           trinoCoordinators.push(hostComponentData);
         }
       });
-      currentConfig[ServiceComponentMetricsEnums.TRINO.trinoCoordinators] =
+      currentConfig[ServiceComponentFields.TRINO.trinoCoordinators] =
         trinoCoordinators;
     }
     if (!isEqual(allServiceModels["trino"], currentConfig)) {
@@ -235,17 +235,17 @@ export const useTrinoConfigUpdater = () => {
         slaveConponents.push(componentData);
       } else {
         const spark3ClientsInstalled = componentData.installedCount;
-        currentConfig[ServiceComponentMetricsEnums.SPARK3.spark3Clients] =
+        currentConfig[ServiceComponentFields.SPARK3.spark3Clients] =
           spark3ClientsInstalled;
         clientComponents.push(componentData);
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.TRINO.masterComponents] =
+    currentConfig[ServiceComponentFields.TRINO.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.TRINO.slaveComponents] =
+    currentConfig[ServiceComponentFields.TRINO.slaveComponents] =
       slaveConponents;
-    currentConfig[ServiceComponentMetricsEnums.TRINO.clientComponents] =
+    currentConfig[ServiceComponentFields.TRINO.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["trino"], currentConfig)) {
@@ -298,12 +298,12 @@ export const useTrinoConfigUpdater = () => {
     if (!alertsCount && alertsCount !== 0) return;
 
     if (serviceStateResponse?.data?.alerts_summary?.CRITICAL) {
-      currentConfig[ServiceComponentMetricsEnums.AMBARI_METRICS.hasCriticalAlerts] =
+      currentConfig[ServiceComponentFields.TRINO.hasCriticalAlerts] =
           serviceStateResponse?.data?.alerts_summary?.CRITICAL > 0;
     }
 
-    currentConfig[ServiceComponentMetricsEnums.TRINO.alertsCount] = alertsCount;
-    currentConfig[ServiceComponentMetricsEnums.TRINO.state] = serviceState;
+    currentConfig[ServiceComponentFields.TRINO.alertsCount] = alertsCount;
+    currentConfig[ServiceComponentFields.TRINO.state] = serviceState;
     if (!isEqual(allServiceModels["trino"], currentConfig)) {
       allServiceModels["trino"].updateConfig(currentConfig);
       updateRegistry(allServiceModels);

@@ -38,7 +38,6 @@ class TestActualConfigHandler(TestCase):
     LiveStatus.SERVICES = [
       "HDFS",
       "MAPREDUCE",
-      "GANGLIA",
       "HBASE",
       "ZOOKEEPER",
       "OOZIE",
@@ -75,8 +74,6 @@ class TestActualConfigHandler(TestCase):
       {"serviceName": "HDFS", "componentName": "ZKFC"},
       {"serviceName": "MAPREDUCE", "componentName": "JOBTRACKER"},
       {"serviceName": "MAPREDUCE", "componentName": "TASKTRACKER"},
-      {"serviceName": "GANGLIA", "componentName": "GANGLIA_SERVER"},
-      {"serviceName": "GANGLIA", "componentName": "GANGLIA_MONITOR"},
       {"serviceName": "HBASE", "componentName": "HBASE_MASTER"},
       {"serviceName": "HBASE", "componentName": "HBASE_REGIONSERVER"},
       {"serviceName": "FLUME", "componentName": "FLUME_SERVER"},

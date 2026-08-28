@@ -1381,8 +1381,8 @@ public class TestActionScheduler {
     // Stage with the same hostname, should not be scheduled
     firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
-                    hostname1, "cluster1", Role.GANGLIA_MONITOR,
-                    RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+                    hostname1, "cluster1", Role.DATANODE,
+                    RoleCommand.START, Service.Type.HDFS, 2, 2, 2));
 
     firstStageInProgressPerRequest.add(
             getStageWithSingleTask(
@@ -1423,7 +1423,7 @@ public class TestActionScheduler {
     scheduler.doWork();
 
     Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(0).getHostRoleStatus(hostname1, "DATANODE"));
-    Assert.assertEquals(HostRoleStatus.PENDING, firstStageInProgressPerRequest.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.PENDING, firstStageInProgressPerRequest.get(1).getHostRoleStatus(hostname1, "DATANODE"));
     Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(2).getHostRoleStatus(hostname2, "DATANODE"));
     Assert.assertEquals(HostRoleStatus.QUEUED, firstStageInProgressPerRequest.get(3).getHostRoleStatus(hostname3, "DATANODE"));
   }
@@ -1503,8 +1503,8 @@ public class TestActionScheduler {
 
     stages.add( // Stage with the same hostname, should not be scheduled
         getStageWithSingleTask(
-            hostname1, "cluster1", Role.GANGLIA_MONITOR,
-            RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+            hostname1, "cluster1", Role.DATANODE,
+            RoleCommand.START, Service.Type.HDFS, 2, 2, 2));
 
     stages.add(
         getStageWithSingleTask(
@@ -1518,8 +1518,8 @@ public class TestActionScheduler {
 
     stages.add( // Stage with the same request id, should not be scheduled
         getStageWithSingleTask(
-            hostname4, "cluster1", Role.GANGLIA_MONITOR,
-            RoleCommand.START, Service.Type.GANGLIA, 5, 5, 4));
+            hostname4, "cluster1", Role.DATANODE,
+            RoleCommand.START, Service.Type.HDFS, 5, 5, 4));
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     HostRoleCommandDAO hostRoleCommandDAOMock = mock(HostRoleCommandDAO.class);
@@ -1547,10 +1547,10 @@ public class TestActionScheduler {
     scheduler.doWork();
 
     Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "HIVE_CLIENT"));
-    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(1).getHostRoleStatus(hostname1, "DATANODE"));
     Assert.assertEquals(HostRoleStatus.PENDING, stages.get(2).getHostRoleStatus(hostname2, "HIVE_CLIENT"));
     Assert.assertEquals(HostRoleStatus.PENDING, stages.get(3).getHostRoleStatus(hostname3, "DATANODE"));
-    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(4).getHostRoleStatus(hostname4, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.PENDING, stages.get(4).getHostRoleStatus(hostname4, "DATANODE"));
     Assert.assertFalse(stages.get(0).getExecutionCommands(hostname1).get(0).getExecutionCommand().
         getConfigurations().containsKey("javax.jdo.option.ConnectionPassword"));
   }
@@ -1606,8 +1606,8 @@ public class TestActionScheduler {
 
     stages.add( // Stage with the same hostname, should be scheduled
         getStageWithSingleTask(
-            hostname1, "cluster1", Role.GANGLIA_MONITOR,
-            RoleCommand.START, Service.Type.GANGLIA, 2, 2, 2));
+            hostname1, "cluster1", Role.DATANODE,
+            RoleCommand.START, Service.Type.HDFS, 2, 2, 2));
 
     stages.add(
         getStageWithSingleTask(
@@ -1642,7 +1642,7 @@ public class TestActionScheduler {
     Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(0).getHostRoleStatus(hostname1, "NAMENODE"));
     Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(2).getHostRoleStatus(hostname2, "DATANODE"));
 
-    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(1).getHostRoleStatus(hostname1, "GANGLIA_MONITOR"));
+    Assert.assertEquals(HostRoleStatus.QUEUED, stages.get(1).getHostRoleStatus(hostname1, "DATANODE"));
   }
 
   @Test
@@ -1851,13 +1851,13 @@ public class TestActionScheduler {
     addHostRoleExecutionCommand(now, stage, Role.HBASE_CLIENT, Service.Type.HBASE,
         RoleCommand.INSTALL, host1, "cluster1");
 
-    addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR, Service.Type.GANGLIA,
+    addHostRoleExecutionCommand(now, stage, Role.DATANODE, Service.Type.HDFS,
         RoleCommand.INSTALL, host1, "cluster1");
 
     addHostRoleExecutionCommand(now, stage, Role.HBASE_CLIENT, Service.Type.HBASE,
         RoleCommand.INSTALL, host2, "cluster1");
 
-    addHostRoleExecutionCommand(now, stage, Role.GANGLIA_MONITOR, Service.Type.GANGLIA,
+    addHostRoleExecutionCommand(now, stage, Role.DATANODE, Service.Type.HDFS,
         RoleCommand.INSTALL, host2, "cluster1");
 
     final List<Stage> stages = Collections.singletonList(stage);
@@ -1873,9 +1873,9 @@ public class TestActionScheduler {
     stage.setLastAttemptTime(host1, Role.SQOOP.toString(), now);
     stage.setLastAttemptTime(host1, Role.MAPREDUCE_CLIENT.toString(), now);
     stage.setLastAttemptTime(host1, Role.OOZIE_CLIENT.toString(), now);
-    stage.setLastAttemptTime(host1, Role.GANGLIA_MONITOR.toString(), now);
+    stage.setLastAttemptTime(host1, Role.DATANODE.toString(), now);
     stage.setLastAttemptTime(host1, Role.HBASE_CLIENT.toString(), now);
-    stage.setLastAttemptTime(host2, Role.GANGLIA_MONITOR.toString(), now);
+    stage.setLastAttemptTime(host2, Role.DATANODE.toString(), now);
     stage.setLastAttemptTime(host2, Role.HBASE_CLIENT.toString(), now);
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
@@ -1976,7 +1976,7 @@ public class TestActionScheduler {
 
     scheduler.doWork();
 
-    // Request is not aborted because GANGLIA_MONITOR's success factor (0.5) is met
+    // Request is not aborted because DATANODE's success factor (0.5) is met
     HostRoleStatus[] expectedStatusesAtIterTwo = {HostRoleStatus.QUEUED, HostRoleStatus.QUEUED,
         HostRoleStatus.QUEUED, HostRoleStatus.QUEUED, HostRoleStatus.FAILED,
         HostRoleStatus.FAILED, HostRoleStatus.QUEUED, HostRoleStatus.COMPLETED};
@@ -2248,10 +2248,8 @@ public class TestActionScheduler {
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.DATANODE)));
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.TASKTRACKER)));
-    assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.GANGLIA_MONITOR)));
     assertEquals(new Float(0.5), new Float(s.getSuccessFactor(Role.HBASE_REGIONSERVER)));
     assertEquals(new Float(1.0), new Float(s.getSuccessFactor(Role.NAMENODE)));
-    assertEquals(new Float(1.0), new Float(s.getSuccessFactor(Role.GANGLIA_SERVER)));
   }
 
   @Test

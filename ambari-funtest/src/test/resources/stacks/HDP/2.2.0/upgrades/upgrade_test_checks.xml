@@ -83,9 +83,6 @@
         <service>HDFS</service>
         <service>YARN</service>
       </priority>
-      <exclude>
-        <service>AMBARI_METRICS</service>
-      </exclude>
     </group>
     
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
@@ -112,9 +109,6 @@
         <service>HDFS</service>
         <service>YARN</service>
       </priority>
-      <exclude>
-        <service>AMBARI_METRICSS</service>
-      </exclude>
     </group>
     
     

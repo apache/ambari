@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.apache.ambari</groupId>
+    <artifactId>ambari-project</artifactId>
+    <version>${revision}</version>
+    <relativePath>../ambari-project</relativePath>
+  </parent>
+
+  <artifactId>ambari-metrics</artifactId>
+  <name>Ambari Metrics</name>
+  <description>Packages the default metrics storage provider distributed with Ambari.</description>
+  <packaging>pom</packaging>
+
+  <properties>
+    <package.release>1</package.release>
+    <victoriametrics.version>1.150.0</victoriametrics.version>
+    <victoriametrics.standalone.commit>413f95d65f08d2c3fb03e227b1f3ba42884ca796</victoriametrics.standalone.commit>
+    <victoriametrics.cluster.commit>31a38f2c38c2117442fb82b7dad49cd1de576840</victoriametrics.cluster.commit>
+    <victoriametrics.release.baseUrl>https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/v${victoriametrics.version}</victoriametrics.release.baseUrl>
+    <victoriametrics.cache.directory>${settings.localRepository}/org/apache/ambari/metrics/victoriametrics/${victoriametrics.version}/${build.os_arch}</victoriametrics.cache.directory>
+    <victoriametrics.staging.directory>${project.build.directory}/package-root</victoriametrics.staging.directory>
+    <victoriametrics.checksums>${project.basedir}/src/main/resources/victoriametrics-checksums.sha256</victoriametrics.checksums>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>prepare-victoriametrics-provider</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>bash</executable>
+              <arguments>
+                <argument>${project.basedir}/src/main/scripts/prepare-victoriametrics.sh</argument>
+                <argument>${victoriametrics.version}</argument>
+                <argument>${build.os_arch}</argument>
+                <argument>${victoriametrics.cache.directory}</argument>
+                <argument>${victoriametrics.staging.directory}</argument>
+                <argument>${victoriametrics.release.baseUrl}</argument>
+                <argument>${victoriametrics.checksums}</argument>
+                <argument>${project.basedir}/../LICENSE.txt</argument>
+                <argument>${project.basedir}/../NOTICE.txt</argument>
+                <argument>${victoriametrics.standalone.commit}</argument>
+                <argument>${victoriametrics.cluster.commit}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>build-metrics-rpm</id>
+            <phase>package</phase>
+            <goals>
+              <goal>rpm</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <license>Apache License 2.0</license>
+          <group>Applications/System</group>
+          <description>Ambari Metrics with the VictoriaMetrics storage provider.</description>
+          <version>${package-version}</version>
+          <release>${package.release}</release>
+          <needarch>${build.os_arch}</needarch>
+          <autoRequires>false</autoRequires>
+          <defineStatements>
+            <defineStatement>__os_install_post %{nil}</defineStatement>
+          </defineStatements>
+          <preinstallScriptlet>
+            <scriptFile>src/main/package/rpm/preinstall.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </preinstallScriptlet>
+          <mappings>
+            <mapping>
+              <directory>/usr/lib/ambari-metrics/providers/victoriametrics/bin</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${victoriametrics.staging.directory}/usr/lib/ambari-metrics/providers/victoriametrics/bin</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/usr/share/ambari-metrics/providers/victoriametrics</directory>
+              <filemode>644</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${victoriametrics.staging.directory}/usr/share/ambari-metrics/providers/victoriametrics</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/usr/share/licenses/ambari-metrics</directory>
+              <filemode>644</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${victoriametrics.staging.directory}/usr/share/licenses/ambari-metrics</location>
+                </source>
+              </sources>
+            </mapping>
+          </mappings>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

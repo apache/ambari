@@ -58,7 +58,6 @@ from functions import (
   build_topology_mappings,
   calc_heap_memory,
   escape_java_quoted_string,
-  escape_java_properties_value,
   ensure_unit_for_memory,
   format_zookeeper_quorum,
   local_file_uri,
@@ -1221,7 +1220,6 @@ yarn_hbase_site_source_json = None
 yarn_hbase_policy_source_json = None
 yarn_hbase_grant_source_json = None
 yarn_hbase_core_site_source_json = None
-yarn_hbase_metrics_source_json = None
 if atsv2_backend_enabled:
   yarn_hbase_archive_id_json = json.dumps(
     f"{yarn_hbase_app_hdfs_path}/hbase.tar.gz"
@@ -1244,9 +1242,6 @@ if atsv2_backend_enabled:
   )
   yarn_hbase_core_site_source_json = json.dumps(
     f"{yarn_hbase_user_version_home}/core-site.xml"
-  )
-  yarn_hbase_metrics_source_json = json.dumps(
-    f"{yarn_hbase_user_version_home}/hadoop-metrics2-hbase.properties"
   )
 java64_home_json = json.dumps(str(java64_home))
 yarn_hbase_root_logger_json = json.dumps(f"{yarn_hbase_log_level},RFA")
@@ -1369,103 +1364,3 @@ if rm_cross_origin_enabled:
     host_suffix = rm_host.rsplit(".", 2)[1:]
     if len(host_suffix) == 2:
       cross_origins = "regex:.*[.]" + "[.]".join(host_suffix) + r"(:\d*)?"
-
-ams_collector_host_list = default("/clusterHostInfo/metrics_collector_hosts", [])
-ams_collector_hosts = ",".join(
-  normalize_network_hosts(
-    ams_collector_host_list,
-    "clusterHostInfo/metrics_collector_hosts",
-    require_hosts=False,
-  )
-)
-has_metric_collector = not len(ams_collector_hosts) == 0
-if has_metric_collector:
-  if (
-    "cluster-env" in config["configurations"]
-    and "metrics_collector_vip_port" in config["configurations"]["cluster-env"]
-  ):
-    metric_collector_port = str(
-      parse_port(
-        config["configurations"]["cluster-env"]["metrics_collector_vip_port"],
-        "cluster-env/metrics_collector_vip_port",
-      )
-    )
-  else:
-    metric_collector_web_address = default(
-      "/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188"
-    )
-    metric_collector_port = str(
-      parse_address_port(
-        metric_collector_web_address,
-        "ams-site/timeline.metrics.service.webapp.address",
-      )
-    )
-  metric_http_policy = str(
-    default(
-      "/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY"
-    )
-  ).strip().upper()
-  if metric_http_policy == "HTTPS_ONLY":
-    metric_collector_protocol = "https"
-  elif metric_http_policy == "HTTP_ONLY":
-    metric_collector_protocol = "http"
-  else:
-    raise Fail(
-      "ams-site/timeline.metrics.service.http.policy must be HTTP_ONLY or HTTPS_ONLY"
-    )
-  metric_truststore_path = default(
-    "/configurations/ams-ssl-client/ssl.client.truststore.location", ""
-  )
-  metric_truststore_type = default(
-    "/configurations/ams-ssl-client/ssl.client.truststore.type", ""
-  )
-  metric_truststore_password = default(
-    "/configurations/ams-ssl-client/ssl.client.truststore.password", ""
-  )
-  metric_truststore_path = escape_java_properties_value(
-    metric_truststore_path,
-    "ams-ssl-client/ssl.client.truststore.location",
-  )
-  metric_truststore_type = escape_java_properties_value(
-    metric_truststore_type,
-    "ams-ssl-client/ssl.client.truststore.type",
-  )
-  metric_truststore_password = escape_java_properties_value(
-    metric_truststore_password,
-    "ams-ssl-client/ssl.client.truststore.password",
-  )
-metrics_report_interval = parse_positive_int(
-  default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60),
-  "ams-site/timeline.metrics.sink.report.interval",
-)
-metrics_collection_period = parse_positive_int(
-  default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10),
-  "ams-site/timeline.metrics.sink.collection.period",
-)
-
-host_in_memory_aggregation = parse_boolean(
-  default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
-)
-host_in_memory_aggregation_port = parse_port(
-  default(
-    "/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888
-  ),
-  "ams-site/timeline.metrics.host.inmemory.aggregation.port",
-)
-is_aggregation_https_enabled = False
-aggregation_http_policy = str(
-  default(
-    "/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy",
-    "HTTP_ONLY",
-  )
-).strip().upper()
-if aggregation_http_policy == "HTTPS_ONLY":
-  host_in_memory_aggregation_protocol = "https"
-  is_aggregation_https_enabled = True
-elif aggregation_http_policy == "HTTP_ONLY":
-  host_in_memory_aggregation_protocol = "http"
-else:
-  raise Fail(
-    "ams-site/timeline.metrics.host.inmemory.aggregation.http.policy must be "
-    "HTTP_ONLY or HTTPS_ONLY"
-  )

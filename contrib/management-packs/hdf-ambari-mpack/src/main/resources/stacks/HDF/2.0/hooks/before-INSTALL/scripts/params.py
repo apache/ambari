@@ -37,8 +37,6 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
-gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
-gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 tez_user = config['configurations']['tez-env']["tez_user"]
 
 user_group = config['configurations']['cluster-env']['user_group']
@@ -63,7 +61,6 @@ hs_host = default("/clusterHostInfo/hs_host", [])
 jtnode_host = default("/clusterHostInfo/jtnode_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_hosts", [])
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 storm_server_hosts = default("/clusterHostInfo/nimbus_hosts", [])
 falcon_host =  default('/clusterHostInfo/falcon_server_hosts', [])
 
@@ -77,7 +74,6 @@ has_hcat_server_host = not len(hcat_server_hosts)  == 0
 has_hive_server_host = not len(hive_server_host)  == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_zk_host = not len(zk_hosts) == 0
-has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_storm_server = not len(storm_server_hosts) == 0
 has_falcon_server = not len(falcon_host) == 0
 has_tez = 'tez-site' in config['configurations']
@@ -88,8 +84,6 @@ is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
 is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
-if has_ganglia_server:
-  ganglia_server_host = ganglia_server_hosts[0]
 
 hbase_tmp_dir = "/tmp/hbase-hbase"
 

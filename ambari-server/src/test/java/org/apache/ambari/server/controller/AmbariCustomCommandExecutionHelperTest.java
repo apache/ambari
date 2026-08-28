@@ -260,9 +260,9 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     Map<String, String> requestProperties = new HashMap<String, String>() {
       {
-        put("context" , "Restart all components for GANGLIA");
+        put("context" , "Restart all components for HBASE");
         put("operation_level/level", "SERVICE");
-        put("operation_level/service_name", "GANGLIA");
+        put("operation_level/service_name", "HBASE");
         put("operation_level/cluster_name", "c1");
       }
     };
@@ -270,11 +270,11 @@ public class AmbariCustomCommandExecutionHelperTest {
     ExecuteActionRequest actionRequest = new ExecuteActionRequest(
        "c1", "RESTART", null,
        Arrays.asList(
-           new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
-           new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
-           new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))
+           new RequestResourceFilter("HBASE", "HBASE_MASTER", Collections.singletonList("c1-c6401")),
+           new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER", Collections.singletonList("c1-c6401")),
+           new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER", Collections.singletonList("c1-c6402"))
        ),
-       new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
+       new RequestOperationLevel(Resource.Type.Service, "c1", "HBASE", null, null),
       new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
@@ -297,19 +297,19 @@ public class AmbariCustomCommandExecutionHelperTest {
     clusters.getHost("c1-c6402").setState(HostState.HEARTBEAT_LOST);
     Map<String, String> requestProperties = new HashMap<String, String>() {
       {
-        put("context", "Restart all components for GANGLIA");
+        put("context", "Restart all components for HBASE");
         put("operation_level/level", "SERVICE");
-        put("operation_level/service_name", "GANGLIA");
+        put("operation_level/service_name", "HBASE");
         put("operation_level/cluster_name", "c1");
       }
     };
 
     ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "RESTART", null,
         Arrays.asList(
-            new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
-        new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
+            new RequestResourceFilter("HBASE", "HBASE_MASTER", Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER", Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER", Collections.singletonList("c1-c6402"))),
+        new RequestOperationLevel(Resource.Type.Service, "c1", "HBASE", null, null),
       new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
@@ -329,24 +329,24 @@ public class AmbariCustomCommandExecutionHelperTest {
   @Test
   public void testHostsFilterUnhealthyComponent() throws Exception {
     // Set custom status to host
-    clusters.getCluster("c1").getService("GANGLIA").getServiceComponent(
-        "GANGLIA_MONITOR").getServiceComponentHost("c1-c6402").setState(State.UNKNOWN);
+    clusters.getCluster("c1").getService("HBASE").getServiceComponent(
+        "HBASE_REGIONSERVER").getServiceComponentHost("c1-c6402").setState(State.UNKNOWN);
 
     Map<String, String> requestProperties = new HashMap<String, String>() {
       {
-        put("context", "Restart all components for GANGLIA");
+        put("context", "Restart all components for HBASE");
         put("operation_level/level", "SERVICE");
-        put("operation_level/service_name", "GANGLIA");
+        put("operation_level/service_name", "HBASE");
         put("operation_level/cluster_name", "c1");
       }
     };
 
     ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "RESTART", null,
         Arrays.asList(
-            new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c1-c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c1-c6402"))),
-        new RequestOperationLevel(Resource.Type.Host, "c1", "GANGLIA", null, null),
+            new RequestResourceFilter("HBASE", "HBASE_MASTER", Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER", Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER", Collections.singletonList("c1-c6402"))),
+        new RequestOperationLevel(Resource.Type.Host, "c1", "HBASE", null, null),
       new HashMap<>(), false);
 
     EasyMock.replay(hostRoleCommand, actionManager, configHelper);
@@ -765,14 +765,14 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertNotNull(cluster);
 
     createService(clusterName, "YARN", repositoryVersion);
-    createService(clusterName, "GANGLIA", repositoryVersion);
+    createService(clusterName, "HBASE", repositoryVersion);
     createService(clusterName, "ZOOKEEPER", repositoryVersion);
     createService(clusterName, "FLUME", repositoryVersion);
 
     createServiceComponent(clusterName, "YARN", "RESOURCEMANAGER", State.INIT);
     createServiceComponent(clusterName, "YARN", "NODEMANAGER", State.INIT);
-    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_SERVER", State.INIT);
-    createServiceComponent(clusterName, "GANGLIA", "GANGLIA_MONITOR", State.INIT);
+    createServiceComponent(clusterName, "HBASE", "HBASE_MASTER", State.INIT);
+    createServiceComponent(clusterName, "HBASE", "HBASE_REGIONSERVER", State.INIT);
     createServiceComponent(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT);
 
     // this component should be not installed on any host
@@ -780,12 +780,12 @@ public class AmbariCustomCommandExecutionHelperTest {
 
     createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostC6401, null);
     createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, "HBASE", "HBASE_MASTER", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, "HBASE", "HBASE_REGIONSERVER", hostC6401, State.INIT);
     createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT);
 
     createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6402, null);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT);
+    createServiceComponentHost(clusterName, "HBASE", "HBASE_REGIONSERVER", hostC6402, State.INIT);
     createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT);
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {

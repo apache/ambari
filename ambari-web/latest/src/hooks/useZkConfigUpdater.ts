@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -123,15 +123,15 @@ export const useZkConfigUpdater = () => {
       } else {
         const zkClientsInstalled = componentData.installedCount;
         currentConfig[
-          ServiceComponentMetricsEnums.ZOOKEEPER.zkClientsInstalled
+          ServiceComponentFields.ZOOKEEPER.zkClientsInstalled
         ] = zkClientsInstalled;
         clientComponents.push(componentData);
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.ZOOKEEPER.masterComponents] =
+    currentConfig[ServiceComponentFields.ZOOKEEPER.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.ZOOKEEPER.clientComponents] =
+    currentConfig[ServiceComponentFields.ZOOKEEPER.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["zk"], currentConfig)) {

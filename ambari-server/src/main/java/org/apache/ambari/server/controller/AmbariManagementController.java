@@ -37,8 +37,6 @@ import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
-import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
-import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
@@ -904,15 +902,6 @@ public interface AmbariManagementController {
   void registerRackChange(String clusterName) throws AmbariException;
 
   /**
-   * Initialize cluster scoped widgets and widgetLayouts for different stack
-   * components.
-   *
-   * @param cluster @Cluster object
-   * @param service @Service object
-   */
-  void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException;
-
-  /**
    * Gets an execution command for host component life cycle command
    * @return
    */
@@ -926,8 +915,6 @@ public interface AmbariManagementController {
    * @return
    */
   Set<StackConfigurationDependencyResponse> getStackConfigurationDependencies(Set<StackConfigurationDependencyRequest> requests) throws AmbariException;
-
-  TimelineMetricCacheProvider getTimelineMetricCacheProvider();
 
   /**
    * Gets the {@link MetricPropertyProviderFactory} that was injected into this
@@ -975,13 +962,6 @@ public interface AmbariManagementController {
    * @return
    */
   AmbariEventPublisher getAmbariEventPublisher();
-
-  /**
-   * Gets an {@link MetricsCollectorHAManager} which can be used to get/add collector host for a cluster
-   *
-   * @return {@link MetricsCollectorHAManager}
-   */
-  MetricsCollectorHAManager getMetricsCollectorHAManager();
 
   /**
    * @return the visibility controller that decides which quicklinks should be visible

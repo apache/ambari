@@ -280,7 +280,6 @@
             "hadoop_heapsize": "1024", 
             "hbase_regionserver_primary_name": "hbase", 
             "zk_user": "zookeeper", 
-            "rrdcached_base_dir": "/var/lib/ganglia/rrds", 
             "jobhistory_keytab": "/etc/security/keytabs/jhs.service.keytab", 
             "hive_pid_dir": "/var/run/hive", 
             "webhcat_server": "c6402.ambari.apache.org", 
@@ -294,7 +293,6 @@
             "yarn_nodemanager_container-executor_class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor", 
             "snamenode_keytab": "/etc/security/keytabs/nn.service.keytab", 
             "dfs_datanode_address": "1019", 
-            "ganglia_runtime_dir": "/var/run/ganglia",
             "lzo_enabled": "true", 
             "oozie_principal_name": "oozie/c6402.ambari.apache.org", 
             "hive_hostname": "c6402.ambari.apache.org", 
@@ -315,7 +313,6 @@
             "yarn_log_dir_prefix": "/var/log/hadoop-yarn", 
             "journalnode_primary_name": "jn", 
             "oozie_http_principal_name": "HTTP/c6402.ambari.apache.org", 
-            "gmetad_user": "nobody", 
             "nodemanager_http_primary_name": "HTTP", 
             "oozie_http_keytab": "/etc/security/keytabs/spnego.service.keytab", 
             "hive_metastore": "c6402.ambari.apache.org", 
@@ -343,7 +340,6 @@
             "hbase_master_principal_name": "hbase/_HOST", 
             "oozie_keytab": "/etc/security/keytabs/oozie.service.keytab", 
             "yarn_user": "yarn", 
-            "gmond_user": "nobody", 
             "keytab_path": "/etc/security/keytabs",  
             "snamenode_primary_name": "nn", 
             "jobhistory_primary_name": "jhs", 
@@ -776,9 +772,6 @@
         "slave_hosts": [
             "c6402.ambari.apache.org"
         ], 
-        "ganglia_server_host": [
-            "c6402.ambari.apache.org"
-        ], 
         "hive_server_hosts": [
             "c6402.ambari.apache.org"
         ], 
@@ -799,10 +792,6 @@
             "c6402.ambari.apache.org"
         ], 
         "supervisor_hosts": [
-            "c6401.ambari.apache.org", 
-            "c6402.ambari.apache.org"
-        ], 
-        "ganglia_monitor_hosts": [
             "c6401.ambari.apache.org", 
             "c6402.ambari.apache.org"
         ], 

@@ -221,9 +221,7 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
       extensionInfo.setKerberosDescriptorFileLocation(parentStack.getModuleInfo().getKerberosDescriptorFileLocation());
     }
 
-    if (extensionInfo.getWidgetsDescriptorFileLocation() == null) {
-      extensionInfo.setWidgetsDescriptorFileLocation(parentStack.getModuleInfo().getWidgetsDescriptorFileLocation());
-    }*/
+    */
 
     mergeServicesWithParent(parentExtension, allStacks, commonServices, extensions);
   }

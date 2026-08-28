@@ -1,0 +1,335 @@
+{
+  "name": "HiveServer2 monitoring",
+  "tags": "hive,hiveserver2,prometheus",
+  "group_id": 0,
+  "ident": "HIVE-HS2",
+  "id": 0,
+  "create_at": 0,
+  "create_by": "",
+  "update_at": 0,
+  "update_by": "",
+  "public": 0,
+  "public_cate": 0,
+  "bgids": null,
+  "built_in": 0,
+  "hide": 0,
+  "uuid": 1717556321838575000,
+  "configs": {
+    "var": [],
+    "panels": [
+      {
+        "type": "row",
+        "id": "hive-sessions-row",
+        "name": "Sessions and connections",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0,
+          "i": "hive-sessions-row",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "hive-sessions",
+        "name": "Sessions",
+        "description": "Open and active HiveServer2 sessions by host.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 1,
+          "i": "hive-sessions",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_open_sessions{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "open-{{host}}"
+          },
+          {
+            "refId": "B",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_active_sessions{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "active-{{host}}"
+          }
+        ],
+        "options": {
+          "standardOptions": {}
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "hive-connections",
+        "name": "Open connections",
+        "description": "Current open HiveServer2 connections by host.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 8,
+          "y": 1,
+          "i": "hive-connections",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_open_connections{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": {
+          "standardOptions": {}
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "hive-connection-rate",
+        "name": "Accepted connection rate",
+        "description": "HiveServer2 connections accepted per second by host.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 16,
+          "y": 1,
+          "i": "hive-connection-rate",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(hive_server2_connections_total{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"}[$__rate_interval]))",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": {
+          "standardOptions": {
+            "util": "cps"
+          }
+        }
+      },
+      {
+        "type": "row",
+        "id": "hive-query-row",
+        "name": "Queries",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 7,
+          "i": "hive-query-row",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "hive-query-rate",
+        "name": "Query throughput",
+        "description": "Completed query observations, successes, and failures per second by host. A series appears after its first corresponding HiveServer2 event.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 12,
+          "x": 0,
+          "y": 8,
+          "i": "hive-query-rate",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(hive_server2_submitted_queries_total{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"}[$__rate_interval]))",
+            "legend": "observed-{{host}}"
+          },
+          {
+            "refId": "B",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(hive_server2_succeeded_queries_total{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"}[$__rate_interval]))",
+            "legend": "succeeded/s-{{host}}"
+          },
+          {
+            "refId": "C",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(hive_server2_failed_queries_total{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"}[$__rate_interval]))",
+            "legend": "failed/s-{{host}}"
+          }
+        ],
+        "options": {
+          "standardOptions": {
+            "util": "reqps"
+          }
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "hive-async",
+        "name": "Async executor",
+        "description": "Current HiveServer2 async executor queue and pool sizes.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 12,
+          "x": 12,
+          "y": 8,
+          "i": "hive-async",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_async_queue_size{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "queued-{{host}}"
+          },
+          {
+            "refId": "B",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_async_pool_size{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "workers-{{host}}"
+          }
+        ],
+        "options": {
+          "standardOptions": {}
+        }
+      },
+      {
+        "type": "row",
+        "id": "hive-runtime-row",
+        "name": "Runtime",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 14,
+          "i": "hive-runtime-row",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "hive-heap",
+        "name": "JVM heap",
+        "description": "Current used and maximum JVM heap in bytes.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 12,
+          "x": 0,
+          "y": 15,
+          "i": "hive-heap",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_jvm_heap_used_bytes{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "used-{{host}}"
+          },
+          {
+            "refId": "B",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_jvm_heap_max_bytes{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "max-{{host}}"
+          }
+        ],
+        "options": {
+          "standardOptions": {
+            "util": "bytesIEC"
+          }
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "hive-threads",
+        "name": "JVM threads",
+        "description": "Current HiveServer2 JVM thread count.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 12,
+          "x": 12,
+          "y": 15,
+          "i": "hive-threads",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_jvm_threads{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": {
+          "standardOptions": {}
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "hive-query-cache",
+        "name": "Query cache",
+        "description": "Current and configured maximum HiveServer2 query cache size.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 12,
+          "x": 0,
+          "y": 21,
+          "i": "hive-query-cache",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_query_cache_size_bytes{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "used-{{host}}"
+          },
+          {
+            "refId": "B",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hive_server2_query_cache_max_bytes{cluster=\"${cluster}\",service=\"HIVE\",component=\"HIVE_SERVER\"})",
+            "legend": "max-{{host}}"
+          }
+        ],
+        "options": {
+          "standardOptions": {
+            "util": "bytesIEC"
+          }
+        }
+      }
+    ]
+  }
+}

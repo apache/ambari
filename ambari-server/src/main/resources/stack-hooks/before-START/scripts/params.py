@@ -141,22 +141,6 @@ jtnode_host = default("/clusterHostInfo/jtnode_hosts", [])
 namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 hdfs_client_hosts = default("/clusterHostInfo/hdfs_client_hosts", [])
 zk_hosts = default("/clusterHostInfo/zookeeper_server_hosts", [])
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
-cluster_name = config["clusterName"]
-set_instanceId = "false"
-if (
-  "cluster-env" in config["configurations"]
-  and "metrics_collector_external_hosts" in config["configurations"]["cluster-env"]
-):
-  ams_collector_hosts = config["configurations"]["cluster-env"][
-    "metrics_collector_external_hosts"
-  ]
-  set_instanceId = "true"
-else:
-  ams_collector_hosts = ",".join(
-    default("/clusterHostInfo/metrics_collector_hosts", [])
-  )
-
 has_namenode = not len(namenode_host) == 0
 has_hdfs_clients = len(hdfs_client_hosts) > 0
 has_hdfs = has_hdfs_clients or has_namenode
@@ -167,8 +151,6 @@ has_hcat_server_host = not len(hcat_server_hosts) == 0
 has_hive_server_host = not len(hive_server_host) == 0
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_zk_host = not len(zk_hosts) == 0
-has_ganglia_server = not len(ganglia_server_hosts) == 0
-has_metric_collector = not len(ams_collector_hosts) == 0
 
 is_namenode_master = hostname in namenode_host
 is_jtnode_master = hostname in jtnode_host
@@ -176,76 +158,6 @@ is_rmnode_master = hostname in rm_host
 is_hsnode_master = hostname in hs_host
 is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
-
-if has_ganglia_server:
-  ganglia_server_host = ganglia_server_hosts[0]
-
-metric_collector_port = None
-if has_metric_collector:
-  if (
-    "cluster-env" in config["configurations"]
-    and "metrics_collector_external_port" in config["configurations"]["cluster-env"]
-  ):
-    metric_collector_port = config["configurations"]["cluster-env"][
-      "metrics_collector_external_port"
-    ]
-  else:
-    metric_collector_web_address = default(
-      "/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188"
-    )
-    if metric_collector_web_address.find(":") != -1:
-      metric_collector_port = metric_collector_web_address.split(":")[1]
-    else:
-      metric_collector_port = "6188"
-  if (
-    default(
-      "/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY"
-    )
-    == "HTTPS_ONLY"
-  ):
-    metric_collector_protocol = "https"
-  else:
-    metric_collector_protocol = "http"
-  metric_truststore_path = default(
-    "/configurations/ams-ssl-client/ssl.client.truststore.location", ""
-  )
-  metric_truststore_type = default(
-    "/configurations/ams-ssl-client/ssl.client.truststore.type", ""
-  )
-  metric_truststore_password = default(
-    "/configurations/ams-ssl-client/ssl.client.truststore.password", ""
-  )
-  metric_legacy_hadoop_sink = check_stack_feature(
-    StackFeature.AMS_LEGACY_HADOOP_SINK, version_for_stack_feature_checks
-  )
-
-  pass
-
-metrics_report_interval = default(
-  "/configurations/ams-site/timeline.metrics.sink.report.interval", 60
-)
-metrics_collection_period = default(
-  "/configurations/ams-site/timeline.metrics.sink.collection.period", 10
-)
-
-host_in_memory_aggregation = default(
-  "/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True
-)
-host_in_memory_aggregation_port = default(
-  "/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888
-)
-is_aggregation_https_enabled = False
-if (
-  default(
-    "/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy",
-    "HTTP_ONLY",
-  )
-  == "HTTPS_ONLY"
-):
-  host_in_memory_aggregation_protocol = "https"
-  is_aggregation_https_enabled = True
-else:
-  host_in_memory_aggregation_protocol = "http"
 
 # Cluster Zookeeper quorum
 zookeeper_quorum = None
@@ -408,91 +320,6 @@ smoke_user = config["configurations"]["cluster-env"]["smokeuser"]
 smoke_hdfs_user_dir = format("/user/{smoke_user}")
 smoke_hdfs_user_mode = 0o770
 
-
-##### Namenode RPC ports - metrics config section start #####
-
-# Figure out the rpc ports for current namenode
-nn_rpc_client_port = None
-nn_rpc_dn_port = None
-nn_rpc_healthcheck_port = None
-
-namenode_id = None
-namenode_rpc = None
-
-dfs_ha_enabled = False
-dfs_ha_nameservices = default(
-  "/configurations/hdfs-site/dfs.internal.nameservices", None
-)
-if dfs_ha_nameservices is None:
-  dfs_ha_nameservices = default("/configurations/hdfs-site/dfs.nameservices", None)
-dfs_ha_namenode_ids = default(
-  format("/configurations/hdfs-site/dfs.ha.namenodes.{dfs_ha_nameservices}"), None
-)
-
-dfs_ha_namemodes_ids_list = []
-other_namenode_id = None
-
-if dfs_ha_namenode_ids:
-  dfs_ha_namemodes_ids_list = dfs_ha_namenode_ids.split(",")
-  dfs_ha_namenode_ids_array_len = len(dfs_ha_namemodes_ids_list)
-  if dfs_ha_namenode_ids_array_len > 1:
-    dfs_ha_enabled = True
-
-if dfs_ha_enabled:
-  for nn_id in dfs_ha_namemodes_ids_list:
-    nn_host = config["configurations"]["hdfs-site"][
-      format("dfs.namenode.rpc-address.{dfs_ha_nameservices}.{nn_id}")
-    ]
-    if hostname.lower() in nn_host.lower():
-      namenode_id = nn_id
-      namenode_rpc = nn_host
-    pass
-  pass
-else:
-  namenode_rpc = default(
-    "/configurations/hdfs-site/dfs.namenode.rpc-address", default_fs
-  )
-
-# if HDFS is not installed in the cluster, then don't try to access namenode_rpc
-if has_namenode and namenode_rpc and "core-site" in config["configurations"]:
-  port_str = namenode_rpc.split(":")[-1].strip()
-  try:
-    nn_rpc_client_port = int(port_str)
-  except ValueError:
-    nn_rpc_client_port = None
-
-if dfs_ha_enabled:
-  dfs_service_rpc_address = default(
-    format(
-      "/configurations/hdfs-site/dfs.namenode.servicerpc-address.{dfs_ha_nameservices}.{namenode_id}"
-    ),
-    None,
-  )
-  dfs_lifeline_rpc_address = default(
-    format(
-      "/configurations/hdfs-site/dfs.namenode.lifeline.rpc-address.{dfs_ha_nameservices}.{namenode_id}"
-    ),
-    None,
-  )
-else:
-  dfs_service_rpc_address = default(
-    "/configurations/hdfs-site/dfs.namenode.servicerpc-address", None
-  )
-  dfs_lifeline_rpc_address = default(
-    format("/configurations/hdfs-site/dfs.namenode.lifeline.rpc-address"), None
-  )
-
-if dfs_service_rpc_address:
-  nn_rpc_dn_port = dfs_service_rpc_address.split(":")[1].strip()
-
-if dfs_lifeline_rpc_address:
-  nn_rpc_healthcheck_port = dfs_lifeline_rpc_address.split(":")[1].strip()
-
-is_nn_client_port_configured = False if nn_rpc_client_port is None else True
-is_nn_dn_port_configured = False if nn_rpc_dn_port is None else True
-is_nn_healthcheck_port_configured = False if nn_rpc_healthcheck_port is None else True
-
-##### end #####
 
 import functools
 

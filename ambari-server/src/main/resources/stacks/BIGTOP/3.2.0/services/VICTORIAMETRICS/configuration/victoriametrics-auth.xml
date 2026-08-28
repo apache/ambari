@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>vmauth_http_port</name>
+    <value>8427</value>
+    <display-name>VMAUTH HTTP Port</display-name>
+    <description>Stable Prometheus-compatible query and ingestion entry port.</description>
+  </property>
+  <property>
+    <name>require_authentication</name>
+    <value>false</value>
+    <display-name>Require VMAUTH Authentication</display-name>
+    <description>Require Basic authentication at the unified VictoriaMetrics endpoint.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>api_username</name>
+    <value></value>
+    <display-name>API User</display-name>
+    <description>Basic authentication user for the unified query and ingestion endpoint.</description>
+  </property>
+  <property>
+    <name>api_password</name>
+    <value></value>
+    <display-name>API Password</display-name>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+      <hidden>CONFIG_DOWNLOAD</hidden>
+    </value-attributes>
+    <description>Basic authentication password. Generated VMAUTH configuration is restricted to mode 0600.</description>
+  </property>
+</configuration>

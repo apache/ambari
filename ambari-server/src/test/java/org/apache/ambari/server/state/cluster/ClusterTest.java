@@ -285,11 +285,11 @@ public class ClusterTest {
 
   /**
    * For Rolling Upgrades, create a cluster with the following components HDFS:
-   * NameNode, DataNode, HDFS Client ZK: Zookeeper Server, Zookeeper Monitor
-   * Ganglia: Ganglia Server, Ganglia Monitor
+   * NameNode, DataNode, HDFS Client, Secondary NameNode, ZKFC; ZK: Zookeeper
+   * Server, Zookeeper Client.
    *
-   * Further, 3 hosts will be added. Finally, verify that only the Ganglia
-   * components do not need to advertise a version.
+   * Further, 3 hosts will be added. Finally, verify the HDFS components that
+   * do not need to advertise a version.
    *
    * @param clusterName
    *          Cluster Name
@@ -330,18 +330,20 @@ public class ClusterTest {
     // Add Services
     Service s1 = serviceFactory.createNew(cluster, "HDFS", repositoryVersion);
     Service s2 = serviceFactory.createNew(cluster, "ZOOKEEPER", repositoryVersion);
-    Service s3 = serviceFactory.createNew(cluster, "GANGLIA", repositoryVersion);
     cluster.addService(s1);
     cluster.addService(s2);
-    cluster.addService(s3);
 
     // Add HDFS components
     ServiceComponent sc1CompA = serviceComponentFactory.createNew(s1, "NAMENODE");
     ServiceComponent sc1CompB = serviceComponentFactory.createNew(s1, "DATANODE");
     ServiceComponent sc1CompC = serviceComponentFactory.createNew(s1, "HDFS_CLIENT");
+    ServiceComponent sc1CompD = serviceComponentFactory.createNew(s1, "SECONDARY_NAMENODE");
+    ServiceComponent sc1CompE = serviceComponentFactory.createNew(s1, "ZKFC");
     s1.addServiceComponent(sc1CompA);
     s1.addServiceComponent(sc1CompB);
     s1.addServiceComponent(sc1CompC);
+    s1.addServiceComponent(sc1CompD);
+    s1.addServiceComponent(sc1CompE);
 
     // Add ZK
     ServiceComponent sc2CompA = serviceComponentFactory.createNew(s2, "ZOOKEEPER_SERVER");
@@ -349,37 +351,31 @@ public class ClusterTest {
     s2.addServiceComponent(sc2CompA);
     s2.addServiceComponent(sc2CompB);
 
-    // Add Ganglia
-    ServiceComponent sc3CompA = serviceComponentFactory.createNew(s3, "GANGLIA_SERVER");
-    ServiceComponent sc3CompB = serviceComponentFactory.createNew(s3, "GANGLIA_MONITOR");
-    s3.addServiceComponent(sc3CompA);
-    s3.addServiceComponent(sc3CompB);
-
     // Host 1 will have all components
     ServiceComponentHost schHost1Serv1CompA = serviceComponentHostFactory.createNew(sc1CompA, "h-1");
     ServiceComponentHost schHost1Serv1CompB = serviceComponentHostFactory.createNew(sc1CompB, "h-1");
     ServiceComponentHost schHost1Serv1CompC = serviceComponentHostFactory.createNew(sc1CompC, "h-1");
     ServiceComponentHost schHost1Serv2CompA = serviceComponentHostFactory.createNew(sc2CompA, "h-1");
     ServiceComponentHost schHost1Serv2CompB = serviceComponentHostFactory.createNew(sc2CompB, "h-1");
-    ServiceComponentHost schHost1Serv3CompA = serviceComponentHostFactory.createNew(sc3CompA, "h-1");
-    ServiceComponentHost schHost1Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-1");
+    ServiceComponentHost schHost1Serv1CompD = serviceComponentHostFactory.createNew(sc1CompD, "h-1");
+    ServiceComponentHost schHost1Serv1CompE = serviceComponentHostFactory.createNew(sc1CompE, "h-1");
     sc1CompA.addServiceComponentHost(schHost1Serv1CompA);
     sc1CompB.addServiceComponentHost(schHost1Serv1CompB);
     sc1CompC.addServiceComponentHost(schHost1Serv1CompC);
     sc2CompA.addServiceComponentHost(schHost1Serv2CompA);
     sc2CompB.addServiceComponentHost(schHost1Serv2CompB);
-    sc3CompA.addServiceComponentHost(schHost1Serv3CompA);
-    sc3CompB.addServiceComponentHost(schHost1Serv3CompB);
+    sc1CompD.addServiceComponentHost(schHost1Serv1CompD);
+    sc1CompE.addServiceComponentHost(schHost1Serv1CompE);
 
-    // Host 2 will have ZK_CLIENT and GANGLIA_MONITOR
+    // Host 2 will have ZK_CLIENT and ZKFC.
     ServiceComponentHost schHost2Serv2CompB = serviceComponentHostFactory.createNew(sc2CompB, "h-2");
-    ServiceComponentHost schHost2Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-2");
+    ServiceComponentHost schHost2Serv1CompE = serviceComponentHostFactory.createNew(sc1CompE, "h-2");
     sc2CompB.addServiceComponentHost(schHost2Serv2CompB);
-    sc3CompB.addServiceComponentHost(schHost2Serv3CompB);
+    sc1CompE.addServiceComponentHost(schHost2Serv1CompE);
 
-    // Host 3 will have GANGLIA_MONITOR
-    ServiceComponentHost schHost3Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-3");
-    sc3CompB.addServiceComponentHost(schHost3Serv3CompB);
+    // Host 3 will have only ZKFC.
+    ServiceComponentHost schHost3Serv1CompE = serviceComponentHostFactory.createNew(sc1CompE, "h-3");
+    sc1CompE.addServiceComponentHost(schHost3Serv1CompE);
 
     // Verify count of components
     List<ServiceComponentHost> scHost1 = cluster.getServiceComponentHosts("h-1");
@@ -401,11 +397,11 @@ public class ClusterTest {
 
     Set<String> hdfsComponents = new HashSet<String>() {{ add("NAMENODE"); add("DATANODE"); add("HDFS_CLIENT"); }};
     Set<String> zkComponents = new HashSet<String>() {{ add("ZOOKEEPER_SERVER"); add("ZOOKEEPER_CLIENT"); }};
-    Set<String> gangliaComponents = new HashSet<String>() {{ add("GANGLIA_SERVER"); add("GANGLIA_MONITOR"); }};
+    Set<String> nonVersionedHdfsComponents = new HashSet<String>() {{ add("SECONDARY_NAMENODE"); add("ZKFC"); }};
 
     componentsThatAdvertiseVersion.put("HDFS", hdfsComponents);
     componentsThatAdvertiseVersion.put("ZOOKEEPER", zkComponents);
-    componentsThatDontAdvertiseVersion.put("GANGLIA", gangliaComponents);
+    componentsThatDontAdvertiseVersion.put("HDFS", nonVersionedHdfsComponents);
 
     for(String service : componentsThatAdvertiseVersion.keySet())  {
       Set<String> components = componentsThatAdvertiseVersion.get(service);
@@ -1696,24 +1692,24 @@ public class ClusterTest {
       }
     }
 
-    // Add another Host with components ZK Server, ZK Client, and Ganglia Monitor.
+    // Add another Host with components ZK Server, ZK Client, and ZKFC.
     // This host should get a HostVersion in CURRENT, and the ClusterVersion should stay in CURRENT
     addHost("h-4", hostAttributes);
     clusters.mapHostToCluster("h-4", clusterName);
 
     Service svc2 = cluster.getService("ZOOKEEPER");
-    Service svc3 = cluster.getService("GANGLIA");
+    Service hdfsService = cluster.getService("HDFS");
 
     ServiceComponent sc2CompA = svc2.getServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponent sc2CompB = svc2.getServiceComponent("ZOOKEEPER_CLIENT");
-    ServiceComponent sc3CompB = svc3.getServiceComponent("GANGLIA_MONITOR");
+    ServiceComponent zkfc = hdfsService.getServiceComponent("ZKFC");
 
     ServiceComponentHost schHost4Serv2CompA = serviceComponentHostFactory.createNew(sc2CompA, "h-4");
     ServiceComponentHost schHost4Serv2CompB = serviceComponentHostFactory.createNew(sc2CompB, "h-4");
-    ServiceComponentHost schHost4Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-4");
+    ServiceComponentHost schHost4Zkfc = serviceComponentHostFactory.createNew(zkfc, "h-4");
     sc2CompA.addServiceComponentHost(schHost4Serv2CompA);
     sc2CompB.addServiceComponentHost(schHost4Serv2CompB);
-    sc3CompB.addServiceComponentHost(schHost4Serv3CompB);
+    zkfc.addServiceComponentHost(schHost4Zkfc);
 
     simulateStackVersionListener(stackId, v1, cluster, hostComponentStateDAO.findByHost("h-4"));
 
@@ -1735,8 +1731,8 @@ public class ClusterTest {
       hostVersionDAO.create(hve);
     }
 
-    // Add one more Host, with only Ganglia on it. It should have a HostVersion in NOT_REQUIRED for v2,
-    // as Ganglia isn't versionable
+    // Add one more Host with only a non-versioned component. It should have a
+    // HostVersion in NOT_REQUIRED for v2.
     Host host5 = addHost("h-5", hostAttributes);
     clusters.mapAndPublishHostsToCluster(Collections.singleton("h-5"), clusterName);
 
@@ -1747,8 +1743,8 @@ public class ClusterTest {
     Assert.assertEquals(RepositoryVersionState.NOT_REQUIRED, h5Version1.getState());
     Assert.assertEquals(RepositoryVersionState.NOT_REQUIRED, h5Version2.getState());
 
-    ServiceComponentHost schHost5Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-5");
-    sc3CompB.addServiceComponentHost(schHost5Serv3CompB);
+    ServiceComponentHost schHost5Zkfc = serviceComponentHostFactory.createNew(zkfc, "h-5");
+    zkfc.addServiceComponentHost(schHost5Zkfc);
 
     // Host 5 will be in OUT_OF_SYNC, so redistribute bits to it so that it reaches a state of INSTALLED
     h5Version2 = hostVersionDAO.findByClusterStackVersionAndHost(clusterName, stackId, v2, "h-5");

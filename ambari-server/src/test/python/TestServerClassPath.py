@@ -189,7 +189,6 @@ class TestConfigs(TestCase):
 
     # Correct jars list
     find_jars_mock.return_value = [
-      "ambari-metrics-common-2.1.1.236.jar",
       "ambari-server-2.1.1.236.jar",
       "jetty-client-8.1.17.v20150415.jar",
       "spring-core-3.0.7.RELEASE.jar",
@@ -201,7 +200,6 @@ class TestConfigs(TestCase):
 
     # Incorrect jars list, multiple versions for ambari-server.jar
     find_jars_mock.return_value = [
-      "ambari-metrics-common-2.1.1.236.jar",
       "ambari-server-2.1.1.236.jar",
       "ambari-server-2.1.1.hotfixed.jar",
       "jetty-client-8.1.17.v20150415.jar",
@@ -215,7 +213,6 @@ class TestConfigs(TestCase):
 
     # Incorrect jars list, multiple versions for not ambari-server.jar
     find_jars_mock.return_value = [
-      "ambari-metrics-common-2.1.1.236.jar",
       "ambari-server-2.1.1.236.jar",
       "jetty-client-8.1.17.v20150415.jar",
       "jetty-client-9.jar",

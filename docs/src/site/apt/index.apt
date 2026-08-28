@@ -40,7 +40,7 @@ Introduction
   
     * Ambari provides a dashboard for monitoring health and status of the Hadoop cluster.
 
-    * Ambari leverages {{{https://issues.apache.org/jira/browse/AMBARI-5707} Ambari Metrics System}} for metrics collection.
+    * Ambari Agent exports host and component metrics through Prometheus-compatible endpoints. The built-in monitoring experience queries Prometheus-compatible datasources.
 
     * Ambari leverages {{{https://issues.apache.org/jira/browse/AMBARI-6354} Ambari Alert Framework}} for system alerting and will notify you when your attention is needed (e.g., a node goes down, remaining disk space is low, etc).
 
@@ -70,6 +70,5 @@ Get Involved
 What's New?
 
   Check out the work going on for the {{{./whats-new.html} upcoming releases}}.
-
 
 

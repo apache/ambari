@@ -122,16 +122,7 @@ class CheckHost(Script):
     "epel-release",
     "ambari-server",
     "ambari-agent",
-    # ganglia related:
-    "ganglia",
-    "libganglia",
-    "libconfuse",
     "perl",
-    "rrdtool",
-    "python-rrdtool",
-    "gmetad",
-    "librrd",
-    "rrdcached",
   ]
 
   # Additional packages to look for (search packages that start with these)

@@ -6,6 +6,7 @@
       "numRegionServers": 1,
       "numDeadRegionServers": 0,
       "numDrainingRegionServers": 0,
+      "tag.isActiveMaster": "true",
       "clusterRequests": 777,
       "masterStartTime": 1787882801033
     },

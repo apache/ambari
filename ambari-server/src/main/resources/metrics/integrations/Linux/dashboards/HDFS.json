@@ -1,0 +1,968 @@
+{
+  "name": "HDFS cluster monitoring",
+  "tags": "",
+  "group_id": 0,
+  "ident": "HDFS",
+  "id": 0,
+  "create_at": 0,
+  "create_by": "",
+  "update_at": 0,
+  "update_by": "",
+  "public": 0,
+  "public_cate": 0,
+  "bgids": null,
+  "built_in": 0,
+  "hide": 0,
+  "uuid": 1719556321738575000,
+  "configs": {
+    "var": [],
+    "panels": [
+      {
+        "type": "row",
+        "id": "262439b2-112b-4bfc-bdfb-4ce9d94e8ec9",
+        "name": "启动和恢复",
+        "collapsed": true,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0,
+          "i": "262439b2-112b-4bfc-bdfb-4ce9d94e8ec9",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "gauge",
+        "id": "2426a4f4-f56d-45ea-ab3c-a12352e38588",
+        "layout": {
+          "h": 4,
+          "w": 12,
+          "x": 12,
+          "y": 1,
+          "i": "aa99c183-d5dc-4fc3-a542-edf3f81447eb",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(namenode_fs_image_load_time{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\"}) / 1000",
+            "legend": "FSImage load duration"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "FSImage load duration",
+        "maxPerRow": 4,
+        "custom": {
+          "textMode": "valueAndName",
+          "calc": "lastNotNull",
+          "valueField": "Value"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#3FC453",
+                "value": null,
+                "type": "base"
+              },
+              {
+                "color": "#FF9919",
+                "value": 60
+              },
+              {
+                "color": "#FF656B",
+                "value": 80
+              }
+            ]
+          },
+          "standardOptions": {
+            "min": 0,
+            "max": 100,
+            "util": "seconds"
+          }
+        }
+      },
+      {
+        "type": "gauge",
+        "id": "4c84e757-3d0d-4869-ab22-23424cbab0c1",
+        "layout": {
+          "h": 4,
+          "w": 12,
+          "x": 0,
+          "y": 5,
+          "i": "114d0aa2-ec87-46cc-bddc-723555f13b6e",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(startup_progress_elapsed_time{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\"}) / 1000",
+            "legend": "NameNode startup duration"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "NameNode startup duration",
+        "maxPerRow": 4,
+        "custom": {
+          "textMode": "valueAndName",
+          "calc": "lastNotNull",
+          "valueField": "Value"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#3FC453",
+                "value": null,
+                "type": "base"
+              },
+              {
+                "color": "#FF9919",
+                "value": 60
+              },
+              {
+                "color": "#FF656B",
+                "value": 80
+              }
+            ]
+          },
+          "standardOptions": {
+            "min": 0,
+            "max": 100,
+            "util": "seconds"
+          }
+        }
+      },
+      {
+        "type": "gauge",
+        "id": "edf6b871-1b10-4c4b-acde-35e0c34d91aa",
+        "layout": {
+          "h": 4,
+          "w": 12,
+          "x": 12,
+          "y": 5,
+          "i": "e41c92ab-b0d4-4a02-b1ce-b94aa01a8a40",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(namenode_safe_mode_time{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\"}) / 1000",
+            "legend": "Safe mode duration"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Safe mode duration",
+        "maxPerRow": 4,
+        "custom": {
+          "textMode": "valueAndName",
+          "calc": "lastNotNull",
+          "valueField": "Value"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#3FC453",
+                "value": null,
+                "type": "base"
+              },
+              {
+                "color": "#FF9919",
+                "value": 60
+              },
+              {
+                "color": "#FF656B",
+                "value": 80
+              }
+            ]
+          },
+          "standardOptions": {
+            "min": 0,
+            "max": 100,
+            "util": "seconds"
+          }
+        }
+      },
+      {
+        "type": "row",
+        "id": "f5faa25a-397e-4e48-b91f-8df378f2fb34",
+        "name": "HDFS文件系统使用情况",
+        "collapsed": true,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 9,
+          "i": "f5faa25a-397e-4e48-b91f-8df378f2fb34",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "7360cf84-713b-4748-8724-6bf937765859",
+        "layout": {
+          "h": 4,
+          "w": 8,
+          "x": 0,
+          "y": 10,
+          "i": "7360cf84-713b-4748-8724-6bf937765859",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(fs_namesystem_capacity_remaining{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "legend": "HDFS remaining capacity"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "HDFS remaining capacity",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "838b3eec-53c9-4a5a-b318-dc5fb842ae7b",
+        "layout": {
+          "h": 4,
+          "w": 8,
+          "x": 8,
+          "y": 10,
+          "i": "838b3eec-53c9-4a5a-b318-dc5fb842ae7b",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(fs_namesystem_capacity_total{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "legend": "HDFS total capacity"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "HDFS total capacity",
+        "links": [],
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "bdbdcb7a-b603-48d6-8e8e-2ffd980ec429",
+        "layout": {
+          "h": 4,
+          "w": 8,
+          "x": 16,
+          "y": 10,
+          "i": "bdbdcb7a-b603-48d6-8e8e-2ffd980ec429",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "100 * max(fs_namesystem_capacity_used{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"}) / clamp_min(max(fs_namesystem_capacity_total{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"}), 1)",
+            "legend": "HDFS usage"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "HDFS usage",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percent"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "8f706de4-0e8f-48fe-8c34-5ce917e332e2",
+        "name": "数据节点健康状态",
+        "collapsed": true,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 14,
+          "i": "8f706de4-0e8f-48fe-8c34-5ce917e332e2",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "stat",
+        "id": "628ea123-45ea-49b4-b73e-c6200b081364",
+        "layout": {
+          "h": 4,
+          "w": 12,
+          "x": 0,
+          "y": 15,
+          "i": "628ea123-45ea-49b4-b73e-c6200b081364",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(fs_namesystem_num_live_data_nodes{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "legend": "Live"
+          },
+          {
+            "expr": "max(fs_namesystem_num_dead_data_nodes{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "__mode__": "__query__",
+            "refId": "B",
+            "maxDataPoints": 240,
+            "legend": "Dead"
+          },
+          {
+            "expr": "max(fs_namesystem_stale_data_nodes{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "__mode__": "__query__",
+            "refId": "C",
+            "maxDataPoints": 240,
+            "legend": "Stale"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "DataNode health",
+        "maxPerRow": 4,
+        "custom": {
+          "textMode": "valueAndName",
+          "graphMode": "none",
+          "colorMode": "value",
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colSpan": 0,
+          "textSize": {},
+          "orientation": "auto"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "standardOptions": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off",
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "8c185fc9-518b-4d29-9705-ded3b8e66842",
+        "layout": {
+          "h": 4,
+          "w": 7,
+          "x": 12,
+          "y": 15,
+          "i": "8c185fc9-518b-4d29-9705-ded3b8e66842",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(fs_namesystem_num_decom_dead_data_nodes{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "legend": "Decommissioned dead"
+          },
+          {
+            "expr": "max(fs_namesystem_num_decom_live_data_nodes{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "__mode__": "__query__",
+            "refId": "B",
+            "maxDataPoints": 240,
+            "legend": "Decommissioned live"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "DataNodes in decommission",
+        "maxPerRow": 4,
+        "custom": {
+          "textMode": "valueAndName",
+          "graphMode": "none",
+          "colorMode": "value",
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colSpan": 0,
+          "textSize": {},
+          "orientation": "auto"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "standardOptions": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "4a68074f-8a0e-44f5-b49b-af0c1bcd7829",
+        "layout": {
+          "h": 4,
+          "w": 5,
+          "x": 19,
+          "y": 15,
+          "i": "4a68074f-8a0e-44f5-b49b-af0c1bcd7829",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(fs_namesystem_volume_failures_total{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "legend": "DataNode volume failures"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "DataNode volume failures",
+        "maxPerRow": 4,
+        "custom": {
+          "textMode": "valueAndName",
+          "graphMode": "none",
+          "colorMode": "value",
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colSpan": 0,
+          "textSize": {},
+          "orientation": "auto"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "standardOptions": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "af4eefe2-873f-48cd-b0c5-e09deea615e4",
+        "name": "HDFS block health",
+        "collapsed": true,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 19,
+          "i": "af4eefe2-873f-48cd-b0c5-e09deea615e4",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "stat",
+        "id": "850adeac-f2d6-4104-b89e-6afbf4c4d976",
+        "layout": {
+          "h": 4,
+          "w": 24,
+          "x": 0,
+          "y": 20,
+          "i": "850adeac-f2d6-4104-b89e-6afbf4c4d976",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(fs_namesystem_blocks_total{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "legend": "Total"
+          },
+          {
+            "expr": "max(fs_namesystem_missing_blocks{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "__mode__": "__query__",
+            "refId": "B",
+            "maxDataPoints": 240,
+            "legend": "Missing"
+          },
+          {
+            "expr": "max(fs_namesystem_corrupt_blocks{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "__mode__": "__query__",
+            "refId": "C",
+            "maxDataPoints": 240,
+            "legend": "Corrupt"
+          },
+          {
+            "expr": "max(fs_namesystem_under_replicated_blocks{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "__mode__": "__query__",
+            "refId": "D",
+            "maxDataPoints": 240,
+            "legend": "Under-replicated"
+          },
+          {
+            "expr": "max(fs_namesystem_pending_replication_blocks{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "__mode__": "__query__",
+            "refId": "E",
+            "maxDataPoints": 240,
+            "legend": "Pending replication"
+          },
+          {
+            "expr": "max(fs_namesystem_scheduled_replication_blocks{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\",hastate=\"active\"})",
+            "__mode__": "__query__",
+            "refId": "F",
+            "maxDataPoints": 240,
+            "legend": "Scheduled replication"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "HDFS block health",
+        "maxPerRow": 4,
+        "custom": {
+          "textMode": "valueAndName",
+          "graphMode": "none",
+          "colorMode": "value",
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colSpan": 0,
+          "textSize": {},
+          "orientation": "auto"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "standardOptions": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "98e8ff22-d652-476f-b848-8191a83561ad",
+        "name": "HDFS 文件系统操作性能",
+        "collapsed": true,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 24,
+          "i": "98e8ff22-d652-476f-b848-8191a83561ad",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "b4213ff4-3f03-493a-8f68-7096d0d993e0",
+        "layout": {
+          "h": 6,
+          "w": 13,
+          "x": 0,
+          "y": 25,
+          "i": "b4213ff4-3f03-493a-8f68-7096d0d993e0",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "expr": "sum(rate(namenode_create_file_ops{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "B",
+            "maxDataPoints": 240,
+            "legend": "Create"
+          },
+          {
+            "expr": "sum(rate(namenode_delete_file_ops{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "C",
+            "maxDataPoints": 240,
+            "legend": "Delete"
+          },
+          {
+            "expr": "sum(rate(namenode_file_info_ops{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "D",
+            "maxDataPoints": 240,
+            "legend": "File info"
+          },
+          {
+            "expr": "sum(rate(namenode_get_listing_ops{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "E",
+            "maxDataPoints": 240,
+            "legend": "List"
+          },
+          {
+            "expr": "sum(rate(namenode_add_block_ops{cluster=\"${cluster}\",service=\"HDFS\",component=\"NAMENODE\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "F",
+            "maxDataPoints": 240,
+            "legend": "Add block"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "HDFS file operation rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "reqps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.26,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      }
+    ],
+    "version": "3.0.0",
+    "graphTooltip": "default",
+    "graphZoom": "default"
+  }
+}

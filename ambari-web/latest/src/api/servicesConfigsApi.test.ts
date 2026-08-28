@@ -93,7 +93,7 @@ describe("services and configs API contracts", () => {
   });
 
   it("uses exact non-metrics component and desired-config URLs", async () => {
-    await ServiceApi.getAllServiceComponentsListAndInitialMetrics("c1", "a,b");
+    await ServiceApi.getAllServiceComponents("c1", "a,b");
     await ConfigsApi.getDesiredConfigsInfo("c1");
     expect(mocks.request).toHaveBeenNthCalledWith(1, {
       url: "/clusters/c1/components?fields=a,b&_=1234",

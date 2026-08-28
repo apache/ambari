@@ -100,7 +100,6 @@
         <service>YARN</service>
       </priority>
       <exclude>
-        <service>AMBARI_METRICS</service>
         <service>LOGSEARCH</service>
       </exclude>
     </group>

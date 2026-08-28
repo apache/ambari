@@ -857,26 +857,6 @@ public class ClusterService extends BaseService {
   }
 
   /**
-   * Gets the widget layout service
-   */
-  @Path("{clusterName}/widget_layouts")
-  public WidgetLayoutService getWidgetLayoutService(@Context jakarta.ws.rs.core.Request request,
-                                                    @PathParam ("clusterName") String clusterName) {
-
-    return new WidgetLayoutService(clusterName);
-  }
-
-  /**
-   * Gets the widget service
-   */
-  @Path("{clusterName}/widgets")
-  public WidgetService getWidgetService(@Context jakarta.ws.rs.core.Request request,
-                                                    @PathParam ("clusterName") String clusterName) {
-
-    return new WidgetService(clusterName);
-  }
-
-  /**
    * Gets the credentials service.
    *
    * @param request          the request.

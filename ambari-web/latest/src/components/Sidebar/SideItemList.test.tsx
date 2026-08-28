@@ -59,3 +59,35 @@ describe("Kerberos sidebar ownership", () => {
       .toBe(true);
   });
 });
+
+describe("Monitoring sidebar permissions", () => {
+  const monitoringItem = (...authorizations: string[]) => {
+    const haveAnyPermission = (expression: string) => expression
+      .split(",")
+      .map((value) => value.trim())
+      .some((authorization) => authorizations.includes(authorization));
+    return getSideItemList(
+      haveAnyPermission,
+      haveAnyPermission,
+      {},
+    ).find((item) => item.id === SideItemLabels.MONITORING);
+  };
+
+  it("shows only cluster metric pages with cluster metric permission", () => {
+    expect(monitoringItem("CLUSTER.VIEW_METRICS")?.children.map(({ id }) => id))
+      .toEqual([
+        "monitoring_dashboards",
+        "monitoring_explore",
+        "monitoring_datasources",
+      ]);
+  });
+
+  it("keeps the Monitoring entry and Targets for host-only access", () => {
+    expect(monitoringItem("HOST.VIEW_METRICS")?.children.map(({ id }) => id))
+      .toEqual(["monitoring_targets"]);
+  });
+
+  it("hides Monitoring without either metrics permission", () => {
+    expect(monitoringItem()).toBeUndefined();
+  });
+});

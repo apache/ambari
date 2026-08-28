@@ -137,19 +137,3 @@ $ sudo service ambari start
   http://AMBARIMASTER/hmc/html/
 
   from your browser.
-
-
-Notes for Developers
-
-  If you have made any changes to the Ganglia addon code, install the
-  hdp_mon_ganglia_addons-0.0.2.14-1.noarch.rpm on the host running the Ganglia server.
-  To build this RPM from the source, run:
-
-+--
-$ cd mon_dashboard/package/rpm
-$ ./create_ganglia_addon_rpm.sh
-+--
-
-  Running the above creates the following RPM:
-
-   * mon_dashboard/package/rpm/build/rpmbuild/RPMS/noarch/hdp_mon_ganglia_addons-0.0.2.14-1.noarch.rpm

@@ -37,14 +37,14 @@ public class AbstractPropertyProviderTest {
 
   @Test
   public void testGetComponentMetrics() {
-    Map<String, Map<String, PropertyInfo>> componentMetrics = PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent);
+    Map<String, Map<String, PropertyInfo>> componentMetrics = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent);
     AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
     Assert.assertEquals(componentMetrics, provider.getComponentMetrics());
   }
 
   @Test
   public void testGetPropertyInfoMap() {
-    AbstractPropertyProvider provider = new TestPropertyProvider(PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent));
+    AbstractPropertyProvider provider = new TestPropertyProvider(PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent));
 
     // specific property
     Map<String, PropertyInfo> propertyInfoMap = provider.getPropertyInfoMap("NAMENODE", "metrics/cpu/cpu_aidle");
@@ -112,7 +112,7 @@ public class AbstractPropertyProviderTest {
   @Test
   public void testUpdateComponentMetricMapHDP1() {
     Map<String, Map<String, PropertyInfo>> componentMetrics =
-      PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent);
+      PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent);
 
     AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
 

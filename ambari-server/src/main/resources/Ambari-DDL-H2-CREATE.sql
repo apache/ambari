@@ -318,7 +318,6 @@ CREATE TABLE users (
   user_name VARCHAR(255) NOT NULL,
   active INTEGER NOT NULL DEFAULT 1,
   consecutive_failures INTEGER NOT NULL DEFAULT 0,
-  active_widget_layouts VARCHAR(1024) DEFAULT NULL,
   display_name VARCHAR(255) NOT NULL,
   local_username VARCHAR(255) NOT NULL,
   create_time BIGINT NOT NULL,
@@ -740,41 +739,68 @@ CREATE TABLE adminprivilege (
   CONSTRAINT FK_privilege_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
   CONSTRAINT FK_privilege_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id));
 
-CREATE TABLE widget (
+CREATE TABLE datasource (
   id BIGINT NOT NULL,
-  widget_name VARCHAR(255) NOT NULL,
-  widget_type VARCHAR(255) NOT NULL,
-  metrics VARCHAR(3000),
-  time_created BIGINT NOT NULL,
-  author VARCHAR(255),
-  description VARCHAR(2048),
-  default_section_name VARCHAR(255),
-  scope VARCHAR(255),
-  widget_values VARCHAR(3000),
-  properties VARCHAR(3000),
-  cluster_id BIGINT NOT NULL,
-  tag VARCHAR(255),
-  CONSTRAINT PK_widget PRIMARY KEY (id)
-);
+  name VARCHAR(191) NOT NULL,
+  description VARCHAR(255) NOT NULL DEFAULT '',
+  category VARCHAR(255) NOT NULL DEFAULT '',
+  plugin_id BIGINT NOT NULL DEFAULT 0,
+  plugin_type VARCHAR(255) NOT NULL DEFAULT '',
+  plugin_type_name VARCHAR(255) NOT NULL DEFAULT '',
+  cluster_name VARCHAR(255) NOT NULL DEFAULT '__ambari_builtin__',
+  settings CLOB NOT NULL,
+  status VARCHAR(255) NOT NULL DEFAULT '',
+  http CLOB NOT NULL,
+  auth CLOB NOT NULL,
+  is_default BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at BIGINT NOT NULL DEFAULT 0,
+  created_by VARCHAR(64) NOT NULL DEFAULT '',
+  updated_at BIGINT NOT NULL DEFAULT 0,
+  updated_by VARCHAR(64) NOT NULL DEFAULT '',
+  CONSTRAINT PK_datasource PRIMARY KEY (id),
+  CONSTRAINT UQ_datasource_name_cluster UNIQUE (cluster_name, name));
 
-CREATE TABLE widget_layout (
+CREATE INDEX idx_datasource_cluster ON datasource(cluster_name);
+
+CREATE TABLE board (
   id BIGINT NOT NULL,
-  layout_name VARCHAR(255) NOT NULL,
-  section_name VARCHAR(255) NOT NULL,
-  scope VARCHAR(255) NOT NULL,
-  user_name VARCHAR(255) NOT NULL,
-  display_name VARCHAR(255),
-  cluster_id BIGINT NOT NULL,
-  CONSTRAINT PK_widget_layout PRIMARY KEY (id)
-);
+  cluster_name VARCHAR(255) NOT NULL DEFAULT '',
+  group_id BIGINT NOT NULL DEFAULT 0,
+  name VARCHAR(191) NOT NULL,
+  ident VARCHAR(200) NOT NULL DEFAULT '',
+  tags VARCHAR(255) NOT NULL DEFAULT '',
+  public INTEGER NOT NULL DEFAULT 0,
+  built_in INTEGER NOT NULL DEFAULT 0,
+  hide INTEGER NOT NULL DEFAULT 0,
+  create_at BIGINT NOT NULL DEFAULT 0,
+  create_by VARCHAR(64) NOT NULL DEFAULT '',
+  update_at BIGINT NOT NULL DEFAULT 0,
+  update_by VARCHAR(64) NOT NULL DEFAULT '',
+  public_cate BIGINT NOT NULL DEFAULT 0,
+  display_locations VARCHAR(255) NOT NULL DEFAULT '',
+  CONSTRAINT PK_board PRIMARY KEY (id),
+  CONSTRAINT UQ_board_cluster_group_name UNIQUE (cluster_name, group_id, name));
 
-CREATE TABLE widget_layout_user_widget (
-  widget_layout_id BIGINT NOT NULL,
-  widget_id BIGINT NOT NULL,
-  widget_order smallint,
-  CONSTRAINT PK_widget_layout_user_widget PRIMARY KEY (widget_layout_id, widget_id),
-  CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES widget(id),
-  CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id));
+CREATE INDEX idx_board_ident ON board(ident);
+CREATE INDEX idx_board_cluster ON board(cluster_name);
+
+CREATE TABLE board_payload (
+  id BIGINT NOT NULL,
+  payload CLOB NOT NULL,
+  CONSTRAINT PK_board_payload PRIMARY KEY (id),
+  CONSTRAINT FK_board_payload_board FOREIGN KEY (id) REFERENCES board(id) ON DELETE CASCADE);
+
+CREATE TABLE chart_share (
+  id BIGINT NOT NULL,
+  cluster VARCHAR(128) NOT NULL,
+  datasource_id BIGINT NOT NULL DEFAULT 0,
+  configs CLOB,
+  create_at BIGINT NOT NULL DEFAULT 0,
+  create_by VARCHAR(64) NOT NULL DEFAULT '',
+  CONSTRAINT PK_chart_share PRIMARY KEY (id));
+
+CREATE INDEX idx_chart_share_create_at ON chart_share(create_at);
+CREATE INDEX idx_chart_share_cluster ON chart_share(cluster);
 
 CREATE TABLE artifact (
   artifact_name VARCHAR(255) NOT NULL,
@@ -1181,8 +1207,9 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value) VALUES
   ('mpack_id_seq', 0),
   ('extension_id_seq', 0),
   ('link_id_seq', 0),
-  ('widget_id_seq', 0),
-  ('widget_layout_id_seq', 0),
+  ('datasource_id_seq', 0),
+  ('board_id_seq', 0),
+  ('chart_share_id_seq', 0),
   ('topology_host_info_id_seq', 0),
   ('topology_host_request_id_seq', 0),
   ('topology_host_task_id_seq', 0),
@@ -1287,7 +1314,6 @@ INSERT INTO roleauthorization(authorization_id, authorization_name) VALUES
   ('CLUSTER.RUN_CUSTOM_COMMAND', 'Perform custom cluster-level actions'),
   ('CLUSTER.MANAGE_AUTO_START', 'Manage service auto-start configuration'),
   ('CLUSTER.MANAGE_ALERT_NOTIFICATIONS', 'Manage alert notifications configuration'),
-  ('CLUSTER.MANAGE_WIDGETS', 'Manage widgets'),
   ('AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters'),
   ('AMBARI.RENAME_CLUSTER', 'Rename clusters'),
   ('AMBARI.MANAGE_SETTINGS', 'Manage administrative settings'),
@@ -1403,7 +1429,6 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR'  UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_CREDENTIALS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR'  UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_AUTO_START' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR'  UNION ALL
-  SELECT permission_id, 'CLUSTER.MANAGE_WIDGETS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR';
 
 -- Set authorizations for Cluster Administrator role
@@ -1449,7 +1474,6 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_AUTO_START' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_ALERT_NOTIFICATIONS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
-  SELECT permission_id, 'CLUSTER.MANAGE_WIDGETS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR';
 
 -- Set authorizations for Administrator role
@@ -1496,7 +1520,6 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_AUTO_START' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_ALERT_NOTIFICATIONS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
-  SELECT permission_id, 'CLUSTER.MANAGE_WIDGETS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

@@ -26,7 +26,7 @@ import {
   useState,
 } from "react";
 import { useParams } from "react-router-dom";
-import { Alert, Button, Card, Form, ProgressBar } from "react-bootstrap";
+import { Alert, Button, Card, Form } from "react-bootstrap";
 import { cloneDeep, get, isEmpty, startCase } from "lodash";
 import DefaultButton from "../../components/DefaultButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -1280,20 +1280,6 @@ export default function HostsList() {
           1024
         );
       },
-    },
-    {
-      header: getHeader(translate("common.diskUsage") as string, "disk"),
-      id: "disk",
-      cell: (info: any) => {
-        const hostData = get(info, "row.original");
-        const diskUsageValue = hostData?.diskUsage ? hostData.diskUsage() : 0;
-        return <ProgressBar variant="info" now={diskUsageValue} />;
-      },
-    },
-    {
-      header: getHeader(translate("common.loadAvg") as string, "load"),
-      accessorKey: "loadOne",
-      id: "load",
     },
     {
       header: <div className="text-muted">{translate("common.versions")}</div>,

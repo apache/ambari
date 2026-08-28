@@ -79,11 +79,6 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   private StackRoleCommandOrder roleCommandOrder;
 
   /**
-   * widgets descriptor file
-   */
-  private Map<String, File> widgetsDescriptorFileMap = new HashMap<>();
-
-  /**
    * package directory path
    */
   protected String packageDir;
@@ -257,15 +252,6 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   }
 
   /**
-   * Obtain the Widgets Descriptor file.
-   *
-   * @return Widgets Descriptor file
-   */
-  public File getWidgetsDescriptorFile(String serviceName) {
-    return widgetsDescriptorFileMap.get(serviceName);
-  }
-
-  /**
    * Obtain the service metainfo file object representation.
    *
    * @return
@@ -310,9 +296,6 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
 
         File tf = new File(directory, StackDirectory.SERVICE_TELEMETRY_FILE_NAME);
         telemetryFileMap.put(serviceInfo.getName(), tf.exists() ? tf : null);
-
-        File wdf = new File(directory, serviceInfo.getWidgetsFileName());
-        widgetsDescriptorFileMap.put(serviceInfo.getName(), wdf.exists() ? wdf : null);
       }
     }
 

@@ -81,8 +81,7 @@ Get the user with the user_name of jdoe.
         "groups" : [ ],
         "ldap_user" : false,
         "user_type" : "LOCAL"        
-      }
-      "widget_layouts" : [ ],
+      },
       "privileges" : [ ],
       "sources" : [
         {
@@ -94,4 +93,3 @@ Get the user with the user_name of jdoe.
         }
       ]
     }
-    

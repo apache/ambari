@@ -1,0 +1,124 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements. See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0.
+#
+# Metric names and types for Hadoop 3.3.6 native /prom routes were extracted
+# from PrometheusMetricsSink output. NameNode, DataNode, and ResourceManager
+# entries were verified against live BIGTOP 3.3.0 captures on 2026-08-28.
+# ResourceManager types were also checked against ClusterMetrics, QueueMetrics,
+# CSQueueMetrics, JvmMetrics, and RPC metric source definitions. Capture files
+# are local validation artifacts and are intentionally not packaged. Ambari
+# Agent host entries come from metrics/linux.py.
+
+ambari_agent_cpu_seconds_total counter
+ambari_agent_memory_available_bytes gauge
+ambari_agent_memory_total_bytes gauge
+ambari_agent_system_cpu_count gauge
+ambari_agent_system_load1 gauge
+
+datanode_block_reports_num_ops counter
+datanode_blocks_in_pending_ibr gauge
+datanode_blocks_received_in_pending_ibr gauge
+datanode_blocks_removed counter
+datanode_blocks_replicated counter
+datanode_bytes_read counter
+datanode_bytes_written counter
+datanode_data_node_active_xceivers_count gauge
+datanode_data_node_block_recovery_worker_count gauge
+datanode_datanode_network_errors counter
+datanode_heartbeats_num_ops counter
+datanode_heartbeats_total_avg_time gauge
+datanode_read_block_op_num_ops counter
+datanode_remote_bytes_read counter
+datanode_remote_bytes_written counter
+datanode_total_read_time counter
+datanode_total_write_time counter
+datanode_volume_failures counter
+datanode_write_block_op_num_ops counter
+
+fs_namesystem_blocks_total gauge
+fs_namesystem_capacity_remaining gauge
+fs_namesystem_capacity_total gauge
+fs_namesystem_capacity_used gauge
+fs_namesystem_corrupt_blocks gauge
+fs_namesystem_missing_blocks gauge
+fs_namesystem_num_dead_data_nodes gauge
+fs_namesystem_num_decom_dead_data_nodes gauge
+fs_namesystem_num_decom_live_data_nodes gauge
+fs_namesystem_num_live_data_nodes gauge
+fs_namesystem_pending_replication_blocks gauge
+fs_namesystem_scheduled_replication_blocks gauge
+fs_namesystem_stale_data_nodes gauge
+fs_namesystem_under_replicated_blocks gauge
+fs_namesystem_volume_failures_total gauge
+
+jvm_metrics_gc_count counter
+jvm_metrics_gc_count_concurrent_mark_sweep counter
+jvm_metrics_gc_count_par_new counter
+jvm_metrics_gc_time_millis counter
+jvm_metrics_gc_time_millis_concurrent_mark_sweep counter
+jvm_metrics_gc_time_millis_par_new counter
+jvm_metrics_mem_heap_committed_m gauge
+jvm_metrics_mem_heap_max_m gauge
+jvm_metrics_mem_heap_used_m gauge
+jvm_metrics_mem_non_heap_used_m gauge
+jvm_metrics_threads_blocked gauge
+jvm_metrics_threads_runnable gauge
+jvm_metrics_threads_timed_waiting gauge
+jvm_metrics_threads_waiting gauge
+
+namenode_add_block_ops counter
+namenode_create_file_ops counter
+namenode_delete_file_ops counter
+namenode_file_info_ops counter
+namenode_fs_image_load_time gauge
+namenode_get_listing_ops counter
+namenode_safe_mode_time gauge
+startup_progress_elapsed_time counter
+
+org_apache_hadoop_hdfs_server_datanode_fsdataset_impl_fs_dataset_impl_capacity gauge
+org_apache_hadoop_hdfs_server_datanode_fsdataset_impl_fs_dataset_impl_dfs_used gauge
+org_apache_hadoop_hdfs_server_datanode_fsdataset_impl_fs_dataset_impl_num_failed_volumes gauge
+org_apache_hadoop_hdfs_server_datanode_fsdataset_impl_fs_dataset_impl_remaining gauge
+
+cluster_metrics_capability_mb gauge
+cluster_metrics_capability_virtual_cores gauge
+cluster_metrics_num_active_n_ms gauge
+cluster_metrics_num_decommissioned_n_ms gauge
+cluster_metrics_num_lost_n_ms gauge
+cluster_metrics_num_unhealthy_n_ms gauge
+cluster_metrics_utilized_mb gauge
+cluster_metrics_utilized_virtual_cores gauge
+
+queue_metrics_absolute_used_capacity gauge
+queue_metrics_active_applications gauge
+queue_metrics_allocated_containers gauge
+queue_metrics_allocated_mb gauge
+queue_metrics_allocated_v_cores gauge
+queue_metrics_apps_completed counter
+queue_metrics_apps_failed counter
+queue_metrics_apps_killed counter
+queue_metrics_apps_pending gauge
+queue_metrics_apps_running gauge
+queue_metrics_apps_submitted counter
+queue_metrics_max_capacity gauge
+queue_metrics_pending_containers gauge
+queue_metrics_pending_mb gauge
+queue_metrics_pending_v_cores gauge
+queue_metrics_reserved_containers gauge
+queue_metrics_reserved_mb gauge
+queue_metrics_reserved_v_cores gauge
+queue_metrics_used_am_resource_mb gauge
+queue_metrics_used_am_resource_v_cores gauge
+queue_metrics_used_capacity gauge
+
+rpc_call_queue_length gauge
+rpc_num_open_connections gauge
+rpc_received_bytes counter
+rpc_rpc_processing_time_avg_time gauge
+rpc_rpc_processing_time_num_ops counter
+rpc_rpc_queue_time_avg_time gauge
+rpc_rpc_queue_time_num_ops counter
+rpc_rpc_slow_calls counter
+rpc_sent_bytes counter

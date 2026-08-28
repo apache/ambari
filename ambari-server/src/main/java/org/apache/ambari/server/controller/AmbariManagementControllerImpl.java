@@ -62,7 +62,6 @@ import static org.apache.ambari.server.controller.AmbariCustomCommandExecutionHe
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
@@ -136,12 +135,8 @@ import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLRedirectProvider;
-import org.apache.ambari.server.controller.internal.WidgetLayoutResourceProvider;
-import org.apache.ambari.server.controller.internal.WidgetResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
-import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
-import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
@@ -161,8 +156,6 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.dao.WidgetDAO;
-import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
@@ -174,9 +167,6 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.orm.entities.WidgetEntity;
-import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
-import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -243,8 +233,6 @@ import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.RepositoryXml;
-import org.apache.ambari.server.state.stack.WidgetLayout;
-import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
@@ -352,11 +340,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private AmbariLdapDataPopulator ldapDataPopulator;
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
-  @Inject
-  private WidgetDAO widgetDAO;
-  @Inject
-  private WidgetLayoutDAO widgetLayoutDAO;
-  @Inject
   private ClusterDAO clusterDAO;
   @Inject
   private CredentialStoreService credentialStoreService;
@@ -573,14 +556,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     clusters.addCluster(request.getClusterName(), stackId, request.getSecurityType());
-    Cluster c = clusters.getCluster(request.getClusterName());
-
     if (request.getHostNames() != null) {
       clusters.mapAndPublishHostsToCluster(request.getHostNames(),
           request.getClusterName());
     }
-    // Create cluster widgets and layouts
-    initializeWidgetsAndLayouts(c, null);
   }
 
   @Override
@@ -5272,172 +5251,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
-  public void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException {
-    Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
-
-    Set<File> widgetDescriptorFiles = new HashSet<>();
-
-    if (null != service) {
-      ServiceInfo serviceInfo = ambariMetaInfo.getService(service);
-      File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
-      if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
-        widgetDescriptorFiles.add(widgetDescriptorFile);
-      }
-    } else {
-      // common cluster level widgets
-      File commonWidgetsFile = ambariMetaInfo.getCommonWidgetsDescriptorFile();
-      if (commonWidgetsFile != null && commonWidgetsFile.exists()) {
-        widgetDescriptorFiles.add(commonWidgetsFile);
-      } else {
-        LOG.warn("Common widgets file with path {%s} doesn't exist. No cluster widgets will be created.", commonWidgetsFile);
-      }
-    }
-
-    for (File widgetDescriptorFile : widgetDescriptorFiles) {
-      Map<String, Object> widgetDescriptor = null;
-
-      try {
-        widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-
-        for (Object artifact : widgetDescriptor.values()) {
-          List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
-          createWidgetsAndLayouts(cluster, widgetLayouts);
-        }
-
-      } catch (Exception ex) {
-        String msg = "Error loading widgets from file: " + widgetDescriptorFile;
-        LOG.error(msg, ex);
-        throw new AmbariException(msg);
-      }
-    }
-  }
-
-  private WidgetEntity addIfNotExistsWidgetEntity(WidgetLayoutInfo layoutInfo, ClusterEntity clusterEntity,
-                                          String user, long createTime) {
-    List<WidgetEntity> createdEntities =
-      widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(),
-        user, layoutInfo.getDefaultSectionName());
-
-    if (createdEntities == null || createdEntities.isEmpty()) {
-      WidgetEntity widgetEntity = new WidgetEntity();
-      widgetEntity.setClusterId(clusterEntity.getClusterId());
-      widgetEntity.setClusterEntity(clusterEntity);
-      widgetEntity.setScope(WidgetResourceProvider.SCOPE.CLUSTER.name());
-      widgetEntity.setWidgetName(layoutInfo.getWidgetName());
-      widgetEntity.setDefaultSectionName(layoutInfo.getDefaultSectionName());
-      widgetEntity.setAuthor(user);
-      widgetEntity.setDescription(layoutInfo.getDescription());
-      widgetEntity.setTimeCreated(createTime);
-      widgetEntity.setWidgetType(layoutInfo.getType());
-      widgetEntity.setMetrics(gson.toJson(layoutInfo.getMetricsInfo()));
-      widgetEntity.setProperties(gson.toJson(layoutInfo.getProperties()));
-      widgetEntity.setWidgetValues(gson.toJson(layoutInfo.getValues()));
-      widgetEntity.setListWidgetLayoutUserWidgetEntity(new LinkedList<>());
-      LOG.info("Creating cluster widget with: name = " +
-        layoutInfo.getWidgetName() + ", type = " + layoutInfo.getType() + ", " +
-        "cluster = " + clusterEntity.getClusterName());
-      // Persisting not visible widgets
-      // visible one will be cascaded on creation of layout
-      if (!layoutInfo.isVisible()) {
-        widgetDAO.create(widgetEntity);
-      }
-      return widgetEntity;
-    } else {
-      LOG.warn("Skip creating widget from stack artifact since one or more " +
-        "already exits with name = " + layoutInfo.getWidgetName() + ", " +
-          "clusterId = " + clusterEntity.getClusterId() + ", user = " + user);
-    }
-    return null;
-  }
-
-  @Transactional
-  void createWidgetsAndLayouts(Cluster cluster, List<WidgetLayout> widgetLayouts) {
-    String user = "ambari";
-    Long clusterId = cluster.getClusterId();
-    ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
-    if (clusterEntity == null) {
-      return;
-    }
-    Long now = System.currentTimeMillis();
-
-    if (widgetLayouts != null) {
-      for (WidgetLayout widgetLayout : widgetLayouts) {
-        List<WidgetLayoutEntity> existingEntities =
-          widgetLayoutDAO.findByName(clusterId, widgetLayout.getLayoutName(), user);
-        // Update layout properties if the layout exists
-        if (existingEntities == null || existingEntities.isEmpty()) {
-          WidgetLayoutEntity layoutEntity = new WidgetLayoutEntity();
-          layoutEntity.setClusterEntity(clusterEntity);
-          layoutEntity.setClusterId(clusterId);
-          layoutEntity.setLayoutName(widgetLayout.getLayoutName());
-          layoutEntity.setDisplayName(widgetLayout.getDisplayName());
-          layoutEntity.setSectionName(widgetLayout.getSectionName());
-          layoutEntity.setScope(WidgetLayoutResourceProvider.SCOPE.CLUSTER.name());
-          layoutEntity.setUserName(user);
-
-          List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<>();
-          int order = 0;
-          for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
-            if (layoutInfo.getDefaultSectionName() == null) {
-              layoutInfo.setDefaultSectionName(layoutEntity.getSectionName());
-            }
-            WidgetEntity widgetEntity = addIfNotExistsWidgetEntity(layoutInfo, clusterEntity, user, now);
-            // Add to layout if visibility is true and widget was newly added
-            if (widgetEntity != null && layoutInfo.isVisible()) {
-              WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
-              widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
-              widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
-              widgetLayoutUserWidgetEntity.setWidgetLayout(layoutEntity);
-              widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
-              widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
-            }
-          }
-          layoutEntity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
-          widgetLayoutDAO.createWithFlush(layoutEntity);
-        } else {
-          if (existingEntities.size() > 1) {
-            LOG.warn("Skip updating layout since multiple widget layouts " +
-              "found with: name = " + widgetLayout.getLayoutName() + ", " +
-              "user = " + user + ", cluster = " + cluster.getClusterName());
-          } else {
-            WidgetLayoutEntity existingLayoutEntity = existingEntities.iterator().next();
-            existingLayoutEntity.setSectionName(widgetLayout.getSectionName());
-            existingLayoutEntity.setDisplayName(widgetLayout.getDisplayName());
-            // Add new widgets to end of the existing ones
-            List<WidgetLayoutUserWidgetEntity> layoutUserWidgetEntities = existingLayoutEntity.getListWidgetLayoutUserWidgetEntity();
-            if (layoutUserWidgetEntities == null) {
-              layoutUserWidgetEntities = new LinkedList<>();
-              existingLayoutEntity.setListWidgetLayoutUserWidgetEntity(layoutUserWidgetEntities);
-            }
-            int order = layoutUserWidgetEntities.size() - 1;
-            List<WidgetLayoutInfo> layoutInfoList = widgetLayout.getWidgetLayoutInfoList();
-            if (layoutInfoList != null && !layoutInfoList.isEmpty()) {
-              for (WidgetLayoutInfo layoutInfo : layoutInfoList) {
-                WidgetEntity widgetEntity = addIfNotExistsWidgetEntity(layoutInfo, clusterEntity, user, now);
-                if (widgetEntity != null && layoutInfo.isVisible()) {
-                  WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
-                  widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
-                  widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
-                  widgetLayoutUserWidgetEntity.setWidgetLayout(existingLayoutEntity);
-                  layoutUserWidgetEntities.add(widgetLayoutUserWidgetEntity);
-                  widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
-                }
-              }
-            }
-            widgetLayoutDAO.mergeWithFlush(existingLayoutEntity);
-          }
-        }
-      }
-    }
-  }
-
-  @Override
-  public TimelineMetricCacheProvider getTimelineMetricCacheProvider() {
-    return injector.getInstance(TimelineMetricCacheProvider.class);
-  }
-
   /**
    * {@inheritDoc}
    */
@@ -5489,11 +5302,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     properties.put("storage.persistent", String.valueOf(credentialStoreService.isInitialized(CredentialStoreType.PERSISTED)));
     properties.put("storage.temporary", String.valueOf(credentialStoreService.isInitialized(CredentialStoreType.TEMPORARY)));
     return properties;
-  }
-
-  @Override
-  public MetricsCollectorHAManager getMetricsCollectorHAManager() {
-    return injector.getInstance(MetricsCollectorHAManager.class);
   }
 
   /**

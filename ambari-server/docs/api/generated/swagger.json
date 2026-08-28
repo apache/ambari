@@ -6285,97 +6285,6 @@
         }
       }
     },
-    "/users/{userName}/activeWidgetLayouts" : {
-      "get" : {
-        "tags" : [ "Users" ],
-        "summary" : "Get user widget layouts",
-        "description" : "Returns all active widget layouts for user.",
-        "operationId" : "ActiveWidgetLayoutService#getServices",
-        "produces" : [ "text/plain" ],
-        "parameters" : [ {
-          "name" : "userName",
-          "in" : "path",
-          "description" : "user name",
-          "required" : true,
-          "type" : "string"
-        }, {
-          "name" : "fields",
-          "in" : "query",
-          "description" : "Filter user layout details",
-          "required" : false,
-          "type" : "string",
-          "default" : "WidgetLayoutInfo/*"
-        }, {
-          "name" : "sortBy",
-          "in" : "query",
-          "description" : "Sort layouts (asc | desc)",
-          "required" : false,
-          "type" : "string",
-          "default" : "WidgetLayoutInfo/user_name.asc"
-        }, {
-          "name" : "page_size",
-          "in" : "query",
-          "description" : "The number of resources to be returned for the paged response.",
-          "required" : false,
-          "type" : "integer",
-          "default" : 10
-        }, {
-          "name" : "from",
-          "in" : "query",
-          "description" : "The starting page resource (inclusive). Valid values are :offset | \"start\"",
-          "required" : false,
-          "type" : "string",
-          "default" : "0"
-        }, {
-          "name" : "to",
-          "in" : "query",
-          "description" : "The ending page resource (inclusive). Valid values are :offset | \"end\"",
-          "required" : false,
-          "type" : "string"
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "successful operation",
-            "schema" : {
-              "type" : "array",
-              "items" : {
-                "$ref" : "#/definitions/ActiveWidgetLayoutResponse"
-              }
-            }
-          }
-        }
-      },
-      "put" : {
-        "tags" : [ "Users" ],
-        "summary" : "Update user widget layouts",
-        "description" : "Updates user widget layout.",
-        "operationId" : "ActiveWidgetLayoutService#updateServices",
-        "produces" : [ "text/plain" ],
-        "parameters" : [ {
-          "name" : "userName",
-          "in" : "path",
-          "description" : "user name",
-          "required" : true,
-          "type" : "string"
-        }, {
-          "in" : "body",
-          "name" : "body",
-          "description" : "input parameters in json form",
-          "required" : true,
-          "schema" : {
-            "$ref" : "#/definitions/ActiveWidgetLayoutRequest"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Successful operation"
-          },
-          "500" : {
-            "description" : "Server Error"
-          }
-        }
-      }
-    },
     "/users/{userName}/authorizations" : {
       "get" : {
         "tags" : [ "Users" ],
@@ -8307,49 +8216,6 @@
       "properties" : {
         "Actions" : {
           "$ref" : "#/definitions/ActionResponse"
-        }
-      }
-    },
-    "ActiveWidgetLayoutRequest" : {
-      "type" : "object",
-      "properties" : {
-        "WidgetLayouts" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/definitions/WidgetLayoutIdWrapper"
-          }
-        }
-      }
-    },
-    "ActiveWidgetLayoutResponse" : {
-      "type" : "object",
-      "properties" : {
-        "WidgetLayoutInfo/cluster_name" : {
-          "type" : "string"
-        },
-        "WidgetLayoutInfo/display_name" : {
-          "type" : "string"
-        },
-        "WidgetLayoutInfo/layout_name" : {
-          "type" : "string"
-        },
-        "WidgetLayoutInfo/scope" : {
-          "type" : "string"
-        },
-        "WidgetLayoutInfo/section_name" : {
-          "type" : "string"
-        },
-        "WidgetLayoutInfo/user_name" : {
-          "type" : "string"
-        },
-        "WidgetLayoutInfo/widgets" : {
-          "type" : "array",
-          "items" : {
-            "type" : "object",
-            "additionalProperties" : {
-              "$ref" : "#/definitions/WidgetResponse"
-            }
-          }
         }
       }
     },
@@ -12588,61 +12454,6 @@
         },
         "widget" : {
           "$ref" : "#/definitions/Widget"
-        }
-      }
-    },
-    "WidgetLayoutIdWrapper" : {
-      "type" : "object",
-      "properties" : {
-        "id" : {
-          "type" : "integer",
-          "format" : "int64"
-        }
-      }
-    },
-    "WidgetResponse" : {
-      "type" : "object",
-      "properties" : {
-        "id" : {
-          "type" : "integer",
-          "format" : "int64"
-        },
-        "widgetName" : {
-          "type" : "string"
-        },
-        "widgetType" : {
-          "type" : "string"
-        },
-        "metrics" : {
-          "type" : "string"
-        },
-        "timeCreated" : {
-          "type" : "integer",
-          "format" : "int64"
-        },
-        "author" : {
-          "type" : "string"
-        },
-        "description" : {
-          "type" : "string"
-        },
-        "displayName" : {
-          "type" : "string"
-        },
-        "scope" : {
-          "type" : "string"
-        },
-        "widgetValues" : {
-          "type" : "string"
-        },
-        "properties" : {
-          "type" : "string"
-        },
-        "clusterName" : {
-          "type" : "string"
-        },
-        "tag" : {
-          "type" : "string"
         }
       }
     }

@@ -2448,7 +2448,6 @@ public class AmbariManagementControllerImplTest {
     StackInfo stackInfo = createNiceMock(StackInfo.class);
 
     expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
-    expect(ambariMetaInfo.getCommonWidgetsDescriptorFile()).andReturn(null).once();
 
     replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, service, repoVersionDAO, repoVersion);
 

@@ -218,14 +218,14 @@ public class ConfigHelperTest {
         add(clusterRequest4);
       }}, null);
 
-      // ams-site
+      // custom-site
       ConfigurationRequest cr5 = new ConfigurationRequest();
       cr5.setClusterName(clusterName);
-      cr5.setType("ams-site");
+      cr5.setType("custom-site");
       cr5.setVersionTag("version1");
       cr5.setProperties(new HashMap<String, String>() {{
-        put("timeline.service.operating.mode", "embedded");
-        put("timeline.service.fifo.enabled", "false");
+        put("custom.service.operating.mode", "embedded");
+        put("custom.service.fifo.enabled", "false");
       }});
       cr5.setPropertiesAttributes(null);
 
@@ -418,11 +418,11 @@ public class ConfigHelperTest {
       //Setup
       ConfigurationRequest cr5 = new ConfigurationRequest();
       cr5.setClusterName(clusterName);
-      cr5.setType("ams-env");
+      cr5.setType("custom-env");
       cr5.setVersionTag("version1");
       cr5.setProperties(new HashMap<String, String>() {{
-        put("metrics_collector_log_dir", "/var/log/ambari-metrics-collector");
-        put("metrics_collector_pid_dir", "/var/run/ambari-metrics-collector");
+        put("custom_service_log_dir", "/var/log/custom-service");
+        put("custom_service_pid_dir", "/var/run/custom-service");
       }});
       cr5.setPropertiesAttributes(null);
 
@@ -439,7 +439,7 @@ public class ConfigHelperTest {
       properties.put("a", "b");
       properties.put("c", "d");
 
-      final Config config = configFactory.createNew(cluster, "ams-env", "version122", properties, null);
+      final Config config = configFactory.createNew(cluster, "custom-env", "version122", properties, null);
       Long groupId = addConfigGroup("g1", "t1", new ArrayList<String>() {{
         add("h1");
       }}, new ArrayList<Config>() {{
@@ -452,7 +452,7 @@ public class ConfigHelperTest {
           .getEffectiveDesiredTags(cluster, "h1");
 
       Assert.assertNotNull(configTags);
-      Map<String, String> tagsWithOverrides = configTags.get("ams-env");
+      Map<String, String> tagsWithOverrides = configTags.get("custom-env");
       Assert.assertNotNull(tagsWithOverrides);
       Assert.assertTrue(tagsWithOverrides.containsKey(ConfigHelper.CLUSTER_DEFAULT_TAG));
       Assert.assertEquals("version1", tagsWithOverrides.get(ConfigHelper.CLUSTER_DEFAULT_TAG));
@@ -979,29 +979,29 @@ public class ConfigHelperTest {
 
     @Test
     public void testUpdateConfigTypeRemovals() throws Exception {
-      Config currentConfig = cluster.getDesiredConfigByType("ams-site");
+      Config currentConfig = cluster.getDesiredConfigByType("custom-site");
       Map<String, String> properties = currentConfig.getProperties();
       // Config tag before update
       Assert.assertEquals("version1", currentConfig.getTag());
       // Properties before update
-      Assert.assertEquals("embedded", properties.get("timeline.service.operating.mode"));
-      Assert.assertEquals("false", properties.get("timeline.service.fifo.enabled"));
+      Assert.assertEquals("embedded", properties.get("custom.service.operating.mode"));
+      Assert.assertEquals("false", properties.get("custom.service.fifo.enabled"));
 
       List<String> removals = new ArrayList<>();
-      removals.add("timeline.service.operating.mode");
+      removals.add("custom.service.operating.mode");
 
       configHelper.updateConfigType(cluster, cluster.getCurrentStackVersion(), managementController,
-          "ams-site", null, removals, "admin", "Test note");
+          "custom-site", null, removals, "admin", "Test note");
 
-      Config updatedConfig = cluster.getDesiredConfigByType("ams-site");
+      Config updatedConfig = cluster.getDesiredConfigByType("custom-site");
       // Config tag updated
       Assert.assertFalse("version1".equals(updatedConfig.getTag()));
       // Property removed
       properties = updatedConfig.getProperties();
-      Assert.assertFalse(properties.containsKey("timeline.service.operating.mode"));
+      Assert.assertFalse(properties.containsKey("custom.service.operating.mode"));
       // Property unchanged
-      Assert.assertTrue(properties.containsKey("timeline.service.fifo.enabled"));
-      Assert.assertEquals("false", properties.get("timeline.service.fifo.enabled"));
+      Assert.assertTrue(properties.containsKey("custom.service.fifo.enabled"));
+      Assert.assertEquals("false", properties.get("custom.service.fifo.enabled"));
     }
 
     @Test

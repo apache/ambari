@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -113,7 +113,7 @@ export const useMapReduce2ConfigUpdater = () => {
         get(item, "ServiceComponentInfo.component_name") === "HISTORYSERVER"
     );
     jobHistoryServer.state = get(jobHistoryServer, "HostRoles.state");
-    currentConfig[ServiceComponentMetricsEnums.MAPREDUCE2.jobHistoryServer] =
+    currentConfig[ServiceComponentFields.MAPREDUCE2.jobHistoryServer] =
       jobHistoryServer;
 
     // Only update if we have changes
@@ -155,15 +155,15 @@ export const useMapReduce2ConfigUpdater = () => {
       } else {
         const mr2ClientsInstalled = componentData.installedCount;
         currentConfig[
-          ServiceComponentMetricsEnums.MAPREDUCE2.mapReduce2Clients
+          ServiceComponentFields.MAPREDUCE2.mapReduce2Clients
         ] = mr2ClientsInstalled;
         clientComponents.push(componentData);
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.MAPREDUCE2.masterComponents] =
+    currentConfig[ServiceComponentFields.MAPREDUCE2.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.MAPREDUCE2.clientComponents] =
+    currentConfig[ServiceComponentFields.MAPREDUCE2.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["mapreduce2"], currentConfig)) {

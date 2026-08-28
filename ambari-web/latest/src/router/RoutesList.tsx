@@ -54,6 +54,15 @@ import Experimental from "../screens/Experimental";
 import FeatureRouteGuard from "../components/FeatureRouteGuard";
 import AdminViewRouteGuard from "../components/AdminViewRouteGuard";
 import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
+import MonitoringLayout, {
+  MonitoringIndexRedirect,
+} from "../screens/Monitoring/MonitoringLayout";
+import Dashboards from "../screens/Monitoring/Dashboards";
+import DashboardDetail from "../screens/Monitoring/DashboardDetail";
+import Datasources from "../screens/Monitoring/Datasources";
+import Explorer from "../screens/Monitoring/Explorer";
+import Targets from "../screens/Monitoring/Targets";
+import SharedCharts from "../screens/Monitoring/SharedCharts";
 
 export const HaPersistenceRouteGuard = ({ children }: { children: ReactNode }) => {
   return (
@@ -145,7 +154,66 @@ const RoutesList: RouteObject[] = [
                 element: <Outlet />,
                 children: [
                   { index: true, element: <Navigate to="metrics" replace /> },
-                  { path: ":tabName", element: <Dashboard /> },
+                  {
+                    path: "metrics",
+                    element: (
+                      <ProtectedRoute
+                        requireAuthorization="CLUSTER.VIEW_METRICS"
+                        redirectTo="/main/dashboard/confighistory"
+                      >
+                        <Dashboard tabName="metrics" />
+                      </ProtectedRoute>
+                    ),
+                  },
+                  {
+                    path: "confighistory",
+                    element: <Dashboard tabName="confighistory" />,
+                  },
+                  {
+                    path: "heatmaps",
+                    element: <Navigate to="/main/dashboard/metrics" replace />,
+                  },
+                  {
+                    path: "*",
+                    element: <Navigate to="/main/dashboard/metrics" replace />,
+                  },
+                ],
+              },
+              {
+                path: "monitoring",
+                element: <MonitoringLayout />,
+                children: [
+                  { index: true, element: <MonitoringIndexRedirect /> },
+                  {
+                    element: (
+                      <ProtectedRoute
+                        requireAuthorization="CLUSTER.VIEW_METRICS"
+                        redirectTo="/main/dashboard/metrics"
+                      >
+                        <Outlet />
+                      </ProtectedRoute>
+                    ),
+                    children: [
+                      { path: "dashboards", element: <Dashboards /> },
+                      { path: "dashboards/:dashboardId", element: <DashboardDetail /> },
+                      { path: "datasources", element: <Datasources /> },
+                      { path: "query", element: <Explorer /> },
+                      { path: "explore", element: <Navigate to="/main/monitoring/query" replace /> },
+                      { path: "charts/:shareIds", element: <SharedCharts /> },
+                      { path: "chart/:shareIds", element: <SharedCharts /> },
+                    ],
+                  },
+                  {
+                    path: "targets",
+                    element: (
+                      <ProtectedRoute
+                        requireAuthorization="HOST.VIEW_METRICS"
+                        redirectTo="/main/dashboard/metrics"
+                      >
+                        <Targets />
+                      </ProtectedRoute>
+                    ),
+                  },
                 ],
               },
               { path: "actions", element: <Actions serviceName="HDFS" /> },

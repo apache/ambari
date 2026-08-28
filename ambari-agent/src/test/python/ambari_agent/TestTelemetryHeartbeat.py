@@ -53,11 +53,12 @@ class TestTelemetryHeartbeat(unittest.TestCase):
       response = KerberosTelemetryFetcher(config)(target)
 
       self.assertEqual(b"metric_total 1\n", response.body)
-      self.assertFalse(request.call_args.kwargs["follow_redirects"])
-      self.assertTrue(request.call_args.kwargs["fail_on_http_error"])
-      self.assertTrue(request.call_args.kwargs["verify_ssl"])
-      self.assertEqual(4096, request.call_args.kwargs["max_response_bytes"])
-      self.assertIsNone(request.call_args.kwargs["ca_certs"])
+      request_options = request.call_args[1]
+      self.assertFalse(request_options["follow_redirects"])
+      self.assertTrue(request_options["fail_on_http_error"])
+      self.assertTrue(request_options["verify_ssl"])
+      self.assertEqual(4096, request_options["max_response_bytes"])
+      self.assertIsNone(request_options["ca_certs"])
 
   def test_registration_capability_gates_telemetry_sync(self):
     heartbeat = object.__new__(HeartbeatThread.HeartbeatThread)

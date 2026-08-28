@@ -13,6 +13,16 @@
         }
       },
       "attributes": {
+        "tag.isActiveMaster": {
+          "name": "hbase_master_active",
+          "type": "gauge",
+          "unit": "boolean",
+          "valueMap": {
+            "false": 0,
+            "true": 1
+          },
+          "help": "Whether this HBase Master is currently active."
+        },
         "averageLoad": {
           "name": "hbase_master_average_region_load",
           "type": "gauge",

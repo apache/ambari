@@ -321,6 +321,7 @@ class TestJmxTelemetryConversion(unittest.TestCase):
       load_fixture("hbase-master-jmx.json"), profile
     ).decode("utf-8")
 
+    self.assertIn("hbase_master_active 1", rendered)
     self.assertIn("hbase_master_regionservers 1", rendered)
     self.assertIn("hbase_master_rpc_process_call_duration_p99_seconds 0.001", rendered)
     self.assertIn("hbase_master_jvm_gc_time_seconds_total 0.816", rendered)
@@ -332,6 +333,10 @@ class TestJmxTelemetryConversion(unittest.TestCase):
     ).decode("utf-8")
 
     self.assertIn("hbase_regionserver_store_file_locality_ratio 1", rendered)
+    self.assertIn("# TYPE hbase_regionserver_read_requests_per_second gauge", rendered)
+    self.assertIn("hbase_regionserver_read_requests_per_second 0", rendered)
+    self.assertIn("# TYPE hbase_regionserver_write_requests_per_second gauge", rendered)
+    self.assertIn("hbase_regionserver_write_requests_per_second 0", rendered)
     self.assertIn("hbase_regionserver_scan_duration_p99_seconds 0.001", rendered)
     self.assertIn("hbase_regionserver_rpc_received_bytes_total 261174", rendered)
     self.assertIn("hbase_regionserver_jvm_heap_max_bytes 536870912", rendered)

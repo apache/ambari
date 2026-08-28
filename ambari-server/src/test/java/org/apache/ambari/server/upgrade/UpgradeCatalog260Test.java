@@ -37,7 +37,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -92,9 +91,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
-import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
-import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -114,9 +111,7 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceComponentImpl;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
-import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -140,7 +135,6 @@ import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.tasks.ConfigureClusterTaskFactory;
-import org.apache.commons.io.FileUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRunner;
@@ -868,63 +862,6 @@ public class UpgradeCatalog260Test {
   }
 
   @Test
-  public void testUpdateAmsConfigs() throws Exception {
-
-    Map<String, String> oldProperties = new HashMap<String, String>() {
-      {
-        put("ssl.client.truststore.location", "/some/location");
-        put("ssl.client.truststore.alias", "test_alias");
-      }
-    };
-    Map<String, String> newProperties = new HashMap<String, String>() {
-      {
-        put("ssl.client.truststore.location", "/some/location");
-      }
-    };
-
-    EasyMockSupport easyMockSupport = new EasyMockSupport();
-
-    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
-    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
-    Config mockAmsSslClient = easyMockSupport.createNiceMock(Config.class);
-
-    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-      put("normal", cluster);
-    }}).once();
-    expect(cluster.getDesiredConfigByType("ams-ssl-client")).andReturn(mockAmsSslClient).atLeastOnce();
-    expect(mockAmsSslClient.getProperties()).andReturn(oldProperties).anyTimes();
-
-    Injector injector = easyMockSupport.createNiceMock(Injector.class);
-    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
-
-    replay(injector, clusters, mockAmsSslClient, cluster);
-
-    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-        .addMockedMethod("createConfiguration", ConfigurationRequest.class)
-        .addMockedMethod("getClusters", new Class[] { })
-        .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
-            String.class, Map.class)
-        .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
-        .createNiceMock();
-
-    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
-
-    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
-    expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
-        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
-
-    replay(controller, injector2);
-    new UpgradeCatalog260(injector2).updateAmsConfigs();
-    easyMockSupport.verifyAll();
-
-    Map<String, String> updatedProperties = propertiesCapture.getValue();
-    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
-  }
-
-  @Test
   public void testUpdateHiveConfigs() throws Exception {
 
     Map<String, String> oldProperties = new HashMap<String, String>() {
@@ -989,98 +926,6 @@ public class UpgradeCatalog260Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
-  }
-
-  @Test
-  public void testHDFSWidgetUpdate() throws Exception {
-    final Clusters clusters = createNiceMock(Clusters.class);
-    final Cluster cluster = createNiceMock(Cluster.class);
-    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
-    final Gson gson = new Gson();
-    final WidgetDAO widgetDAO = createNiceMock(WidgetDAO.class);
-    final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
-    WidgetEntity widgetEntity = createNiceMock(WidgetEntity.class);
-    StackId stackId = new StackId("HDP", "2.0.0");
-    StackInfo stackInfo = createNiceMock(StackInfo.class);
-    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
-    Service service  = createNiceMock(Service.class);
-
-    String widgetStr = "{\n" +
-        "  \"layouts\": [\n" +
-        "      {\n" +
-        "      \"layout_name\": \"default_hdfs_heatmap\",\n" +
-        "      \"display_name\": \"Standard HDFS HeatMaps\",\n" +
-        "      \"section_name\": \"HDFS_HEATMAPS\",\n" +
-        "      \"widgetLayoutInfo\": [\n" +
-        "        {\n" +
-        "          \"widget_name\": \"HDFS Bytes Read\",\n" +
-        "          \"metrics\": [],\n" +
-        "          \"values\": []\n" +
-        "        }\n" +
-        "      ]\n" +
-        "    }\n" +
-        "  ]\n" +
-        "}";
-
-    File dataDirectory = temporaryFolder.newFolder();
-    File file = new File(dataDirectory, "hdfs_widget.json");
-    FileUtils.writeStringToFile(file, widgetStr, Charset.defaultCharset());
-
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding()
-        .addPasswordEncryptorBindings().addLdapBindings().build().configure(binder());
-
-        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
-        bind(AmbariManagementController.class).toInstance(controller);
-        bind(Clusters.class).toInstance(clusters);
-        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(Gson.class).toInstance(gson);
-        bind(WidgetDAO.class).toInstance(widgetDAO);
-        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
-        bind(AmbariMetaInfo.class).toInstance(metaInfo);
-        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessorImpl.class));
-        bind(PersistedState.class).toInstance(mock(PersistedStateImpl.class));
-        bind(UnitOfWork.class).toInstance(createNiceMock(UnitOfWork.class));
-        bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
-        bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
-        bind(StageFactory.class).to(StageFactoryImpl.class);
-        bind(AuditLogger.class).toInstance(createNiceMock(AuditLoggerDefaultImpl.class));
-        bind(PasswordEncoder.class).toInstance(new StandardPasswordEncoder());
-        bind(HookService.class).to(UserHookService.class);
-        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
-        bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
-        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
-        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
-        bind(STOMPUpdatePublisher.class).toInstance(createNiceMock(STOMPUpdatePublisher.class));
-        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelperImpl.class));
-        bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
-      }
-    });
-    expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-      put("normal", cluster);
-    }}).anyTimes();
-    expect(cluster.getServices()).andReturn(Collections.singletonMap("HDFS", service)).anyTimes();
-    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
-    expect(service.getDesiredStackId()).andReturn(stackId).anyTimes();
-    expect(stackInfo.getService("HDFS")).andReturn(serviceInfo);
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
-    expect(metaInfo.getStack("HDP", "2.0.0")).andReturn(stackInfo).anyTimes();
-    expect(serviceInfo.getWidgetsDescriptorFile()).andReturn(file).anyTimes();
-
-    expect(widgetDAO.findByName(1L, "HDFS Bytes Read", "ambari", "HDFS_HEATMAPS"))
-        .andReturn(Collections.singletonList(widgetEntity));
-    expect(widgetDAO.merge(widgetEntity)).andReturn(null);
-    expect(widgetEntity.getWidgetName()).andReturn("HDFS Bytes Read").anyTimes();
-
-    replay(clusters, cluster, controller, widgetDAO, metaInfo, widgetEntity, stackInfo, serviceInfo, service);
-
-    mockInjector.getInstance(UpgradeCatalog260.class).updateHDFSWidgetDefinition();
-
-    verify(clusters, cluster, controller, widgetDAO, widgetEntity, stackInfo, serviceInfo);
   }
 
   private Injector getInjector() {

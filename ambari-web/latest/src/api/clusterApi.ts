@@ -209,16 +209,6 @@ const ClusterApi = {
       data: payload,
     });
     return response.data;
-  },
-
-  getClusterMetrics: async function (clusterName: string, fields: string) {
-    const url = `/clusters/${clusterName}?fields=${fields}`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-
   }
 }
 

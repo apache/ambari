@@ -330,10 +330,6 @@ public class AlertDefinitionFactory {
           clazz = MetricSource.class;
           break;
         }
-        case AMS:{
-          clazz = AmsSource.class;
-          break;
-        }
         case PORT:{
           clazz = PortSource.class;
           break;
@@ -377,4 +373,3 @@ public class AlertDefinitionFactory {
     }
   }
 }
-

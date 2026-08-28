@@ -242,11 +242,11 @@ public class HttpPropertyProviderTest {
   }
 
   @Test
-  public void testReadGangliaServer() throws Exception {
-    Resource resource = doPopulate("GANGLIA_SERVER",
+  public void testReadComponentWithoutHttpLookup() throws Exception {
+    Resource resource = doPopulate("UNKNOWN_COMPONENT",
         Collections.emptySet(), new TestStreamProvider(false));
 
-    // !!! GANGLIA_SERVER has no current http lookup
+    // Components without an HTTP lookup leave the stale-config property unset.
     Assert.assertNull(resource.getPropertyValue(PROPERTY_ID_STALE_CONFIGS));
   }
 

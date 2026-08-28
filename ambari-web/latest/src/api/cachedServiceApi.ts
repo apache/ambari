@@ -20,8 +20,8 @@ import { ServiceApi } from "./serviceApi";
 
 /**
  * Centralized Service Component API Manager
- * Mirrors Ember's updateServiceMetric pattern - makes one consolidated API call
- * and provides data to all consumers. Polling is handled by usePolling in ServiceContext.
+ * Makes one consolidated API call and provides component state to all consumers.
+ * Polling is handled by usePolling in ServiceContext.
  */
 class CachedServiceApiManager {
   private static instance: CachedServiceApiManager;
@@ -81,9 +81,9 @@ class CachedServiceApiManager {
     }
 
     try {
-      const fields = `ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,host_components/metrics/jvm/memHeapUsedM,host_components/metrics/jvm/HeapMemoryMax,host_components/metrics/jvm/HeapMemoryUsed,host_components/metrics/jvm/memHeapCommittedM,host_components/metrics/mapred/jobtracker/trackers_decommissioned,host_components/metrics/cpu/cpu_wio,host_components/metrics/rpc/client/RpcQueueTime_avg_time,host_components/metrics/dfs/FSNamesystem/*,host_components/metrics/dfs/namenode/Version,host_components/metrics/dfs/namenode/LiveNodes,host_components/metrics/dfs/namenode/DeadNodes,host_components/metrics/dfs/namenode/DecomNodes,host_components/metrics/dfs/namenode/TotalFiles,host_components/metrics/dfs/namenode/UpgradeFinalized,host_components/metrics/dfs/namenode/Safemode,host_components/metrics/runtime/StartTime,host_components/metrics/hbase/master/IsActiveMaster,host_components/metrics/hbase/master/MasterStartTime,host_components/metrics/hbase/master/MasterActiveTime,host_components/metrics/hbase/master/AverageLoad,host_components/metrics/master/AssignmentManager/ritCount,host_components/metrics/dfs/namenode/ClusterId,host_components/processes/HostComponentProcess,host_components/metrics/yarn/Queue,host_components/metrics/yarn/ClusterMetrics/NumActiveNMs,host_components/metrics/yarn/ClusterMetrics/NumLostNMs,host_components/metrics/yarn/ClusterMetrics/NumUnhealthyNMs,host_components/metrics/yarn/ClusterMetrics/NumRebootedNMs,host_components/metrics/yarn/ClusterMetrics/NumDecommissionedNMs,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name&minimal_response=true`;
+      const fields = `ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/hbase/master/IsActiveMaster,host_components/processes/HostComponentProcess,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name&minimal_response=true`;
 
-      this.pendingRequest = ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+      this.pendingRequest = ServiceApi.getAllServiceComponents(
         clusterName,
         fields
       );
@@ -107,17 +107,6 @@ class CachedServiceApiManager {
     }
   }
 
-  /**
-   * Get metrics for a specific service component
-   */
-  getServiceMetrics(serviceName: string, componentName: string): any {
-    const serviceData = this.getServiceComponentData(serviceName);
-    if (!serviceData) return null;
-
-    return serviceData.find((item: any) =>
-      item.ServiceComponentInfo?.component_name === componentName
-    );
-  }
 }
 
 // Export singleton instance

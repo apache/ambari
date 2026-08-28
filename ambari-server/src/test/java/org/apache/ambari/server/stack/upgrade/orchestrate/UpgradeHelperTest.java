@@ -1229,7 +1229,7 @@ public class UpgradeHelperTest extends EasyMockSupport {
     assertNotNull(upgrade);
 
     // HBASE and PIG have service checks, but not TEZ.
-    Set<String> additionalServices = new HashSet<String>() {{ add("HBASE"); add("PIG"); add("TEZ"); add("AMBARI_METRICS"); }};
+    Set<String> additionalServices = new HashSet<String>() {{ add("HBASE"); add("PIG"); add("TEZ"); }};
     Cluster c = makeCluster(true, additionalServices, "");
 
     int numServiceChecksExpected = 0;
@@ -1244,10 +1244,6 @@ public class UpgradeHelperTest extends EasyMockSupport {
         assertTrue("Expect Tez to not have any service checks", false);
       }
 
-      // Expect AMS to not run any service checks because it is excluded
-      if (service.getName().equalsIgnoreCase("AMBARI_METRICS")) {
-        continue;
-      }
       numServiceChecksExpected++;
     }
 

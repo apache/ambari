@@ -49,17 +49,17 @@
           "unit": "requests",
           "help": "Total number of requests answered by this RegionServer."
         },
-        "readRequestCount": {
-          "name": "hbase_regionserver_read_requests_total",
-          "type": "counter",
-          "unit": "requests",
-          "help": "Total number of read requests answered by this RegionServer."
+        "readRequestRatePerSecond": {
+          "name": "hbase_regionserver_read_requests_per_second",
+          "type": "gauge",
+          "unit": "requests_per_second",
+          "help": "Read requests per second calculated by the RegionServer."
         },
-        "writeRequestCount": {
-          "name": "hbase_regionserver_write_requests_total",
-          "type": "counter",
-          "unit": "requests",
-          "help": "Total number of mutation requests answered by this RegionServer."
+        "writeRequestRatePerSecond": {
+          "name": "hbase_regionserver_write_requests_per_second",
+          "type": "gauge",
+          "unit": "requests_per_second",
+          "help": "Mutation requests per second calculated by the RegionServer."
         },
         "compactionQueueLength": {
           "name": "hbase_regionserver_compaction_queue_length",
@@ -97,12 +97,6 @@
           "unit": "ratio",
           "scale": 0.01,
           "help": "Ratio of HBase store file data available on the local filesystem."
-        },
-        "blockedRequestCount": {
-          "name": "hbase_regionserver_blocked_requests_total",
-          "type": "counter",
-          "unit": "requests",
-          "help": "Total number of HBase requests blocked by memstore limits."
         },
         "slowGetCount": {
           "name": "hbase_regionserver_slow_gets_total",

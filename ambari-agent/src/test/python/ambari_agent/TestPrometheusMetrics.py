@@ -295,12 +295,15 @@ class TestPrometheusMetricsServer(unittest.TestCase):
 
     return Initializer()
 
-  def test_ambari_config_defaults_to_disabled(self):
+  def test_ambari_config_defaults_to_enabled(self):
     config = AmbariConfig()
 
-    self.assertFalse(config.prometheus_metrics_enabled)
+    self.assertTrue(config.prometheus_metrics_enabled)
     self.assertEqual("0.0.0.0", config.prometheus_metrics_bind_address)
     self.assertEqual(9101, config.prometheus_metrics_port)
+
+    config.set("prometheus", "enabled", "false")
+    self.assertFalse(config.prometheus_metrics_enabled)
 
     config.set("prometheus", "enabled", "YES")
     self.assertTrue(config.prometheus_metrics_enabled)

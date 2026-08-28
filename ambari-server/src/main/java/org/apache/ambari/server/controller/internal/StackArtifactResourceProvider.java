@@ -19,9 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -54,8 +52,6 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
-import org.apache.ambari.server.state.stack.WidgetLayout;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,11 +150,6 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
   public static final String METRICS_DESCRIPTOR_NAME = "metrics_descriptor";
 
   /**
-   * name of the widgets descriptor artifact.
-   */
-  public static final String WIDGETS_DESCRIPTOR_NAME = "widgets_descriptor";
-
-  /**
    * KerberosDescriptorFactory used to create KerberosDescriptor instances
    */
   @Inject
@@ -169,9 +160,6 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
    */
   @Inject
   private static KerberosServiceDescriptorFactory kerberosServiceDescriptorFactory;
-
-  Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
-  Gson gson = new Gson();
 
   /**
    * Constructor.
@@ -193,7 +181,6 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
 
     resources.addAll(getKerberosDescriptors(request, predicate));
     resources.addAll(getMetricsDescriptors(request, predicate));
-    resources.addAll(getWidgetsDescriptors(request, predicate));
     // add other artifacts types here
 
     if (resources.isEmpty()) {
@@ -340,11 +327,9 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
             }
           } else {
             // Cluster
-            Map<String, Map<String, PropertyInfo>> clusterMetrics =
-              PropertyHelper.getMetricPropertyIds(Resource.Type.Cluster);
+            Map<String, Map<String, PropertyInfo>> clusterMetrics = Collections.emptyMap();
             // Host
-            Map<String, Map<String, PropertyInfo>> hostMetrics =
-              PropertyHelper.getMetricPropertyIds(Resource.Type.Host);
+            Map<String, Map<String, PropertyInfo>> hostMetrics = Collections.emptyMap();
 
             descriptor = new HashMap<>();
             descriptor.put(Resource.Type.Cluster.name(), clusterMetrics);
@@ -371,83 +356,6 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
       }
     }
     return resources;
-  }
-
-  private Set<Resource> getWidgetsDescriptors(Request request, Predicate predicate)
-      throws SystemException, UnsupportedPropertyException,
-             NoSuchParentResourceException, NoSuchResourceException {
-
-    Set<Resource> resources = new HashSet<>();
-
-    for (Map<String, Object> properties : getPropertyMaps(predicate)) {
-      String artifactName = (String) properties.get(ARTIFACT_NAME_PROPERTY_ID);
-      if (artifactName == null || artifactName.equals(WIDGETS_DESCRIPTOR_NAME)) {
-        String stackName = (String) properties.get(STACK_NAME_PROPERTY_ID);
-        String stackVersion = (String) properties.get(STACK_VERSION_PROPERTY_ID);
-        String stackService = (String) properties.get(STACK_SERVICE_NAME_PROPERTY_ID);
-
-        Map<String, Object> descriptor;
-        try {
-          descriptor = getWidgetsDescriptor(stackName, stackVersion, stackService);
-        } catch (IOException e) {
-          LOG.error("Unable to process Widgets Descriptor. Properties: " + properties, e);
-          throw new SystemException("An internal exception occurred while attempting to build a Widgets Descriptor " +
-            "artifact. See ambari server logs for more information", e);
-        }
-
-        if (descriptor != null) {
-          Resource resource = new ResourceImpl(Resource.Type.StackArtifact);
-          Set<String> requestedIds = getRequestPropertyIds(request, predicate);
-          setResourceProperty(resource, ARTIFACT_NAME_PROPERTY_ID, WIDGETS_DESCRIPTOR_NAME, requestedIds);
-          setResourceProperty(resource, ARTIFACT_DATA_PROPERTY_ID, descriptor, requestedIds);
-          setResourceProperty(resource, STACK_NAME_PROPERTY_ID, stackName, requestedIds);
-          setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, stackVersion, requestedIds);
-          if (stackService != null) {
-            setResourceProperty(resource, STACK_SERVICE_NAME_PROPERTY_ID, stackService, requestedIds);
-          }
-          resources.add(resource);
-        }
-      }
-    }
-    return resources;
-  }
-
-  private Map<String, Object> getWidgetsDescriptor(String stackName,
-      String stackVersion, String serviceName)
-        throws NoSuchParentResourceException, IOException {
-
-    AmbariManagementController controller = getManagementController();
-    StackInfo stackInfo;
-    try {
-      stackInfo = controller.getAmbariMetaInfo().getStack(stackName, stackVersion);
-    } catch (StackAccessException e) {
-      throw new NoSuchParentResourceException(String.format(
-        "Parent stack resource doesn't exist: stackName='%s', stackVersion='%s'", stackName, stackVersion));
-    }
-
-    if (StringUtils.isEmpty(serviceName)) {
-      return null;
-    } else {
-      return getWidgetsDescriptorForService(stackInfo, serviceName);
-    }
-  }
-
-  public Map<String, Object> getWidgetsDescriptorForService(StackInfo stackInfo, String serviceName)
-      throws NoSuchParentResourceException, IOException {
-
-    Map<String, Object> widgetDescriptor = null;
-
-    ServiceInfo serviceInfo = stackInfo.getService(serviceName);
-    if (serviceInfo == null) {
-      throw new NoSuchParentResourceException("Service not found. serviceName" + " = " + serviceName);
-    }
-
-    File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
-    if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
-      widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
-    }
-
-    return widgetDescriptor;
   }
 
   /**
@@ -596,12 +504,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
         for (String category : categorizedMetrics.keySet()) {
           Map<String, Metric> namedMetricsCopy = new HashMap<>();
           Map<String, Metric> namedMetrics = categorizedMetrics.get(category);
-          for (String metricName : namedMetrics.keySet()) {
-            // Metrics System metrics only
-            if (!(metricDefinition.getType().equals("ganglia") && PropertyHelper.hasAggregateFunctionSuffix(metricName))) {
-              namedMetricsCopy.put(metricName, namedMetrics.get(metricName));
-            }
-          }
+          namedMetricsCopy.putAll(namedMetrics);
           categorizedMetricsCopy.put(category, namedMetricsCopy);
         }
         filteredComponentMetrics.add(

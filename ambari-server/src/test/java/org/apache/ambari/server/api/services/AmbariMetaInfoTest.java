@@ -47,7 +47,6 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
-import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
@@ -85,7 +84,6 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
-import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.commons.io.FileUtils;
@@ -720,32 +718,6 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void testMetricsJson() throws Exception {
-    ServiceInfo svc = metaInfo.getService(STACK_NAME_HDP, "2.0.5", "HDFS");
-    Assert.assertNotNull(svc);
-    Assert.assertNotNull(svc.getMetricsFile());
-
-    svc = metaInfo.getService(STACK_NAME_HDP, "2.0.6", "HDFS");
-    Assert.assertNotNull(svc);
-    Assert.assertNotNull(svc.getMetricsFile());
-
-    List<MetricDefinition> list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", SERVICE_COMPONENT_NAME, Resource.Type.Component.name());
-    Assert.assertNotNull(list);
-    checkNoAggregatedFunctionsForJmx(list);
-
-    list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", Resource.Type.Component.name());
-    Assert.assertNull(list);
-
-    List<MetricDefinition> list0 = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", Resource.Type.Component.name());
-    Assert.assertNull(list0);
-    Assert.assertTrue("Expecting subsequent calls to use a cached value for the definition", list == list0);
-
-    // not explicitly defined, uses 2.0.5
-    list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.6", "HDFS", "DATANODE", Resource.Type.Component.name());
-    Assert.assertNull(list);
-  }
-
-  @Test
   public void testKerberosJson() throws Exception {
     ServiceInfo svc;
 
@@ -770,32 +742,6 @@ public class AmbariMetaInfoTest {
 
     File kerberosDescriptorFile3 = svc.getKerberosDescriptorFile();
     Assert.assertNull(kerberosDescriptorFile3);
-  }
-
-  @Test
-  public void testGanglia134Dependencies() throws Exception {
-    ServiceInfo service = metaInfo.getService(STACK_NAME_HDP, "1.3.4", "GANGLIA");
-    List<ComponentInfo> componentList = service.getComponents();
-    Assert.assertEquals(2, componentList.size());
-    for (ComponentInfo component : componentList) {
-      String name = component.getName();
-      if (name.equals("GANGLIA_SERVER")) {
-        // dependencies
-        Assert.assertEquals(0, component.getDependencies().size());
-        // component auto deploy
-        Assert.assertNull(component.getAutoDeploy());
-        // cardinality
-        Assert.assertEquals("1", component.getCardinality());
-      }
-      if (name.equals("GANGLIA_MONITOR")) {
-        // dependencies
-        Assert.assertEquals(0, component.getDependencies().size());
-        // component auto deploy
-        Assert.assertTrue(component.getAutoDeploy().isEnabled());
-        // cardinality
-        Assert.assertEquals("ALL", component.getCardinality());
-      }
-    }
   }
 
   @Test
@@ -1834,14 +1780,6 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
-  public void testGetCommonWidgetsFile() throws AmbariException {
-    File widgetsFile = metaInfo.getCommonWidgetsDescriptorFile();
-
-    Assert.assertNotNull(widgetsFile);
-    Assert.assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
-  }
-
-  @Test
   public void testGetVersionDefinitionsForDisabledStack() throws AmbariException {
     Map<String, VersionDefinitionXml> versionDefinitions = metaInfo.getVersionDefinitions();
     Assert.assertNotNull(versionDefinitions);
@@ -1926,18 +1864,6 @@ public class AmbariMetaInfoTest {
     waitForAllReposToBeResolved(metaInfo);
 
     return metaInfo;
-  }
-
-  private static void checkNoAggregatedFunctionsForJmx(List<MetricDefinition> metricDefinitions) {
-    for (MetricDefinition metricDefinition: metricDefinitions) {
-      if ("jmx".equals(metricDefinition.getType())) {
-        for (String metric: metricDefinition.getMetrics().keySet()) {
-          if (metric.endsWith("._sum")) {
-            Assert.fail("Aggregated functions aren't supported for JMX metrics. " + metric);
-          }
-        }
-      }
-    }
   }
 
   private static void waitForAllReposToBeResolved(AmbariMetaInfo metaInfo) throws Exception {

@@ -1,5 +1,5 @@
 {
-  "HDFS":{
+  "HDFS": {
     "service": [
       {
         "name": "datanode_process_percent",
@@ -23,7 +23,7 @@
               "text": "affected: [{1}], total: [{0}]",
               "value": 30
             },
-            "units" : "%",
+            "units": "%",
             "type": "PERCENT"
           }
         }
@@ -50,7 +50,7 @@
               "text": "affected: [{1}], total: [{0}]",
               "value": 30
             },
-            "units" : "%",
+            "units": "%",
             "type": "PERCENT"
           }
         }
@@ -77,7 +77,7 @@
               "text": "affected: [{1}], total: [{0}]",
               "value": 50
             },
-            "units" : "%",
+            "units": "%",
             "type": "PERCENT"
           }
         }
@@ -103,16 +103,16 @@
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
-              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
-              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
-              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+              "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
             }
           },
           "reporting": {
             "ok": {
               "text": "HTTP {0} response in {2:.3f}s"
             },
-            "warning":{
+            "warning": {
               "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
             },
             "critical": {
@@ -153,9 +153,9 @@
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
-              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
-              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
-              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+              "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
             }
           },
           "reporting": {
@@ -170,7 +170,7 @@
               "text": "{1} CPU, load {0:.1%}",
               "value": 250
             },
-            "units" : "%",
+            "units": "%",
             "type": "PERCENT"
           },
           "jmx": {
@@ -201,9 +201,9 @@
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
-              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
-              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
-              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+              "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
             }
           },
           "reporting": {
@@ -213,12 +213,12 @@
             "warning": {
               "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
               "value": 1
-            },          
+            },
             "critical": {
               "text": "Total Blocks:[{1}], Missing Blocks:[{0}]",
               "value": 1
             },
-            "units" : "Blocks"
+            "units": "Blocks"
           },
           "jmx": {
             "property_list": [
@@ -248,9 +248,9 @@
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
-              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
-              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
-              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+              "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
             }
           },
           "reporting": {
@@ -265,7 +265,7 @@
               "text": "Pending Deletion Blocks:[{0}]",
               "value": 100000
             },
-            "units" : "Blocks"
+            "units": "Blocks"
           },
           "jmx": {
             "property_list": [
@@ -294,9 +294,9 @@
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
-              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
-              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
-              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+              "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
             }
           },
           "reporting": {
@@ -306,12 +306,12 @@
             "warning": {
               "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]",
               "value": 75
-            },          
+            },
             "critical": {
               "text": "Capacity Used:[{2:.0f}%, {0}], Capacity Remaining:[{1}]",
               "value": 80
             },
-            "units" : "%",
+            "units": "%",
             "type": "PERCENT"
           },
           "jmx": {
@@ -342,9 +342,9 @@
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
-              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
-              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
-              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+              "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
             }
           },
           "reporting": {
@@ -354,12 +354,12 @@
             "warning": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 3000
-            },          
+            },
             "critical": {
               "text": "Average Queue Time:[{0}], Average Processing Time:[{1}]",
               "value": 5000
             },
-            "units" : "ms"
+            "units": "ms"
           },
           "jmx": {
             "property_list": [
@@ -389,9 +389,9 @@
             "connection_timeout": 5.0,
             "high_availability": {
               "nameservice": "{{hdfs-site/dfs.internal.nameservices}}",
-              "alias_key" : "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
-              "http_pattern" : "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
-              "https_pattern" : "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
+              "alias_key": "{{hdfs-site/dfs.ha.namenodes.{{ha-nameservice}}}}",
+              "http_pattern": "{{hdfs-site/dfs.namenode.http-address.{{ha-nameservice}}.{{alias}}}}",
+              "https_pattern": "{{hdfs-site/dfs.namenode.https-address.{{ha-nameservice}}.{{alias}}}}"
             }
           },
           "reporting": {
@@ -401,12 +401,12 @@
             "warning": {
               "text": "Failed directory count: {1}",
               "value": 1
-            },          
+            },
             "critical": {
               "text": "Failed directory count: {1}",
               "value": 1
             },
-            "units" : "Dirs"
+            "units": "Dirs"
           },
           "jmx": {
             "property_list": [
@@ -544,966 +544,6 @@
             }
           ]
         }
-      },
-      {
-        "name": "namenode_service_rpc_queue_latency_hourly",
-        "label": "NameNode Service RPC Queue Latency (Hourly)",
-        "description": "This service-level alert is triggered if the deviation of RPC queue latency on datanode port has grown beyond the specified threshold within an hour period.",
-        "interval": 5,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 60,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 100,
-              "description": "The percentage of RPC queue latency growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 200,
-              "description": "The percentage of RPC queue latency growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Latency",
-              "value": 30,
-              "type": "NUMERIC",
-              "units": "seconds",
-              "description": "The minimum latency to measure growth."
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "ms",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_client_rpc_queue_latency_hourly",
-        "label": "NameNode Client RPC Queue Latency (Hourly)",
-        "description": "This service-level alert is triggered if the deviation of RPC queue latency on client port has grown beyond the specified threshold within an hour period.",
-        "interval": 5,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 60,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "rpc.rpc.client.RpcQueueTimeAvgTime",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 100,
-              "description": "The percentage of RPC queue latency growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 200,
-              "description": "The percentage of RPC queue latency growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Latency",
-              "value": 30,
-              "type": "NUMERIC",
-              "units": "seconds",
-              "description": "The minimum latency to measure growth."
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "ms",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_service_rpc_processing_latency_hourly",
-        "label": "NameNode Service RPC Processing Latency (Hourly)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within an hour period.",
-        "interval": 5,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 60,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 100,
-              "description": "The percentage of RPC processing latency growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 200,
-              "description": "The percentage of RPC processing latency growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Latency",
-              "value": 30,
-              "type": "NUMERIC",
-              "units": "seconds",
-              "description": "The minimum latency to measure growth."
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "ms",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_client_rpc_processing_latency_hourly",
-        "label": "NameNode Client RPC Processing Latency (Hourly)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within an hour period.",
-        "interval": 5,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 60,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "rpc.rpc.client.RpcProcessingTimeAvgTime",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 100,
-              "description": "The percentage of RPC processing latency growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 200,
-              "description": "The percentage of RPC processing latency growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Latency",
-              "value": 30,
-              "type": "NUMERIC",
-              "units": "seconds",
-              "description": "The minimum latency to measure growth."
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "ms",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            }
-          ]
-        }
-      },
-      {
-        "name": "increase_nn_heap_usage_daily",
-        "label": "NameNode Heap Usage (Daily)",
-        "description": "This service-level alert is triggered if the NameNode heap usage deviation has grown beyond the specified threshold within a day period.",
-        "interval": 480,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 1440,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "jvm.JvmMetrics.MemHeapUsedM",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 20,
-              "description": "The percentage of NameNode heap usage growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 50,
-              "description": "The percentage of NameNode heap usage growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "MB",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Heap",
-              "value": 100,
-              "type": "NUMERIC",
-              "units": "MB",
-              "description": "The minimum heap increase in a day."
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_service_rpc_processing_latency_daily",
-        "label": "NameNode Service RPC Processing Latency (Daily)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a day period.",
-        "interval": 480,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 1440,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "rpc.rpc.datanode.RpcProcessingTimeAvgTime",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 100,
-              "description": "The percentage of RPC processing latency growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 200,
-              "description": "The percentage of RPC processing latency growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Latency",
-              "value": 30,
-              "type": "NUMERIC",
-              "units": "seconds",
-              "description": "The minimum latency to measure growth."
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "ms",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_client_rpc_processing_latency_daily",
-        "label": "NameNode Client RPC Processing Latency (Daily)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a day period.",
-        "interval": 480,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 1440,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "rpc.rpc.client.RpcProcessingTimeAvgTime",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 100,
-              "description": "The percentage of RPC processing latency growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 200,
-              "description": "The percentage of RPC processing latency growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Latency",
-              "value": 30,
-              "type": "NUMERIC",
-              "units": "seconds",
-              "description": "The minimum latency to measure growth."
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "ms",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_service_rpc_queue_latency_daily",
-        "label": "NameNode Service RPC Queue Latency (Daily)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on datanode port has grown beyond the specified threshold within a day period.",
-        "interval": 480,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 1440,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "rpc.rpc.datanode.RpcQueueTimeAvgTime",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 100,
-              "description": "The percentage of RPC queue latency growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 200,
-              "description": "The percentage of RPC queue latency growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Latency",
-              "value": 30,
-              "type": "NUMERIC",
-              "units": "seconds",
-              "description": "The minimum latency to measure growth."
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "MB",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_client_rpc_queue_latency_daily",
-        "label": "NameNode Client RPC Queue Latency (Daily)",
-        "description": "This service-level alert is triggered if the deviation of RPC latency on client port has grown beyond the specified threshold within a day period.",
-        "interval": 480,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 1440,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "rpc.rpc.client.RpcQueueTimeAvgTime",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 100,
-              "description": "The percentage of RPC queue latency growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 200,
-              "description": "The percentage of RPC queue latency growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Latency",
-              "value": 30,
-              "type": "NUMERIC",
-              "units": "seconds",
-              "description": "The minimum latency to measure growth."
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "ms",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_increase_in_storage_capacity_usage_daily",
-        "label": "HDFS Storage Capacity Usage (Daily)",
-        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a day period.",
-        "interval": 480,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 1440,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "dfs.FSNamesystem.CapacityUsed",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 30,
-              "description": "The percentage of storage capacity usage growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 50,
-              "description": "The percentage of storage capacity usage growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "B",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Capacity",
-              "value": 100,
-              "type": "NUMERIC",
-              "units": "MB",
-              "description": "The minimum capacity increase in a day."
-            }
-          ]
-        }
-      },
-      {
-        "name": "increase_nn_heap_usage_weekly",
-        "label": "NameNode Heap Usage (Weekly)",
-        "description": "This service-level alert is triggered if the NameNode heap usage deviation has grown beyond the specified threshold within a week period.",
-        "interval": 1440,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 10080,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "jvm.JvmMetrics.MemHeapUsedM",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 20,
-              "description": "The percentage of NameNode heap usage growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 50,
-              "description": "The percentage of NameNode heap usage growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "MB",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Heap",
-              "value": 1000,
-              "type": "NUMERIC",
-              "units": "MB",
-              "description": "The minimum heap increase in a week."
-            }
-          ]
-        }
-      },
-      {
-        "name": "namenode_increase_in_storage_capacity_usage_weekly",
-        "label": "HDFS Storage Capacity Usage (Weekly)",
-        "description": "This service-level alert is triggered if the increase in storage capacity usage deviation has grown beyond the specified threshold within a week period.",
-        "interval": 1440,
-        "scope": "ANY",
-        "enabled": true,
-        "source": {
-          "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/HDFS/package/alerts/alert_metrics_deviation.py",
-          "parameters": [
-            {
-              "name": "mergeHaMetrics",
-              "display_name": "Whether active and stanby NameNodes metrics should be merged",
-              "value": "false",
-              "type": "STRING",
-              "description": "Whether active and stanby NameNodes metrics should be merged.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "interval",
-              "display_name": "Time interval in minutes",
-              "value": 10080,
-              "type": "NUMERIC",
-              "description": "Time interval in minutes.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "appId",
-              "display_name": "AMS application id",
-              "value": "namenode",
-              "type": "STRING",
-              "description": "The application id used to retrieve the metric.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metricName",
-              "display_name": "Metric Name",
-              "value": "dfs.FSNamesystem.CapacityUsed",
-              "type": "STRING",
-              "description": "The metric to monitor.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "metric.deviation.warning.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 10,
-              "description": "The percentage of storage capacity usage growth.",
-              "threshold": "WARNING"
-            },
-            {
-              "name": "metric.deviation.critical.threshold",
-              "display_name": "Growth Rate",
-              "type": "PERCENT",
-              "units": "%",
-              "value": 20,
-              "description": "The percentage of storage capacity usage growth.",
-              "threshold": "CRITICAL"
-            },
-            {
-              "name": "metric.units",
-              "display_name": "Metric Units",
-              "type": "STRING",
-              "value": "B",
-              "description": "The units that the metric data points are reported in.",
-              "visibility": "HIDDEN"
-            },
-            {
-              "name": "minimumValue",
-              "display_name": "Minimum Capacity",
-              "value": 1000,
-              "type": "NUMERIC",
-              "units": "MB",
-              "description": "The minimum capacity increase in a week."
-            }
-          ]
-        }
       }
     ],
     "SECONDARY_NAMENODE": [
@@ -1528,7 +568,7 @@
             "ok": {
               "text": "HTTP {0} response in {2:.3f}s"
             },
-            "warning":{
+            "warning": {
               "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
             },
             "critical": {
@@ -1598,7 +638,7 @@
           }
         }
       }
-    ],      
+    ],
     "DATANODE": [
       {
         "name": "datanode_process",
@@ -1608,7 +648,7 @@
         "scope": "HOST",
         "enabled": true,
         "source": {
-          "type": "PORT",        
+          "type": "PORT",
           "uri": "{{hdfs-site/dfs.datanode.address}}",
           "default_port": 50010,
           "reporting": {
@@ -1648,7 +688,7 @@
             "ok": {
               "text": "HTTP {0} response in {2:.3f}s"
             },
-            "warning":{
+            "warning": {
               "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
             },
             "critical": {
@@ -1656,7 +696,7 @@
             }
           }
         }
-      },    
+      },
       {
         "name": "datanode_storage",
         "label": "DataNode Storage",
@@ -1687,7 +727,7 @@
               "text": "Remaining Capacity:[{0}], Total Capacity:[{2:.0f}% Used, {1}]",
               "value": 80
             },
-            "units" : "%",
+            "units": "%",
             "type": "PERCENT"
           },
           "jmx": {
@@ -1741,7 +781,7 @@
               "text": "Used Heap:[{2:.0f}%, {0} MB], Max Heap: {1} MB",
               "value": 90
             },
-            "units" : "%",
+            "units": "%",
             "type": "PERCENT"
           },
           "jmx": {

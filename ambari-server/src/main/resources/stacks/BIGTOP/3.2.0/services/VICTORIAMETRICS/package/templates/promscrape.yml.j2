@@ -1,0 +1,49 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+global:
+  scrape_interval: {{ scrape_interval }}
+  scrape_timeout: {{ scrape_timeout }}
+  external_labels:
+    ambari_cluster: {{ yaml_cluster_name }}
+
+scrape_configs:
+  - job_name: ambari-prometheus-targets
+    honor_labels: false
+    http_sd_configs:
+      - url: {{ yaml_ambari_sd_url }}
+        basic_auth:
+          username: {{ yaml_ambari_sd_username }}
+          password_file: {{ ambari_sd_password_file }}
+{% if ambari_sd_protocol == "https" %}
+        tls_config:
+          insecure_skip_verify: {{ "true" if ambari_sd_tls_insecure_skip_verify else "false" }}
+{% if ambari_sd_ca_file %}
+          ca_file: {{ yaml_ambari_sd_ca_file }}
+{% endif %}
+{% endif %}
+    metric_relabel_configs:
+      # User-level scheduler metrics are unbounded and are not used by the built-in dashboards.
+      - source_labels: [component, __name__, user]
+        separator: ';'
+        regex: 'RESOURCEMANAGER;queue_metrics_.*;.+'
+        action: drop
+      - source_labels: [ambari_target, component, __name__]
+        separator: ';'
+        regex: 'host;;ambari_agent_.*|component;NAMENODE;(fs_namesystem_(blocks_total|capacity_(remaining|total|used)|corrupt_blocks|missing_blocks|num_(dead_data_nodes|decom_(dead|live)_data_nodes|live_data_nodes)|pending_replication_blocks|scheduled_replication_blocks|stale_data_nodes|under_replicated_blocks|volume_failures_total)|jvm_metrics_(gc_(count|time_millis)|mem_(heap_(committed|max|used)_m|non_heap_used_m)|threads_(blocked|runnable|waiting))|namenode_(add_block_ops|create_file_ops|delete_file_ops|file_info_ops|fs_image_load_time|get_listing_ops|safe_mode_time)|rpc_(call_queue_length|num_open_connections|received_bytes|rpc_(processing_time_avg_time|queue_time_avg_time|slow_calls)|sent_bytes)|startup_progress_elapsed_time)|component;DATANODE;(datanode_(block_reports_num_ops|blocks_(in_pending_ibr|received_in_pending_ibr|removed|replicated)|bytes_(read|written)|data_node_(active_xceivers_count|block_recovery_worker_count)|datanode_network_errors|heartbeats_(num_ops|total_avg_time)|read_block_op_num_ops|remote_bytes_(read|written)|volume_failures|write_block_op_num_ops)|jvm_metrics_(gc_(count|time_millis)|mem_heap_used_m)|org_apache_hadoop_hdfs_server_datanode_fsdataset_impl_fs_dataset_impl_(capacity|dfs_used|num_failed_volumes|remaining)|rpc_(call_queue_length|num_open_connections|rpc_(processing_time_(avg_time|num_ops)|queue_time_(avg_time|num_ops))))|component;RESOURCEMANAGER;(cluster_metrics_(capability_(mb|virtual_cores)|num_(active_n_ms|decommissioned_n_ms|lost_n_ms|unhealthy_n_ms)|utilized_(mb|virtual_cores))|jvm_metrics_(gc_(count|time_millis)|mem_(heap_(committed|max|used)_m|non_heap_used_m)|threads_(blocked|runnable|timed_waiting|waiting))|queue_metrics_(absolute_used_capacity|active_applications|allocated_(containers|mb|v_cores)|apps_(completed|failed|killed|pending|running|submitted)|max_capacity|pending_(containers|mb|v_cores)|reserved_(containers|mb|v_cores)|used_(am_resource_(mb|v_cores)|capacity))|rpc_(call_queue_length|num_open_connections|received_bytes|rpc_(processing_time_(avg_time|num_ops)|queue_time_avg_time|slow_calls)|sent_bytes))|component;NODEMANAGER;yarn_nodemanager_.*|component;HBASE_MASTER;hbase_master_.*|component;HBASE_REGIONSERVER;hbase_regionserver_.*|component;HIVE_SERVER;hive_server2_.*'
+        action: keep
+      # These Hadoop record tags change independently of the metric values and create stale series.
+      - regex: 'capacityschedulermetrics|clustermetrics|enabledecpolicies|isoutofsync|sessionid|storageinfo|totalsynctimes|zkrmstatestoreopdurations'
+        action: labeldrop

@@ -551,26 +551,6 @@ public class UpgradePackTest {
     Map<String, Map<String, ProcessingComponent>> tasks = upgradePack.getTasks();
     assertTrue(tasks.containsKey("HBASE"));
 
-    // !!! generalized upgrade pack shouldn't be in this
-    boolean found = false;
-    for (Grouping grouping : upgradePack.getAllGroups()) {
-      if (grouping.name.equals("GANGLIA_UPGRADE")) {
-        found = true;
-        break;
-      }
-    }
-    assertFalse(found);
-
-    // !!! test merge of a generalized upgrade pack
-    upgradePack = upgrades.get("upgrade_test_conditions");
-    assertNotNull(upgradePack);
-    for (Grouping grouping : upgradePack.getAllGroups()) {
-      if (grouping.name.equals("GANGLIA_UPGRADE")) {
-        found = true;
-        break;
-      }
-    }
-    assertTrue(found);
   }
 
 

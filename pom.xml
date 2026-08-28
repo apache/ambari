@@ -659,6 +659,12 @@
       </modules>
     </profile>
     <profile>
+      <id>metrics-rpm</id>
+      <modules>
+        <module>ambari-metrics</module>
+      </modules>
+    </profile>
+    <profile>
       <id>coverage</id>
       <activation>
         <activeByDefault>false</activeByDefault>

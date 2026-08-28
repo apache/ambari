@@ -21,7 +21,6 @@ import ConfigsApi from "../../api/configsApi";
 import { get, isEmpty, isObject } from "lodash";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
 import { formatPropertyValue } from "../CommonConfigs/ConfigUtils";
-import { ambari_metrics_properties } from "../../data/configs/services/ambari_metrics_properties";
 import { hbase_properties } from "../../data/configs/services/hbase_properties";
 import { hdfs_properties } from "../../data/configs/services/hdfs_properties";
 import { hive_properties } from "../../data/configs/services/hive_properties";
@@ -115,7 +114,6 @@ export default function ConfigsComparator({
     MAPREDUCE2: mapreduce2_properties,
     TEZ: tez_properties,
     ZOOKEEPER: zookeeper_properties,
-    AMBARI_METRICS: ambari_metrics_properties,
     KERBEROS: kerberos_properties,
     KYUUBI: kyuubi_properties,
     SQOOP: sqoop_properties,
@@ -896,9 +894,6 @@ export default function ConfigsComparator({
       // KERBEROS categories
       KDC: "KDC",
       Kadmin: "Kadmin",
-
-      // AMBARI_METRICS categories
-      MetricCollector: "Metric Collector",
 
       // RANGER categories
       RANGER_ADMIN: "Admin Settings",

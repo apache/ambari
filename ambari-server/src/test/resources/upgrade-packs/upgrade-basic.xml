@@ -197,7 +197,6 @@
           <service>HBASE</service>
         </priority>
         <exclude>
-          <service>AMBARI_METRICS</service>
           <service>LOGSEARCH</service>
         </exclude>
       </group>
@@ -236,7 +235,6 @@
           <service>HBASE</service>
         </priority>
         <exclude>
-          <service>AMBARI_METRICS</service>
           <service>LOGSEARCH</service>
         </exclude>
       </group>
@@ -424,7 +422,6 @@
           <service>DRUID</service>
         </priority>
         <exclude>
-          <service>AMBARI_METRICS</service>
           <service>LOGSEARCH</service>
         </exclude>
       </group>

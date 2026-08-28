@@ -82,7 +82,7 @@ iddle_interval_min=1
 iddle_interval_max=10
 
 [prometheus]
-enabled=false
+enabled=true
 bind_address=0.0.0.0
 port=9101
 
@@ -224,7 +224,7 @@ class AmbariConfig:
 
   @property
   def prometheus_metrics_enabled(self):
-    return self.get("prometheus", "enabled", "false").lower() in (
+    return self.get("prometheus", "enabled", "true").lower() in (
       "1",
       "true",
       "yes",

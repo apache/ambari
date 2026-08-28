@@ -2070,105 +2070,9 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> SERVER_HTTP_SESSION_INACTIVE_TIMEOUT = new ConfigurationProperty<>(
       "server.http.session.inactive_timeout", 1800);
 
-  /**
-   * Determines whether Ambari Metric data is cached.
-   */
-  @Markdown(description = "Determines whether Ambari Metric data is cached.")
-  public static final ConfigurationProperty<Boolean> TIMELINE_METRICS_CACHE_DISABLE = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.disabled", Boolean.FALSE);
-
-  /**
-   * The time, in {@link TimeUnit#SECONDS}, that Ambari Metric timeline data is cached by Ambari Server.
-   */
-  @Markdown(
-      relatedTo = "server.timeline.metrics.cache.disabled",
-      description = "The time, in seconds, that Ambari Metric timeline data is cached by Ambari Server.")
-  public static final ConfigurationProperty<Integer> TIMELINE_METRICS_CACHE_TTL = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.entry.ttl.seconds", 3600);
-
-  /**
-   * The time, in {@link TimeUnit#SECONDS}, that Ambari Metric data can remain in the cache without being accessed.
-   */
-  @Markdown(
-      relatedTo = "server.timeline.metrics.cache.disabled",
-      description = "The time, in seconds, that Ambari Metric data can remain in the cache without being accessed.")
-  public static final ConfigurationProperty<Integer> TIMELINE_METRICS_CACHE_IDLE_TIME = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.entry.idle.seconds", 1800);
-
-  /**
-   * Cache size in entry units that ambari metrics cache will hold.
-   */
-  @Markdown(
-          relatedTo = "server.timeline.metrics.cache.disabled",
-          description = "cache size, in entries, that ambari metrics cache will hold.")
-  public static final ConfigurationProperty<Integer> TIMELINE_METRICS_CACHE_ENTRY_UNIT_SIZE = new ConfigurationProperty<>(
-          "server.timeline.metrics.cache.entry.entry.unit.size", 100);
-
-  /**
-   * The time, in {@link TimeUnit#MILLISECONDS}, that initial requests made to
-   * Ambari Metrics will wait while reading from the socket before timing out.
-   */
-  @Markdown(
-      relatedTo = "server.timeline.metrics.cache.disabled",
-      description = "The time, in milliseconds, that initial requests to populate metric data will wait while reading from Ambari Metrics.")
-  public static final ConfigurationProperty<Integer> TIMELINE_METRICS_REQUEST_READ_TIMEOUT = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.read.timeout.millis", 10000);
-
-  /**
-   * The time, in {@link TimeUnit#MILLISECONDS}, that cache update requests made to
-   * Ambari Metrics will wait while reading from the socket before timing out.
-   */
-  @Markdown(
-      relatedTo = "server.timeline.metrics.cache.disabled",
-      description = "The time, in milliseconds, that requests to update stale metric data will wait while reading from Ambari Metrics. "
-          + "This allows for greater control by allowing stale values to be returned instead of waiting for Ambari Metrics to always populate responses with the latest data.")
-  public static final ConfigurationProperty<Integer> TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.interval.read.timeout.millis", 10000);
-
-  /**
-   * The time, in {@link TimeUnit#MILLISECONDS}, to wait while attempting to connect to Ambari Metrics.
-   */
-  @Markdown(
-      relatedTo = "server.timeline.metrics.cache.disabled",
-      description = "The time, in milliseconds, to wait while attempting to connect to Ambari Metrics.")
-  public static final ConfigurationProperty<Integer> TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.connect.timeout.millis", 5000);
-
-  /**
-   * The time, in {@link TimeUnit#MILLISECONDS}, that Ambari Metrics intervals should use when
-   * extending the boundaries of the original request.
-   */
-  @Markdown(
-      relatedTo = "server.timeline.metrics.cache.disabled",
-      description = "The time, in milliseconds, that Ambari Metrics intervals should use when extending the boundaries of the original request.")
-  public static final ConfigurationProperty<Long> TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.catchup.interval", 300000L);
-
-  /**
-   * The amount of heap on the Ambari Server dedicated to the caching values from Ambari Metrics.
-   */
-  @Markdown(
-      relatedTo = "server.timeline.metrics.cache.disabled",
-      description = "The amount of heap on the Ambari Server dedicated to the caching values from Ambari Metrics. Measured as part of the total heap of Ambari Server.")
-  public static final ConfigurationProperty<String> TIMELINE_METRICS_CACHE_HEAP_PERCENT = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.heap.percent", "15%");
-
-  /**
-   * Determines if a custom engine should be used to increase performance of
-   * calculating the current size of the cache for Ambari Metric data.
-   */
-  @Markdown(
-      relatedTo = "server.timeline.metrics.cache.disabled",
-      description = "Determines if a custom engine should be used to increase performance of calculating the current size of the cache for Ambari Metric data.")
-  public static final ConfigurationProperty<Boolean> TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE = new ConfigurationProperty<>(
-      "server.timeline.metrics.cache.use.custom.sizing.engine", Boolean.TRUE);
-
-  /**
-   * Timeline Metrics SSL settings
-   */
-  @Markdown(description = "Determines whether to use to SSL to connect to Ambari Metrics when retrieving metric data.")
-  public static final ConfigurationProperty<Boolean> AMBARI_METRICS_HTTPS_ENABLED = new ConfigurationProperty<>(
-      "server.timeline.metrics.https.enabled", Boolean.FALSE);
+  @Markdown(description = "Determines whether HTTPS is enabled for managed component HTTP connections.")
+  public static final ConfigurationProperty<Boolean> COMPONENT_HTTPS_ENABLED = new ConfigurationProperty<>(
+      "server.component.https.enabled", Boolean.FALSE);
 
   /**
    * The full path to the XML file that describes the different alert templates.
@@ -2618,13 +2522,6 @@ public class Configuration {
   @Markdown(description = "Address of an external LogSearch Portal service. (managed outside of Ambari) Using Ambari Credential store is required for this feature (credential: 'logsearch.admin.credential')")
   public static final ConfigurationProperty<String> LOGSEARCH_PORTAL_EXTERNAL_ADDRESS = new ConfigurationProperty<>(
     "logsearch.portal.external.address", "");
-
-  /**
-   * Global disable flag for AmbariServer Metrics.
-   */
-  @Markdown(description = "Global disable flag for AmbariServer Metrics.")
-  public static final ConfigurationProperty<Boolean> AMBARISERVER_METRICS_DISABLE = new ConfigurationProperty<>(
-    "ambariserver.metrics.disable", false);
 
   /**
    * The time, in hours, that the Ambari Server will hold Log File metadata in its internal cache before making
@@ -5291,91 +5188,6 @@ public class Configuration {
     } else {
       properties.setProperty(key, value);
     }
-  }
-
-  /**
-   * Eviction time for entries in metrics cache.
-   */
-  public int getMetricCacheTTLSeconds() {
-    return Integer.parseInt(getProperty(TIMELINE_METRICS_CACHE_TTL));
-  }
-
-  /**
-   * Max time to idle for entries in the cache.
-   */
-  public int getMetricCacheIdleSeconds() {
-    return Integer.parseInt(getProperty(TIMELINE_METRICS_CACHE_IDLE_TIME));
-  }
-
-  /**
-   * Ambari metrics cache size.
-   */
-  public int getMetricCacheEntryUnitSize() {
-    return Integer.parseInt(getProperty(TIMELINE_METRICS_CACHE_ENTRY_UNIT_SIZE));
-  }
-
-  /**
-   * Separate timeout settings for metrics cache.
-   * @return milliseconds
-   */
-  public int getMetricsRequestReadTimeoutMillis() {
-    return Integer.parseInt(getProperty(TIMELINE_METRICS_REQUEST_READ_TIMEOUT));
-  }
-
-  /**
-   * Separate timeout settings for metrics cache.
-   * Timeout on reads for update requests made for smaller time intervals.
-   *
-   * @return milliseconds
-   */
-  public int getMetricsRequestIntervalReadTimeoutMillis() {
-    return Integer.parseInt(getProperty(TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT));
-  }
-
-  /**
-   * Separate timeout settings for metrics cache.
-   * @return milliseconds
-   */
-  public int getMetricsRequestConnectTimeoutMillis() {
-    return Integer.parseInt(getProperty(TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT));
-  }
-
-  /**
-   * Diable metrics caching.
-   * @return true / false
-   */
-  public boolean isMetricsCacheDisabled() {
-    return Boolean.parseBoolean(getProperty(TIMELINE_METRICS_CACHE_DISABLE));
-  }
-
-  /** @see #AMBARISERVER_METRICS_DISABLE */
-  public boolean isMetricsServiceDisabled() {
-    return Boolean.parseBoolean(getProperty(AMBARISERVER_METRICS_DISABLE));
-  }
-
-  /**
-   * Constant fudge factor subtracted from the cache update requests to
-   * account for unavailability of data on the trailing edge due to buffering.
-   */
-  public Long getMetricRequestBufferTimeCatchupInterval() {
-    return Long.parseLong(getProperty(TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL));
-  }
-
-  /**
-   * Percentage of total heap allocated to metrics cache, default is 15%.
-   * Default heap setting for the server is 2 GB so max allocated heap size
-   * for this cache is 300 MB.
-   */
-  public String getMetricsCacheManagerHeapPercent() {
-    String percent = getProperty(TIMELINE_METRICS_CACHE_HEAP_PERCENT);
-    return percent.trim().endsWith("%") ? percent.trim() : percent.trim() + "%";
-  }
-
-  /**
-   * Allow disabling custom sizing engine.
-   */
-  public boolean useMetricsCacheCustomSizingEngine() {
-    return Boolean.parseBoolean(getProperty(TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE));
   }
 
   /**

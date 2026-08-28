@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>vmagent_http_port</name>
+    <value>8429</value>
+    <display-name>VMAGENT HTTP Port</display-name>
+    <description>HTTP listen port for VMAGENT status and metrics.</description>
+  </property>
+  <property require-input="true">
+    <name>vmagent_data_dir</name>
+    <value>/var/lib/ambari-metrics/victoriametrics/vmagent-data</value>
+    <display-name>VMAGENT Queue Directory</display-name>
+    <description>Persistent queue path for samples waiting to be written.</description>
+  </property>
+  <property>
+    <name>scrape_interval</name>
+    <value>30s</value>
+    <display-name>Scrape Interval</display-name>
+    <description>Default interval between target scrapes.</description>
+  </property>
+  <property>
+    <name>scrape_timeout</name>
+    <value>10s</value>
+    <display-name>Scrape Timeout</display-name>
+    <description>Default timeout for each target scrape.</description>
+  </property>
+  <property>
+    <name>http_sd_refresh_interval</name>
+    <value>30s</value>
+    <display-name>HTTP SD Refresh Interval</display-name>
+    <description>Interval for refreshing targets from Ambari Server.</description>
+  </property>
+  <property>
+    <name>vmagent_replication_factor</name>
+    <value>1</value>
+    <display-name>Scrape Replication Factor</display-name>
+    <description>Number of VMAGENT members that scrape each target. Managed storage deduplicates replicated scrapes at the configured scrape interval.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>2</maximum>
+    </value-attributes>
+  </property>
+  <property>
+    <name>ambari_sd_protocol</name>
+    <value>http</value>
+    <display-name>Ambari Server Protocol</display-name>
+    <description>Protocol used by VMAGENT to access the Ambari HTTP service-discovery endpoint.</description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>http</value>
+          <label>HTTP</label>
+        </entry>
+        <entry>
+          <value>https</value>
+          <label>HTTPS</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>ambari_sd_port</name>
+    <value>8080</value>
+    <display-name>Ambari Server Port</display-name>
+    <description>Ambari Server API port used for target discovery.</description>
+  </property>
+  <property>
+    <name>managed_discovery_identity</name>
+    <value>true</value>
+    <display-name>Manage Discovery Identity</display-name>
+    <description>Automatically create and rotate a cluster-scoped Ambari identity with metrics-view permission.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>ambari_sd_username</name>
+    <value>prometheus-scraper</value>
+    <display-name>Discovery User</display-name>
+    <description>Ambari identity used only for HTTP target discovery. Managed mode replaces this value with a cluster-scoped name.</description>
+  </property>
+  <property>
+    <name>ambari_sd_password</name>
+    <value></value>
+    <display-name>Discovery Password</display-name>
+    <property-type>PASSWORD</property-type>
+    <value-attributes>
+      <type>password</type>
+      <hidden>CONFIG_DOWNLOAD</hidden>
+    </value-attributes>
+    <description>Generated or manually supplied discovery password. It is written only to VMAGENT hosts with mode 0600.</description>
+  </property>
+  <property>
+    <name>ambari_sd_ca_file</name>
+    <value></value>
+    <display-name>Ambari Server CA File</display-name>
+    <description>Optional CA bundle available on VMAGENT hosts when HTTPS is used.</description>
+  </property>
+  <property>
+    <name>ambari_sd_tls_insecure_skip_verify</name>
+    <value>false</value>
+    <display-name>Skip Ambari TLS Verification</display-name>
+    <description>Disable certificate verification for Ambari HTTP SD. This should remain disabled in production.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>remote_write_url</name>
+    <value></value>
+    <display-name>Remote Write URL Override</display-name>
+    <description>Optional complete remote-write URL. When empty, Ambari derives a VMAUTH, single-node, or VMINSERT URL from component assignments.</description>
+  </property>
+  <property>
+    <name>remote_write_max_disk_usage</name>
+    <value>10GB</value>
+    <display-name>Maximum Queue Disk Usage</display-name>
+    <description>Maximum on-disk queue size per remote-write URL.</description>
+  </property>
+</configuration>

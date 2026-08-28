@@ -28,7 +28,6 @@ import MapReduce2Service from "../models/mapreduce2.ts";
 import Spark3Service from "../models/spark3.ts";
 import KerberosService from "../models/kerberos.ts";
 import RangerKMSService from "../models/ranger_kms.ts";
-import AmbariMetricsService from "../models/ambari_metrics.ts";
 import TezService from "../models/tez.ts";
 import TrinoService from "../models/trino.ts";
 import SSMService from "../models/ssm.ts";
@@ -211,9 +210,6 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
     } as any);
     modelsCopy.ranger_kms = new RangerKMSService({
       serviceName: "ranger_kms",
-    } as any);
-    modelsCopy.ambari_metrics = new AmbariMetricsService({
-      serviceName: "ambari_metrics",
     } as any);
     modelsCopy.trino = new TrinoService({ serviceName: "trino" } as any);
     modelsCopy.ssm = new SSMService({ serviceName: "ssm" } as any);
@@ -449,7 +445,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   // REMOVED: updateStaleConfigsForAllServices - now handled by fetchOptimizedMaintenanceAndStaleData
   // All stale config and maintenance state processing is consolidated in the optimized function
 
-  // Centralized component API polling using usePolling hook (mirrors Ember's updateServiceMetric)
+  // Centralized component-state polling using a single API request.
   // ONE poll drives all data updates - no separate /services poll needed
   const clusterNameRef = useRef(clusterName);
   useEffect(() => { clusterNameRef.current = clusterName; }, [clusterName]);

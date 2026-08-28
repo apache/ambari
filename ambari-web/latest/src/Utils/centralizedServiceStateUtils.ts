@@ -17,7 +17,7 @@
  */
 
 import { centralizedServiceStateApi } from "../api/centralizedServiceStateApi";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { cloneDeep, isEqual } from "lodash";
 
 /**
@@ -45,17 +45,16 @@ export const updateServiceAlertsAndStateFromCentralizedApi = (
 
   const currentConfig = cloneDeep(allServiceModels[serviceModelKey]);
 
-  // Update alerts and state based on service type
-  currentConfig[ServiceComponentMetricsEnums.AMBARI_METRICS.hasCriticalAlerts] = hasCriticalAlerts;
-  
-  // Set service-specific metrics
-  const serviceMetrics = ServiceComponentMetricsEnums[serviceName as keyof typeof ServiceComponentMetricsEnums];
-  if (serviceMetrics) {
-    if (serviceMetrics.alertsCount) {
-      currentConfig[serviceMetrics.alertsCount] = alertsCount;
+  const serviceFields = ServiceComponentFields[serviceName as keyof typeof ServiceComponentFields];
+  if (serviceFields) {
+    if (serviceFields.hasCriticalAlerts) {
+      currentConfig[serviceFields.hasCriticalAlerts] = hasCriticalAlerts;
     }
-    if (serviceMetrics.state) {
-      currentConfig[serviceMetrics.state] = state;
+    if (serviceFields.alertsCount) {
+      currentConfig[serviceFields.alertsCount] = alertsCount;
+    }
+    if (serviceFields.state) {
+      currentConfig[serviceFields.state] = state;
     }
   }
 

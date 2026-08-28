@@ -71,15 +71,6 @@ export default function useHDFSConfigsTags() {
           value: accumuloSiteTag,
         };
       }
-      if (selectedServices.includes("AMBARI_METRICS")) {
-        const amsHbaseSiteTag =
-          data.Clusters.desired_configs["ams-hbase-site"].tag;
-        urlParams.push("(type=ams-hbase-site&tag=" + amsHbaseSiteTag + ")");
-        inferredTags.amsHbaseSiteTag = {
-          name: "amsHbaseSiteTag",
-          value: amsHbaseSiteTag,
-        };
-      }
       if (selectedServices.includes("HAWQ")) {
         const hawqSiteTag = data.Clusters.desired_configs["hawq-site"].tag;
         const hdfsClientTag = data.Clusters.desired_configs["hdfs-client"].tag;

@@ -27,9 +27,6 @@
           "name": "KERBEROS"
         },
         {
-          "name": "AMBARI_METRICS"
-        },
-        {
           "name": "HDFS"
 
         },
@@ -59,9 +56,6 @@
         },
         {
           "name": "PIG"
-        },
-        {
-          "name": "GANGLIA"
         }
       ]
     },
@@ -73,9 +67,6 @@
       "services": [
         {
           "name": "KERBEROS"
-        },
-        {
-          "name": "AMBARI_METRICS"
         },
         {
           "name": "HDFS"
@@ -117,9 +108,6 @@
       "services": [
         {
           "name": "KERBEROS"
-        },
-        {
-          "name": "AMBARI_METRICS"
         },
         {
           "name": "HDFS"
@@ -207,9 +195,6 @@
       "services": [
         {
           "name": "KERBEROS"
-        },
-        {
-          "name": "AMBARI_METRICS"
         },
         {
           "name": "HDFS"
@@ -365,9 +350,6 @@
           "name": "KERBEROS"
         },
         {
-          "name": "AMBARI_METRICS"
-        },
-        {
           "name": "HDFS"
         },
         {
@@ -418,9 +400,6 @@
           "name": "KERBEROS"
         },
         {
-          "name": "AMBARI_METRICS"
-        },
-        {
           "name": "HDFS"
         },
         {
@@ -469,9 +448,6 @@
       "services": [
         {
           "name": "KERBEROS"
-        },
-        {
-          "name": "AMBARI_METRICS"
         },
         {
           "name": "HDFS"

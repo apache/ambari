@@ -1670,15 +1670,15 @@ class TestActionQueue(TestCase):
       "'some.password': '[PROTECTED]', 'other.password': '[PROTECTED]',",
     )
     self.assertEqual(
-      hide_passwords("u'metrics_grafana_password': u'mypassword123!'"),
-      "u'metrics_grafana_password': u'[PROTECTED]'",
+      hide_passwords("u'service_admin_password': u'mypassword123!'"),
+      "u'service_admin_password': u'[PROTECTED]'",
     )
 
     self.assertEqual(
       hide_passwords(
-        "u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'mypassword123!', some text, u'clientssl.keystore.password': u'myKeyFilePassword', another text, "
+        "u'service_admin_username': u'admin', u'service_admin_password': u'mypassword123!', some text, u'clientssl.keystore.password': u'myKeyFilePassword', another text, "
       ),
-      "u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'[PROTECTED]', some text, u'clientssl.keystore.password': u'[PROTECTED]', another text, ",
+      "u'service_admin_username': u'admin', u'service_admin_password': u'[PROTECTED]', some text, u'clientssl.keystore.password': u'[PROTECTED]', another text, ",
     )
     self.assertEqual(
       hide_passwords(

@@ -130,7 +130,7 @@ public class ServicesUpCheck extends ClusterCheck {
         // TODO, add more logic that checks the Upgrade Pack.
         // These components are not in the upgrade pack and do not advertise a
         // version:
-        // ZKFC, Ambari Metrics, Kerberos, Atlas (right now).
+        // ZKFC, Kerberos, and Atlas (right now).
         // Generally, if it advertises a version => in the upgrade pack.
         // So it can be in the Upgrade Pack but not advertise a version.
         List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(

@@ -447,12 +447,12 @@ public class VersionDefinitionTest extends EasyMockSupport {
     expect(ami.getStack(EasyMock.anyObject(StackId.class))).andReturn(stackInfo).atLeastOnce();
 
     // !!! should never be accessed as it's not in any VDF
-    Service serviceAMS = createNiceMock(Service.class);
+    Service auxiliaryService = createNiceMock(Service.class);
 
     expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", serviceHdfs)
         .put("HBASE", serviceHBase)
-        .put("AMBARI_METRICS", serviceAMS).build()).atLeastOnce();
+        .put("AUXILIARY", auxiliaryService).build()).atLeastOnce();
 
 
     replayAll();
@@ -504,12 +504,12 @@ public class VersionDefinitionTest extends EasyMockSupport {
     expect(ami.getStack(EasyMock.anyObject(StackId.class))).andReturn(stackInfo).atLeastOnce();
 
     // !!! should never be accessed as it's not in any VDF
-    Service serviceAMS = createNiceMock(Service.class);
+    Service auxiliaryService = createNiceMock(Service.class);
 
     expect(cluster.getServices()).andReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", serviceHdfs)
         .put("HBASE", serviceHBase)
-        .put("AMBARI_METRICS", serviceAMS).build()).atLeastOnce();
+        .put("AUXILIARY", auxiliaryService).build()).atLeastOnce();
 
     replayAll();
 

@@ -94,11 +94,6 @@ public class RoleGraphTest {
     Assert.assertEquals(1, rco.order(hdfs_client_upgrade, datanode_upgrade));
 
     RoleGraphNode namenode_upgrade = new RoleGraphNode(Role.NAMENODE, RoleCommand.UPGRADE);
-    RoleGraphNode ganglia_server_upgrade = new RoleGraphNode(Role.GANGLIA_SERVER, RoleCommand.UPGRADE);
-    Assert.assertEquals(1, rco.order(ganglia_server_upgrade, hdfs_client_upgrade));
-    Assert.assertEquals(1, rco.order(ganglia_server_upgrade, datanode_upgrade));
-    Assert.assertEquals(-1, rco.order(namenode_upgrade, ganglia_server_upgrade));
-
     RoleGraphNode datanode_start = new RoleGraphNode(Role.DATANODE, RoleCommand.START);
     RoleGraphNode datanode_install = new RoleGraphNode(Role.DATANODE, RoleCommand.INSTALL);
     RoleGraphNode jobtracker_start = new RoleGraphNode(Role.JOBTRACKER, RoleCommand.START);

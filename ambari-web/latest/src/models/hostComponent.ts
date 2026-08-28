@@ -36,7 +36,6 @@ export interface IHostComponent {
   service: any;
   adminState: string;
   haNameSpace: string;
-  clusterIdValue: string;
   cardinality: string;
   customCommands: string[];
   reassignAllowed: boolean;
@@ -62,7 +61,6 @@ export interface IHostComponent {
   isRunning(): boolean;
   isNotInstalled(): boolean;
   isSlave(): boolean;
-  isDecommissioning(): boolean;
   isActive(): boolean;
   serviceDisplayName(): string;
   getDisplayName(): string;
@@ -90,7 +88,6 @@ class HostComponent implements IHostComponent {
   service: any;
   adminState: string;
   haNameSpace: string;
-  clusterIdValue: string;
   hasCriticalAlerts: boolean;
   alertsCount: number;
   cardinality: string;
@@ -129,7 +126,6 @@ class HostComponent implements IHostComponent {
     this.service = get(props, "service", {});
     this.adminState = get(props, "adminState", "");
     this.haNameSpace = get(props, "haNameSpace", "");
-    this.clusterIdValue = get(props, "clusterIdValue", "");
     this.cardinality = get(props, "cardinality", "");
     this.customCommands = get(props, "customCommands", []);
     this.reassignAllowed = get(props, "reassignAllowed", false);
@@ -172,18 +168,6 @@ class HostComponent implements IHostComponent {
 
   isSlave(): boolean {
     return !this.isMaster && !this.isClient;
-  }
-
-  isDecommissioning(): boolean {
-    const hdfsSvc = this.service;
-    if (this.componentName === "DATANODE" && hdfsSvc) {
-      const decomNodes = hdfsSvc.decommissionDataNodes;
-      const decomNode = decomNodes
-        ? decomNodes.find((node: any) => node.hostName === this.hostName)
-        : null;
-      return decomNode != null;
-    }
-    return false;
   }
 
   isActive(): boolean {

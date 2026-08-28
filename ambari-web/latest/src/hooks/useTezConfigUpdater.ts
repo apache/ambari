@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, get, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -81,13 +81,13 @@ export const useTezConfigUpdater = () => {
 
       if (componentData.category === Categories.CLIENT) {
         const tezClientsInstalled = componentData.installedCount;
-        currentConfig[ServiceComponentMetricsEnums.TEZ.tezClientsInstalled] =
+        currentConfig[ServiceComponentFields.TEZ.tezClientsInstalled] =
           tezClientsInstalled;
         clientComponents.push(componentData);
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.ZOOKEEPER.clientComponents] =
+    currentConfig[ServiceComponentFields.ZOOKEEPER.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["tez"], currentConfig)) {

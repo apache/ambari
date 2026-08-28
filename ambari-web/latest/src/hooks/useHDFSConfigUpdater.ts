@@ -21,7 +21,7 @@ import { cloneDeep, find, get, isEmpty, isEqual, map, set } from "lodash";
 import { ServiceApi } from "../api/serviceApi";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { centralizedServiceStateApi } from "../api/centralizedServiceStateApi";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import {
@@ -52,7 +52,7 @@ export const useHDFSConfigUpdater = () => {
   const { configsData } = useHDFSConfigsTags();
 
   // @ts-ignore
-  const { clusterName, clockDistance } = useContext(AppContext);
+  const { clusterName } = useContext(AppContext);
   // @ts-ignore
   const { parsedSocketMessages } = useContext(AppContext);
 
@@ -82,66 +82,6 @@ export const useHDFSConfigUpdater = () => {
     }
   }, [JSON.stringify(configsData?.items)]);
 
-  const updateWorkStatusValues = () => {
-    if (!allServiceModels["hdfs"]) {
-      return;
-    }
-    const masterComponents = allServiceModels["hdfs"].masterComponents;
-    const slaveComponents = allServiceModels["hdfs"].slaveComponents;
-    const clientComponents = allServiceModels["hdfs"].clientComponents;
-    const currentConfig = cloneDeep(allServiceModels["hdfs"]);
-    //create a host state map
-    const hostStateMap: { [key: string]: { healthStatus: any; state: any } } =
-      {};
-    masterComponents.forEach((masterComponent: { hostComponents: any[] }) => {
-      masterComponent.hostComponents.forEach((host: any) => {
-        if (hostStateMap[host.HostRoles.host_name]) {
-          return;
-        }
-        const healthStatusMappedValue = host.healthStatusMappedValue;
-        const hostName = host.HostRoles.host_name;
-        const hostState = host.state;
-        hostStateMap[hostName] = {
-          healthStatus: healthStatusMappedValue,
-          state: hostState,
-        };
-      });
-    });
-    slaveComponents.forEach((slaveComponent: any) => {
-      slaveComponent.hostComponents.forEach((host: any) => {
-        if (hostStateMap[host.HostRoles.host_name]) {
-          return;
-        }
-        const healthStatusMappedValue = host.healthStatusMappedValue;
-        const hostName = host.HostRoles.host_name;
-        const hostState = host.state;
-        hostStateMap[hostName] = {
-          healthStatus: healthStatusMappedValue,
-          state: hostState,
-        };
-      });
-    });
-    clientComponents.forEach((clientComponent: any) => {
-      clientComponent.hostComponents.forEach((host: any) => {
-        if (hostStateMap[host.HostRoles.host_name]) {
-          return;
-        }
-        const healthStatusMappedValue = host.healthStatusMappedValue;
-        const hostName = host.HostRoles.host_name;
-        const hostState = host.state;
-        // if (!hostStateMap[hostName]) {
-        hostStateMap[hostName] = {
-          healthStatus: healthStatusMappedValue,
-          state: hostState,
-        };
-      });
-    });
-    currentConfig.workStatusValues = hostStateMap;
-    if (!isEqual(allServiceModels["hdfs"], currentConfig)) {
-      allServiceModels["hdfs"].updateConfig(currentConfig);
-      updateRegistry(allServiceModels);
-    }
-  };
   function inferNamespace() {
     const hdfsModel = cloneDeep(allServiceModels["hdfs"]);
     const isHAEnabled = hdfsModel?.isNameNodeHaEnabled;
@@ -354,12 +294,25 @@ export const useHDFSConfigUpdater = () => {
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.HDFS.masterComponents] =
+    currentConfig[ServiceComponentFields.HDFS.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.HDFS.slaveComponents] =
+    currentConfig[ServiceComponentFields.HDFS.slaveComponents] =
       slaveComponents;
-    currentConfig[ServiceComponentMetricsEnums.HDFS.clientComponents] =
+    currentConfig[ServiceComponentFields.HDFS.clientComponents] =
       clientComponents;
+    const allComponents = [...masterComponents, ...slaveComponents];
+    const componentHosts = (componentName: string) =>
+      allComponents
+        .find((component) => component.componentName === componentName)
+        ?.hostComponents?.map((hostComponent: any) => ({
+          componentName,
+          hostName: get(hostComponent, "HostRoles.host_name"),
+          state: get(hostComponent, "HostRoles.state"),
+        })) || [];
+    currentConfig[ServiceComponentFields.HDFS.datanodes] =
+      componentHosts("DATANODE");
+    currentConfig[ServiceComponentFields.HDFS.journalNodes] =
+      componentHosts("JOURNALNODE");
 
     // Update masterComponentGroups when master components change
     if (isHAEnabled && configsData?.items) {
@@ -410,87 +363,6 @@ export const useHDFSConfigUpdater = () => {
     }
   };
 
-  const updateHDFSHostComponentsData = async () => {
-    let updatedConfig = cloneDeep(allServiceModels["hdfs"]);
-
-    let hdfsComponentsData = cachedServiceApi.getServiceComponentData("HDFS");
-    
-    if (!hdfsComponentsData) {
-      hdfsComponentsData = Object.values(masterSlaveClientsData).filter(
-        (item) => get(item, "ServiceComponentInfo.service_name") === "HDFS"
-      );
-      
-      if (!hdfsComponentsData || hdfsComponentsData.length === 0) {
-        return;
-      }
-    }
-
-    let datanodes = [] as any;
-
-    const components = [
-      { name: "DATANODE", metric: "dataNodes" },
-      { name: "ROUTER", metric: "routers" },
-      { name: "NFS_GATEWAY", metric: "nfsGateways" },
-      { name: "JOURNALNODE", metric: "journalNodes" },
-    ];
-
-    components.forEach((component) => {
-      // Find component in cached data instead of making API call
-      const hostComponents = hdfsComponentsData.find((item: any) =>
-        item.ServiceComponentInfo?.component_name === component.name
-      );
-      
-      if (hostComponents && hostComponents.ServiceComponentInfo) {
-        const installedCount = hostComponents.ServiceComponentInfo.installed_count;
-        const startedCount = hostComponents.ServiceComponentInfo.started_count;
-        const totalCount = hostComponents.ServiceComponentInfo.total_count;
-        
-        updatedConfig[
-          ServiceComponentMetricsEnums.HDFS[
-            `${component.metric}Started` as keyof typeof ServiceComponentMetricsEnums.HDFS
-          ] as any
-        ] = startedCount;
-        updatedConfig[
-          ServiceComponentMetricsEnums.HDFS[
-            `${component.metric}Installed` as keyof typeof ServiceComponentMetricsEnums.HDFS
-          ] as any
-        ] = installedCount;
-        updatedConfig[
-          ServiceComponentMetricsEnums.HDFS[
-            `${component.metric}Total` as keyof typeof ServiceComponentMetricsEnums.HDFS
-          ] as any
-        ] = totalCount;
-      }
-    });
-
-    // Find datanode in cached data
-    const datanode = hdfsComponentsData.find((item: any) =>
-      item.ServiceComponentInfo?.component_name === "DATANODE"
-    );
-
-    if (datanode && datanode.host_components) {
-      datanode.host_components.forEach((hostComponent: any) => {
-        if (get(hostComponent, "HostRoles.component_name") === "DATANODE") {
-          const hostComponentData = {
-            componentName: "DATANODE",
-            hostName: get(hostComponent, "HostRoles.host_name"),
-            state: get(hostComponent, "HostRoles.state"),
-          };
-          datanodes.push(hostComponentData);
-        }
-      });
-
-      if (datanodes.length > 0) {
-        updatedConfig[ServiceComponentMetricsEnums.HDFS.datanodes] = datanodes;
-      }
-    }
-    
-    if (!isEqual(allServiceModels["hdfs"], updatedConfig)) {
-      allServiceModels["hdfs"].updateConfig(updatedConfig);
-      updateRegistry(allServiceModels);
-    }
-  };
-
   const parseWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;
     if (parsedSocketMessages.length > 0) {
@@ -505,101 +377,11 @@ export const useHDFSConfigUpdater = () => {
     ) {
       for (const hostComponent of latestHostOperationMessage.hostComponents) {
         if (hostComponent.currentState in componentFinishStates) {
-          await updateHDFSHostComponentsData();
           await findMasterSlaveClientComponents();
         }
       }
     }
   };
-
-  const calclateNamenodeUptime = (startTime: number) => {
-    const currentConfig = cloneDeep(allServiceModels["hdfs"]);
-    const hdfsServiceObj = currentConfig.getServiceObject();
-    const uptime = startTime;
-    if (uptime && uptime > 0) {
-      const appDateTime = Date.now() + clockDistance;
-      let diff = appDateTime - uptime;
-      if (diff < 0) {
-        diff = 0;
-      }
-      const formatted = hdfsServiceObj.timingFormat(diff);
-      return formatted.toString();
-    }
-  };
-
-  const calcDiskUsagePartandPercent = () => {
-    const currentConfig = cloneDeep(allServiceModels["hdfs"]);
-    const hdfsServiceObj = currentConfig?.getServiceObject();
-    const capacity = hdfsServiceObj?.capacityUsed;
-    const capacityTotal = hdfsServiceObj?.capacityTotal;
-
-    if (!hdfsServiceObj) return;
-
-    const updates = [
-      {
-        key: "percentDFSUsed",
-        value: hdfsServiceObj?.findCapacityPercentage(capacity, capacityTotal),
-      },
-      {
-        key: "diskPartDFSUsed",
-        value: hdfsServiceObj?.diskPart(capacity, capacityTotal),
-      },
-      {
-        key: "percentNonDFSUsed",
-        value: hdfsServiceObj?.findCapacityPercentage(
-          hdfsServiceObj.capacityNonDfsUsed,
-          capacityTotal
-        ),
-      },
-      {
-        key: "diskPartNonDFSUsed",
-        value: hdfsServiceObj?.diskPart(
-          hdfsServiceObj.capacityNonDfsUsed,
-          capacityTotal
-        ),
-      },
-      {
-        key: "percentDFSRemaining",
-        value: hdfsServiceObj?.findCapacityPercentage(
-          hdfsServiceObj.capacityRemaining,
-          capacityTotal
-        ),
-      },
-      {
-        key: "diskPartDFSRemaining",
-        value: hdfsServiceObj?.diskPart(
-          hdfsServiceObj.capacityRemaining,
-          capacityTotal
-        ),
-      },
-      {
-        key: "diskPartNamenodeHeap",
-        value: hdfsServiceObj?.diskPart(
-          hdfsServiceObj.jvmMemoryHeapUsedValues,
-          hdfsServiceObj.jvmMemoryHeapMaxValues
-        ),
-      },
-      {
-        key: "percentNamenodeHeap",
-        value: hdfsServiceObj?.findCapacityPercentage(
-          hdfsServiceObj.jvmMemoryHeapUsedValues,
-          hdfsServiceObj.jvmMemoryHeapMaxValues
-        ),
-      },
-    ];
-
-    updates.forEach(({ key, value }) => {
-      if (currentConfig[key] && currentConfig[key] !== value) {
-        currentConfig[key] = value.toString();
-      }
-    });
-
-    if (!isEqual(allServiceModels["hdfs"], currentConfig)) {
-      allServiceModels["hdfs"].updateConfig(currentConfig);
-      updateRegistry(allServiceModels);
-    }
-  };
-
 
   const updateHDFSMasterComponents = async () => {
     //@ts-ignore
@@ -640,7 +422,6 @@ export const useHDFSConfigUpdater = () => {
             hostComponentData.state === componentFinishStates[1] &&
             hostComponentData.haStatus === "active"
           ) {
-            //updates[ServiceComponentMetricsEnums.HDFS["nameNode"]] = hostComponentData;
             activeNameNodes.push(hostComponentData);
             return;
           } else if (
@@ -661,17 +442,17 @@ export const useHDFSConfigUpdater = () => {
             hostName: get(hostComponent, "HostRoles.host_name"),
             state: get(hostComponent, "HostRoles.state"),
           };
-          updates[ServiceComponentMetricsEnums.HDFS["nameNode"]] =
+          updates[ServiceComponentFields.HDFS["nameNode"]] =
             hostComponentData;
           nonActiveStandbyNamenodes.push(hostComponentData);
         }
       });
     }
-    updates[ServiceComponentMetricsEnums.HDFS["activeNameNodes"]] =
+    updates[ServiceComponentFields.HDFS["activeNameNodes"]] =
       activeNameNodes;
-    updates[ServiceComponentMetricsEnums.HDFS["standbyNameNodes"]] =
+    updates[ServiceComponentFields.HDFS["standbyNameNodes"]] =
       standbyNameNodes;
-    updates[ServiceComponentMetricsEnums.HDFS["nonActiveStandbyNamenodes"]] =
+    updates[ServiceComponentFields.HDFS["nonActiveStandbyNamenodes"]] =
       nonActiveStandbyNamenodes;
 
     let snameNode = find(
@@ -687,13 +468,13 @@ export const useHDFSConfigUpdater = () => {
       const sNameNodeData = snameNode.host_components.map(
         (hostComponent: any) => ({
           componentName: "SECONDARY_NAMENODE",
-          hostName: get(hostComponent, "metrics.dfs.FSNamesystem.HAState"),
+          hostName: get(hostComponent, "HostRoles.host_name"),
           state: get(hostComponent, "HostRoles.state"),
         })
       )[0];
 
       if (sNameNodeData) {
-        updates[ServiceComponentMetricsEnums.HDFS["snameNode"]] = sNameNodeData;
+        updates[ServiceComponentFields.HDFS["snameNode"]] = sNameNodeData;
       }
     }
 
@@ -719,7 +500,7 @@ export const useHDFSConfigUpdater = () => {
     }
     if (zookeeperFailOverControllers.length > 0) {
       updates[
-        ServiceComponentMetricsEnums.HDFS["zookeeperFailoverControllers"]
+        ServiceComponentFields.HDFS["zookeeperFailoverControllers"]
       ] = zookeeperFailOverControllers;
     }
 
@@ -735,7 +516,7 @@ export const useHDFSConfigUpdater = () => {
 
     const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true`;
     const response =
-      await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+      await ServiceApi.getAllServiceComponents(
         clusterName,
         fields
       );
@@ -760,336 +541,15 @@ export const useHDFSConfigUpdater = () => {
         secondaryNn.host_components.length === 0) &&
       nameNode.host_components.length > 1
     ) {
-      currentConfig[ServiceComponentMetricsEnums.HDFS.isNameNodeHaEnabled] =
+      currentConfig[ServiceComponentFields.HDFS.isNameNodeHaEnabled] =
         true;
-      currentConfig[ServiceComponentMetricsEnums.HDFS.snameNode] = null;
+      currentConfig[ServiceComponentFields.HDFS.snameNode] = null;
       setIsHAEnabledForNamenode(true);
-      // const updates = {
-      //   [ServiceComponentMetricsEnums.HDFS.isNameNodeHaEnabled]:  true,
-      //   [ServiceComponentMetricsEnums.HDFS.snameNode]: null,
-      // };
-      // allServiceModels["hdfs"].isNameNodeHaEnabled = true;
-
       if (!isEqual(currentConfig, allServiceModels["hdfs"])) {
         allServiceModels["hdfs"].updateConfig(currentConfig);
         updateRegistry(allServiceModels);
-        //isHdfsConfigUpdated = true;
       }
     }
-  };
-
-  const updateHDFSData = () => {
-    const findMetrics = (data: any, metricParams: any) => {
-      let dfsMetrics = new Map();
-      let nameNodeMetricsByHost = new Map(); // Store metrics by host for federation
-      let nameNodeMetricsByNamespace = new Map(); // Store metrics by namespace for federation
-      
-      const item = find(
-        data.items,
-        (item) =>
-          get(item, "ServiceComponentInfo.service_name") === "HDFS" &&
-          get(item, "ServiceComponentInfo.component_name") === "NAMENODE"
-      );
-
-      if (item) {
-        const isNameNodeHAEnabled =
-          allServiceModels["hdfs"].isNameNodeHaEnabled;
-        
-        // For federation, collect metrics from all NameNodes, not just active one
-        const isFederated = allServiceModels["hdfs"].federationNamespaces && 
-                           allServiceModels["hdfs"].federationNamespaces.length > 1;
-        
-        if (isFederated) {
-          // Collect metrics from all NameNodes for federation
-          item.host_components.forEach((hostComponent: any) => {
-            if (get(hostComponent, "HostRoles.component_name") === "NAMENODE") {
-              const hostName = get(hostComponent, "HostRoles.host_name");
-              const hostMetrics = new Map();
-              
-              // Find which namespace this host belongs to
-              const namespace = allServiceModels["hdfs"].federationNamespaces?.find((ns: any) => 
-                ns.hosts && ns.hosts.includes(hostName)
-              );
-              const namespaceName = namespace?.name || hostName;
-              
-              metricParams.forEach((metricParam: any) => {
-                let metricParamValue = get(
-                  hostComponent,
-                  `metrics.dfs.FSNamesystem.${metricParam}`,
-                  null
-                );
-                
-                if (metricParamValue !== null && metricParamValue !== undefined) {
-                  hostMetrics.set(metricParam, metricParamValue);
-                } else {
-                  metricParamValue = get(
-                    hostComponent,
-                    `metrics.jvm.${metricParam}`,
-                    null
-                  );
-                  if (metricParamValue !== null && metricParamValue !== undefined) {
-                    hostMetrics.set(metricParam, metricParamValue);
-                  } else {
-                    metricParamValue = get(
-                      hostComponent,
-                      `metrics.runtime.${metricParam}`,
-                      null
-                    );
-                    if (metricParam === "StartTime") {
-                      if (metricParamValue !== null) {
-                        metricParamValue = calclateNamenodeUptime(metricParamValue);
-                      }
-                      hostMetrics.set(metricParam, metricParamValue);
-                    } else {
-                      metricParamValue = get(
-                        hostComponent,
-                        `metrics.dfs.namenode.${metricParam}`,
-                        null
-                      );
-                      if (metricParam === "Safemode") {
-                        metricParamValue =
-                          allServiceModels["hdfs"]?.findSafeModeStatus(
-                            metricParamValue
-                          );
-                      } else if (metricParam === "UpgradeFinalized") {
-                        const healthStatus =
-                          allServiceModels["hdfs"]?.workStatusValues[
-                            hostName as any
-                          ]?.healthStatus;
-                        metricParamValue = allServiceModels[
-                          "hdfs"
-                        ].findUpgradeStatus(metricParamValue, healthStatus);
-                      } else if (
-                        metricParam === "LiveNodes" ||
-                        metricParam === "DeadNodes" ||
-                        metricParam === "DecomNodes"
-                      ) {
-                        const dataNodesStatusObj = get(
-                          hostComponent,
-                          `metrics.dfs.namenode.${metricParam}`,
-                          null
-                        );
-                        metricParamValue =
-                          allServiceModels["hdfs"]?.countKeysMatchingPattern(
-                            dataNodesStatusObj
-                          );
-                      }
-                      hostMetrics.set(metricParam, metricParamValue);
-                    }
-                  }
-                }
-              });
-              
-              // Store metrics by host and namespace
-              nameNodeMetricsByHost.set(hostName, hostMetrics);
-              nameNodeMetricsByNamespace.set(namespaceName, hostMetrics);
-            }
-          });
-          
-          // For federation, also set the active NameNode metrics as the main metrics (for backward compatibility)
-          const activeHostComponent = find(item.host_components, (hostComponent) => {
-            return (
-              get(hostComponent, "HostRoles.component_name") === "NAMENODE" &&
-              get(hostComponent, "HostRoles.state") === "STARTED" &&
-              get(hostComponent, "metrics.dfs.FSNamesystem.HAState") === "active"
-            );
-          });
-          
-          if (activeHostComponent) {
-            const activeHostName = get(activeHostComponent, "HostRoles.host_name");
-            const activeMetrics = nameNodeMetricsByHost.get(activeHostName);
-            if (activeMetrics) {
-              dfsMetrics = activeMetrics;
-            }
-          }
-        } else {
-          // Non-federation logic (preserve existing behavior)
-          let hostComponent = {};
-          if (isNameNodeHAEnabled) {
-            hostComponent = find(item.host_components, (hostComponent) => {
-              return (
-                get(hostComponent, "HostRoles.component_name") === "NAMENODE" &&
-                get(hostComponent, "HostRoles.state") === "STARTED" &&
-                get(hostComponent, "metrics.dfs.FSNamesystem.HAState") ===
-                  "active"
-              );
-            });
-          } else {
-            hostComponent = find(item.host_components, (hostComponent) => {
-              return (
-                get(hostComponent, "HostRoles.component_name") === "NAMENODE" &&
-                get(hostComponent, "HostRoles.state") === "STARTED"
-              );
-            });
-          }
-          
-          if (hostComponent) {
-            metricParams.forEach((metricParam: any) => {
-              let metricParamValue = get(
-                hostComponent,
-                `metrics.dfs.FSNamesystem.${metricParam}`,
-                null
-              );
-              if (metricParamValue !== null && metricParamValue !== undefined) {
-                dfsMetrics.set(metricParam, metricParamValue);
-                return;
-              } else {
-                metricParamValue = get(
-                  hostComponent,
-                  `metrics.jvm.${metricParam}`,
-                  null
-                );
-                if (metricParamValue !== null && metricParamValue !== undefined) {
-                  dfsMetrics.set(metricParam, metricParamValue);
-                  return;
-                } else {
-                  metricParamValue = get(
-                    hostComponent,
-                    `metrics.runtime.${metricParam}`,
-                    null
-                  );
-                  if (metricParam === "StartTime") {
-                    if (metricParamValue !== null) {
-                      metricParamValue = calclateNamenodeUptime(metricParamValue);
-                    }
-                    dfsMetrics.set(metricParam, metricParamValue);
-                    return;
-                  } else {
-                    metricParamValue = get(
-                      hostComponent,
-                      `metrics.dfs.namenode.${metricParam}`,
-                      null
-                    );
-                    if (metricParam === "Safemode") {
-                      metricParamValue =
-                        allServiceModels["hdfs"]?.findSafeModeStatus(
-                          metricParamValue
-                        );
-                    } else if (metricParam === "UpgradeFinalized") {
-                      const currentHostName = get(
-                        hostComponent,
-                        "HostRoles.host_name"
-                      );
-                      const healthStatus =
-                        allServiceModels["hdfs"]?.workStatusValues[
-                          currentHostName as any
-                        ]?.healthStatus;
-                      metricParamValue = allServiceModels[
-                        "hdfs"
-                      ].findUpgradeStatus(metricParamValue, healthStatus);
-                    } else if (
-                      metricParam === "LiveNodes" ||
-                      metricParam === "DeadNodes" ||
-                      metricParam === "DecomNodes"
-                    ) {
-                      const dataNodesStatusObj = get(
-                        hostComponent,
-                        `metrics.dfs.namenode.${metricParam}`,
-                        null
-                      );
-                      metricParamValue =
-                        allServiceModels["hdfs"]?.countKeysMatchingPattern(
-                          dataNodesStatusObj
-                        );
-                    }
-                    dfsMetrics.set(metricParam, metricParamValue);
-                    return;
-                  }
-                }
-              }
-            });
-          }
-        }
-      }
-      return { dfsMetrics, nameNodeMetricsByHost, nameNodeMetricsByNamespace };
-    };
-
-    const fetchComponentsData = async () => {
-      if (!allServiceModels["hdfs"]) return;
-
-      let updatedConfig = cloneDeep(allServiceModels["hdfs"]);
-
-      if (isEmpty(polledHostComponentsData)) {
-        return;
-      }
-
-      // Simulating the fetching of HDFS metric keys and finding metrics
-      const hdfsMetricKeys = Object.keys(
-        ServiceComponentMetricsEnums.HDFS.metrics
-      );
-      const metricsResult = findMetrics(polledHostComponentsData, hdfsMetricKeys);
-      const { dfsMetrics, nameNodeMetricsByHost, nameNodeMetricsByNamespace } = metricsResult;
-      const currentMetrics = {};
-      const newMetrics = {};
-
-      if (!isEmpty(dfsMetrics)) {
-        hdfsMetricKeys.forEach((key) => {
-          const metricKey =
-            ServiceComponentMetricsEnums.HDFS.metrics[
-              key as keyof typeof ServiceComponentMetricsEnums.HDFS.metrics
-            ];
-          const metricValue = dfsMetrics.get(key);
-          if (metricValue || metricValue >= 0) {
-            //@ts-ignore
-            currentMetrics[metricKey as string] =
-              allServiceModels["hdfs"][metricKey as string];
-            //@ts-ignore
-            newMetrics[metricKey as string] = metricValue;
-            updatedConfig[metricKey] = metricValue;
-          }
-        });
-        
-        // Store federation-specific data
-        if (nameNodeMetricsByHost && nameNodeMetricsByHost.size > 0) {
-          // Convert host-based metrics to objects for easier access
-          const hostMetricsObj: { [key: string]: any } = {};
-          const namespaceMetricsObj: { [key: string]: any } = {};
-          
-          nameNodeMetricsByHost.forEach((metrics, hostName) => {
-            const hostData: { [key: string]: any } = {};
-            metrics.forEach((value:any, key:string) => {
-              const metricKey = ServiceComponentMetricsEnums.HDFS.metrics[
-                key as keyof typeof ServiceComponentMetricsEnums.HDFS.metrics
-              ];
-              if (metricKey) {
-                hostData[metricKey] = value;
-              }
-            });
-            hostMetricsObj[hostName] = hostData;
-          });
-          
-          nameNodeMetricsByNamespace.forEach((metrics, namespaceName) => {
-            const namespaceData: { [key: string]: any } = {};
-            metrics.forEach((value:any, key:string) => {
-              const metricKey = ServiceComponentMetricsEnums.HDFS.metrics[
-                key as keyof typeof ServiceComponentMetricsEnums.HDFS.metrics
-              ];
-              if (metricKey) {
-                namespaceData[metricKey] = value;
-              }
-            });
-            namespaceMetricsObj[namespaceName] = namespaceData;
-          });
-          
-          // Store the federation-specific metrics
-          updatedConfig.nameNodeMetricsByHost = hostMetricsObj;
-          updatedConfig.nameNodeMetricsByNamespace = namespaceMetricsObj;
-        }
-        
-        if (!isEqual(updatedConfig, allServiceModels["hdfs"])) {
-          // Preserve the existing masterComponentGroups before updating
-          const existingMasterComponentGroups = allServiceModels["hdfs"].masterComponentGroups;
-          allServiceModels["hdfs"].updateConfig(updatedConfig);
-          // Restore the masterComponentGroups after update
-          if (existingMasterComponentGroups && existingMasterComponentGroups.length > 0) {
-            allServiceModels["hdfs"].setMasterComponentGroups(existingMasterComponentGroups);
-          }
-          updateRegistry(allServiceModels);
-          //console.log("✅ Batch update complete");
-        }
-      }
-    };
-    fetchComponentsData();
   };
 
   const updateServiceMaintenanceState = (maintenanceState: string) => {
@@ -1116,9 +576,9 @@ export const useHDFSConfigUpdater = () => {
 
     if (!alertsCount && alertsCount !== 0) return;
 
-    currentConfig[ServiceComponentMetricsEnums.AMBARI_METRICS.hasCriticalAlerts] = hasCriticalAlerts;
-    currentConfig[ServiceComponentMetricsEnums.HDFS.alertsCount] = alertsCount;
-    currentConfig[ServiceComponentMetricsEnums.HDFS.state] = state;
+    currentConfig[ServiceComponentFields.HDFS.hasCriticalAlerts] = hasCriticalAlerts;
+    currentConfig[ServiceComponentFields.HDFS.alertsCount] = alertsCount;
+    currentConfig[ServiceComponentFields.HDFS.state] = state;
 
     if (!isEqual(allServiceModels["hdfs"], currentConfig)) {
       allServiceModels["hdfs"].updateConfig(currentConfig);
@@ -1153,10 +613,8 @@ export const useHDFSConfigUpdater = () => {
   useEffect(() => {
     //@ts-ignore
     if (polledHostComponentsData?.items) {
-      updateHDFSData();
       updateHDFSMasterComponents();
       findMasterSlaveClientComponents();
-      calcDiskUsagePartandPercent();
     }
   }, [polledHostComponentsData]);
 
@@ -1170,11 +628,6 @@ export const useHDFSConfigUpdater = () => {
     }
     findMasterSlaveClientComponents();
   }, [masterSlaveClientsData, clusterName]);
-
-  useEffect(() => {
-    //findMasterSlaveClientComponents();
-    updateWorkStatusValues();
-  }, []);
 
   useEffect(() => {
     if (
@@ -1202,7 +655,6 @@ export const useHDFSConfigUpdater = () => {
   }, [isHAEnabledForNamenode]);
 
   useEffect(() => {
-    updateWorkStatusValues();
     updateAlertsAndServiceStateData();
   }, [allServiceModels, serviceStatesData]);
 

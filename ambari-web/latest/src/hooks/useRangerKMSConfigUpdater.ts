@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, find, get, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -126,7 +126,7 @@ export const useRangerKMSConfigUpdater = () => {
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.RANGER_KMS.masterComponents] =
+    currentConfig[ServiceComponentFields.RANGER_KMS.masterComponents] =
       masterComponents;
 
     if (!isEqual(allServiceModels["ranger_kms"], currentConfig)) {

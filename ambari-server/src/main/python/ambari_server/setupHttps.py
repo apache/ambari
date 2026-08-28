@@ -118,9 +118,6 @@ SRVR_TWO_WAY_SSL_PORT = "8441"
 SRVR_ONE_WAY_SSL_PORT_PROPERTY = "security.server.one_way_ssl.port"
 SRVR_ONE_WAY_SSL_PORT = "8440"
 
-GANGLIA_HTTPS = "ganglia.https"
-
-
 def get_and_persist_truststore_path(properties, options):
   truststore_path = properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
   if not truststore_path:

@@ -138,9 +138,6 @@ public class ServiceInfo implements Validable {
   @XmlElement(name = "extends")
   private String parent;
 
-  @XmlElement(name = "widgetsFileName")
-  private String widgetsFileName = AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME;
-
   @XmlElement(name = "metricsFileName")
   private String metricsFileName = StackDirectory.SERVICE_METRIC_FILE_NAME;
 
@@ -201,9 +198,6 @@ public class ServiceInfo implements Validable {
 
   @XmlTransient
   private File kerberosDescriptorFile = null;
-
-  @XmlTransient
-  private File widgetsDescriptorFile = null;
 
   private StackRoleCommandOrder roleCommandOrder;
 
@@ -464,14 +458,6 @@ public class ServiceInfo implements Validable {
 
   public List<String> getRequiredServices() {
     return requiredServices;
-  }
-
-  public String getWidgetsFileName() {
-    return widgetsFileName;
-  }
-
-  public void setWidgetsFileName(String widgetsFileName) {
-    this.widgetsFileName = widgetsFileName;
   }
 
   public String getMetricsFileName() {
@@ -1118,17 +1104,6 @@ public class ServiceInfo implements Validable {
 
   public void setRollingRestartSupported(boolean rollingRestartSupported) {
     this.rollingRestartSupported = rollingRestartSupported;
-  }
-
-  /**
-   * @return the widgets descriptor file, or <code>null</code> if none exists
-   */
-  public File getWidgetsDescriptorFile() {
-    return widgetsDescriptorFile;
-  }
-
-  public void setWidgetsDescriptorFile(File widgetsDescriptorFile) {
-    this.widgetsDescriptorFile = widgetsDescriptorFile;
   }
 
   public StackRoleCommandOrder getRoleCommandOrder() {

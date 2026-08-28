@@ -25,8 +25,6 @@ public class PropertyInfo {
   private final String propertyId;
   private final boolean temporal;
   private final boolean pointInTime;
-  private String amsId;
-  private boolean amsHostMetric;
   private String unit;
 
   public PropertyInfo(String propertyId, boolean temporal, boolean pointInTime) {
@@ -45,22 +43,6 @@ public class PropertyInfo {
 
   public boolean isPointInTime() {
     return pointInTime;
-  }
-
-  public String getAmsId() {
-    return amsId;
-  }
-
-  public void setAmsId(String amsId) {
-    this.amsId = amsId;
-  }
-
-  public boolean isAmsHostMetric() {
-    return amsHostMetric;
-  }
-
-  public void setAmsHostMetric(boolean amsHostMetric) {
-    this.amsHostMetric = amsHostMetric;
   }
 
   public String getUnit() {

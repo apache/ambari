@@ -362,14 +362,7 @@ class NnHaConfigInitializer {
   }
 
   private _initHbaseRootDir(config: ConfigProperty, localDB: ExtendedTopologyLocalDB, dependencies: NnHaConfigDependencies): ConfigProperty {
-    const fileName = config.filename;
-    if (fileName === 'hbase-site') {
-      return this._initHbaseRootDirForHbase(config, localDB, dependencies);
-    }
-    if (fileName === 'ams-hbase-site') {
-      return this._initHbaseRootDirForAMS(config, localDB, dependencies);
-    }
-    return config;
+    return this._initHbaseRootDirForHbase(config, localDB, dependencies);
   }
 
   private _initHbaseRootDirForHbase(config: ConfigProperty, localDB: ExtendedTopologyLocalDB, dependencies: NnHaConfigDependencies): ConfigProperty {
@@ -377,22 +370,6 @@ class NnHaConfigInitializer {
       const value = dependencies.serverConfigs.find(config => config.type === 'hbase-site')?.properties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + dependencies.namespaceId);
       config.value = value || '';
       config.recommendedValue = value || '';
-    }
-    return config;
-  }
-
-  private _initHbaseRootDirForAMS(config: ConfigProperty, localDB: ExtendedTopologyLocalDB, dependencies: NnHaConfigDependencies): ConfigProperty {
-    if (localDB.installedServices.includes('AMBARI_METRICS')) {
-      const value = dependencies.serverConfigs.find(config => config.type === 'ams-hbase-site')?.properties['hbase.rootdir'];
-      const currentNameNodeHost = localDB.masterComponentHosts.find(host => host.component === 'NAMENODE' && host.isInstalled)?.hostName;
-      if (value && value.includes('hdfs://' + currentNameNodeHost)) {
-        config.value = value.replace(/\/\/[^\/]*/, '//' + dependencies.namespaceId);
-        config.recommendedValue = config.value;
-      }
-      else{
-        config.value=value as any,
-        config.recommendedValue=value as any
-      }
     }
     return config;
   }

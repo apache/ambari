@@ -24,20 +24,7 @@ export const sortByColIdToKeyMapping = {
   rack: "Hosts/rack_info",
   cores: "Hosts/cpu_count",
   ram: "Hosts/total_mem",
-  disk: "metrics/disk/disk_free",
-  load: "metrics/load/load_one",
 };
-
-export const hostMetricsOption = [
-  "Last 1 hour",
-  "Last 2 hours",
-  "Last 4 hours",
-  "Last 12 hours",
-  "Last 24 hours",
-  "Last 1 week",
-  "Last 1 month",
-  "Last 1 year",
-];
 
 export const actionToStateMapping = {
   start: {
@@ -351,11 +338,6 @@ export const hostFilterProperties = [
     valueType: "ambari-bandwidth",
   },
   {
-    name: "loadAvg",
-    key: "metrics/load/load_one",
-    type: "EQUAL",
-  },
-  {
     name: "rack",
     key: "Hosts/rack_info",
     type: "MATCH",
@@ -435,7 +417,6 @@ export const serviceNameToModelKeyMap: any = {
   HIVE: "hive",
   HBASE: "hbase",
   ZOOKEEPER: "zk",
-  AMBARI_METRICS: "ambari_metrics",
   RANGER: "ranger",
   RANGER_KMS: "ranger_kms",
   KERBEROS: "kerberos",
