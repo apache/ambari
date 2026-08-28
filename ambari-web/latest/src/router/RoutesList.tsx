@@ -192,6 +192,21 @@ const RoutesList: RouteObject[] = [
                     ),
                   },
                   {
+                    path: ":componentName/observerNamenode/:stepNumber",
+                    element: (
+                      <HaPersistenceRouteGuard>
+                        <ProtectedRoute
+                          requireAuthorization="SERVICE.ENABLE_HA"
+                          redirectTo="/main/dashboard/metrics"
+                        >
+                          <ServiceOperationRouteGuard>
+                            <ServiceLoader />
+                          </ServiceOperationRouteGuard>
+                        </ProtectedRoute>
+                      </HaPersistenceRouteGuard>
+                    ),
+                  },
+                  {
                     path: ":componentName/federation/routerBasedFederation/:stepNumber",
                     element: (
                       <HaPersistenceRouteGuard>

@@ -1366,6 +1366,8 @@ export const useLazyQuicklinks = (serviceName: string) => {
                 url: finalUrl,
                 hostName: nameNode.hostName,
                 componentName: link.component_name,
+                haState:
+                  nameNode.haStatus === "observer" ? "Observer" : undefined,
                 namespace: namespace, // Add namespace for federation grouping
               });
             });
