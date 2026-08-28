@@ -17,7 +17,7 @@
 
 # Ambari Prometheus and VictoriaMetrics Monitoring Architecture
 
-English | [简体中文](ambari-prometheus-victoriametrics-architecture.zh-CN.md)
+English | [简体中文](ambari-agent-prometheus-telemetry-architecture.zh-CN.md)
 
 ## Overview
 
