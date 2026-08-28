@@ -33,6 +33,7 @@
 
   <properties>
     <package.release>1</package.release>
+    <metrics.package.version>${package-version}</metrics.package.version>
     <victoriametrics.version>1.150.0</victoriametrics.version>
     <victoriametrics.standalone.commit>413f95d65f08d2c3fb03e227b1f3ba42884ca796</victoriametrics.standalone.commit>
     <victoriametrics.cluster.commit>31a38f2c38c2117442fb82b7dad49cd1de576840</victoriametrics.cluster.commit>
@@ -98,7 +99,7 @@
           <license>Apache License 2.0</license>
           <group>Applications/System</group>
           <description>Ambari Metrics with the VictoriaMetrics storage provider.</description>
-          <version>${package-version}</version>
+          <version>${metrics.package.version}</version>
           <release>${package.release}</release>
           <needarch>${build.os_arch}</needarch>
           <autoRequires>false</autoRequires>
