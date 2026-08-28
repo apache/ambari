@@ -796,8 +796,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 For MockJax 1.6.0 (contrib/views/slider/src/main/resources/ui/app/assets/javascripts/jquery.mockjax.js,
-/contrib/views/files/src/main/resources/ui/app/assets/javascripts/jquery.mockjax.js,
-/contrib/views/pig/src/main/resources/ui/pig-web/app/assets/static/javascripts/jquery.mockjax.js):
+/contrib/views/files/src/main/resources/ui/app/assets/javascripts/jquery.mockjax.js):
 
 MockJax - jQuery Plugin to Mock Ajax requests
 
@@ -967,4 +966,3 @@ This license is Copyright (C) 2003-2004 Lawrence E. Rosen. All rights reserved. 
 This product uses software based on SIL Open Font License (OFL)
 * Font-Awesome (SIL OFL 1.1) [http://fortawesome.github.io/Font-Awesome/]
 * Image clippy.svg from Octicon project (SIL OFL 1.1)  [https://octicons.github.com/]
-

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {Button, Modal} from 'react-bootstrap';
+import { latestAmbariUrl } from './utils/navigation';
 
 interface InactivityTimeoutProps {
   timeout: number;
@@ -35,7 +36,7 @@ const InactivityTimeout: React.FC<InactivityTimeoutProps> = ({ timeout }) => {
         window.removeEventListener('click', handleClick);
         if (intervalRef.current) clearInterval(intervalRef.current);
         localStorage.clear();
-        window.location.replace("/#/login")
+        window.location.replace(latestAmbariUrl("/login"));
       } else if (remainingTime < 60000 && !isModalOpen) {
         setIsModalOpen(true);
       }
@@ -55,7 +56,7 @@ const InactivityTimeout: React.FC<InactivityTimeoutProps> = ({ timeout }) => {
         setRemainTime(prev => {
           if (prev === 1) {
             localStorage.clear();
-            window.location.replace("/#/login");
+            window.location.replace(latestAmbariUrl("/login"));
             return 0;
           }
           return prev - 1;
@@ -75,7 +76,7 @@ const InactivityTimeout: React.FC<InactivityTimeoutProps> = ({ timeout }) => {
   const handleLogout = async () => {
     setIsModalOpen(false);
     localStorage.clear();
-    window.location.replace("/#/login");
+    window.location.replace(latestAmbariUrl("/login"));
   };
 
   return (

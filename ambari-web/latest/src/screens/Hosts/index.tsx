@@ -154,10 +154,10 @@ export function Hosts() {
   }, [clusterName, get(allHostModels, "[0].hostComponents", []).length, clusterRetryCount]);
 
   useEffect(() => {
-    if (!hostData.isLoading && !hostData.error && allHostModels.length === 0) {
+    if (hostData.isEmptyResult === true) {
       navigate("/main/hosts", { replace: true });
     }
-  }, [allHostModels.length, hostData.error, hostData.isLoading, navigate]);
+  }, [hostData.isEmptyResult, navigate]);
 
   useEffect(() => {
     if (showHostCheck) {

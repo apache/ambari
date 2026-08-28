@@ -20,10 +20,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { useContext } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../../../store/context";
+import { MemoryRouter, useLocation } from "react-router-dom";
 
 const mocks = vi.hoisted(() => ({
   getPersistData: vi.fn(),
   postPersistData: vi.fn(),
+  releaseWizard: vi.fn(),
 }));
 
 vi.mock("../../../../api/clusterApi", () => ({
@@ -31,6 +33,11 @@ vi.mock("../../../../api/clusterApi", () => ({
     getPersistData: mocks.getPersistData,
     postPersistData: mocks.postPersistData,
   },
+}));
+
+vi.mock("../../../../Utils/wizardOwnership", () => ({
+  claimWizard: vi.fn(),
+  releaseWizard: mocks.releaseWizard,
 }));
 
 import { AddHostContext, AddHostProvider } from "./context";
@@ -50,6 +57,9 @@ function PersistenceProbe() {
   return (
     <>
       <button onClick={() => void flushStateToDb("default")}>Persist</button>
+      <button onClick={() => void flushStateToDb("cancel").catch(() => undefined)}>
+        Cancel
+      </button>
       <button onClick={() => {
         dispatch({
           type: ActionTypes.STORE_INFORMATION,
@@ -63,17 +73,25 @@ function PersistenceProbe() {
   );
 }
 
+function LocationProbe() {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname}</div>;
+}
+
 function renderProvider() {
   return render(
-    <AppContext.Provider value={{
-      clusterName: "",
-      serviceComponentInfo: [],
-      services: [],
-    } as any}>
-      <AddHostProvider stepWizardUtilities={wizardUtilities}>
-        <PersistenceProbe />
-      </AddHostProvider>
-    </AppContext.Provider>,
+    <MemoryRouter initialEntries={["/main/host/add/step1"]}>
+      <AppContext.Provider value={{
+        clusterName: "",
+        serviceComponentInfo: [],
+        services: [],
+      } as any}>
+        <AddHostProvider stepWizardUtilities={wizardUtilities}>
+          <PersistenceProbe />
+          <LocationProbe />
+        </AddHostProvider>
+      </AppContext.Provider>
+    </MemoryRouter>,
   );
 }
 
@@ -81,6 +99,7 @@ describe("Add Host persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.postPersistData.mockResolvedValue({});
+    mocks.releaseWizard.mockResolvedValue({});
   });
 
   afterEach(() => cleanup());
@@ -138,5 +157,38 @@ describe("Add Host persistence", () => {
         },
       }),
     }));
+  });
+
+  it("clears persisted state before returning to the Hosts route", async () => {
+    let completeRelease: () => void = () => undefined;
+    mocks.getPersistData.mockResolvedValue({});
+    mocks.releaseWizard.mockReturnValueOnce(new Promise<void>((resolve) => {
+      completeRelease = resolve;
+    }));
+    renderProvider();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledTimes(1));
+    const persistedData = JSON.parse(mocks.postPersistData.mock.calls[0][0]);
+    expect(JSON.parse(persistedData.ADD_HOST)).toEqual({ addHostSteps: {} });
+    expect(JSON.parse(persistedData.CLUSTER_STATE)).toEqual({});
+    expect(mocks.releaseWizard).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("location").textContent).toBe("/main/host/add/step1");
+
+    completeRelease();
+    await waitFor(() => {
+      expect(screen.getByTestId("location").textContent).toBe("/main/hosts");
+    });
+  });
+
+  it("stays in the wizard when persisted state cannot be cleared", async () => {
+    mocks.getPersistData.mockResolvedValue({});
+    mocks.postPersistData.mockRejectedValueOnce(new Error("Clear failed"));
+    renderProvider();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledTimes(1));
+    expect(mocks.releaseWizard).not.toHaveBeenCalled();
+    expect(screen.getByTestId("location").textContent).toBe("/main/host/add/step1");
   });
 });

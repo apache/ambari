@@ -25,6 +25,7 @@ import {
   evaluateConfigCondition,
   evaluateConfigConditionResult,
   evaluateThemeVisibility,
+  layoutThemeGrid,
   normalizeDefaultThemeResponse,
   normalizeThemeResponse,
   resolveThemeConditionAttributes,
@@ -39,6 +40,41 @@ const readTheme = (relativePath: string) =>
   JSON.parse(
     readFileSync(resolve(repoRoot, relativePath), "utf8"),
   );
+
+describe("Theme table layout", () => {
+  it("compacts sparse rows and reserves cells covered by row spans", () => {
+    const sparse = layoutThemeGrid([
+      { id: "memory", rowIndex: 1, rowSpan: 1, columnSpan: 1 },
+      { id: "tez", rowIndex: 0, rowSpan: 1, columnSpan: 1 },
+      { id: "reducers", rowIndex: 1, rowSpan: 1, columnSpan: 1 },
+    ]);
+
+    expect(sparse.columns).toBe(2);
+    expect(sparse.cells.map(({ item, rowIndex, columnIndex }) => ({
+      id: item.id,
+      rowIndex,
+      columnIndex,
+    }))).toEqual([
+      { id: "tez", rowIndex: 0, columnIndex: 0 },
+      { id: "memory", rowIndex: 1, columnIndex: 0 },
+      { id: "reducers", rowIndex: 1, columnIndex: 1 },
+    ]);
+
+    const spanning = layoutThemeGrid([
+      { id: "wide", rowIndex: 1, rowSpan: 2, columnSpan: 2 },
+      { id: "tall", rowIndex: 0, rowSpan: 2, columnSpan: 1 },
+      { id: "tail", rowIndex: 1, rowSpan: 1, columnSpan: 1 },
+    ]);
+    expect(spanning).toMatchObject({ columns: 4, rows: 3 });
+    expect(
+      spanning.cells.map(({ item, columnIndex }) => [item.id, columnIndex]),
+    ).toEqual([
+      ["tall", 0],
+      ["wide", 1],
+      ["tail", 3],
+    ]);
+  });
+});
 
 type ShippedCondition = {
   sourceFile: string;

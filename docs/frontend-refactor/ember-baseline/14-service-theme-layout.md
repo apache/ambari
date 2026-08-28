@@ -231,8 +231,8 @@ filters, and conditions change.
 | ID | Function and behavior | Detailed acceptance boundary | Primary evidence |
 | --- | --- | --- | --- |
 | SVC-THEME-LAYOUT-001 | Renders Theme tabs and Sections in metadata order | The generated Advanced tab is separate from named Theme tabs | `themes_mapper.js#tabConfig`; service config templates |
-| SVC-THEME-LAYOUT-002 | Places Sections at exact row/column coordinates with row/column spans | Preserve empty grid cells and simultaneous spans; declaration sorting is not a substitute for coordinates | `TabLayout`, `Section`; `service_config_layout_tab.hbs` |
-| SVC-THEME-LAYOUT-003 | Places SubSections in the Section grid with exact coordinates/spans | A spanning cell must not overlap, reorder, or resize adjacent cells unpredictably | `Section`, `Subsection`; layout template |
+| SVC-THEME-LAYOUT-002 | Places Sections using Classic table-flow semantics | Group Sections by `rowIndex`, retain declaration order inside each row, and place each cell in the next unoccupied column while honoring row/column spans; do not manufacture gaps from `columnIndex` | `enhanced_configs.js#processTab`; `service_config_layout_tab.hbs` |
+| SVC-THEME-LAYOUT-003 | Places SubSections using the same collision-free table flow | A spanning cell reserves its occupied rows and columns; later cells advance to the next free column without overlap, metadata-driven gaps, or declaration reordering | `enhanced_configs.js#processTab`; `service_config_layout_tab.hbs` |
 | SVC-THEME-LAYOUT-004 | Applies SubSection presentation metadata | Render `border` and `left-vertical-splitter`; derive first/middle/last row/column and top splitters consistently | `models/configs/theme/sub_section.js`; layout template |
 | SVC-THEME-LAYOUT-005 | Renders direct properties in placement order | A property renders only when it has a supported Widget and is effectively visible; hiding it must not collapse unrelated grid coordinates | mapper linking; `service_config_layout_tab.hbs` |
 | SVC-THEME-LAYOUT-006 | Renders `subsection-tabs` as nested selectable tabs | Each tab has an independent ordered property list and error count; only a visible tab can be selected | `themes_mapper.js#loadSubSectionTabs`; `SubSectionTab`; layout view/template |
@@ -242,10 +242,11 @@ filters, and conditions change.
 
 Classic groups cells by `rowIndex`, uses HTML `rowspan`/`colspan`, and appends
 cells in declaration order; `processTab` does not place empty `columnIndex`
-slots or sort by column. Exact grid placement is therefore a
-`METADATA_CONTRACT` correction required for custom layouts. The React test
-suite must lock this down with non-monotonic declaration order, empty cells,
-and overlapping row/column spans.
+slots or sort by column. Browser table layout instead advances each cell past
+columns occupied by earlier spans. React must reproduce that automatic
+collision-free placement for compatibility with shipped and custom Themes.
+The test suite must lock this down with non-monotonic `columnIndex` metadata,
+multiple cells on one row, and overlapping row/column spans.
 
 ## Placement and Property-Attribute Semantics
 

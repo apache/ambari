@@ -39,6 +39,7 @@ import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import ComboSearch from "../../components/ComboSearch";
 import AppContent from "../../context/AppContext.ts";
+import { latestShortViewUrl } from "../../utils/navigation.ts";
 type ViewListType = {
   cluster_handle: number;
   cluster_type: string;
@@ -86,18 +87,6 @@ const {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const hostname = window.location.hostname;
-  const protocol = window.location.protocol;
-  const port = window.location.port ? `:${window.location.port}` : "";
-  const ambariWebBaseUrl = `${protocol}//${hostname}${port}`;
-  const handleRedirect = (viewName: string, shortUrl: string) => {
-    window.open(`${ambariWebBaseUrl}/#/main/view/${viewName}/${shortUrl}`);
-    console.log(
-      "Redirecting to",
-      `${ambariWebBaseUrl}/#/main/view/${viewName}/${shortUrl}`
-    );
-  };
-
   useEffect(() => {
     setSelectedOption("Views");
     getViewsList();
@@ -113,18 +102,17 @@ const {
       width: "25%",
       isLink: true,
       cell: (info: any) => {
+        const viewName = get(info, "row.original.view_name", "");
+        const shortUrl = get(info, "row.original.short_url", "");
+        const href = latestShortViewUrl(viewName, shortUrl);
         return (
           <a
             className="custom-link"
-            onClick={() =>
-              handleRedirect(
-                get(info, "row.original.view_name"),
-                get(info, "row.original.short_url", "")
-              )
-            }
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            /main/{get(info, "row.original.view_name")}/
-            {get(info, "row.original.short_url", "")}{" "}
+            /main/{viewName}/{shortUrl}{" "}
             <FontAwesomeIcon
               icon={faUpRightFromSquare}
               style={{ color: "#1291c1" }}

@@ -246,6 +246,7 @@
             </package>
             <package>
               <name>ranger_${stack_version}-yarn-plugin</name>
+              <condition>should_install_ranger_yarn_plugin</condition>
             </package>
             <package>
               <name>hbase_${stack_version}</name>

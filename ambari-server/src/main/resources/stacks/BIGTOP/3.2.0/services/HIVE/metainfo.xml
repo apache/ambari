@@ -299,6 +299,7 @@
             </package>
             <package>
               <name>ranger_${stack_version}-hive-plugin</name>
+              <condition>should_install_ranger_hive_plugin</condition>
             </package>
           </packages>
         </osSpecific>

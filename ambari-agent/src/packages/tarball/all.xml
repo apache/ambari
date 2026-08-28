@@ -243,7 +243,7 @@
         <include>commons-collections:commons-collections</include>
         <include>org.apache.commons:commons-compress</include>
         <include>org.apache.commons:commons-collections4</include>
-        <include>commons-configuration:commons-configuration</include>
+        <include>org.apache.commons:commons-configuration2</include>
         <include>commons-io:commons-io</include>
         <include>commons-lang:commons-lang</include>
         <include>org.apache.commons:commons-lang3</include>

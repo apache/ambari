@@ -15,7 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { latestAmbariUrl } from "../../../utils/navigation";
+
 export default function Dashboard() {
-    window.location.replace('/#/main/dashboard');
+    window.location.replace(latestAmbariUrl("/main/dashboard"));
     return null;
 }

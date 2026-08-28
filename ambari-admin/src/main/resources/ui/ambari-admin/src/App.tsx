@@ -35,6 +35,7 @@ import usePolling from "./hooks/usePolling.ts";
 import clusterApi from "./api/clusterApi";
 import InactivityTimeout from "./InactivityTimeout.tsx";
 import InstallBox from "./assets/img/install-box.svg"
+import { latestAmbariUrl } from "./utils/navigation.ts";
 
 function App() {
   const [clusterInfo, setClusterInfo] = useState<HostCluster>(
@@ -73,12 +74,12 @@ function App() {
       const response = await clusterApi.noopPolling();
       if (response.status === 403) {
         localStorage.clear();
-        window.location.replace("/#/login");
+        window.location.replace(latestAmbariUrl("/login"));
       }
     } catch (error) {
       console.error("Error in noop polling", error);
       localStorage.clear();
-      window.location.replace("/#/login");
+      window.location.replace(latestAmbariUrl("/login"));
     }
   }
   usePolling(pollNoopUserTimeout, 10000);

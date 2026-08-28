@@ -1053,127 +1053,127 @@
 | `SVC-THEME-MODEL-007` | `14-service-theme-layout.md` | Theme Data Model and Client Compilation | Determines enhanced-layout support from named non-Advanced tabs | [source](../14-service-theme-layout.md#L206) |
 | `SVC-THEME-MODEL-008` | `14-service-theme-layout.md` | Theme Data Model and Client Compilation | Keys Theme caches by stack/version and service set | [source](../14-service-theme-layout.md#L207) |
 | `SVC-THEME-LAYOUT-001` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Renders Theme tabs and Sections in metadata order | [source](../14-service-theme-layout.md#L233) |
-| `SVC-THEME-LAYOUT-002` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Places Sections at exact row/column coordinates with row/column spans | [source](../14-service-theme-layout.md#L234) |
-| `SVC-THEME-LAYOUT-003` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Places SubSections in the Section grid with exact coordinates/spans | [source](../14-service-theme-layout.md#L235) |
+| `SVC-THEME-LAYOUT-002` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Places Sections using Classic table-flow semantics | [source](../14-service-theme-layout.md#L234) |
+| `SVC-THEME-LAYOUT-003` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Places SubSections using the same collision-free table flow | [source](../14-service-theme-layout.md#L235) |
 | `SVC-THEME-LAYOUT-004` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Applies SubSection presentation metadata | [source](../14-service-theme-layout.md#L236) |
 | `SVC-THEME-LAYOUT-005` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Renders direct properties in placement order | [source](../14-service-theme-layout.md#L237) |
 | `SVC-THEME-LAYOUT-006` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Renders \`subsection-tabs\` as nested selectable tabs | [source](../14-service-theme-layout.md#L238) |
 | `SVC-THEME-LAYOUT-007` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Maintains a valid active nested tab | [source](../14-service-theme-layout.md#L239) |
 | `SVC-THEME-LAYOUT-008` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Propagates search/filter visibility upward | [source](../14-service-theme-layout.md#L240) |
 | `SVC-THEME-LAYOUT-009` | `14-service-theme-layout.md` | Layout, Grid, Nested Tabs, and State | Aggregates errors only from effectively visible properties and overrides | [source](../14-service-theme-layout.md#L241) |
-| `SVC-THEME-PLACEMENT-001` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Links by full \`config-type/property-name\` identity | [source](../14-service-theme-layout.md#L254) |
-| `SVC-THEME-PLACEMENT-002` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Resolves enhanced-layout targets without losing canonical attributes | [source](../14-service-theme-layout.md#L255) |
-| `SVC-THEME-PLACEMENT-003` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Preserves declaration order without duplicates | [source](../14-service-theme-layout.md#L256) |
-| `SVC-THEME-PLACEMENT-004` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Requires a Widget for enhanced rendering | [source](../14-service-theme-layout.md#L257) |
-| `SVC-THEME-PLACEMENT-005` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Creates a synthetic config only for explicit \`ui_only_property=true\` | [source](../14-service-theme-layout.md#L258) |
-| `SVC-THEME-PLACEMENT-006` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Keeps static and conditional attributes layered | [source](../14-service-theme-layout.md#L259) |
-| `SVC-THEME-WIDGET-001` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`text-field\` | [source](../14-service-theme-layout.md#L298) |
-| `SVC-THEME-WIDGET-002` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`password\` | [source](../14-service-theme-layout.md#L299) |
-| `SVC-THEME-WIDGET-003` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`checkbox\` | [source](../14-service-theme-layout.md#L300) |
-| `SVC-THEME-WIDGET-004` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`toggle\` | [source](../14-service-theme-layout.md#L301) |
-| `SVC-THEME-WIDGET-005` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`combo\` | [source](../14-service-theme-layout.md#L302) |
-| `SVC-THEME-WIDGET-006` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`radio-buttons\` | [source](../14-service-theme-layout.md#L303) |
-| `SVC-THEME-WIDGET-007` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`list\` | [source](../14-service-theme-layout.md#L304) |
-| `SVC-THEME-WIDGET-008` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`directory\` | [source](../14-service-theme-layout.md#L305) |
-| `SVC-THEME-WIDGET-009` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`directories\` | [source](../14-service-theme-layout.md#L306) |
-| `SVC-THEME-WIDGET-010` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`slider\` | [source](../14-service-theme-layout.md#L307) |
-| `SVC-THEME-WIDGET-011` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`time-interval-spinner\` | [source](../14-service-theme-layout.md#L308) |
-| `SVC-THEME-WIDGET-012` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`text-area\` | [source](../14-service-theme-layout.md#L309) |
-| `SVC-THEME-WIDGET-013` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`label\` | [source](../14-service-theme-layout.md#L310) |
-| `SVC-THEME-WIDGET-014` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`test-db-connection\` | [source](../14-service-theme-layout.md#L311) |
-| `SVC-THEME-ATTR-001` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Computes effective editability | [source](../14-service-theme-layout.md#L345) |
-| `SVC-THEME-ATTR-002` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Displays effective metadata | [source](../14-service-theme-layout.md#L346) |
-| `SVC-THEME-ATTR-003` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Preserves saved/default/recommended/current values | [source](../14-service-theme-layout.md#L347) |
-| `SVC-THEME-ATTR-004` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Supports config-group overrides | [source](../14-service-theme-layout.md#L348) |
-| `SVC-THEME-ATTR-005` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Excludes UI-only state from saves | [source](../14-service-theme-layout.md#L349) |
-| `SVC-THEME-ATTR-006` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Re-evaluates dependent behavior after edits and recommendations | [source](../14-service-theme-layout.md#L350) |
-| `SVC-THEME-ATTR-007` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Preserves filter and selection state safely | [source](../14-service-theme-layout.md#L351) |
-| `SVC-THEME-ATTR-008` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Makes unsupported/malformed metadata diagnosable | [source](../14-service-theme-layout.md#L352) |
-| `SVC-THEME-PERM-001` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | View installed service configuration and its Theme layout | [source](../14-service-theme-layout.md#L356) |
-| `SVC-THEME-PERM-002` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Edit/save installed service configuration, Widget controls, and overrides | [source](../14-service-theme-layout.md#L357) |
-| `SVC-THEME-PERM-003` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Compare versions in the Theme hierarchy | [source](../14-service-theme-layout.md#L358) |
-| `SVC-THEME-PERM-004` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Host Config Theme view | [source](../14-service-theme-layout.md#L359) |
-| `SVC-THEME-PERM-005` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | New-cluster Installer | [source](../14-service-theme-layout.md#L360) |
-| `SVC-THEME-PERM-006` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Add Service | [source](../14-service-theme-layout.md#L361) |
-| `SVC-THEME-COND-001` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Evaluates every \`depends-on\` entry in declaration order | [source](../14-service-theme-layout.md#L380) |
-| `SVC-THEME-COND-002` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Supports exact config references | [source](../14-service-theme-layout.md#L381) |
-| `SVC-THEME-COND-003` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Supports the shipped expression grammar | [source](../14-service-theme-layout.md#L382) |
-| `SVC-THEME-COND-004` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Supports \`resource=service\` | [source](../14-service-theme-layout.md#L383) |
-| `SVC-THEME-COND-005` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Applies \`then\` or \`else\` attributes | [source](../14-service-theme-layout.md#L384) |
-| `SVC-THEME-COND-006` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Re-evaluates after dependency changes | [source](../14-service-theme-layout.md#L385) |
-| `SVC-THEME-COND-007` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Separates base/static and condition-hidden state | [source](../14-service-theme-layout.md#L386) |
-| `SVC-THEME-COND-008` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Propagates visibility and errors upward | [source](../14-service-theme-layout.md#L387) |
-| `SVC-THEME-COND-009` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Rejects malformed or unsupported expressions without execution | [source](../14-service-theme-layout.md#L388) |
-| `SVC-THEME-COND-010` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Handles missing references and duplicate basenames safely | [source](../14-service-theme-layout.md#L389) |
-| `SVC-THEME-CONSUME-001` | `14-service-theme-layout.md` | Consumer Flows | Installed Service Configs | [source](../14-service-theme-layout.md#L411) |
-| `SVC-THEME-CONSUME-002` | `14-service-theme-layout.md` | Consumer Flows | Installed Service Config cache | [source](../14-service-theme-layout.md#L412) |
-| `SVC-THEME-CONSUME-003` | `14-service-theme-layout.md` | Consumer Flows | Host Configs | [source](../14-service-theme-layout.md#L413) |
-| `SVC-THEME-CONSUME-004` | `14-service-theme-layout.md` | Consumer Flows | Config version comparison | [source](../14-service-theme-layout.md#L414) |
-| `SVC-THEME-CONSUME-005` | `14-service-theme-layout.md` | Consumer Flows | New Installer Step 7 | [source](../14-service-theme-layout.md#L415) |
-| `SVC-THEME-CONSUME-006` | `14-service-theme-layout.md` | Consumer Flows | Installer Credentials | [source](../14-service-theme-layout.md#L416) |
-| `SVC-THEME-CONSUME-007` | `14-service-theme-layout.md` | Consumer Flows | Installer Databases | [source](../14-service-theme-layout.md#L417) |
-| `SVC-THEME-CONSUME-008` | `14-service-theme-layout.md` | Consumer Flows | Installer Directories and Accounts | [source](../14-service-theme-layout.md#L418) |
-| `SVC-THEME-CONSUME-009` | `14-service-theme-layout.md` | Consumer Flows | Installer All Configurations | [source](../14-service-theme-layout.md#L419) |
-| `SVC-THEME-CONSUME-010` | `14-service-theme-layout.md` | Consumer Flows | Add Service Customize Services | [source](../14-service-theme-layout.md#L420) |
-| `INST-7-THEME-001` | `14-service-theme-layout.md` | New Installer Category State | Stack configs precede batch Theme mapping | [source](../14-service-theme-layout.md#L426) |
-| `INST-7-THEME-002` | `14-service-theme-layout.md` | New Installer Category State | Theme request settles before config creation | [source](../14-service-theme-layout.md#L427) |
-| `INST-7-THEME-003` | `14-service-theme-layout.md` | New Installer Category State | Effective state is applied after values/recommendations | [source](../14-service-theme-layout.md#L428) |
-| `INST-7-THEME-004` | `14-service-theme-layout.md` | New Installer Category State | Specialized edits use canonical configs | [source](../14-service-theme-layout.md#L429) |
-| `INST-7-THEME-005` | `14-service-theme-layout.md` | New Installer Category State | Category navigation preserves valid state | [source](../14-service-theme-layout.md#L430) |
-| `INST-7-THEME-006` | `14-service-theme-layout.md` | New Installer Category State | Credentials availability | [source](../14-service-theme-layout.md#L431) |
-| `INST-7-THEME-007` | `14-service-theme-layout.md` | New Installer Category State | Credentials validation | [source](../14-service-theme-layout.md#L432) |
-| `INST-7-THEME-008` | `14-service-theme-layout.md` | New Installer Category State | Databases availability | [source](../14-service-theme-layout.md#L433) |
-| `INST-7-THEME-009` | `14-service-theme-layout.md` | New Installer Category State | Directories availability | [source](../14-service-theme-layout.md#L434) |
-| `INST-7-THEME-010` | `14-service-theme-layout.md` | New Installer Category State | Accounts source | [source](../14-service-theme-layout.md#L435) |
-| `INST-7-THEME-011` | `14-service-theme-layout.md` | New Installer Category State | All Configurations | [source](../14-service-theme-layout.md#L436) |
-| `INST-7-THEME-012` | `14-service-theme-layout.md` | New Installer Category State | Re-entry | [source](../14-service-theme-layout.md#L437) |
-| `INST-7-THEME-013` | `14-service-theme-layout.md` | New Installer Category State | Service conditions | [source](../14-service-theme-layout.md#L438) |
-| `INST-7-THEME-014` | `14-service-theme-layout.md` | New Installer Category State | Recommendation context | [source](../14-service-theme-layout.md#L439) |
-| `SVC-THEME-FALLBACK-001` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Named non-Advanced Theme tab exists | [source](../14-service-theme-layout.md#L452) |
-| `SVC-THEME-FALLBACK-002` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | 200 response has no usable Theme tab | [source](../14-service-theme-layout.md#L453) |
-| `SVC-THEME-FALLBACK-003` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Single-service Theme request returns 404/500/network error | [source](../14-service-theme-layout.md#L454) |
-| `SVC-THEME-FALLBACK-004` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Batch Theme request fails | [source](../14-service-theme-layout.md#L455) |
-| `SVC-THEME-FALLBACK-005` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | One batch service/Theme is malformed | [source](../14-service-theme-layout.md#L456) |
-| `SVC-THEME-FALLBACK-006` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Retry succeeds after fallback edits | [source](../14-service-theme-layout.md#L457) |
-| `SVC-THEME-FALLBACK-007` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Condition or filter hides the active item | [source](../14-service-theme-layout.md#L458) |
-| `SVC-THEME-FALLBACK-008` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Stack/version/service set changes or component unmounts | [source](../14-service-theme-layout.md#L459) |
-| `SVC-THEME-TEST-001` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real HIVE default Theme | [source](../14-service-theme-layout.md#L499) |
-| `SVC-THEME-TEST-002` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real HIVE database/credentials/directories Themes | [source](../14-service-theme-layout.md#L500) |
-| `SVC-THEME-TEST-003` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real Ranger default Theme | [source](../14-service-theme-layout.md#L501) |
-| `SVC-THEME-TEST-004` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real Ranger/Ranger KMS database Themes | [source](../14-service-theme-layout.md#L502) |
-| `SVC-THEME-TEST-005` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real YARN and MAPREDUCE2 Themes | [source](../14-service-theme-layout.md#L503) |
-| `SVC-THEME-TEST-006` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Normalize single and batch response shapes | [source](../14-service-theme-layout.md#L504) |
-| `SVC-THEME-TEST-007` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Preserve all layouts independently of \`configuration-layout\` | [source](../14-service-theme-layout.md#L505) |
-| `SVC-THEME-TEST-008` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Protect full config identity | [source](../14-service-theme-layout.md#L506) |
-| `SVC-THEME-TEST-009` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Protect graph identity | [source](../14-service-theme-layout.md#L507) |
-| `SVC-THEME-TEST-010` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Validate placement targets | [source](../14-service-theme-layout.md#L508) |
-| `SVC-THEME-TEST-011` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Isolate malformed metadata | [source](../14-service-theme-layout.md#L509) |
-| `SVC-THEME-TEST-012` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Parse config conditions | [source](../14-service-theme-layout.md#L510) |
-| `SVC-THEME-TEST-013` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Evaluate service conditions | [source](../14-service-theme-layout.md#L511) |
-| `SVC-THEME-TEST-014` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Apply ordered mutations from every source mode | [source](../14-service-theme-layout.md#L512) |
-| `SVC-THEME-TEST-015` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Preserve visibility and identity layers | [source](../14-service-theme-layout.md#L513) |
-| `SVC-THEME-TEST-016` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Reject unsafe conditions | [source](../14-service-theme-layout.md#L514) |
-| `SVC-THEME-TEST-017` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Render exact Section grid | [source](../14-service-theme-layout.md#L515) |
-| `SVC-THEME-TEST-018` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Render exact SubSection grid | [source](../14-service-theme-layout.md#L516) |
-| `SVC-THEME-TEST-019` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Operate top-level tabs | [source](../14-service-theme-layout.md#L517) |
-| `SVC-THEME-TEST-020` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Operate nested tabs | [source](../14-service-theme-layout.md#L518) |
-| `SVC-THEME-TEST-021` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Propagate filter/errors | [source](../14-service-theme-layout.md#L519) |
-| `SVC-THEME-TEST-022` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Dispatch every Widget type | [source](../14-service-theme-layout.md#L520) |
-| `SVC-THEME-TEST-023` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Round-trip entry Widgets | [source](../14-service-theme-layout.md#L521) |
-| `SVC-THEME-TEST-024` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Round-trip text/directory Widgets | [source](../14-service-theme-layout.md#L522) |
-| `SVC-THEME-TEST-025` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Convert slider units | [source](../14-service-theme-layout.md#L523) |
-| `SVC-THEME-TEST-026` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Convert time spinner units | [source](../14-service-theme-layout.md#L524) |
-| `SVC-THEME-TEST-027` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Exercise shared controls and raw fallback | [source](../14-service-theme-layout.md#L525) |
-| `SVC-THEME-TEST-028` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Build DB action payloads | [source](../14-service-theme-layout.md#L526) |
-| `SVC-THEME-TEST-029` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Complete DB task lifecycle | [source](../14-service-theme-layout.md#L527) |
-| `SVC-THEME-TEST-030` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Load installed Service Config Theme | [source](../14-service-theme-layout.md#L528) |
-| `SVC-THEME-TEST-031` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Load Host Config Theme | [source](../14-service-theme-layout.md#L529) |
-| `SVC-THEME-TEST-032` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compare config versions | [source](../14-service-theme-layout.md#L530) |
-| `SVC-THEME-TEST-033` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Run new Installer category flow | [source](../14-service-theme-layout.md#L531) |
-| `SVC-THEME-TEST-034` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Run Add Service flow | [source](../14-service-theme-layout.md#L532) |
-| `SVC-THEME-TEST-035` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Preserve canonical save payload | [source](../14-service-theme-layout.md#L533) |
-| `SVC-THEME-TEST-036` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Enforce permissions and modes | [source](../14-service-theme-layout.md#L534) |
-| `SVC-THEME-TEST-037` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Test server parsing/filtering | [source](../14-service-theme-layout.md#L535) |
-| `SVC-THEME-TEST-038` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Test server inheritance/removal | [source](../14-service-theme-layout.md#L536) |
-| `SVC-THEME-TEST-039` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Test Theme resource provider | [source](../14-service-theme-layout.md#L537) |
-| `SVC-THEME-TEST-040` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Real-cluster acceptance | [source](../14-service-theme-layout.md#L538) |
+| `SVC-THEME-PLACEMENT-001` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Links by full \`config-type/property-name\` identity | [source](../14-service-theme-layout.md#L255) |
+| `SVC-THEME-PLACEMENT-002` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Resolves enhanced-layout targets without losing canonical attributes | [source](../14-service-theme-layout.md#L256) |
+| `SVC-THEME-PLACEMENT-003` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Preserves declaration order without duplicates | [source](../14-service-theme-layout.md#L257) |
+| `SVC-THEME-PLACEMENT-004` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Requires a Widget for enhanced rendering | [source](../14-service-theme-layout.md#L258) |
+| `SVC-THEME-PLACEMENT-005` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Creates a synthetic config only for explicit \`ui_only_property=true\` | [source](../14-service-theme-layout.md#L259) |
+| `SVC-THEME-PLACEMENT-006` | `14-service-theme-layout.md` | Placement and Property-Attribute Semantics | Keeps static and conditional attributes layered | [source](../14-service-theme-layout.md#L260) |
+| `SVC-THEME-WIDGET-001` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`text-field\` | [source](../14-service-theme-layout.md#L299) |
+| `SVC-THEME-WIDGET-002` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`password\` | [source](../14-service-theme-layout.md#L300) |
+| `SVC-THEME-WIDGET-003` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`checkbox\` | [source](../14-service-theme-layout.md#L301) |
+| `SVC-THEME-WIDGET-004` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`toggle\` | [source](../14-service-theme-layout.md#L302) |
+| `SVC-THEME-WIDGET-005` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`combo\` | [source](../14-service-theme-layout.md#L303) |
+| `SVC-THEME-WIDGET-006` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`radio-buttons\` | [source](../14-service-theme-layout.md#L304) |
+| `SVC-THEME-WIDGET-007` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`list\` | [source](../14-service-theme-layout.md#L305) |
+| `SVC-THEME-WIDGET-008` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`directory\` | [source](../14-service-theme-layout.md#L306) |
+| `SVC-THEME-WIDGET-009` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`directories\` | [source](../14-service-theme-layout.md#L307) |
+| `SVC-THEME-WIDGET-010` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`slider\` | [source](../14-service-theme-layout.md#L308) |
+| `SVC-THEME-WIDGET-011` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`time-interval-spinner\` | [source](../14-service-theme-layout.md#L309) |
+| `SVC-THEME-WIDGET-012` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`text-area\` | [source](../14-service-theme-layout.md#L310) |
+| `SVC-THEME-WIDGET-013` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`label\` | [source](../14-service-theme-layout.md#L311) |
+| `SVC-THEME-WIDGET-014` | `14-service-theme-layout.md` | Configuration Widget Dispatch | \`test-db-connection\` | [source](../14-service-theme-layout.md#L312) |
+| `SVC-THEME-ATTR-001` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Computes effective editability | [source](../14-service-theme-layout.md#L346) |
+| `SVC-THEME-ATTR-002` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Displays effective metadata | [source](../14-service-theme-layout.md#L347) |
+| `SVC-THEME-ATTR-003` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Preserves saved/default/recommended/current values | [source](../14-service-theme-layout.md#L348) |
+| `SVC-THEME-ATTR-004` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Supports config-group overrides | [source](../14-service-theme-layout.md#L349) |
+| `SVC-THEME-ATTR-005` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Excludes UI-only state from saves | [source](../14-service-theme-layout.md#L350) |
+| `SVC-THEME-ATTR-006` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Re-evaluates dependent behavior after edits and recommendations | [source](../14-service-theme-layout.md#L351) |
+| `SVC-THEME-ATTR-007` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Preserves filter and selection state safely | [source](../14-service-theme-layout.md#L352) |
+| `SVC-THEME-ATTR-008` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Makes unsupported/malformed metadata diagnosable | [source](../14-service-theme-layout.md#L353) |
+| `SVC-THEME-PERM-001` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | View installed service configuration and its Theme layout | [source](../14-service-theme-layout.md#L357) |
+| `SVC-THEME-PERM-002` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Edit/save installed service configuration, Widget controls, and overrides | [source](../14-service-theme-layout.md#L358) |
+| `SVC-THEME-PERM-003` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Compare versions in the Theme hierarchy | [source](../14-service-theme-layout.md#L359) |
+| `SVC-THEME-PERM-004` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Host Config Theme view | [source](../14-service-theme-layout.md#L360) |
+| `SVC-THEME-PERM-005` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | New-cluster Installer | [source](../14-service-theme-layout.md#L361) |
+| `SVC-THEME-PERM-006` | `14-service-theme-layout.md` | Shared Property Controls and Permissions | Add Service | [source](../14-service-theme-layout.md#L362) |
+| `SVC-THEME-COND-001` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Evaluates every \`depends-on\` entry in declaration order | [source](../14-service-theme-layout.md#L381) |
+| `SVC-THEME-COND-002` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Supports exact config references | [source](../14-service-theme-layout.md#L382) |
+| `SVC-THEME-COND-003` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Supports the shipped expression grammar | [source](../14-service-theme-layout.md#L383) |
+| `SVC-THEME-COND-004` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Supports \`resource=service\` | [source](../14-service-theme-layout.md#L384) |
+| `SVC-THEME-COND-005` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Applies \`then\` or \`else\` attributes | [source](../14-service-theme-layout.md#L385) |
+| `SVC-THEME-COND-006` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Re-evaluates after dependency changes | [source](../14-service-theme-layout.md#L386) |
+| `SVC-THEME-COND-007` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Separates base/static and condition-hidden state | [source](../14-service-theme-layout.md#L387) |
+| `SVC-THEME-COND-008` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Propagates visibility and errors upward | [source](../14-service-theme-layout.md#L388) |
+| `SVC-THEME-COND-009` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Rejects malformed or unsupported expressions without execution | [source](../14-service-theme-layout.md#L389) |
+| `SVC-THEME-COND-010` | `14-service-theme-layout.md` | Condition Evaluation and Effective Visibility | Handles missing references and duplicate basenames safely | [source](../14-service-theme-layout.md#L390) |
+| `SVC-THEME-CONSUME-001` | `14-service-theme-layout.md` | Consumer Flows | Installed Service Configs | [source](../14-service-theme-layout.md#L412) |
+| `SVC-THEME-CONSUME-002` | `14-service-theme-layout.md` | Consumer Flows | Installed Service Config cache | [source](../14-service-theme-layout.md#L413) |
+| `SVC-THEME-CONSUME-003` | `14-service-theme-layout.md` | Consumer Flows | Host Configs | [source](../14-service-theme-layout.md#L414) |
+| `SVC-THEME-CONSUME-004` | `14-service-theme-layout.md` | Consumer Flows | Config version comparison | [source](../14-service-theme-layout.md#L415) |
+| `SVC-THEME-CONSUME-005` | `14-service-theme-layout.md` | Consumer Flows | New Installer Step 7 | [source](../14-service-theme-layout.md#L416) |
+| `SVC-THEME-CONSUME-006` | `14-service-theme-layout.md` | Consumer Flows | Installer Credentials | [source](../14-service-theme-layout.md#L417) |
+| `SVC-THEME-CONSUME-007` | `14-service-theme-layout.md` | Consumer Flows | Installer Databases | [source](../14-service-theme-layout.md#L418) |
+| `SVC-THEME-CONSUME-008` | `14-service-theme-layout.md` | Consumer Flows | Installer Directories and Accounts | [source](../14-service-theme-layout.md#L419) |
+| `SVC-THEME-CONSUME-009` | `14-service-theme-layout.md` | Consumer Flows | Installer All Configurations | [source](../14-service-theme-layout.md#L420) |
+| `SVC-THEME-CONSUME-010` | `14-service-theme-layout.md` | Consumer Flows | Add Service Customize Services | [source](../14-service-theme-layout.md#L421) |
+| `INST-7-THEME-001` | `14-service-theme-layout.md` | New Installer Category State | Stack configs precede batch Theme mapping | [source](../14-service-theme-layout.md#L427) |
+| `INST-7-THEME-002` | `14-service-theme-layout.md` | New Installer Category State | Theme request settles before config creation | [source](../14-service-theme-layout.md#L428) |
+| `INST-7-THEME-003` | `14-service-theme-layout.md` | New Installer Category State | Effective state is applied after values/recommendations | [source](../14-service-theme-layout.md#L429) |
+| `INST-7-THEME-004` | `14-service-theme-layout.md` | New Installer Category State | Specialized edits use canonical configs | [source](../14-service-theme-layout.md#L430) |
+| `INST-7-THEME-005` | `14-service-theme-layout.md` | New Installer Category State | Category navigation preserves valid state | [source](../14-service-theme-layout.md#L431) |
+| `INST-7-THEME-006` | `14-service-theme-layout.md` | New Installer Category State | Credentials availability | [source](../14-service-theme-layout.md#L432) |
+| `INST-7-THEME-007` | `14-service-theme-layout.md` | New Installer Category State | Credentials validation | [source](../14-service-theme-layout.md#L433) |
+| `INST-7-THEME-008` | `14-service-theme-layout.md` | New Installer Category State | Databases availability | [source](../14-service-theme-layout.md#L434) |
+| `INST-7-THEME-009` | `14-service-theme-layout.md` | New Installer Category State | Directories availability | [source](../14-service-theme-layout.md#L435) |
+| `INST-7-THEME-010` | `14-service-theme-layout.md` | New Installer Category State | Accounts source | [source](../14-service-theme-layout.md#L436) |
+| `INST-7-THEME-011` | `14-service-theme-layout.md` | New Installer Category State | All Configurations | [source](../14-service-theme-layout.md#L437) |
+| `INST-7-THEME-012` | `14-service-theme-layout.md` | New Installer Category State | Re-entry | [source](../14-service-theme-layout.md#L438) |
+| `INST-7-THEME-013` | `14-service-theme-layout.md` | New Installer Category State | Service conditions | [source](../14-service-theme-layout.md#L439) |
+| `INST-7-THEME-014` | `14-service-theme-layout.md` | New Installer Category State | Recommendation context | [source](../14-service-theme-layout.md#L440) |
+| `SVC-THEME-FALLBACK-001` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Named non-Advanced Theme tab exists | [source](../14-service-theme-layout.md#L453) |
+| `SVC-THEME-FALLBACK-002` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | 200 response has no usable Theme tab | [source](../14-service-theme-layout.md#L454) |
+| `SVC-THEME-FALLBACK-003` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Single-service Theme request returns 404/500/network error | [source](../14-service-theme-layout.md#L455) |
+| `SVC-THEME-FALLBACK-004` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Batch Theme request fails | [source](../14-service-theme-layout.md#L456) |
+| `SVC-THEME-FALLBACK-005` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | One batch service/Theme is malformed | [source](../14-service-theme-layout.md#L457) |
+| `SVC-THEME-FALLBACK-006` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Retry succeeds after fallback edits | [source](../14-service-theme-layout.md#L458) |
+| `SVC-THEME-FALLBACK-007` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Condition or filter hides the active item | [source](../14-service-theme-layout.md#L459) |
+| `SVC-THEME-FALLBACK-008` | `14-service-theme-layout.md` | Fallback, Failure, Retry, and Known Classic Defects | Stack/version/service set changes or component unmounts | [source](../14-service-theme-layout.md#L460) |
+| `SVC-THEME-TEST-001` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real HIVE default Theme | [source](../14-service-theme-layout.md#L500) |
+| `SVC-THEME-TEST-002` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real HIVE database/credentials/directories Themes | [source](../14-service-theme-layout.md#L501) |
+| `SVC-THEME-TEST-003` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real Ranger default Theme | [source](../14-service-theme-layout.md#L502) |
+| `SVC-THEME-TEST-004` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real Ranger/Ranger KMS database Themes | [source](../14-service-theme-layout.md#L503) |
+| `SVC-THEME-TEST-005` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compile real YARN and MAPREDUCE2 Themes | [source](../14-service-theme-layout.md#L504) |
+| `SVC-THEME-TEST-006` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Normalize single and batch response shapes | [source](../14-service-theme-layout.md#L505) |
+| `SVC-THEME-TEST-007` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Preserve all layouts independently of \`configuration-layout\` | [source](../14-service-theme-layout.md#L506) |
+| `SVC-THEME-TEST-008` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Protect full config identity | [source](../14-service-theme-layout.md#L507) |
+| `SVC-THEME-TEST-009` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Protect graph identity | [source](../14-service-theme-layout.md#L508) |
+| `SVC-THEME-TEST-010` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Validate placement targets | [source](../14-service-theme-layout.md#L509) |
+| `SVC-THEME-TEST-011` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Isolate malformed metadata | [source](../14-service-theme-layout.md#L510) |
+| `SVC-THEME-TEST-012` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Parse config conditions | [source](../14-service-theme-layout.md#L511) |
+| `SVC-THEME-TEST-013` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Evaluate service conditions | [source](../14-service-theme-layout.md#L512) |
+| `SVC-THEME-TEST-014` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Apply ordered mutations from every source mode | [source](../14-service-theme-layout.md#L513) |
+| `SVC-THEME-TEST-015` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Preserve visibility and identity layers | [source](../14-service-theme-layout.md#L514) |
+| `SVC-THEME-TEST-016` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Reject unsafe conditions | [source](../14-service-theme-layout.md#L515) |
+| `SVC-THEME-TEST-017` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Render exact Section grid | [source](../14-service-theme-layout.md#L516) |
+| `SVC-THEME-TEST-018` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Render exact SubSection grid | [source](../14-service-theme-layout.md#L517) |
+| `SVC-THEME-TEST-019` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Operate top-level tabs | [source](../14-service-theme-layout.md#L518) |
+| `SVC-THEME-TEST-020` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Operate nested tabs | [source](../14-service-theme-layout.md#L519) |
+| `SVC-THEME-TEST-021` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Propagate filter/errors | [source](../14-service-theme-layout.md#L520) |
+| `SVC-THEME-TEST-022` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Dispatch every Widget type | [source](../14-service-theme-layout.md#L521) |
+| `SVC-THEME-TEST-023` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Round-trip entry Widgets | [source](../14-service-theme-layout.md#L522) |
+| `SVC-THEME-TEST-024` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Round-trip text/directory Widgets | [source](../14-service-theme-layout.md#L523) |
+| `SVC-THEME-TEST-025` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Convert slider units | [source](../14-service-theme-layout.md#L524) |
+| `SVC-THEME-TEST-026` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Convert time spinner units | [source](../14-service-theme-layout.md#L525) |
+| `SVC-THEME-TEST-027` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Exercise shared controls and raw fallback | [source](../14-service-theme-layout.md#L526) |
+| `SVC-THEME-TEST-028` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Build DB action payloads | [source](../14-service-theme-layout.md#L527) |
+| `SVC-THEME-TEST-029` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Complete DB task lifecycle | [source](../14-service-theme-layout.md#L528) |
+| `SVC-THEME-TEST-030` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Load installed Service Config Theme | [source](../14-service-theme-layout.md#L529) |
+| `SVC-THEME-TEST-031` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Load Host Config Theme | [source](../14-service-theme-layout.md#L530) |
+| `SVC-THEME-TEST-032` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Compare config versions | [source](../14-service-theme-layout.md#L531) |
+| `SVC-THEME-TEST-033` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Run new Installer category flow | [source](../14-service-theme-layout.md#L532) |
+| `SVC-THEME-TEST-034` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Run Add Service flow | [source](../14-service-theme-layout.md#L533) |
+| `SVC-THEME-TEST-035` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Preserve canonical save payload | [source](../14-service-theme-layout.md#L534) |
+| `SVC-THEME-TEST-036` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Enforce permissions and modes | [source](../14-service-theme-layout.md#L535) |
+| `SVC-THEME-TEST-037` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Test server parsing/filtering | [source](../14-service-theme-layout.md#L536) |
+| `SVC-THEME-TEST-038` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Test server inheritance/removal | [source](../14-service-theme-layout.md#L537) |
+| `SVC-THEME-TEST-039` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Test Theme resource provider | [source](../14-service-theme-layout.md#L538) |
+| `SVC-THEME-TEST-040` | `14-service-theme-layout.md` | Executable React and Server Test Contract | Real-cluster acceptance | [source](../14-service-theme-layout.md#L539) |

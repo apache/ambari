@@ -112,6 +112,16 @@
             <version>3.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <properties>
@@ -131,9 +141,8 @@
               <directory>${ui.directory}</directory>
               <followSymlinks>false</followSymlinks>
                <includes>
-                <include>public/**</include>
+                <include>dist/**</include>
                 <include>node_modules/**</include>
-                <include>bower_components/**</include>
                 <include>node/**</include>
               </includes>
              </fileset>
@@ -145,75 +154,37 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>1.11.0</version>
         <configuration>
-          <yarnVersion>v0.23.2</yarnVersion>
+          <nodeVersion>v20.11.0</nodeVersion>
+          <npmVersion>10.8.3</npmVersion>
           <workingDirectory>${ui.directory}</workingDirectory>
           <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
-          <!-- setting npm_config_tmp environment variable is a workaround for
-               https://github.com/Medium/phantomjs/issues/673 -->
-          <environmentVariables>
-            <npm_config_tmp>/tmp/npm_config_tmp</npm_config_tmp>
-          </environmentVariables>
         </configuration>
         <executions>
           <execution>
-            <id>install node and yarn</id>
+            <id>install-node-and-npm</id>
             <goals>
-                <goal>install-node-and-yarn</goal>
+              <goal>install-node-and-npm</goal>
             </goals>
-            <!-- optional: default phase is "generate-resources" -->
-            <phase>initialize</phase>
+            <phase>generate-sources</phase>
+          </execution>
+          <execution>
+            <id>npm-ci</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>generate-sources</phase>
             <configuration>
-                <nodeVersion>v4.5.0</nodeVersion>
-                <npmVersion>2.15.0</npmVersion>
+              <arguments>ci --no-audit --no-fund</arguments>
             </configuration>
           </execution>
           <execution>
-            <id>yarn install --pure-lockfile</id>
-            <goals>
-              <goal>yarn</goal>
-            </goals>
-            <phase>generate-resources</phase>
-            <configuration>
-              <arguments>install --unsafe-perm</arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <id>Bower install</id>
+            <id>npm-build</id>
             <phase>generate-resources</phase>
             <goals>
-              <goal>exec</goal>
+              <goal>npm</goal>
             </goals>
             <configuration>
-              <workingDirectory>${ui.directory}</workingDirectory>
-              <executable>${ui.directory}/node/${node.executable}</executable>
-              <arguments>
-                <argument>${ui.directory}/node_modules/bower/bin/bower</argument>
-                <argument>install</argument>
-                <argument>--allow-root</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>Brunch build</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <workingDirectory>${ui.directory}</workingDirectory>
-              <executable>${ui.directory}/node/${node.executable}</executable>
-              <arguments>
-                <argument>node_modules/brunch/bin/brunch</argument>
-                <argument>build</argument>
-                <argument>--production</argument>
-              </arguments>
+              <arguments>run build</arguments>
             </configuration>
           </execution>
         </executions>
@@ -270,7 +241,7 @@
     </plugins>
     <resources>
         <resource>
-        <directory>src/main/resources/ui/public</directory>
+        <directory>src/main/resources/ui/dist</directory>
         <filtering>false</filtering>
         </resource>
 
@@ -301,25 +272,6 @@
                 <pluginExecution>
                     <pluginExecutionFilter>
                     <groupId>
-                        org.codehaus.mojo
-                    </groupId>
-                    <artifactId>
-                        exec-maven-plugin
-                    </artifactId>
-                    <versionRange>
-                        [1.2.1,)
-                    </versionRange>
-                    <goals>
-                        <goal>exec</goal>
-                    </goals>
-                    </pluginExecutionFilter>
-                    <action>
-                    <ignore></ignore>
-                    </action>
-                </pluginExecution>
-                <pluginExecution>
-                    <pluginExecutionFilter>
-                    <groupId>
                         com.github.eirslett
                     </groupId>
                     <artifactId>
@@ -346,30 +298,4 @@
         </plugins>
     </pluginManagement>
     </build>
-    <profiles>
-      <profile>
-        <id>windows</id>
-        <activation>
-          <os>
-            <family>win</family>
-          </os>
-        </activation>
-        <properties>
-          <node.executable>node.exe</node.executable>
-          <skip.nodegyp.chmod>true</skip.nodegyp.chmod>
-        </properties>
-      </profile>
-      <profile>
-        <id>linux</id>
-        <activation>
-          <os>
-            <family>unix</family>
-          </os>
-        </activation>
-        <properties>
-          <node.executable>node</node.executable>
-          <skip.nodegyp.chmod>false</skip.nodegyp.chmod>
-        </properties>
-      </profile>
-    </profiles>
   </project>

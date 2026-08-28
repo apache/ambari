@@ -18,6 +18,7 @@
 import {encryptData, decryptData, getFromLocalStorage, parseJSONData, setInLocalStorage} from "./Utility.ts";
 import {adminApi} from "./configs/axiosConfig.ts";
 import { AxiosError } from 'axios';
+import { latestAmbariUrl } from '../utils/navigation.ts';
 
 const signOut = async () => {
     let ambariKey = getFromLocalStorage('ambari');
@@ -44,7 +45,7 @@ const signOut = async () => {
             headers: headers
         });
         localStorage.clear();
-        window.location.replace("/#/login");
+        window.location.replace(latestAmbariUrl("/login"));
     } catch (error) {
         const axiosError = error as AxiosError;
         throw new Error(`Logout failed with status: ${axiosError.response?.status}`);

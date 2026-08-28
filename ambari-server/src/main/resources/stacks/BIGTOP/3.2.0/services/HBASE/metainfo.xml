@@ -201,6 +201,7 @@
             </package>
             <package>
               <name>ranger_${stack_version}-hbase-plugin</name>
+              <condition>should_install_ranger_hbase_plugin</condition>
             </package>
           </packages>
         </osSpecific>

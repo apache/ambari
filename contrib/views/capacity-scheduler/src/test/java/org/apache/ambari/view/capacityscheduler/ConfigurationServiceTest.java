@@ -20,32 +20,22 @@ package org.apache.ambari.view.capacityscheduler;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.cluster.Cluster;
-import org.apache.ambari.view.utils.ambari.AmbariApi;
-import org.easymock.EasyMock;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.util.HashMap;
-import java.util.Map;
+import jakarta.ws.rs.core.Response;
+import java.lang.reflect.Field;
 
 import static org.easymock.EasyMock.*;
 
 
 public class ConfigurationServiceTest {
     private ViewContext context;
-    private HttpHeaders httpHeaders;
-    private UriInfo uriInfo;
     private Cluster ambariCluster;
-    private Map<String, String> properties;
     private ConfigurationService configurationService;
 
     public static final String BASE_URI = "http://localhost:8084/myapp/";
@@ -54,20 +44,15 @@ public class ConfigurationServiceTest {
     @Before
     public void setUp() throws Exception {
         context = createNiceMock(ViewContext.class);
-        httpHeaders = createNiceMock(HttpHeaders.class);
         ambariCluster = createNiceMock(Cluster.class);
 
-        EasyMock.expect(ambariCluster.getConfigurationValue("ranger-yarn-plugin-properties", "ranger-yarn-plugin-enabled")).andReturn("Yes").anyTimes();
-        EasyMock.expect(context.getCluster()).andReturn(ambariCluster).anyTimes();
-        EasyMock.expect(context.getProperties()).andReturn(properties).anyTimes();
-        EasyMock.replay(context);
-        EasyMock.replay(ambariCluster);
+        expect(ambariCluster.getConfigurationValue("ranger-yarn-plugin-properties", "ranger-yarn-plugin-enabled")).andReturn("Yes").anyTimes();
+        expect(context.getCluster()).andReturn(ambariCluster).anyTimes();
+        expect(context.getProperties()).andReturn(null).anyTimes();
+        replay(context);
+        replay(ambariCluster);
         System.out.println("context.getProperties() : " + context.getProperties());
         configurationService = new ConfigurationService(context);
-    }
-
-    @After
-    public void tearDown() {
     }
 
     @Test
@@ -94,5 +79,39 @@ public class ConfigurationServiceTest {
         Assert.assertEquals(obj.get("siteName"), "random-site");
         Assert.assertEquals(obj.get("configName"), "random-key");
         Assert.assertEquals(obj.get("configValue"), null);
+    }
+
+    @Test
+    public void testRefreshResourceManagerRequestIsValidJson() throws Exception {
+        JSONObject request = parseRequestTemplate("REFRESH_RM_REQUEST_DATA", "rm1.example.com,rm2.example.com");
+        JSONObject requestInfo = (JSONObject) request.get("RequestInfo");
+        JSONArray filters = (JSONArray) request.get("Requests/resource_filters");
+
+        Assert.assertEquals("REFRESHQUEUES", requestInfo.get("command"));
+        Assert.assertEquals("capacity-scheduler", requestInfo.get("parameters/forceRefreshConfigTags"));
+        Assert.assertEquals("rm1.example.com,rm2.example.com", ((JSONObject) filters.get(0)).get("hosts"));
+    }
+
+    @Test
+    public void testRestartResourceManagerRequestIsValidJson() throws Exception {
+        JSONObject request = parseRequestTemplate(
+            "RESTART_RM_REQUEST_DATA", "test-cluster", "rm1.example.com,rm2.example.com",
+            "rm1.example.com,rm2.example.com");
+        JSONObject requestInfo = (JSONObject) request.get("RequestInfo");
+        JSONObject operationLevel = (JSONObject) requestInfo.get("operation_level");
+        JSONArray filters = (JSONArray) request.get("Requests/resource_filters");
+
+        Assert.assertEquals("RESTART", requestInfo.get("command"));
+        Assert.assertEquals("test-cluster", operationLevel.get("cluster_name"));
+        Assert.assertEquals("rm1.example.com,rm2.example.com", ((JSONObject) filters.get(0)).get("hosts"));
+    }
+
+    private JSONObject parseRequestTemplate(String fieldName, Object... values) throws Exception {
+        Field field = ConfigurationService.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        String request = String.format((String) field.get(null), values);
+        Object parsed = JSONValue.parse(request);
+        Assert.assertNotNull("Request template must contain valid JSON: " + request, parsed);
+        return (JSONObject) parsed;
     }
 }
