@@ -122,16 +122,13 @@ const SideBar = ({
         // Type assertion to tell TypeScript this is a valid key
           const modelKey = serviceName && serviceNameModelMapping[serviceName as keyof typeof serviceNameModelMapping];
           const currentServiceModel = modelKey ? allServiceModels[modelKey] : undefined;
-
-          // Alert counts from serviceStatesData (updated reactively from socket events).
-          // Ember's alertDefinitionSummaryMapper immediately updates service.alertsCount +
-          // service.hasCriticalAlerts on each /events/alerts socket push; allServiceModels
-          // instances are never updated so we must read from serviceStatesData.
-          const stateData = serviceStatesData.get(serviceName);
+          const currentServiceState = serviceStatesData.get(serviceName);
           const alertsCount =
-            stateData?.alertsCount ?? currentServiceModel?.alertsCount ?? 0;
+            currentServiceState?.alertsCount ??
+            currentServiceModel?.alertsCount ??
+            0;
           const hasCriticalAlerts =
-            stateData?.hasCriticalAlerts ??
+            currentServiceState?.hasCriticalAlerts ??
             currentServiceModel?.hasCriticalAlerts ??
             false;
 
@@ -143,7 +140,7 @@ const SideBar = ({
               ] || serviceName,
             serviceName: serviceName, // Keep original service name for sorting
             state:
-              stateData?.state ||
+              currentServiceState?.state ||
               currentServiceModel?.serviceState ||
               service?.ServiceInfo?.state ||
               "UNKNOWN",
@@ -155,7 +152,7 @@ const SideBar = ({
             hasCriticalAlerts: hasCriticalAlerts,
             isClientOnlyService: currentServiceModel?.isClientOnlyService || false,
             isInPassiveForService:
-              stateData?.maintenance_state === "ON" ||
+              currentServiceState?.maintenance_state === "ON" ||
               currentServiceModel?.isInPassiveForService ||
               false,
             isRestartRequiredForService:

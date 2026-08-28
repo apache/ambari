@@ -3190,7 +3190,9 @@ function ServiceComponents({
         return <FlumeSummary />;
 
       default:
-        return <></>;
+        return (
+          <GenericServiceSummary serviceName={serviceName} alerts={alerts} />
+        );
     }
   }
   return (
@@ -3199,6 +3201,163 @@ function ServiceComponents({
         <h3 className="text-light">Components</h3>
       </Col>
       <Col>{renderComponents()}</Col>
+    </Row>
+  );
+}
+
+export function GenericServiceSummary({
+  serviceName,
+  alerts,
+}: {
+  serviceName: string;
+  alerts: any[];
+}) {
+  const { masterSlaveClientsData } = useContext(ServiceContext);
+  const navigate = useNavigate();
+  const components = Array.isArray(masterSlaveClientsData)
+    ? masterSlaveClientsData.filter(
+        (item: any) =>
+          item.ServiceComponentInfo?.service_name === serviceName.toUpperCase()
+      )
+    : [];
+
+  if (!components.length) {
+    return <div className="text-light">No components to display</div>;
+  }
+
+  const renderAlertBadge = (
+    componentName: string,
+    displayName: string,
+    maintenanceState = "OFF"
+  ) => {
+    const componentAlerts = getComponentAlerts(
+      alerts,
+      componentName,
+      maintenanceState
+    );
+    if (!componentAlerts.count) {
+      return null;
+    }
+
+    return (
+      <Badge
+        className="rounded-5 bg-danger cursor-pointer ms-2 fs-10"
+        onClick={() => {
+          modalManager.show(
+            <AlertsModal
+              alerts={componentAlerts.alerts}
+              navigate={navigate}
+              serviceName={serviceName.toUpperCase()}
+              displayName={displayName}
+            />
+          );
+        }}
+      >
+        {componentAlerts.count}
+      </Badge>
+    );
+  };
+
+  return (
+    <Row className="g-4">
+      {components.flatMap((component: any) => {
+        const info = component.ServiceComponentInfo || {};
+        const componentName = info.component_name || "";
+        const displayName = info.display_name || startCase(lowerCase(componentName));
+        const hostComponents = component.host_components || [];
+
+        if (info.category === "MASTER") {
+          return hostComponents.map((hostComponent: any) => {
+            const hostRoles = hostComponent.HostRoles || {};
+            const state = hostRoles.state || "UNKNOWN";
+            const maintenanceState = hostRoles.maintenance_state || "OFF";
+            const inMaintenance = maintenanceState !== "OFF";
+            const icon = inMaintenance
+              ? statusIconMap["Maintenance"]
+              : statusIconMap[lowerCase(state)];
+            const statusLabel =
+              startCase(state.toLowerCase()) === "Installed"
+                ? "Stopped"
+                : startCase(state.toLowerCase());
+
+            return (
+              <Col md={3} key={`${componentName}-${hostRoles.host_name}`}>
+                <Stack>
+                  <Stack direction="horizontal" className="align-items-center">
+                    {icon ? (
+                      <Tooltip
+                        message={
+                          inMaintenance
+                            ? TOOLTIP_MESSAGES.GENERAL.MAINTENANCE_MODE
+                            : TOOLTIP_MESSAGES.GENERAL.COMPONENT_HEALTH
+                        }
+                        heading="Component Status"
+                        placement="top"
+                      >
+                        <FontAwesomeIcon
+                          icon={icon.icon}
+                          className={`me-1 fw-bold fs-12 text-${
+                            icon.color || "secondary"
+                          }`}
+                        />
+                      </Tooltip>
+                    ) : null}
+                    <h3 className="text-dark mb-0">{statusLabel}</h3>
+                    {renderAlertBadge(
+                      componentName,
+                      displayName,
+                      maintenanceState
+                    )}
+                  </Stack>
+                  <Tooltip message={hostRoles.host_name} placement="top">
+                    <div
+                      className="custom-link text-uppercase fs-12 mt-2"
+                      onClick={() =>
+                        navigate(
+                          `/main/hosts/${encodeURIComponent(
+                            hostRoles.host_name
+                          )}/summary`
+                        )
+                      }
+                    >
+                      {displayName}
+                    </div>
+                  </Tooltip>
+                </Stack>
+              </Col>
+            );
+          });
+        }
+
+        const totalCount = Number(info.total_count) || hostComponents.length;
+        const isClient = info.category === "CLIENT";
+        const count = isClient
+          ? Number(info.installed_count) || 0
+          : Number(info.started_count) || 0;
+
+        return [
+          <Col md={3} key={componentName}>
+            <Stack>
+              <Stack direction="horizontal" className="align-items-center">
+                <h3 className="text-dark mb-0">
+                  {isClient ? `${count} Installed` : `${count}/${totalCount} Live`}
+                </h3>
+                {renderAlertBadge(componentName, displayName)}
+              </Stack>
+              <div
+                className="custom-link text-uppercase fs-12 mt-2"
+                onClick={() =>
+                  navigate(
+                    `/main/hosts/component/${encodeURIComponent(componentName)}`
+                  )
+                }
+              >
+                {pluralize(totalCount, displayName, "s", false)}
+              </div>
+            </Stack>
+          </Col>,
+        ];
+      })}
     </Row>
   );
 }
