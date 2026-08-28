@@ -113,6 +113,32 @@ public class ManagedMetricsIdentityServiceTest {
   }
 
   @Test
+  public void testPendingConfigIsUpdatedBeforeItBecomesDesired() throws Exception {
+    Harness harness = new Harness(Map.of(
+        ManagedMetricsIdentityService.MANAGED_PROPERTY, "true",
+        ManagedMetricsIdentityService.USERNAME_PROPERTY, "prometheus-scraper",
+        ManagedMetricsIdentityService.PASSWORD_PROPERTY, ""));
+    UserEntity user = harness.user();
+    when(harness.clusters.getCluster("test-cluster")).thenReturn(harness.cluster);
+    when(harness.cluster.getConfig(ManagedMetricsIdentityService.CONFIG_TYPE, "INITIAL"))
+        .thenReturn(harness.currentConfig);
+    when(harness.users.getUserEntity(USERNAME)).thenReturn(null, user);
+    when(harness.users.createUser(USERNAME, USERNAME,
+        "Ambari Metrics service discovery", true)).thenReturn(user);
+    when(harness.passwordHelper.createSecurePassword(32, 4, 4, 4, 0, 0))
+        .thenReturn(PASSWORD);
+
+    harness.service.provisionPendingConfig("test-cluster", "INITIAL");
+
+    verify(harness.currentConfig).setProperties(Map.of(
+        ManagedMetricsIdentityService.MANAGED_PROPERTY, "true",
+        ManagedMetricsIdentityService.USERNAME_PROPERTY, USERNAME,
+        ManagedMetricsIdentityService.PASSWORD_PROPERTY, PASSWORD));
+    verify(harness.currentConfig).save();
+    verifyNoInteractions(harness.configFactory);
+  }
+
+  @Test
   public void testManualModeDeactivatesManagedIdentity() throws Exception {
     Harness harness = new Harness(Map.of(
         ManagedMetricsIdentityService.MANAGED_PROPERTY, "false",

@@ -93,10 +93,24 @@ public class ManagedMetricsIdentityService {
     provision(clusters.get().getCluster(clusterName));
   }
 
+  @Transactional
+  public synchronized void provisionPendingConfig(String clusterName, String configTag)
+      throws AmbariException {
+    Cluster cluster = clusters.get().getCluster(clusterName);
+    Config config = cluster.getConfig(CONFIG_TYPE, configTag);
+    if (config != null) {
+      provision(cluster, config, true);
+    }
+  }
+
   private void provision(Cluster cluster) throws AmbariException {
+    provision(cluster, cluster.getDesiredConfigByType(CONFIG_TYPE), false);
+  }
+
+  private void provision(Cluster cluster, Config current, boolean updateInPlace)
+      throws AmbariException {
     String username = USERNAME_PREFIX + cluster.getClusterId();
     Service service = cluster.getServices().get(SERVICE_NAME);
-    Config current = cluster.getDesiredConfigByType(CONFIG_TYPE);
     if (service == null || current == null) {
       deactivateUser(username);
       return;
@@ -121,6 +135,11 @@ public class ManagedMetricsIdentityService {
       Map<String, String> properties = new HashMap<>(currentProperties);
       properties.put(USERNAME_PROPERTY, username);
       properties.put(PASSWORD_PROPERTY, password);
+      if (updateInPlace) {
+        current.setProperties(properties);
+        current.save();
+        return;
+      }
       String tag = "managed-metrics-identity-" + UUID.randomUUID();
       Config managedConfig = configFactory.createNew(current.getStackId(), cluster, CONFIG_TYPE,
           tag, properties, current.getPropertiesAttributes());

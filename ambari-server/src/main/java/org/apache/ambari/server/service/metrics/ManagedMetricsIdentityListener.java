@@ -19,6 +19,7 @@ package org.apache.ambari.server.service.metrics;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
 import org.apache.ambari.server.events.ClusterProvisionedEvent;
 import org.apache.ambari.server.events.JpaInitializedEvent;
@@ -64,6 +65,13 @@ public class ManagedMetricsIdentityListener {
   public void onServiceRemoved(ServiceRemovedEvent event) throws AmbariException {
     if (SERVICE_NAME.equals(event.getServiceName())) {
       identityService.provision(event.getClusterId());
+    }
+  }
+
+  @Subscribe
+  public void onClusterConfigChanged(ClusterConfigChangedEvent event) throws AmbariException {
+    if (ManagedMetricsIdentityService.CONFIG_TYPE.equals(event.getConfigType())) {
+      identityService.provisionPendingConfig(event.getClusterName(), event.getVersionTag());
     }
   }
 
