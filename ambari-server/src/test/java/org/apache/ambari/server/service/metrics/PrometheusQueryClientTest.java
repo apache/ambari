@@ -21,6 +21,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.orm.entities.DatasourceEntity;
@@ -30,6 +32,21 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class PrometheusQueryClientTest {
+  @Test
+  public void testBuildUriEncodesPromqlParametersOnce() {
+    PrometheusQueryClient client = new PrometheusQueryClient(mock(DatasourceService.class));
+    String query = "topk(1,hadoop_CorruptBlocks{component=\"HadoopNameNode\", "
+        + "name=\"Hadoop:service=NameNode,name=FSNamesystem\"})";
+
+    URI uri = client.buildUri("http://metrics.example.test:8428", "api/v1/query",
+        Map.of("query", List.of(query), "time", List.of("1787903460")));
+
+    Assert.assertEquals("query=topk%281%2Chadoop_CorruptBlocks%7Bcomponent%3D%22HadoopNameNode%22%2C+"
+        + "name%3D%22Hadoop%3Aservice%3DNameNode%2Cname%3DFSNamesystem%22%7D%29&time=1787903460",
+        uri.getRawQuery());
+    Assert.assertFalse(uri.toASCIIString().contains("%25"));
+  }
+
   @Test
   public void testRejectsProxyPathTraversal() {
     DatasourceService datasourceService = mock(DatasourceService.class);

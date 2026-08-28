@@ -208,7 +208,7 @@ public class PrometheusQueryClient {
         throw new IllegalArgumentException("Datasource proxy path is outside the configured base URL");
       }
       String query = encodeParameters(parameters);
-      return new URI(resolved.getScheme(), resolved.getRawAuthority(), resolved.getRawPath(), query, null);
+      return URI.create(resolved.toASCIIString() + (query.isEmpty() ? "" : "?" + query));
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException("Datasource URL is invalid", e);
     }
