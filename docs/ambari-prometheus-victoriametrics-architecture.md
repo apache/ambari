@@ -15,7 +15,9 @@
    limitations under the License.
 -->
 
-# Ambari Agent Prometheus Telemetry Architecture
+# Ambari Prometheus and VictoriaMetrics Monitoring Architecture
+
+English | [简体中文](ambari-prometheus-victoriametrics-architecture.zh-CN.md)
 
 ## Overview
 
@@ -276,6 +278,22 @@ front writes and queries. vmagent's local remote-write queue is delivery
 buffering after a scrape; it does not change the Agent's no-value-cache
 contract.
 
+## Storage Topologies
+
+The `VICTORIAMETRICS` Stack service supports two storage topologies while the
+Agent, HTTP SD, and vmagent collection path remains unchanged:
+
+| Deployment mode | Components | Data path |
+| --- | --- | --- |
+| `single` | `VICTORIAMETRICS_SERVER` | One process provides ingestion, storage, and Prometheus-compatible queries |
+| `cluster` | `VMINSERT`, `VMSTORAGE`, and `VMSELECT` | `VMINSERT` distributes writes, `VMSTORAGE` persists samples, and `VMSELECT` serves tenant-scoped queries |
+
+`VMAGENT` performs discovery, scraping, relabeling, and remote write in both
+modes. `VMAUTH` is optional and provides a stable authenticated endpoint in
+front of ingestion and queries. Without an explicit URL override, Stack
+scripts derive write and query URLs from the assigned component topology and
+the configured `tenant_id`.
+
 VictoriaMetrics `replication_factor` controls copies written across VMSTORAGE
 nodes. The separate vmagent scrape replication factor controls how many
 vmagent members scrape each target and is limited to two by the Agent route
@@ -333,6 +351,19 @@ queries use `rate` or `increase` with `[$__rate_interval]`; gauges are queried d
 The `cluster` and `__rate_interval` variables are reserved and are not exposed
 as editable dashboard variables. The same cluster binding is applied when a
 panel is shared.
+
+Authorization is enforced by Ambari Server, not only by React route guards:
+
+| Operation | Required authorization |
+| --- | --- |
+| HTTP service discovery, datasource and dashboard reads, and metric queries | `CLUSTER.VIEW_METRICS` |
+| Create, update, or delete dashboards | `CLUSTER.MANAGE_USER_PERSISTED_DATA` |
+| Create, update, delete, or select the default datasource | `AMBARI.MANAGE_SETTINGS` |
+
+The query boundary limits a query string to 65,536 characters, a range query
+to 11,000 points, and a batch to 64 queries. Datasource responses are limited
+to 16 MiB, proxied request bodies to 8 MiB, and configured request timeouts to
+at most 60 seconds. Redirects are not followed.
 
 ## Operational Metrics
 
