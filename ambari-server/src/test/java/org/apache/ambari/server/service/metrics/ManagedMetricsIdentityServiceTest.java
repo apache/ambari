@@ -113,14 +113,17 @@ public class ManagedMetricsIdentityServiceTest {
   }
 
   @Test
-  public void testManualModeDoesNotManageIdentity() throws Exception {
+  public void testManualModeDeactivatesManagedIdentity() throws Exception {
     Harness harness = new Harness(Map.of(
         ManagedMetricsIdentityService.MANAGED_PROPERTY, "false",
         ManagedMetricsIdentityService.USERNAME_PROPERTY, "operator-managed"));
+    UserEntity user = mock(UserEntity.class);
+    when(harness.users.getUserEntity(USERNAME)).thenReturn(user);
 
     harness.service.provision(CLUSTER_ID);
 
-    verifyNoInteractions(harness.users, harness.configFactory, harness.permissionDAO,
+    verify(harness.users).setUserActive(user, false);
+    verifyNoInteractions(harness.configFactory, harness.permissionDAO,
         harness.privilegeDAO, harness.resourceDAO, harness.principalDAO);
   }
 

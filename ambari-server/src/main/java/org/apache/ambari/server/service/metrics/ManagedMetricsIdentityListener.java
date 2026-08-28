@@ -23,6 +23,7 @@ import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
 import org.apache.ambari.server.events.ClusterProvisionedEvent;
 import org.apache.ambari.server.events.JpaInitializedEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
+import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -54,6 +55,13 @@ public class ManagedMetricsIdentityListener {
 
   @Subscribe
   public void onServiceInstalled(ServiceInstalledEvent event) throws AmbariException {
+    if (SERVICE_NAME.equals(event.getServiceName())) {
+      identityService.provision(event.getClusterId());
+    }
+  }
+
+  @Subscribe
+  public void onServiceRemoved(ServiceRemovedEvent event) throws AmbariException {
     if (SERVICE_NAME.equals(event.getServiceName())) {
       identityService.provision(event.getClusterId());
     }

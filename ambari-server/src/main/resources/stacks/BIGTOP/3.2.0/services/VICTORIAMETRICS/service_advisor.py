@@ -41,6 +41,39 @@ except Exception:
 class VictoriaMetricsServiceAdvisor(service_advisor.ServiceAdvisor):
   CORE_CLUSTER_COMPONENTS = ("VMSTORAGE", "VMINSERT", "VMSELECT")
 
+  def getHostsForMasterComponent(self, services, hosts, component, hostsList):
+    if self.isComponentHostsPopulated(component):
+      return super(VictoriaMetricsServiceAdvisor, self).getHostsForMasterComponent(
+        services, hosts, component, hostsList
+      )
+
+    component_name = self.getComponentName(component)
+    mode = self._deployment_mode(services)
+    if mode == "single" and component_name in ("VMINSERT", "VMSELECT"):
+      return []
+    if mode == "cluster" and component_name == "VICTORIAMETRICS_SERVER":
+      return []
+    return super(VictoriaMetricsServiceAdvisor, self).getHostsForMasterComponent(
+      services, hosts, component, hostsList
+    )
+
+  def getHostsForSlaveComponent(
+    self, services, hosts, component, hostsList, freeHosts
+  ):
+    if self.isComponentHostsPopulated(component):
+      return super(VictoriaMetricsServiceAdvisor, self).getHostsForSlaveComponent(
+        services, hosts, component, hostsList, freeHosts
+      )
+
+    if (
+      self._deployment_mode(services) == "single"
+      and self.getComponentName(component) == "VMSTORAGE"
+    ):
+      return []
+    return super(VictoriaMetricsServiceAdvisor, self).getHostsForSlaveComponent(
+      services, hosts, component, hostsList, freeHosts
+    )
+
   def getServiceComponentLayoutValidations(self, services, hosts):
     items = self.getServiceComponentCardinalityValidations(
       services, hosts, "VICTORIAMETRICS"
@@ -224,6 +257,10 @@ class VictoriaMetricsServiceAdvisor(service_advisor.ServiceAdvisor):
         data = component.get("StackServiceComponents", {})
         counts[data.get("component_name")] = len(data.get("hostnames") or [])
     return counts
+
+  def _deployment_mode(self, services):
+    properties = self.getServicesSiteProperties(services, "victoriametrics") or {}
+    return properties.get("deployment_mode", "single")
 
   @staticmethod
   def _layout_item(component, message, level="ERROR"):

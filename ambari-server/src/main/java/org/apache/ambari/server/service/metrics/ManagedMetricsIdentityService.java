@@ -94,18 +94,20 @@ public class ManagedMetricsIdentityService {
   }
 
   private void provision(Cluster cluster) throws AmbariException {
+    String username = USERNAME_PREFIX + cluster.getClusterId();
     Service service = cluster.getServices().get(SERVICE_NAME);
     Config current = cluster.getDesiredConfigByType(CONFIG_TYPE);
     if (service == null || current == null) {
+      deactivateUser(username);
       return;
     }
 
     Map<String, String> currentProperties = current.getProperties();
     if (!Boolean.parseBoolean(currentProperties.getOrDefault(MANAGED_PROPERTY, "true"))) {
+      deactivateUser(username);
       return;
     }
 
-    String username = USERNAME_PREFIX + cluster.getClusterId();
     String configuredUsername = currentProperties.get(USERNAME_PROPERTY);
     String configuredPassword = currentProperties.get(PASSWORD_PROPERTY);
     boolean credentialsChanged = !username.equals(configuredUsername)
@@ -125,6 +127,13 @@ public class ManagedMetricsIdentityService {
       cluster.addConfig(managedConfig);
       cluster.addDesiredConfig(SYSTEM_USER, Set.of(managedConfig),
           "Provision managed Metrics service discovery identity");
+    }
+  }
+
+  private void deactivateUser(String username) throws AmbariException {
+    UserEntity user = users.getUserEntity(username);
+    if (user != null) {
+      users.setUserActive(user, false);
     }
   }
 

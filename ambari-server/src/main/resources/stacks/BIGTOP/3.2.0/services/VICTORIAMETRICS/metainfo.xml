@@ -37,6 +37,7 @@
           </commandScript>
           <configuration-dependencies>
             <config-type>victoriametrics</config-type>
+            <config-type>victoriametrics-scrape</config-type>
             <config-type>victoriametrics-env</config-type>
           </configuration-dependencies>
         </component>
@@ -53,6 +54,7 @@
           </commandScript>
           <configuration-dependencies>
             <config-type>victoriametrics</config-type>
+            <config-type>victoriametrics-scrape</config-type>
             <config-type>victoriametrics-env</config-type>
           </configuration-dependencies>
         </component>
@@ -85,6 +87,7 @@
           </commandScript>
           <configuration-dependencies>
             <config-type>victoriametrics</config-type>
+            <config-type>victoriametrics-scrape</config-type>
             <config-type>victoriametrics-env</config-type>
           </configuration-dependencies>
         </component>
@@ -119,6 +122,7 @@
           </commandScript>
           <configuration-dependencies>
             <config-type>victoriametrics</config-type>
+            <config-type>victoriametrics-scrape</config-type>
             <config-type>victoriametrics-auth</config-type>
             <config-type>victoriametrics-env</config-type>
           </configuration-dependencies>
