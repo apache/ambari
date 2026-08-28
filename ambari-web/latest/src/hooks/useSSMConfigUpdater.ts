@@ -235,8 +235,8 @@ export const useSSMConfigUpdater = () => {
     }
     if (
         latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)
-        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
+        (componentFinishStates.includes(latestHostOperationMessage.state)
+        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state)))
     ) {
       await updateServiceMaintenanceState(latestHostOperationMessage.maintenance_state);
       await updateAlertsAndServiceStateData();

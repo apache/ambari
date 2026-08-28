@@ -168,9 +168,9 @@ export const useKyuubiConfigUpdater = () => {
       );
     }
     if (
-      (latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)) ||
-      maintenanceStates.includes(latestHostOperationMessage.maintenance_state)
+      latestHostOperationMessage &&
+      (componentFinishStates.includes(latestHostOperationMessage.state) ||
+        maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
     ) {
       await updateServiceMaintenanceState(
         latestHostOperationMessage.maintenance_state
