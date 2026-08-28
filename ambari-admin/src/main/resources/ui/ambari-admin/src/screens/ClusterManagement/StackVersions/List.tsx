@@ -29,6 +29,7 @@ import Spinner from "../../../components/Spinner";
 import ComboSearch from "../../../components/ComboSearch";
 import Paginator from "../../../components/Paginator";
 import Table from "../../../components/Table";
+import { latestAmbariUrl } from "../../../utils/navigation";
 
 enum RepoStatus {
   CURRENT = "CURRENT",
@@ -149,7 +150,10 @@ const StackVersionsList = () => {
         return !row.original.cluster ? (
           <div>None</div>
         ) : (
-          <a className="custom-link" href="/#/main/admin/stack/versions">
+          <a
+            className="custom-link"
+            href={latestAmbariUrl("/main/admin/stack/versions")}
+          >
             {row.original.cluster}
           </a>
         );
@@ -191,7 +195,9 @@ const StackVersionsList = () => {
               <Dropdown.Item>
                 <div
                   onClick={() => {
-                    window.location.replace("/#/main/admin/stack/versions");
+                    window.location.replace(
+                      latestAmbariUrl("/main/admin/stack/versions")
+                    );
                   }}
                 >
                   {((clusterInformation as any)?.Clusters

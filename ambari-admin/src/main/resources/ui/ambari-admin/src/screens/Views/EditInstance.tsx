@@ -42,6 +42,10 @@ import UserGroupApi from "../../api/userGroupApi";
 import AppContent from "../../context/AppContext";
 import Spinner from "../../components/Spinner";
 import toast from "react-hot-toast";
+import {
+  latestShortViewUrl,
+  latestViewInstanceUrl,
+} from "../../utils/navigation";
 
 export default function EditInstance() {
   const [loading, setLoading] = useState(true);
@@ -197,13 +201,16 @@ export default function EditInstance() {
 
           if (field.prefixUrl) {
             if (get(instanceData.ViewInstanceInfo, field.apiResponseKey)) {
-              field.value = field.prefixUrl + field.value;
-              field.href = field.value;
+              const shortUrl = String(field.value);
+              field.value = field.prefixUrl + shortUrl;
+              field.href = latestShortViewUrl(viewName, shortUrl);
+              field.isExternal = true;
               field.isDeletable = true;
               field.originalValue = field.value;
             } else {
               field.value = field.valuePlaceholder || "";
               field.href = field.defaultUrl || "";
+              field.isExternal = false;
               field.isDeletable = false;
             }
           }
@@ -625,9 +632,20 @@ export default function EditInstance() {
             <Col md={4}>{field.label}</Col>
             <Col md={4} className="align-items-center">
               {field.href && (
-                <Link to={field.href} className="custom-link">
-                  {field.value}
-                </Link>
+                field.isExternal ? (
+                  <a
+                    href={field.href}
+                    className="custom-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {field.value}
+                  </a>
+                ) : (
+                  <Link to={field.href} className="custom-link">
+                    {field.value}
+                  </Link>
+                )
               )}
               {field.isDeletable && isSectionEditing ? (
                 <a
@@ -882,12 +900,6 @@ export default function EditInstance() {
     setPermissions(permissionsCopy);
   };
 
-  function goToInstance() {
-    window.location.replace(
-      `/#main/views/${viewName}/${version}/${instanceName}`
-    );
-  }
-
   return (
     <div data-testid="edit-instance">
       {loading ? (
@@ -910,11 +922,12 @@ export default function EditInstance() {
                 <div className="text-muted d-flex align-items-center">
                   {/* <h4>{instanceData?.ViewInstanceInfo?.label}</h4> */}
                   <h4>{viewSections.details.fields[1].originalValue}</h4>
-                  {/* TO DO - Add link */}
                   <a
-                    href={`/#/main/views/${viewName}/${version}/${instanceName}`}
+                    href={latestViewInstanceUrl(viewName, version, instanceName)}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    <h6 className="ms-2 custom-link" onClick={goToInstance}>
+                    <h6 className="ms-2 custom-link">
                       Go to instance
                     </h6>
                   </a>

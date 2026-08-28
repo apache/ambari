@@ -5,12 +5,25 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
 import { describe, expect, it, vi } from "vitest";
-import { createFilesApi, parseViewContext } from "./api";
+import { ambariApplicationRoot, createFilesApi, parseViewContext } from "./api";
 
 describe("Files View API", () => {
   it("derives versioned and unversioned View identities", () => {
     expect(parseViewContext("/views/FILES/1.0.0/INSTANCE/")).toEqual({ view: "FILES", version: "1.0.0", instance: "INSTANCE" });
     expect(parseViewContext("/views/FILES/INSTANCE/")).toEqual({ view: "FILES", version: "", instance: "INSTANCE" });
+  });
+
+  it("preserves the Ambari reverse-proxy prefix for API and download URLs", () => {
+    const path = "/gateway/default/ambari/views/FILES/1.0.0/INSTANCE/";
+    expect(ambariApplicationRoot(path)).toBe("/gateway/default/ambari/");
+    const api = createFilesApi(
+      { view: "FILES", version: "1.0.0", instance: "INSTANCE" },
+      vi.fn(),
+      path,
+    );
+    expect(api.downloadUrl("/user/a.txt")).toBe(
+      "/gateway/default/ambari/api/v1/views/FILES/versions/1.0.0/instances/INSTANCE/resources/files/download/browse?path=%2Fuser%2Fa.txt&download=true",
+    );
   });
 
   it("encodes list parameters and sends the Ambari request header", async () => {

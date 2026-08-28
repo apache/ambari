@@ -4,7 +4,7 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0.
  */
-import { createCapacityApi, parseViewContext } from "./api";
+import { ambariApplicationRoot, createCapacityApi, parseViewContext } from "./api";
 
 const response = (body: unknown, status = 200) => new Response(
   typeof body === "string" ? body : JSON.stringify(body),
@@ -15,6 +15,21 @@ describe("capacity scheduler API", () => {
   it("parses versioned and unversioned View URLs", () => {
     expect(parseViewContext("/views/CAPACITY-SCHEDULER/1.0.0/AUTO_CS_INSTANCE")).toEqual({ view: "CAPACITY-SCHEDULER", version: "1.0.0", instance: "AUTO_CS_INSTANCE" });
     expect(parseViewContext("/views/CAPACITY-SCHEDULER/AUTO_CS_INSTANCE")).toEqual({ view: "CAPACITY-SCHEDULER", version: "", instance: "AUTO_CS_INSTANCE" });
+  });
+
+  it("preserves the Ambari reverse-proxy prefix for API requests", async () => {
+    const path = "/gateway/default/ambari/views/CAPACITY-SCHEDULER/1.0.0/AUTO/";
+    expect(ambariApplicationRoot(path)).toBe("/gateway/default/ambari/");
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response({ items: [] }));
+    const api = createCapacityApi(
+      { view: "CAPACITY-SCHEDULER", version: "1.0.0", instance: "AUTO" },
+      fetcher,
+      path,
+    );
+    await api.latest();
+    expect(fetcher.mock.calls[0][0]).toBe(
+      "/gateway/default/ambari/api/v1/views/CAPACITY-SCHEDULER/versions/1.0.0/instances/AUTO/resources/scheduler/configuration",
+    );
   });
 
   it("normalizes string-encoded node labels and ResourceManager queues", async () => {

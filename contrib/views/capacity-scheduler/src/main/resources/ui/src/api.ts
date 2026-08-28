@@ -41,6 +41,12 @@ export const parseViewContext = (pathname: string): ViewContext => {
   };
 };
 
+export const ambariApplicationRoot = (pathname: string): string => {
+  const normalized = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  const viewsIndex = normalized.lastIndexOf("/views/");
+  return viewsIndex >= 0 ? `${normalized.slice(0, viewsIndex)}/` : "/";
+};
+
 const parseBody = (text: string): unknown => {
   if (!text) return undefined;
   let body: unknown = text;
@@ -95,9 +101,10 @@ const runtimeQueues = (payload: unknown): RuntimeQueue[] => {
 export const createCapacityApi = (
   context = parseViewContext(window.location.pathname),
   fetcher: typeof fetch = fetch,
+  documentPath = window.location.pathname,
 ) => {
   const versionSegment = context.version ? `/versions/${encodeURIComponent(context.version)}` : "";
-  const root = `/api/v1/views/${encodeURIComponent(context.view)}${versionSegment}/instances/${encodeURIComponent(context.instance)}/resources/scheduler/configuration`;
+  const root = `${ambariApplicationRoot(documentPath)}api/v1/views/${encodeURIComponent(context.view)}${versionSegment}/instances/${encodeURIComponent(context.instance)}/resources/scheduler/configuration`;
 
   const request = async <T>(path = "", init: RequestInit = {}): Promise<T> => {
     const headers = new Headers(init.headers);
