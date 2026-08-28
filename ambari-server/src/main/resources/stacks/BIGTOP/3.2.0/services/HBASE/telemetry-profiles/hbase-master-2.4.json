@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "id": "hbase-master-2.4",
+  "maxSeries": 64,
+  "rules": [
+    {
+      "bean": {
+        "domain": "Hadoop",
+        "properties": {
+          "service": "HBase",
+          "name": "Master",
+          "sub": "Server"
+        }
+      },
+      "attributes": {
+        "averageLoad": {
+          "name": "hbase_master_average_region_load",
+          "type": "gauge",
+          "unit": "regions",
+          "help": "Average number of regions served per live RegionServer."
+        },
+        "numRegionServers": {
+          "name": "hbase_master_regionservers",
+          "type": "gauge",
+          "unit": "servers",
+          "help": "Number of live RegionServers known to the HBase Master."
+        },
+        "numDeadRegionServers": {
+          "name": "hbase_master_dead_regionservers",
+          "type": "gauge",
+          "unit": "servers",
+          "help": "Number of dead RegionServers known to the HBase Master."
+        },
+        "numDrainingRegionServers": {
+          "name": "hbase_master_draining_regionservers",
+          "type": "gauge",
+          "unit": "servers",
+          "help": "Number of draining RegionServers known to the HBase Master."
+        },
+        "clusterRequests": {
+          "name": "hbase_master_cluster_requests_total",
+          "type": "counter",
+          "unit": "requests",
+          "help": "Total number of requests observed by the HBase cluster."
+        },
+        "masterStartTime": {
+          "name": "hbase_master_start_time_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Unix timestamp when the HBase Master process started."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "Hadoop",
+        "properties": {
+          "service": "HBase",
+          "name": "Master",
+          "sub": "AssignmentManager"
+        }
+      },
+      "attributes": {
+        "ritCount": {
+          "name": "hbase_master_regions_in_transition",
+          "type": "gauge",
+          "unit": "regions",
+          "help": "Current number of HBase regions in transition."
+        },
+        "ritCountOverThreshold": {
+          "name": "hbase_master_regions_in_transition_over_threshold",
+          "type": "gauge",
+          "unit": "regions",
+          "help": "Number of HBase regions in transition longer than the configured threshold."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "Hadoop",
+        "properties": {
+          "service": "HBase",
+          "name": "JvmMetrics"
+        }
+      },
+      "attributes": {
+        "MemHeapUsedM": {
+          "name": "hbase_master_jvm_heap_used_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "scale": 1048576,
+          "help": "Current HBase Master JVM heap memory used in bytes."
+        },
+        "MemHeapMaxM": {
+          "name": "hbase_master_jvm_heap_max_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "scale": 1048576,
+          "help": "Maximum HBase Master JVM heap memory in bytes."
+        },
+        "MemNonHeapUsedM": {
+          "name": "hbase_master_jvm_nonheap_used_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "scale": 1048576,
+          "help": "Current HBase Master JVM non-heap memory used in bytes."
+        },
+        "GcCount": {
+          "name": "hbase_master_jvm_gc_collections_total",
+          "type": "counter",
+          "unit": "collections",
+          "help": "Total HBase Master JVM garbage collections."
+        },
+        "GcTimeMillis": {
+          "name": "hbase_master_jvm_gc_time_seconds_total",
+          "type": "counter",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Total time spent in HBase Master JVM garbage collection in seconds."
+        },
+        "ThreadsRunnable": {
+          "name": "hbase_master_jvm_threads_runnable",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current runnable HBase Master JVM threads."
+        },
+        "ThreadsBlocked": {
+          "name": "hbase_master_jvm_threads_blocked",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current blocked HBase Master JVM threads."
+        },
+        "ThreadsWaiting": {
+          "name": "hbase_master_jvm_threads_waiting",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current waiting HBase Master JVM threads."
+        },
+        "ThreadsTimedWaiting": {
+          "name": "hbase_master_jvm_threads_timed_waiting",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current timed-waiting HBase Master JVM threads."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "Hadoop",
+        "properties": {
+          "service": "HBase",
+          "name": "Master",
+          "sub": "IPC"
+        }
+      },
+      "attributes": {
+        "queueSize": {
+          "name": "hbase_master_rpc_queue_size",
+          "type": "gauge",
+          "unit": "calls",
+          "help": "Current number of HBase Master RPC calls queued."
+        },
+        "numOpenConnections": {
+          "name": "hbase_master_rpc_open_connections",
+          "type": "gauge",
+          "unit": "connections",
+          "help": "Current number of open HBase Master RPC connections."
+        },
+        "numActiveHandler": {
+          "name": "hbase_master_rpc_active_handlers",
+          "type": "gauge",
+          "unit": "handlers",
+          "help": "Current number of active HBase Master RPC handlers."
+        },
+        "numCallsInGeneralQueue": {
+          "name": "hbase_master_rpc_general_queue_calls",
+          "type": "gauge",
+          "unit": "calls",
+          "help": "Current number of HBase Master RPC calls in the general queue."
+        },
+        "numCallsInPriorityQueue": {
+          "name": "hbase_master_rpc_priority_queue_calls",
+          "type": "gauge",
+          "unit": "calls",
+          "help": "Current number of HBase Master RPC calls in the priority queue."
+        },
+        "numCallsInReplicationQueue": {
+          "name": "hbase_master_rpc_replication_queue_calls",
+          "type": "gauge",
+          "unit": "calls",
+          "help": "Current number of HBase Master RPC calls in the replication queue."
+        },
+        "ProcessCallTime_mean": {
+          "name": "hbase_master_rpc_process_call_duration_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Mean HBase Master RPC call processing duration in seconds."
+        },
+        "ProcessCallTime_99th_percentile": {
+          "name": "hbase_master_rpc_process_call_duration_p99_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "99th percentile HBase Master RPC call processing duration in seconds."
+        }
+      }
+    }
+  ]
+}

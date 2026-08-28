@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.agent;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -360,6 +361,7 @@ public class HeartBeatHandler {
     }
 
     RegistrationResponse response = new RegistrationResponse();
+    response.setServerCapabilities(Collections.singletonList("telemetry-v1"));
 
     Long requestId = 0L;
     hostResponseIds.put(hostname, requestId);

@@ -142,6 +142,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     this.isCommonService = isCommonService;
 
     serviceInfo.setMetricsFile(serviceDirectory.getMetricsFile(serviceInfo.getName()));
+    serviceInfo.setTelemetryFile(serviceDirectory.getTelemetryFile(serviceInfo.getName()));
     serviceInfo.setAlertsFile(serviceDirectory.getAlertsFile());
     serviceInfo.setKerberosDescriptorFile(serviceDirectory.getKerberosDescriptorFile());
     serviceInfo.setWidgetsDescriptorFile(serviceDirectory.getWidgetsDescriptorFile(serviceInfo.getName()));
@@ -246,6 +247,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
     if (serviceInfo.getMetricsFile() == null) {
       serviceInfo.setMetricsFile(parent.getMetricsFile());
+    }
+    if (serviceInfo.getTelemetryFile() == null) {
+      serviceInfo.setTelemetryFile(parent.getTelemetryFile());
     }
     if (serviceInfo.getAlertsFile() == null) {
       serviceInfo.setAlertsFile(parent.getAlertsFile());

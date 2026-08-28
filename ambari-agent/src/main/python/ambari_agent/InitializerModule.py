@@ -29,6 +29,7 @@ from ambari_agent.ClusterTopologyCache import ClusterTopologyCache
 from ambari_agent.ClusterMetadataCache import ClusterMetadataCache
 from ambari_agent.ClusterHostLevelParamsCache import ClusterHostLevelParamsCache
 from ambari_agent.ClusterAlertDefinitionsCache import ClusterAlertDefinitionsCache
+from ambari_agent.TelemetryConfigCache import TelemetryConfigCache
 from ambari_agent.ActionQueue import ActionQueue
 from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
@@ -44,6 +45,7 @@ from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
 from ambari_agent.CommandStatusReporter import CommandStatusReporter
 from ambari_agent.HostStatusReporter import HostStatusReporter
 from ambari_agent.AlertStatusReporter import AlertStatusReporter
+from ambari_agent.metrics.server import PrometheusMetricsServer
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +68,7 @@ class InitializerModule:
     self.host_level_params_cache = None
     self.configurations_cache = None
     self.alert_definitions_cache = None
+    self.telemetry_cache = None
     self.configuration_builder = None
     self.stale_alerts_monitor = None
     self.server_responses_listener = None
@@ -76,6 +79,7 @@ class InitializerModule:
     self.commandStatuses = None
     self.action_queue = None
     self.alert_scheduler_handler = None
+    self.prometheus_metrics_server = None
 
   def init(self):
     """
@@ -96,6 +100,7 @@ class InitializerModule:
     self.alert_definitions_cache = ClusterAlertDefinitionsCache(
       self.config.cluster_cache_dir
     )
+    self.telemetry_cache = TelemetryConfigCache(self.config.cluster_cache_dir)
     self.configuration_builder = ConfigurationBuilder(self)
     self.stale_alerts_monitor = StaleAlertsMonitor(self)
     self.server_responses_listener = ServerResponsesListener(self)
@@ -118,6 +123,7 @@ class InitializerModule:
     self.host_status_reporter = HostStatusReporter(self)
     self.alert_status_reporter = AlertStatusReporter(self)
     self.heartbeat_thread = HeartbeatThread.HeartbeatThread(self)
+    self.prometheus_metrics_server = PrometheusMetricsServer(self)
 
   @property
   def connection(self):

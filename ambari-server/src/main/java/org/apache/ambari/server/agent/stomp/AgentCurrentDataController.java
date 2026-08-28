@@ -25,6 +25,7 @@ import org.apache.ambari.server.events.AlertDefinitionsAgentUpdateEvent;
 import org.apache.ambari.server.events.HostLevelParamsUpdateEvent;
 import org.apache.ambari.server.events.MetadataUpdateEvent;
 import org.apache.ambari.server.events.TopologyUpdateEvent;
+import org.apache.ambari.server.events.TelemetryUpdateEvent;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -44,6 +45,7 @@ public class AgentCurrentDataController {
   private final HostLevelParamsHolder hostLevelParamsHolder;
   private final AgentConfigsHolder agentConfigsHolder;
   private final AlertDefinitionsHolder alertDefinitionsHolder;
+  private final TelemetryHolder telemetryHolder;
 
   public AgentCurrentDataController(Injector injector) {
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
@@ -52,6 +54,7 @@ public class AgentCurrentDataController {
     hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
     agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
     alertDefinitionsHolder = injector.getInstance(AlertDefinitionsHolder.class);
+    telemetryHolder = injector.getInstance(TelemetryHolder.class);
   }
 
   @MessageMapping("/topologies")
@@ -78,6 +81,11 @@ public class AgentCurrentDataController {
   @MessageMapping("/host_level_params")
   public HostLevelParamsUpdateEvent getCurrentHostLevelParams(@Header String simpSessionId, Hash hash) throws AmbariException {
     return hostLevelParamsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostId());
+  }
+
+  @MessageMapping("/telemetry")
+  public TelemetryUpdateEvent getCurrentTelemetry(@Header String simpSessionId, Hash hash) throws AmbariException {
+    return telemetryHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostId());
   }
 
 }

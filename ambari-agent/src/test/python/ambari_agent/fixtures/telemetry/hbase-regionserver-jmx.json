@@ -1,0 +1,59 @@
+{
+  "beans": [
+    {
+      "name": "Hadoop:service=HBase,name=RegionServer,sub=Server",
+      "regionCount": 125,
+      "storeCount": 307,
+      "storeFileCount": 3,
+      "memStoreSize": 0,
+      "storeFileSize": 202650,
+      "totalRequestCount": 777,
+      "readRequestCount": 2813,
+      "writeRequestCount": 390,
+      "compactionQueueLength": 0,
+      "flushQueueLength": 0,
+      "blockCacheSize": 356120,
+      "blockCacheHitCount": 399,
+      "blockCacheMissCount": 26,
+      "percentFilesLocal": 100.0,
+      "blockedRequestCount": 0,
+      "slowGetCount": 0,
+      "slowPutCount": 0,
+      "slowDeleteCount": 0,
+      "slowIncrementCount": 0,
+      "Get_mean": 0,
+      "Get_99th_percentile": 0,
+      "Put_mean": 0,
+      "Put_99th_percentile": 0,
+      "ScanTime_mean": 0,
+      "ScanTime_99th_percentile": 1
+    },
+    {
+      "name": "Hadoop:service=HBase,name=JvmMetrics",
+      "MemHeapUsedM": 147.86482,
+      "MemHeapMaxM": 512.0,
+      "MemNonHeapUsedM": 115.034004,
+      "GcCount": 49,
+      "GcTimeMillis": 903,
+      "ThreadsRunnable": 31,
+      "ThreadsBlocked": 0,
+      "ThreadsWaiting": 128,
+      "ThreadsTimedWaiting": 31
+    },
+    {
+      "name": "Hadoop:service=HBase,name=RegionServer,sub=IPC",
+      "queueSize": 0,
+      "numOpenConnections": 5,
+      "numActiveHandler": 0,
+      "numCallsInGeneralQueue": 0,
+      "numCallsInPriorityQueue": 0,
+      "numCallsInReplicationQueue": 0,
+      "receivedBytes": 261174,
+      "sentBytes": 1975466,
+      "ProcessCallTime_mean": 1,
+      "ProcessCallTime_99th_percentile": 1,
+      "QueueCallTime_mean": 0,
+      "QueueCallTime_99th_percentile": 0
+    }
+  ]
+}

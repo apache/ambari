@@ -1,0 +1,333 @@
+{
+  "schemaVersion": 1,
+  "id": "hbase-regionserver-2.4",
+  "maxSeries": 64,
+  "rules": [
+    {
+      "bean": {
+        "domain": "Hadoop",
+        "properties": {
+          "service": "HBase",
+          "name": "RegionServer",
+          "sub": "Server"
+        }
+      },
+      "attributes": {
+        "regionCount": {
+          "name": "hbase_regionserver_regions",
+          "type": "gauge",
+          "unit": "regions",
+          "help": "Number of online regions served by this RegionServer."
+        },
+        "storeCount": {
+          "name": "hbase_regionserver_stores",
+          "type": "gauge",
+          "unit": "stores",
+          "help": "Number of HBase stores served by this RegionServer."
+        },
+        "storeFileCount": {
+          "name": "hbase_regionserver_store_files",
+          "type": "gauge",
+          "unit": "files",
+          "help": "Number of HBase store files served by this RegionServer."
+        },
+        "memStoreSize": {
+          "name": "hbase_regionserver_memstore_size_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "help": "Current aggregate memstore size in bytes."
+        },
+        "storeFileSize": {
+          "name": "hbase_regionserver_store_file_size_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "help": "Current aggregate store file size in bytes."
+        },
+        "totalRequestCount": {
+          "name": "hbase_regionserver_requests_total",
+          "type": "counter",
+          "unit": "requests",
+          "help": "Total number of requests answered by this RegionServer."
+        },
+        "readRequestCount": {
+          "name": "hbase_regionserver_read_requests_total",
+          "type": "counter",
+          "unit": "requests",
+          "help": "Total number of read requests answered by this RegionServer."
+        },
+        "writeRequestCount": {
+          "name": "hbase_regionserver_write_requests_total",
+          "type": "counter",
+          "unit": "requests",
+          "help": "Total number of mutation requests answered by this RegionServer."
+        },
+        "compactionQueueLength": {
+          "name": "hbase_regionserver_compaction_queue_length",
+          "type": "gauge",
+          "unit": "operations",
+          "help": "Current number of region compactions waiting to run."
+        },
+        "flushQueueLength": {
+          "name": "hbase_regionserver_flush_queue_length",
+          "type": "gauge",
+          "unit": "operations",
+          "help": "Current number of region flushes waiting to run."
+        },
+        "blockCacheSize": {
+          "name": "hbase_regionserver_block_cache_size_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "help": "Current HBase block cache size in bytes."
+        },
+        "blockCacheHitCount": {
+          "name": "hbase_regionserver_block_cache_hits_total",
+          "type": "counter",
+          "unit": "blocks",
+          "help": "Total number of HBase block cache hits."
+        },
+        "blockCacheMissCount": {
+          "name": "hbase_regionserver_block_cache_misses_total",
+          "type": "counter",
+          "unit": "blocks",
+          "help": "Total number of HBase block cache misses."
+        },
+        "percentFilesLocal": {
+          "name": "hbase_regionserver_store_file_locality_ratio",
+          "type": "gauge",
+          "unit": "ratio",
+          "scale": 0.01,
+          "help": "Ratio of HBase store file data available on the local filesystem."
+        },
+        "blockedRequestCount": {
+          "name": "hbase_regionserver_blocked_requests_total",
+          "type": "counter",
+          "unit": "requests",
+          "help": "Total number of HBase requests blocked by memstore limits."
+        },
+        "slowGetCount": {
+          "name": "hbase_regionserver_slow_gets_total",
+          "type": "counter",
+          "unit": "operations",
+          "help": "Total number of slow HBase get operations."
+        },
+        "slowPutCount": {
+          "name": "hbase_regionserver_slow_puts_total",
+          "type": "counter",
+          "unit": "operations",
+          "help": "Total number of slow HBase put operations."
+        },
+        "slowDeleteCount": {
+          "name": "hbase_regionserver_slow_deletes_total",
+          "type": "counter",
+          "unit": "operations",
+          "help": "Total number of slow HBase delete operations."
+        },
+        "slowIncrementCount": {
+          "name": "hbase_regionserver_slow_increments_total",
+          "type": "counter",
+          "unit": "operations",
+          "help": "Total number of slow HBase increment operations."
+        },
+        "Get_mean": {
+          "name": "hbase_regionserver_get_duration_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Mean HBase get operation duration in seconds."
+        },
+        "Get_99th_percentile": {
+          "name": "hbase_regionserver_get_duration_p99_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "99th percentile HBase get operation duration in seconds."
+        },
+        "Put_mean": {
+          "name": "hbase_regionserver_put_duration_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Mean HBase put operation duration in seconds."
+        },
+        "Put_99th_percentile": {
+          "name": "hbase_regionserver_put_duration_p99_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "99th percentile HBase put operation duration in seconds."
+        },
+        "ScanTime_mean": {
+          "name": "hbase_regionserver_scan_duration_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Mean HBase scan operation duration in seconds."
+        },
+        "ScanTime_99th_percentile": {
+          "name": "hbase_regionserver_scan_duration_p99_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "99th percentile HBase scan operation duration in seconds."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "Hadoop",
+        "properties": {
+          "service": "HBase",
+          "name": "JvmMetrics"
+        }
+      },
+      "attributes": {
+        "MemHeapUsedM": {
+          "name": "hbase_regionserver_jvm_heap_used_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "scale": 1048576,
+          "help": "Current RegionServer JVM heap memory used in bytes."
+        },
+        "MemHeapMaxM": {
+          "name": "hbase_regionserver_jvm_heap_max_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "scale": 1048576,
+          "help": "Maximum RegionServer JVM heap memory in bytes."
+        },
+        "MemNonHeapUsedM": {
+          "name": "hbase_regionserver_jvm_nonheap_used_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "scale": 1048576,
+          "help": "Current RegionServer JVM non-heap memory used in bytes."
+        },
+        "GcCount": {
+          "name": "hbase_regionserver_jvm_gc_collections_total",
+          "type": "counter",
+          "unit": "collections",
+          "help": "Total RegionServer JVM garbage collections."
+        },
+        "GcTimeMillis": {
+          "name": "hbase_regionserver_jvm_gc_time_seconds_total",
+          "type": "counter",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Total time spent in RegionServer JVM garbage collection in seconds."
+        },
+        "ThreadsRunnable": {
+          "name": "hbase_regionserver_jvm_threads_runnable",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current runnable RegionServer JVM threads."
+        },
+        "ThreadsBlocked": {
+          "name": "hbase_regionserver_jvm_threads_blocked",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current blocked RegionServer JVM threads."
+        },
+        "ThreadsWaiting": {
+          "name": "hbase_regionserver_jvm_threads_waiting",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current waiting RegionServer JVM threads."
+        },
+        "ThreadsTimedWaiting": {
+          "name": "hbase_regionserver_jvm_threads_timed_waiting",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current timed-waiting RegionServer JVM threads."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "Hadoop",
+        "properties": {
+          "service": "HBase",
+          "name": "RegionServer",
+          "sub": "IPC"
+        }
+      },
+      "attributes": {
+        "queueSize": {
+          "name": "hbase_regionserver_rpc_queue_size",
+          "type": "gauge",
+          "unit": "calls",
+          "help": "Current number of RegionServer RPC calls queued."
+        },
+        "numOpenConnections": {
+          "name": "hbase_regionserver_rpc_open_connections",
+          "type": "gauge",
+          "unit": "connections",
+          "help": "Current number of open RegionServer RPC connections."
+        },
+        "numActiveHandler": {
+          "name": "hbase_regionserver_rpc_active_handlers",
+          "type": "gauge",
+          "unit": "handlers",
+          "help": "Current number of active RegionServer RPC handlers."
+        },
+        "numCallsInGeneralQueue": {
+          "name": "hbase_regionserver_rpc_general_queue_calls",
+          "type": "gauge",
+          "unit": "calls",
+          "help": "Current number of RegionServer RPC calls in the general queue."
+        },
+        "numCallsInPriorityQueue": {
+          "name": "hbase_regionserver_rpc_priority_queue_calls",
+          "type": "gauge",
+          "unit": "calls",
+          "help": "Current number of RegionServer RPC calls in the priority queue."
+        },
+        "numCallsInReplicationQueue": {
+          "name": "hbase_regionserver_rpc_replication_queue_calls",
+          "type": "gauge",
+          "unit": "calls",
+          "help": "Current number of RegionServer RPC calls in the replication queue."
+        },
+        "receivedBytes": {
+          "name": "hbase_regionserver_rpc_received_bytes_total",
+          "type": "counter",
+          "unit": "bytes",
+          "help": "Total number of bytes received by the RegionServer RPC server."
+        },
+        "sentBytes": {
+          "name": "hbase_regionserver_rpc_sent_bytes_total",
+          "type": "counter",
+          "unit": "bytes",
+          "help": "Total number of bytes sent by the RegionServer RPC server."
+        },
+        "ProcessCallTime_mean": {
+          "name": "hbase_regionserver_rpc_process_call_duration_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Mean RegionServer RPC call processing duration in seconds."
+        },
+        "ProcessCallTime_99th_percentile": {
+          "name": "hbase_regionserver_rpc_process_call_duration_p99_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "99th percentile RegionServer RPC call processing duration in seconds."
+        },
+        "QueueCallTime_mean": {
+          "name": "hbase_regionserver_rpc_queue_duration_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Mean RegionServer RPC queue duration in seconds."
+        },
+        "QueueCallTime_99th_percentile": {
+          "name": "hbase_regionserver_rpc_queue_duration_p99_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "99th percentile RegionServer RPC queue duration in seconds."
+        }
+      }
+    }
+  ]
+}

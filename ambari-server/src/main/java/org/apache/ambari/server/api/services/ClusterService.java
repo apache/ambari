@@ -19,6 +19,7 @@
 package org.apache.ambari.server.api.services;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -30,12 +31,17 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.EntityTag;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
+import org.apache.ambari.server.agent.stomp.PrometheusTargetDiscovery;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.api.services.parsers.BodyParseException;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -43,6 +49,10 @@ import org.apache.ambari.server.controller.ClusterArtifactResponse;
 import org.apache.ambari.server.controller.ClusterResponse.ClusterResponseWrapper;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -79,6 +89,7 @@ public class ClusterService extends BaseService {
    * The clusters utilities.
    */
   private final Clusters clusters;
+  private final PrometheusTargetDiscovery prometheusTargetDiscovery;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -88,6 +99,7 @@ public class ClusterService extends BaseService {
    */
   public ClusterService() {
     clusters = AmbariServer.getController().getClusters();
+    prometheusTargetDiscovery = AmbariServer.getController().getPrometheusTargetDiscovery();
   }
 
   /**
@@ -96,7 +108,13 @@ public class ClusterService extends BaseService {
    * @param clusters  the clusters utilities
    */
   protected ClusterService(Clusters clusters) {
+    this(clusters, null);
+  }
+
+  protected ClusterService(Clusters clusters,
+      PrometheusTargetDiscovery prometheusTargetDiscovery) {
     this.clusters = clusters;
+    this.prometheusTargetDiscovery = prometheusTargetDiscovery;
   }
 
 
@@ -131,6 +149,62 @@ public class ClusterService extends BaseService {
                              @ApiParam(required = true) @PathParam("clusterName") String clusterName) {
     ResourceInstance resource = createClusterResource(clusterName);
     return handleRequest(headers, null, ui, Request.Type.GET, resource);
+  }
+
+  /**
+   * Handles: GET /clusters/{clusterName}/prometheus_targets
+   *
+   * @return Prometheus HTTP service-discovery target groups
+   */
+  @GET
+  @Path("{clusterName}/prometheus_targets")
+  @Produces(MediaType.APPLICATION_JSON)
+  @ApiOperation(value = "Returns Prometheus HTTP service-discovery targets")
+  @ApiResponses({
+    @ApiResponse(code = HttpStatus.SC_OK, message = MSG_SUCCESSFUL_OPERATION),
+    @ApiResponse(code = HttpStatus.SC_NOT_MODIFIED, message = "Targets have not changed"),
+    @ApiResponse(code = HttpStatus.SC_NOT_FOUND, message = MSG_RESOURCE_NOT_FOUND),
+    @ApiResponse(code = HttpStatus.SC_UNAUTHORIZED, message = MSG_NOT_AUTHENTICATED),
+    @ApiResponse(code = HttpStatus.SC_FORBIDDEN, message = MSG_PERMISSION_DENIED),
+    @ApiResponse(code = HttpStatus.SC_INTERNAL_SERVER_ERROR, message = MSG_SERVER_ERROR),
+  })
+  public Response getPrometheusTargets(
+      @Context jakarta.ws.rs.core.Request request,
+      @ApiParam(required = true) @PathParam("clusterName") String clusterName)
+      throws AmbariException {
+    Cluster cluster;
+    try {
+      cluster = clusters.getCluster(clusterName);
+    } catch (ClusterNotFoundException e) {
+      return Response.status(Response.Status.NOT_FOUND)
+          .type(MediaType.TEXT_PLAIN_TYPE)
+          .entity("Cluster not found.\n")
+          .build();
+    }
+
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+        EnumSet.of(RoleAuthorization.CLUSTER_VIEW_METRICS))) {
+      return Response.status(Response.Status.FORBIDDEN)
+          .type(MediaType.TEXT_PLAIN_TYPE)
+          .entity("The authenticated user is not authorized to view cluster metrics.\n")
+          .build();
+    }
+
+    PrometheusTargetDiscovery.Result result = prometheusTargetDiscovery.discover(clusterName);
+    EntityTag entityTag = new EntityTag(result.getEtag());
+    CacheControl cacheControl = new CacheControl();
+    cacheControl.setPrivate(true);
+    cacheControl.setMaxAge(30);
+    cacheControl.setMustRevalidate(true);
+
+    Response.ResponseBuilder unchanged = request.evaluatePreconditions(entityTag);
+    if (unchanged != null) {
+      return unchanged.tag(entityTag).cacheControl(cacheControl).build();
+    }
+    return Response.ok(result.getBody(), MediaType.APPLICATION_JSON_TYPE)
+        .tag(entityTag)
+        .cacheControl(cacheControl)
+        .build();
   }
 
   /**

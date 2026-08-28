@@ -75,6 +75,10 @@ def curl_krb_request(
   body="",
   header="",
   use_system_proxy_settings=True,
+  follow_redirects=True,
+  fail_on_http_error=False,
+  max_response_bytes=None,
+  verify_ssl=True,
 ):
   """
   Makes a curl request using a private, per-request Kerberos credential cache.
@@ -113,8 +117,15 @@ def curl_krb_request(
   connection_timeout = max(1, math.ceil(requested_timeout))
   maximum_timeout = connection_timeout + 2
 
-  ssl_options = ["--cacert", ca_certs] if ca_certs else []
+  ssl_options = ["--cacert", ca_certs] if ca_certs else ([] if verify_ssl else ["-k"])
   proxy_options = [] if use_system_proxy_settings else ["--noproxy", "*"]
+  transfer_options = []
+  if follow_redirects:
+    transfer_options.append("--location")
+  if fail_on_http_error:
+    transfer_options.append("--fail")
+  if max_response_bytes is not None:
+    transfer_options.extend(["--max-filesize", str(max_response_bytes)])
   safe_prefix = re.sub(r"[^A-Za-z0-9_.-]", "_", str(cache_file_prefix))[:64]
   cache_prefix = f"ambari-curl-{safe_prefix or 'request'}-"
   kinit_path_local = get_kinit_path(krb_exec_search_paths)
@@ -139,7 +150,8 @@ def curl_krb_request(
 
     with body_context as request_body_file:
       curl_command = (
-        ["curl", "--silent", "--show-error", "--location"]
+        ["curl", "--silent", "--show-error"]
+        + transfer_options
         + ssl_options
         + proxy_options
         + [

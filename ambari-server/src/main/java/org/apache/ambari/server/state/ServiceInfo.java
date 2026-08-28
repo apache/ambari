@@ -185,6 +185,9 @@ public class ServiceInfo implements Validable {
   private File metricsFile = null;
 
   @XmlTransient
+  private File telemetryFile = null;
+
+  @XmlTransient
   private Map<String, Map<String, List<MetricDefinition>>> metrics = null;
 
   @XmlTransient
@@ -1030,6 +1033,20 @@ public class ServiceInfo implements Validable {
    */
   public File getMetricsFile() {
     return metricsFile;
+  }
+
+  /**
+   * @param file the service Prometheus telemetry descriptor
+   */
+  public void setTelemetryFile(File file) {
+    telemetryFile = file;
+  }
+
+  /**
+   * @return the Prometheus telemetry descriptor, or {@code null} if absent
+   */
+  public File getTelemetryFile() {
+    return telemetryFile;
   }
 
   /**

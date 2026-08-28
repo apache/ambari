@@ -117,6 +117,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
+import org.apache.ambari.server.agent.stomp.PrometheusTargetDiscovery;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.agent.stomp.dto.MetadataCluster;
 import org.apache.ambari.server.agent.stomp.dto.MetadataServiceInfo;
@@ -5084,6 +5085,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public AmbariMetaInfo getAmbariMetaInfo() {
     return ambariMetaInfo;
+  }
+
+  @Override
+  public PrometheusTargetDiscovery getPrometheusTargetDiscovery() {
+    return injector.getInstance(PrometheusTargetDiscovery.class);
   }
 
   @Override

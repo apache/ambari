@@ -228,4 +228,13 @@ DEFAULT
     <value>Apache Ambari/{{version}}</value>
     <on-ambari-upgrade add="false" />
   </property>
+  <property>
+    <name>hadoop.prometheus.endpoint.enabled</name>
+    <value>true</value>
+    <description>Enable the Prometheus-compatible /prom endpoint on Hadoop HTTP servers.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" />
+  </property>
 </configuration>

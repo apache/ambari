@@ -30,6 +30,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.agent.stomp.PrometheusTargetDiscovery;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
@@ -577,6 +578,13 @@ public interface AmbariManagementController {
    * @return the meta info
    */
   AmbariMetaInfo getAmbariMetaInfo();
+
+  /**
+   * Get the Prometheus HTTP service-discovery renderer.
+   *
+   * @return the Prometheus target discovery renderer
+   */
+  PrometheusTargetDiscovery getPrometheusTargetDiscovery();
 
   /**
    * Get the service component factory for this management controller.

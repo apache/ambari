@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "components": {
+    "NAMENODE": {
+      "format": "prometheus_text",
+      "path": "/prom",
+      "endpoint": {
+        "policy": {
+          "configType": "hdfs-site",
+          "property": "dfs.http.policy",
+          "httpsValues": ["HTTPS_ONLY", "HTTP_AND_HTTPS"]
+        },
+        "http": {
+          "configType": "hdfs-site",
+          "property": "dfs.namenode.http-address",
+          "propertyPrefix": "dfs.namenode.http-address.",
+          "defaultPort": 9870
+        },
+        "https": {
+          "configType": "hdfs-site",
+          "property": "dfs.namenode.https-address",
+          "propertyPrefix": "dfs.namenode.https-address.",
+          "defaultPort": 9871
+        }
+      },
+      "auth": {
+        "principal": {
+          "configType": "core-site",
+          "property": "hadoop.http.authentication.kerberos.principal"
+        },
+        "keytab": {
+          "configType": "core-site",
+          "property": "hadoop.http.authentication.kerberos.keytab"
+        }
+      }
+    },
+    "DATANODE": {
+      "format": "prometheus_text",
+      "path": "/prom",
+      "endpoint": {
+        "policy": {
+          "configType": "hdfs-site",
+          "property": "dfs.http.policy",
+          "httpsValues": ["HTTPS_ONLY", "HTTP_AND_HTTPS"]
+        },
+        "http": {
+          "configType": "hdfs-site",
+          "property": "dfs.datanode.http.address",
+          "defaultPort": 9864
+        },
+        "https": {
+          "configType": "hdfs-site",
+          "property": "dfs.datanode.https.address",
+          "defaultPort": 9865
+        }
+      },
+      "auth": {
+        "principal": {
+          "configType": "core-site",
+          "property": "hadoop.http.authentication.kerberos.principal"
+        },
+        "keytab": {
+          "configType": "core-site",
+          "property": "hadoop.http.authentication.kerberos.keytab"
+        }
+      }
+    }
+  }
+}

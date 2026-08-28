@@ -67,6 +67,7 @@ public class StackDirectory extends StackDefinitionDirectory {
   public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
   public static final String RCO_FILE_NAME = "role_command_order.json";
   public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
+  public static final String SERVICE_TELEMETRY_FILE_NAME = "telemetry.json";
   public static final String SERVICE_ALERT_FILE_NAME = "alerts.json";
   public static final String SERVICE_ADVISOR_FILE_NAME = "service_advisor.py";
 
