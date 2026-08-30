@@ -34,6 +34,7 @@
         <nodemodules.dir>node_modules</nodemodules.dir> <!-- specify -Dnodemodules.dir option to reduce ambari-web build time by not re-downloading npm modules -->
         <uidir>${basedir}/classic</uidir>
         <ui2dir>${basedir}/latest</ui2dir>
+        <skipUiBuild>false</skipUiBuild>
     </properties>
     <build>
         <plugins>
@@ -77,6 +78,7 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.11.0</version>
                 <configuration>
+                    <skip>${skipUiBuild}</skip>
                     <nodeVersion>v4.5.0</nodeVersion>
                     <yarnVersion>v0.23.2</yarnVersion>
                     <workingDirectory>${uidir}</workingDirectory>
@@ -149,6 +151,9 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
+                <configuration>
+                    <skip>${skipUiBuild}</skip>
+                </configuration>
                 <executions>
                     <execution>
                         <id>clean-rmdir</id>
@@ -451,6 +456,18 @@
     </plugins>
     </build>
     <profiles>
+        <profile>
+            <id>skip-ui-build</id>
+            <activation>
+                <property>
+                    <name>skipUiBuild</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
         <profile>
             <id>windows</id>
             <activation>

@@ -155,6 +155,7 @@
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
     <jetty.version>9.4.43.v20210629</jetty.version>
+    <skipUiBuild>false</skipUiBuild>
     <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
   </properties>
   <build>
@@ -185,6 +186,7 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>1.11.0</version>
         <configuration>
+          <skip>${skipUiBuild}</skip>
           <nodeVersion>v22.23.1</nodeVersion>
           <npmVersion>10.9.8</npmVersion>
           <workingDirectory>src/main/resources/ui/</workingDirectory>

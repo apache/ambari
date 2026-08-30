@@ -27,6 +27,9 @@
   <packaging>jar</packaging>
   <name>Ambari Admin View</name>
   <description>Admin control panel</description>
+  <properties>
+    <skipUiBuild>false</skipUiBuild>
+  </properties>
   <build>
     <plugins>
       <plugin>
@@ -61,6 +64,7 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>1.11.0</version>
         <configuration>
+          <skip>${skipUiBuild}</skip>
           <nodeVersion>v4.5.0</nodeVersion>
           <npmVersion>2.15.0</npmVersion>
           <workingDirectory>src/main/resources/ui/admin-web/</workingDirectory>
@@ -124,6 +128,9 @@
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <configuration>
+          <skip>${skipUiBuild}</skip>
+        </configuration>
         <executions>
           <execution>
             <id>Bower install</id>
@@ -331,6 +338,18 @@
     </resources>
   </build>
   <profiles>
+    <profile>
+      <id>skip-ui-build</id>
+      <activation>
+        <property>
+          <name>skipUiBuild</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
     <profile>
       <id>windows</id>
       <activation>

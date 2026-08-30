@@ -97,7 +97,7 @@ pipeline {
                 }
                 stage('Ambari Service Advisor') {
                     steps {
-                        sh 'mvn -T 3C -am install -pl ambari-serviceadvisor -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10'
+                        sh 'mvn -T 3C -am install -pl ambari-serviceadvisor -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -DskipUiBuild=true -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10'
                     }
                 }
             }
@@ -115,7 +115,7 @@ pipeline {
                 stage('Ambari Agent Tests') {
                     steps {
                         sh 'pip3 install distro'
-                        sh 'mvn -Dmaven.test.failure.ignore=true -am test -pl ambari-agent -Dmaven.artifact.threads=10 -Drat.skip'
+                        sh 'mvn -Dmaven.test.failure.ignore=true -am test -pl ambari-agent -DskipAdminWebTests=true -DskipUiBuild=true -Dmaven.artifact.threads=10 -Drat.skip'
                     }
                 }
 
@@ -128,7 +128,7 @@ pipeline {
                            pip3 --version
                            openssl version
                            '''
-                        sh 'mvn clean -am test -pl ambari-server -DskipSurefireTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -Dcheckstyle.skip -DskipAdminWebTests=true'
+                        sh 'mvn clean -am test -pl ambari-server -DskipSurefireTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -Dcheckstyle.skip -DskipAdminWebTests=true -DskipUiBuild=true'
                     }
                 }
             }
@@ -177,9 +177,9 @@ pipeline {
                 }
             }
         }
-        stage('Ambari Server JTests') {
+        stage('Ambari Java Tests') {
             steps {
-                sh 'mvn -am test -pl ambari-server -DskipPythonTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -DskipAdminWebTests=true'
+                sh 'mvn -am test -pl ambari-server,ambari-funtest -DskipPythonTests -DskipFunctionalTests=false -Dmaven.artifact.threads=10 -Drat.skip -DskipAdminWebTests=true -DskipUiBuild=true'
             }
         }
     }
