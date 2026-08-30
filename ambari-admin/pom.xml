@@ -91,8 +91,8 @@
               <goal>install-node-and-npm</goal>
             </goals>
             <configuration>
-              <nodeVersion>v20.11.0</nodeVersion>
-              <npmVersion>10.8.3</npmVersion>
+              <nodeVersion>v22.23.1</nodeVersion>
+              <npmVersion>10.9.8</npmVersion>
               <workingDirectory>src/main/resources/ui/ambari-admin/</workingDirectory>
               <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
             </configuration>
@@ -104,7 +104,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>install</arguments>
+              <arguments>ci --no-audit --no-fund</arguments>
               <workingDirectory>src/main/resources/ui/ambari-admin/</workingDirectory>
             </configuration>
           </execution>
@@ -281,13 +281,6 @@
                             </resources>
                         </configuration>
                     </execution>
-                </executions>
-        </plugin>
-        <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
                     <execution>
                         <id>copy-react-resources</id>
                         <phase>process-resources</phase>
@@ -304,36 +297,6 @@
                             </resources>
                         </configuration>
                     </execution>
-                </executions>
-        </plugin>
-        <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>copy-react-resources</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/classes/latest</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>src/main/resources/ui/ambari-admin/dist</directory>
-                                    <filtering>false</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-        </plugin>
-        <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
                     <execution>
                         <id>copy-public-folder</id>
                         <phase>process-resources</phase>
@@ -354,7 +317,7 @@
                         </configuration>
                     </execution>
                 </executions>
-        </plugin>
+            </plugin>
     </plugins>
     
     <resources>

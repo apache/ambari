@@ -61,7 +61,7 @@ describe("RemoteClusters component", () => {
   it("display appropriate message when no cluster is rendered.", async () => {
     RemoteClusterApi.getRemoteClusters = async () => [];
     renderRemoteCluster();
-    expect(screen.findByText(/No Remote Cluster to show/i));
+    expect(await screen.findByText(/No Remote Clusters to display/i)).toBeInTheDocument();
   });
 
   it("renders correct number of items ", async () => {
