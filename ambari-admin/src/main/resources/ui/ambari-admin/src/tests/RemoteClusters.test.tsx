@@ -19,7 +19,7 @@ import { describe, it, expect } from "vitest";
 import { render, waitFor, screen, fireEvent } from "@testing-library/react";
 import { HashRouter } from "react-router-dom";
 import "@testing-library/jest-dom/vitest";
-import RemoteClusters from "../screens/ClusterManagement/RemoteClusters/Index"
+import RemoteClusters from "../screens/ClusterManagement/RemoteClusters"
 import RemoteClusterApi from "../api/remoteCluster";
 import {
   mockData,

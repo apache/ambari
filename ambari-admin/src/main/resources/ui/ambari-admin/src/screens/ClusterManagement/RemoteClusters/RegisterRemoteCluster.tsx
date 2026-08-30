@@ -36,16 +36,22 @@ export default function RegisterRemoteCluster() {
   const [errorMessageUrl, setErrorMessageUrl] = useState("");
   const history = useHistory();
 
+  const isValidHttpUrl = (value: string) => {
+    try {
+      const url = new URL(value);
+      return ["http:", "https:"].includes(url.protocol) && Boolean(url.hostname);
+    } catch {
+      return false;
+    }
+  };
+
   const validateInputs = (name: string, value: string) => {
-    let urlPattern = new RegExp(
-      "^https?://[a-zA-Z0-9]+.example.com(:[0-9]{4})?(/.*)?$"
-    );
     let clusterNamePattern = new RegExp("^[A-Za-z0-9]{1,80}$");
 
     if (name === "url") {
       if (value === "") {
         setErrorMessageUrl("This field is required.");
-      } else if (!urlPattern.test(value)) {
+      } else if (!isValidHttpUrl(value)) {
         setErrorMessageUrl("Must be a valid URL.");
       } else {
         setErrorMessageUrl("");
@@ -168,7 +174,7 @@ export default function RegisterRemoteCluster() {
               placeholder="http://ambari.server:8080/api/v1/clusters/clusterName"
               name="url"
               value={cluster.url}
-              pattern="^https?:\/\/[a-zA-Z0-9]+\.example\.com(:[0-9]{4})?(\/.*)?$"
+              pattern="https?://.+"
               maxLength={80}
               onChange={handleInputChange}
               required
