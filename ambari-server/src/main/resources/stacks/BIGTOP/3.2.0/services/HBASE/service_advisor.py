@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 # Python imports
-import imp
+from ambari_commons import import_utils as imp
 import math
 import os
 import traceback

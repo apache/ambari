@@ -23,7 +23,7 @@ import os
 
 class TestStackAdvisorInitialization(TestCase):
   def setUp(self):
-    import imp
+    from ambari_commons import import_utils as imp
 
     self.test_directory = os.path.dirname(os.path.abspath(__file__))
     resources_path = os.path.join(self.test_directory, "../../main/resources")

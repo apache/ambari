@@ -25,7 +25,7 @@ else:
   if sys.version_info[:2] >= (3, 4):
     from importlib import reload as reload_module
   else:
-    from imp import reload as reload_module
+    from importlib import reload as reload_module
 
   def b(s):
     return bytes(s, "latin1")

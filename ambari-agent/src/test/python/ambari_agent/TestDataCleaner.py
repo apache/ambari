@@ -78,7 +78,7 @@ class TestDataCleaner(unittest.TestCase):
     config.get.side_effect = [1, (3600 - 1), (10000 + 1), "test_path"]
     DataCleaner.logger.reset_mock()
     cleaner = DataCleaner.DataCleaner(config)
-    self.assertTrue(DataCleaner.logger.warn.called)
+    self.assertTrue(DataCleaner.logger.warning.called)
     self.assertTrue(cleaner.file_max_age == 86400)
     self.assertTrue(cleaner.cleanup_interval == 3600)
     self.assertTrue(cleaner.cleanup_max_size_MB == 10000)

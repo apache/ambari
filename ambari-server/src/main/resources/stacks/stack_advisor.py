@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 # Python Imports
-import imp
+from ambari_commons import import_utils as imp
 import os
 import random
 import re

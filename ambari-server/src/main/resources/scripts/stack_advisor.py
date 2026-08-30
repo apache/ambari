@@ -152,7 +152,7 @@ def main(argv=None):
 
 def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
   """Instantiates StackAdvisor implementation for the specified Stack"""
-  import imp
+  from ambari_commons import import_utils as imp
 
   with open(AMBARI_CONFIGURATION_PATH, "r") as fp:
     imp.load_module(

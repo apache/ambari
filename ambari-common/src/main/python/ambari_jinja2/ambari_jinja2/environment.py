@@ -604,9 +604,11 @@ class Environment(object):
       log_function = lambda x: None
 
     if py_compile:
-      import imp, struct, marshal
+      import marshal
+      import struct
+      from importlib.util import MAGIC_NUMBER
 
-      py_header = imp.get_magic() + "\xff\xff\xff\xff".encode("iso-8859-15")
+      py_header = MAGIC_NUMBER + "\xff\xff\xff\xff".encode("iso-8859-15")
 
     def write_file(filename, data, mode):
       if zip:
