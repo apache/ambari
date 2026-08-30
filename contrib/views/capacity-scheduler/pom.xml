@@ -109,7 +109,6 @@
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>3.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -154,8 +153,8 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>1.11.0</version>
         <configuration>
-          <nodeVersion>v20.11.0</nodeVersion>
-          <npmVersion>10.8.3</npmVersion>
+          <nodeVersion>v22.23.1</nodeVersion>
+          <npmVersion>10.9.8</npmVersion>
           <workingDirectory>${ui.directory}</workingDirectory>
           <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
         </configuration>
