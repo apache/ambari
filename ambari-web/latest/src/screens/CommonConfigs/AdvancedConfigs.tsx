@@ -19,6 +19,7 @@
 import { Fragment, useEffect, useState } from "react";
 import {
   configGroupOverrides,
+  ConfigPropertiesType,
   InputType,
   PropertyType,
   TruthValues,
@@ -72,7 +73,10 @@ type AdvancedConfigsType = {
   stack?: string;
   stackVersion?: string;
   hosts?: string[];
-  onValueUpdateProp?: () => void;
+  onValueUpdateProp?: (
+    config: PropertyType,
+    configProperties: ConfigPropertiesType,
+  ) => void;
   searchString?: string;
   canEdit?: boolean;
 };
