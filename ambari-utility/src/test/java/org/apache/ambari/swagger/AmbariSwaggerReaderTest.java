@@ -191,77 +191,104 @@ public class AmbariSwaggerReaderTest {
 
 }
 
+// Ambari uses Jakarta JAX-RS, while the legacy Swagger 1.x reader under test
+// still discovers paths and parameters through the javax annotations.
 @Path("/toplevel")
+@javax.ws.rs.Path("/toplevel")
 @Api(value = "Top Level", description = "A top level API")
 abstract class TopLevelAPI {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/top")
+  @javax.ws.rs.Path("/top")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
   @Path("{param}/nested")
-  public abstract NestedAPI getNested(@ApiParam @PathParam(value = "param") String param);
+  @javax.ws.rs.Path("{param}/nested")
+  public abstract NestedAPI getNested(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 
   @Path("{param}/nestedWithPreferredParent")
-  public abstract NestedWithPreferredParentAPI getNestedWithPreferredParent(@ApiParam @PathParam(value = "param")
-                                                                                      String param);
+  @javax.ws.rs.Path("{param}/nestedWithPreferredParent")
+  public abstract NestedWithPreferredParentAPI getNestedWithPreferredParent(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 
   @Path("{param}/nestedWithSamePreferredParent")
-  public abstract NestedWithSamePreferredParentAPI getNestedWithSamePreferredParent(@ApiParam @PathParam(value =
-          "param") String param);
+  @javax.ws.rs.Path("{param}/nestedWithSamePreferredParent")
+  public abstract NestedWithSamePreferredParentAPI getNestedWithSamePreferredParent(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 }
 
 @Path("/toplevel2")
+@javax.ws.rs.Path("/toplevel2")
 @Api(value = "Top Level 2", description = "Another top level API")
 abstract class AnotherTopLevelAPI {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/anotherTop")
+  @javax.ws.rs.Path("/anotherTop")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
   @Path("{param}/anotherNested")
-  public abstract NestedAPI getSecondNested(@ApiParam @PathParam(value = "param") String param);
+  @javax.ws.rs.Path("{param}/anotherNested")
+  public abstract NestedAPI getSecondNested(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 
   @Path("{param}/nestedWithPreferredParent")
-  public abstract NestedWithPreferredParentAPI getNestedWithPreferredParent(@ApiParam @PathParam(value = "param")
-                                                                                      String param);
+  @javax.ws.rs.Path("{param}/nestedWithPreferredParent")
+  public abstract NestedWithPreferredParentAPI getNestedWithPreferredParent(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 
   @Path("{param}/nestedWithSamePreferredParent")
-  public abstract NestedWithSamePreferredParentAPI getNestedWithSamePreferredParent(@ApiParam @PathParam(value =
-          "param") String param);
+  @javax.ws.rs.Path("{param}/nestedWithSamePreferredParent")
+  public abstract NestedWithSamePreferredParentAPI getNestedWithSamePreferredParent(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 
   @Path("{param}/nestedWithBadPreferredParent")
-  public abstract NestedWithBadPreferredParentAPI getNestedWithBadPreferredParent(@ApiParam @PathParam(value =
-          "param") String param);
+  @javax.ws.rs.Path("{param}/nestedWithBadPreferredParent")
+  public abstract NestedWithBadPreferredParentAPI getNestedWithBadPreferredParent(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 }
 
 @Path("/toplevel3")
+@javax.ws.rs.Path("/toplevel3")
 @Api(value = "Top Level 3", description = "Yet another top level API")
 abstract class YetAnotherTopLevelAPI {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/yetAnotherTop")
+  @javax.ws.rs.Path("/yetAnotherTop")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
   @Path("{param}/nested")
-  public abstract NestedAPI getFirstNested(@ApiParam @PathParam(value = "param") String param);
+  @javax.ws.rs.Path("{param}/nested")
+  public abstract NestedAPI getFirstNested(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 
 }
 
 @Path("/toplevel4")
+@javax.ws.rs.Path("/toplevel4")
 @Api(value = "Top Level 4", description = "Yet another top level API")
 abstract class TopLevel4API {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/top")
+  @javax.ws.rs.Path("/top")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
   @Path("{param}/nested")
-  public abstract NestedWithOverwrite getNested(@ApiParam @PathParam(value = "param") String param);
+  @javax.ws.rs.Path("{param}/nested")
+  public abstract NestedWithOverwrite getNested(
+      @ApiParam @PathParam(value = "param") @javax.ws.rs.PathParam(value = "param") String param);
 
 }
 
@@ -269,18 +296,23 @@ abstract class TopLevel4API {
 abstract class NestedAPI {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/list")
+  @javax.ws.rs.Path("/list")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
 }
 
 @Path("/canBeReachedFromTopToo")
+@javax.ws.rs.Path("/canBeReachedFromTopToo")
 @Api(value = "Nested and Top Level", description = "An API that is both nested and top level")
 abstract class NestedAndTopLevelAPI {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/list")
+  @javax.ws.rs.Path("/list")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
@@ -291,7 +323,9 @@ abstract class NestedAndTopLevelAPI {
 abstract class NestedWithPreferredParentAPI {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/list")
+  @javax.ws.rs.Path("/list")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
@@ -302,7 +336,9 @@ abstract class NestedWithPreferredParentAPI {
 abstract class NestedWithSamePreferredParentAPI {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/list")
+  @javax.ws.rs.Path("/list")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
@@ -313,7 +349,9 @@ abstract class NestedWithSamePreferredParentAPI {
 abstract class NestedWithBadPreferredParentAPI {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/list")
+  @javax.ws.rs.Path("/list")
   @ApiOperation(value = "list")
   public abstract Response getList();
 
@@ -325,7 +363,9 @@ abstract class NestedWithBadPreferredParentAPI {
 abstract class NestedWithOverwrite {
 
   @GET
+  @javax.ws.rs.GET
   @Path("/list")
+  @javax.ws.rs.Path("/list")
   @ApiOperation(value = "list")
   public abstract Response getList();
 

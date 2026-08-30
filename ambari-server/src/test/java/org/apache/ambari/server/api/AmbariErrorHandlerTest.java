@@ -23,7 +23,6 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.junit.Assert.assertEquals;
-import static org.powermock.api.easymock.PowerMock.mockStatic;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -40,26 +39,18 @@ import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.eclipse.jetty.server.HttpChannel;
-import org.eclipse.jetty.server.HttpConnection;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AmbariErrorHandler.class, LoggerFactory.class, HttpConnection.class, UUID.class})
 public class AmbariErrorHandlerTest extends EasyMockSupport {
   private Gson gson = new Gson();
 
   private Logger logger = createNiceMock(Logger.class);
 
-  private HttpConnection httpConnection = createNiceMock(HttpConnection.class);
   private HttpChannel httpChannel = createNiceMock(HttpChannel.class);
 
   private Response response = createNiceMock(Response.class);
@@ -77,21 +68,15 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
     //given
     final UUID requestId = UUID.fromString("4db659b2-7902-477b-b8e6-c35261d3334a");
 
-    mockStatic(HttpConnection.class);
-    mockStatic(UUID.class);
-    mockStatic(LoggerFactory.class);
-    expect(HttpConnection.getCurrentConnection()).andReturn(httpConnection);
-    expect(UUID.randomUUID()).andReturn(requestId);
-    expect(LoggerFactory.getLogger(AmbariErrorHandler.class)).andReturn(logger);
-
     Throwable th = createNiceMock(Throwable.class);
 
     Capture<String> captureLogMessage = EasyMock.newCapture();
     logger.error(capture(captureLogMessage), eq(th));
     expectLastCall().anyTimes();
 
-    expect(httpConnection.getHttpChannel()).andReturn(httpChannel);
-    expect(httpChannel.getRequest()).andReturn(request);
+    expect(request.getHttpChannel()).andReturn(httpChannel);
+    request.setHandled(true);
+    expectLastCall().once();
     expect(httpChannel.getResponse()).andReturn(response).times(2);
     expect(response.getStatus()).andReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
@@ -109,7 +94,7 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
     final String expectedResponse = "{\"status\":500,\"message\":\"Internal server error, please refer the exception by " + requestId + " in the server log file\"}";
     final String expectedErrorMessage = "Internal server error, please refer the exception by " + requestId + " in the server log file, requestURI: " + requestUri;
 
-    AmbariErrorHandler ambariErrorHandler = new AmbariErrorHandler(gson, propertiesProvider);
+    AmbariErrorHandler ambariErrorHandler = new AmbariErrorHandler(gson, propertiesProvider, logger, () -> requestId);
     ambariErrorHandler.setShowStacks(false);
 
     //when
@@ -125,11 +110,9 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
   public void testHandleGeneralError() throws Exception {
 
     //given
-    mockStatic(HttpConnection.class);
-    expect(HttpConnection.getCurrentConnection()).andReturn(httpConnection);
-
-    expect(httpConnection.getHttpChannel()).andReturn(httpChannel);
-    expect(httpChannel.getRequest()).andReturn(request);
+    expect(request.getHttpChannel()).andReturn(httpChannel);
+    request.setHandled(true);
+    expectLastCall().once();
     expect(httpChannel.getResponse()).andReturn(response).anyTimes();
     expect(response.getStatus()).andReturn(HttpStatus.SC_BAD_REQUEST);
 
@@ -142,7 +125,7 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
 
     final String expectedResponse = "{\"status\":400,\"message\":\"Bad Request\"}";
 
-    AmbariErrorHandler ambariErrorHandler = new AmbariErrorHandler(gson, propertiesProvider);
+    AmbariErrorHandler ambariErrorHandler = new AmbariErrorHandler(gson, propertiesProvider, logger, UUID::randomUUID);
 
     //when
     ambariErrorHandler.handle(target, request, httpServletRequest, httpServletResponse);

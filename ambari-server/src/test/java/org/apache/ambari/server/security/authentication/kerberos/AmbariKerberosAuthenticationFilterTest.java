@@ -31,6 +31,7 @@ import static org.easymock.EasyMock.startsWith;
 import java.io.IOException;
 import java.util.List;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -150,7 +151,15 @@ public class AmbariKerberosAuthenticationFilterTest extends EasyMockSupport {
     HttpServletResponse response = createMock(HttpServletResponse.class);
     HttpSession session = createMock(HttpSession.class);
     FilterChain filterChain = createMock(FilterChain.class);
+    String alreadyFilteredAttribute = AmbariKerberosAuthenticationFilter.class.getName() + ".FILTERED";
 
+    expect(request.getDispatcherType()).andReturn(DispatcherType.REQUEST).once();
+    expect(request.getAttribute("jakarta.servlet.error.request_uri")).andReturn(null).once();
+    expect(request.getAttribute(alreadyFilteredAttribute)).andReturn(null).once();
+    request.setAttribute(alreadyFilteredAttribute, Boolean.TRUE);
+    expectLastCall().once();
+    request.removeAttribute(alreadyFilteredAttribute);
+    expectLastCall().once();
     expect(request.getHeader("Authorization")).andReturn("Negotiate ").once();
     expect(request.getHeader(startsWith("X-Forwarded-"))).andReturn(null).times(6);
     expect(request.getRemoteAddr()).andReturn("1.2.3.4").once();
@@ -200,7 +209,15 @@ public class AmbariKerberosAuthenticationFilterTest extends EasyMockSupport {
     HttpServletResponse response = createMock(HttpServletResponse.class);
     HttpSession session = createMock(HttpSession.class);
     FilterChain filterChain = createMock(FilterChain.class);
+    String alreadyFilteredAttribute = AmbariKerberosAuthenticationFilter.class.getName() + ".FILTERED";
 
+    expect(request.getDispatcherType()).andReturn(DispatcherType.REQUEST).once();
+    expect(request.getAttribute("jakarta.servlet.error.request_uri")).andReturn(null).once();
+    expect(request.getAttribute(alreadyFilteredAttribute)).andReturn(null).once();
+    request.setAttribute(alreadyFilteredAttribute, Boolean.TRUE);
+    expectLastCall().once();
+    request.removeAttribute(alreadyFilteredAttribute);
+    expectLastCall().once();
     expect(request.getHeader("Authorization")).andReturn("Negotiate ").once();
     expect(request.getHeader(startsWith("X-Forwarded-"))).andReturn(null).times(6);
     expect(request.getRemoteAddr()).andReturn("1.2.3.4").once();
