@@ -74,12 +74,62 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <skip>${skipFunctionalTests}</skip>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+          <argLine>
+            ${surefire.argLine}
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/java.lang.reflect=ALL-UNNAMED
+            --add-opens java.management/java.lang.management=ALL-UNNAMED
+            --add-opens java.base/java.io=ALL-UNNAMED
+            --add-opens java.base/java.nio=ALL-UNNAMED
+            --add-opens java.base/java.util=ALL-UNNAMED
+            --add-opens java.base/java.util.regex=ALL-UNNAMED
+            --add-opens java.base/java.util.concurrent=ALL-UNNAMED
+            --add-opens java.base/java.net=ALL-UNNAMED
+            --add-opens java.base/java.util.stream=ALL-UNNAMED
+            --add-opens java.base/java.math=ALL-UNNAMED
+            --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED
+            --add-opens java.base/java.nio.charset=ALL-UNNAMED
+            --add-opens java.logging/java.util.logging=ALL-UNNAMED
+            --add-opens java.base/java.nio.file=ALL-UNNAMED
+            --add-opens java.base/java.text=ALL-UNNAMED
+            --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
+            --add-opens java.naming/com.sun.jndi.ldap=ALL-UNNAMED
+            --add-opens java.base/java.security=ALL-UNNAMED
+            --add-opens java.base/sun.nio.fs=ALL-UNNAMED
+          </argLine>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+          <argLine>
+            ${surefire.argLine}
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/java.lang.reflect=ALL-UNNAMED
+            --add-opens java.management/java.lang.management=ALL-UNNAMED
+            --add-opens java.base/java.io=ALL-UNNAMED
+            --add-opens java.base/java.nio=ALL-UNNAMED
+            --add-opens java.base/java.util=ALL-UNNAMED
+            --add-opens java.base/java.util.regex=ALL-UNNAMED
+            --add-opens java.base/java.util.concurrent=ALL-UNNAMED
+            --add-opens java.base/java.net=ALL-UNNAMED
+            --add-opens java.base/java.util.stream=ALL-UNNAMED
+            --add-opens java.base/java.math=ALL-UNNAMED
+            --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED
+            --add-opens java.base/java.nio.charset=ALL-UNNAMED
+            --add-opens java.logging/java.util.logging=ALL-UNNAMED
+            --add-opens java.base/java.nio.file=ALL-UNNAMED
+            --add-opens java.base/java.text=ALL-UNNAMED
+            --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
+            --add-opens java.naming/com.sun.jndi.ldap=ALL-UNNAMED
+            --add-opens java.base/java.security=ALL-UNNAMED
+            --add-opens java.base/sun.nio.fs=ALL-UNNAMED
+          </argLine>
           <includes>
             <include>**/*.java</include>
           </includes>

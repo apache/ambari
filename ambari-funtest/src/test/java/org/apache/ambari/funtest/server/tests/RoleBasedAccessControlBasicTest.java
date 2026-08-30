@@ -48,6 +48,8 @@ import com.google.gson.JsonElement;
  */
 public class RoleBasedAccessControlBasicTest extends ServerTestBase {
 
+    private static final String TEST_USER_PASSWORD = "AmbariTest1!";
+
     private String clusterName = "c1";
     private String hostName = "host1";
     private String clusterVersion = "HDP-2.2.0";
@@ -76,7 +78,7 @@ public class RoleBasedAccessControlBasicTest extends ServerTestBase {
         JsonElement jsonResponse;
         ConnectionParams adminConnectionParams = createAdminConnectionParams();
         String anonUserName = "nothing";
-        String anonUserPwd = "nothing";
+        String anonUserPwd = TEST_USER_PASSWORD;
 
         /**
          * Create a new user (non-admin)
@@ -111,7 +113,7 @@ public class RoleBasedAccessControlBasicTest extends ServerTestBase {
     public void testAddClusterConfigAsAnonUser() throws Exception {
         ConnectionParams adminConnectionParams = createAdminConnectionParams();
         String anonUserName = "nothing";
-        String anonUserPwd = "nothing";
+        String anonUserPwd = TEST_USER_PASSWORD;
 
         /**
          * Create a new user (non-admin)
@@ -157,7 +159,7 @@ public class RoleBasedAccessControlBasicTest extends ServerTestBase {
         ConnectionParams adminConnectionParams = createAdminConnectionParams();
 
         String clusterAdminName = "clusterAdmin";
-        String clusterAdminPwd = "clusterAdmin";
+        String clusterAdminPwd = TEST_USER_PASSWORD;
 
         /**
          * Create a user with cluster admin role
