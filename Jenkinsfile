@@ -110,29 +110,32 @@ pipeline {
             }
         }
 
-        stage('Parallel Unit Tests') {
-            parallel {
-                stage('Ambari Agent Tests') {
-                    steps {
-                        sh 'pip3 install distro'
-                        sh 'mvn -Dmaven.test.failure.ignore=true -am test -pl ambari-agent -DskipAdminWebTests=true -DskipUiBuild=true -Dmaven.artifact.threads=10 -Drat.skip'
-                    }
-                }
-
-                stage('Ambari Server PyTests') {
-                    steps {
-                        sh '''
-                           # Install pyOpenSSL in one step
-                           pip3 install --user --upgrade pyOpenSSL
-                           # Verify installations
-                           pip3 --version
-                           openssl version
-                           '''
-                        sh 'mvn clean -am test -pl ambari-server -DskipSurefireTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -Dcheckstyle.skip -DskipAdminWebTests=true -DskipUiBuild=true'
-                    }
-                }
+        stage('Ambari Agent Tests') {
+            steps {
+                sh 'pip3 install distro'
+                sh 'mvn -Dmaven.test.failure.ignore=true -am test -pl ambari-agent -DskipAdminWebTests=true -DskipUiBuild=true -Dmaven.artifact.threads=10 -Drat.skip'
             }
         }
+
+        stage('Ambari Server PyTests') {
+            steps {
+                sh '''
+                   # Install pyOpenSSL in one step
+                   pip3 install --user --upgrade pyOpenSSL
+                   # Verify installations
+                   pip3 --version
+                   openssl version
+                   '''
+                sh 'mvn clean -am test -pl ambari-server -DskipSurefireTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -Dcheckstyle.skip -DskipAdminWebTests=true -DskipUiBuild=true'
+            }
+        }
+
+        stage('Ambari Java Tests') {
+            steps {
+                sh 'mvn -am test -pl ambari-server,ambari-funtest -DskipPythonTests -DskipFunctionalTests=false -Dmaven.artifact.threads=10 -Drat.skip -DskipAdminWebTests=true -DskipUiBuild=true'
+            }
+        }
+
         stage('React UI Tests') {
             parallel {
                 stage('Ambari Admin React UI') {
@@ -175,11 +178,6 @@ pipeline {
                         }
                     }
                 }
-            }
-        }
-        stage('Ambari Java Tests') {
-            steps {
-                sh 'mvn -am test -pl ambari-server,ambari-funtest -DskipPythonTests -DskipFunctionalTests=false -Dmaven.artifact.threads=10 -Drat.skip -DskipAdminWebTests=true -DskipUiBuild=true'
             }
         }
     }
