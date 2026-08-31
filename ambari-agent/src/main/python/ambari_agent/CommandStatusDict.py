@@ -23,14 +23,14 @@ import logging
 import threading
 import copy
 
-import ambari_simplejson as json
+import json
 
 from collections import defaultdict
 from ambari_agent.Grep import Grep
 
 from ambari_agent import Constants
 from ambari_agent.models.commands import CommandStatus, AgentCommand
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger()
 

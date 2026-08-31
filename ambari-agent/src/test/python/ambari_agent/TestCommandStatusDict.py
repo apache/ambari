@@ -24,7 +24,7 @@ from ambari_agent.CommandStatusDict import CommandStatusDict
 import os
 import logging
 import json, pprint
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 
 
 class TestCommandStatusDict:  # (TestCase):

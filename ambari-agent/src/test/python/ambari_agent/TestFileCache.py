@@ -31,7 +31,7 @@ from threading import Thread
 
 from ambari_agent.FileCache import FileCache, CachingException
 from ambari_agent.AmbariConfig import AmbariConfig
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 import io
 import sys
 import shutil

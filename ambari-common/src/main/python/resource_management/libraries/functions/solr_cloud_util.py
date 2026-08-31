@@ -21,7 +21,7 @@ limitations under the License.
 import json
 import random
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from ambari_jinja2 import Environment as JinjaEnvironment
+from jinja2 import Environment as JinjaEnvironment
 from random import randrange
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File

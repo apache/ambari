@@ -20,8 +20,8 @@ limitations under the License.
 
 from unittest import TestCase
 import tempfile
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_commons.os_check import OSCheck
 from ambari_agent.AmbariConfig import AmbariConfig

@@ -23,8 +23,8 @@ import os
 
 os.environ["ROOT"] = ""
 
-import mock
-from mock.mock import MagicMock, patch
+from unittest import mock
+from unittest.mock import MagicMock, patch
 from ambari_server import BackupRestore
 
 

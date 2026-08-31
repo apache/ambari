@@ -105,7 +105,7 @@ class HookSequenceBuilder(object):
       if "service" in hook_definition and service is None:
         continue
 
-      if "role" is hook_definition and role is None:
+      if "role" in hook_definition and role is None:
         continue
 
       yield hook_definition.format(

@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import urllib.request, urllib.error, urllib.parse
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.get_user_call_output import (

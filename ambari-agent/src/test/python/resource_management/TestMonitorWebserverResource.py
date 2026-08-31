@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from resource_management import *
 from resource_management.libraries.providers.monitor_webserver import (
   MonitorWebserverProvider,

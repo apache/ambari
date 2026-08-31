@@ -18,9 +18,9 @@ limitations under the License.
 """
 
 import subprocess
-from mock.mock import MagicMock
+from unittest.mock import MagicMock
 from unittest import TestCase
-from mock.mock import patch
+from unittest.mock import patch
 import sys
 
 from ambari_commons import OSCheck
@@ -31,7 +31,7 @@ from only_for_platform import (
   os_distro_value,
   PLATFORM_WINDOWS,
 )
-from mock.mock import MagicMock, patch, ANY, Mock
+from unittest.mock import MagicMock, patch, ANY, Mock
 
 with patch.object(
   OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value)

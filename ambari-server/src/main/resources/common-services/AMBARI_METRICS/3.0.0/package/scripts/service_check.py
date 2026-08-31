@@ -35,7 +35,7 @@ from ambari_commons.parallel_processing import (
 import http.client
 import ambari_commons.network as network
 import urllib.request, urllib.parse, urllib.error
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 import os
 import random
 import time

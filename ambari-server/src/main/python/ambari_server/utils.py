@@ -27,7 +27,6 @@ import time
 import glob
 import subprocess
 import logging
-import distro
 import platform
 import xml.etree.ElementTree as ET
 
@@ -390,9 +389,9 @@ XML_HEADER = """<?xml version="1.0"?>
 def update_latest_in_repoinfos_for_stacks(
   stacks_root, json_url_string, predicate=lambda stack_name: stack_name == "HDP"
 ):
-  for stack_name in os.walk(stacks_root).next()[1]:
+  for stack_name in next(os.walk(stacks_root))[1]:
     if predicate(stack_name):
-      for stack_version in os.walk(os.path.join(stacks_root, stack_name)).next()[1]:
+      for stack_version in next(os.walk(os.path.join(stacks_root, stack_name)))[1]:
         repoinfo_xml_path = os.path.join(
           stacks_root, stack_name, stack_version, "repos", "repoinfo.xml"
         )
@@ -408,9 +407,9 @@ def replace_latest(repoinfo_xml_path, json_url_string):
   if latest_tag is not None:
     latest_tag.text = json_url_string
 
-  with open(repoinfo_xml_path, "w") as out:
+  with open(repoinfo_xml_path, "w", encoding="utf-8") as out:
     out.write(XML_HEADER)
-    tree.write(out)
+    tree.write(out, encoding="unicode")
 
 
 # parse ambari repo file and get the value of '#json.url = http://...'

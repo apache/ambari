@@ -36,7 +36,7 @@ from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 import upgrade
 import os, errno
-import ambari_simplejson as json
+import json
 import setup_ranger_xml
 
 

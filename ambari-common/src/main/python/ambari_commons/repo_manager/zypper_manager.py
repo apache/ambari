@@ -85,6 +85,12 @@ class ZypperManagerProperties(GenericManagerProperties):
     "--queryformat",
     "%{version}-%{release}\n",
   ]
+  installed_package_names_command = [
+    pkg_manager_bin,
+    "-qa",
+    "--queryformat",
+    "%{name}\n",
+  ]
 
 
 class ZypperManager(GenericManager):
@@ -296,18 +302,13 @@ class ZypperManager(GenericManager):
     return enabled_repos
 
   def rpm_check_package_available(self, name):
-    import rpm  # this is faster then calling 'rpm'-binary externally.
-
-    ts = rpm.TransactionSet()
-    packages = ts.dbMatch()
-
     name_regex = re.escape(name).replace("\\?", ".").replace("\\*", ".*") + "$"
     regex = re.compile(name_regex)
+    result = shell.subprocess_executor(self.properties.installed_package_names_command)
 
-    for package in packages:
-      if regex.match(package["name"].decode()):
-        return True
-    return False
+    return result.code == 0 and any(
+      regex.match(package_name) for package_name in result.out.splitlines()
+    )
 
   def get_installed_package_version(self, package_name):
     version = None

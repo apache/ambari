@@ -263,8 +263,8 @@ def process_metainfo(file_path, config_data, stack_version_changes, common_servi
                   # Default: Update package version by replacing stack version in the package name
                   # Example (ex: falcon_2_2_* -> falcon_3_0_*, falcon-2-3-* -> falcon-3-1-*)
                   ####################################################################################################
-                  for packages_tag in service_tag.getiterator("packages"):
-                    for package_tag in packages_tag.getiterator("package"):
+                  for packages_tag in service_tag.iter("packages"):
+                    for package_tag in packages_tag.iter("package"):
                       name_tag = package_tag.find("name")
                       for base_version in stack_version_changes:
                         version = stack_version_changes[base_version]
@@ -364,7 +364,7 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
     root = tree.getroot()
     remove_list = list()
     if "family" in stack:
-      for os_tag in root.getiterator("os"):
+      for os_tag in root.iter("os"):
         os_family = os_tag.get("family")
         if os_family not in stack.family:
           remove_list.append(os_tag)
@@ -372,13 +372,13 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
       root.remove(os_tag)
 
     # Update all base urls
-    for baseurl_tag in root.getiterator("baseurl"):
+    for baseurl_tag in root.iter("baseurl"):
       baseurl_tag.text = "http://SET_REPO_URL"
     # Update latest url
-    for latest_tag in root.getiterator("latest"):
+    for latest_tag in root.iter("latest"):
       latest_tag.text = "http://SET_LATEST_REPO_URL_INFO"
     # Update repo ids
-    for repoid_tag in root.getiterator("repoid"):
+    for repoid_tag in root.iter("repoid"):
       repoid_tag.text = repoid_tag.text.replace(
         config_data.baseStackName, config_data.stackName
       )
@@ -387,7 +387,7 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
           baseVersion, stack_version_changes[baseVersion]
         )
     # Update repo name
-    for reponame_tag in root.getiterator("reponame"):
+    for reponame_tag in root.iter("reponame"):
       reponame_tag.text = reponame_tag.text.replace(
         config_data.baseStackName, config_data.stackName
       )

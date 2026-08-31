@@ -22,7 +22,7 @@ import signal
 import os
 import re
 
-import ambari_simplejson as json
+import json
 
 from ambari_commons.os_check import OSCheck
 from ambari_commons.shell import RepoCallContext

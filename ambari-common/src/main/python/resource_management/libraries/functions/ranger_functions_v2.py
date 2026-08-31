@@ -24,8 +24,7 @@ import urllib.request, urllib.error, urllib.parse
 import base64
 import http.client
 
-# simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import ambari_simplejson as json
+import json
 from io import StringIO as BytesIO
 from ambari_commons.inet_utils import openurl
 from resource_management.core.logger import Logger

@@ -22,7 +22,7 @@ from ambari_commons import import_utils as imp
 import os
 import sys
 import json
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from unittest import TestCase
 import urllib.request, urllib.parse, urllib.error
 

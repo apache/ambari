@@ -19,7 +19,7 @@ limitations under the License.
 
 import os
 from unittest import TestCase
-from mock.mock import patch
+from unittest.mock import patch
 from resource_management.libraries.functions.mpack_version import MpackVersion
 from resource_management.libraries.functions.module_version import ModuleVersion
 

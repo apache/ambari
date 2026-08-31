@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail

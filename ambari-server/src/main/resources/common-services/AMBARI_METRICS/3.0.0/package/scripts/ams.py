@@ -433,7 +433,7 @@ def ams(name=None, action=None):
         mode=0o644,
       )
 
-      # Remove spnego configs from core-site if platform does not have python-kerberos library
+      # AMS service checks and Grafana do not support SPNEGO yet.
       truncated_core_site = {}
       truncated_core_site.update(params.config["configurations"]["core-site"])
       if is_spnego_enabled(params):
@@ -467,14 +467,6 @@ def ams(name=None, action=None):
 
   elif name == "monitor":
     # TODO Uncomment when SPNEGO support has been added to AMS service check and Grafana.
-    if is_spnego_enabled(params) and is_redhat_centos_6_plus():
-      try:
-        import kerberos
-      except ImportError:
-        raise ImportError(
-          "python-kerberos package need to be installed to run AMS in SPNEGO mode"
-        )
-
     Directory(
       params.ams_monitor_conf_dir,
       owner=params.ams_user,

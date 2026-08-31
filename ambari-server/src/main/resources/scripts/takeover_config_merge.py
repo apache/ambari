@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import optparse
+import importlib
 import sys
 import os
 import logging
@@ -31,6 +32,13 @@ import xml.etree.ElementTree as ET
 import io
 import configparser
 from optparse import OptionGroup
+
+server_root = os.environ.get("ROOT") or os.sep
+server_lib_dir = os.path.join(server_root, "usr", "lib", "ambari-server", "lib")
+if os.path.isdir(server_lib_dir):
+  sys.path.insert(0, server_lib_dir)
+
+yaml = importlib.import_module("yaml")
 
 logger = logging.getLogger("AmbariTakeoverConfigMerge")
 
@@ -77,23 +85,23 @@ class ShParser(Parser):
 
 class YamlParser(Parser):  # Used Yaml parser to read data into a map
   def read_data_to_map(self, path):
-    try:
-      import yaml
-    except ImportError:
-      logger.error(
-        'Module PyYAML not installed. Please try to execute "pip install pyyaml" for installing PyYAML module.'
-      )
-      sys.exit(1)
-
     configurations = {}
-    with open(path, "r") as file:
+    with open(path, "r", encoding="utf-8") as file:
       try:
-        for name, value in yaml.load(file).items():
-          if name != None:
-            configurations[name] = str(value)
-      except:
+        yaml_data = yaml.safe_load(file)
+      except yaml.YAMLError:
         logger.error(f"Couldn't parse {path} file. Skipping ...")
         return None, None
+
+    if yaml_data is None:
+      return configurations, None
+    if not isinstance(yaml_data, dict):
+      logger.error(f"Expected a mapping at the top level of {path}. Skipping ...")
+      return None, None
+
+    for name, value in yaml_data.items():
+      if name is not None:
+        configurations[name] = str(value)
     return configurations, None
 
 
@@ -127,7 +135,7 @@ class XmlParser(Parser):  # Used DOM parser to read data into a map
     properties_attributes = {}
     tree = ET.parse(path)
     root = tree.getroot()
-    for properties in root.getiterator("property"):
+    for properties in root.iter("property"):
       name = properties.find("name")
       value = properties.find("value")
       # TODO support all properties attributes

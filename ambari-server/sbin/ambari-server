@@ -86,14 +86,12 @@ fi
 export AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
 
 # check for version
-majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
-minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
-numversion=$(( 10 * $majversion + $minversion))
-if (( $numversion < 26 )); then
-  echo "Need python version > 2.6"
+python_version=`"$PYTHON" -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>/dev/null` || python_version="unknown"
+if ! "$PYTHON" -c 'import sys; sys.exit(sys.version_info < (3, 9, 2))' >/dev/null 2>&1; then
+  echo "Found Python version ${python_version}. Ambari Server requires Python 3.9.2 or newer."
   exit 1
 fi
-echo "Using python " $PYTHON
+echo "Using Python $PYTHON"
 
 ret=0
 case "${1:-}" in

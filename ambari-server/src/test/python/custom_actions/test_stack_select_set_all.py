@@ -21,8 +21,8 @@ limitations under the License.
 import os
 import json
 
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from stacks.utils.RMFTestCase import experimental_mock
 

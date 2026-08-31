@@ -297,7 +297,6 @@ def main():
     os.path.join(ambari_server_folder, "../ambari-common")
   )
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python"))
-  sys.path.append(os.path.join(ambari_common_folder, "src/main/python/ambari_jinja2"))
   sys.path.append(os.path.join(ambari_common_folder, "src/test/python"))
   sys.path.append(os.path.join(ambari_agent_folder, "src/main/python"))
   sys.path.append(os.path.join(ambari_server_folder, "src/test/python"))

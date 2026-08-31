@@ -22,7 +22,7 @@ import logging
 import configparser
 import io
 from ambari_agent import hostname
-import ambari_simplejson as json
+import json
 import os
 import ssl
 

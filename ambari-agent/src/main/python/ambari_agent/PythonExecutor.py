@@ -24,7 +24,7 @@ import pprint
 import threading
 import sys
 
-import ambari_simplejson as json
+import json
 
 import subprocess
 from ambari_commons import shell

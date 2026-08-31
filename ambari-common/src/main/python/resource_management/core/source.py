@@ -32,6 +32,14 @@ import os
 import time
 import urllib.request, urllib.error, urllib.parse
 
+from jinja2 import (
+  BaseLoader,
+  Environment as JinjaEnvironment,
+  FunctionLoader,
+  StrictUndefined,
+  TemplateNotFound,
+)
+
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
@@ -88,86 +96,71 @@ class StaticFile(Source):
       return fp.read()
 
 
-try:
-  from ambari_jinja2 import (
-    Environment as JinjaEnvironment,
-    BaseLoader,
-    TemplateNotFound,
-    FunctionLoader,
-    StrictUndefined,
-  )
-except ImportError:
+class TemplateLoader(BaseLoader):
+  def __init__(self, env=None):
+    self.env = env or Environment.get_instance()
 
-  class Template(Source):
-    def __init__(self, name, variables=None, env=None):
-      raise Exception("Jinja2 required for Template/InlineTemplate")
+  def get_source(self, environment, template_name):
+    # absolute path
+    if template_name.startswith(os.path.sep):
+      path = template_name
+    # relative path
+    else:
+      basedir = self.env.config.basedir
+      path = os.path.join(basedir, "templates", template_name)
 
-  class InlineTemplate(Source):
-    def __init__(self, name, variables=None, env=None):
-      raise Exception("Jinja2 required for Template/InlineTemplate")
-else:
+    if not os.path.exists(path):
+      raise TemplateNotFound(f"{template_name} at {path}")
+    mtime = os.path.getmtime(path)
+    with open(path, "rt") as fp:
+      source = fp.read()
+    return source, path, lambda: mtime == os.path.getmtime(path)
 
-  class TemplateLoader(BaseLoader):
-    def __init__(self, env=None):
-      self.env = env or Environment.get_instance()
 
-    def get_source(self, environment, template_name):
-      # absolute path
-      if template_name.startswith(os.path.sep):
-        path = template_name
-      # relative path
-      else:
-        basedir = self.env.config.basedir
-        path = os.path.join(basedir, "templates", template_name)
+class Template(Source):
+  def __init__(self, name, extra_imports=None, **kwargs):
+    """
+    @param kwargs: Additional variables passed to template
+    """
+    super(Template, self).__init__(name)
+    params = self.env.config.params
+    variables = checked_unite(params, kwargs)
+    self.imports_dict = {
+      module.__name__: module for module in (extra_imports or [])
+    }
+    self.context = variables.copy() if variables else {}
+    if not hasattr(self, "template_env"):
+      self.template_env = JinjaEnvironment(
+        loader=TemplateLoader(self.env),
+        autoescape=False,
+        undefined=StrictUndefined,
+        trim_blocks=True,
+      )
 
-      if not os.path.exists(path):
-        raise TemplateNotFound(f"{template_name} at {path}")
-      mtime = os.path.getmtime(path)
-      with open(path, "rt") as fp:
-        source = fp.read()
-      return source, path, lambda: mtime == os.path.getmtime(path)
+    self.template = self.template_env.get_template(self.name)
 
-  class Template(Source):
-    def __init__(self, name, extra_imports=[], **kwargs):
-      """
-      @param kwargs: Additional variables passed to template
-      """
-      super(Template, self).__init__(name)
-      params = self.env.config.params
-      variables = checked_unite(params, kwargs)
-      self.imports_dict = dict((module.__name__, module) for module in extra_imports)
-      self.context = variables.copy() if variables else {}
-      if not hasattr(self, "template_env"):
-        self.template_env = JinjaEnvironment(
-          loader=TemplateLoader(self.env),
-          autoescape=False,
-          undefined=StrictUndefined,
-          trim_blocks=True,
-        )
+  def get_content(self):
+    default_variables = {
+      "env": self.env,
+      "repr": repr,
+      "str": str,
+      "bool": bool,
+      "unicode": str,
+    }
+    variables = checked_unite(default_variables, self.imports_dict)
+    self.context.update(variables)
 
-      self.template = self.template_env.get_template(self.name)
+    rendered = self.template.render(self.context)
+    return rendered
 
-    def get_content(self):
-      default_variables = {
-        "env": self.env,
-        "repr": repr,
-        "str": str,
-        "bool": bool,
-        "unicode": str,
-      }
-      variables = checked_unite(default_variables, self.imports_dict)
-      self.context.update(variables)
 
-      rendered = self.template.render(self.context)
-      return rendered
+class InlineTemplate(Template):
+  def __init__(self, name, extra_imports=None, **kwargs):
+    self.template_env = JinjaEnvironment(loader=FunctionLoader(lambda text: text))
+    super(InlineTemplate, self).__init__(name, extra_imports, **kwargs)
 
-  class InlineTemplate(Template):
-    def __init__(self, name, extra_imports=[], **kwargs):
-      self.template_env = JinjaEnvironment(loader=FunctionLoader(lambda text: text))
-      super(InlineTemplate, self).__init__(name, extra_imports, **kwargs)
-
-    def __repr__(self):
-      return "InlineTemplate(...)"
+  def __repr__(self):
+    return "InlineTemplate(...)"
 
 
 class DownloadSource(Source):

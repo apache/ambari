@@ -37,7 +37,7 @@ from only_for_platform import (
   os_distro_value,
   PLATFORM_WINDOWS,
 )
-from mock.mock import MagicMock, patch, ANY, Mock, call
+from unittest.mock import MagicMock, patch, ANY, Mock, call
 
 with patch.object(
   OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value)
@@ -159,7 +159,7 @@ class TestMain:  # (unittest.TestCase):
     signal_mock.assert_any_call(signal.SIGINT, HeartbeatHandlers.signal_handler)
     signal_mock.assert_any_call(signal.SIGTERM, HeartbeatHandlers.signal_handler)
 
-  @patch("distro.linux_distribution")
+  @patch("ambari_commons.os_check.linux_distribution")
   @patch("os.path.exists")
   @patch("configparser.RawConfigParser.read")
   def test_resolve_ambari_config(self, read_mock, exists_mock, platform_mock):

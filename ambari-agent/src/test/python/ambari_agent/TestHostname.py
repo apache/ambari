@@ -29,7 +29,7 @@ import socket
 import tempfile
 import shutil
 import os, pprint, json, stat
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from ambari_commons import OSCheck
 from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 

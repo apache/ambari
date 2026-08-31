@@ -22,7 +22,7 @@ limitations under the License.
 import os
 import sys
 import re
-import ambari_simplejson as json
+import json
 
 # Local Imports
 from resource_management.core.logger import Logger

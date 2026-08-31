@@ -61,20 +61,6 @@ else:
 status = AGENT_AUTO_RESTART_EXIT_CODE
 
 
-def check_native_libs_support():
-  not_loaded_extensions = []
-
-  from ambari_simplejson import c_extension
-
-  if not c_extension.is_loaded():
-    not_loaded_extensions.append("simplejson")
-
-  if not_loaded_extensions:
-    logger.warning(
-      f"Some native extensions not available for module(s): {','.join(not_loaded_extensions)}, it may affect execution performance"
-    )
-
-
 def main():
   global status
 
@@ -90,7 +76,6 @@ def main():
   merged_args = [python, AGENT_SCRIPT] + args
 
   while status == AGENT_AUTO_RESTART_EXIT_CODE:
-    check_native_libs_support()
     mainProcess = subprocess.Popen(merged_args)
     mainProcess.communicate()
     status = mainProcess.returncode

@@ -20,7 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 from alerts.ams_alert import AmsAlert
-from mock.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch
 from ambari_agent.AmbariConfig import AmbariConfig
 
 

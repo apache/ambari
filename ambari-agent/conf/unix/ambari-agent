@@ -171,24 +171,23 @@ export AMBARI_PASSPHRASE=${RESOLVED_AMBARI_PASSPHRASE}
 
 
 get_python_version(){
- python - <<EOF
+ "${PYTHON}" - <<EOF
 import sys
-ver = tuple(sys.version_info)
-print("{}{}".format(ver[0], ver[1]))
+print("{}.{}".format(sys.version_info[0], sys.version_info[1]))
 EOF
 }
 
 check_python_version ()
 {
   echo "Verifying Python version compatibility..."
-  local min_py_ver=27
-  local curr_py_ver=$(get_python_version)
+  local curr_py_ver
+  curr_py_ver=$(get_python_version)
 
-  if [ ${curr_py_ver} -lt ${min_py_ver} ]; then
-    print_error "Found Python version ${curr_py_ver:0:1}.${curr_py_ver:1:1}. Ambari Agent requires Python version > ${min_py_ver:0:1}.${min_py_ver:1:1}"
+  if ! "${PYTHON}" -c "import sys; sys.exit(sys.version_info < (3, 9, 2))"; then
+    print_error "Found Python version ${curr_py_ver}. Ambari Agent requires Python 3.9.2 or newer."
     return ${NOTOK}
   fi
-  echo "Using python " ${PYTHON}
+  echo "Using Python ${PYTHON}"
   return ${OK}
 }
 

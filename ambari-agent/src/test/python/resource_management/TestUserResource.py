@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock, PropertyMock
 
 from only_for_platform import (
   get_platform,

@@ -23,9 +23,9 @@ import subprocess
 import os
 import sys
 import AmbariConfig
-from mock.mock import MagicMock, patch, ANY
+from unittest.mock import MagicMock, patch, ANY
 
-with patch("distro.linux_distribution", return_value=("Suse", "11", "Final")):
+with patch("ambari_commons.os_check.linux_distribution", return_value=("Suse", "11", "Final")):
   from ambari_agent import AmbariAgent
 
 

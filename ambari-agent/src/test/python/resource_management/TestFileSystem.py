@@ -19,7 +19,7 @@ limitations under the License.
 
 import os
 from unittest import TestCase
-from mock.mock import patch
+from unittest.mock import patch
 
 from resource_management.libraries.functions import file_system
 import resource_management.core.providers.mount

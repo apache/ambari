@@ -37,8 +37,7 @@ $(pwd)/ambari-agent/src/test/python/ambari_agent:
 $(pwd)/ambari-common/src/main/python:
 $(pwd)/ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files:
 $(pwd)/ambari-server/src/test/python:
-$(pwd)/ambari-agent/src/test/python/resource_management:
-$(pwd)/ambari-common/src/main/python/ambari_jinja2
+$(pwd)/ambari-agent/src/test/python/resource_management
 """
 
 import re
@@ -199,9 +198,6 @@ if __name__ == "__main__":
     0, os.path.join(ambari_agent_dir, "src", "main", "python", "ambari_agent")
   )
   sys.path.insert(0, os.path.join(ambari_common_dir, "src", "main", "python"))
-  sys.path.insert(
-    0, os.path.join(ambari_common_dir, "src", "main", "python", "ambari_jinja2")
-  )
   sys.path.insert(0, os.path.join(ambari_common_dir, "src", "test", "python"))
 
   logger = logging.getLogger()

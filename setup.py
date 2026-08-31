@@ -23,7 +23,6 @@ from setuptools import find_packages, setup
 
 AMBARI_COMMON_PYTHON_FOLDER = "ambari-common/src/main/python"
 AMBARI_SERVER_TEST_PYTHON_FOLDER = "ambari-server/src/test/python"
-AMBARI_COMMON_TEST_PYTHON_FOLDER = "ambari-common/src/test/python"
 
 
 def get_ambari_common_packages():
@@ -39,10 +38,6 @@ def get_ambari_server_stack_package():
 def get_extra_common_packages():
   return [
     "urlinfo_processor",
-    "ambari_jinja2",
-    "ambari_jinja2._markupsafe",
-    "mock",
-    "mock.test",
   ]
 
 
@@ -59,15 +54,7 @@ def create_package_dir_map():
     package_dirs[ambari_server_package] = (
       AMBARI_SERVER_TEST_PYTHON_FOLDER + "/" + ambari_server_package.replace(".", "/")
     )
-  package_dirs["ambari_jinja2"] = (
-    AMBARI_COMMON_PYTHON_FOLDER + "/ambari_jinja2/ambari_jinja2"
-  )
-  package_dirs["ambari_jinja2._markupsafe"] = (
-    AMBARI_COMMON_PYTHON_FOLDER + "/ambari_jinja2/ambari_jinja2/_markupsafe"
-  )
   package_dirs["urlinfo_processor"] = AMBARI_COMMON_PYTHON_FOLDER + "/urlinfo_processor"
-  package_dirs["mock"] = AMBARI_COMMON_TEST_PYTHON_FOLDER + "/mock"
-  package_dirs["mock.test"] = AMBARI_COMMON_TEST_PYTHON_FOLDER + "/mock/tests"
 
   return package_dirs
 
@@ -131,7 +118,12 @@ setup(
   + get_ambari_server_stack_package()
   + get_extra_common_packages(),
   package_dir=create_package_dir_map(),
-  install_requires=["coilmq==1.0.1"],
+  python_requires=">=3.9.2",
+  install_requires=[
+    "cryptography==50.0.1",
+    "distro==1.9.0",
+    "Jinja2==3.1.6",
+  ],
   include_package_data=True,
   long_description="The Apache Ambari project is aimed at making Hadoop management simpler by developing software for provisioning, managing, and monitoring Apache Hadoop clusters. "
   "Ambari provides an intuitive, easy-to-use Hadoop management web UI backed by its RESTful APIs.",

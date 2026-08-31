@@ -22,8 +22,8 @@ import os
 import json
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 
 # Module imports
 from stacks.utils.RMFTestCase import *

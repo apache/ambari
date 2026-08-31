@@ -22,7 +22,7 @@
   <description>Ambari Server</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <python.ver>python &gt;= 2.6</python.ver>
+    <python.ver>python &gt;= 3.9.2</python.ver>
     <deb.architecture>amd64</deb.architecture>
     <custom.tests>false</custom.tests>
     <python.test.mask>[Tt]est*.py</python.test.mask>
@@ -30,10 +30,7 @@
     <hdpLatestUrl>https://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</hdpLatestUrl>
     <ambari_commons.install.dir>/usr/lib/ambari-server/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
-    <jinja.install.dir>/usr/lib/ambari-server/lib/ambari_jinja2</jinja.install.dir>
-    <simplejson.install.dir>/usr/lib/ambari-server/lib/ambari_simplejson</simplejson.install.dir>
-    <pbkdf2.install.dir>/usr/lib/ambari-server/lib/ambari_pbkdf2</pbkdf2.install.dir>
-    <pyaes.install.dir>/usr/lib/ambari-server/lib/ambari_pyaes</pyaes.install.dir>
+    <python.dependencies.dir>${project.build.directory}/python-dependencies</python.dependencies.dir>
     <swagger.spec.dir>${basedir}/docs/api/generated/</swagger.spec.dir>
     <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger/</swagger.generated.resources.dir>
     <ambari-web-dir>${basedir}/../ambari-web/target/classes</ambari-web-dir>
@@ -831,6 +828,52 @@
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
           <execution>
+            <id>clean-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-c</argument>
+                <argument>import shutil; shutil.rmtree(r"${python.dependencies.dir}", ignore_errors=True)</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bundle-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-m</argument>
+                <argument>pip</argument>
+                <argument>install</argument>
+                <argument>--disable-pip-version-check</argument>
+                <argument>--no-compile</argument>
+                <argument>--only-binary=:all:</argument>
+                <argument>--platform</argument>
+                <argument>${python.wheel.platform}</argument>
+                <argument>--python-version</argument>
+                <argument>${python.wheel.version}</argument>
+                <argument>--implementation</argument>
+                <argument>${python.wheel.implementation}</argument>
+                <argument>--abi</argument>
+                <argument>${python.wheel.abi}</argument>
+                <argument>--require-hashes</argument>
+                <argument>--upgrade</argument>
+                <argument>--target</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--requirement</argument>
+                <argument>${project.basedir}/src/main/python/requirements.lock</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
             <configuration>
               <executable>${executable.python}</executable>
               <workingDirectory>src/test/python</workingDirectory>
@@ -840,7 +883,7 @@
                 <argument>${python.test.mask}</argument>
               </arguments>
               <environmentVariables>
-                  <PYTHONPATH>${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                  <PYTHONPATH>${python.dependencies.dir}${pathsep}${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
               </environmentVariables>
               <skip>${skipPythonTests}</skip>
             </configuration>
@@ -1010,7 +1053,7 @@
         <executable.shell>cmd</executable.shell>
         <fileextension.shell>cmd</fileextension.shell>
         <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
-        <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_jinja2;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari-server-state;${project.basedir}\src\main\resources\custom_actions\scripts;${project.basedir}\src\main\resources\scripts;${project.basedir}\src\test\python</path.python.1>
+        <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\resources\custom_actions\scripts;${project.basedir}\src\main\resources\scripts;${project.basedir}\src\test\python</path.python.1>
         <assemblydescriptor>src/main/assemblies/server-windows.xml</assemblydescriptor>
         <assemblybootstrap>src/main/assemblies/bootstrap-windows.xml</assemblybootstrap>
         <assemblychocodescriptor>src/main/assemblies/server-windows-choco.xml</assemblychocodescriptor>
@@ -1113,7 +1156,7 @@
         <executable.shell>sh</executable.shell>
         <fileextension.shell>sh</fileextension.shell>
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
-        <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/main/resources/custom_actions:${project.basedir}/src/main/resources/scripts:${project.basedir}/src/test/python</path.python.1>
+        <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/resources/custom_actions:${project.basedir}/src/main/resources/scripts:${project.basedir}/src/test/python</path.python.1>
         <assemblydescriptor>src/main/assemblies/server.xml</assemblydescriptor>
       </properties>
     </profile>

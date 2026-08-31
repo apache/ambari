@@ -29,7 +29,7 @@ import status_params
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.credential_store_helper import get_password_from_credential_store
 from ambari_commons.os_check import OSCheck
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 from resource_management.core.exceptions import Fail
 from resource_management.core.shell import checked_call
 from resource_management.core.utils import PasswordString

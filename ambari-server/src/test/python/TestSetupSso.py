@@ -19,12 +19,12 @@ limitations under the License.
 
 import os
 import platform
-import distro
+from ambari_commons import os_check
 import sys
 import unittest
 import io
 
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 
 from only_for_platform import os_distro_value
 from ambari_commons import os_utils
@@ -71,7 +71,7 @@ def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
 os_utils.search_file = search_file_proxy
 
 with patch.object(
-  distro,
+  os_check,
   "linux_distribution",
   return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
 ):
@@ -82,7 +82,10 @@ with patch.object(
         "parse_log4j_file",
         return_value={"ambari.log.dir": "/var/log/ambari-server"},
       ):
-        with patch("distro.linux_distribution", return_value=os_distro_value):
+        with patch(
+          "ambari_commons.os_check.linux_distribution",
+          return_value=os_distro_value,
+        ):
           with patch("os.symlink"):
             with patch.object(os_utils, "is_service_exist", return_value=True):
               with patch("glob.glob", return_value=["/etc/init.d/postgresql-9.3"]):

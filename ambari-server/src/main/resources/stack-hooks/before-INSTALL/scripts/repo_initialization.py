@@ -26,7 +26,7 @@ from resource_management.libraries.functions.repository_util import (
 )
 from resource_management.libraries.script.script import Script
 from resource_management.core.logger import Logger
-import ambari_simplejson as json
+import json
 
 
 def _alter_repo(action, repo_dicts, repo_template):

@@ -29,7 +29,7 @@ import os
 
 from ambari_agent.PythonExecutor import PythonExecutor
 from ambari_agent.AmbariConfig import AmbariConfig
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 

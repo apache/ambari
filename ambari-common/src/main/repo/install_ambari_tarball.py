@@ -53,6 +53,13 @@ FILES_TO_DOWNLOAD = [
 ROOT_FOLDER_ENV_VARIABLE = "RPM_INSTALL_PREFIX"
 
 
+def dependency_property_names(property_prefix, os_family, os_version):
+  family_versions = [
+    f"{os_family}{version}" for version in range(int(os_version), 0, -1)
+  ]
+  return [f"{property_prefix}{postfix}" for postfix in family_versions + [os_family, ""]]
+
+
 class Utils:
   verbose = False
 
@@ -180,18 +187,16 @@ class Installer:
     is_rpm = not OSCheck.is_ubuntu_family()
     property_prefix = RPM_DEPENDENCIES_PROPERTY if is_rpm else DEB_DEPENDENCIES_PROPERTY
 
-    cp = configparser.SafeConfigParser()
-    with open(OS_PACKAGE_DEPENDENCIES) as fp:
+    cp = configparser.ConfigParser()
+    with open(OS_PACKAGE_DEPENDENCIES, encoding="utf-8") as fp:
       cp.read_file(FakePropertiesHeader(fp))
 
     properties = dict(cp.items(FakePropertiesHeader.FAKE_SECTION_NAME))
 
     packages_string = None
-    postfixes = [
-      os_family + str(ver) for ver in range(int(os_version), 0, -1) + [""]
-    ] + [""]
-    for postfix in postfixes:
-      property_name = property_prefix + postfix
+    for property_name in dependency_property_names(
+      property_prefix, os_family, os_version
+    ):
       if property_name in properties:
         packages_string = properties[property_name]
         break
@@ -200,12 +205,13 @@ class Installer:
       err_msg = "No os dependencies found. "
       if self.skip_dependencies:
         logger.warning(err_msg)
+        return
       else:
         raise Exception(err_msg)
 
-    packages_string = re.sub("Requires\s*:", "", packages_string)
+    packages_string = re.sub(r"Requires\s*:", "", packages_string)
     packages_string = re.sub("\\\\n", "", packages_string)
-    packages_string = re.sub("\s", "", packages_string)
+    packages_string = re.sub(r"\s", "", packages_string)
     packages_string = re.sub("[()]", "", packages_string)
 
     if self.skip_dependencies:

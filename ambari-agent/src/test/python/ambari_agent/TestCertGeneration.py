@@ -28,7 +28,7 @@ from unittest import TestCase
 
 from ambari_agent.security import CertificateManager
 from ambari_agent import AmbariConfig
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 

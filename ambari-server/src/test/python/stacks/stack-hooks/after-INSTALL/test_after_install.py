@@ -21,7 +21,7 @@ limitations under the License.
 
 import json
 
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import conf_select

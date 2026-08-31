@@ -26,8 +26,6 @@ AMBARI_AGENT_ROOT_DIR="/usr/lib/${AMBARI_UNIT}"
 AMBARI_SERVER_ROOT_DIR="/usr/lib/ambari-server"
 COMMON_DIR="${AMBARI_AGENT_ROOT_DIR}/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR="${AMBARI_AGENT_ROOT_DIR}/lib/resource_management"
-JINJA_DIR="${AMBARI_AGENT_ROOT_DIR}/lib/ambari_jinja2"
-SIMPLEJSON_DIR="${AMBARI_AGENT_ROOT_DIR}/lib/ambari_simplejson"
 OLD_OLD_COMMON_DIR="${AMBARI_AGENT_ROOT_DIR}/lib/common_functions"
 AMBARI_AGENT="${AMBARI_AGENT_ROOT_DIR}/lib/ambari_agent"
 PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
@@ -39,7 +37,7 @@ AMBARI_HELPER="/var/lib/ambari-agent/install-helper.sh.orig"
 
 LOG_FILE=/dev/null
 
-CLEANUP_MODULES="resource_management;ambari_commons;ambari_agent;ambari_ws4py;ambari_stomp;ambari_jinja2;ambari_simplejson"
+CLEANUP_MODULES="resource_management;ambari_commons;ambari_agent;ambari_ws4py;ambari_stomp;ambari_jinja2;ambari_simplejson;ambari_pbkdf2;ambari_pyaes"
 
 OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/ambari_commons"
 OLD_RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
@@ -119,10 +117,10 @@ install_autostart(){
 }
 
 locate_python(){
-  local python_binaries="/usr/bin/python;/usr/bin/python3;/usr/bin/python3.9"
+  local python_binaries="/usr/bin/python3.9;/usr/bin/python3"
 
   echo ${python_binaries}| tr ';' '\n' | while read python_binary; do
-    ${python_binary} -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (3,0)))" 1>>${LOG_FILE} 2>/dev/null
+    ${python_binary} -c "import sys ; sys.exit(sys.version_info < (3, 9, 2))" 1>>${LOG_FILE} 2>/dev/null
 
     if [ $? -eq 0 ]; then
       echo "${python_binary}"
@@ -163,7 +161,7 @@ do_install(){
   local upgrade_agent_configs_script=/var/lib/ambari-agent/upgrade_agent_configs.py
 
   if [ -z "${ambari_python}" ] ; then
-    >&2 echo "Cannot detect python for Ambari to use. Please manually set ${PYTHON_WRAPER_TARGET} link to point to correct python binary"
+    >&2 echo "Cannot detect Python 3.9.2 or newer for Ambari. Please install a supported Python runtime or manually set ${PYTHON_WRAPER_TARGET}."
     >&2 echo "Cannot upgrade agent configs because python for Ambari is not configured. The old config file is saved as ${bak} . Execution of ${upgrade_agent_configs_script} was skipped."
   else
     ln -s "${ambari_python}" "${PYTHON_WRAPER_TARGET}"

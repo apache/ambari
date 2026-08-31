@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from only_for_platform import (
   get_platform,
   not_for_platform,
@@ -44,7 +44,7 @@ from resource_management.core.source import DownloadSource
 from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
 
-from ambari_jinja2 import UndefinedError, TemplateNotFound
+from jinja2 import TemplateNotFound, UndefinedError
 import urllib.request, urllib.error, urllib.parse
 
 

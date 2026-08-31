@@ -21,11 +21,7 @@ import sys
 
 sys.path.append(
   "/usr/lib/ambari-server/lib/"
-)  # this file can be run with python3 that why we need this
-
-# On Linux, the bootstrap process is supposed to run on hosts that may have installed Python 2.4 and above (CentOS 5).
-# Hence, the whole bootstrap code needs to comply with Python 2.4 instead of Python 2.6. Most notably, @-decorators and
-# {}-format() are to be avoided.
+)  # Bootstrap also runs directly through the configured Ambari Python runtime.
 
 import time
 import logging
@@ -815,7 +811,7 @@ class BootstrapDefault(Bootstrap):
     port = self.getAmbariPort()
     passwordFile = self.getPasswordFile()
     return (
-      f"{AMBARI_SUDO} -S python3 "
+      f"{AMBARI_SUDO} -S /usr/bin/ambari-python-wrap "
       + str(setupFile)
       + " "
       + str(expected_hostname)
@@ -841,7 +837,7 @@ class BootstrapDefault(Bootstrap):
     version = self.getAmbariVersion()
     port = self.getAmbariPort()
     return (
-      f"{AMBARI_SUDO} python3 "
+      f"{AMBARI_SUDO} /usr/bin/ambari-python-wrap "
       + str(setupFile)
       + " "
       + str(expected_hostname)
@@ -910,9 +906,9 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("Checking 'sudo' package on remote host...")
     params = self.shared_state
     if OSCheck.is_ubuntu_family():
-      command = "dpkg --get-selections|grep -e '^sudo\s*install'"
+      command = "dpkg --get-selections|grep -e '^sudo\\s*install'"
     else:
-      command = "rpm -qa | grep -e '^sudo\-'"
+      command = "rpm -qa | grep -e '^sudo\\-'"
     command = '[ "$EUID" -eq 0 ] || ' + command
     ssh = SSH(
       params.user,

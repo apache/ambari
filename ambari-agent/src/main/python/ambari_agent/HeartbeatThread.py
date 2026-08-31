@@ -40,7 +40,7 @@ from ambari_agent.listeners.AlertDefinitionsEventListener import (
 )
 from ambari_agent.listeners.EncryptionKeyListener import EncryptionKeyListener
 from ambari_agent import security
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 
 HEARTBEAT_INTERVAL = 10
 REQUEST_RESPONSE_TIMEOUT = 10

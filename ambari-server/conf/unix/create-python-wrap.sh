@@ -21,10 +21,10 @@ PYTHON_WRAPER_TARGET="${PYTHON_WRAPER_DIR}/ambari-python-wrap"
 rm -f "$PYTHON_WRAPER_TARGET"
 
 AMBARI_PYTHON=""
-python_binaries=("/usr/bin/python3" "/usr/bin/python3.9" )
+python_binaries=("/usr/bin/python3.9" "/usr/bin/python3")
 for python_binary in "${python_binaries[@]}"
 do
-  $python_binary -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (3,0)))" 1>/dev/null 2>/dev/null
+  $python_binary -c "import sys ; sys.exit(sys.version_info < (3, 9, 2))" 1>/dev/null 2>/dev/null
 
   if [ $? -eq 0 ] ; then
     AMBARI_PYTHON="$python_binary"
@@ -33,7 +33,7 @@ do
 done
 
 if [ -z "$AMBARI_PYTHON" ] ; then
-  >&2 echo "Cannot detect python for ambari to use. Please manually set $PYTHON_WRAPER link to point to correct python binary"
+  >&2 echo "Cannot detect Python 3.9.2 or newer for Ambari. Please install a supported Python runtime or manually set $PYTHON_WRAPER_TARGET."
 else
   mkdir -p "$PYTHON_WRAPER_DIR"
   ln -s "$AMBARI_PYTHON" "$PYTHON_WRAPER_TARGET"

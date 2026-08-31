@@ -20,7 +20,7 @@ limitations under the License.
 
 import status_params
 import utils
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 import os
 import re
 

@@ -29,7 +29,7 @@ __all__ = [
 # Python Imports
 import os
 import subprocess
-import ambari_simplejson as json
+import json
 
 # Local Imports
 from resource_management.core import shell

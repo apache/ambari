@@ -30,9 +30,9 @@ import pprint
 from xml.dom import minidom
 
 from unittest import TestCase
-from mock.mock import MagicMock, call
-from mock.mock import patch
-from mock.mock import create_autospec
+from unittest.mock import MagicMock, call
+from unittest.mock import patch
+from unittest.mock import create_autospec
 from only_for_platform import (
   get_platform,
   not_for_platform,

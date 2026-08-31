@@ -27,8 +27,7 @@ __all__ = [
   "CONF_SELECTOR_NAME",
 ]
 
-# simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import ambari_simplejson as json
+import json
 
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger

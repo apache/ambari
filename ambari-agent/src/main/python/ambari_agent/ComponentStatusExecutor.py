@@ -26,7 +26,7 @@ from ambari_agent.Utils import Utils
 from collections import defaultdict
 
 from ambari_agent.models.commands import AgentCommand
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 from resource_management.libraries.functions.default import default
 
 

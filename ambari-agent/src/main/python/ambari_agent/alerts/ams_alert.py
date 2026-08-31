@@ -24,7 +24,7 @@ from ambari_commons import import_utils as imp
 import time
 from alerts.metric_alert import MetricAlert, REALCODE_REGEXP
 import urllib.request, urllib.parse, urllib.error
-import ambari_simplejson as json
+import json
 import logging
 import re
 import uuid

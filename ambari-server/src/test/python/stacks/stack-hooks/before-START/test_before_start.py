@@ -19,13 +19,16 @@ limitations under the License.
 """
 
 from stacks.utils.RMFTestCase import *
-from mock.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, call, patch
 from resource_management import Hook
 from resource_management.core.exceptions import Fail
 import json
 
 
-@patch("distro.linux_distribution", new=MagicMock(return_value="Linux"))
+@patch(
+  "ambari_commons.os_check.linux_distribution",
+  new=MagicMock(return_value="Linux"),
+)
 @patch("os.path.exists", new=MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook", new=MagicMock())
 class TestHookBeforeStart(RMFTestCase):

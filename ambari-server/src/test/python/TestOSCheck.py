@@ -17,7 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import distro
+from ambari_commons import os_check
+import json
 import platform
 import datetime
 import os
@@ -25,8 +26,8 @@ import errno
 import tempfile
 import sys
 from unittest import TestCase
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from only_for_platform import os_distro_value, os_distro_value_linux
 
@@ -55,7 +56,10 @@ with patch("os.path.isdir", return_value=MagicMock(return_value=True)):
       "parse_log4j_file",
       return_value={"ambari.log.dir": "/var/log/ambari-server"},
     ):
-      with patch("distro.linux_distribution", return_value=os_distro_value_linux):
+      with patch(
+        "ambari_commons.os_check.linux_distribution",
+        return_value=os_distro_value_linux,
+      ):
         with patch.object(OSCheck, "os_distribution", return_value=os_distro_value):
           with patch.object(os_utils, "is_service_exist", return_value=True):
             with patch.object(utils, "get_postgre_hba_dir"):
@@ -68,8 +72,52 @@ with patch("os.path.isdir", return_value=MagicMock(return_value=True)):
               )
 
 
+class TestLinuxDistribution(TestCase):
+  @patch("ambari_commons.os_check.distro.codename", return_value="Blue Onyx")
+  @patch("ambari_commons.os_check.distro.version", return_value="9.5")
+  @patch("ambari_commons.os_check.distro.id", return_value="rocky")
+  def test_uses_supported_distro_api(self, id_mock, version_mock, codename_mock):
+    self.assertEqual(
+      os_check.linux_distribution(), ("rocky", "9.5", "Blue Onyx")
+    )
+
+
+class TestOSFamilyData(TestCase):
+  def _write_resource(self, content):
+    file_descriptor, path = tempfile.mkstemp()
+    self.addCleanup(os.unlink, path)
+    with os.fdopen(file_descriptor, "w", encoding="utf-8") as stream:
+      stream.write(content)
+    return path
+
+  def test_loads_valid_json_resource(self):
+    path = self._write_resource(
+      '{"mapping": {"redhat": {"distro": ["rocky"]}}, "aliases": {}}'
+    )
+
+    self.assertEqual(
+      os_check._load_os_family_data(path)["mapping"]["redhat"]["distro"],
+      ["rocky"],
+    )
+
+  def test_rejects_malformed_json_resource(self):
+    path = self._write_resource("{'mapping': {}}")
+
+    with self.assertRaises(json.JSONDecodeError):
+      os_check._load_os_family_data(path)
+
+  def test_rejects_non_mapping_json_structures(self):
+    invalid_resources = ("[]", '{"mapping": []}')
+
+    for content in invalid_resources:
+      with self.subTest(content=content):
+        path = self._write_resource(content)
+        with self.assertRaises(ValueError):
+          os_check._load_os_family_data(path)
+
+
 @patch.object(
-  distro, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
+  os_check, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
 )
 class TestOSCheck(TestCase):
   @patch.object(OSCheck, "os_distribution")

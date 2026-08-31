@@ -23,9 +23,9 @@ import logging
 import unittest
 import socket
 import platform
-from mock.mock import patch
-from mock.mock import MagicMock
-from mock.mock import create_autospec
+from unittest.mock import patch
+from unittest.mock import MagicMock
+from unittest.mock import create_autospec
 import ambari_commons
 from ambari_commons import OSCheck
 import os

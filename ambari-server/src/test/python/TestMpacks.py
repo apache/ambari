@@ -20,8 +20,8 @@ limitations under the License.
 import logging
 import os
 import platform
-import distro
-from mock.mock import patch, MagicMock, call
+from ambari_commons import os_check
+from unittest.mock import patch, MagicMock, call
 from unittest import TestCase
 from ambari_commons.exceptions import FatalException
 import importlib
@@ -51,7 +51,7 @@ shutil.copyfile(
 _search_file = os_utils.search_file
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
 with patch.object(
-  distro,
+  os_check,
   "linux_distribution",
   return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
 ):
@@ -62,7 +62,10 @@ with patch.object(
         "parse_log4j_file",
         return_value={"ambari.log.dir": "/var/log/ambari-server"},
       ):
-        with patch("distro.linux_distribution", return_value=os_distro_value):
+        with patch(
+          "ambari_commons.os_check.linux_distribution",
+          return_value=os_distro_value,
+        ):
           with patch("os.symlink"):
             with patch.object(os_utils, "is_service_exist", return_value=True):
               with patch("glob.glob", return_value=["/etc/init.d/postgresql-9.3"]):

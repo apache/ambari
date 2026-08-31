@@ -21,7 +21,7 @@ limitations under the License.
 import logging
 import threading
 from collections import defaultdict
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
 
 logger = logging.getLogger(__name__)

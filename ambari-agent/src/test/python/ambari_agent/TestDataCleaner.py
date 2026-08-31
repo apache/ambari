@@ -20,7 +20,7 @@ limitations under the License.
 """
 
 import unittest
-from mock.mock import patch, MagicMock, call, Mock
+from unittest.mock import patch, MagicMock, call, Mock
 from ambari_agent import DataCleaner
 from ambari_agent import AmbariConfig
 import os

@@ -21,7 +21,7 @@ limitations under the License.
 __all__ = ["setup_ranger_plugin", "get_audit_configs", "generate_ranger_service_config"]
 
 import os
-import ambari_simplejson as json
+import json
 from datetime import datetime
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.resources import File, Directory, Execute

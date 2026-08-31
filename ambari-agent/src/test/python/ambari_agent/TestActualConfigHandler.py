@@ -22,11 +22,11 @@ import tempfile
 from unittest import TestCase
 import os
 import logging
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 
-with patch("distro.linux_distribution", return_value=("Suse", "11", "Final")):
+with patch("ambari_commons.os_check.linux_distribution", return_value=("Suse", "11", "Final")):
   from ambari_agent.AmbariConfig import AmbariConfig
   from ambari_agent.ActualConfigHandler import ActualConfigHandler
 

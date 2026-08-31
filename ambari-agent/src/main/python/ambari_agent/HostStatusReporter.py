@@ -24,7 +24,7 @@ from ambari_agent import Constants
 from ambari_agent.HostInfo import HostInfo
 from ambari_agent.Utils import Utils
 from ambari_agent.Hardware import Hardware
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger(__name__)
 

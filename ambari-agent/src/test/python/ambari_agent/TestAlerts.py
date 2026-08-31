@@ -35,12 +35,12 @@ from ambari_agent.alerts.port_alert import PortAlert
 from ambari_agent.alerts.script_alert import ScriptAlert
 from ambari_agent.alerts.web_alert import WebAlert
 from ambari_agent.alerts.recovery_alert import RecoveryAlert
-from ambari_agent.apscheduler.scheduler import Scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 
 from collections import namedtuple
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from unittest import TestCase
 
 from ambari_agent.AmbariConfig import AmbariConfig
@@ -58,8 +58,8 @@ class TestAlerts(TestCase):
   def tearDown(self):
     sys.stdout == sys.__stdout__
 
-  @patch.object(Scheduler, "add_interval_job")
-  @patch.object(Scheduler, "start")
+  @patch.object(BackgroundScheduler, "add_job")
+  @patch.object(BackgroundScheduler, "start")
   def test_start(self, aps_add_interval_job_mock, aps_start_mock):
     test_file_path = os.path.join("ambari_agent", "dummy_files")
     test_stack_path = os.path.join("ambari_agent", "dummy_files")
@@ -828,7 +828,7 @@ class TestAlerts(TestCase):
     ash.schedule_definition(pa)
 
     # verify enabled alert was scheduled
-    self.assertEqual(3, ash.get_job_count())
+    self.assertEqual(2, ash.get_job_count())
 
   def test_immediate_alert(self):
     test_file_path = os.path.join("ambari_agent", "dummy_files")

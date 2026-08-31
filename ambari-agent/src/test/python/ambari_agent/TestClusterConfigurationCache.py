@@ -23,7 +23,7 @@ import sys
 
 from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
 
-from mock.mock import MagicMock, patch, mock_open, ANY
+from unittest.mock import MagicMock, patch, mock_open, ANY
 from unittest import TestCase
 
 
@@ -53,7 +53,7 @@ class TestClusterConfigurationCache:  # (TestCase):
     self.assertEqual("bar", cluster_configuration["0"]["foo-site"]["foo"])
     self.assertEqual("baz", cluster_configuration["0"]["foo-site"]["foobar"])
 
-  @patch("ambari_simplejson.dump")
+  @patch("json.dump")
   def test_cluster_configuration_update(self, json_dump_mock):
     cluster_configuration = self.__get_cluster_configuration()
 

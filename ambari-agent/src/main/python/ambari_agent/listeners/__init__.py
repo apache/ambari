@@ -17,12 +17,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ambari_simplejson as json
-import ambari_stomp
+import json
 import logging
 import traceback
 import copy
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from stomp.listener import ConnectionListener
+
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
 from ambari_agent.Utils import Utils
 from queue import Queue
@@ -31,7 +32,7 @@ import threading
 logger = logging.getLogger(__name__)
 
 
-class EventListener(ambari_stomp.ConnectionListener):
+class EventListener(ConnectionListener):
   unprocessed_messages_queue = Queue(100)
 
   """
@@ -64,12 +65,18 @@ class EventListener(ambari_stomp.ConnectionListener):
         else:
           self.report_status_to_sender(headers, message)
 
-  def on_message(self, headers, message):
+  def on_message(self, frame, message=None):
     """
     This method is triggered by stomp when message from serve is received.
 
     Here we handle some decode the message to json and check if it addressed to this specific event listener.
     """
+    if message is None:
+      headers = frame.headers
+      message = frame.body
+    else:
+      headers = frame
+
     if not "destination" in headers:
       logger.warning(
         "Received event from server which does not contain 'destination' header"

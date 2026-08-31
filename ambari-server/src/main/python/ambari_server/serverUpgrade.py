@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 import os
 import sys
 import shutil
@@ -28,7 +28,7 @@ import re
 import glob
 import optparse
 import logging
-import ambari_simplejson as json
+import json
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import (

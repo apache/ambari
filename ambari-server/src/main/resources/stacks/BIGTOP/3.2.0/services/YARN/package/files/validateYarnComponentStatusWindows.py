@@ -20,7 +20,7 @@ limitations under the License.
 
 import optparse
 import subprocess
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 import urllib.request, urllib.error, urllib.parse
 
 RESOURCEMANAGER = "rm"

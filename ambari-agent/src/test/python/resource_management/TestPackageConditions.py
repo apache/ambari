@@ -20,7 +20,7 @@ under the License.
 
 from unittest import TestCase
 
-from mock.mock import patch
+from unittest.mock import patch
 
 from resource_management.libraries.functions import package_conditions
 

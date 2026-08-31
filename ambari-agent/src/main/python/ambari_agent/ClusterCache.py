@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 import logging
-import ambari_simplejson as json
+import json
 import os
 import threading
 from collections import defaultdict

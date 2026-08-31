@@ -37,13 +37,8 @@
     <agent.install.dir>/usr/lib/ambari-agent/lib/ambari_agent</agent.install.dir>
     <ambari_commons.install.dir>/usr/lib/ambari-agent/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-agent/lib/resource_management</resource_management.install.dir>
-    <jinja.install.dir>/usr/lib/ambari-agent/lib/ambari_jinja2</jinja.install.dir>
-    <simplejson.install.dir>/usr/lib/ambari-agent/lib/ambari_simplejson</simplejson.install.dir>
-    <stomp.install.dir>/usr/lib/ambari-agent/lib/ambari_stomp</stomp.install.dir>
-    <ws4py.install.dir>/usr/lib/ambari-agent/lib/ambari_ws4py</ws4py.install.dir>
-    <pbkdf2.install.dir>/usr/lib/ambari-agent/lib/ambari_pbkdf2</pbkdf2.install.dir>
-    <pyaes.install.dir>/usr/lib/ambari-agent/lib/ambari_pyaes</pyaes.install.dir>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
+    <python.dependencies.dir>${project.build.directory}/python-dependencies</python.dependencies.dir>
     <deb.architecture>amd64</deb.architecture>
     <ambari.server.module>../ambari-server</ambari.server.module>
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
@@ -324,6 +319,78 @@
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
           <execution>
+            <id>clean-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-c</argument>
+                <argument>import shutil; shutil.rmtree(r"${python.dependencies.dir}", ignore_errors=True)</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bundle-python-binary-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-m</argument>
+                <argument>pip</argument>
+                <argument>install</argument>
+                <argument>--disable-pip-version-check</argument>
+                <argument>--no-compile</argument>
+                <argument>--no-deps</argument>
+                <argument>--only-binary=:all:</argument>
+                <argument>--platform</argument>
+                <argument>${python.wheel.platform}</argument>
+                <argument>--python-version</argument>
+                <argument>${python.wheel.version}</argument>
+                <argument>--implementation</argument>
+                <argument>${python.wheel.implementation}</argument>
+                <argument>--abi</argument>
+                <argument>${python.wheel.abi}</argument>
+                <argument>--require-hashes</argument>
+                <argument>--upgrade</argument>
+                <argument>--target</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--requirement</argument>
+                <argument>${project.basedir}/src/main/python/requirements.lock</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bundle-python-sdist-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-m</argument>
+                <argument>pip</argument>
+                <argument>install</argument>
+                <argument>--disable-pip-version-check</argument>
+                <argument>--no-compile</argument>
+                <argument>--no-deps</argument>
+                <argument>--no-binary=:all:</argument>
+                <argument>--require-hashes</argument>
+                <argument>--upgrade</argument>
+                <argument>--target</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--requirement</argument>
+                <argument>${project.basedir}/src/main/python/requirements-sdist.lock</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
             <configuration>
               <executable>${executable.python}</executable>
               <workingDirectory>src/test/python</workingDirectory>
@@ -332,7 +399,7 @@
                 <argument>${python.test.mask}</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                <PYTHONPATH>${python.dependencies.dir}${pathsep}${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
               </environmentVariables>
               <skip>${skipPythonTests}</skip>
             </configuration>
@@ -397,6 +464,7 @@
           <description>Maven Recipe: RPM Package.</description>
           <defineStatements>
             <defineStatement>__python 3</defineStatement>
+            <defineStatement>__brp_mangle_shebangs %{nil}</defineStatement>
           </defineStatements>
           <requires>
             <require>${rpm.dependency.list}</require>
@@ -746,7 +814,6 @@
             <exclude>src/test/python/ambari_agent/dummy_files/*</exclude>
             <exclude>src/test/python/ambari_agent/dummy*.txt</exclude>
             <exclude>src/main/python/ambari_agent/imports.txt</exclude>
-            <exclude>src/main/python/ambari_agent/apscheduler/**</exclude>
             <exclude>**/*.erb</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
@@ -803,7 +870,7 @@
       <executable.shell>cmd</executable.shell>
       <fileextension.shell>cmd</fileextension.shell>
       <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
-      <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_jinja2;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari_agent;${project.basedir}\src\main\python\resource_management;${project.basedir}\src\test\python;${project.basedir}\src\test\python\ambari_agent;${project.basedir}\src\test\python\resource_management;${project.basedir}\..\ambari-server\src\test\python;${project.basedir}\..\ambari-server\src\main\resources\common-services\HDFS\2.1.0.2.0\package\files</path.python.1>
+      <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari_agent;${project.basedir}\src\main\python\resource_management;${project.basedir}\src\test\python;${project.basedir}\src\test\python\ambari_agent;${project.basedir}\src\test\python\resource_management;${project.basedir}\..\ambari-server\src\test\python;${project.basedir}\..\ambari-server\src\main\resources\common-services\HDFS\2.1.0.2.0\package\files</path.python.1>
      </properties>
     </profile>
     <profile>
@@ -822,7 +889,7 @@
       <executable.shell>sh</executable.shell>
       <fileextension.shell>sh</fileextension.shell>
       <fileextension.dot.shell-default></fileextension.dot.shell-default>
-      <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/../ambari-server/src/test/python:${project.basedir}/../ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files</path.python.1>
+      <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/../ambari-server/src/test/python:${project.basedir}/../ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files</path.python.1>
      </properties>
     </profile>
     <profile>

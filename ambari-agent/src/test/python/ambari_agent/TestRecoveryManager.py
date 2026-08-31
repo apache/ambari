@@ -22,7 +22,7 @@ from unittest import TestCase
 import copy
 import tempfile
 from ambari_agent.RecoveryManager import RecoveryManager
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 
 
 class _TestRecoveryManager(TestCase):

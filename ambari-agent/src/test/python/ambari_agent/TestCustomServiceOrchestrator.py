@@ -34,7 +34,7 @@ import time
 import traceback
 from threading import Thread
 
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 import io
 import sys
 

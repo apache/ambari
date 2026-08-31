@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 from stacks.utils.RMFTestCase import *
-from mock.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, call, patch
 from resource_management import Hook
 import itertools
 import getpass

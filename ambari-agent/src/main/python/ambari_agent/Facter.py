@@ -523,13 +523,17 @@ class FacterLinux(Facter):
         )
         if ip_address_by_ifname is not None:
           if primary_ip == ip_address_by_ifname.strip():
-            return socket.inet_ntoa(
-              fcntl.ioctl(
-                socket.socket(socket.AF_INET, socket.SOCK_DGRAM),
-                35099,
-                struct.pack("256s", ifname.encode("utf-8")),
-              )[20:24]
-            )
+            netmask_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+              return socket.inet_ntoa(
+                fcntl.ioctl(
+                  netmask_socket,
+                  35099,
+                  struct.pack("256s", ifname.encode("utf-8")),
+                )[20:24]
+              )
+            finally:
+              netmask_socket.close()
 
     return None
 
@@ -550,6 +554,8 @@ class FacterLinux(Facter):
       )
     except Exception as err:
       log.warning(f"Can't get the IP address for {ifname}")
+    finally:
+      s.close()
 
     return ip_address_by_ifname
 

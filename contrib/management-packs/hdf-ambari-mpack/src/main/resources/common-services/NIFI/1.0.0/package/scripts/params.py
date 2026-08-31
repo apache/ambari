@@ -31,7 +31,7 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
-import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set
+import json
     
 # server configurations
 config = Script.get_config()

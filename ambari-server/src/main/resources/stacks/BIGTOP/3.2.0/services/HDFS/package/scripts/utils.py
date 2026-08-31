@@ -22,7 +22,7 @@ import os
 import re
 import urllib.request, urllib.error, urllib.parse
 import subprocess
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.libraries.functions.format import format

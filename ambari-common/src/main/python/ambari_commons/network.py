@@ -20,32 +20,25 @@ limitations under the License.
 
 import http.client
 import ssl
-import socket
 import urllib.request, urllib.error, urllib.parse
 
 from ambari_commons.logging_utils import print_warning_msg
-from resource_management.core.exceptions import Fail
 
 
 # overrides default httplib.HTTPSConnection implementation to use specified ssl version
 class HTTPSConnectionWithCustomSslVersion(http.client.HTTPSConnection):
   def __init__(self, host, port, ssl_version, **kwargs):
-    http.client.HTTPSConnection.__init__(self, host, port, **kwargs)
     self.ssl_version = ssl_version
-
-  def connect(self):
-    conn_socket = socket.create_connection((self.host, self.port), self.timeout)
-    if getattr(self, "_tunnel_host", None):
-      self.sock = conn_socket
-      self._tunnel()
-
-    self.sock = ssl.wrap_socket(
-      conn_socket, self.key_file, self.cert_file, ssl_version=self.ssl_version
+    context = ssl.SSLContext(ssl_version)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    super(HTTPSConnectionWithCustomSslVersion, self).__init__(
+      host, port, context=context, **kwargs
     )
 
 
 def get_http_connection(
-  host, port, https_enabled=False, ca_certs=None, ssl_version=ssl.PROTOCOL_SSLv23
+  host, port, https_enabled=False, ca_certs=None, ssl_version=ssl.PROTOCOL_TLS_CLIENT
 ):
   if https_enabled:
     if ca_certs:
@@ -56,11 +49,13 @@ def get_http_connection(
 
 
 def check_ssl_certificate_and_return_ssl_version(
-  host, port, ca_certs, ssl_version=ssl.PROTOCOL_SSLv23
+  host, port, ca_certs, ssl_version=ssl.PROTOCOL_TLS_CLIENT
 ):
   try:
     ssl.get_server_certificate((host, port), ssl_version=ssl_version, ca_certs=ca_certs)
   except ssl.SSLError as ssl_error:
+    from resource_management.core.exceptions import Fail
+
     raise Fail(
       f"Failed to verify the SSL certificate for https://{host}:{port} with CA certificate in {ca_certs}. Error : {str(ssl_error)}"
     )

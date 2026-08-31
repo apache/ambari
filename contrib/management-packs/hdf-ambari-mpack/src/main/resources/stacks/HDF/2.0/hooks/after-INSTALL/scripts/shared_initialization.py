@@ -19,7 +19,7 @@ limitations under the License.
 """
 import os
 
-import ambari_simplejson as json
+import json
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select

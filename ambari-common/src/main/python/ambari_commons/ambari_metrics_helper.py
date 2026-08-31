@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import ambari_commons.network as network
-import ambari_simplejson as json
+import json
 import logging
 import os
 import random

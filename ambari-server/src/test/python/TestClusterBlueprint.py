@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 from unittest import TestCase
-from mock.mock import patch, call
+from unittest.mock import patch, call
 import json
 
 cluster_blueprint = __import__("cluster_blueprint")

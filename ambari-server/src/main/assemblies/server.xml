@@ -52,23 +52,16 @@
       <outputDirectory>${resource_management.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2</directory>
-      <outputDirectory>${jinja.install.dir}</outputDirectory>
+      <directory>${python.dependencies.dir}</directory>
+      <outputDirectory>/usr/lib/ambari-server/lib</outputDirectory>
       <excludes>
-      	<exclude>**/testsuite/**</exclude>
+        <exclude>bin/**</exclude>
+        <exclude>**/test/**</exclude>
+        <exclude>**/tests/**</exclude>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
       </excludes>
-    </fileSet>
-    <fileSet>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_simplejson</directory>
-      <outputDirectory>${simplejson.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pbkdf2</directory>
-      <outputDirectory>${pbkdf2.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pyaes</directory>
-      <outputDirectory>${pyaes.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
       <fileMode>700</fileMode>

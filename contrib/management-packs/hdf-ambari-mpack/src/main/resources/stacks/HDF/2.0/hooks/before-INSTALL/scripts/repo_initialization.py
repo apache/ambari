@@ -21,7 +21,7 @@ limitations under the License.
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.resources.repository import Repository
 from resource_management.core.logger import Logger
-import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 
 # components_lits = repoName + postfix
 _UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]

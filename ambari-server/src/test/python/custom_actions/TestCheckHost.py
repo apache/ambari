@@ -26,8 +26,8 @@ from ambari_commons import inet_utils, OSCheck
 from resource_management import Script, ConfigDictionary
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 from unittest import TestCase
 
 from check_host import CheckHost

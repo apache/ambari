@@ -20,19 +20,16 @@ import gzip
 import http.client
 import urllib.request, urllib.error, urllib.parse
 import socket
-import copy
 import ssl
 import os
 import logging
 import subprocess
-import ambari_simplejson as json
+import json
 import pprint
 import traceback
 from ambari_agent import hostname
 import platform
-import ambari_stomp
-import threading
-from ambari_stomp.adapter.websocket import WsConnection
+from ambari_agent.AmbariStompConnection import AmbariStompConnection
 from socket import error as socket_error
 
 logger = logging.getLogger(__name__)
@@ -116,7 +113,6 @@ class VerifiedHTTPSConnection:
     Create a stomp connection
     """
     try:
-      conn.start()
       conn.connect(wait=True)
     except Exception as ex:
       try:
@@ -128,51 +124,6 @@ class VerifiedHTTPSConnection:
         logger.warning(f"Could not connect to {self.connection_url}. {str(ex)}")
 
       raise
-
-
-class AmbariStompConnection(WsConnection):
-  def __init__(self, *args, **kwargs):
-    self.lock = threading.RLock()
-    self.correlation_id = -1
-    WsConnection.__init__(self, *args, **kwargs)
-
-  def send(
-    self,
-    destination,
-    message,
-    content_type=None,
-    headers=None,
-    log_message_function=lambda x: x,
-    presend_hook=None,
-    **keyword_headers,
-  ):
-    with self.lock:
-      self.correlation_id += 1
-      correlation_id = self.correlation_id
-
-    if presend_hook:
-      presend_hook(correlation_id)
-
-    logged_message = log_message_function(copy.deepcopy(message))
-    logger.info(
-      f"Event to server at {destination} (correlation_id={correlation_id}): {logged_message}"
-    )
-
-    body = json.dumps(message)
-    WsConnection.send(
-      self,
-      destination,
-      body,
-      content_type=content_type,
-      headers=headers,
-      correlationId=correlation_id,
-      **keyword_headers,
-    )
-
-    return correlation_id
-
-  def add_listener(self, listener):
-    self.set_listener(listener.__class__.__name__, listener)
 
 
 class CachedHTTPSConnection:

@@ -23,7 +23,7 @@ import pprint, json, os, time, sys
 import tempfile
 from urllib.request import Request, urlopen
 from urllib.error import URLError
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 from ambari_agent.AmbariConfig import AmbariConfig
 import queue
 import logging

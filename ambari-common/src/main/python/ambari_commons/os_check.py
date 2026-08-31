@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 import re
 import os
 import sys
@@ -91,6 +92,32 @@ _IS_REDHAT_LINUX = os.path.exists("/etc/redhat-release")
 OS_RELEASE_FILE = "/etc/os-release"
 
 
+def _load_os_family_data(resource_path):
+  with open(resource_path, encoding="utf-8") as stream:
+    data = json.load(stream)
+
+  if not isinstance(data, dict):
+    raise ValueError("OS family resource must contain a JSON object")
+
+  mapping = data.get(JSON_OS_MAPPING)
+  if not isinstance(mapping, dict):
+    raise ValueError(f"'{JSON_OS_MAPPING}' must contain a JSON object")
+
+  aliases = data.get(JSON_OS_ALIASES, {})
+  if not isinstance(aliases, dict):
+    raise ValueError(f"'{JSON_OS_ALIASES}' must contain a JSON object")
+
+  for family, family_data in mapping.items():
+    if not isinstance(family, str) or not isinstance(family_data, dict):
+      raise ValueError("OS family entries must map names to JSON objects")
+    if not isinstance(family_data.get(JSON_OS_TYPE), list):
+      raise ValueError(
+        f"OS family '{family}' must define '{JSON_OS_TYPE}' as a JSON array"
+      )
+
+  return data
+
+
 def _is_oracle_linux():
   return _IS_ORACLE_LINUX
 
@@ -99,10 +126,15 @@ def _is_redhat_linux():
   return _IS_REDHAT_LINUX
 
 
+def linux_distribution():
+  """Return the Linux identity through distro's supported public API."""
+  return distro.id(), distro.version(), distro.codename()
+
+
 def advanced_check(distribution):
   distribution = list(distribution)
   if os.path.exists(OS_RELEASE_FILE):
-    with open(OS_RELEASE_FILE, "rb") as fp:
+    with open(OS_RELEASE_FILE, encoding="utf-8") as fp:
       file_content = fp.read()
 
     search_groups = re.search('NAME="(.+)"', file_content)
@@ -130,14 +162,11 @@ class OS_CONST_TYPE(type):
     Initialize internal data structures from file
     """
     try:
-      f = open(os.path.join(RESOURCES_DIR, OSFAMILY_JSON_RESOURCE))
-      json_data = eval(f.read())
-      f.close()
-
-      if JSON_OS_MAPPING not in json_data:
-        raise Exception(f"Invalid {OSFAMILY_JSON_RESOURCE}")
-
+      json_data = _load_os_family_data(
+        os.path.join(RESOURCES_DIR, OSFAMILY_JSON_RESOURCE)
+      )
       json_mapping_data = json_data[JSON_OS_MAPPING]
+      cls.OS_TYPE_ALIASES = json_data.get(JSON_OS_ALIASES, {})
 
       for family in json_mapping_data:
         cls.FAMILY_COLLECTION += [family]
@@ -151,11 +180,8 @@ class OS_CONST_TYPE(type):
             JSON_EXTENDS
           ]
 
-        cls.OS_TYPE_ALIASES = (
-          json_data[JSON_OS_ALIASES] if JSON_OS_ALIASES in json_data else {}
-        )
-    except:
-      raise Exception(f"Couldn't load '{OSFAMILY_JSON_RESOURCE}' file")
+    except (OSError, UnicodeError, ValueError, TypeError, KeyError) as error:
+      raise Exception(f"Couldn't load '{OSFAMILY_JSON_RESOURCE}' file") from error
 
   def __init__(cls, name, bases, dct):
     cls.initialize_data()
@@ -204,7 +230,7 @@ class OSCheck:
         distribution = ("", "", "")
     else:
       # linux distribution
-      distribution = distro.linux_distribution(full_distribution_name=False)
+      distribution = linux_distribution()
 
     if distribution[0] == "":
       distribution = advanced_check(distribution)

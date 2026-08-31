@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import alert_disk_space
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from ambari_commons.os_check import OSCheck
 from stacks.utils.RMFTestCase import *
 

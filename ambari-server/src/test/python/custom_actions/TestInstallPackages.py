@@ -23,7 +23,7 @@ import subprocess
 import select
 
 from stacks.utils.RMFTestCase import *
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from resource_management.core.base import Resource
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.script import Script

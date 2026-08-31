@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from mock.mock import patch, MagicMock, Mock
+from unittest.mock import patch, MagicMock, Mock
 from unittest import TestCase
 from resource_management.libraries.functions.security_commons import *
 from datetime import datetime, timedelta
@@ -239,14 +239,14 @@ class TestSecurityCommons(TestCase):
   @patch("os.path.exists")
   @patch("os.makedirs")
   @patch("os.path.isfile")
-  @patch("ambari_simplejson.load")
+  @patch("json.load")
   @patch("resource_management.libraries.functions.security_commons.new_cached_exec")
   @patch("builtins.open")
   def test_cached_executor(
     self,
     open_file_mock,
     new_cached_exec_mock,
-    ambari_simplejson_load_mock,
+    json_load_mock,
     os_isfile_mock,
     os_makedirs_mock,
     os_path_exists_mock,
@@ -270,7 +270,7 @@ class TestSecurityCommons(TestCase):
     output[key] = {}
     output[key] = {"last_successful_execution": str(datetime.now())}
 
-    ambari_simplejson_load_mock.return_value = output
+    json_load_mock.return_value = output
 
     cached_kinit_executor(
       kinit_path, user, keytab_file, principal, hostname, temp_dir, expiration_time
@@ -287,8 +287,8 @@ class TestSecurityCommons(TestCase):
     output_error[key] = {}
     output_error[key] = {"last_successful_execution": str(last_successful_executation)}
 
-    ambari_simplejson_load_mock.reset_mock()
-    ambari_simplejson_load_mock.return_value = output_error
+    json_load_mock.reset_mock()
+    json_load_mock.return_value = output_error
 
     new_cached_exec_mock.return_value = output
 
@@ -317,11 +317,11 @@ class TestSecurityCommons(TestCase):
 
     os_makedirs_mock.assert_called_with(file_path)
 
-    # Test that the ambari_simplejson throws an exception
+    # Test that the JSON parser throws an exception
     os_path_exists_mock.return_value = True
 
-    ambari_simplejson_load_mock.reset_mock()
-    ambari_simplejson_load_mock.side_effect = Exception("Invalid file")
+    json_load_mock.reset_mock()
+    json_load_mock.side_effect = Exception("Invalid file")
 
     try:
       cached_kinit_executor(
@@ -331,8 +331,8 @@ class TestSecurityCommons(TestCase):
       self.assertTrue(True)
 
     # Test that the new_cached_exec function is called if the output doesn't have data
-    ambari_simplejson_load_mock.reset_mock()
-    ambari_simplejson_load_mock.return_value = None
+    json_load_mock.reset_mock()
+    json_load_mock.return_value = None
 
     new_cached_exec_mock.return_value = output
 

@@ -20,7 +20,6 @@ limitations under the License.
 
 import optparse
 import http.client
-import socket
 import ssl
 
 
@@ -31,20 +30,18 @@ class ForcedProtocolHTTPSConnection(http.client.HTTPSConnection):
   """
 
   def __init__(self, host, port, force_protocol, **kwargs):
-    http.client.HTTPSConnection.__init__(self, host, port, **kwargs)
     self.force_protocol = force_protocol
-
-  def connect(self):
-    sock = socket.create_connection((self.host, self.port), self.timeout)
-    if getattr(self, "_tunnel_host", None):
-      self.sock = sock
-      self._tunnel()
-    self.sock = ssl.wrap_socket(
-      sock, self.key_file, self.cert_file, ssl_version=getattr(ssl, self.force_protocol)
+    context = ssl.SSLContext(getattr(ssl, self.force_protocol))
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    super(ForcedProtocolHTTPSConnection, self).__init__(
+      host, port, context=context, **kwargs
     )
 
 
 def make_connection(host, port, https, force_protocol=None):
+  conn = None
+  fallback_conn = None
   try:
     conn = (
       http.client.HTTPConnection(host, port)
@@ -56,17 +53,19 @@ def make_connection(host, port, https, force_protocol=None):
   except ssl.SSLError:
     # got ssl error, lets try to use TLS1 protocol, maybe it will work
     try:
-      tls1_conn = ForcedProtocolHTTPSConnection(host, port, force_protocol)
-      tls1_conn.request("GET", "/")
-      return tls1_conn.getresponse().status
+      fallback_conn = ForcedProtocolHTTPSConnection(host, port, force_protocol)
+      fallback_conn.request("GET", "/")
+      return fallback_conn.getresponse().status
     except Exception as e:
       print(e)
     finally:
-      tls1_conn.close()
+      if fallback_conn is not None:
+        fallback_conn.close()
   except Exception as e:
     print(e)
   finally:
-    conn.close()
+    if conn is not None:
+      conn.close()
 
 
 #

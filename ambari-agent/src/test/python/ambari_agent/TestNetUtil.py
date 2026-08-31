@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 from ambari_agent import NetUtil
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 import unittest
 import threading
 from ambari_commons import OSCheck

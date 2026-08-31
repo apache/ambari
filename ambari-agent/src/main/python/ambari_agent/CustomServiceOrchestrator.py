@@ -23,7 +23,7 @@ import sys
 import uuid
 import logging
 import threading
-import ambari_simplejson as json
+import json
 from collections import defaultdict
 from configparser import NoOptionError
 

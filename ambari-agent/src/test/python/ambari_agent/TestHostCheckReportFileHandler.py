@@ -20,7 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-from mock.mock import patch
+from unittest.mock import patch
 import os
 import tempfile
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler

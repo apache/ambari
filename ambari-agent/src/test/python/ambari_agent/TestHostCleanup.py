@@ -20,7 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-from mock.mock import patch, Mock, MagicMock, call, create_autospec
+from unittest.mock import patch, Mock, MagicMock, call, create_autospec
 from ambari_agent import HostCleanup
 import io
 import sys

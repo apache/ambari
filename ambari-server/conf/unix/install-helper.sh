@@ -36,14 +36,12 @@ AMBARI_SERVER="${AMBARI_SERVER_ROOT_DIR}/lib/ambari_server"
 CA_CONFIG="${ROOT}/var/lib/${AMBARI_UNIT}/keys/ca.config"
 COMMON_DIR_SERVER="${ROOT}/usr/lib/${AMBARI_UNIT}/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR_SERVER="${ROOT}/usr/lib/${AMBARI_UNIT}/lib/resource_management"
-JINJA_SERVER_DIR="${ROOT}/usr/lib/${AMBARI_UNIT}/lib/ambari_jinja2"
-SIMPLEJSON_SERVER_DIR="${ROOT}/usr/lib/${AMBARI_UNIT}/lib/ambari_simplejson"
 AMBARI_PROPERTIES="${ROOT}/etc/${AMBARI_UNIT}/conf/ambari.properties"
 AMBARI_ENV_RPMSAVE="${ROOT}/var/lib/${AMBARI_UNIT}/ambari-env.sh.rpmsave" # this turns into ambari-env.sh during ambari-server start
 AMBARI_SERVER_KEYS_FOLDER="${ROOT}/var/lib/${AMBARI_UNIT}/keys"
 AMBARI_SERVER_KEYS_DB_FOLDER="${ROOT}/var/lib/${AMBARI_UNIT}/keys/db"
 AMBARI_SERVER_NEWCERTS_FOLDER="${ROOT}/var/lib/${AMBARI_UNIT}/keys/db/newcerts"
-CLEANUP_MODULES="resource_management;ambari_commons;ambari_server;ambari_ws4py;ambari_stomp;ambari_jinja2;ambari_simplejson"
+CLEANUP_MODULES="resource_management;ambari_commons;ambari_server;ambari_ws4py;ambari_stomp;ambari_jinja2;ambari_simplejson;ambari_pbkdf2;ambari_pyaes"
 AMBARI_SERVER_VAR="${ROOT}/var/lib/${AMBARI_UNIT}"
 AMBARI_HELPER="${ROOT}/var/lib/ambari-server/install-helper.sh.orig"
 
@@ -144,10 +142,10 @@ install_autostart(){
 }
 
 locate_python(){
-  local python_binaries="/usr/bin/python3;/usr/bin/python3.9"
+  local python_binaries="/usr/bin/python3.9;/usr/bin/python3"
 
   echo ${python_binaries}| tr ';' '\n' | while read python_binary; do
-    ${python_binary} -c "import sys ; ver = sys.version_info ; sys.exit(not (ver >= (3,0)))" 1>>${LOG_FILE} 2>/dev/null
+    ${python_binary} -c "import sys ; sys.exit(sys.version_info < (3, 9, 2))" 1>>${LOG_FILE} 2>/dev/null
 
     if [ $? -eq 0 ]; then
       echo "${python_binary}"
@@ -175,7 +173,7 @@ do_install(){
   local ambari_python=$(locate_python)
 
   if [ -z "${ambari_python}" ]; then
-    >&2 echo "Cannot detect Python for Ambari to use. Please manually set ${PYTHON_WRAPER_TARGET} link to point to correct Python binary"
+    >&2 echo "Cannot detect Python 3.9.2 or newer for Ambari. Please install a supported Python runtime or manually set ${PYTHON_WRAPER_TARGET}."
   else
     mkdir -p "${PYTHON_WRAPER_DIR}"
     ln -s "${ambari_python}" "${PYTHON_WRAPER_TARGET}"

@@ -56,7 +56,6 @@ alerts_logger = logging.getLogger("alerts")
 alerts_logger_2 = logging.getLogger("ambari_alerts")
 alerts_logger_global = logging.getLogger("ambari_agent.alerts")
 apscheduler_logger = logging.getLogger("apscheduler")
-apscheduler_logger_global = logging.getLogger("ambari_agent.apscheduler")
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
@@ -413,11 +412,6 @@ def init_loggers(options):
   )
   setup_logging(
     apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level
-  )
-  setup_logging(
-    apscheduler_logger_global,
-    AmbariConfig.AmbariConfig.getAlertsLogFile(),
-    logging_level,
   )
   Logger.initialize_logger("resource_management", logging_level=logging_level)
 

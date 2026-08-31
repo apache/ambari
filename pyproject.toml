@@ -18,7 +18,7 @@
 name = "apache-ambari"
 description = "Apache Ambari is a tool for provisioning, managing, and monitoring Apache Hadoop clusters"
 readme = "README.md"
-requires-python = "~=3.6"
+requires-python = ">=3.9.2"
 license = { file="LICENSE.txt" }
 authors = [
     { name = "Apache Software Foundation", email = "dev@ambari.apache.org" },
@@ -71,8 +71,8 @@ exclude = [
 line-length = 88
 indent-width = 2
 
-# Assume Python 3.6
-target-version = "py37"
+# Match the minimum supported Ambari Python runtime.
+target-version = "py39"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.

@@ -36,11 +36,14 @@ from ambari_commons import import_utils as imp
 import sys
 import pprint
 import itertools
-from mock.mock import MagicMock, patch
-import distro
+from unittest.mock import MagicMock, patch
+from ambari_commons import os_check
 import re
 
-with patch("distro.linux_distribution", return_value=("Suse", "11", "Final")):
+with patch(
+  "ambari_commons.os_check.linux_distribution",
+  return_value=("Suse", "11", "Final"),
+):
   with patch(
     "os.geteuid", return_value=45000
   ):  # required to mock sudo and run tests with right scenario
@@ -146,7 +149,7 @@ class RMFTestCase(TestCase):
 
     # get method to execute
     try:
-      with patch.object(distro, "linux_distribution", return_value=os_type):
+      with patch.object(os_check, "linux_distribution", return_value=os_type):
         script_module = imp.load_source(classname, script_path)
         Script.instance = None
         script_class_inst = RMFTestCase._get_attr(script_module, classname)()
@@ -192,7 +195,7 @@ class RMFTestCase(TestCase):
                   return_value=kinit_path_local,
                 ) as mocks_dict["get_kinit_path"]:
                   with patch.object(
-                    distro, "linux_distribution", return_value=os_type
+                    os_check, "linux_distribution", return_value=os_type
                   ) as mocks_dict["linux_distribution"]:
                     with patch(
                       "resource_management.libraries.functions.stack_select.is_package_supported",

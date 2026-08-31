@@ -18,16 +18,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-"""
-http://apscheduler.readthedocs.org/en/v2.1.2
-"""
-import ambari_simplejson as json
+import json
 import logging
 import os
-import sys
-import time
 
-from ambari_agent.apscheduler.scheduler import Scheduler
+from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.schedulers.background import BackgroundScheduler
 from ambari_agent.alerts.collector import AlertCollector
 from ambari_agent.alerts.metric_alert import MetricAlert
 from ambari_agent.alerts.ams_alert import AmsAlert
@@ -67,33 +63,28 @@ class AlertSchedulerHandler:
     # the amount of time, in seconds, that an alert can run after it's scheduled time
     alert_grace_period = int(self.config.get("agent", "alert_grace_period", 5))
 
-    apscheduler_standalone = False
-
-    self.APS_CONFIG = {
-      "apscheduler.threadpool.core_threads": 3,
-      "apscheduler.coalesce": True,
-      "apscheduler.standalone": apscheduler_standalone,
-      "apscheduler.misfire_grace_time": alert_grace_period,
-      "apscheduler.threadpool.context_injector": self._job_context_injector
-      if not apscheduler_standalone
-      else None,
-      "apscheduler.threadpool.agent_config": self.config,
-    }
+    self._alert_grace_period = alert_grace_period
 
     self._collector = AlertCollector()
-    self.__scheduler = Scheduler(self.APS_CONFIG)
+    self.__scheduler = self._create_scheduler()
     self.__in_minutes = in_minutes
     self.recovery_manger = initializer_module.recovery_manager
 
     # register python exit handler
     ExitHelper().register(self.exit_handler)
 
+  def _create_scheduler(self):
+    return BackgroundScheduler(
+      executors={"default": ThreadPoolExecutor(max_workers=3)},
+      job_defaults={
+        "coalesce": True,
+        "misfire_grace_time": self._alert_grace_period,
+      },
+    )
+
   def _job_context_injector(self, config):
     """
-    apscheduler hack to inject monkey-patching, context and configuration to all jobs inside scheduler in case if scheduler running
-    in embedded mode
-
-    Please note, this function called in job context thus all injects should be time-running optimized
+    Applies Agent network configuration in the scheduler worker before a job runs.
 
     :type config AmbariConfig.AmbariConfig
     """
@@ -127,7 +118,11 @@ class AlertSchedulerHandler:
       self.reschedule()
 
   def __make_function(self, alert_def):
-    return lambda: alert_def.collect()
+    def collect_alert():
+      self._job_context_injector(self.config)
+      return alert_def.collect()
+
+    return collect_alert
 
   def start(self):
     """loads definitions from file and starts the scheduler"""
@@ -137,7 +132,7 @@ class AlertSchedulerHandler:
 
     if self.__scheduler.running:
       self.__scheduler.shutdown(wait=False)
-      self.__scheduler = Scheduler(self.APS_CONFIG)
+      self.__scheduler = self._create_scheduler()
 
     alert_callables = self.__load_definitions()
 
@@ -155,8 +150,9 @@ class AlertSchedulerHandler:
 
   def stop(self):
     if not self.__scheduler is None:
-      self.__scheduler.shutdown(wait=False)
-      self.__scheduler = Scheduler(self.APS_CONFIG)
+      if self.__scheduler.running:
+        self.__scheduler.shutdown(wait=False)
+      self.__scheduler = self._create_scheduler()
 
     logger.info("[AlertScheduler] Stopped the alert scheduler.")
 
@@ -169,40 +165,28 @@ class AlertSchedulerHandler:
     jobs_removed = 0
 
     definitions = self.__load_definitions()
+    enabled_definitions = {}
+    for definition in definitions:
+      definition_uuid = definition.get_uuid()
+      if definition.is_enabled():
+        enabled_definitions[definition_uuid] = definition
+      else:
+        self._collector.remove_by_uuid(definition_uuid)
+
     scheduled_jobs = self.__scheduler.get_jobs()
 
     self.initializer_module.alert_status_reporter.reported_alerts.clear()
 
-    # for every scheduled job, see if its UUID is still valid
     for scheduled_job in scheduled_jobs:
-      uuid_valid = False
-
-      for definition in definitions:
-        definition_uuid = definition.get_uuid()
-        if scheduled_job.name == definition_uuid:
-          uuid_valid = True
-          break
-
-      # jobs without valid UUIDs should be unscheduled
-      if uuid_valid is False:
+      if scheduled_job.id not in enabled_definitions:
         jobs_removed += 1
         logger.info(f"[AlertScheduler] Unscheduling {scheduled_job.name}")
         self._collector.remove_by_uuid(scheduled_job.name)
-        self.__scheduler.unschedule_job(scheduled_job)
+        self.__scheduler.remove_job(scheduled_job.id)
 
-    # for every definition, determine if there is a scheduled job
-    for definition in definitions:
-      definition_scheduled = False
-      for scheduled_job in scheduled_jobs:
-        definition_uuid = definition.get_uuid()
-        if definition_uuid == scheduled_job.name:
-          definition_scheduled = True
-          break
-
-      # if no jobs are found with the definitions UUID, schedule it
-      if definition_scheduled is False:
-        jobs_scheduled += 1
-        self.schedule_definition(definition)
+    for definition_uuid, definition in enabled_definitions.items():
+      jobs_scheduled += 1
+      self.schedule_definition(definition)
 
     logger.info(
       "[AlertScheduler] Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
@@ -228,15 +212,15 @@ class AlertSchedulerHandler:
       jobs_removed += 1
       logger.info(f"[AlertScheduler] Unscheduling {scheduled_job.name}")
       self._collector.remove_by_uuid(scheduled_job.name)
-      self.__scheduler.unschedule_job(scheduled_job)
+      self.__scheduler.remove_job(scheduled_job.id)
 
     # for every definition, schedule a job
     for definition in definitions:
-      jobs_scheduled += 1
-      self.schedule_definition(definition)
+      if self.schedule_definition(definition):
+        jobs_scheduled += 1
 
     logger.info(
-      "[AlertScheduler] Reschedule Summary: {0} unscheduled, {0} rescheduled".format(
+      "[AlertScheduler] Reschedule Summary: {0} unscheduled, {1} rescheduled".format(
         str(jobs_removed), str(jobs_scheduled)
       )
     )
@@ -346,29 +330,30 @@ class AlertSchedulerHandler:
           definition.get_name(), definition.get_uuid()
         )
       )
-      return
+      return False
 
-    job = None
-
+    interval = {}
     if self.__in_minutes:
-      job = self.__scheduler.add_interval_job(
-        self.__make_function(definition), minutes=definition.interval()
-      )
+      interval["minutes"] = definition.interval()
     else:
-      job = self.__scheduler.add_interval_job(
-        self.__make_function(definition), seconds=definition.interval()
-      )
+      interval["seconds"] = definition.interval()
 
-    # although the documentation states that Job(kwargs) takes a name
-    # key/value pair, it does not actually set the name; do it manually
-    if job is not None:
-      job.name = definition.get_uuid()
+    definition_uuid = definition.get_uuid()
+    self.__scheduler.add_job(
+      self.__make_function(definition),
+      trigger="interval",
+      id=definition_uuid,
+      name=definition_uuid,
+      replace_existing=True,
+      **interval,
+    )
 
     logger.info(
       "[AlertScheduler] Scheduling {0} with UUID {1}".format(
         definition.get_name(), definition.get_uuid()
       )
     )
+    return True
 
   def get_job_count(self):
     """
@@ -428,27 +413,3 @@ class AlertSchedulerHandler:
         logger.exception(
           "[AlertScheduler] Unable to execute the alert outside of the job scheduler"
         )
-
-
-def main():
-  args = list(sys.argv)
-  del args[0]
-
-  ash = AlertSchedulerHandler(args[0], args[1], args[2], False)
-  ash.start()
-
-  i = 0
-  try:
-    while i < 10:
-      time.sleep(1)
-      i += 1
-  except KeyboardInterrupt:
-    pass
-
-  print(str(ash.collector().alerts()))
-
-  ash.stop()
-
-
-if __name__ == "__main__":
-  main()

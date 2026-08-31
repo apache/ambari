@@ -62,42 +62,17 @@
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_jinja2/ambari_jinja2</directory>
-      <outputDirectory>${jinja.install.dir}</outputDirectory>
+      <fileMode>644</fileMode>
+      <directory>${python.dependencies.dir}</directory>
+      <outputDirectory>${lib.dir}</outputDirectory>
       <excludes>
-      	<exclude>**/testsuite/**</exclude>
+        <exclude>bin/**</exclude>
+        <exclude>**/test/**</exclude>
+        <exclude>**/tests/**</exclude>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
       </excludes>
-    </fileSet>
-    <fileSet>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_simplejson</directory>
-      <outputDirectory>${simplejson.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_stomp</directory>
-      <outputDirectory>${stomp.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_ws4py</directory>
-      <outputDirectory>${ws4py.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pbkdf2</directory>
-      <outputDirectory>${pbkdf2.install.dir}</outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directoryMode>755</directoryMode>
-      <fileMode>755</fileMode>
-      <directory>${project.basedir}/../ambari-common/src/main/python/ambari_pyaes</directory>
-      <outputDirectory>${pyaes.install.dir}</outputDirectory>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>

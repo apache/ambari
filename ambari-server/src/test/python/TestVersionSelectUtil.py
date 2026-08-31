@@ -19,7 +19,7 @@ limitations under the License.
 
 from unittest import TestCase
 import os
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 
 from resource_management.core.logger import Logger
 

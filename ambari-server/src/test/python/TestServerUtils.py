@@ -21,9 +21,9 @@ import os
 
 os.environ["ROOT"] = ""
 
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from unittest import TestCase
-import distro
+from ambari_commons import os_check
 import platform
 import socket
 import ssl
@@ -41,7 +41,7 @@ shutil.copyfile(
 )
 
 with patch.object(
-  distro,
+  os_check,
   "linux_distribution",
   return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
 ):
@@ -68,7 +68,7 @@ with patch.object(
 
 
 @patch.object(
-  distro, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
+  os_check, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
 )
 class TestServerUtils(TestCase):
   def test_get_ambari_server_api_base(self):

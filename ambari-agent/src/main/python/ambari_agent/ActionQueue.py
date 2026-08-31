@@ -23,7 +23,7 @@ import logging
 import threading
 import pprint
 import os
-import ambari_simplejson as json
+import json
 import time
 import signal
 import re

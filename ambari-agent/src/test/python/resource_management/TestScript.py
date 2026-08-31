@@ -23,7 +23,7 @@ import sys, pprint
 from resource_management.libraries.script import Script
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from stacks.utils.RMFTestCase import *
 
 

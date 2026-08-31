@@ -31,8 +31,7 @@ from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import run_os_command
 
-# simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import ambari_simplejson as json
+import json
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 from ambari_server.serverConfiguration import (
   configDefaults,

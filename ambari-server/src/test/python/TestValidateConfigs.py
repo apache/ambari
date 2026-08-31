@@ -20,7 +20,7 @@ limitations under the License.
 import tempfile
 
 from unittest import TestCase
-from mock.mock import patch
+from unittest.mock import patch
 
 from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
 

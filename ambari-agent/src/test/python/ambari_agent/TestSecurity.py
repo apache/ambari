@@ -21,8 +21,8 @@ limitations under the License.
 import io
 import sys
 import subprocess
-from mock.mock import MagicMock, patch, ANY
-import mock.mock
+from unittest.mock import MagicMock, patch, ANY
+from unittest import mock
 import unittest
 import logging
 import signal
@@ -34,13 +34,13 @@ import tempfile
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 
-with patch("distro.linux_distribution", return_value=("Suse", "11", "Final")):
+with patch("ambari_commons.os_check.linux_distribution", return_value=("Suse", "11", "Final")):
   from ambari_agent import NetUtil
   from ambari_agent.security import CertificateManager
   from ambari_agent.AmbariConfig import AmbariConfig
   from ambari_agent import security
 
-aa = mock.mock.mock_open()
+aa = mock.mock_open()
 
 
 class TestSecurity(unittest.TestCase):
@@ -63,6 +63,32 @@ class TestSecurity(unittest.TestCase):
     sys.stdout = sys.__stdout__
 
   ### CachedHTTPSConnection ###
+
+  def test_VerifiedHTTPSConnection_establish_connection_starts_through_connect(self):
+    connection = MagicMock()
+    verified_connection = security.VerifiedHTTPSConnection(
+      "server.example", "wss://server.example/agent/stomp/v1", self.config
+    )
+
+    verified_connection.establish_connection(connection)
+
+    connection.connect.assert_called_once_with(wait=True)
+    connection.start.assert_not_called()
+    connection.disconnect.assert_not_called()
+
+  def test_VerifiedHTTPSConnection_establish_connection_disconnects_after_failure(self):
+    connection = MagicMock()
+    connection.connect.side_effect = RuntimeError("connection failed")
+    verified_connection = security.VerifiedHTTPSConnection(
+      "server.example", "wss://server.example/agent/stomp/v1", self.config
+    )
+
+    with self.assertRaisesRegex(RuntimeError, "connection failed"):
+      verified_connection.establish_connection(connection)
+
+    connection.connect.assert_called_once_with(wait=True)
+    connection.start.assert_not_called()
+    connection.disconnect.assert_called_once_with()
 
   @patch.object(security.VerifiedHTTPSConnection, "connect")
   def test_CachedHTTPSConnection_connect(self, vhc_connect_mock):
@@ -229,10 +255,10 @@ class TestSecurity(unittest.TestCase):
   @patch("ambari_agent.hostname.hostname")
   @patch("builtins.open", create=True, autospec=True)
   @patch.dict("os.environ", {"DUMMY_PASSPHRASE": "dummy-passphrase"})
-  @patch("ambari_simplejson.dumps")
+  @patch("json.dumps")
   @patch("urllib.request.Request")
   @patch("urllib.request.OpenerDirector.open")
-  @patch("ambari_simplejson.loads")
+  @patch("json.loads")
   def test_reqSignCrt(
     self, loads_mock, urlopen_mock, request_mock, dumps_mock, open_mock, hostname_mock
   ):

@@ -20,9 +20,11 @@ Ambari Agent
 
 """
 
+import hashlib
 import os
-import ambari_pyaes
-from ambari_pbkdf2.pbkdf2 import PBKDF2
+
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
 def ensure_decrypted(value, encryption_key=None):
@@ -39,9 +41,13 @@ def decrypt(encrypted_value, encryption_key):
   salt, iv, data = [
     bytes.fromhex(each) for each in bytes.fromhex(encrypted_value).decode().split("::")
   ]
-  key = PBKDF2(encryption_key, salt, iterations=65536).read(16)
-  aes = ambari_pyaes.AESModeOfOperationCBC(key, iv=iv)
-  return ambari_pyaes.util.strip_PKCS7_padding(aes.decrypt(data))
+  key = hashlib.pbkdf2_hmac(
+    "sha1", encryption_key.encode("utf-8"), salt, 65536, dklen=16
+  )
+  decryptor = Cipher(algorithms.AES(key), modes.CBC(iv)).decryptor()
+  padded_data = decryptor.update(data) + decryptor.finalize()
+  unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+  return unpadder.update(padded_data) + unpadder.finalize()
 
 
 def is_encrypted(value):

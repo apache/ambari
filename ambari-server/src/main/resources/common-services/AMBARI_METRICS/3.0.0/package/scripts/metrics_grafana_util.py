@@ -36,7 +36,7 @@ from base64 import b64encode
 import random
 import time
 import socket
-import ambari_simplejson as json
+import json
 import ambari_commons.network as network
 import os
 

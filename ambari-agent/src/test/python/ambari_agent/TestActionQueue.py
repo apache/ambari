@@ -31,7 +31,7 @@ import copy
 import signal
 
 from ambari_agent.models.commands import CommandStatus, AgentCommand
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.PythonExecutor import PythonExecutor
 from ambari_agent.ActualConfigHandler import ActualConfigHandler

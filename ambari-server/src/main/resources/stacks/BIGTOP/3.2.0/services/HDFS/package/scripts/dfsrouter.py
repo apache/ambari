@@ -20,7 +20,7 @@ import json
 import tempfile
 import hashlib
 from datetime import datetime
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 
 from ambari_commons import constants
 

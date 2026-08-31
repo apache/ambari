@@ -38,14 +38,14 @@ from bootstrap import (
 )
 from unittest import TestCase
 from bootstrap import AMBARI_PASSPHRASE_VAR_NAME
-from mock.mock import MagicMock, call
-from mock.mock import patch
-from mock.mock import create_autospec
+from unittest.mock import MagicMock, call
+from unittest.mock import patch
+from unittest.mock import create_autospec
 from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 
 @not_for_platform(PLATFORM_WINDOWS)
-class TestBootstrap:  # (TestCase):
+class TestBootstrap(TestCase):
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)
 
@@ -188,7 +188,7 @@ class TestBootstrap:  # (TestCase):
     bootstrap_obj.getUtime = MagicMock(return_value=utime)
     ret = bootstrap_obj.getRunSetupWithPasswordCommand("hostname")
     expected = (
-      "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S python /var/lib/ambari-agent/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE "
+      "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S /usr/bin/ambari-python-wrap /var/lib/ambari-agent/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE "
       "ambariServer root  8440 < /var/lib/ambari-agent/tmp/host_pass{0}".format(utime)
     )
     self.assertEqual(ret, expected)
@@ -275,6 +275,7 @@ class TestBootstrap:  # (TestCase):
     )
     bootstrap_obj = Bootstrap("hostname", shared_state)
     runSetupCommand = bootstrap_obj.getRunSetupCommand("hostname")
+    self.assertIn("/usr/bin/ambari-python-wrap", runSetupCommand)
     self.assertTrue(runSetupCommand.endswith(version + " 8440"))
 
   def test_agent_setup_command_without_project_version(self):
@@ -295,6 +296,7 @@ class TestBootstrap:  # (TestCase):
     )
     bootstrap_obj = Bootstrap("hostname", shared_state)
     runSetupCommand = bootstrap_obj.getRunSetupCommand("hostname")
+    self.assertIn("/usr/bin/ambari-python-wrap", runSetupCommand)
     self.assertTrue(runSetupCommand.endswith(" 8440"))
 
   # TODO: test_os_check_fail_fails_bootstrap_execution
@@ -932,7 +934,7 @@ class TestBootstrap:  # (TestCase):
     res = bootstrap_obj.checkSudoPackage()
     self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
-    self.assertEqual(command, "[ \"$EUID\" -eq 0 ] || rpm -qa | grep -e '^sudo\-'")
+    self.assertEqual(command, "[ \"$EUID\" -eq 0 ] || rpm -qa | grep -e '^sudo\\-'")
 
   @patch.object(OSCheck, "is_suse_family")
   @patch.object(OSCheck, "is_ubuntu_family")
@@ -973,7 +975,7 @@ class TestBootstrap:  # (TestCase):
     self.assertEqual(res, expected)
     command = str(init_mock.call_args[0][4])
     self.assertEqual(
-      command, "[ \"$EUID\" -eq 0 ] || dpkg --get-selections|grep -e '^sudo\s*install'"
+      command, "[ \"$EUID\" -eq 0 ] || dpkg --get-selections|grep -e '^sudo\\s*install'"
     )
 
   @patch.object(SSH, "__init__")
@@ -1135,7 +1137,7 @@ class TestBootstrap:  # (TestCase):
   @patch.object(BootstrapDefault, "hasPassword")
   @patch.object(BootstrapDefault, "createDoneFile")
   @patch.object(HostLog, "write")
-  @patch("logging.warn")
+  @patch("logging.warning")
   @patch("logging.error")
   def test_run(
     self,

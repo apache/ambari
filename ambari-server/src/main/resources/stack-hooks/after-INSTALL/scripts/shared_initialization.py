@@ -20,8 +20,7 @@ limitations under the License.
 
 import os
 
-import ambari_simplejson as json
-from ambari_jinja2 import Environment as JinjaEnvironment
+import json
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate, Template

@@ -90,6 +90,10 @@
     <deb.priority>extra</deb.priority>
     <stack.distribution>BIGTOP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
+    <python.wheel.platform>manylinux2014_x86_64</python.wheel.platform>
+    <python.wheel.version>3.9.2</python.wheel.version>
+    <python.wheel.implementation>cp</python.wheel.implementation>
+    <python.wheel.abi>cp39</python.wheel.abi>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
@@ -289,8 +293,6 @@
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
             <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
-            <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
-            <exclude>contrib/agent-simulator/config/cluster.txt</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
             <exclude>**/.idea/</exclude>
@@ -314,25 +316,7 @@
             <exclude>**/robots.txt</exclude>
             <exclude>**/rat.txt</exclude>
 
-            <!--Python Mock library (BSD license)-->
-            <exclude>ambari-common/src/test/python/mock/**</exclude>
-            <!--Coilmq Mock library (Apache license)-->
-            <exclude>ambari-common/src/test/python/coilmq/**</exclude>
-            <!--Jinja2 library (BSD license)-->
-            <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
-            <exclude>ambari-common/src/main/python/jinja2/**</exclude>
-            <exclude>ambari-common/src/main/python/ambari_pyaes/**</exclude>
-            <exclude>ambari-common/src/main/python/ambari_pbkdf2/**</exclude>
             <exclude>**/.metadata_never_index</exclude>
-            <!--Simplejson library (MIT license)-->
-            <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
-            <!--Subprocess32 library (PSF license)-->
-            <exclude>ambari-common/src/main/python/ambari_commons/subprocess32.py</exclude>
-            <exclude>ambari-common/src/main/python/ambari_commons/_posixsubprocess.so</exclude>
-            <!--Stomp library (Apache license)-->
-            <exclude>ambari-common/src/main/python/ambari_stomp/**</exclude>
-            <!--ws4py library (BSD 3-Clause)-->
-            <exclude>ambari-common/src/main/python/ambari_ws4py/**</exclude>
 
             <exclude>ambari-web/node_modules/**</exclude>
 

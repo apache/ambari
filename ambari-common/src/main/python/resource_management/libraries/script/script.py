@@ -27,7 +27,6 @@ import os
 import sys
 import ssl
 import logging
-import distro as platform
 import inspect
 import tarfile
 import traceback
@@ -79,7 +78,7 @@ from resource_management.libraries.functions.fcntl_based_process_lock import (
   FcntlBasedProcessLock,
 )
 
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 
 if OSCheck.is_windows_family():
   from resource_management.libraries.functions.install_windows_msi import (

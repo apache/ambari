@@ -23,7 +23,7 @@ from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AmbariConfig import AmbariConfig
 import os, sys, io
 from ambari_agent import ActualConfigHandler
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 import pprint
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
