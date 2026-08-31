@@ -32,7 +32,7 @@ import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToOne;
 
 import org.apache.ambari.server.state.HostState;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @jakarta.persistence.Table(name = "hoststate")
 @Entity

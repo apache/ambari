@@ -26,7 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.utils.RequestUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;

@@ -51,7 +51,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.RepositoryVersion;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

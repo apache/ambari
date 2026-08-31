@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.agent.stomp.dto;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

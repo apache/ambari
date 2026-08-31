@@ -38,7 +38,7 @@ import jakarta.persistence.TableGenerator;
 import org.apache.ambari.server.state.AlertFirmness;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 /**
  * The {@link AlertCurrentEntity} class represents the most recently received an

@@ -55,7 +55,7 @@ import org.apache.ambari.server.orm.entities.MpackEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Module;
 import org.apache.ambari.server.state.StackId;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 import com.google.inject.Inject;
 

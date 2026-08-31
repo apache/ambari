@@ -28,7 +28,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.MessageDestinationIsNotDefinedException;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 public class DefaultMessageEmitter extends MessageEmitter {

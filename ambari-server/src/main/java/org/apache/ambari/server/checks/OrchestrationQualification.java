@@ -24,7 +24,7 @@ import org.apache.ambari.spi.RepositoryVersion;
 import org.apache.ambari.spi.upgrade.CheckQualification;
 import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * The {@link OrchestrationQualification} class is used to determine if the

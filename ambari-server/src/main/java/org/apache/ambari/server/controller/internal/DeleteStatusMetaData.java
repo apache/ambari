@@ -27,7 +27,7 @@ import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import org.apache.ambari.server.controller.spi.RequestStatusMetaData;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 @NotThreadSafe
 public class DeleteStatusMetaData implements RequestStatusMetaData {

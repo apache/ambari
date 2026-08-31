@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.apache.ambari.server.collections.functors.PredicateClassFactory;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;

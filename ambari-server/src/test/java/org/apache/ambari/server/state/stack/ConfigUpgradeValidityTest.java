@@ -56,7 +56,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;

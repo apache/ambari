@@ -54,7 +54,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.DateUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

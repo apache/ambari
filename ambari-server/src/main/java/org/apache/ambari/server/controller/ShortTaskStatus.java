@@ -20,7 +20,7 @@ package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ShortTaskStatus {
   protected long requestId;

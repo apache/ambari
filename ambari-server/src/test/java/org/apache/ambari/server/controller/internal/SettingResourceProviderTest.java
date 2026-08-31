@@ -46,7 +46,7 @@ import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.easymock.Capture;
 import org.easymock.IMocksControl;
 import org.junit.After;

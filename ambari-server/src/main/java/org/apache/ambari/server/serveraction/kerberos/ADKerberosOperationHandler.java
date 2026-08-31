@@ -53,7 +53,7 @@ import org.apache.ambari.server.security.InternalSSLSocketFactoryNonTrusting;
 import org.apache.ambari.server.security.InternalSSLSocketFactoryTrusting;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.MethodInvocationException;

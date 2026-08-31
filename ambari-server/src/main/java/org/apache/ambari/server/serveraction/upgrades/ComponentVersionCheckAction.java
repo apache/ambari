@@ -29,7 +29,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

@@ -42,7 +42,7 @@ import org.apache.ambari.server.api.services.BaseService;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.controller.UserAuthenticationSourceResponse;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
 import io.swagger.annotations.Api;

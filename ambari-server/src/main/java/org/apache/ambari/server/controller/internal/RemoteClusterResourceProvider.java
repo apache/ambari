@@ -46,7 +46,7 @@ import org.apache.ambari.server.orm.entities.RemoteAmbariClusterServiceEntity;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.RemoteAmbariClusterRegistry;
 import org.apache.ambari.view.MaskException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

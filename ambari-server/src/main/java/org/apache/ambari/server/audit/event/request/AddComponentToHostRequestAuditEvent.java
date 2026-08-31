@@ -23,7 +23,7 @@ import java.util.Set;
 import javax.annotation.concurrent.Immutable;
 
 import org.apache.ambari.server.audit.request.RequestAuditEvent;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Audit event for adding components to a host

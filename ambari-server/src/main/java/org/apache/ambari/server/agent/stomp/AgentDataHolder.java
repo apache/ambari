@@ -27,7 +27,7 @@ import org.apache.ambari.server.agent.stomp.dto.HashAndTimestampIgnoreMixIn;
 import org.apache.ambari.server.agent.stomp.dto.HashIgnoreMixIn;
 import org.apache.ambari.server.agent.stomp.dto.Hashable;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

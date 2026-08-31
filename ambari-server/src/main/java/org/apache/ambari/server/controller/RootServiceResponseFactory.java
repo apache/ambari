@@ -32,7 +32,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.Predicate;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import com.google.inject.Inject;
 

@@ -36,7 +36,7 @@ import org.apache.ambari.server.orm.entities.RequestOperationLevelEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -28,7 +28,7 @@ import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.controller.RepositoryResponse;
 import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.server.utils.URLCredentialsHider;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;

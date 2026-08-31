@@ -47,7 +47,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.testutils.PartialNiceMockBinder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;

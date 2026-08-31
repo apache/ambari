@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.utils;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;

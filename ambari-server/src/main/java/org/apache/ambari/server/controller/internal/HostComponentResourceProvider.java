@@ -68,7 +68,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.ambari.server.topology.Setting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

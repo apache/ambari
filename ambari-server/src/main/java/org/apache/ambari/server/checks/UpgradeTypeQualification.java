@@ -23,7 +23,7 @@ import org.apache.ambari.spi.upgrade.CheckQualification;
 import org.apache.ambari.spi.upgrade.UpgradeCheck;
 import org.apache.ambari.spi.upgrade.UpgradeCheckRequest;
 import org.apache.ambari.spi.upgrade.UpgradeType;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * The {@link UpgradeTypeQualification} class is used to determine if the check

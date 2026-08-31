@@ -130,7 +130,7 @@ import org.apache.ambari.server.view.AmbariViewsMDCLoggingFilter;
 import org.apache.ambari.server.view.ViewDirectoryWatcher;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewThrottleFilter;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpVersion;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.velocity.app.Velocity;

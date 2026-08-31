@@ -43,7 +43,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.Gson;
 

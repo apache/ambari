@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.stack.upgrade.Task;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.MoreObjects;
 

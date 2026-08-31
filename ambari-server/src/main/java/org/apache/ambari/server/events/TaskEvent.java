@@ -21,7 +21,7 @@ package org.apache.ambari.server.events;
 import java.util.List;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * {@link TaskEvent} is the base for all events related to create/update of tasks

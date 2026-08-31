@@ -40,7 +40,7 @@ import org.apache.ambari.spi.upgrade.UpgradeCheckResult;
 import org.apache.ambari.spi.upgrade.UpgradeCheckStatus;
 import org.apache.ambari.spi.upgrade.UpgradeCheckType;
 import org.apache.ambari.spi.upgrade.UpgradeType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableMap;
