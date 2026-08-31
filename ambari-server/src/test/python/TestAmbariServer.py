@@ -3495,15 +3495,12 @@ class TestAmbariServer(TestCase):
     update_properties_mock.reset_mock()
     validate_jdk_mock.return_value = False
     path_existsMock.reset_mock()
-    path_existsMock.side_effect = pem_side_effect1
+    path_existsMock.side_effect = None
+    path_existsMock.return_value = False
     get_validated_string_input_mock.return_value = "2"
     find_jdk_mock.return_value = None
-    try:
+    with self.assertRaises(FatalException):
       download_and_install_jdk(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      pass
 
     # Test when custom java home exists but java binary file doesn't exist
     args.java_home = None
@@ -3511,18 +3508,12 @@ class TestAmbariServer(TestCase):
     path_isfileMock.return_value = False
     update_properties_mock.reset_mock()
     path_existsMock.reset_mock()
-    path_existsMock.side_effect = pem_side_effect1
+    path_existsMock.side_effect = None
+    path_existsMock.return_value = True
     get_validated_string_input_mock.return_value = "2"
     find_jdk_mock.return_value = None
-    flag = False
-    try:
+    with self.assertRaises(FatalException):
       download_and_install_jdk(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      flag = True
-      pass
-    self.assertTrue(flag)
 
     # Test case: Setup ambari-server with java home passed. Path to java home doesn't exist
     args.java_home = "somewhere"
