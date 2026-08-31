@@ -23,7 +23,6 @@ package org.apache.ambari.server.configuration;
 import java.io.File;
 import java.util.function.Consumer;
 
-import org.apache.log4j.helpers.FileWatchdog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +31,9 @@ import org.slf4j.LoggerFactory;
  */
 public class SingleFileWatch {
   private static final Logger LOG = LoggerFactory.getLogger(SingleFileWatch.class);
+  private static final long WATCH_INTERVAL_MS = 1000;
   private final File file;
-  private final FileWatchdog watchdog;
+  private final Thread watchdog;
   private final Consumer<File> changeListener;
   private volatile boolean started = false;
 
@@ -47,18 +47,27 @@ public class SingleFileWatch {
     this.watchdog = createWatchDog();
   }
 
-  private FileWatchdog createWatchDog() {
-    FileWatchdog fileWatch = new FileWatchdog(file.getAbsolutePath()) {
-      @Override
-      protected void doOnChange() {
-        if (started) {
-          notifyListener();
+  private Thread createWatchDog() {
+    Thread fileWatch = new Thread(() -> {
+      long lastModified = file.lastModified();
+      while (!Thread.currentThread().isInterrupted()) {
+        try {
+          Thread.sleep(WATCH_INTERVAL_MS);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          return;
+        }
+
+        long currentLastModified = file.lastModified();
+        if (currentLastModified != lastModified) {
+          lastModified = currentLastModified;
+          if (started) {
+            notifyListener();
+          }
         }
       }
-    };
-    fileWatch.setDelay(1000);
+    }, "FileWatchdog:" + file.getName());
     fileWatch.setDaemon(true);
-    fileWatch.setName("FileWatchdog:" + file.getName());
     return fileWatch;
   }
 
