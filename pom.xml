@@ -339,7 +339,7 @@
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
-          <excludes>
+          <inputExcludes>
             <exclude>.ruff_cache/</exclude>
             <exclude>.github/</exclude>
             <exclude>**/repo_*.j2</exclude>
@@ -449,7 +449,7 @@
             <exclude>ambari_python.egg-info/**</exclude>
             <exclude>dist/**</exclude>
             <exclude>build/**</exclude>
-          </excludes>
+          </inputExcludes>
         </configuration>
         <executions>
           <execution>
