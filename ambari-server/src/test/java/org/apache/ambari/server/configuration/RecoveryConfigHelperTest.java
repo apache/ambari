@@ -317,6 +317,18 @@ public class RecoveryConfigHelperTest {
     assertEquals(State.STARTED, dependencies.get(NAMENODE).getCurrentState());
   }
 
+  @Test
+  public void testRecoveryConfigWhileServiceRemovalIsInProgress() throws Exception {
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+
+    hdfs.delete(new DeleteHostComponentStatusMetaData());
+
+    RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
+    assertTrue(recoveryConfig.getEnabledComponents().isEmpty());
+  }
+
   private Cluster getDummyCluster(Set<String> hostNames)
       throws Exception {
 

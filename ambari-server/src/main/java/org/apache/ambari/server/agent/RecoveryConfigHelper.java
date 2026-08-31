@@ -45,6 +45,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 
@@ -133,6 +134,17 @@ public class RecoveryConfigHelper {
     }
 
     boolean topologyComplete = recoveryTopologyManager.isFresh(recoveryHost.getHostId());
+    if (enabledComponents.isEmpty()) {
+      return topologyComplete;
+    }
+
+    for (Service service : cluster.getServices().values()) {
+      StackId stackId = service.getDesiredStackId();
+      if (stackId == null) {
+        return false;
+      }
+    }
+
     RoleCommandOrder roleCommandOrder = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     if (roleCommandOrder == null) {
       return false;
