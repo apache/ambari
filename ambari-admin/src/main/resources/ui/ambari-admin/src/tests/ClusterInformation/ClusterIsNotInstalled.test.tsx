@@ -136,15 +136,16 @@ describe('Cluster is not installed', () => {
                 </AppContent.Provider>
             </Router>
         );
-        await waitFor(async () => {
-            const launchInstallWizardButton = await screen.findByRole('button', {name: /launch install wizard/i});
-            expect(launchInstallWizardButton).toBeInTheDocument();
+        const launchInstallWizardButton = await screen.findByRole(
+            'button',
+            {name: /launch install wizard/i},
+            {timeout: 5000},
+        );
+        expect(launchInstallWizardButton).toBeInTheDocument();
 
-            await userEvent.click(launchInstallWizardButton);
+        await userEvent.click(launchInstallWizardButton);
 
-            // Wait for the URL to change
-            expect(window.location.href).toBe('/latest/#/installer/step0');
-        });
+        expect(window.location.href).toBe('/latest/#/installer/step0');
     });
 
     it('renders installBox image when conditions are met', async () => {
