@@ -19,6 +19,7 @@ package org.apache.ambari.server.agent.stomp;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
@@ -94,6 +95,14 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
     }
   }
 
+  public void updateRecoveryTopology(String reportingHostName) throws AmbariException {
+    for (Cluster cluster : clusters.getClustersForHost(reportingHostName)) {
+      for (Host host : cluster.getHosts()) {
+        updateDataOfHost(cluster.getClusterId(), cluster, host);
+      }
+    }
+  }
+
   @Override
   protected HostLevelParamsUpdateEvent handleUpdate(HostLevelParamsUpdateEvent current, HostLevelParamsUpdateEvent update) {
     HostLevelParamsUpdateEvent result = null;
@@ -117,7 +126,9 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
           RecoveryConfig mergedRecoveryConfig;
           Map<String, BlueprintProvisioningState> mergedBlueprintProvisioningStates;
 
-          if (!currentCluster.getRecoveryConfig().equals(updatedCluster.getRecoveryConfig())) {
+          if (isOlderRecoveryTopology(currentCluster.getRecoveryConfig(), updatedCluster.getRecoveryConfig())) {
+            mergedRecoveryConfig = currentCluster.getRecoveryConfig();
+          } else if (!currentCluster.getRecoveryConfig().equals(updatedCluster.getRecoveryConfig())) {
             mergedRecoveryConfig = updatedCluster.getRecoveryConfig();
             clusterChanged = true;
           } else {
@@ -150,6 +161,11 @@ public class HostLevelParamsHolder extends AgentHostDataHolder<HostLevelParamsUp
       result = new HostLevelParamsUpdateEvent(current.getHostId(), mergedClusters);
     }
     return result;
+  }
+
+  private boolean isOlderRecoveryTopology(RecoveryConfig current, RecoveryConfig update) {
+    return Objects.equals(current.getTopologyEpoch(), update.getTopologyEpoch())
+        && update.getTopologyVersion() < current.getTopologyVersion();
   }
 
   @Override

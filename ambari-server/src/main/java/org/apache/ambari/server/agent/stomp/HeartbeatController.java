@@ -34,11 +34,13 @@ import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.HeartBeat;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HeartBeatResponse;
+import org.apache.ambari.server.agent.RecoveryTopologyManager;
 import org.apache.ambari.server.agent.Register;
 import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.ambari.server.agent.RegistrationStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.spring.GuiceBeansConfig;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.slf4j.Logger;
@@ -63,6 +65,8 @@ public class HeartbeatController {
   private final HeartBeatHandler hh;
   private final ClustersImpl clusters;
   private final AgentSessionManager agentSessionManager;
+  private final HostLevelParamsHolder hostLevelParamsHolder;
+  private final RecoveryTopologyManager recoveryTopologyManager;
   private final LinkedBlockingQueue queue;
   private final ThreadFactory threadFactoryExecutor = new ThreadFactoryBuilder().setNameFormat("agent-register-processor-%d").build();
   private final ThreadFactory threadFactoryTimeout = new ThreadFactoryBuilder().setNameFormat("agent-register-timeout-%d").build();
@@ -78,6 +82,8 @@ public class HeartbeatController {
     clusters = injector.getInstance(ClustersImpl.class);
     unitOfWork = injector.getInstance(UnitOfWork.class);
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
+    hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
+    recoveryTopologyManager = injector.getInstance(RecoveryTopologyManager.class);
 
     Configuration configuration = injector.getInstance(Configuration.class);
     queue = new LinkedBlockingQueue(configuration.getAgentsRegistrationQueueSize());
@@ -98,8 +104,10 @@ public class HeartbeatController {
         try {
           /* Call into the heartbeat handler */
           response = hh.handleRegistration(message);
-          agentSessionManager.register(simpSessionId,
-              clusters.getHost(message.getHostname()));
+          Host host = clusters.getHost(message.getHostname());
+          recoveryTopologyManager.beginAgentSession(host.getHostId(), simpSessionId);
+          hostLevelParamsHolder.updateRecoveryTopology(message.getHostname());
+          agentSessionManager.register(simpSessionId, host);
           LOG.debug("Sending registration response " + response);
         } catch (Exception ex) {
           LOG.info(ex.getMessage(), ex);

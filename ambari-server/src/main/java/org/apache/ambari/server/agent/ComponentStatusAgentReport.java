@@ -20,17 +20,41 @@ package org.apache.ambari.server.agent;
 import java.util.List;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 
 public class ComponentStatusAgentReport extends AgentReport<List<ComponentStatus>> {
   private final HeartBeatHandler hh;
+  private final HostLevelParamsHolder hostLevelParamsHolder;
+  private final RecoveryTopologyManager recoveryTopologyManager;
+  private final Long hostId;
+  private final String sessionId;
+  private final boolean snapshotComplete;
 
-  public ComponentStatusAgentReport(HeartBeatHandler hh, String hostName, List<ComponentStatus> componentStatuses) {
+  public ComponentStatusAgentReport(HeartBeatHandler hh, String hostName, List<ComponentStatus> componentStatuses,
+      HostLevelParamsHolder hostLevelParamsHolder, RecoveryTopologyManager recoveryTopologyManager,
+      Long hostId, String sessionId, boolean snapshotComplete) {
     super(hostName, componentStatuses);
     this.hh = hh;
+    this.hostLevelParamsHolder = hostLevelParamsHolder;
+    this.recoveryTopologyManager = recoveryTopologyManager;
+    this.hostId = hostId;
+    this.sessionId = sessionId;
+    this.snapshotComplete = snapshotComplete;
   }
 
   @Override
   protected void process(List<ComponentStatus> report, String hostName) throws AmbariException {
+    if (!recoveryTopologyManager.isActiveSession(hostId, sessionId)) {
+      return;
+    }
+
     hh.handleComponentReportStatus(report, hostName);
+    if (!report.isEmpty() || snapshotComplete) {
+      recoveryTopologyManager.componentStateUpdated();
+      if (snapshotComplete) {
+        recoveryTopologyManager.markSnapshotComplete(hostId, sessionId);
+      }
+      hostLevelParamsHolder.updateRecoveryTopology(hostName);
+    }
   }
 }
