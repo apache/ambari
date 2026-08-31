@@ -52,12 +52,9 @@ import { useHostChecks } from "./useHostChecks";
 
 const contextValue = {
   ambariProperties: {
-    RootServiceComponents: {
-      properties: {
-        "java.home": "/opt/custom-java",
-        jdk_location: "/resources",
-      },
-    },
+    "ambari.java.home": "/opt/ambari-java",
+    "ambari.java.version": "17",
+    jdk_location: "/resources",
   },
   clusterName: "cluster1",
 } as ContextType<typeof AppContext>;
@@ -122,7 +119,8 @@ describe("useHostChecks custom JDK validation", () => {
         context: "Check hosts",
         parameters: {
           check_execute_list: "java_home_check",
-          java_home: "/opt/custom-java",
+          java_home: "/opt/ambari-java",
+          java_version: "17",
           jdk_location: "/resources",
           threshold: "60",
         },
