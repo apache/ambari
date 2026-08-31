@@ -64,6 +64,14 @@ class TestActionQueue(TestCase):
 
   logger = logging.getLogger()
 
+  def create_mock_action_queue(self):
+    initializer_module = MagicMock()
+    initializer_module.config.get.return_value = "/tmp"
+    initializer_module.config.get_parallel_exec_option.return_value = 0
+    initializer_module.stop_event = threading.Event()
+    initializer_module.recovery_manager.enabled.return_value = False
+    return ActionQueue(initializer_module)
+
   datanode_install_command = {
     "commandType": "EXECUTION_COMMAND",
     "role": "DATANODE",
@@ -107,6 +115,83 @@ class TestActionQueue(TestCase):
     "configurationTags": {"global": {"tag": "v1"}},
     "clusterId": CLUSTER_ID,
   }
+
+  def test_server_command_removes_queued_recovery_commands(self):
+    action_queue = self.create_mock_action_queue()
+    recovery_command = copy.deepcopy(self.datanode_auto_start_command)
+    server_command = copy.deepcopy(self.namenode_install_command)
+
+    action_queue.put([recovery_command])
+    action_queue.put([server_command])
+
+    self.assertEqual(1, action_queue.commandQueue.qsize())
+    self.assertEqual(server_command, action_queue.commandQueue.get_nowait())
+
+  def test_server_command_cancels_active_recovery_commands(self):
+    action_queue = self.create_mock_action_queue()
+    recovery_command = copy.deepcopy(self.datanode_auto_start_command)
+    server_command = copy.deepcopy(self.namenode_install_command)
+    execution_started = threading.Event()
+    allow_execution_to_finish = threading.Event()
+
+    def wait_for_preemption(command):
+      execution_started.set()
+      allow_execution_to_finish.wait(5)
+
+    action_queue.execute_command = MagicMock(side_effect=wait_for_preemption)
+    recovery_thread = threading.Thread(
+      target=action_queue.process_command, args=(recovery_command,)
+    )
+    recovery_thread.start()
+    self.assertTrue(execution_started.wait(5))
+
+    action_queue.put([server_command])
+
+    action_queue.customServiceOrchestrator.cancel_command.assert_called_once_with(
+      recovery_command["taskId"], "Preempted by a server-issued command"
+    )
+    self.assertIn(recovery_command["taskId"], action_queue.taskIdsToCancel)
+    self.assertEqual(server_command, action_queue.commandQueue.get_nowait())
+
+    allow_execution_to_finish.set()
+    recovery_thread.join(5)
+    self.assertFalse(recovery_thread.is_alive())
+    self.assertNotIn(recovery_command["taskId"], action_queue.taskIdsToCancel)
+
+  def test_dequeued_recovery_command_yields_to_queued_server_command(self):
+    action_queue = self.create_mock_action_queue()
+    recovery_command = copy.deepcopy(self.datanode_auto_start_command)
+    server_command = copy.deepcopy(self.namenode_install_command)
+    action_queue.commandQueue.put(server_command)
+    action_queue.execute_command = MagicMock()
+
+    action_queue.process_command(recovery_command)
+
+    action_queue.execute_command.assert_not_called()
+    self.assertNotIn(recovery_command["taskId"], action_queue.active_recovery_task_ids)
+
+  def test_recovery_command_canceled_before_script_execution(self):
+    action_queue = self.create_mock_action_queue()
+    recovery_command = copy.deepcopy(self.datanode_auto_start_command)
+    action_queue.taskIdsToCancel.add(recovery_command["taskId"])
+    action_queue.commandStatuses.generate_report_template.return_value = {}
+    action_queue.config.get.side_effect = (
+      lambda section, key: "0" if key == "log_command_executes" else "/tmp"
+    )
+
+    action_queue.execute_command(recovery_command)
+
+    action_queue.customServiceOrchestrator.runCommand.assert_not_called()
+    self.assertNotIn(recovery_command["taskId"], action_queue.taskIdsToCancel)
+
+  def test_recovery_command_does_not_preempt_active_recovery(self):
+    action_queue = self.create_mock_action_queue()
+    active_task_id = 41
+    action_queue.active_recovery_task_ids.add(active_task_id)
+
+    action_queue.put([copy.deepcopy(self.datanode_auto_start_command)])
+
+    action_queue.customServiceOrchestrator.cancel_command.assert_not_called()
 
   datanode_upgrade_command = {
     "commandId": 17,
