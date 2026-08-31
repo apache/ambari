@@ -123,10 +123,6 @@ class TestSensitiveDataEncryption(TestCase):
 
   @patch("os.path.isdir", new=MagicMock(return_value=True))
   @patch("os.access", new=MagicMock(return_value=True))
-  @patch(
-    "ambari_server.setupSecurity.get_java_exe_path",
-    new=MagicMock(return_value="/java17/bin/java"),
-  )
   @patch.object(
     ServerClassPath,
     "get_full_ambari_classpath_escaped_for_shell",
@@ -143,7 +139,7 @@ class TestSensitiveDataEncryption(TestCase):
     find_jdk_mock,
     find_properties_file_mock,
   ):
-    find_jdk_mock.return_value = "/"
+    find_jdk_mock.return_value = "/java17"
     find_properties_file_mock.return_value = "/tmp/ambari.properties"
     environ = os.environ.copy()
 
@@ -175,10 +171,6 @@ class TestSensitiveDataEncryption(TestCase):
 
   @patch("os.path.isdir", new=MagicMock(return_value=True))
   @patch("os.access", new=MagicMock(return_value=True))
-  @patch(
-    "ambari_server.setupSecurity.get_java_exe_path",
-    new=MagicMock(return_value="/java17/bin/java"),
-  )
   @patch.object(
     ServerClassPath,
     "get_full_ambari_classpath_escaped_for_shell",
@@ -195,7 +187,7 @@ class TestSensitiveDataEncryption(TestCase):
     find_jdk_mock,
     find_properties_file_mock,
   ):
-    find_jdk_mock.return_value = "/"
+    find_jdk_mock.return_value = "/java17"
     find_properties_file_mock.return_value = "/tmp/ambari.properties"
     environ = os.environ.copy()
     master = "master"

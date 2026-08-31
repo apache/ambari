@@ -699,7 +699,7 @@ def sensitive_data_encryption(options, direction, masterKey=None):
     return 1
   serverClassPath = ServerClassPath(get_ambari_properties(), options)
   command = SECURITY_SENSITIVE_DATA_ENCRYPTON_CMD.format(
-    get_java_exe_path(),
+    os.path.join(jdk_path, configDefaults.JAVA_EXE_SUBPATH),
     serverClassPath.get_full_ambari_classpath_escaped_for_shell(),
     direction,
   )
