@@ -1087,7 +1087,7 @@ class_name = format(
   "org.apache.hadoop.yarn.server.timelineservice.storage.TimelineSchemaCreator -Dhbase.client.retries.number=35 -create -s"
 )
 yarn_hbase_table_create_cmd = format(
-  "export HBASE_CLASSPATH_PREFIX={stack_root}/{version}/usr/lib/hadoop-yarn/timelineservice/*;{yarn_hbase_kinit_cmd} {hbase_cmd} {class_name}"
+  "export HBASE_CLASSPATH_PREFIX={yarn_atsv2_hbase_versioned_home}/lib/*:{stack_root}/{version}/usr/lib/hadoop-yarn/timelineservice/*;{yarn_hbase_kinit_cmd} {hbase_cmd} {class_name}"
 )
 yarn_hbase_table_grant_premission_cmd = format(
   "{yarn_hbase_kinit_cmd} {hbase_cmd} shell {yarn_hbase_grant_premissions_file}"

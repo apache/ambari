@@ -45,6 +45,11 @@ def hbase_service(name, action="start"):  # 'start' or 'stop'
 
     try:
       Execute(daemon_cmd, not_if=no_op_test, user=params.yarn_hbase_user)
+      Execute(
+        format("sleep 2; {no_op_test}"),
+        tries=5,
+        try_sleep=1,
+      )
     except:
       show_logs(params.yarn_hbase_log_dir, params.yarn_hbase_user)
       raise
