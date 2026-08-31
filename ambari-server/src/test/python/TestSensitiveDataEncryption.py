@@ -123,6 +123,10 @@ class TestSensitiveDataEncryption(TestCase):
 
   @patch("os.path.isdir", new=MagicMock(return_value=True))
   @patch("os.access", new=MagicMock(return_value=True))
+  @patch(
+    "ambari_server.setupSecurity.get_java_exe_path",
+    new=MagicMock(return_value="/java17/bin/java"),
+  )
   @patch.object(
     ServerClassPath,
     "get_full_ambari_classpath_escaped_for_shell",
@@ -149,7 +153,7 @@ class TestSensitiveDataEncryption(TestCase):
     options = self._create_empty_options_mock()
     sensitive_data_encryption(options, "encription")
     run_os_command_mock.assert_called_with(
-      "None -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption encription > /var/log/ambari-server/ambari-server.out 2>&1",
+      "/java17/bin/java -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption encription > /var/log/ambari-server/ambari-server.out 2>&1",
       environ,
     )
     pass
@@ -171,6 +175,10 @@ class TestSensitiveDataEncryption(TestCase):
 
   @patch("os.path.isdir", new=MagicMock(return_value=True))
   @patch("os.access", new=MagicMock(return_value=True))
+  @patch(
+    "ambari_server.setupSecurity.get_java_exe_path",
+    new=MagicMock(return_value="/java17/bin/java"),
+  )
   @patch.object(
     ServerClassPath,
     "get_full_ambari_classpath_escaped_for_shell",
@@ -199,7 +207,7 @@ class TestSensitiveDataEncryption(TestCase):
     options = self._create_empty_options_mock()
     sensitive_data_encryption(options, "decryption", master)
     run_os_command_mock.assert_called_with(
-      "None -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption decryption > /var/log/ambari-server/ambari-server.out 2>&1",
+      "/java17/bin/java -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption decryption > /var/log/ambari-server/ambari-server.out 2>&1",
       environ,
     )
     pass

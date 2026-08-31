@@ -5302,6 +5302,7 @@ class TestAmbariServer(TestCase):
     p.process_pair(SERVER_VERSION_FILE_PATH, "some_value")
     p.process_pair(OS_TYPE_PROPERTY, "some_value")
     p.process_pair(JAVA_HOME_PROPERTY, "some_value")
+    p.process_pair(AMBARI_JAVA_HOME_PROPERTY, "some_value")
     p.process_pair(JDK_NAME_PROPERTY, "some_value")
     p.process_pair(JCE_NAME_PROPERTY, "some_value")
     p.process_pair(COMMON_SERVICES_PATH_PROPERTY, "some_value")
@@ -5645,7 +5646,7 @@ class TestAmbariServer(TestCase):
 
     # Checking situation when required properties not set up
     args = reset_mocks()
-    p.removeProp(JAVA_HOME_PROPERTY)
+    p.removeProp(AMBARI_JAVA_HOME_PROPERTY)
     get_ambari_properties_mock.return_value = p
     try:
       _ambari_server_.start(args)
