@@ -469,6 +469,18 @@
   </build>
   <profiles>
     <profile>
+      <id>python-wheel-aarch64</id>
+      <activation>
+        <property>
+          <name>build.os_arch</name>
+          <value>aarch64</value>
+        </property>
+      </activation>
+      <properties>
+        <python.wheel.platform>manylinux2014_aarch64</python.wheel.platform>
+      </properties>
+    </profile>
+    <profile>
       <id>default-views</id>
       <activation>
         <property>
