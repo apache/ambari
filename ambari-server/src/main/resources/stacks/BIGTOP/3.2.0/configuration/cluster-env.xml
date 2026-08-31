@@ -249,6 +249,16 @@ gpgcheck=0</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>java_home_overrides</name>
+    <display-name>Service and component Java home overrides</display-name>
+    <value>{}</value>
+    <description>JSON map of service or component names to a pre-installed Java home and feature version. Component entries take precedence. Example: {"SOLR":{"home":"/usr/lib/jvm/java-17","version":17}}</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>alerts_repeat_tolerance</name>
     <value>1</value>
     <description>The number of consecutive alerts required to transition an alert from the SOFT to the HARD state.</description>
