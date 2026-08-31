@@ -245,6 +245,7 @@
 
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
+    <jetty.version>9.4.43.v20210629</jetty.version>
   </properties>
   <build>
   </build>

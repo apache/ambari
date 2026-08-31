@@ -42,26 +42,26 @@ public class ExtensionsServiceTest extends BaseServiceTest {
 
     // getExtension
     ExtensionsService service = new TestExtensionsService("extensionName", null);
-    Method m = service.getClass().getMethod("getExtension", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "extensionName"};
+    Method m = service.getClass().getMethod("getExtension", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "extensionName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //getExtensions
     service = new TestExtensionsService(null, null);
-    m = service.getClass().getMethod("getExtensions", String.class, HttpHeaders.class, UriInfo.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
+    m = service.getClass().getMethod("getExtensions", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getExtensionVersion
     service = new TestExtensionsService("extensionName", "extensionVersion");
-    m = service.getClass().getMethod("getExtensionVersion", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "extensionName", "extensionVersion"};
+    m = service.getClass().getMethod("getExtensionVersion", HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "extensionName", "extensionVersion"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getExtensionVersions
     service = new TestExtensionsService("extensionName", null);
-    m = service.getClass().getMethod("getExtensionVersions", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "extensionName"};
+    m = service.getClass().getMethod("getExtensionVersions", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "extensionName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     return listInvocations;

@@ -24,6 +24,7 @@ import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,7 +37,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.HttpChannel;
-import org.eclipse.jetty.server.HttpConnection;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.slf4j.Logger;
@@ -53,19 +53,28 @@ public class AmbariErrorHandler extends ErrorHandler {
   private static final Logger LOG = LoggerFactory.getLogger(AmbariErrorHandler.class);
 
   private final Gson gson;
+  private final Logger logger;
+  private final Supplier<UUID> requestIdSupplier;
 
   private JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider;
 
   @Inject
   public AmbariErrorHandler(@Named("prettyGson") Gson prettyGson, JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider) {
+    this(prettyGson, jwtAuthenticationPropertiesProvider, LOG, UUID::randomUUID);
+  }
+
+  AmbariErrorHandler(Gson prettyGson, JwtAuthenticationPropertiesProvider jwtAuthenticationPropertiesProvider,
+      Logger logger, Supplier<UUID> requestIdSupplier) {
     this.gson = prettyGson;
     this.jwtAuthenticationPropertiesProvider = jwtAuthenticationPropertiesProvider;
+    this.logger = logger;
+    this.requestIdSupplier = requestIdSupplier;
   }
 
   @Override
   public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-    HttpChannel connection = HttpConnection.getCurrentConnection().getHttpChannel();
-    connection.getRequest().setHandled(true);
+    HttpChannel connection = baseRequest.getHttpChannel();
+    baseRequest.setHandled(true);
 
     response.setContentType(MimeTypes.Type.TEXT_PLAIN.asString());
 
@@ -82,10 +91,10 @@ public class AmbariErrorHandler extends ErrorHandler {
     Throwable th = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
     if (th != null) {
       if (code == org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR) {
-        UUID requestId = UUID.randomUUID();
+        UUID requestId = requestIdSupplier.get();
         message = "Internal server error, please refer the exception by " + requestId + " in the server log file";
         errorMap.put("message", message);
-        LOG.error(message + ", requestURI: " + request.getRequestURI(), th);
+        logger.error(message + ", requestURI: " + request.getRequestURI(), th);
       }
 
       if (this.isShowStacks()) {
@@ -103,9 +112,9 @@ public class AmbariErrorHandler extends ErrorHandler {
         String originalUrl = jwtProperties.getOriginalUrlQueryParam();
 
         if (StringUtils.isEmpty(providerUrl)) {
-          LOG.warn("The SSO provider URL is not available, forwarding to the SSO provider is not possible");
+          logger.warn("The SSO provider URL is not available, forwarding to the SSO provider is not possible");
         } else if (StringUtils.isEmpty(originalUrl)) {
-          LOG.warn("The original URL parameter name is not available, forwarding to the SSO provider is not possible");
+          logger.warn("The original URL parameter name is not available, forwarding to the SSO provider is not possible");
         } else {
           errorMap.put("jwtProviderUrl", String.format("%s?%s=", providerUrl, originalUrl));
         }

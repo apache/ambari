@@ -32,7 +32,7 @@ __all__ = [
 from unittest import TestCase
 import json
 import os
-import imp
+from ambari_commons import import_utils as imp
 import sys
 import pprint
 import itertools

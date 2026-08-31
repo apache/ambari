@@ -40,14 +40,14 @@ public class SettingServiceTest extends BaseServiceTest {
 
     //getSetting
     SettingService settingService = new TestSettingService("settingName");
-    Method m = settingService.getClass().getMethod("getSetting", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "settingName"};
+    Method m = settingService.getClass().getMethod("getSetting", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "settingName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, settingService, m, args, null));
 
     //getSettings
     settingService = new TestSettingService(null);
-    m = settingService.getClass().getMethod("getSettings", String.class, HttpHeaders.class, UriInfo.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
+    m = settingService.getClass().getMethod("getSettings", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, settingService, m, args, null));
 
     //createSetting

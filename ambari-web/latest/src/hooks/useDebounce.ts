@@ -18,28 +18,32 @@
 
 import React from "react";
 
-export const useDebounce = (  callback: (...args: any[]) => void,
+export const useDebounce = <Args extends unknown[]>(
+  callback: (...args: Args) => void,
   delay: number,
 ) => {
   const callbackRef = React.useRef(callback);
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
   React.useLayoutEffect(() => {
     callbackRef.current = callback;
   });
-  let timer: ReturnType<typeof setTimeout>;
-  const naiveDebounce = (    func: (...args: any[]) => void,
-    delayMs: number,
-    ...args: any[]
-  ) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { 
-      func(...args);
-    }, delayMs);  };
-  
-  return React.useMemo(() => (...args: any) => naiveDebounce(
-    callbackRef.current,
-    delay, 
-    ...args,
-  ), [delay]);
+
+  React.useEffect(
+    () => () => {
+      clearTimeout(timerRef.current);
+    },
+    [delay],
+  );
+
+  return React.useCallback(
+    (...args: Args) => {
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => callbackRef.current(...args), delay);
+    },
+    [delay],
+  );
 };
- 
  

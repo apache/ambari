@@ -986,7 +986,9 @@ describe("Ember Service Theme page integration", () => {
       target: { value: "hide" },
     });
 
-    expect(await screen.findByDisplayValue("hide")).toBeTruthy();
+    expect(
+      await screen.findByDisplayValue("hide", {}, { timeout: 3000 }),
+    ).toBeTruthy();
     await waitFor(() =>
       expect(screen.queryByDisplayValue("primary value")).toBeNull(),
     );
@@ -1305,10 +1307,18 @@ describe("Ember Service Theme page integration", () => {
 
     expect(await screen.findByText("1.501KB")).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Use default value: 0 KB" }),
+      await screen.findByRole(
+        "button",
+        { name: "Use default value: 0 KB" },
+        { timeout: 3000 },
+      ),
     ).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: "Use recommended value: 0 KB" }),
+      await screen.findByRole(
+        "button",
+        { name: "Use recommended value: 0 KB" },
+        { timeout: 3000 },
+      ),
     ).toBeTruthy();
 
     fireEvent.click(

@@ -109,7 +109,7 @@ class PropertiesParser(Parser):  # Used ConfigParser parser to read data into a 
 
       cp = configparser.ConfigParser()
       cp.optionxform = str
-      cp.readfp(properties_file_content)
+      cp.read_file(properties_file_content)
 
       for section in cp._sections:
         for name, value in cp._sections[section].items():

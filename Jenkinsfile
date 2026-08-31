@@ -97,7 +97,7 @@ pipeline {
                 }
                 stage('Ambari Service Advisor') {
                     steps {
-                        sh 'mvn -T 3C -am install -pl ambari-serviceadvisor -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10'
+                        sh 'mvn -T 3C -am install -pl ambari-serviceadvisor -DskipSurefireTests -DskipPythonTests -Dmaven.test.failure.ignore -DskipTests -DskipUiBuild=true -Dfindbugs.skip -Drat.skip -Dmaven.artifact.threads=10'
                     }
                 }
             }
@@ -110,39 +110,83 @@ pipeline {
             }
         }
 
-        stage('Parallel Unit Tests') {
-            parallel {
-                stage('Ambari Agent Tests') {
-                    steps {
-                        sh 'pip3 install distro'
-                        sh 'mvn -Dmaven.test.failure.ignore=true -am test -pl ambari-agent -Dmaven.artifact.threads=10 -Drat.skip'
-                    }
-                }
+        stage('Ambari Agent Tests') {
+            steps {
+                sh 'pip3 install distro'
+                sh 'mvn -Dmaven.test.failure.ignore=true -am test -pl ambari-agent -DskipAdminWebTests=true -DskipUiBuild=true -Dmaven.artifact.threads=10 -Drat.skip'
+            }
+        }
 
-                stage('Ambari Server PyTests') {
+        stage('Ambari Server PyTests') {
+            steps {
+                sh '''
+                   # Install pyOpenSSL in one step
+                   pip3 install --user --upgrade pyOpenSSL
+                   # Verify installations
+                   pip3 --version
+                   openssl version
+                   '''
+                sh 'mvn clean -am test -pl ambari-server -DskipSurefireTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -Dcheckstyle.skip -DskipAdminWebTests=true -DskipUiBuild=true'
+            }
+        }
+
+        stage('Ambari Java Tests') {
+            steps {
+                sh 'mvn -am test -pl ambari-server,ambari-funtest -DskipPythonTests -DskipFunctionalTests=false -Dmaven.artifact.threads=10 -Drat.skip -DskipAdminWebTests=true -DskipUiBuild=true'
+            }
+        }
+
+        stage('Prepare React UI Toolchain') {
+            steps {
+                sh '''
+                    flock "$HOME/.m2/.frontend-install.lock" mvn -B -pl ambari-web com.github.eirslett:frontend-maven-plugin:1.11.0:install-node-and-npm@install-node-and-npm-react ||
+                      flock "$HOME/.m2/.frontend-install.lock" mvn -B -pl ambari-web com.github.eirslett:frontend-maven-plugin:1.11.0:install-node-and-npm@install-node-and-npm-react
+                    '''
+            }
+        }
+
+        stage('React UI Tests') {
+            parallel {
+                stage('Ambari Admin React UI') {
                     steps {
-                        sh '''
-                           # Install pyOpenSSL in one step
-                           pip3 install --user --upgrade pyOpenSSL
-                           # Verify installations
-                           pip3 --version
-                           openssl version
-                           '''
-                        sh 'mvn clean -am test -pl ambari-server -DskipSurefireTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -Dcheckstyle.skip -DskipAdminWebTests=true'
+                        sh 'flock "$HOME/.m2/.frontend-install.lock" mvn -B -pl ambari-admin com.github.eirslett:frontend-maven-plugin:1.11.0:install-node-and-npm@install-node-and-npm-react'
+                        dir('ambari-admin/src/main/resources/ui/ambari-admin') {
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js ci --no-audit --no-fund'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js test -- --run'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js run build'
+                        }
                     }
                 }
-            }
-        }
-        stage('Ambari WebUI Tests') {
-            steps {
-                withEnv(['CHROME_BIN=/usr/bin/chromium-browser']) {
-                    sh 'mvn -T 2C -am test -pl ambari-web,ambari-admin -Dmaven.artifact.threads=10 -Drat.skip'
+                stage('Ambari React UI') {
+                    steps {
+                        sh 'flock "$HOME/.m2/.frontend-install.lock" mvn -B -pl ambari-web com.github.eirslett:frontend-maven-plugin:1.11.0:install-node-and-npm@install-node-and-npm-react'
+                        dir('ambari-web/latest') {
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js ci --no-audit --no-fund'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js test'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js run build'
+                        }
+                    }
                 }
-            }
-        }
-        stage('Ambari Server JTests') {
-            steps {
-                sh 'mvn -am test -pl ambari-server -DskipPythonTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -DskipAdminWebTests=true'
+                stage('Files React View') {
+                    steps {
+                        sh 'flock "$HOME/.m2/.frontend-install.lock" mvn -B -f contrib/views/files/pom.xml com.github.eirslett:frontend-maven-plugin:1.11.0:install-node-and-npm@install-node-and-npm'
+                        dir('contrib/views/files/src/main/resources/ui') {
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js ci --no-audit --no-fund'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js test'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js run build'
+                        }
+                    }
+                }
+                stage('Capacity Scheduler React View') {
+                    steps {
+                        sh 'flock "$HOME/.m2/.frontend-install.lock" mvn -B -f contrib/views/capacity-scheduler/pom.xml com.github.eirslett:frontend-maven-plugin:1.11.0:install-node-and-npm@install-node-and-npm'
+                        dir('contrib/views/capacity-scheduler/src/main/resources/ui') {
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js ci --no-audit --no-fund'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js test'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js run build'
+                        }
+                    }
+                }
             }
         }
     }

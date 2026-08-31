@@ -182,7 +182,7 @@ class Installer:
 
     cp = configparser.SafeConfigParser()
     with open(OS_PACKAGE_DEPENDENCIES) as fp:
-      cp.readfp(FakePropertiesHeader(fp))
+      cp.read_file(FakePropertiesHeader(fp))
 
     properties = dict(cp.items(FakePropertiesHeader.FAKE_SECTION_NAME))
 

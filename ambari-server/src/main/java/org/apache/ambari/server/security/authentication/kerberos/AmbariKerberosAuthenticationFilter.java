@@ -158,6 +158,6 @@ public class AmbariKerberosAuthenticationFilter extends SpnegoAuthenticationProc
       eventHandler.beforeAttemptAuthentication(this, request, response);
     }
 
-    super.doFilter(request, response, filterChain);
+    super.doFilterInternal(request, response, filterChain);
   }
 }
