@@ -813,12 +813,18 @@ public class Configuration {
   /**
    * The name of the Ambari JDK installation binary.
    */
+  @Markdown(
+      description = "The name of the Ambari JDK installation binary.",
+      examples = { "jdk-17-linux-x64.tar.gz" })
   public static final ConfigurationProperty<String> AMBARI_JDK_NAME = new ConfigurationProperty<>(
       "ambari.jdk.name", null);
 
   /**
    * The name of the Ambari JCE policy ZIP file.
    */
+  @Markdown(
+      description = "The name of the Ambari JCE policy ZIP file.",
+      examples = { "jce-policy.zip" })
   public static final ConfigurationProperty<String> AMBARI_JCE_NAME = new ConfigurationProperty<>(
       "ambari.jce.name", null);
 
