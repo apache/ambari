@@ -293,7 +293,7 @@ class CustomServiceOrchestrator(object):
     )
 
     # Set up the variables for the external command to generate a JCEKS file
-    java_home = commandJson["ambariLevelParams"]["java_home"]
+    java_home = commandJson["ambariLevelParams"]["ambari_java_home"]
     java_bin = f"{java_home}/bin/java"
 
     cs_lib_path = self.credential_shell_lib_path

@@ -181,7 +181,7 @@ public class Configuration {
   /**
    * The minimum JDK version supported by Ambari.
    */
-  public static final float JDK_MIN_VERSION = 1.7f;
+  public static final int JDK_MIN_VERSION = 17;
 
   /**
    * The prefix for any configuration property which will be appended to
@@ -784,28 +784,49 @@ public class Configuration {
       "gpl.license.accepted", false);
 
   /**
-   * The location of the JDK on the Ambari Agent hosts.
+   * The legacy location of the JDK used by stack services.
    */
   @Markdown(
-      description = "The location of the JDK on the Ambari Agent hosts. If stack.java.home exists, that is only used by Ambari Server (or you can find that as ambari_java_home in the commandParams on the agent side)",
-      examples = { "/usr/jdk64/jdk1.8.0_112" })
+      description = "Legacy fallback for the JDK used by stack services. Use stack.java.home for new installations.",
+      examples = { "/usr/lib/jvm/java-11" })
   public static final ConfigurationProperty<String> JAVA_HOME = new ConfigurationProperty<>(
       "java.home", null);
 
   /**
-   * The location of the JDK on the Ambari Agent hosts.
+   * The location of the JDK used by Ambari Server and Agent Java helpers.
    */
   @Markdown(
-          description = "The location of the JDK on the Ambari Agent hosts. This is only used by Ambari Server",
-          examples = { "/usr/jdk64/jdk1.8.0_112" })
+          description = "The JDK used by Ambari Server and by Ambari-owned Java helpers on every Agent host.",
+          examples = { "/usr/lib/jvm/java-17" })
   public static final ConfigurationProperty<String> AMBARI_JAVA_HOME = new ConfigurationProperty<>(
           "ambari.java.home", null);
+
+  /**
+   * Java feature version used by Ambari Server and Agent Java helpers.
+   */
+  @Markdown(
+      description = "Java feature version used by Ambari Server and Ambari-owned Java helpers.",
+      examples = { "17" })
+  public static final ConfigurationProperty<String> AMBARI_JAVA_VERSION = new ConfigurationProperty<>(
+      "ambari.java.version", String.valueOf(Runtime.version().feature()));
+
+  /**
+   * The name of the Ambari JDK installation binary.
+   */
+  public static final ConfigurationProperty<String> AMBARI_JDK_NAME = new ConfigurationProperty<>(
+      "ambari.jdk.name", null);
+
+  /**
+   * The name of the Ambari JCE policy ZIP file.
+   */
+  public static final ConfigurationProperty<String> AMBARI_JCE_NAME = new ConfigurationProperty<>(
+      "ambari.jce.name", null);
 
   /**
    * The name of the JDK installation binary.
    */
   @Markdown(
-      description = "The name of the JDK installation binary. If stack.jdk.name exists, that is only used by Ambari Server (or you can find that as ambari_jdk_name in the commandParams on the agent side)",
+      description = "Legacy fallback for the stack JDK installation binary name.",
       examples = { "jdk-8u112-linux-x64.tar.gz" })
   public static final ConfigurationProperty<String> JDK_NAME = new ConfigurationProperty<>(
       "jdk.name", null);
@@ -814,17 +835,17 @@ public class Configuration {
    * The name of the JCE policy ZIP file.
    */
   @Markdown(
-      description = "The name of the JCE policy ZIP file. If stack.jce.name exists, that is only used by Ambari Server (or you can find that as ambari_jce_name in the commandParams on the agent side)",
+      description = "Legacy fallback for the stack JCE policy ZIP file name.",
       examples = {"UnlimitedJCEPolicyJDK8.zip"})
   public static final ConfigurationProperty<String> JCE_NAME = new ConfigurationProperty<>(
       "jce.name", null);
 
   /**
-   * The location of the JDK on the Ambari Agent hosts.
+   * The default location of the JDK used by stack services.
    */
   @Markdown(
-    description = "The location of the JDK on the Ambari Agent hosts for stack services.",
-    examples = { "/usr/jdk64/jdk1.7.0_45" })
+    description = "The default JDK used by stack services. BIGTOP cluster-env overrides may replace it for a service or component.",
+    examples = { "/usr/lib/jvm/java-11" })
   public static final ConfigurationProperty<String> STACK_JAVA_HOME = new ConfigurationProperty<>(
     "stack.java.home", null);
 
@@ -850,8 +871,8 @@ public class Configuration {
    * Java version of the stack
    */
   @Markdown(
-    description = "JDK version of the stack, use in case of it differs from Ambari JDK version.",
-    examples = {"1.7"})
+    description = "Java feature version of the default stack JDK.",
+    examples = {"11"})
   public static final ConfigurationProperty<String> STACK_JAVA_VERSION = new ConfigurationProperty<>(
     "stack.java.version", null);
 
@@ -2890,7 +2911,8 @@ public class Configuration {
     defaultAgentConfigsMap.put(CHECK_REMOTE_MOUNTS.getKey(), getProperty(CHECK_REMOTE_MOUNTS));
     defaultAgentConfigsMap.put(CHECK_MOUNTS_TIMEOUT.getKey(), getProperty(CHECK_MOUNTS_TIMEOUT));
     defaultAgentConfigsMap.put(ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey(), getProperty(ENABLE_AUTO_AGENT_CACHE_UPDATE));
-    defaultAgentConfigsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
+    defaultAgentConfigsMap.put(JAVA_HOME.getKey(), StringUtils.defaultIfEmpty(
+        getProperty(AMBARI_JAVA_HOME), getProperty(JAVA_HOME)));
 
     configsMap = new HashMap<>();
     configsMap.putAll(defaultAgentConfigsMap);
@@ -3379,23 +3401,10 @@ public class Configuration {
   }
 
   /**
-   * @return conventional Java version number, e.g. 7.
-   * Integer is used here to simplify comparisons during usage.
-   * If java version is not supported, returns -1
+   * @return the Java feature version used by the running Ambari Server.
    */
   public int getJavaVersion() {
-    String versionStr = System.getProperty("java.version");
-    if (versionStr.startsWith("1.6")) {
-      return 6;
-    } else if (versionStr.startsWith("1.7")) {
-      return 7;
-    } else if (versionStr.startsWith("1.8")) {
-      return 8;
-    } else if (versionStr.startsWith("17")) {
-      return 17;
-    } else { // Some unsupported java version
-      return -1;
-    }
+    return Runtime.version().feature();
   }
 
   public File getBootStrapDir() {
@@ -4126,6 +4135,18 @@ public class Configuration {
 
   public String getAmbariJavaHome() {
     return getProperty(AMBARI_JAVA_HOME);
+  }
+
+  public String getAmbariJavaVersion() {
+    return String.valueOf(getJavaVersion());
+  }
+
+  public String getAmbariJDKName() {
+    return getProperty(AMBARI_JDK_NAME);
+  }
+
+  public String getAmbariJCEName() {
+    return getProperty(AMBARI_JCE_NAME);
   }
 
   public String getJDKName() {

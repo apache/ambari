@@ -98,9 +98,9 @@ from ambari_server.serverConfiguration import (
   SSL_TRUSTSTORE_PASSWORD_PROPERTY,
   SSL_TRUSTSTORE_PATH_PROPERTY,
   SSL_TRUSTSTORE_TYPE_PROPERTY,
-  JDK_NAME_PROPERTY,
-  JCE_NAME_PROPERTY,
-  JAVA_HOME_PROPERTY,
+  AMBARI_JDK_NAME_PROPERTY,
+  AMBARI_JCE_NAME_PROPERTY,
+  AMBARI_JAVA_HOME_PROPERTY,
   get_resources_location,
   SECURITY_MASTER_KEY_LOCATION,
   SETUP_OR_UPGRADE_MSG,
@@ -295,9 +295,9 @@ def adjust_directory_permissions(ambari_user):
 
   # Update JDK and JCE permissions
   resources_dir = get_resources_location(properties)
-  jdk_file_name = properties.get_property(JDK_NAME_PROPERTY)
-  jce_file_name = properties.get_property(JCE_NAME_PROPERTY)
-  java_home = properties.get_property(JAVA_HOME_PROPERTY)
+  jdk_file_name = properties.get_property(AMBARI_JDK_NAME_PROPERTY)
+  jce_file_name = properties.get_property(AMBARI_JCE_NAME_PROPERTY)
+  java_home = properties.get_property(AMBARI_JAVA_HOME_PROPERTY)
   if jdk_file_name:
     jdk_file_path = os.path.abspath(os.path.join(resources_dir, jdk_file_name))
     if os.path.exists(jdk_file_path):
