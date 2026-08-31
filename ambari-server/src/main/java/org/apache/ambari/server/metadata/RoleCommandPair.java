@@ -53,11 +53,11 @@ public class RoleCommandPair {
     return false;
   }
 
-  Role getRole() {
+  public Role getRole() {
     return role;
   }
 
-  RoleCommand getCmd() {
+  public RoleCommand getCmd() {
     return cmd;
   }
 

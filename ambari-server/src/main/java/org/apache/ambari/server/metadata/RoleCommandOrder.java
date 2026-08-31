@@ -18,6 +18,7 @@
 package org.apache.ambari.server.metadata;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -186,6 +187,14 @@ public class RoleCommandOrder implements Cloneable {
       return compareCommands(rgn1, rgn2);
     }
     return 0;
+  }
+
+  /**
+   * Returns the transitive role dependencies used by the stage planner.
+   */
+  public Set<RoleCommandPair> getDependencies(Role role, RoleCommand command) {
+    Set<RoleCommandPair> roleDependencies = dependencies.get(new RoleCommandPair(role, command));
+    return roleDependencies == null ? Collections.emptySet() : Collections.unmodifiableSet(roleDependencies);
   }
 
   /**
