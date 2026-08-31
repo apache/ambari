@@ -42,8 +42,8 @@ import jakarta.persistence.TableGenerator;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Version;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name"})})
 @Entity

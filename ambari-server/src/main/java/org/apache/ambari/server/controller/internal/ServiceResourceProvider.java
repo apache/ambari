@@ -82,8 +82,8 @@ import org.apache.ambari.server.topology.addservice.AddServiceRequest;
 import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

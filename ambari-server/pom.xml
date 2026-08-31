@@ -53,13 +53,7 @@
     <xlint>none</xlint>
     
     <!-- Maven Plugin Versions -->
-    <mojo.build.helper.version>1.8</mojo.build.helper.version>
-    <maven.compiler.version>3.5</maven.compiler.version>
-    <maven.antrun.version>1.7</maven.antrun.version>
-    <maven.resources.version>2.6</maven.resources.version>
     <maven.jar.version>3.0.2</maven.jar.version>
-    <maven.clover2.version>3.1.11</maven.clover2.version>
-    <maven.resources.plugin.version>2.6</maven.resources.plugin.version>
     <coderplus.maven.version>1.0.1</coderplus.maven.version>
     
     <!-- Library Versions -->
@@ -72,7 +66,7 @@
     <collections4.version>4.4</collections4.version>
     <commons.compress.version>1.21</commons.compress.version>
     <commons.text.version>1.10.0</commons.text.version>
-    <commons.net.version>1.4.1</commons.net.version>
+    <commons.net.version>3.13.0</commons.net.version>
     <cloning.version>1.9.2</cloning.version>
     <guava.version>32.1.3-jre</guava.version>
     <h2database.version>1.4.193</h2database.version>
@@ -85,21 +79,21 @@
     <quartz.version>2.3.2</quartz.version>
     <quartz.jobs.version>2.3.2</quartz.jobs.version>
     <velocity.engine.core.version>2.3</velocity.engine.core.version>
-    <mailapi.version>1.5.2</mailapi.version>
-    <smtp.version>1.5.2</smtp.version>
-    <snmp4j.version>1.10.1</snmp4j.version>
+    <jakarta.mail.version>2.1.5</jakarta.mail.version>
+    <angus.mail.version>2.0.5</angus.mail.version>
+    <snmp4j.version>3.13.1</snmp4j.version>
     <yamlbeans.version>1.13</yamlbeans.version>
-    <jaxb.api.version>2.3.1</jaxb.api.version>
+    <jaxb.api.version>4.0.5</jaxb.api.version>
+    <jaxb.runtime.version>4.0.9</jaxb.runtime.version>
     <istack.commons.runtime.version>4.0.0</istack.commons.runtime.version>
     <FastInfoset.version>1.2.16</FastInfoset.version>
     <ehcache.version>3.10.0</ehcache.version>
-    <nimbus.jose.jwt.version>5.9</nimbus.jose.jwt.version>
-    <jsch.version>0.1.54</jsch.version>
-    <c3p0.version>0.9.5.4</c3p0.version>
-    <metrics.core.version>3.1.0</metrics.core.version>
-    <metrics.jvm.version>3.1.0</metrics.jvm.version>
-    <libpam4j.version>1.10</libpam4j.version>
-    <jna.version>4.2.2</jna.version>
+    <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
+    <jsch.version>0.2.26</jsch.version>
+    <c3p0.version>0.11.2</c3p0.version>
+    <metrics.version>4.2.40</metrics.version>
+    <libpam4j.version>1.11</libpam4j.version>
+    <jna.version>5.19.1</jna.version>
     <api.ldap.model.version>2.0.0.AM1</api.ldap.model.version>
     <api.ldap.client.api.version>2.0.0.AM1</api.ldap.client.api.version>
     <apacheds.kerberos.codec.version>2.0.0-M24</apacheds.kerberos.codec.version>
@@ -111,7 +105,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${mojo.build.helper.version}</version>
         <executions>
           <execution>
             <id>parse-version</id>
@@ -163,10 +156,8 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven.compiler.version}</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <release>${jdk.version}</release>
           <useIncrementalCompilation>false</useIncrementalCompilation>
           <compilerArgs>
             <arg>-Xlint:${xlint}</arg>
@@ -178,12 +169,11 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>${maven.antrun.version}</version>
         <executions>
           <execution>
             <phase>package</phase>
             <configuration>
-              <tasks>
+              <target>
                 <jar destfile="target/DBConnectionVerification.jar">
                   <fileset dir="${basedir}/target/classes/"
                     includes="**/DBConnectionVerification.class" />
@@ -201,7 +191,7 @@
                                value="org.apache.ambari.server.credentialapi.CredentialUtil" />
                   </manifest>
                 </jar>
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>
@@ -286,7 +276,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>${maven.resources.plugin.version}</version>
         <executions>
           <execution>
             <id>copy-resources</id>
@@ -880,13 +869,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>com.atlassian.maven.plugins</groupId>
-        <artifactId>maven-clover2-plugin</artifactId>
-        <version>${maven.clover2.version}</version>
-        <!-- <configuration> <licenseLocation>/path/to/clover.license</licenseLocation>
-          </configuration> -->
-      </plugin>
-      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
         <version>${buildnumber-maven-plugin-version}</version>
@@ -935,7 +917,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>
-            <version>${maven.antrun.version}</version>
             <executions>
               <execution>
                 <id>set-hdp-url-classes</id>
@@ -969,7 +950,6 @@
         <plugins>
           <plugin>
             <artifactId>maven-resources-plugin</artifactId>
-            <version>${maven.resources.plugin.version}</version>
             <executions>
               <execution>
                 <id>copy-swagger-generated-html</id>
@@ -1025,6 +1005,10 @@
               </descriptors>
             </configuration>
             <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>none</phase>
+              </execution>
               <execution>
                 <id>bootstrap-zip</id>
                 <phase>prepare-package</phase>
@@ -1223,7 +1207,7 @@
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
-      <version>6.0.0</version>
+      <version>5.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -1365,10 +1349,6 @@
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-reload4j</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
       <artifactId>jul-to-slf4j</artifactId>
     </dependency>
     <dependency>
@@ -1376,9 +1356,8 @@
       <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
     <dependency>
-      <groupId>ch.qos.reload4j</groupId>
-      <artifactId>reload4j</artifactId>
-      <version>${reload4j.version}</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -1389,9 +1368,18 @@
       <artifactId>logback-classic</artifactId>
     </dependency>
     <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <version>${jaxb.api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>${jaxb.runtime.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
-      <version>4.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -1472,14 +1460,8 @@
       <artifactId>commons-codec</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.9</version>
     </dependency>
     <dependency>
       <groupId>commons-net</groupId>
@@ -1509,10 +1491,6 @@
           <groupId>org.codehaus.jackson</groupId>
           <artifactId>jackson-mapper-asl</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>javax.xml.bind</groupId>
-          <artifactId>jaxb-api</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -1537,11 +1515,6 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${fasterxml.jackson.databind.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.jaxrs</groupId>
-      <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <version>${fasterxml.jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>io.swagger</groupId>
@@ -1674,6 +1647,16 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
       <scope>test</scope>
@@ -1753,14 +1736,15 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>mailapi</artifactId>
-      <version>${mailapi.version}</version>
+      <groupId>jakarta.mail</groupId>
+      <artifactId>jakarta.mail-api</artifactId>
+      <version>${jakarta.mail.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>smtp</artifactId>
-      <version>${smtp.version}</version>
+      <groupId>org.eclipse.angus</groupId>
+      <artifactId>angus-mail</artifactId>
+      <version>${angus.mail.version}</version>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.snmp4j</groupId>
@@ -1801,26 +1785,6 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
       <version>${fasterxml.jackson.databind.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-      <version>${jaxb.api.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.istack</groupId>
-      <artifactId>istack-commons-runtime</artifactId>
-      <version>${istack.commons.runtime.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.fastinfoset</groupId>
-      <artifactId>FastInfoset</artifactId>
-      <version>${FastInfoset.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-      <version>2.2.3-1</version>
     </dependency>
     <dependency>
       <groupId>org.ehcache</groupId>
@@ -1867,8 +1831,16 @@
           <artifactId>log4j</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>ch.qos.reload4j</groupId>
+          <artifactId>reload4j</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
         </exclusion>
         <exclusion>
           <groupId>com.sun.jersey</groupId>
@@ -1974,8 +1946,16 @@
           <artifactId>log4j</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>ch.qos.reload4j</groupId>
+          <artifactId>reload4j</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
         </exclusion>
         <exclusion>
           <groupId>com.sun.jersey</groupId>
@@ -2008,7 +1988,7 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.jcraft</groupId>
+      <groupId>com.github.mwiede</groupId>
       <artifactId>jsch</artifactId>
       <version>${jsch.version}</version>
     </dependency>
@@ -2029,12 +2009,12 @@
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
-      <version>${metrics.core.version}</version>
+      <version>${metrics.version}</version>
     </dependency>
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-jvm</artifactId>
-      <version>${metrics.jvm.version}</version>
+      <version>${metrics.version}</version>
     </dependency>
 
     <dependency>
@@ -2125,13 +2105,5 @@
       </exclusions>
     </dependency>
   </dependencies>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>oss.sonatype.org</id>
-      <name>OSS Sonatype Staging</name>
-      <url>https://oss.sonatype.org/content/groups/staging</url>
-    </pluginRepository>
-  </pluginRepositories>
 
 </project>

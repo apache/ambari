@@ -22,7 +22,7 @@ import org.apache.ambari.scom.ClusterDefinitionProvider;
 import org.apache.ambari.scom.HostInfoProvider;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;

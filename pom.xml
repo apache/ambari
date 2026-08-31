@@ -81,16 +81,40 @@
   <properties>
     <revision>3.1.0.0-SNAPSHOT</revision>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <clover.license>${user.home}/clover.license</clover.license>
     <jdk.version>17</jdk.version>
-    <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
+    <maven.version>3.9.0</maven.version>
+    <apache-rat-plugin.version>0.18</apache-rat-plugin.version>
+    <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
+    <buildnumber-maven-plugin-version>3.2.1</buildnumber-maven-plugin-version>
+    <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
+    <flatten-maven-plugin.version>1.8.0</flatten-maven-plugin.version>
+    <jdeb.version>1.14</jdeb.version>
+    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
+    <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
+    <maven-dependency-plugin.version>3.9.0</maven-dependency-plugin.version>
+    <maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
+    <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+    <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
+    <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
+    <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
+    <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+    <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
+    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
+    <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+    <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
+    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+    <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+    <maven-war-plugin.version>3.5.0</maven-war-plugin.version>
+    <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
     <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
     <deb.architecture>i386 amd64</deb.architecture>
     <deb.priority>extra</deb.priority>
     <stack.distribution>BIGTOP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
     <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
@@ -98,50 +122,7 @@
     <rpm-maven-plugin.version>2.1.4</rpm-maven-plugin.version>
     <eclipselink.version>4.0.2</eclipselink.version>
   </properties>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>maven2-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>https://download.java.net/maven/2/</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
-      <id>maven2-glassfish-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>https://download.java.net/maven/glassfish/</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>maven2-repository.atlassian</id>
-      <name>Atlassian Maven Repository</name>
-      <url>https://maven.atlassian.com/repository/public</url>
-      <layout>default</layout>
-    </pluginRepository>
-    <pluginRepository>
-      <id>${distMgmtSnapshotsId}</id>
-      <name>${distMgmtSnapshotsName}</name>
-      <url>${distMgmtSnapshotsUrl}</url>
-      <layout>default</layout>
-    </pluginRepository>
-  </pluginRepositories>
-
   <repositories>
-    <repository>
-      <id>oss.sonatype.org</id>
-      <name>OSS Sonatype Staging</name>
-      <url>https://oss.sonatype.org/content/groups/staging</url>
-    </repository>
-    <repository>
-      <id>spring-milestones</id>
-      <name>Spring Milestones</name>
-      <url>https://repo.spring.io/milestone</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>ASF Staging</id>
-      <url>https://repository.apache.org/content/groups/staging/</url>
-    </repository>
     <repository>
       <id>ASF Snapshots</id>
       <url>https://repository.apache.org/content/repositories/snapshots/</url>
@@ -160,12 +141,12 @@
         <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
-          <version>0.12</version>
+          <version>${apache-rat-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.2.5</version>
+          <version>${maven-surefire-plugin.version}</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -175,16 +156,102 @@
         <plugin>
           <groupId>org.vafer</groupId>
           <artifactId>jdeb</artifactId>
-          <version>1.8</version>
+          <version>${jdeb.version}</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>2.5</version>
+          <version>${maven-clean-plugin.version}</version>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.2-beta-5</version>
+          <version>${maven-assembly-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>${maven-antrun-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>${maven-checkstyle-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${maven-resources-plugin.version}</version>
+          <configuration>
+            <nonFilteredFileExtensions>
+              <nonFilteredFileExtension>jar</nonFilteredFileExtension>
+            </nonFilteredFileExtensions>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>${maven-dependency-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven-failsafe-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>${maven-gpg-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${maven-jar-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${maven-javadoc-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-remote-resources-plugin</artifactId>
+          <version>${maven-remote-resources-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>${maven-shade-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${maven-source-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>${maven-war-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>${build-helper-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${exec-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>properties-maven-plugin</artifactId>
+          <version>${properties-maven-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -192,7 +259,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
+        <version>${build-helper-maven-plugin.version}</version>
         <executions>
           <execution>
             <id>parse-package-version</id>
@@ -225,10 +292,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5</version>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <release>${jdk.version}</release>
         </configuration>
       </plugin>
       <plugin>
@@ -241,7 +307,7 @@
         <executions>
           <execution>
             <id>make-assembly</id>
-            <phase>package</phase>
+            <phase>none</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -435,7 +501,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>flatten-maven-plugin</artifactId>
-        <version>1.0.1</version>
+        <version>${flatten-maven-plugin.version}</version>
         <configuration>
           <flattenMode>oss</flattenMode>
           <updatePomFile>true</updatePomFile>
@@ -461,7 +527,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M2</version>
+        <version>${maven-enforcer-plugin.version}</version>
         <executions>
           <execution>
             <id>enforce-versions</id>
@@ -471,11 +537,26 @@
             <configuration>
               <rules>
                 <requireMavenVersion>
-                  <version>3.5.0</version>
+                  <version>[${maven.version},4.0.0)</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
-                  <version>1.8</version>
+                  <version>[${jdk.version},18)</version>
                 </requireJavaVersion>
+                <bannedDependencies>
+                  <searchTransitive>false</searchTransitive>
+                  <excludes>
+                    <exclude>commons-lang:commons-lang</exclude>
+                    <exclude>javax.xml.bind:jaxb-api</exclude>
+                    <exclude>com.sun.xml.bind:jaxb-impl</exclude>
+                    <exclude>com.sun.mail:mailapi</exclude>
+                    <exclude>com.sun.mail:smtp</exclude>
+                    <exclude>org.slf4j:slf4j-reload4j</exclude>
+                    <exclude>ch.qos.reload4j:reload4j</exclude>
+                    <exclude>com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider</exclude>
+                    <exclude>com.jcraft:jsch</exclude>
+                  </excludes>
+                  <message>Use the supported Java 17 dependency baseline documented in docs/java-dependency-management.md.</message>
+                </bannedDependencies>
               </rules>
             </configuration>
           </execution>
@@ -589,49 +670,69 @@
       </modules>
     </profile>
     <profile>
-      <id>clover</id>
+      <id>coverage</id>
       <activation>
         <activeByDefault>false</activeByDefault>
         <property>
-          <name>clover</name>
+          <name>coverage</name>
         </property>
       </activation>
-      <properties>
-        <maven.clover.licenseLocation>${clover.license}</maven.clover.licenseLocation>
-        <clover.version>3.1.11</clover.version>
-      </properties>
       <build>
         <plugins>
           <plugin>
-            <groupId>com.atlassian.maven.plugins</groupId>
-            <artifactId>maven-clover2-plugin</artifactId>
-            <version>${clover.version}</version>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco-maven-plugin.version}</version>
             <configuration>
-              <includesAllSourceRoots>true</includesAllSourceRoots>
-              <includesTestSourceRoots>true</includesTestSourceRoots>
-              <targetPercentage>50%</targetPercentage>
-              <generateHtml>true</generateHtml>
-              <generateXml>true</generateXml>
               <excludes>
                 <exclude>**/generated/**</exclude>
               </excludes>
             </configuration>
             <executions>
               <execution>
-                <id>clover-setup</id>
-                <phase>process-sources</phase>
+                <id>prepare-agent</id>
                 <goals>
-                  <goal>setup</goal>
+                  <goal>prepare-agent</goal>
                 </goals>
               </execution>
               <execution>
-                <id>clover</id>
-                <phase>test</phase>
+                <id>report</id>
+                <phase>verify</phase>
                 <goals>
-                  <goal>clover</goal>
+                  <goal>report</goal>
                 </goals>
               </execution>
             </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>sbom</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-maven-plugin</artifactId>
+            <version>${cyclonedx-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>aggregate-sbom</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>makeAggregateBom</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <includeBomSerialNumber>false</includeBomSerialNumber>
+              <includeLicenseText>false</includeLicenseText>
+              <outputFormat>json</outputFormat>
+              <outputName>ambari-sbom</outputName>
+              <outputReactorProjects>true</outputReactorProjects>
+              <schemaVersion>1.6</schemaVersion>
+              <skipNotDeployed>false</skipNotDeployed>
+            </configuration>
           </plugin>
         </plugins>
       </build>

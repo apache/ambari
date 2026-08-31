@@ -55,9 +55,9 @@ import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.repository.AvailableService;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.spi.RepositoryType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.text.StrBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.text.StrBuilder;
 
 import com.google.common.base.MoreObjects;
 import com.google.inject.Inject;

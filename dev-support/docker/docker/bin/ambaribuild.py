@@ -41,7 +41,7 @@ def buildAmbari(stack_distribution):
   if stack_distribution is not None:
     stack_distribution_param = "-Dstack.distribution=" + stack_distribution
   proc = subprocess.Popen(
-    "mvn -B clean install package rpm:rpm -Dmaven.clover.skip=true -Dfindbugs.skip=true "
+    "mvn -B clean install package rpm:rpm -Dfindbugs.skip=true "
     + SKIP_TEST
     + " "
     + stack_distribution_param

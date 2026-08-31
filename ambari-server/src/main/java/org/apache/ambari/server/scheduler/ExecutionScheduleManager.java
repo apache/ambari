@@ -78,8 +78,8 @@ import org.apache.ambari.server.state.scheduler.BatchSettings;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.apache.ambari.server.utils.DateUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StrBuilder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.filter.CsrfProtectionFilter;
 import org.quartz.CronExpression;
@@ -1107,4 +1107,3 @@ public class ExecutionScheduleManager {
     }
   }
 }
-

@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.stack.upgrade;
 
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElement;
 
 /**
  *  Identifies if component instances should be upgraded in parallel (optional)

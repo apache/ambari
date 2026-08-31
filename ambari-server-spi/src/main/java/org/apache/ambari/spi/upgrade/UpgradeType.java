@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.spi.upgrade;
 
-import javax.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlEnumValue;
 
 import com.google.gson.annotations.SerializedName;
 

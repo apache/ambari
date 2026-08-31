@@ -57,8 +57,6 @@
     <commons-cli.version>1.5.0</commons-cli.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-configuration2.version>2.10.1</commons-configuration2.version>
-    <commons-lang.version>2.6</commons-lang.version>
-    <commons-lang3.version>3.12.0</commons-lang3.version>
     <commons-io.version>2.14.0</commons-io.version>
     <commons-logging.version>1.1.3</commons-logging.version>
     <commons-compress.version>1.26.0</commons-compress.version>
@@ -104,12 +102,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>${commons-lang3.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>${commons-lang.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -278,7 +270,6 @@
       <plugin>
          <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <id>parse-version</id>
@@ -304,10 +295,8 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <release>${jdk.version}</release>
         </configuration>
       </plugin>
       <plugin>
@@ -606,7 +595,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>2.6</version>
         <executions>
           <execution>
             <id>copy-resources</id>

@@ -21,8 +21,8 @@ import java.util.Date;
 
 import org.apache.ambari.server.controller.internal.UserAuthenticationSourceResourceProvider;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import io.swagger.annotations.ApiModelProperty;
 

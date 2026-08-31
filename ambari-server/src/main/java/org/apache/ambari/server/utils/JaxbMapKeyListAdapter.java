@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 public class JaxbMapKeyListAdapter extends
     XmlAdapter<JaxbMapKeyList[], Map<String, List<String>>> {

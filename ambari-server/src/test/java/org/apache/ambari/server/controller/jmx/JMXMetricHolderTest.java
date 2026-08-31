@@ -18,9 +18,9 @@
 package org.apache.ambari.server.controller.jmx;
 
 import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.internal.matchers.IsCollectionContaining.hasItems;
 
 import java.util.HashMap;
 import java.util.List;

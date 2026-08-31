@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.state.stack;
 
-import javax.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnum;
 
 /**
  * A Repo tag is a way to allow Ambari to place logic surrounding repository details.

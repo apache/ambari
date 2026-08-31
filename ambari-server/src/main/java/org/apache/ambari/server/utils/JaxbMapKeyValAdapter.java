@@ -20,7 +20,7 @@ package org.apache.ambari.server.utils;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 public class JaxbMapKeyValAdapter extends
     XmlAdapter<JaxbMapKeyVal[], Map<String, String>> {

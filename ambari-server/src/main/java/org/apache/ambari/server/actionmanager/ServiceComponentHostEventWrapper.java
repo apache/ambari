@@ -19,7 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import java.io.IOException;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.utils.StageUtils;
