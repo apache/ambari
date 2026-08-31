@@ -534,7 +534,7 @@ Em.I18n.translations = {
   'popup.dependent.configs.dependencies.for.groups': 'You are changing not default group, please select config group to which you want to save dependent configs from other services',
 
   'popup.jdkValidation.header': 'Unsupported JDK',
-  'popup.jdkValidation.body': 'The {0} Stack requires JDK {1} but Ambari is configured for JDK {2}. This could result in error or problems with running your cluster.',
+  'popup.jdkValidation.body': 'The {0} Stack requires JDK {1} but the default Stack Java is configured for JDK {2}. This could result in errors when running your cluster.',
   'popup.logTail.header': 'File Name',
   'popup.logTail.openInLogSearch': 'Open In Log Search',
 

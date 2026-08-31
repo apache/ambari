@@ -697,8 +697,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
   },
 
   /**
-   * Get JDK name from server to determine if user had setup a customized JDK path when doing 'ambari-server setup'.
-   * The Ambari properties are different from default ambari-server setup, property 'jdk.name' will be missing if a customized jdk path is applied.
+   * Get the Ambari JDK path and version used by Agent Java helpers.
    * @return {$.ajax}
    * @method getJDKName
    */
@@ -707,26 +706,29 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
       name: 'ambari.service',
       sender: this,
       data: {
-        fields : '?fields=RootServiceComponents/properties/jdk.name,RootServiceComponents/properties/java.home,RootServiceComponents/properties/jdk_location'
+        fields : '?fields=RootServiceComponents/properties/ambari.java.home,RootServiceComponents/properties/ambari.java.version,RootServiceComponents/properties/java.version,RootServiceComponents/properties/jdk_location'
       },
       success: 'getJDKNameSuccessCallback'
     });
   },
 
   /**
-    * Success callback for JDK name, property 'jdk.name' will be missing if a customized jdk path is applied
+   * Success callback for Ambari JDK properties.
     * @param {object} data
     * @method getJDKNameSuccessCallback
     */
   getJDKNameSuccessCallback: function (data) {
-    this.set('needJDKCheckOnHosts', !data.RootServiceComponents.properties["jdk.name"]);
-    this.set('jdkLocation', Em.get(data, "RootServiceComponents.properties.jdk_location"));
-    this.set('javaHome', data.RootServiceComponents.properties["java.home"]);
+    var properties = data.RootServiceComponents.properties;
+    this.set('needJDKCheckOnHosts', !!properties["ambari.java.home"]);
+    this.set('jdkLocation', properties.jdk_location);
+    this.set('javaHome', properties["ambari.java.home"]);
+    this.set('javaVersion', properties["ambari.java.version"] || properties["java.version"] || "17");
   },
 
   doCheckJDK: function () {
     const hostsNames = this.get('bootHosts').filterProperty('bootStatus', 'REGISTERED').getEach('name').join(','),
       javaHome = this.get('javaHome'),
+      javaVersion = this.get('javaVersion'),
       jdkLocation = this.get('jdkLocation');
     App.ajax.send({
       name: 'wizard.step3.jdk_check',
@@ -734,6 +736,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
       data: {
         host_names: hostsNames,
         java_home: javaHome,
+        java_version: javaVersion,
         jdk_location: jdkLocation
       },
       success: 'doCheckJDKsuccessCallback',
@@ -804,7 +807,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
         // need to do JDK check on each host
        self.doCheckJDK();
       } else {
-        // no customized JDK path, so no need to check jdk
+        // Ambari JDK is not configured, so there is no path to validate.
         self.set('jdkCategoryWarnings', []);
         self.set('isJDKWarningsLoaded', true);
       }

@@ -1045,8 +1045,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     beforeEach(function () {
       sinon.stub(App.router, 'get').returns({
         'jdk_location': 'jdk_location',
-        'jdk.name': 'jdk.name',
-        'java.home': 'java.home'
+        'ambari.jdk.name': 'jdk.name',
+        'ambari.java.home': 'java.home'
       });
       sinon.stub(controller, 'getConnectionProperty').returns('prop1');
       controller.set('content.reassignHosts', Em.Object.create({target: 'host1'}));

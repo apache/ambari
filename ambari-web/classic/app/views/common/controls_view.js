@@ -1280,15 +1280,15 @@ App.CheckDBConnectionView = Ember.View.extend({
       ambari_server_host: location.hostname,
       check_execute_list : "db_connection_check"
     };
-    var properties = App.permit(properties, ['jdk.name','jdk_location','java.home']);
+    var properties = App.permit(properties, ['ambari.jdk.name','jdk_location','ambari.java.home']);
     var renameKey = function(oldKey, newKey) {
       if (properties[oldKey]) {
         defaults[newKey] = properties[oldKey];
         delete properties[oldKey];
       }
     };
-    renameKey('java.home', 'java_home');
-    renameKey('jdk.name', 'jdk_name');
+    renameKey('ambari.java.home', 'java_home');
+    renameKey('ambari.jdk.name', 'jdk_name');
     $.extend(properties, defaults);
     App.db.set('tmp', 'ambariProperties', properties);
     this.set('ambariProperties', properties);
