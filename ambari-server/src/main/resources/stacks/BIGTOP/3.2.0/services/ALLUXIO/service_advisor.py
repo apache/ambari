@@ -19,7 +19,7 @@ limitations under the License.
 
 # Python imports
 from ast import Param
-import imp
+from ambari_commons import import_utils as imp
 import os
 import traceback
 import re

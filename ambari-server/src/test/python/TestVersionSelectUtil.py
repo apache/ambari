@@ -30,7 +30,7 @@ class TestVersionSelectUtil(TestCase):
   """
 
   def setUp(self):
-    import imp
+    from ambari_commons import import_utils as imp
 
     Logger.logger = MagicMock()
 

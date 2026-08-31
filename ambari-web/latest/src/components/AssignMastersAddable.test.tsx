@@ -303,9 +303,11 @@ describe("master assignment validation", () => {
     expect((await screen.findByRole("alert")).textContent).toContain(
       "Host API unavailable",
     );
-    expect(onLoadStateChange).toHaveBeenLastCalledWith({
-      status: "error",
-      error: "Host API unavailable",
+    await waitFor(() => {
+      expect(onLoadStateChange).toHaveBeenLastCalledWith({
+        status: "error",
+        error: "Host API unavailable",
+      });
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));

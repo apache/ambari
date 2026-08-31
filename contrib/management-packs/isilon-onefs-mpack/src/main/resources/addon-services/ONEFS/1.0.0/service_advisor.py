@@ -18,7 +18,7 @@ limitations under the License.
 """
 import os
 from ambari_commons import inet_utils
-import imp
+from ambari_commons import import_utils as imp
 import traceback
 
 def error(message): return {"level": "ERROR", "message": message}
@@ -103,7 +103,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 else:
   class ONEFSServiceAdvisor(service_advisor.ServiceAdvisor):
     def getServiceConfigurationRecommendations(self, configs, clusterData, services, hosts):

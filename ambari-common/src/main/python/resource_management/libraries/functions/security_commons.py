@@ -198,7 +198,7 @@ def get_params_from_filesystem(conf_dir, config_files):
         config_string = "[root]\n" + f.read()
       ini_fp = io.StringIO(re.sub(r"\\\s*\n", "\\\n ", config_string))
       config = configparser.RawConfigParser()
-      config.readfp(ini_fp)
+      config.read_file(ini_fp)
       props = config.items("root")
       result[file_name] = {}
       for key, value in props:

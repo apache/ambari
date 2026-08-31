@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import imp
+from ambari_commons import import_utils as imp
 import json
 import os
 from unittest import TestCase

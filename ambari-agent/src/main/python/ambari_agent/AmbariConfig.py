@@ -106,7 +106,7 @@ class AmbariConfig:
   def __init__(self):
     global content
     self.config = configparser.RawConfigParser()
-    self.config.readfp(io.StringIO(content))
+    self.config.read_file(io.StringIO(content))
 
     # initialize derived paths for the cache directories
     self._recalculate_cache_paths()

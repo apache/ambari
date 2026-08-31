@@ -40,14 +40,14 @@ public class MpacksServiceTest extends BaseServiceTest{
 
     // getMpacks
     MpacksService service = new TestMpacksService("null");
-    Method m = service.getClass().getMethod("getMpacks", String.class, HttpHeaders.class, UriInfo.class);
-    Object[] args = new Object[]{null, getHttpHeaders(), getUriInfo()};
+    Method m = service.getClass().getMethod("getMpacks", HttpHeaders.class, UriInfo.class);
+    Object[] args = new Object[]{getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     // getMpack
     service = new TestMpacksService("1");
-    m = service.getClass().getMethod("getMpack", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[]{null, getHttpHeaders(), getUriInfo(), ""};
+    m = service.getClass().getMethod("getMpack", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[]{getHttpHeaders(), getUriInfo(), ""};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, service, m, args, null));
 
     //createMpacks

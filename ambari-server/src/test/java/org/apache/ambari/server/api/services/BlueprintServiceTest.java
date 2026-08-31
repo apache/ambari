@@ -42,14 +42,14 @@ public class BlueprintServiceTest extends BaseServiceTest {
 
     //getBlueprint
     BlueprintService BlueprintService = new TestBlueprintService("blueprintName");
-    Method m = BlueprintService.getClass().getMethod("getBlueprint", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    Object[] args = new Object[] {null, getHttpHeaders(), getUriInfo(), "blueprintName"};
+    Method m = BlueprintService.getClass().getMethod("getBlueprint", HttpHeaders.class, UriInfo.class, String.class);
+    Object[] args = new Object[] {getHttpHeaders(), getUriInfo(), "blueprintName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, BlueprintService, m, args, null));
 
     //getBlueprints
     BlueprintService = new TestBlueprintService(null);
-    m = BlueprintService.getClass().getMethod("getBlueprints", String.class, HttpHeaders.class, UriInfo.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
+    m = BlueprintService.getClass().getMethod("getBlueprints", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, BlueprintService, m, args, null));
 
     //createBlueprint

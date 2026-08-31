@@ -509,22 +509,22 @@ class TestMpacks(TestCase):
     ]
 
     os_mkdir_calls = [
-      call(stacks_directory),
-      call(common_services_directory),
-      call(mpacks_directory),
-      call(mpacks_directory + "/cache"),
-      call(dashboards_directory),
-      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME)),
-      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME)),
-      call(os.path.join(common_services_directory, "SERVICEA")),
-      call(os.path.join(common_services_directory, "SERVICEB")),
-      call(os.path.join(stacks_directory, "MYSTACK")),
-      call(os.path.join(stacks_directory, "MYSTACK/1.0")),
-      call(os.path.join(stacks_directory, "MYSTACK/1.0/services")),
-      call(os.path.join(stacks_directory, "MYSTACK/1.1")),
-      call(os.path.join(stacks_directory, "MYSTACK/1.1/services")),
-      call(os.path.join(stacks_directory, "MYSTACK/2.0")),
-      call(os.path.join(stacks_directory, "MYSTACK/2.0/services")),
+      call(stacks_directory, 0o755),
+      call(common_services_directory, 0o755),
+      call(mpacks_directory, 0o755),
+      call(mpacks_directory + "/cache", 0o755),
+      call(dashboards_directory, 0o755),
+      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME), 0o755),
+      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME), 0o755),
+      call(os.path.join(common_services_directory, "SERVICEA"), 0o755),
+      call(os.path.join(common_services_directory, "SERVICEB"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK/1.0"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK/1.0/services"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK/1.1"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK/1.1/services"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK/2.0"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK/2.0/services"), 0o755),
     ]
     create_symlink_calls = [
       call(
@@ -691,13 +691,13 @@ class TestMpacks(TestCase):
     ]
 
     os_mkdir_calls = [
-      call(extensions_directory),
-      call(mpacks_directory),
-      call(mpacks_directory + "/cache"),
-      call(dashboards_directory),
-      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME)),
-      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME)),
-      call(os.path.join(extensions_directory, "MYEXTENSION")),
+      call(extensions_directory, 0o755),
+      call(mpacks_directory, 0o755),
+      call(mpacks_directory + "/cache", 0o755),
+      call(dashboards_directory, 0o755),
+      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME), 0o755),
+      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME), 0o755),
+      call(os.path.join(extensions_directory, "MYEXTENSION"), 0o755),
     ]
     create_symlink_calls = [
       call(
@@ -837,10 +837,10 @@ class TestMpacks(TestCase):
     ]
 
     os_mkdir_calls = [
-      call(dashboards_directory),
-      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME)),
-      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME)),
-      call(os.path.join(common_services_directory, "MYSERVICE")),
+      call(dashboards_directory, 0o755),
+      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME), 0o755),
+      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME), 0o755),
+      call(os.path.join(common_services_directory, "MYSERVICE"), 0o755),
     ]
     create_symlink_calls = [
       call(
@@ -1126,12 +1126,12 @@ class TestMpacks(TestCase):
     ]
 
     os_mkdir_calls = [
-      call(dashboards_directory),
-      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME)),
-      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME)),
-      call(os.path.join(common_services_directory, "SERVICEC")),
-      call(os.path.join(stacks_directory, "MYSTACK/3.0")),
-      call(os.path.join(stacks_directory, "MYSTACK/3.0/services")),
+      call(dashboards_directory, 0o755),
+      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME), 0o755),
+      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME), 0o755),
+      call(os.path.join(common_services_directory, "SERVICEC"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK/3.0"), 0o755),
+      call(os.path.join(stacks_directory, "MYSTACK/3.0/services"), 0o755),
     ]
     create_symlink_calls = [
       call(

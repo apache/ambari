@@ -65,14 +65,14 @@ public class ClusterServiceTest extends BaseServiceTest {
 
     //getCluster
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("getCluster", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo(), "clusterName"};
+    m = clusterService.getClass().getMethod("getCluster", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "clusterName"};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
 
     //getClusters
     clusterService = new TestClusterService(clusters, null);
-    m = clusterService.getClass().getMethod("getClusters", String.class, HttpHeaders.class, UriInfo.class);
-    args = new Object[] {null, getHttpHeaders(), getUriInfo()};
+    m = clusterService.getClass().getMethod("getClusters", HttpHeaders.class, UriInfo.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo()};
     listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
 
     //createCluster
@@ -101,15 +101,15 @@ public class ClusterServiceTest extends BaseServiceTest {
 
     //getClusterArtifact
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("getClusterArtifact", String.class, HttpHeaders.class, UriInfo.class, String.class, String.class);
-    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName", "artifact_name"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, "body"));
+    m = clusterService.getClass().getMethod("getClusterArtifact", HttpHeaders.class, UriInfo.class, String.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "clusterName", "artifact_name"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
 
     //getClusterArtifacts
     clusterService = new TestClusterService(clusters, "clusterName");
-    m = clusterService.getClass().getMethod("getClusterArtifacts", String.class, HttpHeaders.class, UriInfo.class, String.class);
-    args = new Object[] {"body", getHttpHeaders(), getUriInfo(), "clusterName"};
-    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, "body"));
+    m = clusterService.getClass().getMethod("getClusterArtifacts", HttpHeaders.class, UriInfo.class, String.class);
+    args = new Object[] {getHttpHeaders(), getUriInfo(), "clusterName"};
+    listInvocations.add(new ServiceTestInvocation(Request.Type.GET, clusterService, m, args, null));
 
     //updateClusterArtifact
     clusterService = new TestClusterService(clusters, "clusterName");

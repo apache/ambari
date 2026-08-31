@@ -27,6 +27,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.base.Charsets;
 import org.apache.ambari.funtest.server.LocalAmbariServer;
@@ -57,6 +59,8 @@ import com.google.inject.persist.PersistService;
  */
 public class ServerTestBase {
     private static Log LOG = LogFactory.getLog(ServerTestBase.class);
+    private static final long SERVER_START_TIMEOUT_SECONDS = 120;
+    private static final AtomicReference<Throwable> SERVER_FAILURE = new AtomicReference<>();
 
     /**
      * Run the ambari server on a thread.
@@ -121,7 +125,9 @@ public class ServerTestBase {
             initDB();
 
             server = injector.getInstance(LocalAmbariServer.class);
-            serverThread = new Thread(server);
+            SERVER_FAILURE.set(null);
+            serverThread = new Thread(server, "ambari-funtest-server");
+            serverThread.setUncaughtExceptionHandler((thread, throwable) -> SERVER_FAILURE.set(throwable));
             serverThread.start();
             waitForServer();
 
@@ -207,12 +213,23 @@ public class ServerTestBase {
      * @throws Exception
      */
     private static void waitForServer() throws Exception {
-        int count = 1;
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(SERVER_START_TIMEOUT_SECONDS);
 
         while (!isServerUp()) {
-            serverThread.join(count * 10000);     // Give a few seconds for the ambari server to start up
-            //count += 1; // progressive back off
-            //count *= 2; // exponential back off
+            Throwable failure = SERVER_FAILURE.get();
+            if (failure != null) {
+                throw new IllegalStateException("Ambari server failed during startup", failure);
+            }
+            if (!serverThread.isAlive()) {
+                throw new IllegalStateException("Ambari server stopped during startup");
+            }
+
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) {
+                throw new IllegalStateException(
+                    "Ambari server did not start within " + SERVER_START_TIMEOUT_SECONDS + " seconds");
+            }
+            serverThread.join(Math.min(TimeUnit.NANOSECONDS.toMillis(remaining), 1000));
         }
     }
 

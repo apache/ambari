@@ -18,7 +18,7 @@ limitations under the License.
 """
 import os
 import fnmatch
-import imp
+from ambari_commons import import_utils as imp
 import socket
 import sys
 import traceback
@@ -32,7 +32,7 @@ try:
     service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
-  print "Failed to load parent"
+  print("Failed to load parent")
 
 class MICROSOFT_R_SERVER805ServiceAdvisor(service_advisor.ServiceAdvisor):
 
