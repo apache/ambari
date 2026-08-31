@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.agent;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -43,15 +45,23 @@ public class RecoveryConfigComponent{
   @JsonProperty("desired_state")
   private String desiredState;
 
+  private List<RecoveryConfigDependency> dependencies;
+
   /**
    * Creates new instance of {@link RecoveryConfigComponent}
    * @param componentName name of the component
    * @param desiredState desired desiredState of the component
    */
   public RecoveryConfigComponent(String componentName, String serviceName, State desiredState){
+    this(componentName, serviceName, desiredState, Collections.emptyList());
+  }
+
+  public RecoveryConfigComponent(String componentName, String serviceName, State desiredState,
+      List<RecoveryConfigDependency> dependencies) {
     this.setComponentName(componentName);
     this.setServiceName(serviceName);
     this.setDesiredState(desiredState);
+    this.dependencies = dependencies;
   }
 
   /**
@@ -96,6 +106,14 @@ public class RecoveryConfigComponent{
     this.serviceName = serviceName;
   }
 
+  public List<RecoveryConfigDependency> getDependencies() {
+    return dependencies == null ? Collections.emptyList() : Collections.unmodifiableList(dependencies);
+  }
+
+  public void setDependencies(List<RecoveryConfigDependency> dependencies) {
+    this.dependencies = dependencies;
+  }
+
   @Override
   public boolean equals(Object o){
     if (this == o) {
@@ -108,11 +126,12 @@ public class RecoveryConfigComponent{
     final RecoveryConfigComponent that = (RecoveryConfigComponent) o;
     return Objects.equals(componentName, that.componentName) &&
       Objects.equals(serviceName, that.serviceName) &&
-      Objects.equals(desiredState, that.desiredState);
+      Objects.equals(desiredState, that.desiredState) &&
+      Objects.equals(dependencies, that.dependencies);
   }
 
   @Override
   public int hashCode(){
-    return Objects.hash(componentName, serviceName, desiredState);
+    return Objects.hash(componentName, serviceName, desiredState, dependencies);
   }
 }

@@ -80,6 +80,8 @@ class ActionQueue(threading.Thread):
     self.parallel_execution = self.config.get_parallel_exec_option()
     self.taskIdsToCancel = set()
     self.cancelEvent = threading.Event()
+    self.recovery_command_lock = threading.RLock()
+    self.active_recovery_task_ids = set()
     self.component_status_executor = initializer_module.component_status_executor
     if self.parallel_execution == 1:
       logger.info(
@@ -88,22 +90,69 @@ class ActionQueue(threading.Thread):
     self.lock = threading.Lock()
 
   def put(self, commands):
-    for command in commands:
-      if "serviceName" not in command:
-        command["serviceName"] = "null"
-      if "clusterId" not in command:
-        command["clusterId"] = "null"
+    commands = list(commands)
+    with self.recovery_command_lock:
+      if any(
+        command.get("commandType") == AgentCommand.execution for command in commands
+      ):
+        self.preempt_recovery_commands()
 
-      logger.info(
-        "Adding {commandType} for role {role} for service {serviceName} of cluster_id {clusterId} to the queue".format(
-          **command
+      for command in commands:
+        if "serviceName" not in command:
+          command["serviceName"] = "null"
+        if "clusterId" not in command:
+          command["clusterId"] = "null"
+
+        logger.info(
+          "Adding {commandType} for role {role} for service {serviceName} of cluster_id {clusterId} to the queue".format(
+            **command
+          )
         )
+
+        if command["commandType"] == AgentCommand.background_execution:
+          self.backgroundCommandQueue.put(self.create_command_handle(command))
+        else:
+          self.commandQueue.put(command)
+
+  def preempt_recovery_commands(self):
+    """Stop hidden recovery work so server-issued commands can run immediately."""
+    queued_recovery_task_ids = []
+    with self.commandQueue.mutex:
+      retained_commands = []
+      for command in self.commandQueue.queue:
+        if (
+          command is not None
+          and command.get("commandType") == AgentCommand.auto_execution
+        ):
+          queued_recovery_task_ids.append(command["taskId"])
+        else:
+          retained_commands.append(command)
+      self.commandQueue.queue.clear()
+      self.commandQueue.queue.extend(retained_commands)
+
+    active_recovery_task_ids = list(self.active_recovery_task_ids)
+    if queued_recovery_task_ids or active_recovery_task_ids:
+      logger.info(
+        "Preempting auto recovery for server-issued commands. Queued task IDs: %s; active task IDs: %s",
+        queued_recovery_task_ids,
+        active_recovery_task_ids,
       )
 
-      if command["commandType"] == AgentCommand.background_execution:
-        self.backgroundCommandQueue.put(self.create_command_handle(command))
-      else:
-        self.commandQueue.put(command)
+    reason = "Preempted by a server-issued command"
+    for task_id in active_recovery_task_ids:
+      self.taskIdsToCancel.add(task_id)
+      self.customServiceOrchestrator.cancel_command(task_id, reason)
+
+    if active_recovery_task_ids:
+      self.cancelEvent.set()
+
+  def has_queued_server_command(self):
+    with self.commandQueue.mutex:
+      return any(
+        command is not None
+        and command.get("commandType") == AgentCommand.execution
+        for command in self.commandQueue.queue
+      )
 
   def interrupt(self):
     self.commandQueue.put(None)
@@ -186,8 +235,9 @@ class ActionQueue(threading.Thread):
     logger.info("ActionQueue thread has successfully finished")
 
   def fill_recovery_commands(self):
-    if self.recovery_manager.enabled() and not self.tasks_in_progress_or_pending():
-      self.put(self.recovery_manager.get_recovery_commands())
+    with self.recovery_command_lock:
+      if self.recovery_manager.enabled() and not self.tasks_in_progress_or_pending():
+        self.put(self.recovery_manager.get_recovery_commands())
 
   def process_background_queue_safe_empty(self):
     while not self.backgroundCommandQueue.empty():
@@ -211,6 +261,17 @@ class ActionQueue(threading.Thread):
     # make sure we log failures
     command_type = command["commandType"]
     logger.debug("Took an element of Queue (command type = %s).", command_type)
+    is_recovery_command = command_type == AgentCommand.auto_execution
+    if is_recovery_command:
+      with self.recovery_command_lock:
+        if self.has_queued_server_command():
+          logger.info(
+            "Skipping auto recovery task %s because a server-issued command is queued",
+            command["taskId"],
+          )
+          return
+        self.active_recovery_task_ids.add(command["taskId"])
+
     try:
       if command_type in AgentCommand.AUTO_EXECUTION_COMMAND_GROUP:
         try:
@@ -226,6 +287,11 @@ class ActionQueue(threading.Thread):
         logger.error("Unrecognized command %s", pprint.pformat(command))
     except Exception:
       logger.exception(f"Exception while processing {command_type} command")
+    finally:
+      if is_recovery_command:
+        with self.recovery_command_lock:
+          self.active_recovery_task_ids.discard(command["taskId"])
+          self.taskIdsToCancel.discard(command["taskId"])
 
   def tasks_in_progress_or_pending(self):
     return not self.commandQueue.empty() or self.recovery_manager.has_active_command()
@@ -244,7 +310,8 @@ class ActionQueue(threading.Thread):
     delay = 1
     log_command_output = True
     command_canceled = False
-    command_result = {}
+    status = CommandStatus.failed
+    command_result = {"stdout": "", "stderr": "", "exitcode": -signal.SIGTERM}
 
     message = (
       "Executing command with id = {commandId}, taskId = {taskId} for role = {role} of "
@@ -315,7 +382,8 @@ class ActionQueue(threading.Thread):
 
     self.cancelEvent.clear()
     # for case of command reschedule (e.g. command and cancel for the same taskId are send at the same time)
-    self.taskIdsToCancel.discard(taskId)
+    if command_type != AgentCommand.auto_execution:
+      self.taskIdsToCancel.discard(taskId)
 
     while retry_duration >= 0:
       if taskId in self.taskIdsToCancel:

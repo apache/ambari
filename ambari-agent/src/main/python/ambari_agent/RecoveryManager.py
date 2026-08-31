@@ -98,6 +98,11 @@ class RecoveryManager:
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
     self.allowed_current_states = [self.INIT, self.INSTALLED]
     self.enabled_components = []
+    self.component_dependencies = {}
+    self.topology_managed = False
+    self.topology_epoch = None
+    self.topology_version = -1
+    self.topology_complete = True
     self.statuses = {}
     self.__component_to_service_map = {}  # component => service map TODO: fix it later(hack here)
     self.__status_lock = threading.RLock()
@@ -374,7 +379,7 @@ class RecoveryManager:
             elif status["current"] == self.STARTED:
               command = self.get_restart_command(component)
 
-        if command:
+        if command and self.recovery_topology_allows(command):
           self.execute(component)
           logger.info(
             "Created recovery command %s for component %s",
@@ -384,6 +389,54 @@ class RecoveryManager:
           commands.append(command)
 
     return commands
+
+  def recovery_topology_allows(self, command):
+    if not self.topology_managed:
+      return True
+
+    if not self.topology_complete:
+      logger.info(
+        "Recovery for %s is blocked until the component status topology is complete",
+        command[self.ROLE],
+      )
+      return False
+
+    is_start = command[self.ROLE_COMMAND] == RoleCommand.start
+    is_restart = (
+      command[self.ROLE_COMMAND] == RoleCommand.custom_command
+      and command.get("custom_command") == CustomCommand.restart
+    )
+    if not is_start and not is_restart:
+      return True
+
+    for dependency in self.component_dependencies.get(command[self.ROLE], []):
+      required_state = dependency.get("required_state", self.STARTED)
+      if (
+        not dependency.get("fresh", False)
+        or not self.dependency_state_satisfies(
+          dependency.get("current_state"), required_state
+        )
+        or not self.dependency_state_satisfies(
+          dependency.get("desired_state"), required_state
+        )
+      ):
+        logger.info(
+          "Recovery for %s is blocked by %s on %s: current=%s, desired=%s, required=%s, fresh=%s",
+          command[self.ROLE],
+          dependency.get("component_name"),
+          dependency.get("host_name"),
+          dependency.get("current_state"),
+          dependency.get("desired_state"),
+          required_state,
+          dependency.get("fresh", False),
+        )
+        return False
+    return True
+
+  def dependency_state_satisfies(self, state, required_state):
+    if required_state == self.INSTALLED:
+      return state in (self.INSTALLED, self.STARTED)
+    return state == required_state
 
   def may_execute(self, action):
     """
@@ -554,9 +607,34 @@ class RecoveryManager:
       if logger.isEnabledFor(logging.INFO):
         logger.info("RecoverConfig = %s", pprint.pformat(dictionary["recoveryConfig"]))
       config = dictionary["recoveryConfig"]
+      if "topology_epoch" in config and "topology_version" in config:
+        topology_epoch = config["topology_epoch"]
+        topology_version = int(config["topology_version"])
+        if (
+          topology_epoch == self.topology_epoch
+          and topology_version < self.topology_version
+        ):
+          logger.warning(
+            "Ignoring stale recovery topology version %s; current version is %s",
+            topology_version,
+            self.topology_version,
+          )
+          return
+
+        self.topology_managed = True
+        self.topology_epoch = topology_epoch
+        self.topology_version = topology_version
+        self.topology_complete = config.get("topology_complete", False)
+      else:
+        self.topology_managed = False
+        self.topology_epoch = None
+        self.topology_version = -1
+        self.topology_complete = True
+
       if "components" in config:
         enabled_components = config["components"]
         enabled_components_list = []
+        component_dependencies = {}
 
         components = [
           (item["service_name"], item["component_name"], item["desired_state"])
@@ -572,7 +650,13 @@ class RecoveryManager:
           #  push another service <-> component relation
           self.__component_to_service_map[component] = service
 
+        for item in enabled_components:
+          component_dependencies[item["component_name"]] = item.get(
+            "dependencies", []
+          )
+
         self.enabled_components = enabled_components_list
+        self.component_dependencies = component_dependencies
 
   def on_config_update(self):
     recovery_enabled = False

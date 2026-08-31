@@ -49,6 +49,8 @@ class ComponentStatusExecutor(threading.Thread):
     self.reports_to_discard = []
     self.reports_to_discard_lock = threading.RLock()
     self.reported_component_status_lock = threading.RLock()
+    self.component_status_snapshot_complete = False
+    self.component_status_snapshot_generation = 0
     threading.Thread.__init__(self)
 
   def run(self):
@@ -65,40 +67,52 @@ class ComponentStatusExecutor(threading.Thread):
       try:
         self.clean_not_existing_clusters_info()
         cluster_reports = defaultdict(lambda: [])
+        cluster_ids = self.topology_cache.get_cluster_ids()
+        with self.reported_component_status_lock:
+          snapshot_generation = self.component_status_snapshot_generation
+          snapshot_complete = (
+            not self.component_status_snapshot_complete and bool(cluster_ids)
+          )
 
         with self.reports_to_discard_lock:
           self.reports_to_discard = []
 
-        for cluster_id in self.topology_cache.get_cluster_ids():
+        for cluster_id in cluster_ids:
           # TODO: check if we can make clusters immutable too
           try:
             topology_cache = self.topology_cache[cluster_id]
             metadata_cache = self.metadata_cache[cluster_id]
           except KeyError:
             # multithreading: if cluster was deleted during iteration
+            snapshot_complete = False
             continue
 
           if "status_commands_to_run" not in metadata_cache:
+            snapshot_complete = False
             continue
 
           status_commands_to_run = metadata_cache.status_commands_to_run
 
           if "components" not in topology_cache:
+            snapshot_complete = False
             continue
 
           current_host_id = self.topology_cache.get_current_host_id(cluster_id)
 
           if current_host_id is None:
+            snapshot_complete = False
             continue
 
           cluster_components = topology_cache.components
           for component_dict in cluster_components:
             for command_name in status_commands_to_run:
               if self.stop_event.is_set():
+                snapshot_complete = False
                 break
 
               # cluster was already removed
               if cluster_id not in self.topology_cache.get_cluster_ids():
+                snapshot_complete = False
                 break
 
               # check if component is installed on current host
@@ -115,6 +129,7 @@ class ComponentStatusExecutor(threading.Thread):
                 self.logger.info(
                   f"Skipping status command for {component_name}. Since command for it is running"
                 )
+                snapshot_complete = False
                 continue
 
               result = self.check_component_status(
@@ -125,7 +140,11 @@ class ComponentStatusExecutor(threading.Thread):
                 cluster_reports[cluster_id].append(result)
 
         cluster_reports = self.discard_stale_reports(cluster_reports)
-        self.send_updates_to_server(cluster_reports)
+        self.send_updates_to_server(
+          cluster_reports,
+          snapshot_complete=snapshot_complete,
+          snapshot_generation=snapshot_generation,
+        )
       except (
         ConnectionIsAlreadyClosed
       ):  # server and agent disconnected during sending data. Not an issue
@@ -212,12 +231,12 @@ class ComponentStatusExecutor(threading.Thread):
       "clusterId": cluster_id,
     }
 
-    if (
-      status
-      != self.reported_component_status[cluster_id][f"{service_name}/{component_name}"][
-        command_name
-      ]
-    ):
+    with self.reported_component_status_lock:
+      previous_status = self.reported_component_status[cluster_id][
+        f"{service_name}/{component_name}"
+      ][command_name]
+
+    if status != previous_status:
       logging.info(f"Status for {component_name} has changed to {status}")
       self.recovery_manager.handle_status_change(component_name, status)
 
@@ -257,22 +276,61 @@ class ComponentStatusExecutor(threading.Thread):
 
             cluster_reports[cluster_id].append(report)
 
-    self.send_updates_to_server(cluster_reports)
+      self.component_status_snapshot_complete = False
+      self.component_status_snapshot_generation += 1
+      self.reported_component_status.clear()
 
-  def send_updates_to_server(self, cluster_reports):
-    if not cluster_reports or not self.initializer_module.is_registered:
+    self.send_updates_to_server(
+      cluster_reports, snapshot_complete=False, save_reported_status=False
+    )
+
+  def send_updates_to_server(
+    self,
+    cluster_reports,
+    snapshot_complete=False,
+    save_reported_status=True,
+    snapshot_generation=None,
+  ):
+    if (
+      (not cluster_reports and not snapshot_complete and save_reported_status)
+      or not self.initializer_module.is_registered
+    ):
       return
 
-    correlation_id = self.initializer_module.connection.send(
-      message={"clusters": cluster_reports},
-      destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT,
-    )
-    self.server_responses_listener.listener_functions_on_success[correlation_id] = (
-      lambda headers, message: self.save_reported_component_status(cluster_reports)
-    )
-
-  def save_reported_component_status(self, cluster_reports):
     with self.reported_component_status_lock:
+      if snapshot_generation is None:
+        snapshot_generation = self.component_status_snapshot_generation
+      elif snapshot_generation != self.component_status_snapshot_generation:
+        return
+
+      correlation_id = self.initializer_module.connection.send(
+        message={
+          "clusters": cluster_reports,
+          "snapshotComplete": snapshot_complete,
+        },
+        destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT,
+      )
+    if save_reported_status:
+      self.server_responses_listener.listener_functions_on_success[correlation_id] = (
+        lambda headers, message: self.save_reported_component_status(
+          cluster_reports, snapshot_complete, snapshot_generation
+        )
+      )
+    else:
+      self.server_responses_listener.listener_functions_on_success[correlation_id] = (
+        lambda headers, message: None
+      )
+
+  def save_reported_component_status(
+    self, cluster_reports, snapshot_complete=False, snapshot_generation=None
+  ):
+    with self.reported_component_status_lock:
+      if (
+        snapshot_generation is not None
+        and snapshot_generation != self.component_status_snapshot_generation
+      ):
+        return
+
       for cluster_id, reports in cluster_reports.items():
         for report in reports:
           component_name = report["componentName"]
@@ -283,6 +341,8 @@ class ComponentStatusExecutor(threading.Thread):
           self.reported_component_status[cluster_id][
             f"{service_name}/{component_name}"
           ][command] = status
+      if snapshot_complete:
+        self.component_status_snapshot_complete = True
 
   def clean_not_existing_clusters_info(self):
     """
