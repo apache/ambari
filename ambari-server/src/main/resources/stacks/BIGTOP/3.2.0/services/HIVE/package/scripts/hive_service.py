@@ -15,123 +15,236 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
-# Python Imports
 import os
-from functools import partial
+import time
 
-# Ambari Commons & Resource Management Imports
 from ambari_commons.db_connection_helper import verify_db_connection
-from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core import shell
-from resource_management.core import utils
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import File, Execute
-from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
+from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.libraries.functions.stack_features import check_stack_feature
-
-from hive_pid_utils import (
-  is_pid_file_process_running,
-  read_pid,
-  terminate_process,
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
 )
+from resource_management.libraries.functions.show_logs import show_logs
+
+
+HIVE_PROCESS_TOKENS = {
+  "hiveserver2": ("org.apache.hive.service.server.HiveServer2",),
+  "metastore": ("org.apache.hadoop.hive.metastore.HiveMetaStore",),
+  "webhcat": ("org.apache.hive.hcatalog.templeton.Main",),
+}
+
+
+def expected_process_tokens(role):
+  try:
+    return HIVE_PROCESS_TOKENS[role]
+  except KeyError as error:
+    raise Fail(f"Unsupported Hive service role: {role}") from error
+
+
+def read_or_discover_hive_process(pid_file, user, group, role):
+  tokens = expected_process_tokens(role)
+  pid = safe_process.read_pid(pid_file)
+  if pid is not None:
+    identity = safe_process.inspect_process(pid, user, tokens)
+    if identity is not None and safe_process.is_process_running(
+      pid, user, tokens, identity=identity
+    ):
+      return identity
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      pid,
+      expected_user=user,
+      expected_cmdline=tokens,
+    )
+
+  identity = safe_process.discover_running_process(user, tokens)
+  if identity is None:
+    return None
+  return safe_process.create_pid_file_for_identity(
+    pid_file,
+    identity,
+    user,
+    tokens,
+    owner=user,
+    group=group,
+    mode=0o640,
+  )
+
+
+def wait_for_hive_process(
+  pid_file, user, group, role, attempts=30, sleep_seconds=1
+):
+  for attempt in range(attempts):
+    identity = read_or_discover_hive_process(pid_file, user, group, role)
+    if identity is not None:
+      return identity
+    if attempt + 1 < attempts:
+      time.sleep(sleep_seconds)
+  raise Fail(f"Hive {role} did not start with a valid process identity")
+
+
+def check_hive_process_status(pid_file, user, group, role):
+  identity = read_or_discover_hive_process(pid_file, user, group, role)
+  if identity is None:
+    raise ComponentIsNotRunning(f"Hive {role} is not running")
+  return identity
+
+
+def _pid_file(name, status_params):
+  if name == "metastore":
+    return status_params.hive_metastore_pid
+  if name == "hiveserver2":
+    return status_params.hive_pid
+  raise Fail(f"Unsupported Hive service role: {name}")
+
+
+def _start_command(name, params, status_params):
+  pid_file = _pid_file(name, status_params)
+  if name == "metastore":
+    return (
+      params.start_metastore_path,
+      os.path.join(params.hive_log_dir, "hive.out"),
+      os.path.join(params.hive_log_dir, "hive.err"),
+      pid_file,
+      params.hive_conf_dir,
+    )
+  return (
+    params.start_hiveserver2_path,
+    os.path.join(params.hive_log_dir, "hive-server2.out"),
+    os.path.join(params.hive_log_dir, "hive-server2.err"),
+    pid_file,
+    params.hive_conf_dir,
+    params.tez_conf_dir,
+  )
+
+
+def _validate_metastore_connection(params):
+  if params.hive_jdbc_driver not in params.hive_jdbc_drivers_list:
+    return
+  validate_connection(params.hive_jdbc_target, params.hive_lib_dir)
+
+
+def _wait_for_secure_znode(params):
+  if not params.security_enabled:
+    wait_for_znode()
+    return
+  required = (
+    params.kinit_path_local,
+    params.hive_server2_keytab,
+    params.hive_principal,
+  )
+  if not all(str(value or "").strip() for value in required):
+    raise Fail("Secure HiveServer2 discovery requires a principal and keytab")
+  with PrivateKerberosCache(
+    params.hive_user,
+    params.user_group,
+    temp_dir=params.tmp_dir,
+    prefix="ambari-hiveserver2-znode-",
+  ) as kerberos_cache:
+    kerberos_cache.kinit(*required, timeout=30)
+    wait_for_znode(kerberos_cache.environment)
 
 
 def hive_service(name, action="start", upgrade_type=None):
   import params
   import status_params
 
-  if name == "metastore":
-    pid_file = status_params.hive_metastore_pid
-    cmd = format(
-      "{start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.err {pid_file} {hive_conf_dir}"
-    )
-  elif name == "hiveserver2":
-    pid_file = status_params.hive_pid
-    cmd = format(
-      "{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_conf_dir} {tez_conf_dir}"
-    )
+  expected_process_tokens(name)
+  if action not in ("start", "stop"):
+    raise Fail(f"Unsupported Hive service action: {action}")
 
-    if params.security_enabled:
-      hive_kinit_cmd = format(
-        "{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; "
-      )
-      Execute(hive_kinit_cmd, user=params.hive_user)
-
-  process_is_running = partial(
-    is_pid_file_process_running, pid_file, params.hive_user
+  pid_file = _pid_file(name, status_params)
+  identity = read_or_discover_hive_process(
+    pid_file, params.hive_user, params.user_group, name
   )
 
   if action == "start":
-    daemon_cmd = cmd
-    hadoop_home = params.hadoop_home
-    hive_bin = "hive"
-
-    # upgrading hiveserver2 (rolling_restart) means that there is an existing,
-    # de-registering hiveserver2; the pid will still exist, but the new
-    # hiveserver is spinning up on a new port, so the pid will be re-written
-    if upgrade_type == UPGRADE_TYPE_ROLLING:
-      process_is_running = None
-
-      if params.version and params.stack_root:
-        hadoop_home = format("{stack_root}/{version}/hadoop")
-        hive_bin = os.path.join(params.hive_bin_dir, hive_bin)
-
-    Execute(
-      daemon_cmd,
-      user=params.hive_user,
-      environment={
-        "HADOOP_HOME": hadoop_home,
-        "JAVA_HOME": params.java64_home,
-        "HIVE_BIN": hive_bin,
-      },
-      path=params.execute_path,
-      not_if=process_is_running,
-    )
-
-    if (
-      params.hive_jdbc_driver == "com.mysql.jdbc.Driver"
-      or params.hive_jdbc_driver == "org.postgresql.Driver"
-      or params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver"
-    ):
-      validation_called = False
-
-      if params.hive_jdbc_target is not None:
-        validation_called = True
-        validate_connection(params.hive_jdbc_target, params.hive_lib_dir)
-
-      if not validation_called:
-        emessage = "ERROR! DB connection check should be executed at least one time!"
-        Logger.error(emessage)
-
-    if name == "hiveserver2":
-      wait_for_znode()
-
-  elif action == "stop":
+    if identity is not None:
+      Logger.info(f"Hive {name} is already running with pid {identity.pid}")
+      return
+    if name == "metastore":
+      _validate_metastore_connection(params)
+    started_identity = None
     try:
-      pid = read_pid(pid_file, fail_on_invalid=True)
-      graceful_wait_attempts = 11 if name == "hiveserver2" else 2
-      graceful_wait_sleep = 3 if name == "hiveserver2" else 5
-      terminate_process(
-        pid,
-        params.hive_user,
-        graceful_wait_attempts=graceful_wait_attempts,
-        graceful_wait_sleep=graceful_wait_sleep,
+      Execute(
+        _start_command(name, params, status_params),
+        user=params.hive_user,
+        environment={
+          "HADOOP_HOME": params.hadoop_home,
+          "JAVA_HOME": params.java64_home,
+          "HIVE_BIN": os.path.join(params.hive_bin_dir, "hive"),
+        },
+        path=params.execute_path,
+        logoutput=True,
+        timeout=60,
       )
+      started_identity = wait_for_hive_process(
+        pid_file, params.hive_user, params.user_group, name
+      )
+      File(
+        pid_file,
+        owner=params.hive_user,
+        group=params.user_group,
+        mode=0o640,
+      )
+      if name == "hiveserver2":
+        _wait_for_secure_znode(params)
     except Exception:
+      if started_identity is not None:
+        try:
+          safe_process.terminate_process(
+            started_identity,
+            params.hive_user,
+            expected_process_tokens(name),
+            term_wait_attempts=10,
+            term_wait_sleep=1,
+            kill_wait_attempts=10,
+            kill_wait_sleep=1,
+          )
+          safe_process.remove_pid_file_if_stopped(
+            pid_file,
+            started_identity.pid,
+            expected_user=params.hive_user,
+            expected_cmdline=expected_process_tokens(name),
+          )
+        except Exception as cleanup_error:
+          Logger.error(f"Could not roll back failed Hive {name} start: {cleanup_error}")
       show_logs(params.hive_log_dir, params.hive_user)
       raise
+    return
 
-    File(pid_file, action="delete")
+  if identity is None:
+    Logger.info(f"No running Hive {name} process was found")
+    return
+
+  tokens = expected_process_tokens(name)
+  try:
+    term_wait_attempts = 33 if name == "hiveserver2" else 10
+    safe_process.terminate_process(
+      identity,
+      params.hive_user,
+      tokens,
+      term_wait_attempts=term_wait_attempts,
+      term_wait_sleep=1,
+      kill_wait_attempts=10,
+      kill_wait_sleep=1,
+    )
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user=params.hive_user,
+      expected_cmdline=tokens,
+    )
+  except Exception:
+    show_logs(params.hive_log_dir, params.hive_user)
+    raise
 
 
 def validate_connection(target_path_to_jdbc, hive_lib_path):
@@ -140,19 +253,18 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
   path_to_jdbc = target_path_to_jdbc
   if not params.jdbc_jar_name:
     path_to_jdbc = (
-      format("{hive_lib_path}/")
-      + params.default_connectors_map[params.hive_jdbc_driver]
+      os.path.join(
+        hive_lib_path, params.default_connectors_map[params.hive_jdbc_driver]
+      )
       if params.hive_jdbc_driver in params.default_connectors_map
       else None
     )
-    if not os.path.isfile(path_to_jdbc):
-      path_to_jdbc = format("{hive_lib_path}/") + "*"
-      error_message = (
-        "Error! Sorry, but we can't find jdbc driver with default name "
-        + params.default_connectors_map[params.hive_jdbc_driver]
-        + " in hive lib dir. So, db connection check can fail. Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'"
+    if path_to_jdbc is None or not os.path.isfile(path_to_jdbc):
+      path_to_jdbc = os.path.join(hive_lib_path, "*")
+      Logger.warning(
+        "The default Hive metastore JDBC driver was not found; connection "
+        "validation will use the Hive library directory."
       )
-      Logger.error(error_message)
 
   classpath = os.pathsep.join((format("{check_db_connection_jar}"), path_to_jdbc))
   try:
@@ -172,22 +284,30 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
 
 
 @retry(times=30, sleep_time=10, err_class=Fail)
-def wait_for_znode():
+def wait_for_znode(environment=None):
   import params
   import status_params
 
-  try:
-    check_process_status(status_params.hive_pid)
-  except ComponentIsNotRunning:
-    raise Exception(
-      format("HiveServer2 is no longer running, check the logs at {hive_log_dir}")
-    )
-
-  cmd = format(
-    "{zk_bin_dir}/zkCli.sh -server {zk_quorum} ls /{hive_server2_zookeeper_namespace} | grep 'serverUri='"
+  check_hive_process_status(
+    status_params.hive_pid,
+    status_params.hive_user,
+    status_params.user_group,
+    "hiveserver2",
   )
-  code, out = shell.call(cmd)
-  if code == 1:
-    raise Fail(
-      format("ZooKeeper node /{hive_server2_zookeeper_namespace} is not ready yet")
-    )
+  namespace = str(params.hive_server2_zookeeper_namespace or "").strip("/")
+  if not namespace:
+    raise Fail("HiveServer2 ZooKeeper namespace is not configured")
+  _, output = shell.checked_call(
+    (
+      os.path.join(params.zk_bin_dir, "zkCli.sh"),
+      "-server",
+      str(params.zk_quorum),
+      "ls",
+      f"/{namespace}",
+    ),
+    user=params.hive_user,
+    env=environment,
+    timeout=60,
+  )
+  if "serverUri=" not in str(output):
+    raise Fail(f"ZooKeeper node /{namespace} is not ready yet")
