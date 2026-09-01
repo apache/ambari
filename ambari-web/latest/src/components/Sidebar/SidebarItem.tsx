@@ -89,8 +89,22 @@ const SidebarItem = ({
     supports,
     runningOperationsCount,
   } = useContext(AppContext);
-  const { allServiceModels } = useContext(ServiceContext);
+  const { allServiceModels, polledHostComponentsData } = useContext(ServiceContext);
   const location = useLocation();
+
+  // Service names that currently have any host component with stale_configs === true.
+  // Mirrors RestartWarning.tsx / the Sidebar restart icon so "Restart All Required" is
+  // enabled whenever a restart is actually required, using the reactive polled data
+  // rather than the isRestartRequiredForService flag on the service models.
+  const servicesNeedingRestart = new Set<string>();
+  (polledHostComponentsData?.items ?? []).forEach((item: any) => {
+    const svc = item?.ServiceComponentInfo?.service_name;
+    if (!svc) return;
+    const hasStale = (item?.host_components ?? []).some(
+      (hc: any) => hc?.HostRoles?.stale_configs === true
+    );
+    if (hasStale) servicesNeedingRestart.add(svc);
+  });
 
   // Authorization hooks - implementing Ember.js service menu authorization patterns
   const { havePermissions, isAuthorized } = useAuthorizationPolicy();
@@ -143,7 +157,10 @@ const SidebarItem = ({
         hasStartedServices = true;
       }
 
-      if (allServiceModels?.[serviceNameModelMapping[serviceName]]?.isRestartRequiredForService) {
+      if (
+        servicesNeedingRestart.has(serviceName) ||
+        allServiceModels?.[serviceNameModelMapping[serviceName]]?.isRestartRequiredForService
+      ) {
         hasServicesRequiringRestart = true;
       }
     });

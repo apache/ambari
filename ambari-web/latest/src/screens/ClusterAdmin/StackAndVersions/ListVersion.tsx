@@ -103,7 +103,7 @@ export default function Versions() {
   const [slaveComponentFailures, setSlaveComponentFailures] = useState(false);
   const [serviceCheckFailures, setServiceCheckFailures] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
-  const { clusterName, setUpgradeId, upgradeState, setIsPatchUpgrade, setUpgradeVersionDisplayName, allHostNames, upgradeVersionDisplayName, upgradeId, upgradeDirection, upgradeIsRunning, upgradeSuspended, supports, isNonWizardUser } = useContext(AppContext);
+  const { clusterName, setUpgradeId, upgradeState, setIsPatchUpgrade, setUpgradeVersionDisplayName, allHostNames, upgradeVersionDisplayName, upgradeAssociatedVersion, setUpgradeAssociatedVersion, upgradeId, upgradeDirection, upgradeIsRunning, upgradeSuspended, supports, isNonWizardUser } = useContext(AppContext);
   
   const packagesPayloadRef = useRef<any>({});
   
@@ -1269,6 +1269,9 @@ export default function Versions() {
       });
       setUpgradeCheckModal(false);
       setUpgradeConfirmationModal(false);
+      if (setUpgradeAssociatedVersion) {
+        setUpgradeAssociatedVersion(get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.repository_version", ""));
+      }
       modalManager.show(<Upgrade upgradeId={newUpgradeId} />);
     } catch (error) {
       modalManager.show({
@@ -1324,16 +1327,25 @@ export default function Versions() {
   }
 
   function getUpgradeStatus(stackData: StackVersion) {
-    const stackDisplayName = stackData.repository_versions[0].RepositoryVersions.display_name;
-    
-    if (upgradeState !== "COMPLETED" && upgradeState !== "NOT_REQUIRED" && upgradeVersionDisplayName && stackDisplayName === upgradeVersionDisplayName) {
+    const { display_name: stackDisplayName, repository_version: stackRepositoryVersion } =
+      stackData.repository_versions[0].RepositoryVersions;
+
+    const isUpgradeActive =
+      upgradeState !== "COMPLETED" && upgradeState !== "NOT_REQUIRED";
+
+    // Prefer matching by repository_version (unambiguous across patches); fall back to display name.
+    const matchesUpgrade = upgradeAssociatedVersion
+      ? stackRepositoryVersion === upgradeAssociatedVersion
+      : !!upgradeVersionDisplayName && stackDisplayName === upgradeVersionDisplayName;
+
+    if (isUpgradeActive && matchesUpgrade) {
       return {
         isUpgradeInProgress: true,
         upgradeState: upgradeState,
-        statusText: getUpgradeRequestStatus(upgradeState, upgradeDirection == "DOWNGRADE"), // false for upgrade, true for downgrade
+        statusText: getUpgradeRequestStatus(upgradeState, upgradeDirection == "DOWNGRADE"),
       };
     }
-    
+
     return {
       isUpgradeInProgress: false,
       upgradeState: null,
@@ -1831,6 +1843,9 @@ export default function Versions() {
       ]).catch(() => {
         toast.error("The revert started, but its browser state could not be persisted");
       });
+      if (setUpgradeAssociatedVersion) {
+        setUpgradeAssociatedVersion(get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.repository_version", ""));
+      }
       modalManager.show(<Upgrade upgradeId={upgradeId} />);
     } catch (error) {
       modalManager.show({

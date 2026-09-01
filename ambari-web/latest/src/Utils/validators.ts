@@ -192,6 +192,16 @@ export const configValidator = {
   },
 
   /**
+   * validate db user name (permissive: any non-whitespace, to allow hyphens and other special chars)
+   * @param value
+   * @returns {boolean}
+   */
+  isValidDbUserName: function(value: string): boolean {
+    const dbPattern = /^\S+$/;
+    return dbPattern.test(value);
+  },
+
+  /**
    * validate key of configurations
    * allow spaces as prefix and suffix
    *

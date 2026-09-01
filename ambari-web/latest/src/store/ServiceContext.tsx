@@ -130,16 +130,25 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   const [polledHostComponentsData, setPolledHostComponentsData] = useState<any>(
     {}
   );
+  // Keep a ref in sync so fetchOptimizedMaintenanceAndStaleData always reads the
+  // latest polled/WebSocket-updated host component data (avoids stale closure).
+  const polledHostComponentsDataRef = useRef(polledHostComponentsData);
+  useEffect(() => {
+    polledHostComponentsDataRef.current = polledHostComponentsData;
+  }, [polledHostComponentsData]);
   const [quickLinksMapWithAPIResponse, setQuickLinksMapWithAPIResponse] =
     useState<any>(null);
 
   const [masterSlaveClientsData, setMasterSlaveClientsData] = useState<any>({});
   const [serviceStatesData, setServiceStatesData] = useState<Map<string, any>>(new Map());
 
-  const { clusterName, parsedSocketMessages } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages, alertSummary: socketAlertSummary } = useContext(AppContext);
 
-  // Alert data from AlertsContext, used to calculate service alert counts without a separate /alerts call
-  const { alertSummary, alertDefinitions } = useAlerts();
+  // Boot-fetched summary from AlertsContext; prefer the synchronous socket summary when available.
+  // socketAlertSummary is set in the same render cycle as the socket arrival (context.tsx handler),
+  // avoiding the extra render cycle that parsedSocketMessages → AlertsContext useEffect requires.
+  const { alertSummary: bootAlertSummary, alertDefinitions } = useAlerts();
+  const alertSummary = socketAlertSummary ?? bootAlertSummary;
 
   // Refs to avoid stale closures in subscriber callback and prevent useEffect re-runs
   const alertSummaryRef = useRef(alertSummary);
@@ -149,6 +158,33 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   useEffect(() => { alertSummaryRef.current = alertSummary; }, [alertSummary]);
   useEffect(() => { alertDefinitionsRef.current = alertDefinitions; }, [alertDefinitions]);
   useEffect(() => { allServiceModelsRef.current = allServiceModels; }, [allServiceModels]);
+
+  // REACTIVE ALERT UPDATE: When alertSummary changes (from synchronous socket path or boot load),
+  // immediately recompute service alert counts and push to serviceStatesData.
+  // Mirrors Ember's alertDefinitionSummaryMapper which runs synchronously on socket events,
+  // instantly updating service.alertsCount + service.hasCriticalAlerts.
+  useEffect(() => {
+    if (!alertSummary || !alertDefinitions?.length) return;
+
+    const serviceAlertCounts = computeServiceAlertCounts(alertSummary, alertDefinitions);
+
+    setServiceStatesData((prev) => {
+      const updated = new Map(prev);
+      serviceAlertCounts.forEach(({ alertsCount, hasCriticalAlerts }, serviceName) => {
+        const existing = updated.get(serviceName);
+        if (existing) {
+          updated.set(serviceName, { ...existing, alertsCount, hasCriticalAlerts });
+        }
+      });
+      updated.forEach((data, serviceName) => {
+        if (!serviceAlertCounts.has(serviceName)) {
+          updated.set(serviceName, { ...data, alertsCount: 0, hasCriticalAlerts: false });
+        }
+      });
+      centralizedServiceStateApi.setDerivedServiceStates(updated);
+      return updated;
+    });
+  }, [alertSummary, alertDefinitions]);
 
   const isOnClusterAdminPage = location.pathname.includes('/main/admin/');
 
@@ -229,6 +265,10 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
         }
         merged[key] = incoming;
       }
+      // Keep the ref in sync synchronously so multiple updateRegistry calls within
+      // the same tick each clone the freshest models instead of a stale snapshot,
+      // which previously clobbered isRestartRequiredForService.
+      allServiceModelsRef.current = merged;
       return merged;
     });
   };
@@ -250,17 +290,22 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
    */
   const fetchOptimizedMaintenanceAndStaleData = async () => {
     try {
-      // USE CACHED DATA instead of making new API call
-      // CachedServiceApi is already polling this same endpoint
-      const cachedData = cachedServiceApi.getAllComponentData();
+      // Prefer the reactive polledHostComponentsData state: the WebSocket
+      // /events/hostcomponents handler updates it immediately with fresh
+      // stale_configs, whereas cachedServiceApi.getAllComponentData() is only
+      // refreshed by the 5s HTTP poll. Reading the cache here meant the Sidebar
+      // restart icon lagged until the next poll after a config save.
+      const polledData = polledHostComponentsDataRef.current;
+      const responseData =
+        polledData?.items?.length
+          ? polledData
+          : cachedServiceApi.getAllComponentData();
 
-      if (!cachedData) {
-        // If no cached data yet, fetch it once (will be cached for subsequent calls)
+      if (!responseData?.items?.length) {
+        // If no data yet, fetch it once (will be cached for subsequent calls)
         await cachedServiceApi.fetchAllServiceComponents(clusterName);
         return;
       }
-
-      const responseData = cachedData;
 
       if (!isEmpty(responseData)) {
         
@@ -297,9 +342,12 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
           serviceStaleStatus[serviceName] = staleHosts.length > 0;
         });
 
-        // Update service models with stale configs only (maintenance mode handled separately)
+        // Update service models with stale configs only (maintenance mode handled separately).
+        // Use the ref (not the closed-over allServiceModels) so we always read the latest
+        // models — this closure captures a stale value otherwise, preventing the
+        // Sidebar restart icon from updating after configs are saved.
         let hasUpdates = false;
-        const updatedModels = cloneDeep(allServiceModels);
+        const updatedModels = cloneDeep(allServiceModelsRef.current);
 
         Object.entries(serviceStaleStatus).forEach(([serviceName, hasStaleConfigs]) => {
           const serviceModelKey = serviceNameModelMapping[serviceName];
@@ -345,8 +393,10 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
           passiveStateMap[service.ServiceInfo.service_name] = service.ServiceInfo.maintenance_state;
         });
 
+        // Use the ref (not the closed-over allServiceModels) so this clone is not stale and
+        // does not clobber isRestartRequiredForService written by fetchOptimizedMaintenanceAndStaleData.
         let hasMaintenanceUpdates = false;
-        const updatedModels = cloneDeep(allServiceModels);
+        const updatedModels = cloneDeep(allServiceModelsRef.current);
 
         Object.entries(passiveStateMap).forEach(([serviceName, maintenanceState]) => {
           const serviceModelKey = serviceNameModelMapping[serviceName];

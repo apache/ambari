@@ -84,6 +84,8 @@ interface AppContextProps {
   setIsPatchUpgrade?: (isPatch: boolean) => void;
   upgradeVersionDisplayName?: string;
   setUpgradeVersionDisplayName?: (name: string) => void;
+  upgradeAssociatedVersion?: string;
+  setUpgradeAssociatedVersion?: (version: string) => void;
   upgradeIsFinalizeItem: boolean;
   setUpgradeIsFinalizeItem: (isFinalize: boolean) => void;
   userUrl?: string;
@@ -122,6 +124,9 @@ interface AppContextProps {
   serviceCheckSupportedMap: Record<string, boolean>;
   stackVersion: any;
   stackVersionList: any[];
+  // Alert summary updated synchronously from /events/alerts socket handler.
+  // Mirrors Ember's alertSummaryMapper: sidebar/service counts update in the same render cycle.
+  alertSummary: { alerts_summary_grouped: any[] } | null;
 }
 
 type BackgroundRequestPage = {
@@ -163,6 +168,8 @@ export const AppContext = createContext<AppContextProps>({
   setIsPatchUpgrade: () => {},
   upgradeVersionDisplayName: "",
   setUpgradeVersionDisplayName: () => {},
+  upgradeAssociatedVersion: "",
+  setUpgradeAssociatedVersion: () => {},
   sessionExists: false,
   sessionsValidated: false,
   clusterState: {},
@@ -198,6 +205,7 @@ export const AppContext = createContext<AppContextProps>({
   serviceCheckSupportedMap: {},
   stackVersion: undefined,
   stackVersionList: [],
+  alertSummary: null,
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -210,6 +218,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [initializationError, setInitializationError] = useState<string | null>(null);
   const [initializationAttempt, setInitializationAttempt] = useState(0);
   const [parsedSocketMessages, setParsedSocketMessages] = useState<any[]>([]);
+  const [alertSummary, setAlertSummary] = useState<{ alerts_summary_grouped: any[] } | null>(null);
   const [clusterName, setClusterName] = useState<string>("");
   const [isKerberosEnabled, setIsKerberosEnabled] = useState(false);
   const [cluster, setCluster] = useState<any>({});
@@ -223,6 +232,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<boolean>(false);
   const [isPatchUpgrade, setIsPatchUpgrade] = useState<boolean>(false);
   const [upgradeVersionDisplayName, setUpgradeVersionDisplayName] =
+    useState<string>("");
+  const [upgradeAssociatedVersion, setUpgradeAssociatedVersion] =
     useState<string>("");
   const [currentStackVersion, setCurrentStackVersion] = useState<string>("");
   const [ambariProperties, setAmbariProperties] = useState({});
@@ -531,10 +542,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         `items[${lastItemIndex}].Upgrade.direction`,
         "UPGRADE"
       );
+      const associatedVersion = get(
+        response,
+        `items[${lastItemIndex}].Upgrade.associated_version`,
+        ""
+      );
+      const hasActiveUpgrade =
+        upgradeState !== "NOT_REQUIRED" && upgradeState !== "COMPLETED";
       setUpgradeDirection(upgradeDirection);
       setUpgradeId(upgradeId);
       setUpgradeState(upgradeState);
       setUpgradeSuspend(upgradeSuspend);
+      setUpgradeAssociatedVersion(hasActiveUpgrade ? associatedVersion : "");
 
       const persistedUpgradeState = await Promise.allSettled([
         ClusterApi.getPersistData("isPatchUpgrade"),
@@ -703,6 +722,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 )
               ));
             }
+            // Mirrors Ember's alertSummaryMapper: update summary synchronously in the same
+            // render cycle so sidebar alert counts reflect the socket push immediately.
+            if (parsedMessage.summaries) {
+              const clusterId = parsedMessage.clusterId || Object.keys(parsedMessage.summaries)[0];
+              const clusterSummaries = parsedMessage.summaries[clusterId];
+              if (clusterSummaries) {
+                setAlertSummary({ alerts_summary_grouped: Object.values(clusterSummaries) });
+              }
+            }
             setParsedSocketMessages((current) => [parsedMessage, ...current].slice(0, 200));
           } catch {
             console.error(`Ambari ignored a malformed STOMP message from ${destination}.`);
@@ -796,6 +824,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsPatchUpgrade,
         upgradeVersionDisplayName,
         setUpgradeVersionDisplayName,
+        upgradeAssociatedVersion,
+        setUpgradeAssociatedVersion,
         userUrl,
         sessionExists: true,
         sessionsValidated: true,
@@ -831,6 +861,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         serviceCheckSupportedMap,
         stackVersion,
         stackVersionList,
+        alertSummary,
       }}
     >
       {children}

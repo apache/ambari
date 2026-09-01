@@ -157,6 +157,7 @@ function AdvancedConfigs({
   const [multiPropertyErrors, setMultiPropertyErrors] = useState<string[]>([]);
   const [isMultiPropertyMode, setIsMultiPropertyMode] = useState<boolean>(false);
   const [selectedPropertyTypes, setSelectedPropertyTypes] = useState<string[]>([]);
+  const [hostsModalProperty, setHostsModalProperty] = useState<PropertyType | null>(null);
 
   const configSectionNames = Object.keys(
     advancedConfigs?.[chosenService] || {},
@@ -479,10 +480,22 @@ function AdvancedConfigs({
           </div>
         );
       case InputType.HOSTS:
-        return !isEmpty(property?.value) && isArray(property?.value) ? (
-          <span>{property?.value?.join(", ")}</span>
+        if (isEmpty(property?.value) || !isArray(property?.value)) {
+          return "No host assigned";
+        }
+        return property.value.length > 1 ? (
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setHostsModalProperty(property);
+            }}
+          >
+            {property.value[0]} and {property.value.length - 1}{" "}
+            {property.value.length - 1 === 1 ? "other" : "others"}
+          </a>
         ) : (
-          "No host assigned"
+          <span>{property.value[0]}</span>
         );
 
       case InputType.RADIOBUTTON:
@@ -1436,6 +1449,24 @@ function AdvancedConfigs({
         }
         successCallback={handleAddProperty}
         options={{}}
+      ></Modal>
+      <Modal
+        isOpen={!!hostsModalProperty}
+        onClose={() => setHostsModalProperty(null)}
+        modalTitle={
+          hostsModalProperty?.propertyDisplayname ||
+          hostsModalProperty?.propertyName ||
+          "Hosts"
+        }
+        modalBody={
+          <ul className="list-unstyled mb-0">
+            {(hostsModalProperty?.value || []).map((host: string) => (
+              <li className="mt-2" key={host}>{host}</li>
+            ))}
+          </ul>
+        }
+        successCallback={() => setHostsModalProperty(null)}
+        options={{ cancelableViaIcon: true, cancelableViaBtn: false }}
       ></Modal>
     </>
   );

@@ -255,15 +255,14 @@ function WizardConfigInitializer(
       return configProperty;
     },
     _initAsZookeeperServersList: (configProperty: any, localDB: any) => {
-      var zkHosts = map(
+      var zkHosts = uniq(map(
         filter(localDB.masterComponentHosts, ["component", "ZOOKEEPER_SERVER"]),
         "hostName"
-      );
-      var zkHostPort = zkHosts;
+      ));
+      var zkHostPort = zkHosts.slice();
       var regex = "\\w*:(\\d+)"; //regex to fetch the port
-      var portValue =
-        get(configProperty, "recommendedValue") &&
-        get(configProperty, "recommendedValue").match(new RegExp(regex));
+      var sourceValue = get(configProperty, "recommendedValue") || get(configProperty, "value") || "";
+      var portValue = sourceValue && sourceValue.match(new RegExp(regex));
       if (!portValue) {
         return configProperty;
       }

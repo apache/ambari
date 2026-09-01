@@ -20,7 +20,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import { useContext } from "react";
 import { AppContext } from "../store/context";
-import { AlertsApi } from "../api/alertsApi";
 import { useLocation } from "react-router-dom";
 import {
   map,
@@ -40,8 +39,8 @@ import Upgrade from "../screens/ClusterAdmin/StackAndVersions/Upgrade";
 import { getUpgradeRequestStatus, translate } from "../Utils/Utility";
 import { messages } from "../screens/messages";
 import ClusterApi from "../api/clusterApi";
-import { processData } from '../screens/Alerts/alertUtils';
 import useAuth from "../hooks/useAuth";
+import { useAlerts } from "../store/AlertsContext";
 import { isUpgradeRequest } from "../Utils/backgroundOperations";
 import { HostsApi } from "../api/hostsApi";
 import { useViewInstances } from "../screens/Views/ViewInstancesContext";
@@ -76,13 +75,22 @@ const DashboardLayout = () => {
   const [hostMaintenanceState, setHostMaintenanceState] = useState<string>("OFF");
 
   const isClusterInstalled = cluster?.provisioning_state === "INSTALLED";
-  // add a id and name map of alerts
-  const [alertLabels, setAlertLabels] = useState(new Map());
+  const { alertDefinitions, isLoading: alertsLoading } = useAlerts();
+  // Build id→label map from AlertsContext data — no separate API calls needed
+  const alertLabels = useMemo(() => {
+    const map = new Map();
+    alertDefinitions.forEach((def: any) => {
+      if (def.id && def.label) {
+        map.set(def.id, def.label);
+      }
+    });
+    return map;
+  }, [alertDefinitions]);
+  const alertLabelsLoaded = !alertsLoading;
   const { hostname } = useParams();
   //@ts-ignore
   const [clusterRequests, setClusterRequests] = useState<any[]>([]);
   const requestsRef = useRef<any>([]);
-  const [alertLabelsLoaded, setAlertLabelsLoaded] = useState(false);
 
   // Function to fetch host maintenance state
   const fetchHostMaintenanceState = async () => {
@@ -171,50 +179,14 @@ const DashboardLayout = () => {
   }, [parsedSocketMessages, hostname]);
 
   useEffect(() => {
-    const fetchAlertsLabel = async () => {
-      // TLHASD-745: Only fetch alerts if cluster is installed
-      if (!isClusterInstalled) {
-        setAlertLabelsLoaded(true);
-        return;
-      }
-      
-      try {
-        // Use the same API calls as the Alerts page
-        const [alertsResponse, summariesResponse] = await Promise.all([
-          AlertsApi.getAlerts(
-            clusterName,
-            'AlertGroup/default,AlertGroup/definitions,AlertGroup/id,AlertGroup/name,AlertGroup/targets',
-            Date.now()
-          ),
-          AlertsApi.getAlertSummary(clusterName, Date.now())
-        ]);
-
-        const processedAlerts = processData(alertsResponse, summariesResponse);        
-        // Extract labels from the processed data
-        const alertLabelsCopy = new Map();
-        processedAlerts.forEach(alert => {
-          if (alert.alert_definition_id && alert.label) {
-            alertLabelsCopy.set(alert.alert_definition_id, alert.label);
-          }
-        });      
-        setAlertLabels(alertLabelsCopy); // Ensure state update
-        setAlertLabelsLoaded(true);
-      } catch (error) {
-        console.error("Failed to fetch alert labels:", error);
-        setAlertLabelsLoaded(true);
-      }
-    };
-    
     const getClusterRequestsConditional = async () => {
       if (!isClusterInstalled) {
         return;
       }
-      
       await getClusterRequests();
     };
 
     if (clusterName) {
-      fetchAlertsLabel();
       getClusterRequestsConditional();
       fetchHostMaintenanceState();
     }

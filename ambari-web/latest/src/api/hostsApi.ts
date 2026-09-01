@@ -685,7 +685,38 @@ export const HostsApi = {
       data: JSON.stringify({
         RequestInfo: {
           context: data.context,
-          command: "MAKEOBSERVER",
+          command: "TRANSITION_NAMENODE",
+          // Ambari forwards a top-level RequestInfo key named after the component
+          // into agent commandParams. namenode.py reads target_ha_state from it.
+          namenode: JSON.stringify({ target_ha_state: "observer" }),
+          operation_level: {
+            level: "HOST_COMPONENT",
+            cluster_name: clusterName,
+            host_name: data.hostName,
+            service_name: "HDFS",
+          },
+        },
+        "Requests/resource_filters": [
+          {
+            service_name: "HDFS",
+            component_name: "NAMENODE",
+            hosts: data.hostName,
+          },
+        ],
+      }),
+    });
+    return response.data;
+  },
+  transitionToStandby: async function (clusterName: string, data: any) {
+    const url = `/clusters/${clusterName}/requests`;
+    const response = await ambariApi.request({
+      url: url,
+      method: "POST",
+      data: JSON.stringify({
+        RequestInfo: {
+          context: data.context,
+          command: "TRANSITION_NAMENODE",
+          namenode: JSON.stringify({ target_ha_state: "standby" }),
           operation_level: {
             level: "HOST_COMPONENT",
             cluster_name: clusterName,

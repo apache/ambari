@@ -451,7 +451,8 @@ const messages: any = {
     'question.sure.regenerateKeytab.service': 'Are you sure you want to regenerate keytab file operations for a {0} service?',
     'question.sure.regenerateKeytab.host': 'Are you sure you want to regenerate keytab file operations for a {0} host?',
     'question.sure.makeObserver': 'Are you sure you want to transition {0} to Observer mode?',
-  
+    'question.sure.makeStandby': 'Are you sure you want to transition {0} to Standby mode?',
+
     'popup.highlight':'click to highlight',
     'popup.confirmation.commonHeader':'Confirmation',
     'popup.confirmation.refreshYarnQueues.body':'It is strongly recommended to <strong>Refresh Yarn Queues</strong> after making a change to the capacity scheduler configuration. Would you like to proceed?',
@@ -2155,6 +2156,9 @@ const messages: any = {
     'services.service.actions.run.makeObserver.context':'Transition To Observer',
     'services.service.actions.run.makeObserver':'Transition To Observer',
     'services.service.actions.run.makeObserver.error':'Error during transition to observer: ',
+    'services.service.actions.run.makeStandby.context':'Transition To Standby',
+    'services.service.actions.run.makeStandby':'Transition To Standby',
+    'services.service.actions.run.makeStandby.error':'Error during transition to standby: ',
     'services.service.actions.run.yarnRefreshQueues.title':'Refresh Queues ResourceManager',
     'services.service.actions.run.yarnRefreshQueues.menu':'Refresh YARN Capacity Scheduler',
     'services.service.actions.run.yarnRefreshQueues.context':'Refresh YARN Capacity Scheduler',

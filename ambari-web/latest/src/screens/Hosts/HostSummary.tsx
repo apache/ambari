@@ -99,6 +99,7 @@ import {
   installComponent,
   executeCustomCommand,
   transitionToObserver,
+  transitionToStandby,
 } from "./actions";
 import { AppContext } from "../../store/context";
 import IHost from "../../models/host";
@@ -314,7 +315,7 @@ export default function HostsSummary({
     }
   }, [clusterComponents, summary]);
 
-  const { decommissionable, isComponentDecommissionDisable } =
+  const { decommissionable, isComponentDecommissionDisable, startDecommissionStatusPolling, loadComponentDecommissionStatus } =
     useDecommissionable(get(allHostModels, "[0]", {} as IHost));
 
   // Authorization hooks - implementing Ember.js host component authorization patterns
@@ -437,8 +438,9 @@ export default function HostsSummary({
   const getStateIcon = (component: IHostComponent) => {
     const state = get(component, "workStatus", "");
     const type = get(component, "componentCategory", "");
-    const adminState = get(component, "adminState", "");
-    if (adminState === "DECOMMISSIONED") {
+    const decommissionState = get(decommissionable, getComponentName(component));
+    const isRecommissionAvailable = get(decommissionState, "isComponentRecommissionAvailable");
+    if (isRecommissionAvailable) {
       return (
         <Tooltip message="Decommissioned">
           <FontAwesomeIcon icon={faMinusCircle} className="text-orange" />
@@ -677,7 +679,10 @@ export default function HostsSummary({
               key="decommission"
               onClick={() => {
                 if (!isComponentDecommissionDisable(component)) {
-                  const data = { clusterComponents };
+                  const data = {
+                    clusterComponents,
+                    callback: () => startDecommissionStatusPolling(component),
+                  };
                   setSelectedActionData(
                     component,
                     "decommission",
@@ -707,11 +712,19 @@ export default function HostsSummary({
               key="recommission"
               onClick={() => {
                 if (!isComponentDecommissionDisable(component)) {
+                  const data = {
+                    setAllHostModels,
+                    callback: () => {
+                      loadComponentDecommissionStatus(component);
+                      startDecommissionStatusPolling(component);
+                    },
+                  };
                   setSelectedActionData(
                     component,
                     "recommission",
                     false,
-                    recommission
+                    recommission,
+                    data
                   );
                   setShowConfirmationModal(true);
                 }
@@ -973,8 +986,8 @@ export default function HostsSummary({
             component,
             get(clusterComponents, "items", [])
           ).forEach((cmd: any, index: number) => {
-            // Handle special "Transition To Observer" command for NAMENODE
-            if (get(cmd, "command", "") === "MAKEOBSERVER" && 
+            // Handle special HA transition commands for NAMENODE
+            if (get(cmd, "command", "") === "MAKEOBSERVER" &&
                 getComponentName(component) === "NAMENODE") {
               actions.push(
                 <div
@@ -983,6 +996,21 @@ export default function HostsSummary({
                   onClick={() => {
                     if (!get(cmd, "disabled", false)) {
                       transitionToObserver(component);
+                    }
+                  }}
+                >
+                  {get(cmd, "label", "")}
+                </div>
+              );
+            } else if (get(cmd, "command", "") === "MAKESTANDBY" &&
+                getComponentName(component) === "NAMENODE") {
+              actions.push(
+                <div
+                  key={`transition-standby-${index}`}
+                  className={get(cmd, "disabled", false) ? "disabled-btn" : ""}
+                  onClick={() => {
+                    if (!get(cmd, "disabled", false)) {
+                      transitionToStandby(component);
                     }
                   }}
                 >
@@ -1022,6 +1050,9 @@ export default function HostsSummary({
       canRunCustomCommands,
       canStartStopServices,
       canToggleComponentMaintenance,
+      setAllHostModels,
+      startDecommissionStatusPolling,
+      loadComponentDecommissionStatus,
     ]
   );
 
@@ -1189,7 +1220,7 @@ export default function HostsSummary({
         },
       },
     ],
-    [getActions, componentActionsMap, openDropdownId]
+    [getActions, componentActionsMap, openDropdownId, decommissionable]
   );
 
   if (loading) {

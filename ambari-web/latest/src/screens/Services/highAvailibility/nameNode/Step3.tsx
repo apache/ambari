@@ -80,6 +80,7 @@ function Step3() {
   } = useContext(EnableHighAvailibilityContext);
   const { clusterName, services } = useContext(AppContext);
   const serverConfigDataRef = useRef<any>([]);
+  const configTagsLoaded = useRef(false);
   const [clusterHostComponentsMapping, setClusterHostComponentsMapping] =
     useState<any>([]);
   const [stepConfigs, setStepConfigs] = useState<any>(null);
@@ -266,10 +267,12 @@ function Step3() {
   }
   useEffect(() => {
     if (
+      !configTagsLoaded.current &&
       clusterHostComponentsMapping.length &&
       configsData &&
-      !isEmpty(configsData) 
+      !isEmpty(configsData)
     ) {
+      configTagsLoaded.current = true;
       loadConfigsTags();
     }
   }, [clusterHostComponentsMapping, configsData]);

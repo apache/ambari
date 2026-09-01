@@ -521,8 +521,9 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
 
   function renderRepos() {
     const operatingSystems = getStepData("VERSION", "operatingSystems");
-    const selectedStack = getStepData("VERSION", "selectedStack.id");
-    const addedOs = operatingSystems[selectedStack].filter(
+    // Use selectedVersion.id to match the key stored by Step1 (e.g. "3.4.1.0-13"), not selectedStack.id (e.g. "VDP-3.4")
+    const selectedVersionId = getStepData("VERSION", "selectedVersion.id");
+    const addedOs = operatingSystems[selectedVersionId].filter(
       (os: any) => os.isAdded
     );
     const allRepos = addedOs.map((currentOs: any) => {
@@ -758,12 +759,13 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
 
   async function getUpdateRepoOSInfoBody() {
     const usesRedhat = getStepData("VERSION", "redhatSatellite");
-    const selectedStack = getStepData("VERSION", "selectedStack.id");
+    // Use selectedVersion.id to match the key stored by Step1 (e.g. "3.4.1.0-13"), not selectedStack.id (e.g. "VDP-3.4")
+    const selectedVersionId = getStepData("VERSION", "selectedVersion.id");
     const operatingSystemsFromState = getStepData(
       "VERSION",
       `operatingSystems`
     );
-    const operatingSystems = operatingSystemsFromState[selectedStack];
+    const operatingSystems = operatingSystemsFromState[selectedVersionId];
     if (isArray(operatingSystems) && operatingSystems.length) {
       const selectedOperatingSystems = operatingSystems?.filter(
         (os: any) => os.isAdded

@@ -48,7 +48,10 @@ export default function AddToConfigGroupModal({
 
   useEffect(() => {
     if (configGroupNames && configGroupNames.length > 0) {
-      setSelectedConfigGroup(configGroupNames[0]);
+      // Keep the current choice if still valid so it doesn't snap back to the first group.
+      setSelectedConfigGroup((prev) =>
+        prev && configGroupNames.includes(prev) ? prev : configGroupNames[0]
+      );
       setIsExistingConfigGroup(true);
     } else {
       // If no existing config groups, automatically select "Create new" option
@@ -56,6 +59,17 @@ export default function AddToConfigGroupModal({
       setSelectedConfigGroup("");
     }
   }, [configGroupNames]);
+
+  // Reset fields on open; the modal stays mounted while hidden so state would otherwise persist.
+  useEffect(() => {
+    if (isOpen) {
+      setNewCofigGroup("");
+      setIsExistingConfigGroup(configGroupNames.length > 0);
+      setSelectedConfigGroup(
+        configGroupNames.length > 0 ? configGroupNames[0] : ""
+      );
+    }
+  }, [isOpen]);
 
   const createNewConfigGroup = async () => {
     const payload = {
