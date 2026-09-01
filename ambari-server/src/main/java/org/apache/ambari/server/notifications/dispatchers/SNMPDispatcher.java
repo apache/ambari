@@ -269,7 +269,9 @@ public class SNMPDispatcher implements NotificationDispatcher {
       OctetString userName = new OctetString(getDispatchProperty(notification.DispatchProperties, SECURITY_USERNAME_PROPERTY));
       if (snmp.getUSM() == null) {
         // provide User-based Security Model (USM) with user specified
-        USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
+        SecurityProtocols securityProtocols = SecurityProtocols.getInstance();
+        securityProtocols.addAuthenticationProtocol(new AuthMD5());
+        USM usm = new USM(securityProtocols, new OctetString(MPv3.createLocalEngineID()), 0);
         // authPassphraseProperty and privPassphraseProperty can be null for NoAuthNoPriv security level
         String authPassphraseProperty = notification.DispatchProperties.get(SECURITY_AUTH_PASSPHRASE_PROPERTY);
         String privPassphraseProperty = notification.DispatchProperties.get(SECURITY_PRIV_PASSPHRASE_PROPERTY);

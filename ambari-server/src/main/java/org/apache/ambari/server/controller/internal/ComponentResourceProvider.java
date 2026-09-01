@@ -353,7 +353,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     Set<String> duplicates = new HashSet<>();
 
     for (ServiceComponentRequest request : requests) {
-      Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
+      Validate.isTrue(request.getComponentName() != null && !request.getComponentName().isEmpty(), "component name should be non-empty");
       Cluster cluster = getClusterForRequest(request, clusters);
 
       isAuthorized(cluster, getRequiredCreateAuthorizations());
@@ -582,7 +582,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     }
 
     for (ServiceComponentRequest request : requests) {
-      Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
+      Validate.isTrue(request.getComponentName() != null && !request.getComponentName().isEmpty(), "component name should be non-empty");
       final Cluster cluster = getClusterForRequest(request, clusters);
       final String clusterName = request.getClusterName();
       final String componentName = request.getComponentName();
@@ -786,7 +786,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
 
     for (ServiceComponentRequest request : requests) {
-      Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
+      Validate.isTrue(request.getComponentName() != null && !request.getComponentName().isEmpty(), "component name should be non-empty");
       Cluster cluster = getClusterForRequest(request, clusters);
 
       setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
@@ -825,7 +825,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     }
   }
   private Cluster getClusterForRequest(final ServiceComponentRequest request, final Clusters clusters) throws AmbariException {
-    Validate.notEmpty(request.getClusterName(), "cluster name should be non-empty");
+    Validate.isTrue(request.getClusterName() != null && !request.getClusterName().isEmpty(), "cluster name should be non-empty");
     try {
       return clusters.getCluster(request.getClusterName());
     } catch (ClusterNotFoundException e) {
@@ -842,7 +842,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   private Cluster getCluster(final ServiceComponentRequest request, final Clusters clusters) throws AmbariException {
-    Validate.notEmpty(request.getClusterName(), "cluster name should be non-empty");
+    Validate.isTrue(request.getClusterName() != null && !request.getClusterName().isEmpty(), "cluster name should be non-empty");
 
     try {
       return clusters.getCluster(request.getClusterName());

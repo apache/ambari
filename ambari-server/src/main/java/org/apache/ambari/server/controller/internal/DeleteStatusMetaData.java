@@ -39,7 +39,7 @@ public class DeleteStatusMetaData implements RequestStatusMetaData {
   }
 
   public void addDeletedKey(String key) {
-    Validate.notEmpty(key, "Key should not be empty");
+    Validate.isTrue(key != null && !key.isEmpty(), "Key should not be empty");
     deletedKeys.add(key);
   }
 
@@ -48,7 +48,7 @@ public class DeleteStatusMetaData implements RequestStatusMetaData {
   }
 
   public void addException(String key, Exception exception) {
-    Validate.notEmpty(key, "Key should not be empty");
+    Validate.isTrue(key != null && !key.isEmpty(), "Key should not be empty");
     Validate.notNull(exception, "Exception cannot be null");
     exceptionMap.put(key, exception);
   }

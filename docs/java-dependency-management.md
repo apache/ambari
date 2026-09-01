@@ -31,10 +31,12 @@ Java 17 modernization.
   maintenance with an unrelated framework major-version migration.
 - Keep the server on one SLF4J provider. Logback is the server provider;
   Log4j 1 callers use `log4j-over-slf4j`.
-- Align the Servlet API with the deployed Jetty generation. Jetty 11 uses the
-  Jakarta Servlet 5 API.
+- Use the Jakarta Servlet 6 API for Spring 6.2 compile and test compatibility.
+  Jetty 11 remains a Servlet 5 runtime, so server code must not call Servlet
+  6-only methods.
 - New code uses Jakarta JAXB and Jakarta Mail, Commons Lang 3, and the
-  maintained `com.github.mwiede:jsch` fork.
+  maintained `com.github.mwiede:jsch` fork. Retain legacy JAXB annotation
+  support for Hadoop and AMS models that still expose `javax.xml.bind` types.
 
 Dependabot proposes grouped monthly patch and minor updates. Every proposed
 update still requires compatibility review and the focused subsystem tests.

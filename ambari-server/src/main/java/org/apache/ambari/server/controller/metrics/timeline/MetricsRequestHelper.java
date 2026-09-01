@@ -46,7 +46,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationIntrospector;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
 /**
  * Helper class to call AMS backend that is utilized by @AMSPropertyProvider
@@ -60,7 +60,7 @@ public class MetricsRequestHelper {
 
   static {
     mapper = new ObjectMapper();
-    AnnotationIntrospector introspector = new JakartaXmlBindAnnotationIntrospector();
+    AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
     //noinspection deprecation
     mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
