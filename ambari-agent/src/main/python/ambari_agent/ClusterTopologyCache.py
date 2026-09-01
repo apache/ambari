@@ -48,7 +48,7 @@ class ClusterTopologyCache(ClusterCache):
     self.hostname = hostname.hostname(config)
     self.current_host_ids_to_cluster = {}
     self.cluster_local_components = {}
-    self.cluster_host_info = None
+    self.cluster_host_info = {}
     self.component_version_map = {}
     super(ClusterTopologyCache, self).__init__(cluster_cache_dir)
 
@@ -57,19 +57,22 @@ class ClusterTopologyCache(ClusterCache):
 
   @synchronized(topology_update_lock)
   def on_cache_update(self):
-    self.cluster_host_info = None
+    cluster_host_info_by_id = {}
 
     hosts_to_id = defaultdict(lambda: {})
     components_by_key = defaultdict(lambda: {})
+    current_host_ids_to_cluster = {}
+    cluster_local_components = {}
+    component_version_map = {}
 
     for cluster_id, cluster_topology in self.items():
-      self.current_host_ids_to_cluster[cluster_id] = None
+      current_host_ids_to_cluster[cluster_id] = None
       if "hosts" in cluster_topology:
         for host_dict in cluster_topology.hosts:
           hosts_to_id[cluster_id][host_dict.hostId] = host_dict
 
           if host_dict.hostName == self.hostname:
-            self.current_host_ids_to_cluster[cluster_id] = host_dict.hostId
+            current_host_ids_to_cluster[cluster_id] = host_dict.hostId
 
       if "components" in cluster_topology:
         for component_dict in cluster_topology.components:
@@ -77,39 +80,43 @@ class ClusterTopologyCache(ClusterCache):
           components_by_key[cluster_id][key] = component_dict
 
     for cluster_id, cluster_topology in self.items():
-      self.cluster_local_components[cluster_id] = []
-      self.component_version_map[cluster_id] = defaultdict(
+      cluster_local_components[cluster_id] = []
+      component_version_map[cluster_id] = defaultdict(
         lambda: defaultdict(lambda: {})
       )
 
-      if not self.current_host_ids_to_cluster[cluster_id]:
+      if not current_host_ids_to_cluster[cluster_id]:
         continue
 
-      current_host_id = self.current_host_ids_to_cluster[cluster_id]
+      current_host_id = current_host_ids_to_cluster[cluster_id]
 
       if "components" in self[cluster_id]:
         for component_dict in self[cluster_id].components:
           if "version" in component_dict.commandParams:
-            self.component_version_map[cluster_id][component_dict.serviceName][
+            component_version_map[cluster_id][component_dict.serviceName][
               component_dict.componentName
             ] = component_dict.commandParams.version
 
           if "hostIds" in component_dict and current_host_id in component_dict.hostIds:
             if current_host_id in component_dict.hostIds:
-              self.cluster_local_components[cluster_id].append(
+              cluster_local_components[cluster_id].append(
                 component_dict.componentName
               )
 
+    self.current_host_ids_to_cluster = current_host_ids_to_cluster
+    self.cluster_local_components = cluster_local_components
+    self.component_version_map = component_version_map
     self.hosts_to_id = ImmutableDictionary(hosts_to_id)
     self.components_by_key = ImmutableDictionary(components_by_key)
+    self.cluster_host_info = cluster_host_info_by_id
 
   @synchronized(topology_update_lock)
   def get_cluster_host_info(self, cluster_id):
     """
     Get dictionary used in commands as clusterHostInfo
     """
-    if self.cluster_host_info is not None:
-      return self.cluster_host_info
+    if cluster_id in self.cluster_host_info:
+      return self.cluster_host_info[cluster_id]
 
     cluster_host_info = defaultdict(lambda: [])
     for component_dict in self[cluster_id].components:
@@ -137,7 +144,7 @@ class ClusterTopologyCache(ClusterCache):
       cluster_host_info["all_racks"].append(rack_name)
       cluster_host_info["all_ipv4_ips"].append(ip)
 
-    self.cluster_host_info = cluster_host_info
+    self.cluster_host_info[cluster_id] = cluster_host_info
     return cluster_host_info
 
   @synchronized(topology_update_lock)
@@ -301,6 +308,11 @@ class ClusterTopologyCache(ClusterCache):
             component_updates_dict["serviceName"],
             component_updates_dict["componentName"],
           )
+          if component_mutable_dict is None:
+            logger.error(
+              f"Cannot do component delete for cluster_id={cluster_id}, serviceName={component_updates_dict['serviceName']}, componentName={component_updates_dict['componentName']}, because cannot find the component in cache"
+            )
+            continue
           if "hostIds" in component_mutable_dict:
             exclude_host_ids = component_updates_dict["hostIds"]
             component_mutable_dict["hostIds"] = [
@@ -312,16 +324,11 @@ class ClusterTopologyCache(ClusterCache):
             not "hostIds" in component_mutable_dict
             or component_mutable_dict["hostIds"] == []
           ):
-            if component_mutable_dict is not None:
-              mutable_dict[cluster_id]["components"] = [
-                component_dict
-                for component_dict in components_mutable_list
-                if component_dict != component_mutable_dict
-              ]
-            else:
-              logger.error(
-                f"Cannot do component delete for cluster_id={cluster_id}, serviceName={component_updates_dict['serviceName']}, componentName={component_updates_dict['componentName']}, because cannot find the host in cache"
-              )
+            mutable_dict[cluster_id]["components"] = [
+              component_dict
+              for component_dict in components_mutable_list
+              if component_dict != component_mutable_dict
+            ]
 
       if cluster_updates_dict == {}:
         clusters_ids_to_delete.append(cluster_id)
