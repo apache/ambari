@@ -20,7 +20,7 @@ limitations under the License.
 
 # Python Imports
 import os
-import time
+from functools import partial
 
 # Ambari Commons & Resource Management Imports
 from ambari_commons.db_connection_helper import verify_db_connection
@@ -30,7 +30,6 @@ from resource_management.core import utils
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Execute
-from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.check_process_status import (
   check_process_status,
@@ -39,6 +38,12 @@ from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.stack_features import check_stack_feature
+
+from hive_pid_utils import (
+  is_pid_file_process_running,
+  read_pid,
+  terminate_process,
+)
 
 
 def hive_service(name, action="start", upgrade_type=None):
@@ -62,11 +67,8 @@ def hive_service(name, action="start", upgrade_type=None):
       )
       Execute(hive_kinit_cmd, user=params.hive_user)
 
-  pid = get_user_call_output.get_user_call_output(
-    format("cat {pid_file}"), user=params.hive_user, is_checked_call=False
-  )[1]
-  process_id_exists_command = format(
-    "ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1"
+  process_is_running = partial(
+    is_pid_file_process_running, pid_file, params.hive_user
   )
 
   if action == "start":
@@ -78,7 +80,7 @@ def hive_service(name, action="start", upgrade_type=None):
     # de-registering hiveserver2; the pid will still exist, but the new
     # hiveserver is spinning up on a new port, so the pid will be re-written
     if upgrade_type == UPGRADE_TYPE_ROLLING:
-      process_id_exists_command = None
+      process_is_running = None
 
       if params.version and params.stack_root:
         hadoop_home = format("{stack_root}/{version}/hadoop")
@@ -93,7 +95,7 @@ def hive_service(name, action="start", upgrade_type=None):
         "HIVE_BIN": hive_bin,
       },
       path=params.execute_path,
-      not_if=process_id_exists_command,
+      not_if=process_is_running,
     )
 
     if (
@@ -115,36 +117,17 @@ def hive_service(name, action="start", upgrade_type=None):
       wait_for_znode()
 
   elif action == "stop":
-    daemon_kill_cmd = format("{sudo} kill {pid}")
-    daemon_hard_kill_cmd = format("{sudo} kill -9 {pid}")
-
-    Execute(daemon_kill_cmd, not_if=format("! ({process_id_exists_command})"))
-
-    wait_time = 5
-    if name == "hiveserver2":
-      # wait for HS2 to drain connections
-      Execute(
-        format("! ({process_id_exists_command})"),
-        tries=10,
-        try_sleep=3,
-        ignore_failures=True,
-      )
-    Execute(
-      daemon_hard_kill_cmd,
-      not_if=format(
-        "! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"
-      ),
-      ignore_failures=True,
-    )
-
     try:
-      # check if stopped the process, else fail the task
-      Execute(
-        format("! ({process_id_exists_command})"),
-        tries=20,
-        try_sleep=3,
+      pid = read_pid(pid_file, fail_on_invalid=True)
+      graceful_wait_attempts = 11 if name == "hiveserver2" else 2
+      graceful_wait_sleep = 3 if name == "hiveserver2" else 5
+      terminate_process(
+        pid,
+        params.hive_user,
+        graceful_wait_attempts=graceful_wait_attempts,
+        graceful_wait_sleep=graceful_wait_sleep,
       )
-    except:
+    except Exception:
       show_logs(params.hive_log_dir, params.hive_user)
       raise
 

@@ -20,6 +20,9 @@ Ambari Agent
 
 """
 
+import traceback
+from functools import partial
+
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.core.resources.service import Service
@@ -28,7 +31,12 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.resources.system import Execute, File
-import traceback
+
+from hive_pid_utils import (
+  force_stop_process,
+  is_pid_file_process_running,
+  read_pid,
+)
 
 
 def webhcat_service(action="start", upgrade_type=None):
@@ -38,15 +46,15 @@ def webhcat_service(action="start", upgrade_type=None):
 
   if action == "start":
     daemon_cmd = format("cd {hcat_pid_dir} ; {cmd} start")
-    no_op_test = format(
-      "ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1"
+    process_is_running = partial(
+      is_pid_file_process_running, params.webhcat_pid_file, params.webhcat_user
     )
     try:
       Execute(
         daemon_cmd,
         environment={"HIVE_HOME": params.hive_home},
         user=params.webhcat_user,
-        not_if=no_op_test,
+        not_if=process_is_running,
       )
     except:
       show_logs(params.hcat_log_dir, params.webhcat_user)
@@ -59,30 +67,12 @@ def webhcat_service(action="start", upgrade_type=None):
       show_logs(params.hcat_log_dir, params.webhcat_user)
       Logger.info(traceback.format_exc())
 
-    # this will retrieve the PID
-    pid_expression = format("`cat {webhcat_pid_file}`")
-
-    # the PID must exist AND'd with the process must be alive
-    # the return code here is going to be 0 IFF both conditions are met correctly
-    process_id_exists_command = format(
-      "ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1"
-    )
-
-    # kill command to run
-    daemon_hard_kill_cmd = format("{sudo} kill -9 {pid_expression}")
-
-    # check to ensure that it has stopped by looking for the running PID and then killing
-    # it forcefully if it exists - the behavior of not-if/only-if is as follows:
-    #   not_if return code IS 0
-    #   only_if return code is NOT 0
-    Execute(
-      daemon_hard_kill_cmd, only_if=process_id_exists_command, ignore_failures=True
-    )
-
     try:
-      # check if stopped the process, else fail the task
-      Execute(format("! ({process_id_exists_command})"))
-    except:
+      force_stop_process(
+        read_pid(params.webhcat_pid_file, fail_on_invalid=True),
+        params.webhcat_user,
+      )
+    except Exception:
       show_logs(params.hcat_log_dir, params.webhcat_user)
       raise
 
