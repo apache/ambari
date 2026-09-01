@@ -55,6 +55,31 @@ class TestBigtopBuildProfiles(unittest.TestCase):
     self.assertIn("${urlinfo_processor_script_location}", arguments)
     self.assertIn("${stacksSrcLocation}", arguments)
 
+  def test_obsolete_runtime_tools_are_not_packaged(self):
+    repository = SERVER_MODULE.parent
+    obsolete_files = (
+      repository
+      / "ambari-common/src/main/python/resource_management/libraries/functions/dynamic_variable_interpretation.py",
+      repository
+      / "ambari-common/src/main/python/resource_management/libraries/functions/hive_check.py",
+      repository
+      / "ambari-common/src/main/python/resource_management/libraries/functions/oozie_prepare_war.py",
+      repository
+      / "ambari-common/src/main/python/resource_management/libraries/functions/simulate_perf_cluster_alert_behaviour.py",
+      SERVER_MODULE / "src/main/resources/scripts/Ambaripreupload.py",
+      SERVER_MODULE
+      / "src/test/java/org/apache/ambari/server/agent/LocalAgentSimulator.java",
+    )
+
+    for path in obsolete_files:
+      self.assertFalse(path.exists(), path)
+
+    functions_init = (
+      repository
+      / "ambari-common/src/main/python/resource_management/libraries/functions/__init__.py"
+    ).read_text(encoding="utf-8")
+    self.assertNotIn("hive_check", functions_init)
+
 
 if __name__ == "__main__":
   unittest.main()
