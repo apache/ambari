@@ -21,20 +21,37 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>content</name>
-    <description>Spark-log4j-Properties</description>
+    <description>Spark Log4j2 properties</description>
     <value>
 # Set everything to be logged to the console
-log4j.rootCategory=INFO, console
-log4j.appender.console=org.apache.log4j.ConsoleAppender
-log4j.appender.console.target=System.err
-log4j.appender.console.layout=org.apache.log4j.PatternLayout
-log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n
+rootLogger.level = info
+rootLogger.appenderRef.stdout.ref = console
+rootLogger.appenderRef.service.ref = service
+
+appender.console.type = Console
+appender.console.name = console
+appender.console.target = SYSTEM_ERR
+appender.console.layout.type = PatternLayout
+appender.console.layout.pattern = %d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n%ex
+
+appender.service.type = File
+appender.service.name = service
+appender.service.fileName = ${env:SPARK_LOG_FILE:-/dev/null}
+appender.service.layout.type = PatternLayout
+appender.service.layout.pattern = %d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n%ex
+
+logger.repl.name = org.apache.spark.repl.Main
+logger.repl.level = warn
+logger.thriftserver.name = org.apache.spark.sql.hive.thriftserver.SparkSQLCLIDriver
+logger.thriftserver.level = warn
 
 # Settings to quiet third party logs that are too verbose
-log4j.logger.org.eclipse.jetty=WARN
-log4j.logger.org.eclipse.jetty.util.component.AbstractLifeCycle=ERROR
-log4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=INFO
-log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=INFO
+logger.jetty.name = org.sparkproject.jetty
+logger.jetty.level = warn
+logger.parquet.name = org.apache.parquet
+logger.parquet.level = error
+logger.metastore.name = org.apache.hadoop.hive.metastore.RetryingHMSHandler
+logger.metastore.level = fatal
 
     </value>
     <value-attributes>

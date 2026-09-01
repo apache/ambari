@@ -18,9 +18,10 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.default import default
+
+import spark_utils
 
 config = Script.get_config()
 
@@ -28,16 +29,13 @@ spark_user = config["configurations"]["spark-env"]["spark_user"]
 spark_group = config["configurations"]["spark-env"]["spark_group"]
 user_group = config["configurations"]["cluster-env"]["user_group"]
 
-if "hive-env" in config["configurations"]:
-  hive_user = config["configurations"]["hive-env"]["hive_user"]
-else:
-  hive_user = "hive"
+spark_utils.validate_user(spark_user, "Spark user")
+spark_utils.validate_user(spark_group, "Spark group")
+spark_utils.validate_user(user_group, "cluster service group")
 
 spark_pid_dir = config["configurations"]["spark-env"]["spark_pid_dir"]
-spark_history_server_pid_file = format(
-  "{spark_pid_dir}/spark-{spark_user}-org.apache.spark.deploy.history.HistoryServer-1.pid"
-)
-spark_thrift_server_pid_file = format(
-  "{spark_pid_dir}/spark-{spark_user}-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid"
-)
+spark_utils.validate_service_directory(spark_pid_dir, "Spark PID directory")
+spark_history_server_pid_file = spark_pid_dir + "/spark_history_server.pid"
+spark_thrift_server_pid_file = spark_pid_dir + "/spark_thrift_server.pid"
+spark_defaults_file = "/etc/spark/conf/spark-defaults.conf"
 stack_name = default("/clusterLevelParams/stack_name", None)

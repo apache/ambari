@@ -18,20 +18,11 @@ limitations under the License.
 
 """
 
-import sys
-import os
-
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.constants import StackFeature
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
-from resource_management.core.logger import Logger
-from resource_management.core import shell
+from resource_management.core.exceptions import ComponentIsNotRunning
 from setup_spark import setup_spark
 from spark_service import spark_service
+import spark_process
 
 
 class SparkThriftServer(Script):
@@ -46,7 +37,7 @@ class SparkThriftServer(Script):
     import params
 
     env.set_params(params)
-    setup_spark(env, "server", upgrade_type=upgrade_type, action="config")
+    setup_spark(env, "thriftserver", upgrade_type=upgrade_type, action="config")
 
   def start(self, env, upgrade_type=None):
     import params
@@ -66,14 +57,15 @@ class SparkThriftServer(Script):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.spark_thrift_server_pid_file)
-
-  def pre_upgrade_restart(self, env, upgrade_type=None):
-    import params
-
-    env.set_params(params)
-    Logger.info("Executing Spark Thrift Server Stack Upgrade pre-restart")
-    stack_select.select_packages(params.version)
+    identity = spark_process.read_or_recover_process(
+      "sparkthriftserver",
+      status_params.spark_thrift_server_pid_file,
+      status_params.spark_user,
+      status_params.user_group,
+      status_params.spark_defaults_file,
+    )
+    if identity is None:
+      raise ComponentIsNotRunning("Spark Thrift Server is not running")
 
   def get_log_folder(self):
     import params
