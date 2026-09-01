@@ -516,10 +516,11 @@ class TestKerberosParamsAndMetadata(unittest.TestCase):
           {"kerberos_utils": KERBEROS_UTILS},
         )
 
-  def test_client_template_does_not_pin_obsolete_default_enctypes(self):
+  def test_client_template_does_not_pin_crypto_or_cache_defaults(self):
     source = (KERBEROS / "properties/krb5_conf.j2").read_text(encoding="utf-8")
     self.assertNotIn("default_tgs_enctypes", source)
     self.assertNotIn("default_tkt_enctypes", source)
+    self.assertNotIn("default_ccache_name", source)
     self.assertNotIn("default(kdc_host_list[0]", source)
 
 
