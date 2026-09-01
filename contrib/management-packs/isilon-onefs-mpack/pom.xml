@@ -95,12 +95,13 @@
         <executions>
           <execution>
             <configuration>
-              <executable>python</executable>
+              <executable>${project.basedir}/../../../ambari-common/src/main/unix/ambari-python-wrap</executable>
               <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>unitTests.py</argument>
                 <argument>${custom.tests}</argument>
               </arguments>
+              <skip>${skipPythonTests}</skip>
             </configuration>
             <id>python-test</id>
             <phase>test</phase>

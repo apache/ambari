@@ -20,8 +20,8 @@ limitations under the License.
 
 import unittest
 import os
+import signal
 import sys
-from random import shuffle
 import fnmatch
 
 #excluded directories with non-test staff from stack and service scanning,
@@ -31,6 +31,32 @@ SERVICE_EXCLUDE = ["configs"]
 
 TEST_MASK = '[Tt]est*.py'
 CUSTOM_TEST_MASK = '_[Tt]est*.py'
+TEST_TIMEOUT_SECONDS = int(os.environ.get("AMBARI_TEST_TIMEOUT_SECONDS", "300"))
+
+
+class TestTimeoutError(TimeoutError):
+  pass
+
+
+class TimeoutTextTestResult(unittest.TextTestResult):
+  def startTest(self, test):
+    super().startTest(test)
+    if hasattr(signal, "SIGALRM") and TEST_TIMEOUT_SECONDS > 0:
+      self._active_test = test
+      signal.signal(signal.SIGALRM, self._raise_timeout)
+      signal.alarm(TEST_TIMEOUT_SECONDS)
+
+  def _raise_timeout(self, signum, frame):
+    raise TestTimeoutError(
+      f"Test exceeded {TEST_TIMEOUT_SECONDS} seconds: {self._active_test.id()}"
+    )
+
+  def stopTest(self, test):
+    if hasattr(signal, "SIGALRM"):
+      signal.alarm(0)
+    super().stopTest(test)
+
+
 def get_parent_path(base, directory_name):
   """
   Returns absolute path for directory_name, if directory_name present in base.
@@ -61,7 +87,7 @@ def get_test_files(path, mask = None, recursive=True):
     if os.path.isfile(item_path):
       if fnmatch.fnmatch(item, mask):
         add_to_pythonpath = True
-        current.append(item)
+        current.append(item_path)
     elif os.path.isdir(item_path):
       if recursive:
         current.extend(get_test_files(item_path, mask = mask))
@@ -93,13 +119,30 @@ def main():
   else:
     test_mask = TEST_MASK
 
-  tests = get_test_files(pwd, mask=test_mask, recursive=True)
-  shuffle(tests)
-  modules = [os.path.basename(s)[:-3] for s in tests]
-  suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in
-            modules]
+  tests = sorted(set(get_test_files(pwd, mask=test_mask, recursive=True)))
+  suites = []
+  loader = unittest.TestLoader()
+  for test_path in tests:
+    test_directory = os.path.dirname(test_path)
+    module_name = os.path.splitext(os.path.basename(test_path))[0]
+    sys.modules.pop(module_name, None)
+    suites.append(
+      loader.discover(
+        start_dir=test_directory,
+        pattern=os.path.basename(test_path),
+        top_level_dir=test_directory,
+      )
+    )
+    sys.modules.pop(module_name, None)
   testSuite = unittest.TestSuite(suites)
-  textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
+  collected = testSuite.countTestCases()
+  sys.stderr.write(f"Collected {collected} Python unit tests\n")
+  if collected == 0:
+    sys.stderr.write("ERROR: Python unit test discovery collected zero tests\n")
+    return 1
+  textRunner = unittest.TextTestRunner(
+    verbosity=2, resultclass=TimeoutTextTestResult
+  ).run(testSuite)
   test_runs += textRunner.testsRun
   test_errors.extend([(str(item[0]),str(item[1]),"ERROR") for item in textRunner.errors])
   test_failures.extend([(str(item[0]),str(item[1]),"FAIL") for item in textRunner.failures])
@@ -129,4 +172,3 @@ def main():
 
 if __name__ == "__main__":
   sys.exit(main())
-

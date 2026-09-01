@@ -51,14 +51,13 @@ class OneFsClient(Script):
             configuration_attributes=params.config['configuration_attributes']['core-site'],
             owner=params.hdfs_user,
             group=params.user_group,
-            mode=0644
+            mode=0o644
     )
 
     File(format("{params.ambari_libs_dir}/fast-hdfs-resource.jar"),
-         mode=0644,
+         mode=0o644,
          content=StaticFile("/var/lib/ambari-agent/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar")
          )
 
 if __name__ == "__main__":
   OneFsClient().execute()
-

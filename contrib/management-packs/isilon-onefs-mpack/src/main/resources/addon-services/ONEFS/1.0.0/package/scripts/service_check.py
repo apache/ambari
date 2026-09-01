@@ -41,7 +41,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     params.HdfsResource(dir,
                         type="directory",
                         action="create_on_execute",
-                        mode=0777
+                        mode=0o777
     )
     params.HdfsResource(tmp_file,
                         type="file",
