@@ -19,9 +19,7 @@ limitations under the License.
 """
 
 from resource_management.libraries.script import Script
-from resource_management.core.logger import Logger
-from resource_management.core import shell
-from resource_management.core.exceptions import ComponentIsNotRunning
+from kms_process import check_process
 
 
 class KmsServiceCheck(Script):
@@ -29,13 +27,7 @@ class KmsServiceCheck(Script):
     import params
 
     env.set_params(params)
-    cmd = "ps -ef | grep proc_rangerkms | grep -v grep"
-    code, output = shell.call(cmd, timeout=20)
-    if code == 0:
-      Logger.info("KMS process up and running")
-    else:
-      Logger.debug("KMS process not running")
-      raise ComponentIsNotRunning()
+    check_process(params.ranger_kms_pid_file, params.kms_user, params.kms_group)
 
 
 if __name__ == "__main__":

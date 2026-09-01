@@ -18,15 +18,15 @@ limitations under the License.
 
 """
 
-from resource_management.core.resources.system import Execute, File
-from resource_management.core import shell
-from resource_management.libraries.functions.format import format
-from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.resources.system import Execute
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.show_logs import show_logs
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
-from resource_management.libraries.functions.constants import Direction
-import os
+from kms_process import (
+  find_process,
+  rollback_started_process,
+  secure_started_process,
+  stop_process,
+)
 
 
 def kms_service(action="start", upgrade_type=None):
@@ -40,25 +40,28 @@ def kms_service(action="start", upgrade_type=None):
     }
 
   if action == "start":
-    no_op_test = format("ps -ef | grep proc_rangerkms | grep -v grep")
-    cmd = format("{kms_home}/ranger-kms start")
+    if find_process(
+      params.ranger_kms_pid_file, params.kms_user, params.kms_group
+    ) is not None:
+      return
     try:
-      Execute(cmd, not_if=no_op_test, environment=env_dict, user=format("{kms_user}"))
-    except:
+      Execute(
+        (params.kms_home + "/ranger-kms", "start"),
+        environment=env_dict,
+        user=params.kms_user,
+        timeout=60,
+      )
+      secure_started_process(
+        params.ranger_kms_pid_file, params.kms_user, params.kms_group
+      )
+    except Exception:
+      try:
+        rollback_started_process(params.ranger_kms_pid_file, params.kms_user)
+      except Exception as cleanup_error:
+        Logger.warning(f"Could not roll back failed Ranger KMS start: {cleanup_error}")
       show_logs(params.kms_log_dir, params.kms_user)
       raise
   elif action == "stop":
-    if (
-      upgrade_type == UPGRADE_TYPE_NON_ROLLING
-      and params.upgrade_direction == Direction.UPGRADE
-    ):
-      if os.path.isfile(format("{kms_home}/ranger-kms")):
-        File(
-          format("{kms_home}/ranger-kms"), owner=params.kms_user, group=params.kms_group
-        )
-    cmd = format("{kms_home}/ranger-kms stop")
-    try:
-      Execute(cmd, environment=env_dict, user=format("{kms_user}"))
-    except:
-      show_logs(params.kms_log_dir, params.kms_user)
-      raise
+    stop_process(params.ranger_kms_pid_file, params.kms_user, params.kms_group)
+  else:
+    raise ValueError(f"Unsupported Ranger KMS service action {action}")

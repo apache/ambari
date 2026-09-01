@@ -19,20 +19,16 @@ limitations under the License.
 """
 
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
-from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
-from resource_management.core import shell
 from resource_management.libraries.functions.default import default
 from kms_service import kms_service
+from kms_process import check_process
 import upgrade
 import os
 import kms
@@ -53,9 +49,22 @@ class KmsServer(Script):
         format("{kms_home}/install.properties"),
         format("{kms_home}/install-backup.properties"),
       ),
-      not_if=format("ls {kms_home}/install-backup.properties"),
-      only_if=format("ls {kms_home}/install.properties"),
+      not_if=lambda: os.path.exists(
+        os.path.join(params.kms_home, "install-backup.properties")
+      ),
+      only_if=lambda: os.path.exists(
+        os.path.join(params.kms_home, "install.properties")
+      ),
       sudo=True,
+    )
+    File(
+      os.path.join(params.kms_home, "install-backup.properties"),
+      owner=params.kms_user,
+      group=params.kms_group,
+      mode=0o600,
+      only_if=lambda: os.path.exists(
+        os.path.join(params.kms_home, "install-backup.properties")
+      ),
     )
 
   def stop(self, env, upgrade_type=None):
@@ -63,8 +72,6 @@ class KmsServer(Script):
 
     env.set_params(params)
     kms_service(action="stop", upgrade_type=upgrade_type)
-    if params.stack_supports_pid:
-      File(params.ranger_kms_pid_file, action="delete")
 
   def start(self, env, upgrade_type=None):
     import params
@@ -81,16 +88,11 @@ class KmsServer(Script):
 
     env.set_params(status_params)
 
-    if status_params.stack_supports_pid:
-      check_process_status(status_params.ranger_kms_pid_file)
-      return
-
-    cmd = "ps -ef | grep proc_rangerkms | grep -v grep"
-    code, output = shell.call(cmd, timeout=20)
-    if code != 0:
-      Logger.debug("KMS process not running")
-      raise ComponentIsNotRunning()
-    pass
+    check_process(
+      status_params.ranger_kms_pid_file,
+      status_params.kms_user,
+      status_params.kms_group,
+    )
 
   def configure(self, env):
     import params

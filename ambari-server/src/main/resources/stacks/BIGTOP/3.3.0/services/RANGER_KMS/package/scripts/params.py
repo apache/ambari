@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import os
+from kms_utils import strict_bool
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.version import format_stack_version
@@ -64,9 +65,6 @@ stack_support_kms_hsm = check_stack_feature(
 stack_supports_ranger_kerberos = check_stack_feature(
   StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks
 )
-stack_supports_pid = check_stack_feature(
-  StackFeature.RANGER_KMS_PID_SUPPORT, version_for_stack_feature_checks
-)
 stack_supports_ranger_audit_db = check_stack_feature(
   StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks
 )
@@ -78,7 +76,10 @@ stack_supports_multiple_env_sh_files = check_stack_feature(
 )
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+security_enabled = strict_bool(
+  config["configurations"]["cluster-env"]["security_enabled"],
+  "cluster-env/security_enabled",
+)
 
 # if stack_supports_config_versioning:
 kms_home = format("{stack_root}/current/ranger-kms")
@@ -119,7 +120,10 @@ else:
   kms_hosts = ranger_kms_hosts[0]
 kms_port = config["configurations"]["kms-env"]["kms_port"]
 
-create_db_user = config["configurations"]["kms-env"]["create_db_user"]
+create_db_user = strict_bool(
+  config["configurations"]["kms-env"]["create_db_user"],
+  "kms-env/create_db_user",
+)
 
 # kms properties
 db_flavor = (config["configurations"]["kms-properties"]["DB_FLAVOR"]).lower()
@@ -153,9 +157,12 @@ credential_file = format("/etc/ranger/{repo_name}/cred.jceks")
 kms_logback_content = config["configurations"]["kms-logback"]["content"]
 
 # ranger kms ssl enabled config
-ranger_kms_ssl_enabled = config["configurations"]["ranger-kms-site"][
-  "ranger.service.https.attrib.ssl.enabled"
-]
+ranger_kms_ssl_enabled = strict_bool(
+  config["configurations"]["ranger-kms-site"][
+    "ranger.service.https.attrib.ssl.enabled"
+  ],
+  "ranger-kms-site/ranger.service.https.attrib.ssl.enabled",
+)
 url_scheme = "http"
 if ranger_kms_ssl_enabled:
   url_scheme = "https"
@@ -351,9 +358,12 @@ kms_plugin_config = {
 
 xa_audit_db_is_enabled = False
 if stack_supports_ranger_audit_db:
-  xa_audit_db_is_enabled = config["configurations"]["ranger-kms-audit"][
-    "xasecure.audit.destination.db"
-  ]
+  xa_audit_db_is_enabled = strict_bool(
+    config["configurations"]["ranger-kms-audit"][
+      "xasecure.audit.destination.db"
+    ],
+    "ranger-kms-audit/xasecure.audit.destination.db",
+  )
 ssl_keystore_password = str(
   config["configurations"]["ranger-kms-policymgr-ssl"][
     "xasecure.policymgr.clientssl.keystore.password"
@@ -386,7 +396,10 @@ jce_name = default("/ambariLevelParams/jce_name", None)
 jce_source_dir = format("{tmp_dir}/jce_dir")
 
 # kms hsm support
-enable_kms_hsm = default("/configurations/dbks-site/ranger.ks.hsm.enabled", False)
+enable_kms_hsm = strict_bool(
+  default("/configurations/dbks-site/ranger.ks.hsm.enabled", False),
+  "dbks-site/ranger.ks.hsm.enabled",
+)
 hms_partition_alias = default(
   "/configurations/dbks-site/ranger.ks.hsm.partition.password.alias",
   "ranger.kms.hsm.partition.password",
@@ -463,8 +476,11 @@ ranger_kms_ssl_passwd = config["configurations"]["ranger-kms-site"][
   "ranger.service.https.attrib.keystore.pass"
 ]
 
-xa_audit_hdfs_is_enabled = default(
-  "/configurations/ranger-kms-audit/xasecure.audit.destination.hdfs", False
+xa_audit_hdfs_is_enabled = strict_bool(
+  default(
+    "/configurations/ranger-kms-audit/xasecure.audit.destination.hdfs", False
+  ),
+  "ranger-kms-audit/xasecure.audit.destination.hdfs",
 )
 namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 
@@ -531,8 +547,9 @@ ranger_kms_max_heap_size = default(
 )
 
 # ranger kms keysecure support
-enable_kms_keysecure = default(
-  "/configurations/dbks-site/ranger.kms.keysecure.enabled", False
+enable_kms_keysecure = strict_bool(
+  default("/configurations/dbks-site/ranger.kms.keysecure.enabled", False),
+  "dbks-site/ranger.kms.keysecure.enabled",
 )
 keysecure_login_password = config["configurations"]["dbks-site"][
   "ranger.kms.keysecure.login.password"
