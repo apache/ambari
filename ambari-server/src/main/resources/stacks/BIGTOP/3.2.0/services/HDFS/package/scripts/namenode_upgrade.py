@@ -23,7 +23,7 @@ import os
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
-from resource_management.core.resources.system import File
+from resource_management.core.resources.system import Directory, File
 from resource_management.core import shell
 from resource_management.core.shell import as_user
 from resource_management.core.exceptions import Fail
@@ -147,21 +147,40 @@ def prepare_upgrade_backup_namenode_dir():
     # Note that /tmp may not be writeable.
     backup_current_folder = f"{backup_destination_root_dir}/namenode_{unique}/"
 
-    if os.path.isdir(namenode_current_image) and not os.path.isdir(
-      backup_current_folder
-    ):
-      try:
-        os.makedirs(backup_current_folder)
-        Execute(("cp", "-ar", namenode_current_image, backup_current_folder), sudo=True)
-      except Exception as e:
-        failed_paths.append(namenode_current_image)
+    if not os.path.isdir(namenode_current_image):
+      continue
+
+    if os.path.lexists(backup_current_folder):
+      Logger.warning(
+        f"Refusing to reuse existing NameNode backup destination {backup_current_folder}"
+      )
+      failed_paths.append(namenode_current_image)
+      continue
+
+    backup_folder_created = False
+    try:
+      os.makedirs(backup_current_folder)
+      backup_folder_created = True
+      Execute(("cp", "-ar", namenode_current_image, backup_current_folder), sudo=True)
+    except Exception:
+      failed_paths.append(namenode_current_image)
+      if backup_folder_created:
+        try:
+          Directory(backup_current_folder, action="delete")
+        except Exception as cleanup_error:
+          Logger.warning(
+            "Could not remove incomplete NameNode backup destination "
+            f"{backup_current_folder}: {cleanup_error}"
+          )
   if len(failed_paths) > 0:
-    Logger.error(
+    message = (
       "Could not backup the NameNode Name Dir(s) to {0}, make sure that the destination path is "
       "writeable and copy the directories on your own. Directories: {1}".format(
         backup_destination_root_dir, ", ".join(failed_paths)
       )
     )
+    Logger.error(message)
+    raise Fail(message)
 
 
 def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):

@@ -53,6 +53,37 @@ from setup_ranger_hdfs import setup_ranger_hdfs, create_ranger_audit_hdfs_direct
 import namenode_upgrade
 
 
+def get_safemode_wait_options(rolling_restart, timeout):
+  if not rolling_restart:
+    return {}
+
+  if timeout is None:
+    return {}
+
+  timeout_text = str(timeout).strip()
+  if not timeout_text:
+    return {}
+
+  if not timeout_text.isascii() or not timeout_text.isdigit():
+    raise Fail(
+      "NameNode rolling restart safemode exit timeout must be a positive integer, "
+      f"got {timeout!r}"
+    )
+
+  timeout_seconds = int(timeout_text)
+  if timeout_seconds <= 0:
+    raise Fail(
+      "NameNode rolling restart safemode exit timeout must be a positive integer, "
+      f"got {timeout!r}"
+    )
+
+  return {
+    "afterwait_sleep": 30,
+    "retries": max(1, (timeout_seconds + 29) // 30),
+    "sleep_seconds": 30,
+  }
+
+
 def wait_for_safemode_off(
   hdfs_binary, afterwait_sleep=0, execute_kinit=False, retries=115, sleep_seconds=10
 ):
@@ -275,13 +306,10 @@ def namenode(
 
     # wait for Safemode to end
     if ensure_safemode_off:
-      if params.rolling_restart and params.rolling_restart_safemode_exit_timeout:
-        calculated_retries = int(params.rolling_restart_safemode_exit_timeout) / 30
-        wait_for_safemode_off(
-          hdfs_binary, afterwait_sleep=30, retries=calculated_retries, sleep_seconds=30
-        )
-      else:
-        wait_for_safemode_off(hdfs_binary)
+      safemode_wait_options = get_safemode_wait_options(
+        params.rolling_restart, params.rolling_restart_safemode_exit_timeout
+      )
+      wait_for_safemode_off(hdfs_binary, **safemode_wait_options)
 
     # Always run this on the "Active" NN unless Safemode has been ignored
     # in the case where safemode was ignored (like during an express upgrade), then
@@ -329,7 +357,7 @@ def create_hdfs_directories(name_service):
     type="directory",
     action="create_on_execute",
     owner=params.hdfs_user,
-    mode=0o777,
+    mode=0o1777,
     nameservices=name_services,
   )
   params.HdfsResource(

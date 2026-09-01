@@ -66,7 +66,9 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     #              tries=20,
     #              bin_dir=params.hadoop_bin_dir
     # )
-    params.HdfsResource(dir, type="directory", action="create_on_execute", mode=0o777)
+    params.HdfsResource(
+      dir, type="directory", action="create_on_execute", mode=0o1777
+    )
     params.HdfsResource(
       tmp_file,
       type="file",
@@ -99,7 +101,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
             params.smoke_user,
           )
           if not response:
-            Logger.error("Cannot access WEB UI on: {0}. Error : {1}", uri, errmsg)
+            Logger.error(f"Cannot access WEB UI on: {uri}. Error : {errmsg}")
             return 1
       else:
         journalnode_port = params.journalnode_port
