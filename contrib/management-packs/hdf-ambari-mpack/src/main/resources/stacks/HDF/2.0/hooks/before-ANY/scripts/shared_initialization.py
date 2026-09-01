@@ -57,7 +57,7 @@ def setup_users():
   if params.has_hbase_masters:
     Directory (params.hbase_tmp_dir,
                owner = params.hbase_user,
-               mode=0775,
+               mode=0o775,
                create_parents = True,
                cd_access="a",
     )
@@ -104,7 +104,7 @@ def create_users_and_groups(user_and_groups):
 
   import params
 
-  parts = re.split('\s', user_and_groups)
+  parts = re.split(r'\s', user_and_groups)
   if len(parts) == 1:
     parts.append("")
 
@@ -129,7 +129,7 @@ def set_uid(user, user_dirs):
 
   File(format("{tmp_dir}/changeUid.sh"),
        content=StaticFile("changeToSecureUid.sh"),
-       mode=0555)
+       mode=0o555)
   ignore_groupsusers_create_str = str(params.ignore_groupsusers_create).lower()
   Execute(format("{tmp_dir}/changeUid.sh {user} {user_dirs}"),
           not_if = format("(test $(id -u {user}) -gt 1000) || ({ignore_groupsusers_create_str})"))
@@ -145,7 +145,7 @@ def setup_hadoop_env():
       tc_owner = params.hdfs_user
 
     # create /etc/hadoop
-    Directory(params.hadoop_dir, mode=0755)
+    Directory(params.hadoop_dir, mode=0o755)
 
     # HDF < 0.2 used a conf -> conf.empty symlink for /etc/hadoop/
     if Script.is_stack_less_than("0.2"):
@@ -166,7 +166,7 @@ def setup_hadoop_env():
     Directory(params.hadoop_java_io_tmpdir,
               owner=params.hdfs_user,
               group=params.user_group,
-              mode=0777
+              mode=0o777
     )
 
 def setup_java():
@@ -217,7 +217,7 @@ def setup_java():
       Directory(tmp_java_dir, action="delete")
 
     File(format("{java_home}/bin/java"),
-         mode=0755,
+         mode=0o755,
          cd_access="a",
          )
     Execute(('chmod', '-R', '755', params.java_home),
