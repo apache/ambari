@@ -19,6 +19,7 @@ limitations under the License.
 
 import logging
 import threading
+import copy
 
 from ambari_agent import Constants
 from ambari_agent.LiveStatus import LiveStatus
@@ -263,12 +264,20 @@ class ComponentStatusExecutor(threading.Thread):
     if not cluster_reports or not self.initializer_module.is_registered:
       return
 
-    correlation_id = self.initializer_module.connection.send(
-      message={"clusters": cluster_reports},
+    report_snapshot = copy.deepcopy(cluster_reports)
+
+    def register_callback(correlation_id, snapshot=report_snapshot):
+      return self.server_responses_listener.register_response_callback(
+        correlation_id,
+        on_success=lambda headers, message: self.save_reported_component_status(
+          snapshot
+        ),
+      )
+
+    self.initializer_module.connection.send(
+      message={"clusters": report_snapshot},
       destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT,
-    )
-    self.server_responses_listener.listener_functions_on_success[correlation_id] = (
-      lambda headers, message: self.save_reported_component_status(cluster_reports)
+      presend_hook=register_callback,
     )
 
   def save_reported_component_status(self, cluster_reports):

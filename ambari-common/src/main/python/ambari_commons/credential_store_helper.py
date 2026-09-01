@@ -18,16 +18,148 @@ limitations under the License.
 
 """
 
+from contextlib import contextmanager
+import fcntl
 import os
 import re
+import shutil
+import struct
+import subprocess
+import tempfile
 
 from resource_management.core.resources.system import File, Execute
+from resource_management.core.exceptions import Fail
 from resource_management.core.shell import checked_call
 from resource_management.core.source import DownloadSource
-from resource_management.core.utils import PasswordString
 
 credential_util_cmd = "org.apache.ambari.server.credentialapi.CredentialUtil"
 credential_util_jar = "CredentialUtil.jar"
+credential_store_create_cmd = (
+  "org.apache.ambari.tools.credential.CredentialStoreCreate"
+)
+credential_store_create_lib_path = "/var/lib/ambari-agent/cred/lib/*"
+max_credential_bytes = 1024 * 1024
+local_jceks_prefix = "jceks://file"
+
+
+def _local_credential_store_path(provider_path):
+  if provider_path.startswith(local_jceks_prefix):
+    return provider_path[len(local_jceks_prefix) :]
+  return None
+
+
+def _checksum_path(store_path):
+  return os.path.join(
+    os.path.dirname(store_path), f".{os.path.basename(store_path)}.crc"
+  )
+
+
+@contextmanager
+def credential_store_lock(provider_path):
+  """Serialize local JCEKS updates without placing secrets in the lock file."""
+  store_path = _local_credential_store_path(provider_path)
+  if store_path is None:
+    yield
+    return
+
+  lock_path = os.path.join(
+    os.path.dirname(store_path), f".{os.path.basename(store_path)}.lock"
+  )
+  descriptor = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+  try:
+    fcntl.flock(descriptor, fcntl.LOCK_EX)
+    yield
+  finally:
+    fcntl.flock(descriptor, fcntl.LOCK_UN)
+    os.close(descriptor)
+
+
+def _run_credential_store_create(command, payload):
+  return subprocess.run(command, input=payload, check=False).returncode
+
+
+def _commit_local_credential_store(command, payload, provider_path):
+  store_path = _local_credential_store_path(provider_path)
+  store_directory = os.path.dirname(store_path)
+  staging_directory = tempfile.mkdtemp(prefix=".jceks-", dir=store_directory)
+  temporary_path = os.path.join(staging_directory, os.path.basename(store_path))
+  try:
+    if os.path.isfile(store_path):
+      shutil.copy2(store_path, temporary_path)
+    temporary_provider = f"{local_jceks_prefix}{temporary_path}"
+    temporary_command = list(command)
+    temporary_command[temporary_command.index(provider_path)] = temporary_provider
+    result = _run_credential_store_create(temporary_command, payload)
+    if result != 0 or not os.path.isfile(temporary_path):
+      return result if result != 0 else 1
+
+    descriptor = os.open(temporary_path, os.O_RDONLY)
+    try:
+      os.fsync(descriptor)
+    finally:
+      os.close(descriptor)
+
+    directory_descriptor = os.open(store_directory, os.O_RDONLY)
+    try:
+      try:
+        os.unlink(_checksum_path(store_path))
+      except FileNotFoundError:
+        pass
+      os.fsync(directory_descriptor)
+      os.replace(temporary_path, store_path)
+      os.fsync(directory_descriptor)
+    finally:
+      os.close(directory_descriptor)
+    return 0
+  finally:
+    shutil.rmtree(staging_directory, ignore_errors=True)
+
+
+def create_credential_store_entry(
+  java_bin,
+  cs_lib_path,
+  alias,
+  provider_path,
+  password,
+  overwrite=False,
+):
+  """Create a credential without exposing it in the process argument list."""
+  if not isinstance(password, str):
+    raise TypeError("password must be a string")
+
+  credential = bytearray(password, "utf-8")
+  if len(credential) > max_credential_bytes:
+    credential[:] = b"\0" * len(credential)
+    raise ValueError(
+      f"UTF-8 credential exceeds the {max_credential_bytes}-byte limit"
+    )
+
+  classpath_entries = [credential_store_create_lib_path]
+  classpath_entries.extend(cs_lib_path.split(os.pathsep))
+  classpath = os.pathsep.join(dict.fromkeys(filter(None, classpath_entries)))
+  cmd = [
+    java_bin,
+    "-cp",
+    classpath,
+    credential_store_create_cmd,
+    "create",
+    alias,
+    "-provider",
+    provider_path,
+  ]
+  if overwrite:
+    cmd.append("-f")
+
+  payload = bytearray(struct.pack(">I", len(credential)))
+  payload.extend(credential)
+  try:
+    if _local_credential_store_path(provider_path) is None:
+      return _run_credential_store_create(cmd, payload)
+    with credential_store_lock(provider_path):
+      return _commit_local_credential_store(cmd, payload, provider_path)
+  finally:
+    credential[:] = b"\0" * len(credential)
+    payload[:] = b"\0" * len(payload)
 
 
 def removeloglines(lines):
@@ -119,21 +251,16 @@ def delete_alias_from_credential_store(
 def create_password_in_credential_store(
   alias, provider_path, cs_lib_path, java_home, jdk_location, password
 ):
-  downloadjar(cs_lib_path, jdk_location)
-
-  # Execute the creation and overwrite password
   java_bin = f"{java_home}/bin/java"
-  cmd = (
+  cmd_result = create_credential_store_entry(
     java_bin,
-    "-cp",
     cs_lib_path,
-    credential_util_cmd,
-    "create",
     alias,
-    "-value",
-    PasswordString(password),
-    "-provider",
     provider_path,
-    "-f",
+    password,
+    overwrite=True,
   )
-  Execute(cmd)
+  if cmd_result != 0:
+    raise Fail(
+      f"Credential store update failed with exit code {cmd_result}"
+    )

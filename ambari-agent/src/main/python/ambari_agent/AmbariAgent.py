@@ -50,31 +50,22 @@ if "PYTHON_BIN" in os.environ:
     os.environ["PYTHON_BIN"], "site-packages/ambari_agent/main.py"
   )
 else:
-  AGENT_SCRIPT = "/usr/lib/ambari-agent/lib/ambari_agent/main.py"
+  AGENT_SCRIPT = os.path.join(os.path.dirname(__file__), "main.py")
 
 if "AMBARI_PID_DIR" in os.environ:
   AGENT_PID_FILE = os.path.join(os.environ["AMBARI_PID_DIR"], "ambari-agent.pid")
 else:
   AGENT_PID_FILE = "/var/run/ambari-agent/ambari-agent.pid"
 
-# AGENT_AUTO_RESTART_EXIT_CODE = 77 is exit code which we return when restart_agent() is called
-status = AGENT_AUTO_RESTART_EXIT_CODE
-
-
 def main():
-  global status
-
-  if "PYTHON" in os.environ:
-    python = os.environ["PYTHON"]
-  else:
-    print("Key 'PYTHON' is not defined in environment variables")
-    sys.exit(1)
+  python = os.environ.get("PYTHON", sys.executable)
 
   args = list(sys.argv)
   del args[0]
 
   merged_args = [python, AGENT_SCRIPT] + args
 
+  status = AGENT_AUTO_RESTART_EXIT_CODE
   while status == AGENT_AUTO_RESTART_EXIT_CODE:
     mainProcess = subprocess.Popen(merged_args)
     mainProcess.communicate()

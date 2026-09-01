@@ -18,10 +18,10 @@ limitations under the License.
 """
 
 import queue
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
 import logging
 import threading
-import pprint
 import os
 import json
 import time
@@ -42,15 +42,41 @@ installScriptHash = -1
 MAX_SYMBOLS_PER_LOG_MESSAGE = 7900
 
 PASSWORD_REPLACEMENT = "[PROTECTED]"
-PASSWORD_PATTERN = re.compile(r"('\S*password':\s*u?')(\S+)(')")
+SENSITIVE_NAME_PATTERN = (
+  r"(?:password|passwd|passphrase|secret|token|credential|encryption[_-]?key)"
+)
+QUOTED_SECRET_PATTERN = re.compile(
+  r"((?:u)?(['\"])[^'\"\r\n]*"
+  + SENSITIVE_NAME_PATTERN
+  + r"[^'\"\r\n]*\2\s*:\s*(?:u)?)(['\"])(.+?)\3",
+  re.IGNORECASE,
+)
+ASSIGNED_SECRET_PATTERN = re.compile(
+  r"(\b[\w.-]*" + SENSITIVE_NAME_PATTERN + r"[\w.-]*\s*=\s*)([^\s,;]+)",
+  re.IGNORECASE,
+)
+SECRET_OPTION_PATTERN = re.compile(
+  r"(--?[\w-]*" + SENSITIVE_NAME_PATTERN + r"[\w-]*(?:=|\s+))([^\s]+)",
+  re.IGNORECASE,
+)
 
 
 def hide_passwords(text):
-  """Replaces the matching passwords with **** in the given text"""
-  return (
-    None
-    if text is None
-    else PASSWORD_PATTERN.sub(r"\1{}\3".format(PASSWORD_REPLACEMENT), text)
+  """Redact common credential assignments from command output."""
+  if text is None:
+    return None
+
+  text = QUOTED_SECRET_PATTERN.sub(
+    lambda match: "{}{}{}{}".format(
+      match.group(1), match.group(3), PASSWORD_REPLACEMENT, match.group(3)
+    ),
+    text,
+  )
+  text = ASSIGNED_SECRET_PATTERN.sub(
+    lambda match: match.group(1) + PASSWORD_REPLACEMENT, text
+  )
+  return SECRET_OPTION_PATTERN.sub(
+    lambda match: match.group(1) + PASSWORD_REPLACEMENT, text
   )
 
 
@@ -59,9 +85,6 @@ class ActionQueue(threading.Thread):
   and execute it
   Note: Action and command terms in this and related classes are used interchangeably
   """
-
-  # How many actions can be performed in parallel. Feel free to change
-  MAX_CONCURRENT_ACTIONS = 5
 
   # How much time(in seconds) we need wait for new incoming execution command before checking status command queue
   EXECUTION_COMMAND_WAIT_TIME = 2
@@ -78,14 +101,22 @@ class ActionQueue(threading.Thread):
     self.tmpdir = self.config.get("agent", "prefix")
     self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
     self.parallel_execution = self.config.get_parallel_exec_option()
-    self.taskIdsToCancel = set()
-    self.cancelEvent = threading.Event()
     self.component_status_executor = initializer_module.component_status_executor
+    self.max_concurrent_actions = self.config.get_max_parallel_actions()
+    self.worker_pool = None
+    self.worker_futures = set()
+    self.synchronous_action_count = 0
+    self.command_controls = {}
+    self.task_registry = {}
+    self.task_generations = {}
+    self.pending_cancellations = {}
+    self.background_handles = set()
     if self.parallel_execution == 1:
       logger.info(
-        "Parallel execution is enabled, will execute agent commands in parallel"
+        "Parallel execution is enabled with at most %s concurrent actions",
+        self.max_concurrent_actions,
       )
-    self.lock = threading.Lock()
+    self.lock = threading.RLock()
 
   def put(self, commands):
     for command in commands:
@@ -101,88 +132,257 @@ class ActionQueue(threading.Thread):
       )
 
       if command["commandType"] == AgentCommand.background_execution:
-        self.backgroundCommandQueue.put(self.create_command_handle(command))
+        command = self.create_command_handle(command)
+        control = self._register_command(command)
+        command["__handle"].control = control
+        with self.lock:
+          self.background_handles.add(command["__handle"])
+        self.backgroundCommandQueue.put(command)
       else:
+        self._register_command(command)
         self.commandQueue.put(command)
 
   def interrupt(self):
+    self._cancel_all_tasks("Ambari Agent is stopping")
     self.commandQueue.put(None)
+
+  @staticmethod
+  def _task_key(task_id):
+    return str(task_id)
+
+  def _register_command(self, command):
+    with self.lock:
+      task_id = command.get("taskId")
+      task_key = self._task_key(task_id)
+      generation = self.task_generations.get(task_key, 0) + 1
+      self.task_generations[task_key] = generation
+      control = {
+        "cancel_event": threading.Event(),
+        "generation": generation,
+        "reason": None,
+        "state": "QUEUED",
+        "task_id": task_id,
+      }
+      pending_reason = self.pending_cancellations.pop(task_key, None)
+      if pending_reason is not None:
+        control["reason"] = pending_reason
+        control["state"] = "CANCELLING"
+        control["cancel_event"].set()
+      self.command_controls[id(command)] = control
+      self.task_registry.setdefault(task_key, []).append(control)
+    return control
+
+  def _control_for(self, command):
+    with self.lock:
+      return self.command_controls.get(id(command)) or self._register_command(command)
+
+  def _set_control_state(self, control, state):
+    with self.lock:
+      control["state"] = state
+
+  def _finish_control(self, command, control):
+    with self.lock:
+      control["state"] = "FINISHED"
+      self.command_controls.pop(id(command), None)
+      task_key = self._task_key(control["task_id"])
+      task_controls = self.task_registry.get(task_key, [])
+      if control in task_controls:
+        task_controls.remove(control)
+      if not task_controls:
+        self.task_registry.pop(task_key, None)
+        self.task_generations.pop(task_key, None)
+
+  def _has_newer_generation(self, task_id, current_control):
+    with self.lock:
+      latest_generation = self.task_generations.get(self._task_key(task_id), 0)
+      return latest_generation > current_control["generation"]
+
+  @staticmethod
+  def _is_retryable(command):
+    return (
+      command.get("commandParams", {}).get("command_retry_enabled") == "true"
+    )
 
   def cancel(self, commands):
     for command in commands:
       logger.info(f"Canceling command with taskId = {str(command['target_task_id'])}")
-      if logger.isEnabledFor(logging.DEBUG):
-        logger.debug(pprint.pformat(command))
 
       task_id = command["target_task_id"]
       reason = command["reason"]
 
-      # Remove from the command queue by task_id
-      tmp_queue = self.commandQueue
-      self.commandQueue = queue.Queue()
+      with self.lock:
+        controls = tuple(
+          self.task_registry.get(self._task_key(task_id), ())
+        )
+        if not controls:
+          self.pending_cancellations[self._task_key(task_id)] = reason
+        for control in controls:
+          control["reason"] = reason
+          control["state"] = "CANCELLING"
+          control["cancel_event"].set()
 
-      while not tmp_queue.empty():
-        queued_command = tmp_queue.get(False)
-        if queued_command["taskId"] != task_id:
-          self.commandQueue.put(queued_command)
-        else:
-          logger.info(
-            "Canceling {commandType} for service {serviceName} and role {role} with taskId {taskId}".format(
-              **queued_command
-            )
-          )
-
-      # Kill if in progress
       self.customServiceOrchestrator.cancel_command(task_id, reason)
-      self.taskIdsToCancel.add(task_id)
-      self.cancelEvent.set()
+
+  def _cleanup_finished_workers(self):
+    with self.lock:
+      finished = {future for future in self.worker_futures if future.done()}
+      self.worker_futures.difference_update(finished)
+    for future in finished:
+      try:
+        future.result()
+      except Exception:
+        logger.exception("Parallel action worker failed")
+
+  def _wait_for_workers(self):
+    while True:
+      with self.lock:
+        active = tuple(self.worker_futures)
+      if not active:
+        return
+      wait(active)
+      self._cleanup_finished_workers()
+
+  def _wait_for_worker_slot(self):
+    """Keep the executor submission queue empty and make shutdown interruptible."""
+    while not self.stop_event.is_set():
+      self._cleanup_finished_workers()
+      with self.lock:
+        active = tuple(self.worker_futures)
+      if self._running_action_count() < self.max_concurrent_actions:
+        return True
+      if active:
+        wait(active, timeout=0.5, return_when=FIRST_COMPLETED)
+      else:
+        self.stop_event.wait(0.5)
+    return False
+
+  def _run_synchronous_command(self, command):
+    with self.lock:
+      self.synchronous_action_count += 1
+    try:
+      self.process_command(command)
+    finally:
+      with self.lock:
+        self.synchronous_action_count -= 1
+
+  def _cancel_all_tasks(self, reason):
+    with self.lock:
+      controls = tuple(
+        control
+        for task_controls in self.task_registry.values()
+        for control in task_controls
+        if control["state"] != "FINISHED"
+      )
+      for control in controls:
+        control["reason"] = reason
+        control["state"] = "CANCELLING"
+        control["cancel_event"].set()
+    self.customServiceOrchestrator.cancel_all_commands(reason)
+
+  def _finish_queued_commands(self):
+    for command_queue in (self.commandQueue, self.backgroundCommandQueue):
+      while True:
+        try:
+          command = command_queue.get_nowait()
+        except queue.Empty:
+          break
+        if command is None:
+          continue
+        control = self._control_for(command)
+        control["reason"] = "Ambari Agent is stopping"
+        control["cancel_event"].set()
+        self.process_command(command)
+
+  def _wait_for_background_commands(self):
+    while True:
+      with self.lock:
+        handles = tuple(self.background_handles)
+      if not handles:
+        return
+      for handle in handles:
+        if handle.thread is not None:
+          handle.thread.join()
+        else:
+          with self.lock:
+            self.background_handles.discard(handle)
+
+  def _running_background_command_count(self):
+    with self.lock:
+      return sum(
+        1
+        for handle in self.background_handles
+        if handle.thread is not None and handle.thread.is_alive()
+      )
+
+  def _running_action_count(self):
+    self._cleanup_finished_workers()
+    with self.lock:
+      worker_count = len(self.worker_futures)
+      synchronous_count = self.synchronous_action_count
+    return worker_count + synchronous_count + self._running_background_command_count()
 
   def run(self):
-    while not self.stop_event.is_set():
-      try:
-        self.process_background_queue_safe_empty()
-        self.fill_recovery_commands()
+    if self.parallel_execution == 1:
+      self.worker_pool = ThreadPoolExecutor(
+        max_workers=self.max_concurrent_actions,
+        thread_name_prefix="ambari-action",
+      )
+    try:
+      while not self.stop_event.is_set():
         try:
-          if self.parallel_execution == 0:
-            command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
-
-            if command is None:
-              break
-
-            self.process_command(command)
-          else:
-            # If parallel execution is enabled, just kick off all available
-            # commands using separate threads
-            while not self.stop_event.is_set():
+          self._cleanup_finished_workers()
+          self.process_background_queue_safe_empty()
+          self.fill_recovery_commands()
+          try:
+            if self.parallel_execution == 0:
               command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
-
               if command is None:
                 break
-              # If command is not retry_enabled then do not start them in parallel
-              # checking just one command is enough as all commands for a stage is sent
-              # at the same time and retry is only enabled for initial start/install
-              retry_able = False
-              if (
-                "commandParams" in command
-                and "command_retry_enabled" in command["commandParams"]
-              ):
-                retry_able = command["commandParams"]["command_retry_enabled"] == "true"
-              if retry_able:
-                logger.info(
-                  f"Kicking off a thread for the command, id={command['commandId']} taskId={command['taskId']}"
-                )
-                t = threading.Thread(target=self.process_command, args=(command,))
-                t.daemon = True
-                t.start()
-              else:
-                self.process_command(command)
+              if not self._wait_for_worker_slot():
+                control = self._control_for(command)
+                control["reason"] = "Ambari Agent is stopping"
+                control["state"] = "CANCELLING"
+                control["cancel_event"].set()
+              self._run_synchronous_command(command)
+            else:
+              command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+              if command is None:
                 break
-              pass
+              if self._is_retryable(command):
+                if not self._wait_for_worker_slot():
+                  control = self._control_for(command)
+                  control["reason"] = "Ambari Agent is stopping"
+                  control["state"] = "CANCELLING"
+                  control["cancel_event"].set()
+                  self.process_command(command)
+                  break
+                logger.info(
+                  "Submitting command id=%s taskId=%s to the bounded action pool",
+                  command["commandId"],
+                  command["taskId"],
+                )
+                future = self.worker_pool.submit(self.process_command, command)
+                with self.lock:
+                  self.worker_futures.add(future)
+              else:
+                self._wait_for_workers()
+                if not self._wait_for_worker_slot():
+                  control = self._control_for(command)
+                  control["reason"] = "Ambari Agent is stopping"
+                  control["state"] = "CANCELLING"
+                  control["cancel_event"].set()
+                self._run_synchronous_command(command)
+          except queue.Empty:
             pass
-        except queue.Empty:
-          pass
-      except Exception:
-        logger.exception("ActionQueue thread failed with exception. Re-running it")
+        except Exception:
+          logger.exception("ActionQueue thread failed with exception. Re-running it")
+    finally:
+      self._cancel_all_tasks("Ambari Agent is stopping")
+      self._finish_queued_commands()
+      self._wait_for_workers()
+      self._wait_for_background_commands()
+      if self.worker_pool is not None:
+        self.worker_pool.shutdown(wait=True, cancel_futures=True)
     logger.info("ActionQueue thread has successfully finished")
 
   def fill_recovery_commands(self):
@@ -190,13 +390,13 @@ class ActionQueue(threading.Thread):
       self.put(self.recovery_manager.get_recovery_commands())
 
   def process_background_queue_safe_empty(self):
-    while not self.backgroundCommandQueue.empty():
+    while self._running_action_count() < self.max_concurrent_actions:
       try:
-        command = self.backgroundCommandQueue.get(False)
+        command = self.backgroundCommandQueue.get_nowait()
         if "__handle" in command and command["__handle"].status is None:
           self.process_command(command)
       except queue.Empty:
-        pass
+        break
 
   def create_command_handle(self, command):
     if "__handle" in command:
@@ -210,6 +410,11 @@ class ActionQueue(threading.Thread):
   def process_command(self, command):
     # make sure we log failures
     command_type = command["commandType"]
+    control = self._control_for(command)
+    self._set_control_state(
+      control, "CANCELLING" if control["cancel_event"].is_set() else "RUNNING"
+    )
+    background_handle = command.get("__handle")
     logger.debug("Took an element of Queue (command type = %s).", command_type)
     try:
       if command_type in AgentCommand.AUTO_EXECUTION_COMMAND_GROUP:
@@ -218,19 +423,45 @@ class ActionQueue(threading.Thread):
             self.recovery_manager.on_execution_command_start()
             self.recovery_manager.process_execution_command(command)
 
-          self.execute_command(command)
+          self.execute_command(command, control)
         finally:
           if self.recovery_manager.enabled():
             self.recovery_manager.on_execution_command_finish()
       else:
-        logger.error("Unrecognized command %s", pprint.pformat(command))
+        logger.error(
+          "Unrecognized command type=%s taskId=%s commandId=%s",
+          command_type,
+          command.get("taskId"),
+          command.get("commandId"),
+        )
     except Exception:
       logger.exception(f"Exception while processing {command_type} command")
+    finally:
+      background_started = (
+        command_type == AgentCommand.background_execution
+        and background_handle is not None
+        and background_handle.thread is not None
+      )
+      if not background_started:
+        self._finish_control(command, control)
+        if background_handle is not None:
+          with self.lock:
+            self.background_handles.discard(background_handle)
 
   def tasks_in_progress_or_pending(self):
-    return not self.commandQueue.empty() or self.recovery_manager.has_active_command()
+    with self.lock:
+      has_active_tasks = any(
+        control["state"] != "FINISHED"
+        for controls in self.task_registry.values()
+        for control in controls
+      )
+    return (
+      not self.commandQueue.empty()
+      or has_active_tasks
+      or self.recovery_manager.has_active_command()
+    )
 
-  def execute_command(self, command):
+  def execute_command(self, command, control=None):
     """
     Executes commands of type EXECUTION_COMMAND
     """
@@ -258,6 +489,9 @@ class ActionQueue(threading.Thread):
     logger.info(message)
 
     taskId = command["taskId"]
+    if control is None:
+      control = self._control_for(command)
+    cancel_event = control["cancel_event"]
     # Preparing 'IN_PROGRESS' report
     in_progress_status = self.commandStatuses.generate_report_template(command)
     # The path of the files that contain the output log and error log use a prefix that the agent advertises to the
@@ -313,16 +547,10 @@ class ActionQueue(threading.Thread):
       )
     )
 
-    self.cancelEvent.clear()
-    # for case of command reschedule (e.g. command and cancel for the same taskId are send at the same time)
-    self.taskIdsToCancel.discard(taskId)
-
     while retry_duration >= 0:
-      if taskId in self.taskIdsToCancel:
+      if cancel_event.is_set() or self.stop_event.is_set():
         logger.info(f"Command with taskId = {taskId} canceled")
         command_canceled = True
-
-        self.taskIdsToCancel.discard(taskId)
         break
 
       num_attempts += 1
@@ -336,7 +564,12 @@ class ActionQueue(threading.Thread):
         in_progress_status["tmperr"],
         override_output_files=num_attempts == 1,
         retry=num_attempts > 1,
+        cancel_event=cancel_event,
       )
+      if cancel_event.is_set() or self.stop_event.is_set():
+        logger.info(f"Command with taskId = {taskId} canceled during execution")
+        command_canceled = True
+        break
       end = 1
       if retry_able:
         end = int(time.time())
@@ -353,7 +586,10 @@ class ActionQueue(threading.Thread):
             delay=delay,
           )
         )
-        return
+        if command_result["exitcode"] == 777:
+          return
+        status = CommandStatus.failed
+        break
       else:
         if command_result["exitcode"] == 0:
           status = CommandStatus.completed
@@ -364,7 +600,6 @@ class ActionQueue(threading.Thread):
           ):
             logger.info(f"Command with taskId = {taskId} was canceled!")
             command_canceled = True
-            self.taskIdsToCancel.discard(taskId)
             break
 
       if status != CommandStatus.completed and retry_able and retry_duration > 0:
@@ -380,7 +615,7 @@ class ActionQueue(threading.Thread):
           command["agentLevelParams"] = {}
 
         command["agentLevelParams"]["commandBeingRetried"] = "true"
-        self.cancelEvent.wait(delay)  # wake up if something was canceled
+        cancel_event.wait(delay)
 
         continue
       else:
@@ -395,21 +630,25 @@ class ActionQueue(threading.Thread):
         )
         break
 
-    self.taskIdsToCancel.discard(taskId)
-
     # do not fail task which was rescheduled from server
     if command_canceled:
-      with self.lock, self.commandQueue.mutex:
-        for com in self.commandQueue.queue:
-          if com["taskId"] == command["taskId"]:
-            logger.info(
-              "Command with taskId = {cid} was rescheduled by server. "
-              "Fail report on cancelled command won't be sent with heartbeat.".format(
-                cid=taskId
-              )
-            )
-            self.commandStatuses.delete_command_data(command["taskId"])
-            return
+      if self._has_newer_generation(taskId, control):
+        logger.info(
+          "Command with taskId = %s was rescheduled by server; suppressing the "
+          "failure report for the canceled generation",
+          taskId,
+        )
+        return
+      status = CommandStatus.failed
+      command_result.setdefault("stdout", "")
+      cancellation_reason = control.get("reason") or "Command canceled"
+      command_result.setdefault("stderr", "")
+      if cancellation_reason not in command_result["stderr"]:
+        if command_result["stderr"]:
+          command_result["stderr"] += "\n"
+        command_result["stderr"] += cancellation_reason
+      if command_result.get("exitcode", 0) == 0:
+        command_result["exitcode"] = -signal.SIGTERM
 
     # final result to stdout
     command_result["stdout"] += (
@@ -529,35 +768,56 @@ class ActionQueue(threading.Thread):
     return last_delay * 2
 
   def on_background_command_complete_callback(self, process_condensed_result, handle):
-    logger.debug("Start callback: %s", process_condensed_result)
-    logger.debug("The handle is: %s", handle)
-    status = CommandStatus.completed if handle.exitCode == 0 else CommandStatus.failed
+    try:
+      logger.debug(
+        "Completing background taskId=%s pid=%s exitCode=%s",
+        handle.command.get("taskId"),
+        handle.pid,
+        process_condensed_result.get("exitcode"),
+      )
+      status = CommandStatus.completed if handle.exitCode == 0 else CommandStatus.failed
 
-    aborted_postfix = self.customServiceOrchestrator.command_canceled_reason(
-      handle.command["taskId"]
-    )
-    if aborted_postfix:
-      status = CommandStatus.failed
-      logger.debug("Set status to: %s , reason = %s", status, aborted_postfix)
-    else:
-      aborted_postfix = ""
+      aborted_postfix = self.customServiceOrchestrator.command_canceled_reason(
+        handle.command["taskId"]
+      )
+      if (
+        not aborted_postfix
+        and handle.control is not None
+        and handle.control["cancel_event"].is_set()
+      ):
+        cancellation_reason = handle.control.get("reason") or "Command canceled"
+        aborted_postfix = f"\nCommand aborted. Reason: '{cancellation_reason}'"
+      if aborted_postfix:
+        status = CommandStatus.failed
+        logger.debug("Set status to: %s , reason = %s", status, aborted_postfix)
+      else:
+        aborted_postfix = ""
 
-    role_result = self.commandStatuses.generate_report_template(handle.command)
+      if handle.control is not None and self._has_newer_generation(
+        handle.command["taskId"], handle.control
+      ):
+        logger.info(
+          "Suppressing stale background result for rescheduled taskId=%s",
+          handle.command["taskId"],
+        )
+        return
 
-    role_result.update(
-      {
-        "stdout": process_condensed_result["stdout"] + aborted_postfix,
-        "stderr": process_condensed_result["stderr"] + aborted_postfix,
-        "exitCode": process_condensed_result["exitcode"],
-        "structuredOut": str(json.dumps(process_condensed_result["structuredOut"]))
-        if "structuredOut" in process_condensed_result
-        else "",
-        "status": status,
-      }
-    )
+      role_result = self.commandStatuses.generate_report_template(handle.command)
+      role_result.update(
+        {
+          "stdout": process_condensed_result["stdout"] + aborted_postfix,
+          "stderr": process_condensed_result["stderr"] + aborted_postfix,
+          "exitCode": process_condensed_result["exitcode"],
+          "structuredOut": str(json.dumps(process_condensed_result["structuredOut"]))
+          if "structuredOut" in process_condensed_result
+          else "",
+          "status": status,
+        }
+      )
 
-    self.commandStatuses.put_command_status(handle.command, role_result)
-
-  def reset(self):
-    with self.commandQueue.mutex:
-      self.commandQueue.queue.clear()
+      self.commandStatuses.put_command_status(handle.command, role_result)
+    finally:
+      if handle.control is not None:
+        self._finish_control(handle.command, handle.control)
+      with self.lock:
+        self.background_handles.discard(handle)

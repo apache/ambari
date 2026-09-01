@@ -27,7 +27,7 @@ class BackgroundCommandExecutionHandle:
   SCHEDULED_STATUS = "SCHEDULED"
   RUNNING_STATUS = "RUNNING"
   STOP_REQUEST_STATUS = "STOP_REQUEST"
-  STOPPED_STATUS = "SCHEDULED"
+  STOPPED_STATUS = "STOPPED"
 
   def __init__(
     self,
@@ -41,6 +41,8 @@ class BackgroundCommandExecutionHandle:
     self.status = None
     self.exitCode = None
     self.commandId = commandId
+    self.control = None
+    self.thread = None
     self.on_background_command_started = on_background_command_started
     self.on_background_command_complete_callback = (
       on_background_command_complete_callback

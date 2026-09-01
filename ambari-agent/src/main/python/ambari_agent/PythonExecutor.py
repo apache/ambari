@@ -46,6 +46,18 @@ class PythonExecutor(object):
   """
 
   NO_ERROR = "none"
+  PROXY_ENVIRONMENT_VARIABLES = (
+    "http_proxy",
+    "https_proxy",
+    "ftp_proxy",
+    "all_proxy",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "FTP_PROXY",
+    "ALL_PROXY",
+    "no_proxy",
+    "NO_PROXY",
+  )
 
   def __init__(self, tmp_dir, config):
     self.logger = logging.getLogger()
@@ -92,6 +104,8 @@ class PythonExecutor(object):
     backup_log_files=True,
     handle=None,
     log_info_on_failure=True,
+    env=None,
+    cancel_event=None,
   ):
     """
     Executes the specified python file in a separate subprocess.
@@ -109,26 +123,72 @@ class PythonExecutor(object):
 
     def background_executor():
       logger = logging.getLogger()
-      process_out, process_err = self.open_subprocess_files(
-        tmp_out_file, tmp_err_file, True
+      process_out = None
+      process_err = None
+      p = None
+      watchdog = None
+      try:
+        process_out, process_err = self.open_subprocess_files(
+          tmp_out_file, tmp_err_file, True
+        )
+        logger.debug("Starting process command %s", python_command)
+        p = self.launch_python_subprocess(
+          python_command, process_out, process_err, env=env
+        )
+
+        logger.debug("Process has been started. Pid = %s", p.pid)
+
+        handle.pid = p.pid
+        handle.status = BackgroundCommandExecutionHandle.RUNNING_STATUS
+        handle.on_background_command_started(handle.command["taskId"], p.pid)
+        self.event.clear()
+        self.python_process_has_been_killed = False
+        watchdog = threading.Thread(
+          target=self.python_watchdog_func, args=(p, timeout)
+        )
+        watchdog.start()
+        if cancel_event is not None and cancel_event.is_set():
+          shell.kill_process_with_children(p.pid)
+
+        p.communicate()
+        handle.exitCode = p.returncode
+        process_condensed_result = self.prepare_process_result(
+          p.returncode, tmp_out_file, tmp_err_file, tmp_structed_outfile
+        )
+      except Exception as exception:
+        if p is not None and p.returncode is None:
+          try:
+            shell.kill_process_with_children(p.pid)
+          except Exception:
+            logger.exception(
+              "Failed to terminate process after background command setup failure"
+            )
+        handle.exitCode = 1
+        logger.exception("Background command failed before normal completion")
+        process_condensed_result = {
+          "exitcode": 1,
+          "stdout": "",
+          "stderr": str(exception),
+          "structuredOut": {},
+        }
+      finally:
+        self.event.set()
+        if watchdog is not None:
+          watchdog.join()
+        for process_file in (process_out, process_err):
+          close_file = getattr(process_file, "close", None)
+          if close_file is not None:
+            try:
+              close_file()
+            except Exception:
+              logger.exception("Failed to close a background command output file")
+
+      logger.debug(
+        "Calling background callback with exitcode=%s, stdoutLength=%s, stderrLength=%s",
+        process_condensed_result.get("exitcode"),
+        len(process_condensed_result.get("stdout", "")),
+        len(process_condensed_result.get("stderr", "")),
       )
-
-      logger.debug("Starting process command %s", python_command)
-      p = self.launch_python_subprocess(python_command, process_out, process_err)
-
-      logger.debug("Process has been started. Pid = %s", p.pid)
-
-      handle.pid = p.pid
-      handle.status = BackgroundCommandExecutionHandle.RUNNING_STATUS
-      handle.on_background_command_started(handle.command["taskId"], p.pid)
-
-      p.communicate()
-
-      handle.exitCode = p.returncode
-      process_condensed_result = self.prepare_process_result(
-        p.returncode, tmp_out_file, tmp_err_file, tmp_structed_outfile
-      )
-      logger.debug("Calling callback with args %s", process_condensed_result)
       handle.on_background_command_complete_callback(process_condensed_result, handle)
       logger.debug("Exiting from thread for holder pid %s", handle.pid)
 
@@ -136,36 +196,65 @@ class PythonExecutor(object):
       tmpout, tmperr = self.open_subprocess_files(
         tmp_out_file, tmp_err_file, override_output_files, backup_log_files
       )
+      process = None
+      watchdog = None
+      try:
+        process = self.launch_python_subprocess(
+          python_command, tmpout, tmperr, env=env
+        )
+        # map task_id to pid
+        callback(task_id, process.pid)
+        self.logger.debug("Launching watchdog thread")
+        self.event.clear()
+        self.python_process_has_been_killed = False
+        watchdog = threading.Thread(
+          target=self.python_watchdog_func, args=(process, timeout)
+        )
+        watchdog.start()
+        if cancel_event is not None and cancel_event.is_set():
+          shell.kill_process_with_children(process.pid)
+        # Waiting for the process to be either finished or killed
+        process.communicate()
+        result = self.prepare_process_result(
+          process.returncode,
+          tmp_out_file,
+          tmp_err_file,
+          tmp_structed_outfile,
+          timeout=timeout,
+        )
 
-      process = self.launch_python_subprocess(python_command, tmpout, tmperr)
-      # map task_id to pid
-      callback(task_id, process.pid)
-      self.logger.debug("Launching watchdog thread")
-      self.event.clear()
-      self.python_process_has_been_killed = False
-      thread = threading.Thread(
-        target=self.python_watchdog_func, args=(process, timeout)
-      )
-      thread.start()
-      # Waiting for the process to be either finished or killed
-      process.communicate()
-      self.event.set()
-      thread.join()
-      result = self.prepare_process_result(
-        process.returncode,
-        tmp_out_file,
-        tmp_err_file,
-        tmp_structed_outfile,
-        timeout=timeout,
-      )
+        if log_info_on_failure and result["exitcode"]:
+          self.on_failure(python_command, result)
 
-      if log_info_on_failure and result["exitcode"]:
-        self.on_failure(python_command, result)
-
-      return result
+        return result
+      except Exception:
+        if process is not None and process.returncode is None:
+          try:
+            shell.kill_process_with_children(process.pid)
+          except Exception:
+            self.logger.exception(
+              "Failed to terminate process after command setup failure"
+            )
+        raise
+      finally:
+        self.event.set()
+        if watchdog is not None:
+          watchdog.join()
+        for process_file in (tmpout, tmperr):
+          close_file = getattr(process_file, "close", None)
+          if close_file is not None:
+            try:
+              close_file()
+            except Exception:
+              self.logger.exception("Failed to close a command output file")
     else:
       background = threading.Thread(target=background_executor, args=())
-      background.start()
+      handle.thread = background
+      try:
+        background.start()
+      except Exception:
+        handle.thread = None
+        raise
       return {"exitcode": 777}
 
   def on_failure(self, python_command, result):
@@ -197,7 +286,12 @@ class PythonExecutor(object):
       )
       returncode = 999
     result = self.condense_output(out, error, returncode, structured_out)
-    self.logger.debug("Result: %s", result)
+    self.logger.debug(
+      "Process result exitcode=%s, stdoutLength=%s, stderrLength=%s",
+      result.get("exitcode"),
+      len(result.get("stdout", "")),
+      len(result.get("stderr", "")),
+    )
     return result
 
   def read_result_from_files(self, out_path, err_path, structured_out_path):
@@ -215,19 +309,31 @@ class PythonExecutor(object):
       structured_out = {}
     return out, error, structured_out
 
-  def launch_python_subprocess(self, command, tmpout, tmperr):
+  def launch_python_subprocess(self, command, tmpout, tmperr, env=None):
     """
     Creates subprocess with given parameters. This functionality was moved to separate method
     to make possible unit testing
     """
     command_env = dict(os.environ)
+    passphrase_env_var = self.config.get(
+      "security", "passphrase_env_var_name", "AMBARI_PASSPHRASE"
+    )
+    command_env.pop(passphrase_env_var, None)
+    command_env.pop("AGENT_ENCRYPTION_KEY", None)
+    if env:
+      command_env.update(env)
+    command_env.pop(passphrase_env_var, None)
+    if not self.config.use_system_proxy_setting():
+      for variable in self.PROXY_ENVIRONMENT_VARIABLES:
+        command_env.pop(variable, None)
+
     return subprocess.Popen(
       command,
       stdout=tmpout,
       stderr=tmperr,
       close_fds=True,
       env=command_env,
-      preexec_fn=lambda: os.setpgid(0, 0),
+      start_new_session=True,
     )
 
   def is_successful(self, return_code):

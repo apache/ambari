@@ -22,6 +22,8 @@ import os
 import sys
 import uuid
 import logging
+import shutil
+import tempfile
 import threading
 import json
 from collections import defaultdict
@@ -29,11 +31,14 @@ from configparser import NoOptionError
 
 from ambari_commons import shell
 from ambari_commons.constants import AGENT_TMP_DIR
+from ambari_commons.credential_store_helper import (
+  create_credential_store_entry,
+  credential_store_lock,
+)
 from resource_management.libraries.functions.log_process_information import (
   log_process_information,
 )
-from resource_management.core.utils import PasswordString
-from resource_management.core.encryption import ensure_decrypted
+from resource_management.core.encryption import ensure_decrypted, is_encrypted
 from resource_management.core import shell as rmf_shell
 
 from ambari_agent.models.commands import AgentCommand
@@ -41,7 +46,6 @@ from ambari_agent.Utils import Utils
 
 from ambari_agent.AgentException import AgentException
 from ambari_agent.PythonExecutor import PythonExecutor
-import subprocess
 
 
 logger = logging.getLogger()
@@ -75,8 +79,6 @@ class CustomServiceOrchestrator(object):
   # Path where hadoop credential JARS will be available
   DEFAULT_CREDENTIAL_SHELL_LIB_PATH = "/var/lib/ambari-agent/cred/lib"
   DEFAULT_CREDENTIAL_CONF_DIR = "/var/lib/ambari-agent/cred/conf"
-  DEFAULT_CREDENTIAL_SHELL_CMD = "org.apache.hadoop.security.alias.CredentialShell"
-
   # The property name used by the hadoop credential provider
   CREDENTIAL_PROVIDER_PROPERTY_NAME = "hadoop.security.credential.provider.path"
 
@@ -116,9 +118,6 @@ class CustomServiceOrchestrator(object):
       "security", "credential_conf_dir", self.DEFAULT_CREDENTIAL_CONF_DIR
     )
 
-    self.credential_shell_cmd = self.config.get(
-      "security", "credential_shell_cmd", self.DEFAULT_CREDENTIAL_SHELL_CMD
-    )
     self.commands_in_progress_lock = threading.RLock()
     self.commands_in_progress = {}
 
@@ -131,23 +130,60 @@ class CustomServiceOrchestrator(object):
   def map_task_to_process(self, task_id, processId):
     with self.commands_in_progress_lock:
       logger.debug("Maps taskId=%s to pid=%s", task_id, processId)
-      self.commands_in_progress[task_id] = processId
+      self.commands_in_progress[(task_id, threading.get_ident())] = processId
 
   def cancel_command(self, task_id, reason):
     with self.commands_in_progress_lock:
-      if task_id in self.commands_in_progress.keys():
-        pid = self.commands_in_progress.get(task_id)
-        self.commands_in_progress[task_id] = reason
-        logger.info(
-          "Canceling command with taskId = {tid}, "
-          "reason - {reason} . Killing process {pid}".format(
-            tid=str(task_id), reason=reason, pid=pid
-          )
+      running = [
+        (execution_key, process_id)
+        for execution_key, process_id in self.commands_in_progress.items()
+        if execution_key[0] == task_id and isinstance(process_id, int)
+      ]
+      for execution_key, _process_id in running:
+        self.commands_in_progress[execution_key] = reason
+
+    if not running:
+      logger.warning(f"Unable to find process associated with taskId = {task_id}")
+      return
+
+    log_process_information(logger)
+    for _execution_key, process_id in running:
+      logger.info(
+        "Canceling command with taskId=%s, reason=%s; killing process %s",
+        task_id,
+        reason,
+        process_id,
+      )
+      try:
+        shell.kill_process_with_children(process_id)
+      except Exception:
+        logger.exception(
+          "Failed to terminate process group for command taskId=%s", task_id
         )
-        log_process_information(logger)
-        shell.kill_process_with_children(pid)
-      else:
-        logger.warning(f"Unable to find process associated with taskId = {task_id}")
+
+  def cancel_all_commands(self, reason):
+    with self.commands_in_progress_lock:
+      running = [
+        (execution_key, process_id)
+        for execution_key, process_id in self.commands_in_progress.items()
+        if isinstance(process_id, int)
+      ]
+      for execution_key, _process_id in running:
+        self.commands_in_progress[execution_key] = reason
+
+    for execution_key, process_id in running:
+      logger.info(
+        "Canceling running command taskId=%s during Agent shutdown; killing "
+        "process group rooted at pid=%s",
+        execution_key[0],
+        process_id,
+      )
+      try:
+        shell.kill_process_with_children(process_id)
+      except Exception:
+        logger.exception(
+          "Failed to terminate process group for command taskId=%s", execution_key[0]
+        )
 
   def get_py_executor(self, forced_command_name):
     """
@@ -171,8 +207,25 @@ class CustomServiceOrchestrator(object):
     conf_dir = os.path.join(self.credential_conf_dir, service_name.lower())
     return conf_dir
 
+  @staticmethod
+  def command_requires_encryption_key(value):
+    if is_encrypted(value):
+      return True
+    if isinstance(value, dict):
+      return any(
+        CustomServiceOrchestrator.command_requires_encryption_key(item)
+        for item in value.values()
+      )
+    if isinstance(value, (list, tuple)):
+      return any(
+        CustomServiceOrchestrator.command_requires_encryption_key(item)
+        for item in value
+      )
+    return False
+
   def commandsRunningForComponent(self, clusterId, componentName):
-    return self.commands_for_component_in_progress[clusterId][componentName] > 0
+    with self.commands_in_progress_lock:
+      return self.commands_for_component_in_progress[clusterId][componentName] > 0
 
   def getConfigTypeCredentials(self, commandJson):
     """
@@ -232,6 +285,7 @@ class CustomServiceOrchestrator(object):
     :return:
     """
     configtype_credentials = {}
+    credential_value_names = {}
     if (
       "serviceLevelParams" in commandJson
       and "configuration_credentials" in commandJson["serviceLevelParams"]
@@ -266,11 +320,9 @@ class CustomServiceOrchestrator(object):
                 value_names.append(value_name)  # Gather the value_name for deletion
           if len(credentials) > 0:
             configtype_credentials[config_type] = credentials
+            credential_value_names[config_type] = value_names
             logger.info(f"Identifying config {config_type} for CS: ")
-          for value_name in value_names:
-            # Remove the clear text password
-            config.pop(value_name, None)
-    return configtype_credentials
+    return configtype_credentials, credential_value_names
 
   def generateJceks(self, commandJson):
     """
@@ -293,14 +345,16 @@ class CustomServiceOrchestrator(object):
     )
 
     # Set up the variables for the external command to generate a JCEKS file
-    java_home = commandJson["ambariLevelParams"]["java_home"]
-    java_bin = f"{java_home}/bin/java"
+    ambari_java_home = commandJson["ambariLevelParams"]["ambari_java_home"]
+    java_bin = f"{ambari_java_home}/bin/java"
 
     cs_lib_path = self.credential_shell_lib_path
     serviceName = commandJson["serviceName"]
 
     # Gather the password values and remove them from the configuration
-    configtype_credentials = self.getConfigTypeCredentials(commandJson)
+    configtype_credentials, credential_value_names = self.getConfigTypeCredentials(
+      commandJson
+    )
 
     # CS is enabled but no config property is available for this command
     if len(configtype_credentials) == 0:
@@ -323,35 +377,78 @@ class CustomServiceOrchestrator(object):
         file_path = os.path.join(
           self.getProviderDirectory(serviceName), f"{config_type}.jceks"
         )
-      if os.path.exists(file_path):
-        os.remove(file_path)
       provider_path = f"jceks://file{file_path}"
       logger.info(f"provider_path={provider_path}")
-      for alias, pwd in credentials.items():
-        logger.debug(f"config={config}")
-        pwd = ensure_decrypted(pwd, self.encryption_key)
-        protected_pwd = PasswordString(pwd)
-        # Generate the JCEKS file
-        cmd = (
-          java_bin,
-          "-cp",
-          cs_lib_path,
-          self.credential_shell_cmd,
-          "create",
-          alias,
-          "-value",
-          protected_pwd,
-          "-provider",
-          provider_path,
+      credential_group = commandJson.get("configurations", {}).get(
+        "cluster-env", {}
+      ).get("user_group")
+      if not credential_group:
+        raise AgentException(
+          "cluster-env/user_group is required for a private credential store"
         )
-        logger.info(cmd)
-        cmd_result = subprocess.call(cmd)
-        os.chmod(
-          file_path, 0o644
-        )  # group and others should have read access so that the service user can read
+      provider_directory = os.path.dirname(file_path)
+      os.makedirs(provider_directory, mode=0o750, exist_ok=True)
+      shutil.chown(provider_directory, group=credential_group)
+      os.chmod(provider_directory, 0o750)
+      with credential_store_lock(provider_path):
+        staging_directory = tempfile.mkdtemp(
+          prefix=".jceks-", dir=provider_directory
+        )
+        temporary_path = os.path.join(
+          staging_directory, os.path.basename(file_path)
+        )
+        temporary_provider_path = f"jceks://file{temporary_path}"
+        try:
+          for alias, pwd in credentials.items():
+            pwd = ensure_decrypted(pwd, self.encryption_key)
+            cmd_result = create_credential_store_entry(
+              java_bin,
+              cs_lib_path,
+              alias,
+              temporary_provider_path,
+              pwd,
+            )
+            if cmd_result != 0:
+              raise AgentException(
+                "Credential store helper failed to create "
+                f"{file_path} with exit code {cmd_result}"
+              )
+
+          if not os.path.isfile(temporary_path):
+            raise AgentException(
+              f"Credential store helper did not create expected store {temporary_path}"
+            )
+          shutil.chown(temporary_path, group=credential_group)
+          os.chmod(temporary_path, 0o640)
+          file_descriptor = os.open(temporary_path, os.O_RDONLY)
+          try:
+            os.fsync(file_descriptor)
+          finally:
+            os.close(file_descriptor)
+          checksum_path = os.path.join(
+            provider_directory, f".{os.path.basename(file_path)}.crc"
+          )
+          directory_descriptor = os.open(provider_directory, os.O_RDONLY)
+          try:
+            try:
+              os.unlink(checksum_path)
+            except FileNotFoundError:
+              pass
+            os.fsync(directory_descriptor)
+            os.replace(temporary_path, file_path)
+            os.fsync(directory_descriptor)
+          finally:
+            os.close(directory_descriptor)
+        finally:
+          shutil.rmtree(staging_directory, ignore_errors=True)
       # Add JCEKS provider path instead
       config[self.CREDENTIAL_PROVIDER_PROPERTY_NAME] = provider_path
       config[self.CREDENTIAL_STORE_CLASS_PATH_NAME] = cs_lib_path
+
+    for config_type, value_names in credential_value_names.items():
+      config = commandJson["configurations"][config_type]
+      for value_name in value_names:
+        config.pop(value_name, None)
 
     return cmd_result
 
@@ -365,6 +462,7 @@ class CustomServiceOrchestrator(object):
     retry=False,
     is_status_command=False,
     tmpstrucoutfile=None,
+    cancel_event=None,
   ):
     """
     forced_command_name may be specified manually. In this case, value, defined at
@@ -374,6 +472,7 @@ class CustomServiceOrchestrator(object):
 
     ret = None
     json_path = None
+    handle = None
 
     try:
       command = self.generate_command(command_header)
@@ -416,7 +515,6 @@ class CustomServiceOrchestrator(object):
         raise AgentException(message)
 
       # Execute command using proper interpreter
-      handle = None
       if "__handle" in command:
         handle = command["__handle"]
         handle.on_background_command_started = self.map_task_to_process
@@ -472,8 +570,11 @@ class CustomServiceOrchestrator(object):
       ):
         raise AgentException("Background commands are supported without hooks only")
 
-      if self.encryption_key:
-        os.environ["AGENT_ENCRYPTION_KEY"] = self.encryption_key
+      command_env = (
+        {"AGENT_ENCRYPTION_KEY": self.encryption_key}
+        if self.encryption_key and self.command_requires_encryption_key(command)
+        else None
+      )
 
       python_executor = self.get_py_executor(forced_command_name)
       backup_log_files = command_name not in self.DONT_BACKUP_LOGS_FOR_COMMANDS
@@ -485,7 +586,8 @@ class CustomServiceOrchestrator(object):
         log_out_files = None
 
       if cluster_id != "-1" and cluster_id != "null" and not is_status_command:
-        self.commands_for_component_in_progress[cluster_id][command["role"]] += 1
+        with self.commands_in_progress_lock:
+          self.commands_for_component_in_progress[cluster_id][command["role"]] += 1
         incremented_commands_for_component = True
 
         if "serviceName" in command:
@@ -524,6 +626,8 @@ class CustomServiceOrchestrator(object):
           backup_log_files=backup_log_files,
           handle=handle,
           log_info_on_failure=log_info_on_failure,
+          env=command_env,
+          cancel_event=cancel_event,
         )
         # Next run_file() invocations should always append to current output
         override_output_files = False
@@ -557,7 +661,14 @@ class CustomServiceOrchestrator(object):
       }
     finally:
       if incremented_commands_for_component:
-        self.commands_for_component_in_progress[cluster_id][command["role"]] -= 1
+        with self.commands_in_progress_lock:
+          self.commands_for_component_in_progress[cluster_id][command["role"]] -= 1
+
+      if handle is None and "task_id" in locals():
+        with self.commands_in_progress_lock:
+          self.commands_in_progress.pop(
+            (task_id, threading.get_ident()), None
+          )
 
       if json_path:
         if is_status_command:
@@ -572,9 +683,10 @@ class CustomServiceOrchestrator(object):
 
   def command_canceled_reason(self, task_id):
     with self.commands_in_progress_lock:
-      if task_id in self.commands_in_progress:
+      execution_key = (task_id, threading.get_ident())
+      if execution_key in self.commands_in_progress:
         logger.debug("Pop with taskId %s", task_id)
-        pid = self.commands_in_progress.pop(task_id)
+        pid = self.commands_in_progress.pop(execution_key)
         if not isinstance(pid, int):
           reason = pid
           if reason:
@@ -679,12 +791,33 @@ class CustomServiceOrchestrator(object):
       if command_type == AgentCommand.auto_execution:
         file_path = os.path.join(self.tmp_dir, f"auto_command-{task_id}.json")
 
-    # Json may contain passwords, that's why we need proper permissions
-    if os.path.isfile(file_path):
-      os.unlink(file_path)
-    with os.fdopen(os.open(file_path, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
-      content = json.dumps(command, sort_keys=False, indent=4)
-      f.write(content)
+    # JSON may contain passwords. Write a private file and publish it atomically
+    # so retries cannot expose stale suffixes or follow a substituted symlink.
+    descriptor, temporary_path = tempfile.mkstemp(
+      prefix=f".{os.path.basename(file_path)}-", dir=self.tmp_dir, text=True
+    )
+    try:
+      os.fchmod(descriptor, 0o600)
+      with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        descriptor = None
+        json.dump(command, stream, sort_keys=False, indent=4)
+        stream.flush()
+        os.fsync(stream.fileno())
+      os.replace(temporary_path, file_path)
+      temporary_path = None
+      directory_descriptor = os.open(self.tmp_dir, os.O_RDONLY)
+      try:
+        os.fsync(directory_descriptor)
+      finally:
+        os.close(directory_descriptor)
+    finally:
+      if descriptor is not None:
+        os.close(descriptor)
+      if temporary_path is not None:
+        try:
+          os.unlink(temporary_path)
+        except OSError:
+          pass
     return file_path
 
   def decompress_cluster_host_info(self, cluster_host_info):

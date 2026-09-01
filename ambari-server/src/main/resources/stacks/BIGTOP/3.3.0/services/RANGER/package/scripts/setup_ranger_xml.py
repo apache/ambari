@@ -37,10 +37,12 @@ from resource_management.libraries.functions.generate_logfeeder_input_config imp
 )
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from ambari_commons.credential_store_helper import (
+  create_password_in_credential_store,
+)
 from resource_management.core.exceptions import ExecutionFailed
 
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
@@ -454,9 +456,9 @@ def password_validation(password):
     raise Fail(
       "Blank password is not allowed for Bind user. Please enter valid password."
     )
-  if re.search("[\\\`'\"]", password):
+  if re.search("[\\\\`'\"]", password):
     raise Fail(
-      "LDAP/AD bind password contains one of the unsupported special characters like \" ' \ `"
+      "LDAP/AD bind password contains one of the unsupported special characters like \" ' \\ `"
     )
   else:
     Logger.info("password validated")
@@ -783,21 +785,15 @@ def setup_tagsync(upgrade_type=None):
 def ranger_credential_helper(lib_path, alias_key, alias_value, file_path):
   import params
 
-  java_bin = format("{java_home}/bin/java")
   file_path = format("jceks://file{file_path}")
-  cmd = (
-    java_bin,
-    "-cp",
-    lib_path,
-    "org.apache.ranger.credentialapi.buildks",
-    "create",
+  create_password_in_credential_store(
     alias_key,
-    "-value",
-    PasswordString(alias_value),
-    "-provider",
     file_path,
+    lib_path,
+    params.ambari_java_home,
+    None,
+    alias_value,
   )
-  Execute(cmd, environment={"JAVA_HOME": params.java_home}, logoutput=True, sudo=True)
 
 
 def create_core_site_xml(conf_dir):
@@ -1223,7 +1219,7 @@ def validate_user_password(password_property=None):
       ranger_password_properties[index]
     ]
     if not bool(re.search(r"^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$", password)) or bool(
-      re.search("[\\\`\"']", password)
+      re.search("[\\\\`\"']", password)
     ):
       validation.append(ranger_password_properties[index])
 
@@ -1231,7 +1227,7 @@ def validate_user_password(password_property=None):
     raise Fail(
       "Password validation failed for : "
       + ", ".join(validation)
-      + ". Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are \" ' \ `"
+      + ". Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are \" ' \\ `"
     )
 
 

@@ -41,6 +41,9 @@ from resource_management.libraries.functions.generate_logfeeder_input_config imp
 )
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
+from ambari_commons.credential_store_helper import (
+  create_password_in_credential_store,
+)
 from resource_management.libraries.functions.decorator import safe_retry
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
@@ -56,7 +59,7 @@ def password_validation(password, key):
     raise Fail(
       f"Blank password is not allowed for {key} property. Please enter valid password."
     )
-  if re.search("[\\\`'\"]", password):
+  if re.search("[\\\\`'\"]", password):
     raise Fail(
       f"{key} password contains one of the unsupported special characters like \" ' \\ `"
     )
@@ -175,25 +178,14 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
   import params
 
   if cred_provider_path is not None:
-    java_bin = format("{java_home}/bin/java")
     file_path = format("jceks://file{cred_provider_path}")
-    cmd = (
-      java_bin,
-      "-cp",
-      params.cred_lib_path,
-      "org.apache.ranger.credentialapi.buildks",
-      "create",
+    create_password_in_credential_store(
       credential_alias,
-      "-value",
-      PasswordString(credential_password),
-      "-provider",
       file_path,
-    )
-    Execute(
-      cmd,
-      environment={"JAVA_HOME": params.java_home},
-      logoutput=True,
-      sudo=True,
+      params.cred_lib_path,
+      params.ambari_java_home,
+      None,
+      credential_password,
     )
 
     File(
@@ -907,7 +899,7 @@ def check_ranger_service():
   ambari_username_password_for_ranger = format(
     "{ambari_ranger_admin}:{ambari_ranger_password}"
   )
-  response_code = ranger_adm_obj.check_ranger_login_urllib2(policymgr_mgr_url)
+  response_code = ranger_adm_obj.check_ranger_login_http(policymgr_mgr_url)
 
   if response_code is not None and response_code == 200:
     user_resp_code = ranger_adm_obj.create_ambari_admin_user(

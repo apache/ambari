@@ -20,7 +20,7 @@ limitations under the License.
 
 import logging.handlers
 import logging.config
-from optparse import OptionParser
+import argparse
 import sys
 import os
 import time
@@ -40,7 +40,6 @@ import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
 
-# from ambari_commons.network import reconfigure_urllib2_opener
 from ambari_agent.HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
@@ -321,7 +320,7 @@ def reset_agent(options):
     if new_host is not None and server_host != new_host:
       print("Updating server host from " + server_host + " to " + new_host)
       agent_config.set("server", "hostname", new_host)
-      with open(configFile, "wb") as new_agent_config:
+      with open(configFile, "w", encoding="utf-8") as new_agent_config:
         agent_config.write(new_agent_config)
 
     # clear agent certs
@@ -355,19 +354,20 @@ def run_threads(initializer_module):
     signal.pause()
 
   initializer_module.action_queue.interrupt()
+  initializer_module.alert_scheduler_handler.stop()
 
+  initializer_module.action_queue.join()
   initializer_module.command_status_reporter.join()
   initializer_module.component_status_executor.join()
   initializer_module.host_status_reporter.join()
   initializer_module.alert_status_reporter.join()
   initializer_module.heartbeat_thread.join()
-  initializer_module.action_queue.join()
 
 
 # parse the options from command line
 def setup_option_parser():
-  parser = OptionParser()
-  parser.add_option(
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
     "-v",
     "--verbose",
     dest="verbose",
@@ -375,7 +375,7 @@ def setup_option_parser():
     help="verbose log output",
     default=False,
   )
-  parser.add_option(
+  parser.add_argument(
     "-e",
     "--expected-hostname",
     dest="expected_hostname",
@@ -383,10 +383,11 @@ def setup_option_parser():
     help="expected hostname of current host. If hostname differs, agent will fail",
     default=None,
   )
-  parser.add_option(
+  parser.add_argument(
     "--home", dest="home_dir", action="store", help="Home directory", default=""
   )
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
 
   return options
 
@@ -482,7 +483,6 @@ def main(options, initializer_module, heartbeat_stop_callback=None):
 
   if not config.use_system_proxy_setting():
     logger.info("Agent is configured to ignore system proxy settings")
-    # reconfigure_urllib2_opener(ignore_system_proxy=True)
 
   daemonize()
 

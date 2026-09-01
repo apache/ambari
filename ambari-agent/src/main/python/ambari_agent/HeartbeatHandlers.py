@@ -23,11 +23,10 @@ from ambari_commons.os_check import OSConst, OSCheck
 import os
 import logging
 import signal
+import sys
 import threading
 import traceback
 from ambari_commons.os_family_impl import OsFamilyImpl
-
-from ambari_agent.RemoteDebugUtils import bind_debug_signal_handlers
 
 logger = logging.getLogger()
 
@@ -89,7 +88,16 @@ def bind_signal_handlers(agentPid, stop_event):
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGUSR1, log_thread_stack_traces)
 
-    _handler = stop_event
-  else:
-    _handler = stop_event
+  _handler = stop_event
   return _handler
+
+
+def log_thread_stack_traces(sig, frame):
+  logger.warning("*** THREAD STACK TRACES - START ***")
+  for thread_id, stack in sys._current_frames().items():
+    logger.warning("ThreadID: %s", thread_id)
+    for filename, lineno, name, line in traceback.extract_stack(stack):
+      logger.warning('File: "%s", line %s, in %s', filename, lineno, name)
+      if line:
+        logger.warning("  %s", line.strip())
+  logger.warning("*** THREAD STACK TRACES - END ***")
