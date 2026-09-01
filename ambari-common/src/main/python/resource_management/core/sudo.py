@@ -206,6 +206,11 @@ if os.geteuid() == 0:
         self.st_dev = stat_val.st_dev
         self.st_ino = stat_val.st_ino
         self.st_mode = stat_val.st_mode
+        self.st_uid = stat_val.st_uid
+        self.st_gid = stat_val.st_gid
+        self.st_nlink = stat_val.st_nlink
+        self.st_size = stat_val.st_size
+        self.st_mtime_ns = stat_val.st_mtime_ns
 
     return Stat(path)
 
@@ -331,15 +336,29 @@ else:
   def lstat(path):
     class Stat:
       def __init__(self, path):
-        cmd = ["stat", "-c", "%d %i %f", "--", path]
+        cmd = ["stat", "-c", "%d %i %f %u %g %h %s %Y", "--", path]
         code, out, err = shell.checked_call(cmd, sudo=True, stderr=subprocess.PIPE)
-        values = out.split(" ")
-        if len(values) != 3:
+        values = out.strip().split(" ")
+        if len(values) != 8:
           raise Fail(f"Execution of '{cmd}' returned unexpected output. {err}\n{out}")
-        dev_str, ino_str, mode_str = values
+        (
+          dev_str,
+          ino_str,
+          mode_str,
+          uid_str,
+          gid_str,
+          nlink_str,
+          size_str,
+          mtime_str,
+        ) = values
         self.st_dev = int(dev_str)
         self.st_ino = int(ino_str)
         self.st_mode = int(mode_str, 16)
+        self.st_uid = int(uid_str)
+        self.st_gid = int(gid_str)
+        self.st_nlink = int(nlink_str)
+        self.st_size = int(size_str)
+        self.st_mtime_ns = int(mtime_str) * 1_000_000_000
 
     return Stat(path)
 

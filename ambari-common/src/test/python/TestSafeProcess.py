@@ -17,12 +17,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import signal
+import stat
+import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import call, mock_open, patch
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core import sudo
 from resource_management.libraries.functions.check_process_status import (
   check_process_status,
 )
@@ -41,6 +45,27 @@ class TestSafeProcess(unittest.TestCase):
   USER = "service"
   CMDLINE = b"/usr/bin/java\0org.example.Service\0--daemon\0"
   FILE_STAT = SimpleNamespace(st_dev=10, st_ino=20, st_mode=0o100640)
+
+  def test_lstat_exposes_complete_file_identity(self):
+    descriptor, path = tempfile.mkstemp()
+    try:
+      os.write(descriptor, b"pid\n")
+      expected = os.lstat(path)
+      actual = sudo.lstat(path)
+
+      self.assertEqual(expected.st_dev, actual.st_dev)
+      self.assertEqual(expected.st_ino, actual.st_ino)
+      self.assertEqual(expected.st_mode, actual.st_mode)
+      self.assertEqual(expected.st_uid, actual.st_uid)
+      self.assertEqual(expected.st_gid, actual.st_gid)
+      self.assertEqual(expected.st_nlink, actual.st_nlink)
+      self.assertEqual(expected.st_size, actual.st_size)
+      self.assertLessEqual(actual.st_mtime_ns, expected.st_mtime_ns)
+      self.assertLess(expected.st_mtime_ns - actual.st_mtime_ns, 1_000_000_000)
+      self.assertTrue(stat.S_ISREG(actual.st_mode))
+    finally:
+      os.close(descriptor)
+      os.unlink(path)
 
   def _read_file(self, path, start_time=456):
     if path == self.PID_FILE:
