@@ -10,24 +10,48 @@ with the License.  You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agree in writing, software
+Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import subprocess
-import time
-import os
+from contextlib import nullcontext
 
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
-from resource_management.core.resources.system import Execute
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
+from resource_management.libraries.script.script import Script
 
-CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
+import spark_utils
+
+
+CHECK_TIMEOUT_SECONDS = 60
+
+
+def build_beeline_url(params, host):
+  validated_host = spark_utils.validate_host(
+    host, "Spark Thrift Server host"
+  )
+  url = (
+    f"jdbc:hive2://{validated_host}:"
+    f"{params.spark_thrift_port}/default"
+  )
+  options = []
+  if params.security_enabled:
+    principal = params.default_hive_kerberos_principal.replace("_HOST", host.lower())
+    spark_utils.validate_principal(principal, "Spark Thrift Server principal")
+    options.append(f"principal={principal}")
+  options.append(f"transportMode={params.spark_transport_mode}")
+  if params.spark_transport_mode == "http":
+    options.append(f"httpPath={params.spark_thrift_endpoint}")
+    if params.spark_thrift_ssl_enabled:
+      options.append("ssl=true")
+  return ";".join((url,) + tuple(options))
 
 
 class SparkServiceCheck(Script):
@@ -35,65 +59,81 @@ class SparkServiceCheck(Script):
     import params
 
     env.set_params(params)
+    if not params.has_history_server:
+      raise Fail("Spark service check requires a History Server host")
+    spark_utils.validate_executable("/usr/bin/curl", "curl executable")
 
+    cache_context = nullcontext(None)
     if params.security_enabled:
-      spark_kinit_cmd = format(
-        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; "
+      spark_utils.validate_executable(params.kinit_path_local, "kinit executable")
+      spark_utils.validate_keytab(params.smoke_user_keytab, "Spark service-check keytab")
+      cache_context = PrivateKerberosCache(
+        params.smoke_user,
+        params.user_group,
+        temp_dir=params.tmp_dir,
+        prefix="ambari-spark-service-check-",
       )
-      Execute(spark_kinit_cmd, user=params.smoke_user)
 
-    Execute(
-      format(
-        "curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {spark_history_scheme}://{spark_history_server_host}:{spark_history_ui_port} | grep 200"
-      ),
-      tries=5,
-      try_sleep=3,
-      logoutput=True,
-      user=params.smoke_user,
-    )
-
-    if params.has_spark_thriftserver:
-      healthy_spark_thrift_host = ""
-      for spark_thrift_host in params.spark_thriftserver_hosts:
-        if params.security_enabled:
-          kerberos_principal = params.default_hive_kerberos_principal.replace(
-            "_HOST", spark_thrift_host
-          )
-          beeline_url = [
-            "jdbc:hive2://{spark_thrift_host}:{spark_thrift_port}/default;principal={kerberos_principal}",
-            "transportMode={spark_transport_mode}",
-          ]
-        else:
-          beeline_url = [
-            "jdbc:hive2://{spark_thrift_host}:{spark_thrift_port}/default",
-            "transportMode={spark_transport_mode}",
-          ]
-        # append url according to used transport
-        if params.spark_transport_mode == "http":
-          beeline_url.append("httpPath={spark_thrift_endpoint}")
-          if params.spark_thrift_ssl_enabled:
-            beeline_url.append("ssl=true")
-
-        beeline_cmd = os.path.join(params.spark_home, "bin", "beeline")
-        cmd = (
-          "! %s -u '%s'  -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL' -e 'Error: Could not open'"
-          % (beeline_cmd, format(";".join(beeline_url)))
+    with cache_context as cache:
+      environment = {"JAVA_HOME": params.java_home, "SPARK_CONF_DIR": params.spark_conf_dir}
+      if cache is not None:
+        cache.kinit(
+          params.kinit_path_local,
+          params.smoke_user_keytab,
+          params.smokeuser_principal,
+          timeout=30,
         )
+        environment = cache.merge_environment(environment)
 
+      curl_command = [
+        "/usr/bin/curl",
+        "--disable",
+        "--silent",
+        "--show-error",
+        "--fail",
+        "--output",
+        "/dev/null",
+        "--connect-timeout",
+        "10",
+        "--max-time",
+        str(CHECK_TIMEOUT_SECONDS),
+      ]
+      if params.security_enabled:
+        curl_command.extend(("--negotiate", "--user", ":"))
+      history_url = (
+        f"{params.spark_history_scheme}://"
+        f"{params.spark_history_server_host}:"
+        f"{params.spark_history_ui_port}/"
+      )
+      curl_command.extend(("--url", history_url))
+      Execute(
+        tuple(curl_command),
+        user=params.smoke_user,
+        environment=environment,
+        timeout=CHECK_TIMEOUT_SECONDS + 5,
+        tries=5,
+        try_sleep=3,
+        logoutput=True,
+      )
+
+      if not params.has_spark_thriftserver:
+        return
+      spark_utils.validate_executable(params.spark_beeline, "Spark Beeline executable")
+      failures = []
+      for host in params.spark_thriftserver_hosts:
         try:
           Execute(
-            cmd,
+            (params.spark_beeline, "-u", build_beeline_url(params, host), "-e", "SELECT 1"),
             user=params.smoke_user,
-            path=[beeline_cmd],
-            timeout=CHECK_COMMAND_TIMEOUT_DEFAULT,
+            environment=environment,
+            timeout=CHECK_TIMEOUT_SECONDS,
+            logoutput=True,
           )
-          healthy_spark_thrift_host = spark_thrift_host
-          break
-        except:
-          pass
-
-      if len(params.spark_thriftserver_hosts) > 0 and healthy_spark_thrift_host == "":
-        raise Fail("Connection to all Spark thrift servers failed.")
+          return
+        except Exception as error:
+          failures.append(f"{host}: {error}")
+          Logger.warning(f"Spark Thrift Server check failed for {host}: {error}")
+      raise Fail("Connection to all Spark Thrift Servers failed: " + "; ".join(failures))
 
 
 if __name__ == "__main__":

@@ -20,12 +20,12 @@
     {
       "type":"spark_jobhistory_server",
       "rowtype":"service",
-      "path":"{{default('/configurations/spark-env/spark_log_dir', '/var/log/spark')}}/spark-*-org.apache.spark.deploy.history.HistoryServer*.out"
+      "path":"{{default('/configurations/spark-env/spark_log_dir', '/var/log/spark')}}/spark-history-server.log"
     },
     {
       "type":"spark_thriftserver",
       "rowtype":"service",
-      "path":"{{default('/configurations/spark-env/spark_log_dir', '/var/log/spark')}}/spark-*-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2*.out"
+      "path":"{{default('/configurations/spark-env/spark_log_dir', '/var/log/spark')}}/spark-thrift-server.log"
     }
   ],
   "filter":[
