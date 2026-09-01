@@ -134,7 +134,7 @@
 # JAVA_HOME
 # JAVA
 
-JAVA_HOME={{java_home}}
+JAVA_HOME={{java_home_shell}}
 
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
 # ALLUXIO_LOGS_DIR
@@ -150,7 +150,8 @@ JAVA_HOME={{java_home}}
 # E.g. "-Dalluxio.master.rpc.port=39999"
 # ALLUXIO_JAVA_OPTS
 
-ALLUXIO_JAVA_OPTS+=" -Djava.library.path=/usr/hdp/current/hadoop-client/lib/native/ "
+ALLUXIO_NATIVE_LIBRARY_OPTION={{alluxio_native_library_option_shell}}
+ALLUXIO_JAVA_OPTS+=" ${ALLUXIO_NATIVE_LIBRARY_OPTION}"
 
 # Config properties set for Alluxio master daemon. (Default: "")
 # E.g. "-Dalluxio.master.rpc.port=39999"

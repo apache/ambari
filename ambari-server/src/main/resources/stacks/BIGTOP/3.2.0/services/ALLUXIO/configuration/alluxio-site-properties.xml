@@ -64,7 +64,7 @@
   <property>
     <name>alluxio.master.metastore.dir</name>
     <description>Alluxio UnderFS Address</description>
-    <value>/usr/bigtop/current/alluxio/metastore</value>
+    <value>/var/lib/alluxio/metastore</value>
     <on-ambari-upgrade add="true"/>
   </property>
 
@@ -93,9 +93,10 @@
 alluxio.master.hostname={{alluxio_master_host}}
 #alluxio.master.mount.table.root.ufs={{namenode_address}}/alluxio/root/
 alluxio.underfs.address={{underfs_hdfs_addr}}
-alluxio.underfs.hdfs.configuration=/etc/hadoop/conf/core-site.xml:/etc/hadoop/conf/hdfs-site.xml
+alluxio.underfs.hdfs.configuration={{hadoop_conf_dir}}/core-site.xml:{{hadoop_conf_dir}}/hdfs-site.xml
 
 alluxio.master.metastore.dir={{alluxio_master_metastore_dir}}
+alluxio.master.journal.folder={{alluxio_journal_dir}}
 
 #ha
 #alluxio.master.embedded.journal.addresses
@@ -106,9 +107,11 @@ alluxio.master.metastore.dir={{alluxio_master_metastore_dir}}
 # alluxio.security.authentication.type=SIMPLE
 
 alluxio.hadoop.security.authentication={{alluxio_authentication}}
+{% if security_enabled %}
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file={{alluxio_kerberos_keytab}}
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal={{alluxio_kerberos_principal}}
 alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
+{% endif %}
 alluxio.master.security.impersonation.yarn.users=*
 
 # 
@@ -130,12 +133,6 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7
 #alluxio.worker.tieredstore.level1.dirs.quota=25GB
 #alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
 #alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
-
-alluxio.worker.tieredstore.level1.alias=HDD
-alluxio.worker.tieredstore.level1.dirs.path={{hdd_dirs}}
-alluxio.worker.tieredstore.level1.dirs.quota={{hdd_quota}}
-alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
-alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
 
 # User properties
 # alluxio.user.file.readtype.default=CACHE

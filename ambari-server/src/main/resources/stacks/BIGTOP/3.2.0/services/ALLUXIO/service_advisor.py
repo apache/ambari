@@ -17,32 +17,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-# Python imports
-from ast import Param
-from ambari_commons import import_utils
 import os
-import traceback
-import re
-import socket
-import fnmatch
 
-
-from resource_management.core.logger import Logger
+from ambari_commons import import_utils
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
 PARENT_FILE = os.path.join(STACKS_DIR, "service_advisor.py")
 
-try:
-  if "BASE_SERVICE_ADVISOR" in os.environ:
-    PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
-  with open(PARENT_FILE, "rb") as fp:
-    service_advisor = import_utils.load_module(
-      "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
-    )
-except Exception as e:
-  traceback.print_exc()
-  print("Failed to load parent")
+if "BASE_SERVICE_ADVISOR" in os.environ:
+  PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
+with open(PARENT_FILE, "rb") as fp:
+  service_advisor = import_utils.load_module(
+    "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
+  )
 
 
 class AlluxioServiceAdvisor(service_advisor.ServiceAdvisor):
@@ -123,21 +111,7 @@ class AlluxioServiceAdvisor(service_advisor.ServiceAdvisor):
     Entry point.
     Must be overriden in child class.
     """
-    # Logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
-    #            (self.__class__.__name__, inspect.stack()[0][3]))
-
-    recommender = AlluxioRecommender()
-    recommender.recommendAlluxioConfigurationsFromHDP33(
-      configurations, clusterData, services, hosts
-    )
-
-  # def getServiceConfigurationRecommendationsForSSO(self, configurations, clusterData, services, hosts):
-  #   """
-  #   Entry point.
-  #   Must be overriden in child class.
-  #   """
-  #   recommender = AlluxioRecommender()
-  #   recommender.recommendConfigurationsForSSO(configurations, clusterData, services, hosts)
+    pass
 
   def getServiceConfigurationsValidationItems(
     self, configurations, recommendedDefaults, services, hosts
@@ -147,9 +121,6 @@ class AlluxioServiceAdvisor(service_advisor.ServiceAdvisor):
     Validate configurations for the service. Return a list of errors.
     The code for this function should be the same for each Service Advisor.
     """
-    # Logger.info("Class: %s, Method: %s. Validating Configurations." %
-    #            (self.__class__.__name__, inspect.stack()[0][3]))
-
     return []
 
   @staticmethod
@@ -191,20 +162,3 @@ class AlluxioServiceAdvisor(service_advisor.ServiceAdvisor):
       )
     else:
       return False
-
-
-class AlluxioRecommender(service_advisor.ServiceAdvisor):
-  """
-  Alluxio Recommender suggests properties when adding the service for the first time or modifying configs via the UI.
-  """
-
-  def __init__(self, *args, **kwargs):
-    self.as_super = super(AlluxioRecommender, self)
-    self.as_super.__init__(*args, **kwargs)
-
-  def recommendAlluxioConfigurationsFromHDP33(
-    self, configurations, clusterData, services, hosts
-  ):
-    """
-    Recommend configurations for this service based on HDP 3.3.
-    """
