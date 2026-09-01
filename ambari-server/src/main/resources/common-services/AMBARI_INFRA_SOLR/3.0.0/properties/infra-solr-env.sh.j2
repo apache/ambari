@@ -17,28 +17,28 @@
 # By default the script will use JAVA_HOME to determine which java
 # to use, but you can set a specific path for Solr to use without
 # affecting other Java applications on your server/workstation.
-SOLR_JAVA_HOME={{java64_home}}
+SOLR_JAVA_HOME={{infra_solr_java_home_assignment}}
 
 # Increase Java Min/Max Heap as needed to support your indexing / query needs
-SOLR_JAVA_MEM="-Xms{{infra_solr_min_mem}}m -Xmx{{infra_solr_max_mem}}m"
+SOLR_JAVA_MEM={{infra_solr_java_mem_assignment}}
 
-SOLR_JAVA_STACK_SIZE="-Xss{{infra_solr_java_stack_size}}m"
+SOLR_JAVA_STACK_SIZE={{infra_solr_java_stack_size_assignment}}
 
-GC_LOG_OPTS="{{infra_solr_gc_log_opts}} -Xloggc:{{infra_solr_log_dir}}/solr_gc.log"
+GC_LOG_OPTS={{infra_solr_gc_log_opts_assignment}}
 
-GC_TUNE="{{infra_solr_gc_tune}}"
+GC_TUNE={{infra_solr_gc_tune_assignment}}
 
 # Set the ZooKeeper connection string if using an external ZooKeeper ensemble
 # e.g. host1:2181,host2:2181/chroot
 # Leave empty if not using SolrCloud
-ZK_HOST="{{zookeeper_quorum}}{{infra_solr_znode}}"
+ZK_HOST={{infra_solr_zk_host_assignment}}
 
 # Set the ZooKeeper client timeout (for SolrCloud mode)
 ZK_CLIENT_TIMEOUT="60000"
 
 # By default the start script uses "localhost"; override the hostname here
 # for production SolrCloud environments to control the hostname exposed to cluster state
-SOLR_HOST=`hostname -f`
+SOLR_HOST={{infra_solr_host_assignment}}
 
 # By default the start script uses UTC; override the timezone if needed
 #SOLR_TIMEZONE="UTC"
@@ -46,10 +46,10 @@ SOLR_HOST=`hostname -f`
 # Set to true to activate the JMX RMI connector to allow remote JMX client applications
 # to monitor the JVM hosting Solr; set to "false" to disable that behavior
 # (false is recommended in production environments)
-ENABLE_REMOTE_JMX_OPTS="{{infra_solr_jmx_enabled}}"
+ENABLE_REMOTE_JMX_OPTS={{infra_solr_jmx_enabled_assignment}}
 
 # The script will use SOLR_PORT+10000 for the RMI_PORT or you can set it here
-RMI_PORT={{infra_solr_jmx_port}}
+RMI_PORT={{infra_solr_jmx_port_assignment}}
 
 # Anything you add to the SOLR_OPTS variable will be included in the java
 # start command line as-is, in ADDITION to other options. If you specify the
@@ -57,37 +57,40 @@ RMI_PORT={{infra_solr_jmx_port}}
 #SOLR_OPTS="$SOLR_OPTS -Dsolr.autoSoftCommit.maxTime=3000"
 #SOLR_OPTS="$SOLR_OPTS -Dsolr.autoCommit.maxTime=60000"
 #SOLR_OPTS="$SOLR_OPTS -Dsolr.clustering.enabled=true"
-SOLR_OPTS="$SOLR_OPTS -Djava.rmi.server.hostname={{hostname}}"
+SOLR_OPTS="$SOLR_OPTS -Djava.rmi.server.hostname=$SOLR_HOST"
 {% if infra_solr_extra_java_opts -%}
-SOLR_OPTS="$SOLR_OPTS {{infra_solr_extra_java_opts}}"
+SOLR_EXTRA_JAVA_OPTS={{infra_solr_extra_java_opts_assignment}}
+SOLR_OPTS="$SOLR_OPTS $SOLR_EXTRA_JAVA_OPTS"
 {% endif %}
 
 # Location where the bin/solr script will save PID files for running instances
 # If not set, the script will create PID files in $SOLR_TIP/bin
-SOLR_PID_DIR={{infra_solr_piddir}}
+SOLR_PID_DIR={{infra_solr_piddir_assignment}}
 
 # Path to a directory where Solr creates index files, the specified directory
 # must contain a solr.xml; by default, Solr will use server/solr
-SOLR_HOME={{infra_solr_datadir}}
+SOLR_HOME={{infra_solr_datadir_assignment}}
 
 # Solr provides a default Log4J configuration properties file in server/resources
 # however, you may want to customize the log settings and file appender location
-# so you can point the script to use a different log4j.properties file
-LOG4J_PROPS={{infra_solr_conf}}/log4j2.xml
+# so you can point the script to a different Log4j2 configuration file
+LOG4J_PROPS={{infra_solr_log4j_assignment}}
 
 # Location where Solr should write logs to; should agree with the file appender
-# settings in server/resources/log4j.properties
-SOLR_LOGS_DIR={{infra_solr_log_dir}}
+# settings in the Log4j2 configuration
+SOLR_LOGS_DIR={{infra_solr_log_dir_assignment}}
 
 # Sets the port Solr binds to, default is 8983
-SOLR_PORT={{infra_solr_port}}
+SOLR_PORT={{infra_solr_port_assignment}}
 
 # Be sure to update the paths to the correct keystore for your environment
 {% if infra_solr_ssl_enabled %}
-SOLR_SSL_KEY_STORE={{infra_solr_keystore_location}}
-SOLR_SSL_KEY_STORE_PASSWORD={{infra_solr_keystore_password}}
-SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location}}
-SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password}}
+SOLR_SSL_KEY_STORE={{infra_solr_keystore_location_assignment}}
+SOLR_SSL_KEY_STORE_PASSWORD={{infra_solr_keystore_password_assignment}}
+SOLR_SSL_KEY_STORE_TYPE={{infra_solr_keystore_type_assignment}}
+SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location_assignment}}
+SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password_assignment}}
+SOLR_SSL_TRUST_STORE_TYPE={{infra_solr_truststore_type_assignment}}
 SOLR_SSL_NEED_CLIENT_AUTH=false
 SOLR_SSL_WANT_CLIENT_AUTH=false
 {% endif %}
@@ -97,11 +100,13 @@ SOLR_SSL_WANT_CLIENT_AUTH=false
 #SOLR_SSL_PORT=
 
 {% if security_enabled -%}
-SOLR_JAAS_FILE={{infra_solr_jaas_file}}
-SOLR_KERB_KEYTAB={{infra_solr_web_kerberos_keytab}}
-SOLR_KERB_PRINCIPAL={{infra_solr_web_kerberos_principal}}
-SOLR_OPTS="$SOLR_OPTS -Dsolr.hdfs.security.kerberos.principal={{infra_solr_kerberos_principal}}"
-SOLR_OPTS="$SOLR_OPTS {{zk_security_opts}}"
+SOLR_JAAS_FILE={{infra_solr_jaas_assignment}}
+SOLR_KERB_KEYTAB={{infra_solr_web_keytab_assignment}}
+SOLR_KERB_PRINCIPAL={{infra_solr_web_principal_assignment}}
+SOLR_SERVICE_PRINCIPAL={{infra_solr_service_principal_assignment}}
+ZK_SECURITY_OPTS={{zk_security_opts_assignment}}
+SOLR_OPTS="$SOLR_OPTS -Dsolr.hdfs.security.kerberos.principal=$SOLR_SERVICE_PRINCIPAL"
+SOLR_OPTS="$SOLR_OPTS $ZK_SECURITY_OPTS"
 
 SOLR_AUTH_TYPE="kerberos"
 SOLR_AUTHENTICATION_OPTS=" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST}"

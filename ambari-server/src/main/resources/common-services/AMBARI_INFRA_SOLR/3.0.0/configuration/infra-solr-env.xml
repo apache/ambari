@@ -110,12 +110,13 @@
   </property>
   <property>
     <name>infra_solr_truststore_password</name>
-    <value>bigdata</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Infra Solr trust store password</display-name>
     <description>Password to open the trust store file.</description>
     <value-attributes>
       <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -135,12 +136,13 @@
   </property>
   <property>
     <name>infra_solr_keystore_password</name>
-    <value>bigdata</value>
+    <value></value>
     <display-name>Infra Solr key store password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Password to open the key store file.</description>
     <value-attributes>
       <type>password</type>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -300,21 +302,6 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-
-  <property>
-    <name>infra_solr_gc_log_opts</name>
-    <value>-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintTenuringDistribution -XX:+PrintGCApplicationStoppedTime -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=15 -XX:GCLogFileSize=200M</value>
-    <display-name>Infra Solr GC log options</display-name>
-    <description>Infra Solr GC log options</description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>infra_solr_gc_tune</name>
-    <value>-XX:NewRatio=3 -XX:SurvivorRatio=4 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=8 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:ConcGCThreads=4 -XX:ParallelGCThreads=4 -XX:+CMSScavengeBeforeRemark -XX:PretenureSizeThreshold=64m -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=50 -XX:CMSMaxAbortablePrecleanTime=6000 -XX:+CMSParallelRemarkEnabled -XX:+ParallelRefProcEnabled</value>
-    <display-name>Infra Solr GC Tune</display-name>
-    <description>Infra Solr GC Tune</description>
     <on-ambari-upgrade add="true"/>
   </property>
 
