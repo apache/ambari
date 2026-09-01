@@ -19,8 +19,6 @@ limitations under the License.
 """
 
 from hcat import hcat
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.functions import stack_select
@@ -46,29 +44,18 @@ class HCatClient(Script):
     raise ClientComponentHasNoStatus()
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
-    """
-    Execute <stack-selector-tool> before reconfiguring this client to the new stack version.
-
-    :param env:
-    :param upgrade_type:
-    :return:
-    """
     Logger.info("Executing Hive HCat Client Stack Upgrade pre-restart")
 
     import params
 
     env.set_params(params)
 
-    # this function should not execute if the stack version does not support rolling upgrade
     if not (
       params.version
       and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version)
     ):
       return
 
-    # HCat client doesn't have a first-class entry in <stack-selector-tool>. Since clients always
-    # update after daemons, this ensures that the hcat directories are correct on hosts
-    # which do not include the WebHCat daemon
     stack_select.select_packages(params.version)
 
 

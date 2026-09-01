@@ -15,60 +15,88 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
-# Ambari Commons & Resource Management Imports
-from resource_management.core.resources.system import Execute, File
-from resource_management.core.source import StaticFile
-from resource_management.libraries.functions.format import format
+import re
+
 from mysql_service import get_daemon_name
+from resource_management.core import shell
+from resource_management.core.exceptions import Fail
+from resource_management.core.resources.system import Execute
+from resource_management.core.utils import PasswordString
 
 
-# Used to add hive access to the needed components
 def mysql_adduser():
   import params
 
-  File(params.mysql_adduser_path, mode=0o755, content=StaticFile("addMysqlUser.sh"))
-  hive_server_host = format("{hive_server_host}")
-  hive_metastore_host = format("{hive_metastore_host}")
-
+  user = _sql_identifier(params.hive_metastore_user_name, "Hive database user")
+  database = _sql_identifier(params.hive_db_schema_name, "Hive database schema")
+  password = _sql_literal(params.hive_metastore_user_passwd)
   daemon_name = get_daemon_name()
+  was_running = _service_is_running(daemon_name)
 
-  add_metastore_cmd = "bash -x {mysql_adduser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_metastore_host}"
-  add_hiveserver_cmd = "bash -x {mysql_adduser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_server_host}"
-  if hive_server_host == hive_metastore_host:
-    cmd = format(add_hiveserver_cmd)
-  else:
-    cmd = format(add_hiveserver_cmd + ";" + add_metastore_cmd)
-  Execute(
-    cmd,
-    tries=3,
-    try_sleep=5,
-    logoutput=False,
-    path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
-  )
+  action = "restart" if was_running else "start"
+  Execute(("service", daemon_name, action), sudo=True, logoutput=True)
+  try:
+    statement = (
+      f"CREATE DATABASE IF NOT EXISTS `{database}`; "
+      f"CREATE USER IF NOT EXISTS '{user}'@'%' IDENTIFIED BY '{password}'; "
+      f"ALTER USER '{user}'@'%' IDENTIFIED BY '{password}'; "
+      f"GRANT ALL PRIVILEGES ON `{database}`.* TO '{user}'@'%'; "
+      "FLUSH PRIVILEGES;"
+    )
+    Execute(
+      ("mysql", "-u", "root", "-e", PasswordString(statement)),
+      sudo=True,
+      tries=3,
+      try_sleep=5,
+      logoutput=False,
+    )
+  finally:
+    if not was_running:
+      Execute(("service", daemon_name, "stop"), sudo=True, logoutput=True)
 
 
-# Removes hive access from components
 def mysql_deluser():
   import params
 
-  File(params.mysql_deluser_path, mode=0o755, content=StaticFile("removeMysqlUser.sh"))
-  hive_server_host = format("{hive_server_host}")
-  hive_metastore_host = format("{hive_metastore_host}")
-
+  user = _sql_identifier(params.hive_metastore_user_name, "Hive database user")
   daemon_name = get_daemon_name()
+  was_running = _service_is_running(daemon_name)
+  if not was_running:
+    Execute(("service", daemon_name, "start"), sudo=True, logoutput=True)
+  try:
+    Execute(
+      (
+        "mysql",
+        "-u",
+        "root",
+        "-e",
+        f"DROP USER IF EXISTS '{user}'@'%'; FLUSH PRIVILEGES;",
+      ),
+      sudo=True,
+      tries=3,
+      try_sleep=5,
+    )
+  finally:
+    if not was_running:
+      Execute(("service", daemon_name, "stop"), sudo=True, logoutput=True)
 
-  del_hiveserver_cmd = "bash -x {mysql_deluser_path} {daemon_name} {hive_metastore_user_name} {hive_server_host}"
-  del_metastore_cmd = "bash -x {mysql_deluser_path} {daemon_name} {hive_metastore_user_name} {hive_metastore_host}"
-  if hive_server_host == hive_metastore_host:
-    cmd = format(del_hiveserver_cmd)
-  else:
-    cmd = format(del_hiveserver_cmd + ";" + del_metastore_cmd)
-  Execute(
-    cmd,
-    tries=3,
-    try_sleep=5,
-    path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+
+def _service_is_running(daemon_name):
+  return_code, _ = shell.call(
+    ("service", daemon_name, "status"),
+    sudo=True,
   )
+  return return_code == 0
+
+
+def _sql_identifier(value, description):
+  value = str(value or "")
+  if not re.fullmatch(r"[A-Za-z0-9_$.-]+", value):
+    raise Fail(f"{description} contains unsupported characters")
+  return value
+
+
+def _sql_literal(value):
+  return str(value or "").replace("\\", "\\\\").replace("'", "''")
