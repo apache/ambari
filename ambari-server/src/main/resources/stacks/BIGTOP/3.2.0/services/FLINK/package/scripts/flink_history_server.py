@@ -18,19 +18,13 @@ limitations under the License.
 
 """
 
-import sys
-import os
-
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.core.logger import Logger
-from resource_management.core import shell
-from setup_flink import *
+from setup_flink import setup_flink
+import flink_process
 from flink_service import flink_service
 
 
@@ -58,9 +52,9 @@ class FlinkHistoryServer(Script):
     flink_service("historyserver", upgrade_type=upgrade_type, action="start")
 
   def stop(self, env, upgrade_type=None):
-    import params
+    import status_params
 
-    env.set_params(params)
+    env.set_params(status_params)
 
     flink_service("historyserver", upgrade_type=upgrade_type, action="stop")
 
@@ -69,7 +63,16 @@ class FlinkHistoryServer(Script):
 
     env.set_params(status_params)
 
-    check_process_status(status_params.flink_history_server_pid_file)
+    identity = flink_process.read_or_recover_process(
+      status_params.flink_history_server_pid_file,
+      status_params.flink_user,
+      status_params.user_group,
+      status_params.flink_config_dir,
+    )
+    if identity is None:
+      from resource_management.core.exceptions import ComponentIsNotRunning
+
+      raise ComponentIsNotRunning()
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
