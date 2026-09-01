@@ -120,7 +120,7 @@ def ams_service(name, action):
         (
           params.python_binary,
           "-c",
-          "import sys; raise SystemExit(0 if sys.version_info >= (3, 9, 2) else 1)",
+          "import sys; raise SystemExit(0 if (3, 9, 2) <= sys.version_info < (3, 10) else 1)",
         ),
         user=params.ams_user,
         timeout=15,

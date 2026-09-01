@@ -80,7 +80,7 @@
     <name>metrics_monitor_python_binary</name>
     <value>/usr/bin/python3.9</value>
     <display-name>Metrics Monitor Python Interpreter</display-name>
-    <description>Absolute path to the Python 3.9.2 or newer interpreter used by Metrics Monitor.</description>
+    <description>Absolute path to a Python 3.9 interpreter, version 3.9.2 or newer, used by Metrics Monitor.</description>
     <value-attributes>
       <type>path</type>
     </value-attributes>

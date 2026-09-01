@@ -274,7 +274,7 @@ class TestAmbariMetricsLifecycleRollback(unittest.TestCase):
       (
         "/usr/bin/python3.9",
         "-c",
-        "import sys; raise SystemExit(0 if sys.version_info >= (3, 9, 2) else 1)",
+        "import sys; raise SystemExit(0 if (3, 9, 2) <= sys.version_info < (3, 10) else 1)",
       ),
       execute.call_args_list[0].args[0],
     )
