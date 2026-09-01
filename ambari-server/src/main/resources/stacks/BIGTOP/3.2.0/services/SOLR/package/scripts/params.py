@@ -19,8 +19,9 @@ limitations under the License.
 """
 
 import os
-from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.core.shell import quote_bash_args
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
@@ -51,7 +52,6 @@ def get_name_from_principal(principal):
 
 # config object that holds the configurations declared in the -site.xml file
 config = Script.get_config()
-tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
 
 # This is expected to be of the form #.#.#
@@ -59,7 +59,6 @@ stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 stack_version = default("/commandParams/version", None)
-sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 component_directory = status_params.component_directory
 
@@ -70,10 +69,8 @@ solr_conf = "/etc/solr/conf"
 solr_port = status_params.solr_port
 solr_piddir = status_params.solr_piddir
 solr_pidfile = status_params.solr_pidfile
-prev_solr_pidfile = status_params.prev_solr_pidfile
 
 user_group = config["configurations"]["cluster-env"]["user_group"]
-fetch_nonlocal_groups = config["configurations"]["cluster-env"]["fetch_nonlocal_groups"]
 
 limits_conf_dir = "/etc/security/limits.d"
 solr_user_nofile_limit = default(
@@ -90,19 +87,11 @@ ambari_java_home = config['ambariLevelParams']['ambari_java_home']
 ambari_java_exec = format("{ambari_java_home}/bin/java")
 
 java64_home = java_home
-java_exec = format("{java64_home}/bin/java")
-
-zookeeper_hosts_list = config["clusterHostInfo"]["zookeeper_server_hosts"]
-zookeeper_hosts_list.sort()
-# get comma separated list of zookeeper hosts from clusterHostInfo
-zookeeper_hosts = ",".join(zookeeper_hosts_list)
 
 #####################################
 # Solr configs
 #####################################
 
-# Only supporting SolrCloud mode - so hardcode those options
-solr_cloudmode = "true"
 solr_dir = "/usr/lib/solr"
 
 if stack_version_formatted and check_stack_feature(
@@ -130,7 +119,6 @@ if "solr-env" in config["configurations"]:
   solr_java_stack_size = format(
     config["configurations"]["solr-env"]["solr_java_stack_size"]
   )
-  solr_instance_count = len(config["clusterHostInfo"]["solr_server_hosts"])
   solr_datadir = format(config["configurations"]["solr-env"]["solr_datadir"])
   solr_data_resources_dir = os.path.join(solr_datadir, "resources")
   solr_jmx_port = config["configurations"]["solr-env"]["solr_jmx_port"]
@@ -141,17 +129,14 @@ if "solr-env" in config["configurations"]:
   solr_keystore_password = config["configurations"]["solr-env"][
     "solr_keystore_password"
   ]
-  solr_keystore_type = config["configurations"]["solr-env"]["solr_keystore_type"]
   solr_truststore_location = config["configurations"]["solr-env"][
     "solr_truststore_location"
   ]
   solr_truststore_password = config["configurations"]["solr-env"][
     "solr_truststore_password"
   ]
-  solr_truststore_type = config["configurations"]["solr-env"]["solr_truststore_type"]
   solr_user = config["configurations"]["solr-env"]["solr_user"]
   solr_log_dir = config["configurations"]["solr-env"]["solr_log_dir"]
-  solr_log = format("{solr_log_dir}/solr-install.log")
   solr_env_content = config["configurations"]["solr-env"]["content"]
   solr_gc_log_opts = format(config["configurations"]["solr-env"]["solr_gc_log_opts"])
   solr_gc_tune = format(config["configurations"]["solr-env"]["solr_gc_tune"])
@@ -161,11 +146,6 @@ if "solr-env" in config["configurations"]:
 
   zk_quorum = format(
     default("configurations/solr-env/solr_zookeeper_quorum", zookeeper_quorum)
-  )
-
-if "solr-security-json" in config["configurations"]:
-  solr_security_manually_managed = default(
-    "/configurations/solr-security-json/solr_security_manually_managed", False
   )
 
 default_ranger_audit_users = "nn,hbase,hive,knox,kafka,kms,storm,yarn,nifi"
@@ -187,7 +167,6 @@ if security_enabled:
   solr_kerberos_name_rules = config["configurations"]["solr-env"][
     "solr_kerberos_name_rules"
   ]
-  solr_sasl_user = get_name_from_principal(solr_kerberos_principal)
   kerberos_realm = config["configurations"]["kerberos-env"]["realm"]
 
   zookeeper_principal_name = default(
@@ -284,6 +263,61 @@ solr_security_json_content = config["configurations"]["solr-security-json"]["con
 solr_jmx_enabled = str(
   default("/configurations/solr-env/solr_jmx_enabled", False)
 ).lower()
+
+
+def shell_assignment(value):
+  return quote_bash_args(str(value))
+
+
+solr_java_home_assignment = shell_assignment(java64_home)
+solr_java_mem_assignment = shell_assignment(
+  f"-Xms{solr_min_mem}m -Xmx{solr_max_mem}m"
+)
+solr_java_stack_size_assignment = shell_assignment(f"-Xss{solr_java_stack_size}m")
+if java_version >= 9:
+  solr_gc_log_opts_assignment = shell_assignment(
+    f"-Xlog:gc*:file={solr_log_dir}/solr_gc.log:"
+    "time,uptime,level,tags:filecount=15,filesize=200M"
+  )
+  solr_gc_tune_assignment = shell_assignment(
+    "-XX:+UseG1GC -XX:MaxGCPauseMillis=250 -XX:+ParallelRefProcEnabled"
+  )
+else:
+  solr_gc_log_opts_assignment = shell_assignment(
+    f"{solr_gc_log_opts} -Xloggc:{solr_log_dir}/solr_gc.log"
+  )
+  solr_gc_tune_assignment = shell_assignment(solr_gc_tune)
+
+solr_zk_host_assignment = shell_assignment(f"{zookeeper_quorum}{solr_znode}")
+solr_jmx_enabled_assignment = shell_assignment(solr_jmx_enabled)
+solr_jmx_port_assignment = shell_assignment(solr_jmx_port)
+solr_rmi_hostname_assignment = shell_assignment(hostname)
+solr_extra_java_opts_assignment = shell_assignment(solr_extra_java_opts)
+solr_piddir_assignment = shell_assignment(solr_piddir)
+solr_datadir_assignment = shell_assignment(solr_datadir)
+solr_log4j_props_assignment = shell_assignment(f"{solr_conf}/log4j2.xml")
+solr_log_dir_assignment = shell_assignment(solr_log_dir)
+solr_port_assignment = shell_assignment(solr_port)
+
+if solr_ssl_enabled:
+  solr_keystore_location_assignment = shell_assignment(solr_keystore_location)
+  solr_keystore_password_assignment = shell_assignment(solr_keystore_password)
+  solr_truststore_location_assignment = shell_assignment(solr_truststore_location)
+  solr_truststore_password_assignment = shell_assignment(solr_truststore_password)
+
+if security_enabled:
+  solr_jaas_file_assignment = shell_assignment(solr_jaas_file)
+  solr_web_kerberos_keytab_assignment = shell_assignment(solr_web_kerberos_keytab)
+  solr_web_kerberos_principal_assignment = shell_assignment(
+    solr_web_kerberos_principal
+  )
+  solr_hdfs_kerberos_option_assignment = shell_assignment(
+    f"-Dsolr.hdfs.security.kerberos.principal={solr_kerberos_principal}"
+  )
+  solr_kerberos_name_rules_assignment = shell_assignment(
+    f"-Dsolr.kerberos.name.rules={solr_kerberos_name_rules}"
+  )
+  zk_security_opts_assignment = shell_assignment(zk_security_opts)
 
 # Solr log4j
 log_maxfilesize = default("configurations/solr-log4j/log_maxfilesize", 10)

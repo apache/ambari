@@ -20,7 +20,6 @@ limitations under the License.
 # Python imports
 from ambari_commons import import_utils
 import os
-import traceback
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
@@ -33,9 +32,8 @@ try:
     service_advisor = import_utils.load_module(
       "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
     )
-except Exception as e:
-  traceback.print_exc()
-  print("Failed to load parent")
+except Exception as error:
+  raise RuntimeError(f"Failed to load parent service advisor {PARENT_FILE}") from error
 
 
 class SolrServiceAdvisor(service_advisor.ServiceAdvisor):
