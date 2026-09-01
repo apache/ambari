@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import importlib.util
+import json
 from pathlib import Path
 import sys
 from types import ModuleType
@@ -63,6 +64,39 @@ class TestLivyConfigurationContract(unittest.TestCase):
     root = ElementTree.parse(LIVY_33 / "metainfo.xml").getroot()
     self.assertEqual("LIVY", root.findtext("./services/service/name"))
     self.assertEqual("0.8.0-1", root.findtext("./services/service/version"))
+
+    inherited_root = ElementTree.parse(LIVY / "metainfo.xml").getroot()
+    self.assertEqual(
+      "0.7.1-1", inherited_root.findtext("./services/service/version")
+    )
+
+  def test_package_metadata_matches_bigtop_livy_artifacts(self):
+    root = ElementTree.parse(LIVY / "metainfo.xml").getroot()
+    os_packages = {
+      node.findtext("osFamily"): [
+        package.findtext("name") for package in node.findall("packages/package")
+      ]
+      for node in root.findall("./services/service/osSpecifics/osSpecific")
+    }
+    self.assertEqual(
+      ["spark_${stack_version}-core", "spark_${stack_version}-python", "livy"],
+      os_packages["redhat8,redhat9,openeuler22"],
+    )
+    self.assertEqual(
+      ["spark-${stack_version}-core", "spark-${stack_version}-python", "livy"],
+      os_packages["debian10,debian11,ubuntu20,ubuntu22"],
+    )
+
+    stack_packages = json.loads(
+      (LIVY.parents[2] / "properties/stack_packages.json").read_text(
+        encoding="utf-8"
+      )
+    )["stack-packages"]["LIVY"]
+    self.assertEqual({"LIVY_SERVER"}, set(stack_packages))
+    server_packages = stack_packages["LIVY_SERVER"]
+    self.assertEqual("livy-server", server_packages["STACK-SELECT-PACKAGE"])
+    for package_scope in ("INSTALL", "PATCH", "STANDARD"):
+      self.assertEqual(["livy"], server_packages[package_scope])
 
   def test_metainfo_declares_only_configs_consumed_by_livy_scripts(self):
     root = ElementTree.parse(LIVY / "metainfo.xml").getroot()

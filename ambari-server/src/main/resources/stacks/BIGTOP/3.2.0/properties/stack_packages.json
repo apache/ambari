@@ -322,28 +322,16 @@
         }
       },
       "LIVY": {
-        "LIVY_CLIENT": {
-          "STACK-SELECT-PACKAGE": "livy-client",
-          "INSTALL": [
-            "livy-client"
-          ],
-          "PATCH": [
-            "livy-client"
-          ],
-          "STANDARD": [
-            "livy-client"
-          ]
-        },
         "LIVY_SERVER": {
           "STACK-SELECT-PACKAGE": "livy-server",
           "INSTALL": [
-            "livy-server"
+            "livy"
           ],
           "PATCH": [
-            "livy-server"
+            "livy"
           ],
           "STANDARD": [
-            "livy-server"
+            "livy"
           ]
         }
       },
