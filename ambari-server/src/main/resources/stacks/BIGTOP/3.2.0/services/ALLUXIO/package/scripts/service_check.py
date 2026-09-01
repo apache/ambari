@@ -9,25 +9,15 @@ with the License.  You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agree in writing, software
+Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import subprocess
-import time
-import os
-
-from resource_management.core.exceptions import Fail
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Execute
-from resource_management.core.logger import Logger
-
-
-CHECK_COMMAND_TIMEOUT_DEFAULT = 300.0
+from resource_management.libraries.script.script import Script
 
 
 class AlluxioServiceCheck(Script):
@@ -36,7 +26,7 @@ class AlluxioServiceCheck(Script):
 
     env.set_params(params)
 
-    Execute(params.alluxio_test_cmd, user=params.alluxio_user)
+    Execute(params.alluxio_test_cmd, user=params.alluxio_user, timeout=300)
 
 
 if __name__ == "__main__":

@@ -19,8 +19,12 @@ limitations under the License.
 """
 
 import os
-from resource_management import *
-import time
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.functions import safe_process
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.script.script import Script
 
 
 class AlluxioWorker(Script):
@@ -33,10 +37,10 @@ class AlluxioWorker(Script):
     env.set_params(params)
 
     Directory(
-      [params.alluxio_pid_dir, params.alluxio_journal_dir],
+      [params.alluxio_pid_dir],
       owner=params.alluxio_user,
       group=params.alluxio_group,
-      mode=0o775,
+      mode=0o770,
       create_parents=True,
     )
 
@@ -44,14 +48,14 @@ class AlluxioWorker(Script):
       [params.alluxio_log_dir, os.path.join(params.alluxio_log_dir, "user")],
       owner=params.alluxio_user,
       group=params.alluxio_group,
-      mode=0o777,
+      mode=0o770,
       create_parents=True,
     )
 
     # create alluxio-site.properties in alluxio install dir
     File(
       os.path.join(params.alluxio_conf_dir, "alluxio-site.properties"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       content=InlineTemplate(params.alluxio_site_properties),
       mode=0o644,
@@ -60,16 +64,16 @@ class AlluxioWorker(Script):
     # create alluxio-env.sh in alluxio install dir
     File(
       os.path.join(params.alluxio_conf_dir, "alluxio-env.sh"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       content=InlineTemplate(params.alluxio_env_sh),
-      mode=0o775,
+      mode=0o640,
     )
 
     # create log4j2.properties alluxio install dir
     File(
       os.path.join(params.alluxio_conf_dir, "log4j.properties"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       content=InlineTemplate(params.alluxio_log4j2_properties),
       mode=0o644,
@@ -78,7 +82,7 @@ class AlluxioWorker(Script):
     # masters
     File(
       format("{alluxio_conf_dir}/masters"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       mode=0o644,
       content=Template("masters.j2", conf_dir=params.alluxio_conf_dir),
@@ -87,7 +91,7 @@ class AlluxioWorker(Script):
     # workers
     File(
       format("{alluxio_conf_dir}/workers"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       mode=0o644,
       content=Template("workers.j2", conf_dir=params.alluxio_conf_dir),
@@ -100,7 +104,46 @@ class AlluxioWorker(Script):
 
     self.configure(env)
 
-    Execute(("bash", "-c", params.alluxio_worker_mount_cmd), sudo=True)
+    pid_in_file = safe_process.read_pid(params.alluxio_worker_pid_file)
+    if pid_in_file is None:
+      identity = safe_process.discover_running_process(
+        params.alluxio_user, params.alluxio_worker_process_class
+      )
+      if identity is not None:
+        safe_process.create_pid_file_for_identity(
+          params.alluxio_worker_pid_file,
+          identity,
+          params.alluxio_user,
+          params.alluxio_worker_process_class,
+          params.alluxio_user,
+          params.alluxio_group,
+          mode=0o640,
+        )
+        return
+    else:
+      identity = safe_process.read_running_process(
+        params.alluxio_worker_pid_file,
+        params.alluxio_user,
+        params.alluxio_worker_process_class,
+      )
+      if identity is None:
+        raise Fail(
+          f"Alluxio worker PID file refers to a stale process {pid_in_file}"
+        )
+      return
+
+    Execute(params.alluxio_worker_mount_cmd, sudo=True)
+
+    if params.security_enabled:
+      Execute(
+        (
+          params.kinit_path_local,
+          "-kt",
+          params.alluxio_service_kerberos_keytab,
+          params.kinit_principal,
+        ),
+        user=params.alluxio_user,
+      )
 
     Execute(
       params.alluxio_worker_start_cmd,
@@ -108,29 +151,90 @@ class AlluxioWorker(Script):
       environment={"JAVA_HOME": params.java_home},
     )
 
-    Execute(
-      params.alluxio_worker_pid_cmd,
-      user=params.alluxio_user,
-      environment={"JAVA_HOME": params.java_home},
+    identity = safe_process.wait_for_discovered_process(
+      params.alluxio_user,
+      params.alluxio_worker_process_class,
+      attempts=60,
+      sleep_seconds=1,
     )
+    pid_in_file = safe_process.read_pid(params.alluxio_worker_pid_file)
+    if pid_in_file is None:
+      safe_process.create_pid_file_for_identity(
+        params.alluxio_worker_pid_file,
+        identity,
+        params.alluxio_user,
+        params.alluxio_worker_process_class,
+        params.alluxio_user,
+        params.alluxio_group,
+        mode=0o640,
+      )
+    elif pid_in_file != identity.pid:
+      raise Fail("Alluxio worker PID file does not match the started process")
+
+    stored_identity = safe_process.read_running_process(
+      params.alluxio_worker_pid_file,
+      params.alluxio_user,
+      params.alluxio_worker_process_class,
+    )
+    if stored_identity is None or not identity.matches(stored_identity):
+      raise Fail("Alluxio worker process changed while its PID file was being stored")
 
   def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
-    self.configure(env)
 
-    Execute(
-      params.alluxio_worker_stop_cmd,
-      user=params.alluxio_user,
-      environment={"JAVA_HOME": params.java_home},
+    pid_in_file = safe_process.read_pid(params.alluxio_worker_pid_file)
+    if pid_in_file is None:
+      identity = safe_process.discover_running_process(
+        params.alluxio_user, params.alluxio_worker_process_class
+      )
+    else:
+      identity = safe_process.read_running_process(
+        params.alluxio_worker_pid_file,
+        params.alluxio_user,
+        params.alluxio_worker_process_class,
+      )
+      if identity is None:
+        raise Fail(
+          f"Alluxio worker PID file refers to a stale process {pid_in_file}"
+        )
+    if identity is None:
+      return
+
+    safe_process.terminate_process(
+      identity,
+      params.alluxio_user,
+      params.alluxio_worker_process_class,
+    )
+    safe_process.remove_pid_file_if_stopped(
+      params.alluxio_worker_pid_file,
+      identity.pid,
+      params.alluxio_user,
+      params.alluxio_worker_process_class,
     )
 
   def status(self, env):
     import params
 
     env.set_params(params)
-    check_process_status(params.alluxio_worker_pid_file)
+    pid_in_file = safe_process.read_pid(params.alluxio_worker_pid_file)
+    if pid_in_file is None:
+      identity = safe_process.discover_running_process(
+        params.alluxio_user, params.alluxio_worker_process_class
+      )
+    else:
+      identity = safe_process.read_running_process(
+        params.alluxio_worker_pid_file,
+        params.alluxio_user,
+        params.alluxio_worker_process_class,
+      )
+      if identity is None:
+        raise Fail(
+          f"Alluxio worker PID file refers to a stale process {pid_in_file}"
+        )
+    if identity is None:
+      raise ComponentIsNotRunning("Alluxio worker is not running")
 
   def get_user(self):
     import params
