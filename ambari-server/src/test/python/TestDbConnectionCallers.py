@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 from pathlib import Path
-from types import ModuleType, SimpleNamespace
+from types import SimpleNamespace
 import sys
 from unittest import TestCase
 from unittest.mock import patch
@@ -31,18 +31,10 @@ STACK_ROOT = (
   Path(__file__).resolve().parents[2]
   / "main/resources/stacks/BIGTOP"
 )
-HIVE_PID_STUB = ModuleType("hive_pid_utils")
-HIVE_PID_STUB.is_pid_file_process_running = lambda *_args, **_kwargs: False
-HIVE_PID_STUB.read_pid = lambda *_args, **_kwargs: None
-HIVE_PID_STUB.terminate_process = lambda *_args, **_kwargs: None
-with patch.dict(sys.modules, {"hive_pid_utils": HIVE_PID_STUB}):
-  HIVE_SERVICE = import_utils.load_source(
-    "bigtop_hive_db_connection",
-    str(
-      STACK_ROOT
-      / "3.2.0/services/HIVE/package/scripts/hive_service.py"
-    ),
-  )
+HIVE_SERVICE = import_utils.load_source(
+  "bigtop_hive_db_connection",
+  str(STACK_ROOT / "3.2.0/services/HIVE/package/scripts/hive_service.py"),
+)
 RANGER_SETUP = import_utils.load_source(
   "bigtop_ranger_db_connection",
   str(
