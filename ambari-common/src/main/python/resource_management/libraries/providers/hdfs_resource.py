@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# !/usr/bin/env python
+#!/usr/bin/env ambari-python-wrap
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -324,9 +324,6 @@ class WebHDFSUtil:
 
     if self.security_enabled:
       cmd += ["--negotiate", "-u", ":"]
-    if self.is_https_enabled:
-      cmd += ["-k"]
-
     cmd.append(url)
     _, out, err = get_user_call_output(
       cmd, user=self.run_user, logoutput=self.logoutput, quiet=False
@@ -899,11 +896,13 @@ class HdfsResourceProvider(Provider):
     if not hdfs_resource_ignore_file or not os.path.exists(hdfs_resource_ignore_file):
       return []
 
-    with open(hdfs_resource_ignore_file, "rb") as fp:
+    with open(hdfs_resource_ignore_file, "r", encoding="utf-8") as fp:
       content = fp.read()
 
     hdfs_resources_to_ignore = []
     for hdfs_resource_to_ignore in content.split("\n"):
+      if not hdfs_resource_to_ignore.strip():
+        continue
       hdfs_resources_to_ignore.append(
         HdfsResourceProvider.parse_path(hdfs_resource_to_ignore)
       )

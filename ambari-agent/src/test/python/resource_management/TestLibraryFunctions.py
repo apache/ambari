@@ -18,11 +18,26 @@ limitations under the License.
 """
 
 from unittest import TestCase
+import os
+import tempfile
+
 from resource_management.libraries.functions import get_port_from_url
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.providers.hdfs_resource import HdfsResourceProvider
 
 
 class TestLibraryFunctions(TestCase):
+  def test_hdfs_ignore_list_reads_python3_text_and_skips_blank_lines(self):
+    with tempfile.TemporaryDirectory() as temporary_directory:
+      ignore_file = os.path.join(temporary_directory, "ignored-resources")
+      with open(ignore_file, "w", encoding="utf-8") as stream:
+        stream.write("hdfs://namenode/path one\n\n/other//path\n")
+
+      self.assertEqual(
+        ["/path%20one", "/other/path"],
+        HdfsResourceProvider.get_ignored_resources_list(ignore_file),
+      )
+
   def test_get_port_from_url(self):
     self.assertEqual("", get_port_from_url(None))
     self.assertEqual("", get_port_from_url(""))

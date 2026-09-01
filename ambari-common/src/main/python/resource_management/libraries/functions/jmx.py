@@ -36,9 +36,6 @@ def get_value_from_jmx(
     else:
       cmd = ["curl", "-s"]
 
-    if is_https_enabled:
-      cmd.append("-k")
-
     cmd.append(qry)
 
     _, data, _ = get_user_call_output(cmd, user=run_user, quiet=False)

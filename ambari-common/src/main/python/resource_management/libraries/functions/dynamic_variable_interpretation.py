@@ -151,7 +151,7 @@ def _copy_files(
       except Exception as e:
         Logger.error(
           "Failed to copy file. Source: %s, Destination: %s. Error: %s"
-          % (source, destination, e.message)
+          % (source, destination, e)
         )
         return_value = 1
   return return_value

@@ -31,13 +31,15 @@ from only_for_platform import (
 from ambari_commons.os_check import OSCheck
 
 from resource_management.core.system import System
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, ExecuteScript
 from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 from resource_management.core.shell import quote_bash_args
 
 import subprocess
 import logging
 import os
+import sys
 from resource_management import Fail
 
 import grp
@@ -48,25 +50,64 @@ import select
 
 @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
 class TestExecuteResource(TestCase):
+  @patch("resource_management.core.providers.system._ensure_metadata")
+  @patch("resource_management.core.providers.system.shell.call")
+  def test_execute_script_writes_python3_text(self, shell_call_mock, metadata_mock):
+    captured = {}
+
+    def read_script(command, **_kwargs):
+      with open(command[1], "r", encoding="utf-8") as stream:
+        captured["content"] = stream.read()
+      return 0, ""
+
+    shell_call_mock.side_effect = read_script
+    with Environment("/"):
+      ExecuteScript("inline", code="echo 'Ambari'\n")
+
+    self.assertEqual("echo 'Ambari'\n", captured["content"])
+    metadata_mock.assert_called_once()
+    self.assertIsNone(shell_call_mock.call_args.kwargs["user"])
+
+  @patch("resource_management.core.providers.system._ensure_metadata")
+  @patch("resource_management.core.providers.system.shell.call")
+  def test_execute_script_delegates_user_switching(
+    self, shell_call_mock, metadata_mock
+  ):
+    with Environment("/"):
+      ExecuteScript("inline", code="echo 'Ambari'\n", user="ambari")
+
+    metadata_mock.assert_called_once()
+    self.assertEqual("ambari", shell_call_mock.call_args.kwargs["user"])
+
+  @patch.object(Logger, "isEnabledFor", return_value=True)
+  @patch.object(Logger.logger, "isEnabledFor", return_value=True)
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch.object(logging.Logger, "info")
+  @patch.object(sys.stdout, "write")
   @patch.object(subprocess, "Popen")
-  def test_attribute_logoutput(self, popen_mock, info_mock, select_mock, os_read_mock):
+  def test_attribute_logoutput(
+    self,
+    popen_mock,
+    stdout_write_mock,
+    select_mock,
+    os_read_mock,
+    logger_enabled_mock,
+    facade_enabled_mock,
+  ):
     subproc_mock = MagicMock()
     subproc_mock.wait.return_value = MagicMock()
     subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
     popen_mock.return_value = subproc_mock
     select_mock.return_value = ([subproc_mock.stdout], None, None)
-    os_read_mock.return_value = None
+    os_read_mock.side_effect = [b"1", b"", b"2", b""]
 
     with Environment("/") as env:
       Execute('echo "1"', logoutput=True)
       Execute('echo "2"', logoutput=False)
 
-    info_mock.assert_called("1")
-    self.assertTrue("call('2')" not in str(info_mock.mock_calls))
+    stdout_write_mock.assert_any_call("1")
+    self.assertNotIn(call("2"), stdout_write_mock.mock_calls)
 
   @patch("subprocess.Popen.communicate")
   @patch.object(subprocess, "Popen")

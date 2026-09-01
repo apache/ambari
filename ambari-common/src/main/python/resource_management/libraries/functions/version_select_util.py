@@ -151,6 +151,6 @@ def get_versions_from_stack_root(stack_root):
   installed_stack_versions = [
     f
     for f in os.listdir(stack_root)
-    if os.path.isdir(os.path.join(stack_root, f)) and re.match("([\d\.]+(-\d+)?)", f)
+    if os.path.isdir(os.path.join(stack_root, f)) and re.match(r"([\d\.]+(-\d+)?)", f)
   ]
   return installed_stack_versions

@@ -54,6 +54,13 @@ DEFAULT_KERBEROS_KINIT_TIMER_MS = 14400000
 KERBEROS_KINIT_TIMER_PARAMETER = "kerberos.kinit.timer"
 
 
+def is_kinit_refresh_required(current_time, last_kinit_time, kinit_timer_ms):
+  if not last_kinit_time:
+    return True
+  elapsed_ms = max(0, current_time - last_kinit_time) * 1000
+  return elapsed_ms >= max(0, int(kinit_timer_ms))
+
+
 def curl_krb_request(
   tmp_dir,
   keytab,
@@ -70,6 +77,7 @@ def curl_krb_request(
   method="",
   body="",
   header="",
+  use_system_proxy_settings=True,
 ):
   """
   Makes a curl request using the kerberos credentials stored in a calculated cache file. The
@@ -144,8 +152,9 @@ def curl_krb_request(
     # executing a klist and then a curl
     last_kinit_time = _KINIT_CACHE_TIMES.get(ccache_file_name, 0)
     current_time = int(time.time())
-    if current_time - kinit_timer_ms > last_kinit_time:
-      is_kinit_required = True
+    is_kinit_required = is_kinit_refresh_required(
+      current_time, last_kinit_time, kinit_timer_ms
+    )
 
     # if the time has not expired, double-check that the cache still has a valid ticket
     if not is_kinit_required:
@@ -201,14 +210,14 @@ def curl_krb_request(
   connection_timeout = int(connection_timeout)
   maximum_timeout = connection_timeout + 2
 
-  ssl_options = ["-k"]
-  if ca_certs:
-    ssl_options = ["--cacert", ca_certs]
+  ssl_options = ["--cacert", ca_certs] if ca_certs else []
+  proxy_options = [] if use_system_proxy_settings else ["--noproxy", "*"]
   try:
     if return_only_http_code:
       _, curl_stdout, curl_stderr = get_user_call_output(
         ["curl", "--location-trusted"]
         + ssl_options
+        + proxy_options
         + [
           "--negotiate",
           "-u",
@@ -234,6 +243,7 @@ def curl_krb_request(
       curl_command = (
         ["curl", "--location-trusted"]
         + ssl_options
+        + proxy_options
         + [
           "--negotiate",
           "-u",

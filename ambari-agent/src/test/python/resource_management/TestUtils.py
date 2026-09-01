@@ -19,10 +19,14 @@ limitations under the License.
 
 import stat
 from unittest import TestCase
-from resource_management.core.utils import attr_to_bitmask
+from resource_management.core.utils import AttributeDictionary, attr_to_bitmask
 
 
 class TestUtils(TestCase):
+  def test_attribute_dictionary_unicode_compatibility_uses_python3_string(self):
+    self.assertEqual("{'key': 'value'}", AttributeDictionary(key="value").__unicode__())
+    self.assertEqual("value", AttributeDictionary("value").__unicode__())
+
   def test_attr_to_bitmask(self):
     test_set = [
       ["+r", stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH, 0],

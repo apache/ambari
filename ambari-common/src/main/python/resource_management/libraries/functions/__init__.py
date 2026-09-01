@@ -20,8 +20,6 @@ Ambari Agent
 
 """
 
-import platform
-
 from resource_management.libraries.functions.default import *
 from resource_management.libraries.functions.format import *
 from resource_management.libraries.functions.find_path import *

@@ -132,7 +132,7 @@ class CommandRepository(object):
 
   def __init__(self, repo_object):
     """
-    :type repo_object dict|basestring
+    :type repo_object dict|str
     """
 
     if isinstance(repo_object, dict):

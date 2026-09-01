@@ -31,6 +31,7 @@ from resource_management.libraries.functions.get_stack_version import get_stack_
 from resource_management.core.logger import Logger
 from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
+from resource_management.core.exceptions import Fail
 from resource_management.core.utils import PasswordString
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format

@@ -22,7 +22,7 @@ Ambari Agent
 
 import os
 import re
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE, STDOUT, check_call
 
 from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
@@ -65,7 +65,7 @@ def get_fstab(self):
   with open("/etc/fstab", "r") as fp:
     for line in fp:
       line = line.split("#", 1)[0].strip()
-      mount = re.split("\s+", line)
+      mount = re.split(r"\s+", line)
       if len(mount) == 6:
         mounts.append(
           dict(

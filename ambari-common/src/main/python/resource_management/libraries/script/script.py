@@ -25,20 +25,18 @@ __all__ = ["Script"]
 import re
 import os
 import sys
-import ssl
 import logging
 import inspect
 import tarfile
 import traceback
 import time
-from optparse import OptionParser
+import argparse
 import resource_management
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
-from ambari_commons.network import reconfigure_urllib2_opener
-from ambari_commons.inet_utils import resolve_address, ensure_ssl_using_protocol
+from ambari_commons.inet_utils import resolve_address, resolve_tls_client_protocol
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
@@ -90,7 +88,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/tmp
-[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1_2
+[PROTOCOL] optional protocol to use during https connections. Supported values are PROTOCOL_TLS_CLIENT and legacy PROTOCOL_TLSv1_2; default PROTOCOL_TLS_CLIENT
 """
 
 _PASSWORD_MAP = {
@@ -148,9 +146,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-  force_https_protocol = (
-    "PROTOCOL_TLSv1_2" if hasattr(ssl, "PROTOCOL_TLSv1_2") else "PROTOCOL_TLSv1"
-  )
+  force_https_protocol = "PROTOCOL_TLS_CLIENT"
   ca_cert_file_path = None
 
   def load_structured_out(self):
@@ -315,15 +311,17 @@ class Script(object):
     Sets up logging;
     Parses command parameters and executes method relevant to command type
     """
-    parser = OptionParser()
-    parser.add_option(
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
       "-o",
       "--out-files-logging",
       dest="log_out_files",
       action="store_true",
       help="use this option to enable outputting *.out files of the service pre-start",
     )
-    (self.options, args) = parser.parse_args()
+    parser.add_argument("script_arguments", nargs="*")
+    self.options = parser.parse_args()
+    args = self.options.script_arguments
 
     self.log_out_files = self.options.log_out_files
 
@@ -354,11 +352,6 @@ class Script(object):
     if self.command_name == "status":
       Script.structuredOut = {}
       self.put_structured_out({})
-
-    # make sure that script has forced https protocol and ca_certs file passed from agent
-    ensure_ssl_using_protocol(
-      Script.get_force_https_protocol_name(), Script.get_ca_cert_file_path()
-    )
 
     try:
       with open(self.command_data_file) as f:
@@ -577,7 +570,7 @@ class Script(object):
 
     package_delimiter = "-" if OSCheck.is_ubuntu_family() else "_"
     package_regex = (
-      name.replace(STACK_VERSION_PLACEHOLDER, f"(\d|{package_delimiter})+") + "$"
+      name.replace(STACK_VERSION_PLACEHOLDER, rf"(\d|{package_delimiter})+") + "$"
     )
     repo = default("/repositoryFile", None)
     name_with_version = None
@@ -743,7 +736,7 @@ class Script(object):
     """
     Get forced https protocol name.
 
-    :return: protocol name, PROTOCOL_TLSv1_2 by default
+    :return: protocol name, PROTOCOL_TLS_CLIENT by default
     """
     return Script.force_https_protocol
 
@@ -754,7 +747,7 @@ class Script(object):
 
     :return: protocol value
     """
-    return getattr(ssl, Script.get_force_https_protocol_name())
+    return resolve_tls_client_protocol(Script.get_force_https_protocol_name())
 
   @staticmethod
   def get_ca_cert_file_path():
@@ -1304,14 +1297,6 @@ class Script(object):
   @staticmethod
   def get_instance():
     if Script.instance is None:
-      from resource_management.libraries.functions.default import default
-
-      use_proxy = default(
-        "/agentLevelParams/agentConfigParams/agent/use_system_proxy_settings", True
-      )
-      if not use_proxy:
-        reconfigure_urllib2_opener(ignore_system_proxy=True)
-
       Script.instance = Script()
     return Script.instance
 

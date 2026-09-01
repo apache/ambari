@@ -21,7 +21,7 @@ from unittest.mock import patch, MagicMock, Mock
 from unittest import TestCase
 from resource_management.libraries.functions.security_commons import *
 from datetime import datetime, timedelta
-from tempfile import gettempdir
+from tempfile import gettempdir, TemporaryDirectory
 import os
 
 
@@ -167,74 +167,37 @@ class TestSecurityCommons(TestCase):
 
     print(result)
 
-  @patch("xml.etree.ElementTree.parse")
-  @patch("os.path.isfile")
-  def test_get_params_from_filesystem(self, file_exists_mock, et_parser_mock):
-    file_exists_mock.return_value = True
-    conf_dir = gettempdir()
-    config_file = {"config.xml": FILE_TYPE_XML}
+  def test_get_params_from_filesystem(self):
+    with TemporaryDirectory() as conf_dir:
+      config_path = os.path.join(conf_dir, "config.xml")
+      with open(config_path, "w", encoding="utf-8") as config_file:
+        config_file.write(
+          "<configuration>"
+          "<property><name>property1</name><value>true</value></property>"
+          "<property><name>property2</name><value>false</value></property>"
+          "</configuration>"
+        )
 
-    prop1_name_mock = MagicMock()
-    prop1_name_mock.text.return_value = "property1"
-    prop1_value_mock = MagicMock()
-    prop1_value_mock.text.return_value = "true"
+      result = get_params_from_filesystem(
+        conf_dir, {"config.xml": FILE_TYPE_XML}
+      )
+      self.assertEqual(
+        {"config": {"property1": "true", "property2": "false"}}, result
+      )
 
-    prop2_name_mock = MagicMock()
-    prop2_name_mock.text.return_value = "property2"
-    prop2_value_mock = MagicMock()
-    prop2_value_mock.text.return_value = "false"
+      with open(config_path, "w", encoding="utf-8") as config_file:
+        config_file.write("<configuration />")
+      self.assertEqual(
+        {"config": {}},
+        get_params_from_filesystem(conf_dir, {"config.xml": FILE_TYPE_XML}),
+      )
 
-    prop3_name_mock = MagicMock()
-    prop3_name_mock.text.return_value = "property3"
-    prop3_value_mock = MagicMock()
-    prop3_value_mock.text.return_value = "true"
+      self.assertEqual({}, get_params_from_filesystem(conf_dir, {}))
 
-    props = []
-    props.append([prop1_name_mock, prop1_value_mock])
-    props.append([prop2_name_mock, prop2_value_mock])
-    props.append([prop3_name_mock, prop3_value_mock])
-
-    element_tree_mock = MagicMock()
-    et_parser_mock.return_value = element_tree_mock
-
-    get_root_mock = MagicMock()
-    element_tree_mock.getroot.return_value = get_root_mock
-    get_root_mock.getchildren.return_value = props
-
-    result = get_params_from_filesystem(conf_dir, config_file)
-
-    # Testing that the mock is called with the correct path
-    et_parser_mock.assert_called_with(conf_dir + os.sep + "config.xml")
-
-    # Testing that the dictionary and the list from the result are not empty
-    self.assertEqual(not result, False)
-    self.assertEqual(not result[list(result.keys())[0]], False)
-
-    # Testing that returns an empty dictionary if is called with no props
-    empty_props = []
-
-    get_root_mock.getchildren.return_value = empty_props
-
-    result = get_params_from_filesystem(conf_dir, config_file)
-
-    self.assertEqual(not result, False)
-    self.assertEqual(not list(result["config"].items()), True)
-
-    # Testing that returns an empty dictionary if is called with empty config_files
-    empty_config_file = {}
-
-    result = get_params_from_filesystem(conf_dir, empty_config_file)
-
-    self.assertEqual(not result, True)
-
-    # Test that params returns an exception
-    et_parser_mock.reset_mock()
-    et_parser_mock.side_effect = Exception("Invalid path")
-
-    try:
-      get_params_from_filesystem(conf_dir, config_file)
-    except:
-      self.assertTrue(True)
+      with open(config_path, "w", encoding="utf-8") as config_file:
+        config_file.write("<configuration>")
+      with self.assertRaises(Exception):
+        get_params_from_filesystem(conf_dir, {"config.xml": FILE_TYPE_XML})
 
   @patch("os.path.exists")
   @patch("os.makedirs")

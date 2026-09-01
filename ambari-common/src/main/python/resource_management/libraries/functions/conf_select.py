@@ -22,7 +22,6 @@ __all__ = [
   "select",
   "create",
   "get_hadoop_conf_dir",
-  "get_hadoop_dir",
   "get_package_dirs",
 ]
 

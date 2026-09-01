@@ -62,7 +62,7 @@ class RangeradminV2:
   @safe_retry(
     times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None
   )
-  def get_repository_by_name_urllib2(self, name, component, status, usernamepassword):
+  def get_repository_by_name_http(self, name, component, status, usernamepassword):
     """
     :param name: name of the component, from which, function will search in list of repositories
     :param component:, component for which repository has to be checked
@@ -131,7 +131,7 @@ class RangeradminV2:
     component_user_keytab=None,
   ):
     if not is_stack_supports_ranger_kerberos or not is_security_enabled:
-      response_code = self.check_ranger_login_urllib2(self.base_url)
+      response_code = self.check_ranger_login_http(self.base_url)
       repo_data = json.dumps(repo_properties)
       ambari_ranger_password = str(ambari_ranger_password)
       admin_password = str(admin_password)
@@ -148,14 +148,14 @@ class RangeradminV2:
         if user_resp_code is not None and user_resp_code == 200:
           retryCount = 0
           while retryCount <= 5:
-            repo = self.get_repository_by_name_urllib2(
+            repo = self.get_repository_by_name_http(
               repo_name, component, "true", ambari_username_password_for_ranger
             )
             if repo is not None:
               Logger.info(f'{component.title()} Repository {repo["name"]} exist')
               break
             else:
-              response = self.create_repository_urllib2(
+              response = self.create_repository_http(
                 repo_data, ambari_username_password_for_ranger
               )
               if response is not None:
@@ -234,7 +234,7 @@ class RangeradminV2:
   @safe_retry(
     times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None
   )
-  def create_repository_urllib2(self, data, usernamepassword):
+  def create_repository_http(self, data, usernamepassword):
     """
     :param data: json object to create repository
     :param usernamepassword: user credentials using which repository needs to be searched.
@@ -274,7 +274,7 @@ class RangeradminV2:
   @safe_retry(
     times=75, sleep_time=8, backoff_factor=1, err_class=Fail, return_on_fail=None
   )
-  def check_ranger_login_urllib2(self, url):
+  def check_ranger_login_http(self, url):
     """
     :param url: ranger admin host url
     :param usernamepassword: user credentials using which repository needs to be searched.
@@ -311,7 +311,7 @@ class RangeradminV2:
     :return: Returns user credentials if user exist otherwise rerutns credentials of  created user.
     """
     flag_ambari_admin_present = False
-    match = re.match("[a-zA-Z0-9_\S]+$", ambari_admin_password)
+    match = re.match(r"[a-zA-Z0-9_\S]+$", ambari_admin_password)
     if match is None:
       raise Fail("Invalid password given for Ranger Admin user for Ambari")
     try:
@@ -566,7 +566,7 @@ class RangeradminV2:
   @safe_retry(
     times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None
   )
-  def update_repository_urllib2(
+  def update_repository_http(
     self,
     component,
     repo_name,

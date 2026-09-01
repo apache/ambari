@@ -407,7 +407,9 @@ class TestUserResource(TestCase):
       def __enter__(self):
         return self
 
-    pwd_mock.return_value = "user1"
+    user_entity = _get_user_entity()
+    user_entity.pw_name = "user1"
+    pwd_mock.return_value = user_entity
     open_mock.return_value = MagicFile()
 
     from resource_management.core.providers.accounts import UserProvider
@@ -420,6 +422,7 @@ class TestUserResource(TestCase):
 
     self.assertEqual(1, len(groups))
     self.assertTrue("group2" in groups)
+    open_mock.assert_called_once_with("/etc/group", "r", encoding="utf-8")
 
 
 def _get_user_entity():

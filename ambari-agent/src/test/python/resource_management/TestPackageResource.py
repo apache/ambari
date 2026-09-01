@@ -34,7 +34,7 @@ from ambari_commons.repo_manager.apt_manager import replace_underscores
 @patch.object(os, "geteuid", new=MagicMock(return_value=1234))
 class TestPackageResource(TestCase):
   @patch.object(ac_shell, "subprocess_executor")
-  @patch.object(ac_shell, "process_executor")
+  @patch.object(ac_shell, "repository_manager_executor")
   @patch.object(
     ManagerFactory,
     "get",
@@ -117,7 +117,7 @@ class TestPackageResource(TestCase):
     self.assertFalse(shell_mock.call_count > 0)
 
   @patch.object(ac_shell, "subprocess_executor")
-  @patch.object(ac_shell, "process_executor")
+  @patch.object(ac_shell, "repository_manager_executor")
   @patch.object(
     ManagerFactory,
     "get",
@@ -133,7 +133,7 @@ class TestPackageResource(TestCase):
     )
 
   @patch.object(ac_shell, "subprocess_executor")
-  @patch.object(ac_shell, "process_executor")
+  @patch.object(ac_shell, "repository_manager_executor")
   @patch.object(
     ManagerFactory,
     "get",
