@@ -20,13 +20,14 @@ limitations under the License.
 
 import re
 
+import hdfs_process
+
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.decorator import retry
-from resource_management.libraries.functions import check_process_status
 from resource_management.core import ComponentIsNotRunning
 from utils import get_dfsadmin_base_command
 
@@ -84,8 +85,17 @@ def post_upgrade_check(hdfs_binary):
 def is_datanode_process_running():
   import params
 
+  privileged = (
+    params.security_enabled and params.secure_dn_ports_are_in_use
+  )
+  expected_user = params.root_user if privileged else params.hdfs_user
   try:
-    check_process_status(params.datanode_pid_file)
+    hdfs_process.check_component_status(
+      params.datanode_pid_file,
+      expected_user,
+      "datanode",
+      privileged=privileged,
+    )
     return True
   except ComponentIsNotRunning:
     return False

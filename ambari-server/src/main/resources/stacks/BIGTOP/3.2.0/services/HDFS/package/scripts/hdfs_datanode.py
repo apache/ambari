@@ -19,10 +19,10 @@ limitations under the License.
 """
 
 import os
+
+import hdfs_process
+
 from resource_management.core.resources.system import Directory, Execute, File
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.mounted_dirs_helper import (
   handle_mounted_dirs,
 )
@@ -86,6 +86,16 @@ def datanode(action=None):
       create_log_dir=True,
     )
   elif action == "status":
+    import params
     import status_params
 
-    check_process_status(status_params.datanode_pid_file)
+    privileged = (
+      status_params.security_enabled and params.secure_dn_ports_are_in_use
+    )
+    expected_user = params.root_user if privileged else status_params.hdfs_user
+    hdfs_process.check_component_status(
+      status_params.datanode_pid_file,
+      expected_user,
+      "datanode",
+      privileged=privileged,
+    )

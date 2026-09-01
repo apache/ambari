@@ -21,15 +21,12 @@ limitations under the License.
 import os
 import re
 import urllib.request, urllib.error, urllib.parse
-import subprocess
 import json
+
+import hdfs_process
 
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import check_process_status
-from resource_management.libraries.functions.check_process_status import (
-  wait_process_stopped,
-)
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core import shell
@@ -165,20 +162,14 @@ def kill_zkfc(zkfc_user):
 
   if params.dfs_ha_enabled:
     if params.zkfc_pid_file:
-      check_process = as_user(
-        format(
-          "ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1"
-        ),
-        user=zkfc_user,
+      identity = hdfs_process.recover_running_process(
+        params.zkfc_pid_file, zkfc_user, "zkfc"
       )
-      code, out = shell.call(check_process)
-      if code == 0:
+      if identity is not None:
         Logger.debug("ZKFC is running and will be killed.")
-        kill_command = format("kill -15 `cat {zkfc_pid_file}`")
-        Execute(kill_command, user=zkfc_user)
-        File(
-          params.zkfc_pid_file,
-          action="delete",
+        hdfs_process.terminate_process(identity, zkfc_user, "zkfc")
+        hdfs_process.remove_pid_file_if_stopped(
+          params.zkfc_pid_file, identity, zkfc_user, "zkfc"
         )
         return True
   return False
@@ -219,10 +210,6 @@ def service(
     }
     hadoop_env_exports.update(custom_export)
 
-  process_id_exists_command = (
-    as_sudo(["test", "-f", pid_file]) + " && " + as_sudo(["pgrep", "-F", pid_file])
-  )
-
   # on STOP directories shouldn't be created
   # since during stop still old dirs are used (which were created during previous start)
   if action != "stop":
@@ -248,6 +235,11 @@ def service(
       else:
         Directory(log_dir, owner=user, group=params.user_group, create_parents=True)
 
+  privileged = (
+    params.security_enabled
+    and name == "datanode"
+    and params.secure_dn_ports_are_in_use
+  )
   if params.security_enabled and name == "datanode":
     ## The directory where pid files are stored in the secure data environment.
     hadoop_secure_dn_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
@@ -255,13 +247,10 @@ def service(
 
     hadoop_secure_dn_pid_file = status_params.datanode_pid_file
     pid_file = hadoop_secure_dn_pid_file
-    process_id_exists_command = (
-      as_sudo(["test", "-f", pid_file]) + " && " + as_sudo(["pgrep", "-F", pid_file])
-    )
-
     # At datanode_non_root stack version and further, we may start datanode as a non-root even in secure cluster
     if params.secure_dn_ports_are_in_use:
       user = "root"
+    process_user = user
 
     if action == "stop" and os.path.isfile(hadoop_secure_dn_pid_file):
       # We need special handling for this case to handle the situation
@@ -271,13 +260,20 @@ def service(
       user = "root"
 
       try:
-        check_process_status(hadoop_secure_dn_pid_file)
+        hdfs_process.check_component_status(
+          hadoop_secure_dn_pid_file,
+          process_user,
+          "datanode",
+          privileged=privileged,
+        )
 
         custom_export = {"HADOOP_SECURE_DN_USER": params.hdfs_user}
         hadoop_env_exports.update(custom_export)
 
       except ComponentIsNotRunning:
         pass
+  else:
+    process_user = user
 
   hadoop_daemon = format("{hadoop_bin}/hadoop-daemon.sh")
 
@@ -297,43 +293,61 @@ def service(
     daemon_cmd = as_user(cmd, user)
 
   if action == "start":
-    # remove pid file from dead process
-    File(pid_file, action="delete", not_if=process_id_exists_command)
+    running = hdfs_process.recover_running_process(
+      pid_file,
+      process_user,
+      name,
+      owner=process_user,
+      group=params.user_group,
+      privileged=privileged,
+    )
+    if running is not None:
+      return
 
     try:
-      Execute(
-        daemon_cmd, not_if=process_id_exists_command, environment=hadoop_env_exports
+      Execute(daemon_cmd, environment=hadoop_env_exports)
+      hdfs_process.wait_for_running_process(
+        pid_file,
+        process_user,
+        name,
+        owner=process_user,
+        group=params.user_group,
+        privileged=privileged,
       )
-    except:
+    except Exception:
       show_logs(log_dir, user)
       raise
   elif action == "stop":
+    identity = hdfs_process.recover_running_process(
+      pid_file,
+      process_user,
+      name,
+      owner=process_user,
+      group=params.user_group,
+      privileged=privileged,
+    )
+    if identity is None:
+      return
+
     try:
-      Execute(
-        daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports
-      )
-    except:
+      Execute(daemon_cmd, environment=hadoop_env_exports)
+    except Exception:
       show_logs(log_dir, user)
       raise
 
-    # Wait until stop actually happens
-    process_id_does_not_exist_command = format("! ( {process_id_exists_command} )")
-    code, out = shell.call(
-      process_id_does_not_exist_command,
-      env=hadoop_env_exports,
-      tries=6,
-      try_sleep=10,
-    )
-
-    # If stop didn't happen, kill it forcefully
-    if code != 0:
-      code, out, err = shell.checked_call(
-        ("cat", pid_file), sudo=True, env=hadoop_env_exports, stderr=subprocess.PIPE
+    if not hdfs_process.wait_for_process_stopped(
+      identity, process_user, name, privileged=privileged
+    ):
+      hdfs_process.terminate_process(
+        identity, process_user, name, privileged=privileged
       )
-      pid = out
-      Execute(("kill", "-9", pid), sudo=True)
-
-    File(pid_file, action="delete")
+    hdfs_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity,
+      process_user,
+      name,
+      privileged=privileged,
+    )
 
 
 def get_jmx_data(

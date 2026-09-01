@@ -18,12 +18,11 @@ limitations under the License.
 
 """
 
+import hdfs_process
+
 from utils import service
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import Template
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from ambari_commons import OSConst
 
@@ -69,4 +68,8 @@ def snamenode(action=None, format=False):
   elif action == "status":
     import status_params
 
-    check_process_status(status_params.snamenode_pid_file)
+    hdfs_process.check_component_status(
+      status_params.snamenode_pid_file,
+      status_params.hdfs_user,
+      "secondarynamenode",
+    )

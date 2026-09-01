@@ -50,6 +50,8 @@ def load_script(module_name, filename, dependencies=None):
   return module
 
 
+HDFS_PROCESS = load_script("bigtop_hdfs_process", "hdfs_process.py")
+
 HDFS_UTILS = dependency_module(
   "utils",
   get_dfsadmin_base_command=MagicMock(return_value="hdfs dfsadmin"),
@@ -62,6 +64,7 @@ HDFS_NAMENODE = load_script(
   "bigtop_hdfs_namenode",
   "hdfs_namenode.py",
   {
+    "hdfs_process": HDFS_PROCESS,
     "utils": HDFS_UTILS,
     "setup_ranger_hdfs": dependency_module(
       "setup_ranger_hdfs",
@@ -85,7 +88,19 @@ NAMENODE_UPGRADE = load_script(
   },
 )
 
-SERVICE_CHECK = load_script("bigtop_hdfs_service_check", "service_check.py")
+SERVICE_CHECK = load_script(
+  "bigtop_hdfs_service_check",
+  "service_check.py",
+  {"hdfs_process": HDFS_PROCESS},
+)
+HDFS_RUNTIME_UTILS = load_script(
+  "bigtop_hdfs_runtime_utils",
+  "utils.py",
+  {
+    "hdfs_process": HDFS_PROCESS,
+    "zkfc_slave": dependency_module("zkfc_slave", ZkfcSlaveDefault=MagicMock),
+  },
+)
 
 NAMENODE = load_script(
   "bigtop_namenode",
@@ -116,6 +131,157 @@ def params_module(**values):
 
 
 class TestHdfsBigtop(unittest.TestCase):
+  def test_process_identity_uses_component_marker_and_hadoop_class(self):
+    self.assertEqual(
+      (
+        "-Dproc_zkfc",
+        "org.apache.hadoop.hdfs.tools.DFSZKFailoverController",
+      ),
+      HDFS_PROCESS.expected_cmdline("zkfc"),
+    )
+    self.assertEqual(
+      (
+        "-Dproc_datanode",
+        "org.apache.hadoop.hdfs.server.datanode.SecureDataNodeStarter",
+      ),
+      HDFS_PROCESS.expected_cmdline("datanode", privileged=True),
+    )
+    with self.assertRaisesRegex(Fail, "Unsupported HDFS process"):
+      HDFS_PROCESS.expected_cmdline("unknown")
+
+  def test_process_recovery_rejects_wrong_pid_identity(self):
+    with (
+      patch.object(HDFS_PROCESS.safe_process, "read_pid", return_value=8123),
+      patch.object(
+        HDFS_PROCESS.safe_process,
+        "read_running_process",
+        side_effect=Fail("command line does not match"),
+      ),
+      patch.object(
+        HDFS_PROCESS.safe_process, "remove_pid_file_if_stopped"
+      ) as remove_pid,
+    ):
+      with self.assertRaisesRegex(Fail, "command line does not match"):
+        HDFS_PROCESS.recover_running_process(
+          "/run/hdfs.pid", "hdfs", "namenode"
+        )
+
+    remove_pid.assert_not_called()
+
+  def test_service_start_does_not_duplicate_discovered_process(self):
+    params = params_module(
+      hadoop_pid_dir_prefix="/run/hadoop",
+      hdfs_log_dir_prefix="/var/log/hadoop",
+      hadoop_libexec_dir="/usr/lib/hadoop/libexec",
+      hadoop_bin="/usr/lib/hadoop/sbin",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      security_enabled=False,
+      user_group="hadoop",
+      hdfs_user="hdfs",
+      root_user="root",
+      root_group="root",
+      ulimit_cmd="ulimit -c unlimited ; ",
+    )
+    identity = MagicMock()
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process,
+        "recover_running_process",
+        return_value=identity,
+      ),
+      patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute,
+    ):
+      HDFS_RUNTIME_UTILS.service(
+        action="start", name="namenode", user="hdfs"
+      )
+
+    execute.assert_not_called()
+
+  def test_service_stop_never_signals_unvalidated_pid(self):
+    params = params_module(
+      hadoop_pid_dir_prefix="/run/hadoop",
+      hdfs_log_dir_prefix="/var/log/hadoop",
+      hadoop_libexec_dir="/usr/lib/hadoop/libexec",
+      hadoop_bin="/usr/lib/hadoop/sbin",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      security_enabled=False,
+      user_group="hadoop",
+      hdfs_user="hdfs",
+      root_user="root",
+      root_group="root",
+      ulimit_cmd="ulimit -c unlimited ; ",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process,
+        "recover_running_process",
+        side_effect=Fail("owner does not match"),
+      ),
+      patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute,
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process, "terminate_process"
+      ) as terminate,
+    ):
+      with self.assertRaisesRegex(Fail, "owner does not match"):
+        HDFS_RUNTIME_UTILS.service(
+          action="stop", name="namenode", user="hdfs"
+        )
+
+    execute.assert_not_called()
+    terminate.assert_not_called()
+
+  def test_service_stop_revalidates_identity_before_forced_signal(self):
+    params = params_module(
+      hadoop_pid_dir_prefix="/run/hadoop",
+      hdfs_log_dir_prefix="/var/log/hadoop",
+      hadoop_libexec_dir="/usr/lib/hadoop/libexec",
+      hadoop_bin="/usr/lib/hadoop/sbin",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      security_enabled=False,
+      user_group="hadoop",
+      hdfs_user="hdfs",
+      root_user="root",
+      root_group="root",
+      ulimit_cmd="ulimit -c unlimited ; ",
+    )
+    identity = MagicMock(pid=8123)
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process,
+        "recover_running_process",
+        return_value=identity,
+      ),
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process,
+        "wait_for_process_stopped",
+        return_value=False,
+      ),
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process, "terminate_process"
+      ) as terminate,
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process, "remove_pid_file_if_stopped"
+      ) as cleanup,
+      patch.object(HDFS_RUNTIME_UTILS, "Execute"),
+    ):
+      HDFS_RUNTIME_UTILS.service(
+        action="stop", name="namenode", user="hdfs"
+      )
+
+    terminate.assert_called_once_with(
+      identity, "hdfs", "namenode", privileged=False
+    )
+    cleanup.assert_called_once_with(
+      "/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
+      identity,
+      "hdfs",
+      "namenode",
+      privileged=False,
+    )
+
   def test_metadata_matches_bigtop_hadoop_and_os_packages(self):
     root = ET.parse(HDFS / "metainfo.xml").getroot()
     service = root.find("./services/service")

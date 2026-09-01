@@ -20,13 +20,12 @@ limitations under the License.
 
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 
+import hdfs_process
+
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
   cached_kinit_executor,
@@ -118,7 +117,11 @@ class JournalNodeDefault(JournalNode):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.journalnode_pid_file)
+    hdfs_process.check_component_status(
+      status_params.journalnode_pid_file,
+      status_params.hdfs_user,
+      "journalnode",
+    )
 
   def get_log_folder(self):
     import params

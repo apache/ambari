@@ -17,6 +17,8 @@ limitations under the License.
 import os.path
 import time
 
+import hdfs_process
+
 from ambari_commons import constants
 
 from resource_management.core import shell
@@ -26,9 +28,6 @@ from resource_management.core.resources.service import Service
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.libraries.functions import Direction, upgrade_summary
 from resource_management.libraries.functions.namenode_ha_utils import (
@@ -85,4 +84,6 @@ def router(action=None, hdfs_binary=None, env=None):
   elif action == "status":
     import status_params
 
-    check_process_status(status_params.router_pid_file)
+    hdfs_process.check_component_status(
+      status_params.router_pid_file, status_params.hdfs_user, "dfsrouter"
+    )

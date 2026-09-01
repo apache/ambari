@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 # this is needed to avoid a circular dependency since utils.py calls this class
+import hdfs_process
 import utils
 from hdfs import hdfs
 
@@ -31,9 +32,6 @@ from resource_management.core.resources.service import Service
 from resource_management.core import shell
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
@@ -135,7 +133,9 @@ class ZkfcSlaveDefault(ZkfcSlave):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.zkfc_pid_file)
+    hdfs_process.check_component_status(
+      status_params.zkfc_pid_file, status_params.hdfs_user, "zkfc"
+    )
 
   def disable_security(self, env):
     import params

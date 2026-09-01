@@ -18,8 +18,9 @@ limitations under the License.
 
 """
 
+import hdfs_process
+
 from resource_management.libraries.script.script import Script
-from resource_management.core.shell import as_user
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
@@ -122,13 +123,13 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
       if params.has_zkfc_hosts:
         pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
         pid_file = format("{pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
-        check_zkfc_process_cmd = as_user(
-          format(
-            "ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"
-          ),
-          user=params.hdfs_user,
+        hdfs_process.wait_for_component_status(
+          pid_file,
+          params.hdfs_user,
+          "zkfc",
+          attempts=5,
+          sleep_seconds=3,
         )
-        Execute(check_zkfc_process_cmd, logoutput=True, try_sleep=3, tries=5)
 
 
 if __name__ == "__main__":
