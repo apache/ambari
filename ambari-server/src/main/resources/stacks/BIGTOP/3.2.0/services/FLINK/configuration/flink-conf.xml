@@ -37,16 +37,27 @@
     <value>8082</value>
     <description>The port under which the web-based HistoryServer listens.</description>
     <on-ambari-upgrade add="true" />
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>65535</maximum>
+    </value-attributes>
   </property>
   <property>
     <name>historyserver.archive.fs.refresh-interval</name>
     <value>10000</value>
     <description>Interval in milliseconds for refreshing the monitored directories.</description>
     <on-ambari-upgrade add="true" />
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>2147483647</maximum>
+    </value-attributes>
   </property>
   <property>
     <name>security.kerberos.login.keytab</name>
     <description>Flink keytab path</description>
+    <property-type>KERBEROS_KEYTAB</property-type>
     <value>none</value>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -61,7 +72,7 @@
   <property>
     <name>content</name>
     <display-name>flink-conf template</display-name>
-    <description>This is the jinja template for flink-conf.xml file</description>
+    <description>This is the Jinja template for the flink-conf.yaml file.</description>
     <value>
 ################################################################################
 #  Licensed to the Apache Software Foundation (ASF) under one
@@ -171,18 +182,21 @@ parallelism.default: 1
 #==============================================================================
 # JVM and Logging Options
 #==============================================================================
+# Required by the Flink 1.19 distribution when it runs on Java 17.
+env.java.opts.all: --add-exports=java.base/sun.net.util=ALL-UNNAMED --add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-exports=java.security.jgss/sun.security.krb5=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED
+
 #Java runtime to use
-env.java.home: {{java_home}}
+env.java.home: {{java_home_yaml}}
 
 #Path to hadoop configuration directory. It is required to read HDFS and/or YARN configuration.
 #You can also set it via environment variable.
-env.hadoop.conf.dir: {{hadoop_conf_dir}}
+env.hadoop.conf.dir: {{hadoop_conf_dir_yaml}}
 
 #Defines the directory where the flink-&lt;host&gt;-&lt;process&gt;.pid files are saved.
-env.pid.dir: {{flink_pid_dir}}
+env.pid.dir: {{flink_pid_dir_yaml}}
 
 #Defines the directory where the Flink logs are saved.
-env.log.dir: {{flink_log_dir}}
+env.log.dir: {{flink_log_dir_yaml}}
 
 #==============================================================================
 # High Availability
@@ -347,8 +361,8 @@ rest.bind-address: localhost
 
 {% if security_enabled %}
 security.kerberos.login.use-ticket-cache: true
-security.kerberos.login.keytab: {{security_kerberos_login_keytab}}
-security.kerberos.login.principal: {{security_kerberos_login_principal}}
+security.kerberos.login.keytab: {{security_kerberos_login_keytab_yaml}}
+security.kerberos.login.principal: {{security_kerberos_login_principal_yaml}}
 {% else %}
 # security.kerberos.login.use-ticket-cache: true
 # security.kerberos.login.keytab: /path/to/kerberos/keytab
@@ -374,11 +388,11 @@ security.kerberos.login.principal: {{security_kerberos_login_principal}}
 # HistoryServer
 #==============================================================================
 
-# The HistoryServer is started and stopped via bin/historyserver.sh (start|stop)
+# The HistoryServer supports foreground lifecycle control via bin/historyserver.sh.
 
 # Directory to upload completed jobs to. Add this directory to the list of
 # monitored directories of the HistoryServer as well (see below).
-jobmanager.archive.fs.dir: {{jobmanager_archive_fs_dir}}
+jobmanager.archive.fs.dir: {{jobmanager_archive_fs_dir_yaml}}
 
 # The address under which the web-based HistoryServer listens.
 #historyserver.web.address: 0.0.0.0
@@ -387,7 +401,7 @@ jobmanager.archive.fs.dir: {{jobmanager_archive_fs_dir}}
 historyserver.web.port: {{historyserver_web_port}}
 
 # Comma separated list of directories to monitor for completed jobs.
-historyserver.archive.fs.dir: {{historyserver_archive_fs_dir}}
+historyserver.archive.fs.dir: {{historyserver_archive_fs_dir_yaml}}
 
 # Interval in milliseconds for refreshing the monitored directories.
 historyserver.archive.fs.refresh-interval: {{historyserver_archive_fs_refresh_interval}}

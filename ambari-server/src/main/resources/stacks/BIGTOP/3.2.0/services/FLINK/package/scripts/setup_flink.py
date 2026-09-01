@@ -18,62 +18,80 @@ limitations under the License.
 
 """
 
-# Python Imports
 import os
 
-# Local Imports
-from resource_management.core.resources.system import Directory, File, Link
+from resource_management.core.exceptions import Fail
+from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def setup_flink(env, type, upgrade_type=None, action=None):
+def setup_flink(env, component, upgrade_type=None, action=None):
   import params
 
-  Directory(
-    params.flink_pid_dir,
-    owner=params.flink_user,
-    group=params.user_group,
-    mode=0o775,
-    create_parents=True,
-  )
+  if component not in ("client", "historyserver"):
+    raise Fail(f"Unsupported Flink component: {component}")
 
-  Directory(params.flink_etc_dir, mode=0o755)
+  Directory(params.flink_etc_dir, owner="root", group="root", mode=0o755)
   Directory(
     params.flink_config_dir,
-    owner=params.flink_user,
+    owner="root",
     group=params.user_group,
+    mode=0o750,
     create_parents=True,
   )
+  Directory(
+    params.flink_cli_log_dir,
+    owner="root",
+    group=params.user_group,
+    mode=0o1770,
+  )
 
-  Directory(params.flink_log_dir, mode=0o767)
+  if component == "historyserver":
+    Directory(
+      params.flink_pid_dir,
+      owner=params.flink_user,
+      group=params.user_group,
+      mode=0o750,
+      create_parents=True,
+    )
+    Directory(
+      params.flink_log_dir,
+      owner=params.flink_user,
+      group=params.user_group,
+      mode=0o750,
+      create_parents=True,
+    )
 
-  if type == "historyserver" and action == "config":
+  if component == "historyserver" and action == "config":
     params.HdfsResource(
       params.flink_hdfs_user_dir,
       type="directory",
       action="create_on_execute",
       owner=params.flink_user,
-      mode=0o775,
+      group=params.user_group,
+      mode=0o750,
     )
 
     params.HdfsResource(None, action="execute")
 
+  # Flink 1.19 supports this flattened file, which also remains valid for 1.15.
+  File(os.path.join(params.flink_config_dir, "config.yaml"), action="delete")
   flink_conf_file_path = os.path.join(params.flink_config_dir, "flink-conf.yaml")
   File(
     flink_conf_file_path,
-    owner=params.flink_user,
-    group=params.flink_group,
+    owner="root",
+    group=params.user_group,
     content=InlineTemplate(params.flink_conf_template),
-    mode=0o755,
+    mode=0o640,
   )
 
   # create log4j.properties in /etc/conf dir
   File(
     os.path.join(params.flink_config_dir, "log4j.properties"),
-    owner=params.flink_user,
-    group=params.flink_group,
+    owner="root",
+    group=params.user_group,
     content=params.flink_log4j_properties,
     mode=0o644,
   )
@@ -81,8 +99,8 @@ def setup_flink(env, type, upgrade_type=None, action=None):
   # create log4j-cli.properties in /etc/conf dir
   File(
     os.path.join(params.flink_config_dir, "log4j-cli.properties"),
-    owner=params.flink_user,
-    group=params.flink_group,
+    owner="root",
+    group=params.user_group,
     content=params.flink_log4j_cli_properties,
     mode=0o644,
   )
@@ -90,8 +108,8 @@ def setup_flink(env, type, upgrade_type=None, action=None):
   # create log4j-console.properties in /etc/conf dir
   File(
     os.path.join(params.flink_config_dir, "log4j-console.properties"),
-    owner=params.flink_user,
-    group=params.flink_group,
+    owner="root",
+    group=params.user_group,
     content=params.flink_log4j_console_properties,
     mode=0o644,
   )
@@ -99,8 +117,8 @@ def setup_flink(env, type, upgrade_type=None, action=None):
   # create log4j-session.properties in /etc/conf dir
   File(
     os.path.join(params.flink_config_dir, "log4j-session.properties"),
-    owner=params.flink_user,
-    group=params.flink_group,
+    owner="root",
+    group=params.user_group,
     content=params.flink_log4j_session_properties,
     mode=0o644,
   )
