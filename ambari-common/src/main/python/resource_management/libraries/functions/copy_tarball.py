@@ -21,189 +21,29 @@ limitations under the License.
 __all__ = ["copy_to_hdfs", "get_sysprep_skip_copy_tarballs_hdfs"]
 
 import os
-import tempfile
-import re
 
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import lzo_utils
-from resource_management.libraries.functions.default import default
-from resource_management.core import shell
-from resource_management.core import sudo
 from resource_management.core.logger import Logger
-from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Directory
-from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import (
-  stack_tools,
   stack_features,
   stack_select,
 )
-from resource_management.libraries.functions import tar_archive
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.script.script import Script
 
 STACK_NAME_PATTERN = "{{ stack_name }}"
 STACK_ROOT_PATTERN = "{{ stack_root }}"
 STACK_VERSION_PATTERN = "{{ stack_version }}"
-LIB_DIR = "usr/lib"
-
-
-def _prepare_mapreduce_tarball():
-  """
-  Prepares the mapreduce tarball by including the native LZO libraries if necessary. If LZO is
-  not enabled or has not been opted-in, then this will do nothing and return the original
-  tarball to upload to HDFS.
-  :return:  the full path of the newly created mapreduce tarball to use or the original path
-  if no changes were made
-  """
-  # get the mapreduce tarball to crack open and add LZO libraries to
-  _, mapreduce_source_file, _, _ = get_tarball_paths("mapreduce")
-
-  if not lzo_utils.should_install_lzo():
-    return mapreduce_source_file
-
-  Logger.info("Preparing the mapreduce tarball with native LZO libraries...")
-
-  temp_dir = Script.get_tmp_dir()
-
-  # create the temp staging directories ensuring that non-root agents using tarfile can work with them
-  mapreduce_temp_dir = tempfile.mkdtemp(prefix="mapreduce-tarball-", dir=temp_dir)
-  sudo.chmod(mapreduce_temp_dir, 0o777)
-
-  # calculate the source directory for LZO
-  hadoop_lib_native_source_dir = os.path.join(
-    os.path.dirname(mapreduce_source_file), "lib", "native"
-  )
-  if not sudo.path_exists(hadoop_lib_native_source_dir):
-    raise Fail(
-      f"Unable to seed the mapreduce tarball with native LZO libraries since the source Hadoop native lib "
-      f"directory {hadoop_lib_native_source_dir} does not exist"
-    )
-
-  Logger.info(f"Extracting {mapreduce_source_file} to {mapreduce_temp_dir}")
-  tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
-
-  mapreduce_lib_dir = os.path.join(mapreduce_temp_dir, "hadoop", "lib")
-
-  # copy native libraries from source hadoop to target
-  Execute(("cp", "-af", hadoop_lib_native_source_dir, mapreduce_lib_dir), sudo=True)
-
-  # ensure that the hadoop/lib/native directory is readable by non-root (which it typically is not)
-  Directory(mapreduce_lib_dir, mode=0o755, cd_access="a", recursive_ownership=True)
-
-  # create the staging directory so that non-root agents can write to it
-  mapreduce_native_tarball_staging_dir = os.path.join(
-    temp_dir, "mapreduce-native-tarball-staging"
-  )
-  if not os.path.exists(mapreduce_native_tarball_staging_dir):
-    Directory(
-      mapreduce_native_tarball_staging_dir,
-      mode=0o777,
-      cd_access="a",
-      create_parents=True,
-      recursive_ownership=True,
-    )
-
-  mapreduce_tarball_with_native_lib = os.path.join(
-    mapreduce_native_tarball_staging_dir, "mapreduce-native.tar.gz"
-  )
-  Logger.info(
-    f"Creating a new mapreduce tarball at {mapreduce_tarball_with_native_lib}"
-  )
-  tar_archive.archive_dir_via_temp_file(
-    mapreduce_tarball_with_native_lib, mapreduce_temp_dir
-  )
-
-  # ensure that the tarball can be read and uploaded
-  sudo.chmod(mapreduce_tarball_with_native_lib, 0o744)
-
-  # cleanup
-  sudo.rmtree(mapreduce_temp_dir)
-
-  return mapreduce_tarball_with_native_lib
-
-
-# TODO, in the future, each stack can define its own mapping of tarballs
-# inside the stack definition directory in some sort of xml file.
-# PLEASE DO NOT put this in cluster-env since it becomes much harder to change,
-# especially since it is an attribute of a stack and becomes
-# complicated to change during a Rolling/Express upgrade.
 TARBALL_MAP = {
-  "yarn": {
-    "dirs": (
-      f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/hadoop-yarn/lib/service-dep.tar.gz",
-      f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/yarn/service-dep.tar.gz",
-    ),
-    "service": "YARN",
-  },
   "tez": {
     "dirs": (
-      f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/tez/lib/tez.tar.gz",
+      f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/usr/lib/tez/lib/tez.tar.gz",
       f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/tez/tez.tar.gz",
     ),
     "service": "TEZ",
   },
-  "tez_hive2": {
-    "dirs": (
-      f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/tez_hive2/lib/tez.tar.gz",
-      f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/tez_hive2/tez.tar.gz",
-    ),
-    "service": "HIVE",
-  },
-  "hive": {
-    "dirs": (
-      f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/hive/hive.tar.gz",
-      f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/hive/hive.tar.gz",
-    ),
-    "service": "HIVE",
-  },
-  "hadoop_streaming": {
-    "dirs": (
-      f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/hadoop-mapreduce/hadoop-streaming.jar",
-      f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/mpreduce/hadoop-streaming.jar",
-    ),
-    "service": "MAPREDUCE2",
-  },
-  "mapreduce": {
-    "dirs": (
-      f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/hadoop/mapreduce.tar.gz",
-      f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/mapreduce/mapreduce.tar.gz",
-    ),
-    "service": "MAPREDUCE2",
-    "prepare_function": _prepare_mapreduce_tarball,
-  },
-  "spark": {
-    "dirs": (
-      f"{STACK_ROOT_PATTERN}/{STACK_VERSION_PATTERN}/{LIB_DIR}/spark/lib/spark-{STACK_NAME_PATTERN}-assembly.jar",
-      f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/spark/spark-{STACK_NAME_PATTERN}-assembly.jar",
-    ),
-    "service": "SPARK",
-  },
-  "spark2": {
-    "dirs": (
-      f"/tmp/spark2/spark2-{STACK_NAME_PATTERN}-yarn-archive.tar.gz",
-      f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/spark2/spark2-{STACK_NAME_PATTERN}-yarn-archive.tar.gz",
-    ),
-    "service": "SPARK2",
-  },
-  "spark2hive": {
-    "dirs": (
-      f"/tmp/spark2/spark2-{STACK_NAME_PATTERN}-hive-archive.tar.gz",
-      f"/{STACK_NAME_PATTERN}/apps/{STACK_VERSION_PATTERN}/spark2/spark2-{STACK_NAME_PATTERN}-hive-archive.tar.gz",
-    ),
-    "service": "SPARK2",
-  },
 }
 
-SERVICE_TO_CONFIG_MAP = {
-  "yarn": "yarn-env",
-  "tez": "tez-env",
-  "hive": "hive-env",
-  "mapreduce": "hadoop-env",
-  "hadoop_streaming": "mapred-env",
-  "tez_hive2": "hive-env",
-  "spark": "spark-env",
-  "spark2": "spark2-env",
-  "spark2hive": "spark2-env",
-}
+SERVICE_TO_CONFIG_MAP = {"tez": "tez-env"}
 
 
 def get_sysprep_skip_copy_tarballs_hdfs():
@@ -230,7 +70,7 @@ def get_tarball_paths(
   :param use_upgrading_version_during_upgrade:
   :param custom_source_file: If specified, use this source path instead of the default one from the map.
   :param custom_dest_file: If specified, use this destination path instead of the default one from the map.
-  :return: A tuple of (success status, source path, destination path, optional preparation function which is invoked to setup the tarball)
+  :return: A tuple of (success status, source path, destination path)
   """
   stack_name = Script.get_stack_name()
 
@@ -240,13 +80,14 @@ def get_tarball_paths(
     )
     return False, None, None
 
-  if name is None or name.lower() not in TARBALL_MAP:
+  normalized_name = name.lower() if isinstance(name, str) else None
+  if normalized_name not in TARBALL_MAP:
     Logger.error(
       f"Cannot copy tarball to HDFS because {str(name)} is not supported in stack {str(stack_name)} for this operation."
     )
     return False, None, None
 
-  service = TARBALL_MAP[name.lower()]["service"]
+  service = TARBALL_MAP[normalized_name]["service"]
 
   stack_version = get_current_version(
     service=service,
@@ -254,18 +95,18 @@ def get_tarball_paths(
   )
   if not stack_version:
     Logger.error(
-      f"Cannot copy {str(name)} tarball to HDFS because stack version could be be determined."
+      f"Cannot copy {str(name)} tarball to HDFS because stack version could not be determined."
     )
     return False, None, None
 
   stack_root = Script.get_stack_root()
   if not stack_root:
     Logger.error(
-      f"Cannot copy {str(name)} tarball to HDFS because stack root could be be determined."
+      f"Cannot copy {str(name)} tarball to HDFS because stack root could not be determined."
     )
     return False, None, None
 
-  (source_file, dest_file) = TARBALL_MAP[name.lower()]["dirs"]
+  (source_file, dest_file) = TARBALL_MAP[normalized_name]["dirs"]
 
   if custom_source_file is not None:
     source_file = custom_source_file
@@ -276,24 +117,19 @@ def get_tarball_paths(
   source_file = source_file.replace(STACK_NAME_PATTERN, stack_name.lower())
   dest_file = dest_file.replace(STACK_NAME_PATTERN, stack_name.lower())
 
-  source_file = source_file.replace(STACK_ROOT_PATTERN, stack_root.lower())
-  dest_file = dest_file.replace(STACK_ROOT_PATTERN, stack_root.lower())
+  source_file = source_file.replace(STACK_ROOT_PATTERN, stack_root)
+  dest_file = dest_file.replace(STACK_ROOT_PATTERN, stack_root)
 
   source_file = source_file.replace(STACK_VERSION_PATTERN, stack_version)
   dest_file = dest_file.replace(STACK_VERSION_PATTERN, stack_version)
 
-  prepare_function = None
-  if "prepare_function" in TARBALL_MAP[name.lower()]:
-    prepare_function = TARBALL_MAP[name.lower()]["prepare_function"]
-
-  return True, source_file, dest_file, prepare_function
+  return True, source_file, dest_file
 
 
-def get_current_version(service=None, use_upgrading_version_during_upgrade=True):
+def get_current_version(service, use_upgrading_version_during_upgrade=True):
   """
   Get the effective version to use to copy the tarballs to.
-  :param service: the service name when checking for an upgrade.  made optional for unknown \
-    code bases that may be using this function
+  :param service: the service name when checking for an upgrade.
   :param use_upgrading_version_during_upgrade: True, except when the RU/EU hasn't started yet.
   :return: Version, or False if an error occurred.
   """
@@ -302,25 +138,23 @@ def get_current_version(service=None, use_upgrading_version_during_upgrade=True)
 
   # get the version for this command
   version = stack_features.get_stack_feature_version(Script.get_config())
-  if service is not None:
-    version = upgrade_summary.get_target_version(
-      service_name=service, default_version=version
-    )
+  version = upgrade_summary.get_target_version(
+    service_name=service, default_version=version
+  )
 
   # if there is no upgrade, then use the command's version
   if not Script.in_stack_upgrade() or use_upgrading_version_during_upgrade:
     Logger.info(
-      f"Tarball version was calcuated as {version}. Use Command Version: {use_upgrading_version_during_upgrade}"
+      f"Tarball version was calculated as {version}. Use Command Version: {use_upgrading_version_during_upgrade}"
     )
 
     return version
 
   # we're in an upgrade and we need to use an older version
   current_version = stack_select.get_role_component_current_stack_version()
-  if service is not None:
-    current_version = upgrade_summary.get_source_version(
-      service_name=service, default_version=current_version
-    )
+  current_version = upgrade_summary.get_source_version(
+    service_name=service, default_version=current_version
+  )
 
   if current_version is None:
     Logger.warning(
@@ -329,52 +163,6 @@ def get_current_version(service=None, use_upgrading_version_during_upgrade=True)
     return False
 
   return current_version
-
-
-def _get_single_version_from_stack_select():
-  """
-  Call "<stack-selector> versions" and return the version string if only one version is available.
-  :return: Returns a version string if successful, and None otherwise.
-  """
-  # Ubuntu returns: "stdin: is not a tty", as subprocess output, so must use a temporary file to store the output.
-  tmp_dir = Script.get_tmp_dir()
-  tmp_file = os.path.join(tmp_dir, "copy_tarball_out.txt")
-  stack_version = None
-
-  out = None
-  stack_selector_path = stack_tools.get_stack_tool_path(stack_tools.STACK_SELECTOR_NAME)
-  get_stack_versions_cmd = f"{stack_selector_path} versions > {tmp_file}"
-  try:
-    code, stdoutdata = shell.call(get_stack_versions_cmd, logoutput=True)
-    with open(tmp_file, "r+") as file:
-      out = file.read()
-  except Exception as e:
-    Logger.logger.exception(
-      f"Could not parse output of {str(tmp_file)}. Error: {str(e)}"
-    )
-  finally:
-    try:
-      if os.path.exists(tmp_file):
-        os.remove(tmp_file)
-    except Exception as e:
-      Logger.logger.exception(f"Could not remove file {str(tmp_file)}. Error: {str(e)}")
-
-  if code != 0 or out is None or out == "":
-    Logger.error(
-      f"Could not verify stack version by calling '{get_stack_versions_cmd}'. Return Code: {str(code)}, Output: {str(out)}."
-    )
-    return None
-
-  matches = re.findall(r"([\d\.]+(?:-\d+)?)", out)
-
-  if matches and len(matches) == 1:
-    stack_version = matches[0]
-  elif matches and len(matches) > 1:
-    Logger.error(
-      f"Found multiple matches for stack version, cannot identify the correct one from: {', '.join(matches)}"
-    )
-
-  return stack_version
 
 
 def copy_to_hdfs(
@@ -391,7 +179,7 @@ def copy_to_hdfs(
   skip_component_check=False,
 ):
   """
-  :param name: Tarball name, e.g., tez, hive, pig, sqoop.
+  :param name: Tarball name. The BIGTOP runtime currently supports Tez.
   :param user_group: Group to own the directory.
   :param owner: File owner
   :param file_mode: File permission
@@ -407,7 +195,7 @@ def copy_to_hdfs(
   import params
 
   Logger.info(f"Called copy_to_hdfs tarball: {name}")
-  (success, source_file, dest_file, prepare_function) = get_tarball_paths(
+  (success, source_file, dest_file) = get_tarball_paths(
     name, use_upgrading_version_during_upgrade, custom_source_file, custom_dest_file
   )
 
@@ -425,7 +213,7 @@ def copy_to_hdfs(
 
   if not skip_component_check:
     # Check if service is installed on the cluster to check if a file can be copied into HDFS
-    config_name = SERVICE_TO_CONFIG_MAP.get(name)
+    config_name = SERVICE_TO_CONFIG_MAP[name.lower()]
     config = default("/configurations/" + config_name, None)
     if config is None:
       Logger.info(
@@ -442,23 +230,6 @@ def copy_to_hdfs(
     )
     return False
 
-  # Because CopyFromLocal does not guarantee synchronization, it's possible for two processes to first attempt to
-  # copy the file to a temporary location, then process 2 fails because the temporary file was already created by
-  # process 1, so process 2 tries to clean up by deleting the temporary file, and then process 1
-  # cannot finish the copy to the final destination, and both fail!
-  # For this reason, the file name on the destination must be unique, and we then rename it to the intended value.
-  # The rename operation is synchronized by the Namenode.
-
-  # unique_string = str(uuid.uuid4())[:8]
-  # temp_dest_file = dest_file + "." + unique_string
-
-  # The logic above cannot be used until fast-hdfs-resource.jar supports the mv command, or it switches
-  # to WebHDFS.
-
-  # if there is a function which is needed to prepare the tarball, then invoke it first
-  if prepare_function is not None:
-    source_file = prepare_function()
-
   # If the directory already exists, it is a NO-OP
   dest_dir = os.path.dirname(dest_file)
   params.HdfsResource(
@@ -473,7 +244,7 @@ def copy_to_hdfs(
     source=source_file,
     group=user_group,
     owner=owner,
-    mode=0o444,
+    mode=file_mode,
     replace_existing_files=replace_existing_files,
   )
   Logger.info(
