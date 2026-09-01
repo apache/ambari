@@ -40,7 +40,7 @@
         "scope": "ANY",
         "source": {
           "type": "SCRIPT",
-          "path": "BIGTOP/3.2.0/services/RANGER/package/alerts/alert_ranger_admin_passwd_check.py",
+          "path": "BIGTOP/3.3.0/services/RANGER/package/alerts/alert_ranger_admin_passwd_check.py",
           "parameters": []
         }
       }
