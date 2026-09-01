@@ -91,8 +91,13 @@ class TestHiveConfigurationContract(unittest.TestCase):
     self.assertEqual("/usr/bin/hcat", webhcat_site["templeton.hcat"])
 
     params_source = (HIVE / "package/scripts/params.py").read_text()
-    self.assertIn('hive_home = "/usr/lib/hive"', params_source)
-    self.assertIn('hive_hcatalog_home = "/usr/lib/hive-hcatalog"', params_source)
+    self.assertIn('hive_home = os.path.join(stack_root, "current", "hive-client")', params_source)
+    self.assertIn(
+      'hive_hcatalog_home = os.path.join(stack_root, "current", "hive-webhcat")',
+      params_source,
+    )
+    self.assertNotIn("/usr/lib/hive", params_source)
+    self.assertNotIn("/usr/lib/zookeeper", params_source)
     self.assertNotIn("/usr/hdp", params_source)
     self.assertNotIn("/usr/lib/tez", params_source)
     self.assertNotIn("sap.jdbc4.sqlanywhere", params_source)
@@ -109,6 +114,17 @@ class TestHiveConfigurationContract(unittest.TestCase):
     hive_source = (HIVE / "package/scripts/hive.py").read_text()
     self.assertNotIn("mode=0o777", hive_source)
     self.assertIn("mode=0o1777", hive_source)
+    self.assertNotIn('"-passWord"', hive_source)
+    self.assertNotIn('"-userName"', hive_source)
+
+    for relative_path in (
+      "package/scripts/service_check.py",
+      "package/alerts/alert_hive_thrift_port.py",
+      "package/scripts/mysql_users.py",
+    ):
+      command_source = (HIVE / relative_path).read_text()
+      self.assertNotIn("PasswordString", command_source)
+      self.assertNotIn('"-p"', command_source)
 
   def test_default_database_uses_preinstalled_mariadb_connector(self):
     hive_site = properties(HIVE / "configuration/hive-site.xml")

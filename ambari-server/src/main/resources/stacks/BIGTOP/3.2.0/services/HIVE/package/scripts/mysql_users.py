@@ -23,7 +23,10 @@ from mysql_service import get_daemon_name
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
-from resource_management.core.utils import PasswordString
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.libraries.functions.private_temporary_file import (
+  private_temporary_file,
+)
 
 
 def mysql_adduser():
@@ -45,13 +48,28 @@ def mysql_adduser():
       f"GRANT ALL PRIVILEGES ON `{database}`.* TO '{user}'@'%'; "
       "FLUSH PRIVILEGES;"
     )
-    Execute(
-      ("mysql", "-u", "root", "-e", PasswordString(statement)),
-      sudo=True,
-      tries=3,
-      try_sleep=5,
-      logoutput=False,
-    )
+    with private_temporary_file(
+      statement,
+      "root",
+      "root",
+      temp_dir=params.tmp_dir,
+      prefix="ambari-hive-mysql-",
+    ) as sql_file:
+      Execute(
+        (
+          "bash",
+          "-c",
+          'exec mysql -u root < "$1"',
+          "ambari-hive-mysql",
+          sql_file,
+        ),
+        sudo=True,
+        tries=3,
+        try_sleep=5,
+        logoutput=False,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+      )
   finally:
     if not was_running:
       Execute(("service", daemon_name, "stop"), sudo=True, logoutput=True)

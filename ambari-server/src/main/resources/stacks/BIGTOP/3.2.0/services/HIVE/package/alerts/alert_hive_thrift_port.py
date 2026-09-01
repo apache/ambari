@@ -18,17 +18,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 import logging
+import os
+import re
 import socket
 import time
 import traceback
 
 from resource_management.core import shell
 from resource_management.core.signal_utils import TerminateStrategy
-from resource_management.core.utils import PasswordString
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions.stack_tools import get_stack_root
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
+)
+from resource_management.libraries.functions.private_temporary_file import (
+  private_temporary_file,
 )
 
 OK_MESSAGE = "HiveServer2 OK - query completed in {0:.3f}s on port {1}"
@@ -54,6 +60,7 @@ HIVE_PAM_USERNAME = "{{hive-env/alert_pam_username}}"
 HIVE_PAM_PASSWORD = "{{hive-env/alert_pam_password}}"
 HIVE_CUSTOM_USERNAME = "{{hive-env/alert_custom_username}}"
 HIVE_CUSTOM_PASSWORD = "{{hive-env/alert_custom_password}}"
+STACK_ROOT_KEY = "{{cluster-env/stack_root}}"
 
 
 # The configured Kerberos executable search paths, if any
@@ -78,11 +85,14 @@ SMOKEUSER_DEFAULT = "ambari-qa"
 
 HIVE_USER_KEY = "{{hive-env/hive_user}}"
 HIVE_USER_DEFAULT = "hive"
+USER_GROUP_KEY = "{{cluster-env/user_group}}"
+USER_GROUP_DEFAULT = "hadoop"
 
 CHECK_COMMAND_TIMEOUT_KEY = "check.command.timeout"
 CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
 
 logger = logging.getLogger("ambari_alerts")
+_STACK_ROOT_PATTERN = re.compile(r"/[A-Za-z0-9_./+@=-]*", re.ASCII)
 
 
 def get_tokens():
@@ -107,11 +117,39 @@ def get_tokens():
     HIVE_LDAP_USERNAME,
     HIVE_LDAP_PASSWORD,
     HIVE_USER_KEY,
+    USER_GROUP_KEY,
     HIVE_PAM_USERNAME,
     HIVE_PAM_PASSWORD,
     HIVE_CUSTOM_USERNAME,
     HIVE_CUSTOM_PASSWORD,
+    STACK_ROOT_KEY,
   )
+
+
+def _resolve_stack_root(configured_stack_root):
+  if not isinstance(configured_stack_root, str) or not configured_stack_root.strip():
+    raise ValueError("cluster-env/stack_root is required")
+  configured_stack_root = configured_stack_root.strip()
+  if configured_stack_root.startswith("{"):
+    try:
+      stack_roots = json.loads(configured_stack_root)
+    except json.JSONDecodeError as error:
+      raise ValueError("cluster-env/stack_root must be valid JSON") from error
+    if not isinstance(stack_roots, dict) or "BIGTOP" not in stack_roots:
+      raise ValueError("cluster-env/stack_root must define BIGTOP")
+    stack_root = get_stack_root("BIGTOP", configured_stack_root)
+  else:
+    stack_root = configured_stack_root
+  if (
+    not isinstance(stack_root, str)
+    or not os.path.isabs(stack_root)
+    or stack_root.startswith("//")
+    or os.path.normpath(stack_root) != stack_root
+    or stack_root == os.sep
+    or _STACK_ROOT_PATTERN.fullmatch(stack_root) is None
+  ):
+    raise ValueError("BIGTOP stack root must be a safe absolute directory")
+  return stack_root
 
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -145,6 +183,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     check_command_timeout = float(
       parameters.get(CHECK_COMMAND_TIMEOUT_KEY, CHECK_COMMAND_TIMEOUT_DEFAULT)
     )
+    stack_root = _resolve_stack_root(configurations.get(STACK_ROOT_KEY))
   except (TypeError, ValueError) as exception:
     return ("UNKNOWN", [f"Invalid HiveServer2 alert configuration: {exception}"])
   if not 1 <= port <= 65535 or check_command_timeout <= 0:
@@ -214,6 +253,7 @@ def execute(configurations={}, parameters={}, host_name=None):
   hive_user = HIVE_USER_DEFAULT
   if HIVE_USER_KEY in configurations:
     hive_user = configurations[HIVE_USER_KEY]
+  user_group = configurations.get(USER_GROUP_KEY, USER_GROUP_DEFAULT)
 
   ldap_username = ""
   ldap_password = ""
@@ -295,6 +335,7 @@ def execute(configurations={}, parameters={}, host_name=None):
             port,
             smokeuser,
             hive_user,
+            user_group,
             hive_server2_authentication,
             hive_server_principal,
             transport_mode,
@@ -309,6 +350,7 @@ def execute(configurations={}, parameters={}, host_name=None):
             custom_password,
             int(check_command_timeout),
             cache.environment,
+            os.path.join(stack_root, "current", "hive-client", "bin", "beeline"),
           )
       else:
         _run_beeline_alert(
@@ -316,6 +358,7 @@ def execute(configurations={}, parameters={}, host_name=None):
           port,
           smokeuser,
           hive_user,
+          user_group,
           hive_server2_authentication,
           hive_server_principal,
           transport_mode,
@@ -330,6 +373,7 @@ def execute(configurations={}, parameters={}, host_name=None):
           custom_password,
           int(check_command_timeout),
           environment,
+          os.path.join(stack_root, "current", "hive-client", "bin", "beeline"),
         )
       result_code = "OK"
       total_time = time.time() - start_time
@@ -350,6 +394,7 @@ def _run_beeline_alert(
   port,
   smokeuser,
   hive_user,
+  user_group,
   authentication,
   principal,
   transport_mode,
@@ -364,6 +409,7 @@ def _run_beeline_alert(
   custom_password,
   timeout,
   environment,
+  beeline_path,
 ):
   properties = [f"transportMode={transport_mode}"]
   if transport_mode.lower() == "http":
@@ -382,24 +428,62 @@ def _run_beeline_alert(
     )
 
   url = f"jdbc:hive2://{host}:{port}/;" + ";".join(properties)
-  command = [
-    "/usr/lib/hive/bin/beeline",
-    "-u",
-    PasswordString(url) if ssl_enabled else url,
-  ]
+  username = hive_user
+  password = ""
   if authentication == "LDAP":
-    command.extend(("-n", ldap_username, "-p", PasswordString(ldap_password)))
+    username, password = ldap_username, ldap_password
   elif authentication == "PAM":
-    command.extend(("-n", pam_username, "-p", PasswordString(pam_password)))
+    username, password = pam_username, pam_password
   elif authentication == "CUSTOM":
-    command.extend(("-n", custom_username, "-p", PasswordString(custom_password)))
-  else:
-    command.extend(("-n", hive_user))
-  command.extend(("-e", "show databases"))
-  shell.checked_call(
-    tuple(command),
-    user=smokeuser,
-    env=environment,
-    timeout=timeout,
-    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+    username, password = custom_username, custom_password
+  properties_file_content = "\n".join(
+    (
+      f"url={_escape_java_property(url)}",
+      f"user={_escape_java_property(username)}",
+      f"password={_escape_java_property(password)}",
+      "driver=org.apache.hive.jdbc.HiveDriver",
+      "",
+    )
   )
+  with private_temporary_file(
+    properties_file_content,
+    smokeuser,
+    user_group,
+    temp_dir="/tmp",
+    prefix="ambari-hive-alert-beeline-",
+  ) as properties_file:
+    shell.checked_call(
+      (
+        beeline_path,
+        "--property-file",
+        properties_file,
+        "-e",
+        "show databases",
+      ),
+      user=smokeuser,
+      env=environment,
+      timeout=timeout,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+    )
+
+
+def _escape_java_property(value):
+  escaped = []
+  for character in str(value or ""):
+    if character in "\\:=#! ":
+      escaped.append("\\" + character)
+    elif character == "\t":
+      escaped.append("\\t")
+    elif character == "\n":
+      escaped.append("\\n")
+    elif character == "\r":
+      escaped.append("\\r")
+    elif ord(character) < 0x20 or ord(character) > 0x7E:
+      encoded = character.encode("utf-16-be")
+      escaped.extend(
+        f"\\u{int.from_bytes(encoded[index:index + 2], 'big'):04x}"
+        for index in range(0, len(encoded), 2)
+      )
+    else:
+      escaped.append(character)
+  return "".join(escaped)

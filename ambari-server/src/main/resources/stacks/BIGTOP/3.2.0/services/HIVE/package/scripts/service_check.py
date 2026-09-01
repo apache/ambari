@@ -27,9 +27,11 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.signal_utils import TerminateStrategy
-from resource_management.core.utils import PasswordString
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
+)
+from resource_management.libraries.functions.private_temporary_file import (
+  private_temporary_file,
 )
 from resource_management.libraries.script.script import Script
 
@@ -72,14 +74,22 @@ class HiveServiceCheck(Script):
       while time.monotonic() < deadline:
         for address in addresses:
           try:
-            shell.checked_call(
-              _beeline_command(params, address),
-              user=params.smokeuser,
-              env=environment,
-              path=params.execute_path,
-              timeout=30,
-              timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
-            )
+            properties = _beeline_connection_properties(params, address)
+            with private_temporary_file(
+              properties,
+              params.smokeuser,
+              params.user_group,
+              temp_dir=params.tmp_dir,
+              prefix="ambari-hive-beeline-",
+            ) as properties_file:
+              shell.checked_call(
+                _beeline_command(params, properties_file),
+                user=params.smokeuser,
+                env=environment,
+                path=params.execute_path,
+                timeout=30,
+                timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+              )
             Logger.info(
               f"Successfully connected to HiveServer2 at {address}:"
               f"{params.hive_server_port}"
@@ -95,7 +105,7 @@ class HiveServiceCheck(Script):
     )
 
 
-def _beeline_command(params, address):
+def _beeline_connection_properties(params, address):
   properties = [f"transportMode={params.hive_transport_mode}"]
   if params.hive_transport_mode == "http":
     properties.append(f"httpPath={params.hive_http_endpoint}")
@@ -116,14 +126,9 @@ def _beeline_command(params, address):
   url = f"jdbc:hive2://{address}:{params.hive_server_port}/;" + ";".join(
     properties
   )
-  command = [
-    os.path.join(params.hive_bin_dir, "beeline"),
-    "-u",
-    PasswordString(url) if params.hive_ssl else url,
-  ]
   authentication = params.hive_server2_authentication
-  username = None
-  password = None
+  username = params.hive_user
+  password = ""
   if authentication == "LDAP":
     username, password = params.hive_ldap_user, params.hive_ldap_passwd
   elif authentication == "PAM":
@@ -131,14 +136,50 @@ def _beeline_command(params, address):
   elif authentication == "CUSTOM":
     username, password = params.hive_custom_username, params.hive_custom_password
 
-  if username is not None:
+  if authentication in ("LDAP", "PAM", "CUSTOM"):
     if not str(username).strip() or not str(password):
       raise Fail(f"{authentication} service checks require a username and password")
-    command.extend(("-n", username, "-p", PasswordString(password)))
-  else:
-    command.extend(("-n", params.hive_user))
-  command.extend(("-e", "show databases"))
-  return tuple(command)
+  return "\n".join(
+    (
+      f"url={_escape_java_property(url)}",
+      f"user={_escape_java_property(username)}",
+      f"password={_escape_java_property(password)}",
+      "driver=org.apache.hive.jdbc.HiveDriver",
+      "",
+    )
+  )
+
+
+def _beeline_command(params, properties_file):
+  return (
+    os.path.join(params.hive_bin_dir, "beeline"),
+    "--property-file",
+    properties_file,
+    "-e",
+    "show databases",
+  )
+
+
+def _escape_java_property(value):
+  escaped = []
+  for character in str(value or ""):
+    if character in "\\:=#! ":
+      escaped.append("\\" + character)
+    elif character == "\t":
+      escaped.append("\\t")
+    elif character == "\n":
+      escaped.append("\\n")
+    elif character == "\r":
+      escaped.append("\\r")
+    elif ord(character) < 0x20 or ord(character) > 0x7E:
+      encoded = character.encode("utf-16-be")
+      escaped.extend(
+        f"\\u{int.from_bytes(encoded[index:index + 2], 'big'):04x}"
+        for index in range(0, len(encoded), 2)
+      )
+    else:
+      escaped.append(character)
+  return "".join(escaped)
 
 
 if __name__ == "__main__":

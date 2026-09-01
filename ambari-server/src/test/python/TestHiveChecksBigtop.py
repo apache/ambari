@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import importlib.util
+from contextlib import contextmanager
 from pathlib import Path
 import sys
 from types import ModuleType
@@ -25,7 +26,6 @@ import unittest
 from unittest.mock import MagicMock, call, patch
 
 from resource_management.core.exceptions import Fail
-from resource_management.core.utils import PasswordString
 
 
 SCRIPTS = (
@@ -106,7 +106,7 @@ class TestHiveServerCheck(unittest.TestCase):
       hive_pam_password="pam secret",
       hive_custom_username="custom user",
       hive_custom_password="custom secret",
-      hive_bin_dir="/usr/lib/hive/bin",
+      hive_bin_dir="/usr/bigtop/current/hive-client/bin",
       hive_user="hive",
       smokeuser="ambari-qa",
       smoke_user_keytab="/etc/security/keytabs/smoke;keytab",
@@ -117,20 +117,47 @@ class TestHiveServerCheck(unittest.TestCase):
       execute_path="/usr/bin",
     )
 
-  def test_beeline_ldap_credentials_remain_individual_argv_tokens(self):
-    command = SERVICE_CHECK._beeline_command(self.params("LDAP"), "host;$(id)")
-    self.assertIsInstance(command, tuple)
-    self.assertEqual("jdbc:hive2://host;$(id):10000/;transportMode=binary", command[2])
-    self.assertEqual("ldap;user", command[4])
-    self.assertIsInstance(command[6], PasswordString)
-    self.assertEqual("secret;$(id)", str(command[6]))
-    self.assertEqual(("-e", "show databases"), command[-2:])
+  def test_beeline_ldap_credentials_are_only_in_private_properties(self):
+    params = self.params("LDAP")
+    properties = SERVICE_CHECK._beeline_connection_properties(
+      params, "host;$(id)"
+    )
+    command = SERVICE_CHECK._beeline_command(
+      params, "/tmp/ambari-hive-beeline-private"
+    )
+    self.assertIn(
+      "url=jdbc\\:hive2\\://host;$(id)\\:10000/;transportMode\\=binary",
+      properties,
+    )
+    self.assertIn("user=ldap;user", properties)
+    self.assertIn("password=secret;$(id)", properties)
+    self.assertEqual(
+      (
+        "/usr/bigtop/current/hive-client/bin/beeline",
+        "--property-file",
+        "/tmp/ambari-hive-beeline-private",
+        "-e",
+        "show databases",
+      ),
+      command,
+    )
+    self.assertNotIn("secret;$(id)", repr(command))
 
   def test_kerberos_check_uses_one_private_cache_for_all_endpoints(self):
     params = self.params()
     context = CacheContext()
     check = object.__new__(SERVICE_CHECK.HiveServiceCheck)
+
+    @contextmanager
+    def private_properties(*args, **kwargs):
+      yield "/tmp/ambari-hive-beeline-private"
+
     with patch.object(SERVICE_CHECK, "PrivateKerberosCache", return_value=context) as cache, \
+      patch.object(
+        SERVICE_CHECK,
+        "private_temporary_file",
+        side_effect=private_properties,
+      ) as private_file, \
       patch.object(SERVICE_CHECK.shell, "checked_call", return_value=(0, "ok")) as execute:
       check.check_hive_server(params)
 
@@ -149,19 +176,26 @@ class TestHiveServerCheck(unittest.TestCase):
       {"KRB5CCNAME": "FILE:/private/cache"}, execute.call_args.kwargs["env"]
     )
     self.assertIsInstance(execute.call_args.args[0], tuple)
+    self.assertNotIn("password", repr(execute.call_args.args[0]).lower())
+    self.assertIn(
+      "principal\\=hive/_HOST@EXAMPLE.TEST",
+      private_file.call_args.args[0],
+    )
 
-  def test_custom_authentication_credentials_remain_individual_argv_tokens(self):
-    command = SERVICE_CHECK._beeline_command(self.params("CUSTOM"), "host;$(id)")
-    self.assertEqual(("-n", "custom user"), command[3:5])
-    self.assertEqual("-p", command[5])
-    self.assertIsInstance(command[6], PasswordString)
-    self.assertEqual("custom secret", str(command[6]))
+  def test_custom_authentication_password_is_escaped_in_properties(self):
+    properties = SERVICE_CHECK._beeline_connection_properties(
+      self.params("CUSTOM"), "host;$(id)"
+    )
+    self.assertIn("user=custom\\ user", properties)
+    self.assertIn("password=custom\\ secret", properties)
 
   def test_password_authentication_rejects_missing_credentials(self):
     params = self.params("PAM")
     params.hive_pam_password = ""
     with self.assertRaisesRegex(Fail, "PAM service checks require"):
-      SERVICE_CHECK._beeline_command(params, "host.example.test")
+      SERVICE_CHECK._beeline_connection_properties(
+        params, "host.example.test"
+      )
 
 
 class TestHCatAndWebHCatChecks(unittest.TestCase):
@@ -258,17 +292,30 @@ class TestBundledMariaDbWorkflow(unittest.TestCase):
       hive_metastore_user_name="hive",
       hive_db_schema_name="hive",
       hive_metastore_user_passwd="secret;$(id)",
+      tmp_dir="/var/lib/ambari-agent/tmp",
     )
+
+    @contextmanager
+    def private_sql(*args, **kwargs):
+      yield "/var/lib/ambari-agent/tmp/ambari-hive-mysql-private"
+
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(MYSQL_USERS, "get_daemon_name", return_value="mariadb"), \
       patch.object(MYSQL_USERS.shell, "call", return_value=(1, "stopped")), \
+      patch.object(
+        MYSQL_USERS,
+        "private_temporary_file",
+        side_effect=private_sql,
+      ) as private_file, \
       patch.object(MYSQL_USERS, "Execute") as execute:
       MYSQL_USERS.mysql_adduser()
 
     mysql_command = execute.call_args_list[1].args[0]
-    self.assertEqual(("mysql", "-u", "root", "-e"), mysql_command[:4])
-    self.assertIsInstance(mysql_command[4], PasswordString)
-    self.assertIn("`hive`.*", str(mysql_command[4]))
+    self.assertEqual(("bash", "-c"), mysql_command[:2])
+    self.assertNotIn("secret;$(id)", repr(mysql_command))
+    self.assertIn("IDENTIFIED BY 'secret;$(id)'", private_file.call_args.args[0])
+    self.assertEqual("root", private_file.call_args.args[1])
+    self.assertEqual("root", private_file.call_args.args[2])
     self.assertEqual(
       [
         call(("service", "mariadb", "start"), sudo=True, logoutput=True),
@@ -283,10 +330,21 @@ class TestBundledMariaDbWorkflow(unittest.TestCase):
       hive_metastore_user_name="hive",
       hive_db_schema_name="hive",
       hive_metastore_user_passwd="secret",
+      tmp_dir="/var/lib/ambari-agent/tmp",
     )
+
+    @contextmanager
+    def private_sql(*args, **kwargs):
+      yield "/var/lib/ambari-agent/tmp/ambari-hive-mysql-private"
+
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(MYSQL_USERS, "get_daemon_name", return_value="mariadb"), \
       patch.object(MYSQL_USERS.shell, "call", return_value=(0, "running")), \
+      patch.object(
+        MYSQL_USERS,
+        "private_temporary_file",
+        side_effect=private_sql,
+      ), \
       patch.object(MYSQL_USERS, "Execute") as execute:
       MYSQL_USERS.mysql_adduser()
 
@@ -296,8 +354,45 @@ class TestBundledMariaDbWorkflow(unittest.TestCase):
       execute.call_args_list[0].args[0],
     )
     self.assertEqual(
-      ("mysql", "-u", "root", "-e"),
-      execute.call_args_list[1].args[0][:4],
+      ("bash", "-c"), execute.call_args_list[1].args[0][:2]
+    )
+
+  def test_database_setup_failure_cleans_secret_and_restores_stopped_service(self):
+    params = module_with(
+      hive_metastore_user_name="hive",
+      hive_db_schema_name="hive",
+      hive_metastore_user_passwd="secret",
+      tmp_dir="/var/lib/ambari-agent/tmp",
+    )
+    cleaned = []
+
+    @contextmanager
+    def private_sql(*args, **kwargs):
+      try:
+        yield "/var/lib/ambari-agent/tmp/ambari-hive-mysql-private"
+      finally:
+        cleaned.append(True)
+
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(MYSQL_USERS, "get_daemon_name", return_value="mariadb"), \
+      patch.object(MYSQL_USERS.shell, "call", return_value=(1, "stopped")), \
+      patch.object(
+        MYSQL_USERS,
+        "private_temporary_file",
+        side_effect=private_sql,
+      ), \
+      patch.object(
+        MYSQL_USERS,
+        "Execute",
+        side_effect=(None, Fail("mysql failed"), None),
+      ) as execute:
+      with self.assertRaisesRegex(Fail, "mysql failed"):
+        MYSQL_USERS.mysql_adduser()
+
+    self.assertEqual([True], cleaned)
+    self.assertEqual(
+      call(("service", "mariadb", "stop"), sudo=True, logoutput=True),
+      execute.call_args_list[-1],
     )
 
   def test_database_configuration_uses_root_owned_mariadb_drop_in(self):
@@ -344,6 +439,61 @@ class TestRangerSetupFailure(unittest.TestCase):
 
 
 class TestHiveThriftAlert(unittest.TestCase):
+  def test_stack_root_resolves_plain_and_json_contracts(self):
+    self.assertEqual("/usr/bigtop", THRIFT_ALERT._resolve_stack_root("/usr/bigtop"))
+    self.assertEqual(
+      "/opt/bigtop",
+      THRIFT_ALERT._resolve_stack_root('{"BIGTOP": "/opt/bigtop"}'),
+    )
+
+  def test_invalid_stack_roots_fail_closed(self):
+    for value in (None, "relative", "/", "/usr/../etc", '{"HDP": "/usr/hdp"}'):
+      with self.subTest(value=value), self.assertRaises(ValueError):
+        THRIFT_ALERT._resolve_stack_root(value)
+
+  def test_alert_passwords_are_absent_from_beeline_argv(self):
+    @contextmanager
+    def private_properties(*args, **kwargs):
+      yield "/tmp/ambari-hive-alert-private"
+
+    with patch.object(
+      THRIFT_ALERT,
+      "private_temporary_file",
+      side_effect=private_properties,
+    ) as private_file, patch.object(
+      THRIFT_ALERT.shell, "checked_call"
+    ) as checked_call:
+      THRIFT_ALERT._run_beeline_alert(
+        host="hive.example.test",
+        port=10000,
+        smokeuser="ambari-qa",
+        hive_user="hive",
+        user_group="hadoop",
+        authentication="LDAP",
+        principal=None,
+        transport_mode="binary",
+        ssl_enabled=True,
+        ssl_keystore="/etc/security/truststore.jks",
+        ssl_password="ssl secret;$(id)",
+        ldap_username="ldap user",
+        ldap_password="ldap secret;$(id)",
+        pam_username="",
+        pam_password="",
+        custom_username="",
+        custom_password="",
+        timeout=30,
+        environment=None,
+        beeline_path="/usr/bigtop/current/hive-client/bin/beeline",
+      )
+
+    properties = private_file.call_args.args[0]
+    self.assertIn("trustStorePassword\\=ssl\\ secret;$(id)", properties)
+    self.assertIn("password=ldap\\ secret;$(id)", properties)
+    command = checked_call.call_args.args[0]
+    self.assertNotIn("ssl secret;$(id)", repr(command))
+    self.assertNotIn("ldap secret;$(id)", repr(command))
+    self.assertEqual("--property-file", command[1])
+
   def test_invalid_port_is_reported_as_unknown(self):
     result, labels = THRIFT_ALERT.execute(
       {THRIFT_ALERT.HIVE_SERVER_THRIFT_PORT_KEY: "not-a-port"},
@@ -364,6 +514,18 @@ class TestHiveThriftAlert(unittest.TestCase):
 
     self.assertEqual("UNKNOWN", result)
     self.assertIn("Unsupported HiveServer2 transport mode", labels[0])
+    execute.assert_not_called()
+
+  def test_missing_stack_root_is_rejected_before_beeline(self):
+    with patch.object(THRIFT_ALERT.shell, "checked_call") as execute:
+      result, labels = THRIFT_ALERT.execute(
+        {THRIFT_ALERT.HIVE_SERVER_THRIFT_PORT_KEY: "10000"},
+        {},
+        "hive.example.test",
+      )
+
+    self.assertEqual("UNKNOWN", result)
+    self.assertIn("cluster-env/stack_root is required", labels[0])
     execute.assert_not_called()
 
 

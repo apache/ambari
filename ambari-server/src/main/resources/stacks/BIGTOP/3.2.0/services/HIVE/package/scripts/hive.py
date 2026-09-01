@@ -34,7 +34,6 @@ from resource_management.core.source import (
   DownloadSource,
   InlineTemplate,
 )
-from resource_management.core.utils import PasswordString
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.generate_logfeeder_input_config import (
@@ -611,15 +610,7 @@ def _schema_tool_command(params, action, meta_db_type=False):
   ]
   if meta_db_type:
     command.extend(("-metaDbType", params.hive_metastore_db_type))
-  command.extend(
-    (
-      "-userName",
-      params.hive_metastore_user_name,
-      "-passWord",
-      PasswordString(params.hive_metastore_user_passwd),
-      "-verbose",
-    )
-  )
+  command.append("-verbose")
   return tuple(command)
 
 
