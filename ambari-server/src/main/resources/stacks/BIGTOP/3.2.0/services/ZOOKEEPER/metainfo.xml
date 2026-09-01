@@ -86,6 +86,14 @@
             </package>
           </packages>
         </osSpecific>
+        <osSpecific>
+          <osFamily>debian10,debian11,ubuntu20,ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>zookeeper-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
       </osSpecifics>
 
       <commandScript>

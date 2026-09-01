@@ -26,6 +26,8 @@
     <description>The maximum size of backup file before the log is rotated</description>
     <display-name>ZooKeeper Log: backup file size</display-name>
     <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
       <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
@@ -98,8 +100,7 @@ log4j.appender.ROLLINGFILE.File={{zk_log_dir}}/zookeeper.log
 
 # Max log file size of 10MB
 log4j.appender.ROLLINGFILE.MaxFileSize={{zookeeper_log_max_backup_size}}MB
-# uncomment the next line to limit number of backup files
-#log4j.appender.ROLLINGFILE.MaxBackupIndex={{zookeeper_log_number_of_backup_files}}
+log4j.appender.ROLLINGFILE.MaxBackupIndex={{zookeeper_log_number_of_backup_files}}
 
 log4j.appender.ROLLINGFILE.layout=org.apache.log4j.PatternLayout
 log4j.appender.ROLLINGFILE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n

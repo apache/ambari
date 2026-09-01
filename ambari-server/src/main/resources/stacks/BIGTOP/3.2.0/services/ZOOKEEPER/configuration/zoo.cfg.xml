@@ -81,6 +81,10 @@
     <description>ZooKeeper purge feature retains the autopurge.snapRetainCount
       most recent snapshots and the corresponding transaction
       logs in the dataDir and dataLogDir respectively and deletes the rest. </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>3</minimum>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -88,6 +92,10 @@
     <value>24</value>
     <description>The time interval in hours for which the purge task has to be triggered.
       Set to a positive integer (1 and above) to enable the auto purging.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -95,8 +103,7 @@
     <value>ruok</value>
     <description>A list of comma separated Four Letter Words commands that user wants to use.
       A valid Four Letter Words command must be put in this list else ZooKeeper server will not enable the command.
-      By default the whitelist only contains "srvr" command which zkServer.sh uses.
-      The rest of four letter word commands are disabled by default.</description>
+      This stack enables only "ruok" by default for the Ambari port alert.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -112,6 +119,11 @@
     <name>admin.serverPort</name>
     <value>9393</value>
     <description>The port the embedded Jetty server listens on. Defaults to 8080.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>65535</maximum>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
