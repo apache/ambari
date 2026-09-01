@@ -27,9 +27,13 @@ import os
 import ssl
 
 from ambari_agent.FileCache import FileCache
+from ambari_commons.inet_utils import create_ssl_context, resolve_tls_client_protocol
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 logger = logging.getLogger(__name__)
+
+MAX_PARALLEL_ACTIONS_DEFAULT = 5
+MAX_PARALLEL_ACTIONS_LIMIT = 32
 
 """
 The below config is necessary only for unit tests.
@@ -40,6 +44,7 @@ content = """
 hostname=localhost
 url_port=8440
 secured_url_port=8441
+connection_timeout=10
 
 [agent]
 prefix={ps}tmp{ps}ambari-agent
@@ -50,6 +55,7 @@ data_cleanup_max_size_MB = 100
 ping_port=8670
 cache_dir={ps}tmp
 parallel_execution=0
+max_parallel_actions=5
 system_resource_overrides={ps}etc{ps}resource_overrides
 tolerate_download_failures=false
 
@@ -66,6 +72,7 @@ use_system_proxy_settings=true
 keysdir={ps}tmp{ps}ambari-agent
 server_crt=ca.crt
 passphrase_env_var_name=AMBARI_PASSPHRASE
+passphrase_file={ps}var{ps}lib{ps}ambari-agent{ps}ambari-env.sh
 
 [heartbeat]
 state_interval = 1
@@ -408,6 +415,15 @@ class AmbariConfig:
   def get_parallel_exec_option(self):
     return int(self.get("agent", "parallel_execution", 0))
 
+  def get_max_parallel_actions(self):
+    try:
+      configured = int(
+        self.get("agent", "max_parallel_actions", MAX_PARALLEL_ACTIONS_DEFAULT)
+      )
+    except (TypeError, ValueError):
+      configured = MAX_PARALLEL_ACTIONS_DEFAULT
+    return min(max(configured, 1), MAX_PARALLEL_ACTIONS_LIMIT)
+
   def get_ulimit_open_files(self):
     open_files_config_val = int(self.get("agent", self.ULIMIT_OPEN_FILES_KEY, 0))
     open_files_ulimit = (
@@ -439,18 +455,16 @@ class AmbariConfig:
         self.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
       for k, v in reg_resp[AmbariConfig.AMBARI_PROPERTIES_CATEGORY].items():
         self.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, k, v)
-        logger.info("Updating config property (%s) with value (%s)", k, v)
+        logger.info("Updating Agent config property %s", k)
     pass
 
   def get_force_https_protocol_name(self):
     """
     Get forced https protocol name.
 
-    :return: protocol name, PROTOCOL_TLSv1_2 by default
+    :return: protocol name, PROTOCOL_TLS_CLIENT by default
     """
-    default = (
-      "PROTOCOL_TLSv1_2" if hasattr(ssl, "PROTOCOL_TLSv1_2") else "PROTOCOL_TLSv1"
-    )
+    default = "PROTOCOL_TLS_CLIENT"
     return self.get("security", "force_https_protocol", default=default)
 
   def get_force_https_protocol_value(self):
@@ -459,7 +473,7 @@ class AmbariConfig:
 
     :return: protocol value
     """
-    return getattr(ssl, self.get_force_https_protocol_name())
+    return resolve_tls_client_protocol(self.get_force_https_protocol_name())
 
   def get_ca_cert_file_path(self):
     """
@@ -467,7 +481,29 @@ class AmbariConfig:
 
     :return: trusted certificates file path
     """
-    return self.get("security", "ca_cert_path", default="")
+    configured_path = self.get("security", "ca_cert_path", default="").strip()
+    if configured_path:
+      return os.path.abspath(configured_path)
+    keys_dir = os.path.abspath(self.get("security", "keysdir"))
+    return os.path.join(keys_dir, self.get("security", "server_crt", "ca.crt"))
+
+  def get_server_ssl_options(self):
+    ca_cert = self.get_ca_cert_file_path()
+    if not os.path.isfile(ca_cert):
+      raise ssl.SSLError(
+        f"Ambari Server CA certificate is missing or unreadable: {ca_cert}"
+      )
+    return {
+      "cert_reqs": ssl.CERT_REQUIRED,
+      "ca_certs": ca_cert,
+      "check_hostname": True,
+    }
+
+  def get_server_ssl_context(self):
+    options = self.get_server_ssl_options()
+    return create_ssl_context(
+      self.get_force_https_protocol_value(), options["ca_certs"]
+    )
 
   @property
   def send_alert_changes_only(self):

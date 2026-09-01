@@ -21,17 +21,14 @@ limitations under the License.
 import http.client
 import ssl
 import urllib.request, urllib.error, urllib.parse
+from ambari_commons.inet_utils import create_ssl_context
 
-from ambari_commons.logging_utils import print_warning_msg
 
-
-# overrides default httplib.HTTPSConnection implementation to use specified ssl version
+# Override the default http.client.HTTPSConnection to use the requested SSL context.
 class HTTPSConnectionWithCustomSslVersion(http.client.HTTPSConnection):
-  def __init__(self, host, port, ssl_version, **kwargs):
+  def __init__(self, host, port, ssl_version, ca_certs=None, **kwargs):
     self.ssl_version = ssl_version
-    context = ssl.SSLContext(ssl_version)
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
+    context = create_ssl_context(ssl_version, ca_certs)
     super(HTTPSConnectionWithCustomSslVersion, self).__init__(
       host, port, context=context, **kwargs
     )
@@ -41,35 +38,18 @@ def get_http_connection(
   host, port, https_enabled=False, ca_certs=None, ssl_version=ssl.PROTOCOL_TLS_CLIENT
 ):
   if https_enabled:
-    if ca_certs:
-      check_ssl_certificate_and_return_ssl_version(host, port, ca_certs, ssl_version)
-    return HTTPSConnectionWithCustomSslVersion(host, port, ssl_version)
+    return HTTPSConnectionWithCustomSslVersion(
+      host, port, ssl_version, ca_certs=ca_certs
+    )
   else:
     return http.client.HTTPConnection(host, port)
 
 
-def check_ssl_certificate_and_return_ssl_version(
-  host, port, ca_certs, ssl_version=ssl.PROTOCOL_TLS_CLIENT
-):
-  try:
-    ssl.get_server_certificate((host, port), ssl_version=ssl_version, ca_certs=ca_certs)
-  except ssl.SSLError as ssl_error:
-    from resource_management.core.exceptions import Fail
-
-    raise Fail(
-      f"Failed to verify the SSL certificate for https://{host}:{port} with CA certificate in {ca_certs}. Error : {str(ssl_error)}"
-    )
-  return ssl_version
-
-
-def reconfigure_urllib2_opener(ignore_system_proxy=False):
-  """
-  Reconfigure urllib opener
-
-  :type ignore_system_proxy bool
-  """
-
+def build_url_opener(ignore_system_proxy=False, ssl_context=None, *handlers):
+  """Build a request-scoped opener without changing urllib process globals."""
+  request_handlers = list(handlers)
   if ignore_system_proxy:
-    proxy_handler = urllib.request.ProxyHandler({})
-    opener = urllib.request.build_opener(proxy_handler)
-    urllib.request.install_opener(opener)
+    request_handlers.insert(0, urllib.request.ProxyHandler({}))
+  if ssl_context is not None:
+    request_handlers.append(urllib.request.HTTPSHandler(context=ssl_context))
+  return urllib.request.build_opener(*request_handlers)
