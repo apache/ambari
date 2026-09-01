@@ -405,7 +405,7 @@ public class Configuration {
    */
   @Markdown(description = "The password to set on the `AMBARI_PASSPHRASE` environment variable before invoking the bootstrap script.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SETUP_AGENT_PASSWORD = new ConfigurationProperty<>(
-      "bootstrap.setup_agent.password", "password");
+      "bootstrap.setup_agent.password", "");
 
   /**
    * The host name of the Ambari Server which will be used by the Ambari Agents
@@ -636,7 +636,7 @@ public class Configuration {
    */
   @Markdown(description = "The name of the truststore file ambari uses to store trusted certificates. Located in `security.server.keys_dir`")
   public static final ConfigurationProperty<String> TSTR_NAME = new ConfigurationProperty<>(
-      "security.server.truststore_name", "keystore.p12");
+      "security.server.truststore_name", "truststore.p12");
 
   /**
    * The type of the truststore file specified in {@link #TSTR_NAME}. By default

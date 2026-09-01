@@ -43,6 +43,7 @@ from ambari_server.serverConfiguration import (
   SSL_API,
   DEFAULT_SSL_API_PORT,
   SSL_API_PORT,
+  SECURITY_KEYS_DIR,
 )
 from ambari_server.userInput import get_validated_string_input
 
@@ -50,6 +51,8 @@ from ambari_server.userInput import get_validated_string_input
 SERVER_API_HOST = "127.0.0.1"
 SERVER_API_PROTOCOL = "http"
 SERVER_API_SSL_PROTOCOL = "https"
+CLIENT_API_SSL_CERT_NAME = "client.api.ssl.cert_name"
+CLIENT_API_SSL_CERT_DEFAULT = "https.crt"
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -252,7 +255,7 @@ def perform_changes_via_rest_api(
 
 def get_ssl_context(properties, requested_protocol=None):
   """
-  If needed, creates an SSL context that does not validate the SSL certificate provided by the server.
+  If needed, creates an SSL context that validates the local Ambari API.
 
   If api.ssl is not True, then return None, else create a new SSL context with either the requested
   protocol or the best one that is available for the version of Python being used.
@@ -260,42 +263,26 @@ def get_ssl_context(properties, requested_protocol=None):
   :param properties the Ambari server configuration data
   :param requested_protocol: the requested SSL/TLS protocol; None to choose the protocol dynamically
   :rtype ssl.SSLContext
-  :return: a permissive SSLContext or None
+  :return: a verified SSLContext or None
   """
 
-  if not is_api_ssl_enabled(properties) or not hasattr(ssl, "SSLContext"):
+  if not is_api_ssl_enabled(properties):
     return None
 
-  if requested_protocol:
-    protocol = requested_protocol
+  keys_dir = properties.get_property(SECURITY_KEYS_DIR)
+  cert_name = properties.get_property(CLIENT_API_SSL_CERT_NAME)
+  cert_path = os.path.join(
+    keys_dir,
+    cert_name or CLIENT_API_SSL_CERT_DEFAULT,
+  )
+  if requested_protocol is None:
+    context = ssl.create_default_context(cafile=cert_path)
   else:
-    if hasattr(ssl, "PROTOCOL_TLS"):
-      # https://docs.python.org/2/library/ssl.html#ssl.PROTOCOL_TLS
-      # Selects the highest protocol version that both the client and server support.
-      protocol = ssl.PROTOCOL_TLS
-    elif hasattr(ssl, "PROTOCOL_TLSv1_2"):
-      # https://docs.python.org/2/library/ssl.html#ssl.PROTOCOL_TLSv1_2
-      # Selects TLS version 1.2 as the channel encryption protocol.
-      protocol = ssl.PROTOCOL_TLSv1_2
-    elif hasattr(ssl, "PROTOCOL_TLSv1_1"):
-      # https://docs.python.org/2/library/ssl.html#ssl.PROTOCOL_TLSv1_1
-      # Selects TLS version 1.1 as the channel encryption protocol
-      protocol = ssl.PROTOCOL_TLSv1_1
-    elif hasattr(ssl, "PROTOCOL_TLSv1"):
-      # https://docs.python.org/2/library/ssl.html#ssl.PROTOCOL_TLSv1
-      # Selects TLS version 1.0 as the channel encryption protocol
-      protocol = ssl.PROTOCOL_TLSv1
-    else:
-      protocol = None
-
-  if protocol:
-    context = ssl.SSLContext(protocol)
-  else:
-    context = ssl.create_default_context()
-
-  # if _https_verify_certificates is vaild, force this to be False
-  if hasattr(context, "_https_verify_certificates"):
-    context._https_verify_certificates(False)
+    context = ssl.SSLContext(requested_protocol)
+    context.load_default_certs(ssl.Purpose.SERVER_AUTH)
+    context.load_verify_locations(cert_path)
+  context.verify_mode = ssl.CERT_REQUIRED
+  context.check_hostname = True
 
   return context
 

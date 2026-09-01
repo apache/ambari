@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import io
+import json
 import sys
 import subprocess
 from unittest.mock import MagicMock, patch, ANY
@@ -38,7 +39,7 @@ with patch("ambari_commons.os_check.linux_distribution", return_value=("Suse", "
   from ambari_agent import NetUtil
   from ambari_agent.security import CertificateManager
   from ambari_agent.AmbariConfig import AmbariConfig
-  from ambari_agent import security
+from ambari_agent import security
 
 aa = mock.mock_open()
 
@@ -51,18 +52,18 @@ class TestSecurity(unittest.TestCase):
     sys.stdout = out
     # Create config
     self.config = AmbariConfig()
-    self.config.set("security", "ssl_verify_cert", "0")
-    # Instantiate CachedHTTPSConnection (skip connect() call)
-    with patch.object(security.VerifiedHTTPSConnection, "connect"):
-      self.cachedHTTPSConnection = security.CachedHTTPSConnection(
-        self.config, "example.com"
-      )
+    self.config.get_server_ssl_context = MagicMock(return_value=MagicMock())
+    self.config.get_server_ssl_options = MagicMock(
+      return_value={
+        "cert_reqs": ssl.CERT_REQUIRED,
+        "ca_certs": "/keys/ca.crt",
+        "check_hostname": True,
+      }
+    )
 
   def tearDown(self):
     # enable stdout
     sys.stdout = sys.__stdout__
-
-  ### CachedHTTPSConnection ###
 
   def test_VerifiedHTTPSConnection_establish_connection_starts_through_connect(self):
     connection = MagicMock()
@@ -90,64 +91,52 @@ class TestSecurity(unittest.TestCase):
     connection.start.assert_not_called()
     connection.disconnect.assert_called_once_with()
 
-  @patch.object(security.VerifiedHTTPSConnection, "connect")
-  def test_CachedHTTPSConnection_connect(self, vhc_connect_mock):
-    self.config.set("server", "hostname", "dummy.server.hostname")
-    self.config.set("server", "secured_url_port", "443")
-    # Testing not connected case
-    self.cachedHTTPSConnection.connected = False
-    self.cachedHTTPSConnection.connect()
-    self.assertTrue(vhc_connect_mock.called)
-    vhc_connect_mock.reset_mock()
-    # Testing already connected case
-    self.cachedHTTPSConnection.connect()
-    self.assertFalse(vhc_connect_mock.called)
-
-  @patch.object(security.CachedHTTPSConnection, "connect")
-  def test_forceClear(self, connect_mock):
-    # Testing if httpsconn instance changed
-    old = self.cachedHTTPSConnection.httpsconn
-    self.cachedHTTPSConnection.forceClear()
-    self.assertNotEqual(old, self.cachedHTTPSConnection.httpsconn)
-
-  @patch.object(security.CachedHTTPSConnection, "connect")
-  def test_request(self, connect_mock):
-    httpsconn_mock = MagicMock(create=True)
-    self.cachedHTTPSConnection.httpsconn = httpsconn_mock
-
-    dummy_request = MagicMock(create=True)
-    dummy_request.get_method.return_value = "dummy_get_method"
-    dummy_request.get_full_url.return_value = "dummy_full_url"
-    dummy_request.get_data.return_value = "dummy_get_data"
-    dummy_request.headers = "dummy_headers"
-
-    responce_mock = MagicMock(create=True)
-    responce_mock.read.return_value = "dummy responce"
-    httpsconn_mock.getresponse.return_value = responce_mock
-
-    # Testing normal case
-    responce = self.cachedHTTPSConnection.request(dummy_request)
-
-    self.assertEqual(responce, responce_mock.read.return_value)
-    httpsconn_mock.request.assert_called_once_with(
-      dummy_request.get_method.return_value,
-      dummy_request.get_full_url.return_value,
-      dummy_request.get_data.return_value,
-      dummy_request.headers,
+  @patch("ambari_agent.security.AmbariStompConnection")
+  @patch("ambari_agent.security.CertificateManager")
+  def test_enrollment_passphrase_is_retained_until_agent_certificate_exists(
+    self, certificate_manager_mock, connection_mock
+  ):
+    self.config.isTwoWaySSLConnection = MagicMock(return_value=True)
+    manager = certificate_manager_mock.return_value
+    manager.getAgentKeyName.return_value = "/keys/agent.key"
+    manager.getAgentCrtName.return_value = "/keys/agent.crt"
+    manager.getSrvrCrtName.return_value = "/keys/ca.crt"
+    connection_mock.return_value.connect.side_effect = OSError("connection reset")
+    verified_connection = security.VerifiedHTTPSConnection(
+      "server.example",
+      "wss://server.example/agent/stomp/v1",
+      self.config,
+      enrollment_passphrase="one-time-secret",
     )
 
-    # Testing case of exception
-    try:
+    with patch("ambari_agent.security.os.path.isfile", return_value=False):
+      with self.assertRaisesRegex(OSError, "connection reset"):
+        verified_connection.connect()
 
-      def side_eff():
-        raise Exception("Dummy exception")
+    self.assertEqual("one-time-secret", verified_connection.enrollment_passphrase)
 
-      httpsconn_mock.read.side_effect = side_eff
-      responce = self.cachedHTTPSConnection.request(dummy_request)
-      self.fail("Should raise IOError")
-    except Exception as err:
-      # Expected
-      pass
+  @patch("ambari_agent.security.AmbariStompConnection")
+  @patch("ambari_agent.security.CertificateManager")
+  def test_enrollment_passphrase_is_cleared_after_certificate_install(
+    self, certificate_manager_mock, connection_mock
+  ):
+    self.config.isTwoWaySSLConnection = MagicMock(return_value=True)
+    manager = certificate_manager_mock.return_value
+    manager.getAgentKeyName.return_value = "/keys/agent.key"
+    manager.getAgentCrtName.return_value = "/keys/agent.crt"
+    manager.getSrvrCrtName.return_value = "/keys/ca.crt"
+    verified_connection = security.VerifiedHTTPSConnection(
+      "server.example",
+      "wss://server.example/agent/stomp/v1",
+      self.config,
+      enrollment_passphrase="one-time-secret",
+    )
+
+    with patch("ambari_agent.security.os.path.isfile", return_value=True):
+      verified_connection.connect()
+
+    self.assertIsNone(verified_connection.enrollment_passphrase)
+    self.assertIsNone(manager.enrollment_passphrase)
 
   ### CertificateManager ###
 
@@ -175,6 +164,17 @@ class TestSecurity(unittest.TestCase):
     res = man.getAgentCrtReqName()
     self.assertEqual(res, os.path.abspath("/dummy-keysdir/dummy.hostname.csr"))
 
+  @patch("ambari_agent.hostname.hostname")
+  def test_agent_certificate_paths_hash_unsafe_hostname(self, hostname_mock):
+    hostname_mock.return_value = "../../outside/agent name"
+    self.config.set("security", "keysdir", "/dummy-keysdir")
+    man = CertificateManager(self.config, "active_server")
+
+    key_path = man.getAgentKeyName()
+
+    self.assertEqual(os.path.abspath("/dummy-keysdir"), os.path.dirname(key_path))
+    self.assertRegex(os.path.basename(key_path), r"^agent-[0-9a-f]{64}\.key$")
+
   def test_getSrvrCrtName(self):
     self.config.set("security", "keysdir", "/dummy-keysdir")
     man = CertificateManager(self.config, "active_server")
@@ -182,7 +182,8 @@ class TestSecurity(unittest.TestCase):
     self.assertEqual(res, os.path.abspath("/dummy-keysdir/ca.crt"))
 
   @patch("os.path.exists")
-  @patch.object(security.CertificateManager, "loadSrvrCrt")
+  @patch("os.unlink")
+  @patch("ssl.SSLContext")
   @patch.object(security.CertificateManager, "getAgentKeyName")
   @patch.object(security.CertificateManager, "genAgentCrtReq")
   @patch.object(security.CertificateManager, "getAgentCrtName")
@@ -193,7 +194,8 @@ class TestSecurity(unittest.TestCase):
     getAgentCrtName_mock,
     genAgentCrtReq_mock,
     getAgentKeyName_mock,
-    loadSrvrCrt_mock,
+    ssl_context_mock,
+    unlink_mock,
     exists_mock,
   ):
     self.config.set("security", "keysdir", "/dummy-keysdir")
@@ -204,157 +206,161 @@ class TestSecurity(unittest.TestCase):
     # Case when all files exist
     exists_mock.side_effect = [True, True, True]
     man.checkCertExists()
-    self.assertFalse(loadSrvrCrt_mock.called)
     self.assertFalse(genAgentCrtReq_mock.called)
     self.assertFalse(reqSignCrt_mock.called)
-
-    # Absent server cert
-    exists_mock.side_effect = [False, True, True]
-    man.checkCertExists()
-    self.assertTrue(loadSrvrCrt_mock.called)
-    self.assertFalse(genAgentCrtReq_mock.called)
-    self.assertFalse(reqSignCrt_mock.called)
-    loadSrvrCrt_mock.reset_mock()
+    ssl_context_mock.return_value.load_cert_chain.assert_called_once_with(
+      "dummy AgentCrtName", "dummy AgentKeyName"
+    )
+    ssl_context_mock.reset_mock()
 
     # Absent agent key
     exists_mock.side_effect = [True, False, True]
     man.checkCertExists()
-    self.assertFalse(loadSrvrCrt_mock.called)
-    self.assertTrue(genAgentCrtReq_mock.called)
-    self.assertFalse(reqSignCrt_mock.called)
+    genAgentCrtReq_mock.assert_called_once_with("dummy AgentKeyName")
+    reqSignCrt_mock.assert_called_once_with()
+    unlink_mock.assert_called_once_with("dummy AgentCrtName")
     genAgentCrtReq_mock.reset_mock()
+    reqSignCrt_mock.reset_mock()
+    unlink_mock.reset_mock()
 
     # Absent agent cert
     exists_mock.side_effect = [True, True, False]
     man.checkCertExists()
-    self.assertFalse(loadSrvrCrt_mock.called)
-    self.assertFalse(genAgentCrtReq_mock.called)
-    self.assertTrue(reqSignCrt_mock.called)
+    genAgentCrtReq_mock.assert_called_once_with(
+      "dummy AgentKeyName", reuse_key=True
+    )
+    reqSignCrt_mock.assert_called_once_with()
     reqSignCrt_mock.reset_mock()
 
-  @patch("urllib.request.OpenerDirector.open")
-  @patch.object(security.CertificateManager, "getSrvrCrtName")
-  def test_loadSrvrCrt(self, getSrvrCrtName_mock, urlopen_mock):
-    read_mock = MagicMock(create=True)
-    read_mock.read.return_value = "dummy_cert"
-    urlopen_mock.return_value = read_mock
-    _, tmpoutfile = tempfile.mkstemp()
-    getSrvrCrtName_mock.return_value = tmpoutfile
+  def test_remove_persisted_enrollment_passphrase_preserves_other_settings(self):
+    with tempfile.TemporaryDirectory() as directory:
+      env_path = os.path.join(directory, "ambari-env.sh")
+      with open(env_path, "w", encoding="utf-8") as stream:
+        stream.write(
+          "OTHER_SETTING=value\n"
+          "  export AMBARI_PASSPHRASE=legacy-secret\n"
+          "AMBARI_PASSPHRASE=secret\n"
+        )
+      self.config.set("security", "passphrase_file", env_path)
 
+      security.remove_persisted_enrollment_passphrase(self.config)
+
+      with open(env_path, encoding="utf-8") as stream:
+        self.assertEqual("OTHER_SETTING=value\n", stream.read())
+      self.assertEqual(0o600, os.stat(env_path).st_mode & 0o777)
+
+  @patch("os.path.exists", return_value=False)
+  def test_checkCertExists_rejects_missing_server_ca(self, exists_mock):
+    self.config.set("security", "keysdir", "/dummy-keysdir")
     man = CertificateManager(self.config, "active_server")
-    man.loadSrvrCrt()
 
-    # Checking file contents
-    saved = open(tmpoutfile, "r").read()
-    self.assertEqual(saved, read_mock.read.return_value)
-    try:
-      os.unlink(tmpoutfile)
-    except:
-      pass
+    with self.assertRaisesRegex(ssl.SSLError, "Install the trusted CA"):
+      man.checkCertExists()
 
-  @patch("ambari_agent.hostname.hostname")
+    exists_mock.assert_called_once_with(man.getSrvrCrtName())
+
+  def test_atomic_write_secures_existing_key_directory(self):
+    with tempfile.TemporaryDirectory() as directory:
+      keys_directory = os.path.join(directory, "keys")
+      os.mkdir(keys_directory, 0o755)
+      destination = os.path.join(keys_directory, "ca.crt")
+      man = CertificateManager(self.config, "active_server")
+
+      man._atomic_write(destination, b"certificate", 0o644)
+
+      self.assertEqual(0o700, os.stat(keys_directory).st_mode & 0o777)
+      self.assertEqual(0o644, os.stat(destination).st_mode & 0o777)
+
+  @patch("ambari_agent.hostname.hostname", return_value="dummy-hostname")
   @patch("builtins.open", create=True, autospec=True)
-  @patch.dict("os.environ", {"DUMMY_PASSPHRASE": "dummy-passphrase"})
-  @patch("json.dumps")
-  @patch("urllib.request.Request")
-  @patch("urllib.request.OpenerDirector.open")
-  @patch("json.loads")
-  def test_reqSignCrt(
-    self, loads_mock, urlopen_mock, request_mock, dumps_mock, open_mock, hostname_mock
+  @patch("urllib.request.build_opener")
+  def test_reqSignCrt_consumes_passphrase_and_atomically_writes_certificate(
+    self, build_opener_mock, open_mock, hostname_mock
   ):
     self.config.set("security", "keysdir", "/dummy-keysdir")
     self.config.set("security", "passphrase_env_var_name", "DUMMY_PASSPHRASE")
-    man = CertificateManager(self.config, "active_server")
-    hostname_mock.return_value = "dummy-hostname"
+    man = CertificateManager(
+      self.config,
+      "active_server",
+      enrollment_passphrase="dummy-passphrase",
+    )
+    man._atomic_write = MagicMock()
+    open_mock.return_value.__enter__.return_value.read.return_value = "dummy_request"
+    response = MagicMock()
+    response.read.return_value = b'{"result":"OK","signedCa":"dummy-crt"}'
+    build_opener_mock.return_value.open.return_value.__enter__.return_value = response
 
-    open_mock.return_value.read.return_value = "dummy_request"
-    urlopen_mock.return_value.read.return_value = "dummy_server_request"
-    loads_mock.return_value = {"result": "OK", "signedCa": "dummy-crt"}
-
-    # Test normal server interaction
     man.reqSignCrt()
 
+    request = build_opener_mock.return_value.open.call_args.args[0]
     self.assertEqual(
-      dumps_mock.call_args[0][0],
       {"csr": "dummy_request", "passphrase": "dummy-passphrase"},
+      json.loads(request.data.decode("utf-8")),
     )
-    self.assertEqual(open_mock.return_value.write.call_args[0][0], "dummy-crt")
+    man._atomic_write.assert_called_once_with(
+      man.getAgentCrtName(), b"dummy-crt", 0o644
+    )
+    self.assertIsNone(man.enrollment_passphrase)
 
-    # Test negative server reply
-    dumps_mock.reset_mock()
-    open_mock.return_value.write.reset_mock()
-    loads_mock.return_value = {"result": "FAIL", "signedCa": "fail-crt"}
-
-    # If certificate signing failed, then exception must be raised
-    try:
-      man.reqSignCrt()
-      self.fail()
-    except ssl.SSLError:
-      pass
-    self.assertFalse(open_mock.return_value.write.called)
-
-    # Test connection fail
-    dumps_mock.reset_mock()
-    open_mock.return_value.write.reset_mock()
-
-    try:
-      man.reqSignCrt()
-      self.fail("Expected exception here")
-    except Exception as err:
-      # expected
-      pass
-
-    # Test malformed JSON response
-    open_mock.return_value.write.reset_mock()
-    loads_mock.side_effect = Exception()
-    try:
-      man.reqSignCrt()
-      self.fail("Expected exception here")
-    except ssl.SSLError:
-      pass
-    self.assertFalse(open_mock.return_value.write.called)
-
-  @patch.object(subprocess, "Popen")
-  @patch("subprocess.Popen.communicate")
-  @patch.object(os, "chmod")
-  def test_genAgentCrtReq(self, chmod_mock, communicate_mock, popen_mock):
-    man = CertificateManager(self.config, "active_server")
-    p = MagicMock(spec=subprocess.Popen)
-    p.communicate = communicate_mock
-    popen_mock.return_value = p
-    man.genAgentCrtReq("/dummy-keysdir/hostname.key")
-    self.assertTrue(chmod_mock.called)
-    self.assertTrue(popen_mock.called)
-    self.assertTrue(communicate_mock.called)
-
-  @patch("ambari_agent.hostname.hostname")
+  @patch("ambari_agent.hostname.hostname", return_value="dummy-hostname")
   @patch("builtins.open", create=True, autospec=True)
-  @patch("urllib.request.OpenerDirector.open")
-  @patch.dict("os.environ", {"DUMMY_PASSPHRASE": "dummy-passphrase"})
-  def test_reqSignCrt_malformedJson(self, urlopen_mock, open_mock, hostname_mock):
-    hostname_mock.return_value = "dummy-hostname"
-    open_mock.return_value.read.return_value = "dummy_request"
+  @patch("urllib.request.build_opener")
+  def test_reqSignCrt_rejects_failed_or_malformed_response_without_writing(
+    self, build_opener_mock, open_mock, hostname_mock
+  ):
     self.config.set("security", "keysdir", "/dummy-keysdir")
-    self.config.set("security", "passphrase_env_var_name", "DUMMY_PASSPHRASE")
-    man = CertificateManager(self.config, "active_server")
+    open_mock.return_value.__enter__.return_value.read.return_value = "dummy_request"
 
-    # test valid JSON response
-    urlopen_mock.return_value.read.return_value = '{"result": "OK", "signedCa":"dummy"}'
-    try:
-      man.reqSignCrt()
-    except ssl.SSLError:
-      self.fail("Unexpected exception!")
-    open_mock.return_value.write.assert_called_with("dummy")
+    for response_body in (
+      b'{"result":"FAIL","signedCa":"fail-crt"}',
+      b"{malformed_object}",
+    ):
+      response = MagicMock()
+      response.read.return_value = response_body
+      build_opener_mock.return_value.open.return_value.__enter__.return_value = response
+      man = CertificateManager(
+        self.config, "active_server", enrollment_passphrase="dummy-passphrase"
+      )
+      man._atomic_write = MagicMock()
 
-    # test malformed JSON response
-    open_mock.return_value.write.reset_mock()
-    urlopen_mock.return_value.read.return_value = "{malformed_object}"
-    try:
+      with self.assertRaises(ssl.SSLError):
+        man.reqSignCrt()
+
+      man._atomic_write.assert_not_called()
+
+  @patch("ambari_agent.hostname.hostname", return_value="dummy-hostname")
+  @patch("builtins.open", create=True, autospec=True)
+  @patch("urllib.request.build_opener")
+  def test_reqSignCrt_retains_passphrase_after_transient_network_failure(
+    self, build_opener_mock, open_mock, hostname_mock
+  ):
+    self.config.set("security", "keysdir", "/dummy-keysdir")
+    open_mock.return_value.__enter__.return_value.read.return_value = "dummy_request"
+    build_opener_mock.return_value.open.side_effect = OSError("connection reset")
+    man = CertificateManager(
+      self.config, "active_server", enrollment_passphrase="dummy-passphrase"
+    )
+
+    with self.assertRaisesRegex(OSError, "connection reset"):
       man.reqSignCrt()
-      self.fail("Expected exception!")
-    except ssl.SSLError:
-      pass
-    self.assertFalse(open_mock.return_value.write.called)
+
+    self.assertEqual(man.enrollment_passphrase, "dummy-passphrase")
+
+  @patch.object(subprocess, "run")
+  @patch.object(os, "chmod")
+  def test_genAgentCrtReq(self, chmod_mock, run_mock):
+    with tempfile.TemporaryDirectory() as keysdir:
+      self.config.set("security", "keysdir", keysdir)
+      man = CertificateManager(self.config, "active_server")
+      man.genAgentCrtReq(os.path.join(keysdir, "hostname.key"))
+      self.assertTrue(chmod_mock.called)
+    run_mock.assert_called_once_with(
+      ANY,
+      check=True,
+      stdout=subprocess.PIPE,
+      stderr=subprocess.PIPE,
+    )
+    self.assertNotIn("shell", run_mock.call_args.kwargs)
 
   @patch.object(security.CertificateManager, "checkCertExists")
   def test_initSecurity(self, checkCertExists_method):

@@ -32,7 +32,6 @@ from ambari_commons.logging_utils import get_silent, print_warning_msg, print_er
 from ambari_commons.os_utils import (
   is_root,
   run_os_command,
-  copy_file,
   set_file_permissions,
   remove_file,
 )
@@ -81,15 +80,14 @@ KEYTOOL_DELETE_CERT_CMD = (
 )
 KEYTOOL_KEYSTORE = " -keystore '{0}'"
 
-SSL_PASSWORD_FILE = "pass.txt"
-SSL_PASSIN_FILE = "passin.txt"
-
 # openssl command
 VALIDATE_KEYSTORE_CMD = (
   "openssl pkcs12 -info -in '{0}' -password file:'{1}' -passout file:'{2}'"
 )
 EXPRT_KSTR_CMD = "openssl pkcs12 -export -in '{0}' -inkey '{1}' -certfile '{0}' -out '{4}' -password file:'{2}' -passin file:'{3}'"
-CHANGE_KEY_PWD_CND = "openssl rsa -in {0} -des3 -out {0}.secured -passout pass:{1}"
+CHANGE_KEY_PWD_CMD = (
+  "openssl rsa -in '{0}' -des3 -out '{1}' -passout file:'{2}'"
+)
 GET_CRT_INFO_CMD = "openssl x509 -dates -subject -in {0}"
 
 # keytool commands
@@ -258,85 +256,101 @@ def import_cert_and_key(security_server_keys_dir, options):
     if not is_valid_cert_exp(certInfoDict):
       print_warning_msg("Unable to validate Certificate issue and expiration dates")
 
-  # jetty requires private key files with non-empty key passwords
-  retcode = 0
-  err = ""
+  # Jetty requires private key files with non-empty key passwords. Keep every
+  # derived key and password in a private directory until OpenSSL validation
+  # succeeds, then publish the validated files atomically.
+  pem_password_was_provided = bool(pem_password)
   if not pem_password:
     print("Generating random password for HTTPS keystore...done.")
     pem_password = generate_random_string()
-    retcode, out, err = run_os_command(
-      CHANGE_KEY_PWD_CND.format(import_key_path, pem_password)
+
+  with tempfile.TemporaryDirectory(prefix="ambari-https-") as temp_dir:
+    keystore_path = os.path.join(
+      security_server_keys_dir, SSL_KEYSTORE_FILE_NAME
     )
-    import_key_path += ".secured"
+    password_path = os.path.join(
+      security_server_keys_dir, SSL_KEY_PASSWORD_FILE_NAME
+    )
+    temp_keystore_path = os.path.join(temp_dir, SSL_KEYSTORE_FILE_NAME)
+    temp_password_path = os.path.join(temp_dir, SSL_KEY_PASSWORD_FILE_NAME)
+    _write_private_file(temp_password_path, pem_password)
 
-  if retcode == 0:
-    keystoreFilePath = os.path.join(security_server_keys_dir, SSL_KEYSTORE_FILE_NAME)
-    keystoreFilePathTmp = os.path.join(tempfile.gettempdir(), SSL_KEYSTORE_FILE_NAME)
-    passFilePath = os.path.join(security_server_keys_dir, SSL_KEY_PASSWORD_FILE_NAME)
-    passFilePathTmp = os.path.join(tempfile.gettempdir(), SSL_KEY_PASSWORD_FILE_NAME)
-    passinFilePath = os.path.join(tempfile.gettempdir(), SSL_PASSIN_FILE)
-    passwordFilePath = os.path.join(tempfile.gettempdir(), SSL_PASSWORD_FILE)
+    key_path_for_export = import_key_path
+    if not pem_password_was_provided:
+      key_path_for_export = os.path.join(temp_dir, SSL_KEY_FILE_NAME)
+      retcode, _out, err = run_os_command(
+        CHANGE_KEY_PWD_CMD.format(
+          import_key_path, key_path_for_export, temp_password_path
+        )
+      )
+      if retcode != 0:
+        return _report_keystore_export_error(err)
 
-    with open(passFilePathTmp, "w+") as passFile:
-      passFile.write(pem_password)
-      passFile.close
-      pass
-
-    set_file_permissions(passFilePath, "660", read_ambari_user(), False)
-
-    copy_file(passFilePathTmp, passinFilePath)
-    copy_file(passFilePathTmp, passwordFilePath)
-
-    retcode, out, err = run_os_command(
+    retcode, _out, err = run_os_command(
       EXPRT_KSTR_CMD.format(
         import_cert_path,
-        import_key_path,
-        passwordFilePath,
-        passinFilePath,
-        keystoreFilePathTmp,
+        key_path_for_export,
+        temp_password_path,
+        temp_password_path,
+        temp_keystore_path,
       )
     )
-  if retcode == 0:
-    print("Importing and saving Certificate...done.")
-    import_file_to_keystore(keystoreFilePathTmp, keystoreFilePath)
-    import_file_to_keystore(passFilePathTmp, passFilePath)
+    if retcode != 0:
+      return _report_keystore_export_error(err)
 
+    retcode, _out, err = run_os_command(
+      VALIDATE_KEYSTORE_CMD.format(
+        temp_keystore_path, temp_password_path, temp_password_path
+      )
+    )
+    if retcode != 0:
+      print("Error during keystore validation occurred!:")
+      print(err)
+      return False
+
+    print("Importing and saving Certificate...done.")
+    import_file_to_keystore(temp_keystore_path, keystore_path)
+    import_file_to_keystore(temp_password_path, password_path)
     import_file_to_keystore(
       import_cert_path, os.path.join(security_server_keys_dir, SSL_CERT_FILE_NAME)
     )
     import_file_to_keystore(
-      import_key_path, os.path.join(security_server_keys_dir, SSL_KEY_FILE_NAME)
+      key_path_for_export,
+      os.path.join(security_server_keys_dir, SSL_KEY_FILE_NAME),
     )
-
-    # Validate keystore
-    retcode, out, err = run_os_command(
-      VALIDATE_KEYSTORE_CMD.format(keystoreFilePath, passwordFilePath, passinFilePath)
-    )
-
-    remove_file(passinFilePath)
-    remove_file(passwordFilePath)
-
-    if not retcode == 0:
-      print("Error during keystore validation occured!:")
-      print(err)
-      return False
-
     return True
-  else:
-    print_error_msg("Could not import Certificate and Private Key.")
-    print(
-      "SSL error on exporting keystore: "
-      + err.rstrip()
-      + ".\nPlease ensure that provided Private Key password is correct and "
-      + "re-import Certificate."
-    )
 
-    return False
+
+def _write_private_file(path, contents):
+  descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+  with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+    stream.write(contents)
+
+
+def _report_keystore_export_error(error):
+  print_error_msg("Could not import Certificate and Private Key.")
+  print(
+    "SSL error on exporting keystore: "
+    + error.rstrip()
+    + ".\nPlease ensure that provided Private Key password is correct and "
+    + "re-import Certificate."
+  )
+  return False
 
 
 def import_file_to_keystore(source, destination):
-  shutil.copy(source, destination)
-  set_file_permissions(destination, "660", read_ambari_user(), False)
+  destination_dir = os.path.dirname(destination)
+  descriptor, staged_path = tempfile.mkstemp(
+    prefix=f".{os.path.basename(destination)}.", dir=destination_dir
+  )
+  os.close(descriptor)
+  try:
+    shutil.copyfile(source, staged_path)
+    set_file_permissions(staged_path, "660", read_ambari_user(), False)
+    os.replace(staged_path, destination)
+  finally:
+    if os.path.exists(staged_path):
+      remove_file(staged_path)
 
 
 def generate_random_string(length=SSL_KEY_PASSWORD_LENGTH):

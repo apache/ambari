@@ -132,19 +132,19 @@ class TestServerUtils(TestCase):
     self.assertFalse(is_api_ssl_enabled(properties))
 
   def test_get_ssl_context(self):
-    properties = FakeProperties({SSL_API: "true"})
-    context = get_ssl_context(properties)
-    if hasattr(ssl, "SSLContext"):
-      self.assertIsNotNone(context)
-    else:
-      self.assertIsNone(context)
-
-    context = get_ssl_context(properties, ssl.PROTOCOL_TLSv1)
-    if hasattr(ssl, "SSLContext"):
-      self.assertIsNotNone(context)
-      self.assertEqual(ssl.PROTOCOL_TLSv1, context.protocol)
-    else:
-      self.assertIsNone(context)
+    properties = FakeProperties(
+      {
+        SSL_API: "true",
+        "security.server.keys_dir": "/tmp",
+        "client.api.ssl.cert_name": "server.crt",
+      }
+    )
+    with patch("ssl.create_default_context") as context_factory:
+      context = get_ssl_context(properties)
+      self.assertIs(context, context_factory.return_value)
+      context_factory.assert_called_once_with(cafile="/tmp/server.crt")
+      self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
+      self.assertTrue(context.check_hostname)
 
     properties = FakeProperties({SSL_API: "false"})
     context = get_ssl_context(properties)
@@ -156,4 +156,4 @@ class FakeProperties(object):
     self.prop_map = prop_map
 
   def get_property(self, prop_name):
-    return self.prop_map[prop_name]
+    return self.prop_map.get(prop_name)

@@ -47,7 +47,7 @@ class TestCertGeneration(TestCase):
 
   @patch.object(os, "chmod")
   def test_generation(self, chmod_mock):
-    self.certMan.genAgentCrtReq("/dummy_dir/hostname.key")
+    self.certMan.genAgentCrtReq(self.certMan.getAgentKeyName())
     self.assertTrue(chmod_mock.called)
     self.assertTrue(os.path.exists(self.certMan.getAgentKeyName()))
     self.assertTrue(os.path.exists(self.certMan.getAgentCrtReqName()))
