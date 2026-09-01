@@ -26,6 +26,9 @@
     <description>The maximum size of backup file before the log is rotated</description>
     <display-name>Solr Log: backup file size</display-name>
     <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10240</maximum>
       <unit>MB</unit>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
@@ -37,7 +40,8 @@
     <display-name>Solr Log: # of backup files</display-name>
     <value-attributes>
       <type>int</type>
-      <minimum>0</minimum>
+      <minimum>1</minimum>
+      <maximum>1000</maximum>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

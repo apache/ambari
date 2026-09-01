@@ -84,10 +84,6 @@
             "subsection-name": "subsection-data-dirs"
           },
           {
-            "config": "solr-client-log4j/solr_client_log_dir",
-            "subsection-name": "subsection-log-dirs"
-          },
-          {
             "config": "solr-env/solr_log_dir",
             "subsection-name": "subsection-log-dirs"
           },
@@ -100,12 +96,6 @@
       "widgets": [
         {
           "config": "solr-env/solr_datadir",
-          "widget": {
-            "type": "text-field"
-          }
-        },
-        {
-          "config": "solr-client-log4j/solr_client_log_dir",
           "widget": {
             "type": "text-field"
           }
@@ -125,4 +115,3 @@
       ]
     }
   }
-  

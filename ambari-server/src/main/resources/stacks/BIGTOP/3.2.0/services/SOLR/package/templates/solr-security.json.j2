@@ -22,44 +22,26 @@
   "authorization": {
     "class": "org.apache.solr.security.RuleBasedAuthorizationPlugin",
     "user-role": {
-      "{{solr_kerberos_service_user}}@{{kerberos_realm}}": "admin",
-{% if solr_logsearch_service_users %}
-{%   for logsearch_kerberos_service_user in solr_logsearch_service_users %}
-      "{{logsearch_kerberos_service_user}}@{{kerberos_realm}}": ["{{solr_role_logsearch}}", "{{solr_role_ranger_admin}}", "{{solr_role_dev}}"],
-{%   endfor %}
-{% endif %}
-      "{{atlas_kerberos_service_user}}@{{kerberos_realm}}": ["{{solr_role_atlas}}", "{{solr_role_ranger_audit}}", "{{solr_role_dev}}"],
-{% if solr_ranger_audit_service_users %}
+      "{{solr_kerberos_service_user}}@{{kerberos_realm}}": "admin"
 {%   for ranger_audit_service_user in solr_ranger_audit_service_users %}
-      "{{ranger_audit_service_user}}@{{kerberos_realm}}": ["{{solr_role_ranger_audit}}", "{{solr_role_dev}}"],
+      ,"{{ranger_audit_service_user}}@{{kerberos_realm}}": ["{{solr_role_ranger_audit}}", "{{solr_role_dev}}"]
 {%   endfor %}
+{% if ranger_admin_kerberos_service_user %}
+      ,"{{ranger_admin_kerberos_service_user}}@{{kerberos_realm}}": ["{{solr_role_ranger_admin}}", "{{solr_role_ranger_audit}}", "{{solr_role_dev}}"]
 {% endif %}
-      "{{ranger_admin_kerberos_service_user}}@{{kerberos_realm}}": ["{{solr_role_ranger_admin}}", "{{solr_role_ranger_audit}}", "{{solr_role_dev}}"]
     },
     "permissions": [
     {
       "name" : "collection-admin-read",
-      "role" :null
+      "role" : ["admin", "{{solr_role_ranger_admin}}"]
     },
     {
       "name" : "collection-admin-edit",
-      "role" : ["admin", "{{solr_role_logsearch}}", "{{solr_role_logfeeder}}", "{{solr_role_atlas}}", "{{solr_role_ranger_admin}}"]
+      "role" : ["admin", "{{solr_role_ranger_admin}}"]
     },
     {
       "name":"read",
       "role": "{{solr_role_dev}}"
-    },
-    {
-      "collection": ["history"],
-      "role": ["admin", "{{solr_role_logsearch}}", "{{solr_role_logfeeder}}"],
-      "name": "logsearch-manager",
-      "path": "/*"
-    },
-    {
-       "collection": ["vertex_index", "edge_index", "fulltext_index"],
-       "role": ["admin", "{{solr_role_atlas}}"],
-       "name": "atlas-manager",
-       "path": "/*"
     },
     {
        "collection": "{{ranger_solr_collection_name}}",
@@ -71,12 +53,6 @@
        "collection": "old_ranger_audits",
        "role": ["admin", "{{solr_role_ranger_admin}}", "{{solr_role_ranger_audit}}"],
        "name": "backup-ranger-manager",
-       "path": "/*"
-    },
-    {
-       "collection": ["old_vertex_index", "old_edge_index", "old_fulltext_index"],
-       "role": ["admin", "{{solr_role_atlas}}"],
-       "name": "backup-atlas-manager",
        "path": "/*"
     }]
   }

@@ -430,13 +430,13 @@
         "SOLR_SERVER": {
           "STACK-SELECT-PACKAGE": "solr-server",
           "INSTALL": [
-            "solr-server"
+            "solr"
           ],
           "PATCH": [
-            "solr-server"
+            "solr"
           ],
           "STANDARD": [
-            "solr-server"
+            "solr"
           ]
         }
       },

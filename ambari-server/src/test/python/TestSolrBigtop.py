@@ -19,6 +19,7 @@ limitations under the License.
 
 import ast
 import importlib.util
+import json
 import os
 from pathlib import Path
 import sys
@@ -42,6 +43,7 @@ SOLR = (
 )
 SCRIPTS = SOLR / "package/scripts"
 SOLR_33 = SOLR.parents[2] / "3.3.0/services/SOLR"
+SOLR_34 = SOLR.parents[2] / "3.4.0/services/SOLR"
 PID_DIR = "/var/run/solr"
 SOLR_HOME = "/var/lib/solr/data"
 
@@ -65,6 +67,7 @@ SETUP_SOLR_SCRIPT = load_module("bigtop_setup_solr_script", SCRIPTS / "setup_sol
 SERVICE_CHECK_SCRIPT = load_module(
   "bigtop_solr_service_check", SCRIPTS / "service_check.py"
 )
+SOLR_UTILS = load_module("bigtop_solr_utils", SCRIPTS / "solr_utils.py")
 
 
 def params_module(**values):
@@ -128,6 +131,92 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       with self.assertRaises(ExecutionFailed) as raised:
         SETUP_SOLR_SCRIPT.create_solr_znode()
     self.assertIs(unrelated, raised.exception)
+
+  def test_secure_znode_setup_uploads_security_json_and_applies_acl(self):
+    params = params_module(
+      solr_bindir="/usr/lib/solr/bin",
+      solr_znode="/solr",
+      zookeeper_quorum="zk1:2181,zk2:2181",
+      security_enabled=True,
+      solr_security_manually_managed=False,
+      solr_security_json_content="",
+      solr_conf="/etc/solr/conf",
+      solr_user="solr",
+      ambari_java_exec="/usr/lib/jvm/java-17/bin/java",
+      ambari_java_home="/usr/lib/jvm/java-17",
+      solr_jaas_file="/etc/solr/conf/solr_jaas.conf",
+      solr_kerberos_service_user="solr",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(SETUP_SOLR_SCRIPT, "Execute") as execute,
+      patch.object(SETUP_SOLR_SCRIPT, "ZkMigrator") as migrator,
+    ):
+      SETUP_SOLR_SCRIPT.setup_solr_znode_env()
+
+    self.assertEqual(2, execute.call_count)
+    self.assertEqual(
+      (
+        "/usr/lib/solr/bin/solr",
+        "zk",
+        "cp",
+        "file:/etc/solr/conf/security.json",
+        "zk:/security.json",
+        "-z",
+        "zk1:2181,zk2:2181/solr",
+      ),
+      execute.call_args_list[1].args[0],
+    )
+    migrator.return_value.set_acls.assert_called_once_with(
+      "/solr", "sasl:solr:cdrwa"
+    )
+
+  def test_manual_security_management_skips_zookeeper_security_upload(self):
+    params = params_module(
+      solr_bindir="/usr/lib/solr/bin",
+      solr_znode="/solr",
+      zookeeper_quorum="zk1:2181",
+      security_enabled=True,
+      solr_security_manually_managed=True,
+      solr_conf="/etc/solr/conf",
+      solr_user="solr",
+      ambari_java_exec="/usr/lib/jvm/java-17/bin/java",
+      ambari_java_home="/usr/lib/jvm/java-17",
+      solr_jaas_file="/etc/solr/conf/solr_jaas.conf",
+      solr_kerberos_service_user="solr",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(SETUP_SOLR_SCRIPT, "Execute") as execute,
+      patch.object(SETUP_SOLR_SCRIPT, "ZkMigrator") as migrator,
+    ):
+      SETUP_SOLR_SCRIPT.setup_solr_znode_env()
+
+    self.assertEqual(1, execute.call_count)
+    migrator.return_value.set_acls.assert_called_once()
+
+  def test_insecure_znode_setup_does_not_hide_security_removal_failure(self):
+    params = params_module(
+      solr_bindir="/usr/lib/solr/bin",
+      solr_znode="/solr",
+      zookeeper_quorum="zk1:2181",
+      security_enabled=False,
+      solr_security_manually_managed=False,
+      solr_conf="/etc/solr/conf",
+      solr_user="solr",
+    )
+    removal_failure = ExecutionFailed("ZooKeeper connection failed", 1, "")
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(
+        SETUP_SOLR_SCRIPT,
+        "Execute",
+        side_effect=(None, removal_failure),
+      ),
+    ):
+      with self.assertRaises(ExecutionFailed) as raised:
+        SETUP_SOLR_SCRIPT.setup_solr_znode_env()
+    self.assertIs(removal_failure, raised.exception)
 
   def test_setup_preserves_package_tree_and_protects_sensitive_configs(self):
     params = params_module(
@@ -609,6 +698,72 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
 
 
 class TestSolrSourceContracts(unittest.TestCase):
+  def test_security_users_are_derived_only_from_present_bigtop_services(self):
+    key = "xasecure.audit.jaas.Client.option.principal"
+    users = SOLR_UTILS.configured_principal_users(
+      {
+        "ranger-hdfs-audit": {key: "nn/host@EXAMPLE.COM"},
+        "ranger-kafka-audit": {key: "kafka@EXAMPLE.COM"},
+        "ranger-knox-audit": {key: "knox@EXAMPLE.COM"},
+      },
+      ("ranger-hdfs-audit", "ranger-kafka-audit"),
+      key,
+    )
+    self.assertEqual(("nn", "kafka"), users)
+
+  def test_security_user_parser_rejects_injection_and_duplicates(self):
+    with self.assertRaisesRegex(Fail, "valid user"):
+      SOLR_UTILS.parse_users('hive,evil"user', "audit users")
+    with self.assertRaisesRegex(Fail, "duplicate"):
+      SOLR_UTILS.parse_users("hive,hive", "audit users")
+
+  def test_custom_security_json_must_be_one_valid_object(self):
+    self.assertEqual(
+      '{"authentication": {}}',
+      SOLR_UTILS.validate_json_object(
+        '{"authentication": {}}', "custom security.json"
+      ),
+    )
+    with self.assertRaisesRegex(Fail, "valid JSON"):
+      SOLR_UTILS.validate_json_object("{invalid", "custom security.json")
+    with self.assertRaisesRegex(Fail, "one JSON object"):
+      SOLR_UTILS.validate_json_object("[]", "custom security.json")
+
+  def test_zookeeper_quorum_accepts_ipv6_and_rejects_invalid_ports(self):
+    self.assertEqual(
+      "zk1.example:2181,[2001:db8::1]:2181",
+      SOLR_UTILS.validate_zookeeper_quorum(
+        "ZK1.EXAMPLE:2181,[2001:DB8::1]:2181"
+      ),
+    )
+    with self.assertRaisesRegex(Fail, "between 1 and 65535"):
+      SOLR_UTILS.validate_zookeeper_quorum("zk1.example:70000")
+
+  def test_security_template_is_valid_without_optional_ranger_integrations(self):
+    template = JinjaEnvironment(undefined=StrictUndefined).from_string(
+      (SOLR / "package/templates/solr-security.json.j2").read_text(
+        encoding="utf-8"
+      )
+    )
+    rendered = template.render(
+      solr_kerberos_service_user="solr",
+      kerberos_realm="EXAMPLE.COM",
+      solr_ranger_audit_service_users=(),
+      ranger_admin_kerberos_service_user=None,
+      solr_role_ranger_admin="ranger_admin_user",
+      solr_role_ranger_audit="ranger_audit_user",
+      solr_role_dev="dev",
+      ranger_solr_collection_name="ranger_audits",
+    )
+    document = json.loads(rendered)
+    self.assertEqual(
+      {"solr@EXAMPLE.COM": "admin"},
+      document["authorization"]["user-role"],
+    )
+    self.assertNotIn("atlas", rendered.lower())
+    self.assertNotIn("logsearch", rendered.lower())
+    self.assertNotIn('"role" :null', rendered)
+
   def test_params_imports_expect_for_required_java_version(self):
     source = (SCRIPTS / "params.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
@@ -634,6 +789,16 @@ class TestSolrSourceContracts(unittest.TestCase):
     self.assertEqual("/ambariLevelParams/java_version", java_version.args[0].value)
     self.assertEqual("int", java_version.args[1].id)
 
+  def test_solr_has_no_phantom_infra_client_or_default_tls_password(self):
+    setup_source = (SCRIPTS / "setup_solr.py").read_text(encoding="utf-8")
+    environment = (SOLR / "configuration/solr-env.xml").read_text(
+      encoding="utf-8"
+    )
+    self.assertNotIn("setup_solr_client", setup_source)
+    self.assertNotIn('name == "client"', setup_source)
+    self.assertNotIn("infra.solr", environment)
+    self.assertNotIn("<value>bigdata</value>", environment)
+
   def test_metainfo_matches_bigtop_solr_package_contract(self):
     base_metainfo_path = SOLR / "metainfo.xml"
     override_metainfo_path = SOLR_33 / "metainfo.xml"
@@ -649,20 +814,63 @@ class TestSolrSourceContracts(unittest.TestCase):
     )
     self.assertEqual("8.11.2-1", base_service.findtext("version"))
     self.assertEqual("8.11.3-2", override_service.findtext("version"))
-    self.assertEqual(
-      ["solr_${stack_version}", "ranger_${stack_version}-solr-plugin"],
-      [
+    packages_by_os = {
+      os_specific.findtext("osFamily"): [
         package.findtext("name")
-        for package in base_service.findall(
-          "./osSpecifics/osSpecific/packages/package"
-        )
-      ],
+        for package in os_specific.findall("./packages/package")
+      ]
+      for os_specific in base_service.findall("./osSpecifics/osSpecific")
+    }
+    self.assertEqual(
+      {
+        "redhat8,redhat9,openeuler22": ["solr_${stack_version}", "curl"],
+        "ubuntu22": ["solr-${stack_version}", "curl"],
+      },
+      packages_by_os,
+    )
+    self.assertEqual(
+      "8.11.3-2",
+      ElementTree.parse(SOLR_34 / "metainfo.xml").findtext(
+        "./services/service/version"
+      ),
     )
     self.assertEqual(
       "scripts/solr.py",
       base_service.findtext("./components/component/commandScript/script"),
     )
     self.assertNotIn("9.1.1", override_source)
+    stack_packages = json.loads(
+      (SOLR.parents[1] / "properties/stack_packages.json").read_text(
+        encoding="utf-8"
+      )
+    )
+    solr_packages = stack_packages["BIGTOP"]["stack-select"]["SOLR"][
+      "SOLR_SERVER"
+    ]
+    self.assertEqual("solr-server", solr_packages["STACK-SELECT-PACKAGE"])
+    for command_type in ("INSTALL", "PATCH", "STANDARD"):
+      self.assertEqual(["solr"], solr_packages[command_type])
+
+  def test_service_descriptors_have_no_phantom_solr_client(self):
+    kerberos = json.loads((SOLR / "kerberos.json").read_text(encoding="utf-8"))
+    components = kerberos["services"][0]["components"]
+    self.assertEqual(["SOLR_SERVER"], [item["name"] for item in components])
+    directories_theme = (SOLR / "themes/directories.json").read_text(
+      encoding="utf-8"
+    )
+    self.assertNotIn("SOLR_CLIENT", directories_theme)
+    self.assertNotIn("solr-client", directories_theme)
+    command_order = json.loads(
+      (SOLR / "role_command_order.json").read_text(encoding="utf-8")
+    )["general_deps"]
+    self.assertEqual(
+      ["ZOOKEEPER_SERVER-START"], command_order["SOLR_SERVER-START"]
+    )
+    self.assertEqual(
+      ["SOLR_SERVER-START"],
+      command_order["SOLR_SERVICE_CHECK-SERVICE_CHECK"],
+    )
+    self.assertNotIn("SOLR-START", command_order)
 
   def test_service_advisor_parent_load_failure_preserves_original_cause(self):
     advisor_path = SOLR / "service_advisor.py"
@@ -679,7 +887,6 @@ class TestSolrSourceContracts(unittest.TestCase):
         load_module("bigtop_solr_broken_advisor", advisor_path)
 
     self.assertIsInstance(raised.exception.__cause__, ValueError)
-
 
 if __name__ == "__main__":
   unittest.main()

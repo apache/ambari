@@ -96,7 +96,7 @@
   </property>
   <property>
     <name>solr_truststore_location</name>
-    <value>/etc/security/serverKeys/infra.solr.trustStore.jks</value>
+    <value>/etc/security/serverKeys/solr.trustStore.jks</value>
     <display-name>Solr trust store location</display-name>
     <description>Location of the trust store file. (default value is not generated)</description>
     <on-ambari-upgrade add="false"/>
@@ -110,7 +110,7 @@
   </property>
   <property>
     <name>solr_truststore_password</name>
-    <value>bigdata</value>
+    <value/>
     <property-type>PASSWORD</property-type>
     <display-name>Solr trust store password</display-name>
     <description>Password to open the trust store file.</description>
@@ -121,7 +121,7 @@
   </property>
   <property>
     <name>solr_keystore_location</name>
-    <value>/etc/security/serverKeys/infra.solr.keyStore.jks</value>
+    <value>/etc/security/serverKeys/solr.keyStore.jks</value>
     <display-name>Solr key store location</display-name>
     <description>Location of the key store file. (default value is not generated)</description>
     <on-ambari-upgrade add="false"/>
@@ -135,7 +135,7 @@
   </property>
   <property>
     <name>solr_keystore_password</name>
-    <value>bigdata</value>
+    <value/>
     <display-name>Solr key store password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Password to open the key store file.</description>

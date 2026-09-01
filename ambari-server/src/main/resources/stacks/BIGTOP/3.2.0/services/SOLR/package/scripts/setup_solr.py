@@ -22,8 +22,8 @@ import os
 from resource_management.core.exceptions import ExecutionFailed, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Directory, File
+from resource_management.core.resources.zkmigrator import ZkMigrator
 from resource_management.core.source import InlineTemplate, Template
-from resource_management.libraries.functions import solr_cloud_util
 from resource_management.libraries.functions.format import format
 
 
@@ -79,10 +79,10 @@ def setup_solr(name=None):
     custom_security_json_location = format("{solr_conf}/custom-security.json")
     File(
       custom_security_json_location,
-      content=InlineTemplate(params.solr_security_json_content),
+      content=params.solr_security_json_content,
       owner=params.solr_user,
       group=params.user_group,
-      mode=0o640,
+      mode=0o600,
     )
 
     if params.security_enabled:
@@ -99,8 +99,11 @@ def setup_solr(name=None):
         content=Template("solr-security.json.j2"),
         owner=params.solr_user,
         group=params.user_group,
-        mode=0o640,
+        mode=0o600,
       )
+    else:
+      File(format("{solr_jaas_file}"), action="delete")
+      File(format("{solr_conf}/security.json"), action="delete")
     if os.path.exists(params.limits_conf_dir):
       File(
         os.path.join(params.limits_conf_dir, "solr.conf"),
@@ -110,19 +113,73 @@ def setup_solr(name=None):
         content=Template("solr.conf.j2"),
       )
 
-  elif name == "client":
-    solr_cloud_util.setup_solr_client(
-      params.config,
-      user=params.solr_user,
-      group=params.user_group,
-    )
-
   else:
-    raise Fail("Nor client or server were selected to install.")
+    raise Fail(f"Unknown Solr setup target {name!r}")
 
 
 def setup_solr_znode_env():
+  import params
+
   create_solr_znode()
+  if not params.solr_security_manually_managed:
+    if params.security_enabled:
+      security_json_location = (
+        format("{solr_conf}/custom-security.json")
+        if params.solr_security_json_content
+        and str(params.solr_security_json_content).strip()
+        else format("{solr_conf}/security.json")
+      )
+      Execute(
+        (
+          f"{params.solr_bindir}/solr",
+          "zk",
+          "cp",
+          f"file:{security_json_location}",
+          "zk:/security.json",
+          "-z",
+          f"{params.zookeeper_quorum}{params.solr_znode}",
+        ),
+        environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
+        user=params.solr_user,
+        logoutput=True,
+      )
+    else:
+      _remove_security_json(params)
+
+  if params.security_enabled:
+    zkmigrator = ZkMigrator(
+      zk_host=params.zookeeper_quorum,
+      java_exec=params.ambari_java_exec,
+      java_home=params.ambari_java_home,
+      jaas_file=params.solr_jaas_file,
+      user=params.solr_user,
+    )
+    zkmigrator.set_acls(
+      params.solr_znode,
+      f"sasl:{params.solr_kerberos_service_user}:cdrwa",
+    )
+
+
+def _remove_security_json(params):
+  try:
+    Execute(
+      (
+        f"{params.solr_bindir}/solr",
+        "zk",
+        "rm",
+        "/security.json",
+        "-z",
+        f"{params.zookeeper_quorum}{params.solr_znode}",
+      ),
+      environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
+      user=params.solr_user,
+      logoutput=True,
+    )
+  except ExecutionFailed as error:
+    message = str(error)
+    if "NoNode" not in message and "does not exist" not in message:
+      raise
+    Logger.info("Solr security.json is already absent from ZooKeeper")
 
 
 def create_solr_znode():

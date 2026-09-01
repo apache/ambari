@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import os
+from resource_management.core.exceptions import Fail
 from resource_management.core.shell import quote_bash_args
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
@@ -30,24 +31,13 @@ from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
 
 import status_params
+import solr_utils
 
 
 def get_port_from_url(address):
   if not is_empty(address):
     return address.split(":")[-1]
-  else:
-    return address
-
-
-def get_name_from_principal(principal):
-  if not principal:  # return if empty
-    return principal
-  slash_split = principal.split("/")
-  if len(slash_split) == 2:
-    return slash_split[0]
-  else:
-    at_split = principal.split("@")
-    return at_split[0]
+  return address
 
 
 # config object that holds the configurations declared in the -site.xml file
@@ -70,14 +60,22 @@ solr_port = status_params.solr_port
 solr_piddir = status_params.solr_piddir
 solr_pidfile = status_params.solr_pidfile
 
-user_group = config["configurations"]["cluster-env"]["user_group"]
+user_group = solr_utils.validate_user(
+  config["configurations"]["cluster-env"]["user_group"], "Hadoop group"
+)
 
 limits_conf_dir = "/etc/security/limits.d"
-solr_user_nofile_limit = default(
-  "/configurations/solr-env/solr_user_nofile_limit", "128000"
+solr_user_nofile_limit = solr_utils.bounded_int(
+  default("/configurations/solr-env/solr_user_nofile_limit", "128000"),
+  "Solr open file limit",
+  1024,
+  1048576,
 )
-solr_user_nproc_limit = default(
-  "/configurations/solr-env/solr_user_nproc_limit", "65536"
+solr_user_nproc_limit = solr_utils.bounded_int(
+  default("/configurations/solr-env/solr_user_nproc_limit", "65536"),
+  "Solr process limit",
+  1024,
+  1048576,
 )
 
 # shared configs
@@ -101,28 +99,61 @@ if stack_version_formatted and check_stack_feature(
 
 solr_bindir = solr_dir + "/bin"
 
-zookeeper_port = default("/configurations/zoo.cfg/clientPort", None)
-# get comma separated list of zookeeper hosts from clusterHostInfo
-index = 0
-zookeeper_quorum = ""
-for host in config["clusterHostInfo"]["zookeeper_server_hosts"]:
-  zookeeper_quorum += host + ":" + str(zookeeper_port)
-  index += 1
-  if index < len(config["clusterHostInfo"]["zookeeper_server_hosts"]):
-    zookeeper_quorum += ","
+zookeeper_port = solr_utils.bounded_int(
+  default("/configurations/zoo.cfg/clientPort", None),
+  "ZooKeeper client port",
+  1,
+  65535,
+)
+zookeeper_quorum = solr_utils.validate_zookeeper_quorum(
+  ",".join(
+    f"{host}:{zookeeper_port}"
+    for host in config["clusterHostInfo"]["zookeeper_server_hosts"]
+  )
+)
 
 if "solr-env" in config["configurations"]:
   solr_hosts = config["clusterHostInfo"]["solr_server_hosts"]
-  solr_znode = config["configurations"]["solr-env"]["solr_znode"]
-  solr_min_mem = format(config["configurations"]["solr-env"]["solr_minmem"])
-  solr_max_mem = format(config["configurations"]["solr-env"]["solr_maxmem"])
-  solr_java_stack_size = format(
-    config["configurations"]["solr-env"]["solr_java_stack_size"]
+  solr_znode = solr_utils.validate_znode(
+    config["configurations"]["solr-env"]["solr_znode"]
   )
-  solr_datadir = format(config["configurations"]["solr-env"]["solr_datadir"])
+  solr_min_mem = solr_utils.bounded_int(
+    config["configurations"]["solr-env"]["solr_minmem"],
+    "Solr minimum heap",
+    512,
+    32768,
+  )
+  solr_max_mem = solr_utils.bounded_int(
+    config["configurations"]["solr-env"]["solr_maxmem"],
+    "Solr maximum heap",
+    512,
+    32768,
+  )
+  if solr_min_mem > solr_max_mem:
+    raise Fail("Solr minimum heap must not exceed maximum heap")
+  solr_java_stack_size = solr_utils.bounded_int(
+    config["configurations"]["solr-env"]["solr_java_stack_size"],
+    "Solr Java stack size",
+    1,
+    128,
+  )
+  solr_datadir = solr_utils.validate_service_directory(
+    format(config["configurations"]["solr-env"]["solr_datadir"]),
+    "Solr data directory",
+  )
   solr_data_resources_dir = os.path.join(solr_datadir, "resources")
-  solr_jmx_port = config["configurations"]["solr-env"]["solr_jmx_port"]
-  solr_ssl_enabled = default("configurations/solr-env/solr_ssl_enabled", False)
+  solr_jmx_port = solr_utils.bounded_int(
+    config["configurations"]["solr-env"]["solr_jmx_port"],
+    "Solr JMX port",
+    1,
+    65535,
+  )
+  if solr_jmx_port == int(solr_port):
+    raise Fail("Solr HTTP and JMX ports must be different")
+  solr_ssl_enabled = solr_utils.as_bool(
+    default("configurations/solr-env/solr_ssl_enabled", False),
+    "Solr SSL setting",
+  )
   solr_keystore_location = config["configurations"]["solr-env"][
     "solr_keystore_location"
   ]
@@ -135,8 +166,15 @@ if "solr-env" in config["configurations"]:
   solr_truststore_password = config["configurations"]["solr-env"][
     "solr_truststore_password"
   ]
-  solr_user = config["configurations"]["solr-env"]["solr_user"]
-  solr_log_dir = config["configurations"]["solr-env"]["solr_log_dir"]
+  solr_user = solr_utils.validate_user(
+    config["configurations"]["solr-env"]["solr_user"], "Solr user"
+  )
+  solr_log_dir = solr_utils.validate_service_directory(
+    config["configurations"]["solr-env"]["solr_log_dir"],
+    "Solr log directory",
+  )
+  if len({solr_datadir, solr_log_dir, solr_piddir}) != 3:
+    raise Fail("Solr data, log, and PID directories must be distinct")
   solr_env_content = config["configurations"]["solr-env"]["content"]
   solr_gc_log_opts = format(config["configurations"]["solr-env"]["solr_gc_log_opts"])
   solr_gc_tune = format(config["configurations"]["solr-env"]["solr_gc_tune"])
@@ -144,37 +182,55 @@ if "solr-env" in config["configurations"]:
     default("configurations/solr-env/solr_extra_java_opts", "")
   )
 
-  zk_quorum = format(
-    default("configurations/solr-env/solr_zookeeper_quorum", zookeeper_quorum)
+  zookeeper_quorum = solr_utils.validate_zookeeper_quorum(
+    format(
+      default("configurations/solr-env/solr_zookeeper_quorum", zookeeper_quorum)
+    )
   )
+  zk_quorum = zookeeper_quorum
 
-default_ranger_audit_users = "nn,hbase,hive,knox,kafka,kms,storm,yarn,nifi"
+default_ranger_audit_users = ""
+solr_jaas_file = solr_conf + "/solr_jaas.conf"
 
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   _hostname_lowercase = config["agentLevelParams"]["hostname"].lower()
-  solr_jaas_file = solr_conf + "/solr_jaas.conf"
-  solr_kerberos_keytab = config["configurations"]["solr-env"]["solr_kerberos_keytab"]
-  solr_kerberos_principal = config["configurations"]["solr-env"][
-    "solr_kerberos_principal"
-  ].replace("_HOST", _hostname_lowercase)
-  solr_web_kerberos_keytab = config["configurations"]["solr-env"][
-    "solr_web_kerberos_keytab"
-  ]
-  solr_web_kerberos_principal = config["configurations"]["solr-env"][
-    "solr_web_kerberos_principal"
-  ].replace("_HOST", _hostname_lowercase)
+  solr_kerberos_keytab = solr_utils.validate_absolute_path(
+    config["configurations"]["solr-env"]["solr_kerberos_keytab"],
+    "Solr keytab",
+  )
+  solr_kerberos_principal = solr_utils.validate_principal(
+    config["configurations"]["solr-env"]["solr_kerberos_principal"].replace(
+      "_HOST", _hostname_lowercase
+    ),
+    "Solr principal",
+  )
+  solr_web_kerberos_keytab = solr_utils.validate_absolute_path(
+    config["configurations"]["solr-env"]["solr_web_kerberos_keytab"],
+    "Solr HTTP keytab",
+  )
+  solr_web_kerberos_principal = solr_utils.validate_principal(
+    config["configurations"]["solr-env"]["solr_web_kerberos_principal"].replace(
+      "_HOST", _hostname_lowercase
+    ),
+    "Solr HTTP principal",
+  )
   solr_kerberos_name_rules = config["configurations"]["solr-env"][
     "solr_kerberos_name_rules"
   ]
-  kerberos_realm = config["configurations"]["kerberos-env"]["realm"]
+  kerberos_realm = solr_utils.validate_realm(
+    config["configurations"]["kerberos-env"]["realm"]
+  )
 
   zookeeper_principal_name = default(
     "/configurations/zookeeper-env/zookeeper_principal_name",
     "zookeeper/_HOST@EXAMPLE.COM",
   )
-  external_zk_principal_enabled = default(
-    "/configurations/solr-env/solr_zookeeper_external_enabled", False
+  external_zk_principal_enabled = solr_utils.as_bool(
+    default(
+      "/configurations/solr-env/solr_zookeeper_external_enabled", False
+    ),
+    "External ZooKeeper setting",
   )
   external_zk_principal_name = default(
     "/configurations/solr-env/solr_zookeeper_external_principal",
@@ -185,84 +241,53 @@ if security_enabled:
     if external_zk_principal_enabled
     else zookeeper_principal_name
   )
-  zk_principal_user = zk_principal_name.split("/")[0]
+  zk_principal_user = solr_utils.service_user(
+    zk_principal_name, "ZooKeeper service principal"
+  )
   zk_security_opts = format(
-    "-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client"
+    "-Dzookeeper.sasl.client=true "
+    "-Dzookeeper.sasl.client.username={zk_principal_user} "
+    "-Dzookeeper.sasl.clientconfig=Client"
   )
 
   ranger_audit_principal_conf_key = "xasecure.audit.jaas.Client.option.principal"
-  ranger_audit_principals = []
-  ranger_audit_principals.append(
-    default("configurations/ranger-hdfs-audit/" + ranger_audit_principal_conf_key, "nn")
+  ranger_audit_users = solr_utils.configured_principal_users(
+    config["configurations"],
+    (
+      "ranger-hdfs-audit",
+      "ranger-hbase-audit",
+      "ranger-hive-audit",
+      "ranger-kafka-audit",
+      "ranger-kms-audit",
+      "ranger-yarn-audit",
+    ),
+    ranger_audit_principal_conf_key,
   )
-  ranger_audit_principals.append(
-    default(
-      "configurations/ranger-hbase-audit/" + ranger_audit_principal_conf_key, "hbase"
-    )
-  )
-  ranger_audit_principals.append(
-    default(
-      "configurations/ranger-hive-audit/" + ranger_audit_principal_conf_key, "hive"
-    )
-  )
-  ranger_audit_principals.append(
-    default(
-      "configurations/ranger-knox-audit/" + ranger_audit_principal_conf_key, "knox"
-    )
-  )
-  ranger_audit_principals.append(
-    default(
-      "configurations/ranger-kafka-audit/" + ranger_audit_principal_conf_key, "kafka"
-    )
-  )
-  ranger_audit_principals.append(
-    default(
-      "configurations/ranger-kms-audit/" + ranger_audit_principal_conf_key, "rangerkms"
-    )
-  )
-  ranger_audit_principals.append(
-    default(
-      "configurations/ranger-storm-audit/" + ranger_audit_principal_conf_key, "storm"
-    )
-  )
-  ranger_audit_principals.append(
-    default(
-      "configurations/ranger-yarn-audit/" + ranger_audit_principal_conf_key, "yarn"
-    )
-  )
-  ranger_audit_principals.append(
-    default(
-      "configurations/ranger-nifi-audit/" + ranger_audit_principal_conf_key, "nifi"
-    )
-  )
-  ranger_audit_names_from_principals = [
-    get_name_from_principal(x) for x in ranger_audit_principals
-  ]
-  default_ranger_audit_users = ",".join(ranger_audit_names_from_principals)
+  default_ranger_audit_users = ",".join(ranger_audit_users)
 
-  solr_logsearch_service_users = []
-  logsearch_kerberos_service_user = get_name_from_principal(
-    default("/configurations/logsearch-env/logsearch_kerberos_principal", "logsearch")
-  )
-  solr_logsearch_service_users.append(logsearch_kerberos_service_user)
-  logsearch_kerberos_service_users_str = str(
-    default("/configurations/logsearch-env/logsearch_kerberos_service_users", "")
-  )
-  if (
-    logsearch_kerberos_service_users_str
-    and logsearch_kerberos_service_users_str.strip()
-  ):
-    logsearch_kerberos_service_users = logsearch_kerberos_service_users_str.split(",")
-    solr_logsearch_service_users.extend(logsearch_kerberos_service_users)
+security_config = config["configurations"]["solr-security-json"]
+solr_ranger_audit_service_users = solr_utils.parse_users(
+  format(security_config["solr_ranger_audit_service_users"]),
+  "Ranger audit service users",
+)
+unsupported_audit_users = {"atlas", "knox", "logsearch", "nifi", "storm"}
+if unsupported_audit_users.intersection(solr_ranger_audit_service_users):
+  raise Fail("Ranger audit users contain services unavailable in the BIGTOP stack")
+solr_security_manually_managed = solr_utils.as_bool(
+  default(
+    "/configurations/solr-security-json/solr_security_manually_managed",
+    False,
+  ),
+  "Solr manual security setting",
+)
+solr_security_json_content = solr_utils.validate_json_object(
+  security_config["content"], "Custom Solr security.json", allow_empty=True
+)
 
-solr_ranger_audit_service_users = format(
-  config["configurations"]["solr-security-json"]["solr_ranger_audit_service_users"]
-).split(",")
-solr_security_json_content = config["configurations"]["solr-security-json"]["content"]
-
-solr_jmx_enabled = str(
-  default("/configurations/solr-env/solr_jmx_enabled", False)
-).lower()
+solr_jmx_enabled = solr_utils.as_bool(
+  default("/configurations/solr-env/solr_jmx_enabled", False),
+  "Solr JMX setting",
+)
 
 
 def shell_assignment(value):
@@ -289,7 +314,7 @@ else:
   solr_gc_tune_assignment = shell_assignment(solr_gc_tune)
 
 solr_zk_host_assignment = shell_assignment(f"{zookeeper_quorum}{solr_znode}")
-solr_jmx_enabled_assignment = shell_assignment(solr_jmx_enabled)
+solr_jmx_enabled_assignment = shell_assignment(str(solr_jmx_enabled).lower())
 solr_jmx_port_assignment = shell_assignment(solr_jmx_port)
 solr_rmi_hostname_assignment = shell_assignment(hostname)
 solr_extra_java_opts_assignment = shell_assignment(solr_extra_java_opts)
@@ -300,6 +325,18 @@ solr_log_dir_assignment = shell_assignment(solr_log_dir)
 solr_port_assignment = shell_assignment(solr_port)
 
 if solr_ssl_enabled:
+  solr_keystore_location = solr_utils.validate_absolute_path(
+    solr_keystore_location, "Solr key store"
+  )
+  solr_truststore_location = solr_utils.validate_absolute_path(
+    solr_truststore_location, "Solr trust store"
+  )
+  solr_keystore_password = solr_utils.validate_secret(
+    solr_keystore_password, "Solr key store password"
+  )
+  solr_truststore_password = solr_utils.validate_secret(
+    solr_truststore_password, "Solr trust store password"
+  )
   solr_keystore_location_assignment = shell_assignment(solr_keystore_location)
   solr_keystore_password_assignment = shell_assignment(solr_keystore_password)
   solr_truststore_location_assignment = shell_assignment(solr_truststore_location)
@@ -320,52 +357,79 @@ if security_enabled:
   zk_security_opts_assignment = shell_assignment(zk_security_opts)
 
 # Solr log4j
-log_maxfilesize = default("configurations/solr-log4j/log_maxfilesize", 10)
-log_maxbackupindex = default("configurations/solr-log4j/log_maxbackupindex", 9)
+log_maxfilesize = solr_utils.bounded_int(
+  default("configurations/solr-log4j/log_maxfilesize", 10),
+  "Solr log file size",
+  1,
+  10240,
+)
+log_maxbackupindex = solr_utils.bounded_int(
+  default("configurations/solr-log4j/log_maxbackupindex", 9),
+  "Solr log backup count",
+  1,
+  1000,
+)
 
 solr_xml_content = default("configurations/solr-xml/content", None)
 solr_log4j_content = default("configurations/solr-log4j/content", None)
 
-smokeuser = config["configurations"]["cluster-env"]["smokeuser"]
-smoke_user_keytab = config["configurations"]["cluster-env"]["smokeuser_keytab"]
+smokeuser = solr_utils.validate_user(
+  config["configurations"]["cluster-env"]["smokeuser"], "Smoke user"
+)
+smoke_user_keytab = solr_utils.validate_absolute_path(
+  config["configurations"]["cluster-env"]["smokeuser_keytab"],
+  "Smoke user keytab",
+)
 smokeuser_principal = config["configurations"]["cluster-env"][
   "smokeuser_principal_name"
 ]
-
-ranger_solr_collection_name = default(
-  "configurations/ranger-env/ranger_solr_collection_name", "ranger_audits"
-)
-
-ranger_admin_kerberos_service_user = get_name_from_principal(
-  default(
-    "configurations/ranger-admin-site/ranger.admin.kerberos.principal", "rangeradmin"
+if security_enabled:
+  smokeuser_principal = solr_utils.validate_principal(
+    smokeuser_principal, "Smoke user principal"
   )
-)
-atlas_kerberos_service_user = get_name_from_principal(
+
+ranger_solr_collection_name = solr_utils.validate_solr_name(
   default(
-    "configurations/application-properties/atlas.authentication.principal", "atlas"
-  )
+    "configurations/ranger-env/ranger_solr_collection_name", "ranger_audits"
+  ),
+  "Ranger Solr collection",
 )
-solr_kerberos_service_user = get_name_from_principal(
-  default("configurations/solr-env/solr_kerberos_principal", "solr")
+
+ranger_admin_kerberos_service_user = solr_utils.service_user(
+  default(
+    "configurations/ranger-admin-site/ranger.admin.kerberos.principal", None
+  ),
+  "Ranger admin service principal",
+  required=False,
+)
+solr_kerberos_service_user = solr_utils.service_user(
+  default("configurations/solr-env/solr_kerberos_principal", "solr"),
+  "Solr service principal",
 )
 
 solr_role_ranger_admin = default(
-  "configurations/solr-security-json/solr_role_ranger_admin", "ranger_user"
+  "configurations/solr-security-json/solr_role_ranger_admin", "ranger_admin_user"
 )
 solr_role_ranger_audit = default(
   "configurations/solr-security-json/solr_role_ranger_audit", "ranger_audit_user"
 )
-solr_role_atlas = default(
-  "configurations/solr-security-json/solr_role_atlas", "atlas_user"
+solr_role_ranger_admin = solr_utils.validate_user(
+  solr_role_ranger_admin, "Ranger admin role"
 )
-solr_role_logsearch = default(
-  "configurations/solr-security-json/solr_role_logsearch", "logsearch_user"
+solr_role_ranger_audit = solr_utils.validate_user(
+  solr_role_ranger_audit, "Ranger audit role"
 )
-solr_role_logfeeder = default(
-  "configurations/solr-security-json/solr_role_logfeeder", "logfeeder_user"
+solr_role_dev = solr_utils.validate_user(
+  default("configurations/solr-security-json/solr_role_dev", "dev"),
+  "Solr read role",
 )
-solr_role_dev = default("configurations/solr-security-json/solr_role_dev", "dev")
+if len({solr_role_ranger_admin, solr_role_ranger_audit, solr_role_dev}) != 3:
+  raise Fail("Solr security roles must be unique")
+reserved_security_users = {solr_kerberos_service_user}
+if ranger_admin_kerberos_service_user:
+  reserved_security_users.add(ranger_admin_kerberos_service_user)
+if reserved_security_users.intersection(solr_ranger_audit_service_users):
+  raise Fail("Ranger audit users must not duplicate Solr or Ranger Admin")
 
 ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 metrics_enabled = ams_collector_hosts != ""

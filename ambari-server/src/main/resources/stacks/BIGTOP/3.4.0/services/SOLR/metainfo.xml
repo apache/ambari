@@ -20,7 +20,7 @@
     <services>
         <service>
             <name>SOLR</name>
-            <version>8.11.4-1</version>
+            <version>8.11.3-2</version>
         </service>
     </services>
 </metainfo>
