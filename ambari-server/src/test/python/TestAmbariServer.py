@@ -39,6 +39,7 @@ import re
 import signal
 import stat
 import io
+import inspect
 import tempfile
 from unittest import TestCase
 
@@ -2098,31 +2099,19 @@ class TestAmbariServer(TestCase):
     read_ambari_user_method.return_value = "user"
     # Case #1: if client ssl is on and user didnt choose
     # disable ssl option and choose import certs and keys
-    p.get_property.side_effect = [
-      "key_dir",
-      "5555",
-      "6666",
-      "true",
-      "5555",
-      "true",
-      "true",
-      "5555",
-    ]
+    p.get_property.side_effect = ["key_dir", "5555", "true"]
     get_YN_input_mock.side_effect = [False, True]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = (
       "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl'),\n"
-      + " call('api.ssl'),\n call('client.api.ssl.port')]"
+      + " call('client.api.ssl.port'),\n call('api.ssl')]"
     )
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     set_silent(False)
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 8)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
@@ -2134,20 +2123,18 @@ class TestAmbariServer(TestCase):
     import_cert_and_key_action_mock.reset_mock()
 
     # Case #2: if client ssl is on and user choose to disable ssl option
-    p.get_property.side_effect = ["key_dir", "", "true", "", "true", "false", ""]
+    p.get_property.side_effect = ["key_dir", "", "true"]
     get_YN_input_mock.side_effect = [True]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = (
       "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl'),\n"
-      + " call('api.ssl')]"
+      + " call('client.api.ssl.port'),\n call('api.ssl')]"
     )
     process_pair_expected = "[call('api.ssl', 'false')]"
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 6)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
@@ -2160,20 +2147,18 @@ class TestAmbariServer(TestCase):
 
     # Case #3: if client ssl is off and user choose option
     # to import cert and keys
-    p.get_property.side_effect = ["key_dir", "", None, "", None, None, ""]
+    p.get_property.side_effect = ["key_dir", "", None]
     get_YN_input_mock.side_effect = [True, True]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = (
       "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl'),\n"
-      + " call('api.ssl'),\n call('client.api.ssl.port')]"
+      + " call('client.api.ssl.port'),\n call('api.ssl')]"
     )
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 7)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
@@ -2186,19 +2171,18 @@ class TestAmbariServer(TestCase):
 
     # Case #4: if client ssl is off and
     # user did not choose option to import cert and keys
-    p.get_property.side_effect = ["key_dir", "", None, "", None]
+    p.get_property.side_effect = ["key_dir", "", None]
     get_YN_input_mock.side_effect = [False]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = (
       "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl'),\n"
       + " call('client.api.ssl.port'),\n call('api.ssl')]"
     )
     process_pair_expected = "[]"
     setup_https(args)
 
     self.assertFalse(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 5)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertFalse(p.store.called)
@@ -2210,19 +2194,18 @@ class TestAmbariServer(TestCase):
     import_cert_and_key_action_mock.reset_mock()
 
     # Case #5: if cert must be imported but didnt imported
-    p.get_property.side_effect = ["key_dir", "", "false", "", "false"]
+    p.get_property.side_effect = ["key_dir", "", "false"]
     get_YN_input_mock.side_effect = [True]
     import_cert_and_key_action_mock.side_effect = [False]
     get_validated_string_input_mock.side_effect = ["4444"]
     get_property_expected = (
       "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl'),\n"
       + " call('client.api.ssl.port'),\n call('api.ssl')]"
     )
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     self.assertFalse(setup_https(args))
     self.assertTrue(p.process_pair.called)
-    self.assertTrue(p.get_property.call_count == 5)
+    self.assertTrue(p.get_property.call_count == 3)
     self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertFalse(p.store.called)
@@ -2256,6 +2239,18 @@ class TestAmbariServer(TestCase):
     except FatalException as fe:
       self.assertTrue("Failed to read property" in fe.reason)
     pass
+
+  def test_setup_https_has_no_tez_view_coupling(self):
+    source = inspect.getsource(setup_https)
+    self.assertEqual(1, source.count("properties.get_property(SSL_API_PORT)"))
+    for obsolete in (
+      "Tez View",
+      "tez.tez-ui.history-url.base",
+      "api_ssl_old_value",
+      "client_api_ssl_port_old_value",
+    ):
+      with self.subTest(obsolete=obsolete):
+        self.assertNotIn(obsolete, source)
 
   @patch("ambari_server.setupHttps.import_cert_and_key")
   def test_import_cert_and_key_action(self, import_cert_and_key_mock):
