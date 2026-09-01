@@ -22,6 +22,8 @@ import posixpath
 import re
 from urllib.parse import urlsplit, urlunsplit
 
+from resource_management.libraries.functions import safe_process
+
 
 _PRINCIPAL_PATTERN = re.compile(
   r"[A-Za-z0-9._/-]+@[A-Za-z0-9._-]+", re.ASCII
@@ -163,3 +165,15 @@ def validate_principal(value):
   if not isinstance(value, str) or _PRINCIPAL_PATTERN.fullmatch(value) is None:
     raise ValueError("Alluxio service principal is invalid")
   return value
+
+
+def rollback_started_process(pid_file, user, process_class):
+  identity = safe_process.discover_running_process(user, process_class)
+  if identity is None:
+    return
+  safe_process.terminate_process(identity, user, process_class)
+  pid = safe_process.read_pid(pid_file)
+  if pid == identity.pid:
+    safe_process.remove_pid_file_if_stopped(
+      pid_file, identity.pid, user, process_class
+    )

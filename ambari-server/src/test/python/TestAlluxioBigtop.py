@@ -46,6 +46,7 @@ def load_script(module_name, filename):
   return module
 
 
+ALLUXIO_UTILS = load_script("alluxio_utils", "alluxio_utils.py")
 ALLUXIO_MASTER = load_script("bigtop_alluxio_master", "master.py")
 ALLUXIO_WORKER = load_script("bigtop_alluxio_worker", "worker.py")
 ALLUXIO_SERVICE_CHECK = load_script(
@@ -115,6 +116,7 @@ def component_cases():
           ("alluxio-start.sh", "-a", "-N", "master"),
           user="alluxio",
           environment={"JAVA_HOME": "/usr/lib/jvm/java"},
+          timeout=60,
         )
       ],
     ),
@@ -126,11 +128,12 @@ def component_cases():
       "/run/alluxio/alluxio-worker.pid",
       WORKER_PROCESS_CLASS,
       [
-        call(("alluxio-mount.sh", "Mount"), sudo=True),
+        call(("alluxio-mount.sh", "Mount"), sudo=True, timeout=60),
         call(
           ("alluxio-start.sh", "-a", "-N", "worker", "NoMount"),
           user="alluxio",
           environment={"JAVA_HOME": "/usr/lib/jvm/java"},
+          timeout=60,
         ),
       ],
     ),
@@ -434,13 +437,75 @@ class TestAlluxioLifecycle(unittest.TestCase):
               module.safe_process,
               "wait_for_discovered_process",
               side_effect=Fail("wait failed") if failure_stage == "wait" else None,
-            ) as wait_for_process:
+            ) as wait_for_process, \
+            patch.object(module, "rollback_started_process") as rollback:
             with self.assertRaisesRegex(Fail, f"{failure_stage} failed"):
               service.start(MagicMock())
 
           file_resource.assert_not_called()
+          rollback.assert_called_once_with(
+            params.alluxio_master_pid_file
+            if name == "master"
+            else params.alluxio_worker_pid_file,
+            "alluxio",
+            params.alluxio_master_process_class
+            if name == "master"
+            else params.alluxio_worker_process_class,
+          )
           if failure_stage == "command":
             wait_for_process.assert_not_called()
+
+  def test_start_preserves_original_failure_when_rollback_fails(self):
+    for name, module, service_class, params, _, _, _ in component_cases():
+      service = service_class()
+      execute_effect = (
+        Fail("command failed")
+        if name == "master"
+        else (None, Fail("command failed"))
+      )
+      with self.subTest(component=name):
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(service, "configure"), \
+          patch.object(module, "Execute", side_effect=execute_effect), \
+          patch.object(module.safe_process, "read_pid", return_value=None), \
+          patch.object(
+            module.safe_process, "discover_running_process", return_value=None
+          ), \
+          patch.object(
+            module,
+            "rollback_started_process",
+            side_effect=Fail("cleanup failed"),
+          ), \
+          patch.object(module.Logger, "warning") as warning:
+          with self.assertRaisesRegex(Fail, "command failed"):
+            service.start(MagicMock())
+
+        warning.assert_called_once()
+
+  def test_rollback_terminates_only_the_discovered_identity(self):
+    identity = process_identity(MASTER_PROCESS_CLASS)
+    with patch.object(
+      ALLUXIO_UTILS.safe_process,
+      "discover_running_process",
+      return_value=identity,
+    ) as discover, \
+      patch.object(ALLUXIO_UTILS.safe_process, "terminate_process") as terminate, \
+      patch.object(ALLUXIO_UTILS.safe_process, "read_pid", return_value=123), \
+      patch.object(
+        ALLUXIO_UTILS.safe_process, "remove_pid_file_if_stopped"
+      ) as remove_pid:
+      ALLUXIO_UTILS.rollback_started_process(
+        "/run/alluxio/alluxio-master.pid", "alluxio", MASTER_PROCESS_CLASS
+      )
+
+    discover.assert_called_once_with("alluxio", MASTER_PROCESS_CLASS)
+    terminate.assert_called_once_with(identity, "alluxio", MASTER_PROCESS_CLASS)
+    remove_pid.assert_called_once_with(
+      "/run/alluxio/alluxio-master.pid",
+      123,
+      "alluxio",
+      MASTER_PROCESS_CLASS,
+    )
 
   def test_stop_is_idempotent_only_when_pid_and_discovery_are_missing(self):
     for name, module, service_class, params, _, _, _ in component_cases():
@@ -681,7 +746,9 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
       WORKER_PROCESS_CLASS,
     )
     kinit_call = call(
-      (self.KINIT, "-kt", self.KEYTAB, self.PRINCIPAL), user="alluxio"
+      (self.KINIT, "-kt", self.KEYTAB, self.PRINCIPAL),
+      user="alluxio",
+      timeout=30,
     )
 
     self.assertEqual(kinit_call, master_calls[0])
@@ -882,7 +949,9 @@ class TestAlluxioServiceCheck(unittest.TestCase):
     source = (ALLUXIO_SCRIPTS / "worker.py").read_text(encoding="utf-8")
     self.assertLess(
       source.index("self.configure(env)"),
-      source.index("Execute(params.alluxio_worker_mount_cmd, sudo=True)"),
+      source.index(
+        "Execute(params.alluxio_worker_mount_cmd, sudo=True, timeout=60)"
+      ),
     )
 
   def test_service_check_asf_header_is_undamaged(self):

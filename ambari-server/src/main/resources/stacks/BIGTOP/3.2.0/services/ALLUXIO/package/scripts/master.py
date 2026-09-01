@@ -20,11 +20,14 @@ limitations under the License.
 
 import os
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
+
+from alluxio_utils import rollback_started_process
 
 
 class AlluxioMaster(Script):
@@ -169,42 +172,58 @@ class AlluxioMaster(Script):
           params.kinit_principal,
         ),
         user=params.alluxio_user,
+        timeout=30,
       )
 
-    # start
-    Execute(
-      params.alluxio_master_start_cmd,
-      user=params.alluxio_user,
-      environment={"JAVA_HOME": params.java_home},
-    )
+    try:
+      Execute(
+        params.alluxio_master_start_cmd,
+        user=params.alluxio_user,
+        environment={"JAVA_HOME": params.java_home},
+        timeout=60,
+      )
 
-    identity = safe_process.wait_for_discovered_process(
-      params.alluxio_user,
-      params.alluxio_master_process_class,
-      attempts=60,
-      sleep_seconds=1,
-    )
-    pid_in_file = safe_process.read_pid(params.alluxio_master_pid_file)
-    if pid_in_file is None:
-      safe_process.create_pid_file_for_identity(
-        params.alluxio_master_pid_file,
-        identity,
+      identity = safe_process.wait_for_discovered_process(
         params.alluxio_user,
         params.alluxio_master_process_class,
-        params.alluxio_user,
-        params.alluxio_group,
-        mode=0o640,
+        attempts=60,
+        sleep_seconds=1,
       )
-    elif pid_in_file != identity.pid:
-      raise Fail("Alluxio master PID file does not match the started process")
+      pid_in_file = safe_process.read_pid(params.alluxio_master_pid_file)
+      if pid_in_file is None:
+        safe_process.create_pid_file_for_identity(
+          params.alluxio_master_pid_file,
+          identity,
+          params.alluxio_user,
+          params.alluxio_master_process_class,
+          params.alluxio_user,
+          params.alluxio_group,
+          mode=0o640,
+        )
+      elif pid_in_file != identity.pid:
+        raise Fail("Alluxio master PID file does not match the started process")
 
-    stored_identity = safe_process.read_running_process(
-      params.alluxio_master_pid_file,
-      params.alluxio_user,
-      params.alluxio_master_process_class,
-    )
-    if stored_identity is None or not identity.matches(stored_identity):
-      raise Fail("Alluxio master process changed while its PID file was being stored")
+      stored_identity = safe_process.read_running_process(
+        params.alluxio_master_pid_file,
+        params.alluxio_user,
+        params.alluxio_master_process_class,
+      )
+      if stored_identity is None or not identity.matches(stored_identity):
+        raise Fail(
+          "Alluxio master process changed while its PID file was being stored"
+        )
+    except Exception:
+      try:
+        rollback_started_process(
+          params.alluxio_master_pid_file,
+          params.alluxio_user,
+          params.alluxio_master_process_class,
+        )
+      except Exception as cleanup_error:
+        Logger.warning(
+          f"Could not roll back failed Alluxio master start: {cleanup_error}"
+        )
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params
