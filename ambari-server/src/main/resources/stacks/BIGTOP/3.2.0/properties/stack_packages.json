@@ -38,7 +38,6 @@
           ],
           "STANDARD": [
             "hbase-client",
-            "phoenix-client",
             "hadoop-client"
           ]
         },
@@ -604,13 +603,6 @@
           "conf_dir": "/etc/kafka/conf",
           "current_dir": "{0}/current/kafka-broker/conf",
           "component": "kafka-broker"
-        }
-      ],
-      "phoenix": [
-        {
-          "conf_dir": "/etc/phoenix/conf",
-          "current_dir": "{0}/current/phoenix-client/conf",
-          "component": "phoenix-client"
         }
       ],
        "ranger-admin": [

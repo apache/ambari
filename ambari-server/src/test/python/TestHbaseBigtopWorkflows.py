@@ -18,14 +18,17 @@ limitations under the License.
 """
 
 import importlib.util
+import json
 from pathlib import Path
 import socket
 import sys
 from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, call, patch
+import xml.etree.ElementTree as ET
 
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions import package_conditions
 
 
 HBASE = (
@@ -33,6 +36,9 @@ HBASE = (
   / "main/resources/stacks/BIGTOP/3.2.0/services/HBASE"
 )
 SCRIPTS = HBASE / "package/scripts"
+STACKS = HBASE.parents[2]
+HBASE_33 = STACKS / "3.3.0/services/HBASE"
+STACK_PACKAGES = STACKS / "3.2.0/properties/stack_packages.json"
 
 
 def dependency_module(name, **attributes):
@@ -291,7 +297,242 @@ class TestHbaseServiceCheckWorkflow(unittest.TestCase):
     self.assertEqual(3, len(set(deleted_files)))
 
 
+class TestHbasePackageContract(unittest.TestCase):
+  def test_platform_packages_use_bigtop_suffix_and_phoenix_condition(self):
+    base_metadata = ET.parse(HBASE / "metainfo.xml").getroot()
+    base_packages = {
+      package.findtext("name"): package.findtext("condition")
+      for package in base_metadata.findall(
+        "./services/service/osSpecifics/osSpecific/packages/package"
+      )
+    }
+    self.assertEqual("should_install_phoenix", base_packages["phoenix"])
+
+    metadata = ET.parse(HBASE_33 / "metainfo.xml").getroot()
+    packages_by_family = {
+      os_specific.findtext("osFamily"): {
+        package.findtext("name"): package.findtext("condition")
+        for package in os_specific.findall("./packages/package")
+      }
+      for os_specific in metadata.findall(
+        "./services/service/osSpecifics/osSpecific"
+      )
+    }
+    self.assertEqual(
+      {
+        "hbase_${stack_version}": None,
+        "phoenix_${stack_version}": "should_install_phoenix",
+        "ranger_${stack_version}-hbase-plugin": "should_install_ranger_hbase_plugin",
+      },
+      packages_by_family["redhat8,redhat9,openeuler22"],
+    )
+    self.assertEqual(
+      {
+        "hbase-${stack_version}": None,
+        "phoenix-${stack_version}": "should_install_phoenix",
+        "ranger-${stack_version}-hbase-plugin": "should_install_ranger_hbase_plugin",
+      },
+      packages_by_family["ubuntu22"],
+    )
+
+    stack_packages = json.loads(STACK_PACKAGES.read_text(encoding="utf-8"))
+    hbase_client = stack_packages["BIGTOP"]["stack-select"]["HBASE"][
+      "HBASE_CLIENT"
+    ]
+    self.assertEqual(
+      ["hbase-client", "hadoop-client"], hbase_client["STANDARD"]
+    )
+    self.assertNotIn("phoenix", stack_packages["BIGTOP"]["conf-select"])
+
+  def test_install_selects_packaged_phoenix_leaves_after_package_install(self):
+    for component_script in (
+      "hbase_client.py",
+      "hbase_master.py",
+      "hbase_regionserver.py",
+      "hbase_thrift.py",
+    ):
+      with self.subTest(component_script=component_script):
+        source = (SCRIPTS / component_script).read_text(encoding="utf-8")
+        install_start = source.index("  def install(")
+        install_end = source.index("\n  def ", install_start + 1)
+        install = source[install_start:install_end]
+        self.assertIn("self.install_packages(env)", install)
+        self.assertIn("upgrade.select_phoenix_packages(params)", install)
+        self.assertLess(
+          install.index("self.install_packages(env)"),
+          install.index("upgrade.select_phoenix_packages(params)"),
+        )
+
+    env_content = (HBASE / "configuration/hbase-env.xml").read_text(
+      encoding="utf-8"
+    )
+    self.assertIn("export PHOENIX_HOME={{phoenix_home_shell}}", env_content)
+    self.assertIn(
+      '${HBASE_CLASSPATH:+${HBASE_CLASSPATH}:}${PHOENIX_HOME}/phoenix-server.jar',
+      env_content,
+    )
+
+  def test_phoenix_package_condition_is_strict_and_defaults_disabled(self):
+    for configured, expected in (
+      (True, True),
+      (False, False),
+      (" true ", True),
+      ("FALSE", False),
+    ):
+      config = {
+        "configurations": {"hbase-env": {"phoenix_sql_enabled": configured}}
+      }
+      with (
+        self.subTest(configured=configured),
+        patch.object(package_conditions.Script, "get_config", return_value=config),
+      ):
+        self.assertEqual(expected, package_conditions.should_install_phoenix())
+
+    for config in ({}, {"configurations": {}}, {"configurations": {"hbase-env": {}}}):
+      with (
+        self.subTest(config=config),
+        patch.object(package_conditions.Script, "get_config", return_value=config),
+      ):
+        self.assertFalse(package_conditions.should_install_phoenix())
+
+    for config in (
+      {"configurations": []},
+      {"configurations": {"hbase-env": []}},
+      {"configurations": {"hbase-env": {"phoenix_sql_enabled": "yes"}}},
+    ):
+      with (
+        self.subTest(config=config),
+        patch.object(package_conditions.Script, "get_config", return_value=config),
+        self.assertRaises(Fail),
+      ):
+        package_conditions.should_install_phoenix()
+
+
 class TestHbaseUpgradeWorkflow(unittest.TestCase):
+  def test_phoenix_selection_follows_enablement(self):
+    for phoenix_enabled, expected in (
+      (False, []),
+      (
+        True,
+        [
+          call("phoenix-client", "3.3.0-1"),
+          call("phoenix-server", "3.3.0-1"),
+        ],
+      ),
+    ):
+      params = SimpleNamespace(
+        version="3.3.0-1",
+        repository_version=None,
+        phoenix_enabled=phoenix_enabled,
+        stack_select_lock_file="/tmp/stack_select_lock_file",
+        is_parallel_execution_enabled=False,
+      )
+      with (
+        self.subTest(phoenix_enabled=phoenix_enabled),
+        patch.object(UPGRADE.stack_select, "select_packages") as select_packages,
+        patch.object(UPGRADE.stack_select, "select") as select,
+      ):
+        UPGRADE.select_hbase_packages(params)
+      select_packages.assert_called_once_with("3.3.0-1")
+      self.assertEqual(expected, select.call_args_list)
+
+  def test_phoenix_is_not_selected_after_base_selection_failure(self):
+    params = SimpleNamespace(
+      version="3.3.0-1",
+      repository_version=None,
+      phoenix_enabled=True,
+      stack_select_lock_file="/tmp/stack_select_lock_file",
+      is_parallel_execution_enabled=False,
+    )
+    with (
+      patch.object(
+        UPGRADE.stack_select,
+        "select_packages",
+        side_effect=Fail("base selection failed"),
+      ),
+      patch.object(UPGRADE.stack_select, "select") as select,
+      self.assertRaisesRegex(Fail, "base selection failed"),
+    ):
+      UPGRADE.select_hbase_packages(params)
+    select.assert_not_called()
+
+  def test_fresh_install_phoenix_selection_uses_repository_version(self):
+    params = SimpleNamespace(
+      version=None,
+      repository_version="3.3.0",
+      phoenix_enabled=True,
+      stack_select_lock_file="/tmp/stack_select_lock_file",
+      is_parallel_execution_enabled=False,
+    )
+    with patch.object(UPGRADE.stack_select, "select") as select:
+      UPGRADE.select_phoenix_packages(params)
+    self.assertEqual(
+      [
+        call("phoenix-client", "3.3.0"),
+        call("phoenix-server", "3.3.0"),
+      ],
+      select.call_args_list,
+    )
+
+  def test_parallel_phoenix_selection_uses_stack_select_lock(self):
+    params = SimpleNamespace(
+      version=None,
+      repository_version="3.3.0",
+      phoenix_enabled=True,
+      stack_select_lock_file="/tmp/stack_select_lock_file",
+      is_parallel_execution_enabled=True,
+    )
+    lock = MagicMock()
+    with (
+      patch.object(
+        UPGRADE, "FcntlBasedProcessLock", return_value=lock
+      ) as lock_factory,
+      patch.object(UPGRADE.stack_select, "select") as select,
+    ):
+      UPGRADE.select_phoenix_packages(params)
+
+    lock_factory.assert_called_once_with(
+      "/tmp/stack_select_lock_file",
+      enabled=True,
+      skip_fcntl_failures=True,
+    )
+    lock.__enter__.assert_called_once_with()
+    lock.__exit__.assert_called_once_with(None, None, None)
+    self.assertEqual(
+      [
+        call("phoenix-client", "3.3.0"),
+        call("phoenix-server", "3.3.0"),
+      ],
+      select.call_args_list,
+    )
+
+  def test_fresh_install_phoenix_selection_requires_version(self):
+    params = SimpleNamespace(
+      version=None,
+      repository_version=None,
+      phoenix_enabled=True,
+      stack_select_lock_file="/tmp/stack_select_lock_file",
+      is_parallel_execution_enabled=False,
+    )
+    with (
+      patch.object(UPGRADE.stack_select, "select") as select,
+      self.assertRaisesRegex(Fail, "requires a stack version"),
+    ):
+      UPGRADE.select_phoenix_packages(params)
+    select.assert_not_called()
+
+  def test_disabled_fresh_install_does_not_require_or_select_version(self):
+    params = SimpleNamespace(
+      version=None,
+      repository_version=None,
+      phoenix_enabled=False,
+      stack_select_lock_file="/tmp/stack_select_lock_file",
+      is_parallel_execution_enabled=False,
+    )
+    with patch.object(UPGRADE.stack_select, "select") as select:
+      UPGRADE.select_phoenix_packages(params)
+    select.assert_not_called()
+
   def test_registration_uses_literal_hostname_and_ip_tokens(self):
     self.assertTrue(
       UPGRADE._server_is_registered(

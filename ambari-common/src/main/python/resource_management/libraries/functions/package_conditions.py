@@ -76,10 +76,18 @@ def _strict_configuration_boolean(config, config_type, property_name):
 
 
 def should_install_phoenix():
-  phoenix_hosts = default("/clusterHostInfo/phoenix_query_server_hosts", [])
-  phoenix_enabled = default("/configurations/hbase-env/phoenix_sql_enabled", False)
-  has_phoenix = len(phoenix_hosts) > 0
-  return phoenix_enabled or has_phoenix
+  config = Script.get_config()
+  configurations = config.get("configurations", {})
+  if not isinstance(configurations, dict):
+    raise Fail("Phoenix package condition requires a configurations map")
+  hbase_env = configurations.get("hbase-env")
+  if hbase_env is None:
+    return False
+  if not isinstance(hbase_env, dict):
+    raise Fail("hbase-env package condition must be a configuration map")
+  if "phoenix_sql_enabled" not in hbase_env:
+    return False
+  return _strict_configuration_boolean(config, "hbase-env", "phoenix_sql_enabled")
 
 
 def should_install_ams_collector():

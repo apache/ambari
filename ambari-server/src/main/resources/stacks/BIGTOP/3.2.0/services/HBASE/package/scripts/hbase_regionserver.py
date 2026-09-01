@@ -46,6 +46,7 @@ class HbaseRegionServer(Script):
 
     env.set_params(params)
     self.install_packages(env)
+    upgrade.select_phoenix_packages(params)
 
   def configure(self, env):
     import params

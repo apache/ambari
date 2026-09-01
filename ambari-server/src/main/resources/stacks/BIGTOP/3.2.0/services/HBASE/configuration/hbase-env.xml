@@ -195,6 +195,10 @@ if [ -z "${HBASE_CONF_DIR:-}" ]; then
   export HBASE_CONF_DIR={{hbase_conf_dir_shell}}
 fi
 export HBASE_CLASSPATH="${HBASE_CLASSPATH:-}"
+{% if phoenix_enabled %}
+export PHOENIX_HOME={{phoenix_home_shell}}
+export HBASE_CLASSPATH="${HBASE_CLASSPATH:+${HBASE_CLASSPATH}:}${PHOENIX_HOME}/phoenix-server.jar"
+{% endif %}
 export HBASE_LOG_DIR={{log_dir_shell}}
 export HBASE_PID_DIR={{pid_dir_shell}}
 export HBASE_IDENT_STRING={{hbase_user_shell}}
@@ -257,22 +261,5 @@ export HBASE_MASTER_OPTS="${HBASE_MASTER_OPTS} -XX:MaxDirectMemorySize={{hbase_m
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>hbase.atlas.hook</name>
-    <value>false</value>
-    <display-name>Enable Atlas Hook</display-name>
-    <description>Enable Atlas Hook</description>
-    <value-attributes>
-      <type>boolean</type>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="false"/>
-    <depends-on>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.rest.address</name>
-      </property>
-    </depends-on>
   </property>
 </configuration>

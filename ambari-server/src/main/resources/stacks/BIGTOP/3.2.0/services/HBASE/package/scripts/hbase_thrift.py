@@ -33,6 +33,7 @@ class HbaseThrift(Script):
 
     env.set_params(params)
     self.install_packages(env)
+    upgrade.select_phoenix_packages(params)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

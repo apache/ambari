@@ -69,6 +69,47 @@ class TestHbaseRuntimeContract(unittest.TestCase):
       with self.subTest(value=value):
         self.assertFalse(FUNCTIONS.as_bool(value))
 
+  def test_strict_boolean_parser_rejects_ambiguous_values(self):
+    for value, expected in (
+      (True, True),
+      (False, False),
+      (" true ", True),
+      ("FALSE", False),
+    ):
+      with self.subTest(value=value):
+        self.assertEqual(
+          expected, FUNCTIONS.strict_bool(value, "hbase-env/phoenix_sql_enabled")
+        )
+    for value in (None, "", "yes", "1", 1):
+      with self.subTest(value=value), self.assertRaisesRegex(
+        Fail, "phoenix_sql_enabled"
+      ):
+        FUNCTIONS.strict_bool(value, "hbase-env/phoenix_sql_enabled")
+
+  def test_external_ranger_credentials_must_be_explicit_and_nonempty(self):
+    valid = {
+      "external_admin_username": "external-admin",
+      "external_admin_password": "secret-one",
+      "external_ranger_admin_username": "service-account",
+      "external_ranger_admin_password": "secret-two",
+    }
+    self.assertEqual(
+      valid, FUNCTIONS.require_external_ranger_credentials(valid)
+    )
+    for missing_property in valid:
+      for invalid_value in (None, "", "   ", 1):
+        with self.subTest(
+          missing_property=missing_property, invalid_value=invalid_value
+        ):
+          invalid = dict(valid)
+          invalid[missing_property] = invalid_value
+          with self.assertRaisesRegex(Fail, missing_property):
+            FUNCTIONS.require_external_ranger_credentials(invalid)
+
+    params_source = (HBASE / "package/scripts/params_linux.py").read_text()
+    self.assertNotIn('external_admin_username", "admin"', params_source)
+    self.assertNotIn('"amb_ranger_admin"', params_source)
+
 
 if __name__ == "__main__":
   unittest.main()

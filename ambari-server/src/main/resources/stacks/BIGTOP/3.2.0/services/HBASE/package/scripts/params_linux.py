@@ -18,13 +18,16 @@ limitations under the License.
 
 """
 
-import os
 import status_params
 import re
 
-from functions import as_bool, calc_xmn_from_xms, ensure_unit_for_memory
-
-from ambari_commons.str_utils import string_set_intersection
+from functions import (
+  as_bool,
+  calc_xmn_from_xms,
+  ensure_unit_for_memory,
+  require_external_ranger_credentials,
+  strict_bool,
+)
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
@@ -54,14 +57,16 @@ from resource_management.core.shell import quote_bash_args
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
+is_parallel_execution_enabled = (
+  int(default("/agentLevelParams/agentConfigParams/agent/parallel_execution", 0))
+  == 1
+)
+stack_select_lock_file = format("{exec_tmp_dir}/stack_select_lock_file")
 
 service_name = "hbase"
 stack_name = status_params.stack_name
-agent_stack_retry_on_unavailability = config["ambariLevelParams"][
-  "agent_stack_retry_on_unavailability"
-]
-agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", int)
 version = default("/commandParams/version", None)
+repository_version = default("/repositoryFile/repoVersion", None)
 component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
 
@@ -164,7 +169,9 @@ if hbase_region_mover_timeout <= 0:
   raise Fail("HBase RegionMover timeout must be a positive integer")
 
 phoenix_enabled_value = default("/configurations/hbase-env/phoenix_sql_enabled", False)
-phoenix_enabled = as_bool(phoenix_enabled_value)
+phoenix_enabled = strict_bool(phoenix_enabled_value, "hbase-env/phoenix_sql_enabled")
+phoenix_home = format("{stack_root}/current/phoenix-server")
+phoenix_home_shell = quote_bash_args(str(phoenix_home))
 
 hbase_thrift_port = expect(
   "/configurations/hbase-thrift-site/hbase.thrift.port", int, 9091
@@ -178,8 +185,6 @@ for port_name, port in (
 ):
   if not 1 <= port <= 65535:
     raise Fail(f"{port_name} must be between 1 and 65535")
-
-phoenix_package = "phoenix"
 
 pid_dir = status_params.pid_dir
 tmp_dir = config["configurations"]["hbase-site"]["hbase.tmp.dir"]
@@ -353,7 +358,6 @@ else:
 hbase_env_sh_template = config["configurations"]["hbase-env"]["content"]
 
 hbase_hdfs_root_dir = config["configurations"]["hbase-site"]["hbase.rootdir"]
-hbase_staging_dir = "/apps/hbase/staging"
 # for create_hdfs_directory
 hostname = config["agentLevelParams"]["hostname"]
 hdfs_user_keytab = config["configurations"]["hadoop-env"]["hdfs_user_keytab"]
@@ -467,25 +471,19 @@ if enable_ranger_hbase:
 
   # create ranger-env config having external ranger credential properties
   if not has_ranger_admin and enable_ranger_hbase:
-    external_admin_username = default(
-      "/configurations/ranger-hbase-plugin-properties/external_admin_username", "admin"
+    external_credentials = require_external_ranger_credentials(
+      config["configurations"]["ranger-hbase-plugin-properties"]
     )
-    external_admin_password = default(
-      "/configurations/ranger-hbase-plugin-properties/external_admin_password", "admin"
-    )
-    external_ranger_admin_username = default(
-      "/configurations/ranger-hbase-plugin-properties/external_ranger_admin_username",
-      "amb_ranger_admin",
-    )
-    external_ranger_admin_password = default(
-      "/configurations/ranger-hbase-plugin-properties/external_ranger_admin_password",
-      "amb_ranger_admin",
-    )
-    ranger_env = {}
-    ranger_env["admin_username"] = external_admin_username
-    ranger_env["admin_password"] = external_admin_password
-    ranger_env["ranger_admin_username"] = external_ranger_admin_username
-    ranger_env["ranger_admin_password"] = external_ranger_admin_password
+    ranger_env = {
+      "admin_username": external_credentials["external_admin_username"],
+      "admin_password": external_credentials["external_admin_password"],
+      "ranger_admin_username": external_credentials[
+        "external_ranger_admin_username"
+      ],
+      "ranger_admin_password": external_credentials[
+        "external_ranger_admin_password"
+      ],
+    }
 
   xa_audit_db_password = ""
   if (
@@ -645,48 +643,3 @@ create_hbase_home_directory = check_stack_feature(
   StackFeature.HBASE_HOME_DIRECTORY, stack_version_formatted
 )
 hbase_home_directory = format("/user/{hbase_user}")
-
-atlas_hosts = default("/clusterHostInfo/atlas_server_hosts", [])
-has_atlas = len(atlas_hosts) > 0
-
-metadata_user = default("/configurations/atlas-env/metadata_user", None)
-atlas_graph_storage_hostname = default(
-  "/configurations/application-properties/atlas.graph.storage.hostname", None
-)
-atlas_graph_storage_hbase_table = default(
-  "/configurations/application-properties/atlas.graph.storage.hbase.table", None
-)
-atlas_audit_hbase_tablename = default(
-  "/configurations/application-properties/atlas.audit.hbase.tablename", None
-)
-
-if has_atlas:
-  zk_hosts_matches = string_set_intersection(
-    atlas_graph_storage_hostname, hbase_zookeeper_quorum
-  )
-  atlas_with_managed_hbase = len(zk_hosts_matches) > 0
-else:
-  atlas_with_managed_hbase = False
-
-# Hbase Atlas hook configurations
-atlas_hook_filename = default(
-  "/configurations/atlas-env/metadata_conf_file", "atlas-application.properties"
-)
-enable_hbase_atlas_hook = as_bool(
-  default("/configurations/hbase-env/hbase.atlas.hook", False)
-)
-hbase_atlas_hook_properties = default(
-  "/configurations/hbase-atlas-application-properties", {}
-)
-
-mount_table_xml_inclusion_file_full_path = None
-mount_table_content = None
-if "viewfs-mount-table" in config["configurations"]:
-  xml_inclusion_file_name = "viewfs-mount-table.xml"
-  mount_table = config["configurations"]["viewfs-mount-table"]
-
-  if "content" in mount_table and mount_table["content"].strip():
-    mount_table_xml_inclusion_file_full_path = os.path.join(
-      hbase_conf_dir, xml_inclusion_file_name
-    )
-    mount_table_content = mount_table["content"]

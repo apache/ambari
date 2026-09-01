@@ -39,6 +39,42 @@ def as_bool(value):
   return str(value or "").strip().lower() in ("1", "true", "yes")
 
 
+def strict_bool(value, property_name):
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "true":
+      return True
+    if normalized == "false":
+      return False
+  raise Fail(f"{property_name} must be true or false")
+
+
+def require_external_ranger_credentials(properties):
+  required_properties = (
+    "external_admin_username",
+    "external_admin_password",
+    "external_ranger_admin_username",
+    "external_ranger_admin_password",
+  )
+  missing_properties = [
+    property_name
+    for property_name in required_properties
+    if not isinstance(properties.get(property_name), str)
+    or not properties[property_name].strip()
+  ]
+  if missing_properties:
+    raise Fail(
+      "External Ranger integration requires non-empty properties: "
+      + ", ".join(missing_properties)
+    )
+  return {
+    property_name: properties[property_name]
+    for property_name in required_properties
+  }
+
+
 def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   """
   @param heapsize_str: str (e.g '1000m')

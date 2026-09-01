@@ -28,6 +28,9 @@ from resource_management.core.resources.system import File
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.decorator import retry
+from resource_management.libraries.functions.fcntl_based_process_lock import (
+  FcntlBasedProcessLock,
+)
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -42,7 +45,28 @@ def prestart(env):
   if params.version and check_stack_feature(
     StackFeature.ROLLING_UPGRADE, params.version
   ):
-    stack_select.select_packages(params.version)
+    select_hbase_packages(params)
+
+
+def select_hbase_packages(params):
+  stack_select.select_packages(params.version)
+  select_phoenix_packages(params)
+
+
+def select_phoenix_packages(params):
+  if params.phoenix_enabled:
+    version = getattr(params, "version", None) or getattr(
+      params, "repository_version", None
+    )
+    if not version:
+      raise Fail("Phoenix package selection requires a stack version")
+    with FcntlBasedProcessLock(
+      params.stack_select_lock_file,
+      enabled=params.is_parallel_execution_enabled,
+      skip_fcntl_failures=True,
+    ):
+      stack_select.select("phoenix-client", version)
+      stack_select.select("phoenix-server", version)
 
 
 def post_regionserver(env):

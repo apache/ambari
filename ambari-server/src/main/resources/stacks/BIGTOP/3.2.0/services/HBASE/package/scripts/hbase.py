@@ -28,12 +28,9 @@ from resource_management.libraries.functions.generate_logfeeder_input_config imp
   generate_logfeeder_input_config,
 )
 from resource_management.core.source import Template, InlineTemplate
-from resource_management.core.resources import Package
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.exceptions import Fail
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from resource_management.libraries.functions.constants import StackFeature
-from resource_management.libraries.functions.stack_features import check_stack_feature
 
 
 # name is 'master', 'regionserver', 'thrift', or 'client'
@@ -91,43 +88,8 @@ def hbase(name=None):
     mode=0o644,
   )
 
-  if check_stack_feature(
-    StackFeature.PHOENIX_CORE_HDFS_SITE_REQUIRED,
-    params.version_for_stack_feature_checks,
-  ):
-    XmlConfig(
-      "core-site.xml",
-      conf_dir=params.hbase_conf_dir,
-      configurations=params.config["configurations"]["core-site"],
-      configuration_attributes=params.config["configurationAttributes"]["core-site"],
-      owner="root",
-      group=params.user_group,
-      mode=0o644,
-      xml_include_file=params.mount_table_xml_inclusion_file_full_path,
-    )
-
-    if params.mount_table_content:
-      File(
-        params.mount_table_xml_inclusion_file_full_path,
-        owner="root",
-        group=params.user_group,
-        content=params.mount_table_content,
-        mode=0o644,
-      )
-
-    if "hdfs-site" in params.config["configurations"]:
-      XmlConfig(
-        "hdfs-site.xml",
-        conf_dir=params.hbase_conf_dir,
-        configurations=params.config["configurations"]["hdfs-site"],
-        configuration_attributes=params.config["configurationAttributes"]["hdfs-site"],
-        owner="root",
-        group=params.user_group,
-        mode=0o644,
-      )
-  else:
-    File(format("{params.hbase_conf_dir}/hdfs-site.xml"), action="delete")
-    File(format("{params.hbase_conf_dir}/core-site.xml"), action="delete")
+  File(format("{params.hbase_conf_dir}/hdfs-site.xml"), action="delete")
+  File(format("{params.hbase_conf_dir}/core-site.xml"), action="delete")
 
   if "hbase-policy" in params.config["configurations"]:
     XmlConfig(
@@ -230,13 +192,6 @@ def hbase(name=None):
       action="create_on_execute",
       owner=params.hbase_user,
     )
-    params.HdfsResource(
-      params.hbase_staging_dir,
-      type="directory",
-      action="create_on_execute",
-      owner=params.hbase_user,
-      mode=0o711,
-    )
     if params.create_hbase_home_directory:
       params.HdfsResource(
         params.hbase_home_directory,
@@ -246,14 +201,6 @@ def hbase(name=None):
         mode=0o755,
       )
     params.HdfsResource(None, action="execute")
-
-  if params.phoenix_enabled:
-    Package(
-      params.phoenix_package,
-      retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability,
-      retry_count=params.agent_stack_retry_count,
-    )
-
 
 def hbase_TemplateConfig(name, tag=None):
   import params

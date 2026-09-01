@@ -204,6 +204,10 @@
               <name>hbase_${stack_version}</name>
             </package>
             <package>
+              <name>phoenix</name>
+              <condition>should_install_phoenix</condition>
+            </package>
+            <package>
               <name>ranger_${stack_version}-hbase-plugin</name>
               <condition>should_install_ranger_hbase_plugin</condition>
             </package>
