@@ -1560,8 +1560,8 @@ function Step4() {
 
     params["db_name"] = dbType;
     params["jdk_location"] = ambariProperties?.["jdk_location"] || "";
-    params["jdk_name"] = ambariProperties?.["jdk.name"] || "";
-    params["java_home"] = ambariProperties?.["java.home"] || "";
+    params["jdk_name"] = ambariProperties?.["ambari.jdk.name"] || "";
+    params["java_home"] = ambariProperties?.["ambari.java.home"] || "";
     params["threshold"] = 60;
     params["ambari_server_host"] = window.location.hostname;
     params["check_execute_list"] = "db_connection_check";

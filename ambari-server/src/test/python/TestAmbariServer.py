@@ -167,6 +167,7 @@ with patch.object(
                     JDBC_DATABASE_NAME_PROPERTY,
                     OS_TYPE_PROPERTY,
                     validate_jdk,
+                    get_java_version,
                     JDBC_POSTGRES_SCHEMA_PROPERTY,
                     RESOURCES_DIR_PROPERTY,
                     JDBC_RCA_PASSWORD_ALIAS,
@@ -191,6 +192,10 @@ with patch.object(
                     JAVA_HOME_PROPERTY,
                     JDK_NAME_PROPERTY,
                     JCE_NAME_PROPERTY,
+                    AMBARI_JAVA_HOME_PROPERTY,
+                    AMBARI_JDK_NAME_PROPERTY,
+                    AMBARI_JCE_NAME_PROPERTY,
+                    AMBARI_JAVA_VERSION,
                     STACK_LOCATION_KEY,
                     SERVER_VERSION_FILE_PATH,
                     COMMON_SERVICES_PATH_PROPERTY,
@@ -202,6 +207,9 @@ with patch.object(
                     STACKADVISOR_SCRIPT,
                     BOOTSTRAP_DIR_PROPERTY,
                     MPACKS_STAGING_PATH_PROPERTY,
+                    STACK_JAVA_HOME_PROPERTY,
+                    STACK_JDK_NAME_PROPERTY,
+                    STACK_JCE_NAME_PROPERTY,
                     STACK_JAVA_VERSION,
                   )
                   from ambari_server.serverUtils import (
@@ -230,6 +238,7 @@ with patch.object(
                     run_schema_upgrade,
                     move_user_custom_actions,
                     find_and_copy_custom_services,
+                    migrate_java_home_properties,
                   )
                   from ambari_server.setupHttps import (
                     is_valid_https_port,
@@ -1537,9 +1546,9 @@ class TestAmbariServer(TestCase):
   ):
     # Testing boostrap dir wipe
     properties_mock = Properties()
-    properties_mock.process_pair(JDK_NAME_PROPERTY, "dummy_jdk")
-    properties_mock.process_pair(JCE_NAME_PROPERTY, "dummy_jce")
-    properties_mock.process_pair(JAVA_HOME_PROPERTY, "dummy_java_home")
+    properties_mock.process_pair(AMBARI_JDK_NAME_PROPERTY, "dummy_jdk")
+    properties_mock.process_pair(AMBARI_JCE_NAME_PROPERTY, "dummy_jce")
+    properties_mock.process_pair(AMBARI_JAVA_HOME_PROPERTY, "dummy_java_home")
     get_ambari_properties_mock.return_value = properties_mock
 
     get_value_from_properties_mock.return_value = "dummy_bootstrap_dir"
@@ -3254,8 +3263,9 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.update_properties")
   @patch("ambari_server.serverSetup.get_validated_string_input")
   @patch("ambari_server.serverSetup.print_info_msg")
+  @patch("ambari_server.serverSetup.get_java_version")
   @patch("ambari_server.serverSetup.validate_jdk")
-  @patch("ambari_server.serverSetup.get_JAVA_HOME")
+  @patch("ambari_server.serverSetup.find_jdk")
   @patch("ambari_server.serverSetup.get_resources_location")
   @patch("ambari_server.serverSetup.get_ambari_properties")
   @patch("ambari_server.serverSetup.check_ambari_java_version_is_valid")
@@ -3268,8 +3278,9 @@ class TestAmbariServer(TestCase):
     check_ambari_java_version_is_valid_mock,
     get_ambari_properties_mock,
     get_resources_location_mock,
-    get_JAVA_HOME_mock,
+    find_jdk_mock,
     validate_jdk_mock,
+    get_java_version_mock,
     print_info_msg_mock,
     get_validated_string_input_mock,
     update_properties_mock,
@@ -3331,6 +3342,8 @@ class TestAmbariServer(TestCase):
 
     args = MagicMock()
     args.java_home = "somewhere"
+    args.ambari_java_home = None
+    args.stack_java_home = None
     args.silent = False
 
     p, jdk1_url, res_location, pem_side_effect1 = _init_test_jdk_mocks()
@@ -3338,10 +3351,11 @@ class TestAmbariServer(TestCase):
     validate_jdk_mock.return_value = False
     path_existsMock.return_value = False
     get_resources_location_mock.return_value = res_location
-    get_JAVA_HOME_mock.return_value = False
+    find_jdk_mock.return_value = False
     read_ambari_user_mock.return_value = "ambari"
     get_ambari_properties_mock.return_value = p
     check_ambari_java_version_is_valid_mock.return_value = True
+    get_java_version_mock.return_value = 17
     # Test case: ambari.properties not found
     try:
       download_and_install_jdk(args)
@@ -3355,7 +3369,7 @@ class TestAmbariServer(TestCase):
     args.java_home = None
     args.jdk_location = None
     args.ambari_java_home = None
-    get_JAVA_HOME_mock.return_value = "some_jdk"
+    find_jdk_mock.return_value = "some_jdk"
     validate_jdk_mock.return_value = True
     get_YN_input_mock.return_value = False
     path_existsMock.return_value = False
@@ -3367,7 +3381,7 @@ class TestAmbariServer(TestCase):
     args.java_home = "somewhere"
     validate_jdk_mock.return_value = True
     path_existsMock.return_value = False
-    get_JAVA_HOME_mock.return_value = None
+    find_jdk_mock.return_value = None
     rcode = download_and_install_jdk(args)
     self.assertEqual(0, rcode)
     self.assertTrue(update_properties_mock.called)
@@ -3426,7 +3440,7 @@ class TestAmbariServer(TestCase):
 
     # Test case: jdk is already installed, ensure that JCE check is skipped if -j option is not supplied.
     args.jdk_location = None
-    get_JAVA_HOME_mock.return_value = "some_jdk"
+    find_jdk_mock.return_value = "some_jdk"
     validate_jdk_mock.return_value = True
     get_YN_input_mock.return_value = False
     path_existsMock.reset_mock()
@@ -3445,7 +3459,7 @@ class TestAmbariServer(TestCase):
     validate_jdk_mock.return_value = True
     path_existsMock.reset_mock()
     path_existsMock.side_effect = pem_side_effect1
-    get_JAVA_HOME_mock.return_value = "some_jdk"
+    find_jdk_mock.return_value = "some_jdk"
     path_isfileMock.return_value = True
     download_and_install_jdk(args)
     self.assertTrue(update_properties_mock.call_count == 1)
@@ -3456,7 +3470,7 @@ class TestAmbariServer(TestCase):
     # args.java_home = "somewhere"
     # path_existsMock.side_effect = None
     # path_existsMock.return_value = True
-    # get_JAVA_HOME_mock.return_value = "some_jdk"
+    # find_jdk_mock.return_value = "some_jdk"
     # try:
     #  download_and_install_jdk(args)
     #  self.fail("Should throw exception")
@@ -3472,7 +3486,7 @@ class TestAmbariServer(TestCase):
     path_existsMock.reset_mock()
     path_existsMock.side_effect = [True, True, True, True]
     get_validated_string_input_mock.return_value = "2"
-    get_JAVA_HOME_mock.return_value = None
+    find_jdk_mock.return_value = None
     rcode = download_and_install_jdk(args)
     self.assertEqual(0, rcode)
     self.assertTrue(update_properties_mock.called)
@@ -3481,15 +3495,12 @@ class TestAmbariServer(TestCase):
     update_properties_mock.reset_mock()
     validate_jdk_mock.return_value = False
     path_existsMock.reset_mock()
-    path_existsMock.side_effect = pem_side_effect1
+    path_existsMock.side_effect = None
+    path_existsMock.return_value = False
     get_validated_string_input_mock.return_value = "2"
-    get_JAVA_HOME_mock.return_value = None
-    try:
+    find_jdk_mock.return_value = None
+    with self.assertRaises(FatalException):
       download_and_install_jdk(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      pass
 
     # Test when custom java home exists but java binary file doesn't exist
     args.java_home = None
@@ -3497,18 +3508,12 @@ class TestAmbariServer(TestCase):
     path_isfileMock.return_value = False
     update_properties_mock.reset_mock()
     path_existsMock.reset_mock()
-    path_existsMock.side_effect = pem_side_effect1
+    path_existsMock.side_effect = None
+    path_existsMock.return_value = True
     get_validated_string_input_mock.return_value = "2"
-    get_JAVA_HOME_mock.return_value = None
-    flag = False
-    try:
+    find_jdk_mock.return_value = None
+    with self.assertRaises(FatalException):
       download_and_install_jdk(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      flag = True
-      pass
-    self.assertTrue(flag)
 
     # Test case: Setup ambari-server with java home passed. Path to java home doesn't exist
     args.java_home = "somewhere"
@@ -3520,7 +3525,8 @@ class TestAmbariServer(TestCase):
       self.fail("Should throw exception")
     except FatalException as fe:
       self.assertTrue(
-        "Path to java home somewhere or java binary file does not exists" in fe.reason
+        "Path to Ambari java home somewhere or java binary file does not exist"
+        in fe.reason
       )
       pass
     pass
@@ -3647,42 +3653,28 @@ class TestAmbariServer(TestCase):
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
-  @patch.object(subprocess, "Popen")
-  def test_check_ambari_java_version_is_valid(self, popenMock):
-    # case 1:  jdk7 is picked for stacks
+  @patch("ambari_server.serverSetup.get_java_version")
+  def test_check_ambari_java_version_is_valid(self, get_java_version_mock):
+    # case 1: JDK 7 is too old for Ambari
     properties = Properties()
-    p = MagicMock()
-    p.communicate.return_value = ("7", None)
-    p.returncode = 0
-    popenMock.return_value = p
+    get_java_version_mock.return_value = 7
     result = check_ambari_java_version_is_valid(
       "/usr/jdk64/jdk_1.7.0/", "java", 8, properties
     )
-    self.assertEqual(properties.get_property(STACK_JAVA_VERSION), "7")
+    self.assertEqual(properties.get_property(AMBARI_JAVA_VERSION), "7")
     self.assertFalse(result)
 
-    # case 2: jdk8 is picked for stacks
+    # case 2: JDK 8 satisfies the requested minimum
     properties = Properties()
-    p.communicate.return_value = ("8", None)
-    p.returncode = 0
+    get_java_version_mock.return_value = 8
     result = check_ambari_java_version_is_valid(
       "/usr/jdk64/jdk_1.8.0/", "java", 8, properties
     )
-    self.assertFalse(properties.get_property(STACK_JAVA_VERSION))
+    self.assertEqual(properties.get_property(AMBARI_JAVA_VERSION), "8")
     self.assertTrue(result)
 
-    # case 3: return code is not 0
-    p.returncode = 1
-    try:
-      check_ambari_java_version_is_valid("/usr/jdk64/jdk_1.8.0/", "java", 8, properties)
-      self.fail("Should throw exception")
-    except FatalException:
-      # expected
-      pass
-
-    # case 4: unparseable response - type error
-    p.communicate.return_value = ("something else", None)
-    p.returncode = 0
+    # case 3: version cannot be determined
+    get_java_version_mock.return_value = None
     try:
       check_ambari_java_version_is_valid("/usr/jdk64/jdk_1.8.0/", "java", 8, properties)
       self.fail("Should throw exception")
@@ -3690,6 +3682,57 @@ class TestAmbariServer(TestCase):
       # expected
       self.assertEqual(e.code, 1)
       pass
+
+  @patch("ambari_server.serverSetup.validate_jdk", return_value=True)
+  @patch("ambari_server.serverSetup.get_java_version", side_effect=[17, 11])
+  def test_jdk_setup_keeps_ambari_and_stack_java_independent(
+    self, get_java_version_mock, validate_jdk_mock
+  ):
+    properties = Properties()
+    properties.process_pair(AMBARI_JDK_NAME_PROPERTY, "old-ambari-jdk.tar.gz")
+    properties.process_pair(AMBARI_JCE_NAME_PROPERTY, "old-ambari-jce.zip")
+    properties.process_pair(STACK_JDK_NAME_PROPERTY, "old-stack-jdk.tar.gz")
+    properties.process_pair(STACK_JCE_NAME_PROPERTY, "old-stack-jce.zip")
+    args = MagicMock(
+      java_home="/java11",
+      ambari_java_home="/java17",
+      stack_java_home="/java11",
+    )
+    jdk_setup = JDKSetup()
+    jdk_setup._ensure_java_home_env_var_is_set = MagicMock()
+
+    jdk_setup.download_and_install_jdk(args, properties)
+
+    self.assertEqual("/java17", properties.get_property(AMBARI_JAVA_HOME_PROPERTY))
+    self.assertEqual("17", properties.get_property(AMBARI_JAVA_VERSION))
+    self.assertEqual("/java11", properties.get_property(STACK_JAVA_HOME_PROPERTY))
+    self.assertEqual("11", properties.get_property(STACK_JAVA_VERSION))
+    self.assertFalse(properties.get_property(AMBARI_JDK_NAME_PROPERTY))
+    self.assertFalse(properties.get_property(AMBARI_JCE_NAME_PROPERTY))
+    self.assertFalse(properties.get_property(STACK_JDK_NAME_PROPERTY))
+    self.assertFalse(properties.get_property(STACK_JCE_NAME_PROPERTY))
+    jdk_setup._ensure_java_home_env_var_is_set.assert_called_once_with("/java17")
+
+  @patch("ambari_server.serverSetup.validate_jdk", return_value=True)
+  @patch("ambari_server.serverSetup.get_java_version", side_effect=[17, None])
+  def test_jdk_setup_validates_all_java_homes_before_updating_properties(
+    self, get_java_version_mock, validate_jdk_mock
+  ):
+    properties = Properties()
+    args = MagicMock(
+      java_home=None,
+      ambari_java_home="/java17",
+      stack_java_home="/broken-stack-java",
+    )
+    jdk_setup = JDKSetup()
+    jdk_setup._ensure_java_home_env_var_is_set = MagicMock()
+
+    with self.assertRaises(FatalException):
+      jdk_setup.download_and_install_jdk(args, properties)
+
+    self.assertFalse(properties.get_property(AMBARI_JAVA_HOME_PROPERTY))
+    self.assertFalse(properties.get_property(STACK_JAVA_HOME_PROPERTY))
+    self.assertFalse(jdk_setup._ensure_java_home_env_var_is_set.called)
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
@@ -4060,9 +4103,13 @@ class TestAmbariServer(TestCase):
     pass
 
   @patch("glob.glob")
+  @patch("shutil.which", new=MagicMock(return_value=None))
   @patch("ambari_server.serverConfiguration.get_JAVA_HOME")
   @patch("ambari_server.serverConfiguration.validate_jdk")
-  def test_find_jdk(self, validate_jdk_mock, get_JAVA_HOME_mock, globMock):
+  @patch("ambari_server.serverConfiguration.get_java_version", return_value=17)
+  def test_find_jdk(
+    self, get_java_version_mock, validate_jdk_mock, get_JAVA_HOME_mock, globMock
+  ):
     get_JAVA_HOME_mock.return_value = "somewhere"
     validate_jdk_mock.return_value = True
     result = find_jdk()
@@ -4082,6 +4129,73 @@ class TestAmbariServer(TestCase):
     result = find_jdk()
     self.assertEqual(result, "one")
     pass
+
+  @patch("ambari_server.serverConfiguration.get_java_version")
+  @patch("ambari_server.serverConfiguration.get_JAVA_HOME")
+  @patch("shutil.which", new=MagicMock(return_value="/opt/java17/bin/java"))
+  @patch(
+    "ambari_server.serverConfiguration.validate_jdk",
+    new=MagicMock(return_value=True),
+  )
+  def test_find_jdk_skips_versions_below_minimum(
+    self, get_JAVA_HOME_mock, get_java_version_mock
+  ):
+    get_JAVA_HOME_mock.return_value = "/opt/java11"
+    get_java_version_mock.side_effect = [11, 17]
+
+    self.assertEqual("/opt/java17", find_jdk(min_version=17))
+
+  @patch("ambari_server.serverConfiguration.run_os_command")
+  @patch(
+    "ambari_server.serverConfiguration.validate_jdk",
+    new=MagicMock(return_value=True),
+  )
+  def test_get_java_version(self, run_os_command_mock):
+    run_os_command_mock.return_value = (
+      0,
+      "",
+      'openjdk version "17.0.12" 2024-07-16',
+    )
+    self.assertEqual(17, get_java_version("/java17"))
+
+    run_os_command_mock.return_value = (0, "", 'java version "1.8.0_402"')
+    self.assertEqual(8, get_java_version("/java8"))
+
+    run_os_command_mock.return_value = (1, "", "failed")
+    self.assertIsNone(get_java_version("/invalid"))
+
+  @patch("ambari_server.serverUpgrade.update_properties")
+  @patch("ambari_server.serverUpgrade.get_java_version")
+  def test_migrate_java_home_properties(
+    self, get_java_version_mock, update_properties_mock
+  ):
+    properties = Properties()
+    properties.process_pair(JAVA_HOME_PROPERTY, "/java11")
+    properties.process_pair(JDK_NAME_PROPERTY, "stack-jdk.tar.gz")
+    properties.process_pair(JCE_NAME_PROPERTY, "stack-jce.zip")
+    properties.process_pair(AMBARI_JDK_NAME_PROPERTY, "old-jdk.tar.gz")
+    properties.process_pair(AMBARI_JCE_NAME_PROPERTY, "old-jce.zip")
+    get_java_version_mock.side_effect = [11, 17]
+
+    migrate_java_home_properties(properties, "/java17")
+
+    self.assertEqual(
+      "/java11", properties.get_property(STACK_JAVA_HOME_PROPERTY)
+    )
+    self.assertEqual("11", properties.get_property(STACK_JAVA_VERSION))
+    self.assertEqual(
+      "stack-jdk.tar.gz", properties.get_property(STACK_JDK_NAME_PROPERTY)
+    )
+    self.assertEqual(
+      "stack-jce.zip", properties.get_property(STACK_JCE_NAME_PROPERTY)
+    )
+    self.assertEqual(
+      "/java17", properties.get_property(AMBARI_JAVA_HOME_PROPERTY)
+    )
+    self.assertEqual("17", properties.get_property(AMBARI_JAVA_VERSION))
+    self.assertFalse(properties.get_property(AMBARI_JDK_NAME_PROPERTY))
+    self.assertFalse(properties.get_property(AMBARI_JCE_NAME_PROPERTY))
+    self.assertTrue(update_properties_mock.called)
 
   @patch("os.path.exists")
   @patch("zipfile.ZipFile")
@@ -4160,7 +4274,7 @@ class TestAmbariServer(TestCase):
   ):
     exists_mock.return_value = True
     properties = Properties()
-    properties.process_pair(JAVA_HOME_PROPERTY, "/java_home")
+    properties.process_pair(AMBARI_JAVA_HOME_PROPERTY, "/java_home")
     unpack_jce_policy_mock.return_value = 0
     get_ambari_properties_mock.return_value = properties
     conf_file = "etc/ambari-server/conf/ambari.properties"
@@ -5188,6 +5302,7 @@ class TestAmbariServer(TestCase):
     p.process_pair(SERVER_VERSION_FILE_PATH, "some_value")
     p.process_pair(OS_TYPE_PROPERTY, "some_value")
     p.process_pair(JAVA_HOME_PROPERTY, "some_value")
+    p.process_pair(AMBARI_JAVA_HOME_PROPERTY, "some_value")
     p.process_pair(JDK_NAME_PROPERTY, "some_value")
     p.process_pair(JCE_NAME_PROPERTY, "some_value")
     p.process_pair(COMMON_SERVICES_PATH_PROPERTY, "some_value")
@@ -5531,7 +5646,7 @@ class TestAmbariServer(TestCase):
 
     # Checking situation when required properties not set up
     args = reset_mocks()
-    p.removeProp(JAVA_HOME_PROPERTY)
+    p.removeProp(AMBARI_JAVA_HOME_PROPERTY)
     get_ambari_properties_mock.return_value = p
     try:
       _ambari_server_.start(args)
@@ -5949,8 +6064,10 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupMpacks.get_replay_log_file")
   @patch("ambari_server.serverUpgrade.logger")
   @patch.object(PGConfig, "_change_db_files_owner", return_value=0)
+  @patch("ambari_server.serverUpgrade.migrate_java_home_properties")
   def test_upgrade_from_161(
     self,
+    migrate_java_home_properties_mock,
     change_db_files_owner_mock,
     logger_mock,
     get_replay_log_file_mock,
@@ -6262,8 +6379,10 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
   @patch("ambari_server.serverUpgrade.update_ambari_env")
+  @patch("ambari_server.serverUpgrade.migrate_java_home_properties")
   def test_upgrade(
     self,
+    migrate_java_home_properties_mock,
     update_ambari_env_mock,
     update_krb_jaas_login_properties_mock,
     move_user_custom_actions,
@@ -6487,8 +6606,10 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverUpgrade.get_ambari_properties")
   @patch("ambari_server.serverUpgrade.move_user_custom_actions")
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
+  @patch("ambari_server.serverUpgrade.migrate_java_home_properties")
   def test_upgrade(
     self,
+    migrate_java_home_properties_mock,
     update_krb_jaas_login_properties_mock,
     move_user_custom_actions,
     get_ambari_properties_mock,

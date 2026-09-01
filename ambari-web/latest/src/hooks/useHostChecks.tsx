@@ -171,11 +171,7 @@ export const useHostChecks = (
       : newHosts;
     const hostsString = hosts.join(",");
     if (hostsString.length === 0) return null;
-    const jdkLocation = get(
-      ambariProperties,
-      "RootServiceComponents.properties.jdk_location",
-      ""
-    );
+    const jdkLocation = ambariProperties?.jdk_location || "";
     const RequestInfo = {
       action: "check_host",
       context: "Check host",
@@ -1053,8 +1049,8 @@ export const useHostChecks = (
 
   const launchJdkCheck = async () => {
     const hostNames = map(bootHosts.current, "name").join(",");
-    const properties = get(ambariProperties, "RootServiceComponents.properties", {});
-    if (!hostNames || properties["jdk.name"]) {
+    const javaHome = ambariProperties?.["ambari.java.home"];
+    if (!hostNames || !javaHome) {
       finishHostCheck();
       return;
     }
@@ -1064,8 +1060,11 @@ export const useHostChecks = (
         context: "Check hosts",
         parameters: {
           check_execute_list: "java_home_check",
-          java_home: properties["java.home"],
-          jdk_location: properties.jdk_location,
+          java_home: javaHome,
+          java_version: ambariProperties?.["ambari.java.version"]
+            || ambariProperties?.["java.version"]
+            || "17",
+          jdk_location: ambariProperties?.jdk_location,
           threshold: "60",
         },
       },
@@ -1087,11 +1086,7 @@ export const useHostChecks = (
         0,
       )) === 1,
     ).map((task: any) => get(task, "Tasks.host_name", ""));
-    const javaHome = get(
-      ambariProperties,
-      "RootServiceComponents.properties.java.home",
-      "",
-    );
+    const javaHome = ambariProperties?.["ambari.java.home"] || "";
     setWarningData((current: any) => ({
       ...current,
       jdkCategoryWarnings: invalidHosts.length ? [{
@@ -1154,11 +1149,7 @@ export const useHostChecks = (
     bootHosts.current = bootHostsList;
     if (!isEmpty(ambariProperties)) {
       const hostName = map(bootHosts.current, "name").join(",");
-      const jdkLocation = get(
-        ambariProperties,
-        "RootServiceComponents.properties.jdk_location",
-        ""
-      );
+      const jdkLocation = ambariProperties?.jdk_location || "";
       const requestInfo = {
         action: "check_host",
         context: "Check host",

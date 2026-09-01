@@ -1090,7 +1090,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.8'
+          'stack.java.version': '1.8'
         },
         successCallbackCalled: false,
         popupCalled: true,
@@ -1104,7 +1104,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.8'
+          'stack.java.version': '1.8'
         },
         successCallbackCalled: true,
         popupCalled: false,
@@ -1118,7 +1118,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.5'
+          'stack.java.version': '1.5'
         },
         successCallbackCalled: false,
         popupCalled: true,
@@ -1132,7 +1132,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.5'
+          'stack.java.version': '1.5'
         },
         successCallbackCalled: true,
         popupCalled: false,
@@ -1146,7 +1146,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.5'
+          'stack.java.version': '1.5'
         },
         successCallbackCalled: true,
         popupCalled: false,
@@ -1160,7 +1160,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.6'
+          'stack.java.version': '1.6'
         },
         successCallbackCalled: false,
         popupCalled: true,
@@ -1174,7 +1174,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.5'
+          'stack.java.version': '1.5'
         },
         successCallbackCalled: true,
         popupCalled: false,
@@ -1188,7 +1188,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.5'
+          'stack.java.version': '1.5'
         },
         successCallbackCalled: false,
         popupCalled: true,
@@ -1202,7 +1202,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: false,
         ambariProperties: {
-          'java.version': '1.8'
+          'stack.java.version': '1.8'
         },
         successCallbackCalled: true,
         popupCalled: false,
@@ -1214,7 +1214,7 @@ describe('App.InstallerController', function () {
       {
         isCustomJDK: true,
         ambariProperties: {
-          'java.version': '1.8'
+          'stack.java.version': '1.8'
         },
         successCallbackCalled: true,
         popupCalled: false,
@@ -1224,6 +1224,34 @@ describe('App.InstallerController', function () {
           isSelected: true
         })],
         m: 'JDK 1.8, custom jdk location used, procceed installation without warning'
+      },
+      {
+        isCustomJDK: false,
+        ambariProperties: {
+          'java.version': '17'
+        },
+        successCallbackCalled: true,
+        popupCalled: false,
+        stacks: [Em.Object.create({
+          minJdkVersion: '11',
+          maxJdkVersion: '11',
+          isSelected: true
+        })],
+        m: 'server JDK is ignored when the Stack JDK is not configured'
+      },
+      {
+        isCustomJDK: false,
+        ambariProperties: {
+          'stack.java.version': '8'
+        },
+        successCallbackCalled: true,
+        popupCalled: false,
+        stacks: [Em.Object.create({
+          minJdkVersion: '1.8',
+          maxJdkVersion: '1.8',
+          isSelected: true
+        })],
+        m: 'feature version 8 is compatible with legacy version 1.8'
       }
     ];
 

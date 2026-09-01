@@ -228,7 +228,7 @@ describe("Background Operations permissions and abort recovery", () => {
     renderOperations();
 
     await waitFor(() => expect(mocks.fetchBackgroundOperationsSnapshot).toHaveBeenCalledWith(20));
-    fireEvent.click(screen.getByText("Show More..."));
+    fireEvent.click(await screen.findByText("Show More..."));
     await waitFor(() => expect(mocks.fetchBackgroundOperationsSnapshot).toHaveBeenCalledWith(30));
   });
 

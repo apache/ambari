@@ -2528,17 +2528,18 @@ describe('App.WizardStep3Controller', function () {
         data = {
           RootServiceComponents: {
             properties: {
-              'jdk.name': expected.name,
-              'java.home': expected.home,
+              'ambari.java.home': expected.home,
+              'ambari.java.version': '17',
               'jdk_location': expected.location
             }
           }
         };
 
       c.getJDKNameSuccessCallback(data);
-      expect(c.get('needJDKCheckOnHosts')).to.equal(false);
+      expect(c.get('needJDKCheckOnHosts')).to.equal(true);
       expect(c.get('jdkLocation')).to.equal(expected.location);
       expect(c.get('javaHome')).to.equal(expected.home);
+      expect(c.get('javaVersion')).to.equal('17');
     });
 
   });
@@ -2552,15 +2553,19 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({name: 'n2', bootStatus: 'REGISTERED'})
         ],
         javaHome = '/java',
+        javaVersion = '17',
         jdkLocation = '/jdk';
       c.reopen({
         bootHosts: bootHosts,
         javaHome: javaHome,
+        javaVersion: javaVersion,
         jdkLocation: jdkLocation
       });
       c.doCheckJDK();
       var args = testHelpers.findAjaxRequest('name', 'wizard.step3.jdk_check');
       expect(args).exists;
+      expect(args[0].data.java_home).to.equal(javaHome);
+      expect(args[0].data.java_version).to.equal(javaVersion);
     });
 
   });

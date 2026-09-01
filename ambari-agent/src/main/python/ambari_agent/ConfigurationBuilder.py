@@ -18,7 +18,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import logging
+import os
+
+import ambari_simplejson as json
+
 from ambari_agent import hostname
+
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigurationBuilder:
@@ -79,9 +87,12 @@ class ConfigurationBuilder:
     else:
       command_dict = {"agentLevelParams": {}}
 
-    command_dict["ambariLevelParams"] = (
+    command_dict["ambariLevelParams"] = dict(
       self.metadata_cache.get_cluster_indepedent_data().clusterLevelParams
     )
+
+    if cluster_id:
+      self._apply_java_home_override(command_dict, service_name, component_name)
 
     command_dict["agentLevelParams"].update(
       {
@@ -96,6 +107,84 @@ class ConfigurationBuilder:
       }
     }
     return command_dict
+
+  @staticmethod
+  def _apply_java_home_override(command_dict, service_name, component_name):
+    raw_overrides = (
+      command_dict.get("configurations", {})
+      .get("cluster-env", {})
+      .get("java_home_overrides")
+    )
+    if not raw_overrides:
+      return
+
+    try:
+      overrides = json.loads(raw_overrides)
+    except (TypeError, ValueError) as exception:
+      logger.warning("Ignoring invalid cluster-env/java_home_overrides: %s", exception)
+      return
+
+    if not isinstance(overrides, dict):
+      logger.warning("Ignoring cluster-env/java_home_overrides because it is not a JSON object")
+      return
+
+    normalized_overrides = {
+      str(key).upper(): value for key, value in overrides.items()
+    }
+    override_key = next(
+      (
+        str(name).upper()
+        for name in (component_name, service_name)
+        if name and str(name).upper() in normalized_overrides
+      ),
+      None,
+    )
+    if override_key is None:
+      return
+
+    override = normalized_overrides[override_key]
+    if not isinstance(override, dict):
+      logger.warning("Ignoring Java home override for %s because it is not an object", override_key)
+      return
+
+    java_home = override.get("home")
+    java_version = override.get("version")
+    if isinstance(java_version, bool) or not isinstance(java_version, (int, str)):
+      java_version = None
+    else:
+      try:
+        java_version = int(java_version)
+      except ValueError:
+        java_version = None
+
+    if not isinstance(java_home, str) or not java_home.strip():
+      logger.warning(
+        "Ignoring Java home override for %s because both home and version are required",
+        override_key,
+      )
+      return
+
+    java_home = java_home.strip()
+    if java_version is None or java_version < 1:
+      logger.warning(
+        "Ignoring Java home override for %s because both home and version are required",
+        override_key,
+      )
+      return
+
+    if not os.path.isfile(os.path.join(java_home, "bin", "java")):
+      logger.warning(
+        "Ignoring Java home override for %s because %s/bin/java is not installed",
+        override_key,
+        java_home,
+      )
+      return
+
+    ambari_level_params = command_dict["ambariLevelParams"]
+    ambari_level_params["java_home"] = java_home
+    ambari_level_params["java_version"] = str(java_version)
+    ambari_level_params["jdk_name"] = None
+    ambari_level_params["jce_name"] = None
 
   @property
   def public_fqdn(self):

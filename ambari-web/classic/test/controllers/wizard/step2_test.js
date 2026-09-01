@@ -599,16 +599,16 @@ describe('App.WizardStep2Controller', function () {
   });
 
   describe('#onGetAmbariJavaHomeSuccess', function() {
-    it('should set java.home value receiced from server', function() {
+    it('should set ambari.java.home value received from server', function() {
       var controller = App.WizardStep2Controller.create({content: {installOptions: {}}});
-      var test = {RootServiceComponents: {properties: {'java.home': '/root'}}};
+      var test = {RootServiceComponents: {properties: {'ambari.java.home': '/root'}}};
       controller.onGetAmbariJavaHomeSuccess(test);
       expect(controller.content.installOptions.javaHome).to.equal('/root');
     });
   });
 
   describe('#onGetAmbariJavaHomeError', function() {
-    it('should set default java.home value', function() {
+    it('should set default Ambari Java home value', function() {
       var controller = App.WizardStep2Controller.create({content: {installOptions: {}}});
       controller.onGetAmbariJavaHomeError();
       expect(controller.content.installOptions.javaHome).to.equal(App.get('defaultJavaHome'));
