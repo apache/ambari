@@ -48,8 +48,7 @@ class TestAmbariAlertsCli(unittest.TestCase):
     )
     stdout = io.StringIO()
 
-    with (
-      patch.object(
+    with patch.object(
         sys,
         "argv",
         [
@@ -62,11 +61,10 @@ class TestAmbariAlertsCli(unittest.TestCase):
           password,
           "NAMENODE_PROCESS",
         ],
-      ),
-      patch("urllib.request.urlopen", return_value=response) as urlopen,
-      redirect_stdout(stdout),
-      self.assertRaises(SystemExit) as raised,
-    ):
+      ), \
+      patch("urllib.request.urlopen", return_value=response) as urlopen, \
+      redirect_stdout(stdout), \
+      self.assertRaises(SystemExit) as raised:
       runpy.run_path(str(AMBARI_ALERTS), run_name="__main__")
 
     self.assertEqual(0, raised.exception.code)
@@ -85,8 +83,7 @@ class TestAmbariAlertsCli(unittest.TestCase):
     password = base64.b64encode(b"secret").decode("ascii")
     stdout = io.StringIO()
 
-    with (
-      patch.object(
+    with patch.object(
         sys,
         "argv",
         [
@@ -99,14 +96,13 @@ class TestAmbariAlertsCli(unittest.TestCase):
           password,
           "NAMENODE_PROCESS",
         ],
-      ),
+      ), \
       patch(
         "urllib.request.urlopen",
         side_effect=urllib.error.URLError("network unavailable"),
-      ),
-      redirect_stdout(stdout),
-      self.assertRaises(SystemExit) as raised,
-    ):
+      ), \
+      redirect_stdout(stdout), \
+      self.assertRaises(SystemExit) as raised:
       runpy.run_path(str(AMBARI_ALERTS), run_name="__main__")
 
     self.assertEqual(3, raised.exception.code)
@@ -146,10 +142,8 @@ class TestGenerateNagiosObjectsCli(unittest.TestCase):
         str(commands_cfg),
       ]
 
-      with (
-        patch("builtins.input", side_effect=answers),
-        patch("urllib.request.urlopen", return_value=response) as urlopen,
-      ):
+      with patch("builtins.input", side_effect=answers), \
+        patch("urllib.request.urlopen", return_value=response) as urlopen:
         runpy.run_path(str(GENERATE_OBJECTS), run_name="__main__")
 
       request = urlopen.call_args.args[0]
@@ -175,15 +169,13 @@ class TestGenerateNagiosObjectsCli(unittest.TestCase):
       "secret",
     ]
 
-    with (
-      patch("builtins.input", side_effect=answers),
+    with patch("builtins.input", side_effect=answers), \
       patch(
         "urllib.request.urlopen",
         side_effect=urllib.error.URLError("network unavailable"),
-      ),
-      redirect_stdout(stdout),
-      self.assertRaises(SystemExit) as raised,
-    ):
+      ), \
+      redirect_stdout(stdout), \
+      self.assertRaises(SystemExit) as raised:
       runpy.run_path(str(GENERATE_OBJECTS), run_name="__main__")
 
     self.assertEqual(1, raised.exception.code)

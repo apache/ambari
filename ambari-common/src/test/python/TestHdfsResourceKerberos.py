@@ -62,14 +62,12 @@ class TestHdfsResourceKerberos(unittest.TestCase):
     )
     main_resource.kerberos_cache.return_value = cache_context
 
-    with (
-      patch.object(
+    with patch.object(
         hdfs_resource.Environment, "get_instance", return_value=environment
-      ),
-      patch.object(hdfs_resource.time, "time", return_value=123.0),
-      patch.object(hdfs_resource, "File"),
-      patch.object(hdfs_resource, "Execute") as execute,
-    ):
+      ), \
+      patch.object(hdfs_resource.time, "time", return_value=123.0), \
+      patch.object(hdfs_resource, "File"), \
+      patch.object(hdfs_resource, "Execute") as execute:
       hdfs_resource.HdfsResourceJar().action_execute(main_resource)
 
     main_resource.kinit.assert_called_once_with(cache)

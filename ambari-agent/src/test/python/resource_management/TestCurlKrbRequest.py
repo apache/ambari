@@ -37,14 +37,12 @@ class TestCurlKrbRequest(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"}
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with (
-      patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context),
-      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"),
+    with patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context), \
+      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"), \
       patch.object(
         curl_krb, "get_user_call_output", return_value=(0, "200", "")
-      ) as call_output,
-      patch.object(curl_krb.time, "time", side_effect=(1000, 1001)),
-    ):
+      ) as call_output, \
+      patch.object(curl_krb.time, "time", side_effect=(1000, 1001)):
       result = curl_krb.curl_krb_request(
         "/tmp",
         "/etc/security/service keytab",
@@ -109,11 +107,9 @@ class TestCurlKrbRequest(unittest.TestCase):
     cache.kinit.side_effect = Fail("kinit failed")
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with (
-      patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context),
-      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"),
-      patch.object(curl_krb, "get_user_call_output") as call_output,
-    ):
+    with patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context), \
+      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"), \
+      patch.object(curl_krb, "get_user_call_output") as call_output:
       with self.assertRaisesRegex(Fail, "kinit failed"):
         curl_krb.curl_krb_request(
           "/tmp",
@@ -135,13 +131,11 @@ class TestCurlKrbRequest(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"}
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with (
-      patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context),
-      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"),
+    with patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context), \
+      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"), \
       patch.object(
         curl_krb, "get_user_call_output", return_value=(0, "{}", "")
-      ) as call_output,
-    ):
+      ) as call_output:
       result = curl_krb.curl_krb_request(
         "/tmp",
         "/etc/security/service.keytab",
@@ -172,14 +166,12 @@ class TestCurlKrbRequest(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"}
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with (
-      patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context),
-      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"),
+    with patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context), \
+      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"), \
       patch.object(
         curl_krb, "get_user_call_output", return_value=(0, "200", "")
-      ),
-      patch.object(curl_krb.time, "time", side_effect=(1000, 1001)),
-    ):
+      ), \
+      patch.object(curl_krb.time, "time", side_effect=(1000, 1001)):
       result = curl_krb.curl_krb_request(
         "/tmp",
         "/etc/security/service.keytab",

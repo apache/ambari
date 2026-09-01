@@ -117,13 +117,11 @@ class TestSafeProcess(unittest.TestCase):
     invalid_values = (b"0", b"-1", b"1 2", b"1; touch /tmp/injected", b"\xff")
     for value in invalid_values:
       with self.subTest(value=value):
-        with (
-          patch.object(safe_process.sudo, "path_exists", return_value=True),
-          patch.object(safe_process.sudo, "path_islink", return_value=False),
-          patch.object(safe_process.sudo, "path_isfile", return_value=True),
-          patch.object(safe_process.sudo, "read_file", return_value=value),
-          patch.object(safe_process.sudo, "kill") as kill,
-        ):
+        with patch.object(safe_process.sudo, "path_exists", return_value=True), \
+          patch.object(safe_process.sudo, "path_islink", return_value=False), \
+          patch.object(safe_process.sudo, "path_isfile", return_value=True), \
+          patch.object(safe_process.sudo, "read_file", return_value=value), \
+          patch.object(safe_process.sudo, "kill") as kill:
           with self.assertRaises(Fail):
             safe_process.read_running_process(
               self.PID_FILE, self.USER, "org.example.Service"
@@ -132,17 +130,15 @@ class TestSafeProcess(unittest.TestCase):
 
   def test_rejects_wrong_process_owner(self):
     patches = self._process_patches()
-    with (
-      patches[0],
-      patches[1],
-      patches[2],
-      patches[3],
+    with patches[0], \
+      patches[1], \
+      patches[2], \
+      patches[3], \
       patch.object(
         safe_process.sudo, "stat", return_value=SimpleNamespace(st_uid=1002)
-      ),
-      patches[5],
-      patches[6] as kill,
-    ):
+      ), \
+      patches[5], \
+      patches[6] as kill:
       with self.assertRaisesRegex(Fail, "owner does not match"):
         safe_process.read_running_process(
           self.PID_FILE, self.USER, "org.example.Service"
@@ -159,15 +155,13 @@ class TestSafeProcess(unittest.TestCase):
       getpwnam,
       kill_patcher,
     ) = self._process_patches()
-    with (
-      path_islink,
-      path_exists,
-      path_isfile,
-      read_file,
-      stat,
-      getpwnam,
-      kill_patcher as kill,
-    ):
+    with path_islink, \
+      path_exists, \
+      path_isfile, \
+      read_file, \
+      stat, \
+      getpwnam, \
+      kill_patcher as kill:
       with self.assertRaisesRegex(Fail, "command line does not match"):
         safe_process.read_running_process(
           self.PID_FILE, self.USER, "org.example.OtherService"
@@ -195,13 +189,11 @@ class TestSafeProcess(unittest.TestCase):
     identity = safe_process.ProcessIdentity(
       self.PID, 1001, 456, ("/usr/bin/java", "org.example.Service")
     )
-    with (
-      patch.object(safe_process, "inspect_process", return_value=identity),
+    with patch.object(safe_process, "inspect_process", return_value=identity), \
       patch.object(
         safe_process.sudo, "signal_process", return_value="signaled-pidfd"
-      ) as send_signal,
-      patch.object(safe_process, "wait_for_process_stopped", return_value=True),
-    ):
+      ) as send_signal, \
+      patch.object(safe_process, "wait_for_process_stopped", return_value=True):
       safe_process.terminate_process(identity, self.USER, "org.example.Service")
 
     send_signal.assert_called_once_with(
@@ -216,17 +208,15 @@ class TestSafeProcess(unittest.TestCase):
     identity = safe_process.ProcessIdentity(
       self.PID, 1001, 456, ("/usr/bin/java", "org.example.Service")
     )
-    with (
-      patch.object(safe_process, "inspect_process", return_value=identity),
+    with patch.object(safe_process, "inspect_process", return_value=identity), \
       patch.object(
         safe_process.sudo,
         "signal_process",
         side_effect=("signaled-pidfd", "signaled-pidfd"),
-      ) as send_signal,
+      ) as send_signal, \
       patch.object(
         safe_process, "wait_for_process_stopped", side_effect=(False, True)
-      ),
-    ):
+      ):
       safe_process.terminate_process(identity, self.USER, "org.example.Service")
 
     self.assertEqual(
@@ -253,13 +243,11 @@ class TestSafeProcess(unittest.TestCase):
     identity = safe_process.ProcessIdentity(
       self.PID, 1001, 456, ("/usr/bin/java", "org.example.Service")
     )
-    with (
-      patch.object(safe_process, "inspect_process", return_value=identity),
+    with patch.object(safe_process, "inspect_process", return_value=identity), \
       patch.object(
         safe_process.sudo, "signal_process", return_value="signaled-pidfd"
-      ),
-      patch.object(safe_process, "wait_for_process_stopped", return_value=False),
-    ):
+      ), \
+      patch.object(safe_process, "wait_for_process_stopped", return_value=False):
       with self.assertRaisesRegex(Fail, "did not stop"):
         safe_process.terminate_process(identity, self.USER, "org.example.Service")
 
@@ -270,10 +258,8 @@ class TestSafeProcess(unittest.TestCase):
     replacement = safe_process.ProcessIdentity(
       self.PID, 1001, 789, ("/usr/bin/java", "org.example.Service")
     )
-    with (
-      patch.object(safe_process, "inspect_process", return_value=replacement),
-      patch.object(safe_process.sudo, "signal_process") as send_signal,
-    ):
+    with patch.object(safe_process, "inspect_process", return_value=replacement), \
+      patch.object(safe_process.sudo, "signal_process") as send_signal:
       with self.assertRaisesRegex(Fail, "PID was reused"):
         safe_process.terminate_process(
           identity, self.USER, "org.example.Service"
@@ -305,18 +291,16 @@ class TestSafeProcess(unittest.TestCase):
 
   def test_privileged_signal_helper_uses_pidfd_when_available(self):
     identity = (1001, 456, ("/usr/bin/java", "ServiceMain"), "S")
-    with (
-      patch.object(
+    with patch.object(
         safe_process_signal, "_validate_identity", return_value=identity
-      ),
-      patch.object(safe_process_signal, "_pidfd_supported", return_value=True),
-      patch.object(safe_process_signal.os, "pidfd_open", return_value=11),
-      patch.object(safe_process_signal.os, "close") as close,
+      ), \
+      patch.object(safe_process_signal, "_pidfd_supported", return_value=True), \
+      patch.object(safe_process_signal.os, "pidfd_open", return_value=11), \
+      patch.object(safe_process_signal.os, "close") as close, \
       patch.object(
         safe_process_signal.signal, "pidfd_send_signal"
-      ) as send_signal,
-      patch.object(safe_process_signal.os, "kill") as legacy_kill,
-    ):
+      ) as send_signal, \
+      patch.object(safe_process_signal.os, "kill") as legacy_kill:
       result = safe_process_signal._signal_process(
         self.PID, 1001, 456, ("ServiceMain",), signal.SIGTERM
       )
@@ -328,13 +312,11 @@ class TestSafeProcess(unittest.TestCase):
 
   def test_privileged_signal_helper_keeps_legacy_kernel_compatibility(self):
     identity = (1001, 456, ("/usr/bin/java", "ServiceMain"), "S")
-    with (
-      patch.object(
+    with patch.object(
         safe_process_signal, "_validate_identity", return_value=identity
-      ) as validate,
-      patch.object(safe_process_signal, "_pidfd_supported", return_value=False),
-      patch.object(safe_process_signal.os, "kill") as legacy_kill,
-    ):
+      ) as validate, \
+      patch.object(safe_process_signal, "_pidfd_supported", return_value=False), \
+      patch.object(safe_process_signal.os, "kill") as legacy_kill:
       result = safe_process_signal._signal_process(
         self.PID, 1001, 456, ("ServiceMain",), signal.SIGTERM
       )
@@ -348,15 +330,13 @@ class TestSafeProcess(unittest.TestCase):
       read_data=process_stat(self.PID, 456, state="Z").encode("ascii")
     ).return_value
     cmdline_handle = mock_open(read_data=b"").return_value
-    with (
-      patch.object(
+    with patch.object(
         safe_process_signal.os,
         "stat",
         return_value=SimpleNamespace(st_uid=1001),
-      ),
-      patch("builtins.open", side_effect=(stat_handle, cmdline_handle)),
-      patch.object(safe_process_signal.os, "kill") as legacy_kill,
-    ):
+      ), \
+      patch("builtins.open", side_effect=(stat_handle, cmdline_handle)), \
+      patch.object(safe_process_signal.os, "kill") as legacy_kill:
       result = safe_process_signal._signal_process(
         self.PID, 1001, 456, ("ServiceMain",), signal.SIGTERM
       )
@@ -365,14 +345,12 @@ class TestSafeProcess(unittest.TestCase):
     legacy_kill.assert_not_called()
 
   def test_privileged_signal_helper_rejects_identity_change(self):
-    with (
-      patch.object(
+    with patch.object(
         safe_process_signal,
         "_validate_identity",
         side_effect=RuntimeError("PID was reused"),
-      ),
-      patch.object(safe_process_signal.os, "kill") as legacy_kill,
-    ):
+      ), \
+      patch.object(safe_process_signal.os, "kill") as legacy_kill:
       with self.assertRaisesRegex(RuntimeError, "PID was reused"):
         safe_process_signal._signal_process(
           self.PID, 1001, 456, ("ServiceMain",), signal.SIGTERM
@@ -386,10 +364,8 @@ class TestSafeProcess(unittest.TestCase):
     replacement = safe_process.ProcessIdentity(
       self.PID, 1001, 789, ("/usr/bin/java", "org.example.Service")
     )
-    with (
-      patch.object(safe_process, "inspect_process", return_value=replacement),
-      patch.object(safe_process, "is_process_running") as is_running,
-    ):
+    with patch.object(safe_process, "inspect_process", return_value=replacement), \
+      patch.object(safe_process, "is_process_running") as is_running:
       with self.assertRaisesRegex(Fail, "PID was reused"):
         safe_process.wait_for_process_stopped(
           identity, self.USER, "org.example.Service", 2, 0
@@ -401,10 +377,8 @@ class TestSafeProcess(unittest.TestCase):
       self.PID, 1001, 456, ("/usr/bin/java", "org.example.Service")
     )
     zombie = safe_process.ProcessIdentity(self.PID, 1001, 456, (), "Z")
-    with (
-      patch.object(safe_process, "_read_process_identity", return_value=zombie),
-      patch.object(safe_process.sudo, "kill") as kill,
-    ):
+    with patch.object(safe_process, "_read_process_identity", return_value=zombie), \
+      patch.object(safe_process.sudo, "kill") as kill:
       self.assertTrue(
         safe_process.wait_for_process_stopped(
           identity, self.USER, "org.example.Service", 2, 0
@@ -414,10 +388,8 @@ class TestSafeProcess(unittest.TestCase):
 
   def test_legacy_status_treats_zombie_as_not_running(self):
     zombie = safe_process.ProcessIdentity(self.PID, 1001, 456, (), "Z")
-    with (
-      patch.object(safe_process, "read_pid", return_value=self.PID),
-      patch.object(safe_process, "_read_process_identity", return_value=zombie),
-    ):
+    with patch.object(safe_process, "read_pid", return_value=self.PID), \
+      patch.object(safe_process, "_read_process_identity", return_value=zombie):
       with self.assertRaises(ComponentIsNotRunning):
         check_process_status(self.PID_FILE)
 
@@ -425,11 +397,9 @@ class TestSafeProcess(unittest.TestCase):
     identity = safe_process.ProcessIdentity(
       self.PID, 1001, 456, ("/usr/bin/java", "org.example.Service")
     )
-    with (
-      patch.object(safe_process, "inspect_process", return_value=identity),
-      patch.object(safe_process.sudo, "kill", side_effect=OSError("kill failed")),
-      patch.object(safe_process.sudo, "path_exists", return_value=False),
-    ):
+    with patch.object(safe_process, "inspect_process", return_value=identity), \
+      patch.object(safe_process.sudo, "kill", side_effect=OSError("kill failed")), \
+      patch.object(safe_process.sudo, "path_exists", return_value=False):
       self.assertFalse(
         safe_process.is_process_running(
           self.PID, self.USER, "org.example.Service", identity=identity
@@ -467,12 +437,10 @@ class TestSafeProcess(unittest.TestCase):
     read_file.assert_not_called()
 
   def test_rejects_directory_pid_file(self):
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=False),
-      patch.object(safe_process.sudo, "path_exists", return_value=True),
-      patch.object(safe_process.sudo, "path_isfile", return_value=False),
-      patch.object(safe_process.sudo, "read_file") as read_file,
-    ):
+    with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+      patch.object(safe_process.sudo, "path_exists", return_value=True), \
+      patch.object(safe_process.sudo, "path_isfile", return_value=False), \
+      patch.object(safe_process.sudo, "read_file") as read_file:
       with self.assertRaisesRegex(Fail, "not a regular file"):
         safe_process.read_pid(self.PID_FILE)
     read_file.assert_not_called()
@@ -480,24 +448,20 @@ class TestSafeProcess(unittest.TestCase):
   def test_rejects_empty_and_non_text_pid_file(self):
     for value in (b"", object()):
       with self.subTest(value=value):
-        with (
-          patch.object(safe_process.sudo, "path_islink", return_value=False),
-          patch.object(safe_process.sudo, "path_exists", return_value=True),
-          patch.object(safe_process.sudo, "path_isfile", return_value=True),
-          patch.object(safe_process.sudo, "read_file", return_value=value),
-        ):
+        with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+          patch.object(safe_process.sudo, "path_exists", return_value=True), \
+          patch.object(safe_process.sudo, "path_isfile", return_value=True), \
+          patch.object(safe_process.sudo, "read_file", return_value=value):
           with self.assertRaises(Fail):
             safe_process.read_pid(self.PID_FILE)
 
   def test_pid_file_read_failure_is_not_treated_as_missing(self):
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=False),
-      patch.object(safe_process.sudo, "path_exists", return_value=True),
-      patch.object(safe_process.sudo, "path_isfile", return_value=True),
+    with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+      patch.object(safe_process.sudo, "path_exists", return_value=True), \
+      patch.object(safe_process.sudo, "path_isfile", return_value=True), \
       patch.object(
         safe_process.sudo, "read_file", side_effect=OSError("permission denied")
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "Could not read PID file"):
         safe_process.read_pid(self.PID_FILE)
 
@@ -520,11 +484,9 @@ class TestSafeProcess(unittest.TestCase):
             )
 
   def test_pid_file_replacement_before_unlink_blocks_cleanup(self):
-    with (
-      patch.object(safe_process, "read_pid", side_effect=(self.PID, 999)),
-      patch.object(safe_process, "is_process_running", return_value=False),
-      patch.object(safe_process.sudo, "unlink") as unlink,
-    ):
+    with patch.object(safe_process, "read_pid", side_effect=(self.PID, 999)), \
+      patch.object(safe_process, "is_process_running", return_value=False), \
+      patch.object(safe_process.sudo, "unlink") as unlink:
       with self.assertRaisesRegex(Fail, "before cleanup"):
         safe_process.remove_pid_file_if_stopped(
           self.PID_FILE, self.PID, self.USER, "org.example.Service"
@@ -538,34 +500,30 @@ class TestSafeProcess(unittest.TestCase):
     other_user = safe_process.ProcessIdentity(
       124, 1002, 457, ("/usr/bin/java", "-Dproc_service", "ServiceMain")
     )
-    with (
-      patch.object(safe_process.sudo, "listdir", return_value=("self", "123", "124")),
+    with patch.object(safe_process.sudo, "listdir", return_value=("self", "123", "124")), \
       patch.object(
         safe_process,
         "_read_process_identity",
         side_effect=lambda pid: {123: matching, 124: other_user}[pid],
-      ),
+      ), \
       patch.object(
         safe_process.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
-      patch.object(safe_process, "is_process_running", return_value=True),
-    ):
+      ), \
+      patch.object(safe_process, "is_process_running", return_value=True):
       discovered = safe_process.discover_running_process(
         self.USER, ("-Dproc_service", "ServiceMain")
       )
     self.assertIs(matching, discovered)
 
   def test_process_discovery_returns_none_without_match(self):
-    with (
-      patch.object(safe_process.sudo, "listdir", return_value=("self",)),
+    with patch.object(safe_process.sudo, "listdir", return_value=("self",)), \
       patch.object(
         safe_process.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
-    ):
+      ):
       self.assertIsNone(
         safe_process.discover_running_process(
           self.USER, ("-Dproc_service", "ServiceMain")
@@ -579,20 +537,18 @@ class TestSafeProcess(unittest.TestCase):
       )
       for pid in (123, 124)
     }
-    with (
-      patch.object(safe_process.sudo, "listdir", return_value=("123", "124")),
+    with patch.object(safe_process.sudo, "listdir", return_value=("123", "124")), \
       patch.object(
         safe_process,
         "_read_process_identity",
         side_effect=lambda pid: identities[pid],
-      ),
+      ), \
       patch.object(
         safe_process.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
-      patch.object(safe_process, "is_process_running", return_value=True),
-    ):
+      ), \
+      patch.object(safe_process, "is_process_running", return_value=True):
       with self.assertRaisesRegex(Fail, "ambiguous process discovery"):
         safe_process.discover_running_process(
           self.USER, ("-Dproc_service", "ServiceMain")
@@ -602,16 +558,14 @@ class TestSafeProcess(unittest.TestCase):
     identity = safe_process.ProcessIdentity(
       123, 1001, 456, ("/usr/bin/java", "-Dproc_service", "ServiceMain")
     )
-    with (
-      patch.object(safe_process.sudo, "listdir", return_value=("123",)),
-      patch.object(safe_process, "_read_process_identity", return_value=identity),
+    with patch.object(safe_process.sudo, "listdir", return_value=("123",)), \
+      patch.object(safe_process, "_read_process_identity", return_value=identity), \
       patch.object(
         safe_process.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
-      patch.object(safe_process, "is_process_running", return_value=False),
-    ):
+      ), \
+      patch.object(safe_process, "is_process_running", return_value=False):
       self.assertIsNone(
         safe_process.discover_running_process(
           self.USER, ("-Dproc_service", "ServiceMain")
@@ -622,14 +576,12 @@ class TestSafeProcess(unittest.TestCase):
     identity = safe_process.ProcessIdentity(
       self.PID, 1001, 456, ("/usr/bin/java", "ServiceMain")
     )
-    with (
-      patch.object(
+    with patch.object(
         safe_process,
         "discover_running_process",
         side_effect=(None, None, identity),
-      ) as discover,
-      patch.object(safe_process.time, "sleep") as sleep,
-    ):
+      ) as discover, \
+      patch.object(safe_process.time, "sleep") as sleep:
       result = safe_process.wait_for_discovered_process(
         self.USER, "ServiceMain", attempts=3, sleep_seconds=2
       )
@@ -639,14 +591,12 @@ class TestSafeProcess(unittest.TestCase):
     self.assertEqual([call(2), call(2)], sleep.call_args_list)
 
   def test_wait_for_discovered_process_propagates_validation_failure(self):
-    with (
-      patch.object(
+    with patch.object(
         safe_process,
         "discover_running_process",
         side_effect=Fail("ambiguous process discovery"),
-      ),
-      patch.object(safe_process.time, "sleep") as sleep,
-    ):
+      ), \
+      patch.object(safe_process.time, "sleep") as sleep:
       with self.assertRaisesRegex(Fail, "ambiguous process discovery"):
         safe_process.wait_for_discovered_process(
           self.USER, "ServiceMain", attempts=3
@@ -654,10 +604,8 @@ class TestSafeProcess(unittest.TestCase):
     sleep.assert_not_called()
 
   def test_wait_for_discovered_process_fails_after_timeout(self):
-    with (
-      patch.object(safe_process, "discover_running_process", return_value=None),
-      patch.object(safe_process.time, "sleep") as sleep,
-    ):
+    with patch.object(safe_process, "discover_running_process", return_value=None), \
+      patch.object(safe_process.time, "sleep") as sleep:
       with self.assertRaisesRegex(Fail, "was not discovered"):
         safe_process.wait_for_discovered_process(
           self.USER, "ServiceMain", attempts=2, sleep_seconds=3
@@ -672,18 +620,16 @@ class TestSafeProcess(unittest.TestCase):
     def path_exists(path):
       return path != self.PID_FILE
 
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=False),
-      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists),
-      patch.object(safe_process, "is_process_running", return_value=True),
-      patch.object(safe_process, "File") as pid_file,
-      patch.object(safe_process.sudo, "lstat", return_value=self.FILE_STAT),
-      patch.object(safe_process.sudo, "link_exclusive") as link_exclusive,
-      patch.object(safe_process.sudo, "unlink") as unlink,
+    with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists), \
+      patch.object(safe_process, "is_process_running", return_value=True), \
+      patch.object(safe_process, "File") as pid_file, \
+      patch.object(safe_process.sudo, "lstat", return_value=self.FILE_STAT), \
+      patch.object(safe_process.sudo, "link_exclusive") as link_exclusive, \
+      patch.object(safe_process.sudo, "unlink") as unlink, \
       patch.object(
         safe_process, "read_running_process", return_value=identity
-      ),
-    ):
+      ):
       result = safe_process.create_pid_file_for_identity(
         self.PID_FILE,
         identity,
@@ -728,31 +674,29 @@ class TestSafeProcess(unittest.TestCase):
       st_uid=1001,
       st_gid=1002,
     )
-    with (
-      patch.object(safe_process, "is_process_running", return_value=True),
+    with patch.object(safe_process, "is_process_running", return_value=True), \
       patch.object(
         safe_process.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
+      ), \
       patch.object(
         safe_process.grp,
         "getgrnam",
         return_value=SimpleNamespace(gr_gid=1002),
-      ),
-      patch.object(safe_process.os, "open", return_value=7) as open_file,
+      ), \
+      patch.object(safe_process.os, "open", return_value=7) as open_file, \
       patch.object(
         safe_process.os, "fstat", side_effect=(initial_stat, secured_stat)
-      ),
-      patch.object(safe_process.os, "read", return_value=b"123\n"),
-      patch.object(safe_process.os, "fchown") as fchown,
-      patch.object(safe_process.os, "fchmod") as fchmod,
-      patch.object(safe_process.os, "close") as close,
-      patch.object(safe_process.sudo, "lstat", return_value=secured_stat),
+      ), \
+      patch.object(safe_process.os, "read", return_value=b"123\n"), \
+      patch.object(safe_process.os, "fchown") as fchown, \
+      patch.object(safe_process.os, "fchmod") as fchmod, \
+      patch.object(safe_process.os, "close") as close, \
+      patch.object(safe_process.sudo, "lstat", return_value=secured_stat), \
       patch.object(
         safe_process, "read_running_process", return_value=identity
-      ),
-    ):
+      ):
       result = safe_process.secure_pid_file_for_identity(
         self.PID_FILE,
         identity,
@@ -777,24 +721,22 @@ class TestSafeProcess(unittest.TestCase):
       st_nlink=2,
       st_uid=1001,
     )
-    with (
-      patch.object(safe_process, "is_process_running", return_value=True),
+    with patch.object(safe_process, "is_process_running", return_value=True), \
       patch.object(
         safe_process.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
+      ), \
       patch.object(
         safe_process.grp,
         "getgrnam",
         return_value=SimpleNamespace(gr_gid=1002),
-      ),
-      patch.object(safe_process.os, "open", return_value=7),
-      patch.object(safe_process.os, "fstat", return_value=linked_stat),
-      patch.object(safe_process.os, "fchown") as fchown,
-      patch.object(safe_process.os, "fchmod") as fchmod,
-      patch.object(safe_process.os, "close"),
-    ):
+      ), \
+      patch.object(safe_process.os, "open", return_value=7), \
+      patch.object(safe_process.os, "fstat", return_value=linked_stat), \
+      patch.object(safe_process.os, "fchown") as fchown, \
+      patch.object(safe_process.os, "fchmod") as fchmod, \
+      patch.object(safe_process.os, "close"):
       with self.assertRaisesRegex(Fail, "singly linked"):
         safe_process.secure_pid_file_for_identity(
           self.PID_FILE,
@@ -809,11 +751,9 @@ class TestSafeProcess(unittest.TestCase):
 
   def test_create_pid_file_rejects_existing_or_broken_symlink(self):
     identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=True),
-      patch.object(safe_process.sudo, "path_exists", return_value=False),
-      patch.object(safe_process, "File") as pid_file,
-    ):
+    with patch.object(safe_process.sudo, "path_islink", return_value=True), \
+      patch.object(safe_process.sudo, "path_exists", return_value=False), \
+      patch.object(safe_process, "File") as pid_file:
       with self.assertRaisesRegex(Fail, "existing PID file"):
         safe_process.create_pid_file_for_identity(
           self.PID_FILE,
@@ -832,15 +772,13 @@ class TestSafeProcess(unittest.TestCase):
     def path_exists(path):
       return True if path != self.PID_FILE else next(destination_checks)
 
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=False),
-      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists),
-      patch.object(safe_process, "is_process_running", return_value=True),
-      patch.object(safe_process, "File"),
-      patch.object(safe_process.sudo, "lstat", return_value=self.FILE_STAT),
-      patch.object(safe_process.sudo, "link_exclusive") as link_exclusive,
-      patch.object(safe_process.sudo, "unlink") as unlink,
-    ):
+    with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists), \
+      patch.object(safe_process, "is_process_running", return_value=True), \
+      patch.object(safe_process, "File"), \
+      patch.object(safe_process.sudo, "lstat", return_value=self.FILE_STAT), \
+      patch.object(safe_process.sudo, "link_exclusive") as link_exclusive, \
+      patch.object(safe_process.sudo, "unlink") as unlink:
       with self.assertRaisesRegex(Fail, "created concurrently"):
         safe_process.create_pid_file_for_identity(
           self.PID_FILE,
@@ -859,19 +797,17 @@ class TestSafeProcess(unittest.TestCase):
     def path_exists(path):
       return path != self.PID_FILE
 
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=False),
-      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists),
-      patch.object(safe_process, "is_process_running", return_value=True),
-      patch.object(safe_process, "File"),
-      patch.object(safe_process.sudo, "lstat", return_value=self.FILE_STAT),
+    with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists), \
+      patch.object(safe_process, "is_process_running", return_value=True), \
+      patch.object(safe_process, "File"), \
+      patch.object(safe_process.sudo, "lstat", return_value=self.FILE_STAT), \
       patch.object(
         safe_process.sudo,
         "link_exclusive",
         side_effect=OSError("destination exists"),
-      ),
-      patch.object(safe_process.sudo, "unlink") as unlink,
-    ):
+      ), \
+      patch.object(safe_process.sudo, "unlink") as unlink:
       with self.assertRaisesRegex(Fail, "Could not create PID file"):
         safe_process.create_pid_file_for_identity(
           self.PID_FILE,
@@ -885,12 +821,10 @@ class TestSafeProcess(unittest.TestCase):
 
   def test_create_pid_file_fails_if_process_disappears(self):
     identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=False),
-      patch.object(safe_process.sudo, "path_exists", return_value=False),
-      patch.object(safe_process, "is_process_running", return_value=False),
-      patch.object(safe_process, "File") as pid_file,
-    ):
+    with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+      patch.object(safe_process.sudo, "path_exists", return_value=False), \
+      patch.object(safe_process, "is_process_running", return_value=False), \
+      patch.object(safe_process, "File") as pid_file:
       with self.assertRaisesRegex(Fail, "disappeared before PID file creation"):
         safe_process.create_pid_file_for_identity(
           self.PID_FILE,
@@ -918,20 +852,18 @@ class TestSafeProcess(unittest.TestCase):
       if path == self.PID_FILE:
         published["value"] = False
 
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=False),
-      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists),
-      patch.object(safe_process, "is_process_running", return_value=True),
-      patch.object(safe_process, "File"),
-      patch.object(safe_process.sudo, "lstat", return_value=self.FILE_STAT),
+    with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists), \
+      patch.object(safe_process, "is_process_running", return_value=True), \
+      patch.object(safe_process, "File"), \
+      patch.object(safe_process.sudo, "lstat", return_value=self.FILE_STAT), \
       patch.object(
         safe_process.sudo, "link_exclusive", side_effect=link_exclusive
-      ),
-      patch.object(safe_process.sudo, "unlink", side_effect=unlink) as unlink_mock,
+      ), \
+      patch.object(safe_process.sudo, "unlink", side_effect=unlink) as unlink_mock, \
       patch.object(
         safe_process, "read_running_process", return_value=replacement
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "identity changed"):
         safe_process.create_pid_file_for_identity(
           self.PID_FILE,
@@ -956,24 +888,22 @@ class TestSafeProcess(unittest.TestCase):
     def link_exclusive(source, destination):
       published["value"] = True
 
-    with (
-      patch.object(safe_process.sudo, "path_islink", return_value=False),
-      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists),
-      patch.object(safe_process, "is_process_running", return_value=True),
-      patch.object(safe_process, "File"),
+    with patch.object(safe_process.sudo, "path_islink", return_value=False), \
+      patch.object(safe_process.sudo, "path_exists", side_effect=path_exists), \
+      patch.object(safe_process, "is_process_running", return_value=True), \
+      patch.object(safe_process, "File"), \
       patch.object(
         safe_process.sudo,
         "lstat",
         side_effect=(self.FILE_STAT, replacement_stat),
-      ),
+      ), \
       patch.object(
         safe_process.sudo, "link_exclusive", side_effect=link_exclusive
-      ),
-      patch.object(safe_process.sudo, "unlink") as unlink,
+      ), \
+      patch.object(safe_process.sudo, "unlink") as unlink, \
       patch.object(
         safe_process, "read_running_process", return_value=replacement
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "identity changed"):
         safe_process.create_pid_file_for_identity(
           self.PID_FILE,
@@ -986,12 +916,10 @@ class TestSafeProcess(unittest.TestCase):
     self.assertNotIn(call(self.PID_FILE), unlink.call_args_list)
 
   def test_pid_file_replacement_with_symlink_blocks_cleanup(self):
-    with (
-      patch.object(safe_process, "read_pid", side_effect=(self.PID, self.PID)),
-      patch.object(safe_process, "is_process_running", return_value=False),
-      patch.object(safe_process.sudo, "path_islink", return_value=True),
-      patch.object(safe_process.sudo, "unlink") as unlink,
-    ):
+    with patch.object(safe_process, "read_pid", side_effect=(self.PID, self.PID)), \
+      patch.object(safe_process, "is_process_running", return_value=False), \
+      patch.object(safe_process.sudo, "path_islink", return_value=True), \
+      patch.object(safe_process.sudo, "unlink") as unlink:
       with self.assertRaisesRegex(Fail, "replaced PID file"):
         safe_process.remove_pid_file_if_stopped(
           self.PID_FILE, self.PID, self.USER, "ServiceMain"

@@ -67,47 +67,41 @@ class TestNifiServiceCheck(TestCase):
     response = Mock()
     response.getcode.return_value = 503
 
-    with (
-      patch.object(service_check, "openurl", return_value=response) as openurl,
+    with patch.object(service_check, "openurl", return_value=response) as openurl, \
       patch(
         "resource_management.libraries.functions.decorator.time.sleep"
-      ) as sleep,
-      self.assertRaisesRegex(service_check.Fail, "Response code 503"),
-    ):
+      ) as sleep, \
+      self.assertRaisesRegex(service_check.Fail, "Response code 503"):
       service_check.NifiServiceCheck.check_nifi_portal(self.URL)
 
     self.assertEqual(15, openurl.call_count)
     self.assertEqual(14, sleep.call_count)
 
   def test_retries_and_fails_for_network_error(self):
-    with (
-      patch.object(
+    with patch.object(
         service_check,
         "openurl",
         side_effect=urllib.error.URLError("connection refused"),
-      ) as openurl,
+      ) as openurl, \
       patch(
         "resource_management.libraries.functions.decorator.time.sleep"
-      ) as sleep,
-      self.assertRaisesRegex(service_check.Fail, "connection refused"),
-    ):
+      ) as sleep, \
+      self.assertRaisesRegex(service_check.Fail, "connection refused"):
       service_check.NifiServiceCheck.check_nifi_portal(self.URL)
 
     self.assertEqual(15, openurl.call_count)
     self.assertEqual(14, sleep.call_count)
 
   def test_retries_and_fails_for_bad_http_status_line(self):
-    with (
-      patch.object(
+    with patch.object(
         service_check,
         "openurl",
         side_effect=http.client.BadStatusLine("not HTTP"),
-      ) as openurl,
+      ) as openurl, \
       patch(
         "resource_management.libraries.functions.decorator.time.sleep"
-      ) as sleep,
-      self.assertRaisesRegex(service_check.Fail, "Not Reachable"),
-    ):
+      ) as sleep, \
+      self.assertRaisesRegex(service_check.Fail, "Not Reachable"):
       service_check.NifiServiceCheck.check_nifi_portal(self.URL)
 
     self.assertEqual(15, openurl.call_count)

@@ -62,11 +62,9 @@ class TestPackageConditions(TestCase):
           default.assert_called_once_with(path, "No")
 
         for invalid in (None, 1, "true", "enabled", ""):
-          with (
-            self.subTest(condition=condition.__name__, invalid=invalid),
-            patch.object(package_conditions, "default", return_value=invalid),
-            self.assertRaisesRegex(Fail, "must be Yes or No"),
-          ):
+          with self.subTest(condition=condition.__name__, invalid=invalid), \
+            patch.object(package_conditions, "default", return_value=invalid), \
+            self.assertRaisesRegex(Fail, "must be Yes or No"):
             condition()
 
   def test_infra_solr_packages_follow_only_bigtop_components(self):
@@ -81,14 +79,12 @@ class TestPackageConditions(TestCase):
       ("UNRELATED_SERVER", package_conditions.should_install_infra_solr_client, False),
     )
     for role, condition, expected in cases:
-      with (
-        self.subTest(role=role),
+      with self.subTest(role=role), \
         patch.object(
           package_conditions.Script,
           "get_config",
           return_value={"role": role},
-        ),
-      ):
+        ):
         self.assertEqual(expected, condition())
 
   def test_infra_solr_conditions_are_public(self):

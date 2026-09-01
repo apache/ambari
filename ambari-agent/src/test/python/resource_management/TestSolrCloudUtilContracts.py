@@ -43,10 +43,8 @@ class TestSolrCloudUtilContracts(TestCase):
     self.assertEqual("3", command[command.index("--retry") + 1])
 
   def test_client_setup_does_not_rewrite_packaged_cli(self):
-    with (
-      patch.object(solr_cloud_util, "Directory") as directory,
-      patch.object(solr_cloud_util, "File") as file_resource,
-    ):
+    with patch.object(solr_cloud_util, "Directory") as directory, \
+      patch.object(solr_cloud_util, "File") as file_resource:
       solr_cloud_util.setup_solr_client(
         {},
         custom_log4j=False,
@@ -71,17 +69,15 @@ class TestSolrCloudUtilContracts(TestCase):
     )
 
   def test_upload_failure_always_removes_temporary_config(self):
-    with (
-      patch.object(
+    with patch.object(
         solr_cloud_util,
         "Execute",
         side_effect=(
           ExecutionFailed("missing", 1, ""),
           ExecutionFailed("upload", 1, ""),
         ),
-      ),
-      patch.object(solr_cloud_util, "Directory") as directory,
-    ):
+      ), \
+      patch.object(solr_cloud_util, "Directory") as directory:
       with self.assertRaises(ExecutionFailed):
         solr_cloud_util.upload_configuration_to_zk(
           "zk1.example:2181",
@@ -116,16 +112,14 @@ class TestSolrCloudUtilContracts(TestCase):
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
 
-    with (
-      patch.object(solr_cloud_util, "get_kinit_path", return_value="/usr/bin/kinit"),
-      patch.object(solr_cloud_util.Script, "get_tmp_dir", return_value="/agent/tmp"),
+    with patch.object(solr_cloud_util, "get_kinit_path", return_value="/usr/bin/kinit"), \
+      patch.object(solr_cloud_util.Script, "get_tmp_dir", return_value="/agent/tmp"), \
       patch.object(
         solr_cloud_util,
         "PrivateKerberosCache",
         return_value=cache_context,
-      ) as private_cache,
-      patch.object(solr_cloud_util, "Execute") as execute,
-    ):
+      ) as private_cache, \
+      patch.object(solr_cloud_util, "Execute") as execute:
       solr_cloud_util.add_solr_roles(
         config,
         roles=["ranger_audit_user"],
@@ -162,16 +156,14 @@ class TestSolrCloudUtilContracts(TestCase):
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
     failure = ExecutionFailed("schema update failed", 22, "")
-    with (
-      patch.object(solr_cloud_util.Script, "get_tmp_dir", return_value="/agent/tmp"),
+    with patch.object(solr_cloud_util.Script, "get_tmp_dir", return_value="/agent/tmp"), \
       patch.object(
         solr_cloud_util,
         "PrivateKerberosCache",
         return_value=cache_context,
-      ) as private_cache,
-      patch.object(solr_cloud_util, "Execute", side_effect=failure) as execute,
-      self.assertRaises(ExecutionFailed),
-    ):
+      ) as private_cache, \
+      patch.object(solr_cloud_util, "Execute", side_effect=failure) as execute, \
+      self.assertRaises(ExecutionFailed):
       solr_cloud_util.post_json_to_solr(
         host="solr1.example",
         port=8886,
