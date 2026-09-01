@@ -87,7 +87,7 @@ import com.google.inject.Provider;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariLdapUtils.class)
-@PowerMockIgnore({"org.apache.logging.log4j.*","org.slf4j.*"})
+@PowerMockIgnore({"javax.xml.parsers.*", "org.xml.sax.*", "org.apache.logging.log4j.*", "org.slf4j.*"})
 public class AmbariLdapDataPopulatorTest {
   public static class AmbariLdapDataPopulatorTestInstance extends TestAmbariLdapDataPopulator {
     public AmbariLdapDataPopulatorTestInstance(Provider<AmbariLdapConfiguration> configurationProvider, Users users) {
