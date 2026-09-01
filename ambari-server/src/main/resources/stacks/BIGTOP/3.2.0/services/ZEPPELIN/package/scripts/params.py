@@ -21,17 +21,19 @@ limitations under the License.
 import functools
 import os
 import re
+import socket
+import status_params
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
+from resource_management.core.shell import quote_bash_args
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import (
   format_stack_version,
-  get_major_version,
 )
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
@@ -42,20 +44,13 @@ from bigtop_service_contract import (
 )
 
 
-def get_port_from_url(address):
-  if not (address is None):
-    return address.split(":")[-1]
-  else:
-    return address
-
-
 def extract_spark_version(spark_home):
   try:
-    with open(spark_home + "/RELEASE") as fline:
-      return re.search(r"Spark (\d\.\d).+", fline.readline().rstrip()).group(1)
-  except:
-    pass
-  return None
+    with open(os.path.join(spark_home, "RELEASE"), encoding="utf-8") as release_file:
+      match = re.search(r"Spark (\d+\.\d+)", release_file.readline())
+      return match.group(1) if match else None
+  except OSError:
+    return None
 
 
 # server configurations
@@ -65,23 +60,23 @@ stack_root = Script.get_stack_root()
 stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
 # e.g. 2.3.0.0
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-major_stack_version = get_major_version(stack_version_formatted)
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 # e.g. 2.3.0.0-2130
 version = default("/commandParams/version", None)
-stack_name = default("/clusterLevelParams/stack_name", None)
 
-# e.g. /var/lib/ambari-agent/cache/stacks/HDP/2.2/services/zeppelin-stack/package
-service_packagedir = os.path.realpath(__file__).split("/scripts")[0]
+security_value = str(
+  config["configurations"]["cluster-env"]["security_enabled"]
+).strip().lower()
+if security_value not in ("true", "false"):
+  raise ValueError("cluster-env/security_enabled must be true or false")
+security_enabled = security_value == "true"
 
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
-
-ui_ssl_enabled = config["configurations"]["zeppelin-site"]["zeppelin.ssl"]
-is_ui_ssl_enabled = str(ui_ssl_enabled).upper() == "TRUE"
-
-setup_view = True
-temp_file = config["configurations"]["zeppelin-env"]["zeppelin.temp.file"]
-
+ui_ssl_value = str(
+  config["configurations"]["zeppelin-site"]["zeppelin.ssl"]
+).strip().lower()
+if ui_ssl_value not in ("true", "false"):
+  raise ValueError("zeppelin-site/zeppelin.ssl must be true or false")
+is_ui_ssl_enabled = ui_ssl_value == "true"
 
 # params from zeppelin-site
 zeppelin_port = str(config["configurations"]["zeppelin-site"]["zeppelin.server.port"])
@@ -100,6 +95,7 @@ zeppelin_user = config["configurations"]["zeppelin-env"]["zeppelin_user"]
 zeppelin_group = config["configurations"]["zeppelin-env"]["zeppelin_group"]
 zeppelin_log_dir = config["configurations"]["zeppelin-env"]["zeppelin_log_dir"]
 zeppelin_pid_dir = config["configurations"]["zeppelin-env"]["zeppelin_pid_dir"]
+zeppelin_pid_file = status_params.zeppelin_pid_file
 zeppelin_war_tempdir = config["configurations"]["zeppelin-env"]["zeppelin_war_tempdir"]
 zeppelin_notebook_dir = config["configurations"]["zeppelin-env"][
   "zeppelin_notebook_dir"
@@ -109,12 +105,10 @@ local_notebook_dir = "/var/lib/zeppelin/notebook"
 hbase_home = config["configurations"]["zeppelin-env"]["hbase_home"]
 hbase_conf_dir = config["configurations"]["zeppelin-env"]["hbase_conf_dir"]
 
-zeppelin_log_file = os.path.join(zeppelin_log_dir, "zeppelin-setup.log")
-zeppelin_hdfs_user_dir = format("/user/{zeppelin_user}")
-
 zeppelin_conf_dir = "/etc/zeppelin/conf"
 external_dependency_conf = format("{zeppelin_conf_dir}/external-dependency-conf")
 zeppelin_home = "/usr/lib/zeppelin"
+zeppelin_daemon = os.path.join(zeppelin_home, "bin", "zeppelin-daemon.sh")
 
 use_current_stack_paths = stack_version_formatted and check_stack_feature(
   StackFeature.ROLLING_UPGRADE, stack_version_formatted
@@ -156,14 +150,20 @@ log4j_properties_content = config["configurations"]["zeppelin-log4j-properties"]
 # detect configs
 master_configs = config["clusterHostInfo"]
 java64_home = config["ambariLevelParams"]["java_home"]
-ambari_host = str(config["ambariLevelParams"]["ambari_server_host"])
+java64_home_shell = quote_bash_args(str(java64_home))
+zeppelin_log_dir_shell = quote_bash_args(str(zeppelin_log_dir))
+zeppelin_pid_dir_shell = quote_bash_args(str(zeppelin_pid_dir))
+zeppelin_war_tempdir_shell = quote_bash_args(str(zeppelin_war_tempdir))
+zeppelin_notebook_dir_shell = quote_bash_args(str(zeppelin_notebook_dir))
+external_dependency_conf_shell = quote_bash_args(str(external_dependency_conf))
+spark_home_shell = quote_bash_args(str(spark_home))
+hbase_home_shell = quote_bash_args(str(hbase_home))
+hbase_conf_dir_shell = quote_bash_args(str(hbase_conf_dir))
 zeppelin_host = str(master_configs["zeppelin_server_hosts"][0])
 
 # detect HS2 details, if installed
 
 hive_server_host = None
-hive_metastore_host = "0.0.0.0"
-hive_metastore_port = None
 hive_server_port = None
 hive_zookeeper_quorum = None
 hive_server2_support_dynamic_service_discovery = None
@@ -176,14 +176,7 @@ if (
   and len(master_configs["hive_server_hosts"]) != 0
 ):
   is_hive_installed = True
-  spark_hive_properties = {
-    "hive.metastore.uris": default("/configurations/hive-site/hive.metastore.uris", "")
-  }
   hive_server_host = str(master_configs["hive_server_hosts"][0])
-  hive_metastore_host = str(master_configs["hive_metastore_hosts"][0])
-  hive_metastore_port = str(
-    get_port_from_url(default("/configurations/hive-site/hive.metastore.uris", ""))
-  )
   hive_server_port = str(
     config["configurations"]["hive-site"]["hive.server2.thrift.http.port"]
   )
@@ -247,13 +240,8 @@ if "hbase_master_hosts" in master_configs and "hbase-site" in config["configurat
     "hbase.zookeeper.quorum"
   ]
 
-# detect spark queue
-if "spark.yarn.queue" in config["configurations"].get("spark-defaults", {}):
-  spark_queue = config["configurations"]["spark-defaults"]["spark.yarn.queue"]
-else:
-  spark_queue = "default"
-
 smoke_user = config["configurations"]["cluster-env"]["smokeuser"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
 
 if security_enabled:
   zeppelin_kerberos_keytab = config["configurations"]["zeppelin-site"][
@@ -267,13 +255,21 @@ if security_enabled:
   smokeuser_principal = config["configurations"]["cluster-env"][
     "smokeuser_principal_name"
   ]
+  smokeuser_principal = smokeuser_principal.replace(
+    "_HOST", socket.getfqdn().lower()
+  )
 
-if "zeppelin.interpreter.config.upgrade" in config["configurations"]["zeppelin-site"]:
-  zeppelin_interpreter_config_upgrade = config["configurations"]["zeppelin-site"][
-    "zeppelin.interpreter.config.upgrade"
-  ]
-else:
-  zeppelin_interpreter_config_upgrade = False
+interpreter_upgrade_value = str(
+  default(
+    "/configurations/zeppelin-site/zeppelin.interpreter.config.upgrade",
+    "false",
+  )
+).strip().lower()
+if interpreter_upgrade_value not in ("true", "false"):
+  raise ValueError(
+    "zeppelin-site/zeppelin.interpreter.config.upgrade must be true or false"
+  )
+zeppelin_interpreter_config_upgrade = interpreter_upgrade_value == "true"
 
 exclude_interpreter_autoconfig = default(
   "/configurations/zeppelin-site/exclude.interpreter.autoconfig", None

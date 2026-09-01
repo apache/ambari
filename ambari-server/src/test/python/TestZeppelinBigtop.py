@@ -60,9 +60,13 @@ class TestZeppelinBigtop(TestCase):
     cls.contract_module = load_module(
       "bigtop_zeppelin_service_contract", SCRIPTS / "bigtop_service_contract.py"
     )
-    cls.server_module = load_module(
-      "bigtop_zeppelin_server", SCRIPTS / "zeppelin_server.py"
+    cls.process_module = load_module(
+      "bigtop_zeppelin_process", SCRIPTS / "zeppelin_process.py"
     )
+    with patch.dict(sys.modules, {"zeppelin_process": cls.process_module}):
+      cls.server_module = load_module(
+        "bigtop_zeppelin_server", SCRIPTS / "zeppelin_server.py"
+      )
 
   def test_metadata_uses_bigtop_spark_service_and_client(self):
     root = ET.parse(ZEPPELIN / "metainfo.xml").getroot()
