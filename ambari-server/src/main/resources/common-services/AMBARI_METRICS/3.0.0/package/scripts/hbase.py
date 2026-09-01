@@ -19,13 +19,13 @@ limitations under the License.
 """
 
 import os
-from ambari_commons import OSConst
-from resource_management.core.resources.system import Directory, Execute, File, Link
+from resource_management.core.resources.system import Directory, File, Link
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import Template, InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.core.exceptions import Fail
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -35,12 +35,17 @@ def hbase(
 ):
   import params
 
+  if name not in ("master", "regionserver", "client"):
+    raise Fail(f"Unsupported AMS HBase configuration role: {name}")
+  if action not in (None, "start", "stop", "configure"):
+    raise Fail(f"Unsupported AMS HBase configuration action: {action}")
+
   Directory(
     params.hbase_conf_dir,
     owner=params.hbase_user,
     group=params.user_group,
     create_parents=True,
-    recursive_ownership=True,
+    mode=0o750,
   )
 
   # Link /usr/lib/ams-hbase/conf -> /etc/ams-hbase/conf
@@ -54,17 +59,16 @@ def hbase(
   Directory(
     params.hbase_tmp_dir,
     owner=params.hbase_user,
-    cd_access="a",
+    group=params.user_group,
     create_parents=True,
-    recursive_ownership=True,
+    mode=0o750,
   )
 
   Directory(
     os.path.join(params.local_dir, "jars"),
     owner=params.hbase_user,
     group=params.user_group,
-    cd_access="a",
-    mode=0o775,
+    mode=0o750,
     create_parents=True,
   )
 
@@ -73,9 +77,8 @@ def hbase(
       params.hbase_wal_dir,
       owner=params.hbase_user,
       group=params.user_group,
-      cd_access="a",
       create_parents=True,
-      recursive_ownership=True,
+      mode=0o750,
     )
 
   merged_ams_hbase_site = {}
@@ -108,13 +111,10 @@ def hbase(
     Directory(
       params.phoenix_server_spool_dir,
       owner=params.ams_user,
-      mode=0o755,
+      mode=0o750,
       group=params.user_group,
-      cd_access="a",
       create_parents=True,
     )
-  pass
-
   if "ams-hbase-policy" in params.config["configurations"]:
     XmlConfig(
       "hbase-policy.xml",
@@ -148,10 +148,6 @@ def hbase(
     content=Template("hadoop-metrics2-hbase.properties.j2"),
   )
 
-  # hbase_TemplateConfig( params.metric_prop_file_name,
-  #   tag = 'GANGLIA-MASTER' if name == 'master' else 'GANGLIA-RS'
-  # )
-
   hbase_TemplateConfig("regionservers", user=params.hbase_user)
 
   if params.security_enabled:
@@ -163,17 +159,17 @@ def hbase(
     Directory(
       params.hbase_pid_dir,
       owner=params.hbase_user,
+      group=params.user_group,
       create_parents=True,
-      cd_access="a",
-      mode=0o755,
+      mode=0o750,
     )
 
     Directory(
       params.hbase_log_dir,
       owner=params.hbase_user,
+      group=params.user_group,
       create_parents=True,
-      cd_access="a",
-      mode=0o755,
+      mode=0o750,
     )
 
   if name == "master":
@@ -200,36 +196,13 @@ def hbase(
 
         params.HdfsResource(None, action="execute")
 
-      if params.is_hbase_distributed:
-        # Workaround for status commands not aware of operating mode
-        File(
-          format("{params.hbase_pid_dir}/distributed_mode"),
-          action="create",
-          mode=0o644,
-          owner=params.hbase_user,
-        )
-
-      pass
-
     else:
-      local_root_dir = params.hbase_root_dir
-      # cut protocol name
-      if local_root_dir.startswith("file://"):
-        local_root_dir = local_root_dir[7:]
-        # otherwise assume dir name is provided as is
-
       Directory(
-        local_root_dir,
+        params.local_hbase_root_dir,
         owner=params.hbase_user,
-        cd_access="a",
+        group=params.user_group,
         create_parents=True,
-        recursive_ownership=True,
-      )
-
-      File(
-        format("{params.hbase_pid_dir}/distributed_mode"),
-        action="delete",
-        owner=params.hbase_user,
+        mode=0o750,
       )
 
   if params.hbase_log4j_props is not None:

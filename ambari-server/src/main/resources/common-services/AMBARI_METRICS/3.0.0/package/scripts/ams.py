@@ -18,16 +18,13 @@ limitations under the License.
 
 """
 
+from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.template_config import TemplateConfig
-from resource_management.core.resources.service import ServiceConfig
-from resource_management.core.source import InlineTemplate, Template
+from resource_management.core.source import InlineTemplate, StaticFile, Template
 from resource_management.libraries.functions.format import format
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons.str_utils import compress_backslashes
-import glob
 import os
 
 
@@ -41,16 +38,14 @@ def ams(name=None, action=None):
       owner=params.ams_user,
       group=params.user_group,
       create_parents=True,
-      recursive_ownership=True,
     )
 
     Directory(
       params.ams_checkpoint_dir,
       owner=params.ams_user,
       group=params.user_group,
-      cd_access="a",
       create_parents=True,
-      recursive_ownership=True,
+      mode=0o750,
     )
 
     new_ams_site = {}
@@ -144,7 +139,7 @@ def ams(name=None, action=None):
         template_tag=None,
       )
 
-    if params.log4j_props != None:
+    if params.log4j_props is not None:
       File(
         format("{params.ams_collector_conf_dir}/log4j.properties"),
         mode=0o644,
@@ -163,18 +158,16 @@ def ams(name=None, action=None):
       params.ams_collector_log_dir,
       owner=params.ams_user,
       group=params.user_group,
-      cd_access="a",
       create_parents=True,
-      mode=0o755,
+      mode=0o750,
     )
 
     Directory(
       params.ams_collector_pid_dir,
       owner=params.ams_user,
       group=params.user_group,
-      cd_access="a",
       create_parents=True,
-      mode=0o755,
+      mode=0o750,
     )
 
     # Hack to allow native HBase libs to be included for embedded hbase
@@ -201,12 +194,10 @@ def ams(name=None, action=None):
       Directory(
         params.phoenix_client_spool_dir,
         owner=params.ams_user,
-        mode=0o755,
         group=params.user_group,
-        cd_access="a",
         create_parents=True,
+        mode=0o750,
       )
-    pass
 
     if not params.is_local_fs_rootdir and params.is_ams_distributed:
       # Configuration needed to support NN HA
@@ -230,12 +221,11 @@ def ams(name=None, action=None):
         mode=0o644,
       )
 
-      # AMS service checks and Grafana do not support SPNEGO yet.
       truncated_core_site = {}
       truncated_core_site.update(params.config["configurations"]["core-site"])
       if is_spnego_enabled(params):
-        truncated_core_site.pop("hadoop.http.authentication.type")
-        truncated_core_site.pop("hadoop.http.filter.initializers")
+        truncated_core_site.pop("hadoop.http.authentication.type", None)
+        truncated_core_site.pop("hadoop.http.filter.initializers", None)
 
       XmlConfig(
         "core-site.xml",
@@ -260,10 +250,7 @@ def ams(name=None, action=None):
     if params.metric_collector_https_enabled:
       export_ca_certs(params.ams_collector_conf_dir)
 
-    pass
-
   elif name == "monitor":
-    # TODO Uncomment when SPNEGO support has been added to AMS service check and Grafana.
     Directory(
       params.ams_monitor_conf_dir,
       owner=params.ams_user,
@@ -275,7 +262,7 @@ def ams(name=None, action=None):
       params.ams_monitor_log_dir,
       owner=params.ams_user,
       group=params.user_group,
-      mode=0o755,
+      mode=0o750,
       create_parents=True,
     )
 
@@ -306,29 +293,14 @@ def ams(name=None, action=None):
         owner=params.ams_user,
         group=params.user_group,
       )
-      pass
-
-    Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_log_dir}"))
 
     Directory(
       params.ams_monitor_pid_dir,
       owner=params.ams_user,
       group=params.user_group,
-      cd_access="a",
-      mode=0o755,
+      mode=0o750,
       create_parents=True,
     )
-
-    Directory(
-      format("{ams_monitor_dir}/psutil/build"),
-      owner=params.ams_user,
-      group=params.user_group,
-      cd_access="a",
-      mode=0o755,
-      create_parents=True,
-    )
-
-    Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_dir}"))
 
     TemplateConfig(
       format("{ams_monitor_conf_dir}/metric_monitor.ini"),
@@ -365,14 +337,15 @@ def ams(name=None, action=None):
       content=Template("ams.conf.j2"),
     )
 
-    pass
   elif name == "grafana":
-    ams_grafana_directories = [
+    ams_grafana_directories = (
       params.ams_grafana_conf_dir,
       params.ams_grafana_log_dir,
+    )
+    private_grafana_directories = (
       params.ams_grafana_data_dir,
       params.ams_grafana_pid_dir,
-    ]
+    )
 
     for ams_grafana_directory in ams_grafana_directories:
       Directory(
@@ -381,7 +354,15 @@ def ams(name=None, action=None):
         group=params.user_group,
         mode=0o755,
         create_parents=True,
-        recursive_ownership=True,
+      )
+
+    for ams_grafana_directory in private_grafana_directories:
+      Directory(
+        ams_grafana_directory,
+        owner=params.ams_user,
+        group=params.user_group,
+        mode=0o750,
+        create_parents=True,
       )
 
     File(
@@ -399,14 +380,11 @@ def ams(name=None, action=None):
       mode=0o600,
     )
 
-    if action != "stop":
-      for dir in ams_grafana_directories:
-        Execute(("chown", "-R", params.ams_user, dir), sudo=True)
-
     if params.metric_collector_https_enabled:
       export_ca_certs(params.ams_grafana_conf_dir)
 
-    pass
+  else:
+    raise Fail(f"Unsupported Ambari Metrics component: {name}")
 
 
 def is_spnego_enabled(params):
@@ -425,51 +403,67 @@ def is_spnego_enabled(params):
   return False
 
 
-def is_redhat_centos_6_plus():
-  import platform
-
-  if platform.dist()[0] in ["redhat", "centos"] and platform.dist()[1] > "6.0":
-    return True
-  return False
-
-
 def export_ca_certs(dir_path):
-  # export ca certificates on every restart to handle changed truststore content
-
   import params
   import tempfile
 
   ca_certs_path = os.path.join(dir_path, params.metric_truststore_ca_certs)
   truststore = params.metric_truststore_path
+  if not os.path.isfile(truststore) or os.path.islink(truststore):
+    raise Fail("Metrics truststore must be a regular file and must not be a symlink")
 
-  tmpdir = tempfile.mkdtemp()
+  tmpdir = tempfile.mkdtemp(prefix="ams-truststore-")
   truststore_p12 = os.path.join(tmpdir, "truststore.p12")
+  exported_certs = os.path.join(tmpdir, "ca.pem")
+  secret_environment = {"AMS_TRUSTSTORE_PASSWORD": params.metric_truststore_password}
 
-  if params.metric_truststore_type.lower() == "jks":
-    for alias in params.metric_truststore_alias_list:
-      # Convert truststore from JKS to PKCS12
-      cmd = format(
-        "{sudo} {java64_home}/bin/keytool -importkeystore -srckeystore {metric_truststore_path} -destkeystore {truststore_p12} -srcalias "
-        + alias
-        + " -deststoretype PKCS12 -srcstorepass {metric_truststore_password} -deststorepass {metric_truststore_password}"
-      )
+  try:
+    if params.metric_truststore_type.lower() == "jks":
       Execute(
-        cmd,
+        (
+          os.path.join(params.java64_home, "bin", "keytool"),
+          "-importkeystore",
+          "-noprompt",
+          "-srckeystore",
+          truststore,
+          "-destkeystore",
+          truststore_p12,
+          "-deststoretype",
+          "PKCS12",
+          "-srcstorepass:env",
+          "AMS_TRUSTSTORE_PASSWORD",
+          "-deststorepass:env",
+          "AMS_TRUSTSTORE_PASSWORD",
+        ),
+        sudo=True,
+        environment=secret_environment,
+        timeout=60,
       )
-    truststore = truststore_p12
+      truststore = truststore_p12
 
-  # Export all CA certificates from the truststore to the conf directory
-  cmd = format(
-    "{sudo} openssl pkcs12 -in {truststore} -out {ca_certs_path} -cacerts -nokeys -passin pass:{metric_truststore_password}"
-  )
-  Execute(
-    cmd,
-  )
-  Execute(("chown", format("{ams_user}:{user_group}"), ca_certs_path), sudo=True)
-  Execute(
-    ("chmod", "644", ca_certs_path),
-    sudo=True,
-  )
-  Execute(format("{sudo} rm -rf {tmpdir}"))
-
-  pass
+    Execute(
+      (
+        "openssl",
+        "pkcs12",
+        "-in",
+        truststore,
+        "-out",
+        exported_certs,
+        "-cacerts",
+        "-nokeys",
+        "-passin",
+        "env:AMS_TRUSTSTORE_PASSWORD",
+      ),
+      sudo=True,
+      environment=secret_environment,
+      timeout=60,
+    )
+    File(
+      ca_certs_path,
+      content=StaticFile(exported_certs),
+      owner=params.ams_user,
+      group=params.user_group,
+      mode=0o644,
+    )
+  finally:
+    Directory(tmpdir, action="delete")
