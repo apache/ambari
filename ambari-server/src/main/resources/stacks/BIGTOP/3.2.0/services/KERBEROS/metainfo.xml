@@ -26,7 +26,7 @@
         non-secure network to prove their identity to one another in a
         secure manner.
       </comment>
-      <version>1.10.3-30</version>
+      <version>1.0.0</version>
 
       <components>
         <component>
@@ -91,7 +91,7 @@
         </osSpecific>
 
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>debian10,debian11,ubuntu20,ubuntu22</osFamily>
           <packages>
             <package>
               <name>krb5-user</name>
