@@ -54,6 +54,7 @@
     <jersey.version>3.1.12</jersey.version>
     <junit.jupiter.version>5.14.4</junit.jupiter.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
+    <jakarta.websocket.version>2.1.1</jakarta.websocket.version>
     <jakarta.xml.bind.version>4.0.5</jakarta.xml.bind.version>
   </properties>
   <profiles>
@@ -481,6 +482,16 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${commons-lang3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.websocket</groupId>
+        <artifactId>jakarta.websocket-api</artifactId>
+        <version>${jakarta.websocket.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.websocket</groupId>
+        <artifactId>jakarta.websocket-client-api</artifactId>
+        <version>${jakarta.websocket.version}</version>
       </dependency>
       <dependency>
         <groupId>jakarta.xml.bind</groupId>

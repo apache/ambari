@@ -33,7 +33,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
-import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import com.google.inject.Injector;
@@ -63,7 +62,7 @@ public class AgentStompConfig implements WebSocketMessageBrokerConfigurer {
   }
 
   public DefaultHandshakeHandler getHandshakeHandler() {
-    return new DefaultHandshakeHandler(new JettyRequestUpgradeStrategy());
+    return new DefaultHandshakeHandler(new Jetty11RequestUpgradeStrategy());
   }
 
   @Override
