@@ -58,7 +58,8 @@ pipeline {
         stage('Find and Run Ruff') {
             steps {
                 script {
-                    sh 'pip3 install --user ruff'
+                    sh 'pip3 install --user --only-binary=:all: --require-hashes --requirement requirements-tooling.txt'
+                    sh 'pip3 install --user --only-binary=:all: --require-hashes --requirement requirements-build.lock'
                     echo "Contents of /home/jenkins/.local/bin:"
                     sh 'ls -l /home/jenkins/.local/bin || echo "Directory not found"'
                 }
@@ -68,6 +69,8 @@ pipeline {
         stage('Ruff Check') {
             steps {
                 withEnv(["PATH+LOCALBIN=/home/jenkins/.local/bin:${env.PATH}"]) {
+                    sh 'python3 dev-support/check_python_dependency_metadata.py'
+                    sh "python3 -m unittest discover -s dev-support -p 'test_*.py'"
                     sh 'ruff --version'
                     sh 'mvn exec:exec@ruff-check -Pruff-check -pl :ambari -DskipTests -Dmaven.install.skip=true'
                 }
@@ -112,20 +115,12 @@ pipeline {
 
         stage('Ambari Agent Tests') {
             steps {
-                sh 'pip3 install distro'
                 sh 'mvn -Dmaven.test.failure.ignore=true -am test -pl ambari-agent -DskipAdminWebTests=true -DskipUiBuild=true -Dmaven.artifact.threads=10 -Drat.skip'
             }
         }
 
         stage('Ambari Server PyTests') {
             steps {
-                sh '''
-                   # Install pyOpenSSL in one step
-                   pip3 install --user --upgrade pyOpenSSL
-                   # Verify installations
-                   pip3 --version
-                   openssl version
-                   '''
                 sh 'mvn clean -am test -pl ambari-server -DskipSurefireTests -Dmaven.test.failure.ignore -Dmaven.artifact.threads=10 -Drat.skip -Dcheckstyle.skip -DskipAdminWebTests=true -DskipUiBuild=true'
             }
         }

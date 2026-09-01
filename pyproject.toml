@@ -14,14 +14,44 @@
 #See the License for the specific language governing permissions and
 #limitations under the License.
 
+[build-system]
+requires = [
+    "setuptools==82.0.1",
+]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "apache-ambari"
+name = "ambari-python"
+dynamic = ["version"]
 description = "Apache Ambari is a tool for provisioning, managing, and monitoring Apache Hadoop clusters"
 readme = "README.md"
 requires-python = ">=3.9.2"
-license = { file="LICENSE.txt" }
+license = "Apache-2.0"
+license-files = ["LICENSE.txt"]
 authors = [
     { name = "Apache Software Foundation", email = "dev@ambari.apache.org" },
+]
+keywords = ["hadoop", "ambari"]
+dependencies = [
+    "cryptography==50.0.1",
+    "distro==1.9.0",
+    "Jinja2==3.1.6",
+]
+
+[project.optional-dependencies]
+agent = [
+    "APScheduler==3.11.3",
+    "stomp.py==8.2.0",
+    "websocket-client==1.9.0",
+]
+server = [
+    "javaproperties==0.8.2",
+    "PyYAML==6.0.3",
+]
+test = []
+tooling = [
+    "ruff==0.12.11",
+    "tomli==2.2.1; python_version < '3.11'",
 ]
 
 [project.urls]
@@ -62,7 +92,6 @@ exclude = [
     "ambari-views",
     "ambari-utility",
     "ambari-server-spi",
-    "contrib",
     "docs",
     "target"
 ]
@@ -75,86 +104,19 @@ indent-width = 2
 target-version = "py39"
 
 [tool.ruff.lint]
-# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
-# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
-# McCabe complexity (`C901`) by default.
+# Keep the initial gate limited to deterministic correctness failures. Broader
+# style and import-order adoption belongs in separate mechanical changes.
 select = [
-    "B904",
-    "E4",
-    "E7",
     "E9",
-    "F",
-    "PT009",
-    "TRY201",
+    "F524",
+    "F601",
+    "F632",
+    "F821",
+    "F822",
+    "F823",
+    "W605",
 ]
-ignore = [
-    # Unused
-    "F401",  # Module imported but unused
-    "F504",  # % format unused named arguments
-    "F522",  # .format(...) unused named arguments
-    "F523",  # .format(...) unused positional arguments
-    "F841",  # Local variable name is assigned to but never used
-
-    # Undefined
-    "F402",  # Import shadowed by loop variable
-    "F403",  # 'from module import *' used; unable to detect undefined names
-    "F405",  # Name may be undefined, or defined from star imports
-    "F406",  # 'from module import *' only allowed at module level
-    "F407",  # An undefined __future__ feature name was imported
-    "F821",  # Undefined name
-    "F822",  # Undefined name in __all__
-    "F823",  # Local variable name referenced before assignment
-    "F842",  # Local variable name is assigned to but never used or is a loop variable
-
-    # Assert
-    "PT009",  # Use a regular `assert` instead of unittest-style `assertEqual`
-    #None
-    "E711", # Comparison to `None` should be `cond is None`
-
-    # Comparison
-    "E712",  # Comparison to `True` should be `if cond is True:` or `if cond:`
-
-    # Unused
-    "F4",  # Import-related errors
-    "F8",  # Name redefinition warnings
-
-    # Undefined
-    "F4",  # Import-related errors (already included above, but listed here for clarity)
-    "F8",  # Name redefinition warnings (already included above, but listed here for clarity)
-
-    # Assert
-    "PT",  # pytest-related rules
-
-    # Comparison
-    "E7",  # Statement-related rules
-
-    # Import sorting and formatting
-    "I",  # isort-related rules
-
-    # Module level import not at top of file
-    "E4",  # Import-related rules
-
-    # Exception handling
-    "B9",  # flake8-bugbear rules
-
-    # Try-except
-    "TRY",  # tryceratops rules
-
-    # Lambda expressions
-    "E7",  # Statement-related rules (already included above, but listed here for clarity)
-
-    # Specific rule for exception chaining
-    "B904",  # Raise exceptions with `raise ... from err` or `raise ... from None`
-
-    "F901", # raise NotImplemented should be raise NotImplementedError
-    "F632", # Use == or != to compare constant literals
-    "F601", # Dictionary key literal repeated
-    "F524", # .format call is missing argument(s) for placeholder(s)
-    "TRY201", # Use raise without specifying exception name
-]
-
-
-extend-select = ["I"]
+ignore = []
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -162,6 +124,30 @@ unfixable = []
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+# Stack scripts receive some globals from Ambari's runtime loader.
+"ambari-server/src/main/python/bootstrap.py" = ["F821"]
+"ambari-server/src/main/resources/common-services/AMBARI_METRICS/3.0.0/package/scripts/ams.py" = ["F821"]
+"ambari-server/src/main/resources/common-services/AMBARI_METRICS/3.0.0/package/scripts/hbase_master.py" = ["F821"]
+"ambari-server/src/main/resources/common-services/AMBARI_METRICS/3.0.0/package/scripts/hbase_regionserver.py" = ["F821"]
+"ambari-server/src/main/resources/common-services/AMBARI_METRICS/3.0.0/package/scripts/metrics_collector.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HBASE/package/scripts/hbase_master.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HBASE/package/scripts/hbase_regionserver.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HBASE/package/scripts/service_check.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HDFS/package/scripts/hdfs_datanode.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HDFS/package/scripts/hdfs_snamenode.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HDFS/package/scripts/journalnode.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HDFS/package/scripts/service_check.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/YARN/package/scripts/mapred_service_check.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/YARN/package/scripts/service.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/YARN/package/scripts/service_check.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/ZOOKEEPER/package/scripts/service_check.py" = ["F821"]
+"ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/ZOOKEEPER/package/scripts/zookeeper_client.py" = ["F821"]
+
+# Stack-advisor fixture bases are injected by the test harness at load time.
+"ambari-funtest/src/test/resources/stacks/XYZ/1.0.1/services/stack_advisor.py" = ["F821"]
+"ambari-server/src/test/resources/stacks/XYZ/1.0.1/services/stack_advisor.py" = ["F821"]
 
 [tool.ruff.lint.isort]
 case-sensitive = false

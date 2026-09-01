@@ -18,27 +18,17 @@ limitations under the License.
 """
 
 import os
+import re
 from os.path import dirname
 from setuptools import find_packages, setup
 
 AMBARI_COMMON_PYTHON_FOLDER = "ambari-common/src/main/python"
-AMBARI_SERVER_TEST_PYTHON_FOLDER = "ambari-server/src/test/python"
 
 
 def get_ambari_common_packages():
   return find_packages(
     AMBARI_COMMON_PYTHON_FOLDER, exclude=["*.tests", "*.tests.*", "tests.*", "tests"]
   )
-
-
-def get_ambari_server_stack_package():
-  return ["stacks.utils"]
-
-
-def get_extra_common_packages():
-  return [
-    "urlinfo_processor",
-  ]
 
 
 def create_package_dir_map():
@@ -49,17 +39,19 @@ def create_package_dir_map():
       AMBARI_COMMON_PYTHON_FOLDER + "/" + ambari_common_package.replace(".", "/")
     )
 
-  ambari_server_packages = get_ambari_server_stack_package()
-  for ambari_server_package in ambari_server_packages:
-    package_dirs[ambari_server_package] = (
-      AMBARI_SERVER_TEST_PYTHON_FOLDER + "/" + ambari_server_package.replace(".", "/")
-    )
-  package_dirs["urlinfo_processor"] = AMBARI_COMMON_PYTHON_FOLDER + "/urlinfo_processor"
-
   return package_dirs
 
 
-__version__ = "3.1.0.0-SNAPSHOT"
+__version__ = "3.1.0.0.dev0"
+
+
+def normalize_version(version):
+  version = version.strip()
+  if version.endswith("-SNAPSHOT"):
+    version = version[: -len("-SNAPSHOT")] + ".dev0"
+  if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*(?:\.dev[0-9]+)?", version):
+    raise ValueError(f"Unsupported Ambari Python package version: {version}")
+  return version
 
 
 def get_version():
@@ -71,7 +63,7 @@ def get_version():
   """
   base_dir = dirname(__file__)
   if "AMBARI_VERSION" in os.environ:
-    return os.environ["AMBARI_VERSION"]
+    return normalize_version(os.environ["AMBARI_VERSION"])
   elif os.path.exists(os.path.join(base_dir, "pom.xml")):
     from xml.etree import ElementTree as et
 
@@ -79,52 +71,40 @@ def get_version():
     et.register_namespace("", ns)
     tree = et.ElementTree()
     tree.parse(os.path.join(base_dir, "pom.xml"))
-    parent_version_tag = tree.getroot().find("{%s}version" % ns)
-    return parent_version_tag.text if parent_version_tag is not None else __version__
+    root = tree.getroot()
+    version_tag = root.find("{%s}version" % ns)
+    version = version_tag.text if version_tag is not None else __version__
+    property_match = re.fullmatch(r"\$\{([^}]+)\}", version or "")
+    if property_match:
+      property_tag = root.find(
+        "{%s}properties/{%s}%s" % (ns, ns, property_match.group(1))
+      )
+      if property_tag is None or not property_tag.text:
+        raise ValueError(f"Unable to resolve Maven version property {version}")
+      version = property_tag.text
+    return normalize_version(version)
   elif os.path.exists(os.path.join(base_dir, "PKG-INFO")):
-    import re
-
-    version = None
     version_re = re.compile("^Version: (.+)$", re.M)
-    with open(os.path.join(base_dir, "PKG-INFO")) as f:
-      version = version_re.search(f.read()).group(1)
-    return version if version is not None else __version__
+    with open(os.path.join(base_dir, "PKG-INFO"), encoding="utf-8") as f:
+      match = version_re.search(f.read())
+    return normalize_version(match.group(1)) if match is not None else __version__
   else:
     return __version__
 
 
 """
 Example usage:
-- build package with specific version:
-  python setup.py sdist -d "my/dist/location"
-- build and install package with specific version:
-  python setup.py sdist -d "my/dist/location" install
-- build and upload package with specific version:
-  python setup.py sdist -d "my/dist/location" upload -r "http://localhost:8080"
+- build the source distribution from the locked build environment:
+  python3 -m build --sdist --no-isolation
+- install the source distribution into an isolated target:
+  python3 -m pip install --no-build-isolation --target "my/site-packages" dist/ambari-python-*.tar.gz
 
 Installing from pip:
-- pip install --extra-index-url=http://localhost:8080 ambari-python==2.7.1.0  // 3.0.0.0-SNAPSHOT is the snapshot version
+- python3 -m pip install ambari-python==3.1.0.0.dev0
 """
 setup(
-  name="ambari-python",
   version=get_version(),
-  author="Apache Software Foundation",
-  author_email="dev@ambari.apache.org",
-  description=("Framework for provison/manage/monitor Hadoop clusters"),
-  license="AP2",
-  keywords="hadoop, ambari",
-  url="https://ambari.apache.org",
-  packages=get_ambari_common_packages()
-  + get_ambari_server_stack_package()
-  + get_extra_common_packages(),
+  packages=get_ambari_common_packages(),
   package_dir=create_package_dir_map(),
-  python_requires=">=3.9.2",
-  install_requires=[
-    "cryptography==50.0.1",
-    "distro==1.9.0",
-    "Jinja2==3.1.6",
-  ],
   include_package_data=True,
-  long_description="The Apache Ambari project is aimed at making Hadoop management simpler by developing software for provisioning, managing, and monitoring Apache Hadoop clusters. "
-  "Ambari provides an intuitive, easy-to-use Hadoop management web UI backed by its RESTful APIs.",
 )
