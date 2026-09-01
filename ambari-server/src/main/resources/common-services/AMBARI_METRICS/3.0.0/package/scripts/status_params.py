@@ -18,29 +18,47 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.script.script import Script
-from resource_management.libraries import functions
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
-from ambari_commons import OSCheck
 
+from metrics_utils import parse_bool, validate_absolute_path, validate_name
 from params_linux import *
 
-hbase_pid_dir = config["configurations"]["ams-hbase-env"]["hbase_pid_dir"]
+hbase_pid_dir = validate_absolute_path(
+  config["configurations"]["ams-hbase-env"]["hbase_pid_dir"],
+  "AMS HBase PID directory",
+)
 hbase_user = ams_user
-ams_collector_pid_dir = config["configurations"]["ams-env"]["metrics_collector_pid_dir"]
-ams_monitor_pid_dir = config["configurations"]["ams-env"]["metrics_monitor_pid_dir"]
-ams_grafana_pid_dir = config["configurations"]["ams-grafana-env"][
-  "metrics_grafana_pid_dir"
-]
+user_group = validate_name(
+  config["configurations"]["cluster-env"]["user_group"], "Service group"
+)
+ams_collector_pid_dir = validate_absolute_path(
+  config["configurations"]["ams-env"]["metrics_collector_pid_dir"],
+  "Metrics Collector PID directory",
+)
+ams_monitor_pid_dir = validate_absolute_path(
+  config["configurations"]["ams-env"]["metrics_monitor_pid_dir"],
+  "Metrics Monitor PID directory",
+)
+ams_grafana_pid_dir = validate_absolute_path(
+  config["configurations"]["ams-grafana-env"]["metrics_grafana_pid_dir"],
+  "Grafana PID directory",
+)
 
 monitor_pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
 grafana_pid_file = format("{ams_grafana_pid_dir}/grafana-server.pid")
 
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
-ams_hbase_conf_dir = format("{hbase_conf_dir}")
-
-kinit_path_local = functions.get_kinit_path(
-  default("/configurations/kerberos-env/executable_search_paths", None)
+is_hbase_distributed = parse_bool(
+  config["configurations"]["ams-hbase-site"]["hbase.cluster.distributed"],
+  "hbase.cluster.distributed",
 )
-hostname = config["agentLevelParams"]["hostname"]
-tmp_dir = Script.get_tmp_dir()
+security_enabled = parse_bool(
+  config["configurations"]["cluster-env"]["security_enabled"],
+  "Cluster security setting",
+)
+ams_hbase_conf_dir = hbase_conf_dir
+python_binary = validate_absolute_path(
+  default("/configurations/ams-env/metrics_monitor_python_binary", "/usr/bin/python3.9"),
+  "Metrics Monitor Python interpreter",
+  allowed_roots=("/usr/bin", "/usr/local/bin", "/opt"),
+)

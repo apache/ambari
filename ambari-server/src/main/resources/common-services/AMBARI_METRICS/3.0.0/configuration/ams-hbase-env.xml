@@ -125,16 +125,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>hbase_master_maxperm_size</name>
-    <value>128</value>
-    <description>HBase RegionServer maximum value for perm heap size.</description>
-    <value-attributes>
-      <type>int</type>
-      <unit>MB</unit>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>hbase_regionserver_xmn_ratio</name>
     <value>0.2</value>
     <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
@@ -200,7 +190,7 @@ The timeout is introduced because there is a known bug when from time to time HB
     <value>
 # Set environment variables here.
 
-# The java implementation to use. Java 1.6+ required.
+# The Java implementation to use. Ambari Metrics on BIGTOP requires JDK 17.
 export JAVA_HOME={{java_home}}
 
 # HBase Configuration directory
@@ -218,14 +208,9 @@ fi
 # The maximum amount of heap to use for hbase shell.
 export HBASE_SHELL_OPTS="-Xmx256m"
 
-# Extra Java runtime options.
-# Below are what we set by default. May only work with SUN JVM.
-# For more on why as well as other possible settings,
-# see http://wiki.apache.org/hadoop/PerformanceTuning
-export HBASE_OPTS="-XX:+UseConcMarkSweepGC -XX:ErrorFile={{hbase_log_dir}}/hs_err_pid%p.log -Djava.io.tmpdir={{hbase_tmp_dir}}"
-export SERVER_GC_OPTS="-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{hbase_log_dir}}/gc.log-`date +'%Y%m%d%H%M'`"
-# Uncomment below to enable java garbage collection logging.
-# export HBASE_OPTS="$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log"
+# Extra Java runtime options for JDK 17.
+export HBASE_OPTS="-XX:ErrorFile={{hbase_log_dir}}/hs_err_pid%p.log -Djava.io.tmpdir={{hbase_tmp_dir}}"
+export SERVER_GC_OPTS="-Xlog:gc*,safepoint:file={{hbase_log_dir}}/gc.log:time,uptime,level,tags:filecount=10,filesize=20M"
 
 # Uncomment and adjust to enable JMX exporting
 # See jmxremote.password and jmxremote.access in $JRE_HOME/lib/management to configure remote password access.
@@ -233,13 +218,8 @@ export SERVER_GC_OPTS="-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -X
 #
 # export HBASE_JMX_BASE="-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 
-{% if java_version &lt; 8 %}
-export HBASE_MASTER_OPTS=" -XX:PermSize=64m -XX:MaxPermSize={{hbase_master_maxperm_size}} -Xms{{hbase_heapsize}} -Xmx{{hbase_heapsize}} -Xmn{{hbase_master_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly"
-export HBASE_REGIONSERVER_OPTS="-XX:MaxPermSize=128m -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
-{% else %}
-export HBASE_MASTER_OPTS=" -Xms{{hbase_heapsize}} -Xmx{{hbase_heapsize}} -Xmn{{hbase_master_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly"
-export HBASE_REGIONSERVER_OPTS=" -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
-{% endif %}
+export HBASE_MASTER_OPTS="-Xms{{hbase_heapsize}} -Xmx{{hbase_heapsize}} -Xmn{{hbase_master_xmn_size}}"
+export HBASE_REGIONSERVER_OPTS="-Xmn{{regionserver_xmn_size}} -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
 
 
 # export HBASE_THRIFT_OPTS="$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103"
@@ -282,7 +262,7 @@ export HBASE_ZOOKEEPER_OPTS="$HBASE_ZOOKEEPER_OPTS -Dzookeeper.sasl.client.usern
 _HADOOP_NATIVE_LIB="/usr/lib/ams-hbase/lib/hadoop-native/"
 export HBASE_OPTS="$HBASE_OPTS -Djava.library.path=${_HADOOP_NATIVE_LIB}"
 
-# Unset HADOOP_HOME to avoid importing HADOOP installed cluster related configs like: /usr/hdp/2.2.0.0-2041/hadoop/conf/
+# Unset HADOOP_HOME to avoid importing configuration from an unrelated Hadoop installation.
 export HADOOP_HOME={{ams_hbase_home_dir}}
 
 # Explicitly Setting HBASE_HOME for AMS HBase so that there is no conflict
