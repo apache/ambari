@@ -185,15 +185,21 @@ def all_tests_suite(custom_test_mask):
   for test_path in sorted(selected_paths):
     test_directory = os.path.dirname(test_path)
     module_name = os.path.splitext(os.path.basename(test_path))[0]
-    sys.modules.pop(module_name, None)
-    suites.append(
-      loader.discover(
-        start_dir=test_directory,
-        pattern=os.path.basename(test_path),
-        top_level_dir=test_directory,
+    original_sys_path = sys.path[:]
+    try:
+      sys.path[:] = [path for path in sys.path if path != test_directory]
+      sys.path.insert(0, test_directory)
+      sys.modules.pop(module_name, None)
+      suites.append(
+        loader.discover(
+          start_dir=test_directory,
+          pattern=os.path.basename(test_path),
+          top_level_dir=test_directory,
+        )
       )
-    )
-    sys.modules.pop(module_name, None)
+    finally:
+      sys.modules.pop(module_name, None)
+      sys.path[:] = original_sys_path
   return unittest.TestSuite(suites)
 
 
