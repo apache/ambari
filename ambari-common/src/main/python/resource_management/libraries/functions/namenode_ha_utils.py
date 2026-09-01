@@ -66,6 +66,7 @@ def get_namenode_states(
   sleep_time=1,
   backoff_factor=2,
   name_service=None,
+  environment=None,
 ):
   """
   return format [('nn1', 'hdfs://hostname1:port1'), ('nn2', 'hdfs://hostname2:port2')] , [....], [....]
@@ -83,6 +84,7 @@ def get_namenode_states(
         run_user,
         doRetries.attempt == times,
         name_service=name_service,
+        environment=environment,
       )
     )
     Logger.info(
@@ -103,7 +105,12 @@ def get_namenode_states(
 
 
 def get_namenode_states_noretries(
-  hdfs_site, security_enabled, run_user, last_retry=True, name_service=None
+  hdfs_site,
+  security_enabled,
+  run_user,
+  last_retry=True,
+  name_service=None,
+  environment=None,
 ):
   """
   returns data for all name nodes of all name services
@@ -115,7 +122,12 @@ def get_namenode_states_noretries(
   name_services = get_nameservices(hdfs_site) if not name_service else [name_service]
   for name_service in name_services:
     active, standby, unknown = _get_namenode_states_noretries_single_ns(
-      hdfs_site, name_service, security_enabled, run_user, last_retry
+      hdfs_site,
+      name_service,
+      security_enabled,
+      run_user,
+      last_retry,
+      environment=environment,
     )
     active_namenodes += active
     standby_namenodes += standby
@@ -124,7 +136,12 @@ def get_namenode_states_noretries(
 
 
 def _get_namenode_states_noretries_single_ns(
-  hdfs_site, name_service, security_enabled, run_user, last_retry=True
+  hdfs_site,
+  name_service,
+  security_enabled,
+  run_user,
+  last_retry=True,
+  environment=None,
 ):
   """
   return format [('nn1', 'hdfs://hostname1:port1'), ('nn2', 'hdfs://hostname2:port2')] , [....], [....]
@@ -141,14 +158,30 @@ def _get_namenode_states_noretries_single_ns(
     )
     jmx_uri = jmx_uri.format(JMX_BEAN_FS)
     state = get_value_from_jmx(
-      jmx_uri, "tag.HAState", security_enabled, run_user, is_https_enabled, last_retry
+      jmx_uri,
+      "tag.HAState",
+      security_enabled,
+      run_user,
+      is_https_enabled,
+      last_retry,
+      environment=environment,
     )
     # If JMX parsing failed
     if not state:
       check_service_cmd = (
-        f"hdfs haadmin -ns {name_service} -getServiceState {nn_unique_id}"
+        "hdfs",
+        "haadmin",
+        "-ns",
+        name_service,
+        "-getServiceState",
+        nn_unique_id,
       )
-      code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
+      code, out = shell.call(
+        check_service_cmd,
+        logoutput=True,
+        user=run_user,
+        env=environment,
+      )
       if code == 0 and out:
         if HDFS_NN_STATE_STANDBY in out:
           state = HDFS_NN_STATE_STANDBY
@@ -199,7 +232,9 @@ def all_jmx_namenode_addresses(hdfs_site, name_service):
     yield nn_unique_id, value, jmx_uri
 
 
-def get_hdfs_cluster_id_from_jmx(hdfs_site, security_enabled, run_user):
+def get_hdfs_cluster_id_from_jmx(
+  hdfs_site, security_enabled, run_user, environment=None
+):
   name_services = get_nameservices(hdfs_site)
   for name_service in name_services:
     for nn_unique_id, address, jmx_uri in all_jmx_namenode_addresses(
@@ -210,7 +245,12 @@ def get_hdfs_cluster_id_from_jmx(hdfs_site, security_enabled, run_user):
         hdfs_site["dfs.http.policy"], hdfs_site["dfs.https.enable"]
       )
       state = get_value_from_jmx(
-        jmx_uri, "ClusterId", security_enabled, run_user, is_https_enabled
+        jmx_uri,
+        "ClusterId",
+        security_enabled,
+        run_user,
+        is_https_enabled,
+        environment=environment,
       )
 
       if state:
