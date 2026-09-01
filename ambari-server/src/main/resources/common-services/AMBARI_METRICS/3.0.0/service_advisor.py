@@ -21,13 +21,25 @@ limitations under the License.
 from ambari_commons import import_utils
 import re
 import os
-import sys
-import socket
-import traceback
 from math import ceil, floor, log
 
 
-from resource_management.core.logger import Logger
+_HEAP_SIZE_PATTERN = re.compile(r"([1-9][0-9]*)([mMgG]?)", re.ASCII)
+
+
+def heap_size_mb(value):
+  if isinstance(value, bool):
+    return None
+  if isinstance(value, int):
+    return value if value > 0 else None
+  if not isinstance(value, str):
+    return None
+  match = _HEAP_SIZE_PATTERN.fullmatch(value.strip())
+  if match is None:
+    return None
+  size = int(match.group(1))
+  return size * 1024 if match.group(2).lower() == "g" else size
+
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../stacks/")
@@ -40,9 +52,8 @@ try:
     service_advisor = import_utils.load_module(
       "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
     )
-except Exception as e:
-  traceback.print_exc()
-  print("Failed to load parent")
+except Exception as error:
+  raise RuntimeError(f"Failed to load parent service advisor: {PARENT_FILE}") from error
 
 
 class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
@@ -149,9 +160,9 @@ class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
       "YARN": {
         "RESOURCEMANAGER": HEAP_PER_MASTER_COMPONENT,
         "NODEMANAGER": HEAP_PER_SLAVE_COMPONENT,
-        "HISTORYSERVER": HEAP_PER_MASTER_COMPONENT,
         "APP_TIMELINE_SERVER": HEAP_PER_MASTER_COMPONENT,
       },
+      "MAPREDUCE2": {"HISTORYSERVER": HEAP_PER_MASTER_COMPONENT},
       "HBASE": {
         "HBASE_MASTER": HEAP_PER_MASTER_COMPONENT,
         "HBASE_REGIONSERVER": HEAP_PER_SLAVE_COMPONENT,
@@ -161,19 +172,18 @@ class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
         "HIVE_SERVER": HEAP_PER_MASTER_COMPONENT,
       },
       "KAFKA": {"KAFKA_BROKER": HEAP_PER_MASTER_COMPONENT},
-      "FLUME": {"FLUME_HANDLER": HEAP_PER_SLAVE_COMPONENT},
-      "STORM": {
-        "NIMBUS": HEAP_PER_MASTER_COMPONENT,
+      "FLINK": {"FLINK_HISTORYSERVER": HEAP_PER_MASTER_COMPONENT},
+      "SPARK": {
+        "SPARK_JOBHISTORYSERVER": HEAP_PER_MASTER_COMPONENT,
+        "SPARK_THRIFTSERVER": HEAP_PER_MASTER_COMPONENT,
       },
+      "LIVY": {"LIVY_SERVER": HEAP_PER_MASTER_COMPONENT},
+      "ZEPPELIN": {"ZEPPELIN_SERVER": HEAP_PER_MASTER_COMPONENT},
+      "SOLR": {"SOLR_SERVER": HEAP_PER_MASTER_COMPONENT},
       "AMBARI_METRICS": {
         "METRICS_COLLECTOR": HEAP_PER_MASTER_COMPONENT,
         "METRICS_MONITOR": HEAP_PER_SLAVE_COMPONENT,
       },
-      "ACCUMULO": {
-        "ACCUMULO_MASTER": HEAP_PER_MASTER_COMPONENT,
-        "ACCUMULO_TSERVER": HEAP_PER_SLAVE_COMPONENT,
-      },
-      "LOGSEARCH": {"LOGSEARCH_LOGFEEDER": HEAP_PER_SLAVE_COMPONENT},
     }
     total_sinks_count = 0
     # minimum heap size
@@ -181,7 +191,7 @@ class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
     for serviceName, componentsDict in schMemoryMap.items():
       for componentName, multiplier in componentsDict.items():
         schCount = len(
-          self.getHostsWithComponent(serviceName, componentName, services, hosts)
+          self.getHostsWithComponent(serviceName, componentName, services, hosts) or []
         )
         hbase_heapsize += int((schCount * multiplier))
         total_sinks_count += schCount
@@ -208,7 +218,7 @@ class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = AMBARI_METRICSRecommender()
-    recommender.recommendAmsConfigurationsFromHDP206(
+    recommender.recommendAmsConfigurations(
       configurations, clusterData, services, hosts
     )
 
@@ -223,11 +233,12 @@ class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
     # Logger.info("Class: %s, Method: %s. Validating Configurations." %
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
-    # validator = self.getAMBARI_METRICSValidator()
+    validator = self.getAMBARI_METRICSValidator()
     # Calls the methods of the validator using arguments,
     # method(siteProperties, siteRecommendations, configurations, services, hosts)
-    # return validator.validateListOfConfigUsingMethod(configurations, recommendedDefaults, services, hosts, validator.validators)
-    return []
+    return validator.validateListOfConfigUsingMethod(
+      configurations, recommendedDefaults, services, hosts, validator.validators
+    )
 
   def getAMBARI_METRICSValidator(self):
     return AMBARI_METRICSValidator()
@@ -271,7 +282,7 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
     mountPoints.append("/")
     return mountPoints
 
-  def recommendAmsConfigurationsFromHDP206(
+  def recommendAmsConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
@@ -287,11 +298,10 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
 
     amsCollectorHosts = self.getComponentHostNames(
       services, "AMBARI_METRICS", "METRICS_COLLECTOR"
-    )
+    ) or []
 
     serviceAdvisor = AMBARI_METRICSServiceAdvisor()
 
-    # TODO set "timeline.metrics.service.webapp.address" to 0.0.0.0:port in upgrade catalog
     timeline_metrics_service_webapp_address = "0.0.0.0"
 
     putAmsSiteProperty(
@@ -341,7 +351,7 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
 
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
     tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
-    zk_port_default = []
+    zk_port_default = ""
     if "ams-hbase-site" in services["configurations"]:
       if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
         rootDir = services["configurations"]["ams-hbase-site"]["properties"][
@@ -362,12 +372,12 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
       # Skip recommendation item if default value is present
     if (
       operatingMode == "distributed"
-      and not "{{zookeeper_clientPort}}" in zk_port_default
+      and "{{zookeeper_clientPort}}" not in zk_port_default
     ):
       zkPort = self.getZKPort(services)
       putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", zkPort)
     elif (
-      operatingMode == "embedded" and not "{{zookeeper_clientPort}}" in zk_port_default
+      operatingMode == "embedded" and "{{zookeeper_clientPort}}" not in zk_port_default
     ):
       putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", "61181")
 
@@ -408,28 +418,35 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
     putAmsEnvProperty("metrics_collector_heapsize", collector_heapsize)
 
     putAmsSiteProperty(
-      "timeline.metrics.cache.size", max(100, int(log(total_sinks_count)) * 100)
+      "timeline.metrics.cache.size", max(100, int(log(max(1, total_sinks_count))) * 100)
     )
     putAmsSiteProperty(
       "timeline.metrics.cache.commit.interval",
-      min(10, max(12 - int(log(total_sinks_count)), 2)),
+      min(10, max(12 - int(log(max(1, total_sinks_count))), 2)),
     )
 
     # blockCache = 0.3, memstore = 0.35, phoenix-server = 0.15, phoenix-client = 0.25
     putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
     putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 134217728)
+    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.size", 0.35)
+    putAmsHbaseSiteProperty(
+      "hbase.regionserver.global.memstore.size.lower.limit", 0.857142857
+    )
+    # The AMS split-point calculator still reads the pre-HBase-2 aliases.
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.35)
     putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.3)
 
-    if len(amsCollectorHosts) > 1:
-      pass
-    else:
+    if len(amsCollectorHosts) <= 1:
       # blockCache = 0.3, memstore = 0.3, phoenix-server = 0.2, phoenix-client = 0.3
       if total_sinks_count >= 2000:
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.size", 0.3)
+        putAmsHbaseSiteProperty(
+          "hbase.regionserver.global.memstore.size.lower.limit", 0.833333333
+        )
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.3)
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
         putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
@@ -445,14 +462,11 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
         putAmsSiteProperty("timeline.metrics.service.resultset.fetchSize", 5000)
       else:
         putAmsHbaseSiteProperty("phoenix.coprocessor.maxMetaDataCacheSize", 20480000)
-      pass
 
     metrics_api_handlers = min(50, max(20, int(total_sinks_count // 100)))
     putAmsSiteProperty(
       "timeline.metrics.service.handler.thread.count", metrics_api_handlers
     )
-
-    serviceAdvisor = AMBARI_METRICSServiceAdvisor()
 
     # Distributed mode heap size
     if operatingMode == "distributed":
@@ -475,7 +489,7 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
 
     # If no local DN in distributed mode
     if operatingMode == "distributed":
-      dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
+      dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE") or []
       # call by Kerberos wizard sends only the service being affected
       # so it is possible for dn_hosts to be None but not amsCollectorHosts
       if dn_hosts and len(dn_hosts) > 0:
@@ -487,25 +501,6 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
           "dfs.client.read.shortcircuit", collector_cohosted_with_dn
         )
 
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
-
-    ams_hbase_site = None
-    ams_hbase_env = None
-
-    # Overriden properties form the UI
-    if "ams-hbase-site" in services["configurations"]:
-      ams_hbase_site = services["configurations"]["ams-hbase-site"]["properties"]
-    if "ams-hbase-env" in services["configurations"]:
-      ams_hbase_env = services["configurations"]["ams-hbase-env"]["properties"]
-
-    # Recommendations
-    if not ams_hbase_site:
-      ams_hbase_site = configurations["ams-hbase-site"]["properties"]
-    if not ams_hbase_env:
-      ams_hbase_env = configurations["ams-hbase-env"]["properties"]
-
     component_grafana_exists = False
     for service in services["services"]:
       if "components" in service:
@@ -513,17 +508,14 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
           if "StackServiceComponents" in component:
             # If Grafana is installed the hostnames would indicate its location
             if (
-              "METRICS_GRAFANA" in component["StackServiceComponents"]["component_name"]
-              and len(component["StackServiceComponents"]["hostnames"]) != 0
+              component["StackServiceComponents"]["component_name"]
+              == "METRICS_GRAFANA"
+              and component["StackServiceComponents"].get("hostnames")
             ):
               component_grafana_exists = True
               break
-    pass
-
     if not component_grafana_exists:
       putGrafanaPropertyAttribute("metrics_grafana_password", "visible", "false")
-
-    pass
 
 
 class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
@@ -537,12 +529,25 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
     self.validators = [
-      ("ams-hbase-site", self.validateAmsHbaseSiteConfigurationsFromHDP206),
-      ("ams-hbase-env", self.validateAmsHbaseEnvConfigurationsFromHDP206),
-      ("ams-site", self.validateAmsSiteConfigurationsFromHDP206),
-      ("ams-env", self.validateAmsEnvConfigurationsFromHDP206),
-      ("ams-grafana-env", self.validateGrafanaEnvConfigurationsFromHDP206),
+      ("ams-hbase-site", self.validateAmsHbaseSiteConfigurations),
+      ("ams-hbase-env", self.validateAmsHbaseEnvConfigurations),
+      ("ams-site", self.validateAmsSiteConfigurations),
+      ("ams-env", self.validateAmsEnvConfigurations),
+      ("ams-grafana-env", self.validateGrafanaEnvConfigurations),
     ]
+
+  def validateHeapAgainstRecommended(self, properties, recommendedDefaults, name):
+    if name not in recommendedDefaults:
+      return None
+    value = heap_size_mb(properties.get(name))
+    if value is None:
+      return self.getErrorItem("A positive heap size is required.")
+    recommended = heap_size_mb(recommendedDefaults.get(name))
+    if recommended is not None and value < recommended:
+      return self.getWarnItem(
+        f"Value is less than the recommended default of {recommended} MB"
+      )
+    return None
 
   def getPreferredMountPoints(self, hostInfo):
     # '/etc/resolv.conf', '/etc/hostname', '/etc/hosts' are docker specific mount points
@@ -573,12 +578,12 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     mountPoints.append("/")
     return mountPoints
 
-  def validateAmsHbaseSiteConfigurationsFromHDP206(
+  def validateAmsHbaseSiteConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     amsCollectorHosts = self.getComponentHostNames(
       services, "AMBARI_METRICS", "METRICS_COLLECTOR"
-    )
+    ) or []
     ams_site = self.getSiteProperties(configurations, "ams-site")
     core_site = self.getSiteProperties(configurations, "core-site")
 
@@ -588,25 +593,28 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
       serviceAdvisor.getAmsMemoryRecommendation(services, hosts)
     )
     recommendedDiskSpace = 10485760
-    # TODO validate configuration for multiple AMBARI_METRICS collectors
-    if len(amsCollectorHosts) > 1:
-      pass
-    else:
-      if total_sinks_count > 2000:
-        recommendedDiskSpace = 104857600  # * 1k == 100 Gb
-      elif total_sinks_count > 500:
-        recommendedDiskSpace = 52428800  # * 1k == 50 Gb
-      elif total_sinks_count > 250:
-        recommendedDiskSpace = 20971520  # * 1k == 20 Gb
+    if total_sinks_count > 2000:
+      recommendedDiskSpace = 104857600  # * 1k == 100 Gb
+    elif total_sinks_count > 500:
+      recommendedDiskSpace = 52428800  # * 1k == 50 Gb
+    elif total_sinks_count > 250:
+      recommendedDiskSpace = 20971520  # * 1k == 20 Gb
 
     validationItems = []
 
     rootdir_item = None
-    op_mode = ams_site.get("timeline.metrics.service.operation.mode")
-    default_fs = core_site.get("fs.defaultFS") if core_site else "file:///"
-    hbase_rootdir = properties.get("hbase.rootdir")
-    hbase_tmpdir = properties.get("hbase.tmp.dir")
-    distributed = properties.get("hbase.cluster.distributed")
+    op_mode = (
+      ams_site.get("timeline.metrics.service.operation.mode")
+      if ams_site
+      else None
+    )
+    default_fs = (core_site.get("fs.defaultFS") if core_site else None) or "file:///"
+    hbase_rootdir = properties.get("hbase.rootdir", "")
+    hbase_tmpdir = properties.get("hbase.tmp.dir", "")
+    distributed_value = properties.get("hbase.cluster.distributed", "")
+    distributed = (
+      distributed_value.lower() if isinstance(distributed_value, str) else ""
+    )
     is_local_root_dir = hbase_rootdir.startswith("file://") or (
       default_fs.startswith("file://") and hbase_rootdir.startswith("/")
     )
@@ -617,23 +625,21 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
       )
     elif op_mode == "embedded":
       if (
-        distributed.lower() == "false"
-        and hbase_rootdir.startswith("/")
+        (distributed == "false" and hbase_rootdir.startswith("/"))
         or hbase_rootdir.startswith("hdfs://")
       ):
         rootdir_item = self.getWarnItem(
           "In embedded mode hbase.rootdir cannot point to schemaless values or HDFS, "
           "Example - file:// for localFS"
         )
-      pass
 
     distributed_item = None
-    if op_mode == "distributed" and not distributed.lower() == "true":
+    if op_mode == "distributed" and distributed != "true":
       distributed_item = self.getErrorItem(
         "hbase.cluster.distributed property should be set to true for "
         "distributed mode"
       )
-    if op_mode == "embedded" and distributed.lower() == "true":
+    if op_mode == "embedded" and distributed != "false":
       distributed_item = self.getErrorItem(
         "hbase.cluster.distributed property should be set to false for embedded mode"
       )
@@ -642,7 +648,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     zkPort = self.getZKPort(services)
     hbase_zk_client_port_item = None
     if (
-      distributed.lower() == "true"
+      distributed == "true"
       and op_mode == "distributed"
       and hbase_zk_client_port != zkPort
       and hbase_zk_client_port != "{{zookeeper_clientPort}}"
@@ -653,7 +659,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
       )
 
     if (
-      distributed.lower() == "false"
+      distributed == "false"
       and op_mode == "embedded"
       and hbase_zk_client_port == zkPort
       and hbase_zk_client_port != "{{zookeeper_clientPort}}"
@@ -710,7 +716,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
               ]
             )
 
-          dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
+          dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE") or []
           if is_local_root_dir:
             mountPoints = []
             for mountPoint in host["Hosts"]["disk_info"]:
@@ -768,7 +774,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
                   )
                   break
           # If no local DN in distributed mode
-          elif collectorHostName not in dn_hosts and distributed.lower() == "true":
+          elif collectorHostName not in dn_hosts and distributed == "true":
             item = self.getWarnItem(
               "It's recommended to install Datanode component on {0} "
               "to speed up IO operations between HDFS and Metrics "
@@ -793,24 +799,46 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-site")
 
-  def validateAmsHbaseEnvConfigurationsFromHDP206(
+  def validateAmsHbaseEnvConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
-    ams_env = self.getSiteProperties(configurations, "ams-env")
+    ams_env = self.getSiteProperties(configurations, "ams-env") or {}
     amsHbaseSite = self.getSiteProperties(configurations, "ams-hbase-site")
     validationItems = []
     mb = 1024 * 1024
-    gb = 1024 * mb
 
-    regionServerItem = self.validatorLessThenDefaultValue(
+    numeric_heap_properties = (
+      "hbase_master_heapsize",
+      "hbase_master_xmn_size",
+      "hbase_regionserver_heapsize",
+      "regionserver_xmn_size",
+    )
+    invalid_heap_properties = [
+      property_name
+      for property_name in numeric_heap_properties
+      if heap_size_mb(properties.get(property_name)) is None
+    ]
+    if invalid_heap_properties:
+      for property_name in invalid_heap_properties:
+        validationItems.append(
+          {
+            "config-name": property_name,
+            "item": self.getErrorItem("A positive heap size is required."),
+          }
+        )
+      return self.toConfigurationValidationProblems(
+        validationItems, "ams-hbase-env"
+      )
+
+    regionServerItem = self.validateHeapAgainstRecommended(
       properties, recommendedDefaults, "hbase_regionserver_heapsize"
-    )  ## FIXME if new service added
+    )
     if regionServerItem:
       validationItems.extend(
         [{"config-name": "hbase_regionserver_heapsize", "item": regionServerItem}]
       )
 
-    hbaseMasterHeapsizeItem = self.validatorLessThenDefaultValue(
+    hbaseMasterHeapsizeItem = self.validateHeapAgainstRecommended(
       properties, recommendedDefaults, "hbase_master_heapsize"
     )
     if hbaseMasterHeapsizeItem:
@@ -824,18 +852,19 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     if logDirItem:
       validationItems.extend([{"config-name": "hbase_log_dir", "item": logDirItem}])
 
-    hbase_master_heapsize = self.to_number(properties["hbase_master_heapsize"])
-    hbase_master_xmn_size = self.to_number(properties["hbase_master_xmn_size"])
-    hbase_regionserver_heapsize = self.to_number(
+    hbase_master_heapsize = heap_size_mb(properties["hbase_master_heapsize"])
+    hbase_master_xmn_size = heap_size_mb(properties["hbase_master_xmn_size"])
+    hbase_regionserver_heapsize = heap_size_mb(
       properties["hbase_regionserver_heapsize"]
     )
-    hbase_regionserver_xmn_size = self.to_number(properties["regionserver_xmn_size"])
+    hbase_regionserver_xmn_size = heap_size_mb(properties["regionserver_xmn_size"])
 
     # Validate Xmn settings.
     masterXmnItem = None
     regionServerXmnItem = None
     is_hbase_distributed = (
-      amsHbaseSite.get("hbase.cluster.distributed").lower() == "true"
+      amsHbaseSite
+      and amsHbaseSite.get("hbase.cluster.distributed", "").lower() == "true"
     )
 
     if is_hbase_distributed:
@@ -929,14 +958,14 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
 
       amsCollectorHosts = self.getComponentHostNames(
         services, "AMBARI_METRICS", "METRICS_COLLECTOR"
-      )
+      ) or []
       for collectorHostName in amsCollectorHosts:
         for host in hosts["items"]:
           if host["Hosts"]["host_name"] == collectorHostName:
             # AMS Collector co-hosted with other master components in bigger clusters
             if (
               len(hosts["items"]) > 31
-              and len(hostMasterComponents[collectorHostName]) > 2
+              and len(hostMasterComponents.get(collectorHostName, [])) > 2
               and host["Hosts"]["total_mem"] < 32 * mb
             ):  # < 32Gb(total_mem in k)
               masterHostMessage = (
@@ -961,11 +990,10 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
                     }
                   ]
                 )
-      pass
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 
-  def validateAmsSiteConfigurationsFromHDP206(
+  def validateAmsSiteConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     validationItems = []
@@ -975,10 +1003,16 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     op_mode = properties.get("timeline.metrics.service.operation.mode")
     correct_op_mode_item = None
     if op_mode not in ("embedded", "distributed"):
-      correct_op_mode_item = self.getErrorItem("Correct value should be set.")
-      pass
+      correct_op_mode_item = self.getErrorItem(
+        "Value must be either 'embedded' or 'distributed'."
+      )
     elif (
-      len(self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR"))
+      len(
+        self.getComponentHostNames(
+          services, "AMBARI_METRICS", "METRICS_COLLECTOR"
+        )
+        or []
+      )
       > 1
       and op_mode != "distributed"
     ):
@@ -1005,11 +1039,11 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     )
     return self.toConfigurationValidationProblems(validationItems, "ams-site")
 
-  def validateAmsEnvConfigurationsFromHDP206(
+  def validateAmsEnvConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     validationItems = []
-    collectorHeapsizeDefaultItem = self.validatorLessThenDefaultValue(
+    collectorHeapsizeDefaultItem = self.validateHeapAgainstRecommended(
       properties, recommendedDefaults, "metrics_collector_heapsize"
     )
     validationItems.extend(
@@ -1021,8 +1055,8 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
       ]
     )
 
-    ams_env = self.getSiteProperties(configurations, "ams-env")
-    collector_heapsize = self.to_number(ams_env.get("metrics_collector_heapsize"))
+    ams_env = self.getSiteProperties(configurations, "ams-env") or {}
+    collector_heapsize = heap_size_mb(ams_env.get("metrics_collector_heapsize")) or 0
     if collector_heapsize > 32768:
       collectorHeapsizeMaxItem = self.getWarnItem(
         "Value is more than the recommended maximum heap size of 32G."
@@ -1038,19 +1072,18 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "ams-env")
 
-  def validateGrafanaEnvConfigurationsFromHDP206(
+  def validateGrafanaEnvConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     validationItems = []
 
-    grafana_pwd = properties.get("metrics_grafana_password")
+    grafana_pwd = properties.get("metrics_grafana_password", "")
     grafana_pwd_length_item = None
-    if len(grafana_pwd) < 4:
+    if not isinstance(grafana_pwd, str) or len(grafana_pwd) < 4:
       grafana_pwd_length_item = self.getErrorItem(
         "Grafana password length should be at least 4."
       )
-      pass
     validationItems.extend(
       [{"config-name": "metrics_grafana_password", "item": grafana_pwd_length_item}]
     )
-    return self.toConfigurationValidationProblems(validationItems, "ams-site")
+    return self.toConfigurationValidationProblems(validationItems, "ams-grafana-env")

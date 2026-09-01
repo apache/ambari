@@ -129,8 +129,6 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 # Stack scripts receive some globals from Ambari's runtime loader.
 "ambari-server/src/main/python/bootstrap.py" = ["F821"]
 "ambari-server/src/main/resources/common-services/AMBARI_METRICS/3.0.0/package/scripts/ams.py" = ["F821"]
-"ambari-server/src/main/resources/common-services/AMBARI_METRICS/3.0.0/package/scripts/hbase_master.py" = ["F821"]
-"ambari-server/src/main/resources/common-services/AMBARI_METRICS/3.0.0/package/scripts/hbase_regionserver.py" = ["F821"]
 "ambari-server/src/main/resources/common-services/AMBARI_METRICS/3.0.0/package/scripts/metrics_collector.py" = ["F821"]
 "ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HBASE/package/scripts/hbase_master.py" = ["F821"]
 "ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/HBASE/package/scripts/hbase_regionserver.py" = ["F821"]
