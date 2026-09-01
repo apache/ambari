@@ -15,13 +15,22 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
+from contextlib import nullcontext
+
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
 from resource_management.libraries.script.script import Script
+
+import infra_solr_utils
+
+
+CHECK_TIMEOUT_SECONDS = 30
 
 
 class InfraServiceCheck(Script):
@@ -29,33 +38,78 @@ class InfraServiceCheck(Script):
     import params
 
     env.set_params(params)
+    if not params.infra_solr_hosts:
+      raise Fail("Infra Solr service check requires at least one server host")
+    infra_solr_utils.validate_executable("/usr/bin/curl", "curl executable")
 
-    Logger.info("Infra Service Check ...")
-    if (
-      "infra-solr-env" in params.config["configurations"]
-      and params.infra_solr_hosts is not None
-      and len(params.infra_solr_hosts) > 0
-    ):
-      solr_protocol = "https" if params.infra_solr_ssl_enabled else "http"
-      solr_host = params.infra_solr_hosts[0]  # choose the first solr host
-      solr_port = params.infra_solr_port
-      solr_url = format("{solr_protocol}://{solr_host}:{solr_port}/solr/#/")
+    cache_context = nullcontext(None)
+    if params.security_enabled:
+      infra_solr_utils.validate_executable(
+        params.kinit_path_local, "kinit executable"
+      )
+      infra_solr_utils.validate_keytab(
+        params.smoke_user_keytab, "Infra Solr service-check keytab"
+      )
+      infra_solr_utils.validate_principal(
+        params.smokeuser_principal, "Infra Solr service-check principal"
+      )
+      cache_context = PrivateKerberosCache(
+        params.smokeuser,
+        params.user_group,
+        temp_dir=params.tmp_dir,
+        prefix="ambari-infra-solr-check-",
+      )
 
-      smokeuser_kinit_cmd = (
-        format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
-        if params.security_enabled
-        else ""
-      )
-      smoke_infra_solr_cmd = format(
-        "{smokeuser_kinit_cmd} curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {solr_url} | grep 200"
-      )
-      Execute(
-        smoke_infra_solr_cmd,
-        tries=40,
-        try_sleep=3,
-        user=params.smokeuser,
-        logoutput=True,
-      )
+    with cache_context as cache:
+      environment = None
+      if cache is not None:
+        cache.kinit(
+          params.kinit_path_local,
+          params.smoke_user_keytab,
+          params.smokeuser_principal,
+          timeout=30,
+        )
+        environment = cache.environment
+
+      failures = []
+      protocol = "https" if params.infra_solr_ssl_enabled else "http"
+      for host in params.infra_solr_hosts:
+        url = (
+          f"{protocol}://{host}:{params.infra_solr_port}"
+          "/solr/admin/info/system?wt=json"
+        )
+        command = [
+          "/usr/bin/curl",
+          "--disable",
+          "--silent",
+          "--show-error",
+          "--fail",
+          "--output",
+          "/dev/null",
+          "--connect-timeout",
+          "5",
+          "--max-time",
+          str(CHECK_TIMEOUT_SECONDS),
+        ]
+        if params.security_enabled:
+          command.extend(("--negotiate", "--user", ":"))
+        command.extend(("--url", url))
+        options = {}
+        if environment is not None:
+          options["environment"] = environment
+        try:
+          Execute(
+            tuple(command),
+            user=params.smokeuser,
+            timeout=CHECK_TIMEOUT_SECONDS + 5,
+            logoutput=True,
+            **options,
+          )
+          return
+        except Exception as error:
+          failures.append(f"{host}: {error}")
+          Logger.warning(f"Infra Solr service check failed for {host}: {error}")
+      raise Fail("Connection to all Infra Solr servers failed: " + "; ".join(failures))
 
 
 if __name__ == "__main__":
