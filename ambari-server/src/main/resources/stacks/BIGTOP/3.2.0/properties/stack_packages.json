@@ -538,13 +538,13 @@
         "ZEPPELIN_SERVER": {
           "STACK-SELECT-PACKAGE": "zeppelin-server",
           "INSTALL": [
-            "zeppelin-server"
+            "zeppelin"
           ],
           "PATCH": [
-            "zeppelin-server"
+            "zeppelin"
           ],
           "STANDARD": [
-            "zeppelin-server"
+            "zeppelin"
           ]
         }
       },

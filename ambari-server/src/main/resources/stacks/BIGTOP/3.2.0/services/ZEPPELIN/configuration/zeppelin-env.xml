@@ -110,7 +110,7 @@
     <description>This is the jinja template for zeppelin-env.sh file</description>
     <value>
       # export JAVA_HOME=
-      export JAVA_HOME={{java64_home}}
+      export JAVA_HOME={{java64_home_shell}}
       # export MASTER=                              # Spark master url. eg. spark://master_addr:7077. Leave empty if you want to use local mode.
       export MASTER=yarn-client
 
@@ -121,13 +121,13 @@
       # export ZEPPELIN_SSL_PORT                    # ssl port (used when ssl environment variable is set to true)
 
       # export ZEPPELIN_LOG_DIR                     # Where log files are stored.  PWD by default.
-      export ZEPPELIN_LOG_DIR={{zeppelin_log_dir}}
+      export ZEPPELIN_LOG_DIR={{zeppelin_log_dir_shell}}
       # export ZEPPELIN_PID_DIR                     # The pid files are stored. ${ZEPPELIN_HOME}/run by default.
-      export ZEPPELIN_PID_DIR={{zeppelin_pid_dir}}
+      export ZEPPELIN_PID_DIR={{zeppelin_pid_dir_shell}}
       # export ZEPPELIN_WAR_TEMPDIR                 # The location of jetty temporary directory.
-      export ZEPPELIN_WAR_TEMPDIR={{zeppelin_war_tempdir}}
+      export ZEPPELIN_WAR_TEMPDIR={{zeppelin_war_tempdir_shell}}
       # export ZEPPELIN_NOTEBOOK_DIR                # Where notebook saved
-      export ZEPPELIN_NOTEBOOK_DIR={{zeppelin_notebook_dir}}
+      export ZEPPELIN_NOTEBOOK_DIR={{zeppelin_notebook_dir_shell}}
       # export ZEPPELIN_NOTEBOOK_HOMESCREEN         # Id of notebook to be displayed in homescreen. ex) 2A94M5J1Z
       # export ZEPPELIN_NOTEBOOK_HOMESCREEN_HIDE    # hide homescreen notebook from list when this value set to "true". default "false"
       # export ZEPPELIN_NOTEBOOK_S3_BUCKET          # Bucket where notebook saved
@@ -139,7 +139,7 @@
       # export ZEPPELIN_NOTEBOOK_STORAGE            # Refers to pluggable notebook storage class, can have two classes simultaneously with a sync between them (e.g. local and remote).
       # export ZEPPELIN_NOTEBOOK_ONE_WAY_SYNC       # If there are multiple notebook storages, should we treat the first one as the only source of truth?
       # export ZEPPELIN_NOTEBOOK_PUBLIC             # Make notebook public by default when created, private otherwise
-      export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}"
+      export ZEPPELIN_INTP_CLASSPATH_OVERRIDES={{external_dependency_conf_shell}}
       #### Spark interpreter configuration ####
 
       ## Kerberos ticket refresh setting
@@ -151,7 +151,7 @@
       ## defining SPARK_HOME makes Zeppelin run spark interpreter process using spark-submit
       ##
       # export SPARK_HOME                           # (required) When it is defined, load it instead of Zeppelin embedded Spark libraries
-      export SPARK_HOME={{spark_home}}
+      export SPARK_HOME={{spark_home_shell}}
       # export SPARK_SUBMIT_OPTIONS                 # (optional) extra options to pass to spark submit. eg) "--driver-memory 512M --executor-memory 1G".
       # export SPARK_APP_NAME                       # (optional) The name of spark application.
 
@@ -182,8 +182,8 @@
 
       # export HBASE_HOME=                          # (require) Under which HBase scripts and configuration should be
       # export HBASE_CONF_DIR=                      # (optional) Alternatively, configuration directory can be set to point to the directory that has hbase-site.xml
-      export HBASE_HOME={{hbase_home}}
-      export HBASE_CONF_DIR={{hbase_conf_dir}}
+      export HBASE_HOME={{hbase_home_shell}}
+      export HBASE_CONF_DIR={{hbase_conf_dir_shell}}
 
       # export ZEPPELIN_IMPERSONATE_CMD             # Optional, when user want to run interpreter as end web user. eg) 'sudo -H -u ${ZEPPELIN_IMPERSONATE_USER} bash -c '
     </value>

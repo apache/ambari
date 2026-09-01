@@ -1,4 +1,4 @@
-#!/usr/bin/env ambari-python-wrap
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -57,5 +57,5 @@ def get_livy_server_settings(configurations, cluster_host_info):
   return {
     "host": str(hosts[0]) if livy_available else None,
     "port": str(livy_config.get("livy.server.port", 8999)),
-    "protocol": "https" if "livy.keystore" in livy_config else "http",
+    "protocol": "https" if str(livy_config.get("livy.keystore", "")).strip() else "http",
   }

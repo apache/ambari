@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import importlib.util
+import json
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -74,9 +75,92 @@ class TestZeppelinBigtop(TestCase):
     required_services = {element.text for element in root.iter("service")}
 
     self.assertIn("SPARK/SPARK_CLIENT", dependencies)
+    self.assertIn("HDFS/HDFS_CLIENT", dependencies)
     self.assertIn("SPARK", required_services)
     self.assertNotIn("SPARK2/SPARK2_CLIENT", dependencies)
     self.assertNotIn("SPARK2", required_services)
+
+    config_types = {
+      element.text
+      for element in root.findall(
+        "./services/service/configuration-dependencies/config-type"
+      )
+    }
+    self.assertTrue(
+      {
+        "core-site",
+        "hdfs-site",
+        "hadoop-env",
+        "viewfs-mount-table",
+        "hive-site",
+        "hive-interactive-site",
+        "spark-defaults",
+        "spark-env",
+        "spark-hive-site-override",
+        "hbase-site",
+        "livy-conf",
+      }.issubset(config_types)
+    )
+
+  def test_metadata_matches_bigtop_0101_packages(self):
+    root = ET.parse(ZEPPELIN / "metainfo.xml").getroot()
+    self.assertEqual("0.10.1-1", root.findtext("./services/service/version"))
+    overlay = ET.parse(
+      STACKS / "BIGTOP/3.3.0/services/ZEPPELIN/metainfo.xml"
+    ).getroot()
+    self.assertEqual("0.10.1-1", overlay.findtext("./services/service/version"))
+
+    os_packages = {
+      node.findtext("osFamily"): [
+        package.findtext("name") for package in node.findall("packages/package")
+      ]
+      for node in root.findall("./services/service/osSpecifics/osSpecific")
+    }
+    self.assertEqual(
+      ["zeppelin_${stack_version}"],
+      os_packages["redhat8,redhat9,openeuler22"],
+    )
+    self.assertEqual(
+      ["zeppelin-${stack_version}"],
+      os_packages["debian10,debian11,ubuntu20,ubuntu22"],
+    )
+
+    stack_packages = json.loads(
+      (STACKS / "BIGTOP/3.2.0/properties/stack_packages.json").read_text(
+        encoding="utf-8"
+      )
+    )["stack-packages"]["ZEPPELIN"]["ZEPPELIN_SERVER"]
+    self.assertEqual("zeppelin-server", stack_packages["STACK-SELECT-PACKAGE"])
+    for scope in ("INSTALL", "PATCH", "STANDARD"):
+      self.assertEqual(["zeppelin"], stack_packages[scope])
+
+  def test_environment_quotes_dynamic_shell_values_and_has_no_fixed_tls_password(self):
+    env_source = (ZEPPELIN / "configuration/zeppelin-env.xml").read_text(
+      encoding="utf-8"
+    )
+    for name in (
+      "java64_home_shell",
+      "zeppelin_log_dir_shell",
+      "zeppelin_pid_dir_shell",
+      "zeppelin_war_tempdir_shell",
+      "zeppelin_notebook_dir_shell",
+      "external_dependency_conf_shell",
+      "spark_home_shell",
+      "hbase_home_shell",
+      "hbase_conf_dir_shell",
+    ):
+      self.assertIn("{{" + name + "}}", env_source)
+
+    site = ET.parse(ZEPPELIN / "configuration/zeppelin-site.xml").getroot()
+    properties = {
+      node.findtext("name"): node.findtext("value") for node in site.findall("property")
+    }
+    for name in (
+      "zeppelin.ssl.keystore.password",
+      "zeppelin.ssl.key.manager.password",
+      "zeppelin.ssl.truststore.password",
+    ):
+      self.assertIn(properties[name], (None, ""))
 
   def test_advisor_removes_stale_atlas_classpath_for_all_service_states(self):
     stale_content = (
@@ -107,7 +191,7 @@ class TestZeppelinBigtop(TestCase):
 
         configurations = {}
         recommender = self.advisor_module.ZeppelinRecommender()
-        recommender.recommendZeppelinConfigurationsFromHDP30(
+        recommender.recommendBigtopRuntimeConfigurations(
           configurations, {}, services, {}
         )
 
@@ -128,7 +212,7 @@ class TestZeppelinBigtop(TestCase):
     }
     configurations = {}
 
-    self.advisor_module.ZeppelinRecommender().recommendZeppelinConfigurationsFromHDP30(
+    self.advisor_module.ZeppelinRecommender().recommendBigtopRuntimeConfigurations(
       configurations, {}, services, {}
     )
 
@@ -148,7 +232,7 @@ class TestZeppelinBigtop(TestCase):
     recommender = self.advisor_module.ZeppelinRecommender()
     configurations = {}
 
-    recommender.recommendZeppelinConfigurationsFromHDP25(
+    recommender.recommendBigtopSecurityConfigurations(
       configurations, {}, services, {}
     )
 
@@ -161,7 +245,7 @@ class TestZeppelinBigtop(TestCase):
       "alice, zeppelin"
     )
     configurations = {}
-    recommender.recommendZeppelinConfigurationsFromHDP25(
+    recommender.recommendBigtopSecurityConfigurations(
       configurations, {}, services, {}
     )
     self.assertNotIn("livy-conf", configurations)
@@ -234,6 +318,13 @@ class TestZeppelinBigtop(TestCase):
     )
 
     self.assertIsNone(settings["host"])
+
+  def test_empty_livy_keystore_does_not_enable_https(self):
+    settings = self.contract_module.get_livy_server_settings(
+      {"livy-conf": {"livy.server.port": "8999", "livy.keystore": " "}},
+      {"livy_server_hosts": ["livy.example.com"]},
+    )
+    self.assertEqual("http", settings["protocol"])
 
   def test_interpreter_ids_use_bigtop_paths_and_secure_livy_endpoint(self):
     config_data = {
@@ -327,3 +418,41 @@ class TestZeppelinBigtop(TestCase):
     for removed_name in forbidden:
       with self.subTest(removed_name=removed_name):
         self.assertNotIn(removed_name, combined_source)
+
+  def test_advisor_rejects_unsafe_runtime_and_tls_defaults(self):
+    validator = self.advisor_module.ZeppelinValidator()
+    site = {
+      node.findtext("name"): node.findtext("value") or ""
+      for node in ET.parse(
+        ZEPPELIN / "configuration/zeppelin-site.xml"
+      ).getroot().findall("property")
+    }
+    site["zeppelin.server.allowed.origins"] = "https://zeppelin.example.com"
+    self.assertEqual([], validator.validate_site(site, {}, {}, {}, {}))
+
+    site["zeppelin.ssl"] = "true"
+    site["zeppelin.server.port"] = "70000"
+    site["zeppelin.server.allowed.origins"] = "*"
+    failures = validator.validate_site(site, {}, {}, {}, {})
+    self.assertTrue(failures)
+    failure_names = {failure["config-name"] for failure in failures}
+    self.assertIn("zeppelin.server.port", failure_names)
+    self.assertIn("zeppelin.server.allowed.origins", failure_names)
+    self.assertIn("zeppelin.ssl.keystore.password", failure_names)
+
+  def test_advisor_rejects_unsafe_users_and_directories(self):
+    validator = self.advisor_module.ZeppelinValidator()
+    properties = {
+      "zeppelin_user": "zeppelin;$(id)",
+      "zeppelin_group": "zeppelin",
+      "zeppelin_pid_dir": "/var/run/zeppelin/../other",
+      "zeppelin_log_dir": "/var/log/zeppelin",
+      "zeppelin_war_tempdir": "/var/run/zeppelin/webapps",
+      "spark_home": "/usr/lib/spark",
+      "hbase_home": "/usr/lib/hbase",
+      "hbase_conf_dir": "/etc/hbase/conf",
+    }
+    failures = validator.validate_environment(properties, {}, {}, {}, {})
+    failure_names = {failure["config-name"] for failure in failures}
+    self.assertIn("zeppelin_user", failure_names)
+    self.assertIn("zeppelin_pid_dir", failure_names)
