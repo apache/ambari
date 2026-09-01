@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,23 +18,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys
+import unittest
+
 import version_builder
 
-def main(args):
-  vb = version_builder.VersionBuilder("version_242-12345.xml")
 
-  vb.set_release(type='STANDARD', stack="HDP-2.4", version="2.4.2.0", build="2468",
-    notes="http://example.com", display="HDP-2.4.2.0-2468", compatible="2.4.[0-9]+")
-  vb.set_os("redhat6", package_version="2_4_2_0_12345")
+class TestVersionBuilderArguments(unittest.TestCase):
+  def test_parse_options_accepts_legacy_positional_arguments(self):
+    options = version_builder.parse_options(
+      ["--file", "version.xml", "legacy-release-name"]
+    )
 
-  vb.add_manifest("HDFS-271", "HDFS", "2.7.1.2.4.0")
-  vb.add_manifest("YARN-271", "HDFS", "2.7.1.2.4.0", version_id = "1", release_version = "2.4.1.0")
+    self.assertEqual("version.xml", options.filename)
+    self.assertEqual(["legacy-release-name"], options.arguments)
 
-  vb.add_repo("redhat8", "BIGTOP-3.2", "BIGTOP", "https://example.com/bigtop/3.2/redhat8", "true")
+  def test_parse_options_rejects_unknown_option(self):
+    with self.assertRaises(SystemExit) as raised:
+      version_builder.parse_options(
+        ["--file", "version.xml", "--relese-type", "STANDARD"]
+      )
 
-  vb.persist()
-  vb.finalize("../../ambari-server/src/main/resources/version_definition.xsd")
+    self.assertEqual(2, raised.exception.code)
+
 
 if __name__ == "__main__":
-  main(sys.argv)
+  unittest.main()

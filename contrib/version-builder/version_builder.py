@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import optparse
+import argparse
 import os
 import subprocess
 import sys
@@ -70,10 +70,10 @@ class VersionBuilder:
       raise Exception(stderr)
 
     if len(stdout) > 0:
-      print(stdout.decode("UTF-8"))
+      print((stdout.decode("UTF-8")))
 
     if len(stderr) > 0:
-      print(stderr.decode("UTF-8"))
+      print((stderr.decode("UTF-8")))
 
   def set_release(self, type=None, stack=None, version=None, build=None, notes=None, display=None,
     compatible=None):
@@ -394,68 +394,78 @@ def validate_repo(parser, options):
     parser.error(template.format("--repo-name"))
 
 
-def main(argv):
-  parser = optparse.OptionParser(
+def create_parser():
+  parser = argparse.ArgumentParser(
     epilog="OS utility 'xmllint' is required for this tool to function.  It handles pretty-printing and XSD validation.")
   
-  parser.add_option('--file', dest='filename',
+  parser.add_argument('--file', dest='filename',
     help="The output XML file")
 
-  parser.add_option('--finalize', action='store_true', dest='finalize',
+  parser.add_argument('--finalize', action='store_true', dest='finalize',
     help="Finalize and validate the XML file")
-  parser.add_option('--xsd', dest='xsd_file',
+  parser.add_argument('--xsd', dest='xsd_file',
     help="The XSD location when finalizing")
 
-  parser.add_option('--release-type', type='choice', choices=['STANDARD', 'PATCH', 'MAINT'], dest='release_type' ,
+  parser.add_argument('--release-type', choices=['STANDARD', 'PATCH', 'MAINT'], dest='release_type' ,
     help="Indicate the release type: i.e. STANDARD, PATCH, MAINT")
-  parser.add_option('--release-stack', dest='release_stack',
+  parser.add_argument('--release-stack', dest='release_stack',
     help="The stack id: e.g. HDP-2.4")
-  parser.add_option('--release-version', dest='release_version',
+  parser.add_argument('--release-version', dest='release_version',
     help="The release version without build number: e.g. 2.4.0.1")
-  parser.add_option('--release-build', dest='release_build',
+  parser.add_argument('--release-build', dest='release_build',
     help="The release build number: e.g. 1234")
-  parser.add_option('--release-compatible', dest='release_compatible',
+  parser.add_argument('--release-compatible', dest='release_compatible',
     help="Regular Expression string to identify version compatibility for patches: e.g. 2.4.1.[0-9]")
-  parser.add_option('--release-notes', dest='release_notes',
+  parser.add_argument('--release-notes', dest='release_notes',
     help="A http link to the documentation notes")
-  parser.add_option('--release-display', dest='release_display',
+  parser.add_argument('--release-display', dest='release_display',
     help="The display name for this release")
-  parser.add_option('--release-package-version', dest='release_package_version',
+  parser.add_argument('--release-package-version', dest='release_package_version',
     help="Identifier to use when installing packages, generally a part of the package name")
 
-  parser.add_option('--manifest', action='store_true', dest='manifest',
+  parser.add_argument('--manifest', action='store_true', dest='manifest',
     help="Add a manifest service with other options: --manifest-id, --manifest-service, --manifest-version, --manifest-version-id, --manifest-release-version")
-  parser.add_option('--manifest-id', dest='manifest_id',
+  parser.add_argument('--manifest-id', dest='manifest_id',
     help="Unique ID for a service in a manifest.  Required when specifying --manifest and --available")
-  parser.add_option('--manifest-service', dest='manifest_service')
-  parser.add_option('--manifest-version', dest='manifest_version')
-  parser.add_option('--manifest-version-id', dest='manifest_version_id')
-  parser.add_option('--manifest-release-version', dest='manifest_release_version')
+  parser.add_argument('--manifest-service', dest='manifest_service')
+  parser.add_argument('--manifest-version', dest='manifest_version')
+  parser.add_argument('--manifest-version-id', dest='manifest_version_id')
+  parser.add_argument('--manifest-release-version', dest='manifest_release_version')
 
-  parser.add_option('--available', action='store_true', dest='available',
+  parser.add_argument('--available', action='store_true', dest='available',
     help="Add an available service with other options: --manifest-id, --available-components --service-release-version")
-  parser.add_option('--available-components', dest='available_components',
+  parser.add_argument('--available-components', dest='available_components',
     help="A CSV of service components that are intended to be upgraded via patch. \
       Omitting this implies the entire service should be upgraded")
 
-  parser.add_option('--os', action='store_true', dest='os', help="Add OS data with options --os-family, --os-package-version")
-  parser.add_option('--os-family', dest='os_family', help="The operating system: i.e redhat7, debian7, ubuntu12, ubuntu14, suse11, suse12")
-  parser.add_option('--os-package-version', dest='os_package_version',
+  parser.add_argument('--os', action='store_true', dest='os', help="Add OS data with options --os-family, --os-package-version")
+  parser.add_argument('--os-family', dest='os_family', help="The operating system: i.e redhat7, debian7, ubuntu12, ubuntu14, suse11, suse12")
+  parser.add_argument('--os-package-version', dest='os_package_version',
     help="The package version to use for the OS")
 
-  parser.add_option('--repo', action='store_true', dest='repo',
+  parser.add_argument('--repo', action='store_true', dest='repo',
     help="Add repository data with options: --repo-os, --repo-url, --repo-id, --repo-name, --repo-unique")
-  parser.add_option('--repo-os', dest='repo_os',
+  parser.add_argument('--repo-os', dest='repo_os',
     help="The operating system type: i.e. redhat6, redhat7, debian7, debian9, ubuntu12, ubuntu14, ubuntu16, suse11, suse12")
-  parser.add_option('--repo-url', dest='repo_url',
+  parser.add_argument('--repo-url', dest='repo_url',
     help="The base url for the repository data")
-  parser.add_option('--repo-unique', dest='unique', type='choice', choices=['true', 'false'],
+  parser.add_argument('--repo-unique', dest='unique', choices=['true', 'false'],
                     help="Indicates base url should be unique")
-  parser.add_option('--repo-id', dest='repo_id', help="The ID of the repo")
-  parser.add_option('--repo-name', dest='repo_name', help="The name of the repo")
-  parser.add_option('--repo-tags', dest='repo_tags', help="The CSV tags for the repo")
+  parser.add_argument('--repo-id', dest='repo_id', help="The ID of the repo")
+  parser.add_argument('--repo-name', dest='repo_name', help="The name of the repo")
+  parser.add_argument('--repo-tags', dest='repo_tags', help="The CSV tags for the repo")
+  parser.add_argument('arguments', nargs='*', help=argparse.SUPPRESS)
+  return parser
 
-  (options, args) = parser.parse_args()
+
+def parse_options(arguments=None):
+  return create_parser().parse_args(arguments)
+
+
+def main(argv):
+  parser = create_parser()
+
+  options = parser.parse_args(argv[1:])
 
   # validate_filename
   if not options.filename:

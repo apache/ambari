@@ -17,10 +17,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import urllib2
+import base64
 import json
 import sys
-import base64
+import urllib.request
 
 try:
   host = sys.argv[1]
@@ -28,16 +28,17 @@ try:
   cluster = sys.argv[3]
   protocol = sys.argv[4]
   login = sys.argv[5]
-  password = base64.b64decode(sys.argv[6])
+  password = base64.b64decode(sys.argv[6], validate=True).decode('utf-8')
   name = sys.argv[7]
   alerts_url = 'api/v1/clusters/{0}/alerts?fields=Alert/label,Alert/service_name,Alert/name,Alert/text,Alert/state&Alert/name={1}'.format(cluster, name)
   url = '{0}://{1}:{2}/{3}'.format(protocol, host, port, alerts_url)
-  admin_auth = base64.encodestring('%s:%s' % (login, password)).replace('\n', '')
-  request = urllib2.Request(url)
+  credentials = ('%s:%s' % (login, password)).encode('utf-8')
+  admin_auth = base64.b64encode(credentials).decode('ascii')
+  request = urllib.request.Request(url)
   request.add_header('Authorization', 'Basic %s' % admin_auth)
   request.add_header('X-Requested-By', 'ambari')
-  response = urllib2.urlopen(request)
-  response_body = response.read()
+  with urllib.request.urlopen(request, timeout=20) as response:
+    response_body = response.read().decode('utf-8')
   alert = json.loads(response_body)['items'][0]
   state = alert['Alert']['state']
   text = alert['Alert']['text']
@@ -45,7 +46,7 @@ except Exception as exc:
   text = 'Unable to retrieve alert info: %s' % exc
   state = 'UNKNOWN'
 finally:
-  print text
+  print(text)
   exit_code = {
     'OK': 0,
     'WARNING': 1,

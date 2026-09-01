@@ -23,7 +23,8 @@ import datetime
 import time
 import json
 import logging
-import optparse
+import argparse
+import re
 import shutil
 import sys
 import subprocess
@@ -45,6 +46,7 @@ HTTP_CREATED=201
 HTTP_BAD_REQUEST=400
 HTTP_FORBIDDEN=403
 HTTP_CONFLICT=409
+HTTP_STATUS_MARKER='__AMBARI_HTTP_STATUS__:'
 
 #defaults
 EXIT_MESSAGE = "Make sure to provide correct cluster information including port, admin user name and password. Default values will be used if you omit the command parameters.";
@@ -80,8 +82,8 @@ LABEL_ERROR='[ ERROR ]'
 STATUS_ACCEPTED='Accepted'
 STATUS_COMPLETED='COMPLETED'
 STATUS_PASSED='PASSED'
-STATUS_WARNING='FAILED'
-STATUS_FAILED='WARNING'
+STATUS_WARNING='WARNING'
+STATUS_FAILED='FAILED'
 STATUS_ABORTED='ABORTED'
 STATUS_IN_PROGRESS='IN_PROGRESS'
 STATUS_PENDING='PENDING'
@@ -89,29 +91,29 @@ STATUS_PENDING='PENDING'
 LIST_FINISHED_REQUEST_STATUS=[STATUS_FAILED, STATUS_COMPLETED, STATUS_ABORTED]
 
 def init_parser_options(parser):
-  parser.add_option('-p', '--port',
+  parser.add_argument('-p', '--port',
                     dest="port", default=DEFAULT_HTTP_PORT,
                     help="Ambari Server port corrsponding to the network protocol. Default port is {0} for an HTTP connection".format(DEFAULT_HTTP_PORT))
-  parser.add_option('-u', '--user',
+  parser.add_argument('-u', '--user',
                     dest="user", default=DEFAULT_ADMIN_USER,
                     help="Ambari admin user. Default user name is {0}".format(DEFAULT_ADMIN_USER))
-  parser.add_option('-a', '--password',
+  parser.add_argument('-a', '--password',
                     dest="password",
                     help="Ambari admin user password.")
-  parser.add_option('-l', '--log',
+  parser.add_argument('-l', '--log',
                     dest="log",
                     default=DEFAULT_LOG_DIR,
                     help="The log file home location. Default log file home is {0}.".format(DEFAULT_LOG_DIR),
                     metavar="DIR")
-  parser.add_option('--blueprint',
+  parser.add_argument('--blueprint',
                     dest="blueprint",
                     default=None,
                     help="Blueprint to validate",
                     metavar="FILE")
-  parser.add_option('--operation',
+  parser.add_argument('--operation',
                     dest='operation', default=OPERATION_HOST_CHECK,
                     help='Operation can one of the following {0}'.format(', '.join(OPERATIONS)))
-  parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Output verbosity.")
+  parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Output verbosity.")
 
 """
 Validate parameters passed in from the command line.
@@ -175,8 +177,8 @@ def backup_log(filePath):
     backup_file = filePath + "." + timestamp.strftime(simpleformat)
     try:
       shutil.move(filePath, backup_file)
-    except Exception, err:
-      print('Failed to backup "{0}": {1}'.format(str(filePath), str(err)))
+    except Exception as err:
+      print(('Failed to backup "{0}": {1}'.format(str(filePath), str(err))))
       return '', CODE_WARNING
     return backup_file, CODE_SUCCESS
   else:
@@ -192,7 +194,7 @@ def step(msg):
   if len(msg) >= 43:
     logger.info('********   Check: {0}   ********'.format(msg))
   else:
-    spaces = ' '.ljust((50 - len(msg))/2)
+    spaces = ' '.ljust((50 - len(msg)) // 2)
     logger.info('{0}{2}Check: {1}{2}{0}'.format('********',msg,spaces))
 
 def print_check_result(check, msgs, code):
@@ -263,7 +265,7 @@ def get_ambari_server_property(key):
       if len(tokens) == 2:
         if tokens[0] == key:
           return tokens[1]
-  except Exception, err:
+  except Exception as err:
     logger.error(str(err))
     return None
   return None
@@ -286,7 +288,7 @@ def get_server_url(port):
 """
 Submit REST API to Ambari Server
 """
-def execute_curl_command(url, headers=[], request_type=DEFAULT_HTTP_REQUEST_TYPE, request_body=None, user=DEFAULT_ADMIN_USER, password=None):
+def execute_curl_command(url, headers=None, request_type=DEFAULT_HTTP_REQUEST_TYPE, request_body=None, user=DEFAULT_ADMIN_USER, password=None):
   """
   @param url: REST URL
   @param headers: Optional. Headers to be included in the REST API call
@@ -295,12 +297,26 @@ def execute_curl_command(url, headers=[], request_type=DEFAULT_HTTP_REQUEST_TYPE
   @param user: User for Ambari REST API authentication
   @param password: Password for the user used to authenticate the Ambari REST API call
   """
-  curl_cmd_array = ["curl", "-v", "-u", "{0}:{1}".format(user,password), "-k", "-H", "X-Requested-By: ambari"]
+  curl_cmd_array = [
+    "curl",
+    "--config",
+    "-",
+    "--silent",
+    "--show-error",
+    "--write-out",
+    "\n{0}%{{http_code}}".format(HTTP_STATUS_MARKER),
+    "-H",
+    "X-Requested-By: ambari",
+  ]
+  if get_server_protocol() == "https":
+    keys_dir = get_ambari_server_property("security.server.keys_dir")
+    cert_name = get_ambari_server_property("client.api.ssl.cert_name")
+    if keys_dir and cert_name:
+      curl_cmd_array.extend(["--cacert", os.path.join(keys_dir, cert_name)])
 
-  for header in headers:
+  for header in headers or []:
     curl_cmd_array.append('-H')
     curl_cmd_array.append(header)
-  curl_cmd_array.append('-s')
   curl_cmd_array.append('-X')
   curl_cmd_array.append(request_type)
   if request_type == 'PUT' or request_type == 'POST':
@@ -308,25 +324,41 @@ def execute_curl_command(url, headers=[], request_type=DEFAULT_HTTP_REQUEST_TYPE
       curl_cmd_array.append("-d")
       curl_cmd_array.append(request_body)
   curl_cmd_array.append(url)
-  logger.debug('Curl command: {0}'.format(' '.join(curl_cmd_array)))
-  exeProcess = subprocess.Popen(curl_cmd_array, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  out, err = exeProcess.communicate()
+  logger.debug('Executing curl %s request to %s', request_type, url)
+  curl_user = str(user).replace('\\', '\\\\').replace('"', '\\"').replace('\n', '').replace('\r', '')
+  curl_password = str(password).replace('\\', '\\\\').replace('"', '\\"').replace('\n', '').replace('\r', '')
+  auth_config = 'user = "{0}:{1}"\n'.format(curl_user, curl_password)
+  exeProcess = subprocess.Popen(
+    curl_cmd_array,
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    text=True,
+  )
+  out, err = exeProcess.communicate(auth_config)
   exit_code = exeProcess.returncode
+  body, marker, status_code = out.rpartition("\n{0}".format(HTTP_STATUS_MARKER))
+  if marker and re.fullmatch(r"\d{3}\s*", status_code):
+    out = body
+    err = "{0}{1}{2}{3}\n".format(
+      err,
+      "" if not err or err.endswith("\n") else "\n",
+      HTTP_STATUS_MARKER,
+      status_code.strip(),
+    )
   return out, err, exit_code
 
 def get_http_response_code(out):
-  for a_line in out.split('\n'):
-    a_line = a_line.strip()
-    if a_line.endswith('HTTP/1.1 200 OK'):
-      return HTTP_OK
-    elif a_line.endswith('HTTP/1.1 201 Created'):
-      return HTTP_CREATED
-    elif a_line.endswith('HTTP/1.1 400 Bad Request'):
-      return HTTP_BAD_REQUEST
-    elif a_line.endswith('HTTP/1.1 409 Conflict'):
-      return HTTP_CONFLICT
-    elif a_line.endswith('HTTP/1.1 400 Forbidden'):
-      return HTTP_FORBIDDEN
+  marker_match = re.search(
+    r"(?:^|\n){0}(\d{{3}})(?:\s|$)".format(re.escape(HTTP_STATUS_MARKER)),
+    out,
+  )
+  if marker_match:
+    return int(marker_match.group(1))
+
+  response_match = re.search(r"(?:^|\n)\s*HTTP/\S+\s+(\d{3})(?:\s|$)", out)
+  if response_match:
+    return int(response_match.group(1))
   return -1
 
 """
@@ -819,7 +851,7 @@ def umask_checks_parser(task_results_by_host, results_to_print):
       else:
         results_to_print.append({'key':key, 'status':STATUS_PASSED})
     else:
-      results_to_print.append({'key':key, 'status':STATUS_FAILED, 'errors':['Failed to obtain umask value on the host.']})
+      results_to_print.append({'key':key, 'status':STATUS_FAILED, 'error':['Failed to obtain umask value on the host.']})
 
 def alternatives_checks_parser(task_results_by_host, results_to_print):
   for key in task_results_by_host:
@@ -1038,10 +1070,21 @@ def run(options):
     logger.info('Checks finished')
     return CODE_SUCCESS
 
-def main():
-  parser = optparse.OptionParser(usage="usage: %prog [option] arg ... [option] arg",)
+def create_parser():
+  parser = argparse.ArgumentParser(
+    usage="usage: %(prog)s [option] arg ... [option] arg"
+  )
   init_parser_options(parser)
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  return parser
+
+
+def parse_options(arguments=None):
+  return create_parser().parse_args(arguments)
+
+
+def main():
+  options = parse_options()
 
   backup_file, ec = backup_log(options.log)
 
@@ -1059,7 +1102,7 @@ def main():
     try:
       ec = run(options)
       sys.exit(ec)
-    except Exception, e:
+    except Exception as e:
       logger.exception(e)
       sys.exit(CODE_ERROR)
 

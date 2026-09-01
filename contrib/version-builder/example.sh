@@ -18,34 +18,40 @@
 
 
 filename="version_241-12345.xml"
+PYTHON=${PYTHON:-python3}
 
-rm $filename
+if ! command -v "$PYTHON" >/dev/null 2>&1 \
+  || ! "$PYTHON" -c 'import sys; raise SystemExit(sys.version_info < (3, 9, 2))'; then
+  echo "version-builder requires Python 3.9.2 or newer" >&2
+  exit 1
+fi
 
-python version_builder.py --file $filename --release-type STANDARD
-python version_builder.py --file $filename --release-stack HDP-2.4
-python version_builder.py --file $filename --release-version 2.4.1.1
-python version_builder.py --file $filename --release-build 12345
-python version_builder.py --file $filename --release-notes http://example.com
-python version_builder.py --file $filename --release-display HDP-2.4.1.1-1234
-python version_builder.py --file $filename --release-compatible 2.4.[0-1].0
+rm -f "$filename"
+
+"$PYTHON" version_builder.py --file "$filename" --release-type STANDARD
+"$PYTHON" version_builder.py --file "$filename" --release-stack BIGTOP-3.2
+"$PYTHON" version_builder.py --file "$filename" --release-version 3.2.1.0
+"$PYTHON" version_builder.py --file "$filename" --release-build 12345
+"$PYTHON" version_builder.py --file "$filename" --release-notes https://example.com
+"$PYTHON" version_builder.py --file "$filename" --release-display BIGTOP-3.2.1.0-12345
+"$PYTHON" version_builder.py --file "$filename" --release-compatible '3.2.[0-1].0'
 
 # call any number of times for each service in the repo
-python version_builder.py --file $filename --manifest --manifest-id HDFS-271 --manifest-service HDFS --manifest-version 2.7.1.2.4 --manifest-release-version 2.4.0.0
-python version_builder.py --file $filename --manifest --manifest-id HBASE-132 --manifest-service HBASE --manifest-version 1.3.2.4.3
+"$PYTHON" version_builder.py --file "$filename" --manifest --manifest-id HDFS-321 --manifest-service HDFS --manifest-version 3.3.6 --manifest-release-version 3.2.1.0
+"$PYTHON" version_builder.py --file "$filename" --manifest --manifest-id HBASE-321 --manifest-service HBASE --manifest-version 2.4.18
 
 #call any number of times for the target services to upgrade
-python version_builder.py --file $filename --available --manifest-id HDFS-271
-python version_builder.py --file $filename --available --manifest-id HBASE-132 --release-version 2.4.0
+"$PYTHON" version_builder.py --file "$filename" --available --manifest-id HDFS-321
+"$PYTHON" version_builder.py --file "$filename" --available --manifest-id HBASE-321 --release-version 3.2.1
 
 # must be before repo calls
-python version_builder.py --file $filename --os --os-family redhat6 --os-package-version 2_4_1_1_12345
+"$PYTHON" version_builder.py --file "$filename" --os --os-family redhat8 --os-package-version 3_2_1_0_12345
 
 #call any number of times for repo per os
-python version_builder.py --file $filename --repo --repo-os redhat6 --repo-id HDP-2.4 --repo-name HDP --repo-url http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.1.1 --repo-unique true
-python version_builder.py --file $filename --repo --repo-os redhat6 --repo-id HDP-UTILS-1.1.0.20 --repo-name HDP-UTILS --repo-url http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6 --repo-unique false
+"$PYTHON" version_builder.py --file "$filename" --repo --repo-os redhat8 --repo-id BIGTOP-3.2 --repo-name BIGTOP --repo-url https://example.com/bigtop/3.2/redhat8 --repo-unique true
 
 
-python version_builder.py --file $filename --finalize --xsd ../../ambari-server/src/main/resources/version_definition.xsd
+"$PYTHON" version_builder.py --file "$filename" --finalize --xsd ../../ambari-server/src/main/resources/version_definition.xsd
 
 # to upload this to running Ambari instance on localhost:
 # curl -u admin:admin -H 'Content-Type: text/xml' -X POST -d @$filename http://localhost:8080/api/v1/version_definitions
