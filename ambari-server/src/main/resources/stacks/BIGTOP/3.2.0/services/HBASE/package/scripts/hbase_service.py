@@ -124,6 +124,13 @@ def hbase_service(name, action=None, extra_args=()):
       name,
       *extra_args,
     )
+    rollback_command = (
+      params.daemon_script,
+      "--config",
+      params.hbase_conf_dir,
+      "stop",
+      name,
+    )
     try:
       Execute(
         command,
@@ -135,8 +142,27 @@ def hbase_service(name, action=None, extra_args=()):
       wait_for_hbase_process(
         pid_file, params.hbase_user, params.user_group, name
       )
-    except Exception:
-      show_logs(params.log_dir, params.hbase_user)
+    except Exception as start_error:
+      rollback_error = None
+      try:
+        Execute(
+          rollback_command,
+          user=params.hbase_user,
+          environment={"JAVA_HOME": params.java64_home},
+          logoutput=True,
+          timeout=60,
+        )
+      except Exception as error:
+        rollback_error = error
+      try:
+        show_logs(params.log_dir, params.hbase_user)
+      except Exception as error:
+        Logger.warning(f"Could not collect HBase logs after start failure: {error}")
+      if rollback_error is not None:
+        raise Fail(
+          f"HBase {name} start failed: {start_error}; daemon rollback also "
+          f"failed: {rollback_error}"
+        ) from start_error
       raise
     return
 
