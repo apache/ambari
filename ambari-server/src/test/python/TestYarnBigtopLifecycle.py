@@ -97,16 +97,14 @@ class TestYarnProcessLifecycle(unittest.TestCase):
       YARN_PROCESS_UTILS.expected_cmdline("unknown")
 
   def test_valid_pid_is_idempotent_without_discovery_or_rewrite(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
+    with patch.object(safe_process, "read_pid", return_value=123), \
       patch.object(
         YARN_PROCESS_UTILS,
         "read_running_process",
         return_value=IDENTITY,
-      ),
-      patch.object(safe_process, "discover_running_process") as discover,
-      patch.object(safe_process, "create_pid_file_for_identity") as create,
-    ):
+      ), \
+      patch.object(safe_process, "discover_running_process") as discover, \
+      patch.object(safe_process, "create_pid_file_for_identity") as create:
       result = YARN_PROCESS_UTILS.recover_running_process(
         PID_FILE, "yarn", "resourcemanager", "yarn", "hadoop"
       )
@@ -116,17 +114,15 @@ class TestYarnProcessLifecycle(unittest.TestCase):
     create.assert_not_called()
 
   def test_pidless_process_is_discovered_and_atomically_restored(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process, "discover_running_process", return_value=IDENTITY
-      ) as discover,
+      ) as discover, \
       patch.object(
         safe_process,
         "create_pid_file_for_identity",
         return_value=IDENTITY,
-      ) as create,
-    ):
+      ) as create:
       result = YARN_PROCESS_UTILS.recover_running_process(
         PID_FILE, "yarn", "resourcemanager", "yarn", "hadoop"
       )
@@ -145,18 +141,16 @@ class TestYarnProcessLifecycle(unittest.TestCase):
     )
 
   def test_stale_pid_is_removed_before_discovery(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
+    with patch.object(safe_process, "read_pid", return_value=123), \
       patch.object(
         YARN_PROCESS_UTILS, "read_running_process", return_value=None
-      ),
+      ), \
       patch.object(
         safe_process, "remove_pid_file_if_stopped", return_value=True
-      ) as remove,
+      ) as remove, \
       patch.object(
         safe_process, "discover_running_process", return_value=None
-      ),
-    ):
+      ):
       self.assertIsNone(
         YARN_PROCESS_UTILS.recover_running_process(
           PID_FILE, "yarn", "resourcemanager", "yarn", "hadoop"
@@ -177,35 +171,31 @@ class TestYarnProcessLifecycle(unittest.TestCase):
     ):
       with self.subTest(failure=failure):
         create_failure = "identity changed" in str(failure)
-        with (
-          patch.object(safe_process, "read_pid", return_value=None),
+        with patch.object(safe_process, "read_pid", return_value=None), \
           patch.object(
             safe_process,
             "discover_running_process",
             return_value=IDENTITY if create_failure else None,
             side_effect=None if create_failure else failure,
-          ),
+          ), \
           patch.object(
             safe_process,
             "create_pid_file_for_identity",
             side_effect=failure if create_failure else None,
-          ),
-        ):
+          ):
           with self.assertRaises(Fail):
             YARN_PROCESS_UTILS.recover_running_process(
               PID_FILE, "yarn", "resourcemanager", "yarn", "hadoop"
             )
 
   def test_stop_terminates_pinned_identity_then_removes_same_pid_file(self):
-    with (
-      patch.object(
+    with patch.object(
         YARN_PROCESS_UTILS,
         "recover_running_process",
         return_value=IDENTITY,
-      ),
-      patch.object(safe_process, "terminate_process") as terminate,
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-    ):
+      ), \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove:
       self.assertTrue(
         YARN_PROCESS_UTILS.stop_process(
           PID_FILE, "yarn", "resourcemanager", "yarn", "hadoop"
@@ -247,12 +237,10 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       registry_dns_needs_privileged_access=False,
       root_user="root",
     )
-    with (
-      patch.dict(sys.modules, {"params": params, "status_params": status}),
-      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None),
-      patch.object(YARN_PROCESS_UTILS, "wait_for_running_process"),
-      patch.object(YARN_SERVICE, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params, "status_params": status}), \
+      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
+      patch.object(YARN_PROCESS_UTILS, "wait_for_running_process"), \
+      patch.object(YARN_SERVICE, "Execute") as execute:
       YARN_SERVICE.service("resourcemanager", "start")
 
     self.assertEqual(300, execute.call_args.kwargs["timeout"])
@@ -286,15 +274,13 @@ class TestDaemonLaunchBounds(unittest.TestCase):
     }
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with (
-      patch.dict(sys.modules, {"params": params, "status_params": status}),
+    with patch.dict(sys.modules, {"params": params, "status_params": status}), \
       patch.object(
         YARN_SERVICE,
         "PrivateKerberosCache",
         return_value=cache_context,
-      ),
-      patch.object(YARN_SERVICE, "Execute") as execute,
-    ):
+      ), \
+      patch.object(YARN_SERVICE, "Execute") as execute:
       YARN_SERVICE.service("resourcemanager", "refreshQueues")
 
     cache.kinit.assert_called_once_with(
@@ -333,18 +319,16 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       registry_dns_needs_privileged_access=False,
       root_user="root",
     )
-    with (
-      patch.dict(sys.modules, {"params": params, "status_params": status}),
-      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None),
+    with patch.dict(sys.modules, {"params": params, "status_params": status}), \
+      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
       patch.object(
         YARN_PROCESS_UTILS,
         "wait_for_running_process",
         side_effect=Fail("invalid startup identity"),
-      ),
-      patch.object(YARN_PROCESS_UTILS, "stop_process") as stop,
-      patch.object(YARN_SERVICE, "Execute"),
-      patch.object(YARN_SERVICE, "show_logs"),
-    ):
+      ), \
+      patch.object(YARN_PROCESS_UTILS, "stop_process") as stop, \
+      patch.object(YARN_SERVICE, "Execute"), \
+      patch.object(YARN_SERVICE, "show_logs"):
       with self.assertRaisesRegex(Fail, "invalid startup identity"):
         YARN_SERVICE.service("resourcemanager", "start")
 
@@ -372,17 +356,15 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       registry_dns_needs_privileged_access=False,
       root_user="root",
     )
-    with (
-      patch.dict(sys.modules, {"params": params, "status_params": status}),
-      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None),
-      patch.object(YARN_SERVICE, "Execute", side_effect=Fail("launch failed")),
+    with patch.dict(sys.modules, {"params": params, "status_params": status}), \
+      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
+      patch.object(YARN_SERVICE, "Execute", side_effect=Fail("launch failed")), \
       patch.object(
         YARN_PROCESS_UTILS,
         "stop_process",
         side_effect=Fail("rollback failed"),
-      ),
-      patch.object(YARN_SERVICE, "show_logs"),
-    ):
+      ), \
+      patch.object(YARN_SERVICE, "show_logs"):
       with self.assertRaisesRegex(
         RuntimeError, "launch failed.*rollback failed"
       ) as raised:
@@ -398,12 +380,10 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       yarn_hbase_log_dir="/var/log/hbase",
       user_group="hadoop",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None),
-      patch.object(YARN_PROCESS_UTILS, "wait_for_running_process"),
-      patch.object(HBASE_SERVICE, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
+      patch.object(YARN_PROCESS_UTILS, "wait_for_running_process"), \
+      patch.object(HBASE_SERVICE, "Execute") as execute:
       HBASE_SERVICE.hbase_service("master", "start")
 
     self.assertEqual(300, execute.call_args.kwargs["timeout"])
@@ -427,21 +407,19 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       events.append("logs")
       raise Fail("logs failed")
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None),
-      patch.object(HBASE_SERVICE, "Execute", side_effect=Fail("launch failed")),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
+      patch.object(HBASE_SERVICE, "Execute", side_effect=Fail("launch failed")), \
       patch.object(
         YARN_PROCESS_UTILS,
         "stop_process",
         side_effect=lambda *args: events.append("rollback"),
-      ),
+      ), \
       patch.object(
         HBASE_SERVICE,
         "show_logs",
         side_effect=fail_log_collection,
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(RuntimeError, "launch failed.*logs failed"):
         HBASE_SERVICE.hbase_service("master", "start")
     self.assertEqual(["rollback", "logs"], events)
@@ -455,15 +433,13 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       yarn_hbase_log_dir="/var/log/hbase",
       user_group="hadoop",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None),
-      patch.object(HBASE_SERVICE, "Execute", side_effect=Fail("launch failed")),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
+      patch.object(HBASE_SERVICE, "Execute", side_effect=Fail("launch failed")), \
       patch.object(
         YARN_PROCESS_UTILS, "stop_process", side_effect=Fail("rollback failed")
-      ),
-      patch.object(HBASE_SERVICE, "show_logs", side_effect=Fail("logs failed")),
-    ):
+      ), \
+      patch.object(HBASE_SERVICE, "show_logs", side_effect=Fail("logs failed")):
       with self.assertRaisesRegex(
         RuntimeError, "launch failed.*rollback failed.*logs failed"
       ):
@@ -486,14 +462,12 @@ class TestDaemonLaunchBounds(unittest.TestCase):
     )
 
   def test_regionserver_failure_rolls_back_new_master(self):
-    with (
-      patch.object(
+    with patch.object(
         HBASE_SERVICE,
         "hbase_service",
         side_effect=[True, Fail("regionserver failed"), None],
-      ) as role_service,
-      patch.object(HBASE_SERVICE, "createTables"),
-    ):
+      ) as role_service, \
+      patch.object(HBASE_SERVICE, "createTables"):
       with self.assertRaisesRegex(Fail, "regionserver failed"):
         HBASE_SERVICE.hbase("start")
     self.assertEqual(
@@ -506,14 +480,12 @@ class TestDaemonLaunchBounds(unittest.TestCase):
     )
 
   def test_schema_failure_rolls_back_new_roles_in_reverse_order(self):
-    with (
-      patch.object(
+    with patch.object(
         HBASE_SERVICE,
         "hbase_service",
         side_effect=[True, True, None, None],
-      ) as role_service,
-      patch.object(HBASE_SERVICE, "createTables", side_effect=Fail("schema failed")),
-    ):
+      ) as role_service, \
+      patch.object(HBASE_SERVICE, "createTables", side_effect=Fail("schema failed")):
       with self.assertRaisesRegex(Fail, "schema failed"):
         HBASE_SERVICE.hbase("start")
     self.assertEqual(
@@ -527,14 +499,12 @@ class TestDaemonLaunchBounds(unittest.TestCase):
     )
 
   def test_preexisting_master_is_not_stopped_when_regionserver_fails(self):
-    with (
-      patch.object(
+    with patch.object(
         HBASE_SERVICE,
         "hbase_service",
         side_effect=[False, Fail("regionserver failed")],
-      ) as role_service,
-      patch.object(HBASE_SERVICE, "createTables"),
-    ):
+      ) as role_service, \
+      patch.object(HBASE_SERVICE, "createTables"):
       with self.assertRaisesRegex(Fail, "regionserver failed"):
         HBASE_SERVICE.hbase("start")
     self.assertEqual(
@@ -634,21 +604,19 @@ class TestRegistryDnsContract(unittest.TestCase):
     )
 
   def test_failed_secure_start_cleans_normal_secure_and_wrapper_identities(self):
-    with (
-      patch.dict(
+    with patch.dict(
         sys.modules,
         {"params": self.params, "status_params": self.status},
-      ),
-      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None),
-      patch.object(YARN_PROCESS_UTILS, "stop_process") as stop,
-      patch.object(YARN_SERVICE, "Execute"),
+      ), \
+      patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
+      patch.object(YARN_PROCESS_UTILS, "stop_process") as stop, \
+      patch.object(YARN_SERVICE, "Execute"), \
       patch.object(
         YARN_PROCESS_UTILS,
         "wait_for_running_process",
         side_effect=Fail("secure Registry DNS did not start"),
-      ),
-      patch.object(YARN_SERVICE, "show_logs"),
-    ):
+      ), \
+      patch.object(YARN_SERVICE, "show_logs"):
       with self.assertRaisesRegex(Fail, "secure Registry DNS did not start"):
         YARN_SERVICE.service("registrydns", "start")
 

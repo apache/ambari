@@ -1302,10 +1302,8 @@ class TestYarnVersionAndResidue(unittest.TestCase):
       config = json.loads(json.dumps(base))
       config["localComponents"] = local_components
       config["configurations"]["yarn-hbase-env"].update(overrides)
-      with (
-        self.subTest(components=local_components, overrides=overrides),
-        patch.object(package_conditions.Script, "get_config", return_value=config),
-      ):
+      with self.subTest(components=local_components, overrides=overrides), \
+        patch.object(package_conditions.Script, "get_config", return_value=config):
         self.assertEqual(
           expected, package_conditions.should_install_yarn_ats_hbase()
         )
@@ -1320,10 +1318,8 @@ class TestYarnVersionAndResidue(unittest.TestCase):
         "localComponents": local_components,
         "configurations": {},
       }
-      with (
-        self.subTest(missing_config_components=local_components),
-        patch.object(package_conditions.Script, "get_config", return_value=config),
-      ):
+      with self.subTest(missing_config_components=local_components), \
+        patch.object(package_conditions.Script, "get_config", return_value=config):
         self.assertEqual(
           expected, package_conditions.should_install_yarn_ats_hbase()
         )

@@ -139,19 +139,17 @@ class TestYarnComponentWorkflows(unittest.TestCase):
       is_hbase_system_service_launch=False,
     )
     events = []
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         TIMELINE_READER,
         "service",
         side_effect=lambda *args, **kwargs: events.append(("reader", kwargs)),
-      ),
+      ), \
       patch.object(
         TIMELINE_READER,
         "hbase",
         side_effect=lambda *args, **kwargs: events.append(("hbase", kwargs)),
-      ),
-    ):
+      ):
       TIMELINE_READER.ApplicationTimelineReader().stop(MagicMock())
     self.assertEqual(["reader", "hbase"], [event[0] for event in events])
 
@@ -160,11 +158,9 @@ class TestYarnComponentWorkflows(unittest.TestCase):
       use_external_hbase=False,
       is_hbase_system_service_launch=False,
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(TIMELINE_READER, "service", side_effect=Fail("reader stop failed")),
-      patch.object(TIMELINE_READER, "hbase") as hbase,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(TIMELINE_READER, "service", side_effect=Fail("reader stop failed")), \
+      patch.object(TIMELINE_READER, "hbase") as hbase:
       with self.assertRaisesRegex(RuntimeError, "reader stop failed"):
         TIMELINE_READER.ApplicationTimelineReader().stop(MagicMock())
     hbase.assert_called_once_with(action="stop")
@@ -174,11 +170,9 @@ class TestYarnComponentWorkflows(unittest.TestCase):
       use_external_hbase=False,
       is_hbase_system_service_launch=False,
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(TIMELINE_READER, "service", side_effect=Fail("reader failed")),
-      patch.object(TIMELINE_READER, "hbase", side_effect=Fail("hbase failed")),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(TIMELINE_READER, "service", side_effect=Fail("reader failed")), \
+      patch.object(TIMELINE_READER, "hbase", side_effect=Fail("hbase failed")):
       with self.assertRaisesRegex(
         RuntimeError, "reader failed.*hbase failed"
       ) as raised:
@@ -192,23 +186,21 @@ class TestYarnComponentWorkflows(unittest.TestCase):
     )
     reader = TIMELINE_READER.ApplicationTimelineReader()
     env = MagicMock()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(reader, "configure"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(reader, "configure"), \
       patch.object(
         TIMELINE_READER,
         "hbase",
         return_value=("master", "regionserver"),
-      ),
+      ), \
       patch.object(
         TIMELINE_READER,
         "service",
         side_effect=Fail("reader start failed"),
-      ),
+      ), \
       patch.object(
         TIMELINE_READER, "rollback_hbase_roles", return_value=[]
-      ) as rollback,
-    ):
+      ) as rollback:
       with self.assertRaisesRegex(Fail, "reader start failed"):
         reader.start(env)
     rollback.assert_called_once_with(("master", "regionserver"))
@@ -222,11 +214,9 @@ class TestYarnComponentWorkflows(unittest.TestCase):
       user_group="hadoop",
       yarn_log_dir="/var/log/hadoop-yarn",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(NODEMANAGER_UPGRADE, "PrivateKerberosCache") as cache,
-      patch.object(NODEMANAGER_UPGRADE, "show_logs"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(NODEMANAGER_UPGRADE, "PrivateKerberosCache") as cache, \
+      patch.object(NODEMANAGER_UPGRADE, "show_logs"):
       with self.assertRaisesRegex(Fail, "principal and keytab are required"):
         NODEMANAGER_UPGRADE.post_upgrade_check()
     cache.assert_not_called()
@@ -304,19 +294,17 @@ nm10.example:45454 RUNNING nm10.example:8042 0
     }
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(RESOURCE_MANAGER, "File"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(RESOURCE_MANAGER, "File"), \
       patch.object(
         RESOURCE_MANAGER,
         "_validated_resource_manager_host_files",
         return_value=("/etc/hadoop/conf/yarn.exclude", None),
-      ),
+      ), \
       patch.object(
         RESOURCE_MANAGER, "PrivateKerberosCache", return_value=cache_context
-      ),
-      patch.object(RESOURCE_MANAGER, "Execute") as execute,
-    ):
+      ), \
+      patch.object(RESOURCE_MANAGER, "Execute") as execute:
       RESOURCE_MANAGER.ResourcemanagerDefault().decommission(MagicMock())
     execute.assert_called_once_with(
       (
@@ -347,12 +335,10 @@ nm10.example:45454 RUNNING nm10.example:8042 0
       hadoop_registry_zk_root="/registry",
       rm_zk_failover_znode="/leader-election",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch(
         "resource_management.core.resources.zkmigrator.Execute"
-      ) as execute,
-    ):
+      ) as execute:
       RESOURCE_MANAGER.ResourcemanagerDefault().disable_security(MagicMock())
 
     self.assertEqual(3, execute.call_count)
@@ -377,13 +363,11 @@ nm10.example:45454 RUNNING nm10.example:8042 0
         hadoop_registry_zk_root="/registry",
         rm_zk_failover_znode="/leader-election",
       )
-      with (
-        self.subTest(znode=unsafe_znode),
-        patch.dict(sys.modules, {"params": params}),
+      with self.subTest(znode=unsafe_znode), \
+        patch.dict(sys.modules, {"params": params}), \
         patch(
           "resource_management.core.resources.zkmigrator.Execute"
-        ) as execute,
-      ):
+        ) as execute:
         with self.assertRaises(Fail):
           RESOURCE_MANAGER.ResourcemanagerDefault().disable_security(
             MagicMock()
@@ -400,16 +384,14 @@ nm10.example:45454 RUNNING nm10.example:8042 0
       hdfs_user="hdfs",
     )
     environment = {"KRB5CCNAME": "FILE:/tmp/private/krb5cc"}
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         RESOURCE_MANAGER.namenode_ha_utils, "get_nameservices", return_value=[]
-      ),
+      ), \
       patch.object(
         RESOURCE_MANAGER.WebHDFSUtil, "is_webhdfs_available", return_value=False
-      ),
-      patch.object(RESOURCE_MANAGER.shell, "call", return_value=(0, "")) as call,
-    ):
+      ), \
+      patch.object(RESOURCE_MANAGER.shell, "call", return_value=(0, "")) as call:
       RESOURCE_MANAGER.ResourcemanagerDefault().wait_for_dfs_directory_created(
         "/ats/active", [], environment
       )
@@ -592,16 +574,14 @@ class TestYarnAdvisorContract(unittest.TestCase):
         ),
       },
     )
-    with (
-      patch.object(validator, "getErrorItem", side_effect=lambda message: message),
-      patch.object(validator, "getServicesSiteProperties", return_value=None),
-      patch.object(validator, "getSiteProperties", return_value=None),
+    with patch.object(validator, "getErrorItem", side_effect=lambda message: message), \
+      patch.object(validator, "getServicesSiteProperties", return_value=None), \
+      patch.object(validator, "getSiteProperties", return_value=None), \
       patch.object(
         validator,
         "toConfigurationValidationProblems",
         side_effect=lambda items, _: items,
-      ),
-    ):
+      ):
       for properties in cases:
         with self.subTest(policy=properties["yarn.http.policy"]):
           self.assertEqual(
@@ -728,23 +708,21 @@ class TestYarnAdvisorContract(unittest.TestCase):
         "cluster-env": {"properties": {"user_group": "analytics"}}
       }
     }
-    with (
-      patch.object(
+    with patch.object(
         validator,
         "validatorLessThenDefaultValue",
         return_value=None,
-      ),
+      ), \
       patch.object(
         validator,
         "validatorEqualsPropertyItem",
         return_value=None,
-      ) as equals,
+      ) as equals, \
       patch.object(
         validator,
         "toConfigurationValidationProblems",
         return_value=[],
-      ),
-    ):
+      ):
       validator.validateYarnResourceConfigurations(
         {
           "yarn.nodemanager.linux-container-executor.group": "analytics",
@@ -788,24 +766,22 @@ class TestYarnAdvisorContract(unittest.TestCase):
 
       return update
 
-    with (
-      patch.object(recommender, "putProperty", side_effect=put_property),
+    with patch.object(recommender, "putProperty", side_effect=put_property), \
       patch.object(
         recommender, "putPropertyAttribute", return_value=MagicMock()
-      ) as attribute_factory,
+      ) as attribute_factory, \
       patch.object(
         recommender,
         "getHostWithComponent",
         return_value={
           "Hosts": {"cpu_count": "8", "total_mem": str(32 * 1024 * 1024)}
         },
-      ),
+      ), \
       patch.object(
         YARN_ADVISOR.YARNServiceAdvisor,
         "isKerberosEnabled",
         return_value=False,
-      ),
-    ):
+      ):
       recommender.recommendBigtopSchedulerConfigurations(
         configurations, {"cpu": 8}, services, {"items": []}
       )
@@ -903,18 +879,16 @@ class TestYarnAdvisorContract(unittest.TestCase):
       ),
     )
     updates = []
-    with (
-      patch.object(
+    with patch.object(
         recommender,
         "putProperty",
         return_value=lambda name, value: updates.append((name, value)),
-      ),
+      ), \
       patch.object(
         recommender,
         "getHostsForComponent",
         return_value=["reader.example"],
-      ),
-    ):
+      ):
       recommender.update_timeline_reader_address(
         configurations,
         services,
@@ -952,21 +926,19 @@ class TestYarnAdvisorContract(unittest.TestCase):
   def test_yarn_runtime_validator_reports_missing_and_cross_site_values(self):
     validator = object.__new__(YARN_ADVISOR.YARNValidator)
     validator.logger = MagicMock()
-    with (
-      patch.object(validator, "getErrorItem", side_effect=lambda message: message),
-      patch.object(validator, "getWarnItem", side_effect=lambda message: message),
-      patch.object(validator, "getServicesSiteProperties", return_value=None),
+    with patch.object(validator, "getErrorItem", side_effect=lambda message: message), \
+      patch.object(validator, "getWarnItem", side_effect=lambda message: message), \
+      patch.object(validator, "getServicesSiteProperties", return_value=None), \
       patch.object(
         validator,
         "getSiteProperties",
         return_value={"yarn_hierarchy": "/configured"},
-      ),
+      ), \
       patch.object(
         validator,
         "toConfigurationValidationProblems",
         side_effect=lambda items, _: items,
-      ),
-    ):
+      ):
       missing_policy = validator.validateYarnRuntimeConfigurations(
         {}, {}, {}, {}, {}
       )
@@ -1000,14 +972,12 @@ class TestYarnAdvisorContract(unittest.TestCase):
   def test_yarn_cgroup_validator_handles_partial_and_typed_configuration(self):
     validator = object.__new__(YARN_ADVISOR.YARNValidator)
     validator.logger = MagicMock()
-    with (
-      patch.object(validator, "getWarnItem", side_effect=lambda message: message),
+    with patch.object(validator, "getWarnItem", side_effect=lambda message: message), \
       patch.object(
         validator,
         "toConfigurationValidationProblems",
         side_effect=lambda items, _: items,
-      ),
-    ):
+      ):
       cases = (
         (True, {}, 1),
         ("true", {"hadoop.security.authentication": "kerberos"}, 1),
@@ -1088,13 +1058,11 @@ class TestYarnAdvisorContract(unittest.TestCase):
       def put_property(_, config_type, __):
         return lambda name, value: updates.append((config_type, name, value))
 
-      with (
-        self.subTest(old=old_value, proposed=proposed_value),
-        patch.object(recommender, "putProperty", side_effect=put_property),
+      with self.subTest(old=old_value, proposed=proposed_value), \
+        patch.object(recommender, "putProperty", side_effect=put_property), \
         patch.object(
           recommender, "putPropertyAttribute", return_value=MagicMock()
-        ),
-      ):
+        ):
         recommender.recommendBigtopAuthorizationConfigurations(
           configurations, {}, services, {}
         )
@@ -1137,14 +1105,12 @@ class TestYarnAdvisorContract(unittest.TestCase):
         "properties": {"ranger-yarn-plugin-enabled": "garbage"}
       },
     }
-    with (
-      patch.object(validator, "getErrorItem", side_effect=lambda message: message),
+    with patch.object(validator, "getErrorItem", side_effect=lambda message: message), \
       patch.object(
         validator,
         "toConfigurationValidationProblems",
         side_effect=lambda items, _: items,
-      ),
-    ):
+      ):
       problems = validator.validateYarnRangerConfigurations(
         {}, {}, invalid, {}, {}
       )
@@ -1224,23 +1190,21 @@ class TestYarnAdvisorContract(unittest.TestCase):
 
       return update
 
-    with (
-      patch.object(recommender, "putProperty", side_effect=put_property),
+    with patch.object(recommender, "putProperty", side_effect=put_property), \
       patch.object(
         recommender,
         "putPropertyAttribute",
         return_value=lambda name, attribute, value: attributes.append(
           (name, attribute, value)
         ),
-      ),
+      ), \
       patch.object(
         recommender,
         "updateMountProperties",
         side_effect=lambda *args: mounts.append(args),
-      ),
-      patch.object(recommender, "recommendYarnQueue", return_value="default"),
-      patch.object(recommender, "getServicesSiteProperties", return_value=None),
-    ):
+      ), \
+      patch.object(recommender, "recommendYarnQueue", return_value="default"), \
+      patch.object(recommender, "getServicesSiteProperties", return_value=None):
       recommender.recommendBigtopMapReduceConfigurations(
         configurations,
         {"ramPerContainer": 1024, "totalAvailableRam": 8192},
@@ -1274,10 +1238,8 @@ class TestYarnAdvisorContract(unittest.TestCase):
       },
       "changed-configurations": [],
     }
-    with (
-      patch.object(recommender, "putProperty", side_effect=put_property),
-      patch.object(recommender, "update_timeline_reader_address"),
-    ):
+    with patch.object(recommender, "putProperty", side_effect=put_property), \
+      patch.object(recommender, "update_timeline_reader_address"):
       recommender.recommendBigtopServiceIntegrations({}, {}, services, {})
 
     self.assertEqual(
@@ -1319,10 +1281,8 @@ class TestYarnAdvisorContract(unittest.TestCase):
 
       return update
 
-    with (
-      patch.object(recommender, "putProperty", side_effect=put_property),
-      patch.object(recommender, "update_timeline_reader_address"),
-    ):
+    with patch.object(recommender, "putProperty", side_effect=put_property), \
+      patch.object(recommender, "update_timeline_reader_address"):
       recommender.recommendBigtopServiceIntegrations(
         configurations, {}, services, {}
       )
@@ -1356,15 +1316,13 @@ class TestYarnAdvisorContract(unittest.TestCase):
     def put_property(_, config_type, __):
       return lambda name, value: updates.append((config_type, name, value))
 
-    with (
-      patch.object(recommender, "getServicesSiteProperties", return_value=None),
+    with patch.object(recommender, "getServicesSiteProperties", return_value=None), \
       patch.object(
         recommender, "getCapacitySchedulerProperties", return_value=({}, True)
-      ),
-      patch.object(recommender, "putProperty", side_effect=put_property),
-      patch.object(recommender, "update_timeline_reader_address"),
-      patch.object(recommender, "getHostsForComponent") as get_hosts,
-    ):
+      ), \
+      patch.object(recommender, "putProperty", side_effect=put_property), \
+      patch.object(recommender, "update_timeline_reader_address"), \
+      patch.object(recommender, "getHostsForComponent") as get_hosts:
       recommender.recommendBigtopServiceIntegrations(
         {
           "yarn-hbase-env": {
@@ -1416,15 +1374,13 @@ class TestYarnAdvisorContract(unittest.TestCase):
     def put_property(_, config_type, __):
       return lambda name, value: updates.append((config_type, name, value))
 
-    with (
-      patch.object(recommender, "getServicesSiteProperties", return_value=None),
+    with patch.object(recommender, "getServicesSiteProperties", return_value=None), \
       patch.object(
         recommender, "getCapacitySchedulerProperties", return_value=({}, True)
-      ),
-      patch.object(recommender, "putProperty", side_effect=put_property),
-      patch.object(recommender, "update_timeline_reader_address"),
-      patch.object(recommender, "getHostsForComponent", return_value=[]),
-    ):
+      ), \
+      patch.object(recommender, "putProperty", side_effect=put_property), \
+      patch.object(recommender, "update_timeline_reader_address"), \
+      patch.object(recommender, "getHostsForComponent", return_value=[]):
       recommender.recommendBigtopServiceIntegrations({}, {}, services, {})
 
     self.assertIn(
@@ -1461,11 +1417,9 @@ class TestYarnAdvisorContract(unittest.TestCase):
           "capacity-scheduler": {"properties": capacity_properties},
         }
       }
-      with (
-        self.subTest(site=site_name),
-        patch.object(recommender, "putProperty", return_value=MagicMock()),
-        patch.object(recommender, "update_timeline_reader_address"),
-      ):
+      with self.subTest(site=site_name), \
+        patch.object(recommender, "putProperty", return_value=MagicMock()), \
+        patch.object(recommender, "update_timeline_reader_address"):
         with self.assertRaisesRegex(ValueError, "valid Unix user name"):
           recommender.recommendBigtopServiceIntegrations(
             {}, {}, services, {}
@@ -1555,10 +1509,8 @@ class TestYarnAlertContracts(unittest.TestCase):
       response.read.return_value = (
         b'{"nodeInfo":{"nodeHealthy":true,"healthReport":""}}'
       )
-      with (
-        self.subTest(policy=policy),
-        patch.object(alert.urllib.request, "urlopen", return_value=response) as open_url,
-      ):
+      with self.subTest(policy=policy), \
+        patch.object(alert.urllib.request, "urlopen", return_value=response) as open_url:
         result, _ = alert.execute(
           {alert.YARN_HTTP_POLICY_KEY: policy, address_key: address},
           {},
@@ -1573,10 +1525,8 @@ class TestYarnAlertContracts(unittest.TestCase):
       ("HTTP_ONLY", alert.NODEMANAGER_HTTP_ADDRESS_KEY, "rm:8088", "http"),
       ("HTTPS_ONLY", alert.NODEMANAGER_HTTPS_ADDRESS_KEY, "rm:8090", "https"),
     ):
-      with (
-        self.subTest(policy=policy),
-        patch.object(alert, "get_value_from_jmx", return_value="[]") as get_jmx,
-      ):
+      with self.subTest(policy=policy), \
+        patch.object(alert, "get_value_from_jmx", return_value="[]") as get_jmx:
         result, _ = alert.execute(
           {alert.YARN_HTTP_POLICY_KEY: policy, address_key: address},
           {},
@@ -1601,18 +1551,16 @@ class TestYarnAlertContracts(unittest.TestCase):
       alert.SMOKEUSER_KEY: "ambari-qa",
       alert.NODEMANAGER_HTTP_ADDRESS_KEY: "0.0.0.0:8042",
     }
-    with (
-      patch.object(
+    with patch.object(
         alert.Environment,
         "get_instance",
         return_value=SimpleNamespace(tmp_dir="/tmp"),
-      ),
+      ), \
       patch.object(
         alert,
         "curl_krb_request",
         return_value=('{"nodeInfo":{"nodeHealthy":true,"healthReport":""}}', None, 0.1),
-      ) as curl,
-    ):
+      ) as curl:
       result, _ = alert.execute(
         configurations, {alert.CONNECTION_TIMEOUT_KEY: 0.1}, "nm.example"
       )
@@ -1637,12 +1585,11 @@ class TestYarnAlertContracts(unittest.TestCase):
       alert.SMOKEUSER_KEY: "ambari-qa",
       alert.NODEMANAGER_HTTP_ADDRESS_KEY: "rm.example:8088",
     }
-    with (
-      patch.object(
+    with patch.object(
         alert.Environment,
         "get_instance",
         return_value=SimpleNamespace(tmp_dir="/tmp"),
-      ),
+      ), \
       patch.object(
         alert,
         "curl_krb_request",
@@ -1651,8 +1598,7 @@ class TestYarnAlertContracts(unittest.TestCase):
           None,
           0.1,
         ),
-      ) as curl,
-    ):
+      ) as curl:
       result, _ = alert.execute(configurations, {}, "standalone-rm.example")
 
     self.assertEqual("OK", result)
@@ -1713,20 +1659,18 @@ class TestYarnAlertContracts(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/krb5cc"}
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with (
-      patch.object(alert, "get_kinit_path", return_value="/usr/bin/kinit"),
+    with patch.object(alert, "get_kinit_path", return_value="/usr/bin/kinit"), \
       patch.object(
         alert,
         "resolve_yarn_executable",
         return_value="/custom/bigtop/current/hadoop-yarn-client/bin/yarn",
-      ),
-      patch.object(alert, "PrivateKerberosCache", return_value=cache_context),
+      ), \
+      patch.object(alert, "PrivateKerberosCache", return_value=cache_context), \
       patch.object(
         alert,
         "get_ats_hbase_status",
         return_value='noise {"state":"STABLE"}',
-      ) as status,
-    ):
+      ) as status:
       result, _ = alert.execute(configurations, {}, "rm.example")
     self.assertEqual("OK", result)
     cache.kinit.assert_called_once_with(
@@ -1772,14 +1716,12 @@ class TestYarnAlertContracts(unittest.TestCase):
           configurations, {alert.CHECK_COMMAND_TIMEOUT_KEY: timeout}, "host"
         )
         self.assertEqual("CRITICAL", result)
-    with (
-      patch.object(
+    with patch.object(
         alert,
         "resolve_yarn_executable",
         return_value="/usr/bigtop/current/hadoop-yarn-client/bin/yarn",
-      ),
-      patch.object(alert, "get_ats_hbase_status", return_value="not json"),
-    ):
+      ), \
+      patch.object(alert, "get_ats_hbase_status", return_value="not json"):
       result, labels = alert.execute(configurations, {}, "host")
     self.assertEqual("CRITICAL", result)
     self.assertIn("Could not find a JSON object", labels[0])
@@ -1817,10 +1759,8 @@ class TestYarnAlertContracts(unittest.TestCase):
         uid = unsafe_uid if unsafe_uid is not None else uid
       return SimpleNamespace(st_mode=mode, st_uid=uid)
 
-    with (
-      patch.object(alert.os, "lstat", side_effect=metadata),
-      patch.object(alert.os.path, "realpath", return_value=executable),
-    ):
+    with patch.object(alert.os, "lstat", side_effect=metadata), \
+      patch.object(alert.os.path, "realpath", return_value=executable):
       self.assertEqual(executable, alert.resolve_yarn_executable("/usr/bigtop"))
 
     unsafe_cases = (
@@ -1835,11 +1775,9 @@ class TestYarnAlertContracts(unittest.TestCase):
       def unsafe_metadata(path):
         return metadata(path, unsafe_path, unsafe_mode, unsafe_uid)
 
-      with (
-        self.subTest(path=unsafe_path, mode=unsafe_mode, uid=unsafe_uid),
-        patch.object(alert.os, "lstat", side_effect=unsafe_metadata),
-        patch.object(alert.os.path, "realpath", return_value=executable),
-      ):
+      with self.subTest(path=unsafe_path, mode=unsafe_mode, uid=unsafe_uid), \
+        patch.object(alert.os, "lstat", side_effect=unsafe_metadata), \
+        patch.object(alert.os.path, "realpath", return_value=executable):
         with self.assertRaises(Fail):
           alert.resolve_yarn_executable("/usr/bigtop")
 
@@ -1850,12 +1788,10 @@ class TestYarnAlertContracts(unittest.TestCase):
         return SimpleNamespace(st_mode=stat.S_IFREG | 0o755, st_uid=0)
       return metadata(path)
 
-    with (
-      patch.object(alert.os, "lstat", side_effect=replaced_metadata),
+    with patch.object(alert.os, "lstat", side_effect=replaced_metadata), \
       patch.object(
         alert.os.path, "realpath", return_value="/tmp/replaced/yarn"
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "root-owned and non-writable"):
         alert.resolve_yarn_executable("/usr/bigtop")
 
@@ -1883,11 +1819,9 @@ class TestYarnServiceCheck(unittest.TestCase):
     for smokeuser in ("", "../hdfs", "user/name", " user", "user\nname"):
       params = self._params()
       params.smokeuser = smokeuser
-      with (
-        self.subTest(smokeuser=smokeuser),
-        patch.dict(sys.modules, {"params": params}),
-        patch.object(YARN_SERVICE_CHECK, "Execute") as execute,
-      ):
+      with self.subTest(smokeuser=smokeuser), \
+        patch.dict(sys.modules, {"params": params}), \
+        patch.object(YARN_SERVICE_CHECK, "Execute") as execute:
         with self.assertRaisesRegex(Fail, "single safe path segment"):
           YARN_SERVICE_CHECK.ServiceCheckDefault().service_check(MagicMock())
         params.HdfsResource.assert_not_called()
@@ -1895,22 +1829,18 @@ class TestYarnServiceCheck(unittest.TestCase):
 
   def test_missing_distributed_shell_jar_fails_before_execution(self):
     params = self._params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_SERVICE_CHECK.os.path, "isfile", return_value=False),
-      patch.object(YARN_SERVICE_CHECK, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_SERVICE_CHECK.os.path, "isfile", return_value=False), \
+      patch.object(YARN_SERVICE_CHECK, "Execute") as execute:
       with self.assertRaisesRegex(Fail, "distributed shell jar is missing"):
         YARN_SERVICE_CHECK.ServiceCheckDefault().service_check(MagicMock())
     execute.assert_not_called()
 
   def test_distributed_shell_uses_structured_argv_and_bounded_timeout(self):
     params = self._params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_SERVICE_CHECK.os.path, "isfile", return_value=True),
-      patch.object(YARN_SERVICE_CHECK, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_SERVICE_CHECK.os.path, "isfile", return_value=True), \
+      patch.object(YARN_SERVICE_CHECK, "Execute") as execute:
       YARN_SERVICE_CHECK.ServiceCheckDefault().service_check(MagicMock())
 
     command = execute.call_args.args[0]
@@ -1926,16 +1856,14 @@ class TestYarnServiceCheck(unittest.TestCase):
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
     cache.kinit.side_effect = Fail("kinit failed")
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_SERVICE_CHECK.os.path, "isfile", return_value=True),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_SERVICE_CHECK.os.path, "isfile", return_value=True), \
       patch.object(
         YARN_SERVICE_CHECK,
         "PrivateKerberosCache",
         return_value=cache_context,
-      ),
-      patch.object(YARN_SERVICE_CHECK, "Execute") as execute,
-    ):
+      ), \
+      patch.object(YARN_SERVICE_CHECK, "Execute") as execute:
       with self.assertRaisesRegex(Fail, "kinit failed"):
         YARN_SERVICE_CHECK.ServiceCheckDefault().service_check(MagicMock())
 
@@ -1969,11 +1897,9 @@ class TestMapReduceServiceCheck(unittest.TestCase):
     for smokeuser in ("", "../hdfs", "user/name", " user", "user\x00name"):
       params = self._params()
       params.smokeuser = smokeuser
-      with (
-        self.subTest(smokeuser=smokeuser),
-        patch.dict(sys.modules, {"params": params}),
-        patch.object(MAPRED_SERVICE_CHECK, "File") as file_resource,
-      ):
+      with self.subTest(smokeuser=smokeuser), \
+        patch.dict(sys.modules, {"params": params}), \
+        patch.object(MAPRED_SERVICE_CHECK, "File") as file_resource:
         with self.assertRaisesRegex(Fail, "single safe path segment"):
           MAPRED_SERVICE_CHECK.MapReduce2ServiceCheckDefault().service_check(
             MagicMock()
@@ -1983,11 +1909,9 @@ class TestMapReduceServiceCheck(unittest.TestCase):
 
   def test_missing_examples_jar_fails_before_temp_file_creation(self):
     params = self._params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(MAPRED_SERVICE_CHECK.os.path, "isfile", return_value=False),
-      patch.object(MAPRED_SERVICE_CHECK, "File") as file_resource,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(MAPRED_SERVICE_CHECK.os.path, "isfile", return_value=False), \
+      patch.object(MAPRED_SERVICE_CHECK, "File") as file_resource:
       with self.assertRaisesRegex(Fail, "examples jar is missing"):
         MAPRED_SERVICE_CHECK.MapReduce2ServiceCheckDefault().service_check(
           MagicMock()
@@ -1999,25 +1923,23 @@ class TestMapReduceServiceCheck(unittest.TestCase):
     run_ids = (SimpleNamespace(hex="first"), SimpleNamespace(hex="second"))
     local_files = []
     hadoop_calls = []
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(MAPRED_SERVICE_CHECK.os.path, "isfile", return_value=True),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(MAPRED_SERVICE_CHECK.os.path, "isfile", return_value=True), \
       patch.object(
         MAPRED_SERVICE_CHECK.uuid, "uuid4", side_effect=run_ids
-      ),
+      ), \
       patch.object(
         MAPRED_SERVICE_CHECK,
         "File",
         side_effect=lambda path, **kwargs: local_files.append((path, kwargs)),
-      ),
+      ), \
       patch.object(
         MAPRED_SERVICE_CHECK,
         "Execute",
         side_effect=lambda command, **kwargs: hadoop_calls.append(
           (command, kwargs)
         ),
-      ),
-    ):
+      ):
       checker = MAPRED_SERVICE_CHECK.MapReduce2ServiceCheckDefault()
       checker.service_check(MagicMock())
       checker.service_check(MagicMock())
@@ -2062,16 +1984,14 @@ class TestMapReduceServiceCheck(unittest.TestCase):
       None,
       Fail("HDFS cleanup failed"),
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(MAPRED_SERVICE_CHECK.os.path, "isfile", return_value=True),
-      patch.object(MAPRED_SERVICE_CHECK, "File"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(MAPRED_SERVICE_CHECK.os.path, "isfile", return_value=True), \
+      patch.object(MAPRED_SERVICE_CHECK, "File"), \
       patch.object(
         MAPRED_SERVICE_CHECK,
         "Execute",
         side_effect=Fail("wordcount failed"),
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(
         RuntimeError, "wordcount failed.*HDFS cleanup failed"
       ) as raised:
@@ -2098,26 +2018,22 @@ class TestAtsHBasePackage(unittest.TestCase):
   def test_invalid_or_missing_stack_version_fails_before_path_access(self):
     for version in (None, "", "../current", "3.3.6;$(id)"):
       with self.subTest(version=version):
-        with (
-          patch.dict(sys.modules, {"params": self._params(version)}),
-          patch.object(HBASE_SERVICE.sudo, "path_islink") as path_islink,
-        ):
+        with patch.dict(sys.modules, {"params": self._params(version)}), \
+          patch.object(HBASE_SERVICE.sudo, "path_islink") as path_islink:
           with self.assertRaisesRegex(Fail, "valid stack version"):
             HBASE_SERVICE.create_hbase_package()
         path_islink.assert_not_called()
 
   def test_symlink_package_directory_is_rejected(self):
-    with (
-      patch.dict(sys.modules, {"params": self._params()}),
-      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=True),
+    with patch.dict(sys.modules, {"params": self._params()}), \
+      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=True), \
       patch.object(
         HBASE_SERVICE.sudo,
         "lstat",
         return_value=SimpleNamespace(st_mode=stat.S_IFDIR | 0o755, st_uid=0),
-      ),
-      patch.object(HBASE_SERVICE, "Directory") as directory,
-    ):
+      ), \
+      patch.object(HBASE_SERVICE, "Directory") as directory:
       with self.assertRaisesRegex(Fail, "symbolic link"):
         HBASE_SERVICE.create_hbase_package()
     directory.assert_not_called()
@@ -2134,12 +2050,10 @@ class TestAtsHBasePackage(unittest.TestCase):
           return SimpleNamespace(st_mode=mode, st_uid=uid)
         return SimpleNamespace(st_mode=stat.S_IFDIR | 0o755, st_uid=0)
 
-      with (
-        self.subTest(path=unsafe_path, mode=mode, uid=uid),
-        patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
-        patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=False),
-        patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=metadata),
-      ):
+      with self.subTest(path=unsafe_path, mode=mode, uid=uid), \
+        patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
+        patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=False), \
+        patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=metadata):
         with self.assertRaises(Fail):
           HBASE_SERVICE._validate_archive_directory(archive_dir, "3.3.6-1")
 
@@ -2169,10 +2083,8 @@ class TestAtsHBasePackage(unittest.TestCase):
       (source_root, ["lib"], []),
       (f"{source_root}/lib", [], ["hbase.jar"]),
     ]
-    with (
-      patch.object(HBASE_SERVICE.os, "walk", return_value=walk_result),
-      patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=metadata),
-    ):
+    with patch.object(HBASE_SERVICE.os, "walk", return_value=walk_result), \
+      patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=metadata):
       snapshot = HBASE_SERVICE._snapshot_package_sources(
         (source_root,), version_lib
       )
@@ -2188,67 +2100,55 @@ class TestAtsHBasePackage(unittest.TestCase):
       def unsafe_metadata(path):
         return metadata(path, unsafe_path, unsafe_mode, unsafe_uid)
 
-      with (
-        self.subTest(path=unsafe_path, mode=unsafe_mode, uid=unsafe_uid),
-        patch.object(HBASE_SERVICE.os, "walk", return_value=walk_result),
-        patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=unsafe_metadata),
-      ):
+      with self.subTest(path=unsafe_path, mode=unsafe_mode, uid=unsafe_uid), \
+        patch.object(HBASE_SERVICE.os, "walk", return_value=walk_result), \
+        patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=unsafe_metadata):
         with self.assertRaises(Fail):
           HBASE_SERVICE._snapshot_package_sources((source_root,), version_lib)
 
     def replacement_metadata(path):
       return metadata(path, ino=2 if path == package_jar else 1)
 
-    with (
-      patch.object(HBASE_SERVICE.os, "walk", return_value=walk_result),
+    with patch.object(HBASE_SERVICE.os, "walk", return_value=walk_result), \
       patch.object(
         HBASE_SERVICE.sudo, "lstat", side_effect=replacement_metadata
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "changed while creating"):
         HBASE_SERVICE._require_same_package_sources(
           snapshot, (source_root,), version_lib
         )
 
   def test_staged_runtime_symlink_is_unlinked_without_directory_delete(self):
-    with (
-      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "unlink") as unlink,
-      patch.object(HBASE_SERVICE, "Directory") as directory,
-    ):
+    with patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "unlink") as unlink, \
+      patch.object(HBASE_SERVICE, "Directory") as directory:
       HBASE_SERVICE._delete_staged_directory_or_link("/staging/hbase/conf")
     unlink.assert_called_once_with("/staging/hbase/conf")
     directory.assert_not_called()
 
   def test_staged_runtime_broken_symlink_is_also_unlinked(self):
-    with (
-      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_exists", return_value=False),
-      patch.object(HBASE_SERVICE.sudo, "unlink") as unlink,
-    ):
+    with patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_exists", return_value=False), \
+      patch.object(HBASE_SERVICE.sudo, "unlink") as unlink:
       HBASE_SERVICE._delete_staged_directory_or_link("/staging/hbase/conf")
     unlink.assert_called_once_with("/staging/hbase/conf")
 
   def test_staged_runtime_real_directory_uses_directory_resource(self):
-    with (
-      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=False),
-      patch.object(HBASE_SERVICE.sudo, "path_isdir", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "unlink") as unlink,
-      patch.object(HBASE_SERVICE, "Directory") as directory,
-    ):
+    with patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=False), \
+      patch.object(HBASE_SERVICE.sudo, "path_isdir", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "unlink") as unlink, \
+      patch.object(HBASE_SERVICE, "Directory") as directory:
       HBASE_SERVICE._delete_staged_directory_or_link("/staging/hbase/logs")
     directory.assert_called_once_with("/staging/hbase/logs", action="delete")
     unlink.assert_not_called()
 
   def test_staged_runtime_regular_file_fails_closed(self):
-    with (
-      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=False),
-      patch.object(HBASE_SERVICE.sudo, "path_isdir", return_value=False),
-    ):
+    with patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=False), \
+      patch.object(HBASE_SERVICE.sudo, "path_isdir", return_value=False):
       with self.assertRaisesRegex(Fail, "unexpected staged HBase path type"):
         HBASE_SERVICE._delete_staged_directory_or_link("/staging/hbase/pids")
 
@@ -2259,13 +2159,12 @@ class TestAtsHBasePackage(unittest.TestCase):
     def path_islink(path):
       return False
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HBASE_SERVICE.sudo, "path_islink", side_effect=path_islink),
-      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_exists", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_isdir", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_isfile", return_value=True),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HBASE_SERVICE.sudo, "path_islink", side_effect=path_islink), \
+      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_exists", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_isdir", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_isfile", return_value=True), \
       patch.object(
         HBASE_SERVICE.sudo,
         "lstat",
@@ -2280,11 +2179,10 @@ class TestAtsHBasePackage(unittest.TestCase):
           st_ino=2,
           st_nlink=1,
         ),
-      ),
-      patch.object(HBASE_SERVICE, "Directory"),
-      patch.object(HBASE_SERVICE, "File") as file_resource,
-      patch.object(HBASE_SERVICE, "_validate_tar_archive"),
-    ):
+      ), \
+      patch.object(HBASE_SERVICE, "Directory"), \
+      patch.object(HBASE_SERVICE, "File") as file_resource, \
+      patch.object(HBASE_SERVICE, "_validate_tar_archive"):
       HBASE_SERVICE.create_hbase_package()
 
     file_resource.assert_called_once_with(
@@ -2300,8 +2198,7 @@ class TestAtsHBasePackage(unittest.TestCase):
       (stat.S_IFREG | 0o666, 0),
       (stat.S_IFREG | 0o444, 1001),
     ):
-      with (
-        self.subTest(mode=mode, uid=uid),
+      with self.subTest(mode=mode, uid=uid), \
         patch.object(
           HBASE_SERVICE.sudo,
           "lstat",
@@ -2312,8 +2209,7 @@ class TestAtsHBasePackage(unittest.TestCase):
             st_ino=2,
             st_nlink=1,
           ),
-        ),
-      ):
+        ):
         with self.assertRaisesRegex(Fail, "root-owned and non-writable"):
           HBASE_SERVICE._regular_file_identity(archive, "Existing HBase archive")
 
@@ -2380,17 +2276,16 @@ class TestAtsHBasePackage(unittest.TestCase):
   def test_concurrent_publisher_archive_is_validated_before_reuse(self):
     params = self._params()
     archive = f"{params.yarn_hbase_user_tmp}/hbase.tar.gz"
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=False),
-      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=False), \
+      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
       patch.object(
         HBASE_SERVICE.sudo,
         "path_exists",
         side_effect=lambda path: path != archive,
-      ),
-      patch.object(HBASE_SERVICE.sudo, "path_isdir", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "path_isfile", return_value=True),
+      ), \
+      patch.object(HBASE_SERVICE.sudo, "path_isdir", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "path_isfile", return_value=True), \
       patch.object(
         HBASE_SERVICE.sudo,
         "lstat",
@@ -2407,20 +2302,19 @@ class TestAtsHBasePackage(unittest.TestCase):
           st_ino=2 if path == archive else 3,
           st_nlink=1,
         ),
-      ),
+      ), \
       patch.object(
         HBASE_SERVICE.sudo,
         "link_exclusive",
         side_effect=OSError("already published"),
-      ),
-      patch.object(HBASE_SERVICE.glob, "glob", return_value=["zookeeper.jar"]),
-      patch.object(HBASE_SERVICE, "_snapshot_package_sources", return_value={}),
-      patch.object(HBASE_SERVICE, "_require_same_package_sources"),
-      patch.object(HBASE_SERVICE, "Directory"),
-      patch.object(HBASE_SERVICE, "File"),
-      patch.object(HBASE_SERVICE, "Execute"),
-      patch.object(HBASE_SERVICE, "_validate_tar_archive") as validate,
-    ):
+      ), \
+      patch.object(HBASE_SERVICE.glob, "glob", return_value=["zookeeper.jar"]), \
+      patch.object(HBASE_SERVICE, "_snapshot_package_sources", return_value={}), \
+      patch.object(HBASE_SERVICE, "_require_same_package_sources"), \
+      patch.object(HBASE_SERVICE, "Directory"), \
+      patch.object(HBASE_SERVICE, "File"), \
+      patch.object(HBASE_SERVICE, "Execute"), \
+      patch.object(HBASE_SERVICE, "_validate_tar_archive") as validate:
       HBASE_SERVICE.create_hbase_package()
 
     self.assertIn("/.hbase-package-", validate.call_args_list[0].args[0])
@@ -2451,11 +2345,9 @@ class TestAtsHBasePackage(unittest.TestCase):
           "/staging/hbase.tar.gz", expected, "Staged HBase archive"
         )
 
-    with (
-      patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True),
-      patch.object(HBASE_SERVICE.sudo, "lstat", return_value=replacement),
-      patch.object(HBASE_SERVICE.sudo, "unlink") as unlink,
-    ):
+    with patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
+      patch.object(HBASE_SERVICE.sudo, "lstat", return_value=replacement), \
+      patch.object(HBASE_SERVICE.sudo, "unlink") as unlink:
       self.assertFalse(
         HBASE_SERVICE._unlink_if_same_file("/archive/hbase.tar.gz", expected)
       )
@@ -2483,11 +2375,9 @@ class TestAtsHBasePackage(unittest.TestCase):
       f"{destination}/zookeeper-3.7.2.jar",
       f"{destination}/zookeeper-jute-3.7.2.jar",
     )
-    with (
-      patch.object(HBASE_SERVICE.glob, "glob", return_value=installed_links),
-      patch.object(HBASE_SERVICE, "File") as file_resource,
-      patch.object(HBASE_SERVICE, "_copy_matching_files") as copy_files,
-    ):
+    with patch.object(HBASE_SERVICE.glob, "glob", return_value=installed_links), \
+      patch.object(HBASE_SERVICE, "File") as file_resource, \
+      patch.object(HBASE_SERVICE, "_copy_matching_files") as copy_files:
       HBASE_SERVICE._replace_external_zookeeper_links(
         "/usr/bigtop/3.3.6-1/usr/lib/zookeeper", destination
       )
@@ -2543,12 +2433,10 @@ class TestAtsHBasePackage(unittest.TestCase):
     }
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HBASE_SERVICE, "PrivateKerberosCache", return_value=cache_context),
-      patch.object(HBASE_SERVICE, "File") as file_resource,
-      patch.object(HBASE_SERVICE, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HBASE_SERVICE, "PrivateKerberosCache", return_value=cache_context), \
+      patch.object(HBASE_SERVICE, "File") as file_resource, \
+      patch.object(HBASE_SERVICE, "Execute") as execute:
       HBASE_SERVICE.createTables()
 
     cache.kinit.assert_called_once_with(
@@ -2592,22 +2480,20 @@ class TestYarnFilesystemSafety(unittest.TestCase):
 
   def test_daemon_directory_rejects_existing_directory_owned_by_another_user(self):
     directory_metadata = SimpleNamespace(st_mode=stat.S_IFDIR | 0o755)
-    with (
-      patch.object(
+    with patch.object(
         YARN_CONFIG.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
-      patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
-      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False),
-      patch.object(YARN_CONFIG.sudo, "lstat", return_value=directory_metadata),
+      ), \
+      patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
+      patch.object(YARN_CONFIG.sudo, "lstat", return_value=directory_metadata), \
       patch.object(
         YARN_CONFIG.sudo,
         "stat",
         return_value=SimpleNamespace(st_uid=0, st_mode=0o755),
-      ),
-      patch.object(YARN_CONFIG, "Directory") as directory,
-    ):
+      ), \
+      patch.object(YARN_CONFIG, "Directory") as directory:
       with self.assertRaisesRegex(Fail, "must already be owned by yarn"):
         YARN_CONFIG._daemon_owned_directory(
           "/etc/ssh", "NodeManager local directory", "yarn", "hadoop"
@@ -2618,26 +2504,24 @@ class TestYarnFilesystemSafety(unittest.TestCase):
     def path_exists(path):
       return path == "/data"
 
-    with (
-      patch.object(
+    with patch.object(
         YARN_CONFIG.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
-      patch.object(YARN_CONFIG.sudo, "path_lexists", side_effect=path_exists),
-      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False),
+      ), \
+      patch.object(YARN_CONFIG.sudo, "path_lexists", side_effect=path_exists), \
+      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
       patch.object(
         YARN_CONFIG.sudo,
         "lstat",
         return_value=SimpleNamespace(st_mode=stat.S_IFDIR | 0o755),
-      ),
+      ), \
       patch.object(
         YARN_CONFIG.sudo,
         "stat",
         return_value=SimpleNamespace(st_uid=0, st_mode=0o755),
-      ),
-      patch.object(YARN_CONFIG, "Directory") as directory,
-    ):
+      ), \
+      patch.object(YARN_CONFIG, "Directory") as directory:
       YARN_CONFIG._daemon_owned_directory(
         "/data/yarn/local", "NodeManager local directory", "yarn", "hadoop"
       )
@@ -2655,22 +2539,20 @@ class TestYarnFilesystemSafety(unittest.TestCase):
       owner = 1001 if path == "/data/yarn/local" else 0
       return SimpleNamespace(st_uid=owner, st_mode=0o755)
 
-    with (
-      patch.object(
+    with patch.object(
         YARN_CONFIG.pwd,
         "getpwnam",
         return_value=SimpleNamespace(pw_uid=1001),
-      ),
-      patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
-      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False),
+      ), \
+      patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
       patch.object(
         YARN_CONFIG.sudo,
         "lstat",
         return_value=SimpleNamespace(st_mode=stat.S_IFDIR | 0o755),
-      ),
-      patch.object(YARN_CONFIG.sudo, "stat", side_effect=metadata),
-      patch.object(YARN_CONFIG, "Directory") as directory,
-    ):
+      ), \
+      patch.object(YARN_CONFIG.sudo, "stat", side_effect=metadata), \
+      patch.object(YARN_CONFIG, "Directory") as directory:
       self.assertEqual(
         "/data/yarn/local",
         YARN_CONFIG._daemon_owned_directory(
@@ -2684,33 +2566,31 @@ class TestYarnFilesystemSafety(unittest.TestCase):
       SimpleNamespace(st_uid=1001, st_mode=0o755),
       SimpleNamespace(st_uid=0, st_mode=0o777),
     ):
-      with (
-        self.subTest(metadata=metadata),
+      with self.subTest(metadata=metadata), \
         patch.object(
           YARN_CONFIG.pwd,
           "getpwnam",
           return_value=SimpleNamespace(pw_uid=1001),
-        ),
+        ), \
         patch.object(
           YARN_CONFIG.sudo,
           "path_lexists",
           side_effect=lambda path: path in ("/data", "/data/yarn"),
-        ),
-        patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False),
+        ), \
+        patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
         patch.object(
           YARN_CONFIG.sudo,
           "lstat",
           return_value=SimpleNamespace(st_mode=stat.S_IFDIR | 0o755),
-        ),
+        ), \
         patch.object(
           YARN_CONFIG.sudo,
           "stat",
           side_effect=lambda path: metadata
           if path == "/data/yarn"
           else SimpleNamespace(st_uid=0, st_mode=0o755),
-        ),
-        patch.object(YARN_CONFIG, "Directory") as directory,
-      ):
+        ), \
+        patch.object(YARN_CONFIG, "Directory") as directory:
         with self.assertRaisesRegex(Fail, "parent must"):
           YARN_CONFIG._daemon_owned_directory(
             "/data/yarn/local", "NodeManager local directory", "yarn", "hadoop"
@@ -2735,17 +2615,15 @@ class TestYarnFilesystemSafety(unittest.TestCase):
 
   def test_existing_safe_root_directory_is_not_reconfigured(self):
     directory_metadata = SimpleNamespace(st_mode=stat.S_IFDIR | 0o750)
-    with (
-      patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
-      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False),
-      patch.object(YARN_CONFIG.sudo, "lstat", return_value=directory_metadata),
+    with patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
+      patch.object(YARN_CONFIG.sudo, "lstat", return_value=directory_metadata), \
       patch.object(
         YARN_CONFIG.sudo,
         "stat",
         return_value=SimpleNamespace(st_uid=0, st_mode=0o750),
-      ),
-      patch.object(YARN_CONFIG, "Directory") as directory,
-    ):
+      ), \
+      patch.object(YARN_CONFIG, "Directory") as directory:
       self.assertEqual(
         "/var/log/hadoop-yarn",
         YARN_CONFIG._root_owned_directory(
@@ -2765,14 +2643,12 @@ class TestYarnFilesystemSafety(unittest.TestCase):
       SimpleNamespace(st_uid=1001, st_mode=0o755),
       SimpleNamespace(st_uid=0, st_mode=0o777),
     ):
-      with (
-        self.subTest(metadata=metadata),
-        patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
-        patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False),
-        patch.object(YARN_CONFIG.sudo, "lstat", return_value=directory_metadata),
-        patch.object(YARN_CONFIG.sudo, "stat", return_value=metadata),
-        patch.object(YARN_CONFIG, "Directory") as directory,
-      ):
+      with self.subTest(metadata=metadata), \
+        patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+        patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
+        patch.object(YARN_CONFIG.sudo, "lstat", return_value=directory_metadata), \
+        patch.object(YARN_CONFIG.sudo, "stat", return_value=metadata), \
+        patch.object(YARN_CONFIG, "Directory") as directory:
         with self.assertRaisesRegex(Fail, "root-owned and non-writable"):
           YARN_CONFIG._root_owned_directory(
             "/run/hadoop-yarn", "YARN PID prefix", ("/run",)
@@ -2780,22 +2656,20 @@ class TestYarnFilesystemSafety(unittest.TestCase):
       directory.assert_not_called()
 
   def test_local_directory_allows_only_root_managed_var_run_alias(self):
-    with (
-      patch.object(
+    with patch.object(
         YARN_CONFIG.sudo,
         "path_lexists",
         side_effect=lambda path: path == "/var/run",
-      ),
+      ), \
       patch.object(
         YARN_CONFIG.sudo,
         "path_islink",
         side_effect=lambda path: path == "/var/run",
-      ),
-      patch.object(YARN_CONFIG.sudo, "readlink", return_value="../run"),
+      ), \
+      patch.object(YARN_CONFIG.sudo, "readlink", return_value="../run"), \
       patch.object(
         YARN_CONFIG.sudo, "stat", return_value=SimpleNamespace(st_uid=0)
-      ),
-    ):
+      ):
       self.assertEqual(
         "/var/run/hadoop-yarn",
         YARN_CONFIG._validate_local_service_directory(
@@ -2803,22 +2677,20 @@ class TestYarnFilesystemSafety(unittest.TestCase):
         ),
       )
 
-    with (
-      patch.object(
+    with patch.object(
         YARN_CONFIG.sudo,
         "path_lexists",
         side_effect=lambda path: path == "/var/run",
-      ),
+      ), \
       patch.object(
         YARN_CONFIG.sudo,
         "path_islink",
         side_effect=lambda path: path == "/var/run",
-      ),
-      patch.object(YARN_CONFIG.sudo, "readlink", return_value="../tmp/run"),
+      ), \
+      patch.object(YARN_CONFIG.sudo, "readlink", return_value="../tmp/run"), \
       patch.object(
         YARN_CONFIG.sudo, "stat", return_value=SimpleNamespace(st_uid=1000)
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "symbolic link"):
         YARN_CONFIG._validate_local_service_directory(
           "/var/run/hadoop-yarn", "yarn_pid_dir_prefix"
@@ -2830,14 +2702,12 @@ class TestYarnFilesystemSafety(unittest.TestCase):
         with self.assertRaises(Fail):
           YARN_CONFIG._validate_local_service_directory(path, "local dirs")
 
-    with (
-      patch.object(
+    with patch.object(
         YARN_CONFIG.sudo,
         "path_lexists",
         side_effect=lambda path: path == "/data/link",
-      ),
-      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=True),
-    ):
+      ), \
+      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=True):
       with self.assertRaisesRegex(Fail, "symbolic link"):
         YARN_CONFIG._validate_local_service_directory(
           "/data/link/yarn", "local dirs"
@@ -2912,11 +2782,9 @@ class TestYarnFilesystemSafety(unittest.TestCase):
         uid = unsafe_uid if unsafe_uid is not None else uid
       return SimpleNamespace(st_mode=mode, st_uid=uid)
 
-    with (
-      patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
-      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=metadata),
-      patch.object(YARN_CONFIG.sudo, "stat", side_effect=metadata),
-    ):
+    with patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=metadata), \
+      patch.object(YARN_CONFIG.sudo, "stat", side_effect=metadata):
       self.assertTrue(
         YARN_CONFIG._current_nm_security_state(
           marker_dir,
@@ -2936,12 +2804,10 @@ class TestYarnFilesystemSafety(unittest.TestCase):
       def unsafe_metadata(path):
         return metadata(path, unsafe_path, unsafe_mode, unsafe_uid)
 
-      with (
-        self.subTest(path=unsafe_path, mode=unsafe_mode, uid=unsafe_uid),
-        patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
-        patch.object(YARN_CONFIG.sudo, "lstat", side_effect=unsafe_metadata),
-        patch.object(YARN_CONFIG.sudo, "stat", side_effect=unsafe_metadata),
-      ):
+      with self.subTest(path=unsafe_path, mode=unsafe_mode, uid=unsafe_uid), \
+        patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+        patch.object(YARN_CONFIG.sudo, "lstat", side_effect=unsafe_metadata), \
+        patch.object(YARN_CONFIG.sudo, "stat", side_effect=unsafe_metadata):
         with self.assertRaises(Fail):
           YARN_CONFIG._current_nm_security_state(
             marker_dir,
@@ -2972,10 +2838,8 @@ class TestYarnFilesystemSafety(unittest.TestCase):
         st_uid=0,
       )
 
-    with (
-      patch.object(YARN_CONFIG.sudo, "path_lexists", side_effect=path_exists),
-      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=trusted_metadata),
-    ):
+    with patch.object(YARN_CONFIG.sudo, "path_lexists", side_effect=path_exists), \
+      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=trusted_metadata):
       self.assertEqual(
         (True, True),
         YARN_CONFIG._current_nm_security_state(
@@ -3001,11 +2865,9 @@ class TestYarnFilesystemSafety(unittest.TestCase):
           return SimpleNamespace(st_mode=unsafe_mode, st_uid=unsafe_uid)
         return SimpleNamespace(st_mode=stat.S_IFDIR | 0o755, st_uid=0)
 
-      with (
-        self.subTest(mode=unsafe_mode, uid=unsafe_uid),
-        patch.object(YARN_CONFIG.sudo, "path_lexists", side_effect=path_exists),
-        patch.object(YARN_CONFIG.sudo, "lstat", side_effect=unsafe_metadata),
-      ):
+      with self.subTest(mode=unsafe_mode, uid=unsafe_uid), \
+        patch.object(YARN_CONFIG.sudo, "path_lexists", side_effect=path_exists), \
+        patch.object(YARN_CONFIG.sudo, "lstat", side_effect=unsafe_metadata):
         with self.assertRaises(Fail):
           YARN_CONFIG._current_nm_security_state(
             marker_dir, marker_file, legacy_marker
@@ -3040,16 +2902,14 @@ class TestYarnFilesystemSafety(unittest.TestCase):
         st_uid=0,
       )
 
-    with (
-      patch.object(
+    with patch.object(
         YARN_CONFIG.sudo,
         "path_lexists",
         side_effect=lambda path: not path.endswith(("yarn.exclude", "yarn.include")),
-      ),
-      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False),
-      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=trusted_metadata),
-      patch.object(YARN_CONFIG.os.path, "realpath", return_value=config_dir),
-    ):
+      ), \
+      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
+      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=trusted_metadata), \
+      patch.object(YARN_CONFIG.os.path, "realpath", return_value=config_dir):
       self.assertEqual(
         ("/etc/hadoop/conf/yarn.exclude", "/etc/hadoop/conf/yarn.include"),
         YARN_CONFIG._validated_resource_manager_host_files(
@@ -3071,13 +2931,12 @@ class TestYarnFilesystemSafety(unittest.TestCase):
               path, config_dir, stack_root
             )
 
-    with (
-      patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
+    with patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
       patch.object(
         YARN_CONFIG.sudo,
         "path_islink",
         side_effect=lambda path: path == "/etc/hadoop/conf/yarn.exclude",
-      ),
+      ), \
       patch.object(
         YARN_CONFIG.sudo,
         "lstat",
@@ -3089,9 +2948,8 @@ class TestYarnFilesystemSafety(unittest.TestCase):
           ),
           st_uid=0,
         ),
-      ),
-      patch.object(YARN_CONFIG.os.path, "realpath", return_value=config_dir),
-    ):
+      ), \
+      patch.object(YARN_CONFIG.os.path, "realpath", return_value=config_dir):
       with self.assertRaisesRegex(Fail, "regular file"):
         YARN_CONFIG._validated_resource_manager_host_files(
           "/etc/hadoop/conf/yarn.exclude", config_dir, stack_root
@@ -3108,13 +2966,11 @@ class TestYarnFilesystemSafety(unittest.TestCase):
           return SimpleNamespace(st_mode=mode, st_uid=uid)
         return trusted_metadata(path)
 
-      with (
-        self.subTest(path=unsafe_path, mode=mode, uid=uid),
-        patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
-        patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False),
-        patch.object(YARN_CONFIG.sudo, "lstat", side_effect=unsafe_metadata),
-        patch.object(YARN_CONFIG.os.path, "realpath", return_value=config_dir),
-      ):
+      with self.subTest(path=unsafe_path, mode=mode, uid=uid), \
+        patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+        patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
+        patch.object(YARN_CONFIG.sudo, "lstat", side_effect=unsafe_metadata), \
+        patch.object(YARN_CONFIG.os.path, "realpath", return_value=config_dir):
         with self.assertRaisesRegex(Fail, "root-owned and non-writable"):
           YARN_CONFIG._validated_resource_manager_host_files(
             "/etc/hadoop/conf/yarn.exclude", config_dir, stack_root
@@ -3133,18 +2989,17 @@ class TestYarnFilesystemSafety(unittest.TestCase):
         st_uid=0,
       )
 
-    with (
-      patch.object(
+    with patch.object(
         YARN_CONFIG.sudo,
         "path_lexists",
         side_effect=lambda path: not path.endswith("yarn.exclude"),
-      ),
+      ), \
       patch.object(
         YARN_CONFIG.sudo,
         "path_islink",
         side_effect=lambda path: path == config_dir,
-      ),
-      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=metadata),
+      ), \
+      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=metadata), \
       patch.object(
         YARN_CONFIG.os.path,
         "realpath",
@@ -3154,8 +3009,7 @@ class TestYarnFilesystemSafety(unittest.TestCase):
           in (config_dir, "/usr/bigtop/current/hadoop-client/conf")
           else path
         ),
-      ),
-    ):
+      ):
       self.assertEqual(
         ("/etc/hadoop/conf/yarn.exclude", None),
         YARN_CONFIG._validated_resource_manager_host_files(
@@ -3163,22 +3017,20 @@ class TestYarnFilesystemSafety(unittest.TestCase):
         ),
       )
 
-    with (
-      patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True),
+    with patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
       patch.object(
         YARN_CONFIG.sudo,
         "path_islink",
         side_effect=lambda path: path == config_dir,
-      ),
-      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=metadata),
+      ), \
+      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=metadata), \
       patch.object(
         YARN_CONFIG.os.path,
         "realpath",
         side_effect=lambda path: (
           "/tmp/untrusted" if path == config_dir else resolved
         ),
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "BIGTOP-managed"):
         YARN_CONFIG._validated_resource_manager_host_files(
           "/etc/hadoop/conf/yarn.exclude", config_dir, stack_root
@@ -3372,11 +3224,9 @@ class TestYarnSystemServicePublication(unittest.TestCase):
     for attribute, value in cases:
       params = self._params()
       setattr(params, attribute, value)
-      with (
-        self.subTest(attribute=attribute, value=value),
-        patch.dict(sys.modules, {"params": params}),
-        patch.object(YARN_CONFIG, "File") as file_resource,
-      ):
+      with self.subTest(attribute=attribute, value=value), \
+        patch.dict(sys.modules, {"params": params}), \
+        patch.object(YARN_CONFIG, "File") as file_resource:
         with self.assertRaises(Fail):
           YARN_CONFIG.setup_system_services("/etc/hadoop/conf")
       file_resource.assert_not_called()
@@ -3400,14 +3250,12 @@ class TestYarnSystemServicePublication(unittest.TestCase):
   def test_system_service_preserves_valid_hdfs_uri_authority(self):
     params = self._params()
     params.yarn_system_service_dir = "hdfs://nameservice/services"
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"),
-      patch.object(YARN_CONFIG, "File"),
-      patch.object(YARN_CONFIG, "Execute"),
-      patch.object(YARN_CONFIG, "create_hbase_package"),
-      patch.object(YARN_CONFIG, "copy_hbase_package_to_hdfs"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
+      patch.object(YARN_CONFIG, "File"), \
+      patch.object(YARN_CONFIG, "Execute"), \
+      patch.object(YARN_CONFIG, "create_hbase_package"), \
+      patch.object(YARN_CONFIG, "copy_hbase_package_to_hdfs"):
       YARN_CONFIG.setup_system_services("/etc/hadoop/conf")
     params.HdfsResource.assert_any_call(
       "hdfs://nameservice/services/sync/yarn-ats",
@@ -3420,32 +3268,26 @@ class TestYarnSystemServicePublication(unittest.TestCase):
   def test_ha_system_service_requires_local_id_and_isolated_paths(self):
     params = self._params()
     params.rm_ha_enabled = True
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_CONFIG, "File") as file_resource,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_CONFIG, "File") as file_resource:
       with self.assertRaisesRegex(Fail, "must match exactly one HA ID"):
         YARN_CONFIG.setup_system_services("/etc/hadoop/conf")
     file_resource.assert_not_called()
 
     params.rm_ha_id = "rm0"
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_CONFIG, "File") as file_resource,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_CONFIG, "File") as file_resource:
       with self.assertRaisesRegex(Fail, "isolated"):
         YARN_CONFIG.setup_system_services("/etc/hadoop/conf")
     file_resource.assert_not_called()
 
     params.yarn_hbase_app_hdfs_path += "/rm0"
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"),
-      patch.object(YARN_CONFIG, "File"),
-      patch.object(YARN_CONFIG, "Execute"),
-      patch.object(YARN_CONFIG, "create_hbase_package"),
-      patch.object(YARN_CONFIG, "copy_hbase_package_to_hdfs"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
+      patch.object(YARN_CONFIG, "File"), \
+      patch.object(YARN_CONFIG, "Execute"), \
+      patch.object(YARN_CONFIG, "create_hbase_package"), \
+      patch.object(YARN_CONFIG, "copy_hbase_package_to_hdfs"):
       YARN_CONFIG.setup_system_services("/etc/hadoop/conf")
 
   def test_framework_directory_and_hbase_archive_are_published_before_manifest(self):
@@ -3460,22 +3302,20 @@ class TestYarnSystemServicePublication(unittest.TestCase):
     def execute(command, **kwargs):
       events.append(("execute", command, kwargs))
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"),
-      patch.object(YARN_CONFIG, "File"),
-      patch.object(YARN_CONFIG, "Execute", side_effect=execute),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
+      patch.object(YARN_CONFIG, "File"), \
+      patch.object(YARN_CONFIG, "Execute", side_effect=execute), \
       patch.object(
         YARN_CONFIG,
         "create_hbase_package",
         side_effect=lambda: events.append(("create_archive",)),
-      ),
+      ), \
       patch.object(
         YARN_CONFIG,
         "copy_hbase_package_to_hdfs",
         side_effect=lambda: events.append(("copy_archive",)),
-      ),
-    ):
+      ):
       YARN_CONFIG.setup_system_services("/etc/hadoop/conf")
 
     framework_index = next(
@@ -3507,14 +3347,12 @@ class TestYarnSystemServicePublication(unittest.TestCase):
 
   def test_configure_never_overwrites_the_fast_launch_dependency_archive(self):
     params = self._params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"),
-      patch.object(YARN_CONFIG, "File"),
-      patch.object(YARN_CONFIG, "Execute") as execute,
-      patch.object(YARN_CONFIG, "create_hbase_package"),
-      patch.object(YARN_CONFIG, "copy_hbase_package_to_hdfs"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
+      patch.object(YARN_CONFIG, "File"), \
+      patch.object(YARN_CONFIG, "Execute") as execute, \
+      patch.object(YARN_CONFIG, "create_hbase_package"), \
+      patch.object(YARN_CONFIG, "copy_hbase_package_to_hdfs"):
       YARN_CONFIG.setup_system_services("/etc/hadoop/conf")
     execute.assert_not_called()
     source = (SCRIPTS / "yarn.py").read_text(encoding="utf-8")
@@ -3529,14 +3367,12 @@ class TestYarnSystemServicePublication(unittest.TestCase):
     params.yarn_hbase_grant_permissions_file = (
       "/etc/hadoop/conf/embedded-yarn-ats-hbase/hbase_grant_permissions.rb"
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"),
-      patch.object(YARN_CONFIG, "File") as file_resource,
-      patch.object(YARN_CONFIG, "Execute") as execute,
-      patch.object(YARN_CONFIG, "create_hbase_package"),
-      patch.object(YARN_CONFIG, "copy_hbase_package_to_hdfs"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
+      patch.object(YARN_CONFIG, "File") as file_resource, \
+      patch.object(YARN_CONFIG, "Execute") as execute, \
+      patch.object(YARN_CONFIG, "create_hbase_package"), \
+      patch.object(YARN_CONFIG, "copy_hbase_package_to_hdfs"):
       YARN_CONFIG.setup_system_services("/etc/hadoop/conf")
 
     execute.assert_not_called()
