@@ -34,6 +34,7 @@ from resource_management.core.system import System
 from resource_management.core.resources.system import Execute, ExecuteScript
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
+from resource_management.core import shell
 from resource_management.core.shell import quote_bash_args
 
 import subprocess
@@ -50,6 +51,48 @@ import select
 
 @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
 class TestExecuteResource(TestCase):
+  @patch.object(os, "read")
+  @patch.object(select, "select")
+  @patch.object(subprocess, "Popen")
+  def test_on_new_line_receives_decoded_stdout_and_stderr(
+    self, popen_mock, select_mock, os_read_mock
+  ):
+    process = MagicMock()
+    process.stdout = MagicMock()
+    process.stderr = MagicMock()
+    process.returncode = 0
+    popen_mock.return_value = process
+    select_mock.side_effect = [
+      ([process.stdout], [], []),
+      ([process.stderr], [], []),
+      ([process.stdout], [], []),
+      ([process.stderr], [], []),
+    ]
+    os_read_mock.side_effect = [
+      b"SUCCESS: Changed property\xff",
+      b"warning",
+      b"",
+      b"",
+    ]
+    received = []
+
+    result = shell.call(
+      ["ignored"],
+      shell=False,
+      stderr=subprocess.PIPE,
+      on_new_line=lambda line, is_stderr: received.append((line, is_stderr)),
+    )
+
+    self.assertEqual(
+      [
+        ("SUCCESS: Changed property\ufffd", False),
+        ("warning", True),
+      ],
+      received,
+    )
+    self.assertTrue(all(isinstance(line, str) for line, _ in received))
+    self.assertEqual((0, "SUCCESS: Changed property\ufffd", "warning"), result)
+
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.providers.system.shell.call")
   def test_execute_script_writes_python3_text(self, shell_call_mock, metadata_mock):

@@ -448,18 +448,19 @@ def _call(
             out_fd.close()
             continue
 
-          fd_to_string[out_fd] += line.decode()
-          all_output += line.decode()
+          decoded_line = line.decode("utf-8", errors="replace")
+          fd_to_string[out_fd] += decoded_line
+          all_output += decoded_line
 
           if on_new_line:
             try:
-              on_new_line(line, out_fd == proc.stderr)
+              on_new_line(decoded_line, out_fd == proc.stderr)
             except Exception:
-              err_msg = f"Caused by on_new_line function failed with exception for input argument '{line}':\n{traceback.format_exc()}"
+              err_msg = f"Caused by on_new_line function failed with exception for input argument '{decoded_line}':\n{traceback.format_exc()}"
               raise Fail(err_msg)
 
           if logoutput:
-            sys.stdout.write(line.decode())
+            sys.stdout.write(decoded_line)
             sys.stdout.flush()
 
     # Wait for process to terminate
