@@ -19,16 +19,17 @@
 ARG BUILD_OS
 FROM ambari-build-base:${BUILD_OS}
 
-ARG MAVEN_VERSION=3.3.9
-ENV MAVEN_HOME /opt/maven
-RUN mkdir -p $MAVEN_HOME \
-  && maven_url=$(curl -L -s -S http://www.apache.org/dyn/closer.cgi/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz?as_json=1 \
-      | jq --raw-output '.preferred,.path_info' \
-      | sed -e '1N' -e 's/\n//') \
-  && : ${maven_url:="http://www.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"} \
-  && echo "Downloading Maven from ${maven_url}" \
-  && curl -L -s -S "${maven_url}" \
-    | tar -xzf - --strip-components 1 -C $MAVEN_HOME
-ENV PATH "$PATH:$MAVEN_HOME/bin"
+ARG MAVEN_VERSION=3.9.11
+ENV MAVEN_HOME=/opt/maven
+RUN set -eux; \
+  archive="apache-maven-${MAVEN_VERSION}-bin.tar.gz"; \
+  base_url="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries"; \
+  mkdir -p "${MAVEN_HOME}"; \
+  curl --fail --location --silent --show-error "${base_url}/${archive}" --output "/tmp/${archive}"; \
+  curl --fail --location --silent --show-error "${base_url}/${archive}.sha512" --output "/tmp/${archive}.sha512"; \
+  echo "$(awk '{print $1}' "/tmp/${archive}.sha512")  /tmp/${archive}" | sha512sum --check -; \
+  tar -xzf "/tmp/${archive}" --strip-components 1 -C "${MAVEN_HOME}"; \
+  rm -f "/tmp/${archive}" "/tmp/${archive}.sha512"
+ENV PATH="${PATH}:${MAVEN_HOME}/bin"
 
 COPY .bashrc /root/

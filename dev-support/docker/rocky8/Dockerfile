@@ -14,22 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Dockerfile for installing the necessary dependencies for building Ambari on Ubuntu 16.04
+FROM rockylinux:8
 
-FROM ubuntu:16.04
-
-RUN apt-get update -q -y \
-  && apt-get install -y --no-install-recommends \
-    bzip2 \
+RUN dnf -y install \
     curl \
-    g++ \
+    findutils \
     gcc \
+    gcc-c++ \
     git \
+    gzip \
+    java-17-openjdk-devel \
     jq \
+    libffi-devel \
     make \
-    openjdk-8-jdk \
-    python-setuptools \
-    python2.7 \
-    python2.7-dev \
-    xz-utils \
-  && rm -rf /var/lib/apt/lists/*
+    openssl-devel \
+    python39 \
+    python39-devel \
+    python39-pip \
+    redhat-rpm-config \
+    rpm-build \
+    sudo \
+    tar \
+    which \
+  && dnf clean all \
+  && rm -rf /var/cache/dnf \
+  && ln -s /usr/bin/python3.9 /usr/local/bin/python3
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk
