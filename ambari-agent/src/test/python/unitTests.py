@@ -20,11 +20,11 @@ limitations under the License.
 """
 SAMPLE USAGE:
 
-python unitTests.py
-python unitTests.py NameOfFile.py
-python unitTests.py NameOfFileWithoutExtension  (this will append .* to the end, so it can match other file names too)
+python3 unitTests.py
+python3 unitTests.py NameOfFile.py
+python3 unitTests.py NameOfFileWithoutExtension  (this will append .* to the end, so it can match other file names too)
 
-prepend _ to test file name(s) and run "python unitTests.py": execute only
+prepend _ to test file name(s) and run "python3 unitTests.py": execute only
   test files whose name begins with _ (useful for quick debug)
 
 SETUP:
@@ -43,6 +43,9 @@ $(pwd)/ambari-agent/src/test/python/resource_management
 import re
 import unittest
 import fnmatch
+import os
+import signal
+import sys
 from os.path import isdir
 import logging
 from resource_management.core.logger import Logger
@@ -52,6 +55,40 @@ from resource_management.core.logger import Logger
 LOG_FILE_NAME = "tests.log"
 SELECTED_PREFIX = "_"
 PY_EXT = ".py"
+TEST_TIMEOUT_SECONDS = int(os.environ.get("AMBARI_TEST_TIMEOUT_SECONDS", "300"))
+CORE_TEST_MINIMUMS = {
+  "TestHostInfo": 15,
+  "TestCommandStatusDict": 5,
+  "TestClusterConfigurationCache": 7,
+  "TestCustomServiceOrchestrator": 9,
+  "TestMain": 11,
+  "TestAgentStompResponses": 3,
+  "TestNetUtil": 5,
+}
+
+
+class TestTimeoutError(TimeoutError):
+  pass
+
+
+class TimeoutTextTestResult(unittest.TextTestResult):
+  def startTest(self, test):
+    super().startTest(test)
+    if hasattr(signal, "SIGALRM") and TEST_TIMEOUT_SECONDS > 0:
+      signal.signal(
+        signal.SIGALRM,
+        lambda signum, frame: (_ for _ in ()).throw(
+          TestTimeoutError(
+            f"Test exceeded {TEST_TIMEOUT_SECONDS} seconds: {test.id()}"
+          )
+        ),
+      )
+      signal.alarm(TEST_TIMEOUT_SECONDS)
+
+  def stopTest(self, test):
+    if hasattr(signal, "SIGALRM"):
+      signal.alarm(0)
+    super().stopTest(test)
 
 
 class TestAgent(unittest.TestSuite):
@@ -94,7 +131,7 @@ def get_test_files(path, mask=None, recursive=True):
         and re.search(r"^_?[Tt]est.*\.py$", item)
       ):
         add_to_pythonpath = True
-        file_list.append(item)
+        file_list.append(p)
     elif os.path.isdir(p):
       if recursive:
         file_list.extend(get_test_files(p, mask=mask))
@@ -112,14 +149,15 @@ def all_tests_suite(custom_test_mask):
 
   # TODO Add an option to randomize the tests' execution
   # shuffle(files_list)
-  tests_list = []
+  suites = []
 
   logger.info(
     "------------------------TESTS LIST:-------------------------------------"
   )
   # If test with special name exists, run only this test
   selected_test = None
-  for file_name in files_list:
+  for test_path in files_list:
+    file_name = os.path.basename(test_path)
     if (
       file_name.endswith(PY_EXT)
       and not file_name == __file__
@@ -128,18 +166,71 @@ def all_tests_suite(custom_test_mask):
       logger.info("Running only selected test " + str(file_name))
       selected_test = file_name
   if selected_test is not None:
-    tests_list.append(selected_test.replace(PY_EXT, ""))
+    selected_paths = [
+      test_path
+      for test_path in files_list
+      if os.path.basename(test_path) == selected_test
+    ]
   else:
-    for file_name in files_list:
+    selected_paths = files_list
+    for test_path in files_list:
+      file_name = os.path.basename(test_path)
       if file_name.endswith(PY_EXT) and not file_name == __file__:
-        logger.info(file_name)
-        tests_list.append(file_name.replace(PY_EXT, ""))
+        logger.info(test_path)
   logger.info(
     "------------------------------------------------------------------------"
   )
 
-  suite = unittest.TestLoader().loadTestsFromNames(tests_list)
-  return unittest.TestSuite([suite])
+  loader = unittest.TestLoader()
+  for test_path in sorted(selected_paths):
+    test_directory = os.path.dirname(test_path)
+    module_name = os.path.splitext(os.path.basename(test_path))[0]
+    sys.modules.pop(module_name, None)
+    suites.append(
+      loader.discover(
+        start_dir=test_directory,
+        pattern=os.path.basename(test_path),
+        top_level_dir=test_directory,
+      )
+    )
+    sys.modules.pop(module_name, None)
+  return unittest.TestSuite(suites)
+
+
+def iter_tests(suite):
+  for test in suite:
+    if isinstance(test, unittest.TestSuite):
+      yield from iter_tests(test)
+    else:
+      yield test
+
+
+def validate_core_test_collection(suite, test_mask):
+  selected_minimums = CORE_TEST_MINIMUMS
+  if test_mask:
+    pattern = test_mask if test_mask.endswith("*") else test_mask + "*"
+    selected_minimums = {
+      module: minimum
+      for module, minimum in CORE_TEST_MINIMUMS.items()
+      if fnmatch.fnmatch(module + PY_EXT, pattern)
+    }
+
+  collected_by_module = {module: 0 for module in selected_minimums}
+  for test in iter_tests(suite):
+    test_id_parts = test.id().split(".")
+    for module in collected_by_module:
+      if module in test_id_parts:
+        collected_by_module[module] += 1
+
+  failures = [
+    f"{module}: collected {collected_by_module[module]}, expected at least {minimum}"
+    for module, minimum in selected_minimums.items()
+    if collected_by_module[module] < minimum
+  ]
+  if failures:
+    logger.error("Core Python test collection guard failed: %s", "; ".join(failures))
+    return False
+  return True
 
 
 def main():
@@ -154,8 +245,19 @@ def main():
   logger.info(
     "------------------------------------------------------------------------"
   )
-  runner = unittest.TextTestRunner(verbosity=2, stream=sys.stdout)
+  runner = unittest.TextTestRunner(
+    verbosity=2,
+    stream=sys.stdout,
+    resultclass=TimeoutTextTestResult,
+  )
   suite = all_tests_suite(test_mask)
+  collected = suite.countTestCases()
+  logger.info("Collected %s Python unit tests", collected)
+  if collected == 0:
+    logger.error("Python unit test discovery collected zero tests")
+    return 1
+  if not validate_core_test_collection(suite, test_mask):
+    return 1
   status = runner.run(suite).wasSuccessful()
 
   if not status:
@@ -163,11 +265,11 @@ def main():
       "-----------------------------------------------------------------------"
     )
     logger.error("Python unit tests failed")
-    logger.error("Find detailed logs in " + path)
+    logger.error("Find detailed logs in " + LOG_FILE_NAME)
     logger.error(
       "-----------------------------------------------------------------------"
     )
-    exit(1)
+    return 1
   else:
     logger.info(
       "------------------------------------------------------------------------"
@@ -176,12 +278,10 @@ def main():
     logger.info(
       "------------------------------------------------------------------------"
     )
+  return 0
 
 
 if __name__ == "__main__":
-  import os
-  import sys
-
   pwd = os.path.abspath(__file__)
   ambari_agent_dir = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.dirname(pwd)))
@@ -210,4 +310,4 @@ if __name__ == "__main__":
   logger.addHandler(consoleLog)
   Logger.initialize_logger(logging_level=logging.WARNING)
 
-  main()
+  sys.exit(main())

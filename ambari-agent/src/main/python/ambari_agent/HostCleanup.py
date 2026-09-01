@@ -33,7 +33,7 @@ import shutil
 import platform
 import fnmatch
 import configparser
-import optparse
+import argparse
 import shlex
 import datetime
 import tempfile
@@ -406,7 +406,7 @@ class HostCleanup:
     pidList = []
     cmd = "ps auxww"
     (returncode, stdoutdata, stderrdata) = self.run_os_command(cmd)
-    line_regexp = re.compile("\s\s+")
+    line_regexp = re.compile(r"\s\s+")
 
     if 0 == returncode and stdoutdata:
       lines = stdoutdata.split("\n")
@@ -610,23 +610,34 @@ class HostCleanup:
     config_json = (
       '{"commandParams": {"check_execute_list": "*BEFORE_CLEANUP_HOST_CHECKS*"}}'
     )
-    with tempfile.NamedTemporaryFile(delete=False) as config_json_file:
+    with tempfile.NamedTemporaryFile(
+      mode="w", encoding="utf-8", delete=False
+    ) as config_json_file:
       config_json_file.write(config_json)
 
-    with tempfile.NamedTemporaryFile(delete=False) as tmp_output_file:
+    with tempfile.NamedTemporaryFile(
+      mode="w", encoding="utf-8", delete=False
+    ) as tmp_output_file:
       tmp_output_file.write("{}")
 
-    run_checks_command = RUN_HOST_CHECKS_CMD.format(
-      config_json_file.name, tmp_output_file.name, AGENT_TMP_DIR
-    )
-    (returncode, stdoutdata, stderrdata) = self.run_os_command(run_checks_command)
-    if returncode != 0:
-      logger.warning(
-        "Failed to run host checks,\nstderr:\n "
-        + stderrdata
-        + "\n\nstdout:\n"
-        + stdoutdata
+    try:
+      run_checks_command = RUN_HOST_CHECKS_CMD.format(
+        config_json_file.name, tmp_output_file.name, AGENT_TMP_DIR
       )
+      (returncode, stdoutdata, stderrdata) = self.run_os_command(run_checks_command)
+      if returncode != 0:
+        logger.warning(
+          "Failed to run host checks,\nstderr:\n "
+          + stderrdata
+          + "\n\nstdout:\n"
+          + stdoutdata
+        )
+    finally:
+      for temporary_path in (config_json_file.name, tmp_output_file.name):
+        try:
+          os.unlink(temporary_path)
+        except OSError:
+          pass
 
 
 # Copy file and save with file.# (timestamp)
@@ -672,8 +683,8 @@ def main():
   hostCheckFilesPaths = hostCheckFilePath + "," + hostCheckCustomActionsFilePath
   hostCheckResultPath = os.path.join(hostCheckFileDir, OUTPUT_FILE_NAME)
 
-  parser = optparse.OptionParser()
-  parser.add_option(
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
     "-v",
     "--verbose",
     dest="verbose",
@@ -681,7 +692,7 @@ def main():
     default=False,
     help="output verbosity.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-f",
     "--file",
     dest="inputfiles",
@@ -689,7 +700,7 @@ def main():
     help="host check result file to read.",
     metavar="FILE",
   )
-  parser.add_option(
+  parser.add_argument(
     "-o",
     "--out",
     dest="outputfile",
@@ -697,14 +708,14 @@ def main():
     help="log file to store results.",
     metavar="FILE",
   )
-  parser.add_option(
+  parser.add_argument(
     "-k",
     "--skip",
     dest="skip",
     help="(packages|users|directories|repositories|processes|alternatives)."
     + " Use , as separator.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-s",
     "--silent",
     action="store_true",
@@ -713,7 +724,8 @@ def main():
     help="Silently accepts default prompt values",
   )
 
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
   # set output file
   backup_file(options.outputfile)
   global logger

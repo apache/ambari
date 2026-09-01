@@ -30,8 +30,8 @@ import ambari_commons
 from ambari_commons import OSCheck
 import os
 from ambari_commons.firewall import Firewall
-from only_for_platform import os_distro_value
 from ambari_commons.os_check import OSCheck, OSConst
+from only_for_platform import os_distro_value
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 from ambari_agent.HostInfo import HostInfo, HostInfoLinux
 from ambari_agent.Hardware import Hardware
@@ -41,7 +41,7 @@ from resource_management.core.system import System
 
 
 @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-class TestHostInfo:  # (TestCase):
+class TestHostInfo(TestCase):
   @patch("os.path.exists")
   def test_checkFolders(self, path_mock):
     path_mock.return_value = True
@@ -75,14 +75,13 @@ class TestHostInfo:  # (TestCase):
     hostInfo.checkUsers(["root", "zxlmnap12341234"], results)
     self.assertEqual(1, len(results))
     newlist = sorted(results, key=lambda k: k["name"])
-    self.assertTrue(newlist[0]["name"], "root")
-    self.assertTrue(newlist[0]["homeDir"], "/root")
-    self.assertTrue(newlist[0]["status"], "Available")
+    self.assertEqual("root", newlist[0]["name"])
+    self.assertEqual("/root", newlist[0]["homeDir"])
+    self.assertEqual("Available", newlist[0]["status"])
 
   @patch.object(OSCheck, "get_os_type")
   @patch("os.umask")
   @patch.object(HostCheckReportFileHandler, "writeHostCheckFile")
-  @patch("resource_management.core.providers.get_provider")
   @patch.object(HostInfoLinux, "checkUsers")
   @patch.object(HostInfoLinux, "checkLiveServices")
   @patch.object(HostInfoLinux, "javaProcs")
@@ -103,18 +102,10 @@ class TestHostInfo:  # (TestCase):
     jp_mock,
     cls_mock,
     cu_mock,
-    get_packages_mock,
     whcf_mock,
     os_umask_mock,
     get_os_type_mock,
   ):
-    m = MagicMock()
-
-    m.get_package_details.return_value = ["pkg1", "pkg2"]
-    m.get_installed_pkgs_by_names.return_value = ["pkg2"]
-    m.get_installed_pkgs_by_repo.return_value = ["pkg1"]
-
-    get_packages_mock.return_value = m
     cit_mock.return_value = True
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
@@ -125,7 +116,7 @@ class TestHostInfo:  # (TestCase):
     hostInfo.register(dict, False, False)
     self.assertTrue(cit_mock.called)
     self.assertTrue(os_umask_mock.called)
-    self.assertTrue(whcf_mock.called)
+    whcf_mock.assert_not_called()
     self.assertTrue(jce_mock.called)
 
     self.assertTrue("agentTimeStampAtReporting" in dict["hostHealth"])
@@ -133,7 +124,6 @@ class TestHostInfo:  # (TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch("os.umask")
   @patch.object(HostCheckReportFileHandler, "writeHostCheckFile")
-  @patch("resource_management.core.providers.get_provider")
   @patch.object(HostInfoLinux, "checkUsers")
   @patch.object(HostInfoLinux, "checkLiveServices")
   @patch.object(HostInfoLinux, "javaProcs")
@@ -154,19 +144,10 @@ class TestHostInfo:  # (TestCase):
     jp_mock,
     cls_mock,
     cu_mock,
-    get_packages_mock,
     whcf_mock,
     os_umask_mock,
     get_os_type_mock,
   ):
-    m = MagicMock()
-
-    m.get_package_details.return_value = ["pkg1", "pkg2"]
-    m.get_installed_pkgs_by_names.return_value = ["pkg2"]
-    m.get_installed_pkgs_by_repo.return_value = ["pkg1"]
-
-    get_packages_mock.return_value = m
-
     cit_mock.return_value = True
     hvlc_mock.return_value = 1
     hvrc_mock.return_value = 1
@@ -414,7 +395,7 @@ class TestHostInfo:  # (TestCase):
   ):
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
-    run_os_command_mock.return_value = 0, "Table: filter", ""
+    run_os_command_mock.return_value = 0, "active\n", ""
     self.assertTrue(Firewall().getFirewallObject().check_firewall())
 
   @patch.object(socket, "getfqdn")

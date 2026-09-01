@@ -279,13 +279,13 @@ class Facter(object):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FacterLinux(Facter):
   FIRST_WORDS_REGEXP = re.compile(r",$")
-  IFNAMES_REGEXP = re.compile("^\d")
+  IFNAMES_REGEXP = re.compile(r"^\d")
   SE_STATUS_REGEXP = re.compile("(enforcing|permissive|enabled)")
-  DIGITS_REGEXP = re.compile("\d+")
-  FREEMEM_REGEXP = re.compile("MemFree:.*?(\d+) .*")
-  TOTALMEM_REGEXP = re.compile("MemTotal:.*?(\d+) .*")
-  SWAPFREE_REGEXP = re.compile("SwapFree:.*?(\d+) .*")
-  SWAPTOTAL_REGEXP = re.compile("SwapTotal:.*?(\d+) .*")
+  DIGITS_REGEXP = re.compile(r"\d+")
+  FREEMEM_REGEXP = re.compile(r"MemFree:.*?(\d+) .*")
+  TOTALMEM_REGEXP = re.compile(r"MemTotal:.*?(\d+) .*")
+  SWAPFREE_REGEXP = re.compile(r"SwapFree:.*?(\d+) .*")
+  SWAPTOTAL_REGEXP = re.compile(r"SwapTotal:.*?(\d+) .*")
 
   # selinux command
   GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"

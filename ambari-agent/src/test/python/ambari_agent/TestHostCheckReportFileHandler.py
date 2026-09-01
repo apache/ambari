@@ -24,12 +24,38 @@ from unittest.mock import patch
 import os
 import tempfile
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
+from ambari_agent import HostCheckReportFileHandler as host_check_report_module
 import logging
 import configparser
 
 
 class TestHostCheckReportFileHandler(TestCase):
   logger = logging.getLogger()
+
+  @patch.object(host_check_report_module.traceback, "print_exc")
+  @patch.object(host_check_report_module.logger, "error")
+  def test_write_failures_report_original_exception(
+    self, logger_error_mock, print_exc_mock
+  ):
+    config = configparser.RawConfigParser()
+    config.add_section("agent")
+    config.set("agent", "prefix", tempfile.gettempdir())
+    handler = HostCheckReportFileHandler(config)
+
+    for method_name in (
+      "writeHostCheckFile",
+      "writeHostChecksCustomActionsFile",
+    ):
+      with self.subTest(method=method_name), patch.object(
+        handler, "removeFile"
+      ), patch.object(handler, "touchFile"), patch(
+        "builtins.open", side_effect=OSError("disk full")
+      ):
+        getattr(handler, method_name)({})
+        self.assertIn("disk full", logger_error_mock.call_args.args[0])
+        logger_error_mock.reset_mock()
+
+    self.assertEqual(2, print_exc_mock.call_count)
 
   def test_write_host_check_report_really_empty(self):
     tmpfile = tempfile.mktemp()

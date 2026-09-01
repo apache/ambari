@@ -25,7 +25,7 @@ from ambari_agent.RecoveryManager import RecoveryManager
 from unittest.mock import patch, MagicMock, call
 
 
-class _TestRecoveryManager(TestCase):
+class TestRecoveryManager(TestCase):
   command = {
     "commandType": "STATUS_COMMAND",
     "payloadLevel": "EXECUTION_COMMAND",
@@ -205,7 +205,7 @@ class _TestRecoveryManager(TestCase):
     self.assertTrue(rm.may_execute("NAMENODE"))
 
     # T = 1400-1
-    self.assertTrue(rm.execute("NODEMANAGER"))  # windows reset
+    self.assertTrue(rm.execute("NODEMANAGER"))
     self.assertFalse(rm.may_execute("NODEMANAGER"))  # too soon
 
     # maximum 2 in 2 minutes and no min wait

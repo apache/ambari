@@ -266,7 +266,7 @@ class HostInfoLinux(HostInfo):
   THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
   THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
 
-  THP_REGEXP = re.compile("\[(.+)\]")
+  THP_REGEXP = re.compile(r"\[(.+)\]")
 
   def __init__(self, config=None):
     super(HostInfoLinux, self).__init__(config)
@@ -327,6 +327,7 @@ class HostInfoLinux(HostInfo):
           if "java" in cmd:
             metrics = {}
             metrics["pid"] = int(pid)
+            metrics["command"] = cmd
             metrics["hadoop"] = False
             for filter in self.PROC_FILTER:
               if filter in cmd:

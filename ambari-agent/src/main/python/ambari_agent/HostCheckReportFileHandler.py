@@ -28,7 +28,7 @@ import configparser
 
 HADOOP_ROOT_DIR = "/usr/hdp"
 HADOOP_PERM_REMOVE_LIST = ["current"]
-HADOOP_ITEMDIR_REGEXP = re.compile("(\d\.){3}\d-\d{4}")
+HADOOP_ITEMDIR_REGEXP = re.compile(r"(\d\.){3}\d-\d{4}")
 logger = logging.getLogger(__name__)
 
 
@@ -91,7 +91,7 @@ class HostCheckReportFileHandler:
         config.write(configfile)
     except Exception as err:
       logger.error(
-        f"Can't write host check file at {self.hostCheckCustomActionsFilePath} :{err.message} "
+        f"Can't write host check file at {self.hostCheckCustomActionsFilePath}: {err}"
       )
       traceback.print_exc()
 
@@ -177,7 +177,7 @@ class HostCheckReportFileHandler:
         config.write(configfile)
     except Exception as err:
       logger.error(
-        f"Can't write host check file at {self.hostCheckFilePath} :{err.message} "
+        f"Can't write host check file at {self.hostCheckFilePath}: {err}"
       )
       traceback.print_exc()
 

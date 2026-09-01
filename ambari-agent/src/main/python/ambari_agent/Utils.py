@@ -173,9 +173,7 @@ class Utils(object):
 
   @staticmethod
   def get_traceback_as_text(ex):
-    return "".join(
-      traceback.format_exception(etype=type(ex), value=ex, tb=ex.__traceback__)
-    )
+    return "".join(traceback.format_exception(type(ex), ex, ex.__traceback__))
 
 
 class ImmutableDictionary(dict):
