@@ -40,7 +40,7 @@ limitations under the License.
           </commandScript>
           <dependencies>
             <dependency>
-              <name>SPARK2/SPARK2_CLIENT</name>
+              <name>SPARK/SPARK_CLIENT</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
@@ -83,7 +83,7 @@ limitations under the License.
       <requiredServices>
         <service>HDFS</service>
         <service>YARN</service>
-        <service>SPARK2</service>
+        <service>SPARK</service>
       </requiredServices>
 
       <configuration-dependencies>

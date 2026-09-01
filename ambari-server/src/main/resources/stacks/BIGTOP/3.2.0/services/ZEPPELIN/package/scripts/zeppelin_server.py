@@ -972,12 +972,12 @@ class ZeppelinServer(Script):
         and interpreter["name"] == "spark2"
         and "spark2" not in exclude_interpreter_autoconfig_list
       ):
-        if "spark2-env" in params.config["configurations"]:
+        if "spark-env" in params.config["configurations"]:
           self.storePropertyToInterpreter(
             interpreter, "master", "string", "yarn-client"
           )
           self.storePropertyToInterpreter(
-            interpreter, "SPARK_HOME", "string", "/usr/hdp/current/spark2-client/"
+            interpreter, "SPARK_HOME", "string", params.spark_home
           )
         else:
           del interpreter_settings[setting_key]

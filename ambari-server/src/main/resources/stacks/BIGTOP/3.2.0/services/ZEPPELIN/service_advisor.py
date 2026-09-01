@@ -250,57 +250,39 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
     :type services dict
     :type hosts dict
     """
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
-    if (
-      "SPARK2" in servicesList
-      and "spark2-atlas-application-properties-override" in services["configurations"]
-      and "atlas.spark.enabled"
-      in services["configurations"]["spark2-atlas-application-properties-override"][
-        "properties"
-      ]
-    ):
-      sac_enabled = (
-        str(
-          services["configurations"]["spark2-atlas-application-properties-override"][
-            "properties"
-          ]["atlas.spark.enabled"]
-        ).upper()
-        == "TRUE"
-      )
-      zeppelin_env_properties = self.getServicesSiteProperties(services, "zeppelin-env")
+    service_names = {
+      service["StackServices"]["service_name"]
+      for service in services.get("services", [])
+    }
+    service_configurations = services.get("configurations", {})
+    spark_available = (
+      "SPARK" in service_names and "spark-env" in service_configurations
+    )
+    zeppelin_env_properties = self.getServicesSiteProperties(services, "zeppelin-env")
+    if not zeppelin_env_properties or "zeppelin_env_content" not in zeppelin_env_properties:
+      return
+
+    content = zeppelin_env_properties["zeppelin_env_content"]
+    if not spark_available and "spark-atlas-connector" not in content:
+      return
+
+    result_list = []
+    for line in content.splitlines():
+      if "ZEPPELIN_INTP_CLASSPATH_OVERRIDES" in line:
+        connector_paths = re.findall(
+          r"/usr/[^/]+/current/spark-atlas-connector/\*", line
+        )
+        for path in connector_paths:
+          line = line.replace(":" + path, "").replace(path + ":", "")
+          line = line.replace(path, "")
+      result_list.append(line)
+
+    updated_content = "\n".join(result_list)
+    if updated_content != content:
       putZeppelinEnvProperty = self.putProperty(
         configurations, "zeppelin-env", services
       )
-      content = zeppelin_env_properties["zeppelin_env_content"]
-      content_in_lines = content.splitlines()
-      result_list = []
-      for line in content_in_lines:
-        if "ZEPPELIN_INTP_CLASSPATH_OVERRIDES" in line:
-          if sac_enabled:
-            if line.lstrip().startswith("#"):
-              line = 'export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}:/usr/hdp/current/spark-atlas-connector/*"'
-            elif "{{external_dependency_conf}}" in line:
-              line = line.replace(
-                "{{external_dependency_conf}}",
-                "{{external_dependency_conf}}:/usr/hdp/current/spark-atlas-connector/*",
-              )
-            else:
-              k = line.rfind('"')
-              line = (
-                line[:k] + ':/usr/hdp/current/spark-atlas-connector/*"' + line[k + 1 :]
-              )
-          else:
-            if ":/usr/hdp/current/spark-atlas-connector" in line:
-              line = line.replace(":/usr/hdp/current/spark-atlas-connector/*", "")
-            elif "/usr/hdp/current/spark-atlas-connector" in line:
-              line = line.replace("/usr/hdp/current/spark-atlas-connector/*", "")
-
-        result_list.append(line)
-
-      content = "\n".join(result_list)
-      putZeppelinEnvProperty("zeppelin_env_content", content)
+      putZeppelinEnvProperty("zeppelin_env_content", updated_content)
 
   def __recommendLivySuperUsers(self, configurations, services):
     """
@@ -320,7 +302,7 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
 
         if zeppelin_user:
           self.__conditionallyUpdateSuperUsers(
-            "livy2-conf", "livy.superusers", zeppelin_user, configurations, services
+            "livy-conf", "livy.superusers", zeppelin_user, configurations, services
           )
 
   def __conditionallyUpdateSuperUsers(

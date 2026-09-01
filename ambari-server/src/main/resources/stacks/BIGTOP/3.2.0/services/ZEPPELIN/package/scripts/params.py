@@ -35,6 +35,11 @@ from resource_management.libraries.functions.version import (
 )
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
+from bigtop_service_contract import (
+  get_livy_server_settings,
+  get_spark_home,
+  get_spark_thriftserver_settings,
+)
 
 
 def get_port_from_url(address):
@@ -111,12 +116,16 @@ zeppelin_conf_dir = "/etc/zeppelin/conf"
 external_dependency_conf = format("{zeppelin_conf_dir}/external-dependency-conf")
 zeppelin_home = "/usr/lib/zeppelin"
 
-spark_home = config["configurations"]["zeppelin-env"]["spark_home"]
-
-if stack_version_formatted and check_stack_feature(
+use_current_stack_paths = stack_version_formatted and check_stack_feature(
   StackFeature.ROLLING_UPGRADE, stack_version_formatted
-):
-  spark_home = format("{stack_root}/current/spark-client")
+)
+spark_home = get_spark_home(
+  config["configurations"]["zeppelin-env"]["spark_home"],
+  stack_root,
+  use_current_stack_paths,
+)
+
+if use_current_stack_paths:
   hbase_home = format("{stack_root}/current/hbase-client")
   zeppelin_home = format("{stack_root}/current/zeppelin-server")
   local_notebook_dir = format(
@@ -213,79 +222,16 @@ if (
     "hive-site"
   ]["hive.server2.support.dynamic.service.discovery"]
 
-spark_thrift_server_hosts = None
-spark_hive_thrift_port = None
-spark_hive_principal = None
-hive_principal = None
-hive_transport_mode = None
+spark_thriftserver_settings = get_spark_thriftserver_settings(
+  config["configurations"], master_configs
+)
+spark2_transport_mode = spark_thriftserver_settings["transport_mode"]
+spark2_http_path = spark_thriftserver_settings["http_path"]
+spark2_ssl = spark_thriftserver_settings["ssl"]
 
-if "hive-site" in config["configurations"]:
-  if (
-    "hive.server2.authentication.kerberos.principal"
-    in config["configurations"]["hive-site"]
-  ):
-    hive_principal = config["configurations"]["hive-site"][
-      "hive.server2.authentication.kerberos.principal"
-    ]
-  if "hive.server2.transport.mode" in config["configurations"]["hive-site"]:
-    hive_transport_mode = config["configurations"]["hive-site"][
-      "hive.server2.transport.mode"
-    ]
-
-spark2_transport_mode = hive_transport_mode
-spark2_http_path = None
-spark2_ssl = False
-if "spark2-hive-site-override" in config["configurations"]:
-  if (
-    "hive.server2.transport.mode"
-    in config["configurations"]["spark2-hive-site-override"]
-  ):
-    spark2_transport_mode = config["configurations"]["spark2-hive-site-override"][
-      "hive.server2.transport.mode"
-    ]
-
-  if (
-    "hive.server2.http.endpoint"
-    in config["configurations"]["spark2-hive-site-override"]
-  ):
-    spark2_http_path = config["configurations"]["spark2-hive-site-override"][
-      "hive.server2.http.endpoint"
-    ]
-
-  if "hive.server2.use.SSL" in config["configurations"]["spark2-hive-site-override"]:
-    spark2_ssl = default(
-      "configurations/spark2-hive-site-override/hive.server2.use.SSL", False
-    )
-
-if (
-  "spark_thriftserver_hosts" in master_configs
-  and len(master_configs["spark_thriftserver_hosts"]) != 0
-):
-  spark_thrift_server_hosts = str(master_configs["spark_thriftserver_hosts"][0])
-  if config["configurations"]["spark-hive-site-override"]:
-    spark_hive_thrift_port = config["configurations"]["spark-hive-site-override"][
-      "hive.server2.thrift.port"
-    ]
-
-spark2_thrift_server_hosts = None
-spark2_hive_thrift_port = None
-spark2_hive_principal = None
-if (
-  "spark2_thriftserver_hosts" in master_configs
-  and len(master_configs["spark2_thriftserver_hosts"]) != 0
-):
-  spark2_thrift_server_hosts = str(master_configs["spark2_thriftserver_hosts"][0])
-  if config["configurations"]["spark2-hive-site-override"]:
-    spark2_hive_thrift_port = config["configurations"]["spark2-hive-site-override"][
-      "hive.server2.thrift.port"
-    ]
-    if (
-      "hive.server2.authentication.kerberos.principal"
-      in config["configurations"]["spark2-hive-site-override"]
-    ):
-      spark2_hive_principal = config["configurations"]["spark2-hive-site-override"][
-        "hive.server2.authentication.kerberos.principal"
-      ]
+spark2_thrift_server_hosts = spark_thriftserver_settings["host"]
+spark2_hive_thrift_port = spark_thriftserver_settings["port"]
+spark2_hive_principal = spark_thriftserver_settings["principal"]
 
 
 # detect hbase details if installed
@@ -302,16 +248,8 @@ if "hbase_master_hosts" in master_configs and "hbase-site" in config["configurat
   ]
 
 # detect spark queue
-if (
-  "spark-defaults" in config["configurations"]
-  and "spark.yarn.queue" in config["configurations"]["spark-defaults"]
-):
+if "spark.yarn.queue" in config["configurations"].get("spark-defaults", {}):
   spark_queue = config["configurations"]["spark-defaults"]["spark.yarn.queue"]
-elif (
-  "spark2-defaults" in config["configurations"]
-  and "spark.yarn.queue" in config["configurations"]["spark2-defaults"]
-):
-  spark_queue = config["configurations"]["spark2-defaults"]["spark.yarn.queue"]
 else:
   spark_queue = "default"
 
@@ -343,34 +281,10 @@ exclude_interpreter_autoconfig = default(
 
 
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
-livy_hosts = default("/clusterHostInfo/livy_server_hosts", [])
-livy2_hosts = default("/clusterHostInfo/livy2_server_hosts", [])
-
-livy_livyserver_host = None
-livy_livyserver_port = None
-livy_livyserver_protocol = "http"
-livy2_livyserver_host = None
-livy2_livyserver_port = None
-livy2_livyserver_protocol = "http"
-if (
-  stack_version_formatted
-  and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted)
-  and len(livy_hosts) > 0
-):
-  livy_livyserver_host = str(livy_hosts[0])
-  livy_livyserver_port = config["configurations"]["livy-conf"]["livy.server.port"]
-  if "livy.keystore" in config["configurations"]["livy-conf"]:
-    livy_livyserver_protocol = "https"
-
-if (
-  stack_version_formatted
-  and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted)
-  and len(livy2_hosts) > 0
-):
-  livy2_livyserver_host = str(livy2_hosts[0])
-  livy2_livyserver_port = config["configurations"]["livy2-conf"]["livy.server.port"]
-  if "livy.keystore" in config["configurations"]["livy2-conf"]:
-    livy2_livyserver_protocol = "https"
+livy_server_settings = get_livy_server_settings(config["configurations"], master_configs)
+livy2_livyserver_host = livy_server_settings["host"]
+livy2_livyserver_port = livy_server_settings["port"]
+livy2_livyserver_protocol = livy_server_settings["protocol"]
 
 hdfs_user = config["configurations"]["hadoop-env"]["hdfs_user"]
 hdfs_user_keytab = config["configurations"]["hadoop-env"]["hdfs_user_keytab"]
