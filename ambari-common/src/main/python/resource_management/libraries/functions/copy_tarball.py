@@ -25,7 +25,6 @@ import tempfile
 import re
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import component_version
 from resource_management.libraries.functions import lzo_utils
 from resource_management.libraries.functions.default import default
 from resource_management.core import shell
@@ -45,118 +44,6 @@ STACK_NAME_PATTERN = "{{ stack_name }}"
 STACK_ROOT_PATTERN = "{{ stack_root }}"
 STACK_VERSION_PATTERN = "{{ stack_version }}"
 LIB_DIR = "usr/lib"
-
-
-def _prepare_tez_tarball():
-  """
-  Prepares the Tez tarball by adding the Hadoop native libraries found in the mapreduce tarball.
-  It's very important to use the version of mapreduce which matches tez here.
-  Additionally, this will also copy native LZO to the tez tarball if LZO is enabled and the
-  GPL license has been accepted.
-  :return:  the full path of the newly created tez tarball to use
-  """
-  import tempfile
-
-  Logger.info("Preparing the Tez tarball...")
-
-  # get the mapreduce tarball which matches the version of tez
-  # tez installs the mapreduce tar, so it should always be present
-  _, mapreduce_source_file, _, _ = get_tarball_paths("mapreduce")
-  _, tez_source_file, _, _ = get_tarball_paths("tez")
-
-  temp_dir = Script.get_tmp_dir()
-
-  # create the temp staging directories ensuring that non-root agents using tarfile can work with them
-  mapreduce_temp_dir = tempfile.mkdtemp(prefix="mapreduce-tarball-", dir=temp_dir)
-  tez_temp_dir = tempfile.mkdtemp(prefix="tez-tarball-", dir=temp_dir)
-  sudo.chmod(mapreduce_temp_dir, 0o777)
-  sudo.chmod(tez_temp_dir, 0o777)
-
-  Logger.info(f"Extracting {mapreduce_source_file} to {mapreduce_temp_dir}")
-  tar_archive.untar_archive(mapreduce_source_file, mapreduce_temp_dir)
-
-  Logger.info(f"Extracting {tez_source_file} to {tez_temp_dir}")
-  tar_archive.untar_archive(tez_source_file, tez_temp_dir)
-
-  hadoop_lib_native_dir = os.path.join(mapreduce_temp_dir, "hadoop", "lib", "native")
-  tez_lib_dir = os.path.join(tez_temp_dir, "lib")
-
-  if not os.path.exists(hadoop_lib_native_dir):
-    raise Fail(
-      f"Unable to seed the Tez tarball with native libraries since the source Hadoop native lib directory {hadoop_lib_native_dir} does not exist"
-    )
-
-  if not os.path.exists(tez_lib_dir):
-    raise Fail(
-      f"Unable to seed the Tez tarball with native libraries since the target Tez lib directory {tez_lib_dir} does not exist"
-    )
-
-  # copy native libraries from hadoop to tez
-  Execute(("cp", "-a", hadoop_lib_native_dir, tez_lib_dir), sudo=True)
-
-  # if enabled, LZO GPL libraries must be copied as well
-  if lzo_utils.should_install_lzo():
-    stack_root = Script.get_stack_root()
-    service_version = component_version.get_component_repository_version(
-      service_name="TEZ"
-    )
-
-    # some installations might not have Tez, but MapReduce2 should be a fallback to get the LZO libraries from
-    if service_version is None:
-      Logger.warning(
-        "Tez does not appear to be installed, using the MapReduce version to get the LZO libraries"
-      )
-      service_version = component_version.get_component_repository_version(
-        service_name="MAPREDUCE2"
-      )
-
-    hadoop_lib_native_lzo_dir = os.path.join(
-      stack_root, service_version, "hadoop", "lib", "native"
-    )
-
-    if not sudo.path_isdir(hadoop_lib_native_lzo_dir):
-      Logger.warning(
-        f"Unable to located native LZO libraries at {hadoop_lib_native_lzo_dir}, falling back to hadoop home"
-      )
-      hadoop_lib_native_lzo_dir = os.path.join(
-        stack_root, "current", "hadoop-client", "lib", "native"
-      )
-
-    if not sudo.path_isdir(hadoop_lib_native_lzo_dir):
-      raise Fail(
-        f"Unable to seed the Tez tarball with native libraries since LZO is enabled but the native LZO libraries could not be found at {hadoop_lib_native_lzo_dir}"
-      )
-
-    Execute(("cp", "-a", hadoop_lib_native_lzo_dir, tez_lib_dir), sudo=True)
-
-  # ensure that the tez/lib directory is readable by non-root (which it typically is not)
-  Directory(tez_lib_dir, mode=0o755, cd_access="a", recursive_ownership=True)
-
-  # create the staging directory so that non-root agents can write to it
-  tez_native_tarball_staging_dir = os.path.join(temp_dir, "tez-native-tarball-staging")
-  if not os.path.exists(tez_native_tarball_staging_dir):
-    Directory(
-      tez_native_tarball_staging_dir,
-      mode=0o777,
-      cd_access="a",
-      create_parents=True,
-      recursive_ownership=True,
-    )
-
-  tez_tarball_with_native_lib = os.path.join(
-    tez_native_tarball_staging_dir, "tez-native.tar.gz"
-  )
-  Logger.info(f"Creating a new Tez tarball at {tez_tarball_with_native_lib}")
-  tar_archive.archive_dir_via_temp_file(tez_tarball_with_native_lib, tez_temp_dir)
-
-  # ensure that the tarball can be read and uploaded
-  sudo.chmod(tez_tarball_with_native_lib, 0o744)
-
-  # cleanup
-  sudo.rmtree(mapreduce_temp_dir)
-  sudo.rmtree(tez_temp_dir)
-
-  return tez_tarball_with_native_lib
 
 
 def _prepare_mapreduce_tarball():
