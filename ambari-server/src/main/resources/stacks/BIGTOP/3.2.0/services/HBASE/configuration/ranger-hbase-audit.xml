@@ -119,7 +119,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.6 -->
   <property>
     <name>ranger.plugin.hbase.ambari.cluster.name</name>
     <value>{{cluster_name}}</value>

@@ -87,7 +87,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.6 -->
   <property>
     <name>external_admin_username</name>
     <value></value>

@@ -67,7 +67,7 @@
               <commandScript>
                 <script>scripts/hbase_master.py</script>
                 <scriptType>PYTHON</scriptType>
-                <timeout>600</timeout>
+                <timeout>7200</timeout>
               </commandScript>
             </customCommand>
           </customCommands>
@@ -163,7 +163,7 @@
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
+        <timeout>900</timeout>
       </commandScript>
 
       <requiredServices>
@@ -172,8 +172,12 @@
       </requiredServices>
 
       <configuration-dependencies>
-        <config-type>core-site</config-type> <!-- hbase puts core-site in it's folder -->
+        <config-type>core-site</config-type> <!-- HBase reads core-site from its configuration directory. -->
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
         <config-type>viewfs-mount-table</config-type>
+        <config-type>zookeeper-env</config-type>
+        <config-type>ams-ssl-client</config-type>
         <config-type>hbase-policy</config-type>
         <config-type>hbase-site</config-type>
         <config-type>hbase-thrift-site</config-type>

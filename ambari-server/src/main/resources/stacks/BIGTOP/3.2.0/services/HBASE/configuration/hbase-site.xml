@@ -20,7 +20,6 @@
  */
 -->
 <configuration supports_final="true">
-  <!-- Inherited from HBase in HDP 2.0.6 -->
   <property>
     <name>hbase.rootdir</name>
     <display-name>HBase root directory</display-name>
@@ -502,18 +501,6 @@
   </property>
   <!-- End of properties used to generate ZooKeeper host:port quorum list. -->
   <property>
-    <name>hbase.zookeeper.useMulti</name>
-    <value>true</value>
-    <description>Instructs HBase to make use of ZooKeeper's multi-update functionality.
-    This allows certain ZooKeeper operations to complete more quickly and prevents some issues
-    with rare Replication failure scenarios (see the release note of HBASE-2611 for an example).&#xB7;
-    IMPORTANT: only set this to true if all ZooKeeper servers in the cluster are on version 3.4+
-    and will not be downgraded.  ZooKeeper versions before 3.4 do not support multi-update and will
-    not fail gracefully if multi-update is invoked (see ZOOKEEPER-1495).
-    </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>zookeeper.znode.parent</name>
     <display-name>ZooKeeper Znode Parent</display-name>
     <value>/hbase-unsecure</value>
@@ -561,12 +548,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>hbase.defaults.for.version.skip</name>
-    <value>true</value>
-    <description>Disables version verification.</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>phoenix.query.timeoutMs</name>
     <value>60000</value>
     <description>Number of milliseconds after which a Phoenix query will timeout on the client.</description>
@@ -581,18 +562,11 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>dfs.domain.socket.path</name>
-    <value>/var/lib/hadoop-hdfs/dn_socket</value>
-    <description>Path to domain socket.</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>hbase.rpc.protection</name>
     <value>authentication</value>
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.2 -->
   <property>
     <name>hbase.bulkload.staging.dir</name>
     <display-name>HBase Bulkload Staging directory</display-name>
@@ -763,7 +737,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.3 -->
   <property>
     <name>hbase.regionserver.port</name>
     <value>16020</value>
@@ -771,7 +744,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.5 -->
   <property>
     <name>hbase.master.ui.readonly</name>
     <value>false</value>
@@ -783,7 +755,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.6 -->
   <property>
     <name>hbase.regionserver.executor.openregion.threads</name>
     <value>20</value>
@@ -792,17 +763,9 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>hbase.master.namespace.init.timeout</name>
-    <value>2400000</value>
-    <description>The number of milliseconds master waits for hbase:namespace table to be initialized
-    </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>hbase.master.wait.on.regionservers.timeout</name>
-    <value>30000</value>
-    <description>The number of milliseconds master waits for region servers to report in
-    </description>
+    <name>hbase.master.wait.on.service.seconds</name>
+    <value>30</value>
+    <description>The number of seconds the Master waits for dependent services during startup.</description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

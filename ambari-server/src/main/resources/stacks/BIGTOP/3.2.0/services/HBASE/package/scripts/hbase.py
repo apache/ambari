@@ -19,8 +19,6 @@ limitations under the License.
 """
 
 import os
-import sys
-from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.libraries.functions.format import format
@@ -31,38 +29,47 @@ from resource_management.libraries.functions.generate_logfeeder_input_config imp
 )
 from resource_management.core.source import Template, InlineTemplate
 from resource_management.core.resources import Package
-from resource_management.core.resources.service import ServiceConfig
-from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.exceptions import Fail
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons import OSConst
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 
 
-# name is 'master' or 'regionserver' or 'queryserver' or 'client'
+# name is 'master', 'regionserver', 'thrift', or 'client'
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase(name=None):
   import params
 
+  if name not in ("master", "regionserver", "thrift", "client"):
+    raise Fail(f"Unsupported HBase configuration role: {name}")
+
   # ensure that matching LZO libraries are installed for HBase
   lzo_utils.install_lzo_if_needed()
 
-  Directory(params.etc_prefix_dir, mode=0o755)
+  Directory(params.etc_prefix_dir, owner="root", group="root", mode=0o755)
 
   Directory(
     params.hbase_conf_dir,
-    owner=params.hbase_user,
+    owner="root",
     group=params.user_group,
     create_parents=True,
+    mode=0o755,
   )
 
-  Directory(params.java_io_tmpdir, create_parents=True, mode=0o777)
+  Directory(
+    params.java_io_tmpdir,
+    owner="root",
+    group="root",
+    create_parents=True,
+    mode=0o1777,
+  )
 
   # If a file location is specified in ioengine parameter,
   # ensure that directory exists. Otherwise create the
   # directory with permissions assigned to hbase:hadoop.
   ioengine_input = params.ioengine_param
-  if ioengine_input != None:
+  if ioengine_input is not None:
     if ioengine_input.startswith("file:/"):
       ioengine_fullpath = ioengine_input[5:]
       ioengine_dir = os.path.dirname(ioengine_fullpath)
@@ -71,28 +78,17 @@ def hbase(name=None):
         owner=params.hbase_user,
         group=params.user_group,
         create_parents=True,
-        mode=0o755,
+        mode=0o750,
       )
-
-  parent_dir = os.path.dirname(params.tmp_dir)
-  # In case if we have several placeholders in path
-  while "${" in parent_dir:
-    parent_dir = os.path.dirname(parent_dir)
-  if parent_dir != os.path.abspath(os.sep):
-    Directory(
-      parent_dir,
-      create_parents=True,
-      cd_access="a",
-    )
-    Execute(("chmod", "1777", parent_dir), sudo=True)
 
   XmlConfig(
     "hbase-site.xml",
     conf_dir=params.hbase_conf_dir,
     configurations=params.config["configurations"]["hbase-site"],
     configuration_attributes=params.config["configurationAttributes"]["hbase-site"],
-    owner=params.hbase_user,
+    owner="root",
     group=params.user_group,
+    mode=0o644,
   )
 
   if check_stack_feature(
@@ -104,15 +100,16 @@ def hbase(name=None):
       conf_dir=params.hbase_conf_dir,
       configurations=params.config["configurations"]["core-site"],
       configuration_attributes=params.config["configurationAttributes"]["core-site"],
-      owner=params.hbase_user,
+      owner="root",
       group=params.user_group,
+      mode=0o644,
       xml_include_file=params.mount_table_xml_inclusion_file_full_path,
     )
 
     if params.mount_table_content:
       File(
         params.mount_table_xml_inclusion_file_full_path,
-        owner=params.hbase_user,
+        owner="root",
         group=params.user_group,
         content=params.mount_table_content,
         mode=0o644,
@@ -124,8 +121,9 @@ def hbase(name=None):
         conf_dir=params.hbase_conf_dir,
         configurations=params.config["configurations"]["hdfs-site"],
         configuration_attributes=params.config["configurationAttributes"]["hdfs-site"],
-        owner=params.hbase_user,
+        owner="root",
         group=params.user_group,
+        mode=0o644,
       )
   else:
     File(format("{params.hbase_conf_dir}/hdfs-site.xml"), action="delete")
@@ -137,26 +135,35 @@ def hbase(name=None):
       conf_dir=params.hbase_conf_dir,
       configurations=params.config["configurations"]["hbase-policy"],
       configuration_attributes=params.config["configurationAttributes"]["hbase-policy"],
-      owner=params.hbase_user,
+      owner="root",
       group=params.user_group,
+      mode=0o644,
     )
   # Manually overriding ownership of file installed by hadoop package
   else:
     File(
       format("{params.hbase_conf_dir}/hbase-policy.xml"),
-      owner=params.hbase_user,
+      owner="root",
       group=params.user_group,
+      mode=0o644,
     )
 
   File(
     format("{hbase_conf_dir}/hbase-env.sh"),
-    owner=params.hbase_user,
+    owner="root",
     content=InlineTemplate(params.hbase_env_sh_template),
     group=params.user_group,
+    mode=0o644,
   )
 
   # On some OS this folder could be not exists, so we will create it before pushing there files
-  Directory(params.limits_conf_dir, create_parents=True, owner="root", group="root")
+  Directory(
+    params.limits_conf_dir,
+    create_parents=True,
+    owner="root",
+    group="root",
+    mode=0o755,
+  )
 
   File(
     os.path.join(params.limits_conf_dir, "hbase.conf"),
@@ -174,35 +181,39 @@ def hbase(name=None):
   hbase_TemplateConfig("regionservers")
 
   if params.security_enabled:
-    hbase_TemplateConfig(format("hbase_{name}_jaas.conf"))
+    hbase_TemplateConfig("hbase_client_jaas.conf")
+    if name != "client":
+      hbase_TemplateConfig(format("hbase_{name}_jaas.conf"))
 
   if name != "client":
     Directory(
       params.pid_dir,
       owner=params.hbase_user,
+      group=params.user_group,
       create_parents=True,
       cd_access="a",
-      mode=0o755,
+      mode=0o2750,
     )
 
     Directory(
       params.log_dir,
       owner=params.hbase_user,
+      group=params.user_group,
       create_parents=True,
       cd_access="a",
-      mode=0o755,
+      mode=0o750,
     )
 
     generate_logfeeder_input_config(
       "hbase", Template("input.config-hbase.json.j2", extra_imports=[default])
     )
 
-  if params.log4j_props != None:
+  if params.log4j_props is not None:
     File(
       format("{params.hbase_conf_dir}/log4j.properties"),
       mode=0o644,
       group=params.user_group,
-      owner=params.hbase_user,
+      owner="root",
       content=InlineTemplate(params.log4j_props),
     )
   elif os.path.exists(format("{params.hbase_conf_dir}/log4j.properties")):
@@ -210,7 +221,7 @@ def hbase(name=None):
       format("{params.hbase_conf_dir}/log4j.properties"),
       mode=0o644,
       group=params.user_group,
-      owner=params.hbase_user,
+      owner="root",
     )
   if name == "master":
     params.HdfsResource(
@@ -247,6 +258,11 @@ def hbase(name=None):
 def hbase_TemplateConfig(name, tag=None):
   import params
 
+  mode = 0o640 if name.endswith("_jaas.conf") else 0o644
   TemplateConfig(
-    format("{hbase_conf_dir}/{name}"), owner=params.hbase_user, template_tag=tag
+    format("{hbase_conf_dir}/{name}"),
+    owner="root",
+    group=params.user_group,
+    mode=mode,
+    template_tag=tag,
   )
