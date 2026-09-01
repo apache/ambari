@@ -35,9 +35,11 @@ from ambari_agent.AmbariStompConnection import (
 
 
 class TestAmbariStompConnection(TestCase):
-  def test_maps_wss_url_and_client_certificate_options(self):
+  @patch("ambari_agent.AmbariStompConnection.create_ssl_context")
+  def test_maps_wss_url_and_client_certificate_options(self, context_factory):
     transport = MagicMock()
     transport.get_ssl.return_value = {}
+    context = context_factory.return_value
 
     def initialize(connection, *args, **kwargs):
       connection.transport = transport
@@ -71,8 +73,18 @@ class TestAmbariStompConnection(TestCase):
     )
     self.assertEqual(transport.get_ssl.return_value["keyfile"], "/keys/agent.key")
     self.assertEqual(transport.get_ssl.return_value["cert_reqs"], ssl.CERT_REQUIRED)
+    self.assertIs(transport.get_ssl.return_value["context"], context)
+    context_factory.assert_called_once_with(
+      ssl.PROTOCOL_TLS_CLIENT, "/keys/ca.crt"
+    )
+    context.load_cert_chain.assert_called_once_with(
+      "/keys/agent.crt", "/keys/agent.key", None
+    )
 
-  def test_one_way_tls_preserves_current_no_verify_policy(self):
+  @patch("ambari_agent.AmbariStompConnection.create_ssl_context")
+  def test_default_one_way_tls_requires_certificate_and_hostname_verification(
+    self, context_factory
+  ):
     transport = MagicMock()
     transport.get_ssl.return_value = {}
 
@@ -84,7 +96,34 @@ class TestAmbariStompConnection(TestCase):
     ):
       AmbariStompConnection("wss://server.example/agent/stomp/v1")
 
-    self.assertEqual(transport.get_ssl.return_value["cert_reqs"], ssl.CERT_NONE)
+    self.assertEqual(transport.get_ssl.return_value["cert_reqs"], ssl.CERT_REQUIRED)
+    self.assertTrue(transport.get_ssl.return_value["check_hostname"])
+    self.assertIs(
+      transport.get_ssl.return_value["context"], context_factory.return_value
+    )
+
+  @patch("ambari_agent.AmbariStompConnection.create_ssl_context")
+  def test_partial_tls_options_retain_secure_defaults(self, context_factory):
+    transport = MagicMock()
+    transport.get_ssl.return_value = {}
+
+    def initialize(connection, *args, **kwargs):
+      connection.transport = transport
+
+    with patch.object(
+      WSStompConnection, "__init__", autospec=True, side_effect=initialize
+    ):
+      AmbariStompConnection(
+        "wss://server.example/agent/stomp/v1",
+        ssl_options={"ca_certs": "/keys/ca.crt"},
+      )
+
+    self.assertEqual(transport.get_ssl.return_value["cert_reqs"], ssl.CERT_REQUIRED)
+    self.assertTrue(transport.get_ssl.return_value["check_hostname"])
+    self.assertEqual(transport.get_ssl.return_value["ca_certs"], "/keys/ca.crt")
+    self.assertIs(
+      transport.get_ssl.return_value["context"], context_factory.return_value
+    )
 
   def test_connect_waits_for_protocol_confirmation_without_restarting_transport(self):
     connection = object.__new__(AmbariStompConnection)
@@ -182,6 +221,41 @@ class TestAmbariStompConnection(TestCase):
       correlationId=0,
     )
 
+  def test_send_preserves_json_protocol_compatibility_corpus(self):
+    connection = object.__new__(AmbariStompConnection)
+    connection.lock = threading.RLock()
+    connection.correlation_id = -1
+    message = {
+      "id": 7,
+      "unicode": "cluster-\u96c6\u7fa4",
+      "largeInteger": 9223372036854775808,
+      "notANumber": float("nan"),
+      "positiveInfinity": float("inf"),
+    }
+
+    with patch.object(WSStompConnection, "send") as send_mock:
+      connection.send(destination="/agent/heartbeat", message=message)
+
+    self.assertEqual(
+      '{"id": 7, "unicode": "cluster-\\u96c6\\u7fa4", '
+      '"largeInteger": 9223372036854775808, "notANumber": NaN, '
+      '"positiveInfinity": Infinity}',
+      send_mock.call_args.kwargs["body"],
+    )
+
+  def test_send_rejects_bytes_in_json_protocol_message(self):
+    connection = object.__new__(AmbariStompConnection)
+    connection.lock = threading.RLock()
+    connection.correlation_id = -1
+
+    with patch.object(WSStompConnection, "send") as send_mock:
+      with self.assertRaisesRegex(TypeError, "not JSON serializable"):
+        connection.send(
+          destination="/agent/heartbeat", message={"payload": b"not-text"}
+        )
+
+    send_mock.assert_not_called()
+
   def test_send_normalizes_closed_connection_exception(self):
     connection = object.__new__(AmbariStompConnection)
     connection.lock = threading.RLock()
@@ -192,6 +266,25 @@ class TestAmbariStompConnection(TestCase):
     ):
       with self.assertRaises(ConnectionIsAlreadyClosed):
         connection.send(destination="/agent/heartbeat", message={"id": 1})
+
+  def test_send_failure_discards_presend_registration(self):
+    connection = object.__new__(AmbariStompConnection)
+    connection.lock = threading.RLock()
+    connection.correlation_id = -1
+    cleanup = MagicMock()
+    presend_hook = MagicMock(return_value=cleanup)
+
+    with patch.object(
+      WSStompConnection, "send", side_effect=NotConnectedException()
+    ):
+      with self.assertRaises(ConnectionIsAlreadyClosed):
+        connection.send(
+          destination="/agent/heartbeat",
+          message={"id": 1},
+          presend_hook=presend_hook,
+        )
+
+    cleanup.assert_called_once_with()
 
   def test_disconnect_always_closes_socket_and_stops_transport(self):
     connection = object.__new__(AmbariStompConnection)

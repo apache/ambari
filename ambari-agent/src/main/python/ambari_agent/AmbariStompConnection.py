@@ -34,6 +34,8 @@ from stomp.exception import (
 )
 from websocket import WebSocketConnectionClosedException
 
+from ambari_commons.inet_utils import create_ssl_context
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_CONNECTION_TIMEOUT = 10
@@ -68,13 +70,34 @@ class AmbariStompConnection(WSStompConnection):
       ws_path=ws_path,
     )
 
-    options = ssl_options or {"cert_reqs": ssl.CERT_NONE}
+    options = {
+      "cert_reqs": ssl.CERT_REQUIRED,
+      "check_hostname": True,
+    }
+    if ssl_options:
+      options.update(ssl_options)
+    ssl_version = options.get("ssl_version", ssl.PROTOCOL_TLS_CLIENT)
+    ssl_context = options.get("context")
+    if ssl_context is None:
+      ssl_context = create_ssl_context(ssl_version, options.get("ca_certs"))
+      if options.get("certfile"):
+        ssl_context.load_cert_chain(
+          options["certfile"],
+          options.get("keyfile"),
+          options.get("password"),
+        )
+    else:
+      if ssl_context.minimum_version < ssl.TLSVersion.TLSv1_2:
+        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
+      ssl_context.verify_mode = ssl.CERT_REQUIRED
+      ssl_context.check_hostname = True
+    options["context"] = ssl_context
     self.set_ssl(
       for_hosts=[host_and_port],
       key_file=options.get("keyfile"),
       cert_file=options.get("certfile"),
       ca_certs=options.get("ca_certs"),
-      ssl_version=options.get("ssl_version", ssl.PROTOCOL_TLS_CLIENT),
+      ssl_version=ssl_version,
       password=options.get("password"),
     )
 
@@ -143,35 +166,41 @@ class AmbariStompConnection(WSStompConnection):
     with self.lock:
       self.correlation_id += 1
       correlation_id = self.correlation_id
+      send_failure_cleanup = None
+      try:
+        if presend_hook:
+          send_failure_cleanup = presend_hook(correlation_id)
 
-    if presend_hook:
-      presend_hook(correlation_id)
+        logged_message = log_message_function(copy.deepcopy(message))
+        logger.info(
+          "Event to server at %s (correlation_id=%s): %s",
+          destination,
+          correlation_id,
+          logged_message,
+        )
 
-    logged_message = log_message_function(copy.deepcopy(message))
-    logger.info(
-      "Event to server at %s (correlation_id=%s): %s",
-      destination,
-      correlation_id,
-      logged_message,
-    )
+        super(AmbariStompConnection, self).send(
+          destination=destination,
+          body=json.dumps(message),
+          content_type=content_type,
+          headers=headers,
+          correlationId=correlation_id,
+          **keyword_headers,
+        )
+      except (
+        ConnectionClosedException,
+        NotConnectedException,
+        WebSocketConnectionClosedException,
+      ) as exc:
+        if callable(send_failure_cleanup):
+          send_failure_cleanup()
+        raise ConnectionIsAlreadyClosed(str(exc)) from exc
+      except Exception:
+        if callable(send_failure_cleanup):
+          send_failure_cleanup()
+        raise
 
-    try:
-      super(AmbariStompConnection, self).send(
-        destination=destination,
-        body=json.dumps(message),
-        content_type=content_type,
-        headers=headers,
-        correlationId=correlation_id,
-        **keyword_headers,
-      )
-    except (
-      ConnectionClosedException,
-      NotConnectedException,
-      WebSocketConnectionClosedException,
-    ) as exc:
-      raise ConnectionIsAlreadyClosed(str(exc)) from exc
-
-    return correlation_id
+      return correlation_id
 
   def disconnect(self, *args, **kwargs):
     try:

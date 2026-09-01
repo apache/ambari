@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import logging
+import os
 import threading
 from socket import error as socket_error
 
@@ -62,6 +63,10 @@ class HeartbeatThread(threading.Thread):
 
     self.initializer_module = initializer_module
     self.config = initializer_module.config
+    passphrase_env_var = self.config.get(
+      "security", "passphrase_env_var_name", "AMBARI_PASSPHRASE"
+    )
+    self.enrollment_passphrase = os.environ.pop(passphrase_env_var, None)
 
     # listeners
     self.server_responses_listener = initializer_module.server_responses_listener
@@ -142,9 +147,13 @@ class HeartbeatThread(threading.Thread):
           self.register()
 
         heartbeat_body = self.get_heartbeat_body()
-        logger.debug(f"Heartbeat body is {heartbeat_body}")
+        logger.debug(
+          "Sending heartbeat id=%s with %s stale alert(s)",
+          heartbeat_body["id"],
+          len(heartbeat_body.get("staleAlerts", [])),
+        )
         response = self.blocking_request(heartbeat_body, Constants.HEARTBEAT_ENDPOINT)
-        logger.debug(f"Heartbeat response is {response}")
+        logger.debug("Heartbeat response id=%s", response.get("id"))
         self.handle_heartbeat_reponse(response)
       except Exception as ex:
         if isinstance(ex, (ConnectionIsAlreadyClosed)):
@@ -172,14 +181,24 @@ class HeartbeatThread(threading.Thread):
 
     registration_request = self.registration_builder.build()
     logger.info("Sending registration request")
-    logger.debug(f"Registration request is {registration_request}")
+    logger.debug(
+      "Registration request host=%s, agentVersion=%s, encryptionTypes=%s",
+      registration_request.get("hostname"),
+      registration_request.get("agentVersion"),
+      registration_request.get("encryptionTypes"),
+    )
 
     response = self.blocking_request(
       registration_request, Constants.REGISTRATION_ENDPOINT
     )
 
     logger.info("Registration response received")
-    logger.debug(f"Registration response is {response}")
+    logger.debug(
+      "Registration response id=%s, status=%s, exitstatus=%s",
+      response.get("id"),
+      response.get("status"),
+      response.get("exitstatus"),
+    )
 
     self.handle_registration_response(response)
 
@@ -193,9 +212,11 @@ class HeartbeatThread(threading.Thread):
 
         try:
           listener.on_event({}, response)
-        except:
+        except Exception:
           logger.exception(
-            f"Exception while handing response to request at {endpoint} {response}"
+            "Exception while handling response to request at %s (response-type=%s)",
+            endpoint,
+            type(response).__name__,
           )
           raise
       finally:
@@ -296,9 +317,15 @@ class HeartbeatThread(threading.Thread):
     """
     connection_url = f"wss://{self.config.server_hostname}:{self.config.secured_url_port}/agent/stomp/v1"
     connection_helper = security.VerifiedHTTPSConnection(
-      self.config.server_hostname, connection_url, self.config
+      self.config.server_hostname,
+      connection_url,
+      self.config,
+      enrollment_passphrase=self.enrollment_passphrase,
     )
-    self.connection = connection_helper.connect()
+    try:
+      self.connection = connection_helper.connect()
+    finally:
+      self.enrollment_passphrase = connection_helper.enrollment_passphrase
 
   def add_listeners(self):
     """
@@ -310,7 +337,9 @@ class HeartbeatThread(threading.Thread):
   def subscribe_to_topics(self, topics_list):
     for topic_name in topics_list:
       self.connection.subscribe(
-        destination=topic_name, id="sub", ack="client-individual"
+        destination=topic_name,
+        id=topic_name,
+        ack="client-individual",
       )
 
   def blocking_request(
@@ -321,8 +350,21 @@ class HeartbeatThread(threading.Thread):
     """
 
     def presend_hook(correlation_id):
+      cleanup_actions = [
+        self.server_responses_listener.register_synchronous_response(correlation_id)
+      ]
       if log_handler:
-        self.server_responses_listener.logging_handlers[correlation_id] = log_handler
+        cleanup_actions.append(
+          self.server_responses_listener.register_logging_handler(
+            correlation_id, log_handler
+          )
+        )
+
+      def cleanup():
+        for cleanup_action in cleanup_actions:
+          cleanup_action()
+
+      return cleanup
 
     try:
       correlation_id = self.connection.send(
@@ -341,3 +383,6 @@ class HeartbeatThread(threading.Thread):
       raise Exception(
         f"{timeout} seconds timeout expired waiting for response from server at {Constants.SERVER_RESPONSES_TOPIC} to message from {destination}"
       )
+    finally:
+      self.server_responses_listener.discard_synchronous_response(correlation_id)
+      self.server_responses_listener.discard_logging_handler(correlation_id)

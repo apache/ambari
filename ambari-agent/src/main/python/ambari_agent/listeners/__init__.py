@@ -33,8 +33,6 @@ logger = logging.getLogger(__name__)
 
 
 class EventListener(ConnectionListener):
-  unprocessed_messages_queue = Queue(100)
-
   """
   Base abstract class for event listeners on specific topics.
   """
@@ -42,6 +40,7 @@ class EventListener(ConnectionListener):
   def __init__(self, initializer_module):
     self.initializer_module = initializer_module
     self.enabled = True
+    self.unprocessed_messages_queue = Queue(100)
     self.event_queue_lock = threading.RLock()
 
   def dequeue_unprocessed_events(self):
@@ -49,7 +48,9 @@ class EventListener(ConnectionListener):
       payload = self.unprocessed_messages_queue.get_nowait()
       if payload:
         logger.info(
-          f"Processing event from unprocessed queue {payload[0]} {payload[1]}"
+          "Processing queued event from %s (message-id=%s)",
+          payload[0],
+          payload[1].get(Constants.MESSAGE_ID),
         )
         destination = payload[0]
         headers = payload[1]
@@ -59,11 +60,14 @@ class EventListener(ConnectionListener):
           self.on_event(headers, message_json)
         except Exception as ex:
           logger.exception(
-            f"Exception while handing event from {destination} {headers} {message}"
+            "Exception while handling queued event from %s (message-id=%s)",
+            destination,
+            headers.get(Constants.MESSAGE_ID),
           )
           self.report_status_to_sender(headers, message, ex)
         else:
           self.report_status_to_sender(headers, message)
+        self.acknowledge_message(headers)
 
   def on_message(self, frame, message=None):
     """
@@ -89,9 +93,13 @@ class EventListener(ConnectionListener):
         message_json = json.loads(message)
       except ValueError as ex:
         logger.exception(
-          f"Received from server event is not a valid message json. Message is:\n{message}"
+          "Server event from %s is not valid JSON (message-id=%s, bytes=%s)",
+          destination,
+          headers.get(Constants.MESSAGE_ID),
+          len(message.encode("utf-8")) if isinstance(message, str) else len(message),
         )
         self.report_status_to_sender(headers, message, ex)
+        self.acknowledge_message(headers)
         return
 
       if destination != Constants.ENCRYPTION_KEY_TOPIC:
@@ -110,10 +118,10 @@ class EventListener(ConnectionListener):
               self.unprocessed_messages_queue.put_nowait(
                 (destination, headers, message_json, message)
               )
-            except Exception as ex:
+            except Exception:
               logger.warning(
-                "Cannot queue any more unprocessed events since "
-                "queue is full! {0} {1}".format(destination, message)
+                "Cannot queue event from %s because the unprocessed queue is full",
+                destination,
               )
             return
 
@@ -121,11 +129,28 @@ class EventListener(ConnectionListener):
         self.on_event(headers, message_json)
       except Exception as ex:
         logger.exception(
-          f"Exception while handing event from {destination} {headers} {message}"
+          "Exception while handling event from %s (message-id=%s)",
+          destination,
+          headers.get(Constants.MESSAGE_ID),
         )
         self.report_status_to_sender(headers, message, ex)
       else:
         self.report_status_to_sender(headers, message)
+      self.acknowledge_message(headers)
+
+  def acknowledge_message(self, headers):
+    """Acknowledge a processed STOMP 1.2 MESSAGE subscription frame."""
+    acknowledgement_id = headers.get("ack")
+    if acknowledgement_id is None:
+      return
+
+    try:
+      connection = self.initializer_module.connection
+      connection.ack(id=acknowledgement_id)
+    except Exception:
+      logger.exception(
+        "Could not acknowledge STOMP message %s", acknowledgement_id
+      )
 
   def report_status_to_sender(self, headers, message, ex=None):
     """
@@ -160,9 +185,11 @@ class EventListener(ConnectionListener):
       connection.send(
         message=confirmation_of_received, destination=Constants.AGENT_RESPONSES_TOPIC
       )
-    except:
+    except Exception:
       logger.exception(
-        f"Could not send a confirmation '{confirmation_of_received}' to server"
+        "Could not send event confirmation to server (message-id=%s, status=%s)",
+        confirmation_of_received[Constants.MESSAGE_ID],
+        confirmation_of_received["status"],
       )
 
   def on_event(self, headers, message):
@@ -178,4 +205,15 @@ class EventListener(ConnectionListener):
     """
     This string will be used to log received messsage of this type
     """
-    return ": " + str(message_json)
+    if not isinstance(message_json, dict):
+      return " (payload-type={0})".format(type(message_json).__name__)
+
+    fields = ",".join(sorted(str(field) for field in message_json.keys()))
+    details = []
+    if "eventType" in message_json:
+      details.append("eventType={0}".format(message_json["eventType"]))
+    clusters = message_json.get("clusters")
+    if isinstance(clusters, dict):
+      details.append("clusters={0}".format(len(clusters)))
+    details.append("fields={0}".format(fields))
+    return " ({0})".format(", ".join(details))
