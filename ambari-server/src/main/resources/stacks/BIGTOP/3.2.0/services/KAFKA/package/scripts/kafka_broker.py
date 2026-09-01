@@ -79,7 +79,7 @@ class KafkaBroker(Script):
       params.kafka_server_properties,
     )
     try:
-      Execute(start_command, user=params.kafka_user)
+      Execute(start_command, user=params.kafka_user, timeout=60)
       kafka_process.wait_for_started_process(
         params.kafka_pid_file,
         params.kafka_user,
@@ -87,6 +87,14 @@ class KafkaBroker(Script):
         params.kafka_server_properties,
       )
     except Exception:
+      try:
+        kafka_process.rollback_started_process(
+          params.kafka_pid_file,
+          params.kafka_user,
+          params.kafka_server_properties,
+        )
+      except Exception as cleanup_error:
+        Logger.warning(f"Could not roll back failed Kafka start: {cleanup_error}")
       show_logs(params.kafka_log_dir, params.kafka_user)
       raise
 
@@ -136,6 +144,7 @@ class KafkaBroker(Script):
       },
       logoutput=True,
       tries=3,
+      timeout=60,
     )
 
   def status(self, env):

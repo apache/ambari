@@ -138,7 +138,7 @@ stack_supports_kafka_env_include_ranger_script = check_stack_feature(
 hostname = config["agentLevelParams"]["hostname"]
 
 # default kafka parameters
-kafka_home = "/usr/lib/kafka"
+kafka_home = os.path.join(stack_root, "current", "kafka-broker")
 conf_dir = "/etc/kafka/conf"
 limits_conf_dir = "/etc/security/limits.d"
 
@@ -158,12 +158,6 @@ kafka_delete_topic_enable = as_bool(
   default("/configurations/kafka-broker/delete.topic.enable", True),
   "kafka-broker/delete.topic.enable",
 )
-
-# parameters for 2.2+
-if stack_version_formatted and check_stack_feature(
-  StackFeature.ROLLING_UPGRADE, stack_version_formatted
-):
-  kafka_home = os.path.join(stack_root, "current", "kafka-broker")
 
 kafka_server_start = os.path.join(kafka_home, "bin", "kafka-server-start.sh")
 kafka_topics = os.path.join(kafka_home, "bin", "kafka-topics.sh")

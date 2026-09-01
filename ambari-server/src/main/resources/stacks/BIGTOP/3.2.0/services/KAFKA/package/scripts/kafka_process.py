@@ -122,6 +122,31 @@ def wait_for_started_process(
   return _publish_identity(pid_file, identity, user, group, expected_tokens)
 
 
+def rollback_started_process(pid_file, user, server_properties):
+  validate_pid_file(pid_file)
+  expected_tokens = expected_process_tokens(server_properties)
+  identity = safe_process.discover_running_process(user, expected_tokens)
+  if identity is None:
+    return
+  safe_process.terminate_process(
+    identity,
+    user,
+    expected_tokens,
+    term_wait_attempts=30,
+    term_wait_sleep=1,
+    kill_wait_attempts=5,
+    kill_wait_sleep=1,
+  )
+  pid = safe_process.read_pid(pid_file)
+  if pid == identity.pid:
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user=user,
+      expected_cmdline=expected_tokens,
+    )
+
+
 def stop_process(pid_file, user, group, server_properties):
   expected_tokens = expected_process_tokens(server_properties)
   identity = read_or_recover_process(

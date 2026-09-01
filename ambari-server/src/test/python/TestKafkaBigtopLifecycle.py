@@ -233,6 +233,34 @@ class TestKafkaProcessLifecycle(unittest.TestCase):
     )
     self.assertEqual(0o640, create.call_args.kwargs["mode"])
 
+  def test_start_rollback_terminates_only_the_discovered_identity(self):
+    with patch.object(
+        safe_process, "discover_running_process", return_value=IDENTITY
+      ) as discover, \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove:
+      KAFKA_PROCESS.rollback_started_process(
+        PID_FILE, "kafka", SERVER_PROPERTIES
+      )
+
+    discover.assert_called_once_with("kafka", TOKENS)
+    terminate.assert_called_once_with(
+      IDENTITY,
+      "kafka",
+      TOKENS,
+      term_wait_attempts=30,
+      term_wait_sleep=1,
+      kill_wait_attempts=5,
+      kill_wait_sleep=1,
+    )
+    remove.assert_called_once_with(
+      PID_FILE,
+      123,
+      expected_user="kafka",
+      expected_cmdline=TOKENS,
+    )
+
   def test_stop_pins_identity_then_uses_term_wait_kill_contract(self):
     with patch.object(
         KAFKA_PROCESS, "read_or_recover_process", return_value=IDENTITY
@@ -321,6 +349,7 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
         SERVER_PROPERTIES,
       ),
       user="kafka",
+      timeout=60,
     )
     wait.assert_called_once_with(
       PID_FILE, "kafka", "hadoop", SERVER_PROPERTIES
@@ -343,12 +372,33 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
             "wait_for_started_process",
             side_effect=wait_error,
           ) as wait, \
+          patch.object(KAFKA_PROCESS, "rollback_started_process") as rollback, \
           patch.object(KAFKA_BROKER, "show_logs") as show_logs:
           with self.assertRaises(Fail):
             self.broker.start(self.env)
         show_logs.assert_called_once_with("/var/log/kafka", "kafka")
+        rollback.assert_called_once_with(PID_FILE, "kafka", SERVER_PROPERTIES)
         if execute_error is not None:
           wait.assert_not_called()
+
+  def test_start_preserves_original_failure_when_rollback_fails(self):
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(self.broker, "configure"), \
+      patch.object(KAFKA_PROCESS, "read_or_recover_process", return_value=None), \
+      patch.object(
+        KAFKA_BROKER, "Execute", side_effect=Fail("launcher failed")
+      ), \
+      patch.object(
+        KAFKA_PROCESS,
+        "rollback_started_process",
+        side_effect=Fail("cleanup failed"),
+      ), \
+      patch.object(KAFKA_BROKER.Logger, "warning") as warning, \
+      patch.object(KAFKA_BROKER, "show_logs"):
+      with self.assertRaisesRegex(Fail, "launcher failed"):
+        self.broker.start(self.env)
+
+    warning.assert_called_once()
 
   def test_stop_delegates_to_verified_process_contract(self):
     status = dependency_module(
@@ -408,6 +458,7 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
       },
       logoutput=True,
       tries=3,
+      timeout=60,
     )
 
   def test_disable_security_fails_before_migration_without_jaas(self):

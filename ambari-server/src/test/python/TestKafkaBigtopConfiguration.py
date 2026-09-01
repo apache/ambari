@@ -709,6 +709,20 @@ class TestKafkaAdvisorAndMetadata(unittest.TestCase):
     self.assertEqual("2.8.1-2", base.findtext("./services/service/version"))
     self.assertEqual("3.4.1-1", overlay.findtext("./services/service/version"))
 
+  def test_runtime_uses_only_the_bigtop_current_package_path(self):
+    params_source = (KAFKA / "package/scripts/params.py").read_text(
+      encoding="utf-8"
+    )
+    advisor_source = (KAFKA / "service_advisor.py").read_text(encoding="utf-8")
+
+    self.assertIn(
+      'kafka_home = os.path.join(stack_root, "current", "kafka-broker")',
+      params_source,
+    )
+    self.assertNotIn('kafka_home = "/usr/lib/kafka"', params_source)
+    self.assertTrue(advisor_source.startswith("#!/usr/bin/env python3\n"))
+    self.assertNotIn("ambari-python-wrap", advisor_source)
+
   def test_packages_match_bigtop_suffixes_and_ranger_is_conditional(self):
     metadata = ElementTree.parse(KAFKA / "metainfo.xml").getroot()
     specifics = {
