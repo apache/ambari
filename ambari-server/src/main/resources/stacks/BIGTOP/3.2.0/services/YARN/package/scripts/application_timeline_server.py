@@ -24,22 +24,12 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import check_process_status
-from resource_management.libraries.functions.security_commons import (
-  build_expectations,
-  cached_kinit_executor,
-  get_params_from_filesystem,
-  validate_security_config_properties,
-  FILE_TYPE_XML,
-)
-from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
 
 from yarn import yarn
 from service import service
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+import yarn_process_utils
 
 
 class ApplicationTimelineServer(Script):
@@ -82,7 +72,13 @@ class ApplicationTimelineServerDefault(ApplicationTimelineServer):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.yarn_historyserver_pid_file)
+    yarn_process_utils.check_component_status(
+      status_params.yarn_historyserver_pid_file,
+      status_params.yarn_user,
+      "timelineserver",
+      status_params.yarn_user,
+      status_params.user_group,
+    )
 
   def get_log_folder(self):
     import params
@@ -97,15 +93,6 @@ class ApplicationTimelineServerDefault(ApplicationTimelineServer):
   def get_pid_files(self):
     import status_params
 
-    Execute(
-      format(
-        "mv {status_params.yarn_historyserver_pid_file_old} {status_params.yarn_historyserver_pid_file}"
-      ),
-      only_if=format(
-        "test -e {status_params.yarn_historyserver_pid_file_old}",
-        user=status_params.yarn_user,
-      ),
-    )
     return [status_params.yarn_historyserver_pid_file]
 
 

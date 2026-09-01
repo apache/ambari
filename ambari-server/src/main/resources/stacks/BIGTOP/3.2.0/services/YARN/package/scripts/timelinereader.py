@@ -19,22 +19,24 @@ Ambari Agent
 
 """
 
-import os
-
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
 
 from yarn import yarn
 from service import service
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from hbase_service import hbase, configure_hbase
-from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from hbase_service import hbase, configure_hbase, rollback_hbase_roles
+import yarn_process_utils
+
+
+def _require_timeline_service_v2(params):
+  if not params.atsv2_backend_enabled:
+    raise Fail("TIMELINE_READER requires an enabled YARN Timeline Service v2")
 
 
 class ApplicationTimelineReader(Script):
@@ -47,35 +49,46 @@ class ApplicationTimelineReader(Script):
     env.set_params(params)
     self.configure(env)  # FOR SECURITY
 
-    if params.stack_version_formatted_major and check_stack_feature(
-      StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major
-    ):
-      # MC Hammer said, "Can't touch this"
-      resource_created = copy_to_hdfs(
-        "yarn",
-        params.user_group,
-        params.hdfs_user,
-        skip=params.sysprep_skip_copy_tarballs_hdfs,
-      )
-      if resource_created:
-        params.HdfsResource(None, action="execute")
-
+    started_hbase_roles = ()
     if not params.use_external_hbase and not params.is_hbase_system_service_launch:
-      hbase(action="start")
-    service("timelinereader", action="start")
+      started_hbase_roles = hbase(action="start")
+    try:
+      service("timelinereader", action="start")
+    except Exception as error:
+      cleanup_errors = rollback_hbase_roles(started_hbase_roles)
+      if cleanup_errors:
+        raise RuntimeError(
+          f"{error}; additionally failed to roll back HBase roles: "
+          + "; ".join(cleanup_errors)
+        ) from error
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
+    _require_timeline_service_v2(params)
+    cleanup_errors = []
+    try:
+      service("timelinereader", action="stop")
+    except Exception as error:
+      cleanup_errors.append(("timeline reader", error))
     if not params.use_external_hbase and not params.is_hbase_system_service_launch:
-      hbase(action="stop")
-    service("timelinereader", action="stop")
+      try:
+        hbase(action="stop")
+      except Exception as error:
+        cleanup_errors.append(("embedded HBase", error))
+    if cleanup_errors:
+      raise RuntimeError(
+        "Failed to stop timeline service processes: "
+        + "; ".join(f"{label}: {error}" for label, error in cleanup_errors)
+      ) from cleanup_errors[0][1]
 
   def configure(self, env, action=None):
     import params
 
     env.set_params(params)
+    _require_timeline_service_v2(params)
     yarn(name="apptimelinereader")
     if not params.use_external_hbase and not params.is_hbase_system_service_launch:
       configure_hbase(env)
@@ -93,22 +106,38 @@ class ApplicationTimelineReaderDefault(ApplicationTimelineReader):
       StackFeature.ROLLING_UPGRADE, params.version
     ):
       stack_select.select_packages(params.version)
-      # MC Hammer said, "Can't touch this"
-      resource_created = copy_to_hdfs(
-        "yarn",
-        params.user_group,
-        params.hdfs_user,
-        skip=params.sysprep_skip_copy_tarballs_hdfs,
-      )
-      if resource_created:
-        params.HdfsResource(None, action="execute")
 
   def status(self, env):
-    import status_params
+    import params
 
-    env.set_params(status_params)
-    for pid_file in self.get_pid_files():
-      check_process_status(pid_file)
+    env.set_params(params)
+    _require_timeline_service_v2(params)
+    processes = [
+      (params.yarn_timelinereader_pid_file, params.yarn_user, "timelinereader")
+    ]
+    if not params.use_external_hbase and not params.is_hbase_system_service_launch:
+      processes.extend(
+        (
+          (
+            format("{yarn_hbase_pid_dir}/hbase-{yarn_hbase_user}-master.pid"),
+            params.yarn_hbase_user,
+            "master",
+          ),
+          (
+            format("{yarn_hbase_pid_dir}/hbase-{yarn_hbase_user}-regionserver.pid"),
+            params.yarn_hbase_user,
+            "regionserver",
+          ),
+        )
+      )
+    for pid_file, expected_user, component in processes:
+      yarn_process_utils.check_component_status(
+        pid_file,
+        expected_user,
+        component,
+        expected_user,
+        params.user_group,
+      )
 
   def get_log_folder(self):
     import params
@@ -123,6 +152,7 @@ class ApplicationTimelineReaderDefault(ApplicationTimelineReader):
   def get_pid_files(self):
     import params
 
+    _require_timeline_service_v2(params)
     pid_files = []
     pid_files.append(format("{yarn_timelinereader_pid_file}"))
     if not params.use_external_hbase and not params.is_hbase_system_service_launch:
