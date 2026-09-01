@@ -18,33 +18,26 @@ limitations under the License.
 
 """
 
-import sys
-
-from resource_management.core import shell
-from resource_management.core.resources.system import Execute
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
-  cached_kinit_executor,
   get_params_from_filesystem,
   validate_security_config_properties,
   FILE_TYPE_XML,
 )
 
-from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.os_family_impl import OsFamilyImpl
 
 from hbase import hbase
-from hbase_service import hbase_service
+from hbase_service import check_hbase_process_status, hbase_service
 import upgrade
 from setup_ranger_hbase import setup_ranger_hbase
-from hbase_decommission import hbase_decommission
-from resource_management.core.logger import Logger
+from hbase_decommission import hbase_decommission, move_regions
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
 
 
 class HbaseRegionServer(Script):
@@ -61,7 +54,7 @@ class HbaseRegionServer(Script):
     hbase(name="regionserver")
 
   def decommission(self, env):
-    print("Decommission not yet implemented!")
+    raise Fail("RegionServer decommission must be issued through HBase Master")
 
   def graceful_stop(self, env, upgrade_type=None):
     import params
@@ -88,20 +81,7 @@ class HbaseRegionServer(Script):
     # Start RegionServer
     hbase_service("regionserver", action="start")
 
-    # Load Regions back
-    kinit_cmd = params.kinit_cmd_master
-    host = params.hostname
-
-    try:
-      regionmover_cmd = format(
-        '{kinit_cmd} HBASE_SERVER_JAAS_OPTS="{master_security_config}" {hbase_cmd} --config {hbase_conf_dir} {hbase_decommission_auth_config} org.jruby.Main {region_mover} -m 24 -o load -r {host}'
-      )
-      Execute(regionmover_cmd, user=params.hbase_user, logoutput=True)
-    except Exception as ex:
-      Logger.info(
-        "HBase 2: region_mover failed while loading regions back to source RS."
-        + str(ex)
-      )
+    move_regions(params, params.hostname, "load")
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -145,7 +125,12 @@ class HbaseRegionServerDefault(HbaseRegionServer):
 
     env.set_params(status_params)
 
-    check_process_status(status_params.regionserver_pid_file)
+    check_hbase_process_status(
+      status_params.regionserver_pid_file,
+      status_params.hbase_user,
+      status_params.user_group,
+      "regionserver",
+    )
 
   def security_status(self, env):
     import status_params
@@ -189,14 +174,21 @@ class HbaseRegionServerDefault(HbaseRegionServer):
             )
             return
 
-          cached_kinit_executor(
-            status_params.kinit_path_local,
+          keytab = security_params["hbase-site"][
+            "hbase.regionserver.keytab.file"
+          ]
+          principal = security_params["hbase-site"][
+            "hbase.regionserver.kerberos.principal"
+          ].replace("_HOST", status_params.hostname.lower())
+          with PrivateKerberosCache(
             status_params.hbase_user,
-            security_params["hbase-site"]["hbase.regionserver.keytab.file"],
-            security_params["hbase-site"]["hbase.regionserver.kerberos.principal"],
-            status_params.hostname,
-            status_params.tmp_dir,
-          )
+            status_params.user_group,
+            temp_dir=status_params.tmp_dir,
+            prefix="ambari-hbase-regionserver-status-",
+          ) as kerberos_cache:
+            kerberos_cache.kinit(
+              status_params.kinit_path_local, keytab, principal, timeout=30
+            )
           self.put_structured_out({"securityState": "SECURED_KERBEROS"})
         except Exception as e:
           self.put_structured_out({"securityState": "ERROR"})

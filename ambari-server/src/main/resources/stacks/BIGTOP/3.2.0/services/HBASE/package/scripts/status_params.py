@@ -21,10 +21,9 @@ limitations under the License.
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
+from functions import as_bool
 
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
@@ -43,6 +42,7 @@ config = Script.get_config()
 
 pid_dir = config["configurations"]["hbase-env"]["hbase_pid_dir"]
 hbase_user = config["configurations"]["hbase-env"]["hbase_user"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
 
 hbase_master_pid_file = format("{pid_dir}/hbase-{hbase_user}-master.pid")
 regionserver_pid_file = format("{pid_dir}/hbase-{hbase_user}-regionserver.pid")
@@ -50,7 +50,8 @@ thrift_pid_file = format("{pid_dir}/hbase-{hbase_user}-thrift.pid")
 
 # Security related/required params
 hostname = config["agentLevelParams"]["hostname"]
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+security_enabled_value = config["configurations"]["cluster-env"]["security_enabled"]
+security_enabled = as_bool(security_enabled_value)
 kinit_path_local = get_kinit_path(
   default("/configurations/kerberos-env/executable_search_paths", None)
 )
