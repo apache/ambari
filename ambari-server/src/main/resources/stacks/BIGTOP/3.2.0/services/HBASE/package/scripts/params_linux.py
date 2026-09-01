@@ -150,6 +150,7 @@ metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
 java64_home = config["ambariLevelParams"]["java_home"]
+ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
 java_version = expect("/ambariLevelParams/java_version", int)
 
 log_dir = config["configurations"]["hbase-env"]["hbase_log_dir"]

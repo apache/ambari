@@ -18,11 +18,19 @@ limitations under the License.
 
 """
 
-__all__ = ["setup_ranger_plugin", "get_audit_configs", "generate_ranger_service_config"]
+__all__ = [
+  "setup_ranger_plugin",
+  "setup_ranger_plugin_keystore",
+  "get_audit_configs",
+  "generate_ranger_service_config",
+]
 
 import os
 import json
 from datetime import datetime
+from ambari_commons.credential_store_helper import (
+  create_password_in_credential_store,
+)
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.resources import File, Directory, Execute
 from resource_management.libraries.resources.xml_config import XmlConfig
@@ -32,9 +40,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
 from resource_management.core.exceptions import Fail
-from resource_management.core.utils import PasswordString
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 
 
@@ -45,7 +51,7 @@ def setup_ranger_plugin(
   component_downloaded_custom_connector,
   component_driver_curl_source,
   component_driver_curl_target,
-  java_home,
+  ambari_java_home,
   repo_name,
   plugin_repo_dict,
   ranger_env_properties,
@@ -77,7 +83,6 @@ def setup_ranger_plugin(
   component_user_principal=None,
   component_user_keytab=None,
   cred_lib_path_override=None,
-  cred_setup_prefix_override=None,
   plugin_home=None,
 ):
   if stack_version_override is None:
@@ -262,18 +267,15 @@ def setup_ranger_plugin(
       )
 
     setup_ranger_plugin_keystore(
-      service_name,
       audit_db_is_enabled,
-      stack_version,
       credential_file,
       xa_audit_db_password,
       ssl_truststore_password,
       ssl_keystore_password,
       component_user,
       component_group,
-      java_home,
+      ambari_java_home,
       cred_lib_path_override,
-      cred_setup_prefix_override,
       plugin_home,
     )
 
@@ -307,18 +309,15 @@ def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list
 
 
 def setup_ranger_plugin_keystore(
-  service_name,
   audit_db_is_enabled,
-  stack_version,
   credential_file,
   xa_audit_db_password,
   ssl_truststore_password,
   ssl_keystore_password,
   component_user,
   component_group,
-  java_home,
+  ambari_java_home,
   cred_lib_path_override=None,
-  cred_setup_prefix_override=None,
   plugin_home=None,
 ):
   if cred_lib_path_override is not None:
@@ -326,51 +325,35 @@ def setup_ranger_plugin_keystore(
   else:
     cred_lib_path = format("{plugin_home}/install/lib/*")
 
-  if cred_setup_prefix_override is not None:
-    cred_setup_prefix = cred_setup_prefix_override
-  else:
-    cred_setup_prefix = (
-      format("{plugin_home}/ranger_credential_helper.py"),
-      "-l",
-      cred_lib_path,
-    )
+  provider_path = f"jceks://file{credential_file}"
 
   if audit_db_is_enabled:
-    cred_setup = cred_setup_prefix + (
-      "-f",
-      credential_file,
-      "-k",
+    create_password_in_credential_store(
       "auditDBCred",
-      "-v",
-      PasswordString(xa_audit_db_password),
-      "-c",
-      "1",
+      provider_path,
+      cred_lib_path,
+      ambari_java_home,
+      None,
+      xa_audit_db_password,
     )
-    Execute(cred_setup, environment={"JAVA_HOME": java_home}, logoutput=True, sudo=True)
 
-  cred_setup = cred_setup_prefix + (
-    "-f",
-    credential_file,
-    "-k",
+  create_password_in_credential_store(
     "sslKeyStore",
-    "-v",
-    PasswordString(ssl_keystore_password),
-    "-c",
-    "1",
+    provider_path,
+    cred_lib_path,
+    ambari_java_home,
+    None,
+    ssl_keystore_password,
   )
-  Execute(cred_setup, environment={"JAVA_HOME": java_home}, logoutput=True, sudo=True)
 
-  cred_setup = cred_setup_prefix + (
-    "-f",
-    credential_file,
-    "-k",
+  create_password_in_credential_store(
     "sslTrustStore",
-    "-v",
-    PasswordString(ssl_truststore_password),
-    "-c",
-    "1",
+    provider_path,
+    cred_lib_path,
+    ambari_java_home,
+    None,
+    ssl_truststore_password,
   )
-  Execute(cred_setup, environment={"JAVA_HOME": java_home}, logoutput=True, sudo=True)
 
   File(credential_file, owner=component_user, group=component_group, mode=0o640)
 

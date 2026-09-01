@@ -127,6 +127,7 @@ kafka_managed_pid_dir = "/var/run/kafka"
 kafka_managed_log_dir = "/var/log/kafka"
 user_group = config["configurations"]["cluster-env"]["user_group"]
 java64_home = config["ambariLevelParams"]["java_home"]
+ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
 kafka_env_sh_template = config["configurations"]["kafka-env"]["content"]
 kafka_jaas_conf_template = default("/configurations/kafka_jaas_conf/content", None)
 kafka_client_jaas_conf_template = default(

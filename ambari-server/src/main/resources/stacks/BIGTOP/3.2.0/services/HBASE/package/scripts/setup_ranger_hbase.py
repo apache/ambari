@@ -86,7 +86,7 @@ def setup_ranger_hbase(upgrade_type=None, service_name="hbase-master"):
       params.downloaded_custom_connector,
       params.driver_curl_source,
       params.driver_curl_target,
-      params.java64_home,
+      params.ambari_java_home,
       params.repo_name,
       params.hbase_ranger_plugin_repo,
       params.ranger_env,

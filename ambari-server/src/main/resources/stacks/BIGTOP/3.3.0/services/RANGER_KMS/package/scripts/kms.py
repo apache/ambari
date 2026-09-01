@@ -44,8 +44,10 @@ from resource_management.libraries.functions.ranger_functions_v2 import Rangerad
 from ambari_commons.credential_store_helper import (
   create_password_in_credential_store,
 )
+from resource_management.libraries.functions.setup_ranger_plugin_xml import (
+  setup_ranger_plugin_keystore,
+)
 from resource_management.libraries.functions.decorator import safe_retry
-from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 import re
 import time
@@ -732,71 +734,16 @@ def enable_kms_plugin():
       mode=0o744,
     )
 
-    if params.xa_audit_db_is_enabled:
-      cred_setup = params.cred_setup_prefix + (
-        "-f",
-        params.credential_file,
-        "-k",
-        "auditDBCred",
-        "-v",
-        PasswordString(params.xa_audit_db_password),
-        "-c",
-        "1",
-      )
-      Execute(
-        cred_setup,
-        environment={"JAVA_HOME": params.java_home},
-        logoutput=True,
-        sudo=True,
-      )
-
-    cred_setup = params.cred_setup_prefix + (
-      "-f",
+    setup_ranger_plugin_keystore(
+      params.xa_audit_db_is_enabled,
       params.credential_file,
-      "-k",
-      "sslKeyStore",
-      "-v",
-      PasswordString(params.ssl_keystore_password),
-      "-c",
-      "1",
-    )
-    Execute(
-      cred_setup, environment={"JAVA_HOME": params.java_home}, logoutput=True, sudo=True
-    )
-
-    cred_setup = params.cred_setup_prefix + (
-      "-f",
-      params.credential_file,
-      "-k",
-      "sslTrustStore",
-      "-v",
-      PasswordString(params.ssl_truststore_password),
-      "-c",
-      "1",
-    )
-    Execute(
-      cred_setup, environment={"JAVA_HOME": params.java_home}, logoutput=True, sudo=True
-    )
-
-    File(
-      params.credential_file,
-      owner=params.kms_user,
-      group=params.kms_group,
-      only_if=format("test -e {credential_file}"),
-      mode=0o640,
-    )
-
-    dot_jceks_crc_file_path = os.path.join(
-      os.path.dirname(params.credential_file),
-      "." + os.path.basename(params.credential_file) + ".crc",
-    )
-
-    File(
-      dot_jceks_crc_file_path,
-      owner=params.kms_user,
-      group=params.kms_group,
-      only_if=format("test -e {dot_jceks_crc_file_path}"),
-      mode=0o640,
+      params.xa_audit_db_password,
+      params.ssl_truststore_password,
+      params.ssl_keystore_password,
+      params.kms_user,
+      params.kms_group,
+      params.ambari_java_home,
+      cred_lib_path_override=params.cred_lib_path,
     )
 
     # create ranger kms audit directory

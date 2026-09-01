@@ -60,7 +60,7 @@ def setup_ranger_hdfs(upgrade_type=None):
         params.downloaded_custom_connector,
         params.driver_curl_source,
         params.driver_curl_target,
-        params.java_home,
+        params.ambari_java_home,
         params.repo_name,
         params.hdfs_ranger_plugin_repo,
         params.ranger_env,

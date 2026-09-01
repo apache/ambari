@@ -83,7 +83,7 @@ def setup_ranger_hive(upgrade_type=None):
       params.ranger_downloaded_custom_connector,
       params.ranger_driver_curl_source,
       params.ranger_driver_curl_target,
-      params.java64_home,
+      params.ambari_java_home,
       params.repo_name,
       params.hive_ranger_plugin_repo,
       params.ranger_env,

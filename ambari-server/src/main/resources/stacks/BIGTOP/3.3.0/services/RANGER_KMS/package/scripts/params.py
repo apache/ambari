@@ -146,11 +146,6 @@ repo_name_value = config["configurations"]["ranger-kms-security"][
 if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
   repo_name = repo_name_value
 cred_lib_path = os.path.join(kms_home, "cred", "lib", "*")
-cred_setup_prefix = (
-  format("{kms_home}/ranger_credential_helper.py"),
-  "-l",
-  cred_lib_path,
-)
 credential_file = format("/etc/ranger/{repo_name}/cred.jceks")
 
 
