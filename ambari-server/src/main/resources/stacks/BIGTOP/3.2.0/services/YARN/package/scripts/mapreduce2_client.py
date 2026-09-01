@@ -22,7 +22,6 @@ Ambari Agent
 
 # Python imports
 import os
-import sys
 
 # Local imports
 from resource_management.libraries.script.script import Script
@@ -31,15 +30,12 @@ from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from yarn import yarn
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.logger import Logger
 
 
 class MapReduce2Client(Script):
   def install(self, env):
-    import params
-
     self.install_packages(env)
     self.configure(env)
 

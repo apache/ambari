@@ -32,8 +32,10 @@ __all__ = [
   "should_install_ranger_hive_plugin",
   "should_install_ranger_yarn_plugin",
   "should_install_ranger_tagsync",
+  "should_install_yarn_ats_hbase",
 ]
 
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
 
@@ -56,6 +58,22 @@ def _has_applicable_local_component(config, components):
   return _has_local_components(config, components, any)
 
 
+def _strict_configuration_boolean(config, config_type, property_name):
+  try:
+    value = config["configurations"][config_type][property_name]
+  except KeyError as error:
+    raise Fail(f"Missing {config_type}/{property_name} package condition") from error
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "true":
+      return True
+    if normalized == "false":
+      return False
+  raise Fail(f"{config_type}/{property_name} must be true or false")
+
+
 def should_install_phoenix():
   phoenix_hosts = default("/clusterHostInfo/phoenix_query_server_hosts", [])
   phoenix_enabled = default("/configurations/hbase-env/phoenix_sql_enabled", False)
@@ -71,6 +89,31 @@ def should_install_ams_collector():
 def should_install_ams_grafana():
   config = Script.get_config()
   return _has_applicable_local_component(config, ["METRICS_GRAFANA"])
+
+
+def should_install_yarn_ats_hbase():
+  config = Script.get_config()
+  config_type = "yarn-hbase-env"
+  backend_config = config.get("configurations", {}).get(config_type)
+  if backend_config is None:
+    return _has_applicable_local_component(
+      config, ["RESOURCEMANAGER", "TIMELINE_READER"]
+    )
+  if not isinstance(backend_config, dict):
+    raise Fail(f"{config_type} package condition must be a configuration map")
+  system_service = _strict_configuration_boolean(
+    config, config_type, "is_hbase_system_service_launch"
+  )
+  use_external_hbase = _strict_configuration_boolean(
+    config, config_type, "use_external_hbase"
+  )
+  hbase_within_cluster = _strict_configuration_boolean(
+    config, config_type, "hbase_within_cluster"
+  )
+  if use_external_hbase or hbase_within_cluster:
+    return False
+  components = ["RESOURCEMANAGER"] if system_service else ["TIMELINE_READER"]
+  return _has_applicable_local_component(config, components)
 
 
 def should_install_infra_solr():

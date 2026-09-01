@@ -269,9 +269,13 @@ def _copy_matching_files(pattern, destination):
 def _replace_external_zookeeper_links(source_directory, destination):
   for external_jar in glob.glob(os.path.join(destination, "zookeeper*.jar")):
     File(external_jar, action="delete")
-  _copy_matching_files(
-    os.path.join(source_directory, "zookeeper-*.jar"), destination
-  )
+  for versioned_jar_pattern in (
+    "zookeeper-[0-9]*.jar",
+    "zookeeper-jute-[0-9]*.jar",
+  ):
+    _copy_matching_files(
+      os.path.join(source_directory, versioned_jar_pattern), destination
+    )
 
 
 def _regular_file_identity(path, label):

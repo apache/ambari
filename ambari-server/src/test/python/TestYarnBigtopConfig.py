@@ -23,10 +23,12 @@ from pathlib import Path
 import shlex
 import unittest
 import xml.etree.ElementTree as ET
+from unittest.mock import patch
 
 from jinja2 import Environment as JinjaEnvironment, StrictUndefined
 from resource_management.core.exceptions import Fail
 from resource_management.core.shell import quote_bash_args
+from resource_management.libraries.functions import package_conditions
 
 
 STACKS = Path(__file__).resolve().parents[2] / "main/resources/stacks/BIGTOP"
@@ -1224,7 +1226,7 @@ class TestYarnVersionAndResidue(unittest.TestCase):
     self.assertIn("if manages_embedded_hbase:", source)
     self.assertIn("if manages_embedded_hbase and not isinstance(", source)
 
-  def test_obsolete_and_circular_service_dependencies_are_deleted(self):
+  def test_service_dependencies_match_backend_contracts(self):
     root = ET.parse(YARN / "metainfo.xml").getroot()
     yarn_service = next(
       service
@@ -1239,9 +1241,101 @@ class TestYarnVersionAndResidue(unittest.TestCase):
       for dependency in root.findall(".//dependency")
     }
     self.assertNotIn("MAPREDUCE2", required)
-    self.assertNotIn("HBASE/HBASE_CLIENT", dependencies)
     self.assertNotIn("TEZ/TEZ_CLIENT", dependencies)
     self.assertNotIn("SLIDER/SLIDER", dependencies)
+    timeline_reader = next(
+      component
+      for component in yarn_service.findall("./components/component")
+      if component.findtext("name") == "TIMELINE_READER"
+    )
+    hbase_dependency = next(
+      dependency
+      for dependency in timeline_reader.findall("./dependencies/dependency")
+      if dependency.findtext("name") == "HBASE/HBASE_CLIENT"
+    )
+    condition = hbase_dependency.find("./conditions/condition")
+    self.assertEqual("yarn-hbase-env", condition.findtext("configType"))
+    self.assertEqual("hbase_within_cluster", condition.findtext("property"))
+    self.assertEqual("true", condition.findtext("propertyValue"))
+
+  def test_yarn_component_packages_and_ats_hbase_install_matrix(self):
+    stack_packages = json.loads(
+      (STACKS / "3.2.0/properties/stack_packages.json").read_text(
+        encoding="utf-8"
+      )
+    )["BIGTOP"]["stack-select"]["YARN"]
+    expected_selectors = {
+      "APP_TIMELINE_SERVER": "hadoop-yarn-timelineserver",
+      "TIMELINE_READER": "hadoop-yarn-timelinereader",
+      "YARN_REGISTRY_DNS": "hadoop-yarn-registrydns",
+    }
+    for component, selector in expected_selectors.items():
+      with self.subTest(component=component):
+        self.assertEqual(
+          selector, stack_packages[component]["STACK-SELECT-PACKAGE"]
+        )
+        self.assertIn(selector, stack_packages[component]["INSTALL"])
+
+    base = {
+      "role": "install_packages",
+      "localComponents": [],
+      "configurations": {
+        "yarn-hbase-env": {
+          "is_hbase_system_service_launch": "false",
+          "use_external_hbase": "false",
+          "hbase_within_cluster": "false",
+        }
+      },
+    }
+    cases = (
+      (["TIMELINE_READER"], {}, True),
+      (["RESOURCEMANAGER"], {}, False),
+      (
+        ["RESOURCEMANAGER"],
+        {"is_hbase_system_service_launch": "true"},
+        True,
+      ),
+      (["TIMELINE_READER"], {"use_external_hbase": "true"}, False),
+      (["TIMELINE_READER"], {"hbase_within_cluster": "true"}, False),
+    )
+    for local_components, overrides, expected in cases:
+      config = json.loads(json.dumps(base))
+      config["localComponents"] = local_components
+      config["configurations"]["yarn-hbase-env"].update(overrides)
+      with (
+        self.subTest(components=local_components, overrides=overrides),
+        patch.object(package_conditions.Script, "get_config", return_value=config),
+      ):
+        self.assertEqual(
+          expected, package_conditions.should_install_yarn_ats_hbase()
+        )
+
+    for local_components, expected in (
+      (["TIMELINE_READER"], True),
+      (["RESOURCEMANAGER"], True),
+      (["NODEMANAGER"], False),
+    ):
+      config = {
+        "role": "install_packages",
+        "localComponents": local_components,
+        "configurations": {},
+      }
+      with (
+        self.subTest(missing_config_components=local_components),
+        patch.object(package_conditions.Script, "get_config", return_value=config),
+      ):
+        self.assertEqual(
+          expected, package_conditions.should_install_yarn_ats_hbase()
+        )
+
+    invalid = json.loads(json.dumps(base))
+    invalid["localComponents"] = ["TIMELINE_READER"]
+    invalid["configurations"]["yarn-hbase-env"]["use_external_hbase"] = "yes"
+    with patch.object(
+      package_conditions.Script, "get_config", return_value=invalid
+    ):
+      with self.assertRaisesRegex(Fail, "use_external_hbase"):
+        package_conditions.should_install_yarn_ats_hbase()
 
 
 if __name__ == "__main__":

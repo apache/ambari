@@ -455,6 +455,19 @@
         }
       },
       "YARN": {
+        "APP_TIMELINE_SERVER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-timelineserver",
+          "INSTALL": [
+            "hadoop-yarn-timelineserver",
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-yarn-timelineserver"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-timelineserver"
+          ]
+        },
         "NODEMANAGER": {
           "STACK-SELECT-PACKAGE": "hadoop-yarn-nodemanager",
           "INSTALL": [
@@ -481,6 +494,19 @@
             "hadoop-yarn-resourcemanager"
           ]
         },
+        "TIMELINE_READER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-timelinereader",
+          "INSTALL": [
+            "hadoop-yarn-timelinereader",
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-yarn-timelinereader"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-timelinereader"
+          ]
+        },
         "YARN_CLIENT": {
           "STACK-SELECT-PACKAGE": "hadoop-yarn-client",
           "INSTALL": [
@@ -492,6 +518,19 @@
           ],
           "STANDARD": [
             "hadoop-client"
+          ]
+        },
+        "YARN_REGISTRY_DNS": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-registrydns",
+          "INSTALL": [
+            "hadoop-yarn-registrydns",
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-yarn-registrydns"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-registrydns"
           ]
         }
       },
