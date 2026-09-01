@@ -37,9 +37,14 @@ with open(PARENT_FILE, "rb") as fp:
 def _positive_int(value, default=None):
   if isinstance(value, bool):
     return default
-  try:
-    parsed = int(value)
-  except (TypeError, ValueError):
+  if isinstance(value, int):
+    parsed = value
+  elif isinstance(value, str):
+    normalized = value.strip()
+    if not normalized.isascii() or not normalized.isdecimal():
+      return default
+    parsed = int(normalized)
+  else:
     return default
   return parsed if parsed > 0 else default
 
@@ -113,11 +118,10 @@ class TezRecommender(service_advisor.ServiceAdvisor):
     map_memory = _positive_int(cluster_data.get("mapMemory"), 1536)
     reduce_memory = _positive_int(cluster_data.get("reduceMemory"), 1536)
     task_memory = max(map_memory, reduce_memory)
-    containers = _positive_int(cluster_data.get("containers"), 1)
     ram_per_container = _positive_int(
       cluster_data.get("ramPerContainer"), maximum
     )
-    task_memory = min(task_memory, containers * ram_per_container)
+    task_memory = min(task_memory, ram_per_container)
 
     hive_properties = _effective_properties(configurations, services, "hive-site")
     hive_container_size = _positive_int(
@@ -160,18 +164,28 @@ class TezValidator(service_advisor.ServiceAdvisor):
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     validation_items = []
-    for property_name in (
+    memory_property_names = (
       "tez.am.resource.memory.mb",
       "tez.task.resource.memory.mb",
       "tez.runtime.io.sort.mb",
       "tez.runtime.unordered.output.buffer.size-mb",
-    ):
+    )
+    memory_values = {}
+    for property_name in memory_property_names:
+      value = _positive_int(properties.get(property_name))
+      memory_values[property_name] = value
+      if property_name in properties and value is None:
+        validation_item = self.getErrorItem(
+          f"{property_name} must be a positive integer"
+        )
+      else:
+        validation_item = self.validatorLessThenDefaultValue(
+          properties, recommendedDefaults, property_name
+        )
       validation_items.append(
         {
           "config-name": property_name,
-          "item": self.validatorLessThenDefaultValue(
-            properties, recommendedDefaults, property_name
-          ),
+          "item": validation_item,
         }
       )
 
@@ -185,22 +199,60 @@ class TezValidator(service_advisor.ServiceAdvisor):
     )
 
     yarn_properties = _effective_properties(configurations, services, "yarn-site")
+    yarn_minimum = _positive_int(
+      yarn_properties.get("yarn.scheduler.minimum-allocation-mb")
+    )
     yarn_maximum = _positive_int(
       yarn_properties.get("yarn.scheduler.maximum-allocation-mb")
     )
-    if yarn_maximum is not None:
-      for property_name in (
-        "tez.am.resource.memory.mb",
-        "tez.task.resource.memory.mb",
+    for property_name in (
+      "tez.am.resource.memory.mb",
+      "tez.task.resource.memory.mb",
+    ):
+      memory = memory_values[property_name]
+      if (
+        memory is not None
+        and yarn_minimum is not None
+        and memory < yarn_minimum
       ):
-        memory = _positive_int(properties.get(property_name))
-        if memory is not None and memory > yarn_maximum:
+        validation_items.append(
+          {
+            "config-name": property_name,
+            "item": self.getWarnItem(
+              f"{property_name} should not be lower than the YARN minimum "
+              f"allocation ({yarn_minimum} MB)"
+            ),
+          }
+        )
+      if (
+        memory is not None
+        and yarn_maximum is not None
+        and memory > yarn_maximum
+      ):
+        validation_items.append(
+          {
+            "config-name": property_name,
+            "item": self.getWarnItem(
+              f"{property_name} should not exceed the YARN maximum "
+              f"allocation ({yarn_maximum} MB)"
+            ),
+          }
+        )
+
+    task_memory = memory_values["tez.task.resource.memory.mb"]
+    if task_memory is not None:
+      for property_name in (
+        "tez.runtime.io.sort.mb",
+        "tez.runtime.unordered.output.buffer.size-mb",
+      ):
+        buffer_memory = memory_values[property_name]
+        if buffer_memory is not None and buffer_memory >= task_memory:
           validation_items.append(
             {
               "config-name": property_name,
-              "item": self.getWarnItem(
-                f"{property_name} should not exceed the YARN maximum "
-                f"allocation ({yarn_maximum} MB)"
+              "item": self.getErrorItem(
+                f"{property_name} must be lower than "
+                "tez.task.resource.memory.mb"
               ),
             }
           )

@@ -82,6 +82,14 @@
             </package>
           </packages>
         </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>tez-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
       </osSpecifics>
 
       <commandScript>

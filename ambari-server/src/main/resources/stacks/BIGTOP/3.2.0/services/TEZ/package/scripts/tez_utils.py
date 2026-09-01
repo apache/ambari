@@ -82,14 +82,14 @@ def validate_principal(value, name):
   return value
 
 
-def validate_keytab(path):
-  validate_absolute_path(path, "Tez smoke keytab")
+def validate_keytab(path, name):
+  validate_absolute_path(path, name)
   if not path.endswith(".keytab"):
-    raise Fail("Tez smoke keytab must end with .keytab")
+    raise Fail(f"{name} must end with .keytab")
   if not sudo.path_lexists(path):
-    raise Fail(f"Tez smoke keytab {path} does not exist")
+    raise Fail(f"{name} {path} does not exist")
   if sudo.path_islink(path) or not sudo.path_isfile(path):
-    raise Fail(f"Tez smoke keytab {path} must be a regular non-symlink file")
+    raise Fail(f"{name} {path} must be a regular non-symlink file")
   return path
 
 

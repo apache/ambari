@@ -37,7 +37,6 @@ from resource_management.libraries.functions.get_not_managed_resources import (
   get_not_managed_resources,
 )
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.get_architecture import get_architecture
 from resource_management.libraries.functions.copy_tarball import (
   get_sysprep_skip_copy_tarballs_hdfs,
 )
@@ -45,8 +44,6 @@ from resource_management.libraries.functions.copy_tarball import (
 # server configurations
 config = Script.get_config()
 tmp_dir = tez_utils.validate_absolute_path(Script.get_tmp_dir(), "agent temp directory")
-
-architecture = get_architecture()
 
 stack_name = config["clusterLevelParams"]["stack_name"]
 stack_root = tez_utils.validate_absolute_path(
@@ -68,15 +65,6 @@ component_directory = stack_select.get_package_name(default_package="tez-client"
 # default hadoop parameters
 hadoop_home = tez_utils.validate_absolute_path(
   stack_select.get_hadoop_dir("home"), "Hadoop home directory"
-)
-hadoop_hdfs_home = tez_utils.validate_absolute_path(
-  stack_select.get_hadoop_dir("hdfs_home"), "HDFS home directory"
-)
-hadoop_mapred_home = tez_utils.validate_absolute_path(
-  stack_select.get_hadoop_dir("mapred_home"), "MapReduce home directory"
-)
-hadoop_yarn_home = tez_utils.validate_absolute_path(
-  stack_select.get_hadoop_dir("yarn_home"), "YARN home directory"
 )
 hadoop_bin_dir = tez_utils.validate_absolute_path(
   stack_select.get_hadoop_dir("bin"), "Hadoop binary directory"
@@ -149,9 +137,6 @@ tez_conf_dir_shell = quote_bash_args(tez_conf_dir)
 hadoop_home_shell = quote_bash_args(hadoop_home)
 java64_home_shell = quote_bash_args(java64_home)
 
-tez_user = tez_utils.validate_user(
-  config["configurations"]["tez-env"]["tez_user"], "tez-env/tez_user"
-)
 user_group = tez_utils.validate_user(
   config["configurations"]["cluster-env"]["user_group"],
   "cluster-env/user_group",

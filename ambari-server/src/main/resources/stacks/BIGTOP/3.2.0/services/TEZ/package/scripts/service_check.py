@@ -60,8 +60,8 @@ class TezServiceCheckLinux(TezServiceCheck):
     local_input = os.path.join(params.tmp_dir, f"tez-service-check-{check_id}.txt")
 
     if params.security_enabled:
-      tez_utils.validate_keytab(params.hdfs_user_keytab)
-      tez_utils.validate_keytab(params.smoke_user_keytab)
+      tez_utils.validate_keytab(params.hdfs_user_keytab, "HDFS service keytab")
+      tez_utils.validate_keytab(params.smoke_user_keytab, "Tez smoke keytab")
 
     File(local_input, content="foo\nbar\nfoo\nbar\nfoo", mode=0o644)
     operation_error = None
@@ -94,13 +94,16 @@ class TezServiceCheckLinux(TezServiceCheck):
           params.tez_lib_base_dir_path,
           type="directory",
           action="create_on_execute",
-          owner=params.smokeuser,
+          owner=params.hdfs_user,
+          mode=0o555,
         )
         params.HdfsResource(
           params.tez_lib_uris,
           action="create_on_execute",
           type="file",
-          owner=params.smokeuser,
+          owner=params.hdfs_user,
+          group=params.user_group,
+          mode=0o444,
           source=os.path.join(params.tez_home, "lib", "tez.tar.gz"),
         )
         tarball_ready = True

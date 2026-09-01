@@ -47,7 +47,7 @@ def tez(config_dir):
 
   Directory(
     config_dir,
-    owner=params.tez_user,
+    owner="root",
     group=params.user_group,
     mode=0o755,
     create_parents=True,
@@ -60,7 +60,7 @@ def tez(config_dir):
     configuration_attributes=params.config.get("configurationAttributes", {}).get(
       "tez-site", {}
     ),
-    owner=params.tez_user,
+    owner="root",
     group=params.user_group,
     mode=0o644,
   )
@@ -68,7 +68,7 @@ def tez(config_dir):
   tez_env_file_path = os.path.join(config_dir, "tez-env.sh")
   File(
     tez_env_file_path,
-    owner=params.tez_user,
+    owner="root",
     group=params.user_group,
     content=InlineTemplate(params.tez_env_sh_template),
     mode=0o644,

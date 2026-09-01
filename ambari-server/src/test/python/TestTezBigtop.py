@@ -122,7 +122,9 @@ class TestTezUtils(unittest.TestCase):
       patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True),
       patch.object(TEZ_UTILS.sudo, "path_islink", return_value=False),
     ):
-      self.assertEqual(keytab, TEZ_UTILS.validate_keytab(keytab))
+      self.assertEqual(
+        keytab, TEZ_UTILS.validate_keytab(keytab, "Tez smoke keytab")
+      )
 
     with (
       patch.object(TEZ_UTILS.sudo, "path_lexists", return_value=True),
@@ -130,20 +132,24 @@ class TestTezUtils(unittest.TestCase):
       patch.object(TEZ_UTILS.sudo, "path_islink", return_value=True),
       self.assertRaisesRegex(Fail, "non-symlink"),
     ):
-      TEZ_UTILS.validate_keytab(keytab)
+      TEZ_UTILS.validate_keytab(keytab, "Tez smoke keytab")
 
     with (
       patch.object(TEZ_UTILS.sudo, "path_lexists", return_value=False),
       self.assertRaisesRegex(Fail, "does not exist"),
     ):
-      TEZ_UTILS.validate_keytab(keytab)
+      TEZ_UTILS.validate_keytab(keytab, "Tez smoke keytab")
+
+    with self.assertRaisesRegex(Fail, "must end with .keytab"):
+      TEZ_UTILS.validate_keytab(
+        "/etc/security/keytabs/smoke.txt", "Tez smoke keytab"
+      )
 
 
 class TestTezConfiguration(unittest.TestCase):
   def test_managed_configuration_has_stable_ownership_and_modes(self):
     params = params_module(
       tez_conf_dir="/etc/tez/conf",
-      tez_user="tez",
       user_group="hadoop",
       tez_site_config={"tez.lib.uris": "/bigtop/apps/3.3.0/tez/tez.tar.gz"},
       config={},
@@ -159,14 +165,16 @@ class TestTezConfiguration(unittest.TestCase):
 
     directory.assert_called_once_with(
       "/etc/tez/conf",
-      owner="tez",
+      owner="root",
       group="hadoop",
       mode=0o755,
       create_parents=True,
     )
     self.assertEqual(0o644, xml_config.call_args.kwargs["mode"])
+    self.assertEqual("root", xml_config.call_args.kwargs["owner"])
     self.assertEqual("hadoop", xml_config.call_args.kwargs["group"])
     self.assertEqual(0o644, file_resource.call_args.kwargs["mode"])
+    self.assertEqual("root", file_resource.call_args.kwargs["owner"])
     self.assertEqual("hadoop", file_resource.call_args.kwargs["group"])
 
   def test_client_install_stages_runtime_dependencies_before_configuration(self):
@@ -256,6 +264,16 @@ class TestTezServiceCheck(unittest.TestCase):
     self.assertEqual(
       "execute", params.HdfsResource.call_args_list[-1].kwargs["action"]
     )
+    hdfs_calls = {
+      item.args[0]: item for item in params.HdfsResource.call_args_list
+    }
+    runtime_directory = hdfs_calls["/bigtop/apps/3.3.0/tez"]
+    self.assertEqual("hdfs", runtime_directory.kwargs["owner"])
+    self.assertEqual(0o555, runtime_directory.kwargs["mode"])
+    runtime_archive = hdfs_calls["/bigtop/apps/3.3.0/tez/tez.tar.gz"]
+    self.assertEqual("hdfs", runtime_archive.kwargs["owner"])
+    self.assertEqual("hadoop", runtime_archive.kwargs["group"])
+    self.assertEqual(0o444, runtime_archive.kwargs["mode"])
 
   def test_secure_check_uses_private_cache_for_kinit_and_hadoop(self):
     params = self._params(security_enabled=True)
@@ -283,8 +301,8 @@ class TestTezServiceCheck(unittest.TestCase):
 
     self.assertEqual(
       [
-        call("/etc/security/keytabs/hdfs.keytab"),
-        call("/etc/security/keytabs/smoke.keytab"),
+        call("/etc/security/keytabs/hdfs.keytab", "HDFS service keytab"),
+        call("/etc/security/keytabs/smoke.keytab", "Tez smoke keytab"),
       ],
       validate.call_args_list,
     )
@@ -412,6 +430,131 @@ class TestTezAdvisorAndMetadata(unittest.TestCase):
     )
     recommender.calculateYarnAllocationSizes.assert_not_called()
 
+  def test_task_recommendation_does_not_exceed_one_container(self):
+    recommender = object.__new__(self.advisor.TezRecommender)
+    put_property = MagicMock()
+    recommender.putProperty = MagicMock(return_value=put_property)
+    recommender.putPropertyAttribute = MagicMock()
+    recommender.recommendYarnQueue = MagicMock(return_value=None)
+    recommender.calculateYarnAllocationSizes = MagicMock()
+    configurations = {
+      "yarn-site": {
+        "properties": {
+          "yarn.scheduler.minimum-allocation-mb": "1024",
+          "yarn.scheduler.maximum-allocation-mb": "8192",
+        }
+      }
+    }
+
+    recommender.recommendBigtopConfigurations(
+      configurations,
+      {
+        "amMemory": 2048,
+        "mapMemory": 8192,
+        "reduceMemory": 4096,
+        "containers": 8,
+        "ramPerContainer": 2048,
+      },
+      {},
+      {},
+    )
+
+    put_property.assert_any_call("tez.task.resource.memory.mb", 2048)
+    put_property.assert_any_call("tez.runtime.io.sort.mb", 540)
+
+  def test_resource_parser_and_validator_reject_lossy_or_unsafe_values(self):
+    for value in (1, " 2 ", "03"):
+      with self.subTest(value=value):
+        self.assertEqual(int(value), self.advisor._positive_int(value))
+    for value in (True, 1.5, "1.5", "+1", "-1", "one", 0, None):
+      with self.subTest(value=value):
+        self.assertIsNone(self.advisor._positive_int(value))
+
+    validator = object.__new__(self.advisor.TezValidator)
+    validator.validatorLessThenDefaultValue = MagicMock(return_value=None)
+    validator.validatorYarnQueue = MagicMock(return_value=None)
+    validator.getErrorItem = lambda message: {
+      "level": "ERROR",
+      "message": message,
+    }
+    validator.getWarnItem = lambda message: {
+      "level": "WARN",
+      "message": message,
+    }
+    validator.toConfigurationValidationProblems = (
+      lambda items, config_type: [item for item in items if item["item"]]
+    )
+    problems = validator.validateBigtopConfigurations(
+      {
+        "tez.am.resource.memory.mb": "1.5",
+        "tez.task.resource.memory.mb": "1024",
+        "tez.runtime.io.sort.mb": "1024",
+        "tez.runtime.unordered.output.buffer.size-mb": "2048",
+      },
+      {},
+      {},
+      {
+        "configurations": {
+          "yarn-site": {
+            "properties": {
+              "yarn.scheduler.minimum-allocation-mb": "1024",
+              "yarn.scheduler.maximum-allocation-mb": "4096",
+            }
+          }
+        }
+      },
+      {},
+    )
+    error_names = [
+      problem["config-name"]
+      for problem in problems
+      if problem["item"]["level"] == "ERROR"
+    ]
+    self.assertEqual(
+      [
+        "tez.am.resource.memory.mb",
+        "tez.runtime.io.sort.mb",
+        "tez.runtime.unordered.output.buffer.size-mb",
+      ],
+      error_names,
+    )
+    validated_names = [
+      item.args[2]
+      for item in validator.validatorLessThenDefaultValue.call_args_list
+    ]
+    self.assertNotIn("tez.am.resource.memory.mb", validated_names)
+
+    problems = validator.validateBigtopConfigurations(
+      {
+        "tez.am.resource.memory.mb": "512",
+        "tez.task.resource.memory.mb": "8192",
+        "tez.runtime.io.sort.mb": "256",
+        "tez.runtime.unordered.output.buffer.size-mb": "100",
+      },
+      {},
+      {},
+      {
+        "configurations": {
+          "yarn-site": {
+            "properties": {
+              "yarn.scheduler.minimum-allocation-mb": "1024",
+              "yarn.scheduler.maximum-allocation-mb": "4096",
+            }
+          }
+        }
+      },
+      {},
+    )
+    warning_names = [
+      problem["config-name"]
+      for problem in problems
+      if problem["item"]["level"] == "WARN"
+    ]
+    self.assertEqual(
+      ["tez.am.resource.memory.mb", "tez.task.resource.memory.mb"],
+      warning_names,
+    )
+
   def test_parent_load_failure_is_not_swallowed(self):
     advisor_path = TEZ / "service_advisor.py"
     spec = importlib.util.spec_from_file_location(
@@ -439,6 +582,19 @@ class TestTezAdvisorAndMetadata(unittest.TestCase):
     self.assertFalse((TEZ / "themes/directories.json").exists())
     self.assertFalse((SCRIPTS / "pre_upgrade.py").exists())
 
+    metadata = ElementTree.parse(TEZ / "metainfo.xml").getroot()
+    packages_by_os = {
+      os_specific.findtext("osFamily"): [
+        package.text for package in os_specific.findall("packages/package/name")
+      ]
+      for os_specific in metadata.findall("./services/service/osSpecifics/osSpecific")
+    }
+    self.assertEqual(
+      ["tez_${stack_version}"],
+      packages_by_os["redhat7,redhat8,redhat9,openeuler22"],
+    )
+    self.assertEqual(["tez-${stack_version}"], packages_by_os["ubuntu22"])
+
   def test_java_17_options_and_config_ownership_contract_are_declared(self):
     root = ElementTree.parse(TEZ / "configuration/tez-site.xml").getroot()
     values = {
@@ -453,6 +609,13 @@ class TestTezAdvisorAndMetadata(unittest.TestCase):
       self.assertIn("-XX:+UseParallelGC", values[property_name])
       self.assertNotIn("PrintGCTimeStamps", values[property_name])
     self.assertNotIn("yarn.timeline-service.enabled", values)
+    self.assertEqual("/tmp/${user.name}/tez/staging", values["tez.staging-dir"])
+    self.assertEqual("{{tez_lib_uris}}", values["tez.lib.uris"])
+    self.assertEqual("false", values["tez.use.cluster.hadoop-libs"])
+    self.assertNotIn("tez.lib.uris.classpath", values)
+    self.assertNotIn("tez.cluster.additional.classpath.prefix", values)
+    self.assertNotIn("tez.am.tez-ui.history-url.template", values)
+    self.assertNotIn("tez.tez-ui.history-url.base", values)
 
     env_root = ElementTree.parse(TEZ / "configuration/tez-env.xml").getroot()
     heap_dump = next(
@@ -483,6 +646,8 @@ class TestTezAdvisorAndMetadata(unittest.TestCase):
       "kinit_cmd",
       "tezsmoke",
       "subprocess",
+      "os.system",
+      "Popen",
     ):
       self.assertNotIn(residue, source)
 
