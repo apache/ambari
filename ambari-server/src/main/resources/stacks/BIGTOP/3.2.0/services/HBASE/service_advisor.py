@@ -128,6 +128,9 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
     recommender.recommendBaseMemoryAndSuperuser(
       configurations, clusterData, services, hosts
     )
+    recommender.removeObsoleteAtlasHook(
+      configurations, clusterData, services, hosts
+    )
     recommender.recommendMemorySecurityAndStorage(
       configurations, clusterData, services, hosts
     )
@@ -135,9 +138,6 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
       configurations, clusterData, services, hosts
     )
     recommender.recommendRangerRepository(
-      configurations, clusterData, services, hosts
-    )
-    recommender.recommendAtlasHook(
       configurations, clusterData, services, hosts
     )
     recommender.recommendRuntimeTuning(
@@ -188,6 +188,54 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
+
+  def isPhoenixEnabled(self, configurations, services):
+    updated = configurations.get("hbase-env", {}).get("properties", {})
+    current = services.get("configurations", {}).get("hbase-env", {}).get(
+      "properties", {}
+    )
+    value = updated.get("phoenix_sql_enabled")
+    if value is None:
+      value = current.get("phoenix_sql_enabled", False)
+    return str(value).strip().lower() == "true"
+
+  def removeObsoleteAtlasHook(
+    self, configurations, clusterData, services, hosts
+  ):
+    property_name = "hbase.coprocessor.master.classes"
+    obsolete_class = "org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor"
+    updated_hbase_site = configurations.get("hbase-site", {}).get(
+      "properties", {}
+    )
+    current_hbase_site = services.get("configurations", {}).get(
+      "hbase-site", {}
+    ).get("properties", {})
+    configured_classes = updated_hbase_site.get(property_name)
+    if configured_classes is None:
+      configured_classes = current_hbase_site.get(property_name, "")
+    if isinstance(configured_classes, str):
+      classes = [
+        item.strip() for item in configured_classes.split(",") if item.strip()
+      ]
+      retained_classes = [item for item in classes if item != obsolete_class]
+      if retained_classes != classes:
+        putHbaseSiteProperty = self.putProperty(
+          configurations, "hbase-site", services
+        )
+        putHbaseSiteProperty(property_name, ",".join(retained_classes))
+
+    updated_hbase_env = configurations.get("hbase-env", {}).get("properties", {})
+    current_hbase_env = services.get("configurations", {}).get(
+      "hbase-env", {}
+    ).get("properties", {})
+    if (
+      "hbase.atlas.hook" in updated_hbase_env
+      or "hbase.atlas.hook" in current_hbase_env
+    ):
+      putHbaseEnvPropertyAttributes = self.putPropertyAttribute(
+        configurations, "hbase-env"
+      )
+      putHbaseEnvPropertyAttributes("hbase.atlas.hook", "delete", "true")
 
   def recommendBaseMemoryAndSuperuser(
     self, configurations, clusterData, services, hosts
@@ -303,19 +351,11 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     )
     putHbaseSiteProperty("hbase.regionserver.global.memstore.size", "0.4")
 
-    if (
-      "hbase-env" in services["configurations"]
-      and "phoenix_sql_enabled" in services["configurations"]["hbase-env"]["properties"]
-      and "true"
-      == services["configurations"]["hbase-env"]["properties"][
-        "phoenix_sql_enabled"
-      ].lower()
-    ):
+    if self.isPhoenixEnabled(configurations, services):
       putHbaseSiteProperty(
         "hbase.regionserver.wal.codec",
         "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
       )
-      putHbaseSiteProperty("phoenix.functions.allowUserDefinedFunctions", "true")
     else:
       putHbaseSiteProperty(
         "hbase.regionserver.wal.codec",
@@ -423,20 +463,19 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
       putHbaseEnvPropertyAttributes("hbase_max_direct_memory_size", "delete", "true")
 
-    if (
-      "hbase-env" in services["configurations"]
-      and "phoenix_sql_enabled" in services["configurations"]["hbase-env"]["properties"]
-      and "true"
-      == services["configurations"]["hbase-env"]["properties"][
-        "phoenix_sql_enabled"
-      ].lower()
-    ):
+    if self.isPhoenixEnabled(configurations, services):
+      updated_hbase_site = configurations.get("hbase-site", {}).get(
+        "properties", {}
+      )
+      current_hbase_site = services.get("configurations", {}).get(
+        "hbase-site", {}
+      ).get("properties", {})
+      controller_factory = updated_hbase_site.get(
+        "hbase.rpc.controllerfactory.class",
+        current_hbase_site.get("hbase.rpc.controllerfactory.class"),
+      )
       if (
-        "hbase.rpc.controllerfactory.class"
-        in services["configurations"]["hbase-site"]["properties"]
-        and services["configurations"]["hbase-site"]["properties"][
-          "hbase.rpc.controllerfactory.class"
-        ]
+        controller_factory
         == "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory"
       ):
         putHbaseSitePropertyAttributes(
@@ -479,100 +518,6 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     else:
       self.logger.info("Not setting Hbase Repo user for Ranger.")
 
-  def recommendAtlasHook(
-    self, configurations, clusterData, services, hosts
-  ):
-    # Hbase-hook configurations for Atlas
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
-    hbase_atlas_hook_property = "hbase.coprocessor.master.classes"
-    hbase_atlas_hook_impl_class = "org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor"
-    recommended_hbase_site = configurations.get("hbase-site", {}).get(
-      "properties", {}
-    )
-    current_hbase_site = services["configurations"].get("hbase-site", {}).get(
-      "properties", {}
-    )
-    hbase_master_coprocessor_value = recommended_hbase_site.get(
-      hbase_atlas_hook_property,
-      current_hbase_site.get(hbase_atlas_hook_property, ""),
-    )
-
-    hbase_master_coprocessor_list = [
-      coprocessor_class.strip(" ")
-      for coprocessor_class in hbase_master_coprocessor_value.split(",")
-    ]
-    hbase_master_coprocessor_list = [
-      coprocessor_class
-      for coprocessor_class in hbase_master_coprocessor_list
-      if coprocessor_class != ""
-    ]
-
-    is_atlas_present_in_cluster = "ATLAS" in servicesList
-    putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
-    putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
-    if (
-      "hbase-atlas-application-properties" in services["configurations"]
-      and "enable.external.atlas.for.hbase"
-      in services["configurations"]["hbase-atlas-application-properties"]["properties"]
-    ):
-      enable_external_hook_for_hbase = (
-        services["configurations"]["hbase-atlas-application-properties"]["properties"][
-          "enable.external.atlas.for.hbase"
-        ].lower()
-        == "true"
-      )
-    else:
-      enable_external_hook_for_hbase = False
-
-    if is_atlas_present_in_cluster:
-      putHbaseEnvProperty("hbase.atlas.hook", "true")
-    elif enable_external_hook_for_hbase:
-      putHbaseEnvProperty("hbase.atlas.hook", "true")
-    else:
-      putHbaseEnvProperty("hbase.atlas.hook", "false")
-
-    if (
-      "hbase-env" in configurations
-      and "hbase.atlas.hook" in configurations["hbase-env"]["properties"]
-    ):
-      enable_hbase_atlas_hook = (
-        configurations["hbase-env"]["properties"]["hbase.atlas.hook"] == "true"
-      )
-    elif (
-      "hbase-env" in services["configurations"]
-      and "hbase.atlas.hook" in services["configurations"]["hbase-env"]["properties"]
-    ):
-      enable_hbase_atlas_hook = (
-        services["configurations"]["hbase-env"]["properties"]["hbase.atlas.hook"]
-        == "true"
-      )
-    else:
-      enable_hbase_atlas_hook = False
-
-    if enable_hbase_atlas_hook:
-      is_hbase_atlas_hook_in_config = (
-        hbase_atlas_hook_impl_class in hbase_master_coprocessor_list
-      )
-      if not is_hbase_atlas_hook_in_config:
-        hbase_master_coprocessor_list.append(hbase_atlas_hook_impl_class)
-      else:
-        self.logger.info("hbase-atlas hook is already present in configuration.")
-    else:
-      hbase_master_coprocessor_list = [
-        hbase_master_coprocessor
-        for hbase_master_coprocessor in hbase_master_coprocessor_list
-        if hbase_master_coprocessor != hbase_atlas_hook_impl_class
-      ]
-
-    hbase_master_coprocessor_value = (
-      ""
-      if len(hbase_master_coprocessor_list) == 0
-      else ",".join(hbase_master_coprocessor_list)
-    )
-    putHbaseSiteProperty(hbase_atlas_hook_property, hbase_master_coprocessor_value)
-
   def recommendRuntimeTuning(
     self, configurations, clusterData, services, hosts
   ):
@@ -604,6 +549,9 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
   def setHandlerCounts(self, configurations, clusterData, services, hosts, cores):
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
+    putHbaseSitePropertyAttributes = self.putPropertyAttribute(
+      configurations, "hbase-site"
+    )
     # The amount of RAM that Ambari says HBase should use
     hbaseRamInMB = int(clusterData["hbaseRam"]) * 1024
     self.logger.info(f"hbaseRam={hbaseRamInMB}, cores={cores}")
@@ -627,14 +575,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     ]
 
     # Is Phoenix enabled?
-    phoenix_enabled = (
-      "hbase-env" in services["configurations"]
-      and "phoenix_sql_enabled" in services["configurations"]["hbase-env"]["properties"]
-      and "true"
-      == services["configurations"]["hbase-env"]["properties"][
-        "phoenix_sql_enabled"
-      ].lower()
-    )
+    phoenix_enabled = self.isPhoenixEnabled(configurations, services)
     recommendations = (
       phoenix_recommendations if phoenix_enabled else hbase_recommendations
     )
@@ -662,6 +603,10 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     if phoenix_enabled:
       self.logger.info(f"Setting Phoenix index handlers to {index_handlers}")
       putHbaseSiteProperty("phoenix.rpc.index.handler.count", index_handlers)
+    else:
+      putHbaseSitePropertyAttributes(
+        "phoenix.rpc.index.handler.count", "delete", "true"
+      )
 
   def recommendHBASEConfigurationsForKerberos(
     self, configurations, clusterData, services, hosts
@@ -903,6 +848,7 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
 
     self.validators = [
       ("hbase-env", self.validateBaseEnvironment),
+      ("hbase-env", self.validatePhoenixEnablement),
       ("hbase-site", self.validateMemoryAndSecurity),
       ("hbase-env", self.validateOffheapEnvironment),
       (
@@ -936,6 +882,25 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
         ),
       },
     ]
+    return self.toConfigurationValidationProblems(validationItems, "hbase-env")
+
+  def validatePhoenixEnablement(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    value = properties.get("phoenix_sql_enabled", False)
+    valid = isinstance(value, bool) or (
+      isinstance(value, str) and value.strip().lower() in ("true", "false")
+    )
+    validationItems = []
+    if not valid:
+      validationItems.append(
+        {
+          "config-name": "phoenix_sql_enabled",
+          "item": self.getErrorItem(
+            "hbase-env/phoenix_sql_enabled must be true or false"
+          ),
+        }
+      )
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
   def is_number(self, s):

@@ -22,14 +22,15 @@ from pathlib import Path
 import unittest
 import xml.etree.ElementTree as ET
 
-HBASE = (
-  Path(__file__).resolve().parents[2]
-  / "main/resources/stacks/BIGTOP/3.2.0/services/HBASE"
-)
+STACKS = Path(__file__).resolve().parents[2] / "main/resources/stacks/BIGTOP"
+HBASE = STACKS / "3.2.0/services/HBASE"
 HBASE_33 = (
-  Path(__file__).resolve().parents[2]
-  / "main/resources/stacks/BIGTOP/3.3.0/services/HBASE"
+  STACKS / "3.3.0/services/HBASE"
 )
+HBASE_34 = STACKS / "3.4.0/services/HBASE"
+SCRIPTS = HBASE / "package/scripts"
+
+
 def properties(path):
   root = ET.parse(path).getroot()
   return {
@@ -47,6 +48,13 @@ class TestHbaseConfigurationContract(unittest.TestCase):
     self.assertIn("export JAVA_HOME={{java64_home_shell}}", content)
     self.assertIn("${HBASE_OPTS:-}", content)
     self.assertIn("${HBASE_THRIFT_OPTS:-}", content)
+    self.assertIn("{% if phoenix_enabled %}", content)
+    self.assertIn("export PHOENIX_HOME={{phoenix_home_shell}}", content)
+    self.assertIn(
+      'HBASE_CLASSPATH="${HBASE_CLASSPATH:+${HBASE_CLASSPATH}:}'
+      '${PHOENIX_HOME}/phoenix-server.jar"',
+      content,
+    )
     self.assertIn("hbase_thrift_jaas.conf", content)
     self.assertIn("${HBASE_LOGFILE:-hbase-server}.gc", content)
     for obsolete in (
@@ -63,6 +71,9 @@ class TestHbaseConfigurationContract(unittest.TestCase):
     self.assertEqual("540", env_properties["hbase_region_mover_timeout"])
 
     site_properties = properties(HBASE / "configuration/hbase-site.xml")
+    self.assertEqual(
+      "false", site_properties["phoenix.functions.allowUserDefinedFunctions"]
+    )
     self.assertEqual("30", site_properties["hbase.master.wait.on.service.seconds"])
     for obsolete_key in (
       "hbase.defaults.for.version.skip",
@@ -73,6 +84,12 @@ class TestHbaseConfigurationContract(unittest.TestCase):
     ):
       with self.subTest(obsolete_key=obsolete_key):
         self.assertNotIn(obsolete_key, site_properties)
+
+    advisor = (HBASE / "service_advisor.py").read_text()
+    self.assertNotIn(
+      'putHbaseSiteProperty("phoenix.functions.allowUserDefinedFunctions", "true")',
+      advisor,
+    )
 
   def test_thrift_jaas_uses_thrift_service_identity(self):
     template = (HBASE / "package/templates/hbase_thrift_jaas.conf.j2").read_text()
@@ -115,10 +132,19 @@ class TestHbaseConfigurationContract(unittest.TestCase):
       ),
     )
 
-  def test_bigtop_33_overlay_selects_bom_hbase_version(self):
-    metadata = ET.parse(HBASE_33 / "metainfo.xml").getroot()
-    self.assertEqual("HBASE", metadata.findtext("./services/service/name"))
-    self.assertEqual("2.6.3-1", metadata.findtext("./services/service/version"))
+  def test_bigtop_overlays_select_bom_hbase_version(self):
+    expected_versions = {
+      HBASE: "2.4.13-1",
+      HBASE_33: "2.6.3-1",
+      HBASE_34: "2.6.1-1",
+    }
+    for overlay, expected_version in expected_versions.items():
+      with self.subTest(overlay=overlay):
+        metadata = ET.parse(overlay / "metainfo.xml").getroot()
+        self.assertEqual("HBASE", metadata.findtext("./services/service/name"))
+        self.assertEqual(
+          expected_version, metadata.findtext("./services/service/version")
+        )
 
   def test_alert_and_quicklink_ports_match_hbase_2_6_defaults(self):
     alerts = json.loads((HBASE / "alerts.json").read_text())

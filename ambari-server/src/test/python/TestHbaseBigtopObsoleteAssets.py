@@ -52,6 +52,55 @@ class TestHbaseObsoleteAssets(unittest.TestCase):
       with self.subTest(path=relative_path):
         self.assertFalse((HBASE / relative_path).exists())
 
+  def test_unmanaged_atlas_hook_contract_is_removed(self):
+    owned_sources = (
+      "configuration/hbase-env.xml",
+      "configuration/hbase-site.xml",
+      "package/scripts/hbase_master.py",
+      "package/scripts/params_linux.py",
+    )
+    for relative_path in owned_sources:
+      with self.subTest(path=relative_path):
+        self.assertNotIn("atlas", (HBASE / relative_path).read_text().lower())
+
+    advisor = (HBASE / "service_advisor.py").read_text()
+    self.assertNotIn("recommendAtlasHook", advisor)
+    self.assertIn("removeObsoleteAtlasHook", advisor)
+    self.assertIn("org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor", advisor)
+
+  def test_hbase_2_6_deprecated_configuration_is_removed(self):
+    deprecated_properties = (
+      "hbase.bulkload.staging.dir",
+      "hbase.bucketcache.percentage.in.combinedcache",
+    )
+    owned_sources = (
+      "configuration/hbase-site.xml",
+      "kerberos.json",
+      "themes/directories.json",
+      "package/scripts/hbase.py",
+      "package/scripts/params_linux.py",
+    )
+    for deprecated_property in deprecated_properties:
+      for relative_path in owned_sources:
+        with self.subTest(
+          deprecated_property=deprecated_property, path=relative_path
+        ):
+          self.assertNotIn(
+            deprecated_property, (HBASE / relative_path).read_text()
+          )
+
+    advisor = (HBASE / "service_advisor.py").read_text()
+    self.assertIn(
+      '"hbase.bucketcache.percentage.in.combinedcache", "delete", "true"',
+      advisor,
+    )
+
+    hbase_source = (HBASE / "package/scripts/hbase.py").read_text()
+    params_source = (HBASE / "package/scripts/params_linux.py").read_text()
+    self.assertNotIn("PHOENIX_CORE_HDFS_SITE_REQUIRED", hbase_source)
+    self.assertNotIn("mount_table_xml_inclusion_file_full_path", params_source)
+    self.assertNotIn("mount_table_content", params_source)
+
 
 if __name__ == "__main__":
   unittest.main()

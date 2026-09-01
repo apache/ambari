@@ -20,7 +20,7 @@ limitations under the License.
 import importlib.util
 from pathlib import Path
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 
 HBASE = (
@@ -118,46 +118,160 @@ class TestHbaseServiceAdvisor(unittest.TestCase):
     for classes in coprocessors.values():
       self.assertNotIn(native, classes)
 
-  def test_atlas_recommendation_preserves_existing_coprocessors(self):
-    custom = "com.example.CustomCoprocessor"
-    configurations = {
-      "hbase-site": {"properties": {}},
-      "hbase-env": {"properties": {}},
-    }
+  def test_obsolete_atlas_hook_is_removed_without_losing_other_coprocessors(
+    self,
+  ):
+    put_hbase_site = MagicMock()
+    put_hbase_env_attribute = MagicMock()
+    self.recommender.putProperty = MagicMock(return_value=put_hbase_site)
+    self.recommender.putPropertyAttribute = MagicMock(
+      return_value=put_hbase_env_attribute
+    )
     services = {
-      "services": [{"StackServices": {"service_name": "ATLAS"}}],
       "configurations": {
         "hbase-site": {
-          "properties": {"hbase.coprocessor.master.classes": custom}
+          "properties": {
+            "hbase.coprocessor.master.classes": (
+              "com.example.CustomCoprocessor,"
+              "org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor"
+            )
+          }
         },
-        "hbase-env": {"properties": {"hbase.atlas.hook": "false"}},
-      },
+        "hbase-env": {"properties": {"hbase.atlas.hook": "true"}},
+      }
     }
 
-    def put_property(config_type):
-      def put(name, value):
-        configurations.setdefault(config_type, {}).setdefault(
-          "properties", {}
-        )[name] = value
+    self.recommender.removeObsoleteAtlasHook({}, {}, services, {})
 
-      return put
+    put_hbase_site.assert_called_once_with(
+      "hbase.coprocessor.master.classes", "com.example.CustomCoprocessor"
+    )
+    put_hbase_env_attribute.assert_called_once_with(
+      "hbase.atlas.hook", "delete", "true"
+    )
 
+  def test_obsolete_atlas_cleanup_prefers_updated_coprocessors(self):
+    put_hbase_site = MagicMock()
+    self.recommender.putProperty = MagicMock(return_value=put_hbase_site)
+    self.recommender.putPropertyAttribute = MagicMock()
+    configurations = {
+      "hbase-site": {
+        "properties": {
+          "hbase.coprocessor.master.classes": "com.example.UpdatedCoprocessor"
+        }
+      }
+    }
+    services = {
+      "configurations": {
+        "hbase-site": {
+          "properties": {
+            "hbase.coprocessor.master.classes": (
+              "org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor"
+            )
+          }
+        }
+      }
+    }
+
+    self.recommender.removeObsoleteAtlasHook(configurations, {}, services, {})
+
+    put_hbase_site.assert_not_called()
+
+  def test_phoenix_recommendations_prefer_updated_configuration(self):
+    services = {
+      "configurations": {
+        "hbase-env": {"properties": {"phoenix_sql_enabled": "false"}}
+      }
+    }
+    self.assertFalse(self.recommender.isPhoenixEnabled({}, services))
+    self.assertTrue(
+      self.recommender.isPhoenixEnabled(
+        {"hbase-env": {"properties": {"phoenix_sql_enabled": True}}},
+        services,
+      )
+    )
+    self.assertFalse(
+      self.recommender.isPhoenixEnabled(
+        {"hbase-env": {"properties": {"phoenix_sql_enabled": "invalid"}}},
+        services,
+      )
+    )
+
+  def test_phoenix_advisor_preserves_secure_udf_default_and_updated_config(self):
+    put_hbase_site = MagicMock()
+    put_hbase_env = MagicMock()
+    put_hbase_site_attribute = MagicMock()
+    put_hbase_env_attribute = MagicMock()
     self.recommender.putProperty = MagicMock(
-      side_effect=lambda configs, config_type, current: put_property(config_type)
+      side_effect=lambda configs, config_type, current: (
+        put_hbase_site if config_type == "hbase-site" else put_hbase_env
+      )
     )
-    self.recommender.logger = MagicMock()
+    self.recommender.putPropertyAttribute = MagicMock(
+      side_effect=lambda configs, config_type: (
+        put_hbase_site_attribute
+        if config_type == "hbase-site"
+        else put_hbase_env_attribute
+      )
+    )
+    configurations = {
+      "hbase-env": {"properties": {"phoenix_sql_enabled": "true"}},
+      "hbase-site": {
+        "properties": {
+          "hbase.rpc.controllerfactory.class": (
+            "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory"
+          )
+        }
+      },
+    }
+    services = {
+      "configurations": {
+        "hbase-env": {"properties": {"phoenix_sql_enabled": "false"}},
+        "hbase-site": {
+          "properties": {
+            "hbase.rpc.controllerfactory.class": "com.example.CurrentFactory"
+          }
+        },
+      }
+    }
 
-    self.recommender.recommendAtlasHook(
-      configurations, {}, services, {"items": []}
+    self.recommender.recommendOffheapAndPhoenix(
+      configurations, {"hbaseRam": 8}, services, {}
     )
 
-    master_classes = configurations["hbase-site"]["properties"][
-      "hbase.coprocessor.master.classes"
-    ].split(",")
-    self.assertEqual(
-      [custom, "org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor"],
-      master_classes,
+    self.assertIn(
+      call("hbase.rpc.controllerfactory.class", "delete", "true"),
+      put_hbase_site_attribute.call_args_list,
     )
+    self.assertIn(
+      call(
+        "hbase.region.server.rpc.scheduler.factory.class",
+        "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
+      ),
+      put_hbase_site.call_args_list,
+    )
+    self.assertNotIn(
+      call("phoenix.functions.allowUserDefinedFunctions", "true"),
+      put_hbase_site.call_args_list,
+    )
+
+  def test_phoenix_validation_rejects_ambiguous_values(self):
+    validator = object.__new__(ADVISOR.HBASEValidator)
+    for value in (True, False, " true ", "FALSE"):
+      with self.subTest(value=value):
+        self.assertEqual(
+          [],
+          validator.validatePhoenixEnablement(
+            {"phoenix_sql_enabled": value}, {}, {}, {}, {}
+          ),
+        )
+    for value in (None, "", "yes", "1", 1):
+      with self.subTest(value=value):
+        problems = validator.validatePhoenixEnablement(
+          {"phoenix_sql_enabled": value}, {}, {}, {}, {}
+        )
+        self.assertEqual(1, len(problems))
+        self.assertIn("must be true or false", problems[0]["message"])
 
   def test_boolean_and_number_validation_reject_ambiguous_values(self):
     validator = object.__new__(ADVISOR.HBASEValidator)

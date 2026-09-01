@@ -461,14 +461,6 @@
         <type>ranger-hbase-plugin-properties</type>
         <name>ranger-hbase-plugin-enabled</name>
       </property>
-      <property>
-        <type>hbase-env</type>
-        <name>hbase.atlas.hook</name>
-      </property>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.rest.address</name>
-      </property>
     </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -568,15 +560,6 @@
   </property>
 
   <property>
-    <name>hbase.bulkload.staging.dir</name>
-    <display-name>HBase Bulkload Staging directory</display-name>
-    <value>/apps/hbase/staging</value>
-    <description>A staging directory in default file system (HDFS)
-      for bulk loading.
-    </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>hbase.hregion.majorcompaction.jitter</name>
     <value>0.50</value>
     <description>A multiplier applied to hbase.hregion.majorcompaction to cause compaction to occur
@@ -599,15 +582,6 @@
     <name>hbase.bucketcache.size</name>
     <value/>
     <description>The size of the buckets for the bucketcache if you only use a single size.</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>hbase.bucketcache.percentage.in.combinedcache</name>
-    <value/>
-    <description>Value to be set between 0.0 and 1.0</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -655,7 +629,11 @@
   </property>
   <property>
     <name>phoenix.functions.allowUserDefinedFunctions</name>
-    <value> </value>
+    <value>false</value>
+    <description>Allow Phoenix user-defined functions. Keep disabled unless trusted users require them.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <depends-on>
       <property>
         <type>hbase-env</type>
