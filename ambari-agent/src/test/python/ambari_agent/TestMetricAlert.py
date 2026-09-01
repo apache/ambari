@@ -27,10 +27,16 @@ from ambari_agent.AmbariConfig import AmbariConfig
 class TestMetricAlert(TestCase):
   def setUp(self):
     self.config = AmbariConfig()
+    self.config.get_server_ssl_context = MagicMock()
+    self.configuration_builder = MagicMock()
+    self.configuration_builder.get_configuration.return_value = {
+      "configurations": {"cluster-env": {"security_enabled": "false"}}
+    }
 
-  @patch("urllib.request.urlopen")
-  def test_collect(self, urllib):
+  @patch("alerts.metric_alert.build_url_opener")
+  def test_collect_ok(self, build_url_opener):
     alert_meta = {
+      "definitionId": 1,
       "name": "alert1",
       "label": "label1",
       "serviceName": "service1",
@@ -52,35 +58,33 @@ class TestMetricAlert(TestCase):
       },
     }
     cluster = "c1"
+    cluster_id = "0"
     host = "host1"
     expected_text = "OK: 1"
 
     def collector_side_effect(clus, data):
       self.assertEqual(data["name"], alert_meta["name"])
-      self.assertEqual(data["label"], alert_meta["label"])
       self.assertEqual(data["text"], expected_text)
-      self.assertEqual(data["service"], alert_meta["serviceName"])
-      self.assertEqual(data["component"], alert_meta["componentName"])
-      self.assertEqual(data["uuid"], alert_meta["uuid"])
-      self.assertEqual(data["enabled"], alert_meta["enabled"])
-      self.assertEqual(data["cluster"], cluster)
+      self.assertEqual(data["clusterId"], cluster_id)
+      self.assertEqual(data["definitionId"], alert_meta["definitionId"])
       self.assertEqual(clus, cluster)
 
     response = Mock()
-    urllib.return_value = response
+    build_url_opener.return_value.open.return_value = response
     response.read = Mock(return_value='{"beans": [{"y": 1}]}')
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
     alert = MetricAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_helpers(mock_collector, {"foo-site/bar": 12, "foo-site/baz": "asd"})
-    alert.set_cluster(cluster, host)
+    alert.set_helpers(mock_collector, MagicMock(), self.configuration_builder)
+    alert.set_cluster(cluster, cluster_id, host)
 
     alert.collect()
 
-  @patch("urllib.request.urlopen")
-  def test_collect(self, urllib):
+  @patch("alerts.metric_alert.build_url_opener")
+  def test_collect_warning(self, build_url_opener):
     alert_meta = {
+      "definitionId": 1,
       "name": "alert1",
       "label": "label1",
       "serviceName": "service1",
@@ -102,34 +106,31 @@ class TestMetricAlert(TestCase):
       },
     }
     cluster = "c1"
+    cluster_id = "0"
     host = "host1"
     expected_text = "Warn: 4"
 
     def collector_side_effect(clus, data):
       self.assertEqual(data["name"], alert_meta["name"])
-      self.assertEqual(data["label"], alert_meta["label"])
       self.assertEqual(data["text"], expected_text)
-      self.assertEqual(data["service"], alert_meta["serviceName"])
-      self.assertEqual(data["component"], alert_meta["componentName"])
-      self.assertEqual(data["uuid"], alert_meta["uuid"])
-      self.assertEqual(data["enabled"], alert_meta["enabled"])
-      self.assertEqual(data["cluster"], cluster)
+      self.assertEqual(data["clusterId"], cluster_id)
+      self.assertEqual(data["definitionId"], alert_meta["definitionId"])
       self.assertEqual(clus, cluster)
 
     response = Mock()
-    urllib.return_value = response
+    build_url_opener.return_value.open.return_value = response
     response.read = Mock(return_value='{"beans": [{"y": 4}]}')
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
     alert = MetricAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_helpers(mock_collector, {"foo-site/bar": 12, "foo-site/baz": "asd"})
-    alert.set_cluster(cluster, host)
+    alert.set_helpers(mock_collector, MagicMock(), self.configuration_builder)
+    alert.set_cluster(cluster, cluster_id, host)
 
     alert.collect()
 
-  @patch("urllib.request.urlopen")
-  def test_collect(self, urllib):
+  @patch("alerts.metric_alert.build_url_opener")
+  def test_collect_critical_with_cluster_id(self, build_url_opener):
     alert_meta = {
       "definitionId": 1,
       "name": "alert1",
@@ -159,19 +160,19 @@ class TestMetricAlert(TestCase):
 
     def collector_side_effect(clus, data):
       self.assertEqual(data["name"], alert_meta["name"])
+      self.assertEqual(data["text"], expected_text)
       self.assertEqual(data["clusterId"], cluster_id)
+      self.assertEqual(data["definitionId"], alert_meta["definitionId"])
       self.assertEqual(clus, cluster)
 
     response = Mock()
-    urllib.return_value = response
+    build_url_opener.return_value.open.return_value = response
     response.read = Mock(return_value='{"beans": [{"y": 12}]}')
     mock_collector = MagicMock()
     mock_collector.put = Mock(side_effect=collector_side_effect)
 
     alert = MetricAlert(alert_meta, alert_source_meta, self.config)
-    alert.set_helpers(
-      mock_collector, MagicMock(), MagicMock()
-    )  # {'foo-site/bar': 12, 'foo-site/baz': 'asd'})
+    alert.set_helpers(mock_collector, MagicMock(), self.configuration_builder)
     alert.set_cluster(cluster, cluster_id, host)
 
     alert.collect()

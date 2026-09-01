@@ -33,11 +33,10 @@ from resource_management.libraries.functions.curl_krb_request import curl_krb_re
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import (
   resolve_address,
-  ensure_ssl_using_protocol,
   get_host_from_url,
 )
 from ambari_commons.constants import AGENT_TMP_DIR
-from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_commons.network import build_url_opener
 
 logger = logging.getLogger(__name__)
 
@@ -45,12 +44,6 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONNECTION_TIMEOUT = 5
 
 WebResponse = namedtuple("WebResponse", "status_code time_millis error_msg")
-
-ensure_ssl_using_protocol(
-  AmbariConfig.get_resolved_config().get_force_https_protocol_name(),
-  AmbariConfig.get_resolved_config().get_ca_cert_file_path(),
-)
-
 
 class WebAlert(BaseAlert):
   def __init__(self, alert_meta, alert_source_meta, config):
@@ -70,6 +63,10 @@ class WebAlert(BaseAlert):
     # python uses 5.0, CURL uses "5"
     self.connection_timeout = float(connection_timeout)
     self.curl_connection_timeout = int(connection_timeout)
+    self.ssl_context = config.get_server_ssl_context()
+    self.url_opener = build_url_opener(
+      not config.use_system_proxy_setting(), self.ssl_context
+    )
 
     # will force a kinit even if klist says there are valid tickets (4 hour default)
     self.kinit_timeout = int(
@@ -219,9 +216,10 @@ class WebAlert(BaseAlert):
           smokeuser,
           connection_timeout=self.curl_connection_timeout,
           kinit_timer_ms=self.kinit_timeout,
+          use_system_proxy_settings=self.config.use_system_proxy_setting(),
         )
       else:
-        # kerberos is not involved; use urllib2
+        # Kerberos is not involved; use urllib.request.
         response_code, time_millis, error_msg = self._make_web_request_urllib(url)
 
       return WebResponse(
@@ -236,7 +234,7 @@ class WebAlert(BaseAlert):
 
   def _make_web_request_urllib(self, url):
     """
-    Make a web request using urllib2. This function does not handle exceptions.
+    Make a web request using urllib.request. This function does not handle exceptions.
     :param url: the URL to request
     :return: a tuple of the response code and the total time in ms
     """
@@ -246,7 +244,7 @@ class WebAlert(BaseAlert):
     start_time = time.time()
 
     try:
-      response = urllib.request.urlopen(url, timeout=self.connection_timeout)
+      response = self.url_opener.open(url, timeout=self.connection_timeout)
       response_code = response.getcode()
       time_millis = time.time() - start_time
 

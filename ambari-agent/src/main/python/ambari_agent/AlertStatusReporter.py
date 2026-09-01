@@ -20,6 +20,7 @@ limitations under the License.
 
 import logging
 import threading
+import copy
 from collections import defaultdict
 from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
@@ -69,14 +70,22 @@ class AlertStatusReporter(threading.Thread):
           )
 
           if alerts_to_send and self.initializer_module.is_registered:
-            correlation_id = self.initializer_module.connection.send(
-              message=alerts_to_send,
+            report_snapshot = copy.deepcopy(alerts_to_send)
+
+            def register_callback(correlation_id, snapshot=report_snapshot):
+              return self.server_responses_listener.register_response_callback(
+                correlation_id,
+                on_success=lambda headers, message: self.save_results(
+                  snapshot
+                ),
+              )
+
+            self.initializer_module.connection.send(
+              message=report_snapshot,
               destination=Constants.ALERTS_STATUS_REPORTS_ENDPOINT,
               log_message_function=AlertStatusReporter.log_sending,
+              presend_hook=register_callback,
             )
-            self.server_responses_listener.listener_functions_on_success[
-              correlation_id
-            ] = lambda headers, message: self.save_results(alerts_to_send)
 
       except (
         ConnectionIsAlreadyClosed

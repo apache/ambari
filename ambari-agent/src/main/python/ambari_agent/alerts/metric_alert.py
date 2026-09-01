@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import json
 import logging
 import re
@@ -32,6 +32,7 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from ambari_commons import inet_utils
 from ambari_commons.constants import AGENT_TMP_DIR
+from ambari_commons.network import build_url_opener
 from ambari_commons.ast_checker import ASTChecker, BlacklistRule
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ SECURITY_ENABLED_KEY = "{{cluster-env/security_enabled}}"
 
 # default timeout
 DEFAULT_CONNECTION_TIMEOUT = 5.0
-REALCODE_REGEXP = re.compile("(\{(\d+)\})")
+REALCODE_REGEXP = re.compile(r"(\{(\d+)\})")
 
 
 class MetricAlert(BaseAlert):
@@ -65,6 +66,12 @@ class MetricAlert(BaseAlert):
     # python uses 5.0, CURL uses "5"
     self.connection_timeout = float(connection_timeout)
     self.curl_connection_timeout = int(connection_timeout)
+    self.ssl_context = config.get_server_ssl_context()
+    self.url_opener = build_url_opener(
+      not config.use_system_proxy_setting(),
+      self.ssl_context,
+      RefreshHeaderProcessor(),
+    )
 
     # will force a kinit even if klist says there are valid tickets (4 hour default)
     self.kinit_timeout = int(
@@ -252,12 +259,12 @@ class MetricAlert(BaseAlert):
             smokeuser,
             connection_timeout=self.curl_connection_timeout,
             kinit_timer_ms=self.kinit_timeout,
+            use_system_proxy_settings=self.config.use_system_proxy_setting(),
           )
 
           content = response
         else:
-          url_opener = urllib.request.build_opener(RefreshHeaderProcessor())
-          response = url_opener.open(url, timeout=self.connection_timeout)
+          response = self.url_opener.open(url, timeout=self.connection_timeout)
           content = response.read()
       except Exception as exception:
         if logger.isEnabledFor(logging.DEBUG):
@@ -321,6 +328,7 @@ class MetricAlert(BaseAlert):
           smokeuser,
           connection_timeout=self.curl_connection_timeout,
           kinit_timer_ms=self.kinit_timeout,
+          use_system_proxy_settings=self.config.use_system_proxy_setting(),
         )
 
     return (value_list, http_response_code)
@@ -353,11 +361,11 @@ def f(args):
     self.safeChecker = ASTChecker([BlacklistRule()], use_blacklist=True)
 
     if "value" in jmx_info:
-      realcode = REALCODE_REGEXP.sub("args[\g<2>]", jmx_info["value"])
+      realcode = REALCODE_REGEXP.sub(r"args[\g<2>]", jmx_info["value"])
       if not self.safeChecker.is_safe_expression(realcode):
         logger.exception(f"The expression {realcode} is not safe,blocked by checker")
         raise Exception(f"The expression {realcode} is not safe")
-      self.custom_module = imp.new_module(str(uuid.uuid4()))
+      self.custom_module = import_utils.new_module(str(uuid.uuid4()))
       code = self.DYNAMIC_CODE_TEMPLATE.format(realcode)
       exec(code, self.custom_module.__dict__)
 

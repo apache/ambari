@@ -21,6 +21,7 @@ limitations under the License.
 import json
 import logging
 import os
+import threading
 
 from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -66,6 +67,7 @@ class AlertSchedulerHandler:
     self._alert_grace_period = alert_grace_period
 
     self._collector = AlertCollector()
+    self._scheduler_lock = threading.RLock()
     self.__scheduler = self._create_scheduler()
     self.__in_minutes = in_minutes
     self.recovery_manger = initializer_module.recovery_manager
@@ -81,17 +83,6 @@ class AlertSchedulerHandler:
         "misfire_grace_time": self._alert_grace_period,
       },
     )
-
-  def _job_context_injector(self, config):
-    """
-    Applies Agent network configuration in the scheduler worker before a job runs.
-
-    :type config AmbariConfig.AmbariConfig
-    """
-    if not config.use_system_proxy_setting():
-      from ambari_commons.network import reconfigure_urllib2_opener
-
-      reconfigure_urllib2_opener(ignore_system_proxy=True)
 
   def exit_handler(self):
     """
@@ -118,49 +109,58 @@ class AlertSchedulerHandler:
       self.reschedule()
 
   def __make_function(self, alert_def):
-    def collect_alert():
-      self._job_context_injector(self.config)
-      return alert_def.collect()
-
-    return collect_alert
+    return alert_def.collect
 
   def start(self):
     """loads definitions from file and starts the scheduler"""
+    with self._scheduler_lock:
+      if self.__scheduler is not None and self.__scheduler.running:
+        logger.info("[AlertScheduler] Start ignored; scheduler is already running.")
+        return
 
-    if self.__scheduler is None:
-      return
+      if self.__scheduler is None:
+        self.__scheduler = self._create_scheduler()
+      scheduler = self.__scheduler
+      try:
+        alert_callables = self.__load_definitions()
 
-    if self.__scheduler.running:
-      self.__scheduler.shutdown(wait=False)
-      self.__scheduler = self._create_scheduler()
+        for _callable in alert_callables:
+          self.schedule_definition(_callable)
 
-    alert_callables = self.__load_definitions()
-
-    # schedule each definition
-    for _callable in alert_callables:
-      self.schedule_definition(_callable)
-
-    logger.info(
-      "[AlertScheduler] Starting {0}; currently running: {1}".format(
-        str(self.__scheduler), str(self.__scheduler.running)
-      )
-    )
-
-    self.__scheduler.start()
+        logger.info(
+          "[AlertScheduler] Starting {0}; currently running: {1}".format(
+            str(self.__scheduler), str(self.__scheduler.running)
+          )
+        )
+        scheduler.start()
+      except Exception:
+        if scheduler.running:
+          scheduler.shutdown(wait=False)
+        self.__scheduler = None
+        logger.exception("[AlertScheduler] Failed to start the alert scheduler.")
+        raise
 
   def stop(self):
-    if not self.__scheduler is None:
-      if self.__scheduler.running:
-        self.__scheduler.shutdown(wait=False)
-      self.__scheduler = self._create_scheduler()
+    with self._scheduler_lock:
+      scheduler = self.__scheduler
+      self.__scheduler = None
+      if scheduler is not None and scheduler.running:
+        scheduler.shutdown(wait=True)
 
-    logger.info("[AlertScheduler] Stopped the alert scheduler.")
+      logger.info("[AlertScheduler] Stopped the alert scheduler.")
 
   def reschedule(self):
     """
     Removes jobs that are scheduled where their UUID no longer is valid.
     Schedules jobs where the definition UUID is not currently scheduled.
     """
+    with self._scheduler_lock:
+      if self.__scheduler is None:
+        logger.info("[AlertScheduler] Reschedule ignored; scheduler is stopped.")
+        return
+      self._reschedule_locked()
+
+  def _reschedule_locked(self):
     jobs_scheduled = 0
     jobs_removed = 0
 
@@ -199,6 +199,13 @@ class AlertSchedulerHandler:
     Removes jobs that are scheduled where their UUID no longer is valid.
     Schedules jobs where the definition UUID is not currently scheduled.
     """
+    with self._scheduler_lock:
+      if self.__scheduler is None:
+        logger.info("[AlertScheduler] Reschedule ignored; scheduler is stopped.")
+        return
+      self._reschedule_all_locked()
+
+  def _reschedule_all_locked(self):
     logger.info("[AlertScheduler] Rescheduling all jobs...")
 
     jobs_scheduled = 0
@@ -281,7 +288,10 @@ class AlertSchedulerHandler:
 
       if logger.isEnabledFor(logging.DEBUG):
         logger.debug(
-          f"[AlertScheduler] Creating job type {source_type} with {str(json_definition)}"
+          "[AlertScheduler] Creating job type=%s name=%s uuid=%s",
+          source_type,
+          json_definition.get("name"),
+          json_definition.get("uuid"),
         )
 
       if source_type == AlertSchedulerHandler.TYPE_METRIC:
@@ -308,7 +318,7 @@ class AlertSchedulerHandler:
           clusterName, json_definition["clusterId"], hostName, publicHostName
         )
 
-    except Exception as exception:
+    except Exception:
       logger.exception(
         "[AlertScheduler] Unable to load an invalid alert definition. It will be skipped."
       )
@@ -323,47 +333,53 @@ class AlertSchedulerHandler:
     This function can be called with a definition that is disabled; it will
     simply NOOP.
     """
-    # NOOP if the definition is disabled; don't schedule it
-    if not definition.is_enabled():
+    with self._scheduler_lock:
+      if self.__scheduler is None:
+        logger.info("[AlertScheduler] Schedule ignored; scheduler is stopped.")
+        return False
+
+      # NOOP if the definition is disabled; don't schedule it
+      if not definition.is_enabled():
+        logger.info(
+          "[AlertScheduler] The alert {0} with UUID {1} is disabled and will not be scheduled".format(
+            definition.get_name(), definition.get_uuid()
+          )
+        )
+        return False
+
+      interval = {}
+      if self.__in_minutes:
+        interval["minutes"] = definition.interval()
+      else:
+        interval["seconds"] = definition.interval()
+
+      definition_uuid = definition.get_uuid()
+      self.__scheduler.add_job(
+        self.__make_function(definition),
+        trigger="interval",
+        id=definition_uuid,
+        name=definition_uuid,
+        replace_existing=True,
+        **interval,
+      )
+
       logger.info(
-        "[AlertScheduler] The alert {0} with UUID {1} is disabled and will not be scheduled".format(
+        "[AlertScheduler] Scheduling {0} with UUID {1}".format(
           definition.get_name(), definition.get_uuid()
         )
       )
-      return False
-
-    interval = {}
-    if self.__in_minutes:
-      interval["minutes"] = definition.interval()
-    else:
-      interval["seconds"] = definition.interval()
-
-    definition_uuid = definition.get_uuid()
-    self.__scheduler.add_job(
-      self.__make_function(definition),
-      trigger="interval",
-      id=definition_uuid,
-      name=definition_uuid,
-      replace_existing=True,
-      **interval,
-    )
-
-    logger.info(
-      "[AlertScheduler] Scheduling {0} with UUID {1}".format(
-        definition.get_name(), definition.get_uuid()
-      )
-    )
-    return True
+      return True
 
   def get_job_count(self):
     """
     Gets the number of jobs currently scheduled. This is mainly used for
     test verification of scheduling.
     """
-    if self.__scheduler is None:
-      return 0
+    with self._scheduler_lock:
+      if self.__scheduler is None:
+        return 0
 
-    return len(self.__scheduler.get_jobs())
+      return len(self.__scheduler.get_jobs())
 
   def execute_alert(self, execution_commands):
     """

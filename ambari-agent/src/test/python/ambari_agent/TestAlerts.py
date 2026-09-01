@@ -54,6 +54,7 @@ class TestAlerts(TestCase):
     self.original_open = open
     self.original_osfdopen = os.fdopen
     self.config = AmbariConfig()
+    self.config.get_server_ssl_context = MagicMock()
 
   def tearDown(self):
     sys.stdout == sys.__stdout__
@@ -1603,19 +1604,19 @@ class TestAlerts(TestCase):
     osfdopen_mock.side_effect = self.osfdopen_side_effect
     cluster_configuration.rewrite_cluster_cache("0", {"configurations": configuration})
 
-  def open_side_effect(self, file, mode):
+  def open_side_effect(self, file, mode, *args, **kwargs):
     if mode == "w":
       file_mock = MagicMock()
       return file_mock
     else:
-      return self.original_open(file, mode)
+      return self.original_open(file, mode, *args, **kwargs)
 
-  def osfdopen_side_effect(self, fd, mode):
+  def osfdopen_side_effect(self, fd, mode, *args, **kwargs):
     if mode == "w":
       file_mock = MagicMock()
       return file_mock
     else:
-      return self.original_open(file, mode)
+      return self.original_osfdopen(fd, mode, *args, **kwargs)
 
   def _get_script_alert_definition(self):
     return {
@@ -1744,7 +1745,6 @@ class TestAlerts(TestCase):
 
   def _get_ams_alert_definition(self):
     return {
-      "definitionId": 1,
       "ignore_host": False,
       "name": "namenode_mean_heapsize_used",
       "componentName": "NAMENODE",

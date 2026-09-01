@@ -18,9 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import http.client
-
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import time
 from alerts.metric_alert import MetricAlert, REALCODE_REGEXP
 import urllib.request, urllib.parse, urllib.error
@@ -135,63 +133,66 @@ class AmsAlert(MetricAlert):
     }
     encoded_get_metrics_parameters = urllib.parse.urlencode(get_metrics_parameters)
 
-    url = AMS_METRICS_GET_URL % encoded_get_metrics_parameters
+    path = AMS_METRICS_GET_URL % encoded_get_metrics_parameters
+    url = "{0}://{1}:{2}{3}".format(
+      "https" if ssl else "http", host, str(port), path
+    )
 
+    response = None
+    data = b""
+    status = None
     try:
-      # TODO Implement HTTPS support
-      conn = http.client.HTTPConnection(host, port, timeout=self.connection_timeout)
-      conn.request("GET", url)
-      response = conn.getresponse()
+      response = self.url_opener.open(url, timeout=self.connection_timeout)
+      status = response.getcode()
       data = response.read()
+    except urllib.error.HTTPError as exception:
+      response = exception
+      status = exception.code
+      return (None, status)
     except Exception as exception:
       if logger.isEnabledFor(logging.DEBUG):
         logger.exception(
           f"[Alert][{self.get_name()}] Unable to retrieve metrics from AMS: {str(exception)}"
         )
-      status = response.status if "response" in vars() else None
       return (None, status)
     finally:
       if logger.isEnabledFor(logging.DEBUG):
-        logger.debug(f"""
-        AMS request parameters - {encoded_get_metrics_parameters}
-        AMS response - {data}
-        """)
-      # explicitely close the connection as we've seen python hold onto these
-      if conn is not None:
+        logger.debug(
+          "[Alert][%s] AMS response status=%s bytes=%d",
+          self.get_name(),
+          status,
+          len(data),
+        )
+      if response is not None:
         try:
-          conn.close()
-        except:
+          response.close()
+        except Exception:
           logger.debug(
             f"[Alert][{self.get_name()}] Unable to close URL connection to {url}"
           )
-    json_is_valid = True
+
     try:
       data_json = json.loads(data)
+      metrics_data = data_json["metrics"]
     except Exception as exception:
-      json_is_valid = False
       if logger.isEnabledFor(logging.DEBUG):
         logger.exception(
           "[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".format(
             self.get_name(), str(exception)
           )
         )
+      return ([], status)
 
     metrics = []
+    metric_dict = {}
+    for metric_data in metrics_data:
+      metric_dict[metric_data["metricname"]] = metric_data["metrics"]
 
-    if json_is_valid:
-      metric_dict = {}
-      for metrics_data in data_json["metrics"]:
-        metric_dict[metrics_data["metricname"]] = metrics_data["metrics"]
+    for metric_name in ams_metric.metric_list:
+      if metric_name in metric_dict:
+        metrics.append(metric_dict[metric_name])
 
-      for metric_name in self.metric_info.metric_list:
-        if metric_name in metric_dict:
-          # TODO sorted data points by timestamp
-          # OrderedDict was implemented in Python2.7
-          sorted_data_points = metric_dict[metric_name]
-          metrics.append(sorted_data_points)
-      pass
-
-    return (metrics, response.status)
+    return (metrics, status)
 
 
 class AmsMetric:
@@ -234,14 +235,14 @@ def f(args):
     self.safeChecker = ASTChecker([BlacklistRule()], use_blacklist=True)
 
     if "value" in metric_info:
-      realcode = REALCODE_REGEXP.sub("args[\g<2>][k]", metric_info["value"])
+      realcode = REALCODE_REGEXP.sub(r"args[\g<2>][k]", metric_info["value"])
       if not self.safeChecker.is_safe_expression(realcode):
         logger.exception(
           f"AmsMetric: Value expression {realcode} is not safe,blocked by checker"
         )
         raise Exception(f"AmsMetric: Value expression {realcode} is not safe")
 
-      self.custom_value_module = imp.new_module(str(uuid.uuid4()))
+      self.custom_value_module = import_utils.new_module(str(uuid.uuid4()))
       code = self.DYNAMIC_CODE_VALUE_TEMPLATE.format(realcode)
       exec(code, self.custom_value_module.__dict__)
 
@@ -252,7 +253,7 @@ def f(args):
           f"AmsMetric: compute expression {realcode} is not safe,blocked by checker"
         )
         raise Exception(f"AmsMetric: compute expression {realcode} is not safe")
-      self.custom_compute_module = imp.new_module(str(uuid.uuid4()))
+      self.custom_compute_module = import_utils.new_module(str(uuid.uuid4()))
       code = self.DYNAMIC_CODE_COMPUTE_TEMPLATE.format(realcode)
       exec(code, self.custom_compute_module.__dict__)
 
