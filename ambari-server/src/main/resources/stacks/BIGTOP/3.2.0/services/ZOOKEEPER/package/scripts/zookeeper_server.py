@@ -15,39 +15,27 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
 
-import random
+from contextlib import nullcontext
 
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
-
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import get_unique_id_and_date
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.security_commons import (
-  build_expectations,
-  cached_kinit_executor,
-  get_params_from_filesystem,
-  validate_security_config_properties,
-  FILE_TYPE_JAAS_CONF,
-)
-from resource_management.core import shell
+from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
+from resource_management.libraries.functions import StackFeature, stack_select
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
 )
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.validate import call_and_match_output
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.script.script import Script
+
+import zookeeper_cli
+import zookeeper_process
+import zookeeper_utils
 from zookeeper import zookeeper
 from zookeeper_service import zookeeper_service
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyImpl
 
 
 class ZookeeperServer(Script):
@@ -65,9 +53,9 @@ class ZookeeperServer(Script):
     zookeeper_service(action="start", upgrade_type=upgrade_type)
 
   def stop(self, env, upgrade_type=None):
-    import params
+    import status_params
 
-    env.set_params(params)
+    env.set_params(status_params)
     zookeeper_service(action="stop", upgrade_type=upgrade_type)
 
 
@@ -78,55 +66,74 @@ class ZookeeperServerLinux(ZookeeperServer):
     self.configure(env)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
-    Logger.info("Executing Stack Upgrade pre-restart")
     import params
 
     env.set_params(params)
-
-    if check_stack_feature(
+    Logger.info("Executing ZooKeeper stack upgrade pre-restart")
+    if params.version and check_stack_feature(
       StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)
     ):
       stack_select.select_packages(params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):
-    # during an express upgrade, there is no quorum, so don't try to perform the check
     if upgrade_type == UPGRADE_TYPE_NON_ROLLING:
       return
 
-    Logger.info("Executing Stack Upgrade post-restart")
     import params
 
     env.set_params(params)
-    zk_server_host = random.choice(params.zookeeper_hosts)
-    cli_shell = format("{zk_cli_shell} -server {zk_server_host}:{client_port}")
-    # Ensure that a quorum is still formed.
-    unique = get_unique_id_and_date()
-    create_command = format("echo 'create /{unique} mydata' | {cli_shell}")
-    list_command = format("echo 'ls /' | {cli_shell}")
-    delete_command = format("echo 'delete /{unique} ' | {cli_shell}")
+    Logger.info("Verifying the ZooKeeper quorum after stack upgrade")
 
-    quorum_err_message = "Failed to establish zookeeper quorum"
-    call_and_match_output(
-      create_command, "Created", quorum_err_message, user=params.zk_user
-    )
-    call_and_match_output(
-      list_command, r"\[.*?" + unique + r".*?\]", quorum_err_message, user=params.zk_user
-    )
-    shell.call(delete_command, user=params.zk_user)
-
-    if params.client_port:
-      check_leader_command = format(
-        "echo stat | nc localhost {client_port} | grep Mode"
+    cache_context = nullcontext(None)
+    if params.security_enabled:
+      zookeeper_utils.validate_keytab(
+        params.zk_keytab_path, "ZooKeeper server keytab"
       )
-      code, out = shell.call(check_leader_command, logoutput=False)
-      if code == 0 and out:
-        Logger.info(out)
+      cache_context = PrivateKerberosCache(
+        params.zk_user,
+        params.user_group,
+        temp_dir=params.tmp_dir,
+        prefix="ambari-zookeeper-upgrade-",
+      )
+
+    with cache_context as kerberos_cache:
+      command_environment = {
+        "JAVA_HOME": params.java64_home,
+        "ZOOCFGDIR": params.config_dir,
+        "ZOOCFG": "zoo.cfg",
+      }
+      if kerberos_cache is not None:
+        command_environment = kerberos_cache.merge_environment(
+          command_environment
+        )
+        kerberos_cache.kinit(
+          params.kinit_path_local,
+          params.zk_keytab_path,
+          params.zk_principal,
+          timeout=60,
+        )
+      zookeeper_cli.verify_ensemble(
+        params.zookeeper_hosts,
+        params.client_port,
+        params.zk_cli_script,
+        params.zk_user,
+        params.user_group,
+        params.tmp_dir,
+        command_environment,
+      )
 
   def status(self, env):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.zk_pid_file)
+    identity = zookeeper_process.read_or_recover_process(
+      status_params.zk_pid_file,
+      status_params.zk_user,
+      status_params.user_group,
+      status_params.zk_config_file,
+    )
+    if identity is None:
+      raise ComponentIsNotRunning()
 
   def get_log_folder(self):
     import params

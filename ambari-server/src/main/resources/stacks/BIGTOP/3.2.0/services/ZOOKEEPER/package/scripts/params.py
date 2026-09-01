@@ -20,6 +20,4 @@ Ambari Agent
 
 """
 
-from ambari_commons import OSCheck
-
 from params_linux import *
