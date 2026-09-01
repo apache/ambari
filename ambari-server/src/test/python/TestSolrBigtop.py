@@ -888,5 +888,55 @@ class TestSolrSourceContracts(unittest.TestCase):
 
     self.assertIsInstance(raised.exception.__cause__, ValueError)
 
+  def test_service_advisor_rejects_unsafe_runtime_and_security_values(self):
+    advisor_path = SOLR / "service_advisor.py"
+    parent_path = SOLR.parents[3] / "service_advisor.py"
+    with patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": str(parent_path)}):
+      advisor = load_module("bigtop_solr_advisor_validation", advisor_path)
+    validator = object.__new__(advisor.SolrValidator)
+
+    environment = {
+      "solr_port": "8983",
+      "solr_jmx_port": "8983",
+      "solr_minmem": "2048",
+      "solr_maxmem": "1024",
+      "solr_java_stack_size": "1",
+      "solr_user_nofile_limit": "128000",
+      "solr_user_nproc_limit": "65536",
+      "solr_datadir": "/",
+      "solr_log_dir": "/var/log/solr",
+      "solr_pid_dir": "/var/run/solr",
+      "solr_znode": "/",
+      "solr_ssl_enabled": "false",
+      "solr_jmx_enabled": "invalid",
+      "solr_zookeeper_external_enabled": "false",
+      "solr_user": "solr",
+      "solr_keystore_location": "/etc/security/serverKeys/solr.jks",
+      "solr_truststore_location": "/etc/security/serverKeys/trust.jks",
+    }
+    problems = validator.validate_environment(environment, {}, {}, {}, {})
+    self.assertTrue(
+      {
+        "solr_jmx_port",
+        "solr_minmem",
+        "solr_datadir",
+        "solr_znode",
+        "solr_jmx_enabled",
+      }.issubset({problem["config-name"] for problem in problems})
+    )
+
+    security = {
+      "solr_role_ranger_admin": "duplicate",
+      "solr_role_ranger_audit": "duplicate",
+      "solr_role_dev": "dev",
+      "solr_ranger_audit_service_users": "hive,knox",
+      "solr_security_manually_managed": "false",
+    }
+    problems = validator.validate_security(security, {}, {}, {}, {})
+    self.assertEqual(
+      {"solr_role_dev", "solr_ranger_audit_service_users"},
+      {problem["config-name"] for problem in problems},
+    )
+
 if __name__ == "__main__":
   unittest.main()
