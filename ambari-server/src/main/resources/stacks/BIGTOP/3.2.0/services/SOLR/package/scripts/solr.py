@@ -78,6 +78,22 @@ def read_or_discover_solr_process(pid_file, user, group, process_tokens):
   )
 
 
+def rollback_started_solr_process(pid_file, user, process_tokens):
+  identity = safe_process.read_running_process(pid_file, user, process_tokens)
+  if identity is None:
+    return False
+  safe_process.terminate_process(identity, user, process_tokens)
+  pid = safe_process.read_pid(pid_file)
+  if pid == identity.pid:
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user=user,
+      expected_cmdline=process_tokens,
+    )
+  return True
+
+
 class Solr(Script):
   def install(self, env):
     import params
@@ -134,19 +150,28 @@ class Solr(Script):
         f"-Dsolr.kerberos.name.rules={params.solr_kerberos_name_rules}"
       )
 
-    Execute(
-      tuple(start_argv),
-      environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
-      user=params.solr_user,
-      logoutput=True,
-    )
-    safe_process.wait_for_running_process(
-      params.solr_pidfile,
-      params.solr_user,
-      process_tokens,
-      attempts=10,
-      sleep_seconds=1,
-    )
+    try:
+      Execute(
+        tuple(start_argv),
+        environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
+        user=params.solr_user,
+        logoutput=True,
+      )
+      safe_process.wait_for_running_process(
+        params.solr_pidfile,
+        params.solr_user,
+        process_tokens,
+        attempts=10,
+        sleep_seconds=1,
+      )
+    except Exception:
+      try:
+        rollback_started_solr_process(
+          params.solr_pidfile, params.solr_user, process_tokens
+        )
+      except Exception as rollback_error:
+        Logger.warning(f"Could not roll back failed Solr start: {rollback_error}")
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params

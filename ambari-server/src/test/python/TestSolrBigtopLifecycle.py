@@ -283,14 +283,70 @@ class TestSolrLifecycle(unittest.TestCase):
             SAFE_PROCESS,
             "wait_for_running_process",
             side_effect=wait_error,
-          ) as wait:
+          ) as wait, \
+          patch.object(
+            SOLR_SCRIPT, "rollback_started_solr_process"
+          ) as rollback:
           with self.assertRaises(Fail):
             self.solr.start(self.env)
 
+        rollback.assert_called_once_with(PID_FILE, "solr", PROCESS_TOKENS)
         if execute_error is not None:
           wait.assert_not_called()
         else:
           wait.assert_called_once()
+
+  def test_start_preserves_original_error_when_rollback_fails(self):
+    start_error = Fail("Solr process identity was not published")
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(
+        SOLR_SCRIPT,
+        "read_or_discover_solr_process",
+        side_effect=(None, None),
+      ), \
+      patch.object(self.solr, "configure"), \
+      patch.object(SOLR_SCRIPT, "setup_solr_znode_env"), \
+      patch.object(SOLR_SCRIPT, "Execute"), \
+      patch.object(
+        SAFE_PROCESS, "wait_for_running_process", side_effect=start_error
+      ), \
+      patch.object(
+        SOLR_SCRIPT,
+        "rollback_started_solr_process",
+        side_effect=Fail("rollback failed"),
+      ) as rollback, \
+      patch.object(SOLR_SCRIPT.Logger, "warning") as warning:
+      with self.assertRaises(Fail) as raised:
+        self.solr.start(self.env)
+
+    self.assertIs(start_error, raised.exception)
+    rollback.assert_called_once_with(PID_FILE, "solr", PROCESS_TOKENS)
+    warning.assert_called_once()
+
+  def test_start_rollback_never_discovers_an_unrelated_solr_process(self):
+    with patch.object(
+        SAFE_PROCESS,
+        "read_running_process",
+        return_value=PROCESS_IDENTITY,
+      ), \
+      patch.object(SAFE_PROCESS, "terminate_process") as terminate, \
+      patch.object(SAFE_PROCESS, "read_pid", return_value=123), \
+      patch.object(SAFE_PROCESS, "remove_pid_file_if_stopped") as remove, \
+      patch.object(SAFE_PROCESS, "discover_running_process") as discover:
+      self.assertTrue(
+        SOLR_SCRIPT.rollback_started_solr_process(
+          PID_FILE, "solr", PROCESS_TOKENS
+        )
+      )
+
+    discover.assert_not_called()
+    terminate.assert_called_once_with(PROCESS_IDENTITY, "solr", PROCESS_TOKENS)
+    remove.assert_called_once_with(
+      PID_FILE,
+      123,
+      expected_user="solr",
+      expected_cmdline=PROCESS_TOKENS,
+    )
 
   def test_invalid_pid_and_wrong_identity_prevent_start(self):
     for read_error, inspect_error in (
