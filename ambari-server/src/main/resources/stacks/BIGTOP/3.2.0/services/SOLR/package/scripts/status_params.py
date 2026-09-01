@@ -19,7 +19,6 @@ limitations under the License.
 
 """
 
-from os import listdir, path
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
@@ -33,11 +32,9 @@ component_directory = stack_select.get_package_name(default_package="solr-server
 solr_port = default("configurations/solr-env/solr_port", "8983")
 solr_piddir = default("configurations/solr-env/solr_pid_dir", "/var/run/solr")
 solr_pidfile = format("{solr_piddir}/solr-{solr_port}.pid")
-
-prev_solr_pidfile = ""
-if path.isdir(solr_piddir):
-  for file in listdir(solr_piddir):
-    prev_solr_pidfile = solr_piddir + "/" + file
+solr_user = default("configurations/solr-env/solr_user", "solr")
+solr_datadir = default("configurations/solr-env/solr_datadir", "/var/lib/solr/data")
+user_group = default("configurations/cluster-env/user_group", "hadoop")
 
 security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
 kinit_path_local = get_kinit_path(
