@@ -2218,6 +2218,7 @@ var urls = {
             "parameters": {
               "threshold": "60",
               "java_home": data.java_home,
+              "java_version": data.java_version,
               "jdk_location": data.jdk_location,
               "check_execute_list": "java_home_check"
             }

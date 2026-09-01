@@ -124,9 +124,9 @@ export const databaseConnectionParameters = (
   db_connection_url: String(values["jdbc.driver.url"] ?? ""),
   db_name: normalizeDatabaseType(values["db.type"]),
   ambari_server_host: ambariServerHost,
-  java_home: String(ambariProperties["java.home"] ?? ""),
+  java_home: String(ambariProperties["ambari.java.home"] ?? ""),
   jdk_location: String(ambariProperties.jdk_location ?? ""),
-  jdk_name: String(ambariProperties["jdk.name"] ?? ""),
+  jdk_name: String(ambariProperties["ambari.jdk.name"] ?? ""),
   check_execute_list: "db_connection_check",
   threshold: "60",
 });

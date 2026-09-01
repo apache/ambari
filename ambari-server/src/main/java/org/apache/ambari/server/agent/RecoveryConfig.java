@@ -33,12 +33,44 @@ public class RecoveryConfig {
   @JsonProperty("components")
   private List<RecoveryConfigComponent> enabledComponents;
 
+  @SerializedName("topology_epoch")
+  @JsonProperty("topology_epoch")
+  private String topologyEpoch;
+
+  @SerializedName("topology_version")
+  @JsonProperty("topology_version")
+  private long topologyVersion;
+
+  @SerializedName("topology_complete")
+  @JsonProperty("topology_complete")
+  private boolean topologyComplete;
+
   public RecoveryConfig(List<RecoveryConfigComponent> enabledComponents) {
+    this(enabledComponents, null, 0, true);
+  }
+
+  public RecoveryConfig(List<RecoveryConfigComponent> enabledComponents, String topologyEpoch,
+      long topologyVersion, boolean topologyComplete) {
     this.enabledComponents = enabledComponents;
+    this.topologyEpoch = topologyEpoch;
+    this.topologyVersion = topologyVersion;
+    this.topologyComplete = topologyComplete;
   }
 
   public List<RecoveryConfigComponent> getEnabledComponents() {
     return enabledComponents == null ? null : Collections.unmodifiableList(enabledComponents);
+  }
+
+  public String getTopologyEpoch() {
+    return topologyEpoch;
+  }
+
+  public long getTopologyVersion() {
+    return topologyVersion;
+  }
+
+  public boolean isTopologyComplete() {
+    return topologyComplete;
   }
 
   @Override
@@ -48,12 +80,21 @@ public class RecoveryConfig {
 
     RecoveryConfig that = (RecoveryConfig) o;
 
-    return enabledComponents != null ? enabledComponents.equals(that.enabledComponents) : that.enabledComponents == null;
+    if (topologyVersion != that.topologyVersion || topologyComplete != that.topologyComplete) {
+      return false;
+    }
+    if (enabledComponents != null ? !enabledComponents.equals(that.enabledComponents) : that.enabledComponents != null) {
+      return false;
+    }
+    return topologyEpoch != null ? topologyEpoch.equals(that.topologyEpoch) : that.topologyEpoch == null;
   }
 
   @Override
   public int hashCode() {
     int result = (enabledComponents != null ? enabledComponents.hashCode() : 0);
+    result = 31 * result + (topologyEpoch != null ? topologyEpoch.hashCode() : 0);
+    result = 31 * result + Long.hashCode(topologyVersion);
+    result = 31 * result + (topologyComplete ? 1 : 0);
     return result;
   }
 
@@ -61,6 +102,9 @@ public class RecoveryConfig {
   public String toString() {
     StringBuilder buffer = new StringBuilder("RecoveryConfig{");
     buffer.append(", components=").append(enabledComponents);
+    buffer.append(", topologyEpoch=").append(topologyEpoch);
+    buffer.append(", topologyVersion=").append(topologyVersion);
+    buffer.append(", topologyComplete=").append(topologyComplete);
     buffer.append('}');
     return buffer.toString();
   }

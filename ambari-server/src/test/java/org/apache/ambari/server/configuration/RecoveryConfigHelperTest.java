@@ -35,7 +35,9 @@ import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.agent.HeartbeatTestHelper;
 import org.apache.ambari.server.agent.RecoveryConfig;
 import org.apache.ambari.server.agent.RecoveryConfigComponent;
+import org.apache.ambari.server.agent.RecoveryConfigDependency;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
+import org.apache.ambari.server.agent.RecoveryTopologyManager;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -71,6 +73,9 @@ public class RecoveryConfigHelperTest {
 
   @Inject
   private RecoveryConfigHelper recoveryConfigHelper;
+
+  @Inject
+  private RecoveryTopologyManager recoveryTopologyManager;
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
@@ -276,6 +281,52 @@ public class RecoveryConfigHelperTest {
     // will return null.
     boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), "Host2", -1);
     assertTrue(isConfigStale);
+  }
+
+  @Test
+  public void testStartTopologyContainsStatefulDependencies() throws Exception {
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+    hdfs.addServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent("SECONDARY_NAMENODE").setRecoveryEnabled(true);
+    hdfs.getServiceComponent("SECONDARY_NAMENODE").addServiceComponentHost(DummyHostname1);
+
+    hdfs.getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
+    hdfs.getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1).setDesiredState(State.STARTED);
+
+    Long hostId = cluster.getHost(DummyHostname1).getHostId();
+    recoveryTopologyManager.beginAgentSession(hostId, "session-1");
+    recoveryTopologyManager.markSnapshotComplete(hostId, "session-1");
+
+    RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
+    assertTrue(recoveryConfig.isTopologyComplete());
+    assertEquals(1, recoveryConfig.getEnabledComponents().size());
+
+    RecoveryConfigComponent secondaryNameNode = recoveryConfig.getEnabledComponents().get(0);
+    assertEquals("SECONDARY_NAMENODE", secondaryNameNode.getComponentName());
+    assertEquals(1, secondaryNameNode.getDependencies().size());
+
+    Map<String, RecoveryConfigDependency> dependencies = new HashMap<>();
+    for (RecoveryConfigDependency dependency : secondaryNameNode.getDependencies()) {
+      dependencies.put(dependency.getComponentName(), dependency);
+      assertEquals(State.STARTED, dependency.getRequiredState());
+      assertEquals(State.STARTED, dependency.getDesiredState());
+      assertTrue(dependency.isFresh());
+    }
+    assertEquals(State.STARTED, dependencies.get(NAMENODE).getCurrentState());
+  }
+
+  @Test
+  public void testRecoveryConfigWhileServiceRemovalIsInProgress() throws Exception {
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(cluster);
+    Service hdfs = cluster.addService(HDFS, repositoryVersion);
+
+    hdfs.delete(new DeleteHostComponentStatusMetaData());
+
+    RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
+    assertTrue(recoveryConfig.getEnabledComponents().isEmpty());
   }
 
   private Cluster getDummyCluster(Set<String> hostNames)

@@ -579,44 +579,43 @@ public class StageUtils {
    * Add ambari specific JDK details to command parameters.
    */
   public static void useAmbariJdkInCommandParams(Map<String, String> commandParams, Configuration configuration) {
-    if (StringUtils.isNotEmpty(configuration.getJavaHome()) && !configuration.getJavaHome().equals(configuration.getStackJavaHome())) {
+    if (StringUtils.isNotEmpty(configuration.getAmbariJavaHome())) {
       commandParams.put(AMBARI_JAVA_HOME, configuration.getAmbariJavaHome());
-      commandParams.put(AMBARI_JAVA_VERSION, String.valueOf(configuration.getJavaVersion()));
-      if (StringUtils.isNotEmpty(configuration.getJDKName())) { // if not custom jdk
-        commandParams.put(AMBARI_JDK_NAME, configuration.getJDKName());
+      commandParams.put(AMBARI_JAVA_VERSION, configuration.getAmbariJavaVersion());
+      if (StringUtils.isNotEmpty(configuration.getAmbariJDKName())) {
+        commandParams.put(AMBARI_JDK_NAME, configuration.getAmbariJDKName());
       }
-      if (StringUtils.isNotEmpty(configuration.getJCEName())) { // if not custom jdk
-        commandParams.put(AMBARI_JCE_NAME, configuration.getJCEName());
+      if (StringUtils.isNotEmpty(configuration.getAmbariJCEName())) {
+        commandParams.put(AMBARI_JCE_NAME, configuration.getAmbariJCEName());
       }
     }
   }
 
   /**
-   * Fill hots level parameters with Jdk details, override them with the stack JDK data, in case of stack JAVA_HOME exists
+   * Fill host-level parameters with the effective stack JDK details.
    */
   public static void useStackJdkIfExists(Map<String, String> hostLevelParams, Configuration configuration) {
-    // set defaults first
-    hostLevelParams.put(JAVA_HOME, configuration.getJavaHome());
-    hostLevelParams.put(JDK_NAME, configuration.getJDKName());
-    hostLevelParams.put(JCE_NAME, configuration.getJCEName());
-    hostLevelParams.put(JAVA_VERSION, String.valueOf(configuration.getJavaVersion()));
-    if (StringUtils.isNotEmpty(configuration.getStackJavaHome())
-      && !configuration.getStackJavaHome().equals(configuration.getJavaHome())) {
+    if (StringUtils.isNotEmpty(configuration.getStackJavaHome())) {
       hostLevelParams.put(JAVA_HOME, configuration.getStackJavaHome());
-      if (StringUtils.isNotEmpty(configuration.getStackJavaVersion())) {
-        hostLevelParams.put(JAVA_VERSION, configuration.getStackJavaVersion());
-      }
-      if (StringUtils.isNotEmpty(configuration.getStackJDKName())) {
-        hostLevelParams.put(JDK_NAME, configuration.getStackJDKName());
-      } else {
-        hostLevelParams.put(JDK_NAME, null); // custom jdk for stack
-      }
-      if (StringUtils.isNotEmpty(configuration.getStackJCEName())) {
-        hostLevelParams.put(JCE_NAME, configuration.getStackJCEName());
-      } else {
-        hostLevelParams.put(JCE_NAME, null); // custom jdk for stack
-      }
+      hostLevelParams.put(JAVA_VERSION, StringUtils.defaultIfEmpty(
+          configuration.getStackJavaVersion(), String.valueOf(configuration.getJavaVersion())));
+      hostLevelParams.put(JDK_NAME, configuration.getStackJDKName());
+      hostLevelParams.put(JCE_NAME, configuration.getStackJCEName());
+      return;
     }
+
+    if (StringUtils.isNotEmpty(configuration.getJavaHome())) {
+      hostLevelParams.put(JAVA_HOME, configuration.getJavaHome());
+      hostLevelParams.put(JDK_NAME, configuration.getJDKName());
+      hostLevelParams.put(JCE_NAME, configuration.getJCEName());
+      hostLevelParams.put(JAVA_VERSION, String.valueOf(configuration.getJavaVersion()));
+      return;
+    }
+
+    hostLevelParams.put(JAVA_HOME, configuration.getAmbariJavaHome());
+    hostLevelParams.put(JDK_NAME, configuration.getAmbariJDKName());
+    hostLevelParams.put(JCE_NAME, configuration.getAmbariJCEName());
+    hostLevelParams.put(JAVA_VERSION, configuration.getAmbariJavaVersion());
   }
 
   /**

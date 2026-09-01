@@ -19,18 +19,24 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
 import org.apache.ambari.server.events.ServiceComponentRecoveryChangedEvent;
 import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandPair;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -39,6 +45,8 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
@@ -65,6 +73,12 @@ public class RecoveryConfigHelper {
 
   @Inject
   private Clusters clusters;
+
+  @Inject
+  private RoleCommandOrderProvider roleCommandOrderProvider;
+
+  @Inject
+  private RecoveryTopologyManager recoveryTopologyManager;
 
   /**
    * Cluster --> Host --> Timestamp
@@ -101,8 +115,73 @@ public class RecoveryConfigHelper {
 
     AutoStartConfig autoStartConfig = new AutoStartConfig(clusterName);
 
-    RecoveryConfig recoveryConfig = new RecoveryConfig(autoStartConfig.getEnabledComponents(hostname));
+    List<RecoveryConfigComponent> enabledComponents = autoStartConfig.getEnabledComponents(hostname);
+    boolean topologyComplete = addTopologyState(autoStartConfig.cluster, hostname, enabledComponents);
+    RecoveryConfig recoveryConfig = new RecoveryConfig(enabledComponents, recoveryTopologyManager.getEpoch(),
+        recoveryTopologyManager.getVersion(), topologyComplete);
     return recoveryConfig;
+  }
+
+  private boolean addTopologyState(Cluster cluster, String hostname,
+      List<RecoveryConfigComponent> enabledComponents) throws AmbariException {
+    if (cluster == null || StringUtils.isEmpty(hostname)) {
+      return false;
+    }
+
+    Host recoveryHost = clusters.getHost(hostname);
+    if (recoveryHost == null) {
+      return false;
+    }
+
+    boolean topologyComplete = recoveryTopologyManager.isFresh(recoveryHost.getHostId());
+    if (enabledComponents.isEmpty()) {
+      return topologyComplete;
+    }
+
+    for (Service service : cluster.getServices().values()) {
+      StackId stackId = service.getDesiredStackId();
+      if (stackId == null) {
+        return false;
+      }
+    }
+
+    RoleCommandOrder roleCommandOrder = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+    if (roleCommandOrder == null) {
+      return false;
+    }
+
+    for (RecoveryConfigComponent component : enabledComponents) {
+      List<RecoveryConfigDependency> dependencies = new ArrayList<>();
+      try {
+        for (RoleCommandPair dependency : roleCommandOrder.getDependencies(
+            Role.valueOf(component.getComponentName()), RoleCommand.START)) {
+          State requiredState = getRequiredState(dependency.getCmd());
+          for (Service service : cluster.getServices().values()) {
+            if (!service.getServiceComponents().containsKey(dependency.getRole().toString())) {
+              continue;
+            }
+            for (ServiceComponentHost dependencyHost : service.getServiceComponent(
+                dependency.getRole().toString()).getServiceComponentHosts().values()) {
+              boolean fresh = recoveryTopologyManager.isFresh(dependencyHost.getHost().getHostId());
+              dependencies.add(new RecoveryConfigDependency(dependencyHost, requiredState, fresh));
+              topologyComplete &= fresh;
+            }
+          }
+        }
+      } catch (IllegalArgumentException e) {
+        topologyComplete = false;
+      }
+
+      dependencies.sort(Comparator.comparing(RecoveryConfigDependency::getServiceName)
+          .thenComparing(RecoveryConfigDependency::getComponentName)
+          .thenComparing(RecoveryConfigDependency::getHostName));
+      component.setDependencies(dependencies);
+    }
+    return topologyComplete;
+  }
+
+  private State getRequiredState(RoleCommand command) {
+    return command == RoleCommand.INSTALL ? State.INSTALLED : State.STARTED;
   }
 
   /**

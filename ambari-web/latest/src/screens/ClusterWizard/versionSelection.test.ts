@@ -26,9 +26,11 @@ describe("cluster version selection", () => {
     expect(compareVersions("17", "17.0")).toBe(0);
   });
 
-  it("applies inclusive JDK ranges and skips custom JDKs", () => {
-    expect(isJdkCompatible("17.0.8", "11", "17")).toBe(false);
+  it("compares JDK feature versions and skips unconfigured JDKs", () => {
+    expect(isJdkCompatible("17.0.8", "11", "17")).toBe(true);
     expect(isJdkCompatible("17", "11", "17")).toBe(true);
+    expect(isJdkCompatible("8", "1.8", "1.8")).toBe(true);
+    expect(isJdkCompatible("21", "11", "17")).toBe(false);
     expect(isJdkCompatible(undefined, "11", "17")).toBe(true);
     expect(isJdkCompatible("17", undefined, undefined)).toBe(true);
   });

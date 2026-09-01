@@ -108,4 +108,21 @@ public class HostLevelParamsHolderTest {
     assertTrue(result.getHostLevelParamsClusters().containsKey("1"));
     assertTrue(result.getHostLevelParamsClusters().containsKey("2"));
   }
+
+  @Test
+  public void testHandleUpdateDoesNotRegressRecoveryTopology() {
+    RecoveryConfig currentRecoveryConfig = new RecoveryConfig(null, "server-1", 2, true);
+    HostLevelParamsCluster currentCluster = new HostLevelParamsCluster(currentRecoveryConfig, Collections.emptyMap());
+    HostLevelParamsUpdateEvent current = new HostLevelParamsUpdateEvent(HOST_ID,
+        Collections.singletonMap("1", currentCluster));
+
+    RecoveryConfig olderRecoveryConfig = new RecoveryConfig(null, "server-1", 1, false);
+    HostLevelParamsCluster olderCluster = new HostLevelParamsCluster(olderRecoveryConfig, Collections.emptyMap());
+    HostLevelParamsUpdateEvent update = new HostLevelParamsUpdateEvent(HOST_ID,
+        Collections.singletonMap("1", olderCluster));
+
+    HostLevelParamsHolder levelParamsHolder = new HostLevelParamsHolder(createNiceMock(AmbariEventPublisher.class));
+
+    assertEquals(null, levelParamsHolder.handleUpdate(current, update));
+  }
 }

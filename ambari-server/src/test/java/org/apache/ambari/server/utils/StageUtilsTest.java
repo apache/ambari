@@ -611,8 +611,8 @@ public class StageUtilsTest extends EasyMockSupport {
     Map<String, String> commandParams = new HashMap<>();
     Configuration configuration = new Configuration();
     configuration.setProperty("java.home", "myJavaHome");
-    configuration.setProperty("jdk.name", "myJdkName");
-    configuration.setProperty("jce.name", "myJceName");
+    configuration.setProperty("ambari.jdk.name", "myJdkName");
+    configuration.setProperty("ambari.jce.name", "myJceName");
     configuration.setProperty("ambari.java.home", "ambari_java_home");
     // WHEN
     StageUtils.useAmbariJdkInCommandParams(commandParams, configuration);
@@ -678,6 +678,38 @@ public class StageUtilsTest extends EasyMockSupport {
     assertEquals("myJdkName", hostLevelParams.get("jdk_name"));
     assertEquals("myJceName", hostLevelParams.get("jce_name"));
     assertEquals(4, hostLevelParams.size());
+  }
+
+  @Test
+  public void testUseAmbariJdkAsStackDefaultWhenStackAndLegacyJdksAreMissing() {
+    Map<String, String> hostLevelParams = new HashMap<>();
+    Configuration configuration = new Configuration();
+    configuration.setProperty("ambari.java.home", "ambariJavaHome");
+    configuration.setProperty("ambari.jdk.name", "ambariJdkName");
+    configuration.setProperty("ambari.jce.name", "ambariJceName");
+
+    StageUtils.useStackJdkIfExists(hostLevelParams, configuration);
+
+    assertEquals("ambariJavaHome", hostLevelParams.get("java_home"));
+    assertEquals("ambariJdkName", hostLevelParams.get("jdk_name"));
+    assertEquals("ambariJceName", hostLevelParams.get("jce_name"));
+    assertEquals(String.valueOf(Runtime.version().feature()), hostLevelParams.get("java_version"));
+    assertEquals(4, hostLevelParams.size());
+  }
+
+  @Test
+  public void testUseStackJdkDoesNotReplaceAmbariJdk() {
+    Map<String, String> commandParams = new HashMap<>();
+    Configuration configuration = new Configuration();
+    configuration.setProperty("ambari.java.home", "ambariJavaHome");
+    configuration.setProperty("ambari.java.version", "17");
+    configuration.setProperty("stack.java.home", "stackJavaHome");
+    configuration.setProperty("stack.java.version", "11");
+
+    StageUtils.useAmbariJdkInCommandParams(commandParams, configuration);
+
+    assertEquals("ambariJavaHome", commandParams.get("ambari_java_home"));
+    assertEquals("17", commandParams.get("ambari_java_version"));
   }
 
   private void checkServiceHostIndexes(Map<String, Set<String>> info, String componentName, String mappedComponentName,
