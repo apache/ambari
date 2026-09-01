@@ -683,6 +683,105 @@ class TestSafeProcess(unittest.TestCase):
     link_exclusive.assert_called_once_with(temp_pid_file, self.PID_FILE)
     unlink.assert_called_once_with(temp_pid_file)
 
+  def test_secure_pid_file_uses_nofollow_descriptor_and_rechecks_identity(self):
+    identity = safe_process.ProcessIdentity(
+      self.PID, 1001, 456, ("/usr/bin/java", "ServiceMain")
+    )
+    initial_stat = SimpleNamespace(
+      st_dev=10,
+      st_ino=20,
+      st_mode=0o100644,
+      st_nlink=1,
+      st_uid=1001,
+      st_gid=1001,
+    )
+    secured_stat = SimpleNamespace(
+      st_dev=10,
+      st_ino=20,
+      st_mode=0o100640,
+      st_nlink=1,
+      st_uid=1001,
+      st_gid=1002,
+    )
+    with (
+      patch.object(safe_process, "is_process_running", return_value=True),
+      patch.object(
+        safe_process.pwd,
+        "getpwnam",
+        return_value=SimpleNamespace(pw_uid=1001),
+      ),
+      patch.object(
+        safe_process.grp,
+        "getgrnam",
+        return_value=SimpleNamespace(gr_gid=1002),
+      ),
+      patch.object(safe_process.os, "open", return_value=7) as open_file,
+      patch.object(
+        safe_process.os, "fstat", side_effect=(initial_stat, secured_stat)
+      ),
+      patch.object(safe_process.os, "read", return_value=b"123\n"),
+      patch.object(safe_process.os, "fchown") as fchown,
+      patch.object(safe_process.os, "fchmod") as fchmod,
+      patch.object(safe_process.os, "close") as close,
+      patch.object(safe_process.sudo, "lstat", return_value=secured_stat),
+      patch.object(
+        safe_process, "read_running_process", return_value=identity
+      ),
+    ):
+      result = safe_process.secure_pid_file_for_identity(
+        self.PID_FILE,
+        identity,
+        self.USER,
+        "ServiceMain",
+        self.USER,
+        "service-group",
+      )
+
+    self.assertIs(identity, result)
+    self.assertTrue(open_file.call_args.args[1] & safe_process.os.O_NOFOLLOW)
+    fchown.assert_called_once_with(7, 1001, 1002)
+    fchmod.assert_called_once_with(7, 0o640)
+    close.assert_called_once_with(7)
+
+  def test_secure_pid_file_rejects_hardlink_before_permission_change(self):
+    identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
+    linked_stat = SimpleNamespace(
+      st_dev=10,
+      st_ino=20,
+      st_mode=0o100644,
+      st_nlink=2,
+      st_uid=1001,
+    )
+    with (
+      patch.object(safe_process, "is_process_running", return_value=True),
+      patch.object(
+        safe_process.pwd,
+        "getpwnam",
+        return_value=SimpleNamespace(pw_uid=1001),
+      ),
+      patch.object(
+        safe_process.grp,
+        "getgrnam",
+        return_value=SimpleNamespace(gr_gid=1002),
+      ),
+      patch.object(safe_process.os, "open", return_value=7),
+      patch.object(safe_process.os, "fstat", return_value=linked_stat),
+      patch.object(safe_process.os, "fchown") as fchown,
+      patch.object(safe_process.os, "fchmod") as fchmod,
+      patch.object(safe_process.os, "close"),
+    ):
+      with self.assertRaisesRegex(Fail, "singly linked"):
+        safe_process.secure_pid_file_for_identity(
+          self.PID_FILE,
+          identity,
+          self.USER,
+          "ServiceMain",
+          self.USER,
+          "service-group",
+        )
+    fchown.assert_not_called()
+    fchmod.assert_not_called()
+
   def test_create_pid_file_rejects_existing_or_broken_symlink(self):
     identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
     with (

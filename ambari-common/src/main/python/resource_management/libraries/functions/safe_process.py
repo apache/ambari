@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import grp
 import os
 import pwd
 import re
@@ -348,6 +349,88 @@ def create_pid_file_for_identity(
       f"Process identity changed while creating PID file {pid_file}"
     )
   return written_identity
+
+
+def secure_pid_file_for_identity(
+  pid_file,
+  identity,
+  expected_user,
+  expected_cmdline,
+  owner,
+  group,
+  mode=0o640,
+):
+  """Secure a launcher-created PID file without following a replaced path."""
+  if not pid_file:
+    raise Fail("PID file is not configured")
+  if identity is None or not is_process_running(
+    identity.pid,
+    expected_user,
+    expected_cmdline,
+    identity=identity,
+  ):
+    raise Fail("Process disappeared before securing its PID file")
+  if not isinstance(mode, int) or mode < 0 or mode > 0o777:
+    raise Fail("PID file mode must contain only permission bits")
+  if not hasattr(os, "O_NOFOLLOW"):
+    raise Fail("Safe PID file permissions require O_NOFOLLOW support")
+
+  expected_uid = _expected_uid(owner)
+  try:
+    expected_gid = grp.getgrnam(group).gr_gid
+  except (KeyError, TypeError) as error:
+    raise Fail(f"Expected PID file group {group!r} does not exist") from error
+
+  flags = os.O_RDONLY | os.O_NONBLOCK | os.O_CLOEXEC | os.O_NOFOLLOW
+  descriptor = None
+  try:
+    descriptor = os.open(pid_file, flags)
+    initial_stat = os.fstat(descriptor)
+    if not stat.S_ISREG(initial_stat.st_mode) or initial_stat.st_nlink != 1:
+      raise Fail(f"PID file {pid_file} must be a singly linked regular file")
+    if initial_stat.st_uid != expected_uid:
+      raise Fail(
+        f"PID file {pid_file} owner does not match user {owner}"
+      )
+
+    value = _decode_ascii(
+      os.read(descriptor, 64), f"PID file {pid_file}"
+    ).strip()
+    if _PID_PATTERN.fullmatch(value) is None or int(value) != identity.pid:
+      raise Fail(f"PID file {pid_file} does not identify process {identity.pid}")
+
+    os.fchown(descriptor, expected_uid, expected_gid)
+    os.fchmod(descriptor, mode)
+    secured_stat = os.fstat(descriptor)
+    if (
+      (secured_stat.st_dev, secured_stat.st_ino)
+      != (initial_stat.st_dev, initial_stat.st_ino)
+      or secured_stat.st_uid != expected_uid
+      or secured_stat.st_gid != expected_gid
+      or stat.S_IMODE(secured_stat.st_mode) != mode
+    ):
+      raise Fail(f"PID file {pid_file} permissions could not be secured")
+
+    path_stat = sudo.lstat(pid_file)
+    if (
+      not stat.S_ISREG(path_stat.st_mode)
+      or path_stat.st_nlink != 1
+      or (path_stat.st_dev, path_stat.st_ino)
+      != (secured_stat.st_dev, secured_stat.st_ino)
+    ):
+      raise Fail(f"PID file {pid_file} was replaced while securing permissions")
+  except Fail:
+    raise
+  except Exception as error:
+    raise Fail(f"Could not secure PID file {pid_file}: {error}") from error
+  finally:
+    if descriptor is not None:
+      os.close(descriptor)
+
+  published = read_running_process(pid_file, expected_user, expected_cmdline)
+  if published is None or not identity.matches(published):
+    raise Fail(f"Process identity changed while securing PID file {pid_file}")
+  return published
 
 
 def _rollback_pid_file(pid_file, published_file_identity):
