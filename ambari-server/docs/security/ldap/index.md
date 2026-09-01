@@ -160,7 +160,7 @@ For example:
 
 ```
 # ambari-server setup-ldap --ambari-admin-username=admin ...
-Using python  /usr/bin/python
+Using python  /usr/bin/python3.9
 Enter Ambari Admin password:
 ```
 
@@ -260,7 +260,7 @@ In interactive mode some configuration details may be set on the command line vi
 
 ```
 # ambari-server setup-ldap
-Using python  /usr/bin/python
+Using python  /usr/bin/python3.9
 
 Enter Ambari Admin login: admin
 Enter Ambari Admin password:

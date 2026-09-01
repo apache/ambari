@@ -215,7 +215,7 @@ may be left off of the command causing the CLI to prompt for it.
 For example:
 ```
 # ambari-server setup-sso --ambari-admin-username=admin ...
-Using python  /usr/bin/python
+Using python  /usr/bin/python3.9
 Setting up SSO authentication properties...
 Enter Ambari Admin password:
 ```
@@ -292,7 +292,7 @@ CLI will prompt for the rest.
 
 ```
 # ambari-server setup-sso
-Using python  /usr/bin/python
+Using python  /usr/bin/python3.9
 Setting up SSO authentication properties...
 Enter Ambari Admin login: admin
 Enter Ambari Admin password:
