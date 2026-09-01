@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 from pathlib import Path
 import unittest
 from xml.etree import ElementTree
@@ -28,6 +29,15 @@ BIGTOP_STACKS = (
 
 
 class TestBigtopStackCatalog(unittest.TestCase):
+  def test_stack_feature_names_are_unique(self):
+    feature_file = BIGTOP_STACKS / "3.2.0/properties/stack_features.json"
+    features = json.loads(feature_file.read_text(encoding="utf-8"))["BIGTOP"][
+      "stack_features"
+    ]
+    names = [feature["name"] for feature in features]
+
+    self.assertEqual(len(names), len(set(names)))
+
   def test_only_bom_backed_stack_is_active(self):
     active = {}
     for version in ("3.2.0", "3.3.0", "3.4.0"):
