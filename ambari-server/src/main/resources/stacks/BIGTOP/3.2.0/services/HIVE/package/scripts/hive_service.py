@@ -17,7 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ipaddress
 import os
+import re
 import time
 
 from ambari_commons.db_connection_helper import verify_db_connection
@@ -39,6 +41,68 @@ HIVE_PROCESS_TOKENS = {
   "metastore": ("org.apache.hadoop.hive.metastore.HiveMetaStore",),
   "webhcat": ("org.apache.hive.hcatalog.templeton.Main",),
 }
+
+
+def _zookeeper_port(value, description):
+  port_text = str(value or "").strip()
+  if not port_text.isdigit():
+    raise Fail(f"{description} must be an integer between 1 and 65535")
+  port = int(port_text)
+  if port < 1 or port > 65535:
+    raise Fail(f"{description} must be an integer between 1 and 65535")
+  return str(port)
+
+
+def normalize_hive_zookeeper_quorum(quorum, client_port):
+  default_port = _zookeeper_port(client_port, "Hive ZooKeeper client port")
+  if not isinstance(quorum, str) or not quorum.strip():
+    raise Fail("Hive ZooKeeper quorum must not be empty")
+
+  normalized = []
+  for raw_endpoint in quorum.split(","):
+    endpoint = raw_endpoint.strip()
+    if not endpoint:
+      raise Fail("Hive ZooKeeper quorum contains an empty endpoint")
+    if any(character.isspace() or ord(character) < 32 for character in endpoint):
+      raise Fail(f"Invalid Hive ZooKeeper endpoint: {endpoint!r}")
+
+    if endpoint.startswith("["):
+      closing_bracket = endpoint.find("]")
+      if closing_bracket < 2:
+        raise Fail(f"Invalid Hive ZooKeeper endpoint: {endpoint!r}")
+      host = endpoint[1:closing_bracket]
+      remainder = endpoint[closing_bracket + 1 :]
+      try:
+        ipaddress.IPv6Address(host)
+      except ValueError as error:
+        raise Fail(f"Invalid Hive ZooKeeper IPv6 endpoint: {endpoint!r}") from error
+      if not remainder:
+        port = default_port
+      elif remainder.startswith(":"):
+        port = _zookeeper_port(remainder[1:], "Hive ZooKeeper endpoint port")
+      else:
+        raise Fail(f"Invalid Hive ZooKeeper endpoint: {endpoint!r}")
+      normalized.append(f"[{host}]:{port}")
+      continue
+
+    try:
+      ipaddress.IPv6Address(endpoint)
+    except ValueError:
+      if endpoint.count(":") > 1:
+        raise Fail(f"Invalid Hive ZooKeeper endpoint: {endpoint!r}")
+      if ":" in endpoint:
+        host, port_text = endpoint.split(":", 1)
+        port = _zookeeper_port(port_text, "Hive ZooKeeper endpoint port")
+      else:
+        host = endpoint
+        port = default_port
+      if not re.fullmatch(r"[A-Za-z0-9_.-]+", host):
+        raise Fail(f"Invalid Hive ZooKeeper endpoint: {endpoint!r}")
+      normalized.append(f"{host}:{port}")
+    else:
+      normalized.append(f"[{endpoint}]:{default_port}")
+
+  return ",".join(normalized)
 
 
 def expected_process_tokens(role):

@@ -784,6 +784,9 @@ hive_server2_zookeeper_namespace = config["configurations"]["hive-site"][
   "hive.server2.zookeeper.namespace"
 ]
 hive_zookeeper_quorum = config["configurations"]["hive-site"]["hive.zookeeper.quorum"]
+hive_zookeeper_client_port = default(
+  "/configurations/hive-site/hive.zookeeper.client.port", 2181
+)
 hive_jdbc_url = format(
   "jdbc:hive2://{hive_zookeeper_quorum}/;serviceDiscoveryMode=zooKeeper;"
   "zooKeeperNamespace={hive_server2_zookeeper_namespace}"

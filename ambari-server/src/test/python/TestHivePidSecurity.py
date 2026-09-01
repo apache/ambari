@@ -144,6 +144,39 @@ class TestHiveProcessIdentity(unittest.TestCase):
         )
 
 
+class TestHiveZooKeeperQuorum(unittest.TestCase):
+  def test_missing_ports_are_filled_without_changing_explicit_ports(self):
+    self.assertEqual(
+      "zk-a.example.test:2181,zk-b.example.test:2281,"
+      "[2001:db8::1]:2181,[2001:db8::2]:2381",
+      HIVE_SERVICE.normalize_hive_zookeeper_quorum(
+        "zk-a.example.test,zk-b.example.test:2281,"
+        "2001:db8::1,[2001:db8::2]:2381",
+        "2181",
+      ),
+    )
+
+  def test_invalid_quorum_values_fail_before_zkmigrator_execution(self):
+    invalid_values = (
+      "",
+      "zk-a,,zk-b",
+      "zk a",
+      "zk-a:0",
+      "zk-a:65536",
+      "zk-a:not-a-port",
+      "[2001:db8::1",
+      "[not-ipv6]:2181",
+    )
+    for quorum in invalid_values:
+      with self.subTest(quorum=quorum):
+        with self.assertRaises(Fail):
+          HIVE_SERVICE.normalize_hive_zookeeper_quorum(quorum, 2181)
+
+  def test_invalid_default_port_fails_even_when_all_endpoints_have_ports(self):
+    with self.assertRaisesRegex(Fail, "Hive ZooKeeper client port"):
+      HIVE_SERVICE.normalize_hive_zookeeper_quorum("zk-a:2181", "invalid")
+
+
 class TestHiveLifecycle(unittest.TestCase):
   def setUp(self):
     self.params = module_with(

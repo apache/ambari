@@ -21,7 +21,11 @@ limitations under the License.
 # Local Imports
 from hive import hive
 import hive_server_upgrade
-from hive_service import check_hive_process_status, hive_service
+from hive_service import (
+  check_hive_process_status,
+  hive_service,
+  normalize_hive_zookeeper_quorum,
+)
 from setup_ranger_hive import setup_ranger_hive
 
 # Ambari Commons & Resource Management Imports
@@ -105,7 +109,9 @@ class HiveServer(Script):
     import params
 
     zkmigrator = ZkMigrator(
-      params.hive_zookeeper_quorum,
+      normalize_hive_zookeeper_quorum(
+        params.hive_zookeeper_quorum, params.hive_zookeeper_client_port
+      ),
       params.ambari_java_exec,
       params.ambari_java_home,
       params.jaas_file,
