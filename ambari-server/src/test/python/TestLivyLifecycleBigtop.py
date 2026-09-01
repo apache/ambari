@@ -248,6 +248,82 @@ class TestLivyProcessLifecycle(unittest.TestCase):
       execute.call_args.kwargs["environment"],
     )
 
+  def test_start_failure_preserves_original_error_when_rollback_fails(self):
+    params = self._service_params()
+    start_error = Fail("Livy launcher failed after writing its PID")
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        LIVY_SERVICE, "read_or_discover_livy_process", return_value=None
+      ), \
+      patch.object(LIVY_SERVICE, "Execute", side_effect=start_error), \
+      patch.object(
+        LIVY_SERVICE,
+        "rollback_started_livy_process",
+        side_effect=Fail("rollback failed"),
+      ) as rollback, \
+      patch.object(LIVY_SERVICE.Logger, "warning") as warning:
+      with self.assertRaises(Fail) as raised:
+        LIVY_SERVICE.livy_service("server", action="start")
+
+    self.assertIs(start_error, raised.exception)
+    rollback.assert_called_once_with(self.pid_file, "livy")
+    warning.assert_called_once()
+
+  def test_identity_publication_failure_rolls_back_discovered_identity(self):
+    start_error = Fail("Livy PID publication failed")
+    with patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=None), \
+      patch.object(
+        LIVY_SERVICE.safe_process,
+        "discover_running_process",
+        return_value=self.identity,
+      ), \
+      patch.object(
+        LIVY_SERVICE.safe_process,
+        "create_pid_file_for_identity",
+        side_effect=start_error,
+      ), \
+      patch.object(
+        LIVY_SERVICE, "rollback_started_livy_process"
+      ) as rollback:
+      with self.assertRaises(Fail) as raised:
+        LIVY_SERVICE.read_or_discover_livy_process(
+          self.pid_file, "livy", "livy", rollback_discovered=True
+        )
+
+    self.assertIs(start_error, raised.exception)
+    rollback.assert_called_once_with(
+      self.pid_file, "livy", identity=self.identity
+    )
+
+  def test_start_rollback_uses_only_the_pid_bound_identity(self):
+    with patch.object(
+        LIVY_SERVICE.safe_process,
+        "read_running_process",
+        return_value=self.identity,
+      ), \
+      patch.object(LIVY_SERVICE.safe_process, "terminate_process") as terminate, \
+      patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=4217), \
+      patch.object(
+        LIVY_SERVICE.safe_process, "remove_pid_file_if_stopped"
+      ) as remove, \
+      patch.object(
+        LIVY_SERVICE.safe_process, "discover_running_process"
+      ) as discover:
+      self.assertTrue(
+        LIVY_SERVICE.rollback_started_livy_process(self.pid_file, "livy")
+      )
+
+    discover.assert_not_called()
+    terminate.assert_called_once_with(
+      self.identity, "livy", LIVY_SERVICE.LIVY_SERVER_PROCESS_TOKENS
+    )
+    remove.assert_called_once_with(
+      self.pid_file,
+      4217,
+      expected_user="livy",
+      expected_cmdline=LIVY_SERVICE.LIVY_SERVER_PROCESS_TOKENS,
+    )
+
   def test_start_rejects_missing_secure_cache_path(self):
     params = self._service_params()
     params.security_enabled = True

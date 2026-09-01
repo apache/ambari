@@ -28,7 +28,28 @@ from resource_management.libraries.functions import safe_process
 LIVY_SERVER_PROCESS_TOKENS = ("org.apache.livy.server.LivyServer",)
 
 
-def read_or_discover_livy_process(pid_file, user, group):
+def rollback_started_livy_process(pid_file, user, identity=None):
+  if identity is None:
+    identity = safe_process.read_running_process(
+      pid_file, user, LIVY_SERVER_PROCESS_TOKENS
+    )
+  if identity is None:
+    return False
+  safe_process.terminate_process(identity, user, LIVY_SERVER_PROCESS_TOKENS)
+  pid = safe_process.read_pid(pid_file)
+  if pid == identity.pid:
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user=user,
+      expected_cmdline=LIVY_SERVER_PROCESS_TOKENS,
+    )
+  return True
+
+
+def read_or_discover_livy_process(
+  pid_file, user, group, rollback_discovered=False
+):
   pid = safe_process.read_pid(pid_file)
   if pid is not None:
     identity = safe_process.inspect_process(
@@ -53,20 +74,32 @@ def read_or_discover_livy_process(pid_file, user, group):
   )
   if identity is None:
     return None
-  return safe_process.create_pid_file_for_identity(
-    pid_file,
-    identity,
-    user,
-    LIVY_SERVER_PROCESS_TOKENS,
-    owner=user,
-    group=group,
-    mode=0o640,
-  )
+  try:
+    return safe_process.create_pid_file_for_identity(
+      pid_file,
+      identity,
+      user,
+      LIVY_SERVER_PROCESS_TOKENS,
+      owner=user,
+      group=group,
+      mode=0o640,
+    )
+  except Exception:
+    if rollback_discovered:
+      try:
+        rollback_started_livy_process(pid_file, user, identity=identity)
+      except Exception as rollback_error:
+        Logger.warning(
+          f"Could not roll back failed Livy start: {rollback_error}"
+        )
+    raise
 
 
 def wait_for_livy_process(pid_file, user, group, attempts=10, sleep_seconds=1):
   for attempt in range(attempts):
-    identity = read_or_discover_livy_process(pid_file, user, group)
+    identity = read_or_discover_livy_process(
+      pid_file, user, group, rollback_discovered=True
+    )
     if identity is not None:
       return identity
     if attempt + 1 < attempts:
@@ -99,12 +132,21 @@ def livy_service(name, upgrade_type=None, action=None):
         f"FILE:{params.livy_server_kerberos_cache_file}"
       )
     File(params.livy_server_kerberos_cache_file, action="delete")
-    Execute(
-      (params.livy_server_command, "start"),
-      user=params.livy_user,
-      environment=process_environment,
-      logoutput=True,
-    )
+    try:
+      Execute(
+        (params.livy_server_command, "start"),
+        user=params.livy_user,
+        environment=process_environment,
+        logoutput=True,
+      )
+    except Exception:
+      try:
+        rollback_started_livy_process(
+          params.livy_server_pid_file, params.livy_user
+        )
+      except Exception as rollback_error:
+        Logger.warning(f"Could not roll back failed Livy start: {rollback_error}")
+      raise
     wait_for_livy_process(
       params.livy_server_pid_file,
       params.livy_user,
