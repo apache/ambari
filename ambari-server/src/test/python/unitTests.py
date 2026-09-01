@@ -348,6 +348,28 @@ def stack_test_executor(base_folder, service, stack, test_mask, executor_result)
   )
 
 
+def get_base_test_directories(ambari_common_folder, server_test_folder):
+  return [
+    (
+      os.path.join(ambari_common_folder, "src/test/python"),
+      "\nRunning tests for ambari-common\n",
+    ),
+    (
+      os.path.join(server_test_folder, "custom_actions"),
+      "\nRunning tests for custom actions\n",
+    ),
+    (
+      os.path.join(server_test_folder, "host_scripts"),
+      "\nRunning tests for host scripts\n",
+    ),
+    (
+      os.path.join(server_test_folder, "stacks"),
+      "\nRunning tests for stack infrastructure\n",
+    ),
+    (server_test_folder, "\nRunning tests for ambari-server\n"),
+  ]
+
+
 def main():
   if not os.path.exists(newtmpdirpath):
     os.makedirs(newtmpdirpath)
@@ -505,15 +527,7 @@ def main():
   # run base ambari-server tests
   sys.stderr.write("Running tests for ambari-server\n")
 
-  test_dirs = [
-    (
-      os.path.join(ambari_common_folder, "src/test/python"),
-      "\nRunning tests for ambari-common\n",
-    ),
-    (os.path.join(pwd, "custom_actions"), "\nRunning tests for custom actions\n"),
-    (os.path.join(pwd, "host_scripts"), "\nRunning tests for host scripts\n"),
-    (pwd, "\nRunning tests for ambari-server\n"),
-  ]
+  test_dirs = get_base_test_directories(ambari_common_folder, pwd)
 
   for test_dir, msg in test_dirs:
     sys.stderr.write(msg)

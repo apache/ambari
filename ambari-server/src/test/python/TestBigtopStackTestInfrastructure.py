@@ -22,7 +22,7 @@ from pathlib import Path
 from unittest import TestCase
 
 from stacks.utils.RMFTestCase import RMFTestCase
-from unitTests import get_stack_name
+from unitTests import discover_tests, get_base_test_directories, get_stack_name
 
 
 SERVER_ROOT = Path(__file__).resolve().parents[2]
@@ -32,6 +32,19 @@ STACK_HOOKS = SERVER_ROOT / "main/resources/stack-hooks"
 
 
 class TestBigtopStackTestInfrastructure(TestCase):
+  def test_stack_root_tests_are_discovered(self):
+    test_directories = {
+      Path(path): message
+      for path, message in get_base_test_directories(
+        SERVER_ROOT.parent.parent / "ambari-common", SERVER_ROOT / "test/python"
+      )
+    }
+    stack_tests = SERVER_ROOT / "test/python/stacks"
+
+    self.assertIn(stack_tests, test_directories)
+    suite = discover_tests(str(stack_tests), "[Tt]est*.py", recursive=False)
+    self.assertGreater(suite.countTestCases(), 0)
+
   def test_runner_and_stack_properties_use_bigtop(self):
     self.assertEqual("BIGTOP", get_stack_name())
 
