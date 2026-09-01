@@ -32,7 +32,14 @@ kerberos_env = configurations.get("kerberos-env", {})
 krb5_conf = configurations.get("krb5-conf", {})
 command_params = config.get("commandParams", {})
 
-hostname = config["agentLevelParams"]["hostname"]
+cluster_level_params = config.get("clusterLevelParams", {})
+stack_name = cluster_level_params.get("stack_name")
+stack_version = cluster_level_params.get("stack_version")
+kerberos_utils.validate_bigtop_stack(stack_name, stack_version)
+
+hostname = kerberos_utils.validate_host(
+  config["agentLevelParams"]["hostname"], "Ambari agent host"
+)
 default_group = cluster_env.get("user_group") or cluster_env.get("user-group")
 
 manage_identities = kerberos_utils.as_bool(

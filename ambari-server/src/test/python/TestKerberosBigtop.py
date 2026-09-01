@@ -73,6 +73,42 @@ class TestKerberosInputContract(unittest.TestCase):
         with self.assertRaises(Fail):
           KERBEROS_UTILS.as_bool(value, "setting")
 
+  def test_stack_host_and_executable_contracts_fail_closed(self):
+    self.assertEqual(
+      "3.2.0", KERBEROS_UTILS.validate_bigtop_stack("BIGTOP", "3.2.0")
+    )
+    self.assertEqual(
+      "host.example.com",
+      KERBEROS_UTILS.validate_host("Host.Example.Com", "host"),
+    )
+    for stack_name, stack_version in (("OTHER", "3.2.0"), ("BIGTOP", "3")):
+      with self.subTest(stack_name=stack_name, stack_version=stack_version):
+        with self.assertRaises(Fail):
+          KERBEROS_UTILS.validate_bigtop_stack(stack_name, stack_version)
+
+    trusted = SimpleNamespace(st_uid=0, st_mode=0o100755)
+    with (
+      patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=True),
+      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=False),
+      patch.object(KERBEROS_UTILS.sudo, "path_isfile", return_value=True),
+      patch.object(KERBEROS_UTILS.sudo, "stat", return_value=trusted),
+    ):
+      self.assertEqual(
+        "/usr/bin/kinit",
+        KERBEROS_UTILS.validate_executable("/usr/bin/kinit", "kinit"),
+      )
+      for mode in (0o100775, 0o100644):
+        with self.subTest(mode=mode):
+          with (
+            patch.object(
+              KERBEROS_UTILS.sudo,
+              "stat",
+              return_value=SimpleNamespace(st_uid=0, st_mode=mode),
+            ),
+            self.assertRaises(Fail),
+          ):
+            KERBEROS_UTILS.validate_executable("/usr/bin/kinit", "kinit")
+
   def test_realm_endpoints_and_domains_fail_closed(self):
     self.assertEqual("EXAMPLE.COM", KERBEROS_UTILS.validate_realm("EXAMPLE.COM"))
     self.assertEqual(
@@ -151,6 +187,8 @@ class TestKerberosInputContract(unittest.TestCase):
         ("principal", "service\nother"),
         ("principal", " service/_HOST@EXAMPLE.COM"),
         ("keytab_file_path", "/etc/passwd"),
+        ("keytab_file_path", "/tmp/service.keytab"),
+        ("keytab_file_path", "/usr/lib/service.keytab"),
         ("keytab_file_path", "relative.keytab"),
         ("keytab_file_path", "/etc/security/keytabs/bad\tpath.keytab"),
         ("keytab_content_base64", "not base64!"),
@@ -164,6 +202,16 @@ class TestKerberosInputContract(unittest.TestCase):
             KERBEROS_UTILS.validate_keytab_records(
               [invalid], require_content=True
             )
+
+      oversized = dict(record)
+      oversized["keytab_content_base64"] = base64.b64encode(b"12345").decode(
+        "ascii"
+      )
+      with (
+        patch.object(KERBEROS_UTILS, "_MAX_KEYTAB_BYTES", 4),
+        self.assertRaisesRegex(Fail, "supported size"),
+      ):
+        KERBEROS_UTILS.validate_keytab_records([oversized], require_content=True)
 
     with (
       patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=True),
@@ -268,6 +316,7 @@ class TestKerberosServiceCheckContract(unittest.TestCase):
     with (
       patch.dict(sys.modules, {"params": params}),
       patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True),
+      patch.object(KERBEROS_UTILS, "validate_executable"),
       patch.object(
         KERBEROS_CHECK, "PrivateKerberosCache", return_value=context
       ) as cache_factory,
@@ -307,6 +356,22 @@ class TestKerberosServiceCheckContract(unittest.TestCase):
     for obsolete in ("hashlib", "sha224", "Execute(", "os.path.isfile", " -c "):
       self.assertNotIn(obsolete, source)
 
+  def test_untrusted_kinit_fails_before_private_cache_creation(self):
+    params = self._params()
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True),
+      patch.object(
+        KERBEROS_UTILS,
+        "validate_executable",
+        side_effect=Fail("untrusted kinit"),
+      ),
+      patch.object(KERBEROS_CHECK, "PrivateKerberosCache") as cache_factory,
+      self.assertRaisesRegex(Fail, "untrusted kinit"),
+    ):
+      KERBEROS_CHECK.KerberosServiceCheck().service_check(MagicMock())
+    cache_factory.assert_not_called()
+
   def test_kinit_failure_propagates_after_private_cache_cleanup(self):
     params = self._params()
     cache = MagicMock()
@@ -317,6 +382,7 @@ class TestKerberosServiceCheckContract(unittest.TestCase):
     with (
       patch.dict(sys.modules, {"params": params}),
       patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True),
+      patch.object(KERBEROS_UTILS, "validate_executable"),
       patch.object(KERBEROS_CHECK, "PrivateKerberosCache", return_value=context),
     ):
       with self.assertRaisesRegex(Fail, "kinit failed"):
@@ -327,6 +393,10 @@ class TestKerberosServiceCheckContract(unittest.TestCase):
 class TestKerberosParamsAndMetadata(unittest.TestCase):
   def _config(self, manage_identities="false", manage_conf="false"):
     return {
+      "clusterLevelParams": {
+        "stack_name": "BIGTOP",
+        "stack_version": "3.2.0",
+      },
       "agentLevelParams": {"hostname": "host.example.com"},
       "configurations": {
         "cluster-env": {

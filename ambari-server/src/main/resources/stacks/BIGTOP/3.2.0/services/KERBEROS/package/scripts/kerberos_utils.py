@@ -22,6 +22,7 @@ import binascii
 import ipaddress
 import os
 import re
+import stat
 from collections.abc import Mapping
 
 from resource_management.core import sudo
@@ -32,6 +33,28 @@ _DNS_LABEL_PATTERN = re.compile(
   r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?", re.ASCII
 )
 _USER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]*\$?", re.ASCII)
+_VERSION_PATTERN = re.compile(r"[0-9]+(?:\.[0-9]+){1,3}", re.ASCII)
+_MAX_KEYTAB_BYTES = 16 * 1024 * 1024
+_MAX_KEYTAB_RECORDS = 10000
+_PROTECTED_MANAGED_ROOTS = (
+  "/bin",
+  "/boot",
+  "/dev",
+  "/home",
+  "/lib",
+  "/lib64",
+  "/proc",
+  "/root",
+  "/run",
+  "/sbin",
+  "/sys",
+  "/tmp",
+  "/usr/bin",
+  "/usr/lib",
+  "/usr/lib64",
+  "/usr/sbin",
+  "/var/tmp",
+)
 
 
 def as_bool(value, name):
@@ -46,10 +69,41 @@ def as_bool(value, name):
   raise Fail(f"{name} must be true or false")
 
 
+def bounded_int(value, name, minimum, maximum):
+  if isinstance(value, bool):
+    raise Fail(f"{name} must be an integer")
+  try:
+    parsed = int(value)
+  except (TypeError, ValueError) as error:
+    raise Fail(f"{name} must be an integer") from error
+  if parsed < minimum or parsed > maximum:
+    raise Fail(f"{name} must be between {minimum} and {maximum}")
+  return parsed
+
+
+def validate_bigtop_stack(stack_name, stack_version):
+  if stack_name != "BIGTOP":
+    raise Fail("Kerberos service scripts only support the BIGTOP stack")
+  if (
+    not isinstance(stack_version, str)
+    or _VERSION_PATTERN.fullmatch(stack_version) is None
+  ):
+    raise Fail("BIGTOP stack version is invalid")
+  return stack_version
+
+
 def validate_user(value, name):
   if not isinstance(value, str) or _USER_PATTERN.fullmatch(value) is None:
     raise Fail(f"{name} is not a valid local user or group name")
   return value
+
+
+def validate_host(value, name):
+  if not isinstance(value, str) or value.strip() != value:
+    raise Fail(f"{name} is invalid")
+  if not _is_valid_host(value):
+    raise Fail(f"{name} is invalid")
+  return value.lower()
 
 
 def validate_principal(value, name="Kerberos principal"):
@@ -201,6 +255,11 @@ def validate_managed_file(path, name, suffix=None):
     raise Fail(f"{name} must be a safe absolute file path")
   if suffix and not path.endswith(suffix):
     raise Fail(f"{name} must end with {suffix}")
+  if any(
+    path == protected or path.startswith(protected + os.path.sep)
+    for protected in _PROTECTED_MANAGED_ROOTS
+  ):
+    raise Fail(f"{name} must not use a protected system directory")
   _validate_path_parents(path, name)
   if sudo.path_lexists(path):
     if sudo.path_islink(path):
@@ -210,11 +269,35 @@ def validate_managed_file(path, name, suffix=None):
   return path
 
 
+def validate_executable(path, name):
+  if (
+    not isinstance(path, str)
+    or not os.path.isabs(path)
+    or os.path.normpath(path) != path
+  ):
+    raise Fail(f"{name} must be an absolute path")
+  _validate_path_parents(path, name)
+  if (
+    not sudo.path_lexists(path)
+    or sudo.path_islink(path)
+    or not sudo.path_isfile(path)
+  ):
+    raise Fail(f"{name} must be a regular non-symlink file")
+  metadata = sudo.stat(path)
+  if metadata.st_uid != 0 or metadata.st_mode & 0o022:
+    raise Fail(f"{name} must be root-owned and not group/world writable")
+  if stat.S_IMODE(metadata.st_mode) & 0o111 == 0:
+    raise Fail(f"{name} is not executable")
+  return path
+
+
 def validate_keytab_records(records, require_content=False):
   if records is None:
     return ()
   if not isinstance(records, (list, tuple)):
     raise Fail("kerberosCommandParams must be a list")
+  if len(records) > _MAX_KEYTAB_RECORDS:
+    raise Fail("kerberosCommandParams contains too many records")
 
   keytab_properties = {}
   for item in records:
@@ -248,12 +331,16 @@ def validate_keytab_records(records, require_content=False):
       content = item.get("keytab_content_base64")
       if not isinstance(content, str) or not content:
         raise Fail("SET_KEYTAB requires non-empty base64 keytab content")
+      if len(content) > _MAX_KEYTAB_BYTES * 2:
+        raise Fail("SET_KEYTAB keytab content exceeds the supported size")
       try:
         decoded = base64.b64decode(content, validate=True)
       except (binascii.Error, ValueError) as error:
         raise Fail("SET_KEYTAB contains invalid base64 keytab content") from error
       if not decoded:
         raise Fail("SET_KEYTAB requires non-empty keytab content")
+      if len(decoded) > _MAX_KEYTAB_BYTES:
+        raise Fail("SET_KEYTAB keytab content exceeds the supported size")
   return tuple(records)
 
 

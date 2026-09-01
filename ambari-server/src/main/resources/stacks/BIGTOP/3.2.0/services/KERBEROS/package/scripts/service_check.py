@@ -60,6 +60,15 @@ class KerberosServiceCheck(Script):
       )
       return
 
+    kerberos_utils.validate_executable(
+      params.kinit_path_local, "Kerberos kinit executable"
+    )
+    timeout = kerberos_utils.bounded_int(
+      params.service_check_timeout,
+      "Kerberos service check timeout",
+      1,
+      300,
+    )
     Logger.info(f"Performing kinit using {principal}")
     with PrivateKerberosCache(
       params.smoke_user,
@@ -70,7 +79,7 @@ class KerberosServiceCheck(Script):
         params.kinit_path_local,
         keytab,
         principal,
-        timeout=params.service_check_timeout,
+        timeout=timeout,
       )
 
 
