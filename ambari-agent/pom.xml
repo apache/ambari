@@ -631,7 +631,6 @@
                   <includes>
                     <include>/cred/lib/*.jar</include>
                     <include>/tools/*.jar</include>
-                    <include>/cache/stacks/HDP/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
                     <include>/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar</include>
                     <include>/cache/common-services/STORM/0.9.1/package/files/wordCount.jar</include>
                   </includes>
@@ -968,7 +967,6 @@
       <envClassifier>linux</envClassifier>
       <dirsep>/</dirsep>
       <pathsep>:</pathsep>
-      <stack.distribution>HDP</stack.distribution>
       <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
       <executable.shell>sh</executable.shell>
       <fileextension.shell>sh</fileextension.shell>
