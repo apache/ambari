@@ -27,6 +27,7 @@ __all__ = [
 
 import os
 import json
+import re
 from datetime import datetime
 from ambari_commons.credential_store_helper import (
   create_password_in_credential_store,
@@ -42,6 +43,38 @@ from resource_management.libraries.functions.ranger_functions_v2 import Rangerad
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.default import default
+
+
+_SAFE_SEGMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,254}", re.ASCII)
+
+
+def _require_safe_segment(value, label):
+  if not isinstance(value, str) or _SAFE_SEGMENT.fullmatch(value) is None:
+    raise Fail(f"{label} must be a single filesystem-safe segment")
+  return value
+
+
+def _require_path_within(path, root, label):
+  if not isinstance(path, str) or not os.path.isabs(path):
+    raise Fail(f"{label} must be an absolute path")
+  normalized = os.path.normpath(path)
+  if normalized != path or os.path.commonpath((normalized, root)) != root:
+    raise Fail(f"{label} must remain within {root}")
+  return normalized
+
+
+def _require_safe_jar_path(path, label):
+  if not isinstance(path, str) or not os.path.isabs(path):
+    raise Fail(f"{label} must be an absolute path")
+  normalized = os.path.normpath(path)
+  file_name = os.path.basename(normalized)
+  if (
+    normalized != path
+    or _SAFE_SEGMENT.fullmatch(file_name) is None
+    or not file_name.lower().endswith(".jar")
+  ):
+    raise Fail(f"{label} must end in a filesystem-safe JAR file name")
+  return normalized
 
 
 def setup_ranger_plugin(
@@ -85,6 +118,14 @@ def setup_ranger_plugin(
   cred_lib_path_override=None,
   plugin_home=None,
 ):
+  repo_name = _require_safe_segment(repo_name, "Ranger repository name")
+  ranger_repo_dir = os.path.join("/etc", "ranger", repo_name)
+  credential_file = _require_path_within(
+    credential_file, ranger_repo_dir, "Ranger credential file"
+  )
+  if credential_file != os.path.join(ranger_repo_dir, "cred.jceks"):
+    raise Fail("Ranger credential file must be the repository cred.jceks file")
+
   if stack_version_override is None:
     stack_version = get_stack_version(component_select_name)
   else:
@@ -100,6 +141,21 @@ def setup_ranger_plugin(
     and component_driver_curl_source is not None
     and not component_driver_curl_source.endswith("/None")
   ):
+    component_downloaded_custom_connector = _require_safe_jar_path(
+      component_downloaded_custom_connector, "Downloaded Ranger JDBC connector"
+    )
+    component_driver_curl_target = _require_safe_jar_path(
+      component_driver_curl_target, "Installed Ranger JDBC connector"
+    )
+    target_root = os.path.dirname(component_driver_curl_target)
+    if previous_jdbc_jar:
+      previous_jdbc_jar = _require_safe_jar_path(
+        previous_jdbc_jar, "Previous Ranger JDBC connector"
+      )
+      if os.path.dirname(previous_jdbc_jar) != target_root:
+        raise Fail(
+          "Previous Ranger JDBC connector must use the installed connector directory"
+        )
     if previous_jdbc_jar and os.path.isfile(previous_jdbc_jar):
       File(previous_jdbc_jar, action="delete")
 
@@ -181,8 +237,8 @@ def setup_ranger_plugin(
 
     Directory(
       [
-        os.path.join("/etc", "ranger", repo_name),
-        os.path.join("/etc", "ranger", repo_name, "policycache"),
+        ranger_repo_dir,
+        os.path.join(ranger_repo_dir, "policycache"),
       ],
       owner=component_user,
       group=component_group,
@@ -194,9 +250,7 @@ def setup_ranger_plugin(
     for cache_service in cache_service_list:
       File(
         os.path.join(
-          "/etc",
-          "ranger",
-          repo_name,
+          ranger_repo_dir,
           "policycache",
           format("{cache_service}_{repo_name}.json"),
         ),

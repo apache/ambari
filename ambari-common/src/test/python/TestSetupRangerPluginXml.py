@@ -25,6 +25,38 @@ from resource_management.libraries.functions import setup_ranger_plugin_xml
 
 
 class TestSetupRangerPluginXml(TestCase):
+  def test_ranger_repository_and_connector_paths_fail_closed(self):
+    self.assertEqual(
+      "service-1",
+      setup_ranger_plugin_xml._require_safe_segment(
+        "service-1", "Ranger repository name"
+      ),
+    )
+    for value in ("../service", "/service", "service name", "service;run", ""):
+      with self.subTest(segment=value):
+        with self.assertRaises(Fail):
+          setup_ranger_plugin_xml._require_safe_segment(
+            value, "Ranger repository name"
+          )
+
+    self.assertEqual(
+      "/tmp/driver.jar",
+      setup_ranger_plugin_xml._require_safe_jar_path(
+        "/tmp/driver.jar", "Ranger JDBC connector"
+      ),
+    )
+    for path in (
+      "relative.jar",
+      "/tmp/../etc/driver.jar",
+      "/tmp/driver;run.jar",
+      "/tmp/driver.zip",
+    ):
+      with self.subTest(path=path):
+        with self.assertRaises(Fail):
+          setup_ranger_plugin_xml._require_safe_jar_path(
+            path, "Ranger JDBC connector"
+          )
+
   def test_keystore_uses_ambari_java_and_stdin_credential_helper(self):
     with patch.object(
       setup_ranger_plugin_xml, "create_password_in_credential_store"
