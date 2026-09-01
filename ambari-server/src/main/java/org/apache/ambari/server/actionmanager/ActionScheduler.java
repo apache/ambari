@@ -58,6 +58,7 @@ import org.apache.ambari.server.metadata.RoleCommandPair;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -122,6 +123,9 @@ class ActionScheduler implements Runnable {
 
   @Inject
   private Configuration configuration;
+
+  @Inject
+  private ResourceManager resourceManager;
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
@@ -1154,6 +1158,10 @@ class ActionScheduler implements Runnable {
     }
     Map<String, String> commandParamsCmd = cmd.getCommandParams();
     commandParamsCmd.putAll(commandParams);
+    if (resourceManager != null) {
+      commandParamsCmd.put(ExecutionCommand.KeyNames.RESOURCE_ARCHIVE_DIGESTS,
+          StageUtils.getGson().toJson(resourceManager.getResourceArchiveDigests()));
+    }
     cmd.setCommandParams(commandParamsCmd);
 
     try {

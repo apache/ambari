@@ -42,6 +42,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.sql.SQLException;
@@ -88,6 +90,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.serveraction.MockServerAction;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
@@ -266,6 +269,86 @@ public class TestActionScheduler {
     scheduler.doWork();
 
     EasyMock.verify(entityManagerProviderMock);
+  }
+
+  @Test
+  public void testResourceArchiveDigestsOverrideExistingCommandValues() throws Exception {
+    ResourceManager resourceManager = mock(ResourceManager.class);
+    TreeMap<String, String> currentDigests = new TreeMap<>();
+    currentDigests.put("custom-services/service.tar.gz",
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+    when(resourceManager.getResourceArchiveDigests()).thenReturn(currentDigests);
+
+    Stage stage = StageUtils.getATestStage(1, 977, hostname,
+        "{\"resource_archive_digests\":\"stale-stage-value\"}", "{}");
+    ExecutionCommand command = stage.getExecutionCommandWrapper(hostname, Role.NAMENODE.name())
+        .getExecutionCommand();
+    command.getCommandParams().put(ExecutionCommand.KeyNames.RESOURCE_ARCHIVE_DIGESTS,
+        "stale-command-value");
+    List<ExecutionCommand> commandsToUpdate = new ArrayList<>();
+
+    processHostRoleWithResourceManager(resourceManager, stage, command, commandsToUpdate);
+
+    assertEquals(StageUtils.getGson().toJson(currentDigests),
+        command.getCommandParams().get(ExecutionCommand.KeyNames.RESOURCE_ARCHIVE_DIGESTS));
+    assertEquals(Collections.singletonList(command), commandsToUpdate);
+  }
+
+  @Test
+  public void testMissingResourceArchiveManifestSendsEmptyDigestMap() throws Exception {
+    ResourceManager resourceManager = mock(ResourceManager.class);
+    when(resourceManager.getResourceArchiveDigests()).thenReturn(new TreeMap<>());
+    Stage stage = StageUtils.getATestStage(1, 977, hostname, "{}", "{}");
+    ExecutionCommand command = stage.getExecutionCommandWrapper(hostname, Role.NAMENODE.name())
+        .getExecutionCommand();
+    List<ExecutionCommand> commandsToUpdate = new ArrayList<>();
+
+    processHostRoleWithResourceManager(resourceManager, stage, command, commandsToUpdate);
+
+    assertEquals("{}",
+        command.getCommandParams().get(ExecutionCommand.KeyNames.RESOURCE_ARCHIVE_DIGESTS));
+    assertEquals(Collections.singletonList(command), commandsToUpdate);
+  }
+
+  @Test
+  public void testInvalidOrStaleResourceArchiveManifestPreventsCommandDispatch() throws Exception {
+    ResourceManager resourceManager = mock(ResourceManager.class);
+    when(resourceManager.getResourceArchiveDigests())
+        .thenThrow(new IllegalStateException("Invalid or stale resource archive digest manifest"));
+    Stage stage = StageUtils.getATestStage(1, 977, hostname, "{}", "{}");
+    ExecutionCommand command = stage.getExecutionCommandWrapper(hostname, Role.NAMENODE.name())
+        .getExecutionCommand();
+    List<ExecutionCommand> commandsToUpdate = new ArrayList<>();
+
+    try {
+      processHostRoleWithResourceManager(resourceManager, stage, command, commandsToUpdate);
+      Assert.fail("Expected invalid resource archive manifest to prevent dispatch");
+    } catch (InvocationTargetException exception) {
+      assertTrue(exception.getCause() instanceof IllegalStateException);
+    }
+
+    assertTrue(commandsToUpdate.isEmpty());
+  }
+
+  private void processHostRoleWithResourceManager(ResourceManager resourceManager, Stage stage,
+      ExecutionCommand command, List<ExecutionCommand> commandsToUpdate) throws Exception {
+    Clusters clusters = mock(Clusters.class);
+    ActionScheduler scheduler = new ActionScheduler(100, 5, mock(ActionDBAccessor.class), clusters,
+        10000, new HostsMap((String) null), mock(UnitOfWork.class), null,
+        new Configuration(new Properties()), entityManagerProviderMock, mock(HostRoleCommandDAO.class),
+        null, null, mock(AgentCommandsPublisher.class));
+    Field resourceManagerField = ActionScheduler.class.getDeclaredField("resourceManager");
+    resourceManagerField.setAccessible(true);
+    resourceManagerField.set(scheduler, resourceManager);
+
+    RequestEntity request = mock(RequestEntity.class);
+    when(request.getRequestId()).thenReturn(stage.getRequestId());
+    when(request.getClusterHostInfo()).thenReturn("{}");
+    Method processHostRole = ActionScheduler.class.getDeclaredMethod("processHostRole",
+        RequestEntity.class, Stage.class, ExecutionCommand.class, List.class, List.class);
+    processHostRole.setAccessible(true);
+    processHostRole.invoke(scheduler, request, stage, command, new ArrayList<ExecutionCommand>(),
+        commandsToUpdate);
   }
 
   private List<AgentCommand> waitForQueueSize(Long hostId, AgentCommandsPublisher agentCommandsPublisher,

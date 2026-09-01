@@ -25,9 +25,11 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.Properties;
+import java.util.SortedMap;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -112,6 +114,56 @@ public class TestResources extends TestCase {
     assertTrue(resFile.exists());
     String resContent = FileUtils.readFileToString(resFile, Charset.defaultCharset());
     assertEquals(resContent, RESOURCE_FILE_CONTENT);
+  }
+
+  @Test
+  public void testGetResourceArchiveDigests() throws Exception {
+    String archiveContent = "trusted archive bytes";
+    String archiveDigest = DigestUtils.sha256Hex(archiveContent);
+    File packageDirectory = tempFolder.newFolder("common-services", "HDFS", "3.0", "package");
+    FileUtils.writeStringToFile(new File(packageDirectory, "archive.zip"), archiveContent,
+        Charset.defaultCharset());
+    File manifest = new File(tempFolder.getRoot(), ResourceManager.ARCHIVE_DIGEST_MANIFEST);
+    FileUtils.writeStringToFile(manifest,
+        "{\"common-services/HDFS/3.0/package\":\"" + archiveDigest + "\"}",
+        Charset.defaultCharset());
+
+    SortedMap<String, String> digests = resMan.getResourceArchiveDigests();
+
+    assertEquals(1, digests.size());
+    assertEquals(archiveDigest, digests.get("common-services/HDFS/3.0/package"));
+  }
+
+  @Test
+  public void testRejectsInvalidResourceArchiveDigestManifest() throws Exception {
+    File manifest = new File(tempFolder.getRoot(), ResourceManager.ARCHIVE_DIGEST_MANIFEST);
+    FileUtils.writeStringToFile(manifest, "{\"../outside\":\"not-a-digest\"}",
+        Charset.defaultCharset());
+
+    try {
+      resMan.getResourceArchiveDigests();
+      fail("Invalid resource archive digest metadata must be rejected");
+    } catch (IllegalStateException expected) {
+      assertTrue(expected.getMessage().contains("invalid entry"));
+    }
+  }
+
+  @Test
+  public void testRejectsStaleResourceArchiveDigestManifest() throws Exception {
+    File packageDirectory = tempFolder.newFolder("common-services", "HDFS", "3.0", "package");
+    FileUtils.writeStringToFile(new File(packageDirectory, "archive.zip"), "current archive",
+        Charset.defaultCharset());
+    File manifest = new File(tempFolder.getRoot(), ResourceManager.ARCHIVE_DIGEST_MANIFEST);
+    FileUtils.writeStringToFile(manifest,
+        "{\"common-services/HDFS/3.0/package\":\"" + DigestUtils.sha256Hex("stale archive") + "\"}",
+        Charset.defaultCharset());
+
+    try {
+      resMan.getResourceArchiveDigests();
+      fail("Stale resource archive digest metadata must be rejected");
+    } catch (IllegalStateException expected) {
+      assertTrue(expected.getMessage().contains("stale"));
+    }
   }
 
 }

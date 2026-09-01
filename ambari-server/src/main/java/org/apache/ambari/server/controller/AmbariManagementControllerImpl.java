@@ -47,6 +47,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.RESOURCE_ARCHIVE_DIGESTS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
@@ -158,6 +159,7 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -358,6 +360,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private CredentialStoreService credentialStoreService;
   @Inject
   private SettingDAO settingDAO;
+
+  @Inject
+  private ResourceManager resourceManager;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -5789,6 +5794,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return new MetadataUpdateEvent(metadataClusters, null, getMetadataAgentConfigs(), UpdateEventType.UPDATE);
   }
 
+  public MetadataUpdateEvent getAmbariLevelMetadataUpdate() {
+    return new MetadataUpdateEvent(new TreeMap<>(), getMetadataAmbariLevelParams(), null,
+        UpdateEventType.UPDATE);
+  }
+
   @Override
   public MetadataUpdateEvent getClusterMetadataOnConfigsUpdate(Cluster cl) throws AmbariException {
     final TreeMap<String, MetadataCluster> metadataClusters = new TreeMap<>();
@@ -6036,6 +6046,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public TreeMap<String, String> getMetadataAmbariLevelParams() {
     TreeMap<String, String> clusterLevelParams = new TreeMap<>();
     clusterLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
+    clusterLevelParams.put(RESOURCE_ARCHIVE_DIGESTS,
+        gson.toJson(resourceManager.getResourceArchiveDigests()));
     clusterLevelParams.put(JAVA_HOME, getJavaHome());
     clusterLevelParams.put(AMBARI_JAVA_HOME, getAmbariJavaHome());
     clusterLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));

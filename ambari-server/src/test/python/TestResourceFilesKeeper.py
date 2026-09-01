@@ -21,6 +21,8 @@ import os
 
 os.environ["ROOT"] = ""
 
+import hashlib
+import json
 import time
 import subprocess
 import os
@@ -38,7 +40,6 @@ from only_for_platform import (
   not_for_platform,
   only_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
@@ -97,10 +98,9 @@ class TestResourceFilesKeeper(TestCase):
     DUMMY_UNCHANGEABLE_STACK, ResourceFilesKeeper.PACKAGE_DIR
   )
 
-  if get_platform() != PLATFORM_WINDOWS:
-    DUMMY_UNCHANGEABLE_PACKAGE_HASH = "290e2adef52648fba2865c192ccdc1dd6858c974"
-  else:
-    DUMMY_UNCHANGEABLE_PACKAGE_HASH = "2e438f4f9862420ed8930a56b8809b8aca359e87"
+  DUMMY_UNCHANGEABLE_PACKAGE_HASH = (
+    "c06ef9c75353e5903b750ff57a0e74cf9fef6faf0056eb4102224a5bce0836c3"
+  )
   DUMMY_HASH = "dummy_hash"
   YA_HASH = "yet_another_hash"
   SOME_PATH = "some-path"
@@ -123,48 +123,37 @@ class TestResourceFilesKeeper(TestCase):
     DUMMY_UNCHANGEABLE_COMMON_SERVICES, ResourceFilesKeeper.PACKAGE_DIR
   )
 
-  if get_platform() != PLATFORM_WINDOWS:
-    UPDATE_DIRECTORY_ARCHIVE_CALL_LIST = (
-      "[call('../resources/TestAmbaryServer.samples/"
-      "dummy_stack/HIVE/package'),\n "
-      "call('../resources/TestAmbaryServer.samples/"
-      "dummy_stack/HIVE/package'),\n "
-      "call('../resources/TestAmbaryServer.samples/"
-      "dummy_stack/HIVE/package'),\n "
-      "call('../resources/TestAmbaryServer.samples/"
-      "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
-      "call('../resources/TestAmbaryServer.samples/"
-      "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
-      "call('../resources/TestAmbaryServer.samples/dummy_extension/HIVE/package'),\n "
-      "call('../resources/stack-hooks'),\n "
-      "call('../resources/custom_actions'),\n "
-      "call('../resources/host_scripts'),\n "
-      "call('../resources/dashboards')]"
-    )
-  else:
-    UPDATE_DIRECTORY_ARCHIVE_CALL_LIST = (
-      "[call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_stack\\\\HIVE\\\\package'),\n "
-      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_stack\\\\HIVE\\\\package'),\n "
-      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_stack\\\\HIVE\\\\package'),\n "
-      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_common_services\\\\HIVE\\\\0.11.0.2.0.5.0\\\\package'),\n "
-      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_common_services\\\\HIVE\\\\0.11.0.2.0.5.0\\\\package'),\n "
-      "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_extension\\\\HIVE\\\\package'),\n "
-      "call('..\\\\resources\\\\custom_actions'),\n "
-      "call('..\\\\resources\\\\host_scripts'),\n "
-      "call('..\\\\resources\\\\dashboards')]"
-    )
-
+  UPDATE_DIRECTORY_ARCHIVE_CALL_LIST = (
+    "[call('../resources/TestAmbaryServer.samples/"
+    "dummy_stack/HIVE/package'),\n "
+    "call('../resources/TestAmbaryServer.samples/"
+    "dummy_stack/HIVE/package'),\n "
+    "call('../resources/TestAmbaryServer.samples/"
+    "dummy_stack/HIVE/package'),\n "
+    "call('../resources/TestAmbaryServer.samples/"
+    "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
+    "call('../resources/TestAmbaryServer.samples/"
+    "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
+    "call('../resources/TestAmbaryServer.samples/dummy_extension/HIVE/package'),\n "
+    "call('../resources/stack-hooks'),\n "
+    "call('../resources/custom_actions'),\n "
+    "call('../resources/host_scripts'),\n "
+    "call('../resources/dashboards')]"
+  )
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)
 
   @patch.object(ResourceFilesKeeper, "update_directory_archives")
   def test_perform_housekeeping(self, update_directory_archives_mock):
-    resource_files_keeper = ResourceFilesKeeper(
-      os.sep + "dummy-resources", os.sep + "dummy-path"
-    )
-    resource_files_keeper.perform_housekeeping()
-    update_directory_archives_mock.assertCalled()
-    pass
+    with tempfile.TemporaryDirectory() as resources_dir:
+      resource_files_keeper = ResourceFilesKeeper(resources_dir, os.sep + "dummy-path")
+      resource_files_keeper.perform_housekeeping()
+      update_directory_archives_mock.assert_called_once_with()
+      manifest_path = os.path.join(
+        resources_dir, ResourceFilesKeeper.ARCHIVE_DIGEST_MANIFEST
+      )
+      with open(manifest_path, encoding="ascii") as manifest_stream:
+        self.assertEqual({}, json.load(manifest_stream))
 
   @patch.object(ResourceFilesKeeper, "list_extensions")
   @patch.object(ResourceFilesKeeper, "update_directory_archive")
@@ -417,6 +406,67 @@ class TestResourceFilesKeeper(TestCase):
         pass  # Expected
       except Exception as e:
         self.fail("Unexpected exception thrown:" + str(e))
+
+  def test_count_hash_sum_includes_relative_path_and_mode(self):
+    with tempfile.TemporaryDirectory() as directory:
+      original_path = os.path.join(directory, "script.py")
+      with open(original_path, "w", encoding="ascii") as stream:
+        stream.write("same content")
+      os.chmod(original_path, 0o644)
+      resource_files_keeper = ResourceFilesKeeper(directory, directory)
+
+      original_hash = resource_files_keeper.count_hash_sum(directory)
+      renamed_path = os.path.join(directory, "renamed.py")
+      os.rename(original_path, renamed_path)
+      renamed_hash = resource_files_keeper.count_hash_sum(directory)
+      self.assertNotEqual(original_hash, renamed_hash)
+
+      os.chmod(renamed_path, 0o755)
+      executable_hash = resource_files_keeper.count_hash_sum(directory)
+      self.assertNotEqual(renamed_hash, executable_hash)
+
+  def test_archive_generation_change_preserves_previous_archive(self):
+    with tempfile.TemporaryDirectory() as resources_dir:
+      package_dir = os.path.join(resources_dir, "service", "package")
+      os.makedirs(package_dir)
+      with open(os.path.join(package_dir, "script.py"), "w", encoding="ascii") as stream:
+        stream.write("print('new')")
+      archive_path = os.path.join(package_dir, ResourceFilesKeeper.ARCHIVE_NAME)
+      with open(archive_path, "wb") as stream:
+        stream.write(b"previous archive")
+
+      resource_files_keeper = ResourceFilesKeeper(resources_dir, resources_dir)
+      with patch.object(
+        resource_files_keeper, "count_hash_sum", return_value="changed"
+      ):
+        with self.assertRaisesRegex(KeeperException, "changed while creating"):
+          resource_files_keeper.zip_directory(
+            package_dir, expected_hash="expected"
+          )
+
+      with open(archive_path, "rb") as stream:
+        self.assertEqual(b"previous archive", stream.read())
+
+  def test_write_archive_digest_manifest(self):
+    with tempfile.TemporaryDirectory() as resources_dir:
+      package_dir = os.path.join(resources_dir, "service", "package")
+      os.makedirs(package_dir)
+      archive_path = os.path.join(package_dir, ResourceFilesKeeper.ARCHIVE_NAME)
+      archive_content = b"archive bytes"
+      with open(archive_path, "wb") as stream:
+        stream.write(archive_content)
+
+      resource_files_keeper = ResourceFilesKeeper(resources_dir, resources_dir)
+      resource_files_keeper.write_archive_digest_manifest()
+
+      manifest_path = os.path.join(
+        resources_dir, ResourceFilesKeeper.ARCHIVE_DIGEST_MANIFEST
+      )
+      with open(manifest_path, encoding="ascii") as manifest_stream:
+        self.assertEqual(
+          {"service/package": hashlib.sha256(archive_content).hexdigest()},
+          json.load(manifest_stream),
+        )
 
   def test_read_hash_sum(self):
     resource_files_keeper = ResourceFilesKeeper(
