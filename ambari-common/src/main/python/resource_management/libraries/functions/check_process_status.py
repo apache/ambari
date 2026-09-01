@@ -20,16 +20,14 @@ Ambari Agent
 
 """
 
-from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
-from resource_management.core import shell
+from resource_management.libraries.functions.safe_process import read_running_process
 
 __all__ = ["check_process_status"]
 
-import os
 
-
-def check_process_status(pid_file):
+def check_process_status(pid_file, expected_user=None, expected_cmdline=None):
   """
   Function checks whether process is running.
   Process is considered running, if pid file exists, and process with
@@ -37,30 +35,18 @@ def check_process_status(pid_file):
   If process is not running, will throw ComponentIsNotRunning exception
 
   @param pid_file: path to service pid file
+  @param expected_user: optional operating system user that must own the process
+  @param expected_cmdline: optional command line fragment or fragments that must match
   """
-  from resource_management.core import sudo
-
-  if not pid_file or not os.path.isfile(pid_file):
-    Logger.info(f"Pid file {str(pid_file)} is empty or does not exist")
-    raise ComponentIsNotRunning()
-
   try:
-    pid = int(sudo.read_file(pid_file))
-  except:
-    Logger.info(
-      f"Pid file {pid_file} does not exist or does not contain a process id number"
-    )
-    raise ComponentIsNotRunning()
-
-  try:
-    # Kill will not actually kill the process
-    # From the doc:
-    # If sig is 0, then no signal is sent, but error checking is still
-    # performed; this can be used to check for the existence of a
-    # process ID or process group ID.
-    sudo.kill(pid, 0)
-  except OSError:
-    Logger.info(f"Process with pid {pid} is not running. Stale pid file at {pid_file}")
+    identity = read_running_process(pid_file, expected_user, expected_cmdline)
+  except Fail as error:
+    Logger.info(f"Process in pid file {pid_file} failed validation: {error}")
+    if expected_user is not None or expected_cmdline is not None:
+      raise
+    raise ComponentIsNotRunning() from error
+  if identity is None:
+    Logger.info(f"Pid file {str(pid_file)} is empty, stale, or does not exist")
     raise ComponentIsNotRunning()
 
 
