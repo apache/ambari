@@ -20,6 +20,7 @@ limitations under the License.
 
 import os
 import re
+from ambari_commons.db_connection_helper import verify_db_connection
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
@@ -95,19 +96,20 @@ def setup_ranger_admin(upgrade_type=None):
     cp = cp + os.pathsep + format("{driver_curl_target}")
   cp = cp + os.pathsep + format("{ranger_home}/ews/lib/*")
 
-  db_connection_check_command = format(
-    "{ambari_java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_jdbc_connection_url}' {ranger_db_user} {ranger_db_password!p} {ranger_jdbc_driver}"
-  )
   env_dict = {}
   if params.db_flavor.lower() == "sqla":
     env_dict = {"LD_LIBRARY_PATH": params.ld_lib_path}
 
-  Execute(
-    db_connection_check_command,
-    path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+  verify_db_connection(
+    format("{ambari_java_home}/bin/java"),
+    cp,
+    params.ranger_jdbc_connection_url,
+    params.ranger_db_user,
+    params.ranger_db_password,
+    params.ranger_jdbc_driver,
+    environment=env_dict,
     tries=5,
     try_sleep=10,
-    environment=env_dict,
   )
 
   Execute(

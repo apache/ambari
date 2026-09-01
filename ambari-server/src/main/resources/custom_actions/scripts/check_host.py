@@ -39,7 +39,7 @@ from resource_management.core.exceptions import Fail
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import shell
 from resource_management.core.logger import Logger
-from shlex import split
+from ambari_commons.db_connection_helper import verify_db_connection
 
 
 # WARNING. If you are adding a new host check that is used by cleanup, add it to BEFORE_CLEANUP_HOST_CHECKS
@@ -642,34 +642,41 @@ class CheckHost(Script):
     if db_name == DB_ORACLE and user_name.upper() == "SYS":
       user_name = "SYS AS SYSDBA"
 
-    # try to connect to db
-    db_connection_check_command = format(
-      "{java_exec} -cp {check_db_connection_path}{class_path_delimiter}"
-      '{jdbc_jar_path} -Djava.library.path={java_library_path} org.apache.ambari.server.DBConnectionVerification "{db_connection_url}" '
-      '"{user_name}" {user_passwd!p} {jdbc_driver_class}'
-    )
-
+    verification_environment = None
     if db_name == DB_SQLA:
-      db_connection_check_command = (
-        "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}{1} {2}".format(
-          agent_cache_dir, LIBS_PATH_IN_ARCHIVE_SQLA, db_connection_check_command
+      verification_environment = {
+        "LD_LIBRARY_PATH": os.pathsep.join(
+          filter(
+            None,
+            [
+              os.environ.get("LD_LIBRARY_PATH"),
+              agent_cache_dir + LIBS_PATH_IN_ARCHIVE_SQLA,
+            ],
+          )
         )
-      )
+      }
 
-    if isinstance(db_connection_check_command, str):
-      code, out = shell.call(
-        split(db_connection_check_command, comments=True), shell=False, quiet=True
+    try:
+      out = verify_db_connection(
+        java_exec,
+        check_db_connection_path + class_path_delimiter + jdbc_jar_path,
+        db_connection_url,
+        user_name,
+        user_passwd,
+        jdbc_driver_class,
+        environment=verification_environment,
+        java_options=[f"-Djava.library.path={java_library_path}"],
       )
+    except Fail as err:
+      db_connection_check_structured_output = {
+        "exit_code": 1,
+        "message": str(err),
+      }
     else:
-      code, out = shell.call(db_connection_check_command, shell=False)
-
-    if code == 0:
       db_connection_check_structured_output = {
         "exit_code": 0,
         "message": "DB connection check completed successfully!",
       }
-    else:
-      db_connection_check_structured_output = {"exit_code": 1, "message": out}
 
     Logger.info("DB connection check completed.")
     return db_connection_check_structured_output

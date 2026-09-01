@@ -22,6 +22,7 @@ import sys
 import fileinput
 import os
 import json
+from ambari_commons.db_connection_helper import verify_db_connection
 import urllib.request, urllib.error, urllib.parse, base64, http.client
 from io import StringIO as BytesIO
 from datetime import datetime
@@ -275,19 +276,20 @@ def kms(upgrade_type=None):
 
       cp = cp + os.pathsep + path_to_jdbc
 
-    db_connection_check_command = format(
-      "{ambari_java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_kms_jdbc_connection_url}' {db_user} {db_password!p} {ranger_kms_jdbc_driver}"
-    )
     env_dict = {}
     if params.db_flavor.lower() == "sqla":
       env_dict = {"LD_LIBRARY_PATH": params.ld_library_path}
 
-    Execute(
-      db_connection_check_command,
-      path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+    verify_db_connection(
+      format("{ambari_java_home}/bin/java"),
+      cp,
+      params.ranger_kms_jdbc_connection_url,
+      params.db_user,
+      params.db_password,
+      params.ranger_kms_jdbc_driver,
+      environment=env_dict,
       tries=5,
       try_sleep=10,
-      environment=env_dict,
     )
 
     if (

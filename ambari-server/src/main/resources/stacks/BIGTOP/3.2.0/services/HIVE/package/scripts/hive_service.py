@@ -23,6 +23,7 @@ import os
 import time
 
 # Ambari Commons & Resource Management Imports
+from ambari_commons.db_connection_helper import verify_db_connection
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core import shell
 from resource_management.core import utils
@@ -170,17 +171,19 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
       )
       Logger.error(error_message)
 
-  db_connection_check_command = format(
-    "{ambari_java_home}/bin/java -cp {check_db_connection_jar}:{path_to_jdbc} org.apache.ambari.server.DBConnectionVerification '{hive_jdbc_connection_url}' {hive_metastore_user_name} {hive_metastore_user_passwd!p} {hive_jdbc_driver}"
-  )
+  classpath = os.pathsep.join((format("{check_db_connection_jar}"), path_to_jdbc))
   try:
-    Execute(
-      db_connection_check_command,
-      path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+    verify_db_connection(
+      format("{ambari_java_home}/bin/java"),
+      classpath,
+      params.hive_jdbc_connection_url,
+      params.hive_metastore_user_name,
+      params.hive_metastore_user_passwd,
+      params.hive_jdbc_driver,
       tries=5,
       try_sleep=10,
     )
-  except:
+  except Exception:
     show_logs(params.hive_log_dir, params.hive_user)
     raise
 

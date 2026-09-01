@@ -139,10 +139,10 @@ class TestCheckHost(TestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("check_host.format")
   @patch("os.path.isfile")
-  @patch("resource_management.core.shell.call")
+  @patch("check_host.verify_db_connection")
   def testDBConnectionCheck(
     self,
-    shell_call_mock,
+    verify_db_connection_mock,
     isfile_mock,
     format_mock,
     structured_out_mock,
@@ -247,7 +247,7 @@ class TestCheckHost(TestCase):
     format_mock.reset_mock()
     download_file_mock.reset_mock()
     download_file_mock.side_effect = [p, p]
-    shell_call_mock.return_value = (1, "test message")
+    verify_db_connection_mock.side_effect = Fail("test message")
 
     try:
       checkHost.actionexecute(None)
@@ -259,17 +259,23 @@ class TestCheckHost(TestCase):
       structured_out_mock.call_args[0][0],
       {"db_connection_check": {"message": "test message", "exit_code": 1}},
     )
-    self.assertEqual(
-      format_mock.call_args[0][0],
-      "{java_exec} -cp {check_db_connection_path}{class_path_delimiter}"
-      "{jdbc_jar_path} -Djava.library.path={java_library_path} org.apache.ambari.server.DBConnectionVerification"
-      ' "{db_connection_url}" "{user_name}" {user_passwd!p} {jdbc_driver_class}',
+    verify_db_connection_mock.assert_called_once_with(
+      os.path.join("test_java_home", "bin", "java"),
+      "/nonexistent_tmp/DBConnectionVerification.jar:/nonexistent_tmp/oracle-jdbc-driver.jar",
+      "test_db_connection_url",
+      "test_user_name",
+      "test_user_passwd",
+      "org.postgresql.Driver",
+      environment=None,
+      java_options=["-Djava.library.path=/nonexistent_tmp"],
     )
 
     # test, db connection success
     download_file_mock.reset_mock()
     download_file_mock.side_effect = [p, p]
-    shell_call_mock.return_value = (0, "test message")
+    verify_db_connection_mock.reset_mock()
+    verify_db_connection_mock.side_effect = None
+    verify_db_connection_mock.return_value = "test message"
 
     checkHost.actionexecute(None)
 

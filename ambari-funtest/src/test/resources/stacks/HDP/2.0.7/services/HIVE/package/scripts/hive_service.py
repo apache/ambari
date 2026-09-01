@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons.db_connection_helper import verify_db_connection
 
 
 def hive_service(name, action="start"):
@@ -46,11 +47,13 @@ def hive_service(name, action="start"):
       params.hive_jdbc_driver == "com.mysql.jdbc.Driver"
       or params.hive_jdbc_driver == "oracle.jdbc.driver.OracleDriver"
     ):
-      db_connection_check_command = format(
-        "{ambari_java_home}/bin/java -cp {check_db_connection_jar}:/usr/share/java/{jdbc_jar_name} org.apache.ambari.server.DBConnectionVerification {hive_jdbc_connection_url} {hive_metastore_user_name} {hive_metastore_user_passwd} {hive_jdbc_driver}"
-      )
-      Execute(
-        db_connection_check_command, path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"
+      verify_db_connection(
+        format("{ambari_java_home}/bin/java"),
+        format("{check_db_connection_jar}:/usr/share/java/{jdbc_jar_name}"),
+        params.hive_jdbc_connection_url,
+        params.hive_metastore_user_name,
+        params.hive_metastore_user_passwd,
+        params.hive_jdbc_driver,
       )
 
   elif action == "stop":
