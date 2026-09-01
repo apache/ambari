@@ -18,61 +18,49 @@ limitations under the License.
 
 """
 
+import os
+import re
+
 # Ambari Commons & Resource Management Imports
-from ambari_commons import OSCheck
-from resource_management.libraries.functions import conf_select
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
 
-
-# a map of the Ambari role to the component name
-# for use with <stack-root>/current/<component>
-SERVER_ROLE_DIRECTORY_MAP = {
-  "HIVE_METASTORE": "hive-metastore",
-  "HIVE_SERVER": "hive-server2",
-  "HIVE_CLIENT": "hive-client",
-}
-
-# Either HIVE_METASTORE, HIVE_SERVER, HIVE_CLIENT
-role = default("/role", None)
-component_directory = Script.get_component_from_role(
-  SERVER_ROLE_DIRECTORY_MAP, "HIVE_CLIENT"
-)
-
 config = Script.get_config()
-
-stack_root = Script.get_stack_root()
 stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
 stack_version_formatted_major = format_stack_version(stack_version_unformatted)
 
-hive_pid_dir = config["configurations"]["hive-env"]["hive_pid_dir"]
+def validated_path(value, description):
+  value = str(value or "")
+  if not re.fullmatch(r"/[A-Za-z0-9._/+:-]+", value):
+    raise Fail(f"{description} contains unsupported path characters")
+  normalized = os.path.normpath(value)
+  if normalized == "/" or normalized != value.rstrip("/"):
+    raise Fail(f"{description} must be a normalized non-root absolute path")
+  return normalized
+
+
+hive_pid_dir = validated_path(
+  config["configurations"]["hive-env"]["hive_pid_dir"], "Hive PID directory"
+)
 hive_pid = format("{hive_pid_dir}/hive-server.pid")
 hive_metastore_pid = format("{hive_pid_dir}/hive.pid")
 
-process_name = "mysqld"
+SERVICE_FILE_TEMPLATES = [
+  "/etc/init.d/{0}",
+  "/etc/systemd/system/{0}.service",
+  "/lib/systemd/system/{0}.service",
+  "/usr/lib/systemd/system/{0}.service",
+]
+POSSIBLE_DAEMON_NAMES = ["mariadb", "mysqld", "mysql"]
 
-SERVICE_FILE_TEMPLATES = ["/etc/init.d/{0}", "/usr/lib/systemd/system/{0}.service"]
-POSSIBLE_DAEMON_NAMES = ["mysql", "mysqld", "mariadb"]
-
-
-# Security related/required params
-hostname = config["agentLevelParams"]["hostname"]
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
-kinit_path_local = get_kinit_path(
-  default("/configurations/kerberos-env/executable_search_paths", None)
-)
-tmp_dir = Script.get_tmp_dir()
-hdfs_user = config["configurations"]["hadoop-env"]["hdfs_user"]
 hive_user = config["configurations"]["hive-env"]["hive_user"]
+webhcat_user = config["configurations"]["hive-env"]["webhcat_user"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
 
 # hcat_pid_dir
-hcat_pid_dir = config["configurations"]["hive-env"]["hcat_pid_dir"]
+hcat_pid_dir = validated_path(
+  config["configurations"]["hive-env"]["hcat_pid_dir"], "WebHCat PID directory"
+)
 webhcat_pid_file = format("{hcat_pid_dir}/webhcat.pid")
-
-stack_name = default("/clusterLevelParams/stack_name", None)

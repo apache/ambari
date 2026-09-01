@@ -49,30 +49,25 @@ def setup_ranger_hive(upgrade_type=None):
       )
 
     if params.xa_audit_hdfs_is_enabled:
-      try:
-        params.HdfsResource(
-          "/ranger/audit",
-          type="directory",
-          action="create_on_execute",
-          owner=params.hdfs_user,
-          group=params.hdfs_user,
-          mode=0o755,
-          recursive_chmod=True,
-        )
-        params.HdfsResource(
-          "/ranger/audit/hiveServer2",
-          type="directory",
-          action="create_on_execute",
-          owner=params.hive_user,
-          group=params.hive_user,
-          mode=0o700,
-          recursive_chmod=True,
-        )
-        params.HdfsResource(None, action="execute")
-      except Exception as err:
-        Logger.exception(
-          f"Audit directory creation in HDFS for HIVE Ranger plugin failed with error:\n{err}"
-        )
+      params.HdfsResource(
+        "/ranger/audit",
+        type="directory",
+        action="create_on_execute",
+        owner=params.hdfs_user,
+        group=params.user_group,
+        mode=0o755,
+        recursive_chmod=True,
+      )
+      params.HdfsResource(
+        "/ranger/audit/hiveServer2",
+        type="directory",
+        action="create_on_execute",
+        owner=params.hive_user,
+        group=params.user_group,
+        mode=0o700,
+        recursive_chmod=True,
+      )
+      params.HdfsResource(None, action="execute")
 
     api_version = "v2"
 
@@ -136,7 +131,7 @@ def setup_ranger_hive(upgrade_type=None):
 
 def setup_ranger_hive_metastore_service():
   """
-  Creates ranger hive service in ranger admin installed in same cluster for cluster depolyed in cloud env.
+  Create the Ranger Hive service for clusters using metastore lookup.
   """
   import params
 
