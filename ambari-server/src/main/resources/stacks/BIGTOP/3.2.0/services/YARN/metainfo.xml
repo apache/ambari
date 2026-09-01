@@ -240,7 +240,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-yarn</name>
@@ -257,6 +257,28 @@
             </package>
             <package>
               <name>hbase_${stack_version}</name>
+              <condition>should_install_yarn_ats_hbase</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-${stack_version}-yarn</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-mapreduce</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-hdfs</name>
+            </package>
+            <package>
+              <name>ranger-${stack_version}-yarn-plugin</name>
+              <condition>should_install_ranger_yarn_plugin</condition>
+            </package>
+            <package>
+              <name>hbase-${stack_version}</name>
               <condition>should_install_yarn_ats_hbase</condition>
             </package>
           </packages>
@@ -383,10 +405,18 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-mapreduce</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>

@@ -300,13 +300,31 @@ class TestHbaseServiceCheckWorkflow(unittest.TestCase):
 class TestHbasePackageContract(unittest.TestCase):
   def test_platform_packages_use_bigtop_suffix_and_phoenix_condition(self):
     base_metadata = ET.parse(HBASE / "metainfo.xml").getroot()
-    base_packages = {
-      package.findtext("name"): package.findtext("condition")
-      for package in base_metadata.findall(
-        "./services/service/osSpecifics/osSpecific/packages/package"
+    base_packages_by_family = {
+      os_specific.findtext("osFamily"): {
+        package.findtext("name"): package.findtext("condition")
+        for package in os_specific.findall("./packages/package")
+      }
+      for os_specific in base_metadata.findall(
+        "./services/service/osSpecifics/osSpecific"
       )
     }
-    self.assertEqual("should_install_phoenix", base_packages["phoenix"])
+    self.assertEqual(
+      {
+        "hbase_${stack_version}": None,
+        "phoenix": "should_install_phoenix",
+        "ranger_${stack_version}-hbase-plugin": "should_install_ranger_hbase_plugin",
+      },
+      base_packages_by_family["redhat8,redhat9,openeuler22"],
+    )
+    self.assertEqual(
+      {
+        "hbase-${stack_version}": None,
+        "phoenix-${stack_version}": "should_install_phoenix",
+        "ranger-${stack_version}-hbase-plugin": "should_install_ranger_hbase_plugin",
+      },
+      base_packages_by_family["ubuntu22"],
+    )
 
     metadata = ET.parse(HBASE_33 / "metainfo.xml").getroot()
     packages_by_family = {

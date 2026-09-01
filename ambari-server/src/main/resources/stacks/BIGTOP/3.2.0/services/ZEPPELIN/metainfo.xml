@@ -80,10 +80,10 @@ limitations under the License.
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian10,debian11,ubuntu20,ubuntu22</osFamily>
+          <osFamily>ubuntu22</osFamily>
           <packages>
             <package>
-              <name>zeppelin-${stack_version}</name>
+              <name>zeppelin</name>
             </package>
           </packages>
         </osSpecific>

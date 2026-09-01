@@ -505,16 +505,16 @@ class TestAlluxioVersionContract(unittest.TestCase):
 
     expected_packages = {
       "3.2.0": {
-        "redhat7,redhat8,redhat9,openeuler22": ["alluxio"],
-        "debian10,debian11,ubuntu20,ubuntu22": ["alluxio"],
+        "redhat8,redhat9,openeuler22": ["alluxio"],
+        "ubuntu22": ["alluxio"],
       },
       "3.3.0": {
         "redhat8,redhat9,openeuler22": ["alluxio_${stack_version}"],
-        "debian10,debian11,ubuntu20,ubuntu22": ["alluxio-${stack_version}"],
+        "ubuntu22": ["alluxio-${stack_version}"],
       },
       "3.4.0": {
         "redhat8,redhat9,openeuler22": ["alluxio_${stack_version}"],
-        "debian10,debian11,ubuntu20,ubuntu22": ["alluxio"],
+        "ubuntu22": ["alluxio"],
       },
     }
     for stack_version, root in roots.items():

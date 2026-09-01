@@ -286,7 +286,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hive_${stack_version}</name>
@@ -304,6 +304,29 @@
             </package>
             <package>
               <name>ranger_${stack_version}-hive-plugin</name>
+              <condition>should_install_ranger_hive_plugin</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>hive-${stack_version}</name>
+            </package>
+            <package>
+              <name>hive-${stack_version}-hcatalog</name>
+            </package>
+            <package>
+              <name>hive-${stack_version}-webhcat</name>
+            </package>
+            <package>
+              <name>mariadb-server</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
+            </package>
+            <package>
+              <name>ranger-${stack_version}-hive-plugin</name>
               <condition>should_install_ranger_hive_plugin</condition>
             </package>
           </packages>
