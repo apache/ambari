@@ -906,6 +906,8 @@
         <excludes>
           <exclude>stacks/**</exclude>
           <exclude>common-services/**</exclude>
+          <exclude>**/__pycache__/**</exclude>
+          <exclude>**/*.pyc</exclude>
         </excludes>
       </resource>
     </resources>
