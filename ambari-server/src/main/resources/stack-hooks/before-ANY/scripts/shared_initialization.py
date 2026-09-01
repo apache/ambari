@@ -122,7 +122,7 @@ def create_tez_am_view_acls():
 def create_users_and_groups(user_and_groups):
   import params
 
-  parts = re.split("\s+", user_and_groups)
+  parts = re.split(r"\s+", user_and_groups)
   if len(parts) == 1:
     parts.append("")
 

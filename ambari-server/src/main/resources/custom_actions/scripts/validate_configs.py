@@ -355,7 +355,7 @@ class ValidateConfigs(Script):
   def get_value(self, key, params):
     result = params[key]
 
-    pattern = re.compile("\$\{[^\}\$\x0020]+\}")
+    pattern = re.compile("\\$\\{[^\\}\\$\x0020]+\\}")
 
     for depth in range(0, MAX_SUBST - 1):
       match = pattern.search(result)

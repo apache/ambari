@@ -28,7 +28,7 @@ import tempfile
 import time
 
 from contextlib import closing
-from optparse import OptionParser
+import argparse
 from xml.dom import minidom
 
 os.environ["PATH"] += os.pathsep + "/var/lib/ambari-agent"
@@ -88,8 +88,8 @@ with Environment() as env:
 
     return stack_version
 
-  parser = OptionParser()
-  parser.add_option(
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
     "-d",
     "--database-driver",
     dest="sql_driver_path",
@@ -98,21 +98,21 @@ with Environment() as env:
     ),
     help="Path to JDBC driver",
   )
-  parser.add_option(
+  parser.add_argument(
     "-f",
     "--fs-type",
     dest="fs_type",
     default="wasb",
     help="Expected protocol of fs.defaultFS",
   )
-  parser.add_option(
+  parser.add_argument(
     "-v",
     "--hdp-version",
     dest="hdp_version",
     default="",
     help="hdp-version used in path of tarballs",
   )
-  parser.add_option(
+  parser.add_argument(
     "-u",
     "--upgrade",
     dest="upgrade",
@@ -120,7 +120,9 @@ with Environment() as env:
     help="flag to indicate script is being run for upgrade",
     default=False,
   )
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
+  args = options.arguments
 
   if not os.path.exists(options.sql_driver_path):
     Logger.error(f"SQL driver file {options.sql_driver_path} does not exist")

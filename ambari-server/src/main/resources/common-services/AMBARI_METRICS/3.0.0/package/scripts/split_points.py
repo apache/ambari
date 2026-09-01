@@ -41,7 +41,7 @@ p_bytes = 1 << 50  # 1024^5
 
 def to_number(s):
   try:
-    return int(re.sub("\D", "", s))
+    return int(re.sub(r"\D", "", s))
   except ValueError:
     return None
 

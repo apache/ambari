@@ -52,21 +52,21 @@ class HdfsLine:
 
   MEMORY_SUFFIX = ["B", "KB", "MB", "GB", "TB", "PB", "EB"]
   MEMORY_PATTERN = (
-    "(?P<memmult_%d>(?P<memory_%d>(\d+)(.|,)?(\d+)?) (?P<mult_%d>"
+    r"(?P<memmult_%d>(?P<memory_%d>(\d+)(.|,)?(\d+)?) (?P<mult_%d>"
     + "|".join(MEMORY_SUFFIX)
     + "))"
   )
 
   HEADER_BEGIN_PATTERN = re.compile(
-    "Time Stamp\w+Iteration#\w+Bytes Already Moved\w+Bytes Left To Move\w+Bytes Being Moved"
+    r"Time Stamp\w+Iteration#\w+Bytes Already Moved\w+Bytes Left To Move\w+Bytes Being Moved"
   )
   PROGRESS_PATTERN = re.compile(
-    "(?P<date>.*?)\s+"
-    + "(?P<iteration>\d+)\s+"
+    r"(?P<date>.*?)\s+"
+    + r"(?P<iteration>\d+)\s+"
     + MEMORY_PATTERN % (1, 1, 1)
-    + "\s+"
+    + r"\s+"
     + MEMORY_PATTERN % (2, 2, 2)
-    + "\s+"
+    + r"\s+"
     + MEMORY_PATTERN % (3, 3, 3)
   )
   PROGRESS_END_PATTERN = re.compile(
@@ -118,13 +118,13 @@ class HdfsLine:
       self.bytesLeftToMoveStr = m.group("memmult_2")
       self.bytesBeingMovedStr = m.group("memmult_3")
     else:
-      raise AmbariException("Failed to parse line [%s]")
+      raise Fail(f"Failed to parse line [{line}]")
 
   def parseMemory(self, memorySize, multiplier_type):
     try:
       factor = self.MEMORY_SUFFIX.index(multiplier_type)
     except ValueError:
-      raise AmbariException(f"Failed to memory value [{memorySize} {multiplier_type}]")
+      raise Fail(f"Failed to parse memory value [{memorySize} {multiplier_type}]")
 
     return float(memorySize) * (1024**factor)
 

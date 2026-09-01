@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 # Python imports
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import os
 import traceback
 import re
@@ -36,8 +36,8 @@ try:
   if "BASE_SERVICE_ADVISOR" in os.environ:
     PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
   with open(PARENT_FILE, "rb") as fp:
-    service_advisor = imp.load_module(
-      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+    service_advisor = import_utils.load_module(
+      "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
     )
 except Exception as e:
   traceback.print_exc()
@@ -1453,13 +1453,13 @@ class RangerValidator(service_advisor.ServiceAdvisor):
       if password_property in ranger_env_properties:
         password = ranger_env_properties[password_property]
         if not bool(re.search(r"^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$", password)) or bool(
-          re.search("[\\\`\"']", password)
+          re.search("[\\\\`\"']", password)
         ):
           validationItems.append(
             {
               "config-name": password_property,
               "item": self.getNotApplicableItem(
-                "Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are  \" ' \ `"
+                "Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are  \" ' \\ `"
               ),
             }
           )

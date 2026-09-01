@@ -287,7 +287,7 @@ class InstallPackages(Script):
     self.actual_version = None
     self.repo_version_with_build_number = None
     if self.repository_version:
-      m = re.search("[\d\.]+-\d+", self.repository_version)
+      m = re.search(r"[\d\.]+-\d+", self.repository_version)
       if m:
         # Contains a build number
         self.repo_version_with_build_number = self.repository_version
@@ -384,7 +384,7 @@ class InstallPackages(Script):
     if versions is None or repo_version is None:
       return None
 
-    build_num_match = re.search("[\d\.]+-\d+", repo_version)
+    build_num_match = re.search(r"[\d\.]+-\d+", repo_version)
     if build_num_match and repo_version in versions:
       # If repo version has build number and is found in the list of versions, return it as the matching version
       Logger.info(

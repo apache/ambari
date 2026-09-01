@@ -31,8 +31,8 @@ def calc_heap_memory(memorysize, heapmemory_factor):
 
 
 def ensure_unit_for_memory(memory_size):
-  memory_size_values = re.findall("\d+", str(memory_size))
-  memory_size_unit = re.findall("\D+", str(memory_size))
+  memory_size_values = re.findall(r"\d+", str(memory_size))
+  memory_size_unit = re.findall(r"\D+", str(memory_size))
 
   if len(memory_size_values) > 0:
     unit = "m"

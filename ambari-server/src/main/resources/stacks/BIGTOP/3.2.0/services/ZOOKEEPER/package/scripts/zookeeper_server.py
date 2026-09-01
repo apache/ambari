@@ -110,7 +110,7 @@ class ZookeeperServerLinux(ZookeeperServer):
       create_command, "Created", quorum_err_message, user=params.zk_user
     )
     call_and_match_output(
-      list_command, r"\[.*?" + unique + ".*?\]", quorum_err_message, user=params.zk_user
+      list_command, r"\[.*?" + unique + r".*?\]", quorum_err_message, user=params.zk_user
     )
     shell.call(delete_command, user=params.zk_user)
 

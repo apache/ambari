@@ -20,6 +20,7 @@ limitations under the License.
 
 import logging
 import json
+import socket
 import subprocess
 import time
 import traceback

@@ -32,7 +32,7 @@ __all__ = [
 from unittest import TestCase
 import json
 import os
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import sys
 import pprint
 import itertools
@@ -150,7 +150,7 @@ class RMFTestCase(TestCase):
     # get method to execute
     try:
       with patch.object(os_check, "linux_distribution", return_value=os_type):
-        script_module = imp.load_source(classname, script_path)
+        script_module = import_utils.load_source(classname, script_path)
         Script.instance = None
         script_class_inst = RMFTestCase._get_attr(script_module, classname)()
         script_class_inst.log_out_files = log_out_files
@@ -159,7 +159,7 @@ class RMFTestCase(TestCase):
         method = RMFTestCase._get_attr(script_class_inst, command)
     except IOError as err:
       raise RuntimeError(
-        f"Cannot load class {classname} from {norm_path}: {err.message}"
+        f"Cannot load class {classname} from {norm_path}: {err}"
       )
 
     # Reload params import, otherwise it won't change properties during next import

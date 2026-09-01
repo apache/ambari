@@ -28,8 +28,8 @@ def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   @param xmn_percent: float (e.g 0.2)
   @param xmn_max: integer (e.g 512)
   """
-  heapsize = int(re.search("\d+", str(heapsize_str)).group(0))
-  heapsize_unit = re.search("\D+", str(heapsize_str)).group(0)
+  heapsize = int(re.search(r"\d+", str(heapsize_str)).group(0))
+  heapsize_unit = re.search(r"\D+", str(heapsize_str)).group(0)
 
   xmn_val = int(math.floor(heapsize * xmn_percent))
   xmn_val -= xmn_val % 8

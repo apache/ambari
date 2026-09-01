@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import optparse
+import argparse
 import importlib
 import sys
 import os
@@ -31,7 +31,6 @@ import xml
 import xml.etree.ElementTree as ET
 import io
 import configparser
-from optparse import OptionGroup
 
 server_root = os.environ.get("ROOT") or os.sep
 server_lib_dir = os.path.join(server_root, "usr", "lib", "ambari-server", "lib")
@@ -558,8 +557,8 @@ def main():
   tempDir = tempfile.gettempdir()
   outputDir = os.path.join(tempDir)
 
-  parser = optparse.OptionParser(usage="usage: %prog [options]")
-  parser.set_description(
+  parser = argparse.ArgumentParser(usage="usage: %(prog)s [options]")
+  parser.description = (
     "This python program is an Ambari thin client and "
     "supports Ambari cluster takeover by generating a "
     "configuration json that can be used with a "
@@ -571,7 +570,7 @@ def main():
     "and *.properties extensions of files."
   )
 
-  parser.add_option(
+  parser.add_argument(
     "-a",
     "--action",
     dest="action",
@@ -579,7 +578,7 @@ def main():
     help="Script action. (merge/diff) [default: merge]",
   )
 
-  parser.add_option(
+  parser.add_argument(
     "-v",
     "--verbose",
     dest="verbose",
@@ -587,7 +586,7 @@ def main():
     default=False,
     help="output verbosity.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-o",
     "--outputdir",
     dest="outputDir",
@@ -595,7 +594,7 @@ def main():
     metavar="FILE",
     help="Output directory. [default: /tmp]",
   )
-  parser.add_option(
+  parser.add_argument(
     "-u",
     "--unknown-files-mapping-file",
     dest="unknown_files_mapping_file",
@@ -604,24 +603,24 @@ def main():
     default="takeover_files_mapping.json",
   )
 
-  merge_options_group = OptionGroup(parser, "Required options for action 'merge'")
-  merge_options_group.add_option(
+  merge_options_group = parser.add_argument_group(
+    "Required options for action 'merge'"
+  )
+  merge_options_group.add_argument(
     "-i", "--inputdir", dest="inputDir", help="Input directory."
   )
 
-  parser.add_option_group(merge_options_group)
-
-  diff_options_group = OptionGroup(parser, "Required options for action 'diff'")
-  diff_options_group.add_option(
+  diff_options_group = parser.add_argument_group("Required options for action 'diff'")
+  diff_options_group.add_argument(
     "-l", "--leftInputDir", dest="leftInputDir", help="Left input directory."
   )
-  diff_options_group.add_option(
+  diff_options_group.add_argument(
     "-r", "--rightInputDir", dest="rightInputDir", help="Right input directory."
   )
 
-  parser.add_option_group(diff_options_group)
-
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
+  args = options.arguments
 
   # set verbose
   if options.verbose:

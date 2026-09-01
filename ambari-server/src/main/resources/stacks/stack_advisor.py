@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 # Python Imports
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import os
 import random
 import re
@@ -727,8 +727,8 @@ class DefaultStackAdvisor(StackAdvisor):
     if path is not None and os.path.exists(path) and class_name is not None:
       try:
         with open(path, "r") as fp:
-          service_advisor = imp.load_module(
-            "service_advisor_impl", fp, path, (".py", "rb", imp.PY_SOURCE)
+          service_advisor = import_utils.load_module(
+            "service_advisor_impl", fp, path, (".py", "rb", import_utils.PY_SOURCE)
           )
 
           # Find the class name by reading from all of the available attributes of the python file.
@@ -2590,7 +2590,7 @@ class DefaultStackAdvisor(StackAdvisor):
       size = len(dependencies)
       for config in allDependencies:
         property = {
-          "type": re.sub("\.xml$", "", config["StackConfigurations"]["type"]),
+          "type": re.sub(r"\.xml$", "", config["StackConfigurations"]["type"]),
           "name": config["StackConfigurations"]["property_name"],
         }
         if property in dependencies or property in changedConfigs:
@@ -2613,7 +2613,9 @@ class DefaultStackAdvisor(StackAdvisor):
     def normalize(v):
       return [int(x) for x in re.sub(r"(\.0+)*$", "", v).split(".")]
 
-    return cmp(normalize(version1), normalize(version2))
+    normalized1 = normalize(version1)
+    normalized2 = normalize(version2)
+    return (normalized1 > normalized2) - (normalized1 < normalized2)
 
   pass
 
@@ -4157,13 +4159,13 @@ class DefaultStackAdvisor(StackAdvisor):
 
   @classmethod
   def checkXmxValueFormat(cls, value):
-    p = re.compile("-Xmx(\d+)(b|k|m|g|p|t|B|K|M|G|P|T)?")
+    p = re.compile(r"-Xmx(\d+)(b|k|m|g|p|t|B|K|M|G|P|T)?")
     matches = p.findall(value)
     return len(matches) == 1
 
   @classmethod
   def getXmxSize(cls, value):
-    p = re.compile("-Xmx(\d+)(.?)")
+    p = re.compile(r"-Xmx(\d+)(.?)")
     result = p.findall(value)[0]
     if len(result) > 1:
       # result[1] - is a space or size formatter (b|k|m|g etc)
@@ -4192,7 +4194,7 @@ class DefaultStackAdvisor(StackAdvisor):
   @classmethod
   def to_number(cls, s):
     try:
-      return int(re.sub("\D", "", s))
+      return int(re.sub(r"\D", "", s))
     except ValueError:
       return None
 

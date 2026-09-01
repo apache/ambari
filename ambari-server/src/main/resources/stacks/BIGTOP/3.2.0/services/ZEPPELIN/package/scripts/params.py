@@ -47,7 +47,7 @@ def get_port_from_url(address):
 def extract_spark_version(spark_home):
   try:
     with open(spark_home + "/RELEASE") as fline:
-      return re.search("Spark (\d\.\d).+", fline.readline().rstrip()).group(1)
+      return re.search(r"Spark (\d\.\d).+", fline.readline().rstrip()).group(1)
   except:
     pass
   return None

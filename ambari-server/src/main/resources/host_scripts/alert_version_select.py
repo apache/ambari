@@ -118,4 +118,4 @@ def execute(configurations={}, parameters={}, host_name=None):
       msg.append(f"No stack root {stack_root_dir} to check.")
       return (RESULT_STATE_OK, ["\n".join(msg)])
   except Exception as e:
-    return (RESULT_STATE_CRITICAL, [e.message])
+    return (RESULT_STATE_CRITICAL, [str(e)])

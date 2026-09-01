@@ -164,7 +164,7 @@ class ExecuteUpgradeTasks(Script):
             command_params
           )
           # Replace redundant whitespace to make the unit tests easier to validate
-          task.command = re.sub("\s+", " ", task.command).strip()
+          task.command = re.sub(r"\s+", " ", task.command).strip()
 
         if task.command:
           task.command = replace_variables(task.command, host_name, version)

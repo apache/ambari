@@ -32,8 +32,8 @@ def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   @param xmn_percent: float (e.g 0.2)
   @param xmn_max: integer (e.g 512)
   """
-  heapsize = int(re.search("\d+", heapsize_str).group(0))
-  heapsize_unit = re.search("\D+", heapsize_str).group(0)
+  heapsize = int(re.search(r"\d+", heapsize_str).group(0))
+  heapsize_unit = re.search(r"\D+", heapsize_str).group(0)
   xmn_val = int(math.floor(heapsize * xmn_percent))
   xmn_val -= xmn_val % 8
 
@@ -42,8 +42,8 @@ def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
 
 
 def ensure_unit_for_memory(memory_size):
-  memory_size_values = re.findall("\d+", str(memory_size))
-  memory_size_unit = re.findall("\D+", str(memory_size))
+  memory_size_values = re.findall(r"\d+", str(memory_size))
+  memory_size_unit = re.findall(r"\D+", str(memory_size))
 
   if len(memory_size_values) > 0:
     unit = "m"

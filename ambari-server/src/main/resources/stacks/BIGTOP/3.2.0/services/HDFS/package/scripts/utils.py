@@ -43,13 +43,8 @@ from resource_management.libraries.functions.namenode_ha_utils import (
   get_namenode_states,
 )
 from resource_management.libraries.functions.show_logs import show_logs
-from ambari_commons.inet_utils import ensure_ssl_using_protocol
+from ambari_commons.inet_utils import create_ssl_context
 from zkfc_slave import ZkfcSlaveDefault
-
-ensure_ssl_using_protocol(
-  Script.get_force_https_protocol_name(), Script.get_ca_cert_file_path()
-)
-
 
 def safe_zkfc_op(action, env):
   """
@@ -380,7 +375,11 @@ def get_jmx_data(
       params.smoke_user,
     )
   else:
-    data = urllib.request.urlopen(nn_address).read()
+    context = create_ssl_context(
+      Script.get_force_https_protocol_name(), Script.get_ca_cert_file_path()
+    )
+    with urllib.request.urlopen(nn_address, context=context, timeout=10) as response:
+      data = response.read()
   my_data = None
   if data:
     data_dict = json.loads(data)

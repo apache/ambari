@@ -27,16 +27,19 @@ If you want to use inheritance to augment a previous version of a service's
 advisor you can use the following code to dynamically load the previous advisor.
 Some changes will be need to provide the correct path and class names.
 
+  from ambari_commons import import_utils
+
   SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
   PARENT_DIR = os.path.join(SCRIPT_DIR, '../<old_version>')
   PARENT_FILE = os.path.join(PARENT_DIR, 'service_advisor.py')
 
   try:
     with open(PARENT_FILE, 'rb') as fp:
-      service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
+      service_advisor = import_utils.load_module(
+        'service_advisor', fp, PARENT_FILE, ('.py', 'rb', import_utils.PY_SOURCE))
   except Exception as e:
     traceback.print_exc()
-    print "Failed to load parent"
+    print("Failed to load parent")
 
   class <NewServiceAdvisorClassName>(service_advisor.<OldServiceAdvisorClassName>)
 

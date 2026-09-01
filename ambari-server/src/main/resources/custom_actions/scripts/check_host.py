@@ -97,7 +97,7 @@ class CheckHost(Script):
     "^ambari.*$",
     "^.+-manager-server-db.*$",
     "^.+-manager-daemons.*$",
-    "^mahout[_\-]\d.*$",
+    r"^mahout[_\-]\d.*$",
     "^spark.*$",
     "^falcon.*$",
     "^hbase.*$",
@@ -111,7 +111,7 @@ class CheckHost(Script):
     "^ranger.*$",
     "^accumulo.*$",
     "^hive_.*$",
-    "^pig[_\-.].*$",  # there's a default 'pigz' package which we should avoid
+    r"^pig[_\-.].*$",  # there's a default 'pigz' package which we should avoid
   ]
 
   # ignore packages from repos whose names start with these strings
@@ -292,7 +292,7 @@ class CheckHost(Script):
   def execute_transparent_huge_page_check(self, config):
     Logger.info("Transparent huge page check started.")
 
-    thp_regex = "\[(.+)\]"
+    thp_regex = r"\[(.+)\]"
     file_name = None
     if OSCheck.is_ubuntu_family():
       file_name = THP_FILE_UBUNTU

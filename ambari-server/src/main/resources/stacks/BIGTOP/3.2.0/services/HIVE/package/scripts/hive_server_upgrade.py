@@ -157,7 +157,7 @@ def _get_current_hiveserver_version():
       f"Unable to determine the current HiveServer2 version because of a non-zero return code of {str(return_code)}"
     )
 
-  match = re.search("^(Hive) ([0-9]+.[0-9]+.\S+)", output, re.MULTILINE)
+  match = re.search(r"^(Hive) ([0-9]+.[0-9]+.\S+)", output, re.MULTILINE)
 
   if match:
     current_hive_server_version = match.group(2)

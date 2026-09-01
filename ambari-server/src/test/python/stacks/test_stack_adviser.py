@@ -23,7 +23,7 @@ from unittest import TestCase
 
 class TestBasicAdvisor(TestCase):
   def setUp(self):
-    from ambari_commons import import_utils as imp
+    from ambari_commons import import_utils
 
     self.maxDiff = None
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
@@ -36,17 +36,17 @@ class TestBasicAdvisor(TestCase):
       os.path.join(stacksPath, "ambari_configuration.py")
     )
     with open(ambariConfigurationPath, "rb") as fp:
-      imp.load_module(
+      import_utils.load_module(
         "ambari_configuration",
         fp,
         ambariConfigurationPath,
-        (".py", "rb", imp.PY_SOURCE),
+        (".py", "rb", import_utils.PY_SOURCE),
       )
 
     stackAdvisorPath = os.path.abspath(os.path.join(stacksPath, "stack_advisor.py"))
     with open(stackAdvisorPath, "rb") as fp:
-      stack_advisor_impl = imp.load_module(
-        "stack_advisor", fp, stackAdvisorPath, (".py", "rb", imp.PY_SOURCE)
+      stack_advisor_impl = import_utils.load_module(
+        "stack_advisor", fp, stackAdvisorPath, (".py", "rb", import_utils.PY_SOURCE)
       )
 
     clazz = getattr(stack_advisor_impl, default_sa_classname)

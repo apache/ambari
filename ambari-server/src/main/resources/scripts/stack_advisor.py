@@ -152,19 +152,19 @@ def main(argv=None):
 
 def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
   """Instantiates StackAdvisor implementation for the specified Stack"""
-  from ambari_commons import import_utils as imp
+  from ambari_commons import import_utils
 
   with open(AMBARI_CONFIGURATION_PATH, "r") as fp:
-    imp.load_module(
+    import_utils.load_module(
       "ambari_configuration",
       fp,
       AMBARI_CONFIGURATION_PATH,
-      (".py", "rb", imp.PY_SOURCE),
+      (".py", "rb", import_utils.PY_SOURCE),
     )
 
   with open(STACK_ADVISOR_PATH, "r") as fp:
-    default_stack_advisor = imp.load_module(
-      "stack_advisor", fp, STACK_ADVISOR_PATH, (".py", "rb", imp.PY_SOURCE)
+    default_stack_advisor = import_utils.load_module(
+      "stack_advisor", fp, STACK_ADVISOR_PATH, (".py", "rb", import_utils.PY_SOURCE)
     )
   className = STACK_ADVISOR_DEFAULT_IMPL_CLASS
   stack_advisor = default_stack_advisor
@@ -178,8 +178,8 @@ def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
 
       if os.path.isfile(path):
         with open(path, "r") as fp:
-          stack_advisor = imp.load_module(
-            "stack_advisor_impl", fp, path, (".py", "rb", imp.PY_SOURCE)
+          stack_advisor = import_utils.load_module(
+            "stack_advisor_impl", fp, path, (".py", "rb", import_utils.PY_SOURCE)
           )
         className = STACK_ADVISOR_IMPL_CLASS_TEMPLATE.format(
           stackName, version.replace(".", "")

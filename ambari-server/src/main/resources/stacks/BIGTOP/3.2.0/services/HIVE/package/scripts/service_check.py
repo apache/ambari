@@ -212,7 +212,7 @@ class HiveServiceCheck(Script):
       ' --hiveconf "hiveLlapServiceCheck={unique_id}" -f {stack_root}/current/hive-server2/scripts/llap/sql/serviceCheckScript.sql'
     )
     # Append grep patterns for detecting failure
-    llap_cmd += " -e '' 2>&1| awk '{print}'|grep -i -e 'Invalid status\|Invalid URL\|command not found\|Connection refused'"
+    llap_cmd += r" -e '' 2>&1| awk '{print}'|grep -i -e 'Invalid status\|Invalid URL\|command not found\|Connection refused'"
 
     Execute(
       llap_cmd,
