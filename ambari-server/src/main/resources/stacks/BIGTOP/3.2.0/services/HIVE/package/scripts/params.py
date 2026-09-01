@@ -537,16 +537,6 @@ hdfs_principal_name = default(
   "/configurations/hadoop-env/hdfs_principal_name", "missing_principal"
 ).replace("_HOST", hostname)
 
-# Tez-related properties
-tez_user = config["configurations"]["tez-env"]["tez_user"]
-
-# Tez jars
-tez_local_api_jars = "/usr/lib/tez/tez*.jar"
-tez_local_lib_jars = "/usr/lib/tez/lib/*.jar"
-
-# Tez libraries
-tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
-
 if OSCheck.is_ubuntu_family():
   mysql_conf_dir = "/etc/mysql/mariadb.conf.d"
 else:

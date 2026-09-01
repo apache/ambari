@@ -94,7 +94,15 @@ class TestHiveConfigurationContract(unittest.TestCase):
     self.assertIn('hive_home = "/usr/lib/hive"', params_source)
     self.assertIn('hive_hcatalog_home = "/usr/lib/hive-hcatalog"', params_source)
     self.assertNotIn("/usr/hdp", params_source)
+    self.assertNotIn("/usr/lib/tez", params_source)
     self.assertNotIn("sap.jdbc4.sqlanywhere", params_source)
+    for obsolete_tez_parameter in (
+      "tez_local_api_jars",
+      "tez_local_lib_jars",
+      "tez_lib_uris",
+      'tez_user = config["configurations"]["tez-env"]["tez_user"]',
+    ):
+      self.assertNotIn(obsolete_tez_parameter, params_source)
 
     hcat_source = (HIVE / "package/scripts/hcat.py").read_text()
     self.assertIn("update_credential_provider_path", hcat_source)
