@@ -238,10 +238,8 @@ class TestHdfsBigtop(unittest.TestCase):
       hdfs_user_keytab="/etc/security/keytabs/hdfs.service.keytab",
       hdfs_principal_name="hdfs/router1.example.com@EXAMPLE.COM",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HDFS_ROUTER, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HDFS_ROUTER, "Execute") as execute:
       HDFS_ROUTER.router(action="start")
 
     self.assertEqual(
@@ -263,11 +261,9 @@ class TestHdfsBigtop(unittest.TestCase):
         name_node_params=json.dumps({"threshold": threshold})
       )
       env = MagicMock()
-      with (
-        self.subTest(threshold=threshold),
-        patch.dict(sys.modules, {"params": params}),
-        patch.object(NAMENODE, "Execute") as execute,
-      ):
+      with self.subTest(threshold=threshold), \
+        patch.dict(sys.modules, {"params": params}), \
+        patch.object(NAMENODE, "Execute") as execute:
         with self.assertRaises(Fail):
           script.rebalancehdfs(env)
       execute.assert_not_called()
@@ -286,10 +282,8 @@ class TestHdfsBigtop(unittest.TestCase):
       security_enabled=False,
       hdfs_user="hdfs",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(NAMENODE, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(NAMENODE, "Execute") as execute:
       script.rebalancehdfs(MagicMock())
 
     self.assertEqual(
@@ -338,13 +332,11 @@ class TestHdfsBigtop(unittest.TestCase):
       hostname="namenode.example.com",
       public_hostname="namenode.example.com",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HDFS_NAMENODE, "is_namenode_formatted", return_value=False),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HDFS_NAMENODE, "is_namenode_formatted", return_value=False), \
       patch.object(
         HDFS_NAMENODE, "Execute", side_effect=Fail("format failed")
-      ) as execute,
-    ):
+      ) as execute:
       with self.assertRaisesRegex(Fail, "format failed"):
         HDFS_NAMENODE.format_namenode()
 
@@ -403,17 +395,15 @@ class TestHdfsBigtop(unittest.TestCase):
       HDFS_PROCESS.expected_cmdline("unknown")
 
   def test_process_recovery_rejects_wrong_pid_identity(self):
-    with (
-      patch.object(HDFS_PROCESS.safe_process, "read_pid", return_value=8123),
+    with patch.object(HDFS_PROCESS.safe_process, "read_pid", return_value=8123), \
       patch.object(
         HDFS_PROCESS.safe_process,
         "read_running_process",
         side_effect=Fail("command line does not match"),
-      ),
+      ), \
       patch.object(
         HDFS_PROCESS.safe_process, "remove_pid_file_if_stopped"
-      ) as remove_pid,
-    ):
+      ) as remove_pid:
       with self.assertRaisesRegex(Fail, "command line does not match"):
         HDFS_PROCESS.recover_running_process(
           "/run/hdfs.pid", "hdfs", "namenode"
@@ -436,15 +426,13 @@ class TestHdfsBigtop(unittest.TestCase):
       ulimit_cmd="ulimit -c unlimited ; ",
     )
     identity = MagicMock()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         HDFS_RUNTIME_UTILS.hdfs_process,
         "recover_running_process",
         return_value=identity,
-      ),
-      patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute,
-    ):
+      ), \
+      patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute:
       HDFS_RUNTIME_UTILS.service(
         action="start", name="namenode", user="hdfs"
       )
@@ -465,18 +453,16 @@ class TestHdfsBigtop(unittest.TestCase):
       root_group="root",
       ulimit_cmd="ulimit -c unlimited ; ",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         HDFS_RUNTIME_UTILS.hdfs_process,
         "recover_running_process",
         side_effect=Fail("owner does not match"),
-      ),
-      patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute,
+      ), \
+      patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute, \
       patch.object(
         HDFS_RUNTIME_UTILS.hdfs_process, "terminate_process"
-      ) as terminate,
-    ):
+      ) as terminate:
       with self.assertRaisesRegex(Fail, "owner does not match"):
         HDFS_RUNTIME_UTILS.service(
           action="stop", name="namenode", user="hdfs"
@@ -500,26 +486,24 @@ class TestHdfsBigtop(unittest.TestCase):
       ulimit_cmd="ulimit -c unlimited ; ",
     )
     identity = MagicMock(pid=8123)
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         HDFS_RUNTIME_UTILS.hdfs_process,
         "recover_running_process",
         return_value=identity,
-      ),
+      ), \
       patch.object(
         HDFS_RUNTIME_UTILS.hdfs_process,
         "wait_for_process_stopped",
         return_value=False,
-      ),
+      ), \
       patch.object(
         HDFS_RUNTIME_UTILS.hdfs_process, "terminate_process"
-      ) as terminate,
+      ) as terminate, \
       patch.object(
         HDFS_RUNTIME_UTILS.hdfs_process, "remove_pid_file_if_stopped"
-      ) as cleanup,
-      patch.object(HDFS_RUNTIME_UTILS, "Execute"),
-    ):
+      ) as cleanup, \
+      patch.object(HDFS_RUNTIME_UTILS, "Execute"):
       HDFS_RUNTIME_UTILS.service(
         action="stop", name="namenode", user="hdfs"
       )
@@ -548,11 +532,9 @@ class TestHdfsBigtop(unittest.TestCase):
       },
       {"action": "start", "name": "namenode", "user": "hdfs; id"},
     ):
-      with (
-        self.subTest(arguments=arguments),
-        patch.dict(sys.modules, {"params": params}),
-        patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute,
-      ):
+      with self.subTest(arguments=arguments), \
+        patch.dict(sys.modules, {"params": params}), \
+        patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute:
         with self.assertRaises(Fail):
           HDFS_RUNTIME_UTILS.service(**arguments)
         execute.assert_not_called()
@@ -567,19 +549,17 @@ class TestHdfsBigtop(unittest.TestCase):
       dfs_dn_ipc_address="datanode.example.com:9867",
     )
     base_command = ("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         DATANODE_UPGRADE,
         "get_dfsadmin_base_command",
         return_value=base_command,
-      ),
+      ), \
       patch.object(
         DATANODE_UPGRADE.shell,
         "call",
         return_value=(1, "permission denied"),
-      ) as shell_call,
-    ):
+      ) as shell_call:
       self.assertFalse(
         DATANODE_UPGRADE.pre_rolling_upgrade_shutdown("hdfs")
       )
@@ -621,15 +601,13 @@ class TestHdfsBigtop(unittest.TestCase):
       klist_path_local="/usr/bin/klist",
       kinit_path_local="/usr/bin/kinit",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(NAMENODE, "Directory") as directory,
-      patch.object(NAMENODE.shell, "call", return_value=(1, "")),
-      patch.object(NAMENODE, "Execute"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(NAMENODE, "Directory") as directory, \
+      patch.object(NAMENODE.shell, "call", return_value=(1, "")), \
+      patch.object(NAMENODE, "Execute"), \
       patch.object(
         NAMENODE.hdfs_rebalance, "is_balancer_running", return_value=False
-      ),
-    ):
+      ):
       script.rebalancehdfs(MagicMock())
 
     directory.assert_called_once_with(
@@ -677,15 +655,13 @@ class TestHdfsBigtop(unittest.TestCase):
       "hdfs://cluster",
       "-saveNamespace",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         NAMENODE_UPGRADE,
         "get_dfsadmin_base_command",
         return_value=command[:-1],
-      ),
-      patch.object(NAMENODE_UPGRADE, "Execute") as execute,
-    ):
+      ), \
+      patch.object(NAMENODE_UPGRADE, "Execute") as execute:
       NAMENODE_UPGRADE.prepare_upgrade_save_namespace("hdfs")
 
     execute.assert_called_once_with(
@@ -695,17 +671,15 @@ class TestHdfsBigtop(unittest.TestCase):
       logoutput=True,
     )
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         NAMENODE_UPGRADE,
         "get_dfsadmin_base_command",
         return_value=command[:-1],
-      ),
+      ), \
       patch.object(
         NAMENODE_UPGRADE, "Execute", side_effect=OSError("checkpoint failed")
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "Could not save the NameSpace"):
         NAMENODE_UPGRADE.prepare_upgrade_save_namespace("hdfs")
 
@@ -719,20 +693,18 @@ class TestHdfsBigtop(unittest.TestCase):
       "-safemode",
       "get",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         HDFS_NAMENODE,
         "get_dfsadmin_base_command",
         return_value=command[:-2],
-      ),
+      ), \
       patch.object(
         HDFS_NAMENODE.shell,
         "call",
         side_effect=((0, "Safe mode is ON"), (0, "Safe mode is OFF")),
-      ) as shell_call,
-      patch.object(HDFS_NAMENODE.time, "sleep") as sleep,
-    ):
+      ) as shell_call, \
+      patch.object(HDFS_NAMENODE.time, "sleep") as sleep:
       HDFS_NAMENODE.wait_for_safemode_off(
         "hdfs", retries=2, sleep_seconds=1
       )
@@ -753,10 +725,8 @@ class TestHdfsBigtop(unittest.TestCase):
       hadoop_bin_dir="/usr/bin",
       hdfs_user="hdfs",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HDFS_NAMENODE, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HDFS_NAMENODE, "Execute") as execute:
       HDFS_NAMENODE.refreshProxyUsers()
 
     execute.assert_called_once_with(
@@ -954,13 +924,11 @@ class TestHdfsBigtop(unittest.TestCase):
 
   def test_hdfs_advisor_parent_load_failure_preserves_original_cause(self):
     advisor_path = HDFS / "service_advisor.py"
-    with (
-      patch.dict(
+    with patch.dict(
         os.environ, {"BASE_SERVICE_ADVISOR": "/missing/service_advisor.py"}
-      ),
-      patch("builtins.open", mock_open(read_data=b"")),
-      patch.object(import_utils, "load_module", side_effect=ValueError("bad parent")),
-    ):
+      ), \
+      patch("builtins.open", mock_open(read_data=b"")), \
+      patch.object(import_utils, "load_module", side_effect=ValueError("bad parent")):
       with self.assertRaisesRegex(
         RuntimeError,
         "Failed to load parent service advisor /missing/service_advisor.py",
@@ -1055,20 +1023,18 @@ class TestHdfsBigtop(unittest.TestCase):
         journalnode_port=params.journalnode_port,
       )
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SERVICE_CHECK.functions, "get_unique_id_and_date", return_value="check-id"
-      ),
-      patch.object(SERVICE_CHECK, "Execute"),
-      patch.object(SERVICE_CHECK, "format", side_effect=render),
+      ), \
+      patch.object(SERVICE_CHECK, "Execute"), \
+      patch.object(SERVICE_CHECK, "format", side_effect=render), \
       patch.object(
         SERVICE_CHECK,
         "curl_krb_request",
         return_value=(False, "connection refused", 1),
-      ),
-      patch.object(SERVICE_CHECK.Logger, "error") as logger_error,
-    ):
+      ), \
+      patch.object(SERVICE_CHECK.Logger, "error") as logger_error:
       result = SERVICE_CHECK.HdfsServiceCheckDefault().service_check(env)
 
     self.assertEqual(1, result)
@@ -1088,22 +1054,20 @@ class TestHdfsBigtop(unittest.TestCase):
       stack_version_unformatted="3.2.0",
     )
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         NAMENODE_UPGRADE.os.path,
         "isdir",
         side_effect=lambda path: path == "/namenode/current",
-      ),
-      patch.object(NAMENODE_UPGRADE.os, "makedirs"),
-      patch.object(NAMENODE_UPGRADE, "Execute", side_effect=OSError("disk full")),
-      patch.object(NAMENODE_UPGRADE, "Directory") as cleanup_directory,
+      ), \
+      patch.object(NAMENODE_UPGRADE.os, "makedirs"), \
+      patch.object(NAMENODE_UPGRADE, "Execute", side_effect=OSError("disk full")), \
+      patch.object(NAMENODE_UPGRADE, "Directory") as cleanup_directory, \
       patch.object(
         NAMENODE_UPGRADE, "get_unique_id_and_date", return_value="backup-id"
-      ),
-      patch.object(NAMENODE_UPGRADE.Logger, "info"),
-      patch.object(NAMENODE_UPGRADE.Logger, "error") as logger_error,
-    ):
+      ), \
+      patch.object(NAMENODE_UPGRADE.Logger, "info"), \
+      patch.object(NAMENODE_UPGRADE.Logger, "error") as logger_error:
       with self.assertRaisesRegex(Fail, "Could not backup the NameNode Name Dir"):
         NAMENODE_UPGRADE.prepare_upgrade_backup_namenode_dir()
 
@@ -1126,36 +1090,34 @@ class TestHdfsBigtop(unittest.TestCase):
       self.assertEqual(backup_destination, path)
       destination_state["exists"] = True
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         NAMENODE_UPGRADE.os.path,
         "isdir",
         side_effect=lambda path: path == "/namenode/current",
-      ),
+      ), \
       patch.object(
         NAMENODE_UPGRADE.os.path,
         "lexists",
         side_effect=lambda path: destination_state["exists"],
-      ),
+      ), \
       patch.object(
         NAMENODE_UPGRADE.os, "makedirs", side_effect=create_destination
-      ) as makedirs,
+      ) as makedirs, \
       patch.object(
         NAMENODE_UPGRADE, "Execute", side_effect=OSError("copy failed")
-      ) as execute,
+      ) as execute, \
       patch.object(
         NAMENODE_UPGRADE,
         "Directory",
         side_effect=OSError("cleanup failed"),
-      ) as cleanup_directory,
+      ) as cleanup_directory, \
       patch.object(
         NAMENODE_UPGRADE, "get_unique_id_and_date", return_value="backup-id"
-      ),
-      patch.object(NAMENODE_UPGRADE.Logger, "info"),
-      patch.object(NAMENODE_UPGRADE.Logger, "warning"),
-      patch.object(NAMENODE_UPGRADE.Logger, "error"),
-    ):
+      ), \
+      patch.object(NAMENODE_UPGRADE.Logger, "info"), \
+      patch.object(NAMENODE_UPGRADE.Logger, "warning"), \
+      patch.object(NAMENODE_UPGRADE.Logger, "error"):
       for attempt in (1, 2):
         with self.subTest(attempt=attempt):
           with self.assertRaisesRegex(
@@ -1178,24 +1140,22 @@ class TestHdfsBigtop(unittest.TestCase):
     env = MagicMock()
     namenode = NAMENODE.NameNodeDefault()
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(namenode, "get_hdfs_binary", return_value="hdfs"),
-      patch.object(NAMENODE.Logger, "info"),
-      patch.object(NAMENODE_UPGRADE, "prepare_upgrade_check_for_previous_dir"),
-      patch.object(NAMENODE_UPGRADE, "prepare_upgrade_enter_safe_mode"),
-      patch.object(NAMENODE_UPGRADE, "prepare_upgrade_save_namespace"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(namenode, "get_hdfs_binary", return_value="hdfs"), \
+      patch.object(NAMENODE.Logger, "info"), \
+      patch.object(NAMENODE_UPGRADE, "prepare_upgrade_check_for_previous_dir"), \
+      patch.object(NAMENODE_UPGRADE, "prepare_upgrade_enter_safe_mode"), \
+      patch.object(NAMENODE_UPGRADE, "prepare_upgrade_save_namespace"), \
       patch.object(
         NAMENODE_UPGRADE,
         "prepare_upgrade_backup_namenode_dir",
         side_effect=Fail("backup failed"),
-      ) as backup,
+      ) as backup, \
       patch.object(
         NAMENODE_UPGRADE, "prepare_upgrade_finalize_previous_upgrades"
-      ) as finalize,
-      patch.object(NAMENODE_UPGRADE, "prepare_rolling_upgrade") as rolling_upgrade,
-      patch.object(NAMENODE_UPGRADE, "create_upgrade_marker") as create_marker,
-    ):
+      ) as finalize, \
+      patch.object(NAMENODE_UPGRADE, "prepare_rolling_upgrade") as rolling_upgrade, \
+      patch.object(NAMENODE_UPGRADE, "create_upgrade_marker") as create_marker:
       with self.assertRaisesRegex(Fail, "backup failed"):
         namenode.prepare_express_upgrade(env)
 

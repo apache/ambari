@@ -382,17 +382,13 @@ class TestHbasePackageContract(unittest.TestCase):
       config = {
         "configurations": {"hbase-env": {"phoenix_sql_enabled": configured}}
       }
-      with (
-        self.subTest(configured=configured),
-        patch.object(package_conditions.Script, "get_config", return_value=config),
-      ):
+      with self.subTest(configured=configured), \
+        patch.object(package_conditions.Script, "get_config", return_value=config):
         self.assertEqual(expected, package_conditions.should_install_phoenix())
 
     for config in ({}, {"configurations": {}}, {"configurations": {"hbase-env": {}}}):
-      with (
-        self.subTest(config=config),
-        patch.object(package_conditions.Script, "get_config", return_value=config),
-      ):
+      with self.subTest(config=config), \
+        patch.object(package_conditions.Script, "get_config", return_value=config):
         self.assertFalse(package_conditions.should_install_phoenix())
 
     for config in (
@@ -400,11 +396,9 @@ class TestHbasePackageContract(unittest.TestCase):
       {"configurations": {"hbase-env": []}},
       {"configurations": {"hbase-env": {"phoenix_sql_enabled": "yes"}}},
     ):
-      with (
-        self.subTest(config=config),
-        patch.object(package_conditions.Script, "get_config", return_value=config),
-        self.assertRaises(Fail),
-      ):
+      with self.subTest(config=config), \
+        patch.object(package_conditions.Script, "get_config", return_value=config), \
+        self.assertRaises(Fail):
         package_conditions.should_install_phoenix()
 
 
@@ -427,11 +421,9 @@ class TestHbaseUpgradeWorkflow(unittest.TestCase):
         stack_select_lock_file="/tmp/stack_select_lock_file",
         is_parallel_execution_enabled=False,
       )
-      with (
-        self.subTest(phoenix_enabled=phoenix_enabled),
-        patch.object(UPGRADE.stack_select, "select_packages") as select_packages,
-        patch.object(UPGRADE.stack_select, "select") as select,
-      ):
+      with self.subTest(phoenix_enabled=phoenix_enabled), \
+        patch.object(UPGRADE.stack_select, "select_packages") as select_packages, \
+        patch.object(UPGRADE.stack_select, "select") as select:
         UPGRADE.select_hbase_packages(params)
       select_packages.assert_called_once_with("3.3.0-1")
       self.assertEqual(expected, select.call_args_list)
@@ -444,15 +436,13 @@ class TestHbaseUpgradeWorkflow(unittest.TestCase):
       stack_select_lock_file="/tmp/stack_select_lock_file",
       is_parallel_execution_enabled=False,
     )
-    with (
-      patch.object(
+    with patch.object(
         UPGRADE.stack_select,
         "select_packages",
         side_effect=Fail("base selection failed"),
-      ),
-      patch.object(UPGRADE.stack_select, "select") as select,
-      self.assertRaisesRegex(Fail, "base selection failed"),
-    ):
+      ), \
+      patch.object(UPGRADE.stack_select, "select") as select, \
+      self.assertRaisesRegex(Fail, "base selection failed"):
       UPGRADE.select_hbase_packages(params)
     select.assert_not_called()
 
@@ -483,12 +473,10 @@ class TestHbaseUpgradeWorkflow(unittest.TestCase):
       is_parallel_execution_enabled=True,
     )
     lock = MagicMock()
-    with (
-      patch.object(
+    with patch.object(
         UPGRADE, "FcntlBasedProcessLock", return_value=lock
-      ) as lock_factory,
-      patch.object(UPGRADE.stack_select, "select") as select,
-    ):
+      ) as lock_factory, \
+      patch.object(UPGRADE.stack_select, "select") as select:
       UPGRADE.select_phoenix_packages(params)
 
     lock_factory.assert_called_once_with(
@@ -514,10 +502,8 @@ class TestHbaseUpgradeWorkflow(unittest.TestCase):
       stack_select_lock_file="/tmp/stack_select_lock_file",
       is_parallel_execution_enabled=False,
     )
-    with (
-      patch.object(UPGRADE.stack_select, "select") as select,
-      self.assertRaisesRegex(Fail, "requires a stack version"),
-    ):
+    with patch.object(UPGRADE.stack_select, "select") as select, \
+      self.assertRaisesRegex(Fail, "requires a stack version"):
       UPGRADE.select_phoenix_packages(params)
     select.assert_not_called()
 

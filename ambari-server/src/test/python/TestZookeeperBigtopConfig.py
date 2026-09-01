@@ -69,11 +69,9 @@ class TestZookeeperConfiguration(unittest.TestCase):
       log4j_props="log4j.rootLogger=INFO, CONSOLE",
       security_enabled=True,
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(ZOOKEEPER_CONFIG, "Directory") as directory,
-      patch.object(ZOOKEEPER_CONFIG, "File") as file_resource,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(ZOOKEEPER_CONFIG, "Directory") as directory, \
+      patch.object(ZOOKEEPER_CONFIG, "File") as file_resource:
       ZOOKEEPER_CONFIG.zookeeper(type="server")
 
     myid_call = next(
@@ -108,12 +106,10 @@ class TestZookeeperConfiguration(unittest.TestCase):
       log4j_props=None,
       security_enabled=False,
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(ZOOKEEPER_CONFIG, "Directory") as directory,
-      patch.object(ZOOKEEPER_CONFIG, "File"),
-      patch.object(ZOOKEEPER_CONFIG.sudo, "path_exists", return_value=False),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(ZOOKEEPER_CONFIG, "Directory") as directory, \
+      patch.object(ZOOKEEPER_CONFIG, "File"), \
+      patch.object(ZOOKEEPER_CONFIG.sudo, "path_exists", return_value=False):
       ZOOKEEPER_CONFIG.zookeeper(type="client")
 
     created_directories = {

@@ -90,54 +90,42 @@ class TestTezUtils(unittest.TestCase):
 
   def test_examples_jar_must_be_one_regular_non_symlink_file(self):
     pattern = "/usr/lib/tez/tez-examples*.jar"
-    with (
-      patch.object(TEZ_UTILS.glob, "glob", return_value=["/one.jar"]),
-      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=False),
-    ):
+    with patch.object(TEZ_UTILS.glob, "glob", return_value=["/one.jar"]), \
+      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=False):
       self.assertEqual("/one.jar", TEZ_UTILS.find_unique_examples_jar(pattern))
 
-    with (
-      patch.object(
+    with patch.object(
         TEZ_UTILS.glob, "glob", return_value=["/one.jar", "/two.jar"]
-      ),
-      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=False),
-      self.assertRaisesRegex(Fail, "exactly one"),
-    ):
+      ), \
+      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=False), \
+      self.assertRaisesRegex(Fail, "exactly one"):
       TEZ_UTILS.find_unique_examples_jar(pattern)
 
-    with (
-      patch.object(TEZ_UTILS.glob, "glob", return_value=["/link.jar"]),
-      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=True),
-      self.assertRaisesRegex(Fail, "found 0"),
-    ):
+    with patch.object(TEZ_UTILS.glob, "glob", return_value=["/link.jar"]), \
+      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=True), \
+      self.assertRaisesRegex(Fail, "found 0"):
       TEZ_UTILS.find_unique_examples_jar(pattern)
 
   def test_keytab_validation_rejects_missing_and_symlink_credentials(self):
     keytab = "/etc/security/keytabs/smoke.keytab"
-    with (
-      patch.object(TEZ_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=False),
-    ):
+    with patch.object(TEZ_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=False):
       self.assertEqual(
         keytab, TEZ_UTILS.validate_keytab(keytab, "Tez smoke keytab")
       )
 
-    with (
-      patch.object(TEZ_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=True),
-      self.assertRaisesRegex(Fail, "non-symlink"),
-    ):
+    with patch.object(TEZ_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(TEZ_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(TEZ_UTILS.sudo, "path_islink", return_value=True), \
+      self.assertRaisesRegex(Fail, "non-symlink"):
       TEZ_UTILS.validate_keytab(keytab, "Tez smoke keytab")
 
-    with (
-      patch.object(TEZ_UTILS.sudo, "path_lexists", return_value=False),
-      self.assertRaisesRegex(Fail, "does not exist"),
-    ):
+    with patch.object(TEZ_UTILS.sudo, "path_lexists", return_value=False), \
+      self.assertRaisesRegex(Fail, "does not exist"):
       TEZ_UTILS.validate_keytab(keytab, "Tez smoke keytab")
 
     with self.assertRaisesRegex(Fail, "must end with .keytab"):
@@ -155,12 +143,10 @@ class TestTezConfiguration(unittest.TestCase):
       config={},
       tez_env_sh_template="export JAVA_HOME={{java64_home}}",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(TEZ_CONFIG, "Directory") as directory,
-      patch.object(TEZ_CONFIG, "XmlConfig") as xml_config,
-      patch.object(TEZ_CONFIG, "File") as file_resource,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(TEZ_CONFIG, "Directory") as directory, \
+      patch.object(TEZ_CONFIG, "XmlConfig") as xml_config, \
+      patch.object(TEZ_CONFIG, "File") as file_resource:
       TEZ_CONFIG.tez("/etc/tez/conf")
 
     directory.assert_called_once_with(
@@ -183,10 +169,8 @@ class TestTezConfiguration(unittest.TestCase):
     client.install_packages = MagicMock()
     client.configure = MagicMock()
     env = MagicMock()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(TEZ_CLIENT.lzo_utils, "install_lzo_if_needed") as install_lzo,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(TEZ_CLIENT.lzo_utils, "install_lzo_if_needed") as install_lzo:
       client.install(env)
 
     client.install_packages.assert_called_once_with(env)
@@ -222,18 +206,16 @@ class TestTezServiceCheck(unittest.TestCase):
     params = self._params()
     service_check = object.__new__(TEZ_SERVICE_CHECK.TezServiceCheckLinux)
     uuid_value = SimpleNamespace(hex="unique-check")
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(TEZ_SERVICE_CHECK.uuid, "uuid4", return_value=uuid_value),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(TEZ_SERVICE_CHECK.uuid, "uuid4", return_value=uuid_value), \
       patch.object(
         TEZ_SERVICE_CHECK.tez_utils,
         "find_unique_examples_jar",
         return_value="/usr/lib/tez/tez-examples-0.10.2.jar",
-      ),
-      patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=False),
-      patch.object(TEZ_SERVICE_CHECK, "File") as file_resource,
-      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop,
-    ):
+      ), \
+      patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=False), \
+      patch.object(TEZ_SERVICE_CHECK, "File") as file_resource, \
+      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop:
       service_check.service_check(MagicMock())
 
     run_command = execute_hadoop.call_args_list[0]
@@ -282,21 +264,19 @@ class TestTezServiceCheck(unittest.TestCase):
     kerberos_cache.environment = {"KRB5CCNAME": "FILE:/private/cache"}
     cache_context = MagicMock()
     cache_context.__enter__.return_value = kerberos_cache
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         TEZ_SERVICE_CHECK.tez_utils,
         "find_unique_examples_jar",
         return_value="/usr/lib/tez/tez-examples-0.10.2.jar",
-      ),
-      patch.object(TEZ_SERVICE_CHECK.tez_utils, "validate_keytab") as validate,
-      patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=False),
+      ), \
+      patch.object(TEZ_SERVICE_CHECK.tez_utils, "validate_keytab") as validate, \
+      patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=False), \
       patch.object(
         TEZ_SERVICE_CHECK, "PrivateKerberosCache", return_value=cache_context
-      ) as cache_factory,
-      patch.object(TEZ_SERVICE_CHECK, "File"),
-      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop,
-    ):
+      ) as cache_factory, \
+      patch.object(TEZ_SERVICE_CHECK, "File"), \
+      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop:
       service_check.service_check(MagicMock())
 
     self.assertEqual(
@@ -325,19 +305,17 @@ class TestTezServiceCheck(unittest.TestCase):
   def test_tarball_failure_does_not_run_tez_and_still_cleans_both_inputs(self):
     params = self._params()
     service_check = object.__new__(TEZ_SERVICE_CHECK.TezServiceCheckLinux)
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         TEZ_SERVICE_CHECK.tez_utils,
         "find_unique_examples_jar",
         return_value="/usr/lib/tez/tez-examples-0.10.2.jar",
-      ),
-      patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=True),
-      patch.object(TEZ_SERVICE_CHECK, "copy_to_hdfs", return_value=False),
-      patch.object(TEZ_SERVICE_CHECK, "File") as file_resource,
-      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop,
-      self.assertRaisesRegex(Fail, "runtime archive"),
-    ):
+      ), \
+      patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=True), \
+      patch.object(TEZ_SERVICE_CHECK, "copy_to_hdfs", return_value=False), \
+      patch.object(TEZ_SERVICE_CHECK, "File") as file_resource, \
+      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop, \
+      self.assertRaisesRegex(Fail, "runtime archive"):
       service_check.service_check(MagicMock())
 
     execute_hadoop.assert_not_called()
@@ -359,20 +337,18 @@ class TestTezServiceCheck(unittest.TestCase):
 
     params.HdfsResource.side_effect = hdfs_resource
     service_check = object.__new__(TEZ_SERVICE_CHECK.TezServiceCheckLinux)
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         TEZ_SERVICE_CHECK.tez_utils,
         "find_unique_examples_jar",
         return_value="/usr/lib/tez/tez-examples-0.10.2.jar",
-      ),
-      patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=True),
-      patch.object(TEZ_SERVICE_CHECK, "copy_to_hdfs", return_value=False),
-      patch.object(TEZ_SERVICE_CHECK, "File") as file_resource,
+      ), \
+      patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=True), \
+      patch.object(TEZ_SERVICE_CHECK, "copy_to_hdfs", return_value=False), \
+      patch.object(TEZ_SERVICE_CHECK, "File") as file_resource, \
       self.assertRaisesRegex(
         Fail, "runtime archive.*cleanup unavailable"
-      ),
-    ):
+      ):
       service_check.service_check(MagicMock())
 
     self.assertEqual("delete", file_resource.call_args_list[-1].kwargs["action"])
@@ -561,11 +537,9 @@ class TestTezAdvisorAndMetadata(unittest.TestCase):
       "bigtop_tez_broken_parent_advisor", advisor_path
     )
     module = importlib.util.module_from_spec(spec)
-    with (
-      patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": "/missing/advisor.py"}),
-      patch("builtins.open", side_effect=OSError("parent unavailable")),
-      self.assertRaisesRegex(OSError, "parent unavailable"),
-    ):
+    with patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": "/missing/advisor.py"}), \
+      patch("builtins.open", side_effect=OSError("parent unavailable")), \
+      self.assertRaisesRegex(OSError, "parent unavailable"):
       spec.loader.exec_module(module)
 
   def test_metadata_preserves_history_and_removes_unrelated_theme(self):

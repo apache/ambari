@@ -87,26 +87,22 @@ class TestKerberosInputContract(unittest.TestCase):
           KERBEROS_UTILS.validate_bigtop_stack(stack_name, stack_version)
 
     trusted = SimpleNamespace(st_uid=0, st_mode=0o100755)
-    with (
-      patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=False),
-      patch.object(KERBEROS_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(KERBEROS_UTILS.sudo, "stat", return_value=trusted),
-    ):
+    with patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=False), \
+      patch.object(KERBEROS_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(KERBEROS_UTILS.sudo, "stat", return_value=trusted):
       self.assertEqual(
         "/usr/bin/kinit",
         KERBEROS_UTILS.validate_executable("/usr/bin/kinit", "kinit"),
       )
       for mode in (0o100775, 0o100644):
         with self.subTest(mode=mode):
-          with (
-            patch.object(
+          with patch.object(
               KERBEROS_UTILS.sudo,
               "stat",
               return_value=SimpleNamespace(st_uid=0, st_mode=mode),
-            ),
-            self.assertRaises(Fail),
-          ):
+            ), \
+            self.assertRaises(Fail):
             KERBEROS_UTILS.validate_executable("/usr/bin/kinit", "kinit")
 
   def test_realm_endpoints_and_domains_fail_closed(self):
@@ -167,10 +163,8 @@ class TestKerberosInputContract(unittest.TestCase):
       "keytab_file_owner_access": "r",
       "keytab_file_group_access": "",
     }
-    with (
-      patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=False),
-      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=False),
-    ):
+    with patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=False), \
+      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=False):
       self.assertEqual(
         (record,),
         KERBEROS_UTILS.validate_keytab_records([record], require_content=True),
@@ -207,24 +201,18 @@ class TestKerberosInputContract(unittest.TestCase):
       oversized["keytab_content_base64"] = base64.b64encode(b"12345").decode(
         "ascii"
       )
-      with (
-        patch.object(KERBEROS_UTILS, "_MAX_KEYTAB_BYTES", 4),
-        self.assertRaisesRegex(Fail, "supported size"),
-      ):
+      with patch.object(KERBEROS_UTILS, "_MAX_KEYTAB_BYTES", 4), \
+        self.assertRaisesRegex(Fail, "supported size"):
         KERBEROS_UTILS.validate_keytab_records([oversized], require_content=True)
 
-    with (
-      patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=True),
-    ):
+    with patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=True):
       with self.assertRaisesRegex(Fail, "symbolic link"):
         KERBEROS_UTILS.validate_keytab_records([record], require_content=True)
 
-    with (
-      patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=False),
-      patch.object(KERBEROS_UTILS.sudo, "path_isfile", return_value=False),
-    ):
+    with patch.object(KERBEROS_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(KERBEROS_UTILS.sudo, "path_islink", return_value=False), \
+      patch.object(KERBEROS_UTILS.sudo, "path_isfile", return_value=False):
       with self.assertRaisesRegex(Fail, "regular file"):
         KERBEROS_UTILS.validate_keytab_records([record], require_content=True)
 
@@ -235,21 +223,17 @@ class TestKerberosClientContract(unittest.TestCase):
     self.env = MagicMock()
 
   def test_install_packages_false_skips_package_installation(self):
-    with (
-      patch.object(KERBEROS_CLIENT, "default", return_value="false"),
-      patch.object(self.client, "install_packages") as install_packages,
-      patch.object(self.client, "configure") as configure,
-    ):
+    with patch.object(KERBEROS_CLIENT, "default", return_value="false"), \
+      patch.object(self.client, "install_packages") as install_packages, \
+      patch.object(self.client, "configure") as configure:
       self.client.install(self.env)
     install_packages.assert_not_called()
     configure.assert_called_once_with(self.env)
 
   def test_configure_honors_manage_flag_and_never_clears_shared_cache(self):
     unmanaged = SimpleNamespace(manage_krb5_conf=False)
-    with (
-      patch.dict(sys.modules, {"params": unmanaged}),
-      patch.object(KERBEROS_CLIENT, "write_krb5_conf") as write,
-    ):
+    with patch.dict(sys.modules, {"params": unmanaged}), \
+      patch.object(KERBEROS_CLIENT, "write_krb5_conf") as write:
       self.client.configure(self.env)
     write.assert_not_called()
 
@@ -257,11 +241,9 @@ class TestKerberosClientContract(unittest.TestCase):
       manage_krb5_conf=True,
       krb5_conf_path="/etc/krb5.conf",
     )
-    with (
-      patch.dict(sys.modules, {"params": managed}),
-      patch.object(KERBEROS_UTILS, "validate_managed_file") as validate,
-      patch.object(KERBEROS_CLIENT, "write_krb5_conf") as write,
-    ):
+    with patch.dict(sys.modules, {"params": managed}), \
+      patch.object(KERBEROS_UTILS, "validate_managed_file") as validate, \
+      patch.object(KERBEROS_CLIENT, "write_krb5_conf") as write:
       self.client.configure(self.env)
     validate.assert_called_once_with(
       "/etc/krb5.conf", "krb5.conf path", suffix="/krb5.conf"
@@ -280,13 +262,11 @@ class TestKerberosClientContract(unittest.TestCase):
       ("check_keytabs", "find_missing_keytabs", False),
     ):
       with self.subTest(method=method_name):
-        with (
-          patch.dict(sys.modules, {"params": params}),
+        with patch.dict(sys.modules, {"params": params}), \
           patch.object(
             KERBEROS_UTILS, "validate_keytab_records"
-          ) as validate,
-          patch.object(KERBEROS_CLIENT, helper_name) as helper,
-        ):
+          ) as validate, \
+          patch.object(KERBEROS_CLIENT, helper_name) as helper:
           getattr(self.client, method_name)(self.env)
         validate.assert_called_once_with(
           params.kerberos_command_params,
@@ -313,14 +293,12 @@ class TestKerberosServiceCheckContract(unittest.TestCase):
     cache = MagicMock()
     context = MagicMock()
     context.__enter__.return_value = cache
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True),
-      patch.object(KERBEROS_UTILS, "validate_executable"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True), \
+      patch.object(KERBEROS_UTILS, "validate_executable"), \
       patch.object(
         KERBEROS_CHECK, "PrivateKerberosCache", return_value=context
-      ) as cache_factory,
-    ):
+      ) as cache_factory:
       KERBEROS_CHECK.KerberosServiceCheck().service_check(MagicMock())
 
     cache_factory.assert_called_once_with(
@@ -337,13 +315,11 @@ class TestKerberosServiceCheckContract(unittest.TestCase):
   def test_missing_managed_credentials_fail_and_manual_credentials_skip(self):
     for managed in (True, False):
       params = self._params(managed)
-      with (
-        patch.dict(sys.modules, {"params": params}),
+      with patch.dict(sys.modules, {"params": params}), \
         patch.object(
           KERBEROS_UTILS, "keytab_is_regular_file", return_value=False
-        ),
-        patch.object(KERBEROS_CHECK, "PrivateKerberosCache") as cache_factory,
-      ):
+        ), \
+        patch.object(KERBEROS_CHECK, "PrivateKerberosCache") as cache_factory:
         if managed:
           with self.assertRaises(Fail):
             KERBEROS_CHECK.KerberosServiceCheck().service_check(MagicMock())
@@ -358,17 +334,15 @@ class TestKerberosServiceCheckContract(unittest.TestCase):
 
   def test_untrusted_kinit_fails_before_private_cache_creation(self):
     params = self._params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True), \
       patch.object(
         KERBEROS_UTILS,
         "validate_executable",
         side_effect=Fail("untrusted kinit"),
-      ),
-      patch.object(KERBEROS_CHECK, "PrivateKerberosCache") as cache_factory,
-      self.assertRaisesRegex(Fail, "untrusted kinit"),
-    ):
+      ), \
+      patch.object(KERBEROS_CHECK, "PrivateKerberosCache") as cache_factory, \
+      self.assertRaisesRegex(Fail, "untrusted kinit"):
       KERBEROS_CHECK.KerberosServiceCheck().service_check(MagicMock())
     cache_factory.assert_not_called()
 
@@ -379,12 +353,10 @@ class TestKerberosServiceCheckContract(unittest.TestCase):
     context = MagicMock()
     context.__enter__.return_value = cache
     context.__exit__.return_value = False
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True),
-      patch.object(KERBEROS_UTILS, "validate_executable"),
-      patch.object(KERBEROS_CHECK, "PrivateKerberosCache", return_value=context),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(KERBEROS_UTILS, "keytab_is_regular_file", return_value=True), \
+      patch.object(KERBEROS_UTILS, "validate_executable"), \
+      patch.object(KERBEROS_CHECK, "PrivateKerberosCache", return_value=context):
       with self.assertRaisesRegex(Fail, "kinit failed"):
         KERBEROS_CHECK.KerberosServiceCheck().service_check(MagicMock())
     context.__exit__.assert_called_once()
@@ -430,10 +402,8 @@ class TestKerberosParamsAndMetadata(unittest.TestCase):
     }
 
   def test_params_are_minimal_typed_and_only_use_command_override_when_managed(self):
-    with (
-      patch.object(Script, "get_config", return_value=self._config()),
-      patch.object(functions, "get_kinit_path", return_value="/usr/bin/kinit"),
-    ):
+    with patch.object(Script, "get_config", return_value=self._config()), \
+      patch.object(functions, "get_kinit_path", return_value="/usr/bin/kinit"):
       params = load_module(
         "bigtop_kerberos_params_unmanaged",
         SCRIPTS / "params.py",
@@ -457,10 +427,8 @@ class TestKerberosParamsAndMetadata(unittest.TestCase):
 
     fallback_config = self._config()
     fallback_config["configurations"]["kerberos-env"]["admin_server_host"] = ""
-    with (
-      patch.object(Script, "get_config", return_value=fallback_config),
-      patch.object(functions, "get_kinit_path", return_value="/usr/bin/kinit"),
-    ):
+    with patch.object(Script, "get_config", return_value=fallback_config), \
+      patch.object(functions, "get_kinit_path", return_value="/usr/bin/kinit"):
       fallback = load_module(
         "bigtop_kerberos_params_admin_fallback",
         SCRIPTS / "params.py",
@@ -469,10 +437,8 @@ class TestKerberosParamsAndMetadata(unittest.TestCase):
     self.assertEqual("kdc1.example.com", fallback.admin_server_host)
 
     config = self._config(manage_identities="true")
-    with (
-      patch.object(Script, "get_config", return_value=config),
-      patch.object(functions, "get_kinit_path", return_value="/usr/bin/kinit"),
-    ):
+    with patch.object(Script, "get_config", return_value=config), \
+      patch.object(functions, "get_kinit_path", return_value="/usr/bin/kinit"):
       managed = load_module(
         "bigtop_kerberos_params_managed",
         SCRIPTS / "params.py",
@@ -505,10 +471,8 @@ class TestKerberosParamsAndMetadata(unittest.TestCase):
   def test_managed_empty_krb5_template_fails_closed(self):
     config = self._config(manage_conf="true")
     config["configurations"]["krb5-conf"]["content"] = "  "
-    with (
-      patch.object(Script, "get_config", return_value=config),
-      patch.object(functions, "get_kinit_path", return_value="/usr/bin/kinit"),
-    ):
+    with patch.object(Script, "get_config", return_value=config), \
+      patch.object(functions, "get_kinit_path", return_value="/usr/bin/kinit"):
       with self.assertRaisesRegex(Fail, "krb5-conf/content"):
         load_module(
           "bigtop_kerberos_params_empty_template",

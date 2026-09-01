@@ -129,16 +129,14 @@ class TestZookeeperUtils(unittest.TestCase):
       ZOOKEEPER_UTILS.sanitize_zoo_cfg({"clientPort": "70000"})
 
   def test_keytabs_and_cli_scripts_must_be_regular_non_symlink_files(self):
-    with (
-      patch.object(ZOOKEEPER_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(ZOOKEEPER_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(ZOOKEEPER_UTILS.sudo, "path_islink", return_value=False),
+    with patch.object(ZOOKEEPER_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(ZOOKEEPER_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(ZOOKEEPER_UTILS.sudo, "path_islink", return_value=False), \
       patch.object(
         ZOOKEEPER_UTILS.sudo,
         "stat",
         return_value=SimpleNamespace(st_mode=0o100755),
-      ),
-    ):
+      ):
       self.assertEqual(
         "/usr/lib/zookeeper/bin/zkCli.sh",
         ZOOKEEPER_UTILS.validate_executable(
@@ -152,12 +150,10 @@ class TestZookeeperUtils(unittest.TestCase):
         ),
       )
 
-    with (
-      patch.object(ZOOKEEPER_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(ZOOKEEPER_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(ZOOKEEPER_UTILS.sudo, "path_islink", return_value=True),
-      self.assertRaisesRegex(Fail, "non-symlink"),
-    ):
+    with patch.object(ZOOKEEPER_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(ZOOKEEPER_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(ZOOKEEPER_UTILS.sudo, "path_islink", return_value=True), \
+      self.assertRaisesRegex(Fail, "non-symlink"):
       ZOOKEEPER_UTILS.validate_keytab(
         "/etc/security/keytabs/zk.keytab", "keytab"
       )
@@ -177,17 +173,15 @@ class TestZookeeperProcess(unittest.TestCase):
         ZOOKEEPER_PROCESS.validate_pid_file(pid_file)
 
   def test_pidless_process_is_discovered_and_atomically_published_0640(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process, "discover_running_process", return_value=IDENTITY
-      ) as discover,
+      ) as discover, \
       patch.object(
         safe_process,
         "create_pid_file_for_identity",
         return_value=IDENTITY,
-      ) as create,
-    ):
+      ) as create:
       result = ZOOKEEPER_PROCESS.read_or_recover_process(
         PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
       )
@@ -205,14 +199,12 @@ class TestZookeeperProcess(unittest.TestCase):
     )
 
   def test_stale_pid_is_removed_but_wrong_identity_fails_closed(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
-      patch.object(safe_process, "read_running_process", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(safe_process, "read_running_process", return_value=None), \
       patch.object(
         safe_process, "remove_pid_file_if_stopped", return_value=True
-      ) as remove,
-      patch.object(safe_process, "discover_running_process", return_value=None),
-    ):
+      ) as remove, \
+      patch.object(safe_process, "discover_running_process", return_value=None):
       self.assertIsNone(
         ZOOKEEPER_PROCESS.read_or_recover_process(
           PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
@@ -225,44 +217,38 @@ class TestZookeeperProcess(unittest.TestCase):
       expected_cmdline=TOKENS,
     )
 
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
+    with patch.object(safe_process, "read_pid", return_value=123), \
       patch.object(
         safe_process,
         "read_running_process",
         side_effect=Fail("owner mismatch"),
-      ),
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-      self.assertRaisesRegex(Fail, "owner mismatch"),
-    ):
+      ), \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove, \
+      self.assertRaisesRegex(Fail, "owner mismatch"):
       ZOOKEEPER_PROCESS.read_or_recover_process(
         PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
       )
     remove.assert_not_called()
 
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process,
         "discover_running_process",
         side_effect=Fail("ambiguous process discovery"),
-      ),
-      patch.object(safe_process, "create_pid_file_for_identity") as create,
-      self.assertRaisesRegex(Fail, "ambiguous process discovery"),
-    ):
+      ), \
+      patch.object(safe_process, "create_pid_file_for_identity") as create, \
+      self.assertRaisesRegex(Fail, "ambiguous process discovery"):
       ZOOKEEPER_PROCESS.read_or_recover_process(
         PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
       )
     create.assert_not_called()
 
   def test_stop_pins_identity_and_uses_term_wait_kill(self):
-    with (
-      patch.object(
+    with patch.object(
         ZOOKEEPER_PROCESS, "read_or_recover_process", return_value=IDENTITY
-      ),
-      patch.object(safe_process, "terminate_process") as terminate,
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-    ):
+      ), \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove:
       self.assertTrue(
         ZOOKEEPER_PROCESS.stop_process(
           PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
@@ -288,18 +274,16 @@ class TestZookeeperProcess(unittest.TestCase):
 
 class TestZookeeperCli(unittest.TestCase):
   def test_cli_uses_positional_arguments_and_unique_0600_input(self):
-    with (
-      patch.object(ZOOKEEPER_CLI.zookeeper_utils, "validate_executable"),
+    with patch.object(ZOOKEEPER_CLI.zookeeper_utils, "validate_executable"), \
       patch.object(
         ZOOKEEPER_CLI.uuid, "uuid4", return_value=SimpleNamespace(hex="unique")
-      ),
-      patch.object(ZOOKEEPER_CLI, "File") as file_resource,
+      ), \
+      patch.object(ZOOKEEPER_CLI, "File") as file_resource, \
       patch.object(
         ZOOKEEPER_CLI.shell,
         "checked_call",
         return_value=(0, "Created /check\n"),
-      ) as checked_call,
-    ):
+      ) as checked_call:
       output = ZOOKEEPER_CLI.run_cli_command(
         "/usr/lib/zookeeper/bin/zkCli.sh",
         "zk1.example.com:2181",
@@ -331,10 +315,8 @@ class TestZookeeperCli(unittest.TestCase):
     self.assertEqual(input_file, command[-1])
 
   def test_cli_rejects_multiline_commands_and_reports_cleanup_failures(self):
-    with (
-      patch.object(ZOOKEEPER_CLI.zookeeper_utils, "validate_executable"),
-      self.assertRaisesRegex(Fail, "printable line"),
-    ):
+    with patch.object(ZOOKEEPER_CLI.zookeeper_utils, "validate_executable"), \
+      self.assertRaisesRegex(Fail, "printable line"):
       ZOOKEEPER_CLI.run_cli_command(
         "/usr/lib/zookeeper/bin/zkCli.sh",
         "zk1:2181",
@@ -347,20 +329,18 @@ class TestZookeeperCli(unittest.TestCase):
 
   def test_ensemble_check_uses_unique_node_and_reports_cleanup_failure(self):
     created = "Created /ambari-zookeeper-service-check-unique\n"
-    with (
-      patch.object(
+    with patch.object(
         ZOOKEEPER_CLI.uuid,
         "uuid4",
         return_value=SimpleNamespace(hex="unique"),
-      ),
+      ), \
       patch.object(
         ZOOKEEPER_CLI,
         "run_cli_command",
         side_effect=(created, "ambari-zookeeper-data-unique\n")
         + ("ambari-zookeeper-data-unique\n",) * 2
         + ("Deleted\n",),
-      ) as run_cli,
-    ):
+      ) as run_cli:
       ZOOKEEPER_CLI.verify_ensemble(
         ("zk1", "zk2", "zk3"),
         2181,
@@ -382,14 +362,12 @@ class TestZookeeperCli(unittest.TestCase):
       run_cli.call_args_list[-1].args[2],
     )
 
-    with (
-      patch.object(
+    with patch.object(
         ZOOKEEPER_CLI,
         "run_cli_command",
         side_effect=(Fail("create failed"), Fail("delete failed")),
-      ),
-      self.assertRaisesRegex(Fail, "create failed.*delete failed"),
-    ):
+      ), \
+      self.assertRaisesRegex(Fail, "create failed.*delete failed"):
       ZOOKEEPER_CLI.verify_ensemble(
         ("zk1",),
         2181,
@@ -401,18 +379,16 @@ class TestZookeeperCli(unittest.TestCase):
       )
 
   def test_cli_reports_input_cleanup_failure_with_operation_error(self):
-    with (
-      patch.object(ZOOKEEPER_CLI.zookeeper_utils, "validate_executable"),
+    with patch.object(ZOOKEEPER_CLI.zookeeper_utils, "validate_executable"), \
       patch.object(
         ZOOKEEPER_CLI, "File", side_effect=(None, RuntimeError("cleanup failed"))
-      ),
+      ), \
       patch.object(
         ZOOKEEPER_CLI.shell,
         "checked_call",
         side_effect=Fail("connection failed"),
-      ),
-      self.assertRaisesRegex(Fail, "connection failed.*cleanup failed"),
-    ):
+      ), \
+      self.assertRaisesRegex(Fail, "connection failed.*cleanup failed"):
       ZOOKEEPER_CLI.run_cli_command(
         "/usr/lib/zookeeper/bin/zkCli.sh",
         "zk1:2181",
@@ -437,33 +413,29 @@ class TestZookeeperService(unittest.TestCase):
       config_dir="/etc/zookeeper/conf",
       zk_log_dir="/var/log/zookeeper",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         ZOOKEEPER_SERVICE.zookeeper_process,
         "read_or_recover_process",
         return_value=IDENTITY,
-      ),
-      patch.object(ZOOKEEPER_SERVICE, "Execute") as execute,
-    ):
+      ), \
+      patch.object(ZOOKEEPER_SERVICE, "Execute") as execute:
       ZOOKEEPER_SERVICE.zookeeper_service("start")
     execute.assert_not_called()
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         ZOOKEEPER_SERVICE.zookeeper_process,
         "read_or_recover_process",
         return_value=None,
-      ),
-      patch.object(ZOOKEEPER_SERVICE.zookeeper_utils, "validate_executable"),
-      patch.object(ZOOKEEPER_SERVICE, "Execute") as execute,
+      ), \
+      patch.object(ZOOKEEPER_SERVICE.zookeeper_utils, "validate_executable"), \
+      patch.object(ZOOKEEPER_SERVICE, "Execute") as execute, \
       patch.object(
         ZOOKEEPER_SERVICE.zookeeper_process,
         "wait_for_started_process",
         return_value=IDENTITY,
-      ) as wait,
-    ):
+      ) as wait:
       ZOOKEEPER_SERVICE.zookeeper_service("start")
 
     execute.assert_called_once_with(
@@ -480,20 +452,18 @@ class TestZookeeperService(unittest.TestCase):
       PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
     )
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         ZOOKEEPER_SERVICE.zookeeper_process,
         "read_or_recover_process",
         return_value=None,
-      ),
-      patch.object(ZOOKEEPER_SERVICE.zookeeper_utils, "validate_executable"),
+      ), \
+      patch.object(ZOOKEEPER_SERVICE.zookeeper_utils, "validate_executable"), \
       patch.object(
         ZOOKEEPER_SERVICE, "Execute", side_effect=Fail("launcher failed")
-      ),
-      patch.object(ZOOKEEPER_SERVICE, "show_logs") as show_logs,
-      self.assertRaisesRegex(Fail, "launcher failed"),
-    ):
+      ), \
+      patch.object(ZOOKEEPER_SERVICE, "show_logs") as show_logs, \
+      self.assertRaisesRegex(Fail, "launcher failed"):
       ZOOKEEPER_SERVICE.zookeeper_service("start")
     show_logs.assert_called_once_with("/var/log/zookeeper", "zookeeper")
 
@@ -522,20 +492,18 @@ class TestZookeeperService(unittest.TestCase):
     service_check = object.__new__(
       ZOOKEEPER_SERVICE_CHECK.ZookeeperServiceCheckLinux
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         ZOOKEEPER_SERVICE_CHECK.zookeeper_utils, "validate_keytab"
-      ) as validate_keytab,
+      ) as validate_keytab, \
       patch.object(
         ZOOKEEPER_SERVICE_CHECK,
         "PrivateKerberosCache",
         return_value=cache_context,
-      ) as cache_factory,
+      ) as cache_factory, \
       patch.object(
         ZOOKEEPER_SERVICE_CHECK.zookeeper_cli, "verify_ensemble"
-      ) as verify,
-    ):
+      ) as verify:
       service_check.service_check(MagicMock())
 
     validate_keytab.assert_called_once_with(
