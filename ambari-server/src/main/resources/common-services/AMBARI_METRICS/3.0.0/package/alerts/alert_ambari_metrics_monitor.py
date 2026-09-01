@@ -25,7 +25,6 @@ from resource_management.libraries.functions.check_process_status import (
   check_process_status,
 )
 from resource_management.core.exceptions import ComponentIsNotRunning
-from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 RESULT_CODE_OK = "OK"
@@ -33,6 +32,7 @@ RESULT_CODE_CRITICAL = "CRITICAL"
 RESULT_CODE_UNKNOWN = "UNKNOWN"
 
 AMS_MONITOR_PID_DIR = "{{ams-env/metrics_monitor_pid_dir}}"
+AMS_USER = "{{ams-env/ambari_metrics_user}}"
 
 
 def get_tokens():
@@ -40,11 +40,11 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (AMS_MONITOR_PID_DIR,)
+  return (AMS_MONITOR_PID_DIR, AMS_USER)
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def is_monitor_process_live(pid_file):
+def is_monitor_process_live(pid_file, expected_user):
   """
   Gets whether the Metrics Monitor represented by the specified file is running.
   :param pid_file: the PID file of the monitor to check
@@ -53,7 +53,13 @@ def is_monitor_process_live(pid_file):
   live = False
 
   try:
-    check_process_status(pid_file)
+    check_process_status(
+      pid_file,
+      expected_user=expected_user,
+      expected_cmdline=(
+        "/usr/lib/python3.9/site-packages/resource_monitoring/main.py",
+      ),
+    )
     live = True
   except ComponentIsNotRunning:
     pass
@@ -61,7 +67,7 @@ def is_monitor_process_live(pid_file):
   return live
 
 
-def execute(configurations={}, parameters={}, host_name=None):
+def execute(configurations=None, parameters=None, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
@@ -77,17 +83,28 @@ def execute(configurations={}, parameters={}, host_name=None):
       ["There were no configurations supplied to the script."],
     )
 
-  if set([AMS_MONITOR_PID_DIR]).issubset(configurations):
-    AMS_MONITOR_PID_PATH = os.path.join(
-      configurations[AMS_MONITOR_PID_DIR], "ambari-metrics-monitor.pid"
+  if {AMS_MONITOR_PID_DIR, AMS_USER}.issubset(configurations):
+    pid_dir = configurations[AMS_MONITOR_PID_DIR]
+    if not os.path.isabs(pid_dir) or os.path.normpath(pid_dir) != pid_dir:
+      return (RESULT_CODE_UNKNOWN, ["The monitor PID directory is invalid."])
+    ams_monitor_pid_path = os.path.join(
+      pid_dir, "ambari-metrics-monitor.pid"
     )
   else:
-    return (RESULT_CODE_UNKNOWN, ["The ams_monitor_pid_dir is a required parameter."])
+    return (
+      RESULT_CODE_UNKNOWN,
+      ["The monitor PID directory and service user are required parameters."],
+    )
 
   if host_name is None:
     host_name = socket.getfqdn()
 
-  ams_monitor_process_running = is_monitor_process_live(AMS_MONITOR_PID_PATH)
+  try:
+    ams_monitor_process_running = is_monitor_process_live(
+      ams_monitor_pid_path, configurations[AMS_USER]
+    )
+  except Exception as error:
+    return (RESULT_CODE_UNKNOWN, [f"Unable to validate Metrics Monitor: {error}"])
 
   alert_state = RESULT_CODE_OK if ams_monitor_process_running else RESULT_CODE_CRITICAL
 
