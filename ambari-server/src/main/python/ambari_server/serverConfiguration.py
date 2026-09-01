@@ -166,7 +166,6 @@ JDBC_RCA_PASSWORD_FILE_PROPERTY = "server.jdbc.rca.user.passwd"
 DEFAULT_DBMS_PROPERTY = "server.setup.default.dbms"
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
-
 # The user which will bootstrap embedded postgres database setup by creating the default schema and ambari user.
 LOCAL_DATABASE_ADMIN_PROPERTY = "local.database.user"
 
@@ -1031,7 +1030,7 @@ def get_encrypted_password(alias, password, properties, options):
 
 
 def is_alias_string(passwdStr):
-  regex = re.compile("\$\{alias=[\w\.]+\}")
+  regex = re.compile(r"\$\{alias=[\w\.]+\}")
   # Match implies string at beginning of word
   r = regex.match(passwdStr)
   if r is not None:
@@ -1147,13 +1146,22 @@ def get_pass_file_path(conf_file, filename):
 def store_password_file(password, filename):
   conf_file = find_properties_file()
   passFilePath = get_pass_file_path(conf_file, filename)
-
-  with open(passFilePath, "w+") as passFile:
-    passFile.write(password)
-  print_info_msg("Adjusting filesystem permissions")
-  ambari_user = read_ambari_user()
-  if ambari_user:  # at the first install ambari_user can be None. Which is fine since later on password.dat is chowned with the correct ownership.
-    set_file_permissions(passFilePath, "660", ambari_user, False)
+  descriptor, staged_path = tempfile.mkstemp(
+    prefix=f".{filename}.", dir=os.path.dirname(passFilePath)
+  )
+  try:
+    with os.fdopen(descriptor, "w", encoding="utf-8") as passFile:
+      passFile.write(password)
+      passFile.flush()
+      os.fsync(passFile.fileno())
+    print_info_msg("Adjusting filesystem permissions")
+    ambari_user = read_ambari_user()
+    if ambari_user:  # The first install fixes ownership later if the user is unset.
+      set_file_permissions(staged_path, "660", ambari_user, False)
+    os.replace(staged_path, passFilePath)
+  finally:
+    if os.path.exists(staged_path):
+      os.remove(staged_path)
 
   return passFilePath
 
@@ -1458,8 +1466,7 @@ def update_ambari_properties():
   return 0
 
 
-# update properties in a section-less properties file
-# Cannot use ConfigParser due to bugs in version 2.6
+# Update properties in Ambari's section-less Java properties file.
 def update_properties(propertyMap):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   backup_file_in_temp(conf_file)

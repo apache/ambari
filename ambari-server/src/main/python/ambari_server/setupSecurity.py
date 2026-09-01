@@ -135,8 +135,8 @@ LDAP_GENERIC = "Generic"
 
 LDAP_TYPES = [LDAP_AD, LDAP_IPA, LDAP_GENERIC]
 
-REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
-REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+REGEX_IP_ADDRESS = r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+REGEX_HOSTNAME = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 REGEX_PORT = "^([0-9]{1,5}$)"
 REGEX_HOSTNAME_PORT = "^(.*:[0-9]{1,5}$)"
 REGEX_TRUE_FALSE = "^(true|false)?$"
@@ -719,8 +719,9 @@ def setup_sensitive_data_encryption(options):
     raise FatalException(1, "Failed to read properties file.")
 
   db_password = properties.get_property(JDBC_PASSWORD_PROPERTY)
+  db_sql_auth = True
   # Encrypt passwords cannot be called before setup
-  if db_sql_auth and not db_password:
+  if not db_password:
     print('Please call "setup" before "encrypt-passwords". Exiting...')
     return 1
 
@@ -729,7 +730,7 @@ def setup_sensitive_data_encryption(options):
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
 
   # Read clear text DB password from file
-  if db_sql_auth and not is_alias_string(db_password) and os.path.isfile(db_password):
+  if not is_alias_string(db_password) and os.path.isfile(db_password):
     with open(db_password, "r") as passwdfile:
       db_password = passwdfile.read()
 

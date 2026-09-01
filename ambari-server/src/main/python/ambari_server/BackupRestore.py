@@ -131,7 +131,7 @@ def print_usage():
   :return:
   """
   print(
-    "Usage: python BackupRestore.py <processType> [zip-folder-path|zip-file-path]\n\n"
+    "Usage: ambari-python-wrap BackupRestore.py <processType> [zip-folder-path|zip-file-path]\n\n"
     + "    processType - backup : backs up the filesystem state of the Ambari server into a zip file\n"
     + "    processType - restore : restores the filesystem state of the Ambari server\n"
     + "    [zip-folder-path] used with backup specifies the path of the folder where the zip file to be created\n"

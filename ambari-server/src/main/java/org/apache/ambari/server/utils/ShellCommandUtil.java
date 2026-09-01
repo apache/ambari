@@ -346,9 +346,8 @@ public class ShellCommandUtil {
     command.add("cp");
     command.add("-p"); // preserve mode, ownership, timestamps
 
-      if (force) {
-        command.add("-f"); // force overwrite
-      }
+    if (force) {
+      command.add("-f"); // force overwrite
     }
 
     command.add(srcFile);

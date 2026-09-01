@@ -31,7 +31,7 @@ class TestVersion(TestCase):
   """
 
   def setUp(self):
-    from ambari_commons import import_utils as imp
+    from ambari_commons import import_utils
 
     self.test_directory = os.path.dirname(os.path.abspath(__file__))
     test_file_path = os.path.join(
@@ -39,8 +39,8 @@ class TestVersion(TestCase):
       "../../../../ambari-common/src/main/python/resource_management/libraries/functions/version.py",
     )
     with open(test_file_path, "rb") as fp:
-      self.version_module = imp.load_module(
-        "version", fp, test_file_path, (".py", "rb", imp.PY_SOURCE)
+      self.version_module = import_utils.load_module(
+        "version", fp, test_file_path, (".py", "rb", import_utils.PY_SOURCE)
       )
 
   def test_format(self):

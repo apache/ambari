@@ -47,7 +47,7 @@ class TestClusterBlueprint(TestCase):
     ambariBlueprint = AmbariBlueprint()
     ambariBlueprint.importBlueprint(self.TEST_BLUEPRINT, self.BLUEPRINT_HOSTS, "c1")
 
-    get_server_info_mock.assertCalled()
+    get_server_info_mock.assert_called_once_with(False)
     performPostOperationMock.assert_has_calls(
       [
         call(blueprintUrl, BLUEPRINT_POST_JSON),
@@ -75,8 +75,8 @@ class TestClusterBlueprint(TestCase):
     ambariBlueprint = AmbariBlueprint()
     ambariBlueprint.exportBlueprint("blueprint-multinode-default", "/tmp/test")
 
-    openMock.assertCalled()
-    get_server_info_mock.assertCalled()
+    openMock.assert_called_once_with("/tmp/test", "w")
+    get_server_info_mock.assert_called_once_with(False)
     performGetOperationMock.assert_called_with(blueprintUrl)
 
     pass

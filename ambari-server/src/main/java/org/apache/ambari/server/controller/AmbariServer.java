@@ -920,7 +920,7 @@ public class AmbariServer {
 
   public void stop() throws Exception {
     if (server == null) {
-      throw new AmbariException("Error stopping the server");
+      LOG.info("Ambari Server stopped before the embedded server was initialized");
     } else {
       try {
         server.stop();

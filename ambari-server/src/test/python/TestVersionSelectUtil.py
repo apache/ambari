@@ -30,7 +30,7 @@ class TestVersionSelectUtil(TestCase):
   """
 
   def setUp(self):
-    from ambari_commons import import_utils as imp
+    from ambari_commons import import_utils
 
     Logger.logger = MagicMock()
 
@@ -40,8 +40,8 @@ class TestVersionSelectUtil(TestCase):
       "../../../../ambari-common/src/main/python/resource_management/libraries/functions/version_select_util.py",
     )
     with open(test_file_path, "rb") as fp:
-      self.module = imp.load_module(
-        "module", fp, test_file_path, (".py", "rb", imp.PY_SOURCE)
+      self.module = import_utils.load_module(
+        "module", fp, test_file_path, (".py", "rb", import_utils.PY_SOURCE)
       )
 
   @patch("builtins.open")

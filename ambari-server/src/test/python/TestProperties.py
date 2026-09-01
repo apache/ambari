@@ -31,6 +31,13 @@ from ambari_server.properties import Properties
 class TestProperties(TestCase):
   def test_load_uses_java_properties_escaping_and_continuations(self):
     content = (
+      "# ignored comment\n"
+      "! another ignored comment\n"
+      "equals=value\n"
+      "colon:value\n"
+      "space value\n"
+      "empty=\n"
+      "escaped\\=key=escaped separator value\n"
       "escaped\\ key=line\\nvalue\n"
       "continued=one\\\n  two\n"
       "duplicate=first\n"
@@ -44,11 +51,33 @@ class TestProperties(TestCase):
       with open(path, "r", encoding="utf-8") as stream:
         properties.load(stream)
 
+      self.assertEqual(properties.get_property("equals"), "value")
+      self.assertEqual(properties.get_property("colon"), "value")
+      self.assertEqual(properties.get_property("space"), "value")
+      self.assertEqual(properties.get_property("empty"), "")
+      self.assertEqual(
+        properties.get_property("escaped=key"), "escaped separator value"
+      )
       self.assertEqual(properties.get_property("escaped key"), "line\nvalue")
       self.assertEqual(properties.get_property("continued"), "onetwo")
       self.assertEqual(properties.get_property("duplicate"), "last")
       self.assertEqual(properties.get_property("unicode"), "\u4f60\u597d")
       self.assertEqual(properties.get_property("literal-backslash"), r"left\:right")
+      self.assertEqual(
+        list(properties.propertyNames()),
+        [
+          "equals",
+          "colon",
+          "space",
+          "empty",
+          "escaped=key",
+          "escaped key",
+          "continued",
+          "duplicate",
+          "unicode",
+          "literal-backslash",
+        ],
+      )
     finally:
       os.unlink(path)
 
@@ -94,6 +123,27 @@ class TestProperties(TestCase):
           properties.store_ordered(stream)
 
       self.assertTrue(stream.closed)
+    finally:
+      if not stream.closed:
+        stream.close()
+      os.unlink(path)
+
+  @patch("ambari_server.properties.time.strftime", return_value="fixed timestamp")
+  def test_store_preserves_ambari_headers_and_closes_stream(self, _):
+    properties = Properties()
+    properties.process_pair("key", "value")
+    path = self._write_file("")
+    stream = open(path, "w", encoding="utf-8")
+    try:
+      properties.store(stream, "Updated by compatibility test")
+
+      self.assertTrue(stream.closed)
+      with open(path, "r", encoding="utf-8") as stored:
+        content = stored.read()
+      self.assertIn("Apache License, Version 2.0", content)
+      self.assertIn("#Updated by compatibility test", content)
+      self.assertIn("#fixed timestamp", content)
+      self.assertEqual({"key": "value"}, javaproperties.loads(content))
     finally:
       if not stream.closed:
         stream.close()

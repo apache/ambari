@@ -26,7 +26,6 @@ import base64
 import urllib.request, urllib.error, urllib.parse
 import re
 import glob
-import optparse
 import logging
 import json
 

@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import optparse
+import argparse
 import os
 import re
 import shutil
@@ -135,7 +135,7 @@ UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
 JDK_PROMPT = "[{0}] {1}\n"
 JDK_VALID_CHOICES = "^[{0}{1:d}]$"
 
-JDK_VERSION_CHECK_CMD = """{0} -version 2>&1 | grep -i version | sed 's/.*version ".*\.\(.*\)\..*"/\\1/; 1q' 2>&1"""
+JDK_VERSION_CHECK_CMD = """{0} -version 2>&1 | grep -i version | sed 's/.*version ".*\\.\\(.*\\)\\..*"/\\1/; 1q' 2>&1"""
 
 
 def get_supported_jdbc_drivers():
@@ -431,6 +431,7 @@ class JDKSetup(object):
       print('Setting AMBARI_JAVA_HOME for Ambari finished')
 
 
+    java_home_var = get_JAVA_HOME()
     if args.java_home:
       # java_home was specified among the command-line arguments. Use it as custom JDK location.
       if not validate_jdk(args.java_home):
@@ -455,9 +456,9 @@ class JDKSetup(object):
       self._ensure_java_home_env_var_is_set(args.java_home)
       self.jdk_index = self.custom_jdk_number
 
-      progress_func = None
-    else:
-      progress_func = download_progress
+      return
+
+    progress_func = download_progress
 
     if java_home_var:
       message = "Do you want to change Oracle JDK [y/n] (n)? "
@@ -1044,7 +1045,7 @@ def _createDefDbFactory(options):
   ):
     raise FatalException(-1, "Ambari Server not set up yet. Nothing to reset.")
 
-  empty_options = optparse.Values()
+  empty_options = argparse.Namespace()
   empty_options.must_set_database_options = options.must_set_database_options
   empty_options.database_index = options.database_index
   empty_options.database_host = ""

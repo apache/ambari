@@ -28,6 +28,8 @@ from random import shuffle
 import fnmatch
 import tempfile
 import shutil
+import signal
+import time
 
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -43,6 +45,33 @@ CUSTOM_TEST_MASK = "_[Tt]est*.py"
 oldtmpdirpath = tempfile.gettempdir()
 newtmpdirpath = os.path.join(oldtmpdirpath, "ambari-test")
 tempfile.tempdir = newtmpdirpath
+TEST_TIMEOUT_SECONDS = int(os.environ.get("AMBARI_TEST_TIMEOUT_SECONDS", "300"))
+TEST_PROCESS_TIMEOUT_SECONDS = int(
+  os.environ.get("AMBARI_TEST_PROCESS_TIMEOUT_SECONDS", "900")
+)
+
+
+class TestTimeoutError(TimeoutError):
+  pass
+
+
+class TimeoutTextTestResult(unittest.TextTestResult):
+  def startTest(self, test):
+    super().startTest(test)
+    if hasattr(signal, "SIGALRM") and TEST_TIMEOUT_SECONDS > 0:
+      signal.signal(signal.SIGALRM, self._raise_timeout)
+      self._active_test = test
+      signal.alarm(TEST_TIMEOUT_SECONDS)
+
+  def _raise_timeout(self, signum, frame):
+    raise TestTimeoutError(
+      f"Test exceeded {TEST_TIMEOUT_SECONDS} seconds: {self._active_test.id()}"
+    )
+
+  def stopTest(self, test):
+    if hasattr(signal, "SIGALRM"):
+      signal.alarm(0)
+    super().stopTest(test)
 
 
 def get_parent_path(base, directory_name):
@@ -72,13 +101,48 @@ def get_test_files(path, mask=None, recursive=True):
     if os.path.isfile(p):
       if fnmatch.fnmatch(item, mask):
         add_to_pythonpath = True
-        current.append(item)
+        current.append(p)
     elif os.path.isdir(p):
       if recursive:
         current.extend(get_test_files(p, mask=mask))
     if add_to_pythonpath:
       sys.path.append(path)
   return current
+
+
+def discover_tests(path, mask, recursive=True):
+  loader = unittest.TestLoader()
+  suites = []
+  for test_path in sorted(set(get_test_files(path, mask=mask, recursive=recursive))):
+    test_directory = os.path.dirname(test_path)
+    module_name = os.path.splitext(os.path.basename(test_path))[0]
+    sys.modules.pop(module_name, None)
+    suites.append(
+      loader.discover(
+        start_dir=test_directory,
+        pattern=os.path.basename(test_path),
+        top_level_dir=test_directory,
+      )
+    )
+    sys.modules.pop(module_name, None)
+  return unittest.TestSuite(suites)
+
+
+def run_suite(test_suite):
+  return unittest.TextTestRunner(
+    verbosity=2, resultclass=TimeoutTextTestResult
+  ).run(test_suite)
+
+
+def stop_test_process(process):
+  if not process.is_alive():
+    return True
+  process.terminate()
+  process.join(10)
+  if process.is_alive():
+    process.kill()
+    process.join(10)
+  return not process.is_alive()
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -228,29 +292,45 @@ def stack_test_executor(base_folder, service, stack, test_mask, executor_result)
         script_folders.add(root)
 
   append_paths(server_src_dir, base_stack_folder, service)
-  tests = get_test_files(base_folder, mask=test_mask)
-
-  # TODO Add an option to randomize the tests' execution
-  # shuffle(tests)
-  modules = [os.path.basename(s)[:-3] for s in tests]
   try:
-    suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in modules]
-  except:
+    testSuite = discover_tests(base_folder, test_mask)
+  except OSError:
+    executor_result.put(
+      {
+        "exit_code": 1,
+        "tests_run": 0,
+        "errors": [("Failed to discover test files", traceback.format_exc(), "ERROR")],
+        "failures": [],
+      }
+    )
+    return
+
+  if testSuite.countTestCases() == 0:
+    # A focused mask is expected to miss most stack/service directories.  The
+    # parent process enforces a non-zero aggregate count, while the default
+    # full-suite mask must continue to catch an unexpectedly empty directory.
+    if test_mask != TEST_MASK:
+      executor_result.put(
+        {"exit_code": 0, "tests_run": 0, "errors": [], "failures": []}
+      )
+      return
     executor_result.put(
       {
         "exit_code": 1,
         "tests_run": 0,
         "errors": [
-          (f"Failed to load test files {str(modules)}", traceback.format_exc(), "ERROR")
+          (
+            "Python test discovery",
+            f"No tests matched {test_mask} under {base_folder}",
+            "ERROR",
+          )
         ],
         "failures": [],
       }
     )
-    executor_result.put(1)
     return
 
-  testSuite = unittest.TestSuite(suites)
-  textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
+  textRunner = run_suite(testSuite)
 
   # for pretty output
   sys.stdout.flush()
@@ -266,7 +346,6 @@ def stack_test_executor(base_folder, service, stack, test_mask, executor_result)
       ],
     }
   )
-  executor_result.put(0) if textRunner.wasSuccessful() else executor_result.put(1)
 
 
 def main():
@@ -346,18 +425,75 @@ def main():
       ),
     )
     process.start()
-    while process.is_alive():
-      process.join(10)
+    variant_result = None
+    deadline = time.monotonic() + TEST_PROCESS_TIMEOUT_SECONDS
+    while process.is_alive() and time.monotonic() < deadline:
+      process.join(min(10, max(0.1, deadline - time.monotonic())))
 
       # for pretty output
       sys.stdout.flush()
       sys.stderr.flush()
 
       try:
-        variant_result = executor_result.get_nowait()
+        candidate = executor_result.get_nowait()
+        if isinstance(candidate, dict):
+          variant_result = candidate
         break
-      except Empty as ex:
+      except Empty:
         pass
+
+    if variant_result is None:
+      try:
+        candidate = executor_result.get(timeout=1)
+        if isinstance(candidate, dict):
+          variant_result = candidate
+      except Empty:
+        pass
+
+    if variant_result is not None:
+      process.join(10)
+      if process.is_alive():
+        stopped = stop_test_process(process)
+        variant_result = {
+          "exit_code": 1,
+          "tests_run": variant_result["tests_run"],
+          "errors": variant_result["errors"]
+          + [
+            (
+              f"Test process for {variant['stack']}/{variant['service']}",
+              "Test process did not exit after reporting its result",
+              "ERROR",
+            )
+            if stopped
+            else (
+              f"Test process for {variant['stack']}/{variant['service']}",
+              "Test process remained alive after terminate and kill",
+              "ERROR",
+            )
+          ],
+          "failures": variant_result["failures"],
+        }
+
+    if variant_result is None:
+      stopped = stop_test_process(process)
+      variant_result = {
+        "exit_code": 1,
+        "tests_run": 0,
+        "errors": [
+          (
+            f"Test process for {variant['stack']}/{variant['service']}",
+            f"No result received within {TEST_PROCESS_TIMEOUT_SECONDS} seconds",
+            "ERROR",
+          )
+          if stopped
+          else (
+            f"Test process for {variant['stack']}/{variant['service']}",
+            "Test process timed out and remained alive after terminate and kill",
+            "ERROR",
+          )
+        ],
+        "failures": [],
+      }
 
     test_runs += variant_result["tests_run"]
     test_errors.extend(variant_result["errors"])
@@ -370,6 +506,10 @@ def main():
   sys.stderr.write("Running tests for ambari-server\n")
 
   test_dirs = [
+    (
+      os.path.join(ambari_common_folder, "src/test/python"),
+      "\nRunning tests for ambari-common\n",
+    ),
     (os.path.join(pwd, "custom_actions"), "\nRunning tests for custom actions\n"),
     (os.path.join(pwd, "host_scripts"), "\nRunning tests for host scripts\n"),
     (pwd, "\nRunning tests for ambari-server\n"),
@@ -377,15 +517,8 @@ def main():
 
   for test_dir, msg in test_dirs:
     sys.stderr.write(msg)
-    tests = get_test_files(test_dir, mask=test_mask, recursive=False)
-
-    # TODO Add an option to randomize the tests' execution
-    # shuffle(tests)
-
-    modules = [os.path.basename(s)[:-3] for s in tests]
-    suites = [unittest.defaultTestLoader.loadTestsFromName(name) for name in modules]
-    testSuite = unittest.TestSuite(suites)
-    textRunner = unittest.TextTestRunner(verbosity=2).run(testSuite)
+    testSuite = discover_tests(test_dir, test_mask, recursive=False)
+    textRunner = run_suite(testSuite)
     test_runs += textRunner.testsRun
 
     test_errors.extend(
@@ -398,6 +531,16 @@ def main():
 
   if len(test_errors) > 0 or len(test_failures) > 0:
     has_failures = True
+
+  if test_runs == 0:
+    has_failures = True
+    test_errors.append(
+      (
+        "Python test discovery",
+        f"No tests matched mask {test_mask}",
+        "ERROR",
+      )
+    )
 
   if has_failures:
     sys.stderr.write(

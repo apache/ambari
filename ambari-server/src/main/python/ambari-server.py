@@ -17,11 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import argparse
 import textwrap
 import logging
 import logging.config
 import logging.handlers
-import optparse
 import os
 import signal
 import sys
@@ -37,7 +37,6 @@ from ambari_commons.logging_utils import (
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import remove_file
-from optparse import OptionValueError
 
 from ambari_server.BackupRestore import main as BackupRestore_main
 from ambari_server.checkDatabase import check_database
@@ -369,7 +368,7 @@ def add_parser_options(*args, **kwargs):
     if not action in _action_option_dependence_map:
       _action_option_dependence_map[action] = ([], [])
     _action_option_dependence_map[action][1].append((args[0], kwargs["dest"]))
-  parser.add_option(*args, **kwargs)
+  parser.add_argument(*args, **kwargs)
 
 
 def print_action_arguments_help(action):
@@ -411,95 +410,91 @@ def add_jdbc_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_parser_options(parser):
-  database_group = optparse.OptionGroup(
-    parser, "Database options (command need to include all options)"
+  database_group = parser.add_argument_group(
+    "Database options (command need to include all options)"
   )
-  database_group.add_option(
+  database_group.add_argument(
     "--database",
     default=None,
     help="Database to use embedded|oracle|mysql|mssql|postgres|sqlanywhere",
     dest="dbms",
   )
-  database_group.add_option(
+  database_group.add_argument(
     "--databasehost",
     default=None,
     help="Hostname of database server",
     dest="database_host",
   )
-  database_group.add_option(
+  database_group.add_argument(
     "--databaseport", default=None, help="Database port", dest="database_port"
   )
-  database_group.add_option(
+  database_group.add_argument(
     "--databasename",
     default=None,
     help="Database/Service name or ServiceID",
     dest="database_name",
   )
-  database_group.add_option(
+  database_group.add_argument(
     "--databaseusername",
     default=None,
     help="Database user login",
     dest="database_username",
   )
-  database_group.add_option(
+  database_group.add_argument(
     "--databasepassword",
     default=None,
     help="Database user password",
     dest="database_password",
   )
-  parser.add_option_group(database_group)
-
-  jdbc_group = optparse.OptionGroup(
-    parser, "JDBC options (command need to include all options)"
+  jdbc_group = parser.add_argument_group(
+    "JDBC options (command need to include all options)"
   )
   add_jdbc_parser_options(jdbc_group)
-  parser.add_option_group(jdbc_group)
+  other_group = parser.add_argument_group("Other options")
 
-  other_group = optparse.OptionGroup(parser, "Other options")
-
-  other_group.add_option(
+  other_group.add_argument(
     "-j",
     "--java-home",
     default=None,
     help="Use specified java_home.  Must be valid on all hosts",
   )
-  other_group.add_option(
+  other_group.add_argument(
     "--ambari-java-home",
     dest="ambari_java_home",
     help="Use specified java_home for ambari.  Must be valid on Ambari server hosts",
   )
-  other_group.add_option(
+  other_group.add_argument(
     "--stack-java-home",
     dest="stack_java_home",
     default=None,
     help="Use specified java_home for stack services.  Must be valid on all hosts",
   )
-  other_group.add_option(
+  other_group.add_argument(
     "--skip-view-extraction",
     action="store_true",
     default=False,
     help="Skip extraction of system views",
     dest="skip_view_extraction",
   )
-  other_group.add_option(
+  other_group.add_argument(
     "--postgresschema",
     default=None,
     help="Postgres database schema name",
     dest="postgres_schema",
   )
-  other_group.add_option(
+  other_group.add_argument(
     "--sqla-server-name",
     default=None,
     help="SQL Anywhere server name",
     dest="sqla_server_name",
   )
-  other_group.add_option(
+  other_group.add_argument(
     "--sidorsname",
     default="sname",
     help="Oracle database identifier type, Service ID/Service " "Name sid|sname",
     dest="sid_or_sname",
   )
-  other_group.add_option(
+  other_group.add_argument(
     "--enable-lzo-under-gpl-license",
     action="store_true",
     default=False,
@@ -508,34 +503,32 @@ def init_setup_parser_options(parser):
   )
 
   # the --master-key option is needed in the event passwords in the ambari.properties file are encrypted
-  other_group.add_option(
+  other_group.add_argument(
     "--master-key",
     default=None,
     help="Master key for encrypting passwords",
     dest="master_key",
   )
 
-  parser.add_option_group(other_group)
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_reset_parser_options(parser):
-  other_group = optparse.OptionGroup(parser, "Other options")
+  other_group = parser.add_argument_group("Other options")
 
   # the --master-key option is needed in the event passwords in the ambari.properties file are encrypted
-  other_group.add_option(
+  other_group.add_argument(
     "--master-key",
     default=None,
     help="Master key for encrypting passwords",
     dest="master_key",
   )
 
-  parser.add_option_group(other_group)
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_start_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "-g",
     "--debug",
     action="store_true",
@@ -543,7 +536,7 @@ def init_start_parser_options(parser):
     default=False,
     help="Start ambari-server in debug mode",
   )
-  parser.add_option(
+  parser.add_argument(
     "-y",
     "--suspend-start",
     action="store_true",
@@ -551,21 +544,21 @@ def init_start_parser_options(parser):
     default=False,
     help="Freeze ambari-server Java process at startup in debug mode",
   )
-  parser.add_option(
+  parser.add_argument(
     "--skip-properties-validation",
     action="store_true",
     default=False,
     help="Skip properties file validation",
     dest="skip_properties_validation",
   )
-  parser.add_option(
+  parser.add_argument(
     "--skip-database-check",
     action="store_true",
     default=False,
     help="Skip database consistency check",
     dest="skip_database_check",
   )
-  parser.add_option(
+  parser.add_argument(
     "--auto-fix-database",
     action="store_true",
     default=False,
@@ -581,46 +574,46 @@ def init_empty_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_ldap_sync_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--all",
     action="store_true",
     default=False,
     help="LDAP sync all option.  Synchronize all LDAP users and groups.",
     dest="ldap_sync_all",
   )
-  parser.add_option(
+  parser.add_argument(
     "--existing",
     action="store_true",
     default=False,
     help="LDAP sync existing option.  Synchronize existing Ambari users and groups only.",
     dest="ldap_sync_existing",
   )
-  parser.add_option(
+  parser.add_argument(
     "--users",
     default=None,
     help="LDAP sync users option. Specifies the path to a CSV file of user names to be synchronized.",
     dest="ldap_sync_users",
   )
-  parser.add_option(
+  parser.add_argument(
     "--groups",
     default=None,
     help="LDAP sync groups option.  Specifies the path to a CSV file of group names to be synchronized.",
     dest="ldap_sync_groups",
   )
-  parser.add_option(
+  parser.add_argument(
     "--post-process-existing-users",
     action="store_true",
     default=False,
     help="While performing an LDAP sync, reprocess existing users by executing the post creation hook on them, if the feature is enabled",
     dest="ldap_sync_post_process_existing_users",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-sync-admin-name",
     default=None,
     help="Username for LDAP sync",
     dest="ldap_sync_admin_name",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-sync-admin-password",
     default=None,
     help="Password for LDAP sync",
@@ -628,245 +621,234 @@ def init_ldap_sync_parser_options(parser):
   )
 
 
-def check_ldap_url_options(option, opt_str, value, parser):
-  setattr(parser.values, option.dest, value)
-  if parser.values.ldap_url and (
-    parser.values.ldap_primary_host or parser.values.ldap_primary_port
+def check_ldap_url_options(options, parser):
+  if getattr(options, "ldap_url", None) and (
+    getattr(options, "ldap_primary_host", None)
+    or getattr(options, "ldap_primary_port", None)
   ):
-    raise OptionValueError(
+    parser.error(
       "You must use either [--ldap-url] or [--ldap-primary-host and --ldap-primary-port] but not both at the same time!"
     )
 
-  if parser.values.ldap_secondary_url and (
-    parser.values.ldap_secondary_host or parser.values.ldap_secondary_port
+  if getattr(options, "ldap_secondary_url", None) and (
+    getattr(options, "ldap_secondary_host", None)
+    or getattr(options, "ldap_secondary_port", None)
   ):
-    raise OptionValueError(
+    parser.error(
       "You must use either [--ldap-secondary-url] or [--ldap-secondary-host and --ldap-secondary-port] but not both at the same time!"
     )
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_ldap_setup_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--ldap-url",
-    action="callback",
-    callback=check_ldap_url_options,
-    type="str",
+    type=str,
     default=None,
     help="Primary URL for LDAP (must not be used together with --ldap-primary-host and --ldap-primary-port)",
     dest="ldap_url",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-primary-host",
-    action="callback",
-    callback=check_ldap_url_options,
-    type="str",
+    type=str,
     default=None,
     help="Primary Host for LDAP (must not be used together with --ldap-url)",
     dest="ldap_primary_host",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-primary-port",
-    action="callback",
-    callback=check_ldap_url_options,
-    type="int",
+    type=int,
     default=None,
     help="Primary Port for LDAP (must not be used together with --ldap-url)",
     dest="ldap_primary_port",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-secondary-url",
-    action="callback",
-    callback=check_ldap_url_options,
-    type="str",
+    type=str,
     default=None,
     help="Secondary URL for LDAP (must not be used together with --ldap-secondary-host and --ldap-secondary-port)",
     dest="ldap_secondary_url",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-secondary-host",
-    action="callback",
-    callback=check_ldap_url_options,
-    type="str",
+    type=str,
     default=None,
     help="Secondary Host for LDAP (must not be used together with --ldap-secondary-url)",
     dest="ldap_secondary_host",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-secondary-port",
-    action="callback",
-    callback=check_ldap_url_options,
-    type="int",
+    type=int,
     default=None,
     help="Secondary Port for LDAP (must not be used together with --ldap-secondary-url)",
     dest="ldap_secondary_port",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-ssl", default=None, help="Use SSL [true/false] for LDAP", dest="ldap_ssl"
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-type",
     default=None,
     help=f"Specify ldap type [{'/'.join(LDAP_TYPES)}] for offering defaults for missing options.",
     dest="ldap_type",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-user-class",
     default=None,
     help="User Attribute Object Class for LDAP",
     dest="ldap_user_class",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-user-attr",
     default=None,
     help="User Attribute Name for LDAP",
     dest="ldap_user_attr",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-user-group-member-attr",
     default=None,
     help="User Group Member Attribute for LDAP",
     dest="ldap_user_group_member_attr",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-group-class",
     default=None,
     help="Group Attribute Object Class for LDAP",
     dest="ldap_group_class",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-group-attr",
     default=None,
     help="Group Attribute Name for LDAP",
     dest="ldap_group_attr",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-member-attr",
     default=None,
     help="Group Membership Attribute Name for LDAP",
     dest="ldap_member_attr",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-dn",
     default=None,
     help="Distinguished name attribute for LDAP",
     dest="ldap_dn",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-base-dn", default=None, help="Base DN for LDAP", dest="ldap_base_dn"
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-manager-dn",
     default=None,
     help="Manager DN for LDAP",
     dest="ldap_manager_dn",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-manager-password",
     default=None,
     help="Manager Password For LDAP",
     dest="ldap_manager_password",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-save-settings",
     action="store_true",
     default=None,
     help="Save without review for LDAP",
     dest="ldap_save_settings",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-referral",
     default=None,
     help="Referral method [follow/ignore] for LDAP",
     dest="ldap_referral",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-bind-anonym",
     default=None,
     help="Bind anonymously [true/false] for LDAP",
     dest="ldap_bind_anonym",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-sync-username-collisions-behavior",
     default=None,
     help="Handling behavior for username collisions [convert/skip] for LDAP sync",
     dest="ldap_sync_username_collisions_behavior",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-sync-disable-endpoint-identification",
     default=None,
     help="Determines whether to disable endpoint identification (hostname verification) during SSL handshake for LDAP sync. This option takes effect only if --ldap-ssl is set to 'true'",
     dest="ldap_sync_disable_endpoint_identification",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-force-lowercase-usernames",
     default=None,
     help="Declares whether to force the ldap user name to be lowercase or leave as-is",
     dest="ldap_force_lowercase_usernames",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-pagination-enabled",
     default=None,
     help="Determines whether results from LDAP are paginated when requested",
     dest="ldap_pagination_enabled",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-force-setup",
     action="store_true",
     default=False,
     help="Forces the use of LDAP even if other (i.e. PAM) authentication method is configured already or if there is no authentication method configured at all",
     dest="ldap_force_setup",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ambari-admin-username",
     default=None,
     help="Ambari administrator username for accessing Ambari's REST API",
     dest="ambari_admin_username",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ambari-admin-password",
     default=None,
     help="Ambari administrator password for accessing Ambari's REST API",
     dest="ambari_admin_password",
   )
-  parser.add_option(
+  parser.add_argument(
     "--truststore-type",
     default=None,
     help="Type of TrustStore (jks|jceks|pkcs12)",
     dest="trust_store_type",
   )
-  parser.add_option(
+  parser.add_argument(
     "--truststore-path",
     default=None,
     help="Path of TrustStore",
     dest="trust_store_path",
   )
-  parser.add_option(
+  parser.add_argument(
     "--truststore-password",
     default=None,
     help="Password for TrustStore",
     dest="trust_store_password",
   )
-  parser.add_option(
+  parser.add_argument(
     "--truststore-reconfigure",
     action="store_true",
     default=None,
     help="Force to reconfigure TrustStore if exits",
     dest="trust_store_reconfigure",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-enabled-ambari",
     default=None,
     help="Indicates whether to enable/disable LDAP authentication for Ambari, itself",
     dest="ldap_enabled_ambari",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-manage-services",
     default=None,
     help="Indicates whether Ambari should manage the LDAP configurations for specified services",
     dest="ldap_manage_services",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ldap-enabled-services",
     default=None,
     help="A comma separated list of services that are expected to be configured for LDAP (you are allowed to use '*' to indicate ALL services)",
@@ -876,61 +858,61 @@ def init_ldap_setup_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_sso_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--sso-enabled",
     default=None,
     help="Indicates whether to enable/disable SSO",
     dest="sso_enabled",
   )
-  parser.add_option(
+  parser.add_argument(
     "--sso-enabled-ambari",
     default=None,
     help="Indicates whether to enable/disable SSO authentication for Ambari, itself",
     dest="sso_enabled_ambari",
   )
-  parser.add_option(
+  parser.add_argument(
     "--sso-manage-services",
     default=None,
     help="Indicates whether Ambari should manage the SSO configurations for specified services",
     dest="sso_manage_services",
   )
-  parser.add_option(
+  parser.add_argument(
     "--sso-enabled-services",
     default=None,
     help="A comma separated list of services that are expected to be configured for SSO (you are allowed to use '*' to indicate ALL services)",
     dest="sso_enabled_services",
   )
-  parser.add_option(
+  parser.add_argument(
     "--sso-provider-url",
     default=None,
     help="The URL of SSO provider; this must be provided when --sso-enabled is set to 'true'",
     dest="sso_provider_url",
   )
-  parser.add_option(
+  parser.add_argument(
     "--sso-public-cert-file",
     default=None,
     help="The path where the public certificate PEM is located; this must be provided when --sso-enabled is set to 'true'",
     dest="sso_public_cert_file",
   )
-  parser.add_option(
+  parser.add_argument(
     "--sso-jwt-cookie-name",
     default=None,
     help="The name of the JWT cookie",
     dest="sso_jwt_cookie_name",
   )
-  parser.add_option(
+  parser.add_argument(
     "--sso-jwt-audience-list",
     default=None,
     help="A comma separated list of JWT audience(s)",
     dest="sso_jwt_audience_list",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ambari-admin-username",
     default=None,
     help="Ambari administrator username for accessing Ambari's REST API",
     dest="ambari_admin_username",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ambari-admin-password",
     default=None,
     help="Ambari administrator password for accessing Ambari's REST API",
@@ -940,13 +922,13 @@ def init_setup_sso_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_pam_setup_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--pam-config-file",
     default=None,
     help="Path to the PAM configuration file",
     dest="pam_config_file",
   )
-  parser.add_option(
+  parser.add_argument(
     "--pam-auto-create-groups",
     default=None,
     help="Automatically create groups for authenticated users [true/false]",
@@ -956,25 +938,25 @@ def init_pam_setup_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_tproxy_setup_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--ambari-admin-username",
     default=None,
     help="Ambari administrator username for accessing Ambari's REST API",
     dest="ambari_admin_username",
   )
-  parser.add_option(
+  parser.add_argument(
     "--ambari-admin-password",
     default=None,
     help="Ambari administrator password for accessing Ambari's REST API",
     dest="ambari_admin_password",
   )
-  parser.add_option(
+  parser.add_argument(
     "--tproxy-enabled",
     default=None,
     help="Indicates whether to enable/disable Trusted Proxy Support",
     dest="tproxy_enabled",
   )
-  parser.add_option(
+  parser.add_argument(
     "--tproxy-configuration-file-path",
     default=None,
     help="The path where the Trusted Proxy configuration is located. The content is expected to be in JSON format."
@@ -985,16 +967,16 @@ def init_tproxy_setup_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_set_current_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--cluster-name", default=None, help="Cluster name", dest="cluster_name"
   )
-  parser.add_option(
+  parser.add_argument(
     "--version-display-name",
     default=None,
     help="Display name of desired repo version",
     dest="desired_repo_version",
   )
-  parser.add_option(
+  parser.add_argument(
     "--force-version",
     action="store_true",
     default=False,
@@ -1005,157 +987,148 @@ def init_set_current_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_setup_security_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--security-option",
     default=None,
     help="Setup security option (setup-https|encrypt-passwords|setup-kerberos-jaas|setup-truststore|import-certificate)",
     dest="security_option",
   )
 
-  https_group = optparse.OptionGroup(parser, "setup-https options")
-  https_group.add_option(
+  https_group = parser.add_argument_group("setup-https options")
+  https_group.add_argument(
     "--api-ssl",
     default=None,
     help="Enable SSL for Ambari API [true/false]",
     dest="api_ssl",
   )
-  https_group.add_option(
+  https_group.add_argument(
     "--api-ssl-port", default=None, help="Client API SSL port", dest="api_ssl_port"
   )
-  https_group.add_option(
+  https_group.add_argument(
     "--import-key-path",
     default=None,
     help="Path to Private Key (import)",
     dest="import_key_path",
   )
-  https_group.add_option(
+  https_group.add_argument(
     "--pem-password", default=None, help="Password for Private Key", dest="pem_password"
   )
-  parser.add_option_group(https_group)
-
-  encrypt_passwords_group = optparse.OptionGroup(parser, "encrypt-passwords options")
-  encrypt_passwords_group.add_option(
+  encrypt_passwords_group = parser.add_argument_group("encrypt-passwords options")
+  encrypt_passwords_group.add_argument(
     "--master-key",
     default=None,
     help="Master key for encrypting passwords",
     dest="master_key",
   )
-  encrypt_passwords_group.add_option(
+  encrypt_passwords_group.add_argument(
     "--master-key-persist",
     default=None,
     help="Persist master key [true/false]",
     dest="master_key_persist",
   )
-  parser.add_option_group(encrypt_passwords_group)
-
-  setup_kerberos_jaas_group = optparse.OptionGroup(
-    parser, "setup-kerberos-jaas options"
+  setup_kerberos_jaas_group = parser.add_argument_group(
+    "setup-kerberos-jaas options"
   )
-  setup_kerberos_jaas_group.add_option(
+  setup_kerberos_jaas_group.add_argument(
     "--jaas-principal",
     default=None,
     help="Kerberos principal for ambari server",
     dest="jaas_principal",
   )
-  setup_kerberos_jaas_group.add_option(
+  setup_kerberos_jaas_group.add_argument(
     "--jaas-keytab",
     default=None,
     help="Keytab path for Kerberos principal",
     dest="jaas_keytab",
   )
-  parser.add_option_group(setup_kerberos_jaas_group)
-
-  setup_truststore_group = optparse.OptionGroup(
-    parser, "setup-truststore options, uses encrypt-passwords options if configured"
+  setup_truststore_group = parser.add_argument_group(
+    "setup-truststore options, uses encrypt-passwords options if configured"
   )
-  setup_truststore_group.add_option(
+  setup_truststore_group.add_argument(
     "--truststore-type",
     default=None,
     help="Type of TrustStore (jks|jceks|pkcs12)",
     dest="trust_store_type",
   )
-  setup_truststore_group.add_option(
+  setup_truststore_group.add_argument(
     "--truststore-path",
     default=None,
     help="Path of TrustStore",
     dest="trust_store_path",
   )
-  setup_truststore_group.add_option(
+  setup_truststore_group.add_argument(
     "--truststore-password",
     default=None,
     help="Password for TrustStore",
     dest="trust_store_password",
   )
-  setup_truststore_group.add_option(
+  setup_truststore_group.add_argument(
     "--truststore-reconfigure",
     action="store_true",
     default=None,
     help="Force to reconfigure TrustStore if exits",
     dest="trust_store_reconfigure",
   )
-  parser.add_option_group(setup_truststore_group)
-
-  import_certificate_group = optparse.OptionGroup(
-    parser, "import-certificate options, uses --truststore-path option"
+  import_certificate_group = parser.add_argument_group(
+    "import-certificate options, uses --truststore-path option"
   )
-  import_certificate_group.add_option(
+  import_certificate_group.add_argument(
     "--import-cert-path",
     default=None,
     help="Path to Certificate (import)",
     dest="import_cert_path",
   )
-  import_certificate_group.add_option(
+  import_certificate_group.add_argument(
     "--import-cert-alias",
     default=None,
     help="Alias for the imported certificate",
     dest="import_cert_alias",
   )
-  parser.add_option_group(import_certificate_group)
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_enable_stack_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--version",
     dest="stack_versions",
     default=None,
     action="append",
-    type="string",
+    type=str,
     help="Specify stack version that needs to be enabled. All other stacks versions will be disabled",
   )
-  parser.add_option(
+  parser.add_argument(
     "--stack",
     dest="stack_name",
     default=None,
-    type="string",
+    type=str,
     help="Specify stack name for the stack versions that needs to be enabled",
   )
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_db_purge_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--cluster-name", default=None, help="Cluster name", dest="cluster_name"
   )
-  parser.add_option(
+  parser.add_argument(
     "-d",
     "--from-date",
     dest="purge_from_date",
     default=None,
-    type="string",
+    type=str,
     help="Specify date for the database purge process in 'yyyy-MM-dd' format",
   )
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_install_mpack_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--mpack",
     default=None,
     help="Specify the path for management pack to be installed",
     dest="mpack_path",
   )
-  parser.add_option(
+  parser.add_argument(
     "--purge",
     action="store_true",
     default=False,
@@ -1173,13 +1146,13 @@ def init_install_mpack_parser_options(parser):
     [STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME]
   )
 
-  parser.add_option(
+  parser.add_argument(
     "--purge-list",
     default=default_purge_resources,
     help=f"Comma separated list of resources to purge ({purge_resources}). By default ({default_purge_resources}) will be purged.",
     dest="purge_list",
   )
-  parser.add_option(
+  parser.add_argument(
     "--force",
     action="store_true",
     default=False,
@@ -1190,7 +1163,7 @@ def init_install_mpack_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_uninstall_mpack_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--mpack-name",
     default=None,
     help="Specify the management pack name to be uninstalled",
@@ -1200,7 +1173,7 @@ def init_uninstall_mpack_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_upgrade_mpack_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--mpack",
     default=None,
     help="Specify the path for management pack to be updated",
@@ -1210,31 +1183,31 @@ def init_upgrade_mpack_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_kerberos_setup_parser_options(parser):
-  parser.add_option(
+  parser.add_argument(
     "--kerberos-setup",
     default=None,
     help="Setup Kerberos Authentication",
     dest="kerberos_setup",
   )
-  parser.add_option(
+  parser.add_argument(
     "--kerberos-enabled",
     default=False,
     help="Kerberos enabled",
     dest="kerberos_enabled",
   )
-  parser.add_option(
+  parser.add_argument(
     "--kerberos-spnego-principal",
     default="HTTP/_HOST",
     help="Kerberos SPNEGO principal",
     dest="kerberos_spnego_principal",
   )
-  parser.add_option(
+  parser.add_argument(
     "--kerberos-spnego-keytab-file",
     default="/etc/security/keytabs/spnego.service.keytab",
     help="Kerberos SPNEGO keytab file",
     dest="kerberos_spnego_keytab_file",
   )
-  parser.add_option(
+  parser.add_argument(
     "--kerberos-auth-to-local-rules",
     default="DEFAULT",
     help="Auth-to-local rules",
@@ -1396,7 +1369,7 @@ def init_action_parser(action, parser):
     KERBEROS_SETUP_ACTION: init_kerberos_setup_parser_options,
     SETUP_TPROXY_ACTION: init_tproxy_setup_parser_options,
   }
-  parser.add_option(
+  parser.add_argument(
     "-v",
     "--verbose",
     action="store_true",
@@ -1404,7 +1377,7 @@ def init_action_parser(action, parser):
     default=False,
     help="Print verbose status messages",
   )
-  parser.add_option(
+  parser.add_argument(
     "-s",
     "--silent",
     action="store_true",
@@ -1558,19 +1531,24 @@ def main(options, args, parser):
 
 
 def mainBody():
-  parser = optparse.OptionParser(
-    usage="usage: %prog action [options]",
+  parser = argparse.ArgumentParser(
+    usage="usage: %(prog)s action [options]",
   )
   if len(sys.argv) < 2:
-    print(parser.print_help())
+    parser.print_help()
     parser.error("No action entered")
   action = sys.argv[1]
 
   init_action_parser(action, parser)
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
+  args = options.arguments
+  del options.arguments
+  check_ldap_url_options(options, parser)
 
   # check if only silent key set
-  default_options = parser.get_default_values()
+  default_options = parser.parse_args([])
+  del default_options.arguments
   silent_options = default_options
   silent_options.silent = True
 
