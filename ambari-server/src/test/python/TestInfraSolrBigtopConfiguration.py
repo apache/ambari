@@ -80,14 +80,12 @@ class TestInfraSolrServiceCheck(unittest.TestCase):
     context = MagicMock()
     context.__enter__.return_value = cache
     context.__exit__.return_value = False
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(UTILS, "validate_executable"),
-      patch.object(UTILS, "validate_keytab"),
-      patch.object(UTILS, "validate_principal"),
-      patch.object(CHECK, "PrivateKerberosCache", return_value=context) as factory,
-      patch.object(CHECK, "Execute", side_effect=(Fail("first"), None)) as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(UTILS, "validate_executable"), \
+      patch.object(UTILS, "validate_keytab"), \
+      patch.object(UTILS, "validate_principal"), \
+      patch.object(CHECK, "PrivateKerberosCache", return_value=context) as factory, \
+      patch.object(CHECK, "Execute", side_effect=(Fail("first"), None)) as execute:
       CHECK.InfraServiceCheck().service_check(MagicMock())
     factory.assert_called_once()
     cache.kinit.assert_called_once()
@@ -111,12 +109,10 @@ class TestInfraSolrServiceCheck(unittest.TestCase):
       security_enabled=False,
       smokeuser="ambari-qa",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(UTILS, "validate_executable"),
-      patch.object(CHECK, "Execute", side_effect=Fail("unavailable")) as execute,
-      self.assertRaisesRegex(Fail, "all Infra Solr servers") as raised,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(UTILS, "validate_executable"), \
+      patch.object(CHECK, "Execute", side_effect=Fail("unavailable")) as execute, \
+      self.assertRaisesRegex(Fail, "all Infra Solr servers") as raised:
       CHECK.InfraServiceCheck().service_check(MagicMock())
     self.assertEqual(2, execute.call_count)
     self.assertIn("solr1.example.com", str(raised.exception))
@@ -125,11 +121,9 @@ class TestInfraSolrServiceCheck(unittest.TestCase):
 
   def test_missing_hosts_fail_before_any_network_request(self):
     params = params_module(infra_solr_hosts=())
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(CHECK, "Execute") as execute,
-      self.assertRaisesRegex(Fail, "at least one"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(CHECK, "Execute") as execute, \
+      self.assertRaisesRegex(Fail, "at least one"):
       CHECK.InfraServiceCheck().service_check(MagicMock())
     execute.assert_not_called()
 

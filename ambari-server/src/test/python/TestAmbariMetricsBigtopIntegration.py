@@ -80,12 +80,10 @@ class TestAmbariMetricsHttpContract(unittest.TestCase):
     response = SimpleNamespace(status=200, reason="OK", read=MagicMock(return_value=b"{}"))
     connection = MagicMock()
     connection.getresponse.return_value = response
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
+    with patch.dict(sys.modules, {"params": self.params}), \
       patch.object(
         GRAFANA_UTIL.network, "get_http_connection", return_value=connection
-      ),
-    ):
+      ):
       buffered = GRAFANA_UTIL.perform_grafana_get_call("/api/user", self.server)
     self.assertEqual(200, buffered.status)
     self.assertEqual(b"{}", buffered.read())
@@ -107,12 +105,10 @@ class TestAmbariMetricsHttpContract(unittest.TestCase):
   def test_grafana_connection_is_closed_on_failure(self):
     connection = MagicMock()
     connection.request.side_effect = OSError("unreachable")
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
+    with patch.dict(sys.modules, {"params": self.params}), \
       patch.object(
         GRAFANA_UTIL.network, "get_http_connection", return_value=connection
-      ),
-    ):
+      ):
       with self.assertRaises(Fail):
         GRAFANA_UTIL.perform_grafana_get_call("/api/user", self.server)
     connection.close.assert_called_once_with()
@@ -126,13 +122,11 @@ class TestAmbariMetricsHttpContract(unittest.TestCase):
       ams_grafana_admin_pwd="secret",
     )
     response = GRAFANA_UTIL.GrafanaResponse(503, "Unavailable", b"")
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         GRAFANA_UTIL, "perform_grafana_get_call", return_value=response
-      ),
-      patch.object(GRAFANA_UTIL, "perform_grafana_put_call") as update_password,
-    ):
+      ), \
+      patch.object(GRAFANA_UTIL, "perform_grafana_put_call") as update_password:
       with self.assertRaises(Fail):
         GRAFANA_UTIL.create_grafana_admin_pwd()
     update_password.assert_not_called()

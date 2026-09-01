@@ -53,16 +53,14 @@ class TestAmbariMetricsConfiguration(unittest.TestCase):
       user_group="hadoop",
     )
     execute = MagicMock()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(AMS.os.path, "isfile", return_value=True),
-      patch.object(AMS.os.path, "islink", return_value=False),
-      patch("tempfile.mkdtemp", return_value="/tmp/ams-truststore-private"),
-      patch.object(AMS, "Execute", execute),
-      patch.object(AMS, "File"),
-      patch.object(AMS, "Directory") as directory,
-      patch.object(AMS, "StaticFile"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(AMS.os.path, "isfile", return_value=True), \
+      patch.object(AMS.os.path, "islink", return_value=False), \
+      patch("tempfile.mkdtemp", return_value="/tmp/ams-truststore-private"), \
+      patch.object(AMS, "Execute", execute), \
+      patch.object(AMS, "File"), \
+      patch.object(AMS, "Directory") as directory, \
+      patch.object(AMS, "StaticFile"):
       AMS.export_ca_certs("/etc/ambari-metrics-monitor/conf")
 
     self.assertEqual(2, execute.call_count)

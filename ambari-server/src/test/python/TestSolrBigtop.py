@@ -85,10 +85,8 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       solr_conf="/etc/solr/conf",
       solr_user="solr",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_SOLR_SCRIPT, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_SOLR_SCRIPT, "Execute") as execute:
       SETUP_SOLR_SCRIPT.create_solr_znode()
 
     execute.assert_called_once_with(
@@ -116,18 +114,14 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
     )
     node_exists = ExecutionFailed("NodeExists for /solr", 1, "")
     unrelated = ExecutionFailed("ZooKeeper connection failed", 1, "")
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_SOLR_SCRIPT, "Execute", side_effect=node_exists),
-      patch.object(SETUP_SOLR_SCRIPT.Logger, "info") as logger,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_SOLR_SCRIPT, "Execute", side_effect=node_exists), \
+      patch.object(SETUP_SOLR_SCRIPT.Logger, "info") as logger:
       SETUP_SOLR_SCRIPT.create_solr_znode()
     logger.assert_called_once_with("Node /solr already exists.")
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_SOLR_SCRIPT, "Execute", side_effect=unrelated),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_SOLR_SCRIPT, "Execute", side_effect=unrelated):
       with self.assertRaises(ExecutionFailed) as raised:
         SETUP_SOLR_SCRIPT.create_solr_znode()
     self.assertIs(unrelated, raised.exception)
@@ -147,11 +141,9 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       solr_jaas_file="/etc/solr/conf/solr_jaas.conf",
       solr_kerberos_service_user="solr",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_SOLR_SCRIPT, "Execute") as execute,
-      patch.object(SETUP_SOLR_SCRIPT, "ZkMigrator") as migrator,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_SOLR_SCRIPT, "Execute") as execute, \
+      patch.object(SETUP_SOLR_SCRIPT, "ZkMigrator") as migrator:
       SETUP_SOLR_SCRIPT.setup_solr_znode_env()
 
     self.assertEqual(2, execute.call_count)
@@ -185,11 +177,9 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       solr_jaas_file="/etc/solr/conf/solr_jaas.conf",
       solr_kerberos_service_user="solr",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_SOLR_SCRIPT, "Execute") as execute,
-      patch.object(SETUP_SOLR_SCRIPT, "ZkMigrator") as migrator,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_SOLR_SCRIPT, "Execute") as execute, \
+      patch.object(SETUP_SOLR_SCRIPT, "ZkMigrator") as migrator:
       SETUP_SOLR_SCRIPT.setup_solr_znode_env()
 
     self.assertEqual(1, execute.call_count)
@@ -206,14 +196,12 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       solr_user="solr",
     )
     removal_failure = ExecutionFailed("ZooKeeper connection failed", 1, "")
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SETUP_SOLR_SCRIPT,
         "Execute",
         side_effect=(None, removal_failure),
-      ),
-    ):
+      ):
       with self.assertRaises(ExecutionFailed) as raised:
         SETUP_SOLR_SCRIPT.setup_solr_znode_env()
     self.assertIs(removal_failure, raised.exception)
@@ -243,15 +231,13 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
         solr_jaas_file=params.solr_jaas_file,
       )
 
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_SOLR_SCRIPT, "Directory") as directory,
-      patch.object(SETUP_SOLR_SCRIPT, "File") as file_resource,
-      patch.object(SETUP_SOLR_SCRIPT, "InlineTemplate"),
-      patch.object(SETUP_SOLR_SCRIPT, "Template"),
-      patch.object(SETUP_SOLR_SCRIPT, "format", side_effect=render),
-      patch.object(SETUP_SOLR_SCRIPT.os.path, "exists", return_value=False),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_SOLR_SCRIPT, "Directory") as directory, \
+      patch.object(SETUP_SOLR_SCRIPT, "File") as file_resource, \
+      patch.object(SETUP_SOLR_SCRIPT, "InlineTemplate"), \
+      patch.object(SETUP_SOLR_SCRIPT, "Template"), \
+      patch.object(SETUP_SOLR_SCRIPT, "format", side_effect=render), \
+      patch.object(SETUP_SOLR_SCRIPT.os.path, "exists", return_value=False):
       SETUP_SOLR_SCRIPT.setup_solr("server")
 
     self.assertEqual(2, directory.call_count)
@@ -298,10 +284,8 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
     params = self._service_params(False)
     service = SERVICE_CHECK_SCRIPT.ServiceCheck()
     env = MagicMock()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute:
       service.service_check(env)
 
     command = execute.call_args.args[0]
@@ -320,18 +304,16 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
   def test_secure_service_check_separates_kinit_and_curl_argv(self):
     params = self._service_params(True)
     service = SERVICE_CHECK_SCRIPT.ServiceCheck()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SERVICE_CHECK_SCRIPT.uuid,
         "uuid4",
         return_value=SimpleNamespace(hex="cache-one"),
-      ),
-      patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir") as mkdir,
-      patch.object(SERVICE_CHECK_SCRIPT, "Directory") as directory,
-      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute,
-      patch.object(SERVICE_CHECK_SCRIPT, "File") as file_resource,
-    ):
+      ), \
+      patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir") as mkdir, \
+      patch.object(SERVICE_CHECK_SCRIPT, "Directory") as directory, \
+      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute, \
+      patch.object(SERVICE_CHECK_SCRIPT, "File") as file_resource:
       service.service_check(MagicMock())
 
     ccache_dir = "/tmp/ambari-solr-service-check-cache-one"
@@ -375,8 +357,7 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
   def test_secure_service_checks_use_unique_private_caches(self):
     params = self._service_params(True)
     service = SERVICE_CHECK_SCRIPT.ServiceCheck()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SERVICE_CHECK_SCRIPT.uuid,
         "uuid4",
@@ -384,12 +365,11 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
           SimpleNamespace(hex="cache-one"),
           SimpleNamespace(hex="cache-two"),
         ),
-      ),
-      patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir") as mkdir,
-      patch.object(SERVICE_CHECK_SCRIPT, "Directory") as directory,
-      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute,
-      patch.object(SERVICE_CHECK_SCRIPT, "File") as file_resource,
-    ):
+      ), \
+      patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir") as mkdir, \
+      patch.object(SERVICE_CHECK_SCRIPT, "Directory") as directory, \
+      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute, \
+      patch.object(SERVICE_CHECK_SCRIPT, "File") as file_resource:
       service.service_check(MagicMock())
       service.service_check(MagicMock())
 
@@ -414,20 +394,18 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       ((None, Fail("curl failed")), 2),
     ):
       with self.subTest(expected_calls=expected_calls):
-        with (
-          patch.dict(sys.modules, {"params": params}),
+        with patch.dict(sys.modules, {"params": params}), \
           patch.object(
             SERVICE_CHECK_SCRIPT.uuid,
             "uuid4",
             return_value=SimpleNamespace(hex="failed-cache"),
-          ),
-          patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir"),
-          patch.object(SERVICE_CHECK_SCRIPT, "Directory") as directory,
+          ), \
+          patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir"), \
+          patch.object(SERVICE_CHECK_SCRIPT, "Directory") as directory, \
           patch.object(
             SERVICE_CHECK_SCRIPT, "Execute", side_effect=side_effect
-          ) as execute,
-          patch.object(SERVICE_CHECK_SCRIPT, "File") as file_resource,
-        ):
+          ) as execute, \
+          patch.object(SERVICE_CHECK_SCRIPT, "File") as file_resource:
           with self.assertRaises(Fail):
             service.service_check(MagicMock())
         self.assertEqual(expected_calls, execute.call_count)
@@ -444,19 +422,17 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       OSError("read-only filesystem"),
     ):
       with self.subTest(create_error=create_error):
-        with (
-          patch.dict(sys.modules, {"params": params}),
+        with patch.dict(sys.modules, {"params": params}), \
           patch.object(
             SERVICE_CHECK_SCRIPT.uuid,
             "uuid4",
             return_value=SimpleNamespace(hex="collision"),
-          ),
+          ), \
           patch.object(
             SERVICE_CHECK_SCRIPT.os, "mkdir", side_effect=create_error
-          ),
-          patch.object(SERVICE_CHECK_SCRIPT, "Directory") as directory,
-          patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute,
-        ):
+          ), \
+          patch.object(SERVICE_CHECK_SCRIPT, "Directory") as directory, \
+          patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute:
           with self.assertRaises(Fail):
             SERVICE_CHECK_SCRIPT.ServiceCheck().service_check(MagicMock())
         directory.assert_not_called()
@@ -465,21 +441,19 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
   def test_private_cache_ownership_failure_rolls_back_created_directory(self):
     params = self._service_params(True)
     cache_dir = "/tmp/ambari-solr-service-check-ownership-failure"
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SERVICE_CHECK_SCRIPT.uuid,
         "uuid4",
         return_value=SimpleNamespace(hex="ownership-failure"),
-      ),
-      patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir") as mkdir,
+      ), \
+      patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir") as mkdir, \
       patch.object(
         SERVICE_CHECK_SCRIPT,
         "Directory",
         side_effect=(Fail("could not set ownership"), None),
-      ) as directory,
-      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute,
-    ):
+      ) as directory, \
+      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute:
       with self.assertRaisesRegex(Fail, "could not set ownership"):
         SERVICE_CHECK_SCRIPT.ServiceCheck().service_check(MagicMock())
 
@@ -492,21 +466,19 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
     params = self._service_params(True)
     ownership_error = Fail("ownership setup failed")
     rollback_error = Fail("rollback delete failed")
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SERVICE_CHECK_SCRIPT.uuid,
         "uuid4",
         return_value=SimpleNamespace(hex="double-failure"),
-      ),
-      patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir"),
+      ), \
+      patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir"), \
       patch.object(
         SERVICE_CHECK_SCRIPT,
         "Directory",
         side_effect=(ownership_error, rollback_error),
-      ),
-      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute,
-    ):
+      ), \
+      patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute:
       with self.assertRaisesRegex(
         Fail,
         "ownership setup failed; rollback also failed: rollback delete failed",
@@ -527,26 +499,24 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
         file_error=file_error,
         directory_effects=directory_effects,
       ):
-        with (
-          patch.dict(sys.modules, {"params": params}),
+        with patch.dict(sys.modules, {"params": params}), \
           patch.object(
             SERVICE_CHECK_SCRIPT.uuid,
             "uuid4",
             return_value=SimpleNamespace(hex="cleanup-failure"),
-          ),
-          patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir"),
+          ), \
+          patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir"), \
           patch.object(
             SERVICE_CHECK_SCRIPT,
             "Directory",
             side_effect=directory_effects,
-          ) as directory,
-          patch.object(SERVICE_CHECK_SCRIPT, "Execute"),
+          ) as directory, \
+          patch.object(SERVICE_CHECK_SCRIPT, "Execute"), \
           patch.object(
             SERVICE_CHECK_SCRIPT,
             "File",
             side_effect=file_error,
-          ) as file_resource,
-        ):
+          ) as file_resource:
           with self.assertRaisesRegex(Fail, "Could not remove Kerberos cache"):
             SERVICE_CHECK_SCRIPT.ServiceCheck().service_check(MagicMock())
         file_resource.assert_called_once()
@@ -583,30 +553,28 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
           if isinstance(execute_effect, Fail)
           else execute_effect[1]
         )
-        with (
-          patch.dict(sys.modules, {"params": params}),
+        with patch.dict(sys.modules, {"params": params}), \
           patch.object(
             SERVICE_CHECK_SCRIPT.uuid,
             "uuid4",
             return_value=SimpleNamespace(hex="primary-and-cleanup"),
-          ),
-          patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir"),
+          ), \
+          patch.object(SERVICE_CHECK_SCRIPT.os, "mkdir"), \
           patch.object(
             SERVICE_CHECK_SCRIPT,
             "Directory",
             side_effect=directory_effects,
-          ),
+          ), \
           patch.object(
             SERVICE_CHECK_SCRIPT,
             "Execute",
             side_effect=execute_effect,
-          ) as execute,
+          ) as execute, \
           patch.object(
             SERVICE_CHECK_SCRIPT,
             "File",
             side_effect=file_effect,
-          ),
-        ):
+          ):
           with self.assertRaisesRegex(
             Fail,
             f"Solr service check failed: {primary_error}; "
@@ -628,11 +596,9 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
           config={"configurations": configurations},
           solr_hosts=hosts,
         )
-        with (
-          patch.dict(sys.modules, {"params": params}),
-          patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute,
-          patch.object(SERVICE_CHECK_SCRIPT, "File") as file_resource,
-        ):
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(SERVICE_CHECK_SCRIPT, "Execute") as execute, \
+          patch.object(SERVICE_CHECK_SCRIPT, "File") as file_resource:
           with self.assertRaises(Fail):
             SERVICE_CHECK_SCRIPT.ServiceCheck().service_check(MagicMock())
         execute.assert_not_called()
@@ -874,13 +840,11 @@ class TestSolrSourceContracts(unittest.TestCase):
 
   def test_service_advisor_parent_load_failure_preserves_original_cause(self):
     advisor_path = SOLR / "service_advisor.py"
-    with (
-      patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": "/missing/base-advisor.py"}),
-      patch("builtins.open", mock_open(read_data=b"")),
+    with patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": "/missing/base-advisor.py"}), \
+      patch("builtins.open", mock_open(read_data=b"")), \
       patch.object(
         import_utils, "load_module", side_effect=ValueError("invalid parent")
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(
         RuntimeError, "Failed to load parent service advisor /missing/base-advisor.py"
       ) as raised:

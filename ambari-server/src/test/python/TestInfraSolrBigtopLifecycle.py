@@ -150,13 +150,11 @@ class TestInfraSolrConfiguration(unittest.TestCase):
       infra_solr_jaas_file="/etc/ambari-infra-solr/conf/infra_solr_jaas.conf",
       limits_conf_dir="/etc/security/limits.d",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_SCRIPT, "Directory"),
-      patch.object(SETUP_SCRIPT, "File") as file_resource,
-      patch.object(UTILS, "validate_keytab"),
-      patch.object(SETUP_SCRIPT.os.path, "exists", return_value=False),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_SCRIPT, "Directory"), \
+      patch.object(SETUP_SCRIPT, "File") as file_resource, \
+      patch.object(UTILS, "validate_keytab"), \
+      patch.object(SETUP_SCRIPT.os.path, "exists", return_value=False):
       SETUP_SCRIPT.setup_infra_solr("server")
     files = {call.args[0]: call.kwargs for call in file_resource.call_args_list}
     self.assertEqual(0o600, files[params.infra_solr_include]["mode"])
@@ -184,15 +182,13 @@ class TestInfraSolrProcess(unittest.TestCase):
       )
 
   def test_missing_pid_is_uniquely_recovered_and_published_0640(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process, "discover_running_process", return_value=IDENTITY
-      ) as discover,
+      ) as discover, \
       patch.object(
         safe_process, "create_pid_file_for_identity", return_value=IDENTITY
-      ) as publish,
-    ):
+      ) as publish:
       recovered = PROCESS.read_or_recover_process(
         PID_FILE, "infra-solr", "hadoop", 8886, DATA_DIR
       )
@@ -209,27 +205,23 @@ class TestInfraSolrProcess(unittest.TestCase):
     )
 
   def test_ambiguous_recovery_fails_without_signaling(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process,
         "discover_running_process",
         side_effect=Fail("ambiguous process discovery"),
-      ),
-      patch.object(safe_process, "terminate_process") as terminate,
-      self.assertRaisesRegex(Fail, "ambiguous"),
-    ):
+      ), \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      self.assertRaisesRegex(Fail, "ambiguous"):
       PROCESS.stop_process(
         PID_FILE, "infra-solr", "hadoop", 8886, DATA_DIR
       )
     terminate.assert_not_called()
 
   def test_stop_uses_identity_safe_term_wait_kill_contract(self):
-    with (
-      patch.object(PROCESS, "read_or_recover_process", return_value=IDENTITY),
-      patch.object(safe_process, "terminate_process") as terminate,
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-    ):
+    with patch.object(PROCESS, "read_or_recover_process", return_value=IDENTITY), \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove:
       self.assertTrue(
         PROCESS.stop_process(
           PID_FILE, "infra-solr", "hadoop", 8886, DATA_DIR
@@ -252,15 +244,13 @@ class TestInfraSolrProcess(unittest.TestCase):
     )
 
   def test_launcher_pid_is_secured_through_nofollow_identity_contract(self):
-    with (
-      patch.object(
+    with patch.object(
         safe_process, "wait_for_discovered_process", return_value=IDENTITY
-      ),
-      patch.object(safe_process, "read_pid", return_value=IDENTITY.pid),
+      ), \
+      patch.object(safe_process, "read_pid", return_value=IDENTITY.pid), \
       patch.object(
         safe_process, "secure_pid_file_for_identity", return_value=IDENTITY
-      ) as secure,
-    ):
+      ) as secure:
       published = PROCESS.wait_for_started_process(
         PID_FILE, "infra-solr", "hadoop", 8886, DATA_DIR
       )
@@ -277,14 +267,12 @@ class TestInfraSolrProcess(unittest.TestCase):
     )
 
   def test_launcher_pid_mismatch_fails_before_permission_change(self):
-    with (
-      patch.object(
+    with patch.object(
         safe_process, "wait_for_discovered_process", return_value=IDENTITY
-      ),
-      patch.object(safe_process, "read_pid", return_value=999),
-      patch.object(safe_process, "secure_pid_file_for_identity") as secure,
-      self.assertRaisesRegex(Fail, "contains 999"),
-    ):
+      ), \
+      patch.object(safe_process, "read_pid", return_value=999), \
+      patch.object(safe_process, "secure_pid_file_for_identity") as secure, \
+      self.assertRaisesRegex(Fail, "contains 999"):
       PROCESS.wait_for_started_process(
         PID_FILE, "infra-solr", "hadoop", 8886, DATA_DIR
       )
@@ -309,27 +297,23 @@ class TestInfraSolrLifecycle(unittest.TestCase):
 
   def test_start_is_idempotent(self):
     params = self.service_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(PROCESS, "read_or_recover_process", return_value=IDENTITY),
-      patch.object(SERVICE_SCRIPT, "Execute") as execute,
-      patch.object(SERVICE_SCRIPT, "setup_infra_solr"),
-      patch.object(SERVICE_SCRIPT, "setup_solr_znode_env"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(PROCESS, "read_or_recover_process", return_value=IDENTITY), \
+      patch.object(SERVICE_SCRIPT, "Execute") as execute, \
+      patch.object(SERVICE_SCRIPT, "setup_infra_solr"), \
+      patch.object(SERVICE_SCRIPT, "setup_solr_znode_env"):
       SERVICE_SCRIPT.InfraSolr().start(MagicMock())
     execute.assert_not_called()
 
   def test_start_uses_structured_solr_811_cloud_contract(self):
     params = self.service_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(PROCESS, "read_or_recover_process", return_value=None),
-      patch.object(PROCESS, "wait_for_started_process", return_value=IDENTITY),
-      patch.object(UTILS, "validate_executable"),
-      patch.object(SERVICE_SCRIPT, "Execute") as execute,
-      patch.object(SERVICE_SCRIPT, "setup_infra_solr"),
-      patch.object(SERVICE_SCRIPT, "setup_solr_znode_env"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(PROCESS, "read_or_recover_process", return_value=None), \
+      patch.object(PROCESS, "wait_for_started_process", return_value=IDENTITY), \
+      patch.object(UTILS, "validate_executable"), \
+      patch.object(SERVICE_SCRIPT, "Execute") as execute, \
+      patch.object(SERVICE_SCRIPT, "setup_infra_solr"), \
+      patch.object(SERVICE_SCRIPT, "setup_solr_znode_env"):
       SERVICE_SCRIPT.InfraSolr().start(MagicMock())
     command = execute.call_args.args[0]
     self.assertEqual("/usr/lib/ambari-infra-solr/bin/solr", command[0])
@@ -339,18 +323,16 @@ class TestInfraSolrLifecycle(unittest.TestCase):
 
   def test_start_failure_attempts_only_identity_safe_cleanup(self):
     params = self.service_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(PROCESS, "read_or_recover_process", return_value=None),
-      patch.object(PROCESS, "wait_for_started_process", side_effect=Fail("start")),
-      patch.object(PROCESS, "stop_process", return_value=True) as stop,
-      patch.object(UTILS, "validate_executable"),
-      patch.object(SERVICE_SCRIPT, "Execute"),
-      patch.object(SERVICE_SCRIPT, "setup_infra_solr"),
-      patch.object(SERVICE_SCRIPT, "setup_solr_znode_env"),
-      patch.object(SERVICE_SCRIPT, "show_logs"),
-      self.assertRaisesRegex(Fail, "start"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(PROCESS, "read_or_recover_process", return_value=None), \
+      patch.object(PROCESS, "wait_for_started_process", side_effect=Fail("start")), \
+      patch.object(PROCESS, "stop_process", return_value=True) as stop, \
+      patch.object(UTILS, "validate_executable"), \
+      patch.object(SERVICE_SCRIPT, "Execute"), \
+      patch.object(SERVICE_SCRIPT, "setup_infra_solr"), \
+      patch.object(SERVICE_SCRIPT, "setup_solr_znode_env"), \
+      patch.object(SERVICE_SCRIPT, "show_logs"), \
+      self.assertRaisesRegex(Fail, "start"):
       SERVICE_SCRIPT.InfraSolr().start(MagicMock())
     stop.assert_called_once_with(
       PID_FILE, "infra-solr", "hadoop", 8886, DATA_DIR

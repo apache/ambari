@@ -108,19 +108,17 @@ class TestSolrLifecycle(unittest.TestCase):
           SOLR_SCRIPT.solr_process_tokens(port, SOLR_HOME)
 
   def test_pidless_process_is_discovered_and_pid_file_is_restored(self):
-    with (
-      patch.object(SAFE_PROCESS, "read_pid", return_value=None),
+    with patch.object(SAFE_PROCESS, "read_pid", return_value=None), \
       patch.object(
         SAFE_PROCESS,
         "discover_running_process",
         return_value=PROCESS_IDENTITY,
-      ) as discover,
+      ) as discover, \
       patch.object(
         SAFE_PROCESS,
         "create_pid_file_for_identity",
         return_value=PROCESS_IDENTITY,
-      ) as create_pid,
-    ):
+      ) as create_pid:
       result = SOLR_SCRIPT.read_or_discover_solr_process(
         PID_FILE,
         "solr",
@@ -150,20 +148,18 @@ class TestSolrLifecycle(unittest.TestCase):
         create_error=create_error,
       ):
         discovered = PROCESS_IDENTITY if discover_error is None else None
-        with (
-          patch.object(SAFE_PROCESS, "read_pid", return_value=None),
+        with patch.object(SAFE_PROCESS, "read_pid", return_value=None), \
           patch.object(
             SAFE_PROCESS,
             "discover_running_process",
             return_value=discovered,
             side_effect=discover_error,
-          ),
+          ), \
           patch.object(
             SAFE_PROCESS,
             "create_pid_file_for_identity",
             side_effect=create_error,
-          ) as create_pid,
-        ):
+          ) as create_pid:
           with self.assertRaises(Fail):
             SOLR_SCRIPT.read_or_discover_solr_process(
               PID_FILE,
@@ -175,36 +171,32 @@ class TestSolrLifecycle(unittest.TestCase):
           create_pid.assert_not_called()
 
   def test_start_accepts_a_discovered_pidless_process_without_duplication(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
+    with patch.dict(sys.modules, {"params": self.params}), \
       patch.object(
         SOLR_SCRIPT,
         "read_or_discover_solr_process",
         side_effect=(PROCESS_IDENTITY, PROCESS_IDENTITY),
-      ) as resolve_process,
-      patch.object(self.solr, "configure"),
-      patch.object(SOLR_SCRIPT, "setup_solr_znode_env"),
-      patch.object(SOLR_SCRIPT, "Execute") as execute,
-      patch.object(SOLR_SCRIPT.Logger, "info"),
-    ):
+      ) as resolve_process, \
+      patch.object(self.solr, "configure"), \
+      patch.object(SOLR_SCRIPT, "setup_solr_znode_env"), \
+      patch.object(SOLR_SCRIPT, "Execute") as execute, \
+      patch.object(SOLR_SCRIPT.Logger, "info"):
       self.solr.start(self.env)
 
     self.assertEqual(2, resolve_process.call_count)
     execute.assert_not_called()
 
   def test_start_does_not_launch_second_running_instance(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(SAFE_PROCESS, "read_pid", return_value=123),
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(SAFE_PROCESS, "read_pid", return_value=123), \
       patch.object(
         SAFE_PROCESS, "inspect_process", return_value=PROCESS_IDENTITY
-      ),
-      patch.object(SAFE_PROCESS, "is_process_running", return_value=True),
-      patch.object(self.solr, "configure") as configure,
-      patch.object(SOLR_SCRIPT, "setup_solr_znode_env") as setup_znode,
-      patch.object(SOLR_SCRIPT, "Execute") as execute,
-      patch.object(SOLR_SCRIPT.Logger, "info"),
-    ):
+      ), \
+      patch.object(SAFE_PROCESS, "is_process_running", return_value=True), \
+      patch.object(self.solr, "configure") as configure, \
+      patch.object(SOLR_SCRIPT, "setup_solr_znode_env") as setup_znode, \
+      patch.object(SOLR_SCRIPT, "Execute") as execute, \
+      patch.object(SOLR_SCRIPT.Logger, "info"):
       self.solr.start(self.env)
 
     configure.assert_called_once_with(self.env)
@@ -212,19 +204,17 @@ class TestSolrLifecycle(unittest.TestCase):
     execute.assert_not_called()
 
   def test_concurrent_pid_after_configuration_prevents_second_start(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(SAFE_PROCESS, "read_pid", side_effect=(None, 123)),
-      patch.object(SAFE_PROCESS, "discover_running_process", return_value=None),
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(SAFE_PROCESS, "read_pid", side_effect=(None, 123)), \
+      patch.object(SAFE_PROCESS, "discover_running_process", return_value=None), \
       patch.object(
         SAFE_PROCESS, "inspect_process", return_value=PROCESS_IDENTITY
-      ),
-      patch.object(SAFE_PROCESS, "is_process_running", return_value=True),
-      patch.object(self.solr, "configure") as configure,
-      patch.object(SOLR_SCRIPT, "setup_solr_znode_env") as setup_znode,
-      patch.object(SOLR_SCRIPT, "Execute") as execute,
-      patch.object(SOLR_SCRIPT.Logger, "info"),
-    ):
+      ), \
+      patch.object(SAFE_PROCESS, "is_process_running", return_value=True), \
+      patch.object(self.solr, "configure") as configure, \
+      patch.object(SOLR_SCRIPT, "setup_solr_znode_env") as setup_znode, \
+      patch.object(SOLR_SCRIPT, "Execute") as execute, \
+      patch.object(SOLR_SCRIPT.Logger, "info"):
       self.solr.start(self.env)
 
     configure.assert_called_once_with(self.env)
@@ -236,19 +226,17 @@ class TestSolrLifecycle(unittest.TestCase):
     self.params.zookeeper_quorum = "zk1:2181,zk2:2181;$(id)"
     self.params.solr_znode = "/solr $(id)"
     self.params.solr_kerberos_name_rules = "RULE:[1:$1@$0](.*);$(id)"
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(SAFE_PROCESS, "read_pid", side_effect=(None, None)),
-      patch.object(SAFE_PROCESS, "discover_running_process", return_value=None),
-      patch.object(self.solr, "configure"),
-      patch.object(SOLR_SCRIPT, "setup_solr_znode_env"),
-      patch.object(SOLR_SCRIPT, "Execute") as execute,
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(SAFE_PROCESS, "read_pid", side_effect=(None, None)), \
+      patch.object(SAFE_PROCESS, "discover_running_process", return_value=None), \
+      patch.object(self.solr, "configure"), \
+      patch.object(SOLR_SCRIPT, "setup_solr_znode_env"), \
+      patch.object(SOLR_SCRIPT, "Execute") as execute, \
       patch.object(
         SAFE_PROCESS,
         "wait_for_running_process",
         return_value=PROCESS_IDENTITY,
-      ) as wait,
-    ):
+      ) as wait:
       self.solr.start(self.env)
 
     execute.assert_called_once_with(
@@ -283,21 +271,19 @@ class TestSolrLifecycle(unittest.TestCase):
       (None, Fail("valid process never appeared")),
     ):
       with self.subTest(execute_error=execute_error, wait_error=wait_error):
-        with (
-          patch.dict(sys.modules, {"params": self.params}),
-          patch.object(SAFE_PROCESS, "read_pid", side_effect=(None, None)),
+        with patch.dict(sys.modules, {"params": self.params}), \
+          patch.object(SAFE_PROCESS, "read_pid", side_effect=(None, None)), \
           patch.object(
             SAFE_PROCESS, "discover_running_process", return_value=None
-          ),
-          patch.object(self.solr, "configure"),
-          patch.object(SOLR_SCRIPT, "setup_solr_znode_env"),
-          patch.object(SOLR_SCRIPT, "Execute", side_effect=execute_error),
+          ), \
+          patch.object(self.solr, "configure"), \
+          patch.object(SOLR_SCRIPT, "setup_solr_znode_env"), \
+          patch.object(SOLR_SCRIPT, "Execute", side_effect=execute_error), \
           patch.object(
             SAFE_PROCESS,
             "wait_for_running_process",
             side_effect=wait_error,
-          ) as wait,
-        ):
+          ) as wait:
           with self.assertRaises(Fail):
             self.solr.start(self.env)
 
@@ -314,23 +300,21 @@ class TestSolrLifecycle(unittest.TestCase):
       with self.subTest(read_error=read_error, inspect_error=inspect_error):
         read_result = 123 if inspect_error is not None else read_error
         read_side_effect = None if inspect_error is not None else read_error
-        with (
-          patch.dict(sys.modules, {"params": self.params}),
+        with patch.dict(sys.modules, {"params": self.params}), \
           patch.object(
             SAFE_PROCESS,
             "read_pid",
             return_value=read_result,
             side_effect=read_side_effect,
-          ),
+          ), \
           patch.object(
             SAFE_PROCESS, "inspect_process", side_effect=inspect_error
-          ),
-          patch.object(self.solr, "configure") as configure,
-          patch.object(SOLR_SCRIPT, "Execute") as execute,
+          ), \
+          patch.object(self.solr, "configure") as configure, \
+          patch.object(SOLR_SCRIPT, "Execute") as execute, \
           patch.object(
             SAFE_PROCESS, "remove_pid_file_if_stopped"
-          ) as remove_pid,
-        ):
+          ) as remove_pid:
           with self.assertRaises(Fail):
             self.solr.start(self.env)
 
@@ -339,18 +323,16 @@ class TestSolrLifecycle(unittest.TestCase):
         remove_pid.assert_not_called()
 
   def test_stop_terminates_only_the_verified_process_identity(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(SAFE_PROCESS, "read_pid", side_effect=(123, 123)),
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(SAFE_PROCESS, "read_pid", side_effect=(123, 123)), \
       patch.object(
         SAFE_PROCESS, "inspect_process", return_value=PROCESS_IDENTITY
-      ),
-      patch.object(SAFE_PROCESS, "is_process_running", return_value=True),
-      patch.object(SAFE_PROCESS, "terminate_process") as terminate_process,
+      ), \
+      patch.object(SAFE_PROCESS, "is_process_running", return_value=True), \
+      patch.object(SAFE_PROCESS, "terminate_process") as terminate_process, \
       patch.object(
         SAFE_PROCESS, "remove_pid_file_if_stopped", return_value=False
-      ) as remove_pid,
-    ):
+      ) as remove_pid:
       self.solr.stop(self.env)
 
     terminate_process.assert_called_once_with(
@@ -366,15 +348,13 @@ class TestSolrLifecycle(unittest.TestCase):
     )
 
   def test_stop_accepts_a_discovered_pidless_process(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
+    with patch.dict(sys.modules, {"params": self.params}), \
       patch.object(
         SOLR_SCRIPT,
         "read_or_discover_solr_process",
         return_value=PROCESS_IDENTITY,
-      ),
-      patch.object(self.solr, "kill_process") as kill_process,
-    ):
+      ), \
+      patch.object(self.solr, "kill_process") as kill_process:
       self.solr.stop(self.env)
 
     kill_process.assert_called_once_with(
@@ -387,18 +367,16 @@ class TestSolrLifecycle(unittest.TestCase):
     )
 
   def test_pid_file_replacement_prevents_stop(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(SAFE_PROCESS, "read_pid", side_effect=(123, 999)),
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(SAFE_PROCESS, "read_pid", side_effect=(123, 999)), \
       patch.object(
         SAFE_PROCESS, "inspect_process", return_value=PROCESS_IDENTITY
-      ),
-      patch.object(SAFE_PROCESS, "is_process_running", return_value=True),
-      patch.object(SAFE_PROCESS, "terminate_process") as terminate_process,
+      ), \
+      patch.object(SAFE_PROCESS, "is_process_running", return_value=True), \
+      patch.object(SAFE_PROCESS, "terminate_process") as terminate_process, \
       patch.object(
         SAFE_PROCESS, "remove_pid_file_if_stopped"
-      ) as remove_pid,
-    ):
+      ) as remove_pid:
       with self.assertRaisesRegex(Fail, "pid file changed to 999"):
         self.solr.stop(self.env)
 
@@ -406,30 +384,26 @@ class TestSolrLifecycle(unittest.TestCase):
     remove_pid.assert_not_called()
 
   def test_missing_pid_file_makes_stop_idempotent(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(SAFE_PROCESS, "read_pid", return_value=None),
-      patch.object(SAFE_PROCESS, "discover_running_process", return_value=None),
-      patch.object(SAFE_PROCESS, "terminate_process") as terminate_process,
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(SAFE_PROCESS, "read_pid", return_value=None), \
+      patch.object(SAFE_PROCESS, "discover_running_process", return_value=None), \
+      patch.object(SAFE_PROCESS, "terminate_process") as terminate_process, \
       patch.object(
         SAFE_PROCESS, "remove_pid_file_if_stopped"
-      ) as remove_pid,
-      patch.object(SOLR_SCRIPT.Logger, "info"),
-    ):
+      ) as remove_pid, \
+      patch.object(SOLR_SCRIPT.Logger, "info"):
       self.solr.stop(self.env)
 
     terminate_process.assert_not_called()
     remove_pid.assert_not_called()
 
   def test_invalid_pid_file_prevents_stop_signal_and_delete(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(SAFE_PROCESS, "read_pid", side_effect=Fail("invalid pid")),
-      patch.object(SAFE_PROCESS, "terminate_process") as terminate_process,
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(SAFE_PROCESS, "read_pid", side_effect=Fail("invalid pid")), \
+      patch.object(SAFE_PROCESS, "terminate_process") as terminate_process, \
       patch.object(
         SAFE_PROCESS, "remove_pid_file_if_stopped"
-      ) as remove_pid,
-    ):
+      ) as remove_pid:
       with self.assertRaisesRegex(Fail, "invalid pid"):
         self.solr.stop(self.env)
 
@@ -445,16 +419,14 @@ class TestSolrLifecycle(unittest.TestCase):
       (123, reused, "reused Solr pid"),
     ):
       with self.subTest(message=message):
-        with (
-          patch.object(SAFE_PROCESS, "read_pid", return_value=current_pid),
+        with patch.object(SAFE_PROCESS, "read_pid", return_value=current_pid), \
           patch.object(
             SAFE_PROCESS, "inspect_process", return_value=current_identity
-          ),
-          patch.object(SAFE_PROCESS, "terminate_process") as terminate_process,
+          ), \
+          patch.object(SAFE_PROCESS, "terminate_process") as terminate_process, \
           patch.object(
             SAFE_PROCESS, "remove_pid_file_if_stopped"
-          ) as remove_pid,
-        ):
+          ) as remove_pid:
           with self.assertRaisesRegex(Fail, message):
             self.solr.kill_process(
               PID_FILE,
@@ -469,20 +441,18 @@ class TestSolrLifecycle(unittest.TestCase):
         remove_pid.assert_not_called()
 
   def test_kill_timeout_keeps_pid_file_and_shows_logs(self):
-    with (
-      patch.object(SAFE_PROCESS, "read_pid", return_value=123),
+    with patch.object(SAFE_PROCESS, "read_pid", return_value=123), \
       patch.object(
         SAFE_PROCESS, "inspect_process", return_value=PROCESS_IDENTITY
-      ),
-      patch.object(SAFE_PROCESS, "is_process_running", return_value=True),
+      ), \
+      patch.object(SAFE_PROCESS, "is_process_running", return_value=True), \
       patch.object(
         SAFE_PROCESS, "terminate_process", side_effect=Fail("timeout")
-      ),
-      patch.object(SOLR_SCRIPT, "show_logs") as show_logs,
+      ), \
+      patch.object(SOLR_SCRIPT, "show_logs") as show_logs, \
       patch.object(
         SAFE_PROCESS, "remove_pid_file_if_stopped"
-      ) as remove_pid,
-    ):
+      ) as remove_pid:
       with self.assertRaisesRegex(Fail, "timeout"):
         self.solr.kill_process(
           PID_FILE,
@@ -505,22 +475,18 @@ class TestSolrLifecycle(unittest.TestCase):
       solr_port=SOLR_PORT,
       solr_datadir=SOLR_HOME,
     )
-    with (
-      patch.dict(sys.modules, {"status_params": status_params}),
-      patch.object(SAFE_PROCESS, "read_pid", return_value=None),
-      patch.object(SAFE_PROCESS, "discover_running_process", return_value=None),
-    ):
+    with patch.dict(sys.modules, {"status_params": status_params}), \
+      patch.object(SAFE_PROCESS, "read_pid", return_value=None), \
+      patch.object(SAFE_PROCESS, "discover_running_process", return_value=None):
       with self.assertRaises(ComponentIsNotRunning):
         self.solr.status(self.env)
 
-    with (
-      patch.dict(sys.modules, {"status_params": status_params}),
+    with patch.dict(sys.modules, {"status_params": status_params}), \
       patch.object(
         SAFE_PROCESS,
         "read_pid",
         side_effect=Fail("invalid pid"),
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(Fail, "invalid pid"):
         self.solr.status(self.env)
 
@@ -533,14 +499,12 @@ class TestSolrLifecycle(unittest.TestCase):
       solr_port=SOLR_PORT,
       solr_datadir=SOLR_HOME,
     )
-    with (
-      patch.dict(sys.modules, {"status_params": status_params}),
+    with patch.dict(sys.modules, {"status_params": status_params}), \
       patch.object(
         SOLR_SCRIPT,
         "read_or_discover_solr_process",
         return_value=PROCESS_IDENTITY,
-      ) as resolve_process,
-    ):
+      ) as resolve_process:
       self.solr.status(self.env)
 
     resolve_process.assert_called_once_with(

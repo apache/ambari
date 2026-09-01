@@ -105,15 +105,13 @@ class TestAmbariMetricsProcessIdentity(unittest.TestCase):
     )
 
   def test_valid_pid_identity_is_reused_without_discovery(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
-      patch.object(safe_process, "inspect_process", return_value=IDENTITY),
-      patch.object(safe_process, "is_process_running", return_value=True),
+    with patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(safe_process, "inspect_process", return_value=IDENTITY), \
+      patch.object(safe_process, "is_process_running", return_value=True), \
       patch.object(
         safe_process, "secure_pid_file_for_identity", return_value=IDENTITY
-      ) as secure,
-      patch.object(safe_process, "discover_running_process") as discover,
-    ):
+      ) as secure, \
+      patch.object(safe_process, "discover_running_process") as discover:
       result = METRICS_PROCESS.read_or_discover_ams_process(
         "/var/run/ambari-metrics-collector/ambari-metrics-collector.pid",
         "ams",
@@ -133,15 +131,13 @@ class TestAmbariMetricsProcessIdentity(unittest.TestCase):
     discover.assert_not_called()
 
   def test_stale_pid_is_removed_before_unique_process_recovery(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
-      patch.object(safe_process, "inspect_process", return_value=None),
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-      patch.object(safe_process, "discover_running_process", return_value=IDENTITY),
+    with patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(safe_process, "inspect_process", return_value=None), \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove, \
+      patch.object(safe_process, "discover_running_process", return_value=IDENTITY), \
       patch.object(
         safe_process, "create_pid_file_for_identity", return_value=IDENTITY
-      ) as create,
-    ):
+      ) as create:
       result = METRICS_PROCESS.read_or_discover_ams_process(
         "/var/run/ambari-metrics-collector/ambari-metrics-collector.pid",
         "ams",
@@ -153,15 +149,13 @@ class TestAmbariMetricsProcessIdentity(unittest.TestCase):
     self.assertEqual(0o640, create.call_args.kwargs["mode"])
 
   def test_mismatched_pid_identity_is_not_replaced_by_process_discovery(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
+    with patch.object(safe_process, "read_pid", return_value=123), \
       patch.object(
         safe_process,
         "inspect_process",
         side_effect=Fail("pid belongs to another process"),
-      ),
-      patch.object(safe_process, "discover_running_process") as discover,
-    ):
+      ), \
+      patch.object(safe_process, "discover_running_process") as discover:
       with self.assertRaises(Fail):
         METRICS_PROCESS.read_or_discover_ams_process(
           "/var/run/ambari-metrics-collector/ambari-metrics-collector.pid",
@@ -172,15 +166,13 @@ class TestAmbariMetricsProcessIdentity(unittest.TestCase):
     discover.assert_not_called()
 
   def test_stop_pins_identity_then_uses_term_wait_kill_contract(self):
-    with (
-      patch.object(
+    with patch.object(
         METRICS_PROCESS,
         "read_or_discover_ams_process",
         return_value=IDENTITY,
-      ),
-      patch.object(safe_process, "terminate_process") as terminate,
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-    ):
+      ), \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove:
       self.assertTrue(
         METRICS_PROCESS.stop_ams_process(
           "/var/run/ambari-metrics-collector/ambari-metrics-collector.pid",
@@ -212,12 +204,10 @@ class TestAmbariMetricsLifecycleRollback(unittest.TestCase):
       java64_home="/usr/lib/jvm/java-17",
       hbase_log_dir="/var/log/ambari-metrics-collector",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HBASE_SERVICE, "read_or_discover_hbase_process", return_value=None),
-      patch.object(HBASE_SERVICE, "Execute") as execute,
-      patch.object(HBASE_SERVICE, "wait_for_hbase_process") as wait,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HBASE_SERVICE, "read_or_discover_hbase_process", return_value=None), \
+      patch.object(HBASE_SERVICE, "Execute") as execute, \
+      patch.object(HBASE_SERVICE, "wait_for_hbase_process") as wait:
       self.assertTrue(HBASE_SERVICE.hbase_service("master", "start"))
     execute.assert_called_once_with(
       (
@@ -247,13 +237,11 @@ class TestAmbariMetricsLifecycleRollback(unittest.TestCase):
     )
     HBASE_SERVICE_MODULE.hbase_service.reset_mock()
     HBASE_SERVICE_MODULE.hbase_service.side_effect = [True, False, True]
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(AMS_SERVICE, "read_or_discover_ams_process", return_value=None),
-      patch.object(AMS_SERVICE, "Execute", side_effect=Fail("start failed")),
-      patch.object(AMS_SERVICE, "stop_ams_process", return_value=False),
-      patch.object(AMS_SERVICE, "show_logs"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(AMS_SERVICE, "read_or_discover_ams_process", return_value=None), \
+      patch.object(AMS_SERVICE, "Execute", side_effect=Fail("start failed")), \
+      patch.object(AMS_SERVICE, "stop_ams_process", return_value=False), \
+      patch.object(AMS_SERVICE, "show_logs"):
       with self.assertRaises(Fail):
         AMS_SERVICE.ams_service("collector", "start")
     self.assertEqual(
@@ -277,12 +265,10 @@ class TestAmbariMetricsLifecycleRollback(unittest.TestCase):
       python_binary="/usr/bin/python3.9",
       security_enabled=False,
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(AMS_SERVICE, "read_or_discover_ams_process", return_value=None),
-      patch.object(AMS_SERVICE, "Execute") as execute,
-      patch.object(AMS_SERVICE, "wait_for_ams_process"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(AMS_SERVICE, "read_or_discover_ams_process", return_value=None), \
+      patch.object(AMS_SERVICE, "Execute") as execute, \
+      patch.object(AMS_SERVICE, "wait_for_ams_process"):
       AMS_SERVICE.ams_service("monitor", "start")
     self.assertEqual(
       (
@@ -313,11 +299,9 @@ class TestAmbariMetricsLifecycleRollback(unittest.TestCase):
       security_enabled=True,
       monitor_kinit_cmd="",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(AMS_SERVICE, "stop_ams_process", return_value=False),
-      patch.object(AMS_SERVICE, "File") as file_resource,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(AMS_SERVICE, "stop_ams_process", return_value=False), \
+      patch.object(AMS_SERVICE, "File") as file_resource:
       AMS_SERVICE.ams_service("monitor", "stop")
     file_resource.assert_not_called()
 
@@ -332,16 +316,14 @@ class TestAmbariMetricsLifecycleRollback(unittest.TestCase):
       hbase_log_dir="/var/log/ambari-metrics-collector",
       hbase_regionserver_shutdown_timeout=30,
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HBASE_SERVICE, "read_or_discover_hbase_process", return_value=None),
-      patch.object(HBASE_SERVICE, "Execute"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HBASE_SERVICE, "read_or_discover_hbase_process", return_value=None), \
+      patch.object(HBASE_SERVICE, "Execute"), \
       patch.object(
         HBASE_SERVICE, "wait_for_hbase_process", side_effect=Fail("not running")
-      ),
-      patch.object(HBASE_SERVICE, "stop_hbase_process", return_value=True) as stop,
-      patch.object(HBASE_SERVICE, "show_logs"),
-    ):
+      ), \
+      patch.object(HBASE_SERVICE, "stop_hbase_process", return_value=True) as stop, \
+      patch.object(HBASE_SERVICE, "show_logs"):
       with self.assertRaises(Fail):
         HBASE_SERVICE.hbase_service("master", "start")
     stop.assert_called_once_with(
@@ -363,13 +345,11 @@ class TestAmbariMetricsLifecycleRollback(unittest.TestCase):
       java64_home="/usr/lib/jvm/java-17",
       ams_grafana_log_dir="/var/log/ambari-metrics-grafana",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(GRAFANA, "read_or_discover_ams_process", return_value=None),
-      patch.object(GRAFANA, "Execute", side_effect=Fail("start timed out")),
-      patch.object(GRAFANA, "stop_ams_process", return_value=True) as stop,
-      patch.object(GRAFANA, "show_logs"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(GRAFANA, "read_or_discover_ams_process", return_value=None), \
+      patch.object(GRAFANA, "Execute", side_effect=Fail("start timed out")), \
+      patch.object(GRAFANA, "stop_ams_process", return_value=True) as stop, \
+      patch.object(GRAFANA, "show_logs"):
       with self.assertRaises(Fail):
         GRAFANA.AmsGrafana().start(MagicMock())
     stop.assert_called_once_with(
