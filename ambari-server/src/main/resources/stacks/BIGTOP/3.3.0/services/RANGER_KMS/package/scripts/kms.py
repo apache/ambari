@@ -886,8 +886,11 @@ def create_repo(url, data, usernamepassword):
     request = urllib.request.Request(base_url, data.encode(), headers)
     request.add_header("Authorization", f"Basic {base64string}")
     result = urllib.request.urlopen(request, timeout=20)
-    response_code = result.getcode()
-    response = json.loads(json.JSONEncoder().encode(result.read()))
+    try:
+      response_code = result.getcode()
+      result.read()
+    finally:
+      result.close()
     if response_code == 200:
       Logger.info("Repository created Successfully")
       return True
@@ -896,7 +899,7 @@ def create_repo(url, data, usernamepassword):
       return False
   except urllib.error.URLError as e:
     if isinstance(e, urllib.error.HTTPError):
-      raise Fail(f"Error creating service. Http status code - {e.code}. \n {e.read()}")
+      raise Fail(f"Error creating service. Http status code - {e.code}.")
     else:
       raise Fail(f"Error creating service. Reason - {e.reason}.")
   except socket.timeout as e:
@@ -922,28 +925,38 @@ def get_repo(url, name, usernamepassword):
     request.add_header("Accept", "application/json")
     request.add_header("Authorization", f"Basic {base64string}")
     result = urllib.request.urlopen(request, timeout=20)
-    response_code = result.getcode()
-    response = json.loads(result.read())
-    if response_code == 200 and len(response) > 0:
+    try:
+      response_code = result.getcode()
+      response_body = result.read()
+    finally:
+      result.close()
+
+    try:
+      response = json.loads(response_body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as err:
+      raise Fail("Ranger returned an invalid repository response") from err
+
+    if response_code == 200 and isinstance(response, list) and isinstance(name, str):
+      expected_name = name.casefold()
       for repo in response:
-        if repo.get("name").lower() == name.lower() and "name" in repo:
-          Logger.info("KMS repository exist")
+        if not isinstance(repo, dict):
+          continue
+        repo_name = repo.get("name")
+        if isinstance(repo_name, str) and repo_name.casefold() == expected_name:
+          Logger.info("KMS repository exists")
           return True
-        else:
-          Logger.info("KMS repository doesnot exist")
-          return False
-    else:
-      Logger.info("KMS repository doesnot exist")
-      return False
+
+    Logger.info("KMS repository does not exist")
+    return False
   except urllib.error.URLError as e:
     if isinstance(e, urllib.error.HTTPError):
       raise Fail(
-        f"Error getting {name} service. Http status code - {e.code}. \n {e.read()}"
+        f"Error getting {name} service. Http status code - {e.code}."
       )
     else:
       raise Fail(f"Error getting {name} service. Reason - {e.reason}.")
   except socket.timeout as e:
-    raise Fail(f"Error creating service. Reason - {e}")
+    raise Fail(f"Error getting {name} service. Reason - {e}")
 
 
 def check_ranger_service_support_kerberos(user, keytab, principal):
