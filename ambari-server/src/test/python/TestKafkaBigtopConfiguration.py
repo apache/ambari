@@ -66,6 +66,68 @@ KAFKA_UTILS = load_module("bigtop_kafka_utils", SCRIPTS / "utils.py")
 
 
 class TestKafkaClientContract(unittest.TestCase):
+  def test_boolean_and_external_ranger_inputs_fail_closed(self):
+    self.assertTrue(KAFKA_UTILS.as_bool(True, "setting"))
+    self.assertTrue(KAFKA_UTILS.as_bool(" true ", "setting"))
+    self.assertFalse(KAFKA_UTILS.as_bool(False, "setting"))
+    self.assertFalse(KAFKA_UTILS.as_bool("FALSE", "setting"))
+    self.assertTrue(KAFKA_UTILS.as_yes_no("Yes", "setting"))
+    self.assertFalse(KAFKA_UTILS.as_yes_no(" no ", "setting"))
+    for value in (None, 1, "yes", "", "enabled"):
+      with self.subTest(parser="boolean", value=value):
+        with self.assertRaises(Fail):
+          KAFKA_UTILS.as_bool(value, "setting")
+    for value in (None, 1, "true", "", "enabled"):
+      with self.subTest(parser="yes-no", value=value):
+        with self.assertRaises(Fail):
+          KAFKA_UTILS.as_yes_no(value, "setting")
+
+    credentials = {
+      "external_admin_username": "admin",
+      "external_admin_password": "secret",
+      "external_ranger_admin_username": "ambari",
+      "external_ranger_admin_password": "other-secret",
+    }
+    self.assertEqual(
+      credentials, KAFKA_UTILS.require_external_ranger_credentials(credentials)
+    )
+    for name in credentials:
+      invalid = dict(credentials)
+      invalid[name] = ""
+      with self.subTest(credential=name):
+        with self.assertRaisesRegex(Fail, name):
+          KAFKA_UTILS.require_external_ranger_credentials(invalid)
+
+    self.assertEqual(
+      {
+        "admin_username": "admin",
+        "admin_password": "secret",
+        "ranger_admin_username": "ambari",
+        "ranger_admin_password": "other-secret",
+      },
+      KAFKA_UTILS.ranger_environment(
+        {"ranger-kafka-plugin-properties": credentials}, False
+      ),
+    )
+    managed = {"ranger-kafka-plugin-enabled": "Yes"}
+    self.assertIs(
+      managed, KAFKA_UTILS.ranger_environment({"ranger-env": managed}, True)
+    )
+    with self.assertRaisesRegex(Fail, "ranger-env"):
+      KAFKA_UTILS.ranger_environment({}, True)
+
+  def test_ranger_service_name_is_a_safe_path_segment(self):
+    self.assertEqual(
+      "cluster_kafka",
+      KAFKA_UTILS.validate_config_segment(
+        "cluster_kafka", "Ranger Kafka service name"
+      ),
+    )
+    for value in (None, "", ".", "..", "cluster/kafka", "../kafka", "bad\nname"):
+      with self.subTest(value=value):
+        with self.assertRaises(Fail):
+          KAFKA_UTILS.validate_config_segment(value, "Ranger Kafka service name")
+
   def test_selects_inter_broker_protocol_and_builds_ipv4_bootstrap_list(self):
     properties = {
       "listeners": "PLAINTEXT://:9092,SASL_PLAINTEXT://:9093",
@@ -582,6 +644,55 @@ class TestKafkaAdvisorAndMetadata(unittest.TestCase):
       "listener.security.protocol.map", "INTERNAL:SASL_PLAINTEXT"
     )
 
+  def test_external_ranger_configures_authorizer_without_managed_service(self):
+    recommender = object.__new__(self.advisor.KafkaRecommender)
+    configurations = {
+      "ranger-kafka-plugin-properties": {
+        "properties": {"ranger-kafka-plugin-enabled": "Yes"}
+      }
+    }
+    services = {
+      "services": [],
+      "configurations": {
+        "kafka-env": {"properties": {"kafka_user": "kafka"}},
+        "kafka-broker": {
+          "properties": {
+            "listeners": "SASL_PLAINTEXT://:9092",
+            "sasl.mechanism.inter.broker.protocol": "GSSAPI",
+          }
+        },
+        "ranger-kafka-plugin-properties": {
+          "properties": {"ranger-kafka-plugin-enabled": "Yes"}
+        },
+      },
+    }
+    writes = {}
+
+    def put_property(_configurations, config_type, _services):
+      writes.setdefault(config_type, MagicMock())
+      return writes[config_type]
+
+    with (
+      patch.object(
+        recommender,
+        "getServicesSiteProperties",
+        side_effect=lambda current, config_type: current["configurations"]
+        .get(config_type, {})
+        .get("properties"),
+      ),
+      patch.object(recommender, "putProperty", side_effect=put_property),
+      patch.object(recommender, "putPropertyAttribute", return_value=MagicMock()),
+      patch.object(recommender, "getZKHostPortString", return_value=None),
+    ):
+      recommender.recommendKafkaSecurity(
+        configurations, {}, services, {"items": []}
+      )
+
+    writes["kafka-broker"].assert_any_call(
+      "authorizer.class.name",
+      "org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer",
+    )
+
   def test_broker_count_uses_named_component_instead_of_array_position(self):
     services = {
       "services": [
@@ -611,6 +722,35 @@ class TestKafkaAdvisorAndMetadata(unittest.TestCase):
     overlay = ElementTree.parse(KAFKA_33 / "metainfo.xml").getroot()
     self.assertEqual("2.8.1-2", base.findtext("./services/service/version"))
     self.assertEqual("3.4.1-1", overlay.findtext("./services/service/version"))
+
+  def test_packages_match_bigtop_suffixes_and_ranger_is_conditional(self):
+    metadata = ElementTree.parse(KAFKA / "metainfo.xml").getroot()
+    specifics = {
+      node.findtext("osFamily"): {
+        package.findtext("name"): package.findtext("condition")
+        for package in node.findall("./packages/package")
+      }
+      for node in metadata.findall("./services/service/osSpecifics/osSpecific")
+    }
+    self.assertEqual(
+      {
+        "kafka_${stack_version}": None,
+        "ranger_${stack_version}-kafka-plugin": (
+          "should_install_ranger_kafka_plugin"
+        ),
+      },
+      specifics["redhat8,redhat9,openeuler22"],
+    )
+    self.assertEqual(
+      {
+        "kafka-${stack_version}": None,
+        "ranger-${stack_version}-kafka-plugin": (
+          "should_install_ranger_kafka_plugin"
+        ),
+      },
+      specifics["ubuntu22"],
+    )
+    self.assertNotIn("redhat7", ",".join(specifics))
 
   def test_removed_kafka_341_properties_remain_deleted_for_upgrade_cleanup(self):
     root = ElementTree.parse(KAFKA / "configuration/kafka-broker.xml").getroot()

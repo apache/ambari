@@ -203,7 +203,6 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
   def recommendKafkaSecurity(
     self, configurations, clusterData, services, hosts
   ):
-    servicesList = _service_names(services)
     kafka_broker = self.getServicesSiteProperties(services, "kafka-broker")
     kafka_env = self.getServicesSiteProperties(services, "kafka-env")
 
@@ -270,34 +269,28 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
       )
 
     ranger_plugin_enabled = False
-    # Only if the RANGER service is installed....
-    if "RANGER" in servicesList:
-      # If ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled,
-      # determine if the Ranger/Kafka plug-in enabled enabled or not
-      if (
-        "ranger-kafka-plugin-properties" in configurations
-        and "ranger-kafka-plugin-enabled"
-        in configurations["ranger-kafka-plugin-properties"]["properties"]
-      ):
-        ranger_plugin_enabled = (
-          configurations["ranger-kafka-plugin-properties"]["properties"][
-            "ranger-kafka-plugin-enabled"
-          ].lower()
-          == "yes"
-        )
-      # If ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled was not changed,
-      # determine if the Ranger/Kafka plug-in enabled enabled or not
-      elif (
-        "ranger-kafka-plugin-properties" in services["configurations"]
-        and "ranger-kafka-plugin-enabled"
-        in services["configurations"]["ranger-kafka-plugin-properties"]["properties"]
-      ):
-        ranger_plugin_enabled = (
-          services["configurations"]["ranger-kafka-plugin-properties"]["properties"][
-            "ranger-kafka-plugin-enabled"
-          ].lower()
-          == "yes"
-        )
+    if (
+      "ranger-kafka-plugin-properties" in configurations
+      and "ranger-kafka-plugin-enabled"
+      in configurations["ranger-kafka-plugin-properties"]["properties"]
+    ):
+      ranger_plugin_enabled = (
+        configurations["ranger-kafka-plugin-properties"]["properties"][
+          "ranger-kafka-plugin-enabled"
+        ].lower()
+        == "yes"
+      )
+    elif (
+      "ranger-kafka-plugin-properties" in services["configurations"]
+      and "ranger-kafka-plugin-enabled"
+      in services["configurations"]["ranger-kafka-plugin-properties"]["properties"]
+    ):
+      ranger_plugin_enabled = (
+        services["configurations"]["ranger-kafka-plugin-properties"]["properties"][
+          "ranger-kafka-plugin-enabled"
+        ].lower()
+        == "yes"
+      )
 
     # Determine the value for kafka-broker/authorizer.class.name
     if ranger_plugin_enabled:
@@ -518,11 +511,7 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
           }
         )
 
-    if (
-      ("RANGER" in servicesList)
-      and (ranger_plugin_enabled.lower() == "yes")
-      and not security_enabled
-    ):
+    if ranger_plugin_enabled.lower() == "yes" and not security_enabled:
       validationItems.append(
         {
           "config-name": "ranger-kafka-plugin-enabled",
@@ -553,7 +542,7 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
     )
     prop_name = "authorizer.class.name"
     prop_val = "org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer"
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == "Yes".lower()):
+    if ranger_plugin_enabled.lower() == "yes":
       if not kafka_broker or kafka_broker.get(prop_name) != prop_val:
         validationItems.append(
           {

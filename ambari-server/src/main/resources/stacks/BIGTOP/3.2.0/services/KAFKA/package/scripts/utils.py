@@ -20,6 +20,84 @@ limitations under the License.
 
 import re
 
+from resource_management.core.exceptions import Fail
+
+
+_CONFIG_SEGMENT_PATTERN = re.compile(
+  r"[A-Za-z0-9][A-Za-z0-9._-]{0,254}", re.ASCII
+)
+
+
+def as_bool(value, name):
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "true":
+      return True
+    if normalized == "false":
+      return False
+  raise Fail(f"{name} must be true or false")
+
+
+def as_yes_no(value, name):
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "yes":
+      return True
+    if normalized == "no":
+      return False
+  raise Fail(f"{name} must be Yes or No")
+
+
+def validate_config_segment(value, name):
+  if (
+    not isinstance(value, str)
+    or _CONFIG_SEGMENT_PATTERN.fullmatch(value) is None
+  ):
+    raise Fail(f"{name} must be a single filesystem-safe configuration segment")
+  return value
+
+
+def require_external_ranger_credentials(properties):
+  required = (
+    "external_admin_username",
+    "external_admin_password",
+    "external_ranger_admin_username",
+    "external_ranger_admin_password",
+  )
+  missing = [
+    name
+    for name in required
+    if not isinstance(properties.get(name), str) or not properties[name].strip()
+  ]
+  if missing:
+    raise Fail(
+      "External Ranger integration requires non-empty properties: "
+      + ", ".join(missing)
+    )
+  return {name: properties[name] for name in required}
+
+
+def ranger_environment(configurations, has_ranger_admin):
+  if has_ranger_admin:
+    managed_environment = configurations.get("ranger-env")
+    if not isinstance(managed_environment, dict):
+      raise Fail("Managed Ranger integration requires the ranger-env configuration")
+    return managed_environment
+
+  external = require_external_ranger_credentials(
+    configurations.get("ranger-kafka-plugin-properties", {})
+  )
+  return {
+    "admin_username": external["external_admin_username"],
+    "admin_password": external["external_admin_password"],
+    "ranger_admin_username": external["external_ranger_admin_username"],
+    "ranger_admin_password": external["external_ranger_admin_password"],
+  }
+
 
 def get_bare_principal(normalized_principal_name):
   """

@@ -34,7 +34,13 @@ from resource_management.libraries.functions.stack_features import (
   get_stack_feature_version,
 )
 from resource_management.libraries.functions.default import default
-from utils import get_bare_principal
+from utils import (
+  as_bool,
+  as_yes_no,
+  get_bare_principal,
+  ranger_environment,
+  validate_config_segment,
+)
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.is_empty import is_empty
 import status_params
@@ -50,10 +56,6 @@ from resource_management.libraries.functions.setup_ranger_plugin_xml import (
   get_audit_configs,
   generate_ranger_service_config,
 )
-
-
-def as_bool(value):
-  return value if isinstance(value, bool) else str(value).lower() == "true"
 
 
 def positive_limit(value, name):
@@ -106,7 +108,10 @@ def safe_service_directory(value, name):
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
-retryAble = default("/commandParams/command_retry_enabled", False)
+retryAble = as_bool(
+  default("/commandParams/command_retry_enabled", False),
+  "commandParams/command_retry_enabled",
+)
 service_name = "kafka"
 # Version being upgraded/downgraded to
 version = default("/commandParams/version", None)
@@ -150,7 +155,8 @@ kafka_user_nproc_limit = positive_limit(
 )
 
 kafka_delete_topic_enable = as_bool(
-  default("/configurations/kafka-broker/delete.topic.enable", True)
+  default("/configurations/kafka-broker/delete.topic.enable", True),
+  "kafka-broker/delete.topic.enable",
 )
 
 # parameters for 2.2+
@@ -188,7 +194,8 @@ kafka_client_jaas_conf_template = default(
 kafka_hosts = sorted(config["clusterHostInfo"]["kafka_broker_hosts"])
 
 secure_acls = as_bool(
-  default("/configurations/kafka-broker/zookeeper.set.acl", False)
+  default("/configurations/kafka-broker/zookeeper.set.acl", False),
+  "kafka-broker/zookeeper.set.acl",
 )
 kafka_security_migrator = os.path.join(
   kafka_home, "bin", "zookeeper-security-migration.sh"
@@ -272,10 +279,12 @@ if has_metric_collector:
 
 # Security-related params
 kerberos_security_enabled = as_bool(
-  config["configurations"]["cluster-env"]["security_enabled"]
+  config["configurations"]["cluster-env"]["security_enabled"],
+  "cluster-env/security_enabled",
 )
 kafka_kerberos_merge_advertised_listeners = as_bool(
-  default("/configurations/kafka-env/kerberos_merge_advertised_listeners", True)
+  default("/configurations/kafka-env/kerberos_merge_advertised_listeners", True),
+  "kafka-env/kerberos_merge_advertised_listeners",
 )
 
 kafka_broker_security = config["configurations"]["kafka-broker"]
@@ -404,7 +413,10 @@ xml_configurations_supported = check_stack_feature(
 enable_ranger_kafka = default(
   "configurations/ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled", "No"
 )
-enable_ranger_kafka = True if enable_ranger_kafka.lower() == "yes" else False
+enable_ranger_kafka = as_yes_no(
+  enable_ranger_kafka,
+  "ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled",
+)
 
 # ranger kafka-plugin supported flag, instead of dependending on is_supported_kafka_ranger/kafka-env.xml, using stack feature
 is_supported_kafka_ranger = check_stack_feature(
@@ -437,36 +449,18 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
     ]
 
   # ranger kafka service/repository name
-  repo_name = str(config["clusterName"]) + "_kafka"
+  repo_name = validate_config_segment(
+    str(config["clusterName"]) + "_kafka", "Ranger Kafka service name"
+  )
   repo_name_value = config["configurations"]["ranger-kafka-security"][
     "ranger.plugin.kafka.service.name"
   ]
   if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
-    repo_name = repo_name_value
+    repo_name = validate_config_segment(
+      repo_name_value, "ranger-kafka-security/ranger.plugin.kafka.service.name"
+    )
 
-  ranger_env = config["configurations"]["ranger-env"]
-
-  # create ranger-env config having external ranger credential properties
-  if not has_ranger_admin and enable_ranger_kafka:
-    external_admin_username = default(
-      "/configurations/ranger-kafka-plugin-properties/external_admin_username", "admin"
-    )
-    external_admin_password = default(
-      "/configurations/ranger-kafka-plugin-properties/external_admin_password", "admin"
-    )
-    external_ranger_admin_username = default(
-      "/configurations/ranger-kafka-plugin-properties/external_ranger_admin_username",
-      "amb_ranger_admin",
-    )
-    external_ranger_admin_password = default(
-      "/configurations/ranger-kafka-plugin-properties/external_ranger_admin_password",
-      "amb_ranger_admin",
-    )
-    ranger_env = {}
-    ranger_env["admin_username"] = external_admin_username
-    ranger_env["admin_password"] = external_admin_password
-    ranger_env["ranger_admin_username"] = external_ranger_admin_username
-    ranger_env["ranger_admin_password"] = external_ranger_admin_password
+  ranger_env = ranger_environment(config["configurations"], has_ranger_admin)
 
   ranger_plugin_properties = config["configurations"]["ranger-kafka-plugin-properties"]
   ranger_kafka_audit = config["configurations"]["ranger-kafka-audit"]
@@ -607,12 +601,18 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
 
   xa_audit_db_is_enabled = False
   if xml_configurations_supported and stack_supports_ranger_audit_db:
-    xa_audit_db_is_enabled = config["configurations"]["ranger-kafka-audit"][
-      "xasecure.audit.destination.db"
-    ]
+    xa_audit_db_is_enabled = as_bool(
+      config["configurations"]["ranger-kafka-audit"][
+        "xasecure.audit.destination.db"
+      ],
+      "ranger-kafka-audit/xasecure.audit.destination.db",
+    )
 
-  xa_audit_hdfs_is_enabled = default(
-    "/configurations/ranger-kafka-audit/xasecure.audit.destination.hdfs", False
+  xa_audit_hdfs_is_enabled = as_bool(
+    default(
+      "/configurations/ranger-kafka-audit/xasecure.audit.destination.hdfs", False
+    ),
+    "ranger-kafka-audit/xasecure.audit.destination.hdfs",
   )
   ssl_keystore_password = (
     config["configurations"]["ranger-kafka-policymgr-ssl"][
@@ -644,8 +644,11 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
   ):
     xa_audit_db_is_enabled = False
 
-is_ranger_kms_ssl_enabled = default(
-  "configurations/ranger-kms-site/ranger.service.https.attrib.ssl.enabled", False
+is_ranger_kms_ssl_enabled = as_bool(
+  default(
+    "configurations/ranger-kms-site/ranger.service.https.attrib.ssl.enabled", False
+  ),
+  "ranger-kms-site/ranger.service.https.attrib.ssl.enabled",
 )
 
 # ranger kafka plugin section end

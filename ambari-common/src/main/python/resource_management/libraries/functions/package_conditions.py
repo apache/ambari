@@ -30,6 +30,7 @@ __all__ = [
   "should_install_ranger_hbase_plugin",
   "should_install_ranger_hdfs_plugin",
   "should_install_ranger_hive_plugin",
+  "should_install_ranger_kafka_plugin",
   "should_install_ranger_yarn_plugin",
   "should_install_ranger_tagsync",
   "should_install_yarn_ats_hbase",
@@ -152,7 +153,15 @@ def should_install_mysql_connector():
 
 def _is_configuration_enabled(config_type, property_name):
   value = default(f"/configurations/{config_type}/{property_name}", "No")
-  return str(value).lower() == "yes"
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "yes":
+      return True
+    if normalized == "no":
+      return False
+  raise Fail(f"{config_type}/{property_name} must be Yes or No")
 
 
 def should_install_ranger_hdfs_plugin():
@@ -176,6 +185,12 @@ def should_install_ranger_hive_plugin():
 def should_install_ranger_hbase_plugin():
   return _is_configuration_enabled(
     "ranger-hbase-plugin-properties", "ranger-hbase-plugin-enabled"
+  )
+
+
+def should_install_ranger_kafka_plugin():
+  return _is_configuration_enabled(
+    "ranger-kafka-plugin-properties", "ranger-kafka-plugin-enabled"
   )
 
 
