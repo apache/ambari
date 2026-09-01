@@ -35,7 +35,16 @@ from resource_management.libraries.functions.get_not_managed_resources import (
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
 
-from alluxio_utils import resolve_master_metastore_dir
+from alluxio_utils import (
+  resolve_master_metastore_dir,
+  resolve_underfs_address,
+  validate_data_size,
+  validate_directory_path,
+  validate_keytab_path,
+  validate_port,
+  validate_principal,
+  validate_service_account,
+)
 
 
 config = Script.get_config()
@@ -58,10 +67,20 @@ alluxio_home = format("{stack_root}/current/{component_directory}")
 alluxio_conf_dir = format("{stack_root}/current/{component_directory}/conf")
 alluxio_data_dir = "/var/lib/alluxio"
 
-alluxio_user = config["configurations"]["alluxio-env"]["alluxio_user"]
-alluxio_group = config["configurations"]["alluxio-env"]["alluxio_group"]
-alluxio_pid_dir = config["configurations"]["alluxio-env"]["alluxio_pid_dir"]
-alluxio_log_dir = config["configurations"]["alluxio-env"]["alluxio_log_dir"]
+alluxio_user = validate_service_account(
+  config["configurations"]["alluxio-env"]["alluxio_user"], "Alluxio user"
+)
+alluxio_group = validate_service_account(
+  config["configurations"]["alluxio-env"]["alluxio_group"], "Alluxio group"
+)
+alluxio_pid_dir = validate_directory_path(
+  config["configurations"]["alluxio-env"]["alluxio_pid_dir"],
+  "Alluxio PID directory",
+)
+alluxio_log_dir = validate_directory_path(
+  config["configurations"]["alluxio-env"]["alluxio_log_dir"],
+  "Alluxio log directory",
+)
 
 alluxio_journal_dir = os.path.join(alluxio_data_dir, "journal")
 
@@ -72,22 +91,18 @@ alluxio_masters = config["clusterHostInfo"]["alluxio_master_hosts"]
 alluxio_masters_str = "\n".join(alluxio_masters)
 alluxio_master_host = host_name
 
-masters_journal_port = "19200"
+alluxio_master_embedded_journal_port = validate_port(
+  config["configurations"]["alluxio-site-properties"][
+    "alluxio.master.embedded.journal.port"
+  ],
+  "Alluxio master embedded journal port",
+)
 master_embedded_journal_addresses = ""
 master_embedded_journal_addresses_config = ""
-# get comma separated lists of masters_journal_host hosts from alluxio_masters
 if len(alluxio_masters) > 1:
-  alluxio_master_host = host_name
-  index = 0
-  for host in alluxio_masters:
-    masters_journal_host = host
-    if masters_journal_port is not None:
-      masters_journal_host = host + ":" + str(masters_journal_port)
-
-    master_embedded_journal_addresses += masters_journal_host
-    index += 1
-    if index < len(alluxio_masters):
-      master_embedded_journal_addresses += ","
+  master_embedded_journal_addresses = ",".join(
+    f"{host}:{alluxio_master_embedded_journal_port}" for host in alluxio_masters
+  )
   master_embedded_journal_addresses_config = (
     "alluxio.master.embedded.journal.addresses=" + master_embedded_journal_addresses
   )
@@ -95,39 +110,44 @@ elif len(alluxio_masters) == 1:
   alluxio_master_host = alluxio_masters[0]
 
 
-# alluxio.underfs.address
 alluxio_master_metastore_dir = resolve_master_metastore_dir(
   config["configurations"].get("alluxio-site-properties", {}), alluxio_data_dir
 )
 
 java_home_shell = quote_bash_args(str(java_home))
+alluxio_log_dir_shell = quote_bash_args(str(alluxio_log_dir))
 alluxio_native_library_option_shell = quote_bash_args(
   "-Djava.library.path=" + os.path.join(hadoop_home, "lib", "native")
 )
 
 
-alluxio_master_rpc_port = config["configurations"]["alluxio-site-properties"][
-  "alluxio.master.rpc.port"
-]
-alluxio_master_web_port = config["configurations"]["alluxio-site-properties"][
-  "alluxio.master.web.port"
-]
+alluxio_master_rpc_port = validate_port(
+  config["configurations"]["alluxio-site-properties"]["alluxio.master.rpc.port"],
+  "Alluxio master RPC port",
+)
+alluxio_master_web_port = validate_port(
+  config["configurations"]["alluxio-site-properties"]["alluxio.master.web.port"],
+  "Alluxio master web port",
+)
 
-alluxio_worker_rpc_port = config["configurations"]["alluxio-site-properties"][
-  "alluxio.worker.rpc.port"
-]
-alluxio_worker_web_port = config["configurations"]["alluxio-site-properties"][
-  "alluxio.worker.web.port"
-]
+alluxio_worker_rpc_port = validate_port(
+  config["configurations"]["alluxio-site-properties"]["alluxio.worker.rpc.port"],
+  "Alluxio worker RPC port",
+)
+alluxio_worker_web_port = validate_port(
+  config["configurations"]["alluxio-site-properties"]["alluxio.worker.web.port"],
+  "Alluxio worker web port",
+)
 
-# alluxio workers address
+# Alluxio worker addresses
 alluxio_workers = config["clusterHostInfo"]["alluxio_worker_hosts"]
 alluxio_workers_str = "\n".join(alluxio_workers)
 
-# alluxio worker memory alotment
-worker_mem = config["configurations"]["alluxio-site-properties"][
-  "alluxio.worker.memory"
-]
+# Alluxio worker memory allocation
+worker_mem = validate_data_size(
+  config["configurations"]["alluxio-site-properties"]["alluxio.worker.memory"],
+  "Alluxio worker memory",
+)
 
 # hadoop params
 namenode_address = None
@@ -139,26 +159,23 @@ if "dfs.namenode.rpc-address" in config["configurations"]["hdfs-site"]:
 else:
   namenode_address = config["configurations"]["core-site"]["fs.defaultFS"]
 
-# alluxio underfs address
-underfs_hdfs_addr = (
-  namenode_address
-  + config["configurations"]["alluxio-site-properties"]["alluxio.underfs.hdfs.address"]
+underfs_hdfs_addr = resolve_underfs_address(
+  namenode_address,
+  config["configurations"]["alluxio-site-properties"][
+    "alluxio.underfs.hdfs.address"
+  ],
 )
-
-
-# alluxio hdd dirs
-
-
 alluxio_site_properties = config["configurations"]["alluxio-site-properties"]["content"]
 alluxio_env_sh = config["configurations"]["alluxio-env"]["content"]
 
 alluxio_log4j2_properties = config["configurations"]["alluxio-log4j-properties"][
   "content"
 ]
+alluxio_metrics_properties = config["configurations"]["alluxio-metrics-properties"][
+  "content"
+]
 
 alluxio_hdfs_user_dir = format("/user/{alluxio_user}")
-
-alluxio_authentication = "SIMPLE"
 
 # security_enabled
 security_enabled = default("/configurations/cluster-env/security_enabled", None)
@@ -167,17 +184,12 @@ kinit_path_local = get_kinit_path(
 )
 
 if security_enabled:
-  alluxio_authentication = "KERBEROS"
-  alluxio_kerberos_keytab = config["configurations"]["alluxio-env"]["alluxio_keytab"]
-  alluxio_kerberos_principal = config["configurations"]["alluxio-env"][
-    "alluxio_principal"
-  ]
-  alluxio_service_kerberos_keytab = config["configurations"]["alluxio-env"][
-    "alluxio_service_keytab"
-  ]
-  alluxio_service_kerberos_principal = config["configurations"]["alluxio-env"][
-    "alluxio_service_principal"
-  ]
+  alluxio_service_kerberos_keytab = validate_keytab_path(
+    config["configurations"]["alluxio-env"]["alluxio_service_keytab"]
+  )
+  alluxio_service_kerberos_principal = validate_principal(
+    config["configurations"]["alluxio-env"]["alluxio_service_principal"]
+  )
 
 
 # for create_hdfs_directory

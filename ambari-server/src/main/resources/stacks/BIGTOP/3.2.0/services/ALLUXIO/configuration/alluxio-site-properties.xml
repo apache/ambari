@@ -20,6 +20,13 @@
 -->
 <configuration supports_final="true">
   <property>
+    <name>alluxio.master.embedded.journal.port</name>
+    <description>Alluxio embedded journal port</description>
+    <value>19200</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
     <name>alluxio.master.rpc.port</name>
     <description>alluxio.master.rpc.port</description>
     <value>19998</value>
@@ -63,14 +70,14 @@
 
   <property>
     <name>alluxio.master.metastore.dir</name>
-    <description>Alluxio UnderFS Address</description>
+    <description>Alluxio master metastore directory</description>
     <value>/var/lib/alluxio/metastore</value>
     <on-ambari-upgrade add="true"/>
   </property>
 
   <property>
     <name>content</name>
-    <description>alluxio-log4j-properties</description>
+    <description>alluxio-site.properties</description>
     <value>
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -91,8 +98,7 @@
 # alluxio.master.mount.table.root.ufs=${alluxio.work.dir}/underFSStorage
 
 alluxio.master.hostname={{alluxio_master_host}}
-#alluxio.master.mount.table.root.ufs={{namenode_address}}/alluxio/root/
-alluxio.underfs.address={{underfs_hdfs_addr}}
+alluxio.master.mount.table.root.ufs={{underfs_hdfs_addr}}
 alluxio.underfs.hdfs.configuration={{hadoop_conf_dir}}/core-site.xml:{{hadoop_conf_dir}}/hdfs-site.xml
 
 alluxio.master.metastore.dir={{alluxio_master_metastore_dir}}
@@ -101,16 +107,14 @@ alluxio.master.journal.folder={{alluxio_journal_dir}}
 #ha
 #alluxio.master.embedded.journal.addresses
 {{master_embedded_journal_addresses_config}}
+alluxio.master.embedded.journal.port={{alluxio_master_embedded_journal_port}}
 
 # Security properties
-# alluxio.security.authorization.permission.enabled=true
-# alluxio.security.authentication.type=SIMPLE
-
-alluxio.hadoop.security.authentication={{alluxio_authentication}}
 {% if security_enabled %}
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file={{alluxio_kerberos_keytab}}
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal={{alluxio_kerberos_principal}}
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
+alluxio.master.keytab.file={{alluxio_service_kerberos_keytab}}
+alluxio.master.principal={{alluxio_service_kerberos_principal}}
+alluxio.worker.keytab.file={{alluxio_service_kerberos_keytab}}
+alluxio.worker.principal={{alluxio_service_kerberos_principal}}
 {% endif %}
 alluxio.master.security.impersonation.yarn.users=*
 
@@ -120,7 +124,7 @@ alluxio.master.security.impersonation.yarn.users=*
 # alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
 
 # Worker properties
-alluxio.worker.ramdisk.size=1GB
+alluxio.worker.ramdisk.size={{worker_mem}}
 alluxio.worker.tieredstore.levels=1
 alluxio.worker.tieredstore.level0.alias=MEM
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk

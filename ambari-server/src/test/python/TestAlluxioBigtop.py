@@ -780,6 +780,7 @@ class TestAlluxioConfiguration(unittest.TestCase):
       alluxio_group="hadoop",
       alluxio_hdfs_user_dir="/user/alluxio",
       alluxio_log4j2_properties="log4j",
+      alluxio_metrics_properties="metrics",
       alluxio_log_dir="/var/log/alluxio",
       alluxio_master_metastore_dir="/var/lib/alluxio/metastore",
       alluxio_pid_dir="/run/alluxio",
@@ -839,7 +840,11 @@ class TestAlluxioConfiguration(unittest.TestCase):
     else:
       self.assertNotIn("/var/lib/alluxio/metastore", all_directory_paths)
 
-    self.assertEqual(5, file_resource.call_count)
+    self.assertEqual(6, file_resource.call_count)
+    self.assertIn(
+      "/usr/bigtop/current/alluxio/conf/metrics.properties",
+      {str(file_call.args[0]) for file_call in file_resource.call_args_list},
+    )
     for file_call in file_resource.call_args_list:
       self.assertEqual("root", file_call.kwargs["owner"])
       self.assertEqual("hadoop", file_call.kwargs["group"])

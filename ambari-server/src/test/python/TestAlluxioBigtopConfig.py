@@ -19,6 +19,7 @@ limitations under the License.
 
 import ast
 import importlib.util
+import json
 import os
 import shlex
 import sys
@@ -27,6 +28,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import patch
 
+from ambari_commons import import_utils
 from jinja2 import Environment as JinjaEnvironment, StrictUndefined
 from resource_management.core.shell import quote_bash_args
 
@@ -37,6 +39,8 @@ ALLUXIO_SCRIPTS = (
 )
 ALLUXIO_SERVICE = ALLUXIO_SCRIPTS.parents[1]
 ALLUXIO_33_SERVICE = ALLUXIO_SERVICE.parents[2] / "3.3.0/services/ALLUXIO"
+ALLUXIO_34_SERVICE = ALLUXIO_SERVICE.parents[2] / "3.4.0/services/ALLUXIO"
+STACKS = ALLUXIO_SERVICE.parents[3]
 
 
 def load_script(module_name, filename):
@@ -102,17 +106,23 @@ class TestAlluxioSourceContracts(unittest.TestCase):
     ).render(
       java_home_shell=java_home_shell,
       alluxio_native_library_option_shell=native_option_shell,
+      alluxio_log_dir_shell=quote_bash_args("/var/log/alluxio"),
     )
     assignments = {
       line.split("=", 1)[0]: line.split("=", 1)[1]
       for line in rendered.splitlines()
-      if line.startswith(("JAVA_HOME=", "ALLUXIO_NATIVE_LIBRARY_OPTION="))
+      if line.startswith(
+        ("JAVA_HOME=", "ALLUXIO_LOGS_DIR=", "ALLUXIO_NATIVE_LIBRARY_OPTION=")
+      )
     }
 
     self.assertNotIn("/usr/hdp/", template_text)
     self.assertNotIn("{{java_home}}", template_text)
     self.assertNotIn("{{hadoop_home}}", template_text)
     self.assertEqual([java_home], shlex.split(assignments["JAVA_HOME"]))
+    self.assertEqual(
+      ["/var/log/alluxio"], shlex.split(assignments["ALLUXIO_LOGS_DIR"])
+    )
     self.assertEqual(
       [native_option], shlex.split(assignments["ALLUXIO_NATIVE_LIBRARY_OPTION"])
     )
@@ -153,6 +163,9 @@ class TestAlluxioSourceContracts(unittest.TestCase):
       if isinstance(value, ast.Tuple)
     }
     removed_names = {
+      "alluxio_authentication",
+      "alluxio_kerberos_keytab",
+      "alluxio_kerberos_principal",
       "alluxio_master_format",
       "alluxio_master_metastore_formatted",
       "alluxio_master_pid_cmd",
@@ -188,12 +201,10 @@ class TestAlluxioSourceContracts(unittest.TestCase):
       "urlparse",
     }
     required_names = {
-      "alluxio_authentication",
       "alluxio_data_dir",
-      "alluxio_kerberos_keytab",
-      "alluxio_kerberos_principal",
       "alluxio_journal_dir",
       "alluxio_master_rpc_port",
+      "alluxio_master_embedded_journal_port",
       "alluxio_master_start_cmd",
       "alluxio_master_web_port",
       "alluxio_service_kerberos_keytab",
@@ -204,6 +215,8 @@ class TestAlluxioSourceContracts(unittest.TestCase):
       "alluxio_worker_start_cmd",
       "alluxio_worker_web_port",
       "alluxio_native_library_option_shell",
+      "alluxio_log_dir_shell",
+      "alluxio_metrics_properties",
       "config",
       "hadoop_conf_dir",
       "hadoop_home",
@@ -266,7 +279,118 @@ class TestAlluxioSourceContracts(unittest.TestCase):
     functions = {
       node.name for node in tree.body if isinstance(node, ast.FunctionDef)
     }
-    self.assertEqual({"resolve_master_metastore_dir"}, functions)
+    self.assertEqual(
+      {
+        "_safe_absolute_path",
+        "resolve_master_metastore_dir",
+        "resolve_underfs_address",
+        "validate_data_size",
+        "validate_directory_path",
+        "validate_keytab_path",
+        "validate_port",
+        "validate_principal",
+        "validate_service_account",
+      },
+      functions,
+    )
+
+  def test_runtime_values_are_validated_before_resource_creation(self):
+    self.assertEqual(
+      "/var/lib/alluxio/metastore",
+      ALLUXIO_UTILS.resolve_master_metastore_dir({}, "/var/lib/alluxio"),
+    )
+    self.assertEqual(
+      "alluxio", ALLUXIO_UTILS.validate_service_account("alluxio", "user")
+    )
+    self.assertEqual("19200", ALLUXIO_UTILS.validate_port(19200, "port"))
+    self.assertEqual("19200", ALLUXIO_UTILS.validate_port(" 19200 ", "port"))
+    self.assertEqual("512MB", ALLUXIO_UTILS.validate_data_size(" 512MB ", "size"))
+
+    for value in (
+      "/",
+      "/etc",
+      "/etc/alluxio",
+      "/tmp/alluxio",
+      "/var/log/../lib/alluxio",
+      "relative/alluxio",
+    ):
+      with self.subTest(directory=value):
+        with self.assertRaises(ValueError):
+          ALLUXIO_UTILS.validate_directory_path(value, "directory")
+    for value in ("root", "alluxio;id", "1alluxio", "alluxio\nroot"):
+      with self.subTest(account=value):
+        with self.assertRaises(ValueError):
+          ALLUXIO_UTILS.validate_service_account(value, "account")
+    for value in (True, 1.5, 0, 65536, "+1", "1.5", "1;id"):
+      with self.subTest(port=value):
+        with self.assertRaises(ValueError):
+          ALLUXIO_UTILS.validate_port(value, "port")
+    for value in ("0GB", "1.5GB", "1GB;id", "GB", None):
+      with self.subTest(size=value):
+        with self.assertRaises(ValueError):
+          ALLUXIO_UTILS.validate_data_size(value, "size")
+
+  def test_metastore_directory_rejects_unsafe_configured_paths(self):
+    for configured_dir in ("/etc/alluxio", "/tmp/alluxio", "relative"):
+      with self.subTest(configured_dir=configured_dir):
+        with self.assertRaises(ValueError):
+          ALLUXIO_UTILS.resolve_master_metastore_dir(
+            {"alluxio.master.metastore.dir": configured_dir},
+            "/var/lib/alluxio",
+          )
+
+  def test_underfs_address_uses_structured_hdfs_uri_and_rejects_unsafe_paths(self):
+    self.assertEqual(
+      "hdfs://nameservice1/alluxio/underFSStorage",
+      ALLUXIO_UTILS.resolve_underfs_address(
+        "hdfs://nameservice1", "/alluxio/underFSStorage"
+      ),
+    )
+    self.assertEqual(
+      "viewfs://cluster/base/alluxio",
+      ALLUXIO_UTILS.resolve_underfs_address(
+        "viewfs://cluster/base", "/alluxio"
+      ),
+    )
+    for default_fs, path in (
+      ("file:///", "/alluxio"),
+      ("hdfs://nameservice1", "relative"),
+      ("hdfs://nameservice1", "/alluxio/../other"),
+      ("hdfs://nameservice1", "//other"),
+    ):
+      with self.subTest(default_fs=default_fs, path=path):
+        with self.assertRaises(ValueError):
+          ALLUXIO_UTILS.resolve_underfs_address(default_fs, path)
+
+  def test_kerberos_values_reject_property_and_path_injection(self):
+    self.assertEqual(
+      "/etc/security/keytabs/alluxio.service.keytab",
+      ALLUXIO_UTILS.validate_keytab_path(
+        "/etc/security/keytabs/alluxio.service.keytab"
+      ),
+    )
+    self.assertEqual(
+      "alluxio/_HOST@EXAMPLE.COM",
+      ALLUXIO_UTILS.validate_principal("alluxio/_HOST@EXAMPLE.COM"),
+    )
+    for value in (
+      "relative.keytab",
+      "/etc/security/keytabs/../other.keytab",
+      "/etc/security/keytabs/alluxio.txt",
+      "/etc/security/keytabs/alluxio.keytab\nproperty=value",
+    ):
+      with self.subTest(keytab=value):
+        with self.assertRaises(ValueError):
+          ALLUXIO_UTILS.validate_keytab_path(value)
+    for value in (
+      "alluxio/_HOST",
+      "alluxio/_HOST@EXAMPLE.COM\nproperty=value",
+      "alluxio/_HOST@EXAMPLE.COM;id",
+    ):
+      with self.subTest(principal=value):
+        with self.assertRaises(ValueError):
+          ALLUXIO_UTILS.validate_principal(value)
+
 
 class TestAlluxioSiteTemplate(unittest.TestCase):
   @staticmethod
@@ -283,8 +407,8 @@ class TestAlluxioSiteTemplate(unittest.TestCase):
   @staticmethod
   def _variables(security_enabled):
     variables = {
-      "alluxio_authentication": "KERBEROS" if security_enabled else "SIMPLE",
       "alluxio_master_host": "master.example.com",
+      "alluxio_master_embedded_journal_port": "19200",
       "alluxio_journal_dir": "/var/lib/alluxio/journal",
       "alluxio_master_metastore_dir": "/var/lib/alluxio/metastore",
       "alluxio_master_rpc_port": "19998",
@@ -300,8 +424,10 @@ class TestAlluxioSiteTemplate(unittest.TestCase):
     }
     if security_enabled:
       variables.update(
-        alluxio_kerberos_keytab="/etc/security/keytabs/alluxio.keytab",
-        alluxio_kerberos_principal="alluxio/host@EXAMPLE.COM",
+        alluxio_service_kerberos_keytab=(
+          "/etc/security/keytabs/alluxio.service.keytab"
+        ),
+        alluxio_service_kerberos_principal="alluxio/_HOST@EXAMPLE.COM",
       )
     return variables
 
@@ -310,18 +436,26 @@ class TestAlluxioSiteTemplate(unittest.TestCase):
       self._template_text()
     ).render(**self._variables(False))
 
-    self.assertNotIn("kerberos.client.keytab.file", rendered)
-    self.assertNotIn("kerberos.client.principal", rendered)
+    self.assertNotIn("alluxio.master.keytab.file", rendered)
+    self.assertNotIn("alluxio.master.principal", rendered)
     self.assertNotIn("tieredstore.level1.alias=HDD", rendered)
     self.assertNotIn("hdd_dirs", rendered)
     self.assertIn(
       "alluxio.master.journal.folder=/var/lib/alluxio/journal", rendered
     )
     self.assertIn(
+      "alluxio.master.mount.table.root.ufs="
+      "hdfs://namenode.example.com:8020/alluxio",
+      rendered,
+    )
+    self.assertNotIn("alluxio.underfs.address=", rendered)
+    self.assertIn(
       "alluxio.underfs.hdfs.configuration=/etc/hadoop/conf/core-site.xml:"
       "/etc/hadoop/conf/hdfs-site.xml",
       rendered,
     )
+    self.assertIn("alluxio.worker.ramdisk.size=1GB", rendered)
+    self.assertIn("alluxio.master.embedded.journal.port=19200", rendered)
 
   def test_secure_template_renders_guarded_kerberos_properties(self):
     rendered = JinjaEnvironment(undefined=StrictUndefined).from_string(
@@ -329,12 +463,23 @@ class TestAlluxioSiteTemplate(unittest.TestCase):
     ).render(**self._variables(True))
 
     self.assertIn(
-      "kerberos.client.keytab.file=/etc/security/keytabs/alluxio.keytab",
+      "alluxio.master.keytab.file="
+      "/etc/security/keytabs/alluxio.service.keytab",
       rendered,
     )
     self.assertIn(
-      "kerberos.client.principal=alluxio/host@EXAMPLE.COM", rendered
+      "alluxio.master.principal=alluxio/_HOST@EXAMPLE.COM", rendered
     )
+    self.assertIn(
+      "alluxio.worker.keytab.file="
+      "/etc/security/keytabs/alluxio.service.keytab",
+      rendered,
+    )
+    self.assertIn(
+      "alluxio.worker.principal=alluxio/_HOST@EXAMPLE.COM", rendered
+    )
+    self.assertNotIn("alluxio.hadoop.security.authentication", rendered)
+    self.assertNotIn("alluxio.security.underfs.hdfs", rendered)
     self.assertIn(
       "alluxio.master.journal.folder=/var/lib/alluxio/journal", rendered
     )
@@ -342,22 +487,105 @@ class TestAlluxioSiteTemplate(unittest.TestCase):
 
 
 class TestAlluxioVersionContract(unittest.TestCase):
-  def test_stack_33_overlay_matches_bigtop_alluxio_296_release_1(self):
+  def test_stack_versions_and_packages_match_bigtop_releases(self):
     base_path = ALLUXIO_SERVICE / "metainfo.xml"
     overlay_path = ALLUXIO_33_SERVICE / "metainfo.xml"
-    base_versions = [
-      element.text for element in ET.parse(base_path).findall(".//version")
-    ]
-    overlay_source = overlay_path.read_text(encoding="utf-8")
-    overlay_root = ET.parse(overlay_path).getroot()
+    overlay_34_path = ALLUXIO_34_SERVICE / "metainfo.xml"
+    roots = {
+      "3.2.0": ET.parse(base_path).getroot(),
+      "3.3.0": ET.parse(overlay_path).getroot(),
+      "3.4.0": ET.parse(overlay_34_path).getroot(),
+    }
+    self.assertEqual("2.8.0-2", roots["3.2.0"].findtext(".//service/version"))
+    self.assertEqual("2.9.6-1", roots["3.3.0"].findtext(".//service/version"))
+    self.assertEqual("2.9.6-1", roots["3.4.0"].findtext(".//service/version"))
 
-    self.assertEqual(["2.9.3"], base_versions)
-    self.assertEqual("ALLUXIO", overlay_root.findtext(".//service/name"))
-    self.assertEqual("2.9.6-1", overlay_root.findtext(".//service/version"))
-    self.assertNotIn("2.9.3", overlay_source)
+    expected_packages = {
+      "3.2.0": {
+        "redhat7,redhat8,redhat9,openeuler22": ["alluxio"],
+        "debian10,debian11,ubuntu20,ubuntu22": ["alluxio"],
+      },
+      "3.3.0": {
+        "redhat8,redhat9,openeuler22": ["alluxio_${stack_version}"],
+        "debian10,debian11,ubuntu20,ubuntu22": ["alluxio-${stack_version}"],
+      },
+      "3.4.0": {
+        "redhat8,redhat9,openeuler22": ["alluxio_${stack_version}"],
+        "debian10,debian11,ubuntu20,ubuntu22": ["alluxio"],
+      },
+    }
+    for stack_version, root in roots.items():
+      packages = {
+        node.findtext("osFamily"): [
+          package.findtext("name")
+          for package in node.findall("packages/package")
+        ]
+        for node in root.findall(".//osSpecifics/osSpecific")
+      }
+      self.assertEqual(expected_packages[stack_version], packages)
+
+    stack_packages = json.loads(
+      (STACKS / "BIGTOP/3.2.0/properties/stack_packages.json").read_text(
+        encoding="utf-8"
+      )
+    )["stack-packages"]["ALLUXIO"]
+    self.assertEqual({"ALLUXIO_MASTER", "ALLUXIO_WORKER"}, set(stack_packages))
+    for component in stack_packages.values():
+      self.assertEqual("alluxio", component["STACK-SELECT-PACKAGE"])
+
+  def test_metadata_and_alerts_reference_consumed_configurations(self):
+    root = ET.parse(ALLUXIO_SERVICE / "metainfo.xml").getroot()
+    config_types = {
+      node.text
+      for node in root.findall(
+        "./services/service/configuration-dependencies/config-type"
+      )
+    }
+    self.assertTrue(
+      {"core-site", "hdfs-site", "hadoop-env"}.issubset(config_types)
+    )
+    alerts = json.loads(
+      (ALLUXIO_SERVICE / "alerts.json").read_text(encoding="utf-8")
+    )
+    alert_source = json.dumps(alerts)
+    self.assertIn(
+      "alluxio-site-properties/alluxio.master.rpc.port", alert_source
+    )
+    self.assertIn(
+      "alluxio-site-properties/alluxio.worker.rpc.port", alert_source
+    )
+    self.assertNotIn("alluxio-log4j-properties/alluxio.master", alert_source)
+
+    kerberos = json.loads(
+      (ALLUXIO_SERVICE / "kerberos.json").read_text(encoding="utf-8")
+    )
+    identities = kerberos["services"][0]["identities"]
+    self.assertEqual(
+      ["alluxio_service_keytab"], [item["name"] for item in identities]
+    )
+    kerberos_source = json.dumps(kerberos)
+    self.assertNotIn("alluxio.headless.keytab", kerberos_source)
+    self.assertNotIn("alluxio-env/alluxio_keytab", kerberos_source)
 
 
 class TestAlluxioServiceAdvisor(unittest.TestCase):
+  @classmethod
+  def setUpClass(cls):
+    for module_name in ("ambari_configuration", "stack_advisor"):
+      module_path = STACKS / f"{module_name}.py"
+      with module_path.open("rb") as module_file:
+        import_utils.load_module(
+          module_name,
+          module_file,
+          str(module_path),
+          (".py", "rb", import_utils.PY_SOURCE),
+        )
+    spec = importlib.util.spec_from_file_location(
+      "bigtop_alluxio_service_advisor", ALLUXIO_SERVICE / "service_advisor.py"
+    )
+    cls.advisor_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cls.advisor_module)
+
   def test_parent_load_failure_propagates_original_error(self):
     advisor_path = ALLUXIO_SERVICE / "service_advisor.py"
     parent_path = ALLUXIO_SERVICE.parents[3] / "service_advisor.py"
@@ -383,6 +611,56 @@ class TestAlluxioServiceAdvisor(unittest.TestCase):
 
     self.assertNotIn("HDP", advisor_source)
     self.assertNotIn("AlluxioRecommender", advisor_source)
+
+  def test_advisor_accepts_defaults_and_rejects_unsafe_runtime_values(self):
+    validator = self.advisor_module.AlluxioValidator()
+    for value in (1, " 2 ", "03"):
+      with self.subTest(value=value):
+        self.assertEqual(int(value), self.advisor_module._integer(value))
+    for value in (True, 1.5, "1.5", "+1", "-1", "one", None):
+      with self.subTest(value=value):
+        self.assertIsNone(self.advisor_module._integer(value))
+
+    site = {
+      node.findtext("name"): node.findtext("value") or ""
+      for node in ET.parse(
+        ALLUXIO_SERVICE / "configuration/alluxio-site-properties.xml"
+      ).getroot().findall("property")
+    }
+    self.assertEqual([], validator.validate_site(site, {}, {}, {}, {}))
+
+    site["alluxio.master.rpc.port"] = "70000"
+    site["alluxio.worker.web.port"] = site["alluxio.master.web.port"]
+    site["alluxio.worker.memory"] = "0GB;touch /tmp/alluxio"
+    site["alluxio.underfs.hdfs.address"] = "/alluxio/../other"
+    failures = validator.validate_site(site, {}, {}, {}, {})
+    failure_names = {failure["config-name"] for failure in failures}
+    self.assertTrue(
+      {
+        "alluxio.master.rpc.port",
+        "alluxio.worker.web.port",
+        "alluxio.worker.memory",
+        "alluxio.underfs.hdfs.address",
+      }.issubset(failure_names)
+    )
+
+  def test_advisor_rejects_unsafe_users_and_shared_runtime_directories(self):
+    validator = self.advisor_module.AlluxioValidator()
+    failures = validator.validate_environment(
+      {
+        "alluxio_user": "alluxio;id",
+        "alluxio_group": "hadoop",
+        "alluxio_log_dir": "/var/run/alluxio",
+        "alluxio_pid_dir": "/etc",
+      },
+      {},
+      {},
+      {},
+      {},
+    )
+    failure_names = {failure["config-name"] for failure in failures}
+    self.assertIn("alluxio_user", failure_names)
+    self.assertIn("alluxio_pid_dir", failure_names)
 
 
 if __name__ == "__main__":

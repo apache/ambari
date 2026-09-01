@@ -82,6 +82,14 @@ class AlluxioMaster(Script):
       mode=0o644,
     )
 
+    File(
+      os.path.join(params.alluxio_conf_dir, "metrics.properties"),
+      owner="root",
+      group=params.alluxio_group,
+      content=InlineTemplate(params.alluxio_metrics_properties),
+      mode=0o644,
+    )
+
     # masters
     File(
       format("{alluxio_conf_dir}/masters"),
