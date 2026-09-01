@@ -1,11 +1,11 @@
 {
-    "SPARK": {
+    "LIVY": {
       "service": [],
       "LIVY_SERVER": [
         {
           "name": "livy_server_status",
           "label": "Spark Livy Server",
-          "description": "This host-level alert is triggered if the Livy2 Server cannot be determined to be up.",
+          "description": "This host-level alert is triggered if the Livy Server cannot be determined to be up.",
           "interval": 1,
           "scope": "ANY",
           "source": {
@@ -27,4 +27,3 @@
       ]
     }
   }
-  
