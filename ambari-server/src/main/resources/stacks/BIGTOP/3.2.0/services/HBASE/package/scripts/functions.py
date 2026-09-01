@@ -18,12 +18,25 @@ limitations under the License.
 
 """
 
-import os
 import re
 import math
-import datetime
 
-from resource_management.core.shell import checked_call
+from resource_management.core.exceptions import Fail
+
+
+MEMORY_PATTERN = re.compile(r"\s*([0-9]+)\s*([kmg]?)\s*", re.IGNORECASE)
+MEMORY_UNIT_MIB = {
+  "": 1,
+  "k": 1 / 1024,
+  "m": 1,
+  "g": 1024,
+}
+
+
+def as_bool(value):
+  if isinstance(value, bool):
+    return value
+  return str(value or "").strip().lower() in ("1", "true", "yes")
 
 
 def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
@@ -32,25 +45,33 @@ def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   @param xmn_percent: float (e.g 0.2)
   @param xmn_max: integer (e.g 512)
   """
-  heapsize = int(re.search(r"\d+", heapsize_str).group(0))
-  heapsize_unit = re.search(r"\D+", heapsize_str).group(0)
-  xmn_val = int(math.floor(heapsize * xmn_percent))
-  xmn_val -= xmn_val % 8
+  match = MEMORY_PATTERN.fullmatch(str(heapsize_str))
+  if match is None:
+    raise Fail(f"Invalid heap size: {heapsize_str}")
+  heapsize = int(match.group(1))
+  heapsize_unit = (match.group(2) or "m").lower()
+  try:
+    ratio = float(xmn_percent)
+    maximum_mib = int(xmn_max)
+  except (TypeError, ValueError) as error:
+    raise Fail("Invalid young generation ratio or maximum") from error
+  if heapsize <= 0 or not 0 < ratio <= 1 or maximum_mib <= 0:
+    raise Fail("Heap size, young generation ratio, and maximum must be positive")
+  maximum_mib -= maximum_mib % 8
+  if maximum_mib <= 0:
+    raise Fail("Young generation maximum must be at least 8 MiB")
+  heapsize_mib = heapsize * MEMORY_UNIT_MIB[heapsize_unit]
+  xmn_mib = int(math.floor(heapsize_mib * ratio))
+  xmn_mib -= xmn_mib % 8
+  xmn_mib = min(xmn_mib, maximum_mib)
+  if xmn_mib <= 0:
+    raise Fail("Calculated young generation size must be at least 8 MiB")
 
-  result_xmn_val = int(xmn_max) if xmn_val > int(xmn_max) else xmn_val
-  return str(result_xmn_val) + heapsize_unit
+  return f"{xmn_mib}m"
 
 
 def ensure_unit_for_memory(memory_size):
-  memory_size_values = re.findall(r"\d+", str(memory_size))
-  memory_size_unit = re.findall(r"\D+", str(memory_size))
-
-  if len(memory_size_values) > 0:
-    unit = "m"
-    if len(memory_size_unit) > 0:
-      unit = memory_size_unit[0]
-    if unit not in ["b", "k", "m", "g", "t", "p"]:
-      raise Exception(f"Memory size unit error. {unit} - wrong unit")
-    return f"{memory_size_values[0]}{unit}"
-  else:
-    raise Exception("Memory size can not be calculated")
+  match = MEMORY_PATTERN.fullmatch(str(memory_size))
+  if match is None or int(match.group(1)) <= 0:
+    raise Fail(f"Invalid memory size: {memory_size}")
+  return f"{match.group(1)}{(match.group(2) or 'm').lower()}"

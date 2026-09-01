@@ -43,39 +43,31 @@ def setup_ranger_hbase(upgrade_type=None, service_name="hbase-master"):
       )
 
     if params.xa_audit_hdfs_is_enabled and service_name == "hbase-master":
-      try:
-        params.HdfsResource(
-          "/ranger/audit",
-          type="directory",
-          action="create_on_execute",
-          owner=params.hdfs_user,
-          group=params.hdfs_user,
-          mode=0o755,
-          recursive_chmod=True,
-        )
-        params.HdfsResource(
-          "/ranger/audit/hbaseMaster",
-          type="directory",
-          action="create_on_execute",
-          owner=params.hbase_user,
-          group=params.hbase_user,
-          mode=0o700,
-          recursive_chmod=True,
-        )
-        params.HdfsResource(
-          "/ranger/audit/hbaseRegional",
-          type="directory",
-          action="create_on_execute",
-          owner=params.hbase_user,
-          group=params.hbase_user,
-          mode=0o700,
-          recursive_chmod=True,
-        )
-        params.HdfsResource(None, action="execute")
-      except Exception as err:
-        Logger.exception(
-          f"Audit directory creation in HDFS for HBASE Ranger plugin failed with error:\n{err}"
-        )
+      params.HdfsResource(
+        "/ranger/audit",
+        type="directory",
+        action="create_on_execute",
+        owner=params.hdfs_user,
+        group=params.hdfs_user,
+        mode=0o755,
+      )
+      params.HdfsResource(
+        "/ranger/audit/hbaseMaster",
+        type="directory",
+        action="create_on_execute",
+        owner=params.hbase_user,
+        group=params.hbase_user,
+        mode=0o700,
+      )
+      params.HdfsResource(
+        "/ranger/audit/hbaseRegional",
+        type="directory",
+        action="create_on_execute",
+        owner=params.hbase_user,
+        group=params.hbase_user,
+        mode=0o700,
+      )
+      params.HdfsResource(None, action="execute")
 
     api_version = "v2"
 

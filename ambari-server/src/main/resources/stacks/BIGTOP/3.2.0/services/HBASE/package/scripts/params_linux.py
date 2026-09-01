@@ -20,12 +20,10 @@ limitations under the License.
 
 import os
 import status_params
-import json
+import re
 
-from functions import calc_xmn_from_xms, ensure_unit_for_memory
+from functions import as_bool, calc_xmn_from_xms, ensure_unit_for_memory
 
-from ambari_commons.constants import AMBARI_SUDO_BINARY
-from ambari_commons.os_check import OSCheck
 from ambari_commons.str_utils import string_set_intersection
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -50,11 +48,12 @@ from resource_management.libraries.functions.setup_ranger_plugin_xml import (
   get_audit_configs,
   generate_ranger_service_config,
 )
+from resource_management.core.exceptions import Fail
+from resource_management.core.shell import quote_bash_args
 
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
-sudo = AMBARI_SUDO_BINARY
 
 service_name = "hbase"
 stack_name = status_params.stack_name
@@ -84,37 +83,17 @@ stack_supports_ranger_audit_db = check_stack_feature(
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
-region_mover = "/usr/lib/hbase/bin/region_mover.rb"
-region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
-region_drainer2 = "/usr/lib/hbase/bin/draining_servers2.rb"
 hbase_cmd = "/usr/lib/hbase/bin/hbase"
-hbase_max_direct_memory_size = None
+hbase_max_direct_memory_size = default(
+  "configurations/hbase-env/hbase_max_direct_memory_size", None
+)
 hbase_home = "/usr/lib/hbase"
 # hadoop parameters for stacks supporting rolling_upgrade
 if stack_version_formatted and check_stack_feature(
   StackFeature.ROLLING_UPGRADE, stack_version_formatted
 ):
-  daemon_script = format("{stack_root}/current/hbase-client/bin/hbase-daemon.sh")
-  region_mover = format("{stack_root}/current/hbase-client/bin/region_mover.rb")
-  region_drainer = format("{stack_root}/current/hbase-client/bin/draining_servers.rb")
-  region_drainer2 = format("{stack_root}/current/hbase-client/bin/draining_servers2.rb")
-  hbase_cmd = format("{stack_root}/current/hbase-client/bin/hbase")
-
-  hbase_max_direct_memory_size = default(
-    "configurations/hbase-env/hbase_max_direct_memory_size", None
-  )
-
   daemon_script = format(
     "{stack_root}/current/{component_directory}/bin/hbase-daemon.sh"
-  )
-  region_mover = format(
-    "{stack_root}/current/{component_directory}/bin/region_mover.rb"
-  )
-  region_drainer = format(
-    "{stack_root}/current/{component_directory}/bin/draining_servers.rb"
-  )
-  region_drainer2 = format(
-    "{stack_root}/current/{component_directory}/bin/draining_servers2.rb"
   )
   hbase_cmd = format("{stack_root}/current/{component_directory}/bin/hbase")
 
@@ -130,29 +109,21 @@ hbase_user_nproc_limit = default(
   "/configurations/hbase-env/hbase_user_nproc_limit", "16000"
 )
 
-# no symlink for phoenix-server at this point
-phx_daemon_script = format("{stack_root}/current/phoenix-server/bin/queryserver.py")
-
-hbase_excluded_hosts = config["commandParams"]["excluded_hosts"]
-hbase_drain_only = default("/commandParams/mark_draining_only", False)
-hbase_included_hosts = config["commandParams"]["included_hosts"]
+hbase_excluded_hosts = default("/commandParams/excluded_hosts", "")
+hbase_drain_only = as_bool(default("/commandParams/mark_draining_only", False))
+hbase_included_hosts = default("/commandParams/included_hosts", "")
 
 hbase_user = status_params.hbase_user
 hbase_principal_name = config["configurations"]["hbase-env"]["hbase_principal_name"]
-smokeuser = config["configurations"]["cluster-env"]["smokeuser"]
-_authentication = config["configurations"]["core-site"][
-  "hadoop.security.authentication"
-]
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
+security_enabled_value = config["configurations"]["cluster-env"]["security_enabled"]
+security_enabled = as_bool(security_enabled_value)
 
-# this is "hadoop-metrics.properties" for 1.x stacks
 metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
 java64_home = config["ambariLevelParams"]["java_home"]
 ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
-java_version = expect("/ambariLevelParams/java_version", int)
-
 log_dir = config["configurations"]["hbase-env"]["hbase_log_dir"]
 java_io_tmpdir = default("/configurations/hbase-env/hbase_java_io_tmpdir", "/tmp")
 master_heapsize = ensure_unit_for_memory(
@@ -173,35 +144,53 @@ regionserver_xmn_size = calc_xmn_from_xms(
 )
 
 parallel_gc_threads = expect("/configurations/hbase-env/hbase_parallel_gc_threads", int)
+if parallel_gc_threads <= 0:
+  raise Fail("HBase parallel GC thread count must be a positive integer")
+if hbase_max_direct_memory_size not in (None, ""):
+  if not str(hbase_max_direct_memory_size).isascii() or not str(
+    hbase_max_direct_memory_size
+  ).isdigit() or int(hbase_max_direct_memory_size) <= 0:
+    raise Fail("HBase maximum direct memory size must be a positive integer")
 
 hbase_regionserver_shutdown_timeout = expect(
   "/configurations/hbase-env/hbase_regionserver_shutdown_timeout", int, 30
 )
+if hbase_regionserver_shutdown_timeout <= 0:
+  raise Fail("HBase shutdown timeout must be a positive integer")
+hbase_region_mover_timeout = expect(
+  "/configurations/hbase-env/hbase_region_mover_timeout", int, 540
+)
+if hbase_region_mover_timeout <= 0:
+  raise Fail("HBase RegionMover timeout must be a positive integer")
 
-phoenix_hosts = default("/clusterHostInfo/phoenix_query_server_hosts", [])
-phoenix_enabled = default("/configurations/hbase-env/phoenix_sql_enabled", False)
-has_phoenix = len(phoenix_hosts) > 0
+phoenix_enabled_value = default("/configurations/hbase-env/phoenix_sql_enabled", False)
+phoenix_enabled = as_bool(phoenix_enabled_value)
 
-hbase_thrift_port = default("/configurations/hbase-thrift-site/hbase.thrift.port", "9091")
-hbase_thrift_info_port = default("/configurations/hbase-thrift-site/hbase.thrift.info.port", "9095")
+hbase_thrift_port = expect(
+  "/configurations/hbase-thrift-site/hbase.thrift.port", int, 9091
+)
+hbase_thrift_info_port = expect(
+  "/configurations/hbase-thrift-site/hbase.thrift.info.port", int, 9095
+)
+for port_name, port in (
+  ("hbase.thrift.port", hbase_thrift_port),
+  ("hbase.thrift.info.port", hbase_thrift_info_port),
+):
+  if not 1 <= port <= 65535:
+    raise Fail(f"{port_name} must be between 1 and 65535")
 
-underscored_version = stack_version_unformatted.replace(".", "_")
-dashed_version = stack_version_unformatted.replace(".", "-")
-# if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
-#   phoenix_package = format("phoenix_{underscored_version}_*")
-# elif OSCheck.is_ubuntu_family():
-#   phoenix_package = format("phoenix-{dashed_version}-.*")
 phoenix_package = "phoenix"
 
 pid_dir = status_params.pid_dir
 tmp_dir = config["configurations"]["hbase-site"]["hbase.tmp.dir"]
-local_dir = config["configurations"]["hbase-site"]["hbase.local.dir"]
 ioengine_param = default("/configurations/hbase-site/hbase.bucketcache.ioengine", None)
 
-client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
-master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
-regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
-queryserver_jaas_config_file = format("{hbase_conf_dir}/hbase_queryserver_jaas.conf")
+java64_home_shell = quote_bash_args(str(java64_home))
+hbase_conf_dir_shell = quote_bash_args(str(hbase_conf_dir))
+log_dir_shell = quote_bash_args(str(log_dir))
+pid_dir_shell = quote_bash_args(str(pid_dir))
+java_io_tmpdir_shell = quote_bash_args(str(java_io_tmpdir))
+hbase_user_shell = quote_bash_args(str(hbase_user))
 
 ganglia_server_hosts = default(
   "/clusterHostInfo/ganglia_server_host", []
@@ -259,7 +248,6 @@ if has_metric_collector:
   metric_truststore_password = default(
     "/configurations/ams-ssl-client/ssl.client.truststore.password", ""
   )
-  pass
 metrics_report_interval = default(
   "/configurations/ams-site/timeline.metrics.sink.report.interval", 60
 )
@@ -302,14 +290,14 @@ smokeuser_principal = config["configurations"]["cluster-env"][
 ]
 smokeuser_permissions = "RWXCA"
 service_check_data = get_unique_id_and_date()
-user_group = config["configurations"]["cluster-env"]["user_group"]
-
 if security_enabled:
   zk_principal_name = default(
     "/configurations/zookeeper-env/zookeeper_principal_name",
     "zookeeper/_HOST@EXAMPLE.COM",
   )
   zk_principal_user = zk_principal_name.split("/")[0]
+  if not re.fullmatch(r"[A-Za-z0-9._-]+", zk_principal_user):
+    raise Fail("ZooKeeper Kerberos service name contains unsafe characters")
   zk_security_opts = format(
     "-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client"
   )
@@ -323,42 +311,25 @@ if security_enabled:
   regionserver_jaas_princ = config["configurations"]["hbase-site"][
     "hbase.regionserver.kerberos.principal"
   ].replace("_HOST", _hostname_lowercase)
-  _queryserver_jaas_princ = config["configurations"]["hbase-site"][
-    "phoenix.queryserver.kerberos.principal"
-  ]
-  if not is_empty(_queryserver_jaas_princ):
-    queryserver_jaas_princ = _queryserver_jaas_princ.replace(
-      "_HOST", _hostname_lowercase
-    )
+  thrift_jaas_princ = default(
+    "/configurations/hbase-site/hbase.thrift.kerberos.principal",
+    config["configurations"]["hbase-site"][
+      "hbase.master.kerberos.principal"
+    ],
+  ).replace("_HOST", _hostname_lowercase)
+  thrift_keytab_path = default(
+    "/configurations/hbase-site/hbase.thrift.keytab.file",
+    master_keytab_path,
+  )
 
 regionserver_keytab_path = config["configurations"]["hbase-site"][
   "hbase.regionserver.keytab.file"
-]
-queryserver_keytab_path = config["configurations"]["hbase-site"][
-  "phoenix.queryserver.keytab.file"
 ]
 smoke_user_keytab = config["configurations"]["cluster-env"]["smokeuser_keytab"]
 hbase_user_keytab = config["configurations"]["hbase-env"]["hbase_user_keytab"]
 kinit_path_local = get_kinit_path(
   default("/configurations/kerberos-env/executable_search_paths", None)
 )
-if security_enabled:
-  kinit_cmd = format(
-    "{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};"
-  )
-  kinit_cmd_master = format(
-    "{kinit_path_local} -kt {master_keytab_path} {master_jaas_princ};"
-  )
-  master_security_config = format(
-    "-Djava.security.auth.login.config={hbase_conf_dir}/hbase_master_jaas.conf"
-  )
-  hbase_decommission_auth_config = "--auth-as-server"
-else:
-  kinit_cmd = ""
-  kinit_cmd_master = ""
-  master_security_config = ""
-  hbase_decommission_auth_config = ""
-
 # log4j.properties
 # HBase log4j settings
 hbase_log_maxfilesize = default("configurations/hbase-log4j/hbase_log_maxfilesize", 256)
@@ -448,7 +419,7 @@ xml_configurations_supported = check_stack_feature(
 enable_ranger_hbase = default(
   "/configurations/ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled", "No"
 )
-enable_ranger_hbase = True if enable_ranger_hbase.lower() == "yes" else False
+enable_ranger_hbase = as_bool(enable_ranger_hbase)
 
 # ranger hbase properties
 if enable_ranger_hbase:
@@ -627,12 +598,16 @@ if enable_ranger_hbase:
 
   xa_audit_db_is_enabled = False
   if xml_configurations_supported and stack_supports_ranger_audit_db:
-    xa_audit_db_is_enabled = config["configurations"]["ranger-hbase-audit"][
-      "xasecure.audit.destination.db"
-    ]
+    xa_audit_db_is_enabled = as_bool(
+      config["configurations"]["ranger-hbase-audit"][
+        "xasecure.audit.destination.db"
+      ]
+    )
 
-  xa_audit_hdfs_is_enabled = (
-    config["configurations"]["ranger-hbase-audit"]["xasecure.audit.destination.hdfs"]
+  xa_audit_hdfs_is_enabled = as_bool(
+    config["configurations"]["ranger-hbase-audit"][
+      "xasecure.audit.destination.hdfs"
+    ]
     if xml_configurations_supported
     else False
   )
@@ -697,7 +672,9 @@ else:
 atlas_hook_filename = default(
   "/configurations/atlas-env/metadata_conf_file", "atlas-application.properties"
 )
-enable_hbase_atlas_hook = default("/configurations/hbase-env/hbase.atlas.hook", False)
+enable_hbase_atlas_hook = as_bool(
+  default("/configurations/hbase-env/hbase.atlas.hook", False)
+)
 hbase_atlas_hook_properties = default(
   "/configurations/hbase-atlas-application-properties", {}
 )
