@@ -271,6 +271,34 @@ class TestZookeeperProcess(unittest.TestCase):
       expected_cmdline=TOKENS,
     )
 
+  def test_identity_publication_failure_rolls_back_only_discovered_identity(self):
+    start_error = Fail("ZooKeeper PID publication failed")
+    with patch.object(
+        safe_process, "wait_for_discovered_process", return_value=IDENTITY
+      ), \
+      patch.object(
+        ZOOKEEPER_PROCESS, "_publish_identity", side_effect=start_error
+      ), \
+      patch.object(
+        ZOOKEEPER_PROCESS,
+        "rollback_started_process",
+        side_effect=Fail("rollback failed"),
+      ) as rollback, \
+      patch.object(ZOOKEEPER_PROCESS.Logger, "warning") as warning:
+      with self.assertRaises(Fail) as raised:
+        ZOOKEEPER_PROCESS.wait_for_started_process(
+          PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
+        )
+
+    self.assertIs(start_error, raised.exception)
+    rollback.assert_called_once_with(
+      PID_FILE,
+      "zookeeper",
+      CONFIG_FILE,
+      expected_identity=IDENTITY,
+    )
+    warning.assert_called_once()
+
 
 class TestZookeeperCli(unittest.TestCase):
   def test_cli_uses_positional_arguments_and_unique_0600_input(self):

@@ -20,6 +20,7 @@ limitations under the License.
 import os
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 import zookeeper_utils
@@ -128,7 +129,47 @@ def wait_for_started_process(
     attempts=attempts,
     sleep_seconds=sleep_seconds,
   )
-  return _publish_identity(pid_file, identity, user, group, expected_tokens)
+  try:
+    return _publish_identity(pid_file, identity, user, group, expected_tokens)
+  except Exception:
+    try:
+      rollback_started_process(
+        pid_file, user, config_file, expected_identity=identity
+      )
+    except Exception as rollback_error:
+      Logger.warning(
+        f"Could not roll back failed ZooKeeper start: {rollback_error}"
+      )
+    raise
+
+
+def rollback_started_process(
+  pid_file, user, config_file, expected_identity=None
+):
+  expected_tokens = expected_process_tokens(config_file)
+  identity = expected_identity
+  if identity is None:
+    identity = safe_process.read_running_process(pid_file, user, expected_tokens)
+  if identity is None:
+    return False
+  safe_process.terminate_process(
+    identity,
+    user,
+    expected_tokens,
+    term_wait_attempts=30,
+    term_wait_sleep=1,
+    kill_wait_attempts=10,
+    kill_wait_sleep=1,
+  )
+  pid = safe_process.read_pid(pid_file)
+  if pid == identity.pid:
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user=user,
+      expected_cmdline=expected_tokens,
+    )
+  return True
 
 
 def stop_process(pid_file, user, group, config_file):

@@ -68,7 +68,12 @@ def zookeeper_service(action="start", upgrade_type=None):
         params.zk_config_file,
       )
     except Exception:
-      show_logs(params.zk_log_dir, params.zk_user)
+      try:
+        show_logs(params.zk_log_dir, params.zk_user)
+      except Exception as log_error:
+        Logger.warning(
+          f"Could not collect ZooKeeper logs after start failure: {log_error}"
+        )
       raise
     return
 
