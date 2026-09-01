@@ -281,8 +281,11 @@ def prepare_rolling_upgrade(hdfs_binary):
   Logger.info(format("Performing a(n) {params.upgrade_direction} of HDFS"))
 
   if params.security_enabled:
-    kinit_command = format(
-      "{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"
+    kinit_command = (
+      params.kinit_path_local,
+      "-kt",
+      params.hdfs_user_keytab,
+      params.hdfs_principal_name,
     )
     Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
@@ -317,8 +320,11 @@ def finalize_upgrade(upgrade_type, hdfs_binary):
   import params
 
   if params.security_enabled:
-    kinit_command = format(
-      "{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"
+    kinit_command = (
+      params.kinit_path_local,
+      "-kt",
+      params.hdfs_user_keytab,
+      params.hdfs_principal_name,
     )
     Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 

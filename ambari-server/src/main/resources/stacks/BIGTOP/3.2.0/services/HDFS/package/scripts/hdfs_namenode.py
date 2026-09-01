@@ -20,6 +20,7 @@ limitations under the License.
 
 import os.path
 import time
+from urllib.parse import unquote, urlparse
 
 import hdfs_process
 
@@ -100,8 +101,11 @@ def wait_for_safemode_off(
   )
 
   if params.security_enabled and execute_kinit:
-    kinit_command = format(
-      "{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"
+    kinit_command = (
+      params.kinit_path_local,
+      "-kt",
+      params.hdfs_user_keytab,
+      params.hdfs_principal_name,
     )
     Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
@@ -247,7 +251,12 @@ def namenode(
 
     if params.security_enabled:
       Execute(
-        format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        (
+          params.kinit_path_local,
+          "-kt",
+          params.hdfs_user_keytab,
+          params.hdfs_principal_name,
+        ),
         user=params.hdfs_user,
       )
 
@@ -395,7 +404,14 @@ def format_namenode(force=None):
     else:
       if not is_namenode_formatted(params):
         Execute(
-          format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
+          (
+            "hdfs",
+            "--config",
+            hadoop_conf_dir,
+            "namenode",
+            "-format",
+            "-nonInteractive",
+          ),
           user=params.hdfs_user,
           path=[params.hadoop_bin_dir],
           logoutput=True,
@@ -417,27 +433,45 @@ def format_namenode(force=None):
           logoutput=True,
         )
       else:
-        nn_name_dirs = params.dfs_name_dir.split(",")
         if not is_namenode_formatted(params):
-          try:
-            Execute(
-              format(
-                "hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"
-              ),
-              user=params.hdfs_user,
-              path=[params.hadoop_bin_dir],
-              logoutput=True,
-            )
-          except Fail:
-            # We need to clean-up mark directories, so we can re-run format next time.
-            for nn_name_dir in nn_name_dirs:
-              Execute(
-                format("rm -rf {nn_name_dir}/*"),
-                user=params.hdfs_user,
-              )
-            raise
+          Execute(
+            (
+              "hdfs",
+              "--config",
+              hadoop_conf_dir,
+              "namenode",
+              "-format",
+              "-nonInteractive",
+            ),
+            user=params.hdfs_user,
+            path=[params.hadoop_bin_dir],
+            logoutput=True,
+          )
           for m_dir in mark_dir:
             Directory(m_dir, create_parents=True)
+
+
+def get_local_name_dir(configured_name_dir):
+  if not isinstance(configured_name_dir, str):
+    return None
+  if (
+    configured_name_dir != configured_name_dir.strip()
+    or not configured_name_dir
+  ):
+    return None
+
+  parsed = urlparse(configured_name_dir)
+  if parsed.scheme:
+    if (
+      parsed.scheme != "file"
+      or parsed.netloc not in ("", "localhost")
+      or parsed.params
+      or parsed.query
+      or parsed.fragment
+    ):
+      return None
+    return unquote(parsed.path) or None
+  return configured_name_dir
 
 
 def is_namenode_formatted(params):
@@ -477,27 +511,29 @@ def is_namenode_formatted(params):
     return True
 
   # Check if name dirs are not empty
-  for name_dir in nn_name_dirs:
-    code, out = shell.call(("ls", name_dir))
-    dir_exists_and_valid = bool(not code)
-
-    if not dir_exists_and_valid:  # situations if disk exists but is crashed at the moment (ls: reading directory ...: Input/output error)
+  for configured_name_dir in nn_name_dirs:
+    name_dir = get_local_name_dir(configured_name_dir)
+    if name_dir is None:
       Logger.info(
-        format(
-          "NameNode will not be formatted because the directory {name_dir} is missing or cannot be checked for content. {out}"
-        )
+        "NameNode will not be formatted because its storage directory is not "
+        f"a supported local path: {configured_name_dir!r}"
       )
       return True
 
     try:
-      Execute(
-        format("ls {name_dir} | wc -l  | grep -q ^0$"),
-      )
-    except Fail:
+      with os.scandir(name_dir) as entries:
+        has_content = next(entries, None) is not None
+    except OSError as error:
       Logger.info(
-        format(
-          "NameNode will not be formatted since {name_dir} exists and contains content"
-        )
+        "NameNode will not be formatted because the directory "
+        f"{name_dir!r} is missing or cannot be checked for content: {error}"
+      )
+      return True
+
+    if has_content:
+      Logger.info(
+        "NameNode will not be formatted because the directory "
+        f"{name_dir!r} contains content"
       )
       return True
 
@@ -561,7 +597,7 @@ def decommission():
     owner=params.hdfs_user,
     group=params.user_group,
     mode=0o644,
-    only_if=format("test -d {hadoop_conf_dir}")
+    only_if=("test", "-d", hadoop_conf_dir),
   )
 
   if not params.update_files_only:
@@ -584,7 +620,12 @@ def bootstrap_standby_namenode(params, use_path=False):
   try:
     iterations = 50
     bootstrapped = False
-    bootstrap_cmd = format("{bin_path}hdfs namenode -bootstrapStandby -nonInteractive")
+    bootstrap_cmd = (
+      f"{bin_path}hdfs",
+      "namenode",
+      "-bootstrapStandby",
+      "-nonInteractive",
+    )
     # Blue print based deployments start both NN in parallel and occasionally
     # the first attempt to bootstrap may fail. Depending on how it fails the
     # second attempt may not succeed (e.g. it may find the folder and decide that
@@ -592,8 +633,12 @@ def bootstrap_standby_namenode(params, use_path=False):
     # during initial start
     if params.command_phase == "INITIAL_START":
       # force bootstrap in INITIAL_START phase
-      bootstrap_cmd = format(
-        "{bin_path}hdfs namenode -bootstrapStandby -nonInteractive -force"
+      bootstrap_cmd = (
+        f"{bin_path}hdfs",
+        "namenode",
+        "-bootstrapStandby",
+        "-nonInteractive",
+        "-force",
       )
     elif is_namenode_bootstrapped(params):
       # Once out of INITIAL_START phase bootstrap only if we couldnt bootstrap during cluster deployment

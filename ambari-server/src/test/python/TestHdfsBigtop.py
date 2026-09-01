@@ -21,6 +21,7 @@ import importlib.util
 import os
 from pathlib import Path
 import sys
+import tempfile
 from types import ModuleType
 import unittest
 from unittest.mock import MagicMock, call, mock_open, patch
@@ -141,6 +142,79 @@ def params_module(**values):
 
 
 class TestHdfsBigtop(unittest.TestCase):
+  def test_namenode_storage_check_is_shell_free_and_fail_closed(self):
+    with tempfile.TemporaryDirectory() as name_dir:
+      params = params_module(
+        namenode_formatted_old_mark_dirs=[],
+        namenode_formatted_mark_dirs=[],
+        dfs_name_dir=name_dir,
+      )
+      self.assertFalse(HDFS_NAMENODE.is_namenode_formatted(params))
+
+      Path(name_dir, "VERSION").write_text("layoutVersion=-66", encoding="utf-8")
+      self.assertTrue(HDFS_NAMENODE.is_namenode_formatted(params))
+
+      params.dfs_name_dir = Path(name_dir).as_uri()
+      self.assertTrue(HDFS_NAMENODE.is_namenode_formatted(params))
+
+    params.dfs_name_dir = "/missing/name/dir"
+    self.assertTrue(HDFS_NAMENODE.is_namenode_formatted(params))
+    params.dfs_name_dir = "hdfs://remote/name/dir"
+    self.assertTrue(HDFS_NAMENODE.is_namenode_formatted(params))
+
+  def test_failed_ha_format_never_deletes_name_directory_contents(self):
+    params = params_module(
+      namenode_formatted_old_mark_dirs=[],
+      namenode_formatted_mark_dirs=["/name/.formatted"],
+      dfs_name_dir="/name",
+      hdfs_user="hdfs",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      hadoop_bin_dir="/usr/bin",
+      dfs_ha_enabled=True,
+      dfs_ha_namenode_active="namenode.example.com",
+      hostname="namenode.example.com",
+      public_hostname="namenode.example.com",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(HDFS_NAMENODE, "is_namenode_formatted", return_value=False),
+      patch.object(
+        HDFS_NAMENODE, "Execute", side_effect=Fail("format failed")
+      ) as execute,
+    ):
+      with self.assertRaisesRegex(Fail, "format failed"):
+        HDFS_NAMENODE.format_namenode()
+
+    execute.assert_called_once()
+    self.assertEqual(
+      (
+        "hdfs",
+        "--config",
+        "/etc/hadoop/conf",
+        "namenode",
+        "-format",
+        "-nonInteractive",
+      ),
+      execute.call_args.args[0],
+    )
+
+  def test_external_commands_use_argument_vectors(self):
+    service_check_source = (SCRIPTS / "service_check.py").read_text(
+      encoding="utf-8"
+    )
+    self.assertIn('checkWebUICmd = (', service_check_source)
+    self.assertNotIn('checkWebUICmd = format(', service_check_source)
+
+    nfs_source = (SCRIPTS / "hdfs_nfsgateway.py").read_text(encoding="utf-8")
+    self.assertIn('("pgrep", "-x", "nfsd")', nfs_source)
+    self.assertNotIn('shell.call("service ', nfs_source)
+
+    params_source = (SCRIPTS / "params_linux.py").read_text(encoding="utf-8")
+    self.assertIn(
+      'nn_kinit_cmd = (kinit_path_local, "-kt", nn_keytab, nn_principal_name)',
+      params_source,
+    )
+
   def test_process_identity_uses_component_marker_and_hadoop_class(self):
     self.assertEqual(
       (

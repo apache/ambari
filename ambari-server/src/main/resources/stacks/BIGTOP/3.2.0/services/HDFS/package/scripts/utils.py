@@ -77,7 +77,12 @@ def initiate_safe_zkfc_failover():
   # Must kinit before running the HDFS command
   if params.security_enabled:
     Execute(
-      format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+      (
+        params.kinit_path_local,
+        "-kt",
+        params.hdfs_user_keytab,
+        params.hdfs_principal_name,
+      ),
       user=params.hdfs_user,
     )
 

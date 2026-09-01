@@ -261,8 +261,11 @@ class NameNodeDefault(NameNode):
     Logger.info("Preparing the NameNodes for a NonRolling (aka Express) Upgrade.")
 
     if params.security_enabled:
-      kinit_command = format(
-        "{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"
+      kinit_command = (
+        params.kinit_path_local,
+        "-kt",
+        params.hdfs_user_keytab,
+        params.hdfs_principal_name,
       )
       Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
@@ -347,9 +350,14 @@ class NameNodeDefault(NameNode):
 
       # If there are no tickets in the cache or they are expired, perform a kinit, else use what
       # is in the cache
-      klist_cmd = format("{klist_path_local} -s {ccache_file_path}")
-      kinit_cmd = format(
-        "{kinit_path_local} -c {ccache_file_path} -kt {hdfs_user_keytab} {hdfs_principal_name}"
+      klist_cmd = (params.klist_path_local, "-s", ccache_file_path)
+      kinit_cmd = (
+        params.kinit_path_local,
+        "-c",
+        ccache_file_path,
+        "-kt",
+        params.hdfs_user_keytab,
+        params.hdfs_principal_name,
       )
       if shell.call(klist_cmd, user=params.hdfs_user)[0] != 0:
         Execute(kinit_cmd, user=params.hdfs_user)

@@ -23,29 +23,26 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources import Directory
 from resource_management.core import shell
 from utils import service
-import subprocess
-import os
 
-# NFS GATEWAY is always started by root using jsvc due to rpcbind bugs
-# on Linux such as CentOS6.2. https://bugzilla.redhat.com/show_bug.cgi?id=731542
+# NFS Gateway is started by root because it binds privileged RPC ports.
 
 
 def prepare_rpcbind():
   Logger.info("check if native nfs server is running")
-  p, output = shell.call("pgrep nfsd")
+  p, output = shell.call(("pgrep", "-x", "nfsd"))
   if p == 0:
     Logger.info("native nfs server is running. shutting it down...")
     # shutdown nfs
-    shell.call("service nfs stop")
-    shell.call("service nfs-kernel-server stop")
+    shell.call(("service", "nfs", "stop"), sudo=True)
+    shell.call(("service", "nfs-kernel-server", "stop"), sudo=True)
     Logger.info("check if the native nfs server is down...")
-    p, output = shell.call("pgrep nfsd")
+    p, output = shell.call(("pgrep", "-x", "nfsd"))
     if p == 0:
       raise Fail("Failed to shutdown native nfs service")
 
   Logger.info("check if rpcbind or portmap is running")
-  p, output = shell.call("pgrep rpcbind")
-  q, output = shell.call("pgrep portmap")
+  p, output = shell.call(("pgrep", "-x", "rpcbind"))
+  q, output = shell.call(("pgrep", "-x", "portmap"))
 
   if p != 0 and q != 0:
     Logger.info("no portmap or rpcbind running. starting one...")

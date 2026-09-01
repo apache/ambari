@@ -56,7 +56,12 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
 
     if params.security_enabled:
       Execute(
-        format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        (
+          params.kinit_path_local,
+          "-kt",
+          params.hdfs_user_keytab,
+          params.hdfs_principal_name,
+        ),
         user=params.hdfs_user,
       )
     # ExecuteHadoop(safemode_command,
@@ -110,8 +115,17 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
         checkWebUIFilePath = format("{tmp_dir}/{checkWebUIFileName}")
         comma_sep_jn_hosts = ",".join(params.journalnode_hosts)
 
-        checkWebUICmd = format(
-          "ambari-python-wrap {checkWebUIFilePath} -m {comma_sep_jn_hosts} -p {journalnode_port} -s {https_only} -o {script_https_protocol}"
+        checkWebUICmd = (
+          "ambari-python-wrap",
+          checkWebUIFilePath,
+          "-m",
+          comma_sep_jn_hosts,
+          "-p",
+          str(journalnode_port),
+          "-s",
+          str(params.https_only),
+          "-o",
+          str(params.script_https_protocol),
         )
         File(checkWebUIFilePath, content=StaticFile(checkWebUIFileName), mode=0o775)
 

@@ -461,7 +461,7 @@ if security_enabled:
   dn_keytab = config["configurations"]["hdfs-site"]["dfs.datanode.keytab.file"]
   dn_principal_name = dn_principal_name.replace("_HOST", hostname.lower())
 
-  dn_kinit_cmd = format("{kinit_path_local} -kt {dn_keytab} {dn_principal_name};")
+  dn_kinit_cmd = (kinit_path_local, "-kt", dn_keytab, dn_principal_name)
 
   nn_principal_name = config["configurations"]["hdfs-site"][
     "dfs.namenode.kerberos.principal"
@@ -469,7 +469,7 @@ if security_enabled:
   nn_keytab = config["configurations"]["hdfs-site"]["dfs.namenode.keytab.file"]
   nn_principal_name = nn_principal_name.replace("_HOST", hostname.lower())
 
-  nn_kinit_cmd = format("{kinit_path_local} -kt {nn_keytab} {nn_principal_name};")
+  nn_kinit_cmd = (kinit_path_local, "-kt", nn_keytab, nn_principal_name)
 
   jn_principal_name = default(
     "/configurations/hdfs-site/dfs.journalnode.kerberos.principal", None
@@ -477,8 +477,11 @@ if security_enabled:
   if jn_principal_name:
     jn_principal_name = jn_principal_name.replace("_HOST", hostname.lower())
   jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
-  hdfs_kinit_cmd = format(
-    "{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};"
+  hdfs_kinit_cmd = (
+    kinit_path_local,
+    "-kt",
+    hdfs_user_keytab,
+    hdfs_principal_name,
   )
 
   zk_principal_name = default(
@@ -487,9 +490,9 @@ if security_enabled:
   )
   zk_principal_user = zk_principal_name.split("/")[0]
 else:
-  dn_kinit_cmd = ""
-  nn_kinit_cmd = ""
-  hdfs_kinit_cmd = ""
+  dn_kinit_cmd = ()
+  nn_kinit_cmd = ()
+  hdfs_kinit_cmd = ()
 
 hdfs_site = config["configurations"]["hdfs-site"]
 default_fs = config["configurations"]["core-site"]["fs.defaultFS"]
