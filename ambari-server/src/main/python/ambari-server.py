@@ -456,18 +456,18 @@ def init_setup_parser_options(parser):
     "-j",
     "--java-home",
     default=None,
-    help="Use specified java_home.  Must be valid on all hosts",
+    help="Deprecated alias for --ambari-java-home",
   )
   other_group.add_argument(
     "--ambari-java-home",
     dest="ambari_java_home",
-    help="Use specified java_home for ambari.  Must be valid on Ambari server hosts",
+    help="Use the specified JDK for Ambari Server and Agent helpers. Must be valid on all Ambari hosts",
   )
   other_group.add_argument(
     "--stack-java-home",
     dest="stack_java_home",
     default=None,
-    help="Use specified java_home for stack services.  Must be valid on all hosts",
+    help="Use the specified default JDK for stack services. Must be valid on all component hosts",
   )
   other_group.add_argument(
     "--skip-view-extraction",
@@ -570,6 +570,16 @@ def init_start_parser_options(parser):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_empty_parser_options(parser):
   pass
+
+
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def init_upgrade_parser_options(parser):
+  parser.add_option(
+    "--ambari-java-home",
+    dest="ambari_java_home",
+    default=None,
+    help="Use the specified JDK 17+ for the Ambari upgrade",
+  )
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -1349,7 +1359,7 @@ def init_action_parser(action, parser):
     RESTART_ACTION: init_start_parser_options,
     RESET_ACTION: init_reset_parser_options,
     STATUS_ACTION: init_empty_parser_options,
-    UPGRADE_ACTION: init_empty_parser_options,
+    UPGRADE_ACTION: init_upgrade_parser_options,
     LDAP_SETUP_ACTION: init_ldap_setup_parser_options,
     LDAP_SYNC_ACTION: init_ldap_sync_parser_options,
     SET_CURRENT_ACTION: init_set_current_parser_options,

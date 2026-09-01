@@ -101,6 +101,9 @@ class ActionQueue(threading.Thread):
     self.tmpdir = self.config.get("agent", "prefix")
     self.customServiceOrchestrator = initializer_module.customServiceOrchestrator
     self.parallel_execution = self.config.get_parallel_exec_option()
+    self.recovery_command_lock = threading.RLock()
+    self.active_recovery_task_ids = set()
+    self.active_recovery_commands = {}
     self.component_status_executor = initializer_module.component_status_executor
     self.max_concurrent_actions = self.config.get_max_parallel_actions()
     self.worker_pool = None
@@ -119,28 +122,88 @@ class ActionQueue(threading.Thread):
     self.lock = threading.RLock()
 
   def put(self, commands):
-    for command in commands:
-      if "serviceName" not in command:
-        command["serviceName"] = "null"
-      if "clusterId" not in command:
-        command["clusterId"] = "null"
+    commands = list(commands)
+    with self.recovery_command_lock:
+      if any(
+        command.get("commandType") == AgentCommand.execution for command in commands
+      ):
+        self.preempt_recovery_commands()
 
-      logger.info(
-        "Adding {commandType} for role {role} for service {serviceName} of cluster_id {clusterId} to the queue".format(
-          **command
+      for command in commands:
+        if "serviceName" not in command:
+          command["serviceName"] = "null"
+        if "clusterId" not in command:
+          command["clusterId"] = "null"
+
+        logger.info(
+          "Adding {commandType} for role {role} for service {serviceName} of cluster_id {clusterId} to the queue".format(
+            **command
+          )
         )
+
+        if command["commandType"] == AgentCommand.background_execution:
+          command = self.create_command_handle(command)
+          control = self._register_command(command)
+          command["__handle"].control = control
+          with self.lock:
+            self.background_handles.add(command["__handle"])
+          self.backgroundCommandQueue.put(command)
+        else:
+          self._register_command(command)
+          self.commandQueue.put(command)
+
+  def preempt_recovery_commands(self):
+    """Stop hidden recovery work so server-issued commands can run immediately."""
+    queued_recovery_commands = []
+    with self.commandQueue.mutex:
+      retained_commands = []
+      for command in self.commandQueue.queue:
+        if (
+          command is not None
+          and command.get("commandType") == AgentCommand.auto_execution
+        ):
+          queued_recovery_commands.append(command)
+        else:
+          retained_commands.append(command)
+      self.commandQueue.queue.clear()
+      self.commandQueue.queue.extend(retained_commands)
+
+    active_recovery_commands = tuple(self.active_recovery_commands.values())
+    queued_recovery_task_ids = [
+      command["taskId"] for command in queued_recovery_commands
+    ]
+    active_recovery_task_ids = [
+      command["taskId"] for command, _control in active_recovery_commands
+    ]
+    if queued_recovery_task_ids or active_recovery_task_ids:
+      logger.info(
+        "Preempting auto recovery for server-issued commands. Queued task IDs: %s; active task IDs: %s",
+        queued_recovery_task_ids,
+        active_recovery_task_ids,
       )
 
-      if command["commandType"] == AgentCommand.background_execution:
-        command = self.create_command_handle(command)
-        control = self._register_command(command)
-        command["__handle"].control = control
-        with self.lock:
-          self.background_handles.add(command["__handle"])
-        self.backgroundCommandQueue.put(command)
-      else:
-        self._register_command(command)
-        self.commandQueue.put(command)
+    reason = "Preempted by a server-issued command"
+    for command in queued_recovery_commands:
+      control = self._control_for(command)
+      control["reason"] = reason
+      control["state"] = "CANCELLING"
+      control["cancel_event"].set()
+      self._finish_control(command, control)
+
+    for command, control in active_recovery_commands:
+      with self.lock:
+        control["reason"] = reason
+        control["state"] = "CANCELLING"
+        control["cancel_event"].set()
+      self.customServiceOrchestrator.cancel_command(command["taskId"], reason)
+
+  def has_queued_server_command(self):
+    with self.commandQueue.mutex:
+      return any(
+        command is not None
+        and command.get("commandType") == AgentCommand.execution
+        for command in self.commandQueue.queue
+      )
 
   def interrupt(self):
     self._cancel_all_tasks("Ambari Agent is stopping")
@@ -386,8 +449,9 @@ class ActionQueue(threading.Thread):
     logger.info("ActionQueue thread has successfully finished")
 
   def fill_recovery_commands(self):
-    if self.recovery_manager.enabled() and not self.tasks_in_progress_or_pending():
-      self.put(self.recovery_manager.get_recovery_commands())
+    with self.recovery_command_lock:
+      if self.recovery_manager.enabled() and not self.tasks_in_progress_or_pending():
+        self.put(self.recovery_manager.get_recovery_commands())
 
   def process_background_queue_safe_empty(self):
     while self._running_action_count() < self.max_concurrent_actions:
@@ -416,7 +480,26 @@ class ActionQueue(threading.Thread):
     )
     background_handle = command.get("__handle")
     logger.debug("Took an element of Queue (command type = %s).", command_type)
+    is_recovery_command = command_type == AgentCommand.auto_execution
+    skip_recovery_command = False
+    if is_recovery_command:
+      with self.recovery_command_lock:
+        if self.has_queued_server_command():
+          logger.info(
+            "Skipping auto recovery task %s because a server-issued command is queued",
+            command["taskId"],
+          )
+          control["reason"] = "Preempted by a server-issued command"
+          control["state"] = "CANCELLING"
+          control["cancel_event"].set()
+          skip_recovery_command = True
+        else:
+          self.active_recovery_task_ids.add(command["taskId"])
+          self.active_recovery_commands[id(command)] = (command, control)
+
     try:
+      if skip_recovery_command:
+        return
       if command_type in AgentCommand.AUTO_EXECUTION_COMMAND_GROUP:
         try:
           if self.recovery_manager.enabled():
@@ -437,6 +520,15 @@ class ActionQueue(threading.Thread):
     except Exception:
       logger.exception(f"Exception while processing {command_type} command")
     finally:
+      if is_recovery_command:
+        with self.recovery_command_lock:
+          self.active_recovery_commands.pop(id(command), None)
+          if not any(
+            active_command["taskId"] == command["taskId"]
+            for active_command, _control in self.active_recovery_commands.values()
+          ):
+            self.active_recovery_task_ids.discard(command["taskId"])
+
       background_started = (
         command_type == AgentCommand.background_execution
         and background_handle is not None
@@ -475,7 +567,8 @@ class ActionQueue(threading.Thread):
     delay = 1
     log_command_output = True
     command_canceled = False
-    command_result = {}
+    status = CommandStatus.failed
+    command_result = {"stdout": "", "stderr": "", "exitcode": -signal.SIGTERM}
 
     message = (
       "Executing command with id = {commandId}, taskId = {taskId} for role = {role} of "

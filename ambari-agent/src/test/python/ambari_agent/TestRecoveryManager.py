@@ -563,6 +563,147 @@ class TestRecoveryManager(TestCase):
     self.assertFalse(rm.configured_for_recovery("E"))
     self.assertTrue(rm.configured_for_recovery("F"))
 
+  def test_topology_requires_fresh_started_dependencies(self):
+    rm = RecoveryManager(MagicMock())
+    rm.update_config(12, 5, 1, 15, True, True, False)
+    component = {
+      "component_name": "RESOURCEMANAGER",
+      "service_name": "YARN",
+      "desired_state": "STARTED",
+      "dependencies": [
+        {
+          "component_name": "NAMENODE",
+          "service_name": "HDFS",
+          "host_name": "host1",
+          "current_state": "INSTALLED",
+          "desired_state": "STARTED",
+          "required_state": "STARTED",
+          "fresh": True,
+        }
+      ],
+    }
+
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "topology_epoch": "server-1",
+          "topology_version": 1,
+          "topology_complete": False,
+          "components": [component],
+        }
+      }
+    )
+    rm.update_current_status("RESOURCEMANAGER", "INSTALLED")
+    self.assertEqual([], rm.get_recovery_commands())
+
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "topology_epoch": "server-1",
+          "topology_version": 2,
+          "topology_complete": True,
+          "components": [component],
+        }
+      }
+    )
+    self.assertEqual([], rm.get_recovery_commands())
+
+    component["dependencies"][0]["current_state"] = "STARTED"
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "topology_epoch": "server-1",
+          "topology_version": 3,
+          "topology_complete": True,
+          "components": [component],
+        }
+      }
+    )
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("RESOURCEMANAGER", commands[0]["role"])
+    self.assertEqual("START", commands[0]["roleCommand"])
+
+  def test_recovery_config_rejects_older_topology_version(self):
+    rm = RecoveryManager(MagicMock())
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "topology_epoch": "server-1",
+          "topology_version": 5,
+          "topology_complete": True,
+          "components": [
+            {
+              "component_name": "NODEMANAGER",
+              "service_name": "YARN",
+              "desired_state": "STARTED",
+            }
+          ],
+        }
+      }
+    )
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "topology_epoch": "server-1",
+          "topology_version": 4,
+          "topology_complete": False,
+          "components": [
+            {
+              "component_name": "NODEMANAGER",
+              "service_name": "YARN",
+              "desired_state": "INSTALLED",
+            }
+          ],
+        }
+      }
+    )
+
+    self.assertEqual(5, rm.topology_version)
+    self.assertTrue(rm.topology_complete)
+    self.assertEqual("STARTED", rm.get_desired_status("NODEMANAGER"))
+
+    rm.update_recovery_config(
+      {
+        "recoveryConfig": {
+          "topology_epoch": "server-2",
+          "topology_version": 1,
+          "topology_complete": False,
+          "components": [],
+        }
+      }
+    )
+    self.assertEqual("server-2", rm.topology_epoch)
+    self.assertEqual(1, rm.topology_version)
+    self.assertFalse(rm.topology_complete)
+
+  def test_started_dependency_satisfies_installed_requirement(self):
+    rm = RecoveryManager(MagicMock())
+    rm.topology_managed = True
+    rm.topology_complete = True
+    rm.component_dependencies = {
+      "RESOURCEMANAGER": [
+        {
+          "component_name": "NAMENODE",
+          "service_name": "HDFS",
+          "host_name": "host1",
+          "current_state": "STARTED",
+          "desired_state": "STARTED",
+          "required_state": "INSTALLED",
+          "fresh": True,
+        }
+      ]
+    }
+
+    self.assertTrue(
+      rm.recovery_topology_allows(
+        {
+          "role": "RESOURCEMANAGER",
+          "roleCommand": "START",
+        }
+      )
+    )
+
   @patch.object(RecoveryManager, "_now_")
   def test_reset_if_window_passed_since_last_attempt(self, time_mock):
     time_mock.side_effect = [1000, 1071, 1372]

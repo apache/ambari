@@ -34,6 +34,7 @@ import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.HeartBeat;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HeartBeatResponse;
+import org.apache.ambari.server.agent.RecoveryTopologyManager;
 import org.apache.ambari.server.agent.Register;
 import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.ambari.server.agent.RegistrationStatus;
@@ -65,6 +66,8 @@ public class HeartbeatController {
   private final HeartBeatHandler hh;
   private final ClustersImpl clusters;
   private final AgentSessionManager agentSessionManager;
+  private final HostLevelParamsHolder hostLevelParamsHolder;
+  private final RecoveryTopologyManager recoveryTopologyManager;
   private final LinkedBlockingQueue queue;
   private final ThreadFactory threadFactoryExecutor = new ThreadFactoryBuilder().setNameFormat("agent-register-processor-%d").build();
   private final ThreadFactory threadFactoryTimeout = new ThreadFactoryBuilder().setNameFormat("agent-register-timeout-%d").build();
@@ -84,6 +87,8 @@ public class HeartbeatController {
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
     encryptionCapabilities = injector.getInstance(AgentEncryptionCapabilities.class);
     agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
+    hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
+    recoveryTopologyManager = injector.getInstance(RecoveryTopologyManager.class);
 
     Configuration configuration = injector.getInstance(Configuration.class);
     queue = new LinkedBlockingQueue(configuration.getAgentsRegistrationQueueSize());
@@ -105,6 +110,8 @@ public class HeartbeatController {
           /* Call into the heartbeat handler */
           response = hh.handleRegistration(message);
           Host host = clusters.getHost(message.getHostname());
+          recoveryTopologyManager.beginAgentSession(host.getHostId(), simpSessionId);
+          hostLevelParamsHolder.updateRecoveryTopology(message.getHostname());
           agentSessionManager.register(simpSessionId, host);
           if (encryptionCapabilities.update(host.getHostId(), message.getEncryptionTypes())) {
             agentConfigsHolder.onEncryptionCapabilitiesChanged(host.getHostId());

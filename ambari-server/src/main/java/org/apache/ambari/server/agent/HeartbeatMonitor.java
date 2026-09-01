@@ -37,6 +37,7 @@ import java.util.TreeMap;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -81,6 +82,8 @@ public class HeartbeatMonitor implements Runnable {
   private final Configuration configuration;
   private final AgentRequests agentRequests;
   private final AmbariEventPublisher ambariEventPublisher;
+  private final HostLevelParamsHolder hostLevelParamsHolder;
+  private final RecoveryTopologyManager recoveryTopologyManager;
 
   public HeartbeatMonitor(Clusters clusters, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
@@ -94,6 +97,8 @@ public class HeartbeatMonitor implements Runnable {
     configuration = injector.getInstance(Configuration.class);
     agentRequests = new AgentRequests();
     ambariEventPublisher = injector.getInstance(AmbariEventPublisher.class);
+    hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
+    recoveryTopologyManager = injector.getInstance(RecoveryTopologyManager.class);
     ambariEventPublisher.register(this);
   }
 
@@ -345,6 +350,9 @@ public class HeartbeatMonitor implements Runnable {
         }
       }
     }
+
+    recoveryTopologyManager.endAgentSession(hostId);
+    hostLevelParamsHolder.updateRecoveryTopology(host);
 
     //Purge action queue
     //notify action manager

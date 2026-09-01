@@ -404,9 +404,9 @@ describe("database test connection recovery", () => {
           "hive-site/javax.jdo.option.ConnectionPassword",
       },
       ambariProperties: {
-        "java.home": "/opt/java",
+        "ambari.java.home": "/opt/java",
         jdk_location: "/var/lib/ambari-server/resources",
-        "jdk.name": "jdk.tar.gz",
+        "ambari.jdk.name": "jdk.tar.gz",
       },
     });
     const button = await screen.findByRole("button", {

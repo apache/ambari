@@ -56,6 +56,8 @@ from ambari_server.serverConfiguration import (
   get_ambari_properties,
   get_ambari_version,
   get_java_exe_path,
+  find_jdk,
+  get_java_version,
   get_stack_location,
   parse_properties_file,
   read_ambari_user,
@@ -78,6 +80,18 @@ from ambari_server.serverConfiguration import (
   get_default_views_dir,
   write_gpl_license_accepted,
   set_property,
+  JAVA_HOME_PROPERTY,
+  JDK_NAME_PROPERTY,
+  JCE_NAME_PROPERTY,
+  STACK_JAVA_HOME_PROPERTY,
+  STACK_JDK_NAME_PROPERTY,
+  STACK_JCE_NAME_PROPERTY,
+  STACK_JAVA_VERSION,
+  AMBARI_JAVA_HOME_PROPERTY,
+  AMBARI_JDK_NAME_PROPERTY,
+  AMBARI_JCE_NAME_PROPERTY,
+  AMBARI_JAVA_VERSION,
+  MIN_AMBARI_JAVA_VERSION,
 )
 from ambari_server.setupSecurity import (
   adjust_directory_permissions,
@@ -124,7 +138,7 @@ SCHEMA_UPGRADE_HELPER_CMD = (
 SCHEMA_UPGRADE_HELPER_CMD_DEBUG = (
   "{0} "
   "-server -XX:NewRatio=2 "
-  "-XX:+UseConcMarkSweepGC " + " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,"
+  "-XX:+UseG1GC " + " -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,"
   "server=y,suspend={2} "
   "-cp {1} "
   + "org.apache.ambari.server.upgrade.SchemaUpgradeHelper"
@@ -326,6 +340,56 @@ def move_user_custom_actions():
     raise FatalException(1, err)
 
 
+def migrate_java_home_properties(properties, requested_ambari_java_home=None):
+  legacy_java_home = properties.get_property(JAVA_HOME_PROPERTY)
+  stack_java_home = properties.get_property(STACK_JAVA_HOME_PROPERTY)
+  if not stack_java_home and legacy_java_home:
+    stack_java_home = legacy_java_home
+    properties.process_pair(STACK_JAVA_HOME_PROPERTY, stack_java_home)
+    legacy_jdk_name = properties.get_property(JDK_NAME_PROPERTY)
+    legacy_jce_name = properties.get_property(JCE_NAME_PROPERTY)
+    if legacy_jdk_name and not properties.get_property(STACK_JDK_NAME_PROPERTY):
+      properties.process_pair(STACK_JDK_NAME_PROPERTY, legacy_jdk_name)
+    if legacy_jce_name and not properties.get_property(STACK_JCE_NAME_PROPERTY):
+      properties.process_pair(STACK_JCE_NAME_PROPERTY, legacy_jce_name)
+
+  if stack_java_home and not properties.get_property(STACK_JAVA_VERSION):
+    stack_java_version = get_java_version(stack_java_home)
+    if stack_java_version is not None:
+      properties.process_pair(STACK_JAVA_VERSION, str(stack_java_version))
+    else:
+      print_warning_msg(
+        "Unable to detect the Stack JDK version on the Ambari Server. "
+        "Set stack.java.version before installing or upgrading stack services."
+      )
+
+  if not isinstance(requested_ambari_java_home, str):
+    requested_ambari_java_home = None
+  configured_ambari_java_home = properties.get_property(AMBARI_JAVA_HOME_PROPERTY)
+  ambari_java_home = requested_ambari_java_home or configured_ambari_java_home
+  ambari_java_version = get_java_version(ambari_java_home)
+  if not requested_ambari_java_home and (
+    ambari_java_version is None
+    or ambari_java_version < MIN_AMBARI_JAVA_VERSION
+  ):
+    ambari_java_home = find_jdk(min_version=MIN_AMBARI_JAVA_VERSION)
+    ambari_java_version = get_java_version(ambari_java_home)
+  if ambari_java_version is None or ambari_java_version < MIN_AMBARI_JAVA_VERSION:
+    raise FatalException(
+      1,
+      "Ambari upgrade requires JDK 17 or later. Set JAVA_HOME or pass "
+      "--ambari-java-home, without changing the stack Java home.",
+    )
+
+  properties.process_pair(AMBARI_JAVA_HOME_PROPERTY, ambari_java_home)
+  properties.process_pair(AMBARI_JAVA_VERSION, str(ambari_java_version))
+  if ambari_java_home != configured_ambari_java_home:
+    for property_name in (AMBARI_JDK_NAME_PROPERTY, AMBARI_JCE_NAME_PROPERTY):
+      properties.removeOldProp(property_name)
+      properties.removeProp(property_name)
+  update_properties(properties)
+
+
 def upgrade(args):
   print_info_msg("Upgrade Ambari Server", True)
   if not is_root():
@@ -338,6 +402,11 @@ def upgrade(args):
   if not retcode == 0:
     err = AMBARI_PROPERTIES_FILE + " file can't be updated. Exiting"
     raise FatalException(retcode, err)
+
+  properties = get_ambari_properties()
+  if properties == -1:
+    raise FatalException(-1, "Error getting Ambari properties")
+  migrate_java_home_properties(properties, getattr(args, "ambari_java_home", None))
 
   print_info_msg(f"Updating Ambari Server properties in {AMBARI_ENV_FILE} ...", True)
   retcode = update_ambari_env()

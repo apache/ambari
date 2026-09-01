@@ -515,7 +515,7 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.observes('content.installOptions.useSsh'),
 
   /**
-   * Load java.home value frin server
+   * Load ambari.java.home from the server.
    * @method setAmbariJavaHome
    */
   setAmbariJavaHome: function () {
@@ -528,16 +528,16 @@ App.WizardStep2Controller = Em.Controller.extend({
   },
 
   /**
-   * Set received java.home value
+   * Set the received Ambari Java home.
    * @method onGetAmbariJavaHomeSuccess
    * @param {Object} data
    */
   onGetAmbariJavaHomeSuccess: function (data) {
-    this.set('content.installOptions.javaHome', data.RootServiceComponents.properties['java.home']);
+    this.set('content.installOptions.javaHome', data.RootServiceComponents.properties['ambari.java.home']);
   },
 
   /**
-   * Set default java.home value
+   * Set the default Ambari Java home.
    * @method onGetAmbariJavaHomeError
    */
   onGetAmbariJavaHomeError: function () {

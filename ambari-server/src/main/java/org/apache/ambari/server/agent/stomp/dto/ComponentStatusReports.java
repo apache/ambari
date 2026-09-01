@@ -28,6 +28,8 @@ public class ComponentStatusReports {
   @JsonProperty("clusters")
   private TreeMap<String, List<ComponentStatusReport>> componentStatusReports;
 
+  private boolean snapshotComplete;
+
   public ComponentStatusReports() {
   }
 
@@ -41,5 +43,13 @@ public class ComponentStatusReports {
 
   public void setComponentStatusReports(TreeMap<String, List<ComponentStatusReport>> componentStatusReports) {
     this.componentStatusReports = componentStatusReports;
+  }
+
+  public boolean isSnapshotComplete() {
+    return snapshotComplete;
+  }
+
+  public void setSnapshotComplete(boolean snapshotComplete) {
+    this.snapshotComplete = snapshotComplete;
   }
 }

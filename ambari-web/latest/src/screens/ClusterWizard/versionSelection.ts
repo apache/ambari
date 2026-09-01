@@ -33,6 +33,11 @@ export function compareVersions(left: string, right: string): number {
   return 0;
 }
 
+function jdkFeatureVersion(value: string): number | undefined {
+  const parts = versionParts(value);
+  return parts[0] === 1 ? parts[1] : parts[0];
+}
+
 export function isJdkCompatible(
   currentVersion: string | undefined,
   minimumVersion: string | undefined,
@@ -43,6 +48,11 @@ export function isJdkCompatible(
   }
   const minimum = minimumVersion || maximumVersion || "";
   const maximum = maximumVersion || minimumVersion || "";
-  return compareVersions(currentVersion, minimum) >= 0
-    && compareVersions(currentVersion, maximum) <= 0;
+  const currentFeature = jdkFeatureVersion(currentVersion);
+  const minimumFeature = jdkFeatureVersion(minimum);
+  const maximumFeature = jdkFeatureVersion(maximum);
+  if (currentFeature === undefined || minimumFeature === undefined || maximumFeature === undefined) {
+    return true;
+  }
+  return currentFeature >= minimumFeature && currentFeature <= maximumFeature;
 }

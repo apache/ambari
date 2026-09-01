@@ -36,6 +36,7 @@ import org.apache.ambari.server.agent.ComponentStatusAgentReport;
 import org.apache.ambari.server.agent.ComponentVersionAgentReport;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.HostStatusAgentReport;
+import org.apache.ambari.server.agent.RecoveryTopologyManager;
 import org.apache.ambari.server.agent.stomp.dto.AckReport;
 import org.apache.ambari.server.agent.stomp.dto.CommandStatusReports;
 import org.apache.ambari.server.agent.stomp.dto.ComponentStatusReport;
@@ -44,6 +45,7 @@ import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReports;
 import org.apache.ambari.server.agent.stomp.dto.HostStatusReport;
 import org.apache.ambari.server.events.DefaultMessageEmitter;
 import org.apache.ambari.server.state.Alert;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,11 +69,15 @@ public class AgentReportsController {
   private final HeartBeatHandler hh;
   private final AgentSessionManager agentSessionManager;
   private final AgentReportsProcessor agentReportsProcessor;
+  private final HostLevelParamsHolder hostLevelParamsHolder;
+  private final RecoveryTopologyManager recoveryTopologyManager;
 
   public AgentReportsController(Injector injector) {
     hh = injector.getInstance(HeartBeatHandler.class);
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
     agentReportsProcessor = injector.getInstance(AgentReportsProcessor.class);
+    hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
+    recoveryTopologyManager = injector.getInstance(RecoveryTopologyManager.class);
   }
 
   @MessageMapping("/component_version")
@@ -98,8 +104,10 @@ public class AgentReportsController {
       }
     }
 
-    agentReportsProcessor.addAgentReport(new ComponentStatusAgentReport(hh,
-        agentSessionManager.getHost(simpSessionId).getHostName(), statuses));
+    Host host = agentSessionManager.getHost(simpSessionId);
+    agentReportsProcessor.addAgentReport(new ComponentStatusAgentReport(hh, host.getHostName(), statuses,
+        hostLevelParamsHolder, recoveryTopologyManager, host.getHostId(), simpSessionId,
+        message.isSnapshotComplete()));
     return new ReportsResponse();
   }
 

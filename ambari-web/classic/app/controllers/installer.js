@@ -1144,21 +1144,25 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
 
 
   /**
-   * Compare jdk versions used for ambari and selected stack.
-   * Validation check will fire only for non-custom jdk configuration.
+   * Compare the configured default Stack JDK with the selected stack.
    *
    * @param {Function} successCallback
    * @param {Function} failCallback
    */
   validateJDKVersion: function (successCallback, failCallback) {
     var selectedStack = App.Stack.find().findProperty('isSelected', true),
-        currentJDKVersion = App.router.get('clusterController.ambariProperties')['java.version'],
+        currentJDKVersion = App.router.get('clusterController.ambariProperties')['stack.java.version'],
         // use min as max, or max as min version, in case when some of them missed
         minJDKVersion = selectedStack.get('minJdkVersion') || selectedStack.get('maxJdkVersion'),
         maxJDKVersion = selectedStack.get('maxJdkVersion') || selectedStack.get('minJdkVersion'),
         t = Em.I18n.t,
         fCallback = failCallback || function() {},
         sCallback = successCallback || function() {};
+
+    var jdkFeatureVersion = function (version) {
+      var parts = String(version).split('.');
+      return parseInt(parts[0] === '1' ? parts[1] : parts[0], 10);
+    };
 
     // Skip jdk check if min and max required version not set in stack definition.
     if (!minJDKVersion && !maxJDKVersion) {
@@ -1167,15 +1171,11 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
     }
 
     if (currentJDKVersion) {
-      if (stringUtils.compareVersions(currentJDKVersion, minJDKVersion) < 0 ||
-          stringUtils.compareVersions(maxJDKVersion, currentJDKVersion) < 0) {
-        // checks and process only minor part for now
-        var versionDistance = parseInt(maxJDKVersion.split('.')[1], 10) - parseInt(minJDKVersion.split('.')[1], 10);
-        var versionsList = [minJDKVersion];
-        for (var i = 1; i < versionDistance + 1; i++) {
-          versionsList.push("" + minJDKVersion.split('.')[0] + '.' + (+minJDKVersion.split('.')[1] + i));
-        }
-        var versionsString = stringUtils.getFormattedStringFromArray(versionsList, t('or'));
+      var currentJDKFeature = jdkFeatureVersion(currentJDKVersion),
+          minJDKFeature = jdkFeatureVersion(minJDKVersion),
+          maxJDKFeature = jdkFeatureVersion(maxJDKVersion);
+      if (currentJDKFeature < minJDKFeature || currentJDKFeature > maxJDKFeature) {
+        var versionsString = minJDKVersion === maxJDKVersion ? minJDKVersion : minJDKVersion + ' through ' + maxJDKVersion;
         var popupBody = t('popup.jdkValidation.body').format(selectedStack.get('stackName') + ' ' + selectedStack.get('stackVersion'), versionsString, currentJDKVersion);
         App.showConfirmationPopup(sCallback, popupBody, fCallback, t('popup.jdkValidation.header'), t('common.proceedAnyway'), 'danger');
         return;

@@ -43,7 +43,6 @@ from ambari_server.serverConfiguration import (
   configDefaults,
   find_jdk,
   get_ambari_properties,
-  get_java_exe_path,
   read_ambari_user,
   get_is_active_instance,
   update_properties,
@@ -376,7 +375,7 @@ def server_process_main(options, scmStatus=None):
   if scmStatus is not None:
     scmStatus.reportStartPending()
 
-  java_exe = get_java_exe_path()
+  java_exe = os.path.join(jdk_path, configDefaults.JAVA_EXE_SUBPATH)
 
   serverClassPath = ServerClassPath(properties, options)
 

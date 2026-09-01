@@ -25,6 +25,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_JAVA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLUSTER_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
@@ -455,10 +456,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         masterPort = configs.getClientApiPort();
       }
       jdkResourceUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION);
-      javaHome = configs.getJavaHome();
+      String stackJavaHome = configs.getStackJavaHome();
+      String legacyJavaHome = configs.getJavaHome();
       ambariJavaHome = configs.getAmbariJavaHome();
-      jdkName = configs.getJDKName();
-      jceName = configs.getJCEName();
+      if (StringUtils.isNotEmpty(stackJavaHome)) {
+        javaHome = stackJavaHome;
+        jdkName = configs.getStackJDKName();
+        jceName = configs.getStackJCEName();
+      } else if (StringUtils.isNotEmpty(legacyJavaHome)) {
+        javaHome = legacyJavaHome;
+        jdkName = configs.getJDKName();
+        jceName = configs.getJCEName();
+      } else {
+        javaHome = ambariJavaHome;
+        jdkName = configs.getAmbariJDKName();
+        jceName = configs.getAmbariJCEName();
+      }
       ojdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getOjdbcJarName());
       mysqljdbcUrl = getAmbariServerURI(JDK_RESOURCE_LOCATION + "/" + configs.getMySQLJarName());
 
@@ -6050,7 +6063,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         gson.toJson(resourceManager.getResourceArchiveDigests()));
     clusterLevelParams.put(JAVA_HOME, getJavaHome());
     clusterLevelParams.put(AMBARI_JAVA_HOME, getAmbariJavaHome());
-    clusterLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
+    clusterLevelParams.put(AMBARI_JAVA_VERSION, configs.getAmbariJavaVersion());
+    clusterLevelParams.put(JAVA_VERSION, StringUtils.defaultIfEmpty(
+        configs.getStackJavaVersion(), String.valueOf(configs.getJavaVersion())));
     clusterLevelParams.put(JDK_NAME, getJDKName());
     clusterLevelParams.put(JCE_NAME, getJCEName());
     clusterLevelParams.put(DB_NAME, getServerDB());

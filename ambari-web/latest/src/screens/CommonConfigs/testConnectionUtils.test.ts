@@ -121,9 +121,9 @@ describe("Theme Test Connection contract", () => {
       databaseConnectionParameters(
         resolved.values,
         {
-          "java.home": "/java",
+          "ambari.java.home": "/java",
           jdk_location: "/jdk",
-          "jdk.name": "jdk.tar.gz",
+          "ambari.jdk.name": "jdk.tar.gz",
         },
         "ambari01",
       ),

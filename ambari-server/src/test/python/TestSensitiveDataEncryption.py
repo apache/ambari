@@ -141,7 +141,7 @@ class TestSensitiveDataEncryption(TestCase):
     find_jdk_mock,
     find_properties_file_mock,
   ):
-    find_jdk_mock.return_value = "/"
+    find_jdk_mock.return_value = "/java17"
     find_properties_file_mock.return_value = "/tmp/ambari.properties"
     environ = os.environ.copy()
 
@@ -151,7 +151,7 @@ class TestSensitiveDataEncryption(TestCase):
     options = self._create_empty_options_mock()
     sensitive_data_encryption(options, "encription")
     run_os_command_mock.assert_called_with(
-      "None -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption encription > /var/log/ambari-server/ambari-server.out 2>&1",
+      "/java17/bin/java -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption encription > /var/log/ambari-server/ambari-server.out 2>&1",
       environ,
     )
     pass
@@ -189,7 +189,7 @@ class TestSensitiveDataEncryption(TestCase):
     find_jdk_mock,
     find_properties_file_mock,
   ):
-    find_jdk_mock.return_value = "/"
+    find_jdk_mock.return_value = "/java17"
     find_properties_file_mock.return_value = "/tmp/ambari.properties"
     environ = os.environ.copy()
     master = "master"
@@ -201,7 +201,7 @@ class TestSensitiveDataEncryption(TestCase):
     options = self._create_empty_options_mock()
     sensitive_data_encryption(options, "decryption", master)
     run_os_command_mock.assert_called_with(
-      "None -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption decryption > /var/log/ambari-server/ambari-server.out 2>&1",
+      "/java17/bin/java -cp test:path12 org.apache.ambari.server.security.encryption.SensitiveDataEncryption decryption > /var/log/ambari-server/ambari-server.out 2>&1",
       environ,
     )
     pass

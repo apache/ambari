@@ -714,12 +714,12 @@ public interface AmbariManagementController {
   String getJdkResourceUrl();
 
   /**
-   * Getter for the java home, stored in ambari.properties
+   * Gets the effective default Java home for stack services.
    */
   String getJavaHome();
 
   /**
-   * Getter for the java home, stored in ambari.properties
+   * Gets the Java home used by Ambari Server and Agent Java helpers.
    */
   String getAmbariJavaHome();
 
@@ -1036,4 +1036,3 @@ public interface AmbariManagementController {
    */
   MpackResponse getMpack(Long mpackId);
 }
-

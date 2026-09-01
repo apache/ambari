@@ -82,6 +82,35 @@ public class ConfigurationTest {
     temp.delete();
   }
 
+  @Test
+  public void testAmbariJavaProperties() {
+    Configuration configuration = new Configuration();
+    configuration.setProperty("ambari.java.home", "/java17");
+    configuration.setProperty("ambari.java.version", "17");
+
+    assertEquals(Runtime.version().feature(), configuration.getJavaVersion());
+    assertEquals("/java17", configuration.getAmbariJavaHome());
+    assertEquals(
+        String.valueOf(Runtime.version().feature()), configuration.getAmbariJavaVersion());
+  }
+
+  @Test
+  public void testAgentJavaHomeUsesAmbariJdkWithLegacyFallback() {
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty("java.home", "/stack-java");
+    ambariProperties.setProperty("ambari.java.home", "/ambari-java");
+
+    Configuration configuration = new Configuration(ambariProperties);
+
+    assertEquals("/ambari-java",
+        configuration.getAgentConfigsMap().get("agentConfig").get("java.home"));
+
+    ambariProperties.remove("ambari.java.home");
+    configuration = new Configuration(ambariProperties);
+    assertEquals("/stack-java",
+        configuration.getAgentConfigsMap().get("agentConfig").get("java.home"));
+  }
+
   /**
    * ambari.properties doesn't contain "security.agent.hostname.validate" option
    */

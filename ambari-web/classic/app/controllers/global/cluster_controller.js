@@ -434,8 +434,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   loadAmbariPropertiesSuccess: function (data) {
     var mainController = App.router.get('mainController');
     this.set('ambariProperties', data.RootServiceComponents.properties);
-    // Absence of 'jdk.name' and 'jce.name' properties says that ambari configured with custom jdk.
-    this.set('isCustomJDK', App.isEmptyObject(App.permit(data.RootServiceComponents.properties, ['jdk.name', 'jce.name'])));
+    // Absence of Ambari JDK/JCE archives means that Ambari uses a pre-installed JDK.
+    this.set('isCustomJDK', App.isEmptyObject(App.permit(data.RootServiceComponents.properties, ['ambari.jdk.name', 'ambari.jce.name'])));
     this.setServerClock(data);
     mainController.setAmbariServerVersion.call(mainController, data);
     mainController.monitorInactivity();

@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentSessionManager;
 import org.apache.ambari.server.agent.HeartBeatHandler;
+import org.apache.ambari.server.agent.RecoveryTopologyManager;
 import org.apache.ambari.server.agent.Register;
 import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.ambari.server.agent.RegistrationStatus;
@@ -56,8 +57,11 @@ public class HeartbeatControllerTest {
 
   private HeartBeatHandler heartBeatHandler;
   private AgentSessionManager agentSessionManager;
+  private HostLevelParamsHolder hostLevelParamsHolder;
+  private RecoveryTopologyManager recoveryTopologyManager;
   private AgentEncryptionCapabilities encryptionCapabilities;
   private AgentConfigsHolder agentConfigsHolder;
+  private Host host;
   private RegistrationResponse registrationResponse;
   private HeartbeatController controller;
 
@@ -68,15 +72,19 @@ public class HeartbeatControllerTest {
     ClustersImpl clusters = mock(ClustersImpl.class);
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
     agentSessionManager = mock(AgentSessionManager.class);
+    hostLevelParamsHolder = mock(HostLevelParamsHolder.class);
+    recoveryTopologyManager = mock(RecoveryTopologyManager.class);
     encryptionCapabilities = mock(AgentEncryptionCapabilities.class);
     agentConfigsHolder = mock(AgentConfigsHolder.class);
     Configuration configuration = mock(Configuration.class);
-    Host host = mock(Host.class);
+    host = mock(Host.class);
 
     when(injector.getInstance(HeartBeatHandler.class)).thenReturn(heartBeatHandler);
     when(injector.getInstance(ClustersImpl.class)).thenReturn(clusters);
     when(injector.getInstance(UnitOfWork.class)).thenReturn(unitOfWork);
     when(injector.getInstance(AgentSessionManager.class)).thenReturn(agentSessionManager);
+    when(injector.getInstance(HostLevelParamsHolder.class)).thenReturn(hostLevelParamsHolder);
+    when(injector.getInstance(RecoveryTopologyManager.class)).thenReturn(recoveryTopologyManager);
     when(injector.getInstance(AgentEncryptionCapabilities.class)).thenReturn(encryptionCapabilities);
     when(injector.getInstance(AgentConfigsHolder.class)).thenReturn(agentConfigsHolder);
     when(injector.getInstance(Configuration.class)).thenReturn(configuration);
@@ -94,6 +102,17 @@ public class HeartbeatControllerTest {
   public void shutdownExecutors() throws Exception {
     shutdownExecutor("executor");
     shutdownExecutor("scheduledExecutorService");
+  }
+
+  @Test
+  public void updatesRecoveryTopologyWhenAgentRegisters() throws Exception {
+    Register register = register(Collections.emptyList());
+
+    assertSame(registrationResponse, controller.register(SESSION_ID, register).get(5, TimeUnit.SECONDS));
+
+    verify(recoveryTopologyManager).beginAgentSession(HOST_ID, SESSION_ID);
+    verify(hostLevelParamsHolder).updateRecoveryTopology(HOST_NAME);
+    verify(agentSessionManager).register(SESSION_ID, host);
   }
 
   @Test
@@ -137,7 +156,7 @@ public class HeartbeatControllerTest {
     assertEquals(-1, response.getResponseId());
     assertEquals(RegistrationStatus.FAILED, response.getResponseStatus());
     verify(agentSessionManager, never()).register(any(String.class), any(Host.class));
-    verifyNoInteractions(encryptionCapabilities, agentConfigsHolder);
+    verifyNoInteractions(recoveryTopologyManager, hostLevelParamsHolder, encryptionCapabilities, agentConfigsHolder);
   }
 
   private Register register(List<String> encryptionTypes) {

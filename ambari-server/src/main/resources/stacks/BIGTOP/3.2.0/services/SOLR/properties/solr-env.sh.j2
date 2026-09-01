@@ -24,9 +24,13 @@ SOLR_JAVA_MEM="-Xms{{solr_min_mem}}m -Xmx{{solr_max_mem}}m"
 
 SOLR_JAVA_STACK_SIZE="-Xss{{solr_java_stack_size}}m"
 
+{% if java_version >= 9 -%}
+GC_LOG_OPTS="-Xlog:gc*:file={{solr_log_dir}}/solr_gc.log:time,uptime,level,tags:filecount=15,filesize=200M"
+GC_TUNE="-XX:+UseG1GC -XX:MaxGCPauseMillis=250 -XX:+ParallelRefProcEnabled"
+{% else -%}
 GC_LOG_OPTS="{{solr_gc_log_opts}} -Xloggc:{{solr_log_dir}}/solr_gc.log"
-
 GC_TUNE="{{solr_gc_tune}}"
+{% endif %}
 
 # Set the ZooKeeper connection string if using an external ZooKeeper ensemble
 # e.g. host1:2181,host2:2181/chroot

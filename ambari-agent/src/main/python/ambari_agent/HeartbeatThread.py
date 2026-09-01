@@ -229,12 +229,13 @@ class HeartbeatThread(threading.Thread):
 
     self.run_post_registration_actions()
 
-    self.initializer_module.is_registered = True
+    # Invalidate cached status before the periodic scanner can use the new session.
+    self.force_component_status_update()
     # now when registration is done we can expose connection to other threads.
     self.initializer_module._connection = self.connection
+    self.initializer_module.is_registered = True
 
     self.report_components_initial_versions()
-    self.force_component_status_update()
 
   def run_post_registration_actions(self):
     for post_registration_action in self.post_registration_actions:

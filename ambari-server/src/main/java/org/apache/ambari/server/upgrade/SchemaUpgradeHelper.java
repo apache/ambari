@@ -399,11 +399,9 @@ public class SchemaUpgradeHelper {
    */
   public static void main(String[] args) throws Exception {
     try {
-      // check java version to be higher then 1.6
-      String[] splittedJavaVersion = System.getProperty("java.version").split("\\.");
-      float javaVersion = Float.parseFloat(splittedJavaVersion[0] + "." + splittedJavaVersion[1]);
+      int javaVersion = Runtime.version().feature();
       if (javaVersion < Configuration.JDK_MIN_VERSION) {
-        LOG.error(String.format("Oracle JDK version is lower than %.1f It can cause problems during upgrade process. Please," +
+        LOG.error(String.format("JDK version is lower than %d. It can cause problems during upgrade. Please" +
                 " use 'ambari-server setup' command to upgrade JDK!", Configuration.JDK_MIN_VERSION));
         System.exit(1);
       }

@@ -109,6 +109,7 @@ AMBARI_JAVA_HOME_PROPERTY = "ambari.java.home"
 AMBARI_JDK_NAME_PROPERTY = "ambari.jdk.name"
 AMBARI_JCE_NAME_PROPERTY = "ambari.jce.name"
 AMBARI_JAVA_VERSION = "ambari.java.version"
+MIN_AMBARI_JAVA_VERSION = 17
 
 
 # TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
@@ -244,7 +245,7 @@ REQUIRED_PROPERTIES = [
   SECURITY_KEYS_DIR,
   JDBC_DATABASE_NAME_PROPERTY,
   NR_USER_PROPERTY,
-  JAVA_HOME_PROPERTY,
+  AMBARI_JAVA_HOME_PROPERTY,
   JDBC_PASSWORD_PROPERTY,
   SHARED_RESOURCES_DIR,
   JDBC_USER_NAME_PROPERTY,
@@ -262,7 +263,7 @@ REQUIRED_PROPERTIES = [
 SETUP_DONE_PROPERTIES = [
   OS_FAMILY_PROPERTY,
   OS_TYPE_PROPERTY,
-  JDK_NAME_PROPERTY,
+  AMBARI_JAVA_HOME_PROPERTY,
   JDBC_DATABASE_PROPERTY,
   NR_USER_PROPERTY,
   PERSISTENCE_TYPE_PROPERTY,
@@ -1678,6 +1679,11 @@ def get_JAVA_HOME(java_home_type=JavaHomeType.AMBARI):
   if (not 0 == len(java_home)) and (os.path.exists(java_home)):
     return java_home
 
+  if java_home_type == JavaHomeType.AMBARI:
+    java_home = os.environ.get(JAVA_HOME)
+    if validate_jdk(java_home):
+      return java_home
+
   return None
 
 
@@ -1693,14 +1699,57 @@ def validate_jdk(jdk_path):
   return False
 
 
+def get_java_version(jdk_path):
+  """Return the Java feature version for a JDK home, or None when unknown."""
+  if not validate_jdk(jdk_path):
+    return None
+
+  java_exe_path = os.path.join(jdk_path, configDefaults.JAVA_EXE_SUBPATH)
+  try:
+    retcode, stdout, stderr = run_os_command([java_exe_path, "-version"])
+  except OSError:
+    return None
+  if retcode != 0:
+    return None
+
+  version_output = "\n".join(value for value in (stdout, stderr) if value)
+  match = re.search(r'version\s+"([^"]+)"', version_output, re.IGNORECASE)
+  if not match:
+    return None
+
+  version_parts = match.group(1).split(".")
+  try:
+    feature_part = version_parts[1] if version_parts[0] == "1" else version_parts[0]
+    feature_match = re.match(r"\d+", feature_part)
+    return int(feature_match.group(0)) if feature_match else None
+  except IndexError:
+    return None
+
+
 #
 # Finds the available JDKs.
 #
-def find_jdk(java_home_type=JavaHomeType.AMBARI):
+def find_jdk(java_home_type=JavaHomeType.AMBARI, min_version=None):
+  if java_home_type == JavaHomeType.AMBARI and min_version is None:
+    min_version = MIN_AMBARI_JAVA_VERSION
+
+  def is_usable_jdk(jdk_path):
+    if not validate_jdk(jdk_path):
+      return False
+    return min_version is None or (get_java_version(jdk_path) or -1) >= min_version
+
   jdkPath = get_JAVA_HOME(java_home_type)
-  if jdkPath:
-    if validate_jdk(jdkPath):
-      return jdkPath
+  if jdkPath and is_usable_jdk(jdkPath):
+    return jdkPath
+
+  if java_home_type == JavaHomeType.AMBARI:
+    java_executable = shutil.which("java")
+    if java_executable:
+      jdkPath = os.path.dirname(os.path.dirname(os.path.realpath(java_executable)))
+      if is_usable_jdk(jdkPath):
+        print(f"INFO: Selected JDK from PATH: {jdkPath}")
+        return jdkPath
+
   print(f"INFO: Looking for available JDKs at {configDefaults.JDK_INSTALL_DIR}")
   jdks = glob.glob(
     os.path.join(configDefaults.JDK_INSTALL_DIR, configDefaults.JDK_SEARCH_PATTERN)
@@ -1712,7 +1761,7 @@ def find_jdk(java_home_type=JavaHomeType.AMBARI):
     return
   for jdkPath in jdks:
     print(f"INFO: Trying to use JDK {jdkPath}")
-    if validate_jdk(jdkPath):
+    if is_usable_jdk(jdkPath):
       print(f"INFO: Selected JDK {jdkPath}")
       return jdkPath
     else:
@@ -1721,7 +1770,10 @@ def find_jdk(java_home_type=JavaHomeType.AMBARI):
 
 
 def get_java_exe_path(java_home_type=JavaHomeType.AMBARI):
-  jdkPath = find_jdk(java_home_type)
+  min_version = (
+    MIN_AMBARI_JAVA_VERSION if java_home_type == JavaHomeType.AMBARI else None
+  )
+  jdkPath = find_jdk(java_home_type, min_version)
   if jdkPath:
     java_exe = os.path.join(jdkPath, configDefaults.JAVA_EXE_SUBPATH)
     return java_exe

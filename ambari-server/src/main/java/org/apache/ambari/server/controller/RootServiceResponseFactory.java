@@ -160,6 +160,7 @@ public class RootServiceResponseFactory extends
         response = configs.getAmbariProperties();
         response.put(JDK_LOCATION, managementController.getJdkResourceUrl());
         response.put("java.version", System.getProperty("java.specification.version"));
+        response.put("ambari.java.version", String.valueOf(Runtime.version().feature()));
         propertiesToHideInResponse = configs.getPropertiesToBlackList();
         for(String key : propertiesToHideInResponse) {
       	  response.remove(key);

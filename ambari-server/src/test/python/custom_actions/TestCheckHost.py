@@ -50,12 +50,18 @@ class TestCheckHost(TestCase):
   current_dir = os.path.dirname(os.path.realpath(__file__))
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
+  @patch("check_host.shell.call")
   @patch("os.path.isfile")
   @patch.object(Script, "get_config")
   @patch.object(Script, "get_tmp_dir")
   @patch("resource_management.libraries.script.Script.put_structured_out")
   def testJavaHomeAvailableCheck(
-    self, structured_out_mock, get_tmp_dir_mock, mock_config, os_isfile_mock
+    self,
+    structured_out_mock,
+    get_tmp_dir_mock,
+    mock_config,
+    os_isfile_mock,
+    shell_call_mock,
   ):
     # test, java home exists
     os_isfile_mock.return_value = True
@@ -64,15 +70,32 @@ class TestCheckHost(TestCase):
       "commandParams": {
         "check_execute_list": "java_home_check",
         "java_home": "test_java_home",
+        "java_version": "17",
       }
     }
+    shell_call_mock.return_value = (
+      0,
+      'openjdk version "17.0.12" 2024-07-16\n'
+      "OpenJDK Runtime Environment Temurin-17.0.12+7\n"
+      "OpenJDK 64-Bit Server VM Temurin-17.0.12+7\n",
+    )
 
     checkHost = CheckHost()
     checkHost.actionexecute(None)
 
     self.assertEqual(
       structured_out_mock.call_args[0][0],
-      {"java_home_check": {"message": "Java home exists!", "exit_code": 0}},
+      {
+        "java_home_check": {
+          "exit_code": 0,
+          "message": "Java home is valid.",
+          "java_home": "test_java_home",
+          "java_version": "17.0.12",
+          "java_vendor": "OpenJDK",
+          "java_runtime": "OpenJDK Runtime Environment Temurin-17.0.12+7",
+          "expected_java_version": "17",
+        }
+      },
     )
     # test, java home doesn't exist
     os_isfile_mock.reset_mock()
@@ -82,8 +105,31 @@ class TestCheckHost(TestCase):
 
     self.assertEqual(
       structured_out_mock.call_args[0][0],
-      {"java_home_check": {"message": "Java home doesn't exist!", "exit_code": 1}},
+      {
+        "java_home_check": {
+          "message": "Java home doesn't exist!",
+          "exit_code": 1,
+          "java_home": "test_java_home",
+          "expected_java_version": "17",
+        }
+      },
     )
+
+  @patch("check_host.shell.call")
+  @patch("os.path.isfile", new=MagicMock(return_value=True))
+  def testJavaHomeAvailableCheckRejectsWrongVersion(self, shell_call_mock):
+    shell_call_mock.return_value = (
+      0,
+      'java version "1.8.0_402"\nJava(TM) SE Runtime Environment (build 1.8.0_402)\n',
+    )
+
+    result = CheckHost().execute_java_home_available_check(
+      {"commandParams": {"java_home": "/java", "java_version": "17"}}
+    )
+
+    self.assertEqual(1, result["exit_code"])
+    self.assertEqual("1.8.0_402", result["java_version"])
+    self.assertIn("feature version 8", result["message"])
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("tempfile.mkdtemp", new=MagicMock(return_value="/tmp/jdk_tmp_dir"))

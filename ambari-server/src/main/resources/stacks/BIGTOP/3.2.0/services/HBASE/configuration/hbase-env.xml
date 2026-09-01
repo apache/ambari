@@ -194,7 +194,11 @@ export HBASE_CLASSPATH=${HBASE_CLASSPATH}
 # Below are what we set by default. May only work with SUN JVM.
 # For more on why as well as other possible settings,
 # see http://wiki.apache.org/hadoop/PerformanceTuning
+{% if java_version &gt;= 9 %}
+export SERVER_GC_OPTS="-Xlog:gc*:file={{log_dir}}/gc.log:time,uptime,level,tags:filecount=10,filesize=100M"
+{% else %}
 export SERVER_GC_OPTS="-verbose:gc -XX:-PrintGCCause -XX:+PrintAdaptiveSizePolicy -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{log_dir}}/gc.log-`date +'%Y%m%d%H%M'`"
+{% endif %}
 # Uncomment below to enable java garbage collection logging.
 # export HBASE_OPTS="$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log"
 

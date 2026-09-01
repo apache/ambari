@@ -68,6 +68,10 @@ class TestActionQueue(TestCase):
     initializer_module.recovery_manager.has_active_command.return_value = False
     return ActionQueue(initializer_module), initializer_module
 
+  def create_mock_action_queue(self):
+    action_queue, _initializer_module = self.create_action_queue()
+    return action_queue
+
   datanode_install_command = {
     "commandType": "EXECUTION_COMMAND",
     "role": "DATANODE",
@@ -111,6 +115,89 @@ class TestActionQueue(TestCase):
     "configurationTags": {"global": {"tag": "v1"}},
     "clusterId": CLUSTER_ID,
   }
+
+  def test_server_command_removes_queued_recovery_commands(self):
+    action_queue = self.create_mock_action_queue()
+    recovery_command = copy.deepcopy(self.datanode_auto_start_command)
+    server_command = copy.deepcopy(self.namenode_install_command)
+
+    action_queue.put([recovery_command])
+    recovery_control = action_queue._control_for(recovery_command)
+    action_queue.put([server_command])
+
+    self.assertEqual(1, action_queue.commandQueue.qsize())
+    self.assertEqual(server_command, action_queue.commandQueue.get_nowait())
+    self.assertEqual("FINISHED", recovery_control["state"])
+    self.assertNotIn(str(recovery_command["taskId"]), action_queue.task_registry)
+
+  def test_server_command_cancels_active_recovery_commands(self):
+    action_queue = self.create_mock_action_queue()
+    recovery_command = copy.deepcopy(self.datanode_auto_start_command)
+    server_command = copy.deepcopy(self.namenode_install_command)
+    execution_started = threading.Event()
+    allow_execution_to_finish = threading.Event()
+
+    def wait_for_preemption(command, _control):
+      execution_started.set()
+      allow_execution_to_finish.wait(5)
+
+    action_queue.execute_command = MagicMock(side_effect=wait_for_preemption)
+    recovery_thread = threading.Thread(
+      target=action_queue.process_command, args=(recovery_command,)
+    )
+    recovery_thread.start()
+    self.assertTrue(execution_started.wait(5))
+    recovery_control = action_queue._control_for(recovery_command)
+
+    action_queue.put([server_command])
+
+    action_queue.customServiceOrchestrator.cancel_command.assert_called_once_with(
+      recovery_command["taskId"], "Preempted by a server-issued command"
+    )
+    self.assertTrue(recovery_control["cancel_event"].is_set())
+    self.assertEqual("CANCELLING", recovery_control["state"])
+    self.assertEqual(server_command, action_queue.commandQueue.get_nowait())
+
+    allow_execution_to_finish.set()
+    recovery_thread.join(5)
+    self.assertFalse(recovery_thread.is_alive())
+    self.assertEqual("FINISHED", recovery_control["state"])
+    self.assertNotIn(recovery_command["taskId"], action_queue.active_recovery_task_ids)
+
+  def test_dequeued_recovery_command_yields_to_queued_server_command(self):
+    action_queue = self.create_mock_action_queue()
+    recovery_command = copy.deepcopy(self.datanode_auto_start_command)
+    server_command = copy.deepcopy(self.namenode_install_command)
+    action_queue.commandQueue.put(server_command)
+    action_queue.execute_command = MagicMock()
+
+    action_queue.process_command(recovery_command)
+
+    action_queue.execute_command.assert_not_called()
+    self.assertNotIn(recovery_command["taskId"], action_queue.active_recovery_task_ids)
+
+  def test_recovery_command_canceled_before_script_execution(self):
+    action_queue = self.create_mock_action_queue()
+    recovery_command = copy.deepcopy(self.datanode_auto_start_command)
+    control = action_queue._register_command(recovery_command)
+    control["reason"] = "Preempted by a server-issued command"
+    control["state"] = "CANCELLING"
+    control["cancel_event"].set()
+    action_queue.commandStatuses.generate_report_template.return_value = {}
+
+    action_queue.execute_command(recovery_command, control)
+
+    action_queue.customServiceOrchestrator.runCommand.assert_not_called()
+    self.assertTrue(control["cancel_event"].is_set())
+
+  def test_recovery_command_does_not_preempt_active_recovery(self):
+    action_queue = self.create_mock_action_queue()
+    active_task_id = 41
+    action_queue.active_recovery_task_ids.add(active_task_id)
+
+    action_queue.put([copy.deepcopy(self.datanode_auto_start_command)])
+
+    action_queue.customServiceOrchestrator.cancel_command.assert_not_called()
 
   datanode_upgrade_command = {
     "commandId": 17,

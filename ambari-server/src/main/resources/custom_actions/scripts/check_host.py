@@ -340,25 +340,97 @@ class CheckHost(Script):
 
   def execute_java_home_available_check(self, config):
     Logger.info("Java home check started.")
-    java_home = config["commandParams"]["java_home"]
+    java_home = config["commandParams"].get("java_home")
+    expected_java_version = config["commandParams"].get("java_version")
 
-    Logger.info("Java home to check: " + java_home)
+    Logger.info("Java home to check: " + str(java_home))
+    if not java_home:
+      return {
+        "exit_code": 1,
+        "message": "Ambari Java home is not configured.",
+        "java_home": java_home,
+        "expected_java_version": expected_java_version,
+      }
     java_bin = "java"
-    if not os.path.isfile(os.path.join(java_home, "bin", java_bin)):
+    java_executable = os.path.join(java_home, "bin", java_bin)
+    if not os.path.isfile(java_executable):
       Logger.warning("Java home doesn't exist!")
       java_home_check_structured_output = {
         "exit_code": 1,
         "message": "Java home doesn't exist!",
+        "java_home": java_home,
+        "expected_java_version": expected_java_version,
       }
     else:
-      Logger.info("Java home exists!")
+      exit_code, version_output = shell.call(
+        [java_executable, "-version"], shell=False
+      )
+      version_match = re.search(
+        r'version\s+"([^"]+)"', version_output or "", re.IGNORECASE
+      )
+      actual_java_version = version_match.group(1) if version_match else None
+      actual_java_feature = self._java_feature_version(actual_java_version)
+      expected_java_feature = self._java_feature_version(expected_java_version)
+      runtime_line = next(
+        (
+          line.strip()
+          for line in (version_output or "").splitlines()
+          if "Runtime Environment" in line
+        ),
+        None,
+      )
+      vendor = (
+        runtime_line.split(" Runtime Environment", 1)[0]
+        if runtime_line and " Runtime Environment" in runtime_line
+        else None
+      )
+
       java_home_check_structured_output = {
         "exit_code": 0,
-        "message": "Java home exists!",
+        "message": "Java home is valid.",
+        "java_home": java_home,
+        "java_version": actual_java_version,
+        "java_vendor": vendor,
+        "java_runtime": runtime_line,
+        "expected_java_version": expected_java_version,
       }
+      if exit_code != 0 or actual_java_feature is None:
+        java_home_check_structured_output.update(
+          {
+            "exit_code": 1,
+            "message": f"Unable to run Java from {java_home}.",
+          }
+        )
+      elif (
+        expected_java_feature is not None
+        and actual_java_feature != expected_java_feature
+      ):
+        java_home_check_structured_output.update(
+          {
+            "exit_code": 1,
+            "message": (
+              f"Java at {java_home} has feature version {actual_java_feature}; "
+              f"Ambari requires feature version {expected_java_feature}."
+            ),
+          }
+        )
+      else:
+        Logger.info("Java home exists and its version is valid.")
 
     Logger.info("Java home check completed.")
     return java_home_check_structured_output
+
+  @staticmethod
+  def _java_feature_version(version):
+    if version is None:
+      return None
+    parts = str(version).split(".")
+    try:
+      feature_part = parts[1] if parts[0] == "1" else parts[0]
+      feature_match = re.match(r"\d+", feature_part)
+      return int(feature_match.group(0)) if feature_match else None
+    except IndexError:
+      return None
 
   def execute_db_connection_check(self, config, tmp_dir):
     Logger.info("DB connection check started.")

@@ -160,10 +160,11 @@ public class RootServiceResponseFactoryTest {
 
   private void verifyResponseForAmbariServer(RootServiceComponentResponse response) {
     assertEquals(ambariMetaInfo.getServerVersion(), response.getComponentVersion());
-    // all properties from config + "jdk_location" + "java.version"
-    int expectedPropertyCount = config.getAmbariProperties().size() + 2;
+    // all properties from config + "jdk_location" + Stack and Ambari Java versions
+    int expectedPropertyCount = config.getAmbariProperties().size() + 3;
     assertEquals(response.getProperties().toString(), expectedPropertyCount, response.getProperties().size());
     assertTrue(response.getProperties().containsKey("jdk_location"));
     assertTrue(response.getProperties().containsKey("java.version"));
+    assertTrue(response.getProperties().containsKey("ambari.java.version"));
   }
 }

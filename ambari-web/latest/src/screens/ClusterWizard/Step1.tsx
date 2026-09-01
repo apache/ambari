@@ -897,8 +897,9 @@ export default function Step1({ wizardName = "clusterCreation" }) {
   };
 
   const continueAfterJdkValidation = () => {
+    const stackJavaVersion = ambariProperties?.["stack.java.version"];
     const compatible = isJdkCompatible(
-      ambariProperties?.["java.version"],
+      stackJavaVersion,
       selectedStack?.min_jdk,
       selectedStack?.max_jdk,
     );
@@ -952,7 +953,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
           selectedStack?.stack_version || ""
         } version requires JDK ${selectedStack?.min_jdk || selectedStack?.max_jdk} through ${
           selectedStack?.max_jdk || selectedStack?.min_jdk
-        }, but Ambari Server uses ${ambariProperties?.["java.version"]}.`}
+        }, but the configured Stack Java uses ${ambariProperties?.["stack.java.version"]}.`}
         isOpen={showJdkWarning}
         successCallback={() => {
           setShowJdkWarning(false);

@@ -695,9 +695,10 @@ def run_java_home_checks(options, agents, server_url):
   label_check = 'Java Home location'
   step(label_check)
   url = '{0}/api/v1/requests'.format(server_url)
-  java_home = get_ambari_server_property('java.home')
+  java_home = get_ambari_server_property('ambari.java.home')
+  java_version = get_ambari_server_property('ambari.java.version') or get_ambari_server_property('java.version')
   logger.info('Ambari server java home: {0}'.format(java_home))
-  data = '{{"RequestInfo":{{"context":"Check hosts","action":"check_host","parameters":{{"threshold":"60","java_home":"{0}","jdk_location":"{1}/resources","check_execute_list":"java_home_check"}}}},"Requests/resource_filters":[{{"hosts":"{2}"}}]}}'.format(java_home, server_url, ','.join(agents))
+  data = '{{"RequestInfo":{{"context":"Check hosts","action":"check_host","parameters":{{"threshold":"60","java_home":"{0}","java_version":"{1}","jdk_location":"{2}/resources","check_execute_list":"java_home_check"}}}},"Requests/resource_filters":[{{"hosts":"{3}"}}]}}'.format(java_home, java_version, server_url, ','.join(agents))
   logger.debug('Java home check data {0}'.format(data))
   task_results_by_hosts, results_to_print = run_check(options, url, label_check, data)
   java_home_check_parser(task_results_by_hosts, results_to_print)
