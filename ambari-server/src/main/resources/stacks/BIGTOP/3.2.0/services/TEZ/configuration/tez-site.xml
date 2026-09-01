@@ -74,7 +74,7 @@
   </property>
   <property>
     <name>tez.am.launch.cmd-opts</name>
-    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB{{heap_dump_opts}}</value>
+    <value>-verbose:gc -Xlog:gc*,safepoint::time,uptime -XX:+UseNUMA -XX:+UseParallelGC{{heap_dump_opts}}</value>
     <description>Java options for the Tez AppMaster process. The Xmx value is derived based on tez.am.resource.memory.mb and is 80% of the value by default.
       Used only if the value is not specified explicitly by the DAG definition.
     </description>
@@ -82,7 +82,7 @@
   </property>
   <property>
     <name>tez.am.launch.cluster-default.cmd-opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true</value>
+    <value>-server -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>Cluster default Java options for the Tez AppMaster process. These will be prepended to the properties specified via tez.am.launch.cmd-opts</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -120,7 +120,7 @@
   </property>
   <property>
     <name>tez.task.launch.cmd-opts</name>
-    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB{{heap_dump_opts}}</value>
+    <value>-verbose:gc -Xlog:gc*,safepoint::time,uptime -XX:+UseNUMA -XX:+UseParallelGC{{heap_dump_opts}}</value>
     <description>Java options for tasks. The Xmx value is derived based on tez.task.resource.memory.mb and is 80% of this value by default.
       Used only if the value is not specified explicitly by the DAG definition.
     </description>
@@ -128,7 +128,7 @@
   </property>
   <property>
     <name>tez.task.launch.cluster-default.cmd-opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true</value>
+    <value>-server -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>Cluster default Java options for tasks. These will be prepended to the properties specified via tez.task.launch.cmd-opts</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -523,12 +523,6 @@
     <name>tez.history.logging.timeline-cache-plugin.old-num-dags-per-group</name>
     <value>5</value>
     <description>DAGs per group</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>yarn.timeline-service.enabled</name>
-    <value>false</value>
-    <description>Timeline service version we&#x2019;re currently using.</description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

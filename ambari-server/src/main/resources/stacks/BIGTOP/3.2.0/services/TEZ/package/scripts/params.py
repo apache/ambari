@@ -18,12 +18,4 @@ limitations under the License.
 
 """
 
-from ambari_commons import OSCheck
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.copy_tarball import (
-  get_sysprep_skip_copy_tarballs_hdfs,
-)
-
 from params_linux import *
-
-sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()

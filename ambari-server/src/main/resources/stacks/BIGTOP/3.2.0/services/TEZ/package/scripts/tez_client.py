@@ -21,21 +21,15 @@ Ambari Agent
 """
 
 import os
-import urllib.parse
 
-from ambari_commons import OSConst
-from ambari_commons.inet_utils import download_file
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons.os_utils import copy_file, extract_path_component
 
 from resource_management.core.exceptions import ClientComponentHasNoStatus
-from resource_management.core.source import InlineTemplate
+from resource_management.libraries.functions import lzo_utils
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
 
 from tez import tez
@@ -100,6 +94,7 @@ class TezClientLinux(TezClient):
     import params
 
     self.install_packages(env)
+    lzo_utils.install_lzo_if_needed()
     self.configure(env, config_dir=params.tez_conf_dir)
 
 

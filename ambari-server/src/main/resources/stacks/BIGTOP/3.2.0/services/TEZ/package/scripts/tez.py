@@ -27,10 +27,10 @@ import os
 from resource_management.core.resources.system import Directory, File
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import lzo_utils
 from resource_management.core.source import InlineTemplate
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
+import tez_utils
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -41,32 +41,35 @@ def tez(config_dir):
   """
   import params
 
-  # ensure that matching LZO libraries are installed for Tez
-  lzo_utils.install_lzo_if_needed()
-
   if config_dir is None:
     config_dir = params.tez_conf_dir
-
-  Directory(params.tez_conf_dir, mode=0o755)
+  tez_utils.validate_absolute_path(config_dir, "Tez configuration directory")
 
   Directory(
-    config_dir, owner=params.tez_user, group=params.user_group, create_parents=True
+    config_dir,
+    owner=params.tez_user,
+    group=params.user_group,
+    mode=0o755,
+    create_parents=True,
   )
 
   XmlConfig(
     "tez-site.xml",
     conf_dir=config_dir,
     configurations=params.tez_site_config,
-    configuration_attributes=params.config["configurationAttributes"]["tez-site"],
+    configuration_attributes=params.config.get("configurationAttributes", {}).get(
+      "tez-site", {}
+    ),
     owner=params.tez_user,
     group=params.user_group,
-    mode=0o664,
+    mode=0o644,
   )
 
   tez_env_file_path = os.path.join(config_dir, "tez-env.sh")
   File(
     tez_env_file_path,
     owner=params.tez_user,
+    group=params.user_group,
     content=InlineTemplate(params.tez_env_sh_template),
-    mode=0o555,
+    mode=0o644,
   )

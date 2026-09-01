@@ -100,13 +100,6 @@
         <config-type>hive-site</config-type>
       </configuration-dependencies>
 
-      <themes>
-        <theme>
-          <fileName>directories.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
-
     </service>
   </services>
 </metainfo>
