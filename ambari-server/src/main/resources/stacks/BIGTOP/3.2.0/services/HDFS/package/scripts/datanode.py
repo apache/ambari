@@ -28,7 +28,6 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions import format
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
@@ -129,14 +128,19 @@ class DataNode(Script):
     # override stock retry timeouts since after 30 seconds, the datanode is
     # marked as dead and can affect HBase during RU
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-    command = format(
-      "{dfsadmin_base_command} -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo {dfs_dn_ipc_address}"
+    command = dfsadmin_base_command + (
+      "-D",
+      "ipc.client.connect.max.retries=5",
+      "-D",
+      "ipc.client.connect.retry.interval=1000",
+      "-getDatanodeInfo",
+      params.dfs_dn_ipc_address,
     )
 
     is_datanode_deregistered = False
     try:
       shell.checked_call(command, user=params.hdfs_user, tries=1)
-    except:
+    except Exception:
       is_datanode_deregistered = True
 
     if not is_datanode_deregistered:

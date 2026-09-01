@@ -18,15 +18,12 @@ limitations under the License.
 
 """
 
-import re
-
 import hdfs_process
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.core import shell
-from resource_management.libraries.functions import format
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core import ComponentIsNotRunning
 from utils import get_dfsadmin_base_command
@@ -39,7 +36,8 @@ def pre_rolling_upgrade_shutdown(hdfs_binary):
   "getDatanodeInfo" to ensure the DataNode has shutdown correctly.
   This function will obtain the Kerberos ticket if security is enabled.
   :param hdfs_binary: name/path of the HDFS binary to use
-  :return: Return True if ran ok (even with errors), and False if need to stop the datanode forcefully.
+  :return: True when the graceful shutdown command succeeds, otherwise False
+    so the caller can stop the DataNode forcefully.
   """
   import params
 
@@ -50,18 +48,19 @@ def pre_rolling_upgrade_shutdown(hdfs_binary):
     Execute(params.dn_kinit_cmd, user=params.hdfs_user)
 
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-  command = format(
-    "{dfsadmin_base_command} -shutdownDatanode {dfs_dn_ipc_address} upgrade"
+  command = dfsadmin_base_command + (
+    "-shutdownDatanode",
+    params.dfs_dn_ipc_address,
+    "upgrade",
   )
 
   code, output = shell.call(command, user=params.hdfs_user)
   if code != 0:
-    # Due to bug HDFS-7533, DataNode may not always shutdown during stack upgrade, and it is necessary to kill it.
-    if output is not None and re.search("Shutdown already in progress", output):
-      Logger.error(
-        f"Due to a known issue in DataNode, the command {command} did not work, so will need to shutdown the datanode forcefully."
-      )
-      return False
+    Logger.warning(
+      "DataNode graceful shutdown failed with exit code "
+      f"{code}; falling back to the normal stop path. Output: {output!r}"
+    )
+    return False
   return True
 
 
@@ -121,10 +120,12 @@ def _check_datanode_startup(hdfs_binary):
 
   try:
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-    command = dfsadmin_base_command + " -report -live"
+    command = dfsadmin_base_command + ("-report", "-live")
     return_code, hdfs_output = shell.call(command, user=params.hdfs_user)
-  except:
-    raise Fail("Unable to determine if the DataNode has started after upgrade.")
+  except Exception as error:
+    raise Fail(
+      "Unable to determine if the DataNode has started after upgrade."
+    ) from error
 
   if return_code == 0:
     hostname = params.hostname.lower()

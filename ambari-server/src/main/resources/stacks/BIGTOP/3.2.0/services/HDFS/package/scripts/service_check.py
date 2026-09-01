@@ -22,11 +22,9 @@ import hdfs_process
 
 from resource_management.libraries.script.script import Script
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons import OSConst
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries import functions
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.core.logger import Logger
 from resource_management.core.source import StaticFile
 from resource_management.core.resources.system import Execute, File
@@ -43,8 +41,8 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
 
     env.set_params(params)
     unique = functions.get_unique_id_and_date()
-    dir = params.hdfs_tmp_dir
-    tmp_file = format("{dir}/{unique}")
+    hdfs_dir = params.hdfs_tmp_dir
+    tmp_file = format("{hdfs_dir}/{unique}")
 
     """
     Ignore checking safemode, because this command is unable to get safemode state
@@ -52,8 +50,6 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     test HDFS availability by file system operations is consistent in both HA and
     non-HA environment.
     """
-    # safemode_command = format("dfsadmin -fs {namenode_address} -safemode get | grep OFF")
-
     if params.security_enabled:
       Execute(
         (
@@ -64,16 +60,8 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
         ),
         user=params.hdfs_user,
       )
-    # ExecuteHadoop(safemode_command,
-    #              user=params.hdfs_user,
-    #              logoutput=True,
-    #              conf_dir=params.hadoop_conf_dir,
-    #              try_sleep=3,
-    #              tries=20,
-    #              bin_dir=params.hadoop_bin_dir
-    # )
     params.HdfsResource(
-      dir, type="directory", action="create_on_execute", mode=0o1777
+      hdfs_dir, type="directory", action="create_on_execute", mode=0o1777
     )
     params.HdfsResource(
       tmp_file,
@@ -81,11 +69,6 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
       action="delete_on_execute",
     )
 
-    # params.HdfsResource(tmp_file,
-    #                    type="file",
-    #                    source="/etc/passwd",
-    #                    action="create_on_execute"
-    # )
     params.HdfsResource(None, action="execute")
 
     if params.has_journalnode_hosts:

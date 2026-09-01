@@ -26,16 +26,13 @@ from hdfs import hdfs
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.logger import Logger
-from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory
-from resource_management.core.resources.service import Service
 from resource_management.core import shell
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
-from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import Fail, ComponentIsNotRunning
 from resource_management.core.resources.system import Execute
 
@@ -57,7 +54,6 @@ class ZkfcSlave(Script):
     env.set_params(params)
     hdfs("zkfc_slave")
     utils.set_up_zkfc_security(params)
-    pass
 
   def format(self, env):
     import params
@@ -67,7 +63,7 @@ class ZkfcSlave(Script):
     utils.set_up_zkfc_security(params)
 
     Execute(
-      "hdfs zkfc -formatZK -nonInteractive",
+      ("hdfs", "zkfc", "-formatZK", "-nonInteractive"),
       returns=[0, 2],  # Returns 0 on success ; Returns 2 if zkfc is already formatted
       user=params.hdfs_user,
       logoutput=True,
@@ -186,7 +182,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
 def initialize_ha_zookeeper(params):
   try:
     iterations = 10
-    formatZK_cmd = "hdfs zkfc -formatZK -nonInteractive"
+    formatZK_cmd = ("hdfs", "zkfc", "-formatZK", "-nonInteractive")
     Logger.info(f"Initialize HA state in ZooKeeper: {formatZK_cmd}")
     for i in range(iterations):
       Logger.info("Try %d out of %d" % (i + 1, iterations))

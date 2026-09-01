@@ -27,7 +27,6 @@ def is_balancer_running():
   import params
 
   check_balancer_command = "fs -test -e /system/balancer.id"
-  does_hdfs_file_exist = False
   try:
     _print("Checking if the balancer is running ...")
     ExecuteHadoop(
@@ -38,12 +37,11 @@ def is_balancer_running():
       bin_dir=params.hadoop_bin_dir,
     )
 
-    does_hdfs_file_exist = True
     _print("Balancer is running. ")
   except Fail:
-    pass
+    return False
 
-  return does_hdfs_file_exist
+  return True
 
 
 def _print(line):

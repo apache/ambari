@@ -18,9 +18,12 @@ limitations under the License.
 
 """
 
-import os
-import urllib.request, urllib.error, urllib.parse
 import json
+import os
+import re
+import time
+import urllib.parse
+import urllib.request
 
 import hdfs_process
 
@@ -36,11 +39,31 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.namenode_ha_utils import (
+  get_name_service_by_hostname,
   get_namenode_states,
 )
 from resource_management.libraries.functions.show_logs import show_logs
 from ambari_commons.inet_utils import create_ssl_context
 from zkfc_slave import ZkfcSlaveDefault
+
+
+SUPPORTED_SERVICE_ACTIONS = {"start", "stop"}
+SUPPORTED_SERVICE_NAMES = {
+  "datanode",
+  "dfsrouter",
+  "journalnode",
+  "namenode",
+  "nfs3",
+  "secondarynamenode",
+  "zkfc",
+}
+SUPPORTED_SERVICE_OPTIONS = {
+  "",
+  "-rollingUpgrade downgrade",
+  "-rollingUpgrade started",
+}
+SERVICE_USER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]*[$]?\Z")
+
 
 def safe_zkfc_op(action, env):
   """
@@ -48,15 +71,17 @@ def safe_zkfc_op(action, env):
   :param action: start or stop
   :param env: environment
   """
+  if action not in SUPPORTED_SERVICE_ACTIONS:
+    raise Fail(f"Unsupported ZKFC action: {action!r}")
+
   Logger.info(f"Performing action {action} on zkfc.")
-  zkfc = None
   if action == "start":
     try:
       ZkfcSlaveDefault.status_static(env)
     except ComponentIsNotRunning:
       ZkfcSlaveDefault.start_static(env)
 
-  if action == "stop":
+  else:
     try:
       ZkfcSlaveDefault.status_static(env)
     except ComponentIsNotRunning:
@@ -115,11 +140,27 @@ def initiate_safe_zkfc_failover():
       )
     )
 
-    failover_command = format(
-      "hdfs haadmin -ns {dfs_ha_nameservices} -failover {namenode_id} {other_namenode_id}"
+    name_service = get_name_service_by_hostname(
+      params.hdfs_site, params.hostname
     )
-    check_standby_cmd = format(
-      "hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {namenode_id} | grep standby"
+    if not name_service:
+      raise Fail(f"Could not determine the HDFS nameservice for {params.hostname}")
+    failover_command = (
+      "hdfs",
+      "haadmin",
+      "-ns",
+      name_service,
+      "-failover",
+      params.namenode_id,
+      params.other_namenode_id,
+    )
+    check_standby_cmd = (
+      "hdfs",
+      "haadmin",
+      "-ns",
+      name_service,
+      "-getServiceState",
+      params.namenode_id,
     )
 
     msg = f"Rolling Upgrade - Initiating a ZKFC failover on active NameNode host {params.hostname}."
@@ -144,9 +185,18 @@ def initiate_safe_zkfc_failover():
 
     if wait_for_standby:
       Logger.info("Waiting for this NameNode to become the standby one.")
-      Execute(
-        check_standby_cmd, user=params.hdfs_user, tries=50, try_sleep=6, logoutput=True
-      )
+      for attempt in range(50):
+        code, output = shell.call(
+          check_standby_cmd,
+          user=params.hdfs_user,
+          logoutput=True,
+        )
+        if code == 0 and output and output.strip().lower() == "standby":
+          break
+        if attempt + 1 < 50:
+          time.sleep(6)
+      else:
+        raise Fail("NameNode did not transition to standby after ZKFC failover")
   else:
     msg = (
       f"Rolling Upgrade - Skipping ZKFC failover on NameNode host {params.hostname}."
@@ -198,13 +248,21 @@ def service(
   import params
 
   options = options if options else ""
+  if action not in SUPPORTED_SERVICE_ACTIONS:
+    raise Fail(f"Unsupported HDFS service action: {action!r}")
+  if name not in SUPPORTED_SERVICE_NAMES:
+    raise Fail(f"Unsupported HDFS service name: {name!r}")
+  if options not in SUPPORTED_SERVICE_OPTIONS:
+    raise Fail(f"Unsupported HDFS service options: {options!r}")
+  if not isinstance(user, str) or SERVICE_USER_PATTERN.fullmatch(user) is None:
+    raise Fail(f"Invalid HDFS service user: {user!r}")
+
   pid_dir = format("{hadoop_pid_dir_prefix}/{user}")
   pid_file = format("{pid_dir}/hadoop-{user}-{name}.pid")
   hadoop_env_exports = {"HADOOP_LIBEXEC_DIR": params.hadoop_libexec_dir}
   log_dir = format("{hdfs_log_dir_prefix}/{user}")
 
-  # NFS GATEWAY is always started by root using jsvc due to rpcbind bugs
-  # on Linux such as CentOS6.2. https://bugzilla.redhat.com/show_bug.cgi?id=731542
+  # NFS Gateway is started by root because it binds privileged RPC ports.
   if name == "nfs3":
     pid_file = format("{pid_dir}/hadoop_privileged_nfs3.pid")
     custom_export = {
@@ -491,20 +549,15 @@ def get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=False):
   :param hdfs_binary: path to hdfs binary to use
   :param use_specific_namenode: flag if set and Namenode HA is enabled, then the dfsadmin command will use
   current namenode's address
-  :return: the constructed dfsadmin base command
+  :return: the constructed dfsadmin command argument tuple
   """
   import params
 
-  dfsadmin_base_command = ""
   if params.dfs_ha_enabled and use_specific_namenode:
-    dfsadmin_base_command = format(
-      "{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc}"
-    )
+    filesystem = f"hdfs://{params.namenode_rpc}"
   else:
-    dfsadmin_base_command = format(
-      "{hdfs_binary} dfsadmin -fs {params.namenode_address}"
-    )
-  return dfsadmin_base_command
+    filesystem = params.namenode_address
+  return (hdfs_binary, "dfsadmin", "-fs", filesystem)
 
 
 def set_up_zkfc_security(params):

@@ -21,18 +21,16 @@ limitations under the License.
 import sys
 import os
 import json
-import tempfile
 import hashlib
 from decimal import Decimal, InvalidOperation
 
 from ambari_commons import constants
 
 from resource_management.libraries.script.script import Script
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Directory, Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import upgrade_summary
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
   cached_kinit_executor,
@@ -102,7 +100,7 @@ class NameNode(Script):
 
     env.set_params(params)
     self.install_packages(env)
-    # TODO we need this for HA because of manual steps
+    # HA deployment workflows require the NameNode configuration during install.
     self.configure(env)
 
   def configure(self, env):
@@ -144,11 +142,20 @@ class NameNode(Script):
     hdfs_cluster_id = get_hdfs_cluster_id_from_jmx(
       params.hdfs_site, params.security_enabled, params.hdfs_user
     )
+    if not isinstance(hdfs_cluster_id, str) or not hdfs_cluster_id.strip():
+      raise Fail("Could not determine the HDFS cluster ID before formatting")
 
     # this is run on a new namenode, format needs to be forced
     Execute(
-      format(
-        "hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive -clusterId {hdfs_cluster_id}"
+      (
+        "hdfs",
+        "--config",
+        params.hadoop_conf_dir,
+        "namenode",
+        "-format",
+        "-nonInteractive",
+        "-clusterId",
+        hdfs_cluster_id,
       ),
       user=params.hdfs_user,
       path=[params.hadoop_bin_dir],
@@ -164,9 +171,10 @@ class NameNode(Script):
       Execute(params.nn_kinit_cmd, user=params.hdfs_user)
 
     Execute(
-      "hdfs namenode -bootstrapStandby -nonInteractive",
+      ("hdfs", "namenode", "-bootstrapStandby", "-nonInteractive"),
       user=params.hdfs_user,
       logoutput=True,
+      path=[params.hadoop_bin_dir],
     )
 
   def start(self, env, upgrade_type=None):
@@ -236,7 +244,7 @@ class NameNode(Script):
 
     env.set_params(params)
     Execute(
-      "hdfs dfsadmin -printTopology",
+      ("hdfs", "dfsadmin", "-printTopology"),
       user=params.hdfs_user,
       path=[params.hadoop_bin_dir],
       logoutput=True,
@@ -245,13 +253,6 @@ class NameNode(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class NameNodeDefault(NameNode):
-  def restore_snapshot(self, env):
-    """
-    Restore the snapshot during a Downgrade.
-    """
-    print("TODO AMBARI-12698")
-    pass
-
   def prepare_express_upgrade(self, env):
     """
     During an Express Upgrade.
@@ -335,7 +336,7 @@ class NameNodeDefault(NameNode):
 
     hdfs_binary = self.get_hdfs_binary()
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-    dfsadmin_cmd = dfsadmin_base_command + " -report -live"
+    dfsadmin_cmd = dfsadmin_base_command + ("-report", "-live")
     Execute(dfsadmin_cmd, user=params.hdfs_user, tries=60, try_sleep=10)
 
   def rebalancehdfs(self, env):
@@ -352,15 +353,23 @@ class NameNodeDefault(NameNode):
       # Create the kerberos credentials cache (ccache) file and set it in the environment to use
       # when executing HDFS rebalance command. Use the sha224 hash of the combination of the principal and keytab file
       # to generate a (relatively) unique cache filename so that we can use it as needed.
-      # TODO: params.tmp_dir=/var/lib/ambari-agent/tmp. However hdfs user doesn't have access to this path.
-      # TODO: Hence using /tmp
       ccache_file_name = (
         "hdfs_rebalance_cc_"
         + HASH_ALGORITHM(
-          format("{hdfs_principal_name}|{hdfs_user_keytab}").encode()
+          f"{params.hdfs_principal_name}|{params.hdfs_user_keytab}".encode()
         ).hexdigest()
       )
-      ccache_file_path = os.path.join(tempfile.gettempdir(), ccache_file_name)
+      ccache_dir = os.path.join(
+        params.hadoop_pid_dir_prefix, params.hdfs_user, "ambari-ccache"
+      )
+      Directory(
+        ccache_dir,
+        owner=params.hdfs_user,
+        group=params.user_group,
+        mode=0o700,
+        create_parents=True,
+      )
+      ccache_file_path = os.path.join(ccache_dir, ccache_file_name)
       rebalance_env["KRB5CCNAME"] = ccache_file_path
 
       # If there are no tickets in the cache or they are expired, perform a kinit, else use what

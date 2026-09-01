@@ -18,6 +18,8 @@ limitations under the License.
 
 """
 
+from urllib.parse import urlparse
+
 from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.default import default
@@ -89,16 +91,20 @@ class NamenodeHAState:
         http_value = default("/configurations/hdfs-site/" + http_key, None)
         https_value = default("/configurations/hdfs-site/" + https_key, None)
         actual_value = https_value if self.encrypted else http_value
-        hostname = (
-          actual_value.split(":")[0].strip()
-          if actual_value and ":" in actual_value
-          else None
-        )
+        parsed_address = urlparse(f"//{actual_value}") if actual_value else None
+        try:
+          hostname = parsed_address.hostname if parsed_address else None
+          port = parsed_address.port if parsed_address else None
+        except ValueError:
+          hostname = None
+          port = None
 
         self.nn_unique_id_to_addresses[nn_unique_id] = (http_value, https_value)
         try:
-          if not hostname:
-            raise Exception("Could not retrieve hostname from address " + actual_value)
+          if not hostname or port is None:
+            raise ValueError(
+              f"Could not retrieve host and port from address {actual_value!r}"
+            )
 
           jmx_uri = jmx_uri_fragment.format(actual_value)
           state = get_value_from_jmx(
@@ -113,13 +119,19 @@ class NamenodeHAState:
           if not state:
             run_user = default("/configurations/hadoop-env/hdfs_user", "hdfs")
             check_service_cmd = (
-              f"hdfs haadmin -ns {name_service} -getServiceState {nn_unique_id}"
+              "hdfs",
+              "haadmin",
+              "-ns",
+              name_service,
+              "-getServiceState",
+              nn_unique_id,
             )
             code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
             if code == 0 and out:
-              if NAMENODE_STATE.STANDBY in out:
+              reported_state = out.strip().lower()
+              if reported_state == NAMENODE_STATE.STANDBY:
                 state = NAMENODE_STATE.STANDBY
-              elif NAMENODE_STATE.ACTIVE in out:
+              elif reported_state == NAMENODE_STATE.ACTIVE:
                 state = NAMENODE_STATE.ACTIVE
 
           if not state:
@@ -139,8 +151,10 @@ class NamenodeHAState:
               ]
             )
             self.namenode_state_to_hostnames[state] = hostnames
-        except:
-          Logger.error("Could not get namenode state for " + nn_unique_id)
+        except Exception as error:
+          Logger.error(
+            f"Could not get NameNode state for {nn_unique_id}: {error}"
+          )
 
   def __str__(self):
     return (

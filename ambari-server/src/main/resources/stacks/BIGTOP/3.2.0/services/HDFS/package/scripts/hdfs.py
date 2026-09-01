@@ -203,26 +203,52 @@ class ConfigStatusParser:
 def reconfig(componentName, componentAddress):
   import params
 
+  if componentName not in {"namenode", "datanode", "router"}:
+    raise Fail(f"Unsupported HDFS reconfiguration component: {componentName!r}")
+  if (
+    not isinstance(componentAddress, str)
+    or componentAddress != componentAddress.strip()
+    or not componentAddress
+  ):
+    raise Fail(f"Invalid HDFS reconfiguration address: {componentAddress!r}")
+
   if params.security_enabled:
     Execute(params.nn_kinit_cmd, user=params.hdfs_user)
 
-  nn_reconfig_cmd = format(
-    "hdfs --config {hadoop_conf_dir} dfsadmin -reconfig {componentName} {componentAddress} start"
+  nn_reconfig_cmd = (
+    "hdfs",
+    "--config",
+    params.hadoop_conf_dir,
+    "dfsadmin",
+    "-reconfig",
+    componentName,
+    componentAddress,
+    "start",
   )
 
   Execute(
-    nn_reconfig_cmd, user=params.hdfs_user, logoutput=True, path=params.hadoop_bin_dir
+    nn_reconfig_cmd,
+    user=params.hdfs_user,
+    logoutput=True,
+    path=[params.hadoop_bin_dir],
   )
 
-  nn_reconfig_cmd = format(
-    "hdfs --config {hadoop_conf_dir} dfsadmin -reconfig {componentName} {componentAddress} status"
+  nn_reconfig_cmd = (
+    "hdfs",
+    "--config",
+    params.hadoop_conf_dir,
+    "dfsadmin",
+    "-reconfig",
+    componentName,
+    componentAddress,
+    "status",
   )
   config_status_parser = ConfigStatusParser()
   Execute(
     nn_reconfig_cmd,
     user=params.hdfs_user,
     logoutput=False,
-    path=params.hadoop_bin_dir,
+    path=[params.hadoop_bin_dir],
     on_new_line=config_status_parser.handle_new_line,
   )
 

@@ -24,7 +24,6 @@ from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import Direction
-from resource_management.libraries.functions.format import format
 
 
 def setup_ranger_hdfs(upgrade_type=None):
@@ -163,7 +162,7 @@ def setup_ranger_hdfs(upgrade_type=None):
         Execute(
           ("mv", source_file, target_file),
           sudo=True,
-          only_if=format("test -f {source_file}"),
+          only_if=("test", "-f", source_file),
         )
   else:
     Logger.info("Ranger Hdfs plugin is not enabled")

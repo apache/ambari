@@ -25,7 +25,6 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import Directory, File
 from resource_management.core import shell
-from resource_management.core.shell import as_user
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_unique_id_and_date
@@ -86,7 +85,7 @@ def prepare_upgrade_enter_safe_mode(hdfs_binary):
   import params
 
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-  safe_mode_enter_cmd = dfsadmin_base_command + " -safemode enter"
+  safe_mode_enter_cmd = dfsadmin_base_command + ("-safemode", "enter")
   try:
     # Safe to call if already in Safe Mode
     desired_state = SafeMode.ON
@@ -101,9 +100,12 @@ def prepare_upgrade_enter_safe_mode(hdfs_binary):
         f"Could not transition to safemode state {str(desired_state)}. Please check logs to make sure namenode is up."
       )
   except Exception as e:
-    message = f"Could not enter safemode. Error: {str(e)}. As the HDFS user, call this command: {safe_mode_enter_cmd}"
+    message = (
+      f"Could not enter safemode. Error: {str(e)}. As the HDFS user, call "
+      f"this command: {' '.join(safe_mode_enter_cmd)}"
+    )
     Logger.error(message)
-    raise Fail(message)
+    raise Fail(message) from e
 
 
 def prepare_upgrade_save_namespace(hdfs_binary):
@@ -114,16 +116,22 @@ def prepare_upgrade_save_namespace(hdfs_binary):
   import params
 
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-  save_namespace_cmd = dfsadmin_base_command + " -saveNamespace"
+  save_namespace_cmd = dfsadmin_base_command + ("-saveNamespace",)
   try:
     Logger.info("Checkpoint the current namespace.")
-    as_user(save_namespace_cmd, params.hdfs_user, env={"PATH": params.hadoop_bin_dir})
+    Execute(
+      save_namespace_cmd,
+      user=params.hdfs_user,
+      environment={"PATH": params.hadoop_bin_dir},
+      logoutput=True,
+    )
   except Exception as e:
-    message = format(
-      "Could not save the NameSpace. As the HDFS user, call this command: {save_namespace_cmd}"
+    message = (
+      "Could not save the NameSpace. As the HDFS user, call this command: "
+      f"{' '.join(save_namespace_cmd)}"
     )
     Logger.error(message)
-    raise Fail(message)
+    raise Fail(message) from e
 
 
 def prepare_upgrade_backup_namenode_dir():
@@ -191,7 +199,7 @@ def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):
   import params
 
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-  finalize_command = dfsadmin_base_command + " -rollingUpgrade finalize"
+  finalize_command = dfsadmin_base_command + ("-rollingUpgrade", "finalize")
   try:
     Logger.info(
       "Attempt to Finalize if there are any in-progress upgrades. "
@@ -208,7 +216,7 @@ def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):
         )
     else:
       Logger.warning("Finalize command did not return any output.")
-  except Exception as e:
+  except Exception:
     Logger.warning("Ensure no upgrades are in progress.")
 
 
@@ -228,11 +236,7 @@ def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
   original_state = SafeMode.UNKNOWN
 
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-  safemode_base_command = dfsadmin_base_command + " -safemode "
-  safemode_check_cmd = safemode_base_command + " get"
-
-  grep_pattern = format("Safe mode is {safemode_state}")
-  safemode_check_with_grep = format("{safemode_check_cmd} | grep '{grep_pattern}'")
+  safemode_check_cmd = dfsadmin_base_command + ("-safemode", "get")
 
   code, out = shell.call(safemode_check_cmd, user=user, logoutput=True)
   Logger.info("Command: %s\nCode: %d." % (safemode_check_cmd, code))
@@ -248,14 +252,17 @@ def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
         return (True, original_state)
       else:
         # Make a transition
-        command = safemode_base_command + safemode_to_instruction[safemode_state]
+        command = dfsadmin_base_command + (
+          "-safemode",
+          safemode_to_instruction[safemode_state],
+        )
         Execute(command, user=user, logoutput=True, path=[params.hadoop_bin_dir])
 
-        code, out = shell.call(safemode_check_with_grep, user=user)
+        code, out = shell.call(safemode_check_cmd, user=user)
         Logger.info(
-          "Command: %s\nCode: %d. Out: %s" % (safemode_check_with_grep, code, out)
+          "Command: %s\nCode: %d. Out: %s" % (safemode_check_cmd, code, out)
         )
-        if code == 0:
+        if code == 0 and out and f"Safe mode is {safemode_state}" in out:
           return (True, original_state)
   return (False, original_state)
 
@@ -304,8 +311,8 @@ def prepare_rolling_upgrade(hdfs_binary):
         )
 
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-    prepare = dfsadmin_base_command + " -rollingUpgrade prepare"
-    query = dfsadmin_base_command + " -rollingUpgrade query"
+    prepare = dfsadmin_base_command + ("-rollingUpgrade", "prepare")
+    query = dfsadmin_base_command + ("-rollingUpgrade", "query")
     Execute(prepare, user=params.hdfs_user, logoutput=True)
     Execute(query, user=params.hdfs_user, logoutput=True)
 
@@ -329,8 +336,8 @@ def finalize_upgrade(upgrade_type, hdfs_binary):
     Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-  finalize_cmd = dfsadmin_base_command + " -rollingUpgrade finalize"
-  query_cmd = dfsadmin_base_command + " -rollingUpgrade query"
+  finalize_cmd = dfsadmin_base_command + ("-rollingUpgrade", "finalize")
+  query_cmd = dfsadmin_base_command + ("-rollingUpgrade", "query")
 
   Execute(query_cmd, user=params.hdfs_user, logoutput=True)
   Execute(finalize_cmd, user=params.hdfs_user, logoutput=True)
@@ -356,14 +363,14 @@ def create_upgrade_marker():
   If the file already exists, nothing will be done. This will silently log exceptions on failure.
   :return:
   """
-  # create the marker file which indicates
+  namenode_upgrade_in_progress_marker = get_upgrade_in_progress_marker()
   try:
-    namenode_upgrade_in_progress_marker = get_upgrade_in_progress_marker()
     if not os.path.isfile(namenode_upgrade_in_progress_marker):
       File(namenode_upgrade_in_progress_marker)
-  except:
+  except Exception as error:
     Logger.warning(
-      f"Unable to create NameNode upgrade marker file {namenode_upgrade_in_progress_marker}"
+      "Unable to create NameNode upgrade marker file "
+      f"{namenode_upgrade_in_progress_marker}: {error}"
     )
 
 
@@ -376,12 +383,14 @@ def delete_upgrade_marker():
   an exception if the file can't be removed.
   :return:
   """
-  # create the marker file which indicates
+  namenode_upgrade_in_progress_marker = get_upgrade_in_progress_marker()
   try:
-    namenode_upgrade_in_progress_marker = get_upgrade_in_progress_marker()
     if os.path.isfile(namenode_upgrade_in_progress_marker):
       File(namenode_upgrade_in_progress_marker, action="delete")
-  except:
-    error_message = f"Unable to remove NameNode upgrade marker file {namenode_upgrade_in_progress_marker}"
+  except Exception as error:
+    error_message = (
+      "Unable to remove NameNode upgrade marker file "
+      f"{namenode_upgrade_in_progress_marker}"
+    )
     Logger.error(error_message)
-    raise Fail(error_message)
+    raise Fail(error_message) from error

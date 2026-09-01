@@ -75,7 +75,9 @@ HDFS_ROUTER = load_script(
 
 HDFS_UTILS = dependency_module(
   "utils",
-  get_dfsadmin_base_command=MagicMock(return_value="hdfs dfsadmin"),
+  get_dfsadmin_base_command=MagicMock(
+    return_value=("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
+  ),
   set_up_zkfc_security=MagicMock(),
   service=MagicMock(),
   safe_zkfc_op=MagicMock(),
@@ -101,7 +103,10 @@ NAMENODE_UPGRADE = load_script(
   "namenode_upgrade.py",
   {
     "utils": dependency_module(
-      "utils", get_dfsadmin_base_command=MagicMock(return_value="hdfs dfsadmin")
+      "utils",
+      get_dfsadmin_base_command=MagicMock(
+        return_value=("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
+      ),
     ),
     "namenode_ha_state": dependency_module(
       "namenode_ha_state", NamenodeHAState=MagicMock
@@ -120,6 +125,19 @@ HDFS_RUNTIME_UTILS = load_script(
   {
     "hdfs_process": HDFS_PROCESS,
     "zkfc_slave": dependency_module("zkfc_slave", ZkfcSlaveDefault=MagicMock),
+  },
+)
+DATANODE_UPGRADE = load_script(
+  "bigtop_hdfs_datanode_upgrade",
+  "datanode_upgrade.py",
+  {
+    "hdfs_process": HDFS_PROCESS,
+    "utils": dependency_module(
+      "utils",
+      get_dfsadmin_base_command=MagicMock(
+        return_value=("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
+      ),
+    ),
   },
 )
 
@@ -143,7 +161,9 @@ NAMENODE = load_script(
       "utils",
       initiate_safe_zkfc_failover=MagicMock(),
       get_hdfs_binary=MagicMock(return_value="hdfs"),
-      get_dfsadmin_base_command=MagicMock(return_value="hdfs dfsadmin"),
+      get_dfsadmin_base_command=MagicMock(
+        return_value=("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
+      ),
     ),
   },
 )
@@ -515,6 +535,61 @@ class TestHdfsBigtop(unittest.TestCase):
       privileged=False,
     )
 
+  def test_service_rejects_untrusted_command_fields_before_execution(self):
+    params = params_module()
+    for arguments in (
+      {"action": "restart", "name": "namenode", "user": "hdfs"},
+      {"action": "start", "name": "namenode; id", "user": "hdfs"},
+      {
+        "action": "start",
+        "name": "namenode",
+        "user": "hdfs",
+        "options": "-rollingUpgrade started; id",
+      },
+      {"action": "start", "name": "namenode", "user": "hdfs; id"},
+    ):
+      with (
+        self.subTest(arguments=arguments),
+        patch.dict(sys.modules, {"params": params}),
+        patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute,
+      ):
+        with self.assertRaises(Fail):
+          HDFS_RUNTIME_UTILS.service(**arguments)
+        execute.assert_not_called()
+
+    with self.assertRaisesRegex(Fail, "Unsupported ZKFC action"):
+      HDFS_RUNTIME_UTILS.safe_zkfc_op("restart", MagicMock())
+
+  def test_failed_graceful_datanode_shutdown_uses_stop_fallback(self):
+    params = params_module(
+      security_enabled=False,
+      hdfs_user="hdfs",
+      dfs_dn_ipc_address="datanode.example.com:9867",
+    )
+    base_command = ("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(
+        DATANODE_UPGRADE,
+        "get_dfsadmin_base_command",
+        return_value=base_command,
+      ),
+      patch.object(
+        DATANODE_UPGRADE.shell,
+        "call",
+        return_value=(1, "permission denied"),
+      ) as shell_call,
+    ):
+      self.assertFalse(
+        DATANODE_UPGRADE.pre_rolling_upgrade_shutdown("hdfs")
+      )
+
+    shell_call.assert_called_once_with(
+      base_command
+      + ("-shutdownDatanode", "datanode.example.com:9867", "upgrade"),
+      user="hdfs",
+    )
+
   def test_hdfs_network_port_parser_rejects_partial_and_unsafe_values(self):
     self.assertEqual(9866, HDFS_RUNTIME_UTILS.get_port("0.0.0.0:9866"))
     self.assertEqual(9867, HDFS_RUNTIME_UTILS.get_port("https://[::1]:9867"))
@@ -530,6 +605,181 @@ class TestHdfsBigtop(unittest.TestCase):
       with self.subTest(address=address):
         with self.assertRaisesRegex(Fail, "Invalid HDFS network address"):
           HDFS_RUNTIME_UTILS.get_port(address)
+
+  def test_secure_rebalance_uses_private_runtime_ccache_directory(self):
+    script = object.__new__(NAMENODE.NameNodeDefault)
+    params = params_module(
+      name_node_params=json.dumps({"threshold": 10}),
+      hadoop_bin_dir="/usr/bin",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      hadoop_pid_dir_prefix="/run/hadoop",
+      security_enabled=True,
+      hdfs_user="hdfs",
+      user_group="hadoop",
+      hdfs_principal_name="hdfs/namenode.example.com@EXAMPLE.COM",
+      hdfs_user_keytab="/etc/security/keytabs/nn.service.keytab",
+      klist_path_local="/usr/bin/klist",
+      kinit_path_local="/usr/bin/kinit",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(NAMENODE, "Directory") as directory,
+      patch.object(NAMENODE.shell, "call", return_value=(1, "")),
+      patch.object(NAMENODE, "Execute"),
+      patch.object(
+        NAMENODE.hdfs_rebalance, "is_balancer_running", return_value=False
+      ),
+    ):
+      script.rebalancehdfs(MagicMock())
+
+    directory.assert_called_once_with(
+      "/run/hadoop/hdfs/ambari-ccache",
+      owner="hdfs",
+      group="hadoop",
+      mode=0o700,
+      create_parents=True,
+    )
+
+  def test_dfsadmin_base_command_keeps_filesystem_as_one_argument(self):
+    params = params_module(
+      dfs_ha_enabled=False,
+      namenode_address="namenode.example.com:8020; touch /tmp/unsafe",
+      namenode_rpc="namenode.example.com:8020",
+    )
+    with patch.dict(sys.modules, {"params": params}):
+      command = HDFS_RUNTIME_UTILS.get_dfsadmin_base_command("hdfs")
+    self.assertEqual(
+      (
+        "hdfs",
+        "dfsadmin",
+        "-fs",
+        "namenode.example.com:8020; touch /tmp/unsafe",
+      ),
+      command,
+    )
+
+    params.dfs_ha_enabled = True
+    with patch.dict(sys.modules, {"params": params}):
+      command = HDFS_RUNTIME_UTILS.get_dfsadmin_base_command(
+        "hdfs", use_specific_namenode=True
+      )
+    self.assertEqual(
+      ("hdfs", "dfsadmin", "-fs", "hdfs://namenode.example.com:8020"),
+      command,
+    )
+
+  def test_save_namespace_executes_and_propagates_failure(self):
+    params = params_module(hdfs_user="hdfs", hadoop_bin_dir="/usr/bin")
+    command = (
+      "hdfs",
+      "dfsadmin",
+      "-fs",
+      "hdfs://cluster",
+      "-saveNamespace",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(
+        NAMENODE_UPGRADE,
+        "get_dfsadmin_base_command",
+        return_value=command[:-1],
+      ),
+      patch.object(NAMENODE_UPGRADE, "Execute") as execute,
+    ):
+      NAMENODE_UPGRADE.prepare_upgrade_save_namespace("hdfs")
+
+    execute.assert_called_once_with(
+      command,
+      user="hdfs",
+      environment={"PATH": "/usr/bin"},
+      logoutput=True,
+    )
+
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(
+        NAMENODE_UPGRADE,
+        "get_dfsadmin_base_command",
+        return_value=command[:-1],
+      ),
+      patch.object(
+        NAMENODE_UPGRADE, "Execute", side_effect=OSError("checkpoint failed")
+      ),
+    ):
+      with self.assertRaisesRegex(Fail, "Could not save the NameSpace"):
+        NAMENODE_UPGRADE.prepare_upgrade_save_namespace("hdfs")
+
+  def test_safemode_wait_retries_with_argument_vector(self):
+    params = params_module(security_enabled=False, hdfs_user="hdfs")
+    command = (
+      "hdfs",
+      "dfsadmin",
+      "-fs",
+      "hdfs://cluster",
+      "-safemode",
+      "get",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(
+        HDFS_NAMENODE,
+        "get_dfsadmin_base_command",
+        return_value=command[:-2],
+      ),
+      patch.object(
+        HDFS_NAMENODE.shell,
+        "call",
+        side_effect=((0, "Safe mode is ON"), (0, "Safe mode is OFF")),
+      ) as shell_call,
+      patch.object(HDFS_NAMENODE.time, "sleep") as sleep,
+    ):
+      HDFS_NAMENODE.wait_for_safemode_off(
+        "hdfs", retries=2, sleep_seconds=1
+      )
+
+    self.assertEqual(
+      [call(command, user="hdfs", logoutput=True)] * 2,
+      shell_call.call_args_list,
+    )
+    self.assertEqual([call(1), call(0)], sleep.call_args_list)
+
+  def test_refresh_proxy_users_uses_configured_hdfs_argv(self):
+    params = params_module(
+      security_enabled=False,
+      dfs_ha_enabled=True,
+      namenode_rpc="namenode.example.com:8020; touch /tmp/unsafe",
+      namenode_address="hdfs://cluster",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      hadoop_bin_dir="/usr/bin",
+      hdfs_user="hdfs",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(HDFS_NAMENODE, "Execute") as execute,
+    ):
+      HDFS_NAMENODE.refreshProxyUsers()
+
+    execute.assert_called_once_with(
+      (
+        "hdfs",
+        "--config",
+        "/etc/hadoop/conf",
+        "dfsadmin",
+        "-fs",
+        "hdfs://namenode.example.com:8020; touch /tmp/unsafe",
+        "-refreshSuperUserGroupsConfiguration",
+      ),
+      user="hdfs",
+      path=["/usr/bin"],
+    )
+
+  def test_hdfs_scripts_have_no_retired_command_wrappers(self):
+    script_sources = "\n".join(
+      path.read_text(encoding="utf-8") for path in SCRIPTS.glob("*.py")
+    )
+    self.assertNotIn("ExecuteHDFS", script_sources)
+    self.assertNotIn("as_user(save_namespace_cmd", script_sources)
+    self.assertNotIn("restore_snapshot", script_sources)
 
   def test_metadata_matches_bigtop_hadoop_and_os_packages(self):
     root = ET.parse(HDFS / "metainfo.xml").getroot()
@@ -796,7 +1046,7 @@ class TestHdfsBigtop(unittest.TestCase):
 
     def render(template):
       return template.format(
-        dir=params.hdfs_tmp_dir,
+        hdfs_dir=params.hdfs_tmp_dir,
         unique="check-id",
         kinit_path_local=params.kinit_path_local,
         hdfs_user_keytab=params.hdfs_user_keytab,

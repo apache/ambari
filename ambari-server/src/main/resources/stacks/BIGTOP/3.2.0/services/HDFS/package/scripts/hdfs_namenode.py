@@ -37,7 +37,6 @@ from resource_management.libraries.functions.namenode_ha_utils import (
   get_name_service_by_hostname,
 )
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
-from resource_management.libraries.resources.execute_hdfs import ExecuteHDFS
 from resource_management.libraries.functions import Direction
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
@@ -115,18 +114,21 @@ def wait_for_safemode_off(
     dfsadmin_base_command = get_dfsadmin_base_command(
       hdfs_binary, use_specific_namenode=True
     )
-    is_namenode_safe_mode_off = (
-      dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
-    )
-
-    # Wait up to 30 mins
-    Execute(
-      is_namenode_safe_mode_off,
-      tries=retries,
-      try_sleep=sleep_seconds,
-      user=params.hdfs_user,
-      logoutput=True,
-    )
+    safemode_command = dfsadmin_base_command + ("-safemode", "get")
+    for attempt in range(retries):
+      code, output = shell.call(
+        safemode_command,
+        user=params.hdfs_user,
+        logoutput=True,
+      )
+      if code == 0 and output and "Safe mode is OFF" in output:
+        break
+      if attempt + 1 < retries:
+        time.sleep(sleep_seconds)
+    else:
+      raise Fail(
+        f"NameNode did not leave safemode after {retries} attempts"
+      )
 
     # Wait a bit more since YARN still depends on block reports coming in.
     # Also saw intermittent errors with HBASE service check if it was done too soon.
@@ -180,11 +182,9 @@ def namenode(
         owner=params.hdfs_user,
         group=params.user_group,
       )
-      pass
 
     if do_format and not params.hdfs_namenode_format_disabled:
       format_namenode()
-      pass
 
     if (
       params.dfs_ha_enabled
@@ -224,8 +224,7 @@ def namenode(
       elif params.upgrade_direction == Direction.DOWNGRADE:
         options = "-rollingUpgrade downgrade"
     elif upgrade_type == constants.UPGRADE_TYPE_HOST_ORDERED:
-      # nothing special to do for HOU - should be very close to a normal restart
-      pass
+      Logger.debug("Host-ordered upgrade uses normal NameNode start options")
     elif upgrade_type is None and upgrade_suspended is True:
       # the rollingUpgrade flag must be passed in during a suspended upgrade when starting NN
       if os.path.exists(namenode_upgrade.get_upgrade_in_progress_marker()):
@@ -547,21 +546,23 @@ def refreshProxyUsers():
   if params.security_enabled:
     Execute(params.nn_kinit_cmd, user=params.hdfs_user)
 
-  if params.dfs_ha_enabled:
-    # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
-    # need to execute each command scoped to a particular namenode
-    nn_refresh_cmd = format(
-      "dfsadmin -fs hdfs://{namenode_rpc} -refreshSuperUserGroupsConfiguration"
-    )
-  else:
-    nn_refresh_cmd = format(
-      "dfsadmin -fs {namenode_address} -refreshSuperUserGroupsConfiguration"
-    )
-  ExecuteHDFS(
-    nn_refresh_cmd,
+  filesystem = (
+    f"hdfs://{params.namenode_rpc}"
+    if params.dfs_ha_enabled
+    else params.namenode_address
+  )
+  Execute(
+    (
+      "hdfs",
+      "--config",
+      params.hadoop_conf_dir,
+      "dfsadmin",
+      "-fs",
+      filesystem,
+      "-refreshSuperUserGroupsConfiguration",
+    ),
     user=params.hdfs_user,
-    conf_dir=params.hadoop_conf_dir,
-    bin_dir=params.hadoop_bin_dir,
+    path=[params.hadoop_bin_dir],
   )
 
 
@@ -588,7 +589,6 @@ def decommission():
       owner=params.hdfs_user,
       group=params.user_group,
     )
-    pass
 
   # regenerate topology_mappings.data
   File(
@@ -603,14 +603,23 @@ def decommission():
   if not params.update_files_only:
     Execute(nn_kinit_cmd, user=hdfs_user)
 
-    if params.dfs_ha_enabled:
-      # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
-      # need to execute each command scoped to a particular namenode
-      nn_refresh_cmd = format("dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes")
-    else:
-      nn_refresh_cmd = format("dfsadmin -fs {namenode_address} -refreshNodes")
-    ExecuteHDFS(
-      nn_refresh_cmd, user=hdfs_user, conf_dir=conf_dir, bin_dir=params.hadoop_bin_dir
+    filesystem = (
+      f"hdfs://{params.namenode_rpc}"
+      if params.dfs_ha_enabled
+      else params.namenode_address
+    )
+    Execute(
+      (
+        "hdfs",
+        "--config",
+        params.hadoop_conf_dir,
+        "dfsadmin",
+        "-fs",
+        filesystem,
+        "-refreshNodes",
+      ),
+      user=hdfs_user,
+      path=[params.hadoop_bin_dir],
     )
 
 
