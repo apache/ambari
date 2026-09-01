@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
- censed to the Apache Software Foundation (ASF) under one
+ Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -192,6 +192,7 @@
     <name>controller.message.queue.size</name>
     <value>10</value>
     <description>The buffer size for controller-to-broker-channels</description>
+    <deleted>true</deleted>
     <on-ambari-upgrade add="false" />
   </property>
   <property>
@@ -212,6 +213,7 @@
     <description>
       If a replica falls more than this many messages behind the leader, the leader will remove the follower from ISR and treat it as dead.
     </description>
+    <deleted>true</deleted>
     <on-ambari-upgrade add="false" />
   </property>
   <property>
@@ -287,6 +289,7 @@
     <name>zookeeper.sync.time.ms</name>
     <value>2000</value>
     <description>How far a ZK follower can be behind a ZK leader.</description>
+    <deleted>true</deleted>
     <on-ambari-upgrade add="false" />
   </property>
   <property>
@@ -503,7 +506,7 @@
   </property>
   <property>
     <name>offsets.retention.minutes</name>
-    <value>86400000</value>
+    <value>10080</value>
     <description>Log retention window in minutes for offsets topic</description>
     <on-ambari-upgrade add="false" />
   </property>
@@ -637,16 +640,5 @@
       <type>password</type>
     </value-attributes>
     <on-ambari-upgrade add="true" />
-  </property>
-  <property>
-    <name>producer.metrics.enable</name>
-    <value>false</value>
-    <on-ambari-upgrade add="false" />
-    <depends-on>
-      <property>
-        <type>streams-messaging-manager-common</type>
-        <name>kafka.bootstrap.servers</name>
-      </property>
-    </depends-on>
   </property>
 </configuration>

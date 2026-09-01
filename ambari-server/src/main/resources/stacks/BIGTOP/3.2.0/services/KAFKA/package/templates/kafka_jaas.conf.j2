@@ -58,42 +58,42 @@
 *
 **/
 
-{% if kerberos_security_enabled %}
+{% if kafka_kerberos_credentials_enabled %}
 
 KafkaServer {
    com.sun.security.auth.module.Krb5LoginModule required
    useKeyTab=true
-   keyTab="{{kafka_keytab_path}}"
+   keyTab="{{kafka_keytab_path_jaas}}"
    storeKey=true
    useTicketCache=false
-   serviceName="{{kafka_bare_jaas_principal}}"
-   principal="{{kafka_jaas_principal}}";
+   serviceName="{{kafka_bare_jaas_principal_jaas}}"
+   principal="{{kafka_jaas_principal_jaas}}";
 };
 KafkaClient {
    com.sun.security.auth.module.Krb5LoginModule required
    useTicketCache=true
    renewTicket=true
-   serviceName="{{kafka_bare_jaas_principal}}";
+   serviceName="{{kafka_bare_jaas_principal_jaas}}";
 };
 Client {
    com.sun.security.auth.module.Krb5LoginModule required
    useKeyTab=true
-   keyTab="{{kafka_keytab_path}}"
+   keyTab="{{kafka_keytab_path_jaas}}"
    storeKey=true
    useTicketCache=false
    serviceName="zookeeper"
-   principal="{{kafka_jaas_principal}}";
+   principal="{{kafka_jaas_principal_jaas}}";
 };
 com.sun.security.jgss.krb5.initiate {
    com.sun.security.auth.module.Krb5LoginModule required
    renewTGT=false
    doNotPrompt=true
    useKeyTab=true
-   keyTab="{{kafka_keytab_path}}"
+   keyTab="{{kafka_keytab_path_jaas}}"
    storeKey=true
    useTicketCache=false
-   serviceName="{{kafka_bare_jaas_principal}}"
-   principal="{{kafka_jaas_principal}}";
+   serviceName="{{kafka_bare_jaas_principal_jaas}}"
+   principal="{{kafka_jaas_principal_jaas}}";
 };
 
 {% endif %}

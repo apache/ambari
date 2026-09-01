@@ -20,27 +20,27 @@
     {
       "type":"kafka_controller",
       "rowtype":"service",
-      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/controller.log"
+      "path":{{json.dumps(default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka') + '/controller.log')}}
     },
     {
       "type":"kafka_request",
       "rowtype":"service",
-      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/kafka-request.log"
+      "path":{{json.dumps(default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka') + '/kafka-request.log')}}
     },
     {
       "type":"kafka_logcleaner",
       "rowtype":"service",
-      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/log-cleaner.log"
+      "path":{{json.dumps(default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka') + '/log-cleaner.log')}}
     },
     {
       "type":"kafka_server",
       "rowtype":"service",
-      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/server.log"
+      "path":{{json.dumps(default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka') + '/server.log')}}
     },
     {
       "type":"kafka_statechange",
       "rowtype":"service",
-      "path":"{{default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')}}/state-change.log"
+      "path":{{json.dumps(default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka') + '/state-change.log')}}
     }
   ],
   "filter":[

@@ -18,13 +18,14 @@ limitations under the License.
 
 """
 
+import json
 import os
 
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
-from resource_management.core.resources.system import Directory, Execute, File, Link
-from resource_management.core.source import StaticFile, Template, InlineTemplate
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import Template, InlineTemplate
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.generate_logfeeder_input_config import (
@@ -33,7 +34,10 @@ from resource_management.libraries.functions.generate_logfeeder_input_config imp
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 import re
+import kafka_client
 
+from resource_management.core import sudo
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 
 
@@ -45,9 +49,6 @@ def kafka(upgrade_type=None):
   kafka_server_config = mutable_config_dict(
     params.config["configurations"]["kafka-broker"]
   )
-  # This still has an issue of hostnames being alphabetically out-of-order for broker.id in HDP-2.2.
-  # Starting in HDP 2.3, Kafka handles the generation of broker.id so Ambari doesn't have to.
-
   effective_version = (
     params.stack_version_formatted
     if upgrade_type is None
@@ -55,53 +56,64 @@ def kafka(upgrade_type=None):
   )
   Logger.info(format("Effective stack version: {effective_version}"))
 
-  # listeners and advertised.listeners are only added in 2.3.0.0 onwards.
   if (
     effective_version is not None
     and effective_version != ""
     and check_stack_feature(StackFeature.KAFKA_LISTENERS, effective_version)
   ):
     listeners = kafka_server_config["listeners"].replace("localhost", params.hostname)
+    raw_listeners = kafka_server_config.pop("raw.listeners", "")
+    if raw_listeners.strip():
+      listeners = ",".join((listeners, raw_listeners))
     kafka_server_config["listeners"] = listeners
 
     if params.kerberos_security_enabled and params.kafka_kerberos_enabled:
       Logger.info("Kafka kerberos security is enabled.")
 
-      inter_broker_protocol = kafka_server_config["security.inter.broker.protocol"]
-      inter_broker_protocol = replace_sasl_related_config(inter_broker_protocol, True)
-      kafka_server_config["security.inter.broker.protocol"] = inter_broker_protocol
+      if "security.inter.broker.protocol" in kafka_server_config:
+        inter_broker_protocol = kafka_server_config[
+          "security.inter.broker.protocol"
+        ]
+        inter_broker_protocol = replace_sasl_related_config(
+          inter_broker_protocol, True
+        )
+        kafka_server_config["security.inter.broker.protocol"] = (
+          inter_broker_protocol
+        )
 
       listeners = kafka_server_config["listeners"]
-      listeners = replace_sasl_related_config(listeners)
+      listeners = kafka_client.sasl_listeners(listeners)
       kafka_server_config["listeners"] = listeners
+
+      if "listener.security.protocol.map" in kafka_server_config:
+        kafka_server_config["listener.security.protocol.map"] = (
+          kafka_client.sasl_listener_protocol_map(
+            kafka_server_config["listener.security.protocol.map"]
+          )
+        )
 
       if "advertised.listeners" not in kafka_server_config:
         kafka_server_config["advertised.listeners"] = listeners
-      else:
-        if params.kafka_kerberos_merge_advertised_listeners:
-          Logger.warning(
-            "User defined advertised.listeners will be merged with Ambari-managed advertised.listeners value. To leave value as is change kafka-env/kerberos_merge_advertised_listeners to false."
+      elif params.kafka_kerberos_merge_advertised_listeners:
+        Logger.warning(
+          "User defined advertised.listeners will replace matching Ambari-managed listener endpoints. To leave the value as is change kafka-env/kerberos_merge_advertised_listeners to false."
+        )
+        advertised_listeners = kafka_client.sasl_listeners(
+          kafka_server_config["advertised.listeners"].replace(
+            "localhost", params.hostname
           )
-          kafka_server_config["advertised.listeners"] = ",".join(
-            (listeners, kafka_server_config["advertised.listeners"])
+        )
+        kafka_server_config["advertised.listeners"] = (
+          kafka_client.merge_advertised_listeners(
+            listeners, advertised_listeners
           )
+        )
     elif "advertised.listeners" in kafka_server_config:
       advertised_listeners = kafka_server_config["advertised.listeners"].replace(
         "localhost", params.hostname
       )
       kafka_server_config["advertised.listeners"] = advertised_listeners
 
-    raw_listeners = (
-      kafka_server_config["raw.listeners"]
-      if "raw.listeners" in kafka_server_config
-      else ""
-    )
-    if "raw.listeners" in kafka_server_config:
-      del kafka_server_config["raw.listeners"]
-    if raw_listeners.strip():
-      kafka_server_config["listeners"] = ",".join(
-        (kafka_server_config["listeners"], raw_listeners)
-      )
     effective_kafka_listeners = kafka_server_config["listeners"]
     Logger.info("Kafka listeners: " + effective_kafka_listeners)
     if "advertised.listeners" in kafka_server_config:
@@ -126,26 +138,25 @@ def kafka(upgrade_type=None):
       params.metric_truststore_password
     )
 
-  kafka_data_dir = kafka_server_config["log.dirs"]
-  kafka_data_dirs = [_f for _f in kafka_data_dir.split(",") if _f]
+  kafka_data_dirs = validate_data_directories(kafka_server_config.get("log.dirs"))
+  ensure_directories_are_not_symlinks(kafka_data_dirs)
 
   rack = "/default-rack"
-  i = 0
-  if len(params.all_racks) > 0:
-    for host in params.all_hosts:
-      if host == params.hostname:
-        rack = params.all_racks[i]
-        break
-      i = i + 1
+  if params.all_racks:
+    if len(params.all_hosts) != len(params.all_racks):
+      raise Fail("Kafka host and rack topology lists have different lengths")
+    rack_by_host = dict(zip(params.all_hosts, params.all_racks))
+    if params.hostname not in rack_by_host:
+      raise Fail(f"Kafka host {params.hostname} is missing from rack topology")
+    rack = rack_by_host[params.hostname]
+  kafka_server_config["broker.rack"] = rack
 
   Directory(
     kafka_data_dirs,
-    mode=0o755,
-    cd_access="a",
+    mode=0o750,
     owner=params.kafka_user,
     group=params.user_group,
     create_parents=True,
-    recursive_ownership=True,
   )
 
   PropertiesFile(
@@ -157,9 +168,22 @@ def kafka(upgrade_type=None):
     group=params.user_group,
   )
 
+  PropertiesFile(
+    "kafka-client.properties",
+    mode=0o600,
+    dir=params.conf_dir,
+    properties=kafka_client.client_properties(
+      kafka_server_config, params.kafka_bare_jaas_principal
+    ),
+    owner=params.kafka_user,
+    group=params.user_group,
+  )
+
   File(
     format("{conf_dir}/kafka-env.sh"),
     owner=params.kafka_user,
+    group=params.user_group,
+    mode=0o640,
     content=InlineTemplate(params.kafka_env_sh_template),
   )
 
@@ -172,28 +196,40 @@ def kafka(upgrade_type=None):
       content=InlineTemplate(params.log4j_props),
     )
 
-  if (
-    params.kerberos_security_enabled and params.kafka_kerberos_enabled
-  ) or params.kafka_other_sasl_enabled:
+  if params.kafka_jaas_enabled:
     if params.kafka_jaas_conf_template:
       File(
         format("{conf_dir}/kafka_jaas.conf"),
         owner=params.kafka_user,
+        group=params.user_group,
+        mode=0o600,
         content=InlineTemplate(params.kafka_jaas_conf_template),
       )
     else:
-      TemplateConfig(format("{conf_dir}/kafka_jaas.conf"), owner=params.kafka_user)
-
+      TemplateConfig(
+        format("{conf_dir}/kafka_jaas.conf"),
+        owner=params.kafka_user,
+        group=params.user_group,
+        mode=0o600,
+      )
     if params.kafka_client_jaas_conf_template:
       File(
         format("{conf_dir}/kafka_client_jaas.conf"),
         owner=params.kafka_user,
+        group=params.user_group,
+        mode=0o600,
         content=InlineTemplate(params.kafka_client_jaas_conf_template),
       )
     else:
       TemplateConfig(
-        format("{conf_dir}/kafka_client_jaas.conf"), owner=params.kafka_user
+        format("{conf_dir}/kafka_client_jaas.conf"),
+        owner=params.kafka_user,
+        group=params.user_group,
+        mode=0o600,
       )
+  else:
+    File(format("{conf_dir}/kafka_jaas.conf"), action="delete")
+    File(format("{conf_dir}/kafka_client_jaas.conf"), action="delete")
 
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir, create_parents=True, owner="root", group="root")
@@ -215,11 +251,9 @@ def kafka(upgrade_type=None):
   )
 
   generate_logfeeder_input_config(
-    "kafka", Template("input.config-kafka.json.j2", extra_imports=[default])
+    "kafka",
+    Template("input.config-kafka.json.j2", extra_imports=[default, json]),
   )
-
-  setup_symlink(params.kafka_managed_pid_dir, params.kafka_pid_dir)
-  setup_symlink(params.kafka_managed_log_dir, params.kafka_log_dir)
 
 
 def replace_sasl_related_config(property, only_protocol=False):
@@ -248,121 +282,58 @@ def mutable_config_dict(kafka_broker_config):
   return kafka_server_config
 
 
-# Used to workaround the hardcoded pid/log dir used on the kafka bash process launcher
-def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
-  import params
-
-  backup_folder_path = None
-  backup_folder_suffix = "_tmp"
-  if kafka_ambari_managed_dir != kafka_managed_dir:
-    if os.path.exists(kafka_managed_dir) and not os.path.islink(kafka_managed_dir):
-      # Backup existing data before delete if config is changed repeatedly to/from default location at any point in time time, as there may be relevant contents (historic logs)
-      backup_folder_path = backup_dir_contents(kafka_managed_dir, backup_folder_suffix)
-
-      Directory(kafka_managed_dir, action="delete", create_parents=True)
-
-    elif (
-      os.path.islink(kafka_managed_dir)
-      and os.path.realpath(kafka_managed_dir) != kafka_ambari_managed_dir
+def validate_data_directories(value):
+  if not value:
+    raise Fail("Kafka log.dirs must contain at least one data directory")
+  directories = []
+  for item in value.split(","):
+    path = item.strip()
+    if not path:
+      raise Fail("Kafka log.dirs contains an empty data directory")
+    if not os.path.isabs(path) or os.path.normpath(path) != path or path == os.path.sep:
+      raise Fail(f"Kafka data directory {path!r} is not a safe absolute path")
+    protected_trees = ("/boot", "/dev", "/etc", "/proc", "/run", "/sys", "/usr")
+    if any(path == root or path.startswith(root + os.path.sep) for root in protected_trees):
+      raise Fail(f"Kafka data directory {path!r} is inside a protected system path")
+    if path in (
+      "/bin",
+      "/data",
+      "/home",
+      "/lib",
+      "/lib64",
+      "/mnt",
+      "/opt",
+      "/sbin",
+      "/srv",
+      "/tmp",
+      "/var",
+      "/var/lib",
+      "/var/log",
     ):
-      Link(kafka_managed_dir, action="delete")
-
-    if not os.path.islink(kafka_managed_dir):
-      Link(kafka_managed_dir, to=kafka_ambari_managed_dir)
-
-  elif os.path.islink(
-    kafka_managed_dir
-  ):  # If config is changed and coincides with the kafka managed dir, remove the symlink and physically create the folder
-    Link(kafka_managed_dir, action="delete")
-
-    Directory(
-      kafka_managed_dir,
-      mode=0o755,
-      cd_access="a",
-      owner=params.kafka_user,
-      group=params.user_group,
-      create_parents=True,
-      recursive_ownership=True,
-    )
-
-  if backup_folder_path:
-    # Restore backed up files to current relevant dirs if needed - will be triggered only when changing to/from default path;
-    for file in os.listdir(backup_folder_path):
-      if os.path.isdir(os.path.join(backup_folder_path, file)):
-        Execute(
-          ("cp", "-r", os.path.join(backup_folder_path, file), kafka_managed_dir),
-          sudo=True,
-        )
-        Execute(
-          (
-            "chown",
-            "-R",
-            format("{kafka_user}:{user_group}"),
-            os.path.join(kafka_managed_dir, file),
-          ),
-          sudo=True,
-        )
-      else:
-        File(
-          os.path.join(kafka_managed_dir, file),
-          owner=params.kafka_user,
-          content=StaticFile(os.path.join(backup_folder_path, file)),
-        )
-
-    # Clean up backed up folder
-    Directory(backup_folder_path, action="delete", create_parents=True)
+      raise Fail(f"Kafka data directory {path!r} is a protected system path")
+    if path in directories:
+      raise Fail(f"Kafka data directory {path!r} is configured more than once")
+    directories.append(path)
+  return directories
 
 
-# Uses agent temp dir to store backup files
-def backup_dir_contents(dir_path, backup_folder_suffix):
-  import params
-
-  backup_destination_path = (
-    params.tmp_dir + os.path.normpath(dir_path) + backup_folder_suffix
-  )
-  Directory(
-    backup_destination_path,
-    mode=0o755,
-    cd_access="a",
-    owner=params.kafka_user,
-    group=params.user_group,
-    create_parents=True,
-    recursive_ownership=True,
-  )
-  # Safely copy top-level contents to backup folder
-  for file in os.listdir(dir_path):
-    if os.path.isdir(os.path.join(dir_path, file)):
-      Execute(
-        ("cp", "-r", os.path.join(dir_path, file), backup_destination_path), sudo=True
-      )
-      Execute(
-        (
-          "chown",
-          "-R",
-          format("{kafka_user}:{user_group}"),
-          os.path.join(backup_destination_path, file),
-        ),
-        sudo=True,
-      )
-    else:
-      File(
-        os.path.join(backup_destination_path, file),
-        owner=params.kafka_user,
-        content=StaticFile(os.path.join(dir_path, file)),
-      )
-
-  return backup_destination_path
+def ensure_directories_are_not_symlinks(directories):
+  for path in directories:
+    if sudo.path_lexists(path) and sudo.path_islink(path):
+      raise Fail(f"Kafka directory {path!r} must not be a symbolic link")
 
 
 def ensure_base_directories():
   import params
 
+  directories = [params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir]
+  ensure_directories_are_not_symlinks(
+    [params.kafka_log_dir, params.kafka_pid_dir]
+  )
   Directory(
-    [params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir],
-    mode=0o755,
-    cd_access="a",
+    directories,
+    mode=0o750,
     owner=params.kafka_user,
     group=params.user_group,
     create_parents=True,
-    recursive_ownership=True,
   )

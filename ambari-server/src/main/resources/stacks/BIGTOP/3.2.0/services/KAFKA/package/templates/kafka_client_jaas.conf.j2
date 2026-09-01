@@ -16,17 +16,11 @@
 # limitations under the License.
 #}
 
-{% if kerberos_security_enabled %}
+{% if kafka_kerberos_credentials_enabled %}
 KafkaClient {
    com.sun.security.auth.module.Krb5LoginModule required
    useTicketCache=true
    renewTicket=true
-   serviceName="{{kafka_bare_jaas_principal}}";
+   serviceName="{{kafka_bare_jaas_principal_jaas}}";
 };
 {% endif %}
-Client {
-   com.sun.security.auth.module.Krb5LoginModule required
-   useTicketCache=true
-   renewTicket=true
-   serviceName="zookeeper";
-};

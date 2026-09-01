@@ -29,12 +29,7 @@ def get_bare_principal(normalized_principal_name):
   :return: a string containing the primary component value or None if not valid
   """
 
-  bare_principal = None
-
-  if normalized_principal_name:
-    match = re.match(r"([^/@]+)(?:/[^@])?(?:@.*)?", normalized_principal_name)
-
-  if match:
-    bare_principal = match.group(1)
-
-  return bare_principal
+  if not normalized_principal_name:
+    return None
+  match = re.fullmatch(r"([^/@]+)(?:/[^@]+)?(?:@[^@]+)?", normalized_principal_name)
+  return match.group(1) if match else None

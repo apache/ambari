@@ -15,16 +15,18 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.validate import call_and_match_output
+from contextlib import nullcontext
+import uuid
+
 from resource_management.core import shell
-from resource_management.libraries.functions.format import format
-from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
-from resource_management.core import sudo
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
+from resource_management.libraries.script.script import Script
 
 
 class ServiceCheck(Script):
@@ -32,80 +34,115 @@ class ServiceCheck(Script):
     import params
 
     env.set_params(params)
-
-    # TODO, Kafka Service check should be more robust , It should get all the broker_hosts
-    # Produce some messages and check if consumer reads same no.of messages.
-
-    kafka_config = self.read_kafka_config()
-    topic = "ambari_kafka_service_check"
-    create_topic_cmd_created_output = "Created topic ambari_kafka_service_check."
-    create_topic_cmd_exists_output = (
-      "Topic 'ambari_kafka_service_check' already exists."
+    topic = (
+      f"ambari_kafka_service_check_{uuid.uuid4().hex}"
+      if params.kafka_delete_topic_enable
+      else "ambari_kafka_service_check"
     )
-    source_cmd = format("source {conf_dir}/kafka-env.sh")
-    topic_exists_cmd = format(
-      source_cmd
-      + " ; "
-      + "{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --topic {topic} --list"
-    )
-    topic_exists_cmd_code, topic_exists_cmd_out = shell.call(
-      topic_exists_cmd, logoutput=True, quiet=False, user=params.kafka_user
-    )
-
-    if topic_exists_cmd_code > 0:
-      raise Fail(
-        f"Error encountered when attempting to list topics: {topic_exists_cmd_out}"
+    cache_context = nullcontext(None)
+    if params.kafka_service_check_uses_kerberos:
+      if not params.kerberos_security_enabled:
+        raise Fail("Kafka uses GSSAPI but cluster Kerberos is not enabled")
+      if not params.kafka_keytab_path or not params.kafka_jaas_principal:
+        raise Fail("Kafka service-check Kerberos credentials are not configured")
+      cache_context = PrivateKerberosCache(
+        params.kafka_user,
+        params.user_group,
+        prefix="ambari-kafka-service-check-",
       )
 
-    if not params.kafka_delete_topic_enable:
-      Logger.info(
-        f"Kafka delete.topic.enable is not enabled. Skipping topic creation: {topic}"
-      )
-      return
+    with cache_context as kerberos_cache:
+      command_environment = {
+        "JAVA_HOME": params.java64_home,
+        "LOG_DIR": params.kafka_log_dir,
+      }
+      if params.kafka_service_check_uses_sasl:
+        command_environment["KAFKA_OPTS"] = (
+          "-Djava.security.auth.login.config=" + params.kafka_client_jaas_file
+        )
 
-      # run create topic command only if the topic doesn't exists
-    if topic not in topic_exists_cmd_out:
-      create_topic_cmd = format(
-        "{kafka_home}/bin/kafka-topics.sh --zookeeper {kafka_config[zookeeper.connect]} --create --topic {topic} --partitions 1 --replication-factor 1"
+      if kerberos_cache is not None:
+        command_environment = kerberos_cache.merge_environment(
+          command_environment
+        )
+        kerberos_cache.kinit(
+          params.kinit_path_local,
+          params.kafka_keytab_path,
+          params.kafka_jaas_principal,
+          timeout=params.kafka_service_check_timeout,
+        )
+
+      base_command = (
+        params.kafka_topics,
+        "--bootstrap-server",
+        params.kafka_bootstrap_servers,
+        "--command-config",
+        params.kafka_client_properties,
       )
-      command = source_cmd + " ; " + create_topic_cmd
-      Logger.info(f"Running kafka create topic command: {command}")
-      call_and_match_output(
-        command,
-        format(
-          "({create_topic_cmd_created_output})|({create_topic_cmd_exists_output})"
+      self._check_topic(params, base_command, command_environment, topic)
+
+  @staticmethod
+  def _check_topic(params, base_command, command_environment, topic):
+    check_failed = False
+    topic_created = False
+    try:
+      shell.checked_call(
+        base_command
+        + (
+          "--create",
+          "--if-not-exists",
+          "--topic",
+          topic,
+          "--partitions",
+          "1",
+          "--replication-factor",
+          "1",
         ),
-        "Failed to check that topic exists",
         user=params.kafka_user,
+        env=command_environment,
+        timeout=params.kafka_service_check_timeout,
       )
+      topic_created = True
 
-    under_rep_cmd = format(
-      "{kafka_home}/bin/kafka-topics.sh --describe --zookeeper {kafka_config[zookeeper.connect]} --under-replicated-partitions"
-    )
-    under_rep_cmd_code, under_rep_cmd_out = shell.call(
-      under_rep_cmd, logoutput=True, quiet=False, user=params.kafka_user
-    )
-
-    if under_rep_cmd_code > 0:
-      raise Fail(
-        f"Error encountered when attempting find under replicated partitions: {under_rep_cmd_out}"
+      _, description = shell.checked_call(
+        base_command + ("--describe", "--topic", topic),
+        user=params.kafka_user,
+        env=command_environment,
+        timeout=params.kafka_service_check_timeout,
       )
-    elif len(under_rep_cmd_out) > 0 and "Topic" in under_rep_cmd_out:
-      Logger.warning(f"Under replicated partitions found: {under_rep_cmd_out}")
+      if f"Topic: {topic}" not in description:
+        raise Fail(f"Kafka did not describe service-check topic {topic}")
 
-  def read_kafka_config(self):
-    import params
-
-    kafka_config = {}
-    content = sudo.read_file(params.conf_dir + "/server.properties").decode()
-    for line in content.splitlines():
-      if line.startswith("#") or not line.strip():
-        continue
-
-      key, value = line.split("=")
-      kafka_config[key] = value.replace("\n", "")
-
-    return kafka_config
+      _, under_replicated = shell.checked_call(
+        base_command
+        + ("--describe", "--topic", topic, "--under-replicated-partitions"),
+        user=params.kafka_user,
+        env=command_environment,
+        timeout=params.kafka_service_check_timeout,
+      )
+      if any(
+        line.lstrip().startswith("Topic:") for line in under_replicated.splitlines()
+      ):
+        raise Fail(f"Kafka topic {topic} has under-replicated partitions")
+    except Exception:
+      check_failed = True
+      raise
+    finally:
+      if topic_created and params.kafka_delete_topic_enable:
+        try:
+          shell.checked_call(
+            base_command + ("--delete", "--topic", topic),
+            user=params.kafka_user,
+            env=command_environment,
+            timeout=params.kafka_service_check_timeout,
+          )
+        except Exception as error:
+          if check_failed:
+            Logger.error(
+              f"Could not clean up Kafka service-check topic {topic}: {error}"
+            )
+          else:
+            raise
 
 
 if __name__ == "__main__":
