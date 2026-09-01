@@ -10,10 +10,20 @@
           "scope": "ANY",
           "source": {
             "type": "SCRIPT",
-            "path": "BIGTOP/3.2.0/services/ZEPPELIN/package/scripts/alerts/alert_check_zeppelin.py"
+            "path": "BIGTOP/3.2.0/services/ZEPPELIN/package/scripts/alerts/alert_check_zeppelin.py",
+            "parameters": [
+              {
+                "name": "check.command.timeout",
+                "display_name": "Command Timeout",
+                "value": 60.0,
+                "type": "NUMERIC",
+                "description": "Maximum time allowed for the HTTP request",
+                "units": "seconds",
+                "threshold": "CRITICAL"
+              }
+            ]
           }
         }
       ]
     }
   }
-  
