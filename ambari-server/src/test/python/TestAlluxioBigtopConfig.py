@@ -594,13 +594,11 @@ class TestAlluxioServiceAdvisor(unittest.TestCase):
     )
     advisor_module = importlib.util.module_from_spec(spec)
 
-    with (
-      patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": str(parent_path)}),
+    with patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": str(parent_path)}), \
       patch(
         "ambari_commons.import_utils.load_module",
         side_effect=RuntimeError("parent load failed"),
-      ),
-    ):
+      ):
       with self.assertRaisesRegex(RuntimeError, "parent load failed"):
         spec.loader.exec_module(advisor_module)
 

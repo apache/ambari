@@ -155,16 +155,15 @@ class TestAlluxioLifecycle(unittest.TestCase):
       for name, module, service_class, params, _, _, _ in component_cases():
         service = service_class()
         with self.subTest(component=name, failure=failure):
-          with (
-            patch.dict(sys.modules, {"params": params}),
-            patch.object(service, "configure"),
-            patch.object(module, "Execute") as execute,
+          with patch.dict(sys.modules, {"params": params}), \
+            patch.object(service, "configure"), \
+            patch.object(module, "Execute") as execute, \
             patch.object(
               module.safe_process,
               "read_pid",
               side_effect=None if process_validation else Fail(failure),
               return_value=123 if process_validation else None,
-            ),
+            ), \
             patch.object(
               module.safe_process,
               "read_running_process",
@@ -172,11 +171,10 @@ class TestAlluxioLifecycle(unittest.TestCase):
                 Fail(failure) if process_validation and not stale else None
               ),
               return_value=None,
-            ) as read_running,
+            ) as read_running, \
             patch.object(
               module.safe_process, "discover_running_process"
-            ) as discover,
-          ):
+            ) as discover:
             with self.assertRaisesRegex(Fail, failure):
               service.start(MagicMock())
 
@@ -192,21 +190,19 @@ class TestAlluxioLifecycle(unittest.TestCase):
       service = service_class()
       identity = process_identity(process_class)
       with self.subTest(component=name):
-        with (
-          patch.dict(sys.modules, {"params": params}),
-          patch.object(service, "configure"),
-          patch.object(module, "Execute") as execute,
-          patch.object(module.safe_process, "read_pid", return_value=123),
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(service, "configure"), \
+          patch.object(module, "Execute") as execute, \
+          patch.object(module.safe_process, "read_pid", return_value=123), \
           patch.object(
             module.safe_process, "read_running_process", return_value=identity
-          ),
+          ), \
           patch.object(
             module.safe_process, "discover_running_process", return_value=identity
-          ) as discover,
+          ) as discover, \
           patch.object(
             module.safe_process, "create_pid_file_for_identity"
-          ) as create_pid,
-        ):
+          ) as create_pid:
           service.start(MagicMock())
 
         execute.assert_not_called()
@@ -226,21 +222,19 @@ class TestAlluxioLifecycle(unittest.TestCase):
       service = service_class()
       identity = process_identity(process_class)
       with self.subTest(component=name):
-        with (
-          patch.dict(sys.modules, {"params": params}),
-          patch.object(service, "configure"),
-          patch.object(module, "Execute") as execute,
-          patch.object(module.safe_process, "read_pid", return_value=None),
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(service, "configure"), \
+          patch.object(module, "Execute") as execute, \
+          patch.object(module.safe_process, "read_pid", return_value=None), \
           patch.object(
             module.safe_process, "discover_running_process", return_value=identity
-          ) as discover,
+          ) as discover, \
           patch.object(
             module.safe_process, "create_pid_file_for_identity"
-          ) as create_pid,
+          ) as create_pid, \
           patch.object(
             module.safe_process, "wait_for_discovered_process"
-          ) as wait_for_process,
-        ):
+          ) as wait_for_process:
           service.start(MagicMock())
 
         execute.assert_not_called()
@@ -262,11 +256,10 @@ class TestAlluxioLifecycle(unittest.TestCase):
         service = service_class()
         identity = process_identity(process_class)
         with self.subTest(component=name, failure_stage=failure_stage):
-          with (
-            patch.dict(sys.modules, {"params": params}),
-            patch.object(service, "configure"),
-            patch.object(module, "Execute") as execute,
-            patch.object(module.safe_process, "read_pid", return_value=None),
+          with patch.dict(sys.modules, {"params": params}), \
+            patch.object(service, "configure"), \
+            patch.object(module, "Execute") as execute, \
+            patch.object(module.safe_process, "read_pid", return_value=None), \
             patch.object(
               module.safe_process,
               "discover_running_process",
@@ -276,7 +269,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
                 else None
               ),
               return_value=identity,
-            ),
+            ), \
             patch.object(
               module.safe_process,
               "create_pid_file_for_identity",
@@ -285,8 +278,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
                 if failure_stage == "recovery"
                 else None
               ),
-            ) as create_pid,
-          ):
+            ) as create_pid:
             expected = (
               "ambiguous process discovery"
               if failure_stage == "discovery"
@@ -312,30 +304,28 @@ class TestAlluxioLifecycle(unittest.TestCase):
       service = service_class()
       identity = process_identity(process_class)
       with self.subTest(component=name):
-        with (
-          patch.dict(sys.modules, {"params": params}),
-          patch.object(service, "configure"),
-          patch.object(module, "Execute") as execute,
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(service, "configure"), \
+          patch.object(module, "Execute") as execute, \
           patch.object(
             module.safe_process,
             "read_running_process",
             return_value=identity,
-          ) as read_running,
+          ) as read_running, \
           patch.object(
             module.safe_process, "discover_running_process", return_value=None
-          ) as discover,
+          ) as discover, \
           patch.object(
             module.safe_process,
             "wait_for_discovered_process",
             return_value=identity,
-          ) as wait_for_process,
+          ) as wait_for_process, \
           patch.object(
             module.safe_process, "read_pid", side_effect=(None, None)
-          ),
+          ), \
           patch.object(
             module.safe_process, "create_pid_file_for_identity"
-          ) as create_pid,
-        ):
+          ) as create_pid:
           service.start(MagicMock())
 
         self.assertEqual(execute_calls, execute.call_args_list)
@@ -361,28 +351,26 @@ class TestAlluxioLifecycle(unittest.TestCase):
         service = service_class()
         identity = process_identity(process_class)
         with self.subTest(component=name, failure=failure):
-          with (
-            patch.dict(sys.modules, {"params": params}),
-            patch.object(service, "configure"),
-            patch.object(module, "Execute"),
+          with patch.dict(sys.modules, {"params": params}), \
+            patch.object(service, "configure"), \
+            patch.object(module, "Execute"), \
             patch.object(
               module.safe_process, "read_running_process", return_value=None
-            ),
+            ), \
             patch.object(
               module.safe_process, "discover_running_process", return_value=None
-            ),
+            ), \
             patch.object(
               module.safe_process,
               "wait_for_discovered_process",
               return_value=identity,
-            ),
-            patch.object(module.safe_process, "read_pid", side_effect=(None, None)),
+            ), \
+            patch.object(module.safe_process, "read_pid", side_effect=(None, None)), \
             patch.object(
               module.safe_process,
               "create_pid_file_for_identity",
               side_effect=Fail(failure),
-            ) as create_pid,
-          ):
+            ) as create_pid:
             with self.assertRaisesRegex(Fail, failure):
               service.start(MagicMock())
 
@@ -394,26 +382,24 @@ class TestAlluxioLifecycle(unittest.TestCase):
       identity = process_identity(process_class)
       replacement = process_identity(process_class, start_time=999)
       with self.subTest(component=name):
-        with (
-          patch.dict(sys.modules, {"params": params}),
-          patch.object(service, "configure"),
-          patch.object(module, "Execute"),
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(service, "configure"), \
+          patch.object(module, "Execute"), \
           patch.object(
             module.safe_process,
             "read_running_process",
             return_value=replacement,
-          ),
+          ), \
           patch.object(
             module.safe_process, "discover_running_process", return_value=None
-          ),
+          ), \
           patch.object(
             module.safe_process,
             "wait_for_discovered_process",
             return_value=identity,
-          ),
-          patch.object(module.safe_process, "read_pid", side_effect=(None, None)),
-          patch.object(module.safe_process, "create_pid_file_for_identity") as create_pid,
-        ):
+          ), \
+          patch.object(module.safe_process, "read_pid", side_effect=(None, None)), \
+          patch.object(module.safe_process, "create_pid_file_for_identity") as create_pid:
           with self.assertRaisesRegex(Fail, "process changed"):
             service.start(MagicMock())
 
@@ -429,28 +415,26 @@ class TestAlluxioLifecycle(unittest.TestCase):
           else (None, Fail("command failed"))
         )
         with self.subTest(component=name, failure_stage=failure_stage):
-          with (
-            patch.dict(sys.modules, {"params": params}),
-            patch.object(service, "configure"),
+          with patch.dict(sys.modules, {"params": params}), \
+            patch.object(service, "configure"), \
             patch.object(
               module,
               "Execute",
               side_effect=execute_effect if failure_stage == "command" else None,
-            ),
-            patch.object(module, "File") as file_resource,
-            patch.object(module.safe_process, "read_pid", return_value=None),
+            ), \
+            patch.object(module, "File") as file_resource, \
+            patch.object(module.safe_process, "read_pid", return_value=None), \
             patch.object(
               module.safe_process, "read_running_process", return_value=None
-            ),
+            ), \
             patch.object(
               module.safe_process, "discover_running_process", return_value=None
-            ),
+            ), \
             patch.object(
               module.safe_process,
               "wait_for_discovered_process",
               side_effect=Fail("wait failed") if failure_stage == "wait" else None,
-            ) as wait_for_process,
-          ):
+            ) as wait_for_process:
             with self.assertRaisesRegex(Fail, f"{failure_stage} failed"):
               service.start(MagicMock())
 
@@ -462,19 +446,17 @@ class TestAlluxioLifecycle(unittest.TestCase):
     for name, module, service_class, params, _, _, _ in component_cases():
       service = service_class()
       with self.subTest(component=name):
-        with (
-          patch.dict(sys.modules, {"params": params}),
-          patch.object(service, "configure"),
-          patch.object(module.safe_process, "read_pid", return_value=None),
-          patch.object(module.safe_process, "read_running_process", return_value=None),
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(service, "configure"), \
+          patch.object(module.safe_process, "read_pid", return_value=None), \
+          patch.object(module.safe_process, "read_running_process", return_value=None), \
           patch.object(
             module.safe_process, "discover_running_process", return_value=None
-          ),
-          patch.object(module.safe_process, "terminate_process") as terminate,
+          ), \
+          patch.object(module.safe_process, "terminate_process") as terminate, \
           patch.object(
             module.safe_process, "remove_pid_file_if_stopped"
-          ) as remove_pid,
-        ):
+          ) as remove_pid:
           service.stop(MagicMock())
 
         terminate.assert_not_called()
@@ -485,14 +467,12 @@ class TestAlluxioLifecycle(unittest.TestCase):
       service = service_class()
       params.HdfsResource = MagicMock()
       with self.subTest(component=name):
-        with (
-          patch.dict(sys.modules, {"params": params}),
-          patch.object(service, "configure") as configure,
-          patch.object(module.safe_process, "read_pid", return_value=None),
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(service, "configure") as configure, \
+          patch.object(module.safe_process, "read_pid", return_value=None), \
           patch.object(
             module.safe_process, "discover_running_process", return_value=None
-          ),
-        ):
+          ):
           service.stop(MagicMock())
 
         configure.assert_not_called()
@@ -504,29 +484,27 @@ class TestAlluxioLifecycle(unittest.TestCase):
         service = service_class()
         identity = process_identity(process_class)
         with self.subTest(component=name, discovered=discovered):
-          with (
-            patch.dict(sys.modules, {"params": params}),
-            patch.object(service, "configure"),
+          with patch.dict(sys.modules, {"params": params}), \
+            patch.object(service, "configure"), \
             patch.object(
               module.safe_process,
               "read_pid",
               return_value=None if discovered else 123,
-            ),
+            ), \
             patch.object(
               module.safe_process,
               "read_running_process",
               return_value=None if discovered else identity,
-            ),
+            ), \
             patch.object(
               module.safe_process,
               "discover_running_process",
               return_value=identity if discovered else None,
-            ) as discover,
-            patch.object(module.safe_process, "terminate_process") as terminate,
+            ) as discover, \
+            patch.object(module.safe_process, "terminate_process") as terminate, \
             patch.object(
               module.safe_process, "remove_pid_file_if_stopped"
-            ) as remove_pid,
-          ):
+            ) as remove_pid:
             service.stop(MagicMock())
 
           terminate.assert_called_once_with(identity, "alluxio", process_class)
@@ -547,22 +525,21 @@ class TestAlluxioLifecycle(unittest.TestCase):
         with self.subTest(component=name, failure=failure):
           read_failure = failure == "owner mismatch"
           terminate_failure = failure == "start time changed"
-          with (
-            patch.dict(sys.modules, {"params": params}),
-            patch.object(service, "configure"),
-            patch.object(module.safe_process, "read_pid", return_value=123),
+          with patch.dict(sys.modules, {"params": params}), \
+            patch.object(service, "configure"), \
+            patch.object(module.safe_process, "read_pid", return_value=123), \
             patch.object(
               module.safe_process,
               "read_running_process",
               side_effect=Fail(failure) if read_failure else None,
               return_value=None if read_failure else identity,
-            ),
-            patch.object(module.safe_process, "discover_running_process") as discover,
+            ), \
+            patch.object(module.safe_process, "discover_running_process") as discover, \
             patch.object(
               module.safe_process,
               "terminate_process",
               side_effect=Fail(failure) if terminate_failure else None,
-            ) as terminate,
+            ) as terminate, \
             patch.object(
               module.safe_process,
               "remove_pid_file_if_stopped",
@@ -571,8 +548,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
                 if not read_failure and not terminate_failure
                 else None
               ),
-            ) as remove_pid,
-          ):
+            ) as remove_pid:
             with self.assertRaisesRegex(Fail, failure):
               service.stop(MagicMock())
 
@@ -587,25 +563,23 @@ class TestAlluxioLifecycle(unittest.TestCase):
       identity = process_identity(process_class)
       for from_pid_file in (True, False):
         with self.subTest(component=name, from_pid_file=from_pid_file):
-          with (
-            patch.dict(sys.modules, {"params": params}),
+          with patch.dict(sys.modules, {"params": params}), \
             patch.object(
               module.safe_process,
               "read_pid",
               return_value=123 if from_pid_file else None,
-            ),
+            ), \
             patch.object(
               module.safe_process,
               "read_running_process",
               return_value=identity if from_pid_file else None,
-            ) as read_running,
+            ) as read_running, \
             patch.object(
               module.safe_process,
               "discover_running_process",
               return_value=None if from_pid_file else identity,
-            ) as discover,
-            patch.object(module, "File") as file_resource,
-          ):
+            ) as discover, \
+            patch.object(module, "File") as file_resource:
             service_class().status(MagicMock())
 
           if from_pid_file:
@@ -626,19 +600,17 @@ class TestAlluxioLifecycle(unittest.TestCase):
     for name, module, service_class, params, _, _, _ in component_cases():
       for invalid in (False, True):
         with self.subTest(component=name, invalid=invalid):
-          with (
-            patch.dict(sys.modules, {"params": params}),
+          with patch.dict(sys.modules, {"params": params}), \
             patch.object(
               module.safe_process,
               "read_pid",
               side_effect=Fail("invalid PID") if invalid else None,
               return_value=None,
-            ),
-            patch.object(module.safe_process, "read_running_process"),
+            ), \
+            patch.object(module.safe_process, "read_running_process"), \
             patch.object(
               module.safe_process, "discover_running_process", return_value=None
-            ) as discover,
-          ):
+            ) as discover:
             expected = Fail if invalid else ComponentIsNotRunning
             with self.assertRaises(expected):
               service_class().status(MagicMock())
@@ -649,18 +621,16 @@ class TestAlluxioLifecycle(unittest.TestCase):
   def test_status_propagates_process_identity_failures(self):
     for name, module, service_class, params, _, _, _ in component_cases():
       with self.subTest(component=name):
-        with (
-          patch.dict(sys.modules, {"params": params}),
-          patch.object(module.safe_process, "read_pid", return_value=123),
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(module.safe_process, "read_pid", return_value=123), \
           patch.object(
             module.safe_process,
             "read_running_process",
             side_effect=Fail("process identity changed"),
-          ),
+          ), \
           patch.object(
             module.safe_process, "discover_running_process"
-          ) as discover,
-        ):
+          ) as discover:
           with self.assertRaisesRegex(Fail, "process identity changed"):
             service_class().status(MagicMock())
 
@@ -675,22 +645,20 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
   def _run_secure_start(self, module, service_class, params, process_class):
     identity = process_identity(process_class)
     service = service_class()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(service, "configure"),
-      patch.object(module, "Execute") as execute,
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(service, "configure"), \
+      patch.object(module, "Execute") as execute, \
       patch.object(
         module.safe_process,
         "read_running_process",
         return_value=identity,
-      ),
-      patch.object(module.safe_process, "discover_running_process", return_value=None),
+      ), \
+      patch.object(module.safe_process, "discover_running_process", return_value=None), \
       patch.object(
         module.safe_process, "wait_for_discovered_process", return_value=identity
-      ),
-      patch.object(module.safe_process, "read_pid", side_effect=(None, None)),
-      patch.object(module.safe_process, "create_pid_file_for_identity"),
-    ):
+      ), \
+      patch.object(module.safe_process, "read_pid", side_effect=(None, None)), \
+      patch.object(module.safe_process, "create_pid_file_for_identity"):
       service.start(MagicMock())
     return execute.call_args_list
 
@@ -750,19 +718,17 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
     )
     for module, service_class, params, execute_effect, expected_calls in cases:
       service = service_class()
-      with (
-        patch.dict(sys.modules, {"params": params}),
-        patch.object(service, "configure"),
-        patch.object(module, "Execute", side_effect=execute_effect) as execute,
-        patch.object(module.safe_process, "read_pid", return_value=None),
-        patch.object(module.safe_process, "read_running_process", return_value=None),
+      with patch.dict(sys.modules, {"params": params}), \
+        patch.object(service, "configure"), \
+        patch.object(module, "Execute", side_effect=execute_effect) as execute, \
+        patch.object(module.safe_process, "read_pid", return_value=None), \
+        patch.object(module.safe_process, "read_running_process", return_value=None), \
         patch.object(
           module.safe_process, "discover_running_process", return_value=None
-        ),
+        ), \
         patch.object(
           module.safe_process, "wait_for_discovered_process"
-        ) as wait_for_process,
-      ):
+        ) as wait_for_process:
         with self.assertRaisesRegex(Fail, "kinit failed"):
           service.start(MagicMock())
 
@@ -792,16 +758,14 @@ class TestAlluxioConfiguration(unittest.TestCase):
     )
 
   def _configure(self, service_module, service_class, params):
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(service_module, "Directory") as directory,
-      patch.object(service_module, "File") as file_resource,
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(service_module, "Directory") as directory, \
+      patch.object(service_module, "File") as file_resource, \
       patch.object(
         service_module, "InlineTemplate", side_effect=lambda value: value
-      ),
-      patch.object(service_module, "Template", return_value="template"),
-      patch.object(service_module, "format", return_value="config-file"),
-    ):
+      ), \
+      patch.object(service_module, "Template", return_value="template"), \
+      patch.object(service_module, "format", return_value="config-file"):
       service_class().configure(MagicMock())
     return directory, file_resource
 
@@ -934,10 +898,8 @@ class TestAlluxioServiceCheck(unittest.TestCase):
       "runTests;touch /tmp/argument-injection",
     )
     params = params_module(alluxio_test_cmd=command, alluxio_user="alluxio")
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(ALLUXIO_SERVICE_CHECK, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(ALLUXIO_SERVICE_CHECK, "Execute") as execute:
       ALLUXIO_SERVICE_CHECK.AlluxioServiceCheck().service_check(MagicMock())
 
     execute.assert_called_once_with(command, user="alluxio", timeout=300)
@@ -949,12 +911,10 @@ class TestAlluxioServiceCheck(unittest.TestCase):
     )
     for failure in ("service check failed", "service check timed out"):
       with self.subTest(failure=failure):
-        with (
-          patch.dict(sys.modules, {"params": params}),
+        with patch.dict(sys.modules, {"params": params}), \
           patch.object(
             ALLUXIO_SERVICE_CHECK, "Execute", side_effect=Fail(failure)
-          ),
-        ):
+          ):
           with self.assertRaisesRegex(Fail, failure):
             ALLUXIO_SERVICE_CHECK.AlluxioServiceCheck().service_check(
               MagicMock()

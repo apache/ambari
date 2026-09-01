@@ -75,11 +75,9 @@ def base_params():
 class TestFlinkConfigurationResources(unittest.TestCase):
   def test_history_server_configuration_has_restrictive_ownership_and_modes(self):
     params = base_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_FLINK, "Directory") as directory,
-      patch.object(SETUP_FLINK, "File") as file_resource,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_FLINK, "Directory") as directory, \
+      patch.object(SETUP_FLINK, "File") as file_resource:
       SETUP_FLINK.setup_flink(None, "historyserver", action="config")
 
     directories = {
@@ -109,11 +107,9 @@ class TestFlinkConfigurationResources(unittest.TestCase):
 
   def test_client_does_not_create_server_pid_log_or_hdfs_directories(self):
     params = base_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_FLINK, "Directory") as directory,
-      patch.object(SETUP_FLINK, "File"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_FLINK, "Directory") as directory, \
+      patch.object(SETUP_FLINK, "File"):
       SETUP_FLINK.setup_flink(None, "client", action="config")
 
     directories = {resource_call.args[0] for resource_call in directory.call_args_list}

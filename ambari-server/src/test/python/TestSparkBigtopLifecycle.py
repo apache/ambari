@@ -123,11 +123,9 @@ class TestSparkProcess(unittest.TestCase):
         SPARK_PROCESS.validate_pid_file(component, pid_file)
 
   def test_pidless_process_is_uniquely_discovered_and_published_0640(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
-      patch.object(safe_process, "discover_running_process", return_value=IDENTITY) as discover,
-      patch.object(safe_process, "create_pid_file_for_identity", return_value=IDENTITY) as create,
-    ):
+    with patch.object(safe_process, "read_pid", return_value=None), \
+      patch.object(safe_process, "discover_running_process", return_value=IDENTITY) as discover, \
+      patch.object(safe_process, "create_pid_file_for_identity", return_value=IDENTITY) as create:
       self.assertIs(
         IDENTITY,
         SPARK_PROCESS.read_or_recover_process(
@@ -146,11 +144,9 @@ class TestSparkProcess(unittest.TestCase):
     )
 
   def test_stop_uses_term_wait_kill_and_removes_only_stopped_identity(self):
-    with (
-      patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=IDENTITY),
-      patch.object(safe_process, "terminate_process") as terminate,
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-    ):
+    with patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=IDENTITY), \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove:
       self.assertTrue(
         SPARK_PROCESS.stop_process(
           "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
@@ -173,12 +169,10 @@ class TestSparkProcess(unittest.TestCase):
     )
 
   def test_stale_pid_is_removed_and_ambiguous_recovery_fails_closed(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=321),
-      patch.object(safe_process, "read_running_process", return_value=None),
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-      patch.object(safe_process, "discover_running_process", return_value=None),
-    ):
+    with patch.object(safe_process, "read_pid", return_value=321), \
+      patch.object(safe_process, "read_running_process", return_value=None), \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove, \
+      patch.object(safe_process, "discover_running_process", return_value=None):
       self.assertIsNone(
         SPARK_PROCESS.read_or_recover_process(
           "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
@@ -190,15 +184,13 @@ class TestSparkProcess(unittest.TestCase):
       expected_user="spark",
       expected_cmdline=HISTORY_TOKENS,
     )
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process,
         "discover_running_process",
         side_effect=Fail("ambiguous process discovery"),
-      ),
-      self.assertRaisesRegex(Fail, "ambiguous"),
-    ):
+      ), \
+      self.assertRaisesRegex(Fail, "ambiguous"):
       SPARK_PROCESS.read_or_recover_process(
         "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
       )
@@ -212,10 +204,8 @@ class TestSparkService(unittest.TestCase):
       spark_user="spark",
       user_group="hadoop",
     )
-    with (
-      patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=IDENTITY),
-      patch.object(SPARK_SERVICE, "Execute") as execute,
-    ):
+    with patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=IDENTITY), \
+      patch.object(SPARK_SERVICE, "Execute") as execute:
       SPARK_SERVICE._start(params, "jobhistoryserver")
     execute.assert_not_called()
 
@@ -233,14 +223,12 @@ class TestSparkService(unittest.TestCase):
       spark_conf_dir="/etc/spark/conf",
       spark_log_dir="/var/log/spark",
     )
-    with (
-      patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=None),
-      patch.object(SPARK_PROCESS, "wait_for_started_process", return_value=IDENTITY),
-      patch.object(SPARK_UTILS, "validate_executable"),
-      patch.object(SPARK_SERVICE.sudo, "path_lexists", return_value=False),
-      patch.object(SPARK_SERVICE, "File"),
-      patch.object(SPARK_SERVICE, "Execute") as execute,
-    ):
+    with patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=None), \
+      patch.object(SPARK_PROCESS, "wait_for_started_process", return_value=IDENTITY), \
+      patch.object(SPARK_UTILS, "validate_executable"), \
+      patch.object(SPARK_SERVICE.sudo, "path_lexists", return_value=False), \
+      patch.object(SPARK_SERVICE, "File"), \
+      patch.object(SPARK_SERVICE, "Execute") as execute:
       SPARK_SERVICE._start(params, "sparkthriftserver")
     command = execute.call_args.args[0]
     self.assertEqual("/usr/lib/spark/bin/spark-submit", command[0])
@@ -263,21 +251,19 @@ class TestSparkService(unittest.TestCase):
       spark_conf_dir="/etc/spark/conf",
       spark_log_dir="/var/log/spark",
     )
-    with (
-      patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=None),
+    with patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=None), \
       patch.object(
         SPARK_PROCESS,
         "wait_for_started_process",
         side_effect=Fail("ambiguous process discovery"),
-      ),
-      patch.object(SPARK_PROCESS, "stop_process", return_value=True) as stop,
-      patch.object(SPARK_UTILS, "validate_executable"),
-      patch.object(SPARK_SERVICE.sudo, "path_lexists", return_value=False),
-      patch.object(SPARK_SERVICE, "File"),
-      patch.object(SPARK_SERVICE, "Execute"),
-      patch.object(SPARK_SERVICE, "show_logs"),
-      self.assertRaisesRegex(Fail, "ambiguous"),
-    ):
+      ), \
+      patch.object(SPARK_PROCESS, "stop_process", return_value=True) as stop, \
+      patch.object(SPARK_UTILS, "validate_executable"), \
+      patch.object(SPARK_SERVICE.sudo, "path_lexists", return_value=False), \
+      patch.object(SPARK_SERVICE, "File"), \
+      patch.object(SPARK_SERVICE, "Execute"), \
+      patch.object(SPARK_SERVICE, "show_logs"), \
+      self.assertRaisesRegex(Fail, "ambiguous"):
       SPARK_SERVICE._start(params, "jobhistoryserver")
     stop.assert_called_once_with(
       "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
@@ -305,13 +291,11 @@ class TestSparkConfiguration(unittest.TestCase):
       spark_metrics_properties="*.sink.jmx.class=x",
       spark_thrift_fairscheduler_content="<allocations/>",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SPARK_SETUP, "Directory"),
-      patch.object(SPARK_SETUP, "PropertiesFile") as properties_file,
-      patch.object(SPARK_SETUP, "File") as file_resource,
-      patch.object(SPARK_SETUP, "generate_logfeeder_input_config"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SPARK_SETUP, "Directory"), \
+      patch.object(SPARK_SETUP, "PropertiesFile") as properties_file, \
+      patch.object(SPARK_SETUP, "File") as file_resource, \
+      patch.object(SPARK_SETUP, "generate_logfeeder_input_config"):
       SPARK_SETUP.setup_spark(MagicMock(), "historyserver", action="config")
     self.assertEqual(0o640, properties_file.call_args.kwargs["mode"])
     file_by_path = {call.args[0]: call.kwargs for call in file_resource.call_args_list}

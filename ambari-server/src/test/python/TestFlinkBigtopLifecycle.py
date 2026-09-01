@@ -112,21 +112,19 @@ class TestFlinkUtilities(unittest.TestCase):
         FLINK_UTILS.validate_hdfs_uri(uri, "archive directory")
 
   def test_files_and_classpath_must_be_unambiguous(self):
-    with (
-      patch.object(FLINK_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(FLINK_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(FLINK_UTILS.sudo, "path_islink", return_value=False),
+    with patch.object(FLINK_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(FLINK_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(FLINK_UTILS.sudo, "path_islink", return_value=False), \
       patch.object(
         FLINK_UTILS.sudo,
         "stat",
         return_value=SimpleNamespace(st_mode=0o100755),
-      ),
+      ), \
       patch.object(
         FLINK_UTILS.shell,
         "checked_call",
         return_value=(0, "/usr/lib/hadoop/*:/etc/hadoop/conf\n"),
-      ) as checked_call,
-    ):
+      ) as checked_call:
       self.assertEqual(
         "/usr/lib/hadoop/*:/etc/hadoop/conf",
         FLINK_UTILS.resolve_hadoop_classpath(
@@ -140,22 +138,20 @@ class TestFlinkUtilities(unittest.TestCase):
       timeout=60,
     )
 
-    with (
-      patch.object(FLINK_UTILS.sudo, "path_lexists", return_value=True),
-      patch.object(FLINK_UTILS.sudo, "path_isfile", return_value=True),
-      patch.object(FLINK_UTILS.sudo, "path_islink", return_value=False),
+    with patch.object(FLINK_UTILS.sudo, "path_lexists", return_value=True), \
+      patch.object(FLINK_UTILS.sudo, "path_isfile", return_value=True), \
+      patch.object(FLINK_UTILS.sudo, "path_islink", return_value=False), \
       patch.object(
         FLINK_UTILS.sudo,
         "stat",
         return_value=SimpleNamespace(st_mode=0o100755),
-      ),
+      ), \
       patch.object(
         FLINK_UTILS.shell,
         "checked_call",
         return_value=(0, "warning\n/usr/lib/hadoop/*\n"),
-      ),
-      self.assertRaisesRegex(Fail, "exactly one"),
-    ):
+      ), \
+      self.assertRaisesRegex(Fail, "exactly one"):
       FLINK_UTILS.resolve_hadoop_classpath(
         "/usr/bin/hadoop", "flink", "/usr/lib/jvm/java-17"
       )
@@ -175,15 +171,13 @@ class TestFlinkProcess(unittest.TestCase):
         FLINK_PROCESS.validate_pid_file(pid_file)
 
   def test_pidless_process_is_discovered_and_atomically_published_0640(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process, "discover_running_process", return_value=IDENTITY
-      ) as discover,
+      ) as discover, \
       patch.object(
         safe_process, "create_pid_file_for_identity", return_value=IDENTITY
-      ) as create,
-    ):
+      ) as create:
       result = FLINK_PROCESS.read_or_recover_process(
         PID_FILE, "flink", "hadoop", CONFIG_DIR
       )
@@ -201,14 +195,12 @@ class TestFlinkProcess(unittest.TestCase):
     )
 
   def test_stale_pid_is_removed_and_ambiguous_recovery_fails_closed(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
-      patch.object(safe_process, "read_running_process", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(safe_process, "read_running_process", return_value=None), \
       patch.object(
         safe_process, "remove_pid_file_if_stopped", return_value=True
-      ) as remove,
-      patch.object(safe_process, "discover_running_process", return_value=None),
-    ):
+      ) as remove, \
+      patch.object(safe_process, "discover_running_process", return_value=None):
       self.assertIsNone(
         FLINK_PROCESS.read_or_recover_process(
           PID_FILE, "flink", "hadoop", CONFIG_DIR
@@ -221,27 +213,23 @@ class TestFlinkProcess(unittest.TestCase):
       expected_cmdline=TOKENS,
     )
 
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process,
         "discover_running_process",
         side_effect=Fail("ambiguous process discovery"),
-      ),
-      self.assertRaisesRegex(Fail, "ambiguous"),
-    ):
+      ), \
+      self.assertRaisesRegex(Fail, "ambiguous"):
       FLINK_PROCESS.read_or_recover_process(
         PID_FILE, "flink", "hadoop", CONFIG_DIR
       )
 
   def test_stop_refuses_pid_reuse_and_uses_term_wait_kill_contract(self):
-    with (
-      patch.object(
+    with patch.object(
         FLINK_PROCESS, "read_or_recover_process", return_value=IDENTITY
-      ),
-      patch.object(safe_process, "terminate_process") as terminate,
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-    ):
+      ), \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove:
       self.assertTrue(
         FLINK_PROCESS.stop_process(PID_FILE, "flink", "hadoop", CONFIG_DIR)
       )
@@ -271,12 +259,10 @@ class TestFlinkService(unittest.TestCase):
       user_group="hadoop",
       flink_config_dir=CONFIG_DIR,
     )
-    with (
-      patch.object(
+    with patch.object(
         FLINK_PROCESS, "read_or_recover_process", return_value=IDENTITY
-      ),
-      patch.object(FLINK_SERVICE, "Execute") as execute,
-    ):
+      ), \
+      patch.object(FLINK_SERVICE, "Execute") as execute:
       FLINK_SERVICE._start_history_server(params)
     execute.assert_not_called()
 
@@ -299,22 +285,20 @@ class TestFlinkService(unittest.TestCase):
     )
     launcher_dir = "/var/run/flink/.ambari-historyserver-" + "a" * 32
     launcher_pid = launcher_dir + "/flink-ambari-historyserver-historyserver.pid"
-    with (
-      patch.object(FLINK_PROCESS, "read_or_recover_process", return_value=None),
+    with patch.object(FLINK_PROCESS, "read_or_recover_process", return_value=None), \
       patch.object(
         FLINK_PROCESS, "wait_for_started_process", return_value=IDENTITY
-      ),
-      patch.object(FLINK_UTILS, "validate_executable"),
-      patch.object(FLINK_UTILS, "resolve_hadoop_classpath", return_value="/hadoop/*"),
+      ), \
+      patch.object(FLINK_UTILS, "validate_executable"), \
+      patch.object(FLINK_UTILS, "resolve_hadoop_classpath", return_value="/hadoop/*"), \
       patch.object(
         FLINK_SERVICE,
         "_launcher_pid_paths",
         return_value=(launcher_dir, launcher_pid),
-      ),
-      patch.object(FLINK_SERVICE, "_cleanup_launcher_pid") as cleanup,
-      patch.object(FLINK_SERVICE, "Directory"),
-      patch.object(FLINK_SERVICE, "Execute") as execute,
-    ):
+      ), \
+      patch.object(FLINK_SERVICE, "_cleanup_launcher_pid") as cleanup, \
+      patch.object(FLINK_SERVICE, "Directory"), \
+      patch.object(FLINK_SERVICE, "Execute") as execute:
       FLINK_SERVICE._start_history_server(params)
 
     command = execute.call_args.args[0]
@@ -347,25 +331,23 @@ class TestFlinkService(unittest.TestCase):
     )
     launcher_dir = "/var/run/flink/.ambari-historyserver-" + "b" * 32
     launcher_pid = launcher_dir + "/flink-ambari-historyserver-historyserver.pid"
-    with (
-      patch.object(FLINK_PROCESS, "read_or_recover_process", return_value=None),
-      patch.object(FLINK_UTILS, "validate_executable"),
+    with patch.object(FLINK_PROCESS, "read_or_recover_process", return_value=None), \
+      patch.object(FLINK_UTILS, "validate_executable"), \
       patch.object(
         FLINK_UTILS, "resolve_hadoop_classpath", return_value="/hadoop/*"
-      ),
+      ), \
       patch.object(
         FLINK_SERVICE,
         "_launcher_pid_paths",
         return_value=(launcher_dir, launcher_pid),
-      ),
-      patch.object(FLINK_SERVICE, "_cleanup_launcher_pid") as cleanup,
-      patch.object(FLINK_SERVICE, "Directory"),
+      ), \
+      patch.object(FLINK_SERVICE, "_cleanup_launcher_pid") as cleanup, \
+      patch.object(FLINK_SERVICE, "Directory"), \
       patch.object(
         FLINK_SERVICE, "Execute", side_effect=RuntimeError("start failed")
-      ),
-      patch.object(FLINK_SERVICE, "show_logs"),
-      self.assertRaisesRegex(RuntimeError, "start failed"),
-    ):
+      ), \
+      patch.object(FLINK_SERVICE, "show_logs"), \
+      self.assertRaisesRegex(RuntimeError, "start failed"):
       FLINK_SERVICE._start_history_server(params)
     cleanup.assert_called_once_with(launcher_dir, launcher_pid, "/var/run/flink")
 
@@ -385,13 +367,11 @@ class TestFlinkServiceCheck(unittest.TestCase):
     )
     service_check = FLINK_SERVICE_CHECK.FlinkServiceCheck()
     env = SimpleNamespace(set_params=MagicMock())
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(FLINK_UTILS, "validate_executable"),
-      patch.object(FLINK_UTILS, "validate_regular_file"),
-      patch.object(FLINK_UTILS, "resolve_hadoop_classpath", return_value="/hadoop/*"),
-      patch.object(FLINK_SERVICE_CHECK.shell, "checked_call") as checked_call,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(FLINK_UTILS, "validate_executable"), \
+      patch.object(FLINK_UTILS, "validate_regular_file"), \
+      patch.object(FLINK_UTILS, "resolve_hadoop_classpath", return_value="/hadoop/*"), \
+      patch.object(FLINK_SERVICE_CHECK.shell, "checked_call") as checked_call:
       service_check.service_check(env)
 
     self.assertEqual(
@@ -433,21 +413,19 @@ class TestFlinkServiceCheck(unittest.TestCase):
     cache_context.__exit__.return_value = False
     service_check = FLINK_SERVICE_CHECK.FlinkServiceCheck()
     env = SimpleNamespace(set_params=MagicMock())
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(FLINK_UTILS, "validate_executable"),
-      patch.object(FLINK_UTILS, "validate_regular_file"),
-      patch.object(FLINK_UTILS, "validate_keytab"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(FLINK_UTILS, "validate_executable"), \
+      patch.object(FLINK_UTILS, "validate_regular_file"), \
+      patch.object(FLINK_UTILS, "validate_keytab"), \
       patch.object(
         FLINK_UTILS, "resolve_hadoop_classpath", return_value="/hadoop/*"
-      ),
+      ), \
       patch.object(
         FLINK_SERVICE_CHECK,
         "PrivateKerberosCache",
         return_value=cache_context,
-      ) as private_cache,
-      patch.object(FLINK_SERVICE_CHECK.shell, "checked_call") as checked_call,
-    ):
+      ) as private_cache, \
+      patch.object(FLINK_SERVICE_CHECK.shell, "checked_call") as checked_call:
       service_check.service_check(env)
 
     private_cache.assert_called_once_with(

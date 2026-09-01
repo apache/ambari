@@ -82,15 +82,13 @@ class TestSparkChecks(unittest.TestCase):
     context = MagicMock()
     context.__enter__.return_value = cache
     context.__exit__.return_value = False
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SPARK_UTILS, "validate_executable"),
-      patch.object(SPARK_UTILS, "validate_keytab"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SPARK_UTILS, "validate_executable"), \
+      patch.object(SPARK_UTILS, "validate_keytab"), \
       patch.object(
         SPARK_CHECK, "PrivateKerberosCache", return_value=context
-      ) as factory,
-      patch.object(SPARK_CHECK, "Execute") as execute,
-    ):
+      ) as factory, \
+      patch.object(SPARK_CHECK, "Execute") as execute:
       script = SimpleNamespace(set_params=MagicMock())
       SPARK_CHECK.SparkServiceCheck().service_check(script)
     factory.assert_called_once()
