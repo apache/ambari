@@ -20,6 +20,7 @@ limitations under the License.
 
 import status_params
 import utils
+from router_utils import build_router_client_sites, format_router_host
 import json
 import os
 import re
@@ -46,6 +47,7 @@ from resource_management.libraries.functions.get_not_managed_resources import (
   get_not_managed_resources,
 )
 from resource_management.libraries.script.script import Script
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
 from resource_management.libraries.functions import is_empty
@@ -336,43 +338,24 @@ dfs_data_dirs_perm = int(
 
 data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
-router_address = None
-if "dfs.federation.router.rpc-address" in config["configurations"]["hdfs-rbf-site"]:
-  router_rpcaddress = config["configurations"]["hdfs-rbf-site"][
-    "dfs.federation.router.rpc-address"
-  ]
-  router_address = format("hdfs://{router_rpcaddress}")
-else:
-  router_address = config["configurations"]["core-site"]["fs.defaultFS"]
+router_address = config["configurations"]["core-site"]["fs.defaultFS"]
+router_hdfs_site = None
+router_core_site = None
 if router_host:
-  router_hdfs_site = dict(config["configurations"]["hdfs-site"])
-  router_core_site = dict(config["configurations"]["core-site"])
-  nameservices = config["configurations"]["hdfs-site"].get("dfs.nameservices")
-  if not isinstance(nameservices, str):
-    # handle the error, for example by raising an exception or setting a default value
-    print("The dfs.nameservices property is not set or not a string")
-    nameservices = ""
-
-  router_hdfs_site["dfs.nameservices"] = nameservices + ",ns-fed"
-  router_hdfs_site["dfs.client.failover.proxy.provider.ns-fed"] = (
-    "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
+  router_rpc_port = utils.get_port(
+    config["configurations"]["hdfs-rbf-site"].get(
+      "dfs.federation.router.rpc-address"
+    )
   )
-  router_hdfs_site["dfs.client.failover.random.order"] = "true"
-  router_id_list = ["r" + str(i) for i in range(1, len(router_host) + 1)]
-  router_ids = ",".join(router_id_list)
-  router_hdfs_site["dfs.ha.namenodes.ns-fed"] = router_ids
-  for i, curr_router_host in enumerate(router_host):
-    id = router_id_list[i]
-    prop_name = "dfs.namenode.rpc-address.ns-fed." + id
-    prop_value = curr_router_host + ":" + "20010"
-    router_hdfs_site[prop_name] = prop_value
-
-  router_core_site["fs.defaultFS"] = "hdfs://ns-fed"
-  router_core_site["hadoop.zk.address"] = config["configurations"]["core-site"].get(
-    "ha.zookeeper.quorum"
+  if router_rpc_port is None:
+    raise Fail("Invalid dfs.federation.router.rpc-address for HDFS Router")
+  router_address = f"hdfs://{format_router_host(hostname)}:{router_rpc_port}"
+  router_hdfs_site, router_core_site = build_router_client_sites(
+    config["configurations"]["hdfs-site"],
+    config["configurations"]["core-site"],
+    router_host,
+    router_rpc_port,
   )
-else:
-  print("No router hosts found")
 
 # HDFS High Availability properties
 dfs_ha_enabled = False

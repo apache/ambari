@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import importlib.util
+import json
 import os
 from pathlib import Path
 import sys
@@ -62,6 +63,15 @@ def load_module(module_name, path):
 
 HDFS_PROCESS = load_script("bigtop_hdfs_process", "hdfs_process.py")
 HDFS_ADVISOR = load_module("bigtop_hdfs_service_advisor", HDFS / "service_advisor.py")
+ROUTER_UTILS = load_script("bigtop_hdfs_router_utils", "router_utils.py")
+HDFS_ROUTER_SUPPORT = dependency_module(
+  "utils", set_up_zkfc_security=MagicMock(), service=MagicMock()
+)
+HDFS_ROUTER = load_script(
+  "bigtop_hdfs_router",
+  "hdfs_router.py",
+  {"hdfs_process": HDFS_PROCESS, "utils": HDFS_ROUTER_SUPPORT},
+)
 
 HDFS_UTILS = dependency_module(
   "utils",
@@ -126,7 +136,9 @@ NAMENODE = load_script(
       format_namenode=MagicMock(),
     ),
     "hdfs": dependency_module("hdfs", hdfs=MagicMock(), reconfig=MagicMock()),
-    "hdfs_rebalance": dependency_module("hdfs_rebalance"),
+    "hdfs_rebalance": dependency_module(
+      "hdfs_rebalance", is_balancer_running=MagicMock(return_value=False)
+    ),
     "utils": dependency_module(
       "utils",
       initiate_safe_zkfc_failover=MagicMock(),
@@ -142,6 +154,137 @@ def params_module(**values):
 
 
 class TestHdfsBigtop(unittest.TestCase):
+  def test_router_client_configuration_is_deterministic(self):
+    hdfs_site = {"dfs.nameservices": "ns1,ns2"}
+    core_site = {
+      "fs.defaultFS": "hdfs://ns1",
+      "ha.zookeeper.quorum": "zk1:2181,zk2:2181",
+    }
+    router_hdfs_site, router_core_site = ROUTER_UTILS.build_router_client_sites(
+      hdfs_site,
+      core_site,
+      ["router1.example.com", "2001:db8::2"],
+      20010,
+    )
+
+    self.assertEqual("ns1,ns2,ns-fed", router_hdfs_site["dfs.nameservices"])
+    self.assertEqual(
+      "router1.example.com:20010",
+      router_hdfs_site["dfs.namenode.rpc-address.ns-fed.r1"],
+    )
+    self.assertEqual(
+      "[2001:db8::2]:20010",
+      router_hdfs_site["dfs.namenode.rpc-address.ns-fed.r2"],
+    )
+    self.assertEqual("hdfs://ns-fed", router_core_site["fs.defaultFS"])
+    self.assertEqual({"dfs.nameservices": "ns1,ns2"}, hdfs_site)
+    self.assertEqual("hdfs://ns1", core_site["fs.defaultFS"])
+
+    updated_hdfs_site, _ = ROUTER_UTILS.build_router_client_sites(
+      router_hdfs_site,
+      router_core_site,
+      ["router1.example.com"],
+      20010,
+    )
+    self.assertEqual("ns1,ns2,ns-fed", updated_hdfs_site["dfs.nameservices"])
+
+  def test_router_client_configuration_rejects_incomplete_or_unsafe_inputs(self):
+    valid_hdfs = {"dfs.nameservices": "ns1"}
+    valid_core = {"ha.zookeeper.quorum": "zk1:2181"}
+    for hdfs_site, core_site, hosts, port in (
+      ({}, valid_core, ["router1"], 20010),
+      (valid_hdfs, {}, ["router1"], 20010),
+      (valid_hdfs, valid_core, [], 20010),
+      (valid_hdfs, valid_core, ["router1;touch /tmp/x"], 20010),
+      (valid_hdfs, valid_core, ["router1"], 0),
+      (valid_hdfs, valid_core, ["router1"], 65536),
+    ):
+      with self.subTest(
+        hdfs_site=hdfs_site,
+        core_site=core_site,
+        hosts=hosts,
+        port=port,
+      ):
+        with self.assertRaises(Fail):
+          ROUTER_UTILS.build_router_client_sites(
+            hdfs_site, core_site, hosts, port
+          )
+
+  def test_router_start_uses_argv_kinit_and_rejects_unknown_actions(self):
+    params = params_module(
+      security_enabled=True,
+      hdfs_user="hdfs",
+      kinit_path_local="/usr/bin/kinit",
+      hdfs_user_keytab="/etc/security/keytabs/hdfs.service.keytab",
+      hdfs_principal_name="hdfs/router1.example.com@EXAMPLE.COM",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(HDFS_ROUTER, "Execute") as execute,
+    ):
+      HDFS_ROUTER.router(action="start")
+
+    self.assertEqual(
+      (
+        "/usr/bin/kinit",
+        "-kt",
+        "/etc/security/keytabs/hdfs.service.keytab",
+        "hdfs/router1.example.com@EXAMPLE.COM",
+      ),
+      execute.call_args.args[0],
+    )
+    with self.assertRaisesRegex(Fail, "Unsupported HDFS Router action"):
+      HDFS_ROUTER.router(action="invalid")
+
+  def test_rebalance_rejects_non_numeric_threshold_before_execution(self):
+    script = object.__new__(NAMENODE.NameNodeDefault)
+    for threshold in ("DEBUG", "10; touch /tmp/unsafe", "NaN", 0, 101):
+      params = params_module(
+        name_node_params=json.dumps({"threshold": threshold})
+      )
+      env = MagicMock()
+      with (
+        self.subTest(threshold=threshold),
+        patch.dict(sys.modules, {"params": params}),
+        patch.object(NAMENODE, "Execute") as execute,
+      ):
+        with self.assertRaises(Fail):
+          script.rebalancehdfs(env)
+      execute.assert_not_called()
+
+    for serialized_params in (None, "not-json", "{}", "[]"):
+      with self.subTest(serialized_params=serialized_params):
+        with self.assertRaises(Fail):
+          NAMENODE.parse_balancer_threshold(serialized_params)
+
+  def test_rebalance_uses_argument_vector(self):
+    script = object.__new__(NAMENODE.NameNodeDefault)
+    params = params_module(
+      name_node_params=json.dumps({"threshold": "12.5"}),
+      hadoop_bin_dir="/usr/bin",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      security_enabled=False,
+      hdfs_user="hdfs",
+    )
+    with (
+      patch.dict(sys.modules, {"params": params}),
+      patch.object(NAMENODE, "Execute") as execute,
+    ):
+      script.rebalancehdfs(MagicMock())
+
+    self.assertEqual(
+      (
+        "hdfs",
+        "--config",
+        "/etc/hadoop/conf",
+        "balancer",
+        "-threshold",
+        "12.5",
+      ),
+      execute.call_args.args[0],
+    )
+    self.assertEqual("hdfs", execute.call_args.kwargs["user"])
+
   def test_namenode_storage_check_is_shell_free_and_fail_closed(self):
     with tempfile.TemporaryDirectory() as name_dir:
       params = params_module(
@@ -214,6 +357,12 @@ class TestHdfsBigtop(unittest.TestCase):
       'nn_kinit_cmd = (kinit_path_local, "-kt", nn_keytab, nn_principal_name)',
       params_source,
     )
+
+    self.assertFalse((SCRIPTS / "balancer-emulator").exists())
+    rebalance_source = (SCRIPTS / "hdfs_rebalance.py").read_text(
+      encoding="utf-8"
+    )
+    self.assertNotIn("HdfsParser", rebalance_source)
 
   def test_process_identity_uses_component_marker_and_hadoop_class(self):
     self.assertEqual(

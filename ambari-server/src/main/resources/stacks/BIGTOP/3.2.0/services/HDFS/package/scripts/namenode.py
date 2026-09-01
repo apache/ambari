@@ -23,17 +23,15 @@ import os
 import json
 import tempfile
 import hashlib
-from datetime import datetime
-import json
+from decimal import Decimal, InvalidOperation
 
 from ambari_commons import constants
 
 from resource_management.libraries.script.script import Script
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import upgrade_summary
-from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
@@ -44,7 +42,6 @@ from resource_management.libraries.functions.security_commons import (
 )
 
 from resource_management.core.exceptions import Fail
-from resource_management.core.shell import as_user
 from resource_management.core.logger import Logger
 
 
@@ -72,6 +69,25 @@ from resource_management.libraries.functions.namenode_ha_utils import (
 
 # The hash algorithm to use to generate digests/hashes
 HASH_ALGORITHM = hashlib.sha224
+
+
+def parse_balancer_threshold(name_node_params):
+  try:
+    parameters = json.loads(name_node_params)
+    raw_threshold = parameters["threshold"]
+  except (KeyError, TypeError, json.JSONDecodeError) as error:
+    raise Fail("Missing or invalid HDFS balancer threshold") from error
+
+  try:
+    threshold_value = Decimal(str(raw_threshold))
+  except (InvalidOperation, ValueError) as error:
+    raise Fail(f"Invalid HDFS balancer threshold: {raw_threshold!r}") from error
+  if not threshold_value.is_finite() or not 0 < threshold_value <= 100:
+    raise Fail(
+      "HDFS balancer threshold must be a finite number greater than 0 "
+      f"and no greater than 100, got {raw_threshold!r}"
+    )
+  return f"{threshold_value:f}"
 
 
 class NameNode(Script):
@@ -327,8 +343,7 @@ class NameNodeDefault(NameNode):
 
     env.set_params(params)
 
-    name_node_parameters = json.loads(params.name_node_params)
-    threshold = name_node_parameters["threshold"]
+    threshold = parse_balancer_threshold(params.name_node_params)
     _print(f"Starting balancer with threshold = {threshold}\n")
 
     rebalance_env = {"PATH": params.hadoop_bin_dir}
@@ -362,54 +377,25 @@ class NameNodeDefault(NameNode):
       if shell.call(klist_cmd, user=params.hdfs_user)[0] != 0:
         Execute(kinit_cmd, user=params.hdfs_user)
 
-    def calculateCompletePercent(first, current):
-      # avoid division by zero
-      try:
-        division_result = current.bytesLeftToMove / first.bytesLeftToMove
-      except ZeroDivisionError:
-        Logger.warning(
-          f"Division by zero. Bytes Left To Move = {first.bytesLeftToMove}. Return 1.0"
-        )
-        return 1.0
-      return 1.0 - division_result
-
-    def startRebalancingProcess(threshold, rebalance_env):
-      rebalanceCommand = format(
-        "hdfs --config {hadoop_conf_dir} balancer -threshold {threshold}"
-      )
-      return as_user(rebalanceCommand, params.hdfs_user, env=rebalance_env)
-
-    command = startRebalancingProcess(threshold, rebalance_env)
-
-    basedir = os.path.join(env.config.basedir, "scripts")
-    if threshold == "DEBUG":  # FIXME TODO remove this on PROD
-      basedir = os.path.join(env.config.basedir, "scripts", "balancer-emulator")
-      command = ["ambari-python-wrap", "hdfs-command.py"]
+    command = (
+      "hdfs",
+      "--config",
+      params.hadoop_conf_dir,
+      "balancer",
+      "-threshold",
+      threshold,
+    )
 
     _print(f"Executing command {command}\n")
 
-    parser = hdfs_rebalance.HdfsParser()
-
-    def handle_new_line(line, is_stderr):
-      if is_stderr:
-        return
-
-      _print(f"[balancer] {line}")
-      pl = parser.parseLine(line)
-      if pl:
-        res = pl.toJson()
-        res["completePercent"] = calculateCompletePercent(parser.initialLine, pl)
-
-        self.put_structured_out(res)
-      elif parser.state == "PROCESS_FINISED":
-        _print("[balancer] Process is finished")
-        self.put_structured_out({"completePercent": 1})
-        return
-
     if not hdfs_rebalance.is_balancer_running():
-      # As the rebalance may take a long time (haours, days) the process is triggered only
-      # Tracking the progress based on the command output is no longer supported due to this
-      Execute(command, wait_for_finish=False)
+      # The balancer may run for hours or days, so start it asynchronously.
+      Execute(
+        command,
+        user=params.hdfs_user,
+        environment=rebalance_env,
+        wait_for_finish=False,
+      )
 
       _print("The rebalance process has been triggered")
     else:

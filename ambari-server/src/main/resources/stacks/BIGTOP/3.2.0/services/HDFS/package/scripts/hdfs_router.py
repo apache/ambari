@@ -14,43 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os.path
-import time
-
 import hdfs_process
 
-from ambari_commons import constants
-
-from resource_management.core import shell
-from resource_management.core.source import Template
-from resource_management.core.resources.system import File, Execute, Directory
-from resource_management.core.resources.service import Service
-from resource_management.libraries.functions.decorator import retry
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
-from resource_management.libraries.functions import Direction, upgrade_summary
-from resource_management.libraries.functions.namenode_ha_utils import (
-  get_name_service_by_hostname,
-)
-from ambari_commons import OSCheck, OSConst
+from resource_management.core.resources.system import Execute
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from utils import set_up_zkfc_security
 
 from resource_management.core.exceptions import Fail
-from resource_management.core.logger import Logger
-
-from utils import service, safe_zkfc_op, is_previous_fs_image
-from setup_ranger_hdfs import setup_ranger_hdfs, create_ranger_audit_hdfs_directories
+from utils import service
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def router(action=None, hdfs_binary=None, env=None):
+def router(action=None, env=None):
   if action is None:
     raise Fail('"action" parameter is required for function router().')
-
-  if action in ["start", "stop"] and hdfs_binary is None:
-    raise Fail('"hdfs_binary" parameter is required for function router().')
 
   if action == "configure":
     import params
@@ -69,12 +46,14 @@ def router(action=None, hdfs_binary=None, env=None):
 
     if params.security_enabled:
       Execute(
-        format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        (
+          params.kinit_path_local,
+          "-kt",
+          params.hdfs_user_keytab,
+          params.hdfs_principal_name,
+        ),
         user=params.hdfs_user,
       )
-
-    name_service = get_name_service_by_hostname(params.hdfs_site, params.hostname)
-    ensure_safemode_off = True
 
   elif action == "stop":
     import params
@@ -86,3 +65,5 @@ def router(action=None, hdfs_binary=None, env=None):
     hdfs_process.check_component_status(
       status_params.router_pid_file, status_params.hdfs_user, "dfsrouter"
     )
+  else:
+    raise Fail(f"Unsupported HDFS Router action: {action!r}")
