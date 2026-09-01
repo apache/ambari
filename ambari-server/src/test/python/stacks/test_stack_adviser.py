@@ -111,6 +111,9 @@ class TestBasicAdvisor(TestCase):
     for host in filtered_hosts["items"]:
       self.assertEqual(False, filtered_mount in host["Hosts"]["disk_info"])
 
+  def test_stack_root_defaults_to_bigtop(self):
+    self.assertEqual("/usr/bigtop", self.stackAdvisor.getStackRoot({}))
+
   def test_getMountPathVariations(self):
     filtered_mount = "/data"
 

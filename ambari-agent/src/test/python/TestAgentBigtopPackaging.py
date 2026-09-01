@@ -51,6 +51,7 @@ class TestAgentBigtopPackaging(unittest.TestCase):
 
     self.assertIn("<include>stacks/${stack.distribution}/**/*</include>", source)
     self.assertNotIn("/cache/stacks/HDP/", source)
+    self.assertNotIn("wordCount.jar", source)
 
 
 if __name__ == "__main__":

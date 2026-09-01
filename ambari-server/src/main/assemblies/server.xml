@@ -166,24 +166,10 @@
       <directory>${commonServicesSrcLocation}</directory>
       <outputDirectory>/var/lib/ambari-server/resources/common-services</outputDirectory>
       <excludes>
-	    <exclude>/STORM/0.9.1/package/files/wordCount.jar</exclude>
         <exclude>**/__pycache__/**</exclude>
         <exclude>**/*.pyc</exclude>
         <exclude>**/*.pyo</exclude>
 	  </excludes>
-    </fileSet>
-    <fileSet>
-      <fileMode>644</fileMode>
-      <directory>${commonServicesSrcLocation}</directory>
-      <outputDirectory>/var/lib/ambari-server/resources/common-services</outputDirectory>
-      <includes>
-	    <include>/STORM/0.9.1/package/files/wordCount.jar</include>
-	  </includes>
-      <excludes>
-        <exclude>**/__pycache__/**</exclude>
-        <exclude>**/*.pyc</exclude>
-        <exclude>**/*.pyo</exclude>
-      </excludes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
@@ -219,24 +205,10 @@
       <directory>${stacksSrcLocation}</directory>
       <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
       <excludes>
-	    <exclude>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</exclude>
         <exclude>**/__pycache__/**</exclude>
         <exclude>**/*.pyc</exclude>
         <exclude>**/*.pyo</exclude>
 	  </excludes>
-    </fileSet>
-    <fileSet>
-      <fileMode>644</fileMode>
-      <directory>${stacksSrcLocation}</directory>
-      <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
-      <includes>
-	    <include>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
-	  </includes>
-      <excludes>
-        <exclude>**/__pycache__/**</exclude>
-        <exclude>**/*.pyc</exclude>
-        <exclude>**/*.pyo</exclude>
-      </excludes>
     </fileSet>
     <fileSet>
       <directoryMode>700</directoryMode>

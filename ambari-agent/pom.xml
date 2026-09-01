@@ -632,7 +632,6 @@
                     <include>/cred/lib/*.jar</include>
                     <include>/tools/*.jar</include>
                     <include>/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar</include>
-                    <include>/cache/common-services/STORM/0.9.1/package/files/wordCount.jar</include>
                   </includes>
                 </source>
               </sources>

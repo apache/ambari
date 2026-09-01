@@ -415,13 +415,11 @@
             <exclude>src/main/resources/hive-schema-0.12.0.oracle.sql</exclude>
             <exclude>src/main/resources/db/serial</exclude>
             <exclude>src/main/resources/db/index.txt</exclude>
-            <exclude>src/main/resources/stacks/HDP/2.1.GlusterFS/services/YARN/package/templates/exclude_hosts_list.j2</exclude>
             <exclude>**/smoketest_metrics.json.j2</exclude>
             <exclude>**/service-metrics/*.txt</exclude>
             <exclude>**/balancer.log</exclude>
             <exclude>**/balancer-err.log</exclude>
             <exclude>${swagger.spec.dir}/**</exclude>
-            <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>**/*.json</exclude>
@@ -436,7 +434,6 @@
             <exclude>src/main/resources/db/newcerts/**</exclude>
 
             <!-- Stack definitions -->
-            <exclude>src/main/resources/stacks/HDP/2.0._/services/HBASE/package/templates/regionservers.j2</exclude>
             <!--test samples -->
             <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
             <exclude>src/test/resources/*.txt</exclude>

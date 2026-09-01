@@ -20,7 +20,9 @@ limitations under the License.
 import json
 from pathlib import Path
 from unittest import TestCase
+from unittest.mock import patch
 
+from resource_management.libraries.script.script import Script
 from stacks.utils.RMFTestCase import RMFTestCase
 from unitTests import discover_tests, get_base_test_directories, get_stack_name
 
@@ -32,6 +34,11 @@ STACK_HOOKS = SERVER_ROOT / "main/resources/stack-hooks"
 
 
 class TestBigtopStackTestInfrastructure(TestCase):
+  def test_resource_management_defaults_to_bigtop(self):
+    with patch.object(Script, "get_config", return_value={}):
+      self.assertEqual("BIGTOP", Script.get_stack_name())
+      self.assertEqual("/usr/bigtop", Script.get_stack_root())
+
   def test_stack_root_tests_are_discovered(self):
     test_directories = {
       Path(path): message

@@ -517,10 +517,10 @@ class DefaultStackAdvisor(StackAdvisor):
       'changed-configurations': [],
       'Versions": {
         'parent_stack_version': '9.0',
-        'stack_name': 'HDP',
+        'stack_name': 'BIGTOP',
         'stack_version': '9.0',
         'stack_hierarchy': {
-          'stack_name': 'HDP',
+          'stack_name': 'BIGTOP',
           'stack_versions': ['8.0', '7.0', ..., '1.0']
         }
       },
@@ -529,7 +529,7 @@ class DefaultStackAdvisor(StackAdvisor):
         {'StackServices': {
           'advisor_path': '/var/lib/ambari-server/resources/common-services/MYSERVICE/1.2.3/service_advisor.py',
           'service_version': '1.2.3',
-          'stack_name': 'HDP',
+          'stack_name': 'BIGTOP',
           'service_name': 'MYSERVICE',
           'stack_version': '9.0',
           'advisor_name': 'MYSERVICEServiceAdvisor'
@@ -539,7 +539,7 @@ class DefaultStackAdvisor(StackAdvisor):
             'stack_version': '9.0',
             'decommission_allowed': True|False,
             'display_name': 'My Service Display Name',
-            'stack_name': 'HDP',
+            'stack_name': 'BIGTOP',
             'custom_commands': [],
             'component_category': 'CLIENT|MASTER|SLAVE',
             'advertise_version': True|False,
@@ -563,7 +563,7 @@ class DefaultStackAdvisor(StackAdvisor):
             {
               'StackConfigurations':
               {
-                'stack_name': 'HDP',
+                'stack_name': 'BIGTOP',
                 'service_name': 'MYSERVICE',
                 'stack_version': '9.0',
                 'property_depends_on': [],
@@ -574,7 +574,7 @@ class DefaultStackAdvisor(StackAdvisor):
             },
             {
               'StackConfigurations': {
-                'stack_name': 'HDP',
+                'stack_name': 'BIGTOP',
                 'service_name': 'ZOOKEEPER',
                 'stack_version':
                 '2.6',
@@ -1389,7 +1389,7 @@ class DefaultStackAdvisor(StackAdvisor):
       servicesList, hosts, componentsList, services
     )
 
-    # executing code from stack advisor HDP 206
+    # Calculate YARN memory using the shared stack advisor policy.
     nodemanagerMinRam = 1048576  # 1TB in mb
     if "referenceNodeManagerHost" in clusterSummary:
       nodemanagerMinRam = min(
@@ -1462,7 +1462,7 @@ class DefaultStackAdvisor(StackAdvisor):
       ),
     )
 
-    # executing code from stack advisor HDP 22
+    # Bound scheduler allocations to the selected NodeManager host.
     nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
     if nodeManagerHost is not None:
       if (
@@ -1489,7 +1489,7 @@ class DefaultStackAdvisor(StackAdvisor):
     self, servicesList, hosts, components, services, cpu_only_mode=False
   ):
     """
-    Copied from HDP 2.0.6 so that it could be used by Service Advisors.
+    Build the memory and CPU summary shared by service advisors.
     :return: Dictionary of memory and CPU attributes in the cluster
     """
     hBaseInstalled = False
@@ -2807,10 +2807,10 @@ class DefaultStackAdvisor(StackAdvisor):
     """
     Gets the stack root associated with the stack
     :param services: the services structure containing the current configurations
-    :return: the stack root as specified in the config or /usr/hdp
+    :return: the stack root as specified in the config or /usr/bigtop
     """
     cluster_env = self.getServicesSiteProperties(services, "cluster-env")
-    stack_root = "/usr/hdp"
+    stack_root = "/usr/bigtop"
     if cluster_env and "stack_root" in cluster_env:
       stack_root_as_str = cluster_env["stack_root"]
       stack_roots = json.loads(stack_root_as_str)
@@ -3197,8 +3197,8 @@ class DefaultStackAdvisor(StackAdvisor):
         "reassign_allowed" : false,
         "recovery_enabled" : false,
         "service_name" : "HBASE",
-        "stack_name" : "HDP",
-        "stack_version" : "2.5",
+        "stack_name" : "BIGTOP",
+        "stack_version" : "3.3.0",
         "hostnames" : [ "host1", "host2" ]
 
     :type service str

@@ -80,6 +80,17 @@ class TestBigtopBuildProfiles(unittest.TestCase):
     ).read_text(encoding="utf-8")
     self.assertNotIn("hive_check", functions_init)
 
+  def test_build_metadata_has_no_removed_stack_artifacts(self):
+    files = (
+      SERVER_MODULE / "pom.xml",
+      SERVER_MODULE / "src/main/assemblies/server.xml",
+      SERVER_MODULE / "src/main/python/ambari_server/serverConfiguration.py",
+    )
+    source = "\n".join(path.read_text(encoding="utf-8") for path in files)
+
+    for obsolete in ("stacks/HDP", "SMARTSENSE", "wordCount.jar"):
+      self.assertNotIn(obsolete, source)
+
 
 if __name__ == "__main__":
   unittest.main()

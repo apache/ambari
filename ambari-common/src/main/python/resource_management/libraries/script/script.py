@@ -202,7 +202,7 @@ class Script(object):
     )
 
     if check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
-      # Even though hdp-select has not yet been called, write new configs to the new config directory.
+      # Write new configs before the stack selector switches the active version.
       config_path = os.path.join(
         params.stack_root, params.version, conf_select_name, "conf"
       )
@@ -284,7 +284,7 @@ class Script(object):
   def should_expose_component_version(self, command_name):
     """
     Analyzes config and given command to determine if stack version should be written
-    to structured out. Currently only HDP stack versions >= 2.2 are supported.
+    to structured out when the stack advertises rolling-upgrade support.
     :param command_name: command name
     :return: True or False
     """
@@ -783,7 +783,7 @@ class Script(object):
 
     stack_name = default("/clusterLevelParams/stack_name", None)
     if stack_name is None:
-      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
+      stack_name = default("/configurations/cluster-env/stack_name", "BIGTOP")
 
     return stack_name
 

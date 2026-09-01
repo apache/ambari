@@ -42,6 +42,10 @@ from resource_management.core.system import System
 
 @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
 class TestHostInfo(TestCase):
+  def test_default_base_directories_use_bigtop(self):
+    self.assertIn("/usr/bigtop", HostInfoLinux.DEFAULT_BASEDIRS)
+    self.assertNotIn("/usr/hdp", HostInfoLinux.DEFAULT_BASEDIRS)
+
   @patch("os.path.exists")
   def test_checkFolders(self, path_mock):
     path_mock.return_value = True

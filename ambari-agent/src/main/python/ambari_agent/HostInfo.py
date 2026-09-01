@@ -251,7 +251,7 @@ class HostInfoLinux(HostInfo):
     "/tmp",
     "/var",
     "/hadoop",
-    "/usr/hdp",
+    "/usr/bigtop",
   ]
 
   # Exact directories names which are checked for existance
