@@ -35,7 +35,6 @@ from resource_management.libraries.functions.namenode_ha_utils import (
 )
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
-from utils import get_dfsrouteradmin_base_command
 from utils import set_up_zkfc_security
 
 from resource_management.core.exceptions import Fail

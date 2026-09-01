@@ -282,6 +282,22 @@ class TestHdfsBigtop(unittest.TestCase):
       privileged=False,
     )
 
+  def test_hdfs_network_port_parser_rejects_partial_and_unsafe_values(self):
+    self.assertEqual(9866, HDFS_RUNTIME_UTILS.get_port("0.0.0.0:9866"))
+    self.assertEqual(9867, HDFS_RUNTIME_UTILS.get_port("https://[::1]:9867"))
+    for address in (
+      "host.example.com:9866 trailing",
+      "host.example.com:9866/path",
+      "host.example.com:70000",
+      "host.example.com",
+      "hdfs://host.example.com:9866",
+      " user:9866",
+      "user@host.example.com:9866",
+    ):
+      with self.subTest(address=address):
+        with self.assertRaisesRegex(Fail, "Invalid HDFS network address"):
+          HDFS_RUNTIME_UTILS.get_port(address)
+
   def test_metadata_matches_bigtop_hadoop_and_os_packages(self):
     root = ET.parse(HDFS / "metainfo.xml").getroot()
     service = root.find("./services/service")
@@ -317,6 +333,48 @@ class TestHdfsBigtop(unittest.TestCase):
     self.assertNotIn("Hortonworks", core_site)
     self.assertNotIn("HDP", core_site)
     self.assertEqual(3, core_site.count("Apache Ambari"))
+
+  def test_hadoop_env_uses_jdk17_runtime_options(self):
+    hadoop_env = (HDFS / "configuration/hadoop-env.xml").read_text(
+      encoding="utf-8"
+    )
+    self.assertIn("-XX:+UseG1GC", hadoop_env)
+    self.assertIn("-Xlog:gc*:", hadoop_env)
+    for obsolete in (
+      "UseConcMarkSweepGC",
+      "CMSInitiatingOccupancyFraction",
+      "MaxPermSize",
+      "HADOOP_JOBTRACKER_OPTS",
+      "HADOOP_TASKTRACKER_OPTS",
+      "namenode_opt_permsize",
+      "namenode_opt_maxpermsize",
+    ):
+      with self.subTest(obsolete=obsolete):
+        self.assertNotIn(obsolete, hadoop_env)
+
+  def test_hdfs_params_do_not_require_unrelated_service_configs(self):
+    params_source = (SCRIPTS / "params_linux.py").read_text(encoding="utf-8")
+    for obsolete in (
+      'config["configurations"]["falcon-env"]',
+      'config["configurations"]["hbase-env"]',
+      'config["configurations"]["hive-env"]',
+      'config["configurations"]["oozie-env"]',
+      'config["configurations"]["yarn-env"]',
+      'default("/clusterHostInfo/ganglia_server_hosts"',
+      'default("/clusterHostInfo/jtnode_hosts"',
+    ):
+      with self.subTest(obsolete=obsolete):
+        self.assertNotIn(obsolete, params_source)
+    for heap_property in (
+      "namenode_heapsize",
+      "namenode_opt_newsize",
+      "namenode_opt_maxnewsize",
+      "dtnode_heapsize",
+    ):
+      with self.subTest(heap_property=heap_property):
+        self.assertIn(
+          f'"/configurations/hadoop-env/{heap_property}"', params_source
+        )
 
   def test_rolling_restart_timeout_uses_integer_ceiling(self):
     for timeout, expected_retries in ((1, 1), (29, 1), (30, 1), (31, 2)):

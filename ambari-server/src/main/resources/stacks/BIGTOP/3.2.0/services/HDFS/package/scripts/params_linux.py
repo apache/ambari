@@ -47,10 +47,10 @@ from resource_management.libraries.functions.get_not_managed_resources import (
 )
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions.format_jvm_option import format_jvm_option
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
+from resource_management.libraries.functions.format_jvm_option import format_jvm_option
 from resource_management.libraries.functions.setup_ranger_plugin_xml import (
   get_audit_configs,
   generate_ranger_service_config,
@@ -139,13 +139,10 @@ hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_home = stack_select.get_hadoop_dir("home")
-hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
-hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_secure_dn_user = hdfs_user
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
-mapreduce_libs_path = format("{hadoop_mapred_home}/*")
 
 if not security_enabled:
   hadoop_secure_dn_user = '""'
@@ -213,7 +210,6 @@ so_src_x64 = format("{so_src_dir_x64}/{snappy_so}")
 # security params
 smoke_user_keytab = config["configurations"]["cluster-env"]["smokeuser_keytab"]
 hdfs_user_keytab = config["configurations"]["hadoop-env"]["hdfs_user_keytab"]
-falcon_user = config["configurations"]["falcon-env"]["falcon_user"]
 
 # exclude file
 if "all_decommissioned_hosts" in config["commandParams"]:
@@ -245,58 +241,27 @@ all_hosts = default("/clusterHostInfo/all_hosts", [])
 all_racks = default("/clusterHostInfo/all_racks", [])
 all_ipv4_ips = default("/clusterHostInfo/all_ipv4_ips", [])
 hostname = config["agentLevelParams"]["hostname"]
-rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
 public_hostname = config["agentLevelParams"]["public_hostname"]
-oozie_servers = default("/clusterHostInfo/oozie_server", [])
-hcat_server_hosts = default("/clusterHostInfo/webhcat_server_hosts", [])
-hive_server_host = default("/clusterHostInfo/hive_server_hosts", [])
-hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
-hs_host = default("/clusterHostInfo/historyserver_hosts", [])
-jtnode_host = default("/clusterHostInfo/jtnode_hosts", [])
 namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 router_host = default("/clusterHostInfo/router_hosts", [])
 nm_host = default("/clusterHostInfo/nodemanager_hosts", [])
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
 journalnode_hosts = default("/clusterHostInfo/journalnode_hosts", [])
 zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", [])
-falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 
-has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_namenodes = not len(namenode_host) == 0
-has_jobtracker = not len(jtnode_host) == 0
-has_resourcemanager = not len(rm_host) == 0
-has_histroryserver = not len(hs_host) == 0
-has_hbase_masters = not len(hbase_master_hosts) == 0
 has_slaves = not len(slave_hosts) == 0
-has_oozie_server = not len(oozie_servers) == 0
-has_hcat_server_host = not len(hcat_server_hosts) == 0
-has_hive_server_host = not len(hive_server_host) == 0
 has_journalnode_hosts = not len(journalnode_hosts) == 0
 has_zkfc_hosts = not len(zkfc_hosts) == 0
-has_falcon_host = not len(falcon_host) == 0
 
 
 is_namenode_master = hostname in namenode_host
-is_jtnode_master = hostname in jtnode_host
-is_rmnode_master = hostname in rm_host
-is_hsnode_master = hostname in hs_host
-is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
 
-if has_ganglia_server:
-  ganglia_server_host = ganglia_server_hosts[0]
-
 # users and groups
-yarn_user = config["configurations"]["yarn-env"]["yarn_user"]
-hbase_user = config["configurations"]["hbase-env"]["hbase_user"]
-oozie_user = config["configurations"]["oozie-env"]["oozie_user"]
-webhcat_user = config["configurations"]["hive-env"]["webhcat_user"]
-hive_user = config["configurations"]["hive-env"]["hive_user"]
 smoke_user = config["configurations"]["cluster-env"]["smokeuser"]
 smokeuser_principal = config["configurations"]["cluster-env"][
   "smokeuser_principal_name"
 ]
-mapred_user = config["configurations"]["mapred-env"]["mapred_user"]
 hdfs_principal_name = default("/configurations/hadoop-env/hdfs_principal_name", None)
 
 user_group = config["configurations"]["cluster-env"]["user_group"]
@@ -554,31 +519,24 @@ HdfsResource = functools.partial(
 name_node_params = default("/commandParams/namenode", None)
 
 java_home = config["ambariLevelParams"]["java_home"]
-java_version = expect("/ambariLevelParams/java_version", int)
 java_exec = format("{java_home}/bin/java")
 
 ambari_java_home = config['ambariLevelParams']['ambari_java_home']
 ambari_java_exec = format("{ambari_java_home}/bin/java")
 
 hadoop_heapsize = config["configurations"]["hadoop-env"]["hadoop_heapsize"]
-namenode_heapsize = config["configurations"]["hadoop-env"]["namenode_heapsize"]
-namenode_opt_newsize = config["configurations"]["hadoop-env"]["namenode_opt_newsize"]
-namenode_opt_maxnewsize = config["configurations"]["hadoop-env"][
-  "namenode_opt_maxnewsize"
-]
-namenode_opt_permsize = format_jvm_option(
-  "/configurations/hadoop-env/namenode_opt_permsize", "128m"
+namenode_heapsize = format_jvm_option(
+  "/configurations/hadoop-env/namenode_heapsize", "1024m"
 )
-namenode_opt_maxpermsize = format_jvm_option(
-  "/configurations/hadoop-env/namenode_opt_maxpermsize", "256m"
+namenode_opt_newsize = format_jvm_option(
+  "/configurations/hadoop-env/namenode_opt_newsize", "200m"
 )
-
-jtnode_opt_newsize = "200m"
-jtnode_opt_maxnewsize = "200m"
-jtnode_heapsize = "1024m"
-ttnode_heapsize = "1024m"
-
-dtnode_heapsize = config["configurations"]["hadoop-env"]["dtnode_heapsize"]
+namenode_opt_maxnewsize = format_jvm_option(
+  "/configurations/hadoop-env/namenode_opt_maxnewsize", "200m"
+)
+dtnode_heapsize = format_jvm_option(
+  "/configurations/hadoop-env/dtnode_heapsize", "1024m"
+)
 mapred_pid_dir_prefix = default(
   "/configurations/mapred-env/mapred_pid_dir_prefix", "/var/run/hadoop-mapreduce"
 )

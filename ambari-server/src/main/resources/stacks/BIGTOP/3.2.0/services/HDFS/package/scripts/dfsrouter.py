@@ -58,7 +58,6 @@ import hdfs_rebalance
 from utils import (
   initiate_safe_zkfc_failover,
   get_hdfs_binary,
-  get_dfsrouteradmin_base_command,
 )
 from resource_management.libraries.functions.namenode_ha_utils import (
   get_hdfs_cluster_id_from_jmx,

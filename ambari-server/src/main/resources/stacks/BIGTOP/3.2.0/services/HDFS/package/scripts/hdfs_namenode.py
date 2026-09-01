@@ -155,7 +155,7 @@ def namenode(
     # additional namenode)
     create_name_dirs(params.dfs_name_dir)
 
-    # set up failover /  secure zookeper ACLs, this feature is supported from HDP 2.6 ownwards
+    # Set up failover and secure ZooKeeper ACLs when the stack feature is enabled.
     set_up_zkfc_security(params)
   elif action == "start":
     Logger.info(f"Called service {action} with upgrade_type: {str(upgrade_type)}")

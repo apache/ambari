@@ -19,7 +19,6 @@ limitations under the License.
 """
 
 import os
-import re
 import urllib.request, urllib.error, urllib.parse
 import json
 
@@ -32,7 +31,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.core import shell
 from resource_management.core.shell import as_user, as_sudo
 from resource_management.core.source import Template
-from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.script.script import Script
@@ -414,15 +413,33 @@ def get_jmx_data(
 
 def get_port(address):
   """
-  Extracts port from the address like 0.0.0.0:1019
+  Extracts a valid TCP port from an HTTP URL or host:port authority.
   """
   if address is None:
     return None
-  m = re.search(r"(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})", address)
-  if m is not None and len(m.groups()) >= 2:
-    return int(m.group(2))
-  else:
-    return None
+  if not isinstance(address, str) or not address or address != address.strip():
+    raise Fail(f"Invalid HDFS network address {address!r}")
+
+  has_scheme = "://" in address
+  parsed = urllib.parse.urlparse(address if has_scheme else f"//{address}")
+  if (
+    (has_scheme and parsed.scheme not in ("http", "https"))
+    or parsed.hostname is None
+    or parsed.username is not None
+    or parsed.password is not None
+    or parsed.path not in ("", "/")
+    or parsed.params
+    or parsed.query
+    or parsed.fragment
+  ):
+    raise Fail(f"Invalid HDFS network address {address!r}")
+  try:
+    port = parsed.port
+  except ValueError as error:
+    raise Fail(f"Invalid HDFS network address {address!r}") from error
+  if port is None:
+    raise Fail(f"Invalid HDFS network address {address!r}")
+  return port
 
 
 def is_secure_port(port):
@@ -485,48 +502,26 @@ def get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=False):
   return dfsadmin_base_command
 
 
-def get_dfsrouteradmin_base_command(hdfs_binary, use_specific_router=False):
-  """
-  Get the dfsrouteradmin base command constructed using hdfs_binary path and passing router address as explicit -fs argument
-  :param hdfs_binary: path to hdfs binary to use
-  :param use_specific_router: flag if set and Router HA is enabled, then the dfsrouteradmin command will use
-  current router's address
-  :return: the constructed dfsrouteradmin base command
-  """
-  import params
-
-  dfsrouteradmin_base_command = ""
-  if params.dfs_ha_enabled and use_specific_router:
-    dfsrouteradmin_base_command = format(
-      "{hdfs_binary} dfsrouteradmin -fs hdfs://{params.router_rpc}"
-    )
-  else:
-    dfsadmin_base_command = format(
-      "{hdfs_binary} dfsrouteradmin -fs {params.router_address}"
-    )
-  return dfsrouteradmin_base_command
-
-
 def set_up_zkfc_security(params):
   """Sets up security for accessing zookeper on secure clusters"""
 
   if params.stack_supports_zk_security is False:
     Logger.info(
-      "Skipping setting up secure ZNode ACL for HFDS as it's supported only for HDP 2.6 and above."
+      "Skipping secure HDFS ZNode ACL setup because the stack feature is disabled."
     )
     return
 
   # check if the namenode is HA
   if params.dfs_ha_enabled is False:
     Logger.info(
-      "Skipping setting up secure ZNode ACL for HFDS as it's supported only for NameNode HA mode."
+      "Skipping secure HDFS ZNode ACL setup because NameNode HA is disabled."
     )
     return
 
   # check if the cluster is secure (skip otherwise)
   if params.security_enabled is False:
     Logger.info(
-      "Skipping setting up secure ZNode ACL for HFDS as it's supported only for secure clusters."
+      "Skipping secure HDFS ZNode ACL setup because Kerberos is disabled."
     )
     return
 
