@@ -79,7 +79,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>zookeeper_${stack_version}</name>
@@ -87,7 +87,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian10,debian11,ubuntu20,ubuntu22</osFamily>
+          <osFamily>ubuntu22</osFamily>
           <packages>
             <package>
               <name>zookeeper-${stack_version}</name>
