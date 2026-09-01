@@ -22,6 +22,7 @@ Ambari Agent
 """
 
 import json
+from contextlib import nullcontext
 import grp
 import os
 import pwd
@@ -43,6 +44,9 @@ from resource_management.libraries.functions.get_user_call_output import (
   get_user_call_output,
 )
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
 
 JSON_PATH = "/var/lib/ambari-agent/tmp/hdfs_resources_{timestamp}.json"
 JAR_PATH = "/var/lib/ambari-agent/lib/fast-hdfs-resource.jar"
@@ -157,29 +161,29 @@ class HdfsResourceJar:
 
     hadoop_bin_dir = main_resource.resource.hadoop_bin_dir
     hadoop_conf_dir = main_resource.resource.hadoop_conf_dir
-    security_enabled = main_resource.resource.security_enabled
-    keytab_file = main_resource.resource.keytab
-    kinit_path = main_resource.resource.kinit_path_local
     logoutput = main_resource.resource.logoutput
-    principal_name = main_resource.resource.principal_name
     jar_path = JAR_PATH
     timestamp = time.time()
     json_path = format(JSON_PATH)
 
-    if security_enabled:
-      main_resource.kinit()
+    with main_resource.kerberos_cache() as kerberos_cache:
+      command_environment = {}
+      if kerberos_cache is not None:
+        main_resource.kinit(kerberos_cache)
+        command_environment = kerberos_cache.environment
 
-    # Write json file to disk
-    File(json_path, owner=user, content=json.dumps(env.config[env_dict_key]))
+      # Write json file to disk
+      File(json_path, owner=user, content=json.dumps(env.config[env_dict_key]))
 
-    # Execute jar to create/delete resources in hadoop
-    Execute(
-      ("hadoop", "--config", hadoop_conf_dir, "jar", jar_path, json_path),
-      user=user,
-      path=[hadoop_bin_dir],
-      logoutput=logoutput,
-      sudo=sudo,
-    )
+      # Execute jar to create/delete resources in hadoop
+      Execute(
+        ("hadoop", "--config", hadoop_conf_dir, "jar", jar_path, json_path),
+        user=user,
+        path=[hadoop_bin_dir],
+        logoutput=logoutput,
+        sudo=sudo,
+        environment=command_environment,
+      )
 
     # Clean
     env.config[env_dict_key] = []
@@ -211,7 +215,13 @@ class WebHDFSCallException(Fail):
 
 class WebHDFSUtil:
   def __init__(
-    self, hdfs_site, nameservice, run_user, security_enabled, logoutput=None
+    self,
+    hdfs_site,
+    nameservice,
+    run_user,
+    security_enabled,
+    logoutput=None,
+    environment=None,
   ):
     self.is_https_enabled = is_https_enabled_in_hdfs(
       hdfs_site["dfs.http.policy"], hdfs_site["dfs.https.enable"]
@@ -230,6 +240,7 @@ class WebHDFSUtil:
     self.run_user = run_user
     self.security_enabled = security_enabled
     self.logoutput = logoutput
+    self.environment = dict(environment or {})
 
   @staticmethod
   def get_default_protocol(default_fs, dfs_type):
@@ -326,7 +337,11 @@ class WebHDFSUtil:
       cmd += ["--negotiate", "-u", ":"]
     cmd.append(url)
     _, out, err = get_user_call_output(
-      cmd, user=self.run_user, logoutput=self.logoutput, quiet=False
+      cmd,
+      user=self.run_user,
+      logoutput=self.logoutput,
+      quiet=False,
+      env=self.environment,
     )
     status_code = out[-3:]
     out = out[:-3]  # remove last line from output which is status code
@@ -431,38 +446,48 @@ class HdfsResourceWebHDFS:
   def action_delayed(self, action_name, main_resource):
     main_resource.assert_parameter_is_set("user")
 
-    if main_resource.resource.security_enabled:
-      main_resource.kinit()
+    with main_resource.kerberos_cache() as kerberos_cache:
+      command_environment = {}
+      if kerberos_cache is not None:
+        main_resource.kinit(kerberos_cache)
+        command_environment = kerberos_cache.environment
 
-    if main_resource.resource.nameservices is None:
-      nameservices = namenode_ha_utils.get_nameservices(
-        main_resource.resource.hdfs_site
-      )
-    else:
-      nameservices = main_resource.resource.nameservices
+      if main_resource.resource.nameservices is None:
+        nameservices = namenode_ha_utils.get_nameservices(
+          main_resource.resource.hdfs_site
+        )
+      else:
+        nameservices = main_resource.resource.nameservices
 
-    if not nameservices:
-      self.action_delayed_for_nameservice(None, action_name, main_resource)
-    else:
-      for nameservice in nameservices:
-        try:
-          self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
-        except namenode_ha_utils.NoActiveNamenodeException as ex:
-          # one of ns can be down (during initial start forexample) no need to worry for federated cluster
-          if len(nameservices) > 1:
-            Logger.exception(
-              f"Cannot run HdfsResource for nameservice {nameservice}. Due to no active namenode present"
+      if not nameservices:
+        self.action_delayed_for_nameservice(
+          None, action_name, main_resource, command_environment
+        )
+      else:
+        for nameservice in nameservices:
+          try:
+            self.action_delayed_for_nameservice(
+              nameservice, action_name, main_resource, command_environment
             )
-          else:
-            raise
+          except namenode_ha_utils.NoActiveNamenodeException:
+            # One unavailable namespace does not block another federated namespace.
+            if len(nameservices) > 1:
+              Logger.exception(
+                f"Cannot run HdfsResource for nameservice {nameservice}. Due to no active namenode present"
+              )
+            else:
+              raise
 
-  def action_delayed_for_nameservice(self, nameservice, action_name, main_resource):
+  def action_delayed_for_nameservice(
+    self, nameservice, action_name, main_resource, command_environment=None
+  ):
     self.util = WebHDFSUtil(
       main_resource.resource.hdfs_site,
       nameservice,
       main_resource.resource.user,
       main_resource.resource.security_enabled,
       main_resource.resource.logoutput,
+      command_environment,
     )
     self.mode = (
       oct(main_resource.resource.mode)[2:]
@@ -748,6 +773,7 @@ class HdfsResourceWebHDFS:
             self.main_resource.resource.target,
           ],
           user=self.main_resource.resource.user,
+          env=self.util.environment,
         )
 
     if self.main_resource.resource.change_permissions_for_parents:
@@ -804,6 +830,7 @@ class HdfsResourceWebHDFS:
             self.main_resource.resource.target,
           ],
           user=self.main_resource.resource.user,
+          env=self.util.environment,
         )
 
     if self.main_resource.resource.change_permissions_for_parents:
@@ -972,10 +999,17 @@ class HdfsResourceProvider(Provider):
       raise Fail(f"Resource parameter '{parameter_name}' is not set.")
     return True
 
-  def kinit(self):
-    keytab_file = self.resource.keytab
-    kinit_path = self.resource.kinit_path_local
-    principal_name = self.resource.principal_name
-    user = self.resource.user
+  def kerberos_cache(self):
+    if not self.resource.security_enabled:
+      return nullcontext(None)
+    return PrivateKerberosCache(
+      self.resource.user,
+      prefix="ambari-hdfs-resource-",
+    )
 
-    Execute(format("{kinit_path} -kt {keytab_file} {principal_name}"), user=user)
+  def kinit(self, kerberos_cache):
+    kerberos_cache.kinit(
+      self.resource.kinit_path_local,
+      self.resource.keytab,
+      self.resource.principal_name,
+    )
