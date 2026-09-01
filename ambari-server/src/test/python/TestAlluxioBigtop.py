@@ -86,6 +86,7 @@ def worker_params(security_enabled=False, **overrides):
     "alluxio_group": "hadoop",
     "alluxio_user": "alluxio",
     "alluxio_worker_mount_cmd": ("alluxio-mount.sh", "Mount"),
+    "alluxio_worker_unmount_cmd": ("alluxio-mount.sh", "Umount"),
     "alluxio_worker_pid_file": "/run/alluxio/alluxio-worker.pid",
     "alluxio_worker_process_class": WORKER_PROCESS_CLASS,
     "alluxio_worker_start_cmd": (
@@ -415,7 +416,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
         execute_effect = (
           Fail("command failed")
           if name == "master"
-          else (None, Fail("command failed"))
+          else (None, Fail("command failed"), None)
         )
         with self.subTest(component=name, failure_stage=failure_stage):
           with patch.dict(sys.modules, {"params": params}), \
@@ -452,6 +453,11 @@ class TestAlluxioLifecycle(unittest.TestCase):
             if name == "master"
             else params.alluxio_worker_process_class,
           )
+          if name == "worker":
+            self.assertEqual(
+              call(("alluxio-mount.sh", "Umount"), sudo=True, timeout=60),
+              execute.call_args_list[-1],
+            )
           if failure_stage == "command":
             wait_for_process.assert_not_called()
 
@@ -461,7 +467,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
       execute_effect = (
         Fail("command failed")
         if name == "master"
-        else (None, Fail("command failed"))
+        else (None, Fail("command failed"), None)
       )
       with self.subTest(component=name):
         with patch.dict(sys.modules, {"params": params}), \
@@ -710,9 +716,18 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
   def _run_secure_start(self, module, service_class, params, process_class):
     identity = process_identity(process_class)
     service = service_class()
+    kerberos_cache = MagicMock()
+    kerberos_cache.__enter__.return_value = kerberos_cache
+    kerberos_cache.merge_environment.return_value = {
+      "JAVA_HOME": "/usr/lib/jvm/java",
+      "KRB5CCNAME": "FILE:/tmp/private/krb5cc",
+    }
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(service, "configure"), \
       patch.object(module, "Execute") as execute, \
+      patch.object(
+        module, "PrivateKerberosCache", return_value=kerberos_cache
+      ) as private_cache, \
       patch.object(
         module.safe_process,
         "read_running_process",
@@ -725,7 +740,7 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
       patch.object(module.safe_process, "read_pid", side_effect=(None, None)), \
       patch.object(module.safe_process, "create_pid_file_for_identity"):
       service.start(MagicMock())
-    return execute.call_args_list
+    return execute.call_args_list, private_cache, kerberos_cache
 
   def test_secure_kinit_keeps_metacharacters_in_single_argv(self):
     common = {
@@ -733,35 +748,59 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
       "kinit_path_local": self.KINIT,
       "kinit_principal": self.PRINCIPAL,
     }
-    master_calls = self._run_secure_start(
+    master_calls, master_private_cache, master_cache = self._run_secure_start(
       ALLUXIO_MASTER,
       ALLUXIO_MASTER.AlluxioMaster,
       master_params(True, **common),
       MASTER_PROCESS_CLASS,
     )
-    worker_calls = self._run_secure_start(
+    worker_calls, worker_private_cache, worker_cache = self._run_secure_start(
       ALLUXIO_WORKER,
       ALLUXIO_WORKER.AlluxioWorker,
       worker_params(True, **common),
       WORKER_PROCESS_CLASS,
     )
-    kinit_call = call(
-      (self.KINIT, "-kt", self.KEYTAB, self.PRINCIPAL),
-      user="alluxio",
-      timeout=30,
+    expected_environment = {
+      "JAVA_HOME": "/usr/lib/jvm/java",
+      "KRB5CCNAME": "FILE:/tmp/private/krb5cc",
+    }
+    master_private_cache.assert_called_once_with(
+      "alluxio", "hadoop", prefix="ambari-alluxio-master-"
+    )
+    worker_private_cache.assert_called_once_with(
+      "alluxio", "hadoop", prefix="ambari-alluxio-worker-"
+    )
+    for cache in (master_cache, worker_cache):
+      cache.kinit.assert_called_once_with(
+        self.KINIT,
+        self.KEYTAB,
+        self.PRINCIPAL,
+        timeout=30,
+      )
+      cache.merge_environment.assert_called_once_with(
+        {"JAVA_HOME": "/usr/lib/jvm/java"}
+      )
+
+    self.assertEqual(
+      call(
+        ("alluxio-start.sh", "-a", "-N", "master"),
+        user="alluxio",
+        environment=expected_environment,
+        timeout=60,
+      ),
+      master_calls[0],
+    )
+    self.assertEqual(
+      call(
+        ("alluxio-start.sh", "-a", "-N", "worker", "NoMount"),
+        user="alluxio",
+        environment=expected_environment,
+        timeout=60,
+      ),
+      worker_calls[1],
     )
 
-    self.assertEqual(kinit_call, master_calls[0])
-    self.assertEqual(kinit_call, worker_calls[1])
-
-  def test_insecure_start_does_not_run_kinit_or_format_master(self):
-    for _, module, service_class, params, _, process_class, expected in component_cases():
-      calls = self._run_secure_start(
-        module, service_class, params, process_class
-      )
-      self.assertEqual(expected, calls)
-
-  def test_kinit_failure_prevents_service_start(self):
+  def test_kinit_failure_unmounts_worker_without_process_rollback(self):
     common = {
       "alluxio_service_kerberos_keytab": self.KEYTAB,
       "kinit_path_local": self.KINIT,
@@ -772,35 +811,110 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
         ALLUXIO_MASTER,
         ALLUXIO_MASTER.AlluxioMaster,
         master_params(True, **common),
-        Fail("kinit failed"),
-        1,
+        [],
       ),
       (
         ALLUXIO_WORKER,
         ALLUXIO_WORKER.AlluxioWorker,
         worker_params(True, **common),
-        (None, Fail("kinit failed")),
-        2,
+        [
+          call(("alluxio-mount.sh", "Mount"), sudo=True, timeout=60),
+          call(("alluxio-mount.sh", "Umount"), sudo=True, timeout=60),
+        ],
       ),
     )
-    for module, service_class, params, execute_effect, expected_calls in cases:
+    for module, service_class, params, expected_execute_calls in cases:
       service = service_class()
-      with patch.dict(sys.modules, {"params": params}), \
-        patch.object(service, "configure"), \
-        patch.object(module, "Execute", side_effect=execute_effect) as execute, \
-        patch.object(module.safe_process, "read_pid", return_value=None), \
-        patch.object(module.safe_process, "read_running_process", return_value=None), \
-        patch.object(
-          module.safe_process, "discover_running_process", return_value=None
-        ), \
-        patch.object(
-          module.safe_process, "wait_for_discovered_process"
-        ) as wait_for_process:
-        with self.assertRaisesRegex(Fail, "kinit failed"):
-          service.start(MagicMock())
+      kerberos_cache = MagicMock()
+      kerberos_cache.__enter__.return_value = kerberos_cache
+      kerberos_cache.kinit.side_effect = Fail("kinit failed")
+      with self.subTest(component=service_class.__name__):
+        with patch.dict(sys.modules, {"params": params}), \
+          patch.object(service, "configure"), \
+          patch.object(module, "Execute") as execute, \
+          patch.object(
+            module, "PrivateKerberosCache", return_value=kerberos_cache
+          ), \
+          patch.object(module.safe_process, "read_pid", return_value=None), \
+          patch.object(
+            module.safe_process, "discover_running_process", return_value=None
+          ), \
+          patch.object(module, "rollback_started_process") as rollback, \
+          patch.object(
+            module.safe_process, "wait_for_discovered_process"
+          ) as wait_for_process:
+          with self.assertRaisesRegex(Fail, "kinit failed"):
+            service.start(MagicMock())
 
-      self.assertEqual(expected_calls, execute.call_count)
-      wait_for_process.assert_not_called()
+        self.assertEqual(expected_execute_calls, execute.call_args_list)
+        rollback.assert_not_called()
+        wait_for_process.assert_not_called()
+
+  def test_worker_unmount_failure_preserves_start_failure(self):
+    params = worker_params()
+    service = ALLUXIO_WORKER.AlluxioWorker()
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(service, "configure"), \
+      patch.object(
+        ALLUXIO_WORKER,
+        "Execute",
+        side_effect=(None, Fail("start failed"), Fail("unmount failed")),
+      ), \
+      patch.object(ALLUXIO_WORKER.safe_process, "read_pid", return_value=None), \
+      patch.object(
+        ALLUXIO_WORKER.safe_process, "discover_running_process", return_value=None
+      ), \
+      patch.object(ALLUXIO_WORKER, "rollback_started_process"), \
+      patch.object(ALLUXIO_WORKER.Logger, "warning") as warning:
+      with self.assertRaisesRegex(Fail, "start failed"):
+        service.start(MagicMock())
+
+    warning.assert_called_once()
+    self.assertIn("unmount failed", warning.call_args.args[0])
+
+  def test_mount_failure_unmounts_partial_mount_without_process_rollback(self):
+    params = worker_params()
+    service = ALLUXIO_WORKER.AlluxioWorker()
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(service, "configure"), \
+      patch.object(
+        ALLUXIO_WORKER,
+        "Execute",
+        side_effect=(Fail("mount failed"), None),
+      ) as execute, \
+      patch.object(ALLUXIO_WORKER.safe_process, "read_pid", return_value=None), \
+      patch.object(
+        ALLUXIO_WORKER.safe_process, "discover_running_process", return_value=None
+      ), \
+      patch.object(ALLUXIO_WORKER, "rollback_started_process") as rollback:
+      with self.assertRaisesRegex(Fail, "mount failed"):
+        service.start(MagicMock())
+
+    self.assertEqual(
+      [
+        call(params.alluxio_worker_mount_cmd, sudo=True, timeout=60),
+        call(params.alluxio_worker_unmount_cmd, sudo=True, timeout=60),
+      ],
+      execute.call_args_list,
+    )
+    rollback.assert_not_called()
+
+  def test_insecure_start_does_not_run_kinit_or_format_master(self):
+    for (
+      _,
+      module,
+      service_class,
+      params,
+      _,
+      process_class,
+      expected,
+    ) in component_cases():
+      calls, private_cache, kerberos_cache = self._run_secure_start(
+        module, service_class, params, process_class
+      )
+      self.assertEqual(expected, calls)
+      private_cache.assert_not_called()
+      kerberos_cache.kinit.assert_not_called()
 
 
 class TestAlluxioConfiguration(unittest.TestCase):
@@ -880,7 +994,11 @@ class TestAlluxioConfiguration(unittest.TestCase):
       self.assertEqual("root", file_call.kwargs["owner"])
       self.assertEqual("hadoop", file_call.kwargs["group"])
       expected_mode = (
-        0o640 if str(file_call.args[0]).endswith("alluxio-env.sh") else 0o644
+        0o640
+        if str(file_call.args[0]).endswith(
+          ("alluxio-env.sh", "alluxio-site.properties")
+        )
+        else 0o644
       )
       self.assertEqual(expected_mode, file_call.kwargs["mode"])
 

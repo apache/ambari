@@ -242,6 +242,10 @@ alluxio_worker_mount_cmd = (
   os.path.join(alluxio_home, "bin", "alluxio-mount.sh"),
   "Mount",
 )
+alluxio_worker_unmount_cmd = (
+  os.path.join(alluxio_home, "bin", "alluxio-mount.sh"),
+  "Umount",
+)
 
 alluxio_test_cmd = (os.path.join(alluxio_home, "bin", "alluxio"), "runTests")
 

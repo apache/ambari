@@ -211,6 +211,7 @@ class TestAlluxioSourceContracts(unittest.TestCase):
       "alluxio_service_kerberos_principal",
       "alluxio_test_cmd",
       "alluxio_worker_mount_cmd",
+      "alluxio_worker_unmount_cmd",
       "alluxio_worker_rpc_port",
       "alluxio_worker_start_cmd",
       "alluxio_worker_web_port",
@@ -257,6 +258,8 @@ class TestAlluxioSourceContracts(unittest.TestCase):
       ("-a", "-N", "worker", "NoMount"),
       tuple_constants["alluxio_worker_start_cmd"],
     )
+    self.assertEqual(("Mount",), tuple_constants["alluxio_worker_mount_cmd"])
+    self.assertEqual(("Umount",), tuple_constants["alluxio_worker_unmount_cmd"])
     self.assertEqual(("runTests",), tuple_constants["alluxio_test_cmd"])
     self.assertNotIn("formatMaster", source)
     self.assertNotIn("alluxio-stop.sh", source)
