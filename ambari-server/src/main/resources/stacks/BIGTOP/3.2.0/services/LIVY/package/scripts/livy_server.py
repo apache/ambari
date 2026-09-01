@@ -19,24 +19,20 @@ limitations under the License.
 """
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
-from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.libraries.providers.hdfs_resource import HdfsResourceProvider
 from resource_management import is_empty
 from resource_management import shell
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import namenode_ha_utils
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
 
-from livy_service import livy_service
+from livy_service import livy_service, read_or_discover_livy_process
 from setup_livy import setup_livy
 
 
@@ -83,9 +79,14 @@ class LivyServer(Script):
 
     env.set_params(status_params)
 
-    check_process_status(status_params.livy_server_pid_file)
+    identity = read_or_discover_livy_process(
+      status_params.livy_server_pid_file,
+      status_params.livy_user,
+      status_params.livy_group,
+    )
+    if identity is None:
+      raise ComponentIsNotRunning("Livy Server is not running")
 
-  #  TODO move out and compose with similar method in resourcemanager.py
   def wait_for_dfs_directories_created(self, dirs):
     import params
 
@@ -94,14 +95,35 @@ class LivyServer(Script):
     )
 
     if params.security_enabled:
-      Execute(
-        format("{kinit_path_local} -kt {livy_kerberos_keytab} {livy_principal}"),
-        user=params.livy_user,
-      )
-      Execute(
-        format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-        user=params.hdfs_user,
-      )
+      if not all(
+        str(value or "").strip()
+        for value in (
+          params.kinit_path_local,
+          params.livy_kerberos_keytab,
+          params.livy_principal,
+        )
+      ):
+        raise Fail(
+          "Secure Livy DFS checks require a launch principal and keytab"
+        )
+      with PrivateKerberosCache(
+        params.livy_user,
+        params.livy_group,
+        prefix="ambari-livy-dfs-check-",
+      ) as kerberos_cache:
+        kerberos_cache.kinit(
+          params.kinit_path_local,
+          params.livy_kerberos_keytab,
+          params.livy_principal,
+          timeout=30,
+        )
+        for dir_path in dirs:
+          self.wait_for_dfs_directory_created(
+            dir_path,
+            ignored_dfs_dirs,
+            kerberos_environment=kerberos_cache.environment,
+          )
+      return
 
     for dir_path in dirs:
       self.wait_for_dfs_directory_created(dir_path, ignored_dfs_dirs)
@@ -112,7 +134,9 @@ class LivyServer(Script):
     return [status_params.livy_server_pid_file]
 
   @retry(times=8, sleep_time=20, backoff_factor=1, err_class=Fail)
-  def wait_for_dfs_directory_created(self, dir_path, ignored_dfs_dirs):
+  def wait_for_dfs_directory_created(
+    self, dir_path, ignored_dfs_dirs, kerberos_environment=None
+  ):
     import params
 
     if not is_empty(dir_path):
@@ -124,38 +148,28 @@ class LivyServer(Script):
         )
         return
 
-      Logger.info("Verifying if DFS directory '" + dir_path + "' exists.")
+      Logger.info(f"Verifying if DFS directory '{dir_path}' exists.")
 
-      dir_exists = None
-
-      nameservices = namenode_ha_utils.get_nameservices(params.hdfs_site)
-      nameservice = None if not nameservices else nameservices[-1]
-
-      if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.dfs_type):
-        # check with webhdfs is much faster than executing hdfs dfs -test
-        util = WebHDFSUtil(
-          params.hdfs_site, nameservice, params.hdfs_user, params.security_enabled
-        )
-        list_status = util.run_command(
+      dfs_ret_code = shell.call(
+        (
+          f"{params.hadoop_bin_dir}/hdfs",
+          "--config",
+          params.hadoop_conf_dir,
+          "dfs",
+          "-test",
+          "-d",
           dir_path,
-          "GETFILESTATUS",
-          method="GET",
-          ignore_status_codes=["404"],
-          assertable_result=False,
-        )
-        dir_exists = "FileStatus" in list_status
-      else:
-        # have to do time expensive hdfs dfs -d check.
-        dfs_ret_code = shell.call(
-          format("hdfs --config {hadoop_conf_dir} dfs -test -d " + dir_path),
-          user=params.livy_user,
-        )[0]
-        dir_exists = not dfs_ret_code  # dfs -test -d returns 0 in case the dir exists
+        ),
+        user=params.livy_user,
+        env=kerberos_environment,
+        timeout=30,
+      )[0]
+      dir_exists = dfs_ret_code == 0
 
       if not dir_exists:
-        raise Fail("DFS directory '" + dir_path + "' does not exist !")
+        raise Fail(f"DFS directory '{dir_path}' does not exist")
       else:
-        Logger.info("DFS directory '" + dir_path + "' exists.")
+        Logger.info(f"DFS directory '{dir_path}' exists.")
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

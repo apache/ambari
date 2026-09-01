@@ -17,38 +17,116 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from resource_management.libraries.functions import format
-from resource_management.core.resources.system import File, Execute
-from resource_management.libraries.functions import get_user_call_output
+import time
+
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute, File
+from resource_management.libraries.functions import safe_process
+
+
+LIVY_SERVER_PROCESS_TOKENS = ("org.apache.livy.server.LivyServer",)
+
+
+def read_or_discover_livy_process(pid_file, user, group):
+  pid = safe_process.read_pid(pid_file)
+  if pid is not None:
+    identity = safe_process.inspect_process(
+      pid, user, LIVY_SERVER_PROCESS_TOKENS
+    )
+    if identity is not None and safe_process.is_process_running(
+      pid,
+      user,
+      LIVY_SERVER_PROCESS_TOKENS,
+      identity=identity,
+    ):
+      return identity
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      pid,
+      expected_user=user,
+      expected_cmdline=LIVY_SERVER_PROCESS_TOKENS,
+    )
+
+  identity = safe_process.discover_running_process(
+    user, LIVY_SERVER_PROCESS_TOKENS
+  )
+  if identity is None:
+    return None
+  return safe_process.create_pid_file_for_identity(
+    pid_file,
+    identity,
+    user,
+    LIVY_SERVER_PROCESS_TOKENS,
+    owner=user,
+    group=group,
+    mode=0o640,
+  )
+
+
+def wait_for_livy_process(pid_file, user, group, attempts=10, sleep_seconds=1):
+  for attempt in range(attempts):
+    identity = read_or_discover_livy_process(pid_file, user, group)
+    if identity is not None:
+      return identity
+    if attempt + 1 < attempts:
+      time.sleep(sleep_seconds)
+  raise Fail("Livy Server did not start with a valid process identity")
 
 
 def livy_service(name, upgrade_type=None, action=None):
   import params
 
-  # use the livy user to get the PID (it is protected on non-root systems)
-  livy_server_pid = get_user_call_output.get_user_call_output(
-    format("cat {livy_server_pid_file}"), user=params.livy_user, is_checked_call=False
-  )[1]
-  livy_server_pid = livy_server_pid.replace("\n", " ")
-  process_id_exists_command = format(
-    "ls {livy_server_pid_file} >/dev/null 2>&1 && ps -p {livy_server_pid} >/dev/null 2>&1"
+  if name != "server":
+    raise Fail(f"Unsupported Livy service name: {name}")
+
+  identity = read_or_discover_livy_process(
+    params.livy_server_pid_file,
+    params.livy_user,
+    params.livy_group,
   )
 
   if action == "start":
+    if identity is not None:
+      Logger.info(f"Livy Server is already running with pid {identity.pid}")
+      return
+
+    process_environment = {"JAVA_HOME": params.java_home}
+    if params.security_enabled:
+      if not params.livy_server_kerberos_cache_file:
+        raise Fail("Secure Livy Server requires a private Kerberos cache path")
+      process_environment["KRB5CCNAME"] = (
+        f"FILE:{params.livy_server_kerberos_cache_file}"
+      )
+    File(params.livy_server_kerberos_cache_file, action="delete")
     Execute(
-      format("{livy_server_start}"),
+      (params.livy_server_command, "start"),
       user=params.livy_user,
-      environment={"JAVA_HOME": params.java_home},
-      not_if=process_id_exists_command,
+      environment=process_environment,
+      logoutput=True,
+    )
+    wait_for_livy_process(
+      params.livy_server_pid_file,
+      params.livy_user,
+      params.livy_group,
     )
   elif action == "stop":
-    Execute(
-      format("{livy_server_stop}"),
-      user=params.livy_user,
-      only_if=process_id_exists_command,
-      timeout=10,
-      on_timeout=format(
-        "! ( {process_id_exists_command} ) || {sudo} -H -E kill -9 {livy_server_pid}"
-      ),
-      environment={"JAVA_HOME": params.java_home},
+    if identity is None:
+      File(params.livy_server_kerberos_cache_file, action="delete")
+      Logger.info("No running Livy Server process was found")
+      return
+
+    safe_process.terminate_process(
+      identity,
+      params.livy_user,
+      LIVY_SERVER_PROCESS_TOKENS,
     )
+    safe_process.remove_pid_file_if_stopped(
+      params.livy_server_pid_file,
+      identity.pid,
+      expected_user=params.livy_user,
+      expected_cmdline=LIVY_SERVER_PROCESS_TOKENS,
+    )
+    File(params.livy_server_kerberos_cache_file, action="delete")
+  else:
+    raise Fail(f"Unsupported Livy service action: {action}")
