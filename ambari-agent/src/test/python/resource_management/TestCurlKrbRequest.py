@@ -19,8 +19,11 @@ limitations under the License.
 """
 
 import importlib
+import math
 import unittest
 from unittest.mock import MagicMock, patch
+
+from resource_management.core.exceptions import Fail
 
 curl_krb = importlib.import_module(
   "resource_management.libraries.functions.curl_krb_request"
@@ -28,60 +31,168 @@ curl_krb = importlib.import_module(
 
 
 class TestCurlKrbRequest(unittest.TestCase):
-  def tearDown(self):
-    curl_krb._KINIT_CACHE_TIMES.clear()
-
-  def test_kinit_refresh_timer_uses_milliseconds(self):
-    self.assertTrue(curl_krb.is_kinit_refresh_required(1000, 0, 14400000))
-    self.assertFalse(curl_krb.is_kinit_refresh_required(1000, 995, 10000))
-    self.assertTrue(curl_krb.is_kinit_refresh_required(1000, 990, 10000))
-    self.assertTrue(curl_krb.is_kinit_refresh_required(1000, 1000, 0))
-
-  @patch.object(curl_krb.os.path, "isfile", return_value=False)
-  @patch.object(curl_krb.os.path, "exists", return_value=True)
-  @patch.object(curl_krb.os, "chmod")
-  @patch.object(curl_krb.time, "time", side_effect=(1000, 1000, 1001))
-  @patch.object(curl_krb, "get_user_call_output", return_value=(0, "200", ""))
-  @patch.object(curl_krb.shell, "checked_call")
-  @patch.object(curl_krb.shell, "call", return_value=(0, ""))
-  @patch.object(curl_krb, "get_klist_path", return_value="/usr/bin/klist")
-  @patch.object(curl_krb.global_lock, "get_lock")
-  def test_cached_ticket_uses_verified_curl_without_reauthentication(
-    self,
-    get_lock_mock,
-    _,
-    shell_call_mock,
-    checked_call_mock,
-    get_user_call_output_mock,
-    *unused_mocks,
-  ):
-    get_lock_mock.return_value = MagicMock()
-    cache_name = curl_krb.HASH_ALGORITHM(
-      b"service/host@EXAMPLE.COM|/etc/security/service.keytab"
-    ).hexdigest()
-    curl_krb._KINIT_CACHE_TIMES[cache_name] = 995
-
-    result = curl_krb.curl_krb_request(
-      "/tmp",
-      "/etc/security/service.keytab",
-      "service/host@EXAMPLE.COM",
-      "https://metrics.example/ws/v1/timeline/metrics",
-      "ams",
-      None,
-      True,
-      "AMS",
-      "ambari-qa",
-      ca_certs="/etc/ambari-agent/conf/ca.crt",
-      kinit_timer_ms=10000,
-    )
+  def test_request_uses_private_cache_structured_commands_and_verified_tls(self):
+    cache = MagicMock()
+    cache.cache_dir = "/tmp/private/cache"
+    cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"}
+    cache_context = MagicMock()
+    cache_context.__enter__.return_value = cache
+    with (
+      patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context),
+      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"),
+      patch.object(
+        curl_krb, "get_user_call_output", return_value=(0, "200", "")
+      ) as call_output,
+      patch.object(curl_krb.time, "time", side_effect=(1000, 1001)),
+    ):
+      result = curl_krb.curl_krb_request(
+        "/tmp",
+        "/etc/security/service keytab",
+        "service/host@EXAMPLE.COM;$(id)",
+        "https://metrics.example/ws/v1/timeline/metrics",
+        "ams;$(id)",
+        None,
+        True,
+        "AMS",
+        "ambari-qa",
+        connection_timeout=0.1,
+        ca_certs="/etc/ambari-agent/conf/ca.crt",
+      )
 
     self.assertEqual((200, None, 1), result)
-    shell_call_mock.assert_called_once()
-    checked_call_mock.assert_not_called()
-    command = get_user_call_output_mock.call_args.args[0]
+    curl_krb.PrivateKerberosCache.assert_called_once_with(
+      "ambari-qa",
+      temp_dir="/tmp",
+      prefix="ambari-curl-ams___id_-",
+    )
+    cache.kinit.assert_called_once_with(
+      "/usr/bin/kinit",
+      "/etc/security/service keytab",
+      "service/host@EXAMPLE.COM;$(id)",
+    )
+    command = call_output.call_args.args[0]
+    self.assertIsInstance(command, list)
     self.assertIn("--cacert", command)
     self.assertIn("/etc/ambari-agent/conf/ca.crt", command)
+    self.assertIn("--location", command)
+    self.assertNotIn("--location-trusted", command)
     self.assertNotIn("-k", command)
+    self.assertEqual("1", command[command.index("--connect-timeout") + 1])
+    self.assertEqual("3", command[command.index("--max-time") + 1])
+    self.assertEqual(
+      {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"},
+      call_output.call_args.kwargs["env"],
+    )
+
+  def test_invalid_timeouts_fail_before_creating_credentials(self):
+    for timeout in (0, -1, math.nan, math.inf, "invalid"):
+      with self.subTest(timeout=timeout):
+        with patch.object(curl_krb, "PrivateKerberosCache") as cache_class:
+          with self.assertRaises(Fail):
+            curl_krb.curl_krb_request(
+              "/tmp",
+              "/etc/security/service.keytab",
+              "service/host@EXAMPLE.COM",
+              "https://metrics.example/",
+              "ams",
+              None,
+              False,
+              "AMS",
+              "ambari-qa",
+              connection_timeout=timeout,
+              ca_certs="/etc/ca.crt",
+            )
+        cache_class.assert_not_called()
+
+  def test_kinit_failure_prevents_curl(self):
+    cache = MagicMock()
+    cache.kinit.side_effect = Fail("kinit failed")
+    cache_context = MagicMock()
+    cache_context.__enter__.return_value = cache
+    with (
+      patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context),
+      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"),
+      patch.object(curl_krb, "get_user_call_output") as call_output,
+    ):
+      with self.assertRaisesRegex(Fail, "kinit failed"):
+        curl_krb.curl_krb_request(
+          "/tmp",
+          "/etc/security/service.keytab",
+          "service/host@EXAMPLE.COM",
+          "https://metrics.example/",
+          "ams",
+          None,
+          False,
+          "AMS",
+          "ambari-qa",
+          ca_certs="/etc/ca.crt",
+        )
+    call_output.assert_not_called()
+
+  def test_method_header_and_body_remain_distinct_argv_tokens(self):
+    cache = MagicMock()
+    cache.cache_dir = "/tmp/private/cache"
+    cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"}
+    cache_context = MagicMock()
+    cache_context.__enter__.return_value = cache
+    with (
+      patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context),
+      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"),
+      patch.object(
+        curl_krb, "get_user_call_output", return_value=(0, "{}", "")
+      ) as call_output,
+    ):
+      result = curl_krb.curl_krb_request(
+        "/tmp",
+        "/etc/security/service.keytab",
+        "service/host@EXAMPLE.COM",
+        "https://ranger.example/api",
+        "ranger",
+        None,
+        False,
+        "Ranger",
+        "ranger",
+        method="POST",
+        header="Content-Type: application/json;$(id)",
+        body='{"value":"a;$(id)"}',
+        ca_certs="/etc/ca.crt",
+      )
+
+    self.assertEqual(("{}", None, result[2]), result)
+    command = call_output.call_args.args[0]
+    self.assertEqual("POST", command[command.index("-X") + 1])
+    self.assertEqual(
+      "Content-Type: application/json;$(id)", command[command.index("-H") + 1]
+    )
+    self.assertEqual('{"value":"a;$(id)"}', command[command.index("-d") + 1])
+
+  def test_http_code_result_preserves_public_return_contract(self):
+    cache = MagicMock()
+    cache.cache_dir = "/tmp/private/cache"
+    cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"}
+    cache_context = MagicMock()
+    cache_context.__enter__.return_value = cache
+    with (
+      patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context),
+      patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"),
+      patch.object(
+        curl_krb, "get_user_call_output", return_value=(0, "200", "")
+      ),
+      patch.object(curl_krb.time, "time", side_effect=(1000, 1001)),
+    ):
+      result = curl_krb.curl_krb_request(
+        "/tmp",
+        "/etc/security/service.keytab",
+        "service/host@EXAMPLE.COM",
+        "https://metrics.example/",
+        "ams",
+        None,
+        True,
+        "AMS",
+        "ambari-qa",
+        ca_certs="/etc/ca.crt",
+      )
+    self.assertEqual((200, None, 1), result)
 
 
 if __name__ == "__main__":
