@@ -23,6 +23,7 @@ import sys
 from types import ModuleType
 import unittest
 from unittest.mock import MagicMock, call, patch
+import xml.etree.ElementTree as ET
 
 from resource_management.core.exceptions import Fail
 
@@ -115,6 +116,42 @@ def params_module(**values):
 
 
 class TestHdfsBigtop(unittest.TestCase):
+  def test_metadata_matches_bigtop_hadoop_and_os_packages(self):
+    root = ET.parse(HDFS / "metainfo.xml").getroot()
+    service = root.find("./services/service")
+    self.assertEqual("3.3.6-1", service.findtext("version"))
+
+    packages_by_family = {}
+    for os_specific in service.findall("./osSpecifics/osSpecific"):
+      packages_by_family[os_specific.findtext("osFamily")] = [
+        package.findtext("name")
+        for package in os_specific.findall("./packages/package")
+      ]
+
+    rpm_packages = packages_by_family[
+      "redhat7,redhat8,redhat9,openeuler22"
+    ]
+    self.assertIn("hadoop_${stack_version}-libhdfs", rpm_packages)
+    self.assertNotIn("snappy-devel", rpm_packages)
+    self.assertNotIn("libtirpc-devel", rpm_packages)
+    self.assertEqual(
+      [
+        "hadoop-${stack_version}",
+        "hadoop-${stack_version}-client",
+        "libhdfs0",
+        "ranger-${stack_version}-hdfs-plugin",
+      ],
+      packages_by_family["ubuntu22"],
+    )
+
+  def test_core_site_has_no_hortonworks_or_hdp_user_agent(self):
+    core_site = (HDFS / "configuration/core-site.xml").read_text(
+      encoding="utf-8"
+    )
+    self.assertNotIn("Hortonworks", core_site)
+    self.assertNotIn("HDP", core_site)
+    self.assertEqual(3, core_site.count("Apache Ambari"))
+
   def test_rolling_restart_timeout_uses_integer_ceiling(self):
     for timeout, expected_retries in ((1, 1), (29, 1), (30, 1), (31, 2)):
       with self.subTest(timeout=timeout):

@@ -210,12 +210,12 @@ DEFAULT
   </property>
   <property>
     <name>fs.azure.user.agent.prefix</name>
-    <value>User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}</value>
+    <value>Apache Ambari/{{version}}</value>
     <on-ambari-upgrade add="false" />
   </property>
   <property>
     <name>fs.gs.application.name.suffix</name>
-    <value> (GPN:Hortonworks; version 1.0) HDP/{{version}}</value>
+    <value> (GPN:Apache Ambari; version {{version}})</value>
     <value-attributes>
       <read-only>true</read-only>
       <overridable>false</overridable>
@@ -236,7 +236,7 @@ DEFAULT
   </property>
   <property>
     <name>fs.s3a.user.agent.prefix</name>
-    <value>User-Agent: APN/1.0 Hortonworks/1.0 HDP/{{version}}</value>
+    <value>Apache Ambari/{{version}}</value>
     <on-ambari-upgrade add="false" />
   </property>
 </configuration>
