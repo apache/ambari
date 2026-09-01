@@ -486,8 +486,13 @@ class TestKerberosParamsAndMetadata(unittest.TestCase):
       node.findtext("osFamily")
       for node in root.findall("./services/service/osSpecifics/osSpecific")
     }
-    self.assertIn("debian10,debian11,ubuntu20,ubuntu22", families)
-    self.assertNotIn("debian7,ubuntu12,ubuntu14,ubuntu16", families)
+    self.assertEqual(
+      {
+        "redhat8,redhat9,openeuler22",
+        "debian10,debian11,ubuntu20,ubuntu22",
+      },
+      families,
+    )
     self.assertFalse((SCRIPTS / "status_params.py").exists())
     for stack_version in ("3.2.0", "3.3.0", "3.4.0"):
       metadata = ElementTree.parse(
