@@ -56,7 +56,8 @@ with patch(
     )
     from resource_management.libraries.functions.repository_util import RepositoryUtil
 
-PATH_TO_STACKS = "main/resources/stacks/HDP"
+PATH_TO_STACKS = "main/resources/stacks/BIGTOP"
+PATH_TO_STACK_PROPERTIES = "main/resources/stacks/BIGTOP/3.2.0/properties"
 PATH_TO_STACK_TESTS = "test/python/stacks/"
 
 PATH_TO_COMMON_SERVICES = "main/resources/common-services"
@@ -292,10 +293,10 @@ class RMFTestCase(TestCase):
   @staticmethod
   def get_stack_tools():
     """
-    Read stack_tools config property from resources/stacks/configs/stack_tools.json
+    Read the stack tools shipped by the BIGTOP stack.
     """
     stack_tools_file = os.path.join(
-      RMFTestCase.get_src_folder(), PATH_TO_STACK_TESTS, "configs", "stack_tools.json"
+      RMFTestCase.get_src_folder(), PATH_TO_STACK_PROPERTIES, "stack_tools.json"
     )
     with open(stack_tools_file, "r") as f:
       return f.read()
@@ -303,12 +304,11 @@ class RMFTestCase(TestCase):
   @staticmethod
   def get_stack_features():
     """
-    Read stack_features config property from resources/stacks/configs/stack_features.json
+    Read the stack features shipped by the BIGTOP stack.
     """
     stack_features_file = os.path.join(
       RMFTestCase.get_src_folder(),
-      PATH_TO_STACK_TESTS,
-      "configs",
+      PATH_TO_STACK_PROPERTIES,
       "stack_features.json",
     )
     with open(stack_features_file, "r") as f:
@@ -317,12 +317,11 @@ class RMFTestCase(TestCase):
   @staticmethod
   def get_stack_packages():
     """
-    Read stack_packages config property from resources/stacks/configs/stack_packages.json
+    Read the stack packages shipped by the BIGTOP stack.
     """
     stack_packages_file = os.path.join(
       RMFTestCase.get_src_folder(),
-      PATH_TO_STACK_TESTS,
-      "configs",
+      PATH_TO_STACK_PROPERTIES,
       "stack_packages.json",
     )
     with open(stack_packages_file, "r") as f:

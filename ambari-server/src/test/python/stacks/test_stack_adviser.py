@@ -92,12 +92,12 @@ class TestBasicAdvisor(TestCase):
 
     services = {
       "Versions": {
-        "parent_stack_version": "2.5",
-        "stack_name": "HDP",
-        "stack_version": "2.6",
+        "parent_stack_version": "3.2.0",
+        "stack_name": "BIGTOP",
+        "stack_version": "3.3.0",
         "stack_hierarchy": {
-          "stack_name": "HDP",
-          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"],
+          "stack_name": "BIGTOP",
+          "stack_versions": ["3.3.0", "3.2.0"],
         },
       },
       "services": [],
@@ -151,12 +151,12 @@ class TestBasicAdvisor(TestCase):
 
     services = {
       "Versions": {
-        "parent_stack_version": "2.5",
-        "stack_name": "HDP",
-        "stack_version": "2.6",
+        "parent_stack_version": "3.2.0",
+        "stack_name": "BIGTOP",
+        "stack_version": "3.3.0",
         "stack_hierarchy": {
-          "stack_name": "HDP",
-          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"],
+          "stack_name": "BIGTOP",
+          "stack_versions": ["3.3.0", "3.2.0"],
         },
       },
       "services": [],
@@ -212,12 +212,12 @@ class TestBasicAdvisor(TestCase):
 
     services = {
       "Versions": {
-        "parent_stack_version": "2.5",
-        "stack_name": "HDP",
-        "stack_version": "2.6",
+        "parent_stack_version": "3.2.0",
+        "stack_name": "BIGTOP",
+        "stack_version": "3.3.0",
         "stack_hierarchy": {
-          "stack_name": "HDP",
-          "stack_versions": ["2.5", "2.4", "2.3", "2.2", "2.1", "2.0.6"],
+          "stack_name": "BIGTOP",
+          "stack_versions": ["3.3.0", "3.2.0"],
         },
       },
       "services": [],

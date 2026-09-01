@@ -38,30 +38,10 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled(
       "Repository",
-      "HDP-2.6-repo-1",
-      base_url="http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.6.4.0-60",
+      "BIGTOP-3.3.0",
+      base_url="https://bigtop-snapshot.s3.amazonaws.com/centos-8/$basearch",
       action=["prepare"],
-      components=["HDP", "main"],
-      repo_template="[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
-      repo_file_name=None,
-      mirror_list=None,
-    )
-    self.assertResourceCalled(
-      "Repository",
-      "HDP-2.6-GPL-repo-1",
-      base_url="http://s3.amazonaws.com/dev.hortonworks.com/HDP-GPL/centos6/2.x/BUILDS/2.6.4.0-60",
-      action=["prepare"],
-      components=["HDP-GPL", "main"],
-      repo_template="[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
-      repo_file_name=None,
-      mirror_list=None,
-    )
-    self.assertResourceCalled(
-      "Repository",
-      "HDP-UTILS-1.1.0.22-repo-1",
-      base_url="http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.22/repos/centos6",
-      action=["prepare"],
-      components=["HDP-UTILS", "main"],
+      components=["bigtop", "main"],
       repo_template="[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
       repo_file_name=None,
       mirror_list=None,
@@ -113,23 +93,12 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled(
       "Repository",
-      "HDP-2.2-repo-4",
+      "BIGTOP-3.3.0",
       action=["prepare"],
-      base_url="http://repo1/HDP/centos5/2.x/updates/2.2.0.0",
-      components=["HDP", "main"],
+      base_url="https://bigtop-snapshot.s3.amazonaws.com/centos-8/$basearch",
+      components=["bigtop", "main"],
       mirror_list=None,
-      repo_file_name="ambari-hdp-4",
-      repo_template="[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
-    )
-
-    self.assertResourceCalled(
-      "Repository",
-      "HDP-UTILS-1.1.0.20-repo-4",
-      action=["prepare"],
-      base_url="http://repo1/HDP-UTILS/centos5/2.x/updates/2.2.0.0",
-      components=["HDP-UTILS", "main"],
-      mirror_list=None,
-      repo_file_name="ambari-hdp-4",
+      repo_file_name="ambari-bigtop-4",
       repo_template="[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
     )
     self.assertResourceCalled(

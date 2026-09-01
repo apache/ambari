@@ -147,7 +147,7 @@ def stop_test_process(process):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def get_stack_name():
-  return "HDP"
+  return "BIGTOP"
 
 
 def extract_extends_field_from_file(metainfo):
