@@ -18,9 +18,15 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.resources.system import Execute
+from resource_management.core.logger import Logger
+from ranger_process import (
+  find_process,
+  rollback_started_process,
+  secure_started_process,
+  stop_process,
+)
 
 
 def ranger_service(name, action=None):
@@ -30,35 +36,49 @@ def ranger_service(name, action=None):
   if params.db_flavor.lower() == "sqla":
     env_dict = {"JAVA_HOME": params.java_home, "LD_LIBRARY_PATH": params.ld_lib_path}
 
-  if name == "ranger_admin":
-    no_op_test = format("ps -ef | grep proc_rangeradmin | grep -v grep")
+  component = {
+    "ranger_admin": (
+      params.ranger_admin_services_file,
+      params.ranger_admin_pid_file,
+      params.admin_log_dir,
+    ),
+    "ranger_usersync": (
+      params.usersync_services_file,
+      params.ranger_usersync_pid_file,
+      params.usersync_log_dir,
+    ),
+    "ranger_tagsync": (
+      params.tagsync_services_file,
+      params.tagsync_pid_file,
+      params.tagsync_log_dir,
+    ),
+  }.get(name)
+  if component is None:
+    raise ValueError(f"Unsupported Ranger component {name}")
+  if name == "ranger_tagsync" and not params.stack_supports_ranger_tagsync:
+    return
+
+  service_file, pid_file, log_dir = component
+  if action == "stop":
+    stop_process(name, pid_file, params.unix_user, params.unix_group)
+    return
+  if action not in (None, "start"):
+    raise ValueError(f"Unsupported Ranger service action {action}")
+  if find_process(name, pid_file, params.unix_user, params.unix_group) is not None:
+    return
+
+  try:
+    Execute(
+      (service_file, "start"),
+      environment=env_dict,
+      user=params.unix_user,
+      timeout=60,
+    )
+    secure_started_process(name, pid_file, params.unix_user, params.unix_group)
+  except Exception:
     try:
-      Execute(
-        params.ranger_start,
-        environment=env_dict,
-        user=params.unix_user,
-        not_if=no_op_test,
-      )
-    except:
-      show_logs(params.admin_log_dir, params.unix_user)
-      raise
-  elif name == "ranger_usersync":
-    no_op_test = format("ps -ef | grep proc_rangerusersync | grep -v grep")
-    try:
-      Execute(
-        params.usersync_start,
-        environment=env_dict,
-        not_if=no_op_test,
-        user=params.unix_user,
-      )
-    except:
-      show_logs(params.usersync_log_dir, params.unix_user)
-      raise
-  elif name == "ranger_tagsync" and params.stack_supports_ranger_tagsync:
-    no_op_test = format("ps -ef | grep proc_rangertagsync | grep -v grep")
-    cmd = format("{tagsync_services_file} start")
-    try:
-      Execute(cmd, environment=env_dict, user=params.unix_user, not_if=no_op_test)
-    except:
-      show_logs(params.tagsync_log_dir, params.unix_user)
-      raise
+      rollback_started_process(name, pid_file, params.unix_user)
+    except Exception as cleanup_error:
+      Logger.warning(f"Could not roll back failed {name} start: {cleanup_error}")
+    show_logs(log_dir, params.unix_user)
+    raise

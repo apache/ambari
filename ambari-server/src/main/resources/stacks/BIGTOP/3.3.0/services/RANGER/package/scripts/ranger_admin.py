@@ -18,20 +18,16 @@ limitations under the License.
 
 """
 
-from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
-from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
-from resource_management.core import shell
 from ranger_service import ranger_service
+from ranger_process import check_process
 from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 import upgrade
@@ -57,8 +53,12 @@ class RangerAdmin(Script):
           format("{ranger_home}/install.properties"),
           format("{ranger_home}/install-backup.properties"),
         ),
-        not_if=format("ls {ranger_home}/install-backup.properties"),
-        only_if=format("ls {ranger_home}/install.properties"),
+        not_if=lambda: os.path.exists(
+          os.path.join(params.ranger_home, "install-backup.properties")
+        ),
+        only_if=lambda: os.path.exists(
+          os.path.join(params.ranger_home, "install.properties")
+        ),
         sudo=True,
       )
       File(
@@ -67,19 +67,22 @@ class RangerAdmin(Script):
         group=params.unix_group,
         mode=0o640,
       )
+      File(
+        os.path.join(params.ranger_home, "install-backup.properties"),
+        owner=params.unix_user,
+        group=params.unix_group,
+        mode=0o600,
+        only_if=lambda: os.path.exists(
+          os.path.join(params.ranger_home, "install-backup.properties")
+        ),
+      )
 
   def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
 
-    Execute(
-      format("{params.ranger_stop}"),
-      environment={"JAVA_HOME": params.java_home},
-      user=params.unix_user,
-    )
-    if params.stack_supports_pid:
-      File(params.ranger_admin_pid_file, action="delete")
+    ranger_service("ranger_admin", action="stop")
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -175,22 +178,20 @@ class RangerAdmin(Script):
 
     env.set_params(status_params)
 
-    if status_params.stack_supports_pid:
-      check_process_status(status_params.ranger_admin_pid_file)
-      return
-
-    cmd = "ps -ef | grep proc_rangeradmin | grep -v grep"
-    code, output = shell.call(cmd, timeout=20)
-
-    if code != 0:
+    try:
+      check_process(
+        "ranger_admin",
+        status_params.ranger_admin_pid_file,
+        status_params.unix_user,
+        status_params.unix_group,
+      )
+    except ComponentIsNotRunning:
       if self.is_ru_rangeradmin_in_progress(status_params.upgrade_marker_file):
         Logger.info(
           "Ranger admin process not running - skipping as stack upgrade is in progress"
         )
-      else:
-        Logger.debug("Ranger admin process not running")
-        raise ComponentIsNotRunning()
-    pass
+        return
+      raise
 
   def configure(self, env, upgrade_type=None, setup_db=False):
     import params
