@@ -19,9 +19,10 @@ limitations under the License.
 
 import importlib.util
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from xml.etree import ElementTree
 
 from resource_management.core.exceptions import Fail
@@ -155,6 +156,123 @@ class TestRangerKmsBigtopRuntime(unittest.TestCase):
       "kms",
       ("-Dproc_rangerkms",),
     )
+
+  def test_service_check_url_rejects_invalid_network_values(self):
+    with patch.dict(
+      sys.modules, {"kms_process": SimpleNamespace(check_process=MagicMock())}
+    ):
+      module = load_module(
+        "kms_service_check_url_test", KMS / "package/scripts/service_check.py"
+      )
+
+    self.assertEqual(
+      "https://kms.example.com:9393/kms/v1/keys/names",
+      module.kms_service_url("https", "kms.example.com", "9393"),
+    )
+    self.assertEqual(
+      "http://[2001:db8::1]:9292/kms/v1/keys/names",
+      module.kms_service_url("http", "2001:db8::1", 9292),
+    )
+    for values in (
+      ("file", "kms.example.com", 9292),
+      ("http", "kms.example.com/path", 9292),
+      ("http", "kms.example.com", 0),
+      ("http", "kms.example.com", "9292;id"),
+    ):
+      with self.subTest(values=values), self.assertRaises(Fail):
+        module.kms_service_url(*values)
+
+  def test_secure_service_check_keeps_pid_check_and_propagates_http_failure(self):
+    with patch.dict(
+      sys.modules, {"kms_process": SimpleNamespace(check_process=MagicMock())}
+    ):
+      module = load_module(
+        "kms_service_check_secure_test", KMS / "package/scripts/service_check.py"
+      )
+    params = SimpleNamespace(
+      ranger_kms_pid_file="/var/run/ranger_kms/rangerkms.pid",
+      kms_user="kms",
+      kms_group="kms",
+      security_enabled=True,
+      tmp_dir="/var/run/ambari-agent/tmp",
+      kinit_path_local="/usr/bin/kinit",
+      rangerkms_keytab="/etc/security/keytabs/rangerkms.service.keytab",
+      rangerkms_principal="rangerkms/kms.example.com@EXAMPLE.COM",
+      url_scheme="https",
+      current_host="kms.example.com",
+      kms_port="9393",
+    )
+    cache = MagicMock()
+    cache.environment = {"KRB5CCNAME": "FILE:/private/kms/krb5cc"}
+    cache.__enter__.return_value = cache
+    cache.__exit__.return_value = False
+    execute_error = Fail("Ranger KMS endpoint failed")
+
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(module, "check_process") as check_process, \
+      patch.object(module, "PrivateKerberosCache", return_value=cache) as factory, \
+      patch.object(module, "Execute", side_effect=execute_error) as execute, \
+      self.assertRaisesRegex(Fail, "endpoint failed"):
+      module.KmsServiceCheck().service_check(SimpleNamespace(set_params=MagicMock()))
+
+    check_process.assert_called_once_with(
+      "/var/run/ranger_kms/rangerkms.pid", "kms", "kms"
+    )
+    factory.assert_called_once_with(
+      "kms",
+      "kms",
+      temp_dir="/var/run/ambari-agent/tmp",
+      prefix="ambari-ranger-kms-check-",
+    )
+    cache.kinit.assert_called_once_with(
+      "/usr/bin/kinit",
+      "/etc/security/keytabs/rangerkms.service.keytab",
+      "rangerkms/kms.example.com@EXAMPLE.COM",
+      timeout=30,
+    )
+    command = execute.call_args.args[0]
+    self.assertIn("--negotiate", command)
+    self.assertEqual("https://kms.example.com:9393/kms/v1/keys/names", command[-1])
+    self.assertEqual(
+      {"KRB5CCNAME": "FILE:/private/kms/krb5cc"},
+      execute.call_args.kwargs["environment"],
+    )
+    self.assertEqual("kms", execute.call_args.kwargs["user"])
+    self.assertIs(Fail, cache.__exit__.call_args.args[0])
+    self.assertIs(execute_error, cache.__exit__.call_args.args[1])
+
+  def test_secure_service_check_rejects_missing_credentials_before_request(self):
+    with patch.dict(
+      sys.modules, {"kms_process": SimpleNamespace(check_process=MagicMock())}
+    ):
+      module = load_module(
+        "kms_service_check_credentials_test", KMS / "package/scripts/service_check.py"
+      )
+    params = SimpleNamespace(
+      ranger_kms_pid_file="/var/run/ranger_kms/rangerkms.pid",
+      kms_user="kms",
+      kms_group="kms",
+      security_enabled=True,
+      tmp_dir="/var/run/ambari-agent/tmp",
+      kinit_path_local="/usr/bin/kinit",
+      rangerkms_keytab="/etc/security/keytabs/rangerkms.service.keytab",
+      url_scheme="https",
+      current_host="kms.example.com",
+      kms_port="9393",
+    )
+
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(module, "check_process") as check_process, \
+      patch.object(module, "PrivateKerberosCache") as factory, \
+      patch.object(module, "Execute") as execute, \
+      self.assertRaisesRegex(Fail, "service principal and keytab"):
+      module.KmsServiceCheck().service_check(SimpleNamespace(set_params=MagicMock()))
+
+    check_process.assert_called_once_with(
+      "/var/run/ranger_kms/rangerkms.pid", "kms", "kms"
+    )
+    factory.assert_not_called()
+    execute.assert_not_called()
 
   def test_metadata_matches_bigtop_ranger_2_6_contract(self):
     root = ElementTree.parse(KMS / "metainfo.xml").getroot()

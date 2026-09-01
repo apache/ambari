@@ -23,8 +23,11 @@ import os
 from pathlib import Path
 import pwd
 import stat
+import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import MagicMock, patch
 from xml.etree import ElementTree
 
 from resource_management.core.exceptions import Fail
@@ -124,6 +127,82 @@ class TestRangerBigtopRuntime(unittest.TestCase):
       alert._strict_bool("yes", "security_enabled")
     with self.assertRaises(ValueError):
       alert._validate_ranger_url("file:///etc/passwd")
+
+  def test_secure_service_check_uses_private_cache_and_propagates_failure(self):
+    module = load_module(
+      "ranger_service_check_test", RANGER / "package/scripts/service_check.py"
+    )
+    params = SimpleNamespace(
+      ranger_external_url="https://ranger.example.com:6182/",
+      upgrade_marker_file="/nonexistent/ranger-upgrade-marker",
+      security_enabled=True,
+      unix_user="ranger",
+      unix_group="ranger",
+      tmp_dir="/var/run/ambari-agent/tmp",
+      kinit_path_local="/usr/bin/kinit",
+      ranger_admin_keytab="/etc/security/keytabs/rangeradmin.service.keytab",
+      ranger_admin_jaas_principal="rangeradmin/ranger.example.com@EXAMPLE.COM",
+    )
+    cache = MagicMock()
+    cache.environment = {"KRB5CCNAME": "FILE:/private/ranger/krb5cc"}
+    cache.__enter__.return_value = cache
+    cache.__exit__.return_value = False
+    execute_error = Fail("Ranger Admin endpoint failed")
+
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(module.os.path, "isfile", return_value=False), \
+      patch.object(module, "PrivateKerberosCache", return_value=cache) as factory, \
+      patch.object(module, "Execute", side_effect=execute_error) as execute, \
+      self.assertRaisesRegex(Fail, "endpoint failed"):
+      module.RangerServiceCheck().service_check(SimpleNamespace(set_params=MagicMock()))
+
+    factory.assert_called_once_with(
+      "ranger",
+      "ranger",
+      temp_dir="/var/run/ambari-agent/tmp",
+      prefix="ambari-ranger-admin-check-",
+    )
+    cache.kinit.assert_called_once_with(
+      "/usr/bin/kinit",
+      "/etc/security/keytabs/rangeradmin.service.keytab",
+      "rangeradmin/ranger.example.com@EXAMPLE.COM",
+      timeout=30,
+    )
+    command = execute.call_args.args[0]
+    self.assertIn("--negotiate", command)
+    self.assertEqual("https://ranger.example.com:6182/login.jsp", command[-1])
+    self.assertEqual(
+      {"KRB5CCNAME": "FILE:/private/ranger/krb5cc"},
+      execute.call_args.kwargs["environment"],
+    )
+    self.assertEqual("ranger", execute.call_args.kwargs["user"])
+    self.assertIs(Fail, cache.__exit__.call_args.args[0])
+    self.assertIs(execute_error, cache.__exit__.call_args.args[1])
+
+  def test_secure_service_check_rejects_missing_credentials_before_request(self):
+    module = load_module(
+      "ranger_service_check_credentials_test",
+      RANGER / "package/scripts/service_check.py",
+    )
+    params = SimpleNamespace(
+      ranger_external_url="https://ranger.example.com:6182/",
+      upgrade_marker_file="/nonexistent/ranger-upgrade-marker",
+      security_enabled=True,
+      unix_user="ranger",
+      unix_group="ranger",
+      tmp_dir="/var/run/ambari-agent/tmp",
+      kinit_path_local="/usr/bin/kinit",
+      ranger_admin_keytab="/etc/security/keytabs/rangeradmin.service.keytab",
+    )
+
+    with patch.object(module.os.path, "isfile", return_value=False), \
+      patch.object(module, "PrivateKerberosCache") as factory, \
+      patch.object(module, "Execute") as execute, \
+      self.assertRaisesRegex(Fail, "service principal and keytab"):
+      module.RangerServiceCheck().check_ranger_admin_service(params)
+
+    factory.assert_not_called()
+    execute.assert_not_called()
 
   def test_metadata_matches_bigtop_ranger_2_6_contract(self):
     root = ElementTree.parse(RANGER / "metainfo.xml").getroot()
