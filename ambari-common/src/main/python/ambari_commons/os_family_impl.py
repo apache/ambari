@@ -28,10 +28,10 @@ class OsFamilyImpl(object):
       class BaseFoo(object): pass
       @OsFamilyImpl(os_family="ubuntu")
       class OsFooW(BaseFoo):pass
-      print BaseFoo()# OsFooW
+      print(BaseFoo())  # OsFooW
       @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
       class OsFooD(BaseFoo):pass
-      print BaseFoo()# OsFooD
+      print(BaseFoo())  # OsFooD
 
   """
 

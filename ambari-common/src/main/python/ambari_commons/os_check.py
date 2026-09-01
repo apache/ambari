@@ -22,7 +22,6 @@ import json
 import re
 import os
 import sys
-import platform
 import distro
 
 
@@ -94,7 +93,7 @@ def advanced_check(distribution):
 
     if "amazon" in name.lower():
       distribution[0] = "amazonlinux"
-      search_groups = re.search('VERSION_ID="(\d+)"', file_content)
+      search_groups = re.search(r'VERSION_ID="(\d+)"', file_content)
 
       if search_groups:
         distribution[1] = search_groups.group(1)
@@ -166,10 +165,6 @@ class OSCheck:
     if distribution[0] == "":
       distribution = advanced_check(distribution)
 
-      if platform.system().lower() == "darwin":
-        # mac - used for unit tests
-        distribution = ("Darwin", "TestOnly", "1.1.1", "1.1.1", "1.1")
-
     return distribution
 
   @staticmethod
@@ -179,7 +174,7 @@ class OSCheck:
 
     if full_os_and_major_version in OSConst.OS_TYPE_ALIASES:
       alias = OSConst.OS_TYPE_ALIASES[full_os_and_major_version]
-      re_groups = re.search("(\D+)(\d+)$", alias).groups()
+      re_groups = re.search(r"(\D+)(\d+)$", alias).groups()
       os_type = re_groups[0]
       os_major_version = re_groups[1]
 

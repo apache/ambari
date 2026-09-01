@@ -17,20 +17,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import getopt
+import argparse
 import json
-import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.parse
 import re
 from os import path
 import xml.etree.ElementTree as ET
 
-import sys
-
-json_stack_version_re = re.compile("(\S*)-((\d\.*)+)")
+json_stack_version_re = re.compile(r"(\S*)-((\d\.*)+)")
 
 family_map = {"redhat6": "centos6", "redhat7": "centos7"}
 
-HELP_STRING = "Usage: urlinfo_processor.py -u <urlinfo.json path> -s <stack folder>"
+URL_OPEN_TIMEOUT_SECONDS = 30
 
 XML_HEADER = """<?xml version="1.0"?>
 <!--
@@ -52,13 +50,18 @@ XML_HEADER = """<?xml version="1.0"?>
 """
 
 
-def get_json_content(path):
-  try:
-    response = urllib.request.urlopen(path)
-    content = response.read()
-  except:
-    content = open(path, "r").read()
-  return json.loads(content)
+def get_json_content(source):
+  if urllib.parse.urlparse(source).scheme:
+    with urllib.request.urlopen(
+      source, timeout=URL_OPEN_TIMEOUT_SECONDS
+    ) as response:
+      content = response.read()
+    if isinstance(content, bytes):
+      content = content.decode("utf-8")
+    return json.loads(content)
+
+  with open(source, encoding="utf-8") as stream:
+    return json.load(stream)
 
 
 def replace_url_in_repoinfo_xml(repoinfo_xml_path, repo_id, repo_info):
@@ -73,15 +76,14 @@ def replace_url_in_repoinfo_xml(repoinfo_xml_path, repo_id, repo_info):
       if repo_id_tag is not None and repo_id_tag.text == repo_id:
         baseurl_tag = repo_tag.find("baseurl")
         if baseurl_tag is not None and family in repo_info:
-          if family in repo_info:
-            print(
-              f"URLINFO_PROCESSOR: replacing {baseurl_tag.text} to {repo_info[family]} for repo id:{repo_id} and family:{family}"
-            )
-            baseurl_tag.text = repo_info[family]
+          print(
+            f"URLINFO_PROCESSOR: replacing {baseurl_tag.text} to {repo_info[family]} for repo id:{repo_id} and family:{family}"
+          )
+          baseurl_tag.text = repo_info[family]
 
   with open(repoinfo_xml_path, "w") as out:
     out.write(XML_HEADER)
-    tree.write(out)
+    tree.write(out, encoding="unicode")
 
 
 def replace_urls(stack_location, repo_version_path):
@@ -100,30 +102,16 @@ def replace_urls(stack_location, repo_version_path):
       replace_url_in_repoinfo_xml(repoinfo_xml_path, repo_id, repo_info)
 
 
-def main(argv):
-  urlinfo_path = ""
-  stack_folder = ""
-  try:
-    opts, args = getopt.getopt(argv, "u:s:", ["urlinfo=", "stack_folder="])
-  except getopt.GetoptError:
-    print(HELP_STRING)
-    sys.exit(2)
-  for opt, arg in opts:
-    if opt == "-h":
-      print(HELP_STRING)
-      sys.exit()
-    elif opt in ("-u", "--urlinfo"):
-      urlinfo_path = arg
-    elif opt in ("-s", "--stack_folder"):
-      stack_folder = arg
-  if not urlinfo_path or not stack_folder:
-    print(HELP_STRING)
-    sys.exit(2)
+def main(argv=None):
+  parser = argparse.ArgumentParser(description="Replace stack repository base URLs")
+  parser.add_argument("-u", "--urlinfo", required=True, dest="urlinfo_path")
+  parser.add_argument("-s", "--stack-folder", required=True, dest="stack_folder")
+  arguments = parser.parse_args(argv)
 
   print("URLINFO_PROCESSOR: starting replacement of repo urls")
-  replace_urls(stack_folder, urlinfo_path)
+  replace_urls(arguments.stack_folder, arguments.urlinfo_path)
   print("URLINFO_PROCESSOR: replacement finished")
 
 
 if __name__ == "__main__":
-  main(sys.argv[1:])
+  main()

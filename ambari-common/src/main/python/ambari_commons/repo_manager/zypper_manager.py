@@ -209,7 +209,7 @@ class ZypperManager(GenericManager):
     :rtype bool
     """
     r = shell.subprocess_executor(self.properties.verify_dependency_cmd)
-    pattern = re.compile("\d+ new package(s)? to install")
+    pattern = re.compile(r"\d+ new package(s)? to install")
 
     if r.code or (r.out and pattern.search(r.out)):
       err_msg = Logger.filter_text(

@@ -506,16 +506,16 @@ def process_executor(
    Option 1. Basic
      with process_executor(["ls", "-la]) as stdout:
        for line in stdout:
-         print line
+         print(line)
 
    Option 2. Extended
      def error_handler(command, error_log, exit_code):
-       print "Command '{}' failed".format(command)
-       print "Exit Code: {}   StdOut: {} \n".format(exit_code, "\n".join(error_log))
+       print("Command '{}' failed".format(command))
+       print("Exit Code: {}   StdOut: {} \n".format(exit_code, "\n".join(error_log)))
 
      with process_executor(["ls", "-la], timeout=10, error_callback=error_handler) as stdout:
        for line in stdout:
-         print line
+         print(line)
 
   """
 

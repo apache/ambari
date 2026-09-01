@@ -50,6 +50,21 @@ class TestYAMLUtils(TestCase):
     )
     self.assertEqual(expected_values, values)
 
+  def test_convert_yaml_array_rejects_malformed_or_non_string_values(self):
+    invalid_values = (
+      None,
+      "",
+      "['host-a'] trailing-data",
+      "{'host': 'host-a'}",
+      "[]",
+      "['host-a', 2]",
+      "__import__('os').system('false')",
+    )
+
+    for value in invalid_values:
+      with self.subTest(value=value):
+        self.assertIsNone(yaml_utils.get_values_from_yaml_array(value))
+
   def test_yaml_property_escaping(self):
     """
     Tests that YAML values are escaped with quotes properly when needed
