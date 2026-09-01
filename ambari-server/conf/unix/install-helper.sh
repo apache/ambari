@@ -28,6 +28,7 @@ ACTION=$1
 
 OLD_PYLIB_PATH="${ROOT}/usr/lib/python2.6/site-packages"
 OLD_PY_MODULES="ambari_commons;resource_management;ambari_jinja2;ambari_simplejson;ambari_server"
+OBSOLETE_PYTHON_PATHS="ambari_jinja2;ambari_simplejson;ambari_stomp;ambari_ws4py;ambari_pbkdf2;ambari_pyaes"
 
 AMBARI_SERVER_ROOT_DIR="${ROOT}/usr/lib/${AMBARI_UNIT}"
 AMBARI_AGENT_ROOT_DIR="${ROOT}/usr/lib/ambari-agent"
@@ -41,7 +42,6 @@ AMBARI_ENV_RPMSAVE="${ROOT}/var/lib/${AMBARI_UNIT}/ambari-env.sh.rpmsave" # this
 AMBARI_SERVER_KEYS_FOLDER="${ROOT}/var/lib/${AMBARI_UNIT}/keys"
 AMBARI_SERVER_KEYS_DB_FOLDER="${ROOT}/var/lib/${AMBARI_UNIT}/keys/db"
 AMBARI_SERVER_NEWCERTS_FOLDER="${ROOT}/var/lib/${AMBARI_UNIT}/keys/db/newcerts"
-CLEANUP_MODULES="resource_management;ambari_commons;ambari_server;ambari_ws4py;ambari_stomp;ambari_jinja2;ambari_simplejson;ambari_pbkdf2;ambari_pyaes"
 AMBARI_SERVER_VAR="${ROOT}/var/lib/${AMBARI_UNIT}"
 AMBARI_HELPER="${ROOT}/var/lib/ambari-server/install-helper.sh.orig"
 
@@ -60,11 +60,11 @@ AMBARI_LOG4J="${AMBARI_CONFIGS_DIR}/log4j.properties"
 
 
 resolve_log_file(){
- local log_dir=/var/log/${AMBARI_UNIT}
+ local log_dir="${ROOT}/var/log/${AMBARI_UNIT}"
  local log_file="${log_dir}/${AMBARI_UNIT}-pkgmgr.log"
 
  if [ ! -d "${log_dir}" ]; then
-   mkdir "${log_dir}" 1>/dev/null 2>&1
+   mkdir -p "${log_dir}" 1>/dev/null 2>&1
  fi
 
  if [ -d "${log_dir}" ]; then
@@ -78,16 +78,21 @@ resolve_log_file(){
 }
 
 clean_pyc_files(){
-  # cleaning old *.pyc files
   local lib_dir="${AMBARI_SERVER_ROOT_DIR}/lib"
 
-  echo ${CLEANUP_MODULES} | tr ';' '\n' | while read item; do
-    local item="${lib_dir}/${item}"
-    echo "Cleaning pyc files from ${item}..."
-    if [ -d "${item}" ]; then
-      find ${item:?} -name *.pyc -exec rm {} \; 1>>${LOG_FILE} 2>&1
-    else
-      echo "Skipping ${item} pyc cleaning, as package not existing"
+  echo "Cleaning generated Python bytecode from ${lib_dir}..."
+  if [ -d "${lib_dir}" ]; then
+    find "${lib_dir:?}" -type f \( -name '*.pyc' -o -name '*.pyo' \) \
+      -exec rm -f -- {} + 1>>"${LOG_FILE}" 2>&1
+  fi
+}
+
+clean_obsolete_python_sources(){
+  printf '%s\n' "${OBSOLETE_PYTHON_PATHS}" | tr ';' '\n' | while IFS= read -r item; do
+    obsolete_path="${AMBARI_SERVER_ROOT_DIR}/lib/${item}"
+    if [ -e "${obsolete_path}" ] || [ -L "${obsolete_path}" ]; then
+      echo "Removing obsolete Python source ${obsolete_path}..." 1>>"${LOG_FILE}" 2>&1
+      rm -rf -- "${obsolete_path}"
     fi
   done
 }
@@ -108,6 +113,11 @@ remove_ambari_unit_dir(){
 }
 
 remove_autostart(){
+  if [ -n "${ROOT}" ]; then
+    echo "Not removing ambari-server service from startup for a custom install root."
+    return 0
+  fi
+
    which chkconfig > /dev/null 2>&1
   if [ "$?" -eq 0 ] ; then
     chkconfig --list | grep ambari-server && chkconfig --del ambari-server
@@ -141,20 +151,46 @@ install_autostart(){
   fi
 }
 
+required_python_version(){
+  local abi_versions
+  abi_versions=$(find "${AMBARI_SERVER_ROOT_DIR}/lib" -type f -name '*.cpython-*-*.so' -exec basename {} \; 2>/dev/null \
+    | sed -n 's/.*\.cpython-\([0-9][0-9]*\)-.*/\1/p' \
+    | sort -u)
+  if [ -z "${abi_versions}" ] || [ "$(printf '%s\n' "${abi_versions}" | wc -l)" -ne 1 ]; then
+    return 1
+  fi
+  printf '%s.%s\n' "$(printf '%s' "${abi_versions}" | cut -c1)" "$(printf '%s' "${abi_versions}" | cut -c2-)"
+}
+
 locate_python(){
-  local python_binaries="/usr/bin/python3.9;/usr/bin/python3"
-
-  echo ${python_binaries}| tr ';' '\n' | while read python_binary; do
-    ${python_binary} -c "import sys ; sys.exit(sys.version_info < (3, 9, 2))" 1>>${LOG_FILE} 2>/dev/null
-
-    if [ $? -eq 0 ]; then
+  local python_binary required_version
+  if ! required_version=$(required_python_version); then
+    >&2 echo "Cannot determine one CPython ABI from ${AMBARI_SERVER_ROOT_DIR}/lib."
+    return 1
+  fi
+  for python_binary in "/usr/bin/python${required_version}" /usr/bin/python3; do
+    if [ -x "${python_binary}" ] && "${python_binary}" -c 'import sys; required = tuple(map(int, sys.argv[1].split("."))); sys.exit(sys.version_info < (3, 9, 2) or sys.version_info[:2] != required)' "${required_version}" >>"${LOG_FILE}" 2>/dev/null; then
       echo "${python_binary}"
-      break
+      return 0
     fi
   done
+  return 1
+}
+
+install_python_wrapper(){
+  local python_binary="$1"
+  local temporary_wrapper="${PYTHON_WRAPER_TARGET}.tmp.$$"
+  rm -f "${temporary_wrapper}"
+  ln -s "${python_binary}" "${temporary_wrapper}" || return 1
+  if ! mv -f "${temporary_wrapper}" "${PYTHON_WRAPER_TARGET}"; then
+    rm -f "${temporary_wrapper}"
+    return 1
+  fi
 }
 
 do_install(){
+
+  clean_obsolete_python_sources
 
   rm -f "${AMBARI_SERVER_EXECUTABLE_LINK}"
   ln -s "${AMBARI_SERVER_EXECUTABLE}" "${AMBARI_SERVER_EXECUTABLE_LINK}"
@@ -167,17 +203,13 @@ do_install(){
    fi
   done
 
-  # remove old python wrapper
-  rm -f "${PYTHON_WRAPER_TARGET}"
-
-  local ambari_python=$(locate_python)
-
-  if [ -z "${ambari_python}" ]; then
-    >&2 echo "Cannot detect Python 3.9.2 or newer for Ambari. Please install a supported Python runtime or manually set ${PYTHON_WRAPER_TARGET}."
-  else
-    mkdir -p "${PYTHON_WRAPER_DIR}"
-    ln -s "${ambari_python}" "${PYTHON_WRAPER_TARGET}"
+  local ambari_python
+  if ! ambari_python=$(locate_python); then
+    >&2 echo "Cannot detect the Python 3.9.2+ runtime matching the packaged CPython ABI. Please install the matching supported Python runtime."
+    return 1
   fi
+  mkdir -p "${PYTHON_WRAPER_DIR}" || return 1
+  install_python_wrapper "${ambari_python}" || return 1
 
   sed -i "s|ambari.root.dir\s*=\s*/|ambari.root.dir=${ROOT_DIR_PATH}|g" "${AMBARI_LOG4J}"
   sed -i "s|root_dir\s*=\s*/|root_dir = ${ROOT_DIR_PATH}|g" "${CA_CONFIG}"

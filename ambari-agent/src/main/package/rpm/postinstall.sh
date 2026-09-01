@@ -15,17 +15,20 @@
 
 # Warning: don't add changes to this script directly, please add changes to install-helper.sh.
 
+INSTALL_HELPER="${RPM_INSTALL_PREFIX:-}/var/lib/ambari-agent/install-helper.sh"
+
+ret=0
 case "$1" in
   1) # Action install
-    if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
-        /var/lib/ambari-agent/install-helper.sh install
+    if [ -f "${INSTALL_HELPER}" ]; then
+        "${INSTALL_HELPER}" install || ret=$?
     fi
   ;;
   2) # Action upgrade
-    if [ -f "/var/lib/ambari-agent/install-helper.sh" ]; then
-        /var/lib/ambari-agent/install-helper.sh upgrade
+    if [ -f "${INSTALL_HELPER}" ]; then
+        "${INSTALL_HELPER}" upgrade || ret=$?
     fi
   ;;
 esac
 
-exit 0
+exit "$ret"

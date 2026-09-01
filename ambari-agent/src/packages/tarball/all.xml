@@ -47,18 +47,33 @@
       <fileMode>755</fileMode>
       <directory>src/main/python/ambari_agent</directory>
       <outputDirectory>${agent.install.dir}</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
       <fileMode>755</fileMode>
       <directory>${project.basedir}/../ambari-common/src/main/python/ambari_commons</directory>
       <outputDirectory>${ambari_commons.install.dir}</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
       <fileMode>755</fileMode>
       <directory>${resourceManagementSrcLocation}</directory>
       <outputDirectory>${resource_management.install.dir}</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
@@ -67,8 +82,6 @@
       <outputDirectory>${lib.dir}</outputDirectory>
       <excludes>
         <exclude>bin/**</exclude>
-        <exclude>**/test/**</exclude>
-        <exclude>**/tests/**</exclude>
         <exclude>**/__pycache__/**</exclude>
         <exclude>**/*.pyc</exclude>
         <exclude>**/*.pyo</exclude>
@@ -79,6 +92,11 @@
       <fileMode>755</fileMode>
       <directory>src/examples</directory>
       <outputDirectory>${lib.dir}/examples</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
@@ -126,12 +144,22 @@
       <fileMode>755</fileMode>
       <directory>${target.cache.dir}</directory>
       <outputDirectory>/var/lib/ambari-agent/cache</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directoryMode>755</directoryMode>
       <fileMode>755</fileMode>
       <directory>${pluggableStackDefinitionOutput}/custom_actions</directory>
       <outputDirectory>/var/lib/ambari-agent/cache/custom_actions</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
   </fileSets>
   <!-- Single files. Syntax:
@@ -147,6 +175,12 @@
 	  </files>
   -->
   <files>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${project.build.directory}/${project.artifactId}-${project.version}.jar</source>
+      <outputDirectory>/var/lib/${project.artifactId}/cred/lib</outputDirectory>
+      <destName>ambari-credential-store.jar</destName>
+    </file>
     <file>
       <fileMode>644</fileMode>
       <source>${basedir}/target/zkmigrator.jar</source>
@@ -206,6 +240,21 @@
       <fileMode>644</fileMode>
       <source>${basedir}/target/src/version</source>
       <outputDirectory>/var/lib/${project.artifactId}/data</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${project.build.directory}/python-dependencies.sbom.json</source>
+      <outputDirectory>/usr/share/doc/ambari-agent</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${maven.multiModuleProjectDirectory}/LICENSE.txt</source>
+      <outputDirectory>/usr/share/doc/ambari-agent</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${maven.multiModuleProjectDirectory}/NOTICE.txt</source>
+      <outputDirectory>/usr/share/doc/ambari-agent</outputDirectory>
     </file>
   </files>
   <dependencySets>

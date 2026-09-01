@@ -14,8 +14,9 @@
 # limitations under the License
 
 
-AMBARI_AGENT_BINARY="/etc/init.d/ambari-agent"
-AMBARI_AGENT_BINARY_SYMLINK="/usr/sbin/ambari-agent"
+ROOT=$(printf '%s' "${RPM_INSTALL_PREFIX:-}" | sed 's|/*$||')
+AMBARI_AGENT_BINARY="${ROOT}/etc/init.d/ambari-agent"
+AMBARI_AGENT_BINARY_SYMLINK="${ROOT}/usr/sbin/ambari-agent"
 
 # setting ambari-agent binary symlink
 if [ ! -f "${AMBARI_AGENT_BINARY_SYMLINK}" ]; then

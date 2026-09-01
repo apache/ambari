@@ -22,10 +22,12 @@ import os
 import sys
 import logging
 import subprocess
-from optparse import OptionParser
+import argparse
 import configparser
+import shutil
+import tarfile
 
-USAGE = "Usage: %prog [OPTION]... URL"
+USAGE = "%(prog)s [OPTION]... URL"
 DESCRIPTION = "URL should point to full tar.gz location e.g.: https://public-repo-1.hortonworks.com/something/ambari-server.tar.gz"
 
 logger = logging.getLogger("install_ambari_tarball")
@@ -57,14 +59,44 @@ def dependency_property_names(property_prefix, os_family, os_version):
   family_versions = [
     f"{os_family}{version}" for version in range(int(os_version), 0, -1)
   ]
-  return [f"{property_prefix}{postfix}" for postfix in family_versions + [os_family, ""]]
+  return [
+    f"{property_prefix}.{postfix}" if postfix else property_prefix
+    for postfix in family_versions + [os_family, ""]
+  ]
+
+
+def dependency_expressions(packages_string):
+  normalized = re.sub(r"Requires\s*:", "", packages_string)
+  normalized = normalized.replace("\\n", "")
+  return [expression.strip() for expression in normalized.split(",") if expression.strip()]
+
+
+def rpm_dependency_alternatives(expression):
+  expression = expression.strip()
+  if expression.startswith("(") and expression.endswith(")"):
+    expression = expression[1:-1].strip()
+  return [alternative.strip() for alternative in re.split(r"\s+or\s+", expression)]
+
+
+def deb_dependency_parts(expression):
+  match = re.fullmatch(
+    r"(?P<name>[A-Za-z0-9][A-Za-z0-9+.-]*)"
+    r"(?:\s*\(\s*(?P<operator><<|<=|=|>=|>>)\s*(?P<version>[^)]+)\s*\))?",
+    expression,
+  )
+  if match is None:
+    raise ValueError(f"Unsupported Debian dependency expression: {expression}")
+  return match.group("name"), match.group("operator"), match.group("version")
 
 
 class Utils:
   verbose = False
 
   @staticmethod
-  def os_call(command, logoutput=None, env={}):
+  def os_call(command, logoutput=None, env=None):
+    process_env = os.environ.copy()
+    if env:
+      process_env.update(env)
     shell = not isinstance(command, list)
     print_output = logoutput == True or (logoutput == None and Utils.verbose)
 
@@ -80,7 +112,7 @@ class Utils:
       shell=shell,
       stdout=stdout,
       stderr=stderr,
-      env=env,
+      env=process_env,
       universal_newlines=True,
     )
 
@@ -99,25 +131,67 @@ class Utils:
     return out
 
   @staticmethod
+  def dependency_is_installed(expression, is_rpm):
+    if is_rpm:
+      Utils.os_call(["rpm", "-q", "--whatprovides", expression], logoutput=False)
+      return True
+
+    name, operator, required_version = deb_dependency_parts(expression)
+    installed_version = Utils.os_call(
+      ["dpkg-query", "-W", "-f=${Version}", name], logoutput=False
+    )
+    if operator is not None:
+      Utils.os_call(
+        ["dpkg", "--compare-versions", installed_version, operator, required_version],
+        logoutput=False,
+      )
+    return True
+
+  @staticmethod
+  def install_dependency(expression, is_rpm):
+    alternatives = rpm_dependency_alternatives(expression) if is_rpm else [expression]
+    logger.info("Checking dependency %s", expression)
+
+    for alternative in alternatives:
+      try:
+        if Utils.dependency_is_installed(alternative, is_rpm):
+          logger.info("Dependency %s is already satisfied", alternative)
+          return
+      except OsCallFailure:
+        pass
+
+    failures = []
+    for alternative in alternatives:
+      if is_rpm:
+        package_match = re.fullmatch(
+          r"([A-Za-z0-9][A-Za-z0-9+_.:-]*)(?:\s*[<>=]+\s*.+)?", alternative
+        )
+        install_target = package_match.group(1) if package_match else alternative
+        install_cmd = ["sudo", "yum", "-y", "install", install_target]
+      else:
+        install_target = deb_dependency_parts(alternative)[0]
+        install_cmd = ["sudo", "apt-get", "-y", "install", install_target]
+
+      logger.info("Installing dependency candidate %s", install_target)
+      try:
+        Utils.os_call(install_cmd)
+        if Utils.dependency_is_installed(alternative, is_rpm):
+          return
+      except OsCallFailure as exception:
+        failures.append(str(exception))
+
+    detail = "; ".join(failures) if failures else "installed version is incompatible"
+    raise OsCallFailure(f"Unable to satisfy dependency {expression}: {detail}")
+
+  @staticmethod
   def install_package(name):
     from os_check import OSCheck
 
-    logger.info(f"Checking for existance of {name} dependency package")
     is_rpm = not OSCheck.is_ubuntu_family()
-
-    if is_rpm:
-      is_installed_cmd = ["rpm", "-q"] + [name]
-      install_cmd = ["sudo", "yum", "-y", "install"] + [name]
-    else:
-      is_installed_cmd = ["dpkg", "-s"] + [name]
-      install_cmd = ["sudo", "apt-get", "-y", "install"] + [name]
-
     try:
-      Utils.os_call(is_installed_cmd, logoutput=False)
-      logger.info(f"Package {name} is already installed. Skipping installation.")
-    except OsCallFailure:
-      logger.info(f"Package {name} is not installed. Installing it...")
-      Utils.os_call(install_cmd)
+      Utils.install_dependency(name, is_rpm)
+    except ValueError as exception:
+      raise OsCallFailure(str(exception)) from exception
 
 
 class FakePropertiesHeader(object):
@@ -175,8 +249,31 @@ class Installer:
     self.run_script(POSTRM_SCRIPT, ["remove"])  # in case we are upgrading
 
     self.run_script(PREINST_SCRIPT, ["install"])
+    self.remove_replaced_library_roots()
     self.extract_archive()
     self.run_script(POSTINST_SCRIPT, ["configure"])
+
+  def remove_replaced_library_roots(self):
+    archive_roots = set()
+    with tarfile.open(self.archive_name, "r:*") as archive:
+      for member in archive.getmembers():
+        name = member.name.lstrip("./")
+        for library_root in (
+          "usr/lib/ambari-agent/lib",
+          "usr/lib/ambari-server/lib",
+        ):
+          if name == library_root or name.startswith(f"{library_root}/"):
+            archive_roots.add(library_root)
+
+    installation_root = os.path.realpath(self.root_folder)
+    for library_root in archive_roots:
+      target = os.path.realpath(os.path.join(installation_root, library_root))
+      if os.path.commonpath((installation_root, target)) != installation_root:
+        raise ValueError(f"Archive library root escapes installation root: {target}")
+      if os.path.islink(target) or os.path.isfile(target):
+        os.unlink(target)
+      elif os.path.isdir(target):
+        shutil.rmtree(target)
 
   def check_dependencies(self):
     from os_check import OSCheck
@@ -209,25 +306,19 @@ class Installer:
       else:
         raise Exception(err_msg)
 
-    packages_string = re.sub(r"Requires\s*:", "", packages_string)
-    packages_string = re.sub("\\\\n", "", packages_string)
-    packages_string = re.sub(r"\s", "", packages_string)
-    packages_string = re.sub("[()]", "", packages_string)
+    dependencies = dependency_expressions(packages_string)
 
     if self.skip_dependencies:
       var = input(
-        f"Please confirm you have the following packages installed {packages_string} (y/n): "
+        "Please confirm you have the following dependencies installed "
+        f"{', '.join(dependencies)} (y/n): "
       )
       if var.lower() != "y" and var.lower() != "yes":
         raise Exception("User canceled the installation.")
       return
 
-    pacakges = packages_string.split(",")
-
-    for package in pacakges:
-      split_parts = re.split("[><=]", package)
-      package_name = split_parts[0]
-      Utils.install_package(package_name)
+    for dependency in dependencies:
+      Utils.install_dependency(dependency, is_rpm)
 
   def run_script(self, script_name, args):
     bash_args = []
@@ -257,37 +348,33 @@ class TargzInstaller(Installer):
 
 
 class Runner:
-  def parse_opts(self):
-    parser = OptionParser(usage=USAGE, description=DESCRIPTION)
-    parser.add_option(
+  def parse_opts(self, arguments=None):
+    parser = argparse.ArgumentParser(usage=USAGE, description=DESCRIPTION)
+    parser.add_argument(
       "-v",
       "--verbose",
       dest="verbose",
       action="store_true",
       help="sets output level to more detailed",
     )
-    parser.add_option(
+    parser.add_argument(
       "-r",
       "--root-folder",
       dest="root_folder",
       default="/",
       help="root folder to install Ambari to. E.g.: /opt",
     )
-    parser.add_option(
+    parser.add_argument(
       "-d",
       "--dependencies-skip",
       dest="skip_dependencies",
       action="store_true",
       help="the script won't install the package dependencies. Please make sure to install them manually.",
     )
+    parser.add_argument("url", help="Ambari tarball URL")
 
-    (self.options, args) = parser.parse_args()
-
-    if len(args) != 1:
-      help = parser.print_help()
-      sys.exit(1)
-
-    self.url = args[0]
+    self.options = parser.parse_args(arguments)
+    self.url = self.options.url
 
   @staticmethod
   def setup_logger(verbose):

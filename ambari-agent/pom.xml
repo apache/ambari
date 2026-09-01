@@ -39,7 +39,9 @@
     <resource_management.install.dir>/usr/lib/ambari-agent/lib/resource_management</resource_management.install.dir>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
     <python.dependencies.dir>${project.build.directory}/python-dependencies</python.dependencies.dir>
-    <deb.architecture>amd64</deb.architecture>
+    <python.build.dependencies.dir>${project.build.directory}/python-build-dependencies</python.build.dependencies.dir>
+    <deb.architecture>${ambari.deb.architecture}</deb.architecture>
+    <deb.package.dependencies>openssl, net-tools, ${python.deb.runtime.dependency}</deb.package.dependencies>
     <ambari.server.module>../ambari-server</ambari.server.module>
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
@@ -328,8 +330,37 @@
               <executable>${executable.python}</executable>
               <arguments>
                 <argument>-c</argument>
-                <argument>import shutil; shutil.rmtree(r"${python.dependencies.dir}", ignore_errors=True)</argument>
+                <argument>import shutil; shutil.rmtree(r"${python.dependencies.dir}", ignore_errors=True); shutil.rmtree(r"${python.build.dependencies.dir}", ignore_errors=True)</argument>
               </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bundle-python-build-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-m</argument>
+                <argument>pip</argument>
+                <argument>install</argument>
+                <argument>--disable-pip-version-check</argument>
+                <argument>--no-compile</argument>
+                <argument>--no-deps</argument>
+                <argument>--only-binary=:all:</argument>
+                <argument>--require-hashes</argument>
+                <argument>--upgrade</argument>
+                <argument>--target</argument>
+                <argument>${python.build.dependencies.dir}</argument>
+                <argument>--requirement</argument>
+                <argument>${maven.multiModuleProjectDirectory}/requirements-build.lock</argument>
+              </arguments>
+              <environmentVariables>
+                <PIP_NO_INDEX>${python.pip.no.index}</PIP_NO_INDEX>
+                <PIP_FIND_LINKS>${python.wheelhouse}</PIP_FIND_LINKS>
+              </environmentVariables>
             </configuration>
           </execution>
           <execution>
@@ -363,6 +394,10 @@
                 <argument>--requirement</argument>
                 <argument>${project.basedir}/src/main/python/requirements.lock</argument>
               </arguments>
+              <environmentVariables>
+                <PIP_NO_INDEX>${python.pip.no.index}</PIP_NO_INDEX>
+                <PIP_FIND_LINKS>${python.wheelhouse}</PIP_FIND_LINKS>
+              </environmentVariables>
             </configuration>
           </execution>
           <execution>
@@ -381,12 +416,70 @@
                 <argument>--no-compile</argument>
                 <argument>--no-deps</argument>
                 <argument>--no-binary=:all:</argument>
+                <argument>--no-build-isolation</argument>
+                <argument>--use-pep517</argument>
                 <argument>--require-hashes</argument>
                 <argument>--upgrade</argument>
                 <argument>--target</argument>
                 <argument>${python.dependencies.dir}</argument>
                 <argument>--requirement</argument>
                 <argument>${project.basedir}/src/main/python/requirements-sdist.lock</argument>
+              </arguments>
+              <environmentVariables>
+                <PIP_NO_INDEX>${python.pip.no.index}</PIP_NO_INDEX>
+                <PIP_FIND_LINKS>${python.wheelhouse}</PIP_FIND_LINKS>
+                <PYTHONNOUSERSITE>1</PYTHONNOUSERSITE>
+                <PYTHONPATH>${python.build.dependencies.dir}</PYTHONPATH>
+              </environmentVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>audit-python-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>${maven.multiModuleProjectDirectory}/dev-support/python_artifact_audit.py</argument>
+                <argument>--root</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--lock</argument>
+                <argument>${project.basedir}/src/main/python/requirements.lock</argument>
+                <argument>--lock</argument>
+                <argument>${project.basedir}/src/main/python/requirements-sdist.lock</argument>
+                <argument>--manifest</argument>
+                <argument>${project.basedir}/src/main/python/requirements.in</argument>
+                <argument>--manifest</argument>
+                <argument>${project.basedir}/src/main/python/requirements-sdist.in</argument>
+                <argument>--license</argument>
+                <argument>${maven.multiModuleProjectDirectory}/LICENSE.txt</argument>
+                <argument>--platform</argument>
+                <argument>${python.wheel.platform}</argument>
+                <argument>--python-version</argument>
+                <argument>${python.wheel.version}</argument>
+                <argument>--abi</argument>
+                <argument>${python.wheel.abi}</argument>
+                <argument>--project-version</argument>
+                <argument>${project.version}</argument>
+                <argument>--sbom</argument>
+                <argument>${project.build.directory}/python-dependencies.sbom.json</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>normalize-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>${maven.multiModuleProjectDirectory}/dev-support/normalize_python_dependencies.py</argument>
+                <argument>--root</argument>
+                <argument>${python.dependencies.dir}</argument>
               </arguments>
             </configuration>
           </execution>
@@ -400,6 +493,7 @@
               </arguments>
               <environmentVariables>
                 <PYTHONPATH>${python.dependencies.dir}${pathsep}${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                <PYTHONDONTWRITEBYTECODE>1</PYTHONDONTWRITEBYTECODE>
               </environmentVariables>
               <skip>${skipPythonTests}</skip>
             </configuration>
@@ -561,6 +655,17 @@
               <sources>
                 <source>
                   <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/run/ambari-agent</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/usr/share/doc/ambari-agent</directory>
+              <filemode>644</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/share/doc/ambari-agent</location>
                 </source>
               </sources>
             </mapping>

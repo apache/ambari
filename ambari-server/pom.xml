@@ -23,7 +23,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <python.ver>python &gt;= 3.9.2</python.ver>
-    <deb.architecture>amd64</deb.architecture>
+    <deb.architecture>${ambari.deb.architecture}</deb.architecture>
     <custom.tests>false</custom.tests>
     <python.test.mask>[Tt]est*.py</python.test.mask>
     <hdpUrlForCentos6>https://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
@@ -31,6 +31,7 @@
     <ambari_commons.install.dir>/usr/lib/ambari-server/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
     <python.dependencies.dir>${project.build.directory}/python-dependencies</python.dependencies.dir>
+    <deb.package.dependencies>openssl, postgresql (&gt;= 8.1), curl, ${python.deb.runtime.dependency}</deb.package.dependencies>
     <swagger.spec.dir>${basedir}/docs/api/generated/</swagger.spec.dir>
     <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger/</swagger.generated.resources.dir>
     <ambari-web-dir>${basedir}/../ambari-web/target/classes</ambari-web-dir>
@@ -663,6 +664,17 @@
                 </source>
               </sources>
             </mapping>
+            <mapping>
+              <directory>/usr/share/doc/ambari-server</directory>
+              <filemode>644</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr/share/doc/ambari-server</location>
+                </source>
+              </sources>
+            </mapping>
           </mappings>
         </configuration>
       </plugin>
@@ -848,6 +860,7 @@
                 <argument>install</argument>
                 <argument>--disable-pip-version-check</argument>
                 <argument>--no-compile</argument>
+                <argument>--no-deps</argument>
                 <argument>--only-binary=:all:</argument>
                 <argument>--platform</argument>
                 <argument>${python.wheel.platform}</argument>
@@ -864,6 +877,56 @@
                 <argument>--requirement</argument>
                 <argument>${project.basedir}/src/main/python/requirements.lock</argument>
               </arguments>
+              <environmentVariables>
+                <PIP_NO_INDEX>${python.pip.no.index}</PIP_NO_INDEX>
+                <PIP_FIND_LINKS>${python.wheelhouse}</PIP_FIND_LINKS>
+              </environmentVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>audit-python-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>${maven.multiModuleProjectDirectory}/dev-support/python_artifact_audit.py</argument>
+                <argument>--root</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--lock</argument>
+                <argument>${project.basedir}/src/main/python/requirements.lock</argument>
+                <argument>--manifest</argument>
+                <argument>${project.basedir}/src/main/python/requirements.in</argument>
+                <argument>--license</argument>
+                <argument>${maven.multiModuleProjectDirectory}/LICENSE.txt</argument>
+                <argument>--platform</argument>
+                <argument>${python.wheel.platform}</argument>
+                <argument>--python-version</argument>
+                <argument>${python.wheel.version}</argument>
+                <argument>--abi</argument>
+                <argument>${python.wheel.abi}</argument>
+                <argument>--project-version</argument>
+                <argument>${project.version}</argument>
+                <argument>--sbom</argument>
+                <argument>${project.build.directory}/python-dependencies.sbom.json</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>normalize-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>${maven.multiModuleProjectDirectory}/dev-support/normalize_python_dependencies.py</argument>
+                <argument>--root</argument>
+                <argument>${python.dependencies.dir}</argument>
+              </arguments>
             </configuration>
           </execution>
           <execution>
@@ -876,7 +939,8 @@
                 <argument>${python.test.mask}</argument>
               </arguments>
               <environmentVariables>
-                  <PYTHONPATH>${python.dependencies.dir}${pathsep}${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                <PYTHONPATH>${python.dependencies.dir}${pathsep}${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                <PYTHONDONTWRITEBYTECODE>1</PYTHONDONTWRITEBYTECODE>
               </environmentVariables>
               <skip>${skipPythonTests}</skip>
             </configuration>

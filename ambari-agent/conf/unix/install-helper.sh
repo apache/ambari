@@ -20,38 +20,40 @@
 
 # WARNING. Please keep the script POSIX compliant and don't use bash extensions
 
+ROOT_DIR_PATH="${RPM_INSTALL_PREFIX:-}"
+ROOT=$(printf '%s' "${ROOT_DIR_PATH}" | sed 's|/*$||')
 AMBARI_UNIT="ambari-agent"
 ACTION=$1
-AMBARI_AGENT_ROOT_DIR="/usr/lib/${AMBARI_UNIT}"
-AMBARI_SERVER_ROOT_DIR="/usr/lib/ambari-server"
+AMBARI_AGENT_ROOT_DIR="${ROOT}/usr/lib/${AMBARI_UNIT}"
+AMBARI_SERVER_ROOT_DIR="${ROOT}/usr/lib/ambari-server"
 COMMON_DIR="${AMBARI_AGENT_ROOT_DIR}/lib/ambari_commons"
 RESOURCE_MANAGEMENT_DIR="${AMBARI_AGENT_ROOT_DIR}/lib/resource_management"
 OLD_OLD_COMMON_DIR="${AMBARI_AGENT_ROOT_DIR}/lib/common_functions"
 AMBARI_AGENT="${AMBARI_AGENT_ROOT_DIR}/lib/ambari_agent"
-PYTHON_WRAPER_TARGET="/usr/bin/ambari-python-wrap"
-AMBARI_AGENT_VAR="/var/lib/${AMBARI_UNIT}"
-AMBARI_AGENT_BINARY="/etc/init.d/${AMBARI_UNIT}"
-AMBARI_AGENT_BINARY_SYMLINK="/usr/sbin/${AMBARI_UNIT}"
-AMBARI_ENV_RPMSAVE="/var/lib/${AMBARI_UNIT}/ambari-env.sh.rpmsave"
-AMBARI_HELPER="/var/lib/ambari-agent/install-helper.sh.orig"
+PYTHON_WRAPER_TARGET="${ROOT}/usr/bin/ambari-python-wrap"
+AMBARI_AGENT_VAR="${ROOT}/var/lib/${AMBARI_UNIT}"
+AMBARI_AGENT_BINARY="${ROOT}/etc/init.d/${AMBARI_UNIT}"
+AMBARI_AGENT_BINARY_SYMLINK="${ROOT}/usr/sbin/${AMBARI_UNIT}"
+AMBARI_ENV_RPMSAVE="${AMBARI_AGENT_VAR}/ambari-env.sh.rpmsave"
+AMBARI_HELPER="${AMBARI_AGENT_VAR}/install-helper.sh.orig"
+AMBARI_CONFIG_DIR="${ROOT}/etc/ambari-agent/conf"
 
 LOG_FILE=/dev/null
 
-CLEANUP_MODULES="resource_management;ambari_commons;ambari_agent;ambari_ws4py;ambari_stomp;ambari_jinja2;ambari_simplejson;ambari_pbkdf2;ambari_pyaes"
-
-OLD_COMMON_DIR="/usr/lib/python2.6/site-packages/ambari_commons"
-OLD_RESOURCE_MANAGEMENT_DIR="/usr/lib/python2.6/site-packages/resource_management"
-OLD_JINJA_DIR="/usr/lib/python2.6/site-packages/ambari_jinja2"
-OLD_SIMPLEJSON_DIR="/usr/lib/python2.6/site-packages/ambari_simplejson"
-OLD_AMBARI_AGENT_DIR="/usr/lib/python2.6/site-packages/ambari_agent"
+OLD_COMMON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_commons"
+OLD_RESOURCE_MANAGEMENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/resource_management"
+OLD_JINJA_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_jinja2"
+OLD_SIMPLEJSON_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_simplejson"
+OLD_AMBARI_AGENT_DIR="${ROOT}/usr/lib/python2.6/site-packages/ambari_agent"
+OBSOLETE_PYTHON_PATHS="ambari_jinja2;ambari_simplejson;ambari_stomp;ambari_ws4py;ambari_pbkdf2;ambari_pyaes;ambari_agent/apscheduler;ambari_agent/RemoteDebugUtils.py;ambari_agent/debug.py"
 
 
 resolve_log_file(){
- local log_dir=/var/log/${AMBARI_UNIT}
+ local log_dir="${ROOT}/var/log/${AMBARI_UNIT}"
  local log_file="${log_dir}/${AMBARI_UNIT}-pkgmgr.log"
 
  if [ ! -d "${log_dir}" ]; then
-   mkdir "${log_dir}" 1>/dev/null 2>&1
+   mkdir -p "${log_dir}" 1>/dev/null 2>&1
  fi
 
  if [ -d "${log_dir}" ]; then
@@ -65,16 +67,21 @@ resolve_log_file(){
 }
 
 clean_pyc_files(){
-  # cleaning old *.pyc files
   local lib_dir="${AMBARI_AGENT_ROOT_DIR}/lib"
 
-  echo ${CLEANUP_MODULES} | tr ';' '\n' | while read item; do
-    local item="${lib_dir}/${item}"
-    echo "Cleaning pyc files from ${item}..."
-    if [ -d "${item}" ]; then
-      find ${item:?} -name *.pyc -exec rm {} \; 1>>${LOG_FILE} 2>&1
-    else
-      echo "Skipping ${item} pyc cleaning, as package not existing"
+  echo "Cleaning generated Python bytecode from ${lib_dir}..."
+  if [ -d "${lib_dir}" ]; then
+    find "${lib_dir:?}" -type f \( -name '*.pyc' -o -name '*.pyo' \) \
+      -exec rm -f -- {} + 1>>"${LOG_FILE}" 2>&1
+  fi
+}
+
+clean_obsolete_python_sources(){
+  printf '%s\n' "${OBSOLETE_PYTHON_PATHS}" | tr ';' '\n' | while IFS= read -r item; do
+    obsolete_path="${AMBARI_AGENT_ROOT_DIR}/lib/${item}"
+    if [ -e "${obsolete_path}" ] || [ -L "${obsolete_path}" ]; then
+      echo "Removing obsolete Python source ${obsolete_path}..." 1>>"${LOG_FILE}" 2>&1
+      rm -rf -- "${obsolete_path}"
     fi
   done
 }
@@ -95,6 +102,11 @@ remove_ambari_unit_dir(){
 }
 
 remove_autostart(){
+  if [ -n "${ROOT}" ]; then
+    echo "Not removing ambari-agent service from startup for a custom install root."
+    return 0
+  fi
+
   which chkconfig
   if [ "$?" -eq 0 ] ; then
     chkconfig --list | grep ambari-server && chkconfig --del ambari-agent
@@ -106,6 +118,11 @@ remove_autostart(){
 }
 
 install_autostart(){
+  if [ -n "${ROOT}" ]; then
+    echo "Not adding ambari-agent service to startup for a custom install root."
+    return 0
+  fi
+
   which chkconfig 1>>${LOG_FILE} 2>&1
   if [ "$?" -eq 0 ] ; then
     chkconfig --add ambari-agent
@@ -116,27 +133,53 @@ install_autostart(){
   fi
 }
 
+required_python_version(){
+  local abi_versions
+  abi_versions=$(find "${AMBARI_AGENT_ROOT_DIR}/lib" -type f -name '*.cpython-*-*.so' -exec basename {} \; 2>/dev/null \
+    | sed -n 's/.*\.cpython-\([0-9][0-9]*\)-.*/\1/p' \
+    | sort -u)
+  if [ -z "${abi_versions}" ] || [ "$(printf '%s\n' "${abi_versions}" | wc -l)" -ne 1 ]; then
+    return 1
+  fi
+  printf '%s.%s\n' "$(printf '%s' "${abi_versions}" | cut -c1)" "$(printf '%s' "${abi_versions}" | cut -c2-)"
+}
+
 locate_python(){
-  local python_binaries="/usr/bin/python3.9;/usr/bin/python3"
-
-  echo ${python_binaries}| tr ';' '\n' | while read python_binary; do
-    ${python_binary} -c "import sys ; sys.exit(sys.version_info < (3, 9, 2))" 1>>${LOG_FILE} 2>/dev/null
-
-    if [ $? -eq 0 ]; then
+  local python_binary required_version
+  if ! required_version=$(required_python_version); then
+    >&2 echo "Cannot determine one CPython ABI from ${AMBARI_AGENT_ROOT_DIR}/lib."
+    return 1
+  fi
+  for python_binary in "/usr/bin/python${required_version}" /usr/bin/python3; do
+    if [ -x "${python_binary}" ] && "${python_binary}" -c 'import sys; required = tuple(map(int, sys.argv[1].split("."))); sys.exit(sys.version_info < (3, 9, 2) or sys.version_info[:2] != required)' "${required_version}" >>"${LOG_FILE}" 2>/dev/null; then
       echo "${python_binary}"
-      break
+      return 0
     fi
   done
+  return 1
+}
+
+install_python_wrapper(){
+  local python_binary="$1"
+  local temporary_wrapper="${PYTHON_WRAPER_TARGET}.tmp.$$"
+  rm -f "${temporary_wrapper}"
+  ln -s "${python_binary}" "${temporary_wrapper}" || return 1
+  if ! mv -f "${temporary_wrapper}" "${PYTHON_WRAPER_TARGET}"; then
+    rm -f "${temporary_wrapper}"
+    return 1
+  fi
 }
 
 do_install(){
-  if [ -d "/etc/ambari-agent/conf.save" ]; then
-    cp -f /etc/ambari-agent/conf.save/* /etc/ambari-agent/conf
-    mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+  local config_save="${ROOT}/etc/ambari-agent/conf.save"
+  if [ -d "${config_save}" ]; then
+    cp -f "${config_save}"/* "${AMBARI_CONFIG_DIR}"
+    mv "${config_save}" "${ROOT}/etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save"
   fi
 
   # these symlinks (or directories) where created in ambari releases prior to ambari-2.6.2. Do clean up.   
   rm -rf "${OLD_COMMON_DIR}" "${OLD_RESOURCE_MANAGEMENT_DIR}" "${OLD_JINJA_DIR}" "${OLD_SIMPLEJSON_DIR}" "${OLD_OLD_COMMON_DIR}" "${OLD_AMBARI_AGENT_DIR}"
+  clean_obsolete_python_sources
 
   # setting up /usr/sbin/ambari-agent symlink
   rm -f "${AMBARI_AGENT_BINARY_SYMLINK}"
@@ -152,26 +195,25 @@ do_install(){
 
   install_autostart 1>>${LOG_FILE} 2>&1
 
-  # remove old python wrapper
-  rm -f "${PYTHON_WRAPER_TARGET}"
+  local ambari_python
+  local bak="${AMBARI_CONFIG_DIR}/ambari-agent.ini.old"
+  local upgrade_agent_configs_script="${AMBARI_AGENT_VAR}/upgrade_agent_configs.py"
 
-  local ambari_python=$(locate_python)
-  local bak=/etc/ambari-agent/conf/ambari-agent.ini.old
-  local orig=/etc/ambari-agent/conf/ambari-agent.ini
-  local upgrade_agent_configs_script=/var/lib/ambari-agent/upgrade_agent_configs.py
+  if ! ambari_python=$(locate_python); then
+    >&2 echo "Cannot detect the Python 3.9.2+ runtime matching the packaged CPython ABI. Please install the matching supported Python runtime."
+    return 1
+  fi
+  mkdir -p "$(dirname "${PYTHON_WRAPER_TARGET}")" || return 1
+  if ! install_python_wrapper "${ambari_python}"; then
+    >&2 echo "Cannot install ${PYTHON_WRAPER_TARGET}."
+    return 1
+  fi
 
-  if [ -z "${ambari_python}" ] ; then
-    >&2 echo "Cannot detect Python 3.9.2 or newer for Ambari. Please install a supported Python runtime or manually set ${PYTHON_WRAPER_TARGET}."
-    >&2 echo "Cannot upgrade agent configs because python for Ambari is not configured. The old config file is saved as ${bak} . Execution of ${upgrade_agent_configs_script} was skipped."
-  else
-    ln -s "${ambari_python}" "${PYTHON_WRAPER_TARGET}"
-
-    if [ -f ${bak} ]; then
-      if [ -f "${upgrade_agent_configs_script}" ]; then
-        ${upgrade_agent_configs_script}
-      fi
-      mv ${bak} ${bak}_$(date '+%d_%m_%y_%H_%M').save
+  if [ -f "${bak}" ]; then
+    if [ -f "${upgrade_agent_configs_script}" ]; then
+      "${ambari_python}" "${upgrade_agent_configs_script}"
     fi
+    mv "${bak}" "${bak}_$(date '+%d_%m_%y_%H_%M').save"
   fi
 
   if [ -f "${AMBARI_ENV_RPMSAVE}" ] ; then
@@ -184,19 +226,21 @@ do_install(){
 }
 
 copy_helper(){
-  cp -f /var/lib/ambari-agent/install-helper.sh ${AMBARI_HELPER} 1>/dev/null 2>&1
+  cp -f "${AMBARI_AGENT_VAR}/install-helper.sh" "${AMBARI_HELPER}" 1>/dev/null 2>&1
 }
 
 do_remove(){
-  /usr/sbin/ambari-agent stop 1>>${LOG_FILE} 2>&1
+  if [ -z "${ROOT}" ]; then
+    "${AMBARI_AGENT_BINARY_SYMLINK}" stop 1>>${LOG_FILE} 2>&1
+  fi
 
   rm -f "${AMBARI_AGENT_BINARY_SYMLINK}" 1>>${LOG_FILE} 2>&1
 
-  if [ -d "/etc/ambari-agent/conf.save" ]; then
-    mv /etc/ambari-agent/conf.save /etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save
+  if [ -d "${ROOT}/etc/ambari-agent/conf.save" ]; then
+    mv "${ROOT}/etc/ambari-agent/conf.save" "${ROOT}/etc/ambari-agent/conf_$(date '+%d_%m_%y_%H_%M').save"
   fi
   # first step / label: config_backup
-  cp -rf /etc/ambari-agent/conf /etc/ambari-agent/conf.save
+  cp -rf "${AMBARI_CONFIG_DIR}" "${ROOT}/etc/ambari-agent/conf.save"
 
   remove_autostart 1>>${LOG_FILE} 2>&1
   copy_helper 1>>${LOG_FILE} 2>&1
@@ -209,7 +253,7 @@ do_cleanup(){
   clean_pyc_files 1>>${LOG_FILE} 2>&1
 
   # second step / label: config_backup
-  rm -rf /etc/ambari-agent/conf
+  rm -rf "${AMBARI_CONFIG_DIR}"
 
   if [ ! -d "${AMBARI_SERVER_ROOT_DIR}" ]; then
     echo "Removing ${PYTHON_WRAPER_TARGET} ..." 1>>${LOG_FILE} 2>&1

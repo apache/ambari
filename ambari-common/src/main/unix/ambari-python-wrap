@@ -17,16 +17,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [ -n "${PYTHON:-}" ]; then
-  "$PYTHON" -c "import sys; sys.exit(sys.version_info < (3, 9, 2))" >/dev/null 2>&1 || PYTHON=""
+python_is_supported() {
+  command -v "$1" >/dev/null 2>&1 \
+    && "$1" -c "import sys; sys.exit(sys.version_info < (3, 9, 2))" >/dev/null 2>&1
+}
+
+if [ -n "${PYTHON:-}" ] && ! python_is_supported "$PYTHON"; then
+  PYTHON=""
 fi
 
-if [ -z "${PYTHON:-}" ] && [ -x /usr/bin/python3.9 ]; then
+if [ -z "${PYTHON:-}" ] && python_is_supported /usr/bin/python3.9; then
   PYTHON=/usr/bin/python3.9
 fi
 
-if [ -z "${PYTHON:-}" ] && [ -x /usr/bin/python3 ]; then
-  /usr/bin/python3 -c "import sys; sys.exit(sys.version_info < (3, 9, 2))" >/dev/null 2>&1 && PYTHON=/usr/bin/python3
+if [ -z "${PYTHON:-}" ] && python_is_supported /usr/bin/python3; then
+  PYTHON=/usr/bin/python3
 fi
 
 if [ -z "${PYTHON:-}" ]; then

@@ -14,10 +14,12 @@
 # limitations under the License
 
 
+INSTALL_HELPER_ORIG="${RPM_INSTALL_PREFIX:-}/var/lib/ambari-agent/install-helper.sh.orig"
+
 if [ "$1" -eq 0 ]; then  # Action is uninstall
-    if [ -f "/var/lib/ambari-agent/install-helper.sh.orig" ]; then
-      /var/lib/ambari-agent/install-helper.sh.orig cleanup
-      rm -f /var/lib/ambari-agent/install-helper.sh.orig 1>/dev/null 2>&1
+    if [ -f "${INSTALL_HELPER_ORIG}" ]; then
+      "${INSTALL_HELPER_ORIG}" cleanup
+      rm -f "${INSTALL_HELPER_ORIG}" 1>/dev/null 2>&1
     fi
 fi
 

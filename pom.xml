@@ -86,7 +86,8 @@
     <buildnumber-maven-plugin-version>1.2</buildnumber-maven-plugin-version>
     <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
-    <deb.architecture>i386 amd64</deb.architecture>
+    <deb.architecture>${ambari.deb.architecture}</deb.architecture>
+    <ambari.deb.architecture>amd64</ambari.deb.architecture>
     <deb.priority>extra</deb.priority>
     <stack.distribution>BIGTOP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
@@ -94,6 +95,9 @@
     <python.wheel.version>3.9.2</python.wheel.version>
     <python.wheel.implementation>cp</python.wheel.implementation>
     <python.wheel.abi>cp39</python.wheel.abi>
+    <python.deb.runtime.dependency>python3 (&gt;= 3.9.2), python3 (&lt;&lt; 3.10)</python.deb.runtime.dependency>
+    <python.pip.no.index>false</python.pip.no.index>
+    <python.wheelhouse>${project.build.directory}/python-wheelhouse-disabled</python.wheelhouse>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
@@ -471,6 +475,26 @@
       </activation>
       <properties>
         <python.wheel.platform>manylinux2014_aarch64</python.wheel.platform>
+        <ambari.deb.architecture>arm64</ambari.deb.architecture>
+      </properties>
+    </profile>
+    <profile>
+      <id>python-wheel-cp310</id>
+      <properties>
+        <python.wheel.version>3.10.0</python.wheel.version>
+        <python.wheel.abi>cp310</python.wheel.abi>
+        <python.deb.runtime.dependency>python3 (&gt;= 3.10), python3 (&lt;&lt; 3.11)</python.deb.runtime.dependency>
+      </properties>
+    </profile>
+    <profile>
+      <id>python-offline-wheelhouse</id>
+      <activation>
+        <property>
+          <name>python.wheelhouse</name>
+        </property>
+      </activation>
+      <properties>
+        <python.pip.no.index>true</python.pip.no.index>
       </properties>
     </profile>
     <profile>

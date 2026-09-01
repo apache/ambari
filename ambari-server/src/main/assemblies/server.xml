@@ -46,18 +46,26 @@
     <fileSet>
       <directory>${project.basedir}/../ambari-common/src/main/python/ambari_commons</directory>
       <outputDirectory>${ambari_commons.install.dir}</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>${resourceManagementSrcLocation}</directory>
       <outputDirectory>${resource_management.install.dir}</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>${python.dependencies.dir}</directory>
       <outputDirectory>/usr/lib/ambari-server/lib</outputDirectory>
       <excludes>
         <exclude>bin/**</exclude>
-        <exclude>**/test/**</exclude>
-        <exclude>**/tests/**</exclude>
         <exclude>**/__pycache__/**</exclude>
         <exclude>**/*.pyc</exclude>
         <exclude>**/*.pyo</exclude>
@@ -130,6 +138,9 @@
       <outputDirectory>/var/lib/ambari-server/resources/scripts</outputDirectory>
       <excludes>
         <exclude>post-user-creation-hook.sh</exclude>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
       </excludes>
     </fileSet>
     <fileSet>
@@ -156,6 +167,9 @@
       <outputDirectory>/var/lib/ambari-server/resources/common-services</outputDirectory>
       <excludes>
 	    <exclude>/STORM/0.9.1/package/files/wordCount.jar</exclude>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
 	  </excludes>
     </fileSet>
     <fileSet>
@@ -165,6 +179,11 @@
       <includes>
 	    <include>/STORM/0.9.1/package/files/wordCount.jar</include>
 	  </includes>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
@@ -172,6 +191,9 @@
       <outputDirectory>/var/lib/ambari-server/resources/stack-hooks</outputDirectory>
       <excludes>
 	    <exclude>/before-START/files/fast-hdfs-resource.jar</exclude>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
 	  </excludes>
     </fileSet>
     <fileSet>
@@ -181,6 +203,11 @@
       <includes>
 	    <include>/before-START/files/fast-hdfs-resource.jar</include>
 	  </includes>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
@@ -193,6 +220,9 @@
       <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
       <excludes>
 	    <exclude>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</exclude>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
 	  </excludes>
     </fileSet>
     <fileSet>
@@ -202,6 +232,11 @@
       <includes>
 	    <include>/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
 	  </includes>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directoryMode>700</directoryMode>
@@ -215,6 +250,11 @@
       <fileMode>755</fileMode>
       <directory>src/main/python/ambari_server</directory>
       <outputDirectory>/usr/lib/ambari-server/lib/ambari_server</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
@@ -225,11 +265,21 @@
       <fileMode>755</fileMode>
       <directory>${customActionsRoot}</directory>
       <outputDirectory>/var/lib/ambari-server/resources/custom_actions</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
       <directory>src/main/resources/host_scripts</directory>
       <outputDirectory>/var/lib/ambari-server/resources/host_scripts</outputDirectory>
+      <excludes>
+        <exclude>**/__pycache__/**</exclude>
+        <exclude>**/*.pyc</exclude>
+        <exclude>**/*.pyo</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <fileMode>755</fileMode>
@@ -449,6 +499,21 @@
       <fileMode>755</fileMode>
       <source>src/main/resources/scripts/post-user-creation-hook.sh</source>
       <outputDirectory>/var/lib/ambari-server/resources/scripts</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${project.build.directory}/python-dependencies.sbom.json</source>
+      <outputDirectory>/usr/share/doc/ambari-server</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${maven.multiModuleProjectDirectory}/LICENSE.txt</source>
+      <outputDirectory>/usr/share/doc/ambari-server</outputDirectory>
+    </file>
+    <file>
+      <fileMode>644</fileMode>
+      <source>${maven.multiModuleProjectDirectory}/NOTICE.txt</source>
+      <outputDirectory>/usr/share/doc/ambari-server</outputDirectory>
     </file>
   </files>    
   <dependencySets>
