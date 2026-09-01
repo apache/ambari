@@ -31,9 +31,11 @@ import subprocess
 import threading
 import traceback
 import re
+import tempfile
 from datetime import datetime
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_server.serverConfiguration import get_ambari_properties, SECURITY_KEYS_DIR
 
 from resource_management.core.shell import quote_bash_args
 
@@ -58,6 +60,8 @@ REMOTE_CREATE_PYTHON_WRAP_SCRIPT = os.path.join(
   DEFAULT_AGENT_TEMP_FOLDER, "create-python-wrap.sh"
 )
 AMBARI_SUDO = os.path.join(DEFAULT_AGENT_TEMP_FOLDER, "ambari-sudo.sh")
+SERVER_CERT_NAME_PROPERTY = "security.server.cert_name"
+SERVER_CERT_NAME_DEFAULT = "ca.crt"
 
 
 class HostLog:
@@ -293,6 +297,8 @@ class BootstrapDefault(Bootstrap):
   TEMP_FOLDER = DEFAULT_AGENT_TEMP_FOLDER
   OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
   PASSWORD_FILENAME = "host_pass"
+  ENROLLMENT_PASSPHRASE_FILENAME = "agent_enrollment_passphrase"
+  SERVER_CA_FILENAME = "ambari-server-ca.crt"
 
   def getRemoteName(self, filename):
     full_name = os.path.join(self.TEMP_FOLDER, filename)
@@ -336,6 +342,25 @@ class BootstrapDefault(Bootstrap):
 
   def getPasswordFile(self):
     return self.getRemoteName(self.PASSWORD_FILENAME)
+
+  def getEnrollmentPassphraseFile(self):
+    return self.getRemoteName(self.ENROLLMENT_PASSPHRASE_FILENAME)
+
+  def getServerCaFile(self):
+    return self.getRemoteName(self.SERVER_CA_FILENAME)
+
+  def getServerCaCertificate(self):
+    properties = get_ambari_properties()
+    keys_dir = properties.get_property(SECURITY_KEYS_DIR)
+    cert_name = (
+      properties.get_property(SERVER_CERT_NAME_PROPERTY)
+      or SERVER_CERT_NAME_DEFAULT
+    )
+    if not keys_dir:
+      raise RuntimeError(
+        f"{SECURITY_KEYS_DIR} is not configured in ambari.properties"
+      )
+    return os.path.join(keys_dir, cert_name)
 
   def hasPassword(self):
     password_file = self.shared_state.password_file
@@ -561,7 +586,105 @@ class BootstrapDefault(Bootstrap):
     retcode3 = scp.run()
     self.host_log.write("\n")
 
-    return max(retcode, retcode3["exitstatus"])
+    self.host_log.write("==========================\n")
+    self.host_log.write("Copying Ambari Server CA certificate...")
+    ca_scp = SCP(
+      params.user,
+      params.sshPort,
+      params.sshkey_file,
+      self.host,
+      self.getServerCaCertificate(),
+      self.getServerCaFile(),
+      params.bootdir,
+      self.host_log,
+    )
+    ca_retcode = ca_scp.run()
+    self.host_log.write("\n")
+
+    return max(retcode, retcode3["exitstatus"], ca_retcode["exitstatus"])
+
+  def copyEnrollmentPassphrase(self):
+    params = self.shared_state
+    passphrase = os.environ.get(AMBARI_PASSPHRASE_VAR_NAME, "")
+    if not passphrase.strip():
+      return {
+        "exitstatus": 1,
+        "log": "",
+        "errormsg": "Ambari Agent enrollment passphrase is not configured",
+      }
+    enrollment_file = self.getEnrollmentPassphraseFile()
+    secure_target = SSH(
+      params.user,
+      params.sshPort,
+      params.sshkey_file,
+      self.host,
+      "umask 077 && : > {path} && chmod 600 {path}".format(
+        path=quote_bash_args(enrollment_file)
+      ),
+      params.bootdir,
+      self.host_log,
+    ).run()
+    if secure_target["exitstatus"] != 0:
+      return secure_target
+    copy_result = None
+    descriptor, local_path = tempfile.mkstemp(
+      prefix=".agent-enrollment-", dir=params.bootdir, text=True
+    )
+    try:
+      with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        stream.write(passphrase)
+        stream.flush()
+        os.fsync(stream.fileno())
+      os.chmod(local_path, 0o600)
+      scp = SCP(
+        params.user,
+        params.sshPort,
+        params.sshkey_file,
+        self.host,
+        local_path,
+        enrollment_file,
+        params.bootdir,
+        self.host_log,
+      )
+      copy_result = scp.run()
+    finally:
+      try:
+        os.unlink(local_path)
+      except OSError:
+        pass
+
+    if copy_result is None:
+      return {
+        "exitstatus": 1,
+        "log": "",
+        "errormsg": "Enrollment passphrase copy returned no result",
+      }
+    if copy_result["exitstatus"] != 0:
+      return copy_result
+
+    chmod = SSH(
+      params.user,
+      params.sshPort,
+      params.sshkey_file,
+      self.host,
+      "chmod 600 " + quote_bash_args(enrollment_file),
+      params.bootdir,
+      self.host_log,
+    )
+    return chmod.run()
+
+  def deleteEnrollmentPassphrase(self):
+    params = self.shared_state
+    cleanup = SSH(
+      params.user,
+      params.sshPort,
+      params.sshkey_file,
+      self.host,
+      "rm -f " + quote_bash_args(self.getEnrollmentPassphraseFile()),
+      params.bootdir,
+      self.host_log,
+    )
+    return cleanup.run()
 
   def getAmbariPort(self):
     server_port = self.shared_state.server_port
@@ -572,7 +695,7 @@ class BootstrapDefault(Bootstrap):
 
   def getRunSetupWithPasswordCommand(self, expected_hostname):
     setupFile = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
-    passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
+    passphrase_file = "@" + self.getEnrollmentPassphraseFile()
     server = self.shared_state.ambari_server
     user_run_as = self.shared_state.user_run_as
     version = self.getAmbariVersion()
@@ -580,45 +703,49 @@ class BootstrapDefault(Bootstrap):
     passwordFile = self.getPasswordFile()
     return (
       f"{AMBARI_SUDO} -S /usr/bin/ambari-python-wrap "
-      + str(setupFile)
+      + quote_bash_args(str(setupFile))
       + " "
-      + str(expected_hostname)
+      + quote_bash_args(str(expected_hostname))
       + " "
-      + str(passphrase)
+      + quote_bash_args(passphrase_file)
       + " "
-      + str(server)
+      + quote_bash_args(str(server))
       + " "
       + quote_bash_args(str(user_run_as))
       + " "
-      + str(version)
+      + quote_bash_args(str(version))
       + " "
-      + str(port)
+      + quote_bash_args(str(port))
+      + " "
+      + quote_bash_args(self.getServerCaFile())
       + " < "
-      + str(passwordFile)
+      + quote_bash_args(str(passwordFile))
     )
 
   def getRunSetupWithoutPasswordCommand(self, expected_hostname):
     setupFile = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
-    passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
+    passphrase_file = "@" + self.getEnrollmentPassphraseFile()
     server = self.shared_state.ambari_server
     user_run_as = self.shared_state.user_run_as
     version = self.getAmbariVersion()
     port = self.getAmbariPort()
     return (
       f"{AMBARI_SUDO} /usr/bin/ambari-python-wrap "
-      + str(setupFile)
+      + quote_bash_args(str(setupFile))
       + " "
-      + str(expected_hostname)
+      + quote_bash_args(str(expected_hostname))
       + " "
-      + str(passphrase)
+      + quote_bash_args(passphrase_file)
       + " "
-      + str(server)
+      + quote_bash_args(str(server))
       + " "
       + quote_bash_args(str(user_run_as))
       + " "
-      + str(version)
+      + quote_bash_args(str(version))
       + " "
-      + str(port)
+      + quote_bash_args(str(port))
+      + " "
+      + quote_bash_args(self.getServerCaFile())
     )
 
   def runCreatePythonWrapScript(self):
@@ -834,6 +961,7 @@ class BootstrapDefault(Bootstrap):
     action_queue.extend(
       [
         self.copyNeededFiles,
+        self.copyEnrollmentPassphrase,
         self.runSetupAgent,
       ]
     )
@@ -866,6 +994,13 @@ class BootstrapDefault(Bootstrap):
         )
         self.host_log.write(message)
         logging.warning(message)
+
+    cleanup_result = self.try_to_execute(self.deleteEnrollmentPassphrase)
+    if cleanup_result["exitstatus"] != 0:
+      logging.warning(
+        "Failed to delete the Agent enrollment passphrase file on host %s",
+        self.host,
+      )
 
     self.createDoneFile(last_retcode)
     self.status["return_code"] = last_retcode

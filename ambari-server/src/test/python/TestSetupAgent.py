@@ -18,6 +18,9 @@ limitations under the License.
 """
 
 import subprocess
+import os
+import stat
+import tempfile
 from unittest.mock import MagicMock
 from unittest import TestCase
 from unittest.mock import patch
@@ -29,7 +32,6 @@ from only_for_platform import (
   not_for_platform,
   only_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 from unittest.mock import MagicMock, patch, ANY, Mock
 
@@ -69,12 +71,19 @@ class TestSetupAgent(TestCase):
     self.assertTrue(hostname in cmdStr)
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
+  @patch.object(setup_agent, "persist_agent_passphrase")
   @patch.object(setup_agent, "execOsCommand")
   @patch("os.environ")
   @patch("subprocess.Popen")
   @patch("time.sleep")
-  def test_runAgent(self, sleep_mock, popen_mock, environ_mock, execOsCommand_mock):
+  def test_runAgent_linux(
+    self,
+    sleep_mock,
+    popen_mock,
+    environ_mock,
+    execOsCommand_mock,
+    persist_passphrase_mock,
+  ):
     expected_hostname = "test.hst"
     passphrase = "passphrase"
     agent_status = MagicMock()
@@ -83,6 +92,7 @@ class TestSetupAgent(TestCase):
     execOsCommand_mock.return_value = {"log": "log", "exitstatus": 0}
     # Test if expected_hostname is passed
     ret = setup_agent.runAgent(passphrase, expected_hostname, "root", False)
+    persist_passphrase_mock.assert_called_with(passphrase)
     cmdStr = str(popen_mock.call_args_list[0][0])
     self.assertTrue(expected_hostname in cmdStr)
     self.assertFalse("-v" in cmdStr)
@@ -128,42 +138,83 @@ class TestSetupAgent(TestCase):
     execOsCommand_mock.reset_mock()
     pass
 
-  @only_for_platform(PLATFORM_WINDOWS)
-  @patch.object(setup_agent, "run_os_command")
-  @patch("os.environ")
-  @patch("time.sleep")
-  def test_runAgent(self, sleep_mock, environ_mock, run_os_command_mock):
-    expected_hostname = "test.hst"
-    passphrase = "passphrase"
-    run_os_command_mock.return_value = (0, "log", "")
-    # Test if expected_hostname is passed
-    ret = setup_agent.runAgent(passphrase, expected_hostname, "root", False)
-    self.assertEqual(run_os_command_mock.call_count, 1)
-    cmdStr = str(run_os_command_mock.call_args_list[0][0])
-    self.assertEqual(cmdStr, str((["cmd", "/c", "ambari-agent.cmd", "restart"],)))
-    self.assertFalse("-v" in cmdStr)
-    self.assertEqual(ret["exitstatus"], 0)
-    self.assertFalse(sleep_mock.called)
+  def test_passphrase_file_is_consumed_once(self):
+    with tempfile.TemporaryDirectory() as directory:
+      path = os.path.join(directory, "enrollment")
+      with open(path, "w", encoding="utf-8") as stream:
+        stream.write("secret value")
 
-    run_os_command_mock.reset_mock()
-    sleep_mock.reset_mock()
+      self.assertEqual(
+        "secret value", setup_agent.read_enrollment_passphrase("@" + path)
+      )
+      self.assertFalse(os.path.exists(path))
 
-    # Retry command
-    run_os_command_mock.side_effect = [(2, "log", "err"), (0, "log", "")]
-    ret = setup_agent.runAgent(passphrase, expected_hostname, "root", False)
-    self.assertEqual(run_os_command_mock.call_count, 2)
-    self.assertTrue("Retrying" in ret["log"][1])
-    self.assertEqual(ret["exitstatus"], 0)
-    self.assertTrue(sleep_mock.called)
-    pass
+  def test_persist_agent_passphrase_is_atomic_private_and_preserves_other_settings(self):
+    with tempfile.TemporaryDirectory() as directory:
+      env_path = os.path.join(directory, "ambari-env.sh")
+      with open(env_path, "w", encoding="utf-8") as stream:
+        stream.write(
+          "export PYTHON=/usr/bin/python3.9\n"
+          " export AMBARI_PASSPHRASE=older\n"
+          "AMBARI_PASSPHRASE=old\n"
+        )
 
-  @not_for_platform(PLATFORM_WINDOWS)
+      with patch.object(setup_agent, "AMBARI_AGENT_ENV", env_path):
+        setup_agent.persist_agent_passphrase("new value with ' quote")
+
+      with open(env_path, encoding="utf-8") as stream:
+        content = stream.read()
+      self.assertIn("export PYTHON=/usr/bin/python3.9", content)
+      self.assertEqual(1, content.count("AMBARI_PASSPHRASE="))
+      self.assertNotIn("AMBARI_PASSPHRASE=old", content)
+      self.assertEqual(0o600, stat.S_IMODE(os.stat(env_path).st_mode))
+
+  def test_install_server_ca_is_atomic_and_removes_staging_source(self):
+    with tempfile.TemporaryDirectory() as directory:
+      source = os.path.join(directory, "server-ca")
+      destination = os.path.join(directory, "keys", "ca.crt")
+      with open(source, "wb") as stream:
+        stream.write(b"certificate")
+
+      with patch.object(setup_agent, "AMBARI_AGENT_SERVER_CA", destination):
+        setup_agent.install_server_ca(source)
+
+      with open(destination, "rb") as stream:
+        self.assertEqual(b"certificate", stream.read())
+      self.assertEqual(
+        0o700, stat.S_IMODE(os.stat(os.path.dirname(destination)).st_mode)
+      )
+      self.assertEqual(0o644, stat.S_IMODE(os.stat(destination).st_mode))
+      self.assertFalse(os.path.exists(source))
+
+  def test_install_server_ca_failure_preserves_staging_source(self):
+    with tempfile.TemporaryDirectory() as directory:
+      source = os.path.join(directory, "server-ca")
+      destination = os.path.join(directory, "keys", "ca.crt")
+      with open(source, "wb") as stream:
+        stream.write(b"certificate")
+
+      with patch.object(setup_agent, "AMBARI_AGENT_SERVER_CA", destination), patch(
+        "setupAgent.os.replace", side_effect=OSError("disk full")
+      ):
+        with self.assertRaisesRegex(OSError, "disk full"):
+          setup_agent.install_server_ca(source)
+
+      self.assertTrue(os.path.exists(source))
+
+  def test_parse_arguments_requires_user_run_as(self):
+    result = setup_agent.parseArguments(
+      ["setupAgent.py", "host", "passphrase", "server"]
+    )
+
+    self.assertEqual(1, result["exitstatus"])
+
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(setup_agent, "getAvailableAgentPackageVersions")
   @patch("ambari_commons.OSCheck.is_suse_family")
   @patch("ambari_commons.OSCheck.is_ubuntu_family")
   @patch.object(setup_agent, "findNearestAgentPackageVersion")
-  def test_returned_optimal_version_is_initial_on_suse(
+  def test_returned_optimal_version_is_initial_on_suse_linux(
     self,
     findNearestAgentPackageVersion_method,
     is_ubuntu_family_method,
@@ -183,7 +234,6 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(setup_agent, "getAvailableAgentPackageVersions")
   @patch("ambari_commons.OSCheck.is_suse_family")
@@ -209,25 +259,6 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
-  @only_for_platform(PLATFORM_WINDOWS)
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(setup_agent, "getAvailableAgentPackageVersions")
-  @patch.object(setup_agent, "findNearestAgentPackageVersion")
-  def test_returned_optimal_version_is_initial_on_suse(
-    self, findNearestAgentPackageVersion_method, getAvailableAgentPackageVersions_method
-  ):
-    getAvailableAgentPackageVersions_method.return_value = {
-      "exitstatus": 0,
-      "log": "1.1.1",
-    }
-
-    projectVersion = "1.1.1"
-    result_version = setup_agent.getOptimalVersion(projectVersion)
-    self.assertTrue(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version["exitstatus"] == 1)
-    pass
-
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("ambari_commons.OSCheck.is_suse_family")
   @patch("ambari_commons.OSCheck.is_ubuntu_family")
@@ -253,7 +284,6 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("ambari_commons.OSCheck.is_suse_family")
   @patch("ambari_commons.OSCheck.is_ubuntu_family")
@@ -272,29 +302,6 @@ class TestSetupAgent(TestCase):
     findNearestAgentPackageVersion_method.return_value = {
       "exitstatus": 0,
       "log": [nearest_version, ""],
-    }
-
-    result_version = setup_agent.getOptimalVersion(projectVersion)
-    self.assertTrue(findNearestAgentPackageVersion_method.called)
-    self.assertTrue(result_version["exitstatus"] == 1)
-    pass
-
-  @only_for_platform(PLATFORM_WINDOWS)
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(setup_agent, "findNearestAgentPackageVersion")
-  @patch.object(setup_agent, "getAvailableAgentPackageVersions")
-  def test_returned_optimal_version_is_nearest_on_windows(
-    self, findNearestAgentPackageVersion_method, getAvailableAgentPackageVersions_method
-  ):
-    projectVersion = ""
-    nearest_version = projectVersion + "1.1.1"
-    findNearestAgentPackageVersion_method.return_value = {
-      "exitstatus": 0,
-      "log": [nearest_version, ""],
-    }
-    getAvailableAgentPackageVersions_method.return_value = {
-      "exitstatus": 0,
-      "log": nearest_version,
     }
 
     result_version = setup_agent.getOptimalVersion(projectVersion)
@@ -357,23 +364,21 @@ class TestSetupAgent(TestCase):
     self.assertEqual(result_version["exitstatus"], 1)
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(subprocess, "Popen")
-  def test_execOsCommand(self, Popen_mock):
-    self.assertIsNone(setup_agent.execOsCommand("hostname -f"))
+  def test_execOsCommand_linux(self, Popen_mock):
+    process = Popen_mock.return_value
+    process.communicate.return_value = ("host.example.com\n", "")
+    process.returncode = 0
 
-  @only_for_platform(PLATFORM_WINDOWS)
-  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(subprocess, "Popen")
-  def test_execOsCommand(self, Popen_mock):
-    p = MagicMock()
-    p.communicate.return_value = ("", "")
-    p.returncode = 0
-    Popen_mock.return_value = p
-    retval = setup_agent.execOsCommand("hostname -f")
-    self.assertEqual(retval["exitstatus"], 0)
-    pass
+    result = setup_agent.execOsCommand("hostname -f")
+
+    self.assertEqual(
+      {"exitstatus": 0, "log": ("host.example.com\n", "")}, result
+    )
+    Popen_mock.assert_called_once_with(
+      "hostname -f", stdout=subprocess.PIPE, cwd=None, universal_newlines=True
+    )
 
   @patch("os.path.exists")
   @patch.object(setup_agent, "get_ambari_repo_file_full_name")

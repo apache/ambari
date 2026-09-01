@@ -22,7 +22,11 @@ import time
 import sys
 import logging
 import os
+import re
+import shlex
+import shutil
 import subprocess
+import tempfile
 
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -34,12 +38,121 @@ PROJECT_VERSION_DEFAULT = "DEFAULT"
 INSTALL_DRIVE = os.path.splitdrive(__file__.replace("/", os.sep))[0]
 AMBARI_INSTALL_ROOT = os.path.join(INSTALL_DRIVE, os.sep, "ambari")
 AMBARI_AGENT_INSTALL_SYMLINK = os.path.join(AMBARI_INSTALL_ROOT, "ambari-agent")
+AMBARI_AGENT_ENV = "/var/lib/ambari-agent/ambari-env.sh"
+AMBARI_AGENT_SERVER_CA = "/var/lib/ambari-agent/keys/ca.crt"
+
+
+def _is_shell_variable_assignment(line, variable):
+  return re.match(
+    rf"(?:export\s+)?{re.escape(variable)}=", line.lstrip()
+  ) is not None
 
 
 def _ret_init(ret):
   if not ret:
     ret = {"exitstatus": 0, "log": ("", "")}
   return ret
+
+
+def persist_agent_passphrase(passphrase):
+  if not passphrase:
+    raise ValueError("Ambari Agent enrollment passphrase must not be empty")
+
+  env_dir = os.path.dirname(AMBARI_AGENT_ENV)
+  os.makedirs(env_dir, mode=0o755, exist_ok=True)
+  existing_lines = []
+  if os.path.exists(AMBARI_AGENT_ENV):
+    with open(AMBARI_AGENT_ENV, "r", encoding="utf-8") as stream:
+      existing_lines = [
+        line
+        for line in stream
+        if not _is_shell_variable_assignment(line, AMBARI_PASSPHRASE_VAR)
+      ]
+
+  descriptor, temporary_path = tempfile.mkstemp(
+    prefix=".ambari-env-", dir=env_dir, text=True
+  )
+  try:
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+      stream.writelines(existing_lines)
+      if existing_lines and not existing_lines[-1].endswith("\n"):
+        stream.write("\n")
+      stream.write(f"{AMBARI_PASSPHRASE_VAR}={shlex.quote(passphrase)}\n")
+      stream.flush()
+      os.fsync(stream.fileno())
+    os.chmod(temporary_path, 0o600)
+    os.replace(temporary_path, AMBARI_AGENT_ENV)
+    directory_descriptor = os.open(env_dir, os.O_RDONLY)
+    try:
+      os.fsync(directory_descriptor)
+    finally:
+      os.close(directory_descriptor)
+  except Exception:
+    try:
+      os.unlink(temporary_path)
+    except OSError:
+      pass
+    raise
+
+
+def read_enrollment_passphrase(argument):
+  if not argument.startswith("@"):
+    return argument
+
+  passphrase_file = argument[1:]
+  try:
+    with open(passphrase_file, "r", encoding="utf-8") as stream:
+      passphrase = stream.read()
+  finally:
+    try:
+      os.unlink(passphrase_file)
+    except OSError:
+      pass
+  if not passphrase:
+    raise ValueError("Ambari Agent enrollment passphrase file is empty")
+  return passphrase
+
+
+def install_server_ca(source_path):
+  if not source_path or not os.path.isfile(source_path):
+    raise ValueError(f"Ambari Server CA certificate not found: {source_path}")
+
+  destination_dir = os.path.dirname(AMBARI_AGENT_SERVER_CA)
+  os.makedirs(destination_dir, mode=0o700, exist_ok=True)
+  os.chmod(destination_dir, 0o700)
+  descriptor, temporary_path = tempfile.mkstemp(
+    prefix=".ca-", dir=destination_dir
+  )
+  installed = False
+  try:
+    with os.fdopen(descriptor, "wb") as target, open(source_path, "rb") as source:
+      shutil.copyfileobj(source, target)
+      target.flush()
+      os.fsync(target.fileno())
+    os.chmod(temporary_path, 0o644)
+    os.replace(temporary_path, AMBARI_AGENT_SERVER_CA)
+    temporary_path = None
+    directory_descriptor = os.open(destination_dir, os.O_RDONLY)
+    try:
+      os.fsync(directory_descriptor)
+    finally:
+      os.close(directory_descriptor)
+    installed = True
+  except Exception:
+    raise
+  finally:
+    if temporary_path is not None:
+      try:
+        os.unlink(temporary_path)
+      except OSError:
+        pass
+    if installed and os.path.abspath(source_path) != os.path.abspath(
+      AMBARI_AGENT_SERVER_CA
+    ):
+      try:
+        os.unlink(source_path)
+      except OSError:
+        pass
 
 
 def _ret_append_stdout(ret, stdout):
@@ -151,7 +264,7 @@ def configureAgent(server_hostname, user_run_as, ret=None):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def runAgent(passPhrase, expected_hostname, user_run_as, verbose, ret=None):
-  os.environ[AMBARI_PASSPHRASE_VAR] = passPhrase
+  persist_agent_passphrase(passPhrase)
   vo = ""
   if verbose:
     vo = " -v"
@@ -185,8 +298,8 @@ def runAgent(passPhrase, expected_hostname, user_run_as, verbose, ret=None):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def checkVerbose():
   verbose = False
-  cmds = ["bash", "-c", "ps aux | grep 'AmbariAgent.py' | grep ' \-v'"]
-  cmdl = ["bash", "-c", "ps aux | grep 'AmbariAgent.py' | grep ' \--verbose'"]
+  cmds = ["bash", "-c", r"ps aux | grep 'AmbariAgent.py' | grep ' \-v'"]
+  cmdl = ["bash", "-c", r"ps aux | grep 'AmbariAgent.py' | grep ' \--verbose'"]
   if execOsCommand(cmds)["exitstatus"] == 0 or execOsCommand(cmdl)["exitstatus"] == 0:
     verbose = True
   return verbose
@@ -227,13 +340,13 @@ def findNearestAgentPackageVersion(projectVersion):
       Command = [
         "bash",
         "-c",
-        "apt-cache -q show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|tr -d '\\n'|sed -s 's/[-|~][A-Za-z0-9]*//'",
+        "apt-cache -q show ambari-agent |grep 'Version\\:'|cut -d ' ' -f 2|tr -d '\\n'|sed -s 's/[-|~][A-Za-z0-9]*//'",
       ]
     else:
       Command = [
         "bash",
         "-c",
-        "apt-cache -q show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|grep '"
+        r"apt-cache -q show ambari-agent |grep 'Version\:'|cut -d ' ' -f 2|grep '"
         + projectVersion
         + "'|tr -d '\\n'|sed -s 's/[-|~][A-Za-z0-9]*//'",
       ]
@@ -243,7 +356,7 @@ def findNearestAgentPackageVersion(projectVersion):
       "-c",
       "yum -q list all ambari-agent | grep '"
       + projectVersion
-      + "' | sed -re 's/\s+/ /g' | awk -F ' ' '{print $2}'  | awk -F '-' '{print $1}' | head -n1 | sed -e 's/-\w[^:]*//1' ",
+      + r"' | sed -re 's/\s+/ /g' | awk -F ' ' '{print $2}'  | awk -F '-' '{print $1}' | head -n1 | sed -e 's/-\w[^:]*//1' ",
     ]
   return execOsCommand(Command)
 
@@ -276,13 +389,13 @@ def getAvailableAgentPackageVersions():
     Command = [
       "bash",
       "-c",
-      "apt-cache -q show ambari-agent|grep 'Version\:'|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z0-9]*//g'",
+      "apt-cache -q show ambari-agent|grep 'Version\\:'|cut -d ' ' -f 2| tr '\\n' ', '|sed -s 's/[-|~][A-Za-z0-9]*//g'",
     ]
   else:
     Command = [
       "bash",
       "-c",
-      "yum -q list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'",
+      "yum -q list all ambari-agent | grep -E '^ambari-agent' | sed -re 's/\\s+/ /g' | cut -d ' ' -f 2 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'",
     ]
   return execOsCommand(Command)
 
@@ -314,19 +427,21 @@ def checkServerReachability(host, port):
 #               3        User to run agent as
 #      X        4        Project Version (Ambari)
 #      X        5        Server port
+#               6        Trusted Ambari Server CA certificate
 def parseArguments(argv=None):
   if argv is None:  # make sure that arguments was passed
     return {"exitstatus": 2, "log": "No arguments were passed"}
   args = argv[1:]  # shift path to script
-  if len(args) < 3:
+  if len(args) < 4:
     return {"exitstatus": 1, "log": "Not all required arguments were passed"}
 
   expected_hostname = args[0]
-  passPhrase = args[1]
+  passPhrase = read_enrollment_passphrase(args[1])
   hostname = args[2]
   user_run_as = args[3]
   projectVersion = ""
   server_port = 8080
+  server_ca_path = None
 
   if len(args) > 4:
     projectVersion = args[4]
@@ -337,6 +452,9 @@ def parseArguments(argv=None):
     except Exception:
       server_port = 8080
 
+  if len(args) > 6:
+    server_ca_path = args[6]
+
   parsed_args = (
     expected_hostname,
     passPhrase,
@@ -344,6 +462,7 @@ def parseArguments(argv=None):
     user_run_as,
     projectVersion,
     server_port,
+    server_ca_path,
   )
   return {"exitstatus": 0, "log": "", "parsed_args": parsed_args}
 
@@ -361,7 +480,11 @@ def run_setup(argv=None):
     user_run_as,
     projectVersion,
     server_port,
+    server_ca_path,
   ) = retcode["parsed_args"]
+
+  if server_ca_path:
+    install_server_ca(server_ca_path)
 
   retcode = checkServerReachability(hostname, server_port)
   if retcode["exitstatus"] != 0:

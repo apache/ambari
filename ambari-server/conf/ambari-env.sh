@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 AMBARI_PID_DIR=/var/run/ambari-server
-AMBARI_PASSPHRASE="DEV"
+AMBARI_PASSPHRASE=""
 export PYTHONPATH=/usr/lib/ambari-server/lib:$PYTHONPATH
 # to add additional directory or jar to server classpath use SERVER_CLASSPATH variable
 # export SERVER_CLASSPATH=/etc/hadoop/conf/secure

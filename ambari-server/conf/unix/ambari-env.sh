@@ -15,8 +15,8 @@
 # limitations under the License.
 # Exit immediately if a command exits with a non-zero status
 set -e
-# Set Ambari passphrase
-AMBARI_PASSPHRASE="DEV"
+# Generated on first Server start and persisted with mode 0600.
+AMBARI_PASSPHRASE=""
 
 # Set JVM arguments for Ambari
 AMBARI_JVM_ARGS="--add-opens java.base/java.lang=ALL-UNNAMED "

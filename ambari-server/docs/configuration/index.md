@@ -89,7 +89,7 @@ The following are the properties which can be used to configure Ambari.
 | bootstrap.dir | The directory on the Ambari Server file system used for storing Ambari Agent bootstrap information such as request responses. |`/var/run/ambari-server/bootstrap` | 
 | bootstrap.master_host_name | The host name of the Ambari Server which will be used by the Ambari Agents for communication. | | 
 | bootstrap.script | The location and name of the Python script used to bootstrap new Ambari Agent hosts. |`/usr/lib/ambari-server/lib/ambari_server/bootstrap.py` | 
-| bootstrap.setup_agent.password | The password to set on the `AMBARI_PASSPHRASE` environment variable before invoking the bootstrap script. |`password` | 
+| bootstrap.setup_agent.password | The password to set on the `AMBARI_PASSPHRASE` environment variable before invoking the bootstrap script. | `` |
 | bootstrap.setup_agent.script | The location and name of the Python script executed on the Ambari Agent host during the bootstrap process. |`/usr/lib/ambari-server/lib/ambari_server/setupAgent.py` | 
 | client.api.acceptor.count | Count of acceptors to configure for the jetty connector used for Ambari API. | | 
 | client.api.port | The port that client connections will use with the REST API. The Ambari Web client runs on this port. |`8080` | 

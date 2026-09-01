@@ -165,8 +165,7 @@ class TestBootstrap(TestCase):
       pass
     self.assertTrue(exit_mock.called)
 
-  @patch("os.environ")
-  def test_getRunSetupWithPasswordCommand(self, environ_mock):
+  def test_getRunSetupWithPasswordCommand(self):
     shared_state = SharedState(
       "root",
       "123",
@@ -180,14 +179,17 @@ class TestBootstrap(TestCase):
       "8440",
       "root",
     )
-    environ_mock.__getitem__.return_value = "TEST_PASSPHRASE"
     bootstrap_obj = Bootstrap("hostname", shared_state)
     utime = 1234
     bootstrap_obj.getUtime = MagicMock(return_value=utime)
     ret = bootstrap_obj.getRunSetupWithPasswordCommand("hostname")
     expected = (
-      "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S /usr/bin/ambari-python-wrap /var/lib/ambari-agent/tmp/setupAgent{0}.py hostname TEST_PASSPHRASE "
-      "ambariServer root  8440 < /var/lib/ambari-agent/tmp/host_pass{0}".format(utime)
+      "/var/lib/ambari-agent/tmp/ambari-sudo.sh -S /usr/bin/ambari-python-wrap "
+      "/var/lib/ambari-agent/tmp/setupAgent{0}.py hostname "
+      "@/var/lib/ambari-agent/tmp/agent_enrollment_passphrase{0} "
+      "ambariServer root '' 8440 "
+      "/var/lib/ambari-agent/tmp/ambari-server-ca{0}.crt "
+      "< /var/lib/ambari-agent/tmp/host_pass{0}".format(utime)
     )
     self.assertEqual(ret, expected)
 
@@ -274,7 +276,9 @@ class TestBootstrap(TestCase):
     bootstrap_obj = Bootstrap("hostname", shared_state)
     runSetupCommand = bootstrap_obj.getRunSetupCommand("hostname")
     self.assertIn("/usr/bin/ambari-python-wrap", runSetupCommand)
-    self.assertTrue(runSetupCommand.endswith(version + " 8440"))
+    self.assertIn(version + " 8440", runSetupCommand)
+    self.assertIn("@/var/lib/ambari-agent/tmp/agent_enrollment_passphrase", runSetupCommand)
+    self.assertTrue(runSetupCommand.endswith(".crt"))
 
   def test_agent_setup_command_without_project_version(self):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
@@ -295,7 +299,104 @@ class TestBootstrap(TestCase):
     bootstrap_obj = Bootstrap("hostname", shared_state)
     runSetupCommand = bootstrap_obj.getRunSetupCommand("hostname")
     self.assertIn("/usr/bin/ambari-python-wrap", runSetupCommand)
-    self.assertTrue(runSetupCommand.endswith(" 8440"))
+    self.assertIn(" 8440 ", runSetupCommand)
+    self.assertTrue(runSetupCommand.endswith(".crt"))
+
+  @patch.object(SCP, "run")
+  def test_copy_enrollment_passphrase_rejects_missing_secret(self, scp_run_mock):
+    with tempfile.TemporaryDirectory() as directory, patch.dict(
+      os.environ, {AMBARI_PASSPHRASE_VAR_NAME: ""}
+    ):
+      shared_state = SharedState(
+        "root",
+        "123",
+        "sshkey_file",
+        "scriptDir",
+        directory,
+        "setupAgentFile",
+        "ambariServer",
+        "centos6",
+        None,
+        "8440",
+        "root",
+      )
+      result = Bootstrap("hostname", shared_state).copyEnrollmentPassphrase()
+
+      self.assertEqual(1, result["exitstatus"])
+      self.assertIn("not configured", result["errormsg"])
+      scp_run_mock.assert_not_called()
+
+  @patch("bootstrap.SCP")
+  @patch("bootstrap.SSH")
+  def test_copy_enrollment_passphrase_secures_remote_file_before_copy(
+    self, ssh_class_mock, scp_class_mock
+  ):
+    events = []
+    ssh_class_mock.return_value.run.side_effect = lambda: (
+      events.append("ssh") or {"exitstatus": 0}
+    )
+    scp_class_mock.return_value.run.side_effect = lambda: (
+      events.append("scp") or {"exitstatus": 0}
+    )
+    with tempfile.TemporaryDirectory() as directory, patch.dict(
+      os.environ, {AMBARI_PASSPHRASE_VAR_NAME: "one-time-secret"}
+    ):
+      shared_state = SharedState(
+        "root",
+        "123",
+        "sshkey_file",
+        "scriptDir",
+        directory,
+        "setupAgentFile",
+        "ambariServer",
+        "centos6",
+        None,
+        "8440",
+        "root",
+      )
+      bootstrap_obj = Bootstrap("hostname", shared_state)
+
+      result = bootstrap_obj.copyEnrollmentPassphrase()
+
+    self.assertEqual(0, result["exitstatus"])
+    self.assertEqual(["ssh", "scp", "ssh"], events)
+    self.assertEqual(2, ssh_class_mock.call_count)
+    secure_command = ssh_class_mock.call_args_list[0].args[4]
+    self.assertIn("umask 077", secure_command)
+    self.assertIn("chmod 600", secure_command)
+    scp_class_mock.assert_called_once()
+
+  @patch("bootstrap.SCP")
+  @patch("bootstrap.SSH")
+  def test_copy_enrollment_passphrase_stops_when_remote_file_cannot_be_secured(
+    self, ssh_class_mock, scp_class_mock
+  ):
+    ssh_class_mock.return_value.run.return_value = {
+      "exitstatus": 1,
+      "errormsg": "denied",
+    }
+    with tempfile.TemporaryDirectory() as directory, patch.dict(
+      os.environ, {AMBARI_PASSPHRASE_VAR_NAME: "one-time-secret"}
+    ):
+      shared_state = SharedState(
+        "root",
+        "123",
+        "sshkey_file",
+        "scriptDir",
+        directory,
+        "setupAgentFile",
+        "ambariServer",
+        "centos6",
+        None,
+        "8440",
+        "root",
+      )
+
+      result = Bootstrap("hostname", shared_state).copyEnrollmentPassphrase()
+
+    self.assertEqual(1, result["exitstatus"])
+    ssh_class_mock.assert_called_once()
+    scp_class_mock.assert_not_called()
 
   # TODO: test_os_check_fail_fails_bootstrap_execution
 
@@ -514,8 +615,11 @@ class TestBootstrap(TestCase):
     ocs = bootstrap_obj.getOsCheckScriptRemoteLocation()
     self.assertEqual(ocs, v)
 
-  @patch.object(BootstrapDefault, "is_suse")
-  def test_getRepoFile(self, is_suse_mock):
+  @patch.object(OSCheck, "is_ubuntu_family", return_value=False)
+  @patch.object(OSCheck, "is_redhat_family", return_value=True)
+  def test_getRepoFile_uses_default_yum_path(
+    self, is_redhat_family_mock, is_ubuntu_family_mock
+  ):
     shared_state = SharedState(
       "root",
       "123",
@@ -530,7 +634,6 @@ class TestBootstrap(TestCase):
       "root",
     )
     bootstrap_obj = Bootstrap("hostname", shared_state)
-    is_suse_mock.return_value = False
     rf = bootstrap_obj.getRepoFile()
     self.assertEqual(rf, "/etc/yum.repos.d/ambari.repo")
 
@@ -710,6 +813,7 @@ class TestBootstrap(TestCase):
     is_ubuntu_family.return_value = False
     is_suse_family.return_value = False
     bootstrap_obj = Bootstrap("hostname", shared_state)
+    bootstrap_obj.getServerCaCertificate = MagicMock(return_value="ServerCa")
     getMoveRepoFileCommand.return_value = "MoveRepoFileCommand"
     getRepoDir.return_value = "RepoDir"
     getRemoteName_mock.return_value = "RemoteName"
@@ -721,14 +825,19 @@ class TestBootstrap(TestCase):
     scp_init_mock.return_value = None
     ssh_init_mock.return_value = None
     # Testing max retcode return
-    scp_run_mock.side_effect = [expected1, expected3]
+    expected_ca = {"exitstatus": 0, "log": "", "errormsg": ""}
+    scp_run_mock.side_effect = [expected1, expected3, expected_ca]
     ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
     self.assertEqual(res, expected1["exitstatus"])
-    input_file = str(scp_init_mock.call_args[0][4])
-    remote_file = str(scp_init_mock.call_args[0][5])
+    setup_copy = scp_init_mock.call_args_list[-2][0]
+    input_file = str(setup_copy[4])
+    remote_file = str(setup_copy[5])
     self.assertEqual(input_file, "setupAgentFile")
     self.assertEqual(remote_file, "RemoteName")
+    ca_copy = scp_init_mock.call_args_list[-1][0]
+    self.assertEqual(str(ca_copy[4]), "ServerCa")
+    self.assertEqual(str(ca_copy[5]), "RemoteName")
     command = str(ssh_init_mock.call_args[0][4])
     self.assertEqual(
       command, "/var/lib/ambari-agent/tmp/ambari-sudo.sh chmod 644 RepoFile"
@@ -738,7 +847,7 @@ class TestBootstrap(TestCase):
     expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     expected3 = {"exitstatus": 1, "log": "log1", "errormsg": "errorMsg"}
     expected4 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
-    scp_run_mock.side_effect = [expected1, expected3]
+    scp_run_mock.side_effect = [expected1, expected3, expected_ca]
     ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
     self.assertEqual(res, expected2["exitstatus"])
@@ -747,7 +856,7 @@ class TestBootstrap(TestCase):
     expected2 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
     expected3 = {"exitstatus": 42, "log": "log42", "errormsg": "errorMsg"}
     expected4 = {"exitstatus": 17, "log": "log17", "errormsg": "errorMsg"}
-    scp_run_mock.side_effect = [expected1, expected3]
+    scp_run_mock.side_effect = [expected1, expected3, expected_ca]
     ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
     self.assertEqual(res, expected3["exitstatus"])
@@ -760,11 +869,11 @@ class TestBootstrap(TestCase):
 
     # Expectations:
     # SSH will not be called at all
-    # SCP will be called once for copying the setup script file
+    # SCP copies the setup script and trusted Server CA.
     scp_run_mock.reset_mock()
     ssh_run_mock.reset_mock()
     expectedResult = {"exitstatus": 33, "log": "log33", "errormsg": "errorMsg"}
-    scp_run_mock.side_effect = [expectedResult]
+    scp_run_mock.side_effect = [expectedResult, expected_ca]
     res = bootstrap_obj.copyNeededFiles()
     self.assertFalse(ssh_run_mock.called)
     self.assertEqual(res, expectedResult["exitstatus"])
@@ -1169,7 +1278,7 @@ class TestBootstrap(TestCase):
       "errormsg": "errormsg0",
     }
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 10)  # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 12)
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 
@@ -1184,7 +1293,7 @@ class TestBootstrap(TestCase):
       "errormsg": "errormsg0",
     }
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 13)  # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 15)
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 0)
 
@@ -1198,9 +1307,10 @@ class TestBootstrap(TestCase):
     try_to_execute_mock.side_effect = [
       {"exitstatus": 0, "log": "log0", "errormsg": "errormsg0"},
       {"exitstatus": 1, "log": "log1", "errormsg": "errormsg1"},
+      {"exitstatus": 0, "log": "log0", "errormsg": "errormsg0"},
     ]
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 2)  # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 3)
     self.assertTrue("ERROR" in error_mock.call_args[0][0])
     self.assertTrue("ERROR" in write_mock.call_args[0][0])
     self.assertTrue(createDoneFile_mock.called)
@@ -1215,9 +1325,10 @@ class TestBootstrap(TestCase):
       {"exitstatus": 0, "log": "log0", "errormsg": "errormsg0"},
       {"exitstatus": 42, "log": "log42", "errormsg": "errormsg42"},
       {"exitstatus": 0, "log": "log0", "errormsg": "errormsg0"},
+      {"exitstatus": 0, "log": "log0", "errormsg": "errormsg0"},
     ]
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 3)  # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 4)
     self.assertTrue(createDoneFile_mock.called)
     self.assertEqual(bootstrap_obj.getStatus()["return_code"], 42)
 
@@ -1233,9 +1344,10 @@ class TestBootstrap(TestCase):
       {"exitstatus": 0, "log": "log0", "errormsg": "errormsg0"},
       {"exitstatus": 17, "log": "log17", "errormsg": "errormsg17"},
       {"exitstatus": 19, "log": "log19", "errormsg": "errormsg19"},
+      {"exitstatus": 0, "log": "log0", "errormsg": "errormsg0"},
     ]
     bootstrap_obj.run()
-    self.assertEqual(try_to_execute_mock.call_count, 3)  # <- Adjust if changed
+    self.assertEqual(try_to_execute_mock.call_count, 4)
     self.assertTrue("ERROR" in write_mock.call_args_list[0][0][0])
     self.assertTrue("ERROR" in error_mock.call_args[0][0])
     self.assertTrue("WARNING" in write_mock.call_args_list[1][0][0])
