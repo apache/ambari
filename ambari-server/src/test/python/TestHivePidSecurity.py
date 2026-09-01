@@ -75,12 +75,10 @@ class TestHiveProcessIdentity(unittest.TestCase):
 
   def test_valid_pid_identity_is_reused_without_discovery(self):
     running = identity()
-    with (
-      patch.object(HIVE_SERVICE.safe_process, "read_pid", return_value=123),
-      patch.object(HIVE_SERVICE.safe_process, "inspect_process", return_value=running),
-      patch.object(HIVE_SERVICE.safe_process, "is_process_running", return_value=True),
-      patch.object(HIVE_SERVICE.safe_process, "discover_running_process") as discover,
-    ):
+    with patch.object(HIVE_SERVICE.safe_process, "read_pid", return_value=123), \
+      patch.object(HIVE_SERVICE.safe_process, "inspect_process", return_value=running), \
+      patch.object(HIVE_SERVICE.safe_process, "is_process_running", return_value=True), \
+      patch.object(HIVE_SERVICE.safe_process, "discover_running_process") as discover:
       result = HIVE_SERVICE.read_or_discover_hive_process(
         "/run/hive/server.pid", "hive", "hadoop", "hiveserver2"
       )
@@ -88,12 +86,10 @@ class TestHiveProcessIdentity(unittest.TestCase):
     discover.assert_not_called()
 
   def test_stale_pid_is_removed_before_unique_discovery(self):
-    with (
-      patch.object(HIVE_SERVICE.safe_process, "read_pid", return_value=123),
-      patch.object(HIVE_SERVICE.safe_process, "inspect_process", return_value=None),
-      patch.object(HIVE_SERVICE.safe_process, "remove_pid_file_if_stopped") as remove,
-      patch.object(HIVE_SERVICE.safe_process, "discover_running_process", return_value=None),
-    ):
+    with patch.object(HIVE_SERVICE.safe_process, "read_pid", return_value=123), \
+      patch.object(HIVE_SERVICE.safe_process, "inspect_process", return_value=None), \
+      patch.object(HIVE_SERVICE.safe_process, "remove_pid_file_if_stopped") as remove, \
+      patch.object(HIVE_SERVICE.safe_process, "discover_running_process", return_value=None):
       result = HIVE_SERVICE.read_or_discover_hive_process(
         "/run/hive/metastore.pid", "hive", "hadoop", "metastore"
       )
@@ -107,19 +103,17 @@ class TestHiveProcessIdentity(unittest.TestCase):
 
   def test_missing_pid_is_recovered_atomically_with_restricted_mode(self):
     running = identity()
-    with (
-      patch.object(HIVE_SERVICE.safe_process, "read_pid", return_value=None),
+    with patch.object(HIVE_SERVICE.safe_process, "read_pid", return_value=None), \
       patch.object(
         HIVE_SERVICE.safe_process,
         "discover_running_process",
         return_value=running,
-      ),
+      ), \
       patch.object(
         HIVE_SERVICE.safe_process,
         "create_pid_file_for_identity",
         return_value=running,
-      ) as create,
-    ):
+      ) as create:
       result = HIVE_SERVICE.read_or_discover_hive_process(
         "/run/hive/server.pid", "hive", "hadoop", "hiveserver2"
       )
@@ -201,27 +195,23 @@ class TestHiveLifecycle(unittest.TestCase):
 
   def test_start_is_idempotent_for_validated_identity(self):
     running = identity()
-    with (
-      patch.dict(sys.modules, {"params": self.params, "status_params": self.status}),
+    with patch.dict(sys.modules, {"params": self.params, "status_params": self.status}), \
       patch.object(
         HIVE_SERVICE,
         "read_or_discover_hive_process",
         return_value=running,
-      ),
-      patch.object(HIVE_SERVICE, "Execute") as execute,
-    ):
+      ), \
+      patch.object(HIVE_SERVICE, "Execute") as execute:
       HIVE_SERVICE.hive_service("metastore", "start")
     execute.assert_not_called()
 
   def test_start_uses_structured_wrapper_and_fixes_pid_metadata(self):
     running = identity()
-    with (
-      patch.dict(sys.modules, {"params": self.params, "status_params": self.status}),
-      patch.object(HIVE_SERVICE, "read_or_discover_hive_process", return_value=None),
-      patch.object(HIVE_SERVICE, "wait_for_hive_process", return_value=running),
-      patch.object(HIVE_SERVICE, "Execute") as execute,
-      patch.object(HIVE_SERVICE, "File") as file_resource,
-    ):
+    with patch.dict(sys.modules, {"params": self.params, "status_params": self.status}), \
+      patch.object(HIVE_SERVICE, "read_or_discover_hive_process", return_value=None), \
+      patch.object(HIVE_SERVICE, "wait_for_hive_process", return_value=running), \
+      patch.object(HIVE_SERVICE, "Execute") as execute, \
+      patch.object(HIVE_SERVICE, "File") as file_resource:
       HIVE_SERVICE.hive_service("metastore", "start")
 
     command = execute.call_args.args[0]
@@ -237,17 +227,15 @@ class TestHiveLifecycle(unittest.TestCase):
 
   def test_readiness_failure_terminates_the_started_identity(self):
     running = identity()
-    with (
-      patch.dict(sys.modules, {"params": self.params, "status_params": self.status}),
-      patch.object(HIVE_SERVICE, "read_or_discover_hive_process", return_value=None),
-      patch.object(HIVE_SERVICE, "wait_for_hive_process", return_value=running),
-      patch.object(HIVE_SERVICE, "_wait_for_secure_znode", side_effect=Fail("not ready")),
-      patch.object(HIVE_SERVICE, "Execute"),
-      patch.object(HIVE_SERVICE, "File"),
-      patch.object(HIVE_SERVICE.safe_process, "terminate_process") as terminate,
-      patch.object(HIVE_SERVICE.safe_process, "remove_pid_file_if_stopped") as remove,
-      patch.object(HIVE_SERVICE, "show_logs"),
-    ):
+    with patch.dict(sys.modules, {"params": self.params, "status_params": self.status}), \
+      patch.object(HIVE_SERVICE, "read_or_discover_hive_process", return_value=None), \
+      patch.object(HIVE_SERVICE, "wait_for_hive_process", return_value=running), \
+      patch.object(HIVE_SERVICE, "_wait_for_secure_znode", side_effect=Fail("not ready")), \
+      patch.object(HIVE_SERVICE, "Execute"), \
+      patch.object(HIVE_SERVICE, "File"), \
+      patch.object(HIVE_SERVICE.safe_process, "terminate_process") as terminate, \
+      patch.object(HIVE_SERVICE.safe_process, "remove_pid_file_if_stopped") as remove, \
+      patch.object(HIVE_SERVICE, "show_logs"):
       with self.assertRaisesRegex(Fail, "not ready"):
         HIVE_SERVICE.hive_service("hiveserver2", "start")
 
@@ -264,16 +252,14 @@ class TestHiveLifecycle(unittest.TestCase):
 
   def test_stop_pins_identity_through_term_wait_and_kill(self):
     running = identity()
-    with (
-      patch.dict(sys.modules, {"params": self.params, "status_params": self.status}),
+    with patch.dict(sys.modules, {"params": self.params, "status_params": self.status}), \
       patch.object(
         HIVE_SERVICE,
         "read_or_discover_hive_process",
         return_value=running,
-      ),
-      patch.object(HIVE_SERVICE.safe_process, "terminate_process") as terminate,
-      patch.object(HIVE_SERVICE.safe_process, "remove_pid_file_if_stopped") as remove,
-    ):
+      ), \
+      patch.object(HIVE_SERVICE.safe_process, "terminate_process") as terminate, \
+      patch.object(HIVE_SERVICE.safe_process, "remove_pid_file_if_stopped") as remove:
       HIVE_SERVICE.hive_service("metastore", "stop")
     terminate.assert_called_once_with(
       running,
@@ -308,16 +294,14 @@ class TestWebHCatLifecycle(unittest.TestCase):
       hcat_log_dir="/var/log/hive-hcatalog",
     )
     running = identity()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(WEBHCAT_SERVICE, "read_or_discover_hive_process", return_value=None),
-      patch.object(WEBHCAT_SERVICE, "wait_for_hive_process", return_value=running),
-      patch.object(WEBHCAT_SERVICE, "File", side_effect=Fail("metadata failed")),
-      patch.object(WEBHCAT_SERVICE, "Execute") as execute,
-      patch.object(WEBHCAT_SERVICE.safe_process, "terminate_process") as terminate,
-      patch.object(WEBHCAT_SERVICE.safe_process, "remove_pid_file_if_stopped"),
-      patch.object(WEBHCAT_SERVICE, "show_logs"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(WEBHCAT_SERVICE, "read_or_discover_hive_process", return_value=None), \
+      patch.object(WEBHCAT_SERVICE, "wait_for_hive_process", return_value=running), \
+      patch.object(WEBHCAT_SERVICE, "File", side_effect=Fail("metadata failed")), \
+      patch.object(WEBHCAT_SERVICE, "Execute") as execute, \
+      patch.object(WEBHCAT_SERVICE.safe_process, "terminate_process") as terminate, \
+      patch.object(WEBHCAT_SERVICE.safe_process, "remove_pid_file_if_stopped"), \
+      patch.object(WEBHCAT_SERVICE, "show_logs"):
       with self.assertRaisesRegex(Fail, "metadata failed"):
         WEBHCAT_SERVICE.webhcat_service("start")
 

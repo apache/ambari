@@ -63,14 +63,12 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
     self.identity = SimpleNamespace(pid=4123)
 
   def test_existing_pid_requires_exact_running_identity(self):
-    with (
-      patch.object(PROCESS.safe_process, "read_pid", return_value=4123),
+    with patch.object(PROCESS.safe_process, "read_pid", return_value=4123), \
       patch.object(
         PROCESS.safe_process, "inspect_process", return_value=self.identity
-      ) as inspect,
-      patch.object(PROCESS.safe_process, "is_process_running", return_value=True),
-      patch.object(PROCESS.safe_process, "discover_running_process") as discover,
-    ):
+      ) as inspect, \
+      patch.object(PROCESS.safe_process, "is_process_running", return_value=True), \
+      patch.object(PROCESS.safe_process, "discover_running_process") as discover:
       result = PROCESS.read_or_discover_zeppelin_process(
         self.pid_file, "zeppelin", "zeppelin"
       )
@@ -83,21 +81,19 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
 
   def test_stale_pid_is_removed_before_unique_process_recovery(self):
     recovered = SimpleNamespace(pid=4124)
-    with (
-      patch.object(PROCESS.safe_process, "read_pid", return_value=4123),
-      patch.object(PROCESS.safe_process, "inspect_process", return_value=None),
+    with patch.object(PROCESS.safe_process, "read_pid", return_value=4123), \
+      patch.object(PROCESS.safe_process, "inspect_process", return_value=None), \
       patch.object(
         PROCESS.safe_process, "remove_pid_file_if_stopped"
-      ) as remove_pid,
+      ) as remove_pid, \
       patch.object(
         PROCESS.safe_process, "discover_running_process", return_value=recovered
-      ),
+      ), \
       patch.object(
         PROCESS.safe_process,
         "create_pid_file_for_identity",
         return_value=recovered,
-      ) as create_pid,
-    ):
+      ) as create_pid:
       result = PROCESS.read_or_discover_zeppelin_process(
         self.pid_file, "zeppelin", "zeppelin"
       )
@@ -113,13 +109,11 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
 
   def test_pid_for_wrong_process_fails_closed(self):
     mismatch = Fail("command line does not match")
-    with (
-      patch.object(PROCESS.safe_process, "read_pid", return_value=4123),
+    with patch.object(PROCESS.safe_process, "read_pid", return_value=4123), \
       patch.object(
         PROCESS.safe_process, "inspect_process", side_effect=mismatch
-      ),
-      patch.object(PROCESS.safe_process, "discover_running_process") as discover,
-    ):
+      ), \
+      patch.object(PROCESS.safe_process, "discover_running_process") as discover:
       with self.assertRaises(Fail) as raised:
         PROCESS.read_or_discover_zeppelin_process(
           self.pid_file, "zeppelin", "zeppelin"
@@ -129,15 +123,13 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
     discover.assert_not_called()
 
   def test_start_uses_official_argv_and_waits_for_exact_process(self):
-    with (
-      patch.object(
+    with patch.object(
         PROCESS, "read_or_discover_zeppelin_process", return_value=None
-      ),
-      patch.object(PROCESS, "Execute") as execute,
+      ), \
+      patch.object(PROCESS, "Execute") as execute, \
       patch.object(
         PROCESS, "wait_for_zeppelin_process", return_value=self.identity
-      ) as wait,
-    ):
+      ) as wait:
       result = PROCESS.start_zeppelin(
         "/usr/lib/zeppelin/bin/zeppelin-daemon.sh;$(id)",
         "/etc/zeppelin/conf;$(id)",
@@ -163,17 +155,15 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
     wait.assert_called_once_with(self.pid_file, "zeppelin", "zeppelin")
 
   def test_stop_terminates_only_verified_identity(self):
-    with (
-      patch.object(
+    with patch.object(
         PROCESS,
         "read_or_discover_zeppelin_process",
         return_value=self.identity,
-      ),
-      patch.object(PROCESS.safe_process, "terminate_process") as terminate,
+      ), \
+      patch.object(PROCESS.safe_process, "terminate_process") as terminate, \
       patch.object(
         PROCESS.safe_process, "remove_pid_file_if_stopped"
-      ) as remove_pid,
-    ):
+      ) as remove_pid:
       PROCESS.stop_zeppelin(self.pid_file, "zeppelin", "zeppelin")
 
     terminate.assert_called_once_with(
@@ -192,10 +182,8 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
       zeppelin_user="zeppelin",
       zeppelin_group="zeppelin",
     )
-    with (
-      patch.dict(sys.modules, {"status_params": status_params}),
-      patch.object(SERVER, "read_or_discover_zeppelin_process", return_value=None),
-    ):
+    with patch.dict(sys.modules, {"status_params": status_params}), \
+      patch.object(SERVER, "read_or_discover_zeppelin_process", return_value=None):
       with self.assertRaises(ComponentIsNotRunning):
         SERVER.ZeppelinServer().status(MagicMock())
 
@@ -246,10 +234,8 @@ class TestZeppelinHdfsOperations(unittest.TestCase):
     context = MagicMock()
     context.__enter__.return_value = cache
     server = SERVER.ZeppelinServer()
-    with (
-      patch.object(SERVER, "PrivateKerberosCache", return_value=context),
-      patch.object(SERVER.shell, "call", return_value=(0, "")) as call,
-    ):
+    with patch.object(SERVER, "PrivateKerberosCache", return_value=context), \
+      patch.object(SERVER.shell, "call", return_value=(0, "")) as call:
       server.call_hdfs(params, ("-test", "-f", "/config"), "zeppelin")
 
     cache.kinit.assert_called_once_with(
@@ -263,12 +249,10 @@ class TestZeppelinHdfsOperations(unittest.TestCase):
   def test_interpreter_load_rejects_failed_cat_and_protects_file(self):
     params = self._params()
     server = SERVER.ZeppelinServer()
-    with (
-      patch.object(server, "get_zeppelin_conf_fs", return_value="/config/interpreter.json"),
-      patch.object(server, "is_nonempty_hdfs_file", return_value=True),
-      patch.object(server, "call_hdfs", return_value=(1, "failure")),
-      patch.object(SERVER, "File") as file_resource,
-    ):
+    with patch.object(server, "get_zeppelin_conf_fs", return_value="/config/interpreter.json"), \
+      patch.object(server, "is_nonempty_hdfs_file", return_value=True), \
+      patch.object(server, "call_hdfs", return_value=(1, "failure")), \
+      patch.object(SERVER, "File") as file_resource:
       with self.assertRaisesRegex(Fail, "Could not read"):
         server.load_interpreter_from_hdfs(params)
     file_resource.assert_not_called()

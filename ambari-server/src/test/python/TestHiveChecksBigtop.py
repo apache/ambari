@@ -130,10 +130,8 @@ class TestHiveServerCheck(unittest.TestCase):
     params = self.params()
     context = CacheContext()
     check = object.__new__(SERVICE_CHECK.HiveServiceCheck)
-    with (
-      patch.object(SERVICE_CHECK, "PrivateKerberosCache", return_value=context) as cache,
-      patch.object(SERVICE_CHECK.shell, "checked_call", return_value=(0, "ok")) as execute,
-    ):
+    with patch.object(SERVICE_CHECK, "PrivateKerberosCache", return_value=context) as cache, \
+      patch.object(SERVICE_CHECK.shell, "checked_call", return_value=(0, "ok")) as execute:
       check.check_hive_server(params)
 
     cache.assert_called_once_with(
@@ -182,12 +180,10 @@ class TestHCatAndWebHCatChecks(unittest.TestCase):
       hdfs_principal_name="unused",
       kinit_path_local="/usr/bin/kinit",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HCAT_CHECK, "get_unique_id_and_date", return_value="1-2"),
-      patch.object(HCAT_CHECK, "_run_hcat") as run_hcat,
-      patch.object(HCAT_CHECK, "_check_hdfs_path", side_effect=Fail("missing")),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HCAT_CHECK, "get_unique_id_and_date", return_value="1-2"), \
+      patch.object(HCAT_CHECK, "_run_hcat") as run_hcat, \
+      patch.object(HCAT_CHECK, "_check_hdfs_path", side_effect=Fail("missing")):
       with self.assertRaisesRegex(Fail, "missing"):
         HCAT_CHECK.hcat_service_check()
 
@@ -213,16 +209,14 @@ class TestHCatAndWebHCatChecks(unittest.TestCase):
       hdfs_principal_name="unused",
       kinit_path_local="/usr/bin/kinit",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(HCAT_CHECK, "get_unique_id_and_date", return_value="1-2"),
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HCAT_CHECK, "get_unique_id_and_date", return_value="1-2"), \
       patch.object(
         HCAT_CHECK,
         "_run_hcat",
         side_effect=(Fail("create failed"), Fail("cleanup failed")),
-      ) as run_hcat,
-      patch.object(HCAT_CHECK.Logger, "error") as log_error,
-    ):
+      ) as run_hcat, \
+      patch.object(HCAT_CHECK.Logger, "error") as log_error:
       with self.assertRaisesRegex(Fail, "create failed"):
         HCAT_CHECK.hcat_service_check()
 
@@ -242,11 +236,9 @@ class TestHCatAndWebHCatChecks(unittest.TestCase):
       smokeuser_principal="ambari-qa@EXAMPLE.TEST",
     )
     context = CacheContext()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(WEBHCAT_CHECK, "PrivateKerberosCache", return_value=context),
-      patch.object(WEBHCAT_CHECK.shell, "checked_call") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(WEBHCAT_CHECK, "PrivateKerberosCache", return_value=context), \
+      patch.object(WEBHCAT_CHECK.shell, "checked_call") as execute:
       WEBHCAT_CHECK.webhcat_service_check()
 
     self.assertEqual(2, execute.call_count)
@@ -267,12 +259,10 @@ class TestBundledMariaDbWorkflow(unittest.TestCase):
       hive_db_schema_name="hive",
       hive_metastore_user_passwd="secret;$(id)",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(MYSQL_USERS, "get_daemon_name", return_value="mariadb"),
-      patch.object(MYSQL_USERS.shell, "call", return_value=(1, "stopped")),
-      patch.object(MYSQL_USERS, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(MYSQL_USERS, "get_daemon_name", return_value="mariadb"), \
+      patch.object(MYSQL_USERS.shell, "call", return_value=(1, "stopped")), \
+      patch.object(MYSQL_USERS, "Execute") as execute:
       MYSQL_USERS.mysql_adduser()
 
     mysql_command = execute.call_args_list[1].args[0]
@@ -294,12 +284,10 @@ class TestBundledMariaDbWorkflow(unittest.TestCase):
       hive_db_schema_name="hive",
       hive_metastore_user_passwd="secret",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(MYSQL_USERS, "get_daemon_name", return_value="mariadb"),
-      patch.object(MYSQL_USERS.shell, "call", return_value=(0, "running")),
-      patch.object(MYSQL_USERS, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(MYSQL_USERS, "get_daemon_name", return_value="mariadb"), \
+      patch.object(MYSQL_USERS.shell, "call", return_value=(0, "running")), \
+      patch.object(MYSQL_USERS, "Execute") as execute:
       MYSQL_USERS.mysql_adduser()
 
     self.assertEqual(2, execute.call_count)
@@ -314,12 +302,10 @@ class TestBundledMariaDbWorkflow(unittest.TestCase):
 
   def test_database_configuration_uses_root_owned_mariadb_drop_in(self):
     params = module_with(mysql_conf_dir="/etc/my.cnf.d")
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(MYSQL_UTILS, "Directory") as directory,
-      patch.object(MYSQL_UTILS, "File") as file_resource,
-      patch.object(MYSQL_UTILS.mysql_users, "mysql_adduser") as add_user,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(MYSQL_UTILS, "Directory") as directory, \
+      patch.object(MYSQL_UTILS, "File") as file_resource, \
+      patch.object(MYSQL_UTILS.mysql_users, "mysql_adduser") as add_user:
       MYSQL_UTILS.mysql_configure()
 
     directory.assert_called_once_with(

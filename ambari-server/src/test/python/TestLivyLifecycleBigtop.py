@@ -71,22 +71,20 @@ class TestLivyProcessLifecycle(unittest.TestCase):
     self.pid_file = "/var/run/livy/livy-livy-server.pid"
 
   def test_existing_pid_requires_exact_running_identity(self):
-    with (
-      patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=4217),
+    with patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=4217), \
       patch.object(
         LIVY_SERVICE.safe_process,
         "inspect_process",
         return_value=self.identity,
-      ) as inspect_process,
+      ) as inspect_process, \
       patch.object(
         LIVY_SERVICE.safe_process,
         "is_process_running",
         return_value=True,
-      ),
+      ), \
       patch.object(
         LIVY_SERVICE.safe_process, "discover_running_process"
-      ) as discover,
-    ):
+      ) as discover:
       result = LIVY_SERVICE.read_or_discover_livy_process(
         self.pid_file, "livy", "livy"
       )
@@ -99,23 +97,21 @@ class TestLivyProcessLifecycle(unittest.TestCase):
 
   def test_stale_pid_is_removed_before_unique_process_recovery(self):
     recovered = SimpleNamespace(pid=4220)
-    with (
-      patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=4217),
-      patch.object(LIVY_SERVICE.safe_process, "inspect_process", return_value=None),
+    with patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=4217), \
+      patch.object(LIVY_SERVICE.safe_process, "inspect_process", return_value=None), \
       patch.object(
         LIVY_SERVICE.safe_process, "remove_pid_file_if_stopped"
-      ) as remove_pid,
+      ) as remove_pid, \
       patch.object(
         LIVY_SERVICE.safe_process,
         "discover_running_process",
         return_value=recovered,
-      ) as discover,
+      ) as discover, \
       patch.object(
         LIVY_SERVICE.safe_process,
         "create_pid_file_for_identity",
         return_value=recovered,
-      ) as create_pid,
-    ):
+      ) as create_pid:
       result = LIVY_SERVICE.read_or_discover_livy_process(
         self.pid_file, "livy", "livy"
       )
@@ -142,20 +138,18 @@ class TestLivyProcessLifecycle(unittest.TestCase):
 
   def test_wrong_process_in_pid_file_fails_closed(self):
     mismatch = Fail("command line does not match")
-    with (
-      patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=4217),
+    with patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=4217), \
       patch.object(
         LIVY_SERVICE.safe_process,
         "inspect_process",
         side_effect=mismatch,
-      ),
+      ), \
       patch.object(
         LIVY_SERVICE.safe_process, "remove_pid_file_if_stopped"
-      ) as remove_pid,
+      ) as remove_pid, \
       patch.object(
         LIVY_SERVICE.safe_process, "discover_running_process"
-      ) as discover,
-    ):
+      ) as discover:
       with self.assertRaises(Fail) as raised:
         LIVY_SERVICE.read_or_discover_livy_process(
           self.pid_file, "livy", "livy"
@@ -166,19 +160,17 @@ class TestLivyProcessLifecycle(unittest.TestCase):
     discover.assert_not_called()
 
   def test_missing_pid_is_recovered_only_from_unique_exact_process(self):
-    with (
-      patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=None),
+    with patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=None), \
       patch.object(
         LIVY_SERVICE.safe_process,
         "discover_running_process",
         return_value=self.identity,
-      ),
+      ), \
       patch.object(
         LIVY_SERVICE.safe_process,
         "create_pid_file_for_identity",
         return_value=self.identity,
-      ) as create_pid,
-    ):
+      ) as create_pid:
       result = LIVY_SERVICE.read_or_discover_livy_process(
         self.pid_file, "livy", "livy"
       )
@@ -199,17 +191,15 @@ class TestLivyProcessLifecycle(unittest.TestCase):
 
   def test_start_is_idempotent_for_valid_identity(self):
     params = self._service_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVICE,
         "read_or_discover_livy_process",
         return_value=self.identity,
-      ),
-      patch.object(LIVY_SERVICE, "Execute") as execute,
-      patch.object(LIVY_SERVICE, "File") as file_resource,
-      patch.object(LIVY_SERVICE, "wait_for_livy_process") as wait,
-    ):
+      ), \
+      patch.object(LIVY_SERVICE, "Execute") as execute, \
+      patch.object(LIVY_SERVICE, "File") as file_resource, \
+      patch.object(LIVY_SERVICE, "wait_for_livy_process") as wait:
       LIVY_SERVICE.livy_service("server", action="start")
 
     execute.assert_not_called()
@@ -218,15 +208,13 @@ class TestLivyProcessLifecycle(unittest.TestCase):
 
   def test_start_uses_structured_official_command_and_validates_result(self):
     params = self._service_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVICE, "read_or_discover_livy_process", return_value=None
-      ),
-      patch.object(LIVY_SERVICE, "Execute") as execute,
-      patch.object(LIVY_SERVICE, "File") as file_resource,
-      patch.object(LIVY_SERVICE, "wait_for_livy_process") as wait,
-    ):
+      ), \
+      patch.object(LIVY_SERVICE, "Execute") as execute, \
+      patch.object(LIVY_SERVICE, "File") as file_resource, \
+      patch.object(LIVY_SERVICE, "wait_for_livy_process") as wait:
       LIVY_SERVICE.livy_service("server", action="start")
 
     execute.assert_called_once_with(
@@ -243,15 +231,13 @@ class TestLivyProcessLifecycle(unittest.TestCase):
   def test_secure_start_gives_livy_periodic_kinit_a_dedicated_cache(self):
     params = self._service_params()
     params.security_enabled = True
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVICE, "read_or_discover_livy_process", return_value=None
-      ),
-      patch.object(LIVY_SERVICE, "Execute") as execute,
-      patch.object(LIVY_SERVICE, "File"),
-      patch.object(LIVY_SERVICE, "wait_for_livy_process"),
-    ):
+      ), \
+      patch.object(LIVY_SERVICE, "Execute") as execute, \
+      patch.object(LIVY_SERVICE, "File"), \
+      patch.object(LIVY_SERVICE, "wait_for_livy_process"):
       LIVY_SERVICE.livy_service("server", action="start")
 
     self.assertEqual(
@@ -266,13 +252,11 @@ class TestLivyProcessLifecycle(unittest.TestCase):
     params = self._service_params()
     params.security_enabled = True
     params.livy_server_kerberos_cache_file = ""
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVICE, "read_or_discover_livy_process", return_value=None
-      ),
-      patch.object(LIVY_SERVICE, "Execute") as execute,
-    ):
+      ), \
+      patch.object(LIVY_SERVICE, "Execute") as execute:
       with self.assertRaisesRegex(Fail, "private Kerberos cache path"):
         LIVY_SERVICE.livy_service("server", action="start")
 
@@ -280,21 +264,19 @@ class TestLivyProcessLifecycle(unittest.TestCase):
 
   def test_stop_terminates_pinned_identity_and_then_removes_pid(self):
     params = self._service_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVICE,
         "read_or_discover_livy_process",
         return_value=self.identity,
-      ),
+      ), \
       patch.object(
         LIVY_SERVICE.safe_process, "terminate_process"
-      ) as terminate,
+      ) as terminate, \
       patch.object(
         LIVY_SERVICE.safe_process, "remove_pid_file_if_stopped"
-      ) as remove_pid,
-      patch.object(LIVY_SERVICE, "File") as file_resource,
-    ):
+      ) as remove_pid, \
+      patch.object(LIVY_SERVICE, "File") as file_resource:
       LIVY_SERVICE.livy_service("server", action="stop")
 
     terminate.assert_called_once_with(
@@ -314,23 +296,21 @@ class TestLivyProcessLifecycle(unittest.TestCase):
 
   def test_stop_failure_preserves_pid_and_server_cache(self):
     params = self._service_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVICE,
         "read_or_discover_livy_process",
         return_value=self.identity,
-      ),
+      ), \
       patch.object(
         LIVY_SERVICE.safe_process,
         "terminate_process",
         side_effect=Fail("process did not stop"),
-      ),
+      ), \
       patch.object(
         LIVY_SERVICE.safe_process, "remove_pid_file_if_stopped"
-      ) as remove_pid,
-      patch.object(LIVY_SERVICE, "File") as file_resource,
-    ):
+      ) as remove_pid, \
+      patch.object(LIVY_SERVICE, "File") as file_resource:
       with self.assertRaisesRegex(Fail, "process did not stop"):
         LIVY_SERVICE.livy_service("server", action="stop")
 
@@ -339,14 +319,12 @@ class TestLivyProcessLifecycle(unittest.TestCase):
 
   def test_stop_without_process_removes_leftover_kerberos_cache(self):
     params = self._service_params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVICE, "read_or_discover_livy_process", return_value=None
-      ),
-      patch.object(LIVY_SERVICE, "File") as file_resource,
-      patch.object(LIVY_SERVICE.safe_process, "terminate_process") as terminate,
-    ):
+      ), \
+      patch.object(LIVY_SERVICE, "File") as file_resource, \
+      patch.object(LIVY_SERVICE.safe_process, "terminate_process") as terminate:
       LIVY_SERVICE.livy_service("server", action="stop")
 
     terminate.assert_not_called()
@@ -355,14 +333,12 @@ class TestLivyProcessLifecycle(unittest.TestCase):
     )
 
   def test_wait_retries_until_exact_process_is_recovered(self):
-    with (
-      patch.object(
+    with patch.object(
         LIVY_SERVICE,
         "read_or_discover_livy_process",
         side_effect=(None, self.identity),
-      ),
-      patch.object(LIVY_SERVICE.time, "sleep") as sleep,
-    ):
+      ), \
+      patch.object(LIVY_SERVICE.time, "sleep") as sleep:
       result = LIVY_SERVICE.wait_for_livy_process(
         self.pid_file, "livy", "livy", attempts=2
       )
@@ -371,14 +347,12 @@ class TestLivyProcessLifecycle(unittest.TestCase):
     sleep.assert_called_once_with(1)
 
   def test_wait_fails_after_bounded_attempts(self):
-    with (
-      patch.object(
+    with patch.object(
         LIVY_SERVICE,
         "read_or_discover_livy_process",
         return_value=None,
-      ),
-      patch.object(LIVY_SERVICE.time, "sleep") as sleep,
-    ):
+      ), \
+      patch.object(LIVY_SERVICE.time, "sleep") as sleep:
       with self.assertRaisesRegex(Fail, "valid process identity"):
         LIVY_SERVICE.wait_for_livy_process(
           self.pid_file, "livy", "livy", attempts=2, sleep_seconds=0
@@ -391,14 +365,12 @@ class TestLivyProcessLifecycle(unittest.TestCase):
     with patch.dict(sys.modules, {"params": params}):
       with self.assertRaisesRegex(Fail, "Unsupported Livy service name"):
         LIVY_SERVICE.livy_service("client", action="start")
-      with (
-        patch.object(
+      with patch.object(
           LIVY_SERVICE,
           "read_or_discover_livy_process",
           return_value=None,
-        ),
-        self.assertRaisesRegex(Fail, "Unsupported Livy service action"),
-      ):
+        ), \
+        self.assertRaisesRegex(Fail, "Unsupported Livy service action"):
         LIVY_SERVICE.livy_service("server", action="restart")
 
   def test_status_recovers_missing_pid_and_reports_stopped(self):
@@ -410,12 +382,10 @@ class TestLivyProcessLifecycle(unittest.TestCase):
     )
     server = LIVY_SERVER.LivyServer()
     env = MagicMock()
-    with (
-      patch.dict(sys.modules, {"status_params": status_params}),
+    with patch.dict(sys.modules, {"status_params": status_params}), \
       patch.object(
         LIVY_SERVER, "read_or_discover_livy_process", return_value=None
-      ),
-    ):
+      ):
       with self.assertRaises(ComponentIsNotRunning):
         server.status(env)
 
@@ -437,18 +407,16 @@ class TestLivyKerberosAndDfsLifecycle(unittest.TestCase):
       kinit_path_local="/usr/bin/kinit;$(id)",
     )
     server = LIVY_SERVER.LivyServer()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVER.HdfsResourceProvider,
         "get_ignored_resources_list",
         return_value=[],
-      ),
+      ), \
       patch.object(
         LIVY_SERVER, "PrivateKerberosCache", return_value=cache_context
-      ),
-      patch.object(server, "wait_for_dfs_directory_created") as wait,
-    ):
+      ), \
+      patch.object(server, "wait_for_dfs_directory_created") as wait:
       server.wait_for_dfs_directories_created(["/ats/done", "/ats/active"])
 
     cache.kinit.assert_called_once_with(
@@ -471,15 +439,13 @@ class TestLivyKerberosAndDfsLifecycle(unittest.TestCase):
     )
     server = LIVY_SERVER.LivyServer()
     kerberos_environment = {"KRB5CCNAME": "FILE:/tmp/cache"}
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         LIVY_SERVER.HdfsResourceProvider,
         "parse_path",
         return_value="/ats/path;$(id)",
-      ),
-      patch.object(LIVY_SERVER.shell, "call", return_value=(0, "")) as shell_call,
-    ):
+      ), \
+      patch.object(LIVY_SERVER.shell, "call", return_value=(0, "")) as shell_call:
       server.wait_for_dfs_directory_created(
         "/ats/path;$(id)", [], kerberos_environment
       )

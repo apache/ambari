@@ -413,17 +413,15 @@ class TestKafkaServiceCheck(unittest.TestCase):
       (0, ""),
       (0, ""),
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         KAFKA_SERVICE_CHECK.uuid,
         "uuid4",
         return_value=SimpleNamespace(hex="fixed"),
-      ),
+      ), \
       patch.object(
         KAFKA_SERVICE_CHECK.shell, "checked_call", side_effect=results
-      ) as checked_call,
-    ):
+      ) as checked_call:
       KAFKA_SERVICE_CHECK.ServiceCheck().service_check(MagicMock())
 
     self.assertEqual(4, checked_call.call_count)
@@ -457,17 +455,15 @@ class TestKafkaServiceCheck(unittest.TestCase):
     ):
       with self.subTest(primary_failure=primary_failure):
         params = self._params()
-        with (
-          patch.dict(sys.modules, {"params": params}),
+        with patch.dict(sys.modules, {"params": params}), \
           patch.object(
             KAFKA_SERVICE_CHECK.uuid,
             "uuid4",
             return_value=SimpleNamespace(hex="fixed"),
-          ),
+          ), \
           patch.object(
             KAFKA_SERVICE_CHECK.shell, "checked_call", side_effect=results
-          ) as checked_call,
-        ):
+          ) as checked_call:
           with self.assertRaises(Fail):
             KAFKA_SERVICE_CHECK.ServiceCheck().service_check(MagicMock())
         self.assertIn("--delete", checked_call.call_args_list[-1].args[0])
@@ -476,20 +472,18 @@ class TestKafkaServiceCheck(unittest.TestCase):
     primary = Fail("describe failed")
     cleanup = Fail("delete failed")
     params = self._params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         KAFKA_SERVICE_CHECK.uuid,
         "uuid4",
         return_value=SimpleNamespace(hex="fixed"),
-      ),
+      ), \
       patch.object(
         KAFKA_SERVICE_CHECK.shell,
         "checked_call",
         side_effect=((0, ""), primary, cleanup),
-      ),
-      patch.object(KAFKA_SERVICE_CHECK.Logger, "error") as log_error,
-    ):
+      ), \
+      patch.object(KAFKA_SERVICE_CHECK.Logger, "error") as log_error:
       with self.assertRaises(Fail) as raised:
         KAFKA_SERVICE_CHECK.ServiceCheck().service_check(MagicMock())
     self.assertIs(primary, raised.exception)
@@ -501,19 +495,17 @@ class TestKafkaServiceCheck(unittest.TestCase):
       (0, ""),
       cleanup,
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         KAFKA_SERVICE_CHECK.uuid,
         "uuid4",
         return_value=SimpleNamespace(hex="fixed"),
-      ),
+      ), \
       patch.object(
         KAFKA_SERVICE_CHECK.shell,
         "checked_call",
         side_effect=successful_results,
-      ),
-    ):
+      ):
       with self.assertRaises(Fail) as raised:
         KAFKA_SERVICE_CHECK.ServiceCheck().service_check(MagicMock())
     self.assertIs(cleanup, raised.exception)
@@ -536,15 +528,13 @@ class TestKafkaServiceCheck(unittest.TestCase):
       (0, "Topic: ambari_kafka_service_check PartitionCount: 1"),
       (0, ""),
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         KAFKA_SERVICE_CHECK, "PrivateKerberosCache", return_value=context
-      ) as cache_factory,
+      ) as cache_factory, \
       patch.object(
         KAFKA_SERVICE_CHECK.shell, "checked_call", side_effect=results
-      ) as checked_call,
-    ):
+      ) as checked_call:
       KAFKA_SERVICE_CHECK.ServiceCheck().service_check(MagicMock())
 
     cache_factory.assert_called_once_with(
@@ -565,11 +555,9 @@ class TestKafkaServiceCheck(unittest.TestCase):
   def test_missing_kerberos_credentials_fail_before_cache_or_kafka_command(self):
     params = self._params(kerberos=True)
     params.kafka_keytab_path = None
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(KAFKA_SERVICE_CHECK, "PrivateKerberosCache") as cache_factory,
-      patch.object(KAFKA_SERVICE_CHECK.shell, "checked_call") as checked_call,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(KAFKA_SERVICE_CHECK, "PrivateKerberosCache") as cache_factory, \
+      patch.object(KAFKA_SERVICE_CHECK.shell, "checked_call") as checked_call:
       with self.assertRaisesRegex(Fail, "credentials"):
         KAFKA_SERVICE_CHECK.ServiceCheck().service_check(MagicMock())
     cache_factory.assert_not_called()
@@ -672,18 +660,16 @@ class TestKafkaAdvisorAndMetadata(unittest.TestCase):
       writes.setdefault(config_type, MagicMock())
       return writes[config_type]
 
-    with (
-      patch.object(
+    with patch.object(
         recommender,
         "getServicesSiteProperties",
         side_effect=lambda current, config_type: current["configurations"]
         .get(config_type, {})
         .get("properties"),
-      ),
-      patch.object(recommender, "putProperty", side_effect=put_property),
-      patch.object(recommender, "putPropertyAttribute", return_value=MagicMock()),
-      patch.object(recommender, "getZKHostPortString", return_value=None),
-    ):
+      ), \
+      patch.object(recommender, "putProperty", side_effect=put_property), \
+      patch.object(recommender, "putPropertyAttribute", return_value=MagicMock()), \
+      patch.object(recommender, "getZKHostPortString", return_value=None):
       recommender.recommendKafkaSecurity(
         configurations, {}, services, {"items": []}
       )
@@ -845,10 +831,8 @@ class TestKafkaAdvisorAndMetadata(unittest.TestCase):
       "bigtop_kafka_broken_parent_advisor", advisor_path
     )
     module = importlib.util.module_from_spec(spec)
-    with (
-      patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": "/missing/advisor.py"}),
-      patch("builtins.open", side_effect=OSError("parent unavailable")),
-    ):
+    with patch.dict(os.environ, {"BASE_SERVICE_ADVISOR": "/missing/advisor.py"}), \
+      patch("builtins.open", side_effect=OSError("parent unavailable")):
       with self.assertRaisesRegex(OSError, "parent unavailable"):
         spec.loader.exec_module(module)
 

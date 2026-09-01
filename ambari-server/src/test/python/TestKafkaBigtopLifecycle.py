@@ -93,14 +93,12 @@ class TestKafkaProcessLifecycle(unittest.TestCase):
           KAFKA_PROCESS.validate_pid_file(unsafe_path)
 
   def test_valid_pid_is_idempotent_without_discovery_or_rewrite(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
+    with patch.object(safe_process, "read_pid", return_value=123), \
       patch.object(
         safe_process, "read_running_process", return_value=IDENTITY
-      ) as read_running,
-      patch.object(safe_process, "discover_running_process") as discover,
-      patch.object(safe_process, "create_pid_file_for_identity") as create,
-    ):
+      ) as read_running, \
+      patch.object(safe_process, "discover_running_process") as discover, \
+      patch.object(safe_process, "create_pid_file_for_identity") as create:
       result = KAFKA_PROCESS.read_or_recover_process(
         PID_FILE, "kafka", "hadoop", SERVER_PROPERTIES
       )
@@ -111,17 +109,15 @@ class TestKafkaProcessLifecycle(unittest.TestCase):
     create.assert_not_called()
 
   def test_pidless_process_is_uniquely_discovered_and_atomically_published(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process, "discover_running_process", return_value=IDENTITY
-      ) as discover,
+      ) as discover, \
       patch.object(
         safe_process,
         "create_pid_file_for_identity",
         return_value=IDENTITY,
-      ) as create,
-    ):
+      ) as create:
       result = KAFKA_PROCESS.read_or_recover_process(
         PID_FILE, "kafka", "hadoop", SERVER_PROPERTIES
       )
@@ -139,14 +135,12 @@ class TestKafkaProcessLifecycle(unittest.TestCase):
     )
 
   def test_stale_pid_is_removed_before_discovery(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=123),
-      patch.object(safe_process, "read_running_process", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(safe_process, "read_running_process", return_value=None), \
       patch.object(
         safe_process, "remove_pid_file_if_stopped", return_value=True
-      ) as remove,
-      patch.object(safe_process, "discover_running_process", return_value=None),
-    ):
+      ) as remove, \
+      patch.object(safe_process, "discover_running_process", return_value=None):
       result = KAFKA_PROCESS.read_or_recover_process(
         PID_FILE, "kafka", "hadoop", SERVER_PROPERTIES
       )
@@ -168,28 +162,26 @@ class TestKafkaProcessLifecycle(unittest.TestCase):
     for failing_call, failure in failures:
       with self.subTest(failing_call=failing_call):
         read_pid_result = None if failing_call == "discover_running_process" else 123
-        with (
-          patch.object(
+        with patch.object(
             safe_process,
             "read_pid",
             return_value=read_pid_result,
             side_effect=failure if failing_call == "read_pid" else None,
-          ),
+          ), \
           patch.object(
             safe_process,
             "read_running_process",
             side_effect=failure if failing_call == "read_running_process" else None,
-          ),
+          ), \
           patch.object(
             safe_process,
             "discover_running_process",
             side_effect=(
               failure if failing_call == "discover_running_process" else None
             ),
-          ),
-          patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-          patch.object(safe_process, "create_pid_file_for_identity") as create,
-        ):
+          ), \
+          patch.object(safe_process, "remove_pid_file_if_stopped") as remove, \
+          patch.object(safe_process, "create_pid_file_for_identity") as create:
           with self.assertRaises(Fail):
             KAFKA_PROCESS.read_or_recover_process(
               PID_FILE, "kafka", "hadoop", SERVER_PROPERTIES
@@ -199,20 +191,18 @@ class TestKafkaProcessLifecycle(unittest.TestCase):
         create.assert_not_called()
 
   def test_concurrent_exact_pid_publication_is_accepted(self):
-    with (
-      patch.object(safe_process, "read_pid", return_value=None),
+    with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(
         safe_process, "discover_running_process", return_value=IDENTITY
-      ),
+      ), \
       patch.object(
         safe_process,
         "create_pid_file_for_identity",
         side_effect=Fail("created concurrently"),
-      ),
+      ), \
       patch.object(
         safe_process, "read_running_process", return_value=IDENTITY
-      ),
-    ):
+      ):
       result = KAFKA_PROCESS.read_or_recover_process(
         PID_FILE, "kafka", "hadoop", SERVER_PROPERTIES
       )
@@ -220,16 +210,14 @@ class TestKafkaProcessLifecycle(unittest.TestCase):
     self.assertIs(IDENTITY, result)
 
   def test_start_waits_for_unique_identity_then_publishes_0640_pid(self):
-    with (
-      patch.object(
+    with patch.object(
         safe_process, "wait_for_discovered_process", return_value=IDENTITY
-      ) as wait,
+      ) as wait, \
       patch.object(
         safe_process,
         "create_pid_file_for_identity",
         return_value=IDENTITY,
-      ) as create,
-    ):
+      ) as create:
       result = KAFKA_PROCESS.wait_for_started_process(
         PID_FILE,
         "kafka",
@@ -246,13 +234,11 @@ class TestKafkaProcessLifecycle(unittest.TestCase):
     self.assertEqual(0o640, create.call_args.kwargs["mode"])
 
   def test_stop_pins_identity_then_uses_term_wait_kill_contract(self):
-    with (
-      patch.object(
+    with patch.object(
         KAFKA_PROCESS, "read_or_recover_process", return_value=IDENTITY
-      ),
-      patch.object(safe_process, "terminate_process") as terminate,
-      patch.object(safe_process, "remove_pid_file_if_stopped") as remove,
-    ):
+      ), \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove:
       result = KAFKA_PROCESS.stop_process(
         PID_FILE, "kafka", "hadoop", SERVER_PROPERTIES
       )
@@ -301,31 +287,27 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
     self.broker = KAFKA_BROKER.KafkaBroker()
 
   def test_start_is_idempotent_when_verified_process_is_running(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(self.broker, "configure") as configure,
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(self.broker, "configure") as configure, \
       patch.object(
         KAFKA_PROCESS, "read_or_recover_process", return_value=IDENTITY
-      ),
-      patch.object(KAFKA_BROKER, "Execute") as execute,
-    ):
+      ), \
+      patch.object(KAFKA_BROKER, "Execute") as execute:
       self.broker.start(self.env)
 
     configure.assert_called_once_with(self.env, upgrade_type=None)
     execute.assert_not_called()
 
   def test_start_preserves_untrusted_paths_as_positional_arguments(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(self.broker, "configure"),
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(self.broker, "configure"), \
       patch.object(
         KAFKA_PROCESS, "read_or_recover_process", return_value=None
-      ),
-      patch.object(KAFKA_BROKER, "Execute") as execute,
+      ), \
+      patch.object(KAFKA_BROKER, "Execute") as execute, \
       patch.object(
         KAFKA_PROCESS, "wait_for_started_process", return_value=IDENTITY
-      ) as wait,
-    ):
+      ) as wait:
       self.broker.start(self.env)
 
     execute.assert_called_once_with(
@@ -350,20 +332,18 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
       (None, Fail("Kafka process was not discovered")),
     ):
       with self.subTest(execute_error=execute_error, wait_error=wait_error):
-        with (
-          patch.dict(sys.modules, {"params": self.params}),
-          patch.object(self.broker, "configure"),
+        with patch.dict(sys.modules, {"params": self.params}), \
+          patch.object(self.broker, "configure"), \
           patch.object(
             KAFKA_PROCESS, "read_or_recover_process", return_value=None
-          ),
-          patch.object(KAFKA_BROKER, "Execute", side_effect=execute_error),
+          ), \
+          patch.object(KAFKA_BROKER, "Execute", side_effect=execute_error), \
           patch.object(
             KAFKA_PROCESS,
             "wait_for_started_process",
             side_effect=wait_error,
-          ) as wait,
-          patch.object(KAFKA_BROKER, "show_logs") as show_logs,
-        ):
+          ) as wait, \
+          patch.object(KAFKA_BROKER, "show_logs") as show_logs:
           with self.assertRaises(Fail):
             self.broker.start(self.env)
         show_logs.assert_called_once_with("/var/log/kafka", "kafka")
@@ -378,10 +358,8 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
       user_group="hadoop",
       kafka_server_properties=SERVER_PROPERTIES,
     )
-    with (
-      patch.dict(sys.modules, {"status_params": status}),
-      patch.object(KAFKA_PROCESS, "stop_process", return_value=True) as stop,
-    ):
+    with patch.dict(sys.modules, {"status_params": status}), \
+      patch.object(KAFKA_PROCESS, "stop_process", return_value=True) as stop:
       self.broker.stop(self.env)
 
     stop.assert_called_once_with(
@@ -396,14 +374,12 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
       user_group="hadoop",
       kafka_server_properties=SERVER_PROPERTIES,
     )
-    with (
-      patch.dict(sys.modules, {"status_params": status}),
+    with patch.dict(sys.modules, {"status_params": status}), \
       patch.object(
         KAFKA_PROCESS,
         "read_or_recover_process",
         side_effect=(IDENTITY, None),
-      ) as recover,
-    ):
+      ) as recover:
       self.broker.status(self.env)
       with self.assertRaises(ComponentIsNotRunning):
         self.broker.status(self.env)
@@ -411,10 +387,8 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
     self.assertEqual(2, recover.call_count)
 
   def test_disable_security_uses_structured_migrator_arguments(self):
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(KAFKA_BROKER, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(KAFKA_BROKER, "Execute") as execute:
       self.broker.disable_security(self.env)
 
     execute.assert_called_once_with(
@@ -438,10 +412,8 @@ class TestKafkaBrokerLifecycle(unittest.TestCase):
 
   def test_disable_security_fails_before_migration_without_jaas(self):
     self.params.kafka_kerberos_params = ""
-    with (
-      patch.dict(sys.modules, {"params": self.params}),
-      patch.object(KAFKA_BROKER, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": self.params}), \
+      patch.object(KAFKA_BROKER, "Execute") as execute:
       with self.assertRaisesRegex(Fail, "JAAS"):
         self.broker.disable_security(self.env)
     execute.assert_not_called()

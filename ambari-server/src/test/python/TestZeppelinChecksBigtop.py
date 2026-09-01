@@ -81,10 +81,8 @@ class TestZeppelinServiceCheck(unittest.TestCase):
 
   def test_insecure_check_uses_structured_verified_request(self):
     params = self._params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SERVICE_CHECK, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SERVICE_CHECK, "Execute") as execute:
       SERVICE_CHECK.ZeppelinServiceCheck().service_check(MagicMock())
 
     command = execute.call_args.args[0]
@@ -104,13 +102,11 @@ class TestZeppelinServiceCheck(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/zeppelin-check/krb5cc"}
     context = MagicMock()
     context.__enter__.return_value = cache
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SERVICE_CHECK, "PrivateKerberosCache", return_value=context
-      ) as cache_factory,
-      patch.object(SERVICE_CHECK, "Execute") as execute,
-    ):
+      ) as cache_factory, \
+      patch.object(SERVICE_CHECK, "Execute") as execute:
       SERVICE_CHECK.ZeppelinServiceCheck().service_check(MagicMock())
 
     cache_factory.assert_called_once_with(
@@ -155,10 +151,8 @@ class TestZeppelinAlert(unittest.TestCase):
     self.assertEqual("check.command.timeout", parameters[0]["name"])
 
   def test_insecure_alert_uses_structured_verified_request(self):
-    with (
-      patch.object(ALERT, "Execute") as execute,
-      patch.object(ALERT.time, "monotonic", side_effect=(10.0, 10.25)),
-    ):
+    with patch.object(ALERT, "Execute") as execute, \
+      patch.object(ALERT.time, "monotonic", side_effect=(10.0, 10.25)):
       result = ALERT.execute(
         self._config(), {"check.command.timeout": 12}, "zeppelin.example.com"
       )
@@ -177,11 +171,9 @@ class TestZeppelinAlert(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/zeppelin-alert/krb5cc"}
     context = MagicMock()
     context.__enter__.return_value = cache
-    with (
-      patch.object(ALERT, "PrivateKerberosCache", return_value=context),
-      patch.object(ALERT, "get_kinit_path", return_value="/usr/bin/kinit;$(id)"),
-      patch.object(ALERT, "Execute") as execute,
-    ):
+    with patch.object(ALERT, "PrivateKerberosCache", return_value=context), \
+      patch.object(ALERT, "get_kinit_path", return_value="/usr/bin/kinit;$(id)"), \
+      patch.object(ALERT, "Execute") as execute:
       result = ALERT.execute(
         self._config(secure=True), {}, "zeppelin.example.com"
       )

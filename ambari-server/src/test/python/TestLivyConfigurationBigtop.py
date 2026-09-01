@@ -195,15 +195,13 @@ class TestLivyConfigurationContract(unittest.TestCase):
       livy_log4j_properties="log4j",
       livy_spark_blacklist_properties="blacklist",
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_LIVY, "Directory") as directory,
-      patch.object(SETUP_LIVY, "File") as file_resource,
-      patch.object(SETUP_LIVY, "PropertiesFile") as properties_file,
-      patch.object(SETUP_LIVY, "InlineTemplate", side_effect=lambda value: value),
-      patch.object(SETUP_LIVY, "generate_logfeeder_input_config"),
-      patch.object(SETUP_LIVY, "Template"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_LIVY, "Directory") as directory, \
+      patch.object(SETUP_LIVY, "File") as file_resource, \
+      patch.object(SETUP_LIVY, "PropertiesFile") as properties_file, \
+      patch.object(SETUP_LIVY, "InlineTemplate", side_effect=lambda value: value), \
+      patch.object(SETUP_LIVY, "generate_logfeeder_input_config"), \
+      patch.object(SETUP_LIVY, "Template"):
       SETUP_LIVY.setup_livy(MagicMock(), "server", action="config")
 
     runtime = directory.call_args_list[0]
@@ -241,10 +239,8 @@ class TestLivyConfigurationContract(unittest.TestCase):
       livy_recovery_dir=" ",
       HdfsResource=MagicMock(),
     )
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SETUP_LIVY, "Directory"),
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SETUP_LIVY, "Directory"):
       with self.assertRaisesRegex(Fail, "non-empty state store URL"):
         SETUP_LIVY.setup_livy(MagicMock(), "server", action="config")
 

@@ -86,10 +86,8 @@ class TestLivyServiceCheckContract(unittest.TestCase):
 
   def test_insecure_check_uses_structured_curl_and_system_ca_policy(self):
     params = self._params()
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SERVICE_CHECK, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SERVICE_CHECK, "Execute") as execute:
       SERVICE_CHECK.LivyServiceCheck().service_check(MagicMock())
 
     command = execute.call_args.args[0]
@@ -111,13 +109,11 @@ class TestLivyServiceCheckContract(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": cache.cache_name}
     context = MagicMock()
     context.__enter__.return_value = cache
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SERVICE_CHECK, "PrivateKerberosCache", return_value=context
-      ) as cache_factory,
-      patch.object(SERVICE_CHECK, "Execute") as execute,
-    ):
+      ) as cache_factory, \
+      patch.object(SERVICE_CHECK, "Execute") as execute:
       SERVICE_CHECK.LivyServiceCheck().service_check(MagicMock())
 
     cache_factory.assert_called_once_with(
@@ -138,10 +134,8 @@ class TestLivyServiceCheckContract(unittest.TestCase):
 
   def test_check_continues_after_invalid_or_failed_host(self):
     params = self._params(hosts=["invalid/path", "livy2.example.com"])
-    with (
-      patch.dict(sys.modules, {"params": params}),
-      patch.object(SERVICE_CHECK, "Execute") as execute,
-    ):
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(SERVICE_CHECK, "Execute") as execute:
       SERVICE_CHECK.LivyServiceCheck().service_check(MagicMock())
 
     execute.assert_called_once()
@@ -163,12 +157,10 @@ class TestLivyServiceCheckContract(unittest.TestCase):
 
   def test_all_failed_hosts_raise_with_each_failure(self):
     params = self._params(hosts=["livy1.example.com", "livy2.example.com"])
-    with (
-      patch.dict(sys.modules, {"params": params}),
+    with patch.dict(sys.modules, {"params": params}), \
       patch.object(
         SERVICE_CHECK, "Execute", side_effect=Fail("HTTP 503")
-      ) as execute,
-    ):
+      ) as execute:
       with self.assertRaisesRegex(
         Fail, "livy1.example.com.*livy2.example.com"
       ):
@@ -204,10 +196,8 @@ class TestLivyAlertContract(unittest.TestCase):
     self.assertIn("LIVY_SERVER", alert_definitions["LIVY"])
 
   def test_insecure_alert_uses_structured_verified_http_request(self):
-    with (
-      patch.object(ALERT, "Execute") as execute,
-      patch.object(ALERT.time, "monotonic", side_effect=(10.0, 10.25)),
-    ):
+    with patch.object(ALERT, "Execute") as execute, \
+      patch.object(ALERT.time, "monotonic", side_effect=(10.0, 10.25)):
       result = ALERT.execute(self._config(), {"check.command.timeout": 12})
 
     self.assertEqual("OK", result[0])
@@ -224,12 +214,10 @@ class TestLivyAlertContract(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": cache.cache_name}
     context = MagicMock()
     context.__enter__.return_value = cache
-    with (
-      patch.object(ALERT, "PrivateKerberosCache", return_value=context),
-      patch.object(ALERT, "get_kinit_path", return_value="/usr/bin/kinit;$(id)"),
-      patch.object(ALERT.socket, "getfqdn", return_value="agent.example.com"),
-      patch.object(ALERT, "Execute") as execute,
-    ):
+    with patch.object(ALERT, "PrivateKerberosCache", return_value=context), \
+      patch.object(ALERT, "get_kinit_path", return_value="/usr/bin/kinit;$(id)"), \
+      patch.object(ALERT.socket, "getfqdn", return_value="agent.example.com"), \
+      patch.object(ALERT, "Execute") as execute:
       result = ALERT.execute(
         self._config(secure=True), {"check.command.timeout": 10}
       )
