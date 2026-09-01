@@ -111,7 +111,11 @@ def setup_solr(name=None):
       )
 
   elif name == "client":
-    solr_cloud_util.setup_solr_client(params.config)
+    solr_cloud_util.setup_solr_client(
+      params.config,
+      user=params.solr_user,
+      group=params.user_group,
+    )
 
   else:
     raise Fail("Nor client or server were selected to install.")

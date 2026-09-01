@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-from resource_management.core.exceptions import Fail, ExecutionFailed
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.check_process_status import (
   check_process_status,
 )
@@ -36,7 +36,6 @@ from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 import upgrade
 import os, errno
-import json
 import setup_ranger_xml
 
 
@@ -119,25 +118,26 @@ class RangerAdmin(Script):
         and params.is_solrCloud_enabled
         and not params.is_external_solrCloud_enabled
       ):
-        add_field_json = json.dumps(params.add_zoneName_field)
-        add_field_cmd = format(
-          "curl -k -X POST -H 'Content-type:application/json' --data-binary '{add_field_json}' {infra_solr_protocol}://{infra_solr_host}:{infra_solr_port}/solr/{ranger_solr_collection_name}/schema"
+        solr_cloud_util.post_json_to_solr(
+          host=params.infra_solr_host,
+          port=params.infra_solr_port,
+          collection=params.ranger_solr_collection_name,
+          endpoint="schema",
+          payload=params.add_zoneName_field,
+          user=params.unix_user,
+          group=params.user_group,
+          use_ssl=params.infra_solr_ssl_enabled,
+          security_enabled=params.security_enabled,
+          kinit_path=(params.kinit_path_local if params.security_enabled else None),
+          keytab=(params.ranger_admin_keytab if params.security_enabled else None),
+          principal=(
+            params.ranger_admin_jaas_principal
+            if params.security_enabled
+            else None
+          ),
+          tries=3,
+          try_sleep=5,
         )
-        if params.security_enabled:
-          kinit_cmd = format(
-            "{kinit_path_local} -kt {ranger_admin_keytab} {ranger_admin_jaas_principal};"
-          )
-          add_field_cmd = format(
-            "{kinit_cmd} curl -k --negotiate -u : -X POST -H 'Content-type:application/json' --data-binary '{add_field_json}' {infra_solr_protocol}://{infra_solr_host}:{infra_solr_port}/solr/{ranger_solr_collection_name}/schema"
-          )
-        try:
-          Execute(
-            add_field_cmd, tries=3, try_sleep=5, user=params.unix_user, logoutput=True
-          )
-        except ExecutionFailed as execution_exception:
-          Logger.error(
-            f"Error adding field to Ranger Audits Solr Collection. Kindly check Infra Solr service to be up and running {execution_exception}"
-          )
 
   def start(self, env, upgrade_type=None):
     import params
@@ -159,7 +159,12 @@ class RangerAdmin(Script):
       and params.audit_solr_enabled
       and params.is_solrCloud_enabled
     ):
-      solr_cloud_util.setup_solr_client(params.config, custom_log4j=params.custom_log4j)
+      solr_cloud_util.setup_solr_client(
+        params.config,
+        custom_log4j=params.custom_log4j,
+        user=params.solr_user,
+        group=params.user_group,
+      )
       setup_ranger_xml.setup_ranger_audit_solr()
 
     setup_ranger_xml.update_password_configs()

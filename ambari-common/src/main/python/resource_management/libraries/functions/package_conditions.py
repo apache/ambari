@@ -24,6 +24,8 @@ __all__ = [
   "should_install_phoenix",
   "should_install_ams_collector",
   "should_install_ams_grafana",
+  "should_install_infra_solr",
+  "should_install_infra_solr_client",
   "should_install_mysql",
   "should_install_ranger_hbase_plugin",
   "should_install_ranger_hdfs_plugin",
@@ -32,20 +34,15 @@ __all__ = [
   "should_install_ranger_tagsync",
 ]
 
-import os
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.version import format_stack_version
 
 
 def _has_local_components(config, components, indicator_function=any):
   if "role" not in config:
     return False
   if config["role"] == "install_packages":
-    # When installing new stack version for upgrade, all packages on a host are installed by install_packages.
-    # Check if
+    # Stack upgrades install every package on hosts running install_packages.
     if "localComponents" not in config:
       return False
     return indicator_function(
@@ -84,13 +81,8 @@ def should_install_infra_solr():
 def should_install_infra_solr_client():
   config = Script.get_config()
   return _has_applicable_local_component(
-    config, ["INFRA_SOLR_CLIENT", "ATLAS_SERVER", "RANGER_ADMIN", "LOGSEARCH_SERVER"]
+    config, ["INFRA_SOLR_CLIENT", "RANGER_ADMIN"]
   )
-
-
-def should_install_logsearch_portal():
-  config = Script.get_config()
-  return _has_applicable_local_component(config, ["LOGSEARCH_SERVER"])
 
 
 def should_install_mysql():
@@ -142,23 +134,6 @@ def should_install_ranger_hbase_plugin():
   return _is_configuration_enabled(
     "ranger-hbase-plugin-properties", "ranger-hbase-plugin-enabled"
   )
-
-
-def should_install_hive_atlas():
-  atlas_hosts = default("/clusterHostInfo/atlas_server_hosts", [])
-  has_atlas = len(atlas_hosts) > 0
-  return has_atlas
-
-
-def should_install_falcon_atlas_hook():
-  config = Script.get_config()
-  stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
-  stack_version_formatted = format_stack_version(stack_version_unformatted)
-  if check_stack_feature(
-    StackFeature.FALCON_ATLAS_SUPPORT_2_3, stack_version_formatted
-  ) or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted):
-    return _has_applicable_local_component(config, ["FALCON_SERVER"])
-  return False
 
 
 def should_install_ranger_tagsync():

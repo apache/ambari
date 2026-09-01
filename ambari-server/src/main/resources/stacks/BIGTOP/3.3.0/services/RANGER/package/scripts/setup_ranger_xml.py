@@ -922,10 +922,7 @@ def setup_ranger_audit_solr():
         ("hive", "hive"),
         ("kafka", "kafka"),
         ("kms", "rangerkms"),
-        ("knox", "knox"),
-        ("nifi", "nifi"),
-        ("storm", "storm"),
-        ("yanr", "yarn"),
+        ("yarn", "yarn"),
       ]
       service_principals = get_ranger_plugin_principals(service_default_principals_map)
       solr_cloud_util.add_solr_roles(

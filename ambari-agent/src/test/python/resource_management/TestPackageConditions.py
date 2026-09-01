@@ -55,3 +55,29 @@ class TestPackageConditions(TestCase):
         with patch.object(package_conditions, "default", return_value="Yes") as default:
           self.assertTrue(condition())
           default.assert_called_once_with(path, "No")
+
+  def test_infra_solr_packages_follow_only_bigtop_components(self):
+    cases = (
+      ("INFRA_SOLR", package_conditions.should_install_infra_solr, True),
+      (
+        "INFRA_SOLR_CLIENT",
+        package_conditions.should_install_infra_solr_client,
+        True,
+      ),
+      ("RANGER_ADMIN", package_conditions.should_install_infra_solr_client, True),
+      ("UNRELATED_SERVER", package_conditions.should_install_infra_solr_client, False),
+    )
+    for role, condition, expected in cases:
+      with (
+        self.subTest(role=role),
+        patch.object(
+          package_conditions.Script,
+          "get_config",
+          return_value={"role": role},
+        ),
+      ):
+        self.assertEqual(expected, condition())
+
+  def test_infra_solr_conditions_are_public(self):
+    self.assertIn("should_install_infra_solr", package_conditions.__all__)
+    self.assertIn("should_install_infra_solr_client", package_conditions.__all__)

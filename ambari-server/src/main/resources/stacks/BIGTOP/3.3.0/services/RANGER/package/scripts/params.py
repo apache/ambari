@@ -765,7 +765,6 @@ add_zoneName_field = {
 infra_solr_ssl_enabled = default(
   "/configurations/infra-solr-env/infra_solr_ssl_enabled", False
 )
-infra_solr_protocol = "https" if infra_solr_ssl_enabled else "http"
 infra_solr_port = default("/configurations/infra-solr-env/infra_solr_port", "8886")
 if has_infra_solr:
   infra_solr_host = infra_solr_hosts[0]
