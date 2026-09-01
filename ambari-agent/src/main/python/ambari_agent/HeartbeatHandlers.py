@@ -38,57 +38,6 @@ class HeartbeatStopHandlers(object):
   pass
 
 
-# windows impl
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HeartbeatStopHandlersWindows(HeartbeatStopHandlers):
-  def __init__(self, stopEvent=None):
-    import win32event
-
-    # Event is used for synchronizing heartbeat iterations (to make possible
-    # manual wait() interruption between heartbeats )
-    self._heventHeartbeat = win32event.CreateEvent(None, 0, 0, None)
-
-    # Event is used to stop the Agent process
-    if stopEvent is None:
-      # Allow standalone testing
-      self._heventStop = win32event.CreateEvent(None, 0, 0, None)
-    else:
-      # Allow one unique event per process
-      self._heventStop = stopEvent
-
-  def set_heartbeat(self):
-    import win32event
-
-    win32event.SetEvent(self._heventHeartbeat)
-
-  def reset_heartbeat(self):
-    import win32event
-
-    win32event.ResetEvent(self._heventHeartbeat)
-
-  def wait(self, timeout1, timeout2=0):
-    import win32event
-
-    timeout = int(timeout1 + timeout2) * 1000
-
-    result = win32event.WaitForMultipleObjects(
-      [self._heventStop, self._heventHeartbeat], False, timeout
-    )
-    if (
-      win32event.WAIT_OBJECT_0 != result
-      and win32event.WAIT_OBJECT_0 + 1 != result
-      and win32event.WAIT_TIMEOUT != result
-    ):
-      raise FatalException(
-        -1, "Error waiting for stop/heartbeat events: " + str(result)
-      )
-    if win32event.WAIT_TIMEOUT == result:
-      return -1
-    return result  # 0 -> stop, 1 -> heartbeat
-
-
 # linux impl
 
 
@@ -135,12 +84,10 @@ class HeartbeatStopHandlersLinux(HeartbeatStopHandlers):
 
 def bind_signal_handlers(agentPid, stop_event):
   global _handler
-  if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
-    if os.getpid() == agentPid:
-      signal.signal(signal.SIGINT, signal_handler)
-      signal.signal(signal.SIGTERM, signal_handler)
-
-      bind_debug_signal_handlers()
+  if os.getpid() == agentPid:
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGUSR1, log_thread_stack_traces)
 
     _handler = stop_event
   else:

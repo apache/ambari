@@ -120,9 +120,6 @@ public class CertGenerationTest {
     //Test using actual ca.config.
     try {
       File caConfig = new File("conf/unix/ca.config");
-      if (System.getProperty("os.name").contains("Windows")) {
-        caConfig = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParentFile().getParentFile(), "conf\\windows\\ca.config");
-      }
       File caConfigTest = new File(temp.getRoot().getAbsolutePath(), "ca.config");
       File newCertsDir = new File(temp.getRoot().getAbsolutePath(), "newcerts");
       newCertsDir.mkdirs();
@@ -130,12 +127,7 @@ public class CertGenerationTest {
       indexTxt.createNewFile();
 
       String content = IOUtils.toString(new FileInputStream(caConfig));
-      if (System.getProperty("os.name").contains("Windows")) {
-        content = content.replace("keystore\\\\db", temp.getRoot().getAbsolutePath().replace("\\", "\\\\"));
-      }
-      else {
-        content = content.replaceAll("/var/lib/ambari-server/keys/db", temp.getRoot().getAbsolutePath());
-      }
+      content = content.replaceAll("/var/lib/ambari-server/keys/db", temp.getRoot().getAbsolutePath());
       IOUtils.write(content, new FileOutputStream(caConfigTest));
     } catch (IOException e) {
       e.printStackTrace();

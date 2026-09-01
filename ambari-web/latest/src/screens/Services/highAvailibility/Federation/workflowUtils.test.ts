@@ -90,11 +90,15 @@ describe("Federation workflow utilities", () => {
     expect(validateNameserviceId("ns2", ["ns1"])).toBe("");
   });
 
-  it("matches the Classic directory rules including Windows URLs", () => {
+  it("accepts absolute Unix directories and rejects other path forms", () => {
     expect(validateJournalNodeDirectory("/journal/ns2")).toBe("");
-    expect(validateJournalNodeDirectory("C:\\journal\\ns2")).toBe("");
-    expect(validateJournalNodeDirectory("file:///C:/journal/ns2")).toBe("");
     expect(validateJournalNodeDirectory("/journal/a,/journal/b")).toBe("");
+    expect(validateJournalNodeDirectory("C:\\journal\\ns2")).toContain(
+      "absolute Unix path",
+    );
+    expect(validateJournalNodeDirectory("file:///C:/journal/ns2")).toContain(
+      "absolute Unix path",
+    );
     expect(validateJournalNodeDirectory("/home/hdfs")).toContain("not allowed");
     expect(validateJournalNodeDirectory("/journal/a, /journal/b")).toContain(
       "whitespace",

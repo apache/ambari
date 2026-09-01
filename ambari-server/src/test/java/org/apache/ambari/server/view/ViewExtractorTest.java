@@ -100,16 +100,9 @@ public class ViewExtractorTest extends EasyMockSupport {
     expect(configuration.getViewExtractionThreadPoolMaxSize()).andReturn(3).anyTimes();
     expect(configuration.getViewExtractionThreadPoolTimeout()).andReturn(10000L).anyTimes();
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      expect(viewArchive.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}").anyTimes();
-      expect(metaInfManifest.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\META-INF\\MANIFEST.MF").anyTimes();
-      expect(archiveDir.getAbsolutePath()).andReturn("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}").anyTimes();
-    }
-    else {
-      expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
-      expect(metaInfManifest.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF/MANIFEST.MF").anyTimes();
-      expect(archiveDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
-    }
+    expect(viewArchive.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
+    expect(metaInfManifest.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF/MANIFEST.MF").anyTimes();
+    expect(archiveDir.getAbsolutePath()).andReturn("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}").anyTimes();
 
     expect(archiveDir.exists()).andReturn(false);
         
@@ -180,12 +173,7 @@ public class ViewExtractorTest extends EasyMockSupport {
 
     ViewExtractor viewExtractor = getViewExtractor(viewDefinition);
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("\\var\\lib\\ambari-server\\resources\\views\\work"));
-    }
-    else {
-      Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
-    }
+    Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
 
     verifyAll();
 
@@ -198,12 +186,7 @@ public class ViewExtractorTest extends EasyMockSupport {
 
     viewExtractor = getViewExtractor(viewDefinition);
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("\\var\\lib\\ambari-server\\resources\\views\\work"));
-    }
-    else {
-      Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
-    }
+    Assert.assertTrue(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
 
     verify(extractedArchiveDir);
 
@@ -216,12 +199,7 @@ public class ViewExtractorTest extends EasyMockSupport {
 
     viewExtractor = getViewExtractor(viewDefinition);
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      Assert.assertFalse(viewExtractor.ensureExtractedArchiveDirectory("\\var\\lib\\ambari-server\\resources\\views\\work"));
-    }
-    else {
-      Assert.assertFalse(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
-    }
+    Assert.assertFalse(viewExtractor.ensureExtractedArchiveDirectory("/var/lib/ambari-server/resources/views/work"));
     verify(extractedArchiveDir);
   }
 
@@ -232,26 +210,14 @@ public class ViewExtractorTest extends EasyMockSupport {
 
     Map<String, File> files = new HashMap<>();
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      // sometimes JARs have odd orderings for the MANIFEST.MF, so put it before the META-INF directory
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\META-INF\\MANIFEST.MF", metaInfManifest);
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\META-INF", metaInfDir);
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work", extractedArchiveDir);
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}", archiveDir);
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\view.xml", entryFile);
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\WEB-INF/classes", classesDir);
-      files.put("\\var\\lib\\ambari-server\\resources\\views\\work\\MY_VIEW{1.0.0}\\WEB-INF/lib", libDir);
-    }
-    else {
-      // sometimes JARs have odd orderings for the MANIFEST.MF, so put it before the META-INF directory
-      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF/MANIFEST.MF", metaInfManifest);
-      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
-      files.put("/var/lib/ambari-server/resources/views/work", extractedArchiveDir);
-      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}", archiveDir);
-      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
-      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
-      files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
-    }
+    // sometimes JARs have odd orderings for the MANIFEST.MF, so put it before the META-INF directory
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF/MANIFEST.MF", metaInfManifest);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/META-INF", metaInfDir);
+    files.put("/var/lib/ambari-server/resources/views/work", extractedArchiveDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}", archiveDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/view.xml", entryFile);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/classes", classesDir);
+    files.put("/var/lib/ambari-server/resources/views/work/MY_VIEW{1.0.0}/WEB-INF/lib", libDir);
 
     Map<File, FileOutputStream> outputStreams = new HashMap<>();
     outputStreams.put(entryFile, fos);

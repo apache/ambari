@@ -63,19 +63,6 @@ class HistoryServer(Script):
     yarn(name="historyserver")
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HistoryserverWindows(HistoryServer):
-  def start(self, env):
-    import params
-
-    env.set_params(params)
-    self.configure(env)
-    service("historyserver", action="start", serviceName="mapreduce")
-
-  def status(self, env):
-    service("historyserver", action="status")
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HistoryServerDefault(HistoryServer):
   def pre_upgrade_restart(self, env, upgrade_type=None):

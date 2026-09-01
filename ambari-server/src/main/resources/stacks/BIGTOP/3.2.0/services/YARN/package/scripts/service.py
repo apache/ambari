@@ -32,18 +32,6 @@ from resource_management.core.signal_utils import TerminateStrategy
 import subprocess
 
 
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def service(componentName, action="start", serviceName="yarn"):
-  import status_params
-
-  if componentName in status_params.service_map:
-    service_name = status_params.service_map[componentName]
-    if action == "start" or action == "stop":
-      Service(service_name, action=action)
-    elif action == "status":
-      check_windows_service_status(service_name)
-
-
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def service(componentName, action="start", serviceName="yarn"):
   import params

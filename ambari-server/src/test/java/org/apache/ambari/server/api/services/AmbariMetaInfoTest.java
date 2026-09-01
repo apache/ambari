@@ -148,10 +148,6 @@ public class AmbariMetaInfoTest {
     File version = new File("src/test/resources/version");
     File resourcesRoot = new File("src/test/resources/");
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-    }
     metaInfo = createAmbariMetaInfo(stacks, version, resourcesRoot);
   }
 
@@ -258,13 +254,8 @@ public class AmbariMetaInfoTest {
     // Deleting the json file referenced by the latestBaseUrl to simulate No
     // Internet.
     File latestUrlFile = new File(buildDir, "ambari-metaInfo/HDP/2.1.1/repos/hdp.json");
-    if (System.getProperty("os.name").contains("Windows")) {
-      latestUrlFile.deleteOnExit();
-    }
-    else {
-      FileUtils.deleteQuietly(latestUrlFile);
-      assertTrue(!latestUrlFile.exists());
-    }
+    FileUtils.deleteQuietly(latestUrlFile);
+    assertTrue(!latestUrlFile.exists());
     AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfoExistingDirs(buildDir);
 
     List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
@@ -430,10 +421,6 @@ public class AmbariMetaInfoTest {
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
     File stackRoot = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
-    if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-    }
     File stackRootTmp = getStackRootTmp(buildDir);
     stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
@@ -589,10 +576,6 @@ public class AmbariMetaInfoTest {
     Assert.assertTrue(metaInfo.isOsSupported("suse11"));
     Assert.assertTrue(metaInfo.isOsSupported("sles11"));
     Assert.assertTrue(metaInfo.isOsSupported("ubuntu12"));
-    Assert.assertTrue(metaInfo.isOsSupported("win2008server6"));
-    Assert.assertTrue(metaInfo.isOsSupported("win2008serverr26"));
-    Assert.assertTrue(metaInfo.isOsSupported("win2012server6"));
-    Assert.assertTrue(metaInfo.isOsSupported("win2012serverr26"));
   }
 
   @Test
@@ -726,10 +709,6 @@ public class AmbariMetaInfoTest {
   public void testBadStack() throws Exception {
     File stackRoot = new File("src/test/resources/bad-stacks");
     File version = new File("src/test/resources/version");
-    if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("bad-stacks").getPath());
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-    }
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
 
 
@@ -1898,20 +1877,12 @@ public class AmbariMetaInfoTest {
   private File getVersion() {
     File version = new File("src/test/resources/version");
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
-    }
-
     return version;
   }
 
   private void setupTempAmbariMetaInfoDirs(String buildDir) throws Exception {
     File stackRootTmp = getStackRootTmp(buildDir);
     File stackRoot = new File("src/test/resources/stacks");
-
-    if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
-    }
 
     stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
@@ -2046,14 +2017,8 @@ public class AmbariMetaInfoTest {
 
       //OSFamily
       Configuration config = createNiceMock(Configuration.class);
-      if (System.getProperty("os.name").contains("Windows")) {
-        expect(config.getSharedResourcesDirPath()).andReturn(ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
-        expect(config.getResourceDirPath()).andReturn(ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
-      }
-      else {
-        expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
-        expect(config.getResourceDirPath()).andReturn("./src/test/resources").anyTimes();
-      }
+      expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
+      expect(config.getResourceDirPath()).andReturn("./src/test/resources").anyTimes();
 
       replay(config);
 

@@ -28,7 +28,6 @@ import json
 import pprint
 import traceback
 from ambari_agent import hostname
-import platform
 from ambari_agent.AmbariStompConnection import AmbariStompConnection
 from socket import error as socket_error
 
@@ -284,12 +283,8 @@ class CertificateManager:
     }
 
     logger.info(generate_script)
-    if platform.system() == "Windows":
-      p = subprocess.Popen(generate_script, stdout=subprocess.PIPE)
-      p.communicate()
-    else:
-      p = subprocess.Popen([generate_script], shell=True, stdout=subprocess.PIPE)
-      p.communicate()
+    p = subprocess.Popen([generate_script], shell=True, stdout=subprocess.PIPE)
+    p.communicate()
     # this is required to be 600 for security concerns.
     os.chmod(keyname, 0o600)
 

@@ -184,13 +184,5 @@ class DataNodeDefault(DataNode):
     return [status_params.datanode_pid_file]
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class DataNodeWindows(DataNode):
-  def install(self, env):
-    import install_params
-
-    self.install_packages(env)
-
-
 if __name__ == "__main__":
   DataNode().execute()

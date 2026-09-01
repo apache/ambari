@@ -70,17 +70,3 @@ def snamenode(action=None, format=False):
     import status_params
 
     check_process_status(status_params.snamenode_pid_file)
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def snamenode(action=None, format=False):
-  if action == "configure":
-    pass
-  elif action == "start" or action == "stop":
-    import params
-
-    Service(params.snamenode_win_service_name, action=action)
-  elif action == "status":
-    import status_params
-
-    check_windows_service_status(status_params.snamenode_win_service_name)

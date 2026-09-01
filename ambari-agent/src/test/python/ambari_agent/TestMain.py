@@ -30,12 +30,9 @@ import ambari_agent.hostname as hostname
 import resource
 
 from ambari_commons import OSCheck
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from only_for_platform import (
-  get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 from unittest.mock import MagicMock, patch, ANY, Mock, call
 
@@ -62,7 +59,6 @@ class TestMain:  # (unittest.TestCase):
     # enable stdout
     sys.stdout = sys.__stdout__
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch("ambari_agent.HeartbeatHandlers.HeartbeatStopHandlersLinux")
   @patch("sys.exit")
   @patch("os.getpid")
@@ -151,7 +147,6 @@ class TestMain:  # (unittest.TestCase):
     (soft_limit, hard_limit) = resource.getrlimit(resource.RLIMIT_NOFILE)
     self.assertEqual(hard_limit, open_files_ulimit)
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch("signal.signal")
   def test_bind_signal_handlers(self, signal_mock):
     main.bind_signal_handlers(os.getpid())
@@ -224,7 +219,6 @@ class TestMain:  # (unittest.TestCase):
     main.perform_prestart_checks(None)
     self.assertFalse(exit_mock.called)
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("time.sleep")
   @patch("os.path.exists")
@@ -351,22 +345,6 @@ class TestMain:  # (unittest.TestCase):
 
     self.assertTrue(sys_exit_mock.called)
 
-  @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-  def init_ambari_config_mock(self):
-    return os.path.normpath(
-      os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "..",
-        "..",
-        "..",
-        "conf",
-        "windows",
-        "ambari-agent.ini",
-      )
-    )
-
-  @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
   def init_ambari_config_mock(self):
     return os.path.normpath(
       os.path.join(

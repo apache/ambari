@@ -45,7 +45,6 @@ import unittest
 import fnmatch
 from os.path import isdir
 import logging
-from only_for_platform import get_platform, PLATFORM_WINDOWS
 from resource_management.core.logger import Logger
 # TODO Add an option to randomize the tests' execution
 # from random import shuffle
@@ -168,10 +167,7 @@ def main():
     logger.error(
       "-----------------------------------------------------------------------"
     )
-    if get_platform() == PLATFORM_WINDOWS:
-      os._exit(1)
-    else:
-      exit(1)
+    exit(1)
   else:
     logger.info(
       "------------------------------------------------------------------------"

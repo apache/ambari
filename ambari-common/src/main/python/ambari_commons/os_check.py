@@ -26,42 +26,6 @@ import platform
 import distro
 
 
-def _get_windows_version():
-  """
-  Get's the OS major and minor versions.  Returns a tuple of
-  (OS_MAJOR, OS_MINOR).
-  """
-  import ctypes
-
-  class _OSVERSIONINFOEXW(ctypes.Structure):
-    _fields_ = [
-      ("dwOSVersionInfoSize", ctypes.c_ulong),
-      ("dwMajorVersion", ctypes.c_ulong),
-      ("dwMinorVersion", ctypes.c_ulong),
-      ("dwBuildNumber", ctypes.c_ulong),
-      ("dwPlatformId", ctypes.c_ulong),
-      ("szCSDVersion", ctypes.c_wchar * 128),
-      ("wServicePackMajor", ctypes.c_ushort),
-      ("wServicePackMinor", ctypes.c_ushort),
-      ("wSuiteMask", ctypes.c_ushort),
-      ("wProductType", ctypes.c_byte),
-      ("wReserved", ctypes.c_byte),
-    ]
-
-  os_version = _OSVERSIONINFOEXW()
-  os_version.dwOSVersionInfoSize = ctypes.sizeof(os_version)
-  retcode = ctypes.windll.Ntdll.RtlGetVersion(ctypes.byref(os_version))
-  if retcode != 0:
-    raise Exception("Failed to get OS version")
-
-  return (
-    os_version.dwMajorVersion,
-    os_version.dwMinorVersion,
-    os_version.dwBuildNumber,
-    os_version.wProductType,
-  )
-
-
 # path to resources dir
 RESOURCES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
 
@@ -72,18 +36,6 @@ JSON_OS_ALIASES = "aliases"
 JSON_OS_TYPE = "distro"
 JSON_OS_VERSION = "versions"
 JSON_EXTENDS = "extends"
-
-# windows family constants
-SYSTEM_WINDOWS = "Windows"
-REL_2008 = "win2008server"
-REL_2008R2 = "win2008serverr2"
-REL_2012 = "win2012server"
-REL_2012R2 = "win2012serverr2"
-
-# windows machine types
-VER_NT_WORKSTATION = 1
-VER_NT_DOMAIN_CONTROLLER = 2
-VER_NT_SERVER = 3
 
 # Linux specific releases, caching them since they are execution invariants
 _IS_ORACLE_LINUX = os.path.exists("/etc/oracle-release")
@@ -209,28 +161,7 @@ class OSConst(metaclass=OS_CONST_TYPE):
 class OSCheck:
   @staticmethod
   def os_distribution():
-    if platform.system() == SYSTEM_WINDOWS:
-      # windows distribution
-      major, minor, build, code = _get_windows_version()
-      if code in (VER_NT_DOMAIN_CONTROLLER, VER_NT_SERVER):
-        # we are on server os
-        release = None
-        if major == 6:
-          if minor == 0:
-            release = REL_2008
-          elif minor == 1:
-            release = REL_2008R2
-          elif minor == 2:
-            release = REL_2012
-          elif minor == 3:
-            release = REL_2012R2
-        distribution = (release, f"{major}.{minor}", "WindowsServer")
-      else:
-        # we are on unsupported desktop os
-        distribution = ("", "", "")
-    else:
-      # linux distribution
-      distribution = linux_distribution()
+    distribution = linux_distribution()
 
     if distribution[0] == "":
       distribution = advanced_check(distribution)
@@ -401,19 +332,6 @@ class OSCheck:
         and OSCheck.is_in_family(OSCheck.get_os_family_parent(current_family), family)
       ):
         return True
-    except Exception:
-      pass
-    return False
-
-  @staticmethod
-  def is_windows_family():
-    """
-    Return true if it is so or false if not
-
-    This is safe check for winsrv , doesn't generate exception
-    """
-    try:
-      return OSCheck.get_os_family() == OSConst.WINSRV_FAMILY
     except Exception:
       pass
     return False

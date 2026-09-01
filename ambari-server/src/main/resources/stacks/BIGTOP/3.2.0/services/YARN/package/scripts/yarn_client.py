@@ -46,11 +46,6 @@ class YarnClient(Script):
     raise ClientComponentHasNoStatus()
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class YarnClientWindows(YarnClient):
-  pass
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class YarnClientDefault(YarnClient):
   def pre_upgrade_restart(self, env, upgrade_type=None):

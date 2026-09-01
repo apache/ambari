@@ -23,7 +23,6 @@ from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from ambari_commons.os_check import OSCheck
@@ -37,9 +36,8 @@ import os
 import select
 import subprocess
 
-if get_platform() != PLATFORM_WINDOWS:
-  import grp
-  import pty
+import grp
+import pty
 
 
 subproc_stdout = MagicMock()

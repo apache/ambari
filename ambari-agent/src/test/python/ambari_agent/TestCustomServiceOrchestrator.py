@@ -48,7 +48,7 @@ from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.FileCache import FileCache
 from ambari_agent.PythonExecutor import PythonExecutor
 from ambari_commons import OSCheck
-from only_for_platform import get_platform, os_distro_value, PLATFORM_WINDOWS
+from only_for_platform import os_distro_value
 from ambari_agent.InitializerModule import InitializerModule
 from ambari_agent.ConfigurationBuilder import ConfigurationBuilder
 
@@ -113,16 +113,14 @@ class TestCustomServiceOrchestrator:  # (TestCase):
     json_file = orchestrator.dump_command_to_json(command)
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
-    if get_platform() != PLATFORM_WINDOWS:
-      self.assertEqual(oct(os.stat(json_file).st_mode & 0o777), "0600")
+    self.assertEqual(oct(os.stat(json_file).st_mode & 0o777), "0600")
     self.assertTrue(json_file.endswith("command-3.json"))
     os.unlink(json_file)
     # Test dumping STATUS_COMMAND
     json_file = orchestrator.dump_command_to_json(command, True)
     self.assertTrue(os.path.exists(json_file))
     self.assertTrue(os.path.getsize(json_file) > 0)
-    if get_platform() != PLATFORM_WINDOWS:
-      self.assertEqual(oct(os.stat(json_file).st_mode & 0o777), "0600")
+    self.assertEqual(oct(os.stat(json_file).st_mode & 0o777), "0600")
     self.assertTrue(json_file.endswith("command-3.json"))
     os.unlink(json_file)
     # Testing side effect of dump_command_to_json

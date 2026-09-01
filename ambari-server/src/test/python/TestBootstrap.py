@@ -41,10 +41,8 @@ from bootstrap import AMBARI_PASSPHRASE_VAR_NAME
 from unittest.mock import MagicMock, call
 from unittest.mock import patch
 from unittest.mock import create_autospec
-from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestBootstrap(TestCase):
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)

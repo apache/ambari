@@ -344,9 +344,6 @@ class CheckHost(Script):
 
     Logger.info("Java home to check: " + java_home)
     java_bin = "java"
-    if OSCheck.is_windows_family():
-      java_bin = "java.exe"
-
     if not os.path.isfile(os.path.join(java_home, "bin", java_bin)):
       Logger.warning("Java home doesn't exist!")
       java_home_check_structured_output = {
@@ -464,10 +461,6 @@ class CheckHost(Script):
     )
 
     java_bin = "java"
-    if OSCheck.is_windows_family():
-      java_bin = "java.exe"
-      class_path_delimiter = ";"
-
     java_exec = os.path.join(java_home, "bin", java_bin)
 
     if (
@@ -558,11 +551,7 @@ class CheckHost(Script):
     # download jdbc driver from ambari-server resources
     try:
       download_file(jdbc_url, jdbc_path)
-      if db_name == DB_MSSQL and OSCheck.is_windows_family():
-        jdbc_auth_path = os.path.join(agent_cache_dir, JDBC_AUTH_SYMLINK_MSSQL)
-        jdbc_auth_url = CheckHost.build_url(jdk_location, JDBC_AUTH_SYMLINK_MSSQL)
-        download_file(jdbc_auth_url, jdbc_auth_path)
-      elif db_name == DB_SQLA:
+      if db_name == DB_SQLA:
         # unpack tar.gz jdbc which was donaloaded
         untar_sqla_type2_driver = ("tar", "-xvf", jdbc_path, "-C", agent_cache_dir)
         Execute(untar_sqla_type2_driver, sudo=True)

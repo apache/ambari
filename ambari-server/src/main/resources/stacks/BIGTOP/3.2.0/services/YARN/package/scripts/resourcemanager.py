@@ -74,45 +74,6 @@ class Resourcemanager(Script):
     pass
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ResourcemanagerWindows(Resourcemanager):
-  def start(self, env):
-    import params
-
-    env.set_params(params)
-    self.configure(env)
-    service("resourcemanager", action="start")
-
-  def status(self, env):
-    service("resourcemanager", action="status")
-
-  def decommission(self, env):
-    import params
-
-    env.set_params(params)
-    yarn_user = params.yarn_user
-
-    yarn_refresh_cmd = format("cmd /c yarn rmadmin -refreshNodes")
-
-    File(
-      params.exclude_file_path,
-      content=Template("exclude_hosts_list.j2"),
-      owner=yarn_user,
-      mode="f",
-    )
-
-    if params.include_hosts:
-      File(
-        params.include_file_path,
-        content=Template("include_hosts_list.j2"),
-        owner=yarn_user,
-        mode="f",
-      )
-
-    if params.update_files_only == False:
-      Execute(yarn_refresh_cmd, user=yarn_user)
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ResourcemanagerDefault(Resourcemanager):
   def pre_upgrade_restart(self, env, upgrade_type=None):

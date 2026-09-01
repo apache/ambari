@@ -83,7 +83,6 @@ from ambari_server.serverConfiguration import (
   JDBC_PASSWORD_PROPERTY,
   JDBC_RCA_PASSWORD_ALIAS,
   JDBC_RCA_PASSWORD_FILE_PROPERTY,
-  JDBC_USE_INTEGRATED_AUTH_PROPERTY,
   LDAP_MGR_PASSWORD_ALIAS,
   LDAP_MGR_PASSWORD_PROPERTY,
   CLIENT_SECURITY,
@@ -719,10 +718,6 @@ def setup_sensitive_data_encryption(options):
   if properties == -1:
     raise FatalException(1, "Failed to read properties file.")
 
-  db_windows_auth_prop = properties.get_property(JDBC_USE_INTEGRATED_AUTH_PROPERTY)
-  db_sql_auth = (
-    False if db_windows_auth_prop and db_windows_auth_prop.lower() == "true" else True
-  )
   db_password = properties.get_property(JDBC_PASSWORD_PROPERTY)
   # Encrypt passwords cannot be called before setup
   if db_sql_auth and not db_password:
@@ -1033,94 +1028,6 @@ def format_prop_val_prompt(prop_prompt_pattern, prop_default_value):
   return prop_prompt_pattern.format(
     (" " + default_value) if default_value is not None and default_value != "" else ""
   )
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def init_ldap_properties_list_reqd(properties, options):
-  # python2.x dict is not ordered
-  ldap_properties = [
-    LdapPropTemplate(
-      properties,
-      options.ldap_primary_host,
-      "ambari.ldap.connectivity.server.host",
-      "Primary LDAP Host{0}: ",
-      REGEX_HOSTNAME,
-      False,
-      LdapDefaultMap(
-        {LDAP_IPA: "ipa.ambari.apache.org", LDAP_GENERIC: "ldap.ambari.apache.org"}
-      ),
-    ),
-    LdapPropTemplate(
-      properties,
-      options.ldap_primary_port,
-      "ambari.ldap.connectivity.server.port",
-      "Primary LDAP Port{0}: ",
-      REGEX_PORT,
-      False,
-      LdapDefaultMap({LDAP_IPA: "636", LDAP_GENERIC: "389"}),
-    ),
-    LdapPropTemplate(
-      properties,
-      options.ldap_secondary_host,
-      "ambari.ldap.connectivity.secondary.server.host",
-      "Secondary LDAP Host <Optional>{0}: ",
-      REGEX_HOSTNAME,
-      True,
-    ),
-    LdapPropTemplate(
-      properties,
-      options.ldap_secondary_port,
-      "ambari.ldap.connectivity.secondary.server.port",
-      "Secondary LDAP Port <Optional>{0}: ",
-      REGEX_PORT,
-      True,
-    ),
-    LdapPropTemplate(
-      properties,
-      options.ldap_ssl,
-      "ambari.ldap.connectivity.use_ssl",
-      "Use SSL [true/false]{0}: ",
-      REGEX_TRUE_FALSE,
-      False,
-      LdapDefaultMap({LDAP_AD: "false", LDAP_IPA: "true", LDAP_GENERIC: "false"}),
-    ),
-    LdapPropTemplate(
-      properties,
-      options.ldap_user_attr,
-      "ambari.ldap.attributes.user.name_attr",
-      "User ID attribute{0}: ",
-      REGEX_ANYTHING,
-      False,
-      LdapDefaultMap({LDAP_AD: "sAMAccountName", LDAP_IPA: "uid", LDAP_GENERIC: "uid"}),
-    ),
-    LdapPropTemplate(
-      properties,
-      options.ldap_base_dn,
-      "ambari.ldap.attributes.user.search_base",
-      "Search Base{0}: ",
-      REGEX_ANYTHING,
-      False,
-      LdapDefault("dc=ambari,dc=apache,dc=org"),
-    ),
-    LdapPropTemplate(
-      properties,
-      options.ldap_referral,
-      "ambari.ldap.advanced.referrals",
-      "Referral method [follow/ignore]{0}: ",
-      REGEX_REFERRAL,
-      True,
-      LdapDefault("follow"),
-    ),
-    LdapPropTemplate(
-      properties,
-      options.ldap_bind_anonym,
-      "ambari.ldap.connectivity.anonymous_bind" "Bind anonymously [true/false]{0}: ",
-      REGEX_TRUE_FALSE,
-      False,
-      LdapDefault("false"),
-    ),
-  ]
-  return ldap_properties
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -1705,18 +1612,6 @@ def generate_env(options, ambari_user, current_user):
         environ[SECURITY_MASTER_KEY_LOCATION] = tempFilePath
 
   return environ
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def generate_env(options, ambari_user, current_user):
-  return os.environ.copy()
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def ensure_can_start_under_current_user(ambari_user):
-  # Ignore the requirement to run as root. In Windows, by default the child process inherits the security context
-  # and the environment from the parent process.
-  return ""
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)

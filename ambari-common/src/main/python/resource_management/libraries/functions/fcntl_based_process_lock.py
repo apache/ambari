@@ -27,9 +27,8 @@ class FcntlBasedProcessLock(object):
   """A file descriptor based lock for interprocess locking.
   The lock is automatically released when process dies.
 
-  WARNING: A file system and OS must support fcntl.lockf.
-  Doesn't work on Windows systems. Doesn't work properly on
-  some NFS implementations.
+  WARNING: A file system and OS must support fcntl.lockf. It does not work
+  properly on some NFS implementations.
 
   Currently Ambari uses FcntlBasedProcessLock only when parallel
   execution is enabled on the agent.

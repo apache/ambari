@@ -31,16 +31,15 @@ with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
 
 import operator
 from ambari_commons import os_check
+from only_for_platform import os_distro_value
 import io
 from unittest import TestCase
 
 os.environ["ROOT"] = ""
 
-from only_for_platform import get_platform, os_distro_value, PLATFORM_WINDOWS
 from ambari_commons import os_utils
 
-if get_platform() != PLATFORM_WINDOWS:
-  pass
+pass
 
 import shutil
 

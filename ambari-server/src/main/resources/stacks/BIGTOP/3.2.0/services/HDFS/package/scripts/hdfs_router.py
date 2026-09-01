@@ -39,11 +39,6 @@ from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from utils import get_dfsrouteradmin_base_command
 from utils import set_up_zkfc_security
 
-if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.windows_service_utils import (
-    check_windows_service_status,
-  )
-
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 

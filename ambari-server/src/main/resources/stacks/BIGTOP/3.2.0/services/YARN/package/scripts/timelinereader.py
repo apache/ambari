@@ -81,12 +81,6 @@ class ApplicationTimelineReader(Script):
       configure_hbase(env)
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ApplicationTimelineReaderWindows(ApplicationTimelineReader):
-  def status(self, env):
-    service("timelinereader", action="status")
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ApplicationTimelineReaderDefault(ApplicationTimelineReader):
   def pre_upgrade_restart(self, env, upgrade_type=None):

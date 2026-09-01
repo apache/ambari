@@ -151,10 +151,6 @@ class WebAlert(BaseAlert):
     if alert_uri.is_ssl_enabled is True:
       scheme = "https"
 
-    if OSCheck.is_windows_family():
-      # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
-      host = resolve_address(host)
-
     if uri_path:
       return f"{scheme}://{host}:{str(port)}/{uri_path}"
     else:

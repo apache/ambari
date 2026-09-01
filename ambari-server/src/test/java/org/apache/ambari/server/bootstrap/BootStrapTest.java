@@ -69,9 +69,6 @@ public class BootStrapTest extends TestCase {
     LOG.info("ServerVersionFilePath is " + serverVersionFilePath);
 
     String sharedResourcesDir = "src/test/resources/";
-    if (System.getProperty("os.name").contains("Windows")) {
-      sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
-    }
 
     properties.setProperty(Configuration.BOOTSTRAP_DIRECTORY.getKey(), bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT.getKey(), prepareEchoCommand(bootdir));
@@ -117,21 +114,7 @@ public class BootStrapTest extends TestCase {
   }
 
   private static String prepareEchoCommand(String bootdir) throws IOException {
-    if (System.getProperty("os.name").contains("Windows")) {
-      //The command line becomes "python echo", so create a Python script in the current dir
-      String pythonEcho = "import sys;\nif __name__ == '__main__':\n" +
-          "  args = sys.argv\n" +
-          "  if len(args) > 1:\n" +
-          "    print args[1]";
-      File echo = new File(bootdir, "echo.py");
-      //Ensure the file wasn't there
-      echo.delete();
-      FileUtils.writeStringToFile(echo, pythonEcho, Charset.defaultCharset());
-
-      return echo.getPath();
-    } else {
-      return "echo";
-    }
+    return "echo";
   }
 
   @Test
@@ -147,11 +130,6 @@ public class BootStrapTest extends TestCase {
     String sharedResourcesDir = "src/test/resources/";
     String serverKSTRDir = "target" + File.separator + "classes";
     String mpacksv2staging = "src/main/resources/mpacks-v2";
-    if (System.getProperty("os.name").contains("Windows")) {
-      sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
-      serverKSTRDir = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "classes").getPath();
-    }
-
     properties.setProperty(Configuration.BOOTSTRAP_DIRECTORY.getKey(), bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT.getKey(), prepareEchoCommand(bootdir));
     properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(), serverKSTRDir);

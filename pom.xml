@@ -292,7 +292,6 @@
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
-            <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
             <exclude>**/.idea/</exclude>
@@ -324,11 +323,7 @@
             <exclude>contrib/**/bower_components/**</exclude>
             <exclude>contrib/**/dist/**</exclude>
             <exclude>contrib/management-packs/hdf-ambari-mpack/src/main/resources/stacks/HDF/2.0/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
-            <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
-            <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
-            <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
-            <exclude>contrib/ambari-scom/*/rat.txt</exclude>
             <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/node_modules/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/.bowerrc</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/bower_components/**</exclude>
@@ -355,8 +350,6 @@
             <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/app/**</exclude>
             <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/runner.js</exclude>
 
-            <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
-            <exclude>contrib/ambari-scom/*/rat.txt</exclude>
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
@@ -561,27 +554,6 @@
       <id>ambari-serviceadvisor</id>
       <modules>
         <module>ambari-serviceadvisor</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>windows</id>
-      <activation>
-        <os>
-          <family>win</family>
-        </os>
-      </activation>
-      <modules>
-        <module>ambari-serviceadvisor</module>
-        <module>ambari-utility</module>
-        <module>ambari-web</module>
-        <module>ambari-project</module>
-        <module>ambari-views</module>
-        <module>ambari-admin</module>
-        <module>contrib/views</module>
-        <module>ambari-server</module>
-        <module>ambari-server-spi</module>
-        <module>ambari-funtest</module>
-        <module>ambari-agent</module>
       </modules>
     </profile>
     <profile>

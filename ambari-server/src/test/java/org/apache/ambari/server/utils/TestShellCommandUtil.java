@@ -53,8 +53,7 @@ public class TestShellCommandUtil {
   @Test
   public void testOSDetection() throws Exception {
     // At least check, that only one OS is selected
-    Assert.assertTrue(ShellCommandUtil.LINUX ^ ShellCommandUtil.WINDOWS
-            ^ ShellCommandUtil.MAC);
+    Assert.assertTrue(ShellCommandUtil.LINUX ^ ShellCommandUtil.MAC);
     Assert.assertTrue(ShellCommandUtil.LINUX || ShellCommandUtil.MAC ==
             ShellCommandUtil.UNIX_LIKE);
   }
@@ -86,7 +85,7 @@ public class TestShellCommandUtil {
       // Next command is silently ignored, it's OK
       ShellCommandUtil.setUnixFilePermissions(ShellCommandUtil.MASK_OWNER_ONLY_RW,
               dummyFile.getAbsolutePath());
-      // On Windows/Mac, output is always MASK_EVERYBODY_RWX
+      // On macOS, output is always MASK_EVERYBODY_RWX
       String p = ShellCommandUtil.getUnixFilePermissions(
               dummyFile.getAbsolutePath());
       Assert.assertEquals(p, ShellCommandUtil.MASK_EVERYBODY_RWX);
@@ -110,7 +109,7 @@ public class TestShellCommandUtil {
       Assert.assertEquals(1, result.getExitCode());
       Assert.assertFalse(result.isSuccessful());
     } else {
-      // Skipping this test under Windows/Mac
+      // Skipping this test under macOS
     }
   }
 

@@ -128,18 +128,5 @@ class TezServiceCheckLinux(TezServiceCheck):
     )
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class TezServiceCheckWindows(TezServiceCheck):
-  def service_check(self, env):
-    import params
-
-    env.set_params(params)
-    smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
-    service = "TEZ"
-    Execute(
-      format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.tez_user
-    )
-
-
 if __name__ == "__main__":
   TezServiceCheck().execute()

@@ -47,11 +47,6 @@ class HbaseClient(Script):
     raise ClientComponentHasNoStatus()
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HbaseClientWindows(HbaseClient):
-  pass
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseClientDefault(HbaseClient):
   def pre_upgrade_restart(self, env, upgrade_type=None):

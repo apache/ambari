@@ -352,11 +352,6 @@ class DBMSConfig(object):
     return self.persistence_type == STORAGE_TYPE_LOCAL
 
   def _prompt_db_properties(self):
-    # if WINDOWS
-    #  prompt for SQL Server host and instance name
-    # else
-    #  go the classic Linux way
-    # linux_prompt_db_properties(args)
     return False
 
   def _create_postgres_lock_directory(self):
@@ -420,7 +415,6 @@ class DBMSConfigFactory(object):
     # Base declaration of the factory method. The outcome of the derived implementations
     #  is expected to be a subclass of DBMSConfig.
     # properties = property bag that will ultimately define the type of database. Since
-    #   right now in Windows we only support SQL Server, this argument is not yet used.
     # dbId = additional information, that helps distinguish between various database connections, if applicable
     """
     pass
@@ -436,39 +430,6 @@ class DBMSConfigFactory(object):
 
   def get_default_dbms_name(self):
     return ""
-
-
-#
-# Database configuration factory for Windows
-#
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class DBMSConfigFactoryWindows(DBMSConfigFactory):
-  def __init__(self):
-    from ambari_server.dbConfiguration_windows import DATABASE_DBMS_MSSQL
-
-    self.DBMS_KEYS_LIST = [DATABASE_DBMS_MSSQL]
-
-  def select_dbms(self, options):
-    # For now, we only support SQL Server in Windows, in remote mode.
-    return 0
-
-  def create(self, options, properties, dbId="Ambari"):
-    """
-    # Windows implementation of the factory method. The outcome of the derived implementations
-    #  is expected to be a subclass of DBMSConfig.
-    # properties = property bag that will ultimately define the type of database. Since
-    #   right now in Windows we only support SQL Server, this argument is not yet used.
-    # dbId = additional information, that helps distinguish between various database connections, if applicable
-    """
-    from ambari_server.dbConfiguration_windows import createMSSQLConfig
-
-    return createMSSQLConfig(options, properties, STORAGE_TYPE_REMOTE, dbId)
-
-  def get_supported_dbms(self):
-    return self.DBMS_KEYS_LIST
-
-  def get_supported_jdbc_drivers(self):
-    return self.DBMS_KEYS_LIST
 
 
 #
@@ -712,7 +673,6 @@ def check_jdbc_drivers(args):
 
   # AMBARI-5696 Validate the symlinks for each supported driver, in case various back-end HDP services happen to
   #  use different DBMSes
-  # This is skipped on Windows
   db_idx = 1
 
   try:

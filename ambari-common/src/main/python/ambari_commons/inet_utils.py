@@ -24,18 +24,13 @@ import sys
 import urllib.request, urllib.error, urllib.parse
 import socket
 import re
-from ambari_commons import OSCheck
 from functools import wraps
 
 from .exceptions import FatalException, NonFatalException, TimeoutError
 
-if OSCheck.is_windows_family():
-  from ambari_commons.os_windows import os_run_os_command
-else:
-  # MacOS not supported
-  from ambari_commons.os_linux import os_run_os_command
+# MacOS not supported
+from ambari_commons.os_linux import os_run_os_command
 
-  pass
 
 from .logging_utils import *
 from .os_check import OSCheck
@@ -231,21 +226,17 @@ def force_download_file(link, destination, chunk_size=16 * 1024, progress_func=N
 
   # when download is complete -> mv temp_dest destination
   if os.path.exists(destination):
-    # Windows behavior: rename fails if the destination file exists
     os.unlink(destination)
   os.rename(temp_dest, destination)
 
 
 def resolve_address(address):
   """
-  Resolves address to proper one in special cases, for example 0.0.0.0 to 127.0.0.1 on windows os.
+  Returns the address used by alert probes.
 
   :param address: address to resolve
   :return: resulting address
   """
-  if OSCheck.is_windows_family():
-    if address == "0.0.0.0":
-      return "127.0.0.1"
   return address
 
 

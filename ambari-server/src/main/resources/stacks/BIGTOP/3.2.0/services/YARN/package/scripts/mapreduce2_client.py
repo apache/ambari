@@ -79,11 +79,6 @@ class MapReduce2Client(Script):
       self.configure(env, config_dir=config_dir)
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class MapReduce2ClientWindows(MapReduce2Client):
-  pass
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class MapReduce2ClientDefault(MapReduce2Client):
   def pre_upgrade_restart(self, env, upgrade_type=None):

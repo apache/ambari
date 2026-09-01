@@ -70,21 +70,3 @@ def tez(config_dir):
     content=InlineTemplate(params.tez_env_sh_template),
     mode=0o555,
   )
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def tez(config_dir):
-  """
-  Write out tez-site.xml and tez-env.sh to the config directory.
-  :param config_dir: Directory to write configs to.
-  """
-  import params
-
-  XmlConfig(
-    "tez-site.xml",
-    conf_dir=config_dir,
-    configurations=params.config["configurations"]["tez-site"],
-    owner=params.tez_user,
-    mode="f",
-    configuration_attributes=params.config["configurationAttributes"]["tez-site"],
-  )

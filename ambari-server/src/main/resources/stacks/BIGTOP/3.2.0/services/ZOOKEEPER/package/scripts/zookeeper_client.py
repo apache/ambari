@@ -78,14 +78,5 @@ class ZookeeperClientLinux(ZookeeperClient):
       stack_select.select_packages(params.version)
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ZookeeperClientWindows(ZookeeperClient):
-  def install(self, env):
-    # client checks env var to determine if it is installed
-    if "ZOOKEEPER_HOME" not in os.environ:
-      self.install_packages(env)
-    self.configure(env)
-
-
 if __name__ == "__main__":
   ZookeeperClient().execute()

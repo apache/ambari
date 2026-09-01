@@ -61,13 +61,3 @@ def zookeeper_service(action="start", upgrade_type=None):
       show_logs(params.zk_log_dir, params.zk_user)
       raise
     File(params.zk_pid_file, action="delete")
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def zookeeper_service(action="start", rolling_restart=False):
-  import params
-
-  if action == "start":
-    Service(params.zookeeper_win_service_name, action="start")
-  elif action == "stop":
-    Service(params.zookeeper_win_service_name, action="stop")

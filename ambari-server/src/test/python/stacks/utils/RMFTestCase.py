@@ -166,9 +166,6 @@ class RMFTestCase(TestCase):
     if "params" in sys.modules:
       del sys.modules["params"]
 
-    if "params_windows" in sys.modules:
-      del sys.modules["params_windows"]
-
     if "params_linux" in sys.modules:
       del sys.modules["params_linux"]
 

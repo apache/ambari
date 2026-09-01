@@ -136,37 +136,5 @@ class JournalNodeDefault(JournalNode):
     return [status_params.journalnode_pid_file]
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class JournalNodeWindows(JournalNode):
-  def install(self, env):
-    import install_params
-
-    self.install_packages(env)
-
-  def start(self, env):
-    import params
-
-    self.configure(env)
-    Service(params.journalnode_win_service_name, action="start")
-
-  def stop(self, env):
-    import params
-
-    Service(params.journalnode_win_service_name, action="stop")
-
-  def configure(self, env):
-    import params
-
-    env.set_params(params)
-    hdfs("journalnode")
-    pass
-
-  def status(self, env):
-    import status_params
-
-    env.set_params(status_params)
-    check_windows_service_status(status_params.journalnode_win_service_name)
-
-
 if __name__ == "__main__":
   JournalNode().execute()

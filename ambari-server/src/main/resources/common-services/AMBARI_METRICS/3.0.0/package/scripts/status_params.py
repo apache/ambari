@@ -23,10 +23,7 @@ from resource_management.libraries import functions
 from resource_management.libraries.functions.format import format
 from ambari_commons import OSCheck
 
-if OSCheck.is_windows_family():
-  from params_windows import *
-else:
-  from params_linux import *
+from params_linux import *
 
 hbase_pid_dir = config["configurations"]["ams-hbase-env"]["hbase_pid_dir"]
 hbase_user = ams_user

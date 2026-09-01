@@ -32,13 +32,7 @@ def log_process_information(logger):
 
   from ambari_commons.shell import shellRunner
 
-  if OSCheck.is_windows_family():
-    cmd_list = [
-      "WMIC path win32_process get Caption,Processid,Commandline",
-      "netstat -an",
-    ]
-  else:
-    cmd_list = ["export COLUMNS=9999 ; ps faux", "netstat -tulpn"]
+  cmd_list = ["export COLUMNS=9999 ; ps faux", "netstat -tulpn"]
 
   shell_runner = shellRunner()
 

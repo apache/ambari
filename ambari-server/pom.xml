@@ -417,9 +417,6 @@
             <exclude>src/main/resources/db/serial</exclude>
             <exclude>src/main/resources/db/index.txt</exclude>
             <exclude>src/main/resources/stacks/HDP/2.1.GlusterFS/services/YARN/package/templates/exclude_hosts_list.j2</exclude>
-            <exclude>src/main/windows/ambari-server.cmd</exclude>
-            <exclude>src/main/windows/ambari-server.ps1</exclude>
-            <exclude>src/main/package/choco/ambari-server.nuspec</exclude>
             <exclude>**/smoketest_metrics.json.j2</exclude>
             <exclude>**/service-metrics/*.txt</exclude>
             <exclude>**/balancer.log</exclude>
@@ -428,8 +425,6 @@
             <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
-            <exclude>conf/windows/ca.config</exclude>
-            <exclude>conf/windows/krb5JAASLogin.conf</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.sql</exclude>
             <exclude>**/repo_suse_rhel.j2</exclude>
@@ -443,8 +438,6 @@
 
             <!-- Stack definitions -->
             <exclude>src/main/resources/stacks/HDP/2.0._/services/HBASE/package/templates/regionservers.j2</exclude>
-            <exclude>src/main/resources/stacks/HDPWIN/2.1/services/*/configuration*/*</exclude>
-
             <!--test samples -->
             <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
             <exclude>src/test/resources/*.txt</exclude>
@@ -1031,109 +1024,6 @@
                       </includes>
                     </resource>
                   </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>windows</id>
-      <activation>
-        <os>
-          <family>win</family>
-        </os>
-      </activation>
-      <properties>
-        <envClassifier>win</envClassifier>
-        <dirsep>\</dirsep>
-        <pathsep>;</pathsep>
-        <executable.python>python3</executable.python>
-        <executable.shell>cmd</executable.shell>
-        <fileextension.shell>cmd</fileextension.shell>
-        <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
-        <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\resources\custom_actions\scripts;${project.basedir}\src\main\resources\scripts;${project.basedir}\src\test\python</path.python.1>
-        <assemblydescriptor>src/main/assemblies/server-windows.xml</assemblydescriptor>
-        <assemblybootstrap>src/main/assemblies/bootstrap-windows.xml</assemblybootstrap>
-        <assemblychocodescriptor>src/main/assemblies/server-windows-choco.xml</assemblychocodescriptor>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <configuration>
-              <descriptors>
-                <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>bootstrap-zip</id>
-                <phase>prepare-package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <attach>false</attach>
-                  <finalName>bootstrap</finalName>
-                  <appendAssemblyId>false</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <descriptors>
-                    <descriptor>${assemblybootstrap}</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-              <execution>
-                <id>build-tarball</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <attach>false</attach>
-                  <appendAssemblyId>true</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <descriptors>
-                    <descriptor>${assemblydescriptor}</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-              <execution>
-                <id>build-choco-dir</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <attach>false</attach>
-                  <appendAssemblyId>true</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <descriptors>
-                    <descriptor>${assemblychocodescriptor}</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-choco-package</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>choco.exe</executable>
-                  <arguments>
-                    <argument>pack</argument>
-                    <argument>--version=${project.version}</argument>
-                    <argument>${basedir}/target/ambari-server-${project.version}-choco/ambari-server.nuspec</argument>
-                  </arguments>
-                  <workingDirectory>target/ambari-server-${project.version}-choco</workingDirectory>
                 </configuration>
               </execution>
             </executions>

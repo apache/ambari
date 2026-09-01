@@ -113,10 +113,5 @@ class SNameNodeDefault(SNameNode):
     return [status_params.snamenode_pid_file]
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class SNameNodeWindows(SNameNode):
-  pass
-
-
 if __name__ == "__main__":
   SNameNode().execute()

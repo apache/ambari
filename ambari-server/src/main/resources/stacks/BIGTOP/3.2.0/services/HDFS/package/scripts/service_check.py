@@ -129,39 +129,5 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
         Execute(check_zkfc_process_cmd, logoutput=True, try_sleep=3, tries=5)
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HdfsServiceCheckWindows(HdfsServiceCheck):
-  def service_check(self, env):
-    import params
-
-    env.set_params(params)
-
-    unique = functions.get_unique_id_and_date()
-
-    # Hadoop uses POSIX-style paths, separator is always /
-    dir = params.hdfs_tmp_dir
-    tmp_file = dir + "/" + unique
-
-    # commands for execution
-    hadoop_cmd = f"cmd /C {os.path.join(params.hadoop_home, 'bin', 'hadoop.cmd')}"
-    create_dir_cmd = f"{hadoop_cmd} fs -mkdir {dir}"
-    own_dir = f"{hadoop_cmd} fs -chmod 777 {dir}"
-    test_dir_exists = f"{hadoop_cmd} fs -test -e {dir}"
-    cleanup_cmd = f"{hadoop_cmd} fs -rm {tmp_file}"
-    create_file_cmd = f"{hadoop_cmd} fs -put {os.path.join(params.hadoop_conf_dir, 'core-site.xml')} {tmp_file}"
-    test_cmd = f"{hadoop_cmd} fs -test -e {tmp_file}"
-
-    hdfs_cmd = f"cmd /C {os.path.join(params.hadoop_home, 'bin', 'hdfs.cmd')}"
-    safemode_command = f"{hdfs_cmd} dfsadmin -safemode get | {params.grep_exe} OFF"
-
-    Execute(safemode_command, logoutput=True, try_sleep=3, tries=20)
-    Execute(create_dir_cmd, user=params.hdfs_user, logoutput=True, ignore_failures=True)
-    Execute(own_dir, user=params.hdfs_user, logoutput=True)
-    Execute(test_dir_exists, user=params.hdfs_user, logoutput=True)
-    Execute(create_file_cmd, user=params.hdfs_user, logoutput=True)
-    Execute(test_cmd, user=params.hdfs_user, logoutput=True)
-    Execute(cleanup_cmd, user=params.hdfs_user, logoutput=True)
-
-
 if __name__ == "__main__":
   HdfsServiceCheck().execute()

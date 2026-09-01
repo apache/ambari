@@ -27,7 +27,6 @@ import unittest
 from ambari_commons import os_check
 import socket
 import subprocess
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
 from ambari_agent.AmbariConfig import AmbariConfig
@@ -35,7 +34,6 @@ from ambari_agent.Facter import Facter, FacterLinux
 from ambari_commons import OSCheck
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 @patch.object(
   os_check, "linux_distribution", new=MagicMock(return_value=("Suse", "11", "Final"))
 )
@@ -577,7 +575,6 @@ SwapFree:        1598676 kB
     self.assertEqual(expected_mounts_left, mounts_left)
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 @patch.object(
   os_check, "linux_distribution", new=MagicMock(return_value=("Suse", "11", "Final"))
 )

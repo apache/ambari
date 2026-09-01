@@ -23,14 +23,12 @@ import sys
 import tempfile
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 from ambari_commons.os_check import OSCheck, OSConst
 
 utils = __import__("ambari_server.utils").utils
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestUtils(TestCase):
   @patch.object(OSCheck, "get_os_family")
   @patch("os.listdir")

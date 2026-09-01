@@ -90,32 +90,6 @@ def wait_for_server_to_stop(wait_timeout):
   return not is_timeout()
 
 
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def is_server_runing():
-  from ambari_commons.os_windows import (
-    SERVICE_STATUS_STARTING,
-    SERVICE_STATUS_RUNNING,
-    SERVICE_STATUS_STOPPING,
-    SERVICE_STATUS_STOPPED,
-    SERVICE_STATUS_NOT_INSTALLED,
-  )
-  from ambari_windows_service import AmbariServerService
-
-  statusStr = AmbariServerService.QueryStatus()
-  if statusStr in (
-    SERVICE_STATUS_STARTING,
-    SERVICE_STATUS_RUNNING,
-    SERVICE_STATUS_STOPPING,
-  ):
-    return True, ""
-  elif statusStr == SERVICE_STATUS_STOPPED:
-    return False, SERVICE_STATUS_STOPPED
-  elif statusStr == SERVICE_STATUS_NOT_INSTALLED:
-    return False, SERVICE_STATUS_NOT_INSTALLED
-  else:
-    return False, None
-
-
 #
 # Performs HDP stack housekeeping
 #

@@ -27,11 +27,9 @@ from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
-if get_platform() != PLATFORM_WINDOWS:
-  from pwd import getpwnam
+from pwd import getpwnam
 
 
 class TestAlertDiskSpace(RMFTestCase):

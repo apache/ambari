@@ -90,12 +90,6 @@ class StaticFile(Source):
   def read_file(self, path):
     return sudo.read_file(path)
 
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def read_file(self, path):
-    with open(path, "rb") as fp:
-      return fp.read()
-
-
 class TemplateLoader(BaseLoader):
   def __init__(self, env=None):
     self.env = env or Environment.get_instance()

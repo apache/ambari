@@ -24,10 +24,8 @@ from stacks.utils.RMFTestCase import *
 from resource_management.libraries.functions import repo_version_history
 import logging
 
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestRepoVersionHistory(RMFTestCase):
   def test_read_and_write_repo_version_history(self):
     f, filename = tempfile.mkstemp()

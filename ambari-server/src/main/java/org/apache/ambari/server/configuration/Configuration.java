@@ -1616,8 +1616,8 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT = new ConfigurationProperty<>(
     "server.script.threads", 20);
 
-  public static final String DEF_ARCHIVE_EXTENSION;
-  public static final String DEF_ARCHIVE_CONTENT_TYPE;
+  public static final String DEF_ARCHIVE_EXTENSION = ".tar.gz";
+  public static final String DEF_ARCHIVE_CONTENT_TYPE = "application/x-ustar";
 
   /**
    * The port used to communicate with the Kerberos Key Distribution Center.
@@ -2732,17 +2732,6 @@ public class Configuration {
    * The Kerberos authentication-specific properties container (for convenience)
    */
   private final AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties;
-
-  static {
-    if (System.getProperty("os.name").contains("Windows")) {
-      DEF_ARCHIVE_EXTENSION = ".zip";
-      DEF_ARCHIVE_CONTENT_TYPE = "application/zip";
-    }
-    else {
-      DEF_ARCHIVE_EXTENSION = ".tar.gz";
-      DEF_ARCHIVE_CONTENT_TYPE = "application/x-ustar";
-    }
-  }
 
   /**
    * Validate password policy regexp syntax

@@ -34,7 +34,6 @@ from only_for_platform import (
   only_for_platform,
   os_distro_value,
   PLATFORM_LINUX,
-  PLATFORM_WINDOWS,
 )
 from ambari_commons import os_utils
 

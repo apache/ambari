@@ -35,7 +35,6 @@ from only_for_platform import (
   not_for_platform,
   only_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 

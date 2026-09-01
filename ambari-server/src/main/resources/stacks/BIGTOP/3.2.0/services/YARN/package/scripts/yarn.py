@@ -636,51 +636,6 @@ def create_local_dir(dir_name):
   )
 
 
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def yarn(name=None):
-  import params
-
-  XmlConfig(
-    "mapred-site.xml",
-    conf_dir=params.hadoop_conf_dir,
-    configurations=params.config["configurations"]["mapred-site"],
-    owner=params.yarn_user,
-    mode="f",
-  )
-  XmlConfig(
-    "yarn-site.xml",
-    conf_dir=params.hadoop_conf_dir,
-    configurations=params.config["configurations"]["yarn-site"],
-    owner=params.yarn_user,
-    mode="f",
-    configuration_attributes=params.config["configurationAttributes"]["yarn-site"],
-  )
-  XmlConfig(
-    "capacity-scheduler.xml",
-    conf_dir=params.hadoop_conf_dir,
-    configurations=params.config["configurations"]["capacity-scheduler"],
-    owner=params.yarn_user,
-    mode="f",
-  )
-  XmlConfig(
-    "yarn-hbase-site.xml",
-    conf_dir=params.config_dir,
-    configurations=params.config["configurations"]["yarn-hbase-site"],
-    owner=params.yarn_user,
-    mode="f",
-  )
-
-  if name in params.service_map:
-    service_name = params.service_map[name]
-
-    ServiceConfig(
-      service_name,
-      action="change_user",
-      username=params.yarn_user,
-      password=Script.get_password(params.yarn_user),
-    )
-
-
 def setup_atsv2_backend(name=None, config_dir=None):
   import params
 

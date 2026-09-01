@@ -95,13 +95,8 @@ public class ServiceAdvisor {
   private static ProcessBuilder preparePythonShellCommand(ServiceAdvisorCommandType commandType, String hostsFile, String servicesFile, String outputFile, String errorFile) {
     List<String> builderParameters = new ArrayList<String>();
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      builderParameters.add("cmd");
-      builderParameters.add("/c");
-    } else {
-      builderParameters.add("sh");
-      builderParameters.add("-c");
-    }
+    builderParameters.add("sh");
+    builderParameters.add("-c");
 
     StringBuilder commandString = new StringBuilder();
     commandString.append(PYTHON_STACK_ADVISOR_SCRIPT + " ");

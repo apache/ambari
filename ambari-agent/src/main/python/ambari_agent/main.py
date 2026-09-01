@@ -248,10 +248,7 @@ def perform_prestart_checks(expected_hostname):
       logger.error(msg)
       sys.exit(1)
   # Check if there is another instance running
-  if (
-    os.path.isfile(agent_pidfile)
-    and not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY
-  ):
+  if os.path.isfile(agent_pidfile):
     print(f"{agent_pidfile} already exists, exiting")
     sys.exit(1)
   # check if ambari prefix exists
@@ -419,7 +416,6 @@ def init_loggers(options):
 
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
-# we need this for windows os, where no sigterm available
 def main(options, initializer_module, heartbeat_stop_callback=None):
   global config
   global home_dir
@@ -488,8 +484,7 @@ def main(options, initializer_module, heartbeat_stop_callback=None):
     logger.info("Agent is configured to ignore system proxy settings")
     # reconfigure_urllib2_opener(ignore_system_proxy=True)
 
-  if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-    daemonize()
+  daemonize()
 
   #
   # Iterate through the list of server hostnames and connect to the first active server
@@ -531,7 +526,7 @@ def main(options, initializer_module, heartbeat_stop_callback=None):
       #
       # If Ambari Agent connected to the server or
       # Ambari Agent was stopped using stop event
-      # Clean up if not Windows OS
+      # Clean up the connected or stopped agent.
       #
       if connected or stopped:
         ExitHelper().exit()

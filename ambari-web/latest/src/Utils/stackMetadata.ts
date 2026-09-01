@@ -23,15 +23,6 @@ type StackServiceResource = {
   };
 };
 
-type ClusterStackResource = {
-  Clusters?: {
-    stack?: string;
-    version?: string;
-  };
-  stack?: string;
-  version?: string;
-};
-
 const CLASSIC_NON_INSTALLABLE_SERVICES = new Set(["KERBEROS"]);
 
 export function isInstallableStackService(resource: unknown): boolean {
@@ -45,18 +36,4 @@ export function isInstallableStackService(resource: unknown): boolean {
 
 export function filterInstallableStackServices<T>(resources: T[]): T[] {
   return resources.filter(isInstallableStackService);
-}
-
-export function getClusterStackName(cluster: unknown): string {
-  const clusterResource = cluster as ClusterStackResource | null;
-  const explicitStack = clusterResource?.stack || clusterResource?.Clusters?.stack;
-  if (explicitStack) return explicitStack;
-
-  const version = clusterResource?.version || clusterResource?.Clusters?.version || "";
-  return version.split("-")[0] || "";
-}
-
-export function isWindowsStack(stackName: unknown): boolean {
-  return typeof stackName === "string"
-    && stackName.trim().toUpperCase() === "HDPWIN";
 }

@@ -144,26 +144,5 @@ class ZookeeperServerLinux(ZookeeperServer):
     return [status_params.zk_pid_file]
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ZookeeperServerWindows(ZookeeperServer):
-  def install(self, env):
-    from resource_management.libraries.functions.windows_service_utils import (
-      check_windows_service_exists,
-    )
-    import params
-
-    if not check_windows_service_exists(params.zookeeper_win_service_name):
-      self.install_packages(env)
-    self.configure(env)
-
-  def status(self, env):
-    from resource_management.libraries.functions.windows_service_utils import (
-      check_windows_service_status,
-    )
-    import status_params
-
-    check_windows_service_status(status_params.zookeeper_win_service_name)
-
-
 if __name__ == "__main__":
   ZookeeperServer().execute()

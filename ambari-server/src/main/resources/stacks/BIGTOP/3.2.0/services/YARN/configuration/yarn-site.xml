@@ -800,7 +800,7 @@
       resources for containers. This is not used to limit the number of
       CPUs used by YARN containers. If it is set to -1 and
       yarn.nodemanager.resource.detect-hardware-capabilities is true, it is
-      automatically determined from the hardware in case of Windows and Linux.
+      automatically determined from the host hardware.
       In other cases, number of vcores is 8 by default.
     </description>
     <display-name>Number of virtual cores</display-name>

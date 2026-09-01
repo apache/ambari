@@ -287,11 +287,7 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
     }
 
     String unixPathRegex = "^(/[a-zA-Z0-9._-]+)+$";
-    String windowsPathRegex = "^[a-zA-Z]:\\\\([a-zA-Z0-9._-]+\\\\?)+$";
-
-    boolean isValidPath = SystemUtils.IS_OS_WINDOWS
-            ? script.matches(windowsPathRegex)
-            : script.matches(unixPathRegex);
+    boolean isValidPath = script.matches(unixPathRegex);
 
     if (!isValidPath) {
       throw new IllegalArgumentException("Invalid script path format: " + script);
@@ -312,15 +308,8 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
     }
 
 
-    final String shellCommand;
-    final String shellCommandOption;
-    if (SystemUtils.IS_OS_WINDOWS) {
-      shellCommand = "cmd";
-      shellCommandOption = "/c";
-    } else {
-      shellCommand = "sh";
-      shellCommandOption = "-c";
-    }
+    final String shellCommand = "sh";
+    final String shellCommandOption = "-c";
 
     AlertInfo alertInfo = notification.getAlertInfo();
     AlertDefinitionEntity definition = alertInfo.getAlertDefinition();

@@ -22,14 +22,12 @@ from unittest import TestCase
 import tempfile
 from unittest.mock import patch
 from unittest.mock import MagicMock
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_commons.os_check import OSCheck
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Hardware import Hardware
 from ambari_agent.Facter import FacterLinux
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestRegistration(TestCase):
   @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_writable_mount", new=MagicMock(return_value=True))

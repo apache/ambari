@@ -196,13 +196,8 @@ public class StackAdvisorRunner {
     switch (serviceAdvisorType) {
       case PYTHON:
       case JAVA:
-        if (System.getProperty("os.name").contains("Windows")) {
-          builderParameters.add("cmd");
-          builderParameters.add("/c");
-        } else {
-          builderParameters.add("sh");
-          builderParameters.add("-c");
-        }
+        builderParameters.add("sh");
+        builderParameters.add("-c");
         break;
       default:
         break;

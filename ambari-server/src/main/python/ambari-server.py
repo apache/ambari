@@ -149,25 +149,6 @@ class UserActionRestart(UserAction):
 # Ensures only one instance of the process is running.
 #     If this is the second instance of the process, the function fails.
 #
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def start(options):
-  from ambari_windows_service import AmbariServerService, ctrlHandler
-
-  status, pid = is_server_runing()
-  if status:
-    err = "Ambari Server is already running."
-    raise FatalException(1, err)
-
-  AmbariServerService.set_ctrl_c_handler(ctrlHandler)
-
-  # Run as a normal process. Invoke the ServiceMain directly.
-  childProc = server_process_main(options)
-
-  childProc.wait()
-
-  pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
-  remove_file(pid_file_path)
-
 
 #
 # Starts the Ambari Server.
@@ -186,30 +167,6 @@ def start(args):
   logger.info("Started ambari-server.")
 
 
-#
-# Starts the Ambari Server as a service.
-# Start the server as a Windows service. If the Ambari server is
-#     not registered as a service, the function fails. By default, only one instance of the service can
-#     possibly run.
-#
-def svcstart():
-  from ambari_windows_service import AmbariServerService
-
-  AmbariServerService.Start()
-  pass
-
-
-#
-# Stops the Ambari Server service.
-#
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def stop():
-  from ambari_windows_service import AmbariServerService
-
-  AmbariServerService.Stop()
-
-
-#
 # Stops the Ambari Server.
 #
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -267,18 +224,6 @@ def database_purge(args):
 #
 # The Ambari Server status.
 #
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def status(args):
-  args.exit_message = None
-  status, statusStr = is_server_runing()
-
-  print("Ambari Server is " + statusStr)
-
-  if status:
-    args.exit_code = 0
-  else:
-    args.exit_code = 3
-
 
 #
 # The Ambari Server status.
@@ -305,38 +250,6 @@ def refresh_stack_hash_action():
   logger.info("Refresh stack hash.")
   properties = get_ambari_properties()
   refresh_stack_hash(properties)
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def create_setup_security_actions(args):
-  action_list = [
-    [
-      "setup-https",
-      "Enable HTTPS for Ambari server.",
-      UserActionRestart(setup_https, args),
-    ],
-    [
-      "encrypt-passwords",
-      "Encrypt passwords managed by Ambari.",
-      UserAction(setup_sensitive_data_encryption, args),
-    ],
-    [
-      "setup-kerberos-jaas",
-      "Setup Ambari kerberos JAAS configuration.",
-      UserAction(setup_ambari_krb5_jaas, args),
-    ],
-    [
-      "setup-truststore",
-      "Setup truststore.",
-      UserActionRestart(setup_truststore, args),
-    ],
-    [
-      "import-certificate",
-      "Import certificate to truststore.",
-      UserActionRestart(setup_truststore, True, args),
-    ],
-  ]
-  return action_list
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -469,217 +382,6 @@ def print_action_arguments_help(action):
     print(f"  required:{';'.join([print_opt for print_opt, _ in required_options])}")
   if optional_options:
     print(f"  optional:{';'.join([print_opt for print_opt, _ in optional_options])}")
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def init_action_parser(action, parser):
-  parser.add_option(
-    "-k",
-    "--service-user-name",
-    dest="svc_user",
-    default=None,
-    help="User account under which the Ambari Server service will run",
-  )
-  parser.add_option(
-    "-x",
-    "--service-user-password",
-    dest="svc_password",
-    default=None,
-    help="Password for the Ambari Server service user account",
-  )
-
-  parser.add_option(
-    "-f",
-    "--init-script-file",
-    dest="init_db_script_file",
-    default="resources" + os.sep + "Ambari-DDL-SQLServer-CREATE.sql",
-    help="File with database setup script",
-  )
-  parser.add_option(
-    "-r",
-    "--drop-script-file",
-    dest="cleanup_db_script_file",
-    default="resources" + os.sep + "Ambari-DDL-SQLServer-DROP.sql",
-    help="File with database cleanup script",
-  )
-  parser.add_option(
-    "-j",
-    "--java-home",
-    dest="java_home",
-    default=None,
-    help="Use specified java_home.  Must be valid on all hosts",
-  )
-  parser.add_option(
-    "-v",
-    "--verbose",
-    action="store_true",
-    dest="verbose",
-    default=False,
-    help="Print verbose status messages",
-  )
-  parser.add_option(
-    "-s",
-    "--silent",
-    action="store_true",
-    dest="silent",
-    default=False,
-    help="Silently accepts default prompt values",
-  )
-  parser.add_option(
-    "-g",
-    "--debug",
-    action="store_true",
-    dest="debug",
-    default=False,
-    help="Start ambari-server in debug mode",
-  )
-  parser.add_option(
-    "-y",
-    "--suspend-start",
-    action="store_true",
-    dest="suspend_start",
-    default=False,
-    help="Freeze ambari-server Java process at startup in debug mode",
-  )
-
-  parser.add_option(
-    "-a",
-    "--databasehost",
-    dest="database_host",
-    default=None,
-    help="Hostname of database server",
-  )
-  parser.add_option(
-    "-n",
-    "--databaseport",
-    dest="database_port",
-    default=None,
-    help="Database server listening port",
-  )
-  parser.add_option(
-    "-d",
-    "--databasename",
-    dest="database_name",
-    default=None,
-    help="Database/Schema/Service name or ServiceID",
-  )
-  parser.add_option(
-    "-w",
-    "--windowsauth",
-    action="store_true",
-    dest="database_windows_auth",
-    default=None,
-    help="Integrated Windows authentication",
-  )
-  parser.add_option(
-    "-u",
-    "--databaseusername",
-    dest="database_username",
-    default=None,
-    help="Database user login",
-  )
-  parser.add_option(
-    "-p",
-    "--databasepassword",
-    dest="database_password",
-    default=None,
-    help="Database user password",
-  )
-  parser.add_option(
-    "--jdbc-driver",
-    default=None,
-    dest="jdbc_driver",
-    help="Specifies the path to the JDBC driver JAR file",
-  )
-  parser.add_option(
-    "--skip-properties-validation",
-    action="store_true",
-    default=False,
-    help="Skip properties file validation",
-    dest="skip_properties_validation",
-  )
-  parser.add_option(
-    "--skip-database-check",
-    action="store_true",
-    default=False,
-    help="Skip database consistency check",
-    dest="skip_database_check",
-  )
-  parser.add_option(
-    "--skip-view-extraction",
-    action="store_true",
-    default=False,
-    help="Skip extraction of system views",
-    dest="skip_view_extraction",
-  )
-  parser.add_option(
-    "--auto-fix-database",
-    action="store_true",
-    default=False,
-    help="Automatically fix database consistency issues",
-    dest="fix_database_consistency",
-  )
-  parser.add_option(
-    "--enable-lzo-under-gpl-license",
-    action="store_true",
-    default=False,
-    help="Automatically accepts GPL license",
-    dest="accept_gpl",
-  )
-  add_parser_options(
-    "--mpack",
-    default=None,
-    help="Specify the path for management pack to be installed/upgraded",
-    dest="mpack_path",
-    parser=parser,
-    required_for_actions=[INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION],
-  )
-  add_parser_options(
-    "--mpack-name",
-    default=None,
-    help="Specify the management pack name to be uninstalled",
-    dest="mpack_name",
-    parser=parser,
-    required_for_actions=[UNINSTALL_MPACK_ACTION],
-  )
-  add_parser_options(
-    "--purge",
-    action="store_true",
-    default=False,
-    help="Purge existing resources specified in purge-list",
-    dest="purge",
-    parser=parser,
-    optional_for_actions=[INSTALL_MPACK_ACTION],
-  )
-  purge_resources = ",".join(
-    [
-      STACK_DEFINITIONS_RESOURCE_NAME,
-      SERVICE_DEFINITIONS_RESOURCE_NAME,
-      MPACKS_RESOURCE_NAME,
-    ]
-  )
-  default_purge_resources = ",".join(
-    [STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME]
-  )
-  add_parser_options(
-    "--purge-list",
-    default=default_purge_resources,
-    help=f"Comma separated list of resources to purge ({purge_resources}). By default ({default_purge_resources}) will be purged.",
-    dest="purge_list",
-    parser=parser,
-    optional_for_actions=[INSTALL_MPACK_ACTION],
-  )
-  add_parser_options(
-    "--force",
-    action="store_true",
-    default=False,
-    help="Force install management pack",
-    dest="force",
-    parser=parser,
-    optional_for_actions=[INSTALL_MPACK_ACTION],
-  )
-  # -b and -i the remaining available short options
-  # -h reserved for help
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -1540,19 +1242,6 @@ def init_kerberos_setup_parser_options(parser):
   )
 
 
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def are_cmd_line_db_args_blank(options):
-  if (
-    options.database_host is None
-    and options.database_name is None
-    and options.database_windows_auth is None
-    and options.database_username is None
-    and options.database_password is None
-  ):
-    return True
-  return False
-
-
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def are_cmd_line_db_args_blank(options):
   if (
@@ -1562,36 +1251,6 @@ def are_cmd_line_db_args_blank(options):
     and options.database_name is None
     and options.database_username is None
     and options.database_password is None
-  ):
-    return True
-  return False
-
-
-def are_db_auth_options_ok(db_windows_auth, db_username, db_password):
-  if db_windows_auth is True:
-    return True
-  else:
-    if (
-      db_username is not None
-      and db_username != ""
-      and db_password is not None
-      and db_password != ""
-    ):
-      return True
-  return False
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def are_cmd_line_db_args_valid(options):
-  if (
-    options.database_host is not None
-    and options.database_host != ""
-    # and options.database_name is not None \         # ambari by default is ok
-    and are_db_auth_options_ok(
-      options.database_windows_auth,
-      options.database_username,
-      options.database_password,
-    )
   ):
     return True
   return False
@@ -1611,20 +1270,8 @@ def are_cmd_line_db_args_valid(options):
   return False
 
 
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def init_debug(options):
-  if options.debug:
-    sys.frozen = "windows_exe"  # Fake py2exe so we can debug
-
-
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_debug(options):
-  pass
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def fix_database_options(options, parser):
-  _validate_database_port(options, parser)
   pass
 
 
@@ -1679,28 +1326,6 @@ def _validate_database_port(options, parser):
     if not correct:
       parser.print_help()
       parser.error("Incorrect database port " + options.database_port)
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def create_user_action_map(args, options):
-  action_map = {
-    SETUP_ACTION: UserAction(setup, options),
-    START_ACTION: UserAction(svcstart),
-    PSTART_ACTION: UserAction(start, options),
-    STOP_ACTION: UserAction(stop),
-    RESET_ACTION: UserAction(reset, options),
-    STATUS_ACTION: UserAction(status, options),
-    UPGRADE_ACTION: UserAction(upgrade, options),
-    LDAP_SETUP_ACTION: UserAction(setup_ldap, options),
-    SETUP_SECURITY_ACTION: UserActionRestart(setup_security, options),
-    REFRESH_STACK_HASH_ACTION: UserAction(refresh_stack_hash_action),
-    SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
-    INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
-    UNINSTALL_MPACK_ACTION: UserAction(uninstall_mpack, options),
-    UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),
-    SETUP_TPROXY_ACTION: UserAction(setup_trusted_proxy, options),
-  }
-  return action_map
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)

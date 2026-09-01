@@ -43,7 +43,7 @@
 # Java command to use when running NiFi
 java=java
 
-# Username to use when running NiFi. This value will be ignored on Windows.
+# Username to use when running NiFi.
 run.as={{nifi_user}}
 ##run.as=root
 
@@ -112,4 +112,3 @@ notification.max.attempts=5
   </property>
 
 </configuration>
-

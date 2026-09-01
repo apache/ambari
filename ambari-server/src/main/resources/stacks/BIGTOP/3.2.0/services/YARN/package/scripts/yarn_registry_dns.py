@@ -67,12 +67,6 @@ class RegistryDNS(Script):
     yarn(name="registrydns")
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class RegistryDNSWindows(RegistryDNS):
-  def status(self, env):
-    service("registrydns", action="status")
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class RegistryDNSDefault(RegistryDNS):
   def pre_upgrade_restart(self, env, upgrade_type=None):

@@ -73,12 +73,10 @@ created = 2013-07-02 20:39:22.162757"""
 from only_for_platform import (
   only_for_platform,
   not_for_platform,
-  PLATFORM_WINDOWS,
   PLATFORM_LINUX,
 )
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestHostCleanup(TestCase):
   def setUp(self):
     HostCleanup.logger = MagicMock()

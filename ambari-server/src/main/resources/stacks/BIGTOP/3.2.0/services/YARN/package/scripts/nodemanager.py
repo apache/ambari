@@ -68,12 +68,6 @@ class Nodemanager(Script):
     yarn(name="nodemanager")
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class NodemanagerWindows(Nodemanager):
-  def status(self, env):
-    service("nodemanager", action="status")
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class NodemanagerDefault(Nodemanager):
   def pre_upgrade_restart(self, env, upgrade_type=None):

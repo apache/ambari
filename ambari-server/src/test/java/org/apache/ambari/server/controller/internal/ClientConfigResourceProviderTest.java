@@ -334,11 +334,6 @@ public class ClientConfigResourceProviderTest {
     String stackRoot = "/tmp/stacks/S1/V1";
     String packageFolder = "PIG/package";
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = "C:\\tmp\\stacks\\S1\\V1";
-      packageFolder = "PIG\\package";
-    }
-
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
         componentName, displayName, hostName, publicHostname, desiredState, "", null, null, null,
         null);
@@ -447,13 +442,6 @@ public class ClientConfigResourceProviderTest {
     String commandLine = "ambari-python-wrap /tmp/stacks/S1/V1/PIG/package/null generate_configs " + newFile +
         " /tmp/stacks/S1/V1/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
         "INFO /var/lib/ambari-server/tmp";
-
-    if (System.getProperty("os.name").contains("Windows")) {
-      commandLine = "ambari-python-wrap " + stackRoot +
-          "\\PIG\\package\\null generate_configs null " +
-          stackRoot + "\\PIG\\package /var/lib/ambari-server/tmp\\structured-out.json " +
-          "INFO /var/lib/ambari-server/tmp";
-    }
 
     ProcessBuilder processBuilder = PowerMock.createNiceMock(ProcessBuilder.class);
     PowerMock.expectNew(ProcessBuilder.class, Arrays.asList(commandLine.split("\\s+"))).andReturn(processBuilder).once();
@@ -566,10 +554,6 @@ public class ClientConfigResourceProviderTest {
     String packageFolder = StackManager.COMMON_SERVICES + "/PIG/package";
     String commonServicesPath = "/var/lib/ambari-server/src/main/resources" + File.separator + "common-services";
 
-    if (System.getProperty("os.name").contains("Windows")) {
-      packageFolder = StackManager.COMMON_SERVICES + "\\PIG\\package";
-    }
-
     ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse(clusterName, serviceName,
         componentName, displayName, hostName, publicHostName, desiredState, "", null, null, null,
         null);
@@ -653,13 +637,6 @@ public class ClientConfigResourceProviderTest {
     String commandLine = "ambari-python-wrap " + commonServicesPath + "/PIG/package/null generate_configs null " +
         commonServicesPath + "/PIG/package /var/lib/ambari-server/tmp/structured-out.json " +
         "INFO /var/lib/ambari-server/tmp";
-
-    if (System.getProperty("os.name").contains("Windows")) {
-      commandLine = "ambari-python-wrap " + commonServicesPath +
-          "\\PIG\\package\\null generate_configs null " +
-          commonServicesPath + "\\PIG\\package /var/lib/ambari-server/tmp\\structured-out.json " +
-          "INFO /var/lib/ambari-server/tmp";
-    }
 
     ProcessBuilder processBuilder = PowerMock.createNiceMock(ProcessBuilder.class);
     PowerMock.expectNew(ProcessBuilder.class, Arrays.asList(commandLine.split("\\s+"))).andReturn(processBuilder).once();

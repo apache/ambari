@@ -65,12 +65,6 @@ class ApplicationTimelineServer(Script):
     yarn(name="apptimelineserver")
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ApplicationTimelineServerWindows(ApplicationTimelineServer):
-  def status(self, env):
-    service("timelineserver", action="status")
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ApplicationTimelineServerDefault(ApplicationTimelineServer):
   def pre_upgrade_restart(self, env, upgrade_type=None):

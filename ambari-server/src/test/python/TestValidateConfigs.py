@@ -22,13 +22,10 @@ import tempfile
 from unittest import TestCase
 from unittest.mock import patch
 
-from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
 
-if get_platform() != PLATFORM_WINDOWS:
-  from validate_configs import ValidateConfigs
+from validate_configs import ValidateConfigs
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestValidateConfigs(TestCase):
   @patch("os.geteuid")
   def test_check_users(self, geteuid_mock):

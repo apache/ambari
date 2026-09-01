@@ -28,13 +28,6 @@ from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import get_ambari_repo_file_full_name
 
-if OSCheck.is_windows_family():
-  import urllib.request, urllib.error, urllib.parse
-
-  from ambari_commons.exceptions import FatalException
-  from ambari_commons.os_utils import run_os_command
-
-
 AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 PROJECT_VERSION_DEFAULT = "DEFAULT"
 
@@ -89,23 +82,6 @@ def _ret_merge2(ret, ret2):
   return _ret_merge(ret, ret2["exitstatus"], ret["log"][0], ret["log"][1])
 
 
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def execOsCommand(osCommand, tries=1, try_sleep=0, ret=None, cwd=None):
-  ret = _ret_init(ret)
-
-  for i in range(0, tries):
-    if i > 0:
-      time.sleep(try_sleep)
-      _ret_append_stderr(ret, "Retrying " + str(osCommand))
-
-    retcode, stdout, stderr = run_os_command(osCommand, cwd=cwd)
-    _ret_merge(ret, retcode, stdout, stderr)
-    if retcode == 0:
-      break
-
-  return ret
-
-
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def execOsCommand(osCommand, tries=1, try_sleep=0, ret=None, cwd=None):
   ret = _ret_init(ret)
@@ -146,36 +122,9 @@ def installAgent(projectVersion, ret=None):
       "--allow-unauthenticated",
       "ambari-agent=" + projectVersion + "*",
     ]
-  elif OSCheck.is_windows_family():
-    packageParams = "/AmbariRoot:" + AMBARI_INSTALL_ROOT
-    Command = [
-      "cmd",
-      "/c",
-      "choco",
-      "install",
-      "-y",
-      "ambari-agent",
-      "--version=" + projectVersion,
-      '--params="' + packageParams + '"',
-    ]
   else:
     Command = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent-" + projectVersion]
   return execOsCommand(Command, tries=3, try_sleep=10, ret=ret)
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def configureAgent(server_hostname, user_run_as, ret=None):
-  # Customize ambari-agent.ini & register the Ambari Agent service
-  agentSetupCmd = [
-    "cmd",
-    "/c",
-    "ambari-agent.cmd",
-    "setup",
-    "--hostname=" + server_hostname,
-  ]
-  return execOsCommand(
-    agentSetupCmd, tries=3, try_sleep=10, cwd=AMBARI_AGENT_INSTALL_SYMLINK, ret=ret
-  )
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -198,17 +147,6 @@ def configureAgent(server_hostname, user_run_as, ret=None):
   ]
   ret = execOsCommand(osCommand, ret=ret)
   return ret
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def runAgent(passPhrase, expected_hostname, user_run_as, verbose, ret=None):
-  ret = _ret_init(ret)
-
-  # Invoke ambari-agent restart as a child process
-  agentRestartCmd = ["cmd", "/c", "ambari-agent.cmd", "restart"]
-  return execOsCommand(
-    agentRestartCmd, tries=3, try_sleep=10, cwd=AMBARI_AGENT_INSTALL_SYMLINK, ret=ret
-  )
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -244,19 +182,6 @@ def runAgent(passPhrase, expected_hostname, user_run_as, verbose, ret=None):
   return {"exitstatus": agent_retcode, "log": log}
 
 
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def checkVerbose():
-  verbose = False
-  if os.path.exists(AMBARI_AGENT_INSTALL_SYMLINK):
-    agentStatusCmd = ["cmd", "/c", "ambari-agent.cmd", "status"]
-    ret = execOsCommand(
-      agentStatusCmd, tries=3, try_sleep=10, cwd=AMBARI_AGENT_INSTALL_SYMLINK
-    )
-    if ret["exitstatus"] == 0 and ret["log"][0].find("running") != -1:
-      verbose = True
-  return verbose
-
-
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def checkVerbose():
   verbose = False
@@ -265,26 +190,6 @@ def checkVerbose():
   if execOsCommand(cmds)["exitstatus"] == 0 or execOsCommand(cmdl)["exitstatus"] == 0:
     verbose = True
   return verbose
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def getOptimalVersion(initialProjectVersion):
-  optimalVersion = initialProjectVersion
-  ret = findNearestAgentPackageVersion(optimalVersion)
-  if (
-    ret["exitstatus"] == 0
-    and ret["log"][0].strip() != ""
-    and initialProjectVersion
-    and ret["log"][0].strip().startswith(initialProjectVersion)
-  ):
-    optimalVersion = ret["log"][0].strip()
-    retcode = 0
-  else:
-    ret = getAvailableAgentPackageVersions()
-    retcode = 1
-    optimalVersion = ret["log"]
-
-  return {"exitstatus": retcode, "log": optimalVersion}
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -315,22 +220,7 @@ def findNearestAgentPackageVersion(projectVersion):
       "-c",
       "zypper --no-gpg-checks --non-interactive -q search -s --match-exact ambari-agent | grep '"
       + projectVersion
-      + "' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' ",
-    ]
-  elif OSCheck.is_windows_family():
-    listPackagesCommand = [
-      "cmd",
-      "/c",
-      "choco list ambari-agent --pre --all | findstr "
-      + projectVersion
-      + " > agentPackages.list",
-    ]
-    execOsCommand(listPackagesCommand)
-    Command = [
-      "cmd",
-      "/c",
-      "powershell",
-      "get-content agentPackages.list | select-object -last 1 | foreach-object {$_ -replace 'ambari-agent ', ''}",
+      + r"' | cut -d '|' -f 4 | head -n1 | sed -e 's/-\w[^:]*//1' ",
     ]
   elif OSCheck.is_ubuntu_family():
     if projectVersion == "  ":
@@ -366,13 +256,6 @@ def isAgentPackageAlreadyInstalled(projectVersion):
       "dpkg-query -W -f='${Status} ${Version}\n' ambari-agent | grep -v deinstall | grep "
       + projectVersion,
     ]
-  elif OSCheck.is_windows_family():
-    Command = [
-      "cmd",
-      "/c",
-      "choco list ambari-agent --local-only | findstr ambari-agent | findstr "
-      + projectVersion,
-    ]
   else:
     Command = ["bash", "-c", "rpm -qa | grep ambari-agent-" + projectVersion]
   ret = execOsCommand(Command)
@@ -387,13 +270,7 @@ def getAvailableAgentPackageVersions():
     Command = [
       "bash",
       "-c",
-      "zypper --no-gpg-checks --non-interactive -q search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'",
-    ]
-  elif OSCheck.is_windows_family():
-    Command = [
-      "cmd",
-      "/c",
-      "choco list ambari-agent --pre --all | findstr ambari-agent",
+      "zypper --no-gpg-checks --non-interactive -q search -s --match-exact ambari-agent | grep ambari-agent | sed -re 's/\\s+/ /g' | cut -d '|' -f 4 | tr '\\n' ', ' | sed -s 's/[-|~][A-Za-z0-9]*//g'",
     ]
   elif OSCheck.is_ubuntu_family():
     Command = [

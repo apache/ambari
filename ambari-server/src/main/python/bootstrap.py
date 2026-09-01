@@ -35,10 +35,7 @@ from datetime import datetime
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
-if OSCheck.is_windows_family():
-  from ambari_commons.os_utils import run_os_command, run_in_shell
-else:
-  from resource_management.core.shell import quote_bash_args
+from resource_management.core.shell import quote_bash_args
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
 HOST_BOOTSTRAP_TIMEOUT = 300
@@ -207,51 +204,6 @@ class SSH:
     return {"exitstatus": sshstat.returncode, "log": log, "errormsg": errorMsg}
 
 
-class PSR:
-  """PowerShell Remoting implementation of this"""
-
-  def __init__(self, command, host, host_log, params=None, errorMessage=None):
-    self.command = command
-    self.host = host
-    self.host_log = host_log
-    self.params = params
-    self.errorMessage = errorMessage
-    pass
-
-  def run(self):
-    # os.environ['COMSPEC'] = 'c:\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
-    psrcommand = [
-      "powershell.exe",
-      "-NoProfile",
-      "-InputFormat",
-      "Text",
-      "-ExecutionPolicy",
-      "unrestricted",
-      "-Command",
-      self.command,
-    ]
-    if self.params:
-      psrcommand.extend([self.params])
-    if DEBUG:
-      self.host_log.write("Running PowerShell command " + " ".join(psrcommand))
-    self.host_log.write("==========================")
-    self.host_log.write(
-      "\nCommand start time " + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    )
-    retcode, stdout, stderr = run_os_command(psrcommand)
-    errorMsg = stderr
-    if self.errorMessage and retcode != 0:
-      errorMsg = self.errorMessage + "\n" + stderr
-    log = stdout + "\n" + errorMsg
-    self.host_log.write(log)
-    self.host_log.write("PowerShell command execution finished")
-    self.host_log.write("host=" + self.host + ", exitcode=" + str(retcode))
-    self.host_log.write(
-      "Command end time " + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    )
-    return {"exitstatus": retcode, "log": log, "errormsg": errorMsg}
-
-
 class Bootstrap(threading.Thread):
   """Bootstrap the agent on a separate host"""
 
@@ -333,190 +285,6 @@ class Bootstrap(threading.Thread):
       " or use manual agent registration.".format(HOST_BOOTSTRAP_TIMEOUT)
     )
     self.createDoneFile(199)
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class BootstrapWindows(Bootstrap):
-  CREATE_REMOTING_DIR_SCRIPT_NAME = "Create-RemotingDir.ps1"
-  SEND_REMOTING_FILE_SCRIPT_NAME = "Send-RemotingFile.ps1"
-  UNZIP_REMOTING_SCRIPT_NAME = "Unzip-RemotingFile.ps1"
-  RUN_REMOTING_SCRIPT_NAME = "Run-RemotingScript.ps1"
-  CONFIGURE_CHOCOLATEY_SCRIPT_NAME = "Configure-Chocolatey.ps1"
-
-  BOOTSTRAP_ARCHIVE_NAME = "bootstrap.zip"
-  CHOCOLATEY_INSTALL_VAR_NAME = "ChocolateyInstall"
-  CHOCOLATEY_CONFIG_DIR = "config"
-  CHOCOLATEY_CONFIG_FILENAME = "chocolatey.config"
-  chocolateyConfigName = "chocolatey.config"
-
-  def getTempFolder(self):
-    installationDrive = os.path.splitdrive(self.shared_state.script_dir)[0]
-    return os.path.join(
-      installationDrive, os.sep, "var", "temp", "bootstrap", self.getAmbariVersion()
-    )
-
-  def createTargetDir(self):
-    # Creating target dir
-    self.host_log.write("==========================\n")
-    self.host_log.write("Creating target directory...")
-    command = os.path.join(
-      self.shared_state.script_dir, self.CREATE_REMOTING_DIR_SCRIPT_NAME
-    )
-    psr = PSR(
-      command, self.host, self.host_log, params=f"{self.host} {self.getTempFolder()}"
-    )
-    retcode = psr.run()
-    self.host_log.write("\n")
-    return retcode
-
-  def unzippingBootstrapArchive(self):
-    # Unzipping bootstrap archive
-    zipFile = os.path.join(self.getTempFolder(), self.BOOTSTRAP_ARCHIVE_NAME)
-    self.host_log.write("==========================\n")
-    self.host_log.write("Unzipping bootstrap archive...")
-    command = os.path.join(
-      self.shared_state.script_dir, self.UNZIP_REMOTING_SCRIPT_NAME
-    )
-    psr = PSR(
-      command,
-      self.host,
-      self.host_log,
-      params=f"{self.host} {zipFile} {self.getTempFolder()}",
-    )
-    result = psr.run()
-    self.host_log.write("\n")
-    return result
-
-  def copyBootstrapArchive(self):
-    # Copying the bootstrap archive file
-    fileToCopy = os.path.join(
-      self.shared_state.script_dir,
-      os.path.dirname(self.shared_state.script_dir),
-      self.shared_state.setup_agent_file,
-    )
-    target = os.path.join(self.getTempFolder(), self.BOOTSTRAP_ARCHIVE_NAME)
-    self.host_log.write("==========================\n")
-    self.host_log.write("Copying bootstrap archive...")
-    command = os.path.join(
-      self.shared_state.script_dir, self.SEND_REMOTING_FILE_SCRIPT_NAME
-    )
-    psr = PSR(
-      command, self.host, self.host_log, params=f"{self.host} {fileToCopy} {target}"
-    )
-    result = psr.run()
-    self.host_log.write("\n")
-    return result
-
-  def copyChocolateyConfig(self):
-    # Copying chocolatey.config file
-    fileToCopy = getConfigFile()
-    target = os.path.join(self.getTempFolder(), self.CHOCOLATEY_CONFIG_FILENAME)
-    self.host_log.write("==========================\n")
-    self.host_log.write("Copying chocolatey config file...")
-    command = os.path.join(
-      self.shared_state.script_dir, self.SEND_REMOTING_FILE_SCRIPT_NAME
-    )
-    psr = PSR(
-      command, self.host, self.host_log, params=f"{self.host} {fileToCopy} {target}"
-    )
-    result = psr.run()
-    self.host_log.write("\n")
-    return result
-
-  def configureChocolatey(self):
-    self.host_log.write("==========================\n")
-    self.host_log.write("Running configure chocolatey script...")
-    tmpConfig = os.path.join(self.getTempFolder(), self.CHOCOLATEY_CONFIG_FILENAME)
-    command = os.path.join(
-      self.shared_state.script_dir, self.CONFIGURE_CHOCOLATEY_SCRIPT_NAME
-    )
-    psr = PSR(command, self.host, self.host_log, params=f"{self.host} {tmpConfig}")
-    result = psr.run()
-    self.host_log.write("\n")
-    return result
-
-  def getRunSetupCommand(self, expected_hostname):
-    setupFile = os.path.join(self.getTempFolder(), self.SETUP_SCRIPT_FILENAME)
-    passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
-    user_run_as = self.shared_state.user_run_as
-    server = self.shared_state.ambari_server
-    version = self.getAmbariVersion()
-    return " ".join(
-      [
-        "python3",
-        setupFile,
-        expected_hostname,
-        passphrase,
-        server,
-        user_run_as,
-        version,
-      ]
-    )
-
-  def runSetupAgent(self):
-    self.host_log.write("==========================\n")
-    self.host_log.write("Running setup agent script...")
-    command = os.path.join(self.shared_state.script_dir, self.RUN_REMOTING_SCRIPT_NAME)
-    psr = PSR(
-      command,
-      self.host,
-      self.host_log,
-      params=f'{self.host} "{self.getRunSetupCommand(self.host)}"',
-    )
-    retcode = psr.run()
-    self.host_log.write("\n")
-    return retcode
-
-  def getConfigFile(self):
-    return os.path.join(
-      os.environ[self.CHOCOLATEY_INSTALL_VAR_NAME],
-      self.CHOCOLATEY_CONFIG_DIR,
-      self.CHOCOLATEY_CONFIG_FILENAME,
-    )
-
-  def run(self):
-    """Copy files and run commands on remote host"""
-    self.status["start_time"] = time.time()
-    # Population of action queue
-    action_queue = [
-      self.createTargetDir,
-      self.copyBootstrapArchive,
-      self.unzippingBootstrapArchive,
-      self.copyChocolateyConfig,
-      self.configureChocolatey,
-      self.runSetupAgent,
-    ]
-
-    last_retcode = 0
-
-    if os.path.exists(getConfigFile()):
-      # Checking execution result   # Execution of action queue
-      while action_queue and last_retcode == 0:
-        action = action_queue.pop(0)
-        ret = self.try_to_execute(action)
-        last_retcode = ret["exitstatus"]
-        err_msg = ret["errormsg"]
-        std_out = ret["log"]
-    else:
-      # If config file is not found, then assume that the hosts have
-      # already been provisioned. Attempt to run the setupAgent script alone.
-      ret = self.try_to_execute(self.runSetupAgent)
-      last_retcode = ret["exitstatus"]
-      err_msg = ret["errormsg"]
-      std_out = ret["log"]
-      pass
-    if last_retcode != 0:
-      message = (
-        "ERROR: Bootstrap of host {0} fails because previous action "
-        "finished with non-zero exit code ({1})\nERROR MESSAGE: {2}\nSTDOUT: {3}".format(
-          self.host, last_retcode, err_msg, std_out
-        )
-      )
-      self.host_log.write(message)
-      logging.error(message)
-
-    self.createDoneFile(last_retcode)
-    self.status["return_code"] = last_retcode
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -1214,12 +982,11 @@ def main(argv=None):
   user_run_as = onlyargs[10]
   passwordFile = onlyargs[11]
 
-  if not OSCheck.is_windows_family():
-    # ssh doesn't like open files
-    subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
+  # ssh doesn't like open files
+  subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
 
-    if passwordFile is not None and passwordFile != "null":
-      subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
+  if passwordFile is not None and passwordFile != "null":
+    subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
 
   logging.info(
     "BootStrapping hosts "

@@ -22,7 +22,6 @@ import tempfile
 from io import RawIOBase
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
-from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
 
 from ambari_commons.os_check import OSCheck
 
@@ -31,8 +30,7 @@ from resource_management.core.source import InlineTemplate
 from resource_management.core.system import System
 from resource_management.libraries.resources.repository import Repository
 
-if get_platform() != PLATFORM_WINDOWS:
-  from resource_management.libraries.providers import repository
+from resource_management.libraries.providers import repository
 
 
 class DummyTemplate(object):

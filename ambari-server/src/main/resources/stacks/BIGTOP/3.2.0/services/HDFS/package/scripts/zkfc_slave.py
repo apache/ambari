@@ -209,28 +209,5 @@ def initialize_ha_zookeeper(params):
   return False
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ZkfcSlaveWindows(ZkfcSlave):
-  def start(self, env):
-    import params
-
-    self.configure(env)
-    Service(params.zkfc_win_service_name, action="start")
-
-  def stop(self, env):
-    import params
-
-    Service(params.zkfc_win_service_name, action="stop")
-
-  def status(self, env):
-    import status_params
-    from resource_management.libraries.functions.windows_service_utils import (
-      check_windows_service_status,
-    )
-
-    env.set_params(status_params)
-    check_windows_service_status(status_params.zkfc_win_service_name)
-
-
 if __name__ == "__main__":
   ZkfcSlave().execute()

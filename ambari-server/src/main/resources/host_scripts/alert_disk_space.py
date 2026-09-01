@@ -129,25 +129,6 @@ def _get_warnings_for_partition(parameters, disk_usage):
   return result_code, label
 
 
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def execute(configurations={}, parameters={}, host_name=None):
-  """
-  Performs simplified disk checks under Windows
-  Returns a tuple containing the result code and a pre-formatted result label
-
-  Keyword arguments:
-  configurations (dictionary): a mapping of configuration key to value
-  parameters (dictionary): a mapping of script parameter key to value
-  host_name (string): the name of this host where the alert is running
-  """
-  try:
-    disk_usage = _get_disk_usage()
-    result = _get_warnings_for_partition(parameters, disk_usage)
-  except NotImplementedError as platform_error:
-    result = ("CRITICAL", [str(platform_error)])
-  return result
-
-
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def _get_disk_usage(path="/"):
   """
@@ -169,40 +150,6 @@ def _get_disk_usage(path="/"):
     )
 
   return DiskInfo(total=total, used=used, free=free, path=path)
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def _get_disk_usage(path=None):
-  """
-  returns a named tuple that contains the total, used, and free disk space
-  in bytes. Windows implementation
-  """
-  import string
-  import ctypes
-
-  used = 0
-  total = 0
-  free = 0
-  drives = []
-  bitmask = ctypes.windll.kernel32.GetLogicalDrives()
-  for letter in string.ascii_uppercase:
-    if bitmask & 1:
-      drives.append(letter)
-    bitmask >>= 1
-  for drive in drives:
-    free_bytes = ctypes.c_ulonglong(0)
-    total_bytes = ctypes.c_ulonglong(0)
-    ctypes.windll.kernel32.GetDiskFreeSpaceExW(
-      ctypes.c_wchar_p(drive + ":\\"),
-      None,
-      ctypes.pointer(total_bytes),
-      ctypes.pointer(free_bytes),
-    )
-    total += total_bytes.value
-    free += free_bytes.value
-    used += total_bytes.value - free_bytes.value
-
-  return DiskInfo(total=total, used=used, free=free, path=None)
 
 
 def _get_formatted_size(bytes):

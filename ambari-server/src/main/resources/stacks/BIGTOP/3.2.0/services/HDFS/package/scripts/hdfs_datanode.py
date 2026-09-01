@@ -89,17 +89,3 @@ def datanode(action=None):
     import status_params
 
     check_process_status(status_params.datanode_pid_file)
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def datanode(action=None):
-  if action == "configure":
-    pass
-  elif action == "start" or action == "stop":
-    import params
-
-    Service(params.datanode_win_service_name, action=action)
-  elif action == "status":
-    import status_params
-
-    check_windows_service_status(status_params.datanode_win_service_name)

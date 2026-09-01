@@ -103,7 +103,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   /**
    * Retrieves repository version, which is unique in this stack.
    *
-   * @param stackName Stack name such as HDP, HDPWIN, BIGTOP
+   * @param stackName Stack name such as HDP or BIGTOP
    * @param version version
    * @return null if there is no suitable repository version
    */
@@ -156,7 +156,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
 
   /**
    * Validates and creates an object.
-   * The version must be unique within this stack name (e.g., HDP, HDPWIN, BIGTOP).
+   * The version must be unique within this stack name (e.g., HDP or BIGTOP).
    * @param stackEntity Stack entity.
    * @param version Stack version, e.g., 2.2 or 2.2.0.1-885
    * @param displayName Unique display name
@@ -173,7 +173,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
 
   /**
    * Validates and creates an object.
-   * The version must be unique within this stack name (e.g., HDP, HDPWIN, BIGTOP).
+   * The version must be unique within this stack name (e.g., HDP or BIGTOP).
    * @param stackEntity Stack entity.
    * @param version Stack version, e.g., 2.2 or 2.2.0.1-885
    * @param displayName Unique display name

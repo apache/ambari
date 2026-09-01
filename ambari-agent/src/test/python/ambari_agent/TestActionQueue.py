@@ -40,7 +40,6 @@ from ambari_commons import OSCheck
 from only_for_platform import (
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
   PLATFORM_LINUX,
 )
 from ambari_agent.InitializerModule import InitializerModule
@@ -1275,37 +1274,3 @@ class TestActionQueue(TestCase):
       ),
       "u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'[PROTECTED]', some text, u'clientssl.keystore.password': u'[PROTECTED]', another text, ",
     )
-
-
-def patch_output_file(pythonExecutor):
-  def windows_py(command, tmpout, tmperr):
-    proc = MagicMock()
-    proc.pid = 33
-    proc.returncode = 0
-    with tmpout:
-      tmpout.write("process_out")
-    with tmperr:
-      tmperr.write("process_err")
-    return proc
-
-  def open_subprocess_files_win(fout, ferr, f):
-    return MagicMock(), MagicMock()
-
-  def read_result_from_files(out_path, err_path, structured_out_path):
-    return "process_out", "process_err", '{"a": "b."}'
-
-  pythonExecutor.launch_python_subprocess = windows_py
-  pythonExecutor.open_subprocess_files = open_subprocess_files_win
-  pythonExecutor.read_result_from_files = read_result_from_files
-
-
-def wraped(func, before=None, after=None):
-  def wrapper(*args, **kwargs):
-    if before is not None:
-      before(*args, **kwargs)
-    ret = func(*args, **kwargs)
-    if after is not None:
-      after(*args, **kwargs)
-    return ret
-
-  return wrapper

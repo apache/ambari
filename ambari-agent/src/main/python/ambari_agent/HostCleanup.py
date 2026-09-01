@@ -559,12 +559,6 @@ class HostCleanup:
           self.do_erase_dir_silent([fileToCheck])
           logger.info("Deleting file/folder: " + fileToCheck)
 
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def get_user_ids(self, userList):
-    userIds = []
-    # No user ids to check in Windows for now
-    return userIds
-
   @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def get_user_ids(self, userList):
     from pwd import getpwnam

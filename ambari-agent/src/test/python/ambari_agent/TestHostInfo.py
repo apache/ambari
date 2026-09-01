@@ -29,8 +29,8 @@ from unittest.mock import create_autospec
 import ambari_commons
 from ambari_commons import OSCheck
 import os
-from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
 from ambari_commons.firewall import Firewall
+from only_for_platform import os_distro_value
 from ambari_commons.os_check import OSCheck, OSConst
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 from ambari_agent.HostInfo import HostInfo, HostInfoLinux
@@ -40,7 +40,6 @@ from resource_management.core import shell
 from resource_management.core.system import System
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
 class TestHostInfo:  # (TestCase):
   @patch("os.path.exists")

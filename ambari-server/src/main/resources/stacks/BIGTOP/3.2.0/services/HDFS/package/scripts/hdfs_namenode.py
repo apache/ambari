@@ -44,11 +44,6 @@ from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from utils import get_dfsadmin_base_command
 from utils import set_up_zkfc_security
 
-if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.windows_service_utils import (
-    check_windows_service_status,
-  )
-
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 
@@ -310,46 +305,6 @@ def namenode(
   elif action == "decommission":
     decommission()
 
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def namenode(
-  action=None,
-  hdfs_binary=None,
-  do_format=True,
-  upgrade_type=None,
-  upgrade_suspended=False,
-  env=None,
-):
-  if action is None:
-    raise Fail('"action" parameter is required for function namenode().')
-
-  if action in ["start", "stop"] and hdfs_binary is None:
-    raise Fail('"hdfs_binary" parameter is required for function namenode().')
-
-  if action == "configure":
-    pass
-  elif action == "start":
-    import params
-
-    # TODO: Replace with format_namenode()
-    namenode_format_marker = os.path.join(params.hadoop_conf_dir, "NN_FORMATTED")
-    if not os.path.exists(namenode_format_marker):
-      hadoop_cmd = f"cmd /C {os.path.join(params.hadoop_home, 'bin', 'hadoop.cmd')}"
-      Execute(f"{hadoop_cmd} namenode -format", logoutput=True)
-      open(namenode_format_marker, "a").close()
-    Service(params.namenode_win_service_name, action=action)
-  elif action == "stop":
-    import params
-
-    Service(params.namenode_win_service_name, action=action)
-  elif action == "status":
-    import status_params
-
-    check_windows_service_status(status_params.namenode_win_service_name)
-  elif action == "decommission":
-    decommission()
-
-
 def create_name_dirs(directories):
   import params
 
@@ -592,36 +547,6 @@ def decommission():
     ExecuteHDFS(
       nn_refresh_cmd, user=hdfs_user, conf_dir=conf_dir, bin_dir=params.hadoop_bin_dir
     )
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def decommission():
-  import params
-
-  hdfs_user = params.hdfs_user
-  conf_dir = params.hadoop_conf_dir
-
-  File(
-    params.exclude_file_path, content=Template("exclude_hosts_list.j2"), owner=hdfs_user
-  )
-
-  if params.hdfs_include_file:
-    File(
-      params.include_file_path,
-      content=Template("include_hosts_list.j2"),
-      owner=params.hdfs_user,
-    )
-    pass
-
-  if params.dfs_ha_enabled:
-    # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
-    # need to execute each command scoped to a particular namenode
-    nn_refresh_cmd = format(
-      "cmd /c hdfs dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes"
-    )
-  else:
-    nn_refresh_cmd = format("cmd /c hdfs dfsadmin -fs {namenode_address} -refreshNodes")
-  Execute(nn_refresh_cmd, user=hdfs_user)
 
 
 def bootstrap_standby_namenode(params, use_path=False):

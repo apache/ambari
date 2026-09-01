@@ -123,46 +123,6 @@ def zookeeper(type=None, upgrade_type=None):
   )
 
 
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def zookeeper(type=None, upgrade_type=None):
-  import params
-
-  configFile("zoo.cfg", template_name="zoo.cfg.j2", mode="f")
-  configFile("configuration.xsl", template_name="configuration.xsl.j2", mode="f")
-
-  ServiceConfig(
-    params.zookeeper_win_service_name,
-    action="change_user",
-    username=params.zk_user,
-    password=Script.get_password(params.zk_user),
-  )
-
-  Directory(
-    params.zk_data_dir, owner=params.zk_user, mode="(OI)(CI)F", create_parents=True
-  )
-  if params.log4j_props != None:
-    File(
-      os.path.join(params.config_dir, "log4j.properties"),
-      mode="f",
-      owner=params.zk_user,
-      content=params.log4j_props,
-    )
-  elif os.path.exists(os.path.join(params.config_dir, "log4j.properties")):
-    File(
-      os.path.join(params.config_dir, "log4j.properties"),
-      mode="f",
-      owner=params.zk_user,
-    )
-  if type == "server":
-    myid = str(sorted(params.zookeeper_hosts).index(params.hostname) + 1)
-    File(
-      os.path.join(params.zk_data_dir, "myid"),
-      owner=params.zk_user,
-      mode="f",
-      content=myid,
-    )
-
-
 def configFile(name, template_name=None, mode=None):
   import params
 

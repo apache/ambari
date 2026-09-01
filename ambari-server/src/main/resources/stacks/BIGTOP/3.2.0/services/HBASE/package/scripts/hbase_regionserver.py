@@ -104,27 +104,6 @@ class HbaseRegionServer(Script):
       )
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HbaseRegionServerWindows(HbaseRegionServer):
-  def start(self, env):
-    import status_params
-
-    self.configure(env)
-    Service(status_params.hbase_regionserver_win_service_name, action="start")
-
-  def stop(self, env):
-    import status_params
-
-    env.set_params(status_params)
-    Service(status_params.hbase_regionserver_win_service_name, action="stop")
-
-  def status(self, env):
-    import status_params
-
-    env.set_params(status_params)
-    check_windows_service_status(status_params.hbase_regionserver_win_service_name)
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseRegionServerDefault(HbaseRegionServer):
   def pre_upgrade_restart(self, env, upgrade_type=None):

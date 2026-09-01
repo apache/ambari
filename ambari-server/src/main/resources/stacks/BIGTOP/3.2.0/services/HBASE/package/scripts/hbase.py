@@ -39,28 +39,6 @@ from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 
 
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def hbase(name=None):
-  import params
-
-  XmlConfig(
-    "hbase-site.xml",
-    conf_dir=params.hbase_conf_dir,
-    configurations=params.config["configurations"]["hbase-site"],
-    configuration_attributes=params.config["configurationAttributes"]["hbase-site"],
-  )
-
-  if name in params.service_map:
-    # Manually overriding service logon user & password set by the installation package
-    service_name = params.service_map[name]
-    ServiceConfig(
-      service_name,
-      action="change_user",
-      username=params.hbase_user,
-      password=Script.get_password(params.hbase_user),
-    )
-
-
 # name is 'master' or 'regionserver' or 'queryserver' or 'client'
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase(name=None):

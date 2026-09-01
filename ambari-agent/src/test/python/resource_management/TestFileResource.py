@@ -23,7 +23,6 @@ from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from ambari_commons.os_check import OSCheck
@@ -35,14 +34,9 @@ from resource_management.core.resources import File
 from resource_management.core.system import System
 import resource_management
 
-if get_platform() != PLATFORM_WINDOWS:
-  import resource_management.core.providers.system
-  import grp
-  import pwd
-else:
-  import resource_management.core.providers.windows.system
-
-
+import resource_management.core.providers.system
+import grp
+import pwd
 @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
 class TestFileResource(TestCase):
   @patch.object(os.path, "dirname")

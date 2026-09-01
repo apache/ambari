@@ -807,7 +807,6 @@
         <configuration>
           <excludes>
             <exclude>conf/unix/logging.conf.sample</exclude>
-            <exclude>conf/windows/logging.conf.sample</exclude>
             <exclude>src/test/python/tmp_hostcheck.result</exclude>
             <exclude>src/examples/*</exclude>
             <exclude>src/test/python/dummy*.txt</exclude>
@@ -817,7 +816,6 @@
             <exclude>**/*.erb</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
-            <exclude>src/main/package/choco/ambari-agent.nuspec</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -855,25 +853,6 @@
   </build>
   <profiles>
     <profile>
-     <id>windows</id>
-     <activation>
-      <os>
-        <family>win</family>
-      </os>
-     </activation>
-     <properties>
-      <envClassifier>win</envClassifier>
-      <dirsep>\</dirsep>
-      <pathsep>;</pathsep>
-      <stack.distribution>HDPWIN</stack.distribution>
-      <executable.python>python3</executable.python>
-      <executable.shell>cmd</executable.shell>
-      <fileextension.shell>cmd</fileextension.shell>
-      <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
-      <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari_agent;${project.basedir}\src\main\python\resource_management;${project.basedir}\src\test\python;${project.basedir}\src\test\python\ambari_agent;${project.basedir}\src\test\python\resource_management;${project.basedir}\..\ambari-server\src\test\python;${project.basedir}\..\ambari-server\src\main\resources\common-services\HDFS\2.1.0.2.0\package\files</path.python.1>
-     </properties>
-    </profile>
-    <profile>
      <id>linux</id>
      <activation>
       <os>
@@ -893,74 +872,10 @@
      </properties>
     </profile>
     <profile>
-      <id>windows-distro</id>
-      <activation>
-        <os>
-          <family>Windows</family>
-        </os>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <configuration>
-              <tarLongFileMode>gnu</tarLongFileMode>
-              <descriptors>
-                <descriptor>src/packages/tarball/all.xml</descriptor>
-                <descriptor>src/packages/windows.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>build-windows-zip</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>build-choco-dir</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <attach>false</attach>
-                  <appendAssemblyId>true</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <descriptors>
-                    <descriptor>src/packages/windows-choco.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <!-- choco package creation -->
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-choco-package</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>choco.exe</executable>
-                  <arguments>
-                    <argument>pack</argument>
-                    <argument>--version=${project.version}</argument>
-                    <argument>${basedir}/target/ambari-agent-${project.version}-choco/ambari-agent.nuspec</argument>
-                  </arguments>
-                  <workingDirectory>target/ambari-agent-${project.version}-choco</workingDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-            <!-- end choco package creation -->
-        </plugins>
-      </build>
+      <id>suse11</id>
+      <properties>
+        <rpm.dependency.list>${rpm.dependency.list.suse}</rpm.dependency.list>
+      </properties>
     </profile>
     <profile>
       <id>pluggable-stack-definition</id>

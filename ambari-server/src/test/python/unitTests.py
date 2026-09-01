@@ -81,11 +81,6 @@ def get_test_files(path, mask=None, recursive=True):
   return current
 
 
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def get_stack_name():
-  return "HDPWIN"
-
-
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def get_stack_name():
   return "HDP"

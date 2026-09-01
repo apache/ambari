@@ -236,18 +236,6 @@ class BSRunner extends Thread {
 
       Map<String, String> envVariables = new HashMap<>();
 
-      if (System.getProperty("os.name").contains("Windows")) {
-        String command2[] = new String[command.length + 1];
-        command2[0] = "python";
-        System.arraycopy(command, 0, command2, 1, command.length);
-        command = command2;
-
-        Map<String, String> envVarsWin = System.getenv();
-        if (envVarsWin != null) {
-          envVariables.putAll(envVarsWin);  //envVarsWin is non-modifiable
-        }
-      }
-
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
           requestIdDir + " user=" + user + " sshPort=" + sshPort + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +

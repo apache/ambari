@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.orm;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
@@ -90,11 +89,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     String sharedResourcesDir = "src/test/resources/";
     String resourcesDir = "src/test/resources/";
     String mpacksv2 = "src/main/resources/mpacks-v2";
-    if (System.getProperty("os.name").contains("Windows")) {
-      stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()), "version").getPath();
-      sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
-    }
 
     if (!properties.containsKey(Configuration.SERVER_PERSISTENCE_TYPE.getKey())) {
       properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");

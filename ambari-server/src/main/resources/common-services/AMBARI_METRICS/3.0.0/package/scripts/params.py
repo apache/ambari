@@ -42,10 +42,7 @@ from functions import calc_xmn_from_xms
 from functions import check_append_heap_property
 from functions import trim_heap_property
 
-if OSCheck.is_windows_family():
-  from params_windows import *
-else:
-  from params_linux import *
+from params_linux import *
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()

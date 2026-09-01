@@ -23,17 +23,15 @@ from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 import os
 import importlib
 
-if get_platform() != PLATFORM_WINDOWS:
-  with patch.object(os, "geteuid", return_value=0):
-    from resource_management.core import sudo
+with patch.object(os, "geteuid", return_value=0):
+  from resource_management.core import sudo
 
-    importlib.reload(sudo)
+  importlib.reload(sudo)
 
 from ambari_commons.os_check import OSCheck
 

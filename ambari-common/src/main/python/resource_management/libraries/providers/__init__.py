@@ -33,7 +33,6 @@ PROVIDERS = dict(
   ubuntu=dict(
     Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
   ),
-  winsrv=dict(Msi="resource_management.libraries.providers.msi.MsiProvider"),
   default=dict(
     ExecuteHadoop="resource_management.libraries.providers.execute_hadoop.ExecuteHadoopProvider",
     ExecuteHDFS="resource_management.libraries.providers.execute_hdfs.ExecuteHDFSProvider",

@@ -80,17 +80,7 @@ from resource_management.libraries.functions.fcntl_based_process_lock import (
 
 import json
 
-if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.install_windows_msi import (
-    install_windows_msi,
-  )
-  from resource_management.libraries.functions.reload_windows_env import (
-    reload_windows_env,
-  )
-  from resource_management.libraries.functions.zip_archive import archive_dir
-  from resource_management.libraries.resources import Msi
-else:
-  from resource_management.libraries.functions.tar_archive import archive_dir
+from resource_management.libraries.functions.tar_archive import archive_dir
 
 USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR> [PROTOCOL]
 
@@ -358,12 +348,6 @@ class Script(object):
 
     Logger.initialize_logger(__name__, logging_level=self.logging_level)
 
-    # on windows we need to reload some of env variables manually because there is no default paths for configs(like
-    # /etc/something/conf on linux. When this env vars created by one of the Script execution, they can not be updated
-    # in agent, so other Script executions will not be able to access to new env variables
-    if OSCheck.is_windows_family():
-      reload_windows_env()
-
     # !!! status commands re-use structured output files; if the status command doesn't update the
     # the file (because it doesn't have to) then we must ensure that the file is reset to prevent
     # old, stale structured output from a prior status command from being used
@@ -384,7 +368,6 @@ class Script(object):
         Script.module_configs = Script.execution_command.get_module_configs()
         Script.cluster_settings = Script.execution_command.get_cluster_settings()
         Script.stack_settings = Script.execution_command.get_stack_settings()
-        # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.items():
           if get_path_from_configuration(
@@ -991,33 +974,13 @@ class Script(object):
         for package in package_list:
           if self.check_package_condition(package):
             name = self.format_package_name(package["name"])
-            # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
-            # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
-            # <osFamily>any<osFamily> which would cause installation failure on Windows.
-            if OSCheck.is_windows_family():
-              if "ambari-metrics" in name:
-                Package(name)
-            else:
-              Package(
-                name,
-                retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
-                retry_count=agent_stack_retry_count,
-              )
+            Package(
+              name,
+              retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+              retry_count=agent_stack_retry_count,
+            )
     except KeyError:
       traceback.print_exc()
-
-    if OSCheck.is_windows_family():
-      # TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
-      hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(
-        config["ambariLevelParams"]["jdk_location"],
-        config["agentLevelParams"]["agentCacheDir"],
-        ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
-        hadoop_user,
-        self.get_password(hadoop_user),
-        str(config["clusterLevelParams"]["stack_version"]),
-      )
-      reload_windows_env()
 
   def check_package_condition(self, package):
     condition = package["condition"]

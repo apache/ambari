@@ -94,12 +94,5 @@ class AmsCollectorDefault(AmsCollector):
   pass
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class AmsCollectorWindows(AmsCollector):
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)  # for security
-
-
 if __name__ == "__main__":
   AmsCollector().execute()

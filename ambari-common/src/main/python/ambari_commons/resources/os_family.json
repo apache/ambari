@@ -93,17 +93,6 @@
           11,
           12
         ]
-      },
-      "winsrv": {
-        "distro": [
-          "win2008server",
-          "win2008serverr2",
-          "win2012server",
-          "win2012serverr2"
-        ],
-        "versions": [
-          6
-        ]
       }
     },
     "aliases": {

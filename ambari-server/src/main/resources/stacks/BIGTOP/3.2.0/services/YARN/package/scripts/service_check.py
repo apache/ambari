@@ -48,45 +48,6 @@ class ServiceCheck(Script):
     pass
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ServiceCheckWindows(ServiceCheck):
-  def service_check(self, env):
-    import params
-
-    env.set_params(params)
-
-    yarn_exe = os_utils.quote_path(os.path.join(params.yarn_home, "bin", "yarn.cmd"))
-
-    run_yarn_check_cmd = f"cmd /C {yarn_exe} node -list"
-
-    component_type = "rm"
-    if params.hadoop_ssl_enabled:
-      component_address = params.rm_webui_https_address
-    else:
-      component_address = params.rm_webui_address
-
-    # temp_dir = os.path.abspath(os.path.join(params.hadoop_home, os.pardir)), "/tmp"
-    temp_dir = os.path.join(os.path.dirname(params.hadoop_home), "temp")
-    validateStatusFileName = "validateYarnComponentStatusWindows.py"
-    validateStatusFilePath = os.path.join(temp_dir, validateStatusFileName)
-    python_executable = sys.executable
-    validateStatusCmd = f"{python_executable} {validateStatusFilePath} {component_type} -p {component_address} -s {params.hadoop_ssl_enabled}"
-
-    if params.security_enabled:
-      kinit_cmd = (
-        f"{params.kinit_path_local} -kt {params.smoke_user_keytab} {params.smokeuser};"
-      )
-      smoke_cmd = kinit_cmd + " " + validateStatusCmd
-    else:
-      smoke_cmd = validateStatusCmd
-
-    File(validateStatusFilePath, content=StaticFile(validateStatusFileName))
-
-    Execute(smoke_cmd, tries=3, try_sleep=5, logoutput=True)
-
-    Execute(run_yarn_check_cmd, logoutput=True)
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ServiceCheckDefault(ServiceCheck):
   def service_check(self, env):
