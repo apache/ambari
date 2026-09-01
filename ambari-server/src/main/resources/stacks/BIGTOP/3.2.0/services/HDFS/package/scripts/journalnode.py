@@ -111,7 +111,6 @@ class JournalNodeDefault(JournalNode):
     )
     env.set_params(params)
     hdfs()
-    pass
 
   def status(self, env):
     import status_params

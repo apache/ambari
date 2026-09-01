@@ -54,7 +54,6 @@ def snamenode(action=None, format=False):
         owner=params.hdfs_user,
         group=params.user_group,
       )
-      pass
   elif action == "start" or action == "stop":
     import params
 

@@ -763,7 +763,6 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
             "Enabling SSO integration for HDFS requires Kerberos, Since Kerberos is not enabled, SSO integration is not being recommended."
           )
           putHdfsSiteProperty("hadoop.http.authentication.type", "simple")
-          pass
 
       # If SSO should be disabled for this service
       elif ambari_sso_details.should_disable_sso("HDFS"):
@@ -1056,11 +1055,7 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
     core_site = self.getSiteProperties(configurations, "core-site") or {}
 
     dfs_encrypt_data_transfer = "dfs.encrypt.data.transfer"  # Hadoop Wire encryption
-    wire_encryption_enabled = False
-    try:
-      wire_encryption_enabled = hdfs_site[dfs_encrypt_data_transfer] == "true"
-    except KeyError:
-      pass
+    wire_encryption_enabled = hdfs_site.get(dfs_encrypt_data_transfer) == "true"
 
     HTTP_ONLY = "HTTP_ONLY"
     HTTPS_ONLY = "HTTPS_ONLY"
@@ -1299,7 +1294,7 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
           != "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer".lower()
         ):
           raise ValueError()
-      except (KeyError, ValueError) as e:
+      except (KeyError, ValueError):
         message = "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled."
         validationItems.append(
           {
