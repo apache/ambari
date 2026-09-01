@@ -33,7 +33,6 @@ from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
-  cached_kinit_executor,
   get_params_from_filesystem,
   validate_security_config_properties,
   FILE_TYPE_XML,
@@ -64,6 +63,7 @@ from utils import (
 from resource_management.libraries.functions.namenode_ha_utils import (
   get_hdfs_cluster_id_from_jmx,
 )
+from hdfs_kerberos import hdfs_kerberos_environment
 
 # The hash algorithm to use to generate digests/hashes
 HASH_ALGORITHM = hashlib.sha224
@@ -136,46 +136,56 @@ class NameNode(Script):
 
     env.set_params(params)
 
-    if params.security_enabled:
-      Execute(params.nn_kinit_cmd, user=params.hdfs_user)
+    with hdfs_kerberos_environment(
+      params,
+      "ambari-hdfs-namenode-format-",
+      keytab=params.nn_keytab if params.security_enabled else None,
+      principal=params.nn_principal_name if params.security_enabled else None,
+    ) as command_environment:
+      hdfs_cluster_id = get_hdfs_cluster_id_from_jmx(
+        params.hdfs_site,
+        params.security_enabled,
+        params.hdfs_user,
+        environment=command_environment,
+      )
+      if not isinstance(hdfs_cluster_id, str) or not hdfs_cluster_id.strip():
+        raise Fail("Could not determine the HDFS cluster ID before formatting")
 
-    hdfs_cluster_id = get_hdfs_cluster_id_from_jmx(
-      params.hdfs_site, params.security_enabled, params.hdfs_user
-    )
-    if not isinstance(hdfs_cluster_id, str) or not hdfs_cluster_id.strip():
-      raise Fail("Could not determine the HDFS cluster ID before formatting")
-
-    # this is run on a new namenode, format needs to be forced
-    Execute(
-      (
-        "hdfs",
-        "--config",
-        params.hadoop_conf_dir,
-        "namenode",
-        "-format",
-        "-nonInteractive",
-        "-clusterId",
-        hdfs_cluster_id,
-      ),
-      user=params.hdfs_user,
-      path=[params.hadoop_bin_dir],
-      logoutput=True,
-    )
+      Execute(
+        (
+          "hdfs",
+          "--config",
+          params.hadoop_conf_dir,
+          "namenode",
+          "-format",
+          "-nonInteractive",
+          "-clusterId",
+          hdfs_cluster_id,
+        ),
+        user=params.hdfs_user,
+        path=[params.hadoop_bin_dir],
+        logoutput=True,
+        environment=command_environment,
+      )
 
   def bootstrap_standby(self, env):
     import params
 
     env.set_params(params)
 
-    if params.security_enabled:
-      Execute(params.nn_kinit_cmd, user=params.hdfs_user)
-
-    Execute(
-      ("hdfs", "namenode", "-bootstrapStandby", "-nonInteractive"),
-      user=params.hdfs_user,
-      logoutput=True,
-      path=[params.hadoop_bin_dir],
-    )
+    with hdfs_kerberos_environment(
+      params,
+      "ambari-hdfs-namenode-bootstrap-",
+      keytab=params.nn_keytab if params.security_enabled else None,
+      principal=params.nn_principal_name if params.security_enabled else None,
+    ) as command_environment:
+      Execute(
+        ("hdfs", "namenode", "-bootstrapStandby", "-nonInteractive"),
+        user=params.hdfs_user,
+        logoutput=True,
+        path=[params.hadoop_bin_dir],
+        environment=command_environment,
+      )
 
   def start(self, env, upgrade_type=None):
     import params
@@ -243,12 +253,16 @@ class NameNode(Script):
     import params
 
     env.set_params(params)
-    Execute(
-      ("hdfs", "dfsadmin", "-printTopology"),
-      user=params.hdfs_user,
-      path=[params.hadoop_bin_dir],
-      logoutput=True,
-    )
+    with hdfs_kerberos_environment(
+      params, "ambari-hdfs-print-topology-"
+    ) as command_environment:
+      Execute(
+        ("hdfs", "dfsadmin", "-printTopology"),
+        user=params.hdfs_user,
+        path=[params.hadoop_bin_dir],
+        logoutput=True,
+        environment=command_environment,
+      )
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -277,23 +291,25 @@ class NameNodeDefault(NameNode):
 
     Logger.info("Preparing the NameNodes for a NonRolling (aka Express) Upgrade.")
 
-    if params.security_enabled:
-      kinit_command = (
-        params.kinit_path_local,
-        "-kt",
-        params.hdfs_user_keytab,
-        params.hdfs_principal_name,
-      )
-      Execute(kinit_command, user=params.hdfs_user, logoutput=True)
-
     hdfs_binary = self.get_hdfs_binary()
-    namenode_upgrade.prepare_upgrade_check_for_previous_dir()
-    namenode_upgrade.prepare_upgrade_enter_safe_mode(hdfs_binary)
-    if not params.skip_namenode_save_namespace_express:
-      namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
-    if not params.skip_namenode_namedir_backup_express:
-      namenode_upgrade.prepare_upgrade_backup_namenode_dir()
-    namenode_upgrade.prepare_upgrade_finalize_previous_upgrades(hdfs_binary)
+    with hdfs_kerberos_environment(
+      params, "ambari-hdfs-express-upgrade-prepare-"
+    ) as command_environment:
+      namenode_upgrade.prepare_upgrade_check_for_previous_dir(
+        environment=command_environment
+      )
+      namenode_upgrade.prepare_upgrade_enter_safe_mode(
+        hdfs_binary, environment=command_environment
+      )
+      if not params.skip_namenode_save_namespace_express:
+        namenode_upgrade.prepare_upgrade_save_namespace(
+          hdfs_binary, environment=command_environment
+        )
+      if not params.skip_namenode_namedir_backup_express:
+        namenode_upgrade.prepare_upgrade_backup_namenode_dir()
+      namenode_upgrade.prepare_upgrade_finalize_previous_upgrades(
+        hdfs_binary, environment=command_environment
+      )
 
     summary = upgrade_summary.get_upgrade_summary()
 
@@ -337,7 +353,16 @@ class NameNodeDefault(NameNode):
     hdfs_binary = self.get_hdfs_binary()
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
     dfsadmin_cmd = dfsadmin_base_command + ("-report", "-live")
-    Execute(dfsadmin_cmd, user=params.hdfs_user, tries=60, try_sleep=10)
+    with hdfs_kerberos_environment(
+      params, "ambari-hdfs-post-upgrade-report-"
+    ) as command_environment:
+      Execute(
+        dfsadmin_cmd,
+        user=params.hdfs_user,
+        tries=60,
+        try_sleep=10,
+        environment=command_environment,
+      )
 
   def rebalancehdfs(self, env):
     import params

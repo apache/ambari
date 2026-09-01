@@ -197,8 +197,6 @@ create_lib_snappy_symlinks = check_stack_feature(
 jsvc_path = "/usr/lib/bigtop-utils"
 
 execute_path = os.environ["PATH"] + os.pathsep + hadoop_bin_dir
-ulimit_cmd = "ulimit -c unlimited ; "
-
 snappy_so = "libsnappy.so"
 so_target_dir_x86 = format("{hadoop_lib_home}/native/Linux-i386-32")
 so_target_dir_x64 = format("{hadoop_lib_home}/native/Linux-amd64-64")
@@ -444,15 +442,11 @@ if security_enabled:
   dn_keytab = config["configurations"]["hdfs-site"]["dfs.datanode.keytab.file"]
   dn_principal_name = dn_principal_name.replace("_HOST", hostname.lower())
 
-  dn_kinit_cmd = (kinit_path_local, "-kt", dn_keytab, dn_principal_name)
-
   nn_principal_name = config["configurations"]["hdfs-site"][
     "dfs.namenode.kerberos.principal"
   ]
   nn_keytab = config["configurations"]["hdfs-site"]["dfs.namenode.keytab.file"]
   nn_principal_name = nn_principal_name.replace("_HOST", hostname.lower())
-
-  nn_kinit_cmd = (kinit_path_local, "-kt", nn_keytab, nn_principal_name)
 
   jn_principal_name = default(
     "/configurations/hdfs-site/dfs.journalnode.kerberos.principal", None
@@ -460,23 +454,11 @@ if security_enabled:
   if jn_principal_name:
     jn_principal_name = jn_principal_name.replace("_HOST", hostname.lower())
   jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
-  hdfs_kinit_cmd = (
-    kinit_path_local,
-    "-kt",
-    hdfs_user_keytab,
-    hdfs_principal_name,
-  )
-
   zk_principal_name = default(
     "/configurations/zookeeper-env/zookeeper_principal_name",
     "zookeeper/_HOST@EXAMPLE.COM",
   )
   zk_principal_user = zk_principal_name.split("/")[0]
-else:
-  dn_kinit_cmd = ()
-  nn_kinit_cmd = ()
-  hdfs_kinit_cmd = ()
-
 hdfs_site = config["configurations"]["hdfs-site"]
 default_fs = config["configurations"]["core-site"]["fs.defaultFS"]
 

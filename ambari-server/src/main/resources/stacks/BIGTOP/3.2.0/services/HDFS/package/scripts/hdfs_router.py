@@ -16,7 +16,6 @@ limitations under the License.
 
 import hdfs_process
 
-from resource_management.core.resources.system import Execute
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from utils import set_up_zkfc_security
 
@@ -43,17 +42,6 @@ def router(action=None, env=None):
       create_pid_dir=True,
       create_log_dir=True,
     )
-
-    if params.security_enabled:
-      Execute(
-        (
-          params.kinit_path_local,
-          "-kt",
-          params.hdfs_user_keytab,
-          params.hdfs_principal_name,
-        ),
-        user=params.hdfs_user,
-      )
 
   elif action == "stop":
     import params

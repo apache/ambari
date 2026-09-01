@@ -34,6 +34,7 @@ import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
+from hdfs_kerberos import hdfs_kerberos_environment
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -212,45 +213,50 @@ def reconfig(componentName, componentAddress):
   ):
     raise Fail(f"Invalid HDFS reconfiguration address: {componentAddress!r}")
 
-  if params.security_enabled:
-    Execute(params.nn_kinit_cmd, user=params.hdfs_user)
+  with hdfs_kerberos_environment(
+    params,
+    "ambari-hdfs-reconfigure-",
+    keytab=params.nn_keytab if params.security_enabled else None,
+    principal=params.nn_principal_name if params.security_enabled else None,
+  ) as command_environment:
+    nn_reconfig_cmd = (
+      "hdfs",
+      "--config",
+      params.hadoop_conf_dir,
+      "dfsadmin",
+      "-reconfig",
+      componentName,
+      componentAddress,
+      "start",
+    )
 
-  nn_reconfig_cmd = (
-    "hdfs",
-    "--config",
-    params.hadoop_conf_dir,
-    "dfsadmin",
-    "-reconfig",
-    componentName,
-    componentAddress,
-    "start",
-  )
+    Execute(
+      nn_reconfig_cmd,
+      user=params.hdfs_user,
+      logoutput=True,
+      path=[params.hadoop_bin_dir],
+      environment=command_environment,
+    )
 
-  Execute(
-    nn_reconfig_cmd,
-    user=params.hdfs_user,
-    logoutput=True,
-    path=[params.hadoop_bin_dir],
-  )
-
-  nn_reconfig_cmd = (
-    "hdfs",
-    "--config",
-    params.hadoop_conf_dir,
-    "dfsadmin",
-    "-reconfig",
-    componentName,
-    componentAddress,
-    "status",
-  )
-  config_status_parser = ConfigStatusParser()
-  Execute(
-    nn_reconfig_cmd,
-    user=params.hdfs_user,
-    logoutput=False,
-    path=[params.hadoop_bin_dir],
-    on_new_line=config_status_parser.handle_new_line,
-  )
+    nn_reconfig_cmd = (
+      "hdfs",
+      "--config",
+      params.hadoop_conf_dir,
+      "dfsadmin",
+      "-reconfig",
+      componentName,
+      componentAddress,
+      "status",
+    )
+    config_status_parser = ConfigStatusParser()
+    Execute(
+      nn_reconfig_cmd,
+      user=params.hdfs_user,
+      logoutput=False,
+      path=[params.hadoop_bin_dir],
+      on_new_line=config_status_parser.handle_new_line,
+      environment=command_environment,
+    )
 
   if not config_status_parser.reconfig_successful:
     Logger.info("Reconfiguration failed")

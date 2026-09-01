@@ -17,6 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import argparse
+from contextlib import contextmanager
 import importlib.util
 import json
 import os
@@ -30,6 +32,7 @@ import xml.etree.ElementTree as ET
 
 from ambari_commons import import_utils
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions import jmx, namenode_ha_utils
 
 
 HDFS = (
@@ -62,6 +65,7 @@ def load_module(module_name, path):
 
 
 HDFS_PROCESS = load_script("bigtop_hdfs_process", "hdfs_process.py")
+HDFS_KERBEROS = load_script("bigtop_hdfs_kerberos", "hdfs_kerberos.py")
 HDFS_ADVISOR = load_module("bigtop_hdfs_service_advisor", HDFS / "service_advisor.py")
 ROUTER_UTILS = load_script("bigtop_hdfs_router_utils", "router_utils.py")
 HDFS_ROUTER_SUPPORT = dependency_module(
@@ -88,6 +92,7 @@ HDFS_NAMENODE = load_script(
   "hdfs_namenode.py",
   {
     "hdfs_process": HDFS_PROCESS,
+    "hdfs_kerberos": HDFS_KERBEROS,
     "utils": HDFS_UTILS,
     "setup_ranger_hdfs": dependency_module(
       "setup_ranger_hdfs",
@@ -102,6 +107,7 @@ NAMENODE_UPGRADE = load_script(
   "bigtop_namenode_upgrade",
   "namenode_upgrade.py",
   {
+    "hdfs_kerberos": HDFS_KERBEROS,
     "utils": dependency_module(
       "utils",
       get_dfsadmin_base_command=MagicMock(
@@ -119,11 +125,15 @@ SERVICE_CHECK = load_script(
   "service_check.py",
   {"hdfs_process": HDFS_PROCESS},
 )
+CHECK_WEB_UI = load_module(
+  "bigtop_hdfs_check_web_ui", HDFS / "package/files/checkWebUI.py"
+)
 HDFS_RUNTIME_UTILS = load_script(
   "bigtop_hdfs_runtime_utils",
   "utils.py",
   {
     "hdfs_process": HDFS_PROCESS,
+    "hdfs_kerberos": HDFS_KERBEROS,
     "zkfc_slave": dependency_module("zkfc_slave", ZkfcSlaveDefault=MagicMock),
   },
 )
@@ -132,6 +142,7 @@ DATANODE_UPGRADE = load_script(
   "datanode_upgrade.py",
   {
     "hdfs_process": HDFS_PROCESS,
+    "hdfs_kerberos": HDFS_KERBEROS,
     "utils": dependency_module(
       "utils",
       get_dfsadmin_base_command=MagicMock(
@@ -145,6 +156,7 @@ NAMENODE = load_script(
   "bigtop_namenode",
   "namenode.py",
   {
+    "hdfs_kerberos": HDFS_KERBEROS,
     "namenode_upgrade": NAMENODE_UPGRADE,
     "hdfs_namenode": dependency_module(
       "hdfs_namenode",
@@ -230,7 +242,7 @@ class TestHdfsBigtop(unittest.TestCase):
             hdfs_site, core_site, hosts, port
           )
 
-  def test_router_start_uses_argv_kinit_and_rejects_unknown_actions(self):
+  def test_router_start_does_not_create_unused_default_kerberos_cache(self):
     params = params_module(
       security_enabled=True,
       hdfs_user="hdfs",
@@ -238,19 +250,11 @@ class TestHdfsBigtop(unittest.TestCase):
       hdfs_user_keytab="/etc/security/keytabs/hdfs.service.keytab",
       hdfs_principal_name="hdfs/router1.example.com@EXAMPLE.COM",
     )
-    with patch.dict(sys.modules, {"params": params}), \
-      patch.object(HDFS_ROUTER, "Execute") as execute:
+    HDFS_ROUTER_SUPPORT.service.reset_mock()
+    with patch.dict(sys.modules, {"params": params}):
       HDFS_ROUTER.router(action="start")
 
-    self.assertEqual(
-      (
-        "/usr/bin/kinit",
-        "-kt",
-        "/etc/security/keytabs/hdfs.service.keytab",
-        "hdfs/router1.example.com@EXAMPLE.COM",
-      ),
-      execute.call_args.args[0],
-    )
+    HDFS_ROUTER_SUPPORT.service.assert_called_once()
     with self.assertRaisesRegex(Fail, "Unsupported HDFS Router action"):
       HDFS_ROUTER.router(action="invalid")
 
@@ -359,16 +363,12 @@ class TestHdfsBigtop(unittest.TestCase):
     )
     self.assertIn('checkWebUICmd = (', service_check_source)
     self.assertNotIn('checkWebUICmd = format(', service_check_source)
+    self.assertIn("sys.executable,", service_check_source)
+    self.assertNotIn('"ambari-python-wrap",', service_check_source)
 
     nfs_source = (SCRIPTS / "hdfs_nfsgateway.py").read_text(encoding="utf-8")
     self.assertIn('("pgrep", "-x", "nfsd")', nfs_source)
     self.assertNotIn('shell.call("service ', nfs_source)
-
-    params_source = (SCRIPTS / "params_linux.py").read_text(encoding="utf-8")
-    self.assertIn(
-      'nn_kinit_cmd = (kinit_path_local, "-kt", nn_keytab, nn_principal_name)',
-      params_source,
-    )
 
     self.assertFalse((SCRIPTS / "balancer-emulator").exists())
     rebalance_source = (SCRIPTS / "hdfs_rebalance.py").read_text(
@@ -423,7 +423,6 @@ class TestHdfsBigtop(unittest.TestCase):
       hdfs_user="hdfs",
       root_user="root",
       root_group="root",
-      ulimit_cmd="ulimit -c unlimited ; ",
     )
     identity = MagicMock()
     with patch.dict(sys.modules, {"params": params}), \
@@ -451,7 +450,6 @@ class TestHdfsBigtop(unittest.TestCase):
       hdfs_user="hdfs",
       root_user="root",
       root_group="root",
-      ulimit_cmd="ulimit -c unlimited ; ",
     )
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(
@@ -483,7 +481,6 @@ class TestHdfsBigtop(unittest.TestCase):
       hdfs_user="hdfs",
       root_user="root",
       root_group="root",
-      ulimit_cmd="ulimit -c unlimited ; ",
     )
     identity = MagicMock(pid=8123)
     with patch.dict(sys.modules, {"params": params}), \
@@ -542,6 +539,94 @@ class TestHdfsBigtop(unittest.TestCase):
     with self.assertRaisesRegex(Fail, "Unsupported ZKFC action"):
       HDFS_RUNTIME_UTILS.safe_zkfc_op("restart", MagicMock())
 
+  def test_service_uses_positional_argv_for_non_root_daemon_options(self):
+    params = params_module(
+      hadoop_pid_dir_prefix="/run/hadoop",
+      hdfs_log_dir_prefix="/var/log/hadoop",
+      hadoop_libexec_dir="/usr/lib/hadoop/libexec",
+      hadoop_bin="/usr/lib/hadoop/sbin;$(id)",
+      hadoop_conf_dir="/etc/hadoop/conf;$(id)",
+      security_enabled=False,
+      user_group="hadoop",
+      hdfs_user="hdfs",
+      root_user="root",
+      root_group="root",
+    )
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HDFS_RUNTIME_UTILS, "Directory"), \
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process,
+        "recover_running_process",
+        return_value=None,
+      ), \
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process, "wait_for_running_process"
+      ), \
+      patch.object(HDFS_RUNTIME_UTILS, "Execute") as execute:
+      HDFS_RUNTIME_UTILS.service(
+        action="start",
+        name="namenode",
+        user="hdfs",
+        options="-rollingUpgrade started",
+      )
+
+    execute.assert_called_once_with(
+      (
+        "bash",
+        "-c",
+        'ulimit -c unlimited; exec "$@"',
+        "ambari-hdfs-daemon",
+        "/usr/lib/hadoop/sbin;$(id)/hadoop-daemon.sh",
+        "--config",
+        "/etc/hadoop/conf;$(id)",
+        "start",
+        "namenode",
+        "-rollingUpgrade",
+        "started",
+      ),
+      environment={"HADOOP_LIBEXEC_DIR": "/usr/lib/hadoop/libexec"},
+      timeout=60,
+      timeout_kill_strategy=(
+        HDFS_RUNTIME_UTILS.TerminateStrategy.KILL_PROCESS_GROUP
+      ),
+      user="hdfs",
+    )
+
+  def test_service_start_failure_logs_and_skips_process_wait(self):
+    params = params_module(
+      hadoop_pid_dir_prefix="/run/hadoop",
+      hdfs_log_dir_prefix="/var/log/hadoop",
+      hadoop_libexec_dir="/usr/lib/hadoop/libexec",
+      hadoop_bin="/usr/lib/hadoop/sbin",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      security_enabled=False,
+      user_group="hadoop",
+      hdfs_user="hdfs",
+      root_user="root",
+      root_group="root",
+    )
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HDFS_RUNTIME_UTILS, "Directory"), \
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process,
+        "recover_running_process",
+        return_value=None,
+      ), \
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process, "wait_for_running_process"
+      ) as wait, \
+      patch.object(
+        HDFS_RUNTIME_UTILS, "Execute", side_effect=Fail("daemon failed")
+      ), \
+      patch.object(HDFS_RUNTIME_UTILS, "show_logs") as show_logs:
+      with self.assertRaisesRegex(Fail, "daemon failed"):
+        HDFS_RUNTIME_UTILS.service(
+          action="start", name="namenode", user="hdfs"
+        )
+
+    show_logs.assert_called_once_with("/var/log/hadoop/hdfs", "hdfs")
+    wait.assert_not_called()
+
   def test_failed_graceful_datanode_shutdown_uses_stop_fallback(self):
     params = params_module(
       security_enabled=False,
@@ -568,6 +653,7 @@ class TestHdfsBigtop(unittest.TestCase):
       base_command
       + ("-shutdownDatanode", "datanode.example.com:9867", "upgrade"),
       user="hdfs",
+      env=None,
     )
 
   def test_hdfs_network_port_parser_rejects_partial_and_unsafe_values(self):
@@ -710,7 +796,7 @@ class TestHdfsBigtop(unittest.TestCase):
       )
 
     self.assertEqual(
-      [call(command, user="hdfs", logoutput=True)] * 2,
+      [call(command, user="hdfs", logoutput=True, env=None)] * 2,
       shell_call.call_args_list,
     )
     self.assertEqual([call(1), call(0)], sleep.call_args_list)
@@ -741,7 +827,233 @@ class TestHdfsBigtop(unittest.TestCase):
       ),
       user="hdfs",
       path=["/usr/bin"],
+      environment=None,
     )
+
+  def test_hdfs_kerberos_environment_cleans_up_after_command_failure(self):
+    params = params_module(
+      security_enabled=True,
+      hdfs_user="hdfs",
+      user_group="hadoop",
+      tmp_dir="/var/lib/ambari-agent/tmp",
+      kinit_path_local="/usr/bin/kinit",
+      hdfs_user_keytab="/etc/security/keytabs/hdfs.headless.keytab",
+      hdfs_principal_name="hdfs@example.com",
+    )
+    cache = MagicMock(environment={"KRB5CCNAME": "FILE:/private/krb5cc"})
+    cache_context = MagicMock()
+    cache_context.__enter__.return_value = cache
+    with patch.object(
+      HDFS_KERBEROS,
+      "PrivateKerberosCache",
+      return_value=cache_context,
+    ) as private_cache:
+      with self.assertRaisesRegex(Fail, "command failed"):
+        with HDFS_KERBEROS.hdfs_kerberos_environment(
+          params, "ambari-hdfs-test-"
+        ) as environment:
+          self.assertEqual(
+            {"KRB5CCNAME": "FILE:/private/krb5cc"}, environment
+          )
+          raise Fail("command failed")
+
+    private_cache.assert_called_once_with(
+      "hdfs",
+      "hadoop",
+      "/var/lib/ambari-agent/tmp",
+      "ambari-hdfs-test-",
+    )
+    cache.kinit.assert_called_once_with(
+      "/usr/bin/kinit",
+      "/etc/security/keytabs/hdfs.headless.keytab",
+      "hdfs@example.com",
+    )
+    self.assertIs(cache_context.__exit__.call_args.args[0], Fail)
+
+  def test_private_cache_environment_reaches_jmx_process(self):
+    environment = {"KRB5CCNAME": "FILE:/private/krb5cc"}
+    with patch.object(
+      jmx,
+      "get_user_call_output",
+      return_value=(0, '{"beans": [{"ClusterId": "CID-1"}]}', ""),
+    ) as get_output:
+      self.assertEqual(
+        "CID-1",
+        jmx.get_value_from_jmx(
+          "https://namenode.example.com/jmx",
+          "ClusterId",
+          True,
+          "hdfs",
+          True,
+          environment=environment,
+        ),
+      )
+
+    get_output.assert_called_once_with(
+      [
+        "curl",
+        "--negotiate",
+        "-u",
+        ":",
+        "-s",
+        "--connect-timeout",
+        "10",
+        "--max-time",
+        "12",
+        "https://namenode.example.com/jmx",
+      ],
+      user="hdfs",
+      quiet=False,
+      env=environment,
+    )
+
+    hdfs_site = {
+      "dfs.nameservices": "ns1",
+      "dfs.ha.namenodes.ns1": "nn1",
+      "dfs.http.policy": "HTTP_ONLY",
+      "dfs.https.enable": "false",
+      "dfs.namenode.http-address.ns1.nn1": "namenode.example.com:9870",
+    }
+    with patch.object(
+      namenode_ha_utils,
+      "get_value_from_jmx",
+      return_value="CID-1",
+    ) as get_jmx:
+      self.assertEqual(
+        "CID-1",
+        namenode_ha_utils.get_hdfs_cluster_id_from_jmx(
+          hdfs_site, True, "hdfs", environment=environment
+        ),
+      )
+    self.assertEqual(environment, get_jmx.call_args.kwargs["environment"])
+
+    with patch.object(
+      namenode_ha_utils,
+      "all_jmx_namenode_addresses",
+      return_value=[
+        (
+          "nn1",
+          "namenode.example.com:8020",
+          "http://namenode.example.com:9870/jmx?qry={0}",
+        )
+      ],
+    ), patch.object(
+      namenode_ha_utils,
+      "get_value_from_jmx",
+      return_value=None,
+    ), patch.object(
+      namenode_ha_utils.shell,
+      "call",
+      return_value=(0, "active"),
+    ) as fallback:
+      active, standby, unknown = (
+        namenode_ha_utils.get_namenode_states_noretries(
+          hdfs_site,
+          True,
+          "hdfs",
+          environment=environment,
+        )
+      )
+
+    self.assertEqual([("nn1", "namenode.example.com:8020")], active)
+    self.assertEqual([], standby)
+    self.assertEqual([], unknown)
+    self.assertEqual(environment, fallback.call_args.kwargs["env"])
+
+  def test_private_cache_preserves_service_specific_credentials(self):
+    params = params_module(
+      security_enabled=True,
+      hdfs_user="hdfs",
+      user_group="hadoop",
+      tmp_dir="/var/lib/ambari-agent/tmp",
+      kinit_path_local="/usr/bin/kinit",
+      hdfs_user_keytab="/etc/security/keytabs/hdfs.headless.keytab",
+      hdfs_principal_name="hdfs@example.com",
+    )
+    cache = MagicMock(environment={"KRB5CCNAME": "FILE:/private/nn-krb5cc"})
+    cache_context = MagicMock()
+    cache_context.__enter__.return_value = cache
+    with patch.object(
+      HDFS_KERBEROS,
+      "PrivateKerberosCache",
+      return_value=cache_context,
+    ):
+      with HDFS_KERBEROS.hdfs_kerberos_environment(
+        params,
+        "ambari-hdfs-nn-test-",
+        keytab="/etc/security/keytabs/nn.service.keytab",
+        principal="nn/host.example.com@EXAMPLE.COM",
+      ):
+        pass
+
+    cache.kinit.assert_called_once_with(
+      "/usr/bin/kinit",
+      "/etc/security/keytabs/nn.service.keytab",
+      "nn/host.example.com@EXAMPLE.COM",
+    )
+
+  def test_secure_datanode_upgrade_passes_private_cache_to_command(self):
+    params = params_module(
+      security_enabled=True,
+      hdfs_user="hdfs",
+      dn_keytab="/etc/security/keytabs/dn.service.keytab",
+      dn_principal_name="dn/host.example.com@EXAMPLE.COM",
+      dfs_dn_ipc_address="host.example.com:9867",
+    )
+
+    @contextmanager
+    def private_environment(*args, **kwargs):
+      yield {"KRB5CCNAME": "FILE:/private/dn-krb5cc"}
+
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        DATANODE_UPGRADE,
+        "get_dfsadmin_base_command",
+        return_value=("hdfs", "dfsadmin"),
+      ), \
+      patch.object(
+        DATANODE_UPGRADE,
+        "hdfs_kerberos_environment",
+        side_effect=private_environment,
+      ), \
+      patch.object(
+        DATANODE_UPGRADE.shell,
+        "call",
+        return_value=(1, "denied"),
+      ) as shell_call:
+      self.assertFalse(
+        DATANODE_UPGRADE.pre_rolling_upgrade_shutdown("hdfs")
+      )
+
+    shell_call.assert_called_once_with(
+      (
+        "hdfs",
+        "dfsadmin",
+        "-shutdownDatanode",
+        "host.example.com:9867",
+        "upgrade",
+      ),
+      user="hdfs",
+      env={"KRB5CCNAME": "FILE:/private/dn-krb5cc"},
+    )
+
+  def test_safemode_wait_failure_is_not_reported_as_success(self):
+    params = params_module(security_enabled=False, hdfs_user="hdfs")
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        HDFS_NAMENODE,
+        "get_dfsadmin_base_command",
+        return_value=("hdfs", "dfsadmin"),
+      ), \
+      patch.object(
+        HDFS_NAMENODE.shell,
+        "call",
+        return_value=(1, "connection failed"),
+      ):
+      with self.assertRaisesRegex(Fail, "did not leave safemode"):
+        HDFS_NAMENODE.wait_for_safemode_off(
+          "hdfs", retries=1, sleep_seconds=1
+        )
 
   def test_hdfs_scripts_have_no_retired_command_wrappers(self):
     script_sources = "\n".join(
@@ -750,6 +1062,10 @@ class TestHdfsBigtop(unittest.TestCase):
     self.assertNotIn("ExecuteHDFS", script_sources)
     self.assertNotIn("as_user(save_namespace_cmd", script_sources)
     self.assertNotIn("restore_snapshot", script_sources)
+    self.assertNotIn("cached_kinit_executor", script_sources)
+    self.assertNotIn("nn_kinit_cmd", script_sources)
+    self.assertNotIn("dn_kinit_cmd", script_sources)
+    self.assertNotIn("hdfs_kinit_cmd", script_sources)
 
   def test_metadata_matches_bigtop_hadoop_and_os_packages(self):
     root = ET.parse(HDFS / "metainfo.xml").getroot()
@@ -763,9 +1079,7 @@ class TestHdfsBigtop(unittest.TestCase):
         for package in os_specific.findall("./packages/package")
       ]
 
-    rpm_packages = packages_by_family[
-      "redhat7,redhat8,redhat9,openeuler22"
-    ]
+    rpm_packages = packages_by_family["redhat8,redhat9,openeuler22"]
     self.assertIn("hadoop_${stack_version}-libhdfs", rpm_packages)
     self.assertNotIn("snappy-devel", rpm_packages)
     self.assertNotIn("libtirpc-devel", rpm_packages)
@@ -1033,19 +1347,46 @@ class TestHdfsBigtop(unittest.TestCase):
         SERVICE_CHECK,
         "curl_krb_request",
         return_value=(False, "connection refused", 1),
-      ), \
-      patch.object(SERVICE_CHECK.Logger, "error") as logger_error:
-      result = SERVICE_CHECK.HdfsServiceCheckDefault().service_check(env)
+      ) as curl:
+      with self.assertRaisesRegex(
+        Fail,
+        "Cannot access WEB UI on: http://journalnode.example.com:8480",
+      ):
+        SERVICE_CHECK.HdfsServiceCheckDefault().service_check(env)
 
-    self.assertEqual(1, result)
     self.assertEqual(
       call("/tmp", type="directory", action="create_on_execute", mode=0o1777),
       hdfs_resource.call_args_list[0],
     )
-    logger_error.assert_called_once_with(
-      "Cannot access WEB UI on: http://journalnode.example.com:8480. "
-      "Error : connection refused"
+    self.assertEqual(
+      SERVICE_CHECK.JOURNALNODE_CONNECTION_TIMEOUT,
+      curl.call_args.kwargs["connection_timeout"],
     )
+
+  def test_journalnode_web_check_uses_bounded_connection_timeout(self):
+    response = MagicMock(status=200)
+    connection = MagicMock()
+    connection.getresponse.return_value = response
+    with patch.object(
+      CHECK_WEB_UI.http.client,
+      "HTTPConnection",
+      return_value=connection,
+    ) as http_connection:
+      self.assertEqual(
+        200,
+        CHECK_WEB_UI.make_connection(
+          "journalnode.example.com", 8480, False, 7
+        ),
+      )
+
+    http_connection.assert_called_once_with(
+      "journalnode.example.com", 8480, timeout=7
+    )
+    connection.close.assert_called_once_with()
+    for timeout in (0, -1, "invalid", float("inf")):
+      with self.subTest(timeout=timeout), \
+        self.assertRaises(argparse.ArgumentTypeError):
+        CHECK_WEB_UI.positive_timeout(timeout)
 
   def test_namenode_backup_failure_is_fail_closed(self):
     params = params_module(

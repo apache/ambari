@@ -30,6 +30,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.functions import Direction, SafeMode
 from utils import get_dfsadmin_base_command
+from hdfs_kerberos import hdfs_kerberos_environment
 
 from namenode_ha_state import NamenodeHAState
 
@@ -39,7 +40,7 @@ safemode_to_instruction = {SafeMode.ON: "enter", SafeMode.OFF: "leave"}
 NAMENODE_UPGRADE_IN_PROGRESS_MARKER_FILE = "namenode-upgrade-in-progress"
 
 
-def prepare_upgrade_check_for_previous_dir():
+def prepare_upgrade_check_for_previous_dir(environment=None):
   """
   During a NonRolling (aka Express Upgrade), preparing the NameNode requires backing up some data.
   Check that there is no "previous" folder inside the NameNode Name Dir.
@@ -47,7 +48,7 @@ def prepare_upgrade_check_for_previous_dir():
   import params
 
   if params.dfs_ha_enabled:
-    namenode_ha = NamenodeHAState()
+    namenode_ha = NamenodeHAState(environment=environment)
     if namenode_ha.is_active(params.hostname) or namenode_ha.is_active(
       params.public_hostname
     ):
@@ -77,7 +78,7 @@ def prepare_upgrade_check_for_previous_dir():
         raise Fail(message)
 
 
-def prepare_upgrade_enter_safe_mode(hdfs_binary):
+def prepare_upgrade_enter_safe_mode(hdfs_binary, environment=None):
   """
   During a NonRolling (aka Express Upgrade), preparing the NameNode requires first entering Safemode.
   :param hdfs_binary: name/path of the HDFS binary to use
@@ -90,7 +91,11 @@ def prepare_upgrade_enter_safe_mode(hdfs_binary):
     # Safe to call if already in Safe Mode
     desired_state = SafeMode.ON
     safemode_transition_successful, original_state = reach_safemode_state(
-      params.hdfs_user, desired_state, params.dfs_ha_enabled, hdfs_binary
+      params.hdfs_user,
+      desired_state,
+      params.dfs_ha_enabled,
+      hdfs_binary,
+      environment=environment,
     )
     Logger.info(
       f"Transition successful: {str(safemode_transition_successful)}, original state: {str(original_state)}"
@@ -108,7 +113,7 @@ def prepare_upgrade_enter_safe_mode(hdfs_binary):
     raise Fail(message) from e
 
 
-def prepare_upgrade_save_namespace(hdfs_binary):
+def prepare_upgrade_save_namespace(hdfs_binary, environment=None):
   """
   During a NonRolling (aka Express Upgrade), preparing the NameNode requires saving the namespace.
   :param hdfs_binary: name/path of the HDFS binary to use
@@ -119,10 +124,12 @@ def prepare_upgrade_save_namespace(hdfs_binary):
   save_namespace_cmd = dfsadmin_base_command + ("-saveNamespace",)
   try:
     Logger.info("Checkpoint the current namespace.")
+    command_environment = dict(environment or {})
+    command_environment["PATH"] = params.hadoop_bin_dir
     Execute(
       save_namespace_cmd,
       user=params.hdfs_user,
-      environment={"PATH": params.hadoop_bin_dir},
+      environment=command_environment,
       logoutput=True,
     )
   except Exception as e:
@@ -191,7 +198,7 @@ def prepare_upgrade_backup_namenode_dir():
     raise Fail(message)
 
 
-def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):
+def prepare_upgrade_finalize_previous_upgrades(hdfs_binary, environment=None):
   """
   During a NonRolling (aka Express Upgrade), preparing the NameNode requires Finalizing any upgrades that are in progress.
   :param hdfs_binary: name/path of the HDFS binary to use
@@ -206,7 +213,10 @@ def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):
       "This will return 255 if no upgrades are in progress."
     )
     code, out = shell.checked_call(
-      finalize_command, logoutput=True, user=params.hdfs_user
+      finalize_command,
+      logoutput=True,
+      user=params.hdfs_user,
+      env=environment,
     )
     if out:
       expected_substring = "there is no rolling upgrade in progress"
@@ -220,7 +230,9 @@ def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):
     Logger.warning("Ensure no upgrades are in progress.")
 
 
-def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
+def reach_safemode_state(
+  user, safemode_state, in_ha, hdfs_binary, environment=None
+):
   """
   Enter or leave safemode for the Namenode.
   :param user: user to perform action as
@@ -238,7 +250,9 @@ def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
   safemode_check_cmd = dfsadmin_base_command + ("-safemode", "get")
 
-  code, out = shell.call(safemode_check_cmd, user=user, logoutput=True)
+  code, out = shell.call(
+    safemode_check_cmd, user=user, logoutput=True, env=environment
+  )
   Logger.info("Command: %s\nCode: %d." % (safemode_check_cmd, code))
   if code == 0 and out is not None:
     Logger.info(out)
@@ -256,9 +270,17 @@ def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
           "-safemode",
           safemode_to_instruction[safemode_state],
         )
-        Execute(command, user=user, logoutput=True, path=[params.hadoop_bin_dir])
+        Execute(
+          command,
+          user=user,
+          logoutput=True,
+          path=[params.hadoop_bin_dir],
+          environment=environment,
+        )
 
-        code, out = shell.call(safemode_check_cmd, user=user)
+        code, out = shell.call(
+          safemode_check_cmd, user=user, env=environment
+        )
         Logger.info(
           "Command: %s\nCode: %d. Out: %s" % (safemode_check_cmd, code, out)
         )
@@ -268,6 +290,15 @@ def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
 
 
 def prepare_rolling_upgrade(hdfs_binary):
+  import params
+
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-rolling-upgrade-prepare-"
+  ) as command_environment:
+    _prepare_rolling_upgrade(hdfs_binary, command_environment)
+
+
+def _prepare_rolling_upgrade(hdfs_binary, environment):
   """
   This can be called during either Rolling Upgrade or Express Upgrade (aka nonrolling)
 
@@ -287,15 +318,6 @@ def prepare_rolling_upgrade(hdfs_binary):
     raise Fail(f"Could not retrieve upgrade direction: {str(params.upgrade_direction)}")
   Logger.info(format("Performing a(n) {params.upgrade_direction} of HDFS"))
 
-  if params.security_enabled:
-    kinit_command = (
-      params.kinit_path_local,
-      "-kt",
-      params.hdfs_user_keytab,
-      params.hdfs_principal_name,
-    )
-    Execute(kinit_command, user=params.hdfs_user, logoutput=True)
-
   if params.upgrade_direction == Direction.UPGRADE:
     if params.dfs_ha_enabled:
       Logger.info(
@@ -303,7 +325,11 @@ def prepare_rolling_upgrade(hdfs_binary):
       )
       desired_state = SafeMode.OFF
       safemode_transition_successful, original_state = reach_safemode_state(
-        params.hdfs_user, desired_state, True, hdfs_binary
+        params.hdfs_user,
+        desired_state,
+        True,
+        hdfs_binary,
+        environment=environment,
       )
       if not safemode_transition_successful:
         raise Fail(
@@ -313,11 +339,30 @@ def prepare_rolling_upgrade(hdfs_binary):
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
     prepare = dfsadmin_base_command + ("-rollingUpgrade", "prepare")
     query = dfsadmin_base_command + ("-rollingUpgrade", "query")
-    Execute(prepare, user=params.hdfs_user, logoutput=True)
-    Execute(query, user=params.hdfs_user, logoutput=True)
+    Execute(
+      prepare,
+      user=params.hdfs_user,
+      logoutput=True,
+      environment=environment,
+    )
+    Execute(
+      query,
+      user=params.hdfs_user,
+      logoutput=True,
+      environment=environment,
+    )
 
 
 def finalize_upgrade(upgrade_type, hdfs_binary):
+  import params
+
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-rolling-upgrade-finalize-"
+  ) as command_environment:
+    _finalize_upgrade(upgrade_type, hdfs_binary, command_environment)
+
+
+def _finalize_upgrade(upgrade_type, hdfs_binary, environment):
   """
   Finalize the Namenode upgrade, at which point it cannot be downgraded.
   :param upgrade_type rolling or nonrolling
@@ -326,22 +371,28 @@ def finalize_upgrade(upgrade_type, hdfs_binary):
   Logger.info("Executing Rolling Upgrade finalize")
   import params
 
-  if params.security_enabled:
-    kinit_command = (
-      params.kinit_path_local,
-      "-kt",
-      params.hdfs_user_keytab,
-      params.hdfs_principal_name,
-    )
-    Execute(kinit_command, user=params.hdfs_user, logoutput=True)
-
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
   finalize_cmd = dfsadmin_base_command + ("-rollingUpgrade", "finalize")
   query_cmd = dfsadmin_base_command + ("-rollingUpgrade", "query")
 
-  Execute(query_cmd, user=params.hdfs_user, logoutput=True)
-  Execute(finalize_cmd, user=params.hdfs_user, logoutput=True)
-  Execute(query_cmd, user=params.hdfs_user, logoutput=True)
+  Execute(
+    query_cmd,
+    user=params.hdfs_user,
+    logoutput=True,
+    environment=environment,
+  )
+  Execute(
+    finalize_cmd,
+    user=params.hdfs_user,
+    logoutput=True,
+    environment=environment,
+  )
+  Execute(
+    query_cmd,
+    user=params.hdfs_user,
+    logoutput=True,
+    environment=environment,
+  )
 
   # upgrade is finalized; remove the upgrade marker
   delete_upgrade_marker()

@@ -37,7 +37,7 @@ class NamenodeHAState:
   Represents the current state of the Namenode Hosts in High Availability Mode
   """
 
-  def __init__(self):
+  def __init__(self, environment=None):
     """
     Initializes all fields by querying the Namenode state.
     Raises a ValueError if unable to construct the object.
@@ -113,6 +113,7 @@ class NamenodeHAState:
             params.security_enabled,
             params.hdfs_user,
             params.is_https_enabled,
+            environment=environment,
           )
 
           # If JMX parsing failed
@@ -126,7 +127,12 @@ class NamenodeHAState:
               "-getServiceState",
               nn_unique_id,
             )
-            code, out = shell.call(check_service_cmd, logoutput=True, user=run_user)
+            code, out = shell.call(
+              check_service_cmd,
+              logoutput=True,
+              user=run_user,
+              env=environment,
+            )
             if code == 0 and out:
               reported_state = out.strip().lower()
               if reported_state == NAMENODE_STATE.STANDBY:

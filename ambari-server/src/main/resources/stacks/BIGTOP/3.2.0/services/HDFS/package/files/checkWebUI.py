@@ -20,16 +20,31 @@ limitations under the License.
 
 import argparse
 import http.client
+import math
+
+from ambari_commons.inet_utils import create_ssl_context
 
 
-def make_connection(host, port, https, force_protocol=None):
+def positive_timeout(value):
+  try:
+    timeout = float(value)
+  except (TypeError, ValueError) as error:
+    raise argparse.ArgumentTypeError("timeout must be a number") from error
+  if not math.isfinite(timeout) or timeout <= 0:
+    raise argparse.ArgumentTypeError("timeout must be a positive finite number")
+  return timeout
+
+
+def make_connection(host, port, https, timeout, force_protocol=None):
   conn = None
   try:
-    conn = (
-      http.client.HTTPConnection(host, port)
-      if not https
-      else http.client.HTTPSConnection(host, port)
-    )
+    if https:
+      context = create_ssl_context(force_protocol or "PROTOCOL_TLS_CLIENT")
+      conn = http.client.HTTPSConnection(
+        host, port, timeout=timeout, context=context
+      )
+    else:
+      conn = http.client.HTTPConnection(host, port, timeout=timeout)
     conn.request("GET", "/")
     return conn.getresponse().status
   except Exception as e:
@@ -48,15 +63,25 @@ def main():
     "-m",
     "--hosts",
     dest="hosts",
+    required=True,
     help="Comma separated hosts list for WEB UI to check it availability",
   )
   parser.add_argument(
-    "-p", "--port", dest="port", help="Port of WEB UI to check it availability"
+    "-p",
+    "--port",
+    dest="port",
+    required=True,
+    type=int,
+    choices=range(1, 65536),
+    metavar="PORT",
+    help="Port of WEB UI to check it availability",
   )
   parser.add_argument(
     "-s",
     "--https",
     dest="https",
+    required=True,
+    choices=("true", "false", "True", "False"),
     help='"True" if value of dfs.http.policy is "HTTPS_ONLY"',
   )
   parser.add_argument(
@@ -65,25 +90,37 @@ def main():
     dest="protocol",
     help="Protocol to use when executing https request",
   )
+  parser.add_argument(
+    "-t",
+    "--timeout",
+    dest="timeout",
+    type=positive_timeout,
+    default=10,
+    help="Per-host connection timeout in seconds",
+  )
 
   parser.add_argument("component", nargs="?", help=argparse.SUPPRESS)
   options = parser.parse_args()
 
-  hosts = options.hosts.split(",")
+  hosts = [host.strip() for host in options.hosts.split(",") if host.strip()]
+  if not hosts:
+    parser.error("at least one WEB UI host is required")
   port = options.port
   https = options.https
   protocol = options.protocol
 
   for host in hosts:
-    httpCode = make_connection(host, port, https.lower() == "true", protocol)
+    httpCode = make_connection(
+      host, port, https.lower() == "true", options.timeout, protocol
+    )
 
     if httpCode != 200 and httpCode != 302:
       print(
-        "Cannot access WEB UI on: http://" + host + ":" + port
+        "Cannot access WEB UI on: http://" + host + ":" + str(port)
         if not https.lower() == "true"
-        else "Cannot access WEB UI on: https://" + host + ":" + port
+        else "Cannot access WEB UI on: https://" + host + ":" + str(port)
       )
-      exit(1)
+      raise SystemExit(1)
 
 
 if __name__ == "__main__":

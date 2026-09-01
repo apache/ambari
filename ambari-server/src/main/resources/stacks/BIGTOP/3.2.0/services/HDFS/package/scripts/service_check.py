@@ -18,6 +18,8 @@ limitations under the License.
 
 """
 
+import sys
+
 import hdfs_process
 
 from resource_management.libraries.script.script import Script
@@ -25,9 +27,13 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries import functions
 from resource_management.libraries.functions.format import format
-from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import StaticFile
 from resource_management.core.resources.system import Execute, File
+
+
+JOURNALNODE_CONNECTION_TIMEOUT = 10
 
 
 class HdfsServiceCheck(Script):
@@ -50,16 +56,6 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
     test HDFS availability by file system operations is consistent in both HA and
     non-HA environment.
     """
-    if params.security_enabled:
-      Execute(
-        (
-          params.kinit_path_local,
-          "-kt",
-          params.hdfs_user_keytab,
-          params.hdfs_principal_name,
-        ),
-        user=params.hdfs_user,
-      )
     params.HdfsResource(
       hdfs_dir, type="directory", action="create_on_execute", mode=0o1777
     )
@@ -88,18 +84,17 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
             False,
             None,
             params.smoke_user,
+            connection_timeout=JOURNALNODE_CONNECTION_TIMEOUT,
           )
           if not response:
-            Logger.error(f"Cannot access WEB UI on: {uri}. Error : {errmsg}")
-            return 1
+            raise Fail(f"Cannot access WEB UI on: {uri}. Error: {errmsg}")
       else:
         journalnode_port = params.journalnode_port
-        checkWebUIFileName = "checkWebUI.py"
-        checkWebUIFilePath = format("{tmp_dir}/{checkWebUIFileName}")
+        checkWebUIFilePath = format("{tmp_dir}/checkWebUI-{unique}.py")
         comma_sep_jn_hosts = ",".join(params.journalnode_hosts)
 
         checkWebUICmd = (
-          "ambari-python-wrap",
+          sys.executable,
           checkWebUIFilePath,
           "-m",
           comma_sep_jn_hosts,
@@ -109,12 +104,25 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
           str(params.https_only),
           "-o",
           str(params.script_https_protocol),
+          "-t",
+          str(JOURNALNODE_CONNECTION_TIMEOUT),
         )
-        File(checkWebUIFilePath, content=StaticFile(checkWebUIFileName), mode=0o775)
-
-        Execute(
-          checkWebUICmd, logoutput=True, try_sleep=3, tries=5, user=params.smoke_user
-        )
+        File(checkWebUIFilePath, content=StaticFile("checkWebUI.py"), mode=0o755)
+        try:
+          Execute(
+            checkWebUICmd,
+            logoutput=True,
+            try_sleep=3,
+            tries=5,
+            user=params.smoke_user,
+            timeout=max(
+              JOURNALNODE_CONNECTION_TIMEOUT + 5,
+              len(params.journalnode_hosts) * JOURNALNODE_CONNECTION_TIMEOUT + 5,
+            ),
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+          )
+        finally:
+          File(checkWebUIFilePath, action="delete")
 
     if params.is_namenode_master:
       if params.has_zkfc_hosts:

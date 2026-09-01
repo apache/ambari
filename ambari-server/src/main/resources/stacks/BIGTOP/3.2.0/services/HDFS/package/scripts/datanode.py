@@ -31,7 +31,6 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
-  cached_kinit_executor,
   get_params_from_filesystem,
   validate_security_config_properties,
   FILE_TYPE_XML,
@@ -42,6 +41,7 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 from utils import get_hdfs_binary
 from utils import get_dfsadmin_base_command
+from hdfs_kerberos import hdfs_kerberos_environment
 
 
 class DataNode(Script):
@@ -138,10 +138,21 @@ class DataNode(Script):
     )
 
     is_datanode_deregistered = False
-    try:
-      shell.checked_call(command, user=params.hdfs_user, tries=1)
-    except Exception:
-      is_datanode_deregistered = True
+    with hdfs_kerberos_environment(
+      params,
+      "ambari-hdfs-datanode-shutdown-check-",
+      keytab=params.dn_keytab if params.security_enabled else None,
+      principal=params.dn_principal_name if params.security_enabled else None,
+    ) as command_environment:
+      try:
+        shell.checked_call(
+          command,
+          user=params.hdfs_user,
+          tries=1,
+          env=command_environment,
+        )
+      except Exception:
+        is_datanode_deregistered = True
 
     if not is_datanode_deregistered:
       Logger.info("DataNode has not yet deregistered from the NameNode...")

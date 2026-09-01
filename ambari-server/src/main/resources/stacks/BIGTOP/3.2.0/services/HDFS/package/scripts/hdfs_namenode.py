@@ -48,6 +48,7 @@ from resource_management.core.logger import Logger
 
 from utils import service, safe_zkfc_op, is_previous_fs_image
 from setup_ranger_hdfs import setup_ranger_hdfs, create_ranger_audit_hdfs_directories
+from hdfs_kerberos import hdfs_kerberos_environment
 
 import namenode_upgrade
 
@@ -86,6 +87,25 @@ def get_safemode_wait_options(rolling_restart, timeout):
 def wait_for_safemode_off(
   hdfs_binary, afterwait_sleep=0, execute_kinit=False, retries=115, sleep_seconds=10
 ):
+  import params
+
+  # Retain execute_kinit for management-pack caller compatibility. Secure
+  # commands now always use an isolated cache instead of the process default.
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-safemode-wait-"
+  ) as command_environment:
+    return _wait_for_safemode_off(
+      hdfs_binary,
+      afterwait_sleep,
+      retries,
+      sleep_seconds,
+      command_environment,
+    )
+
+
+def _wait_for_safemode_off(
+  hdfs_binary, afterwait_sleep, retries, sleep_seconds, environment
+):
   """
   During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
   all of the DataNodes, we need for NameNode to receive all of the block reports and leave safemode.
@@ -99,15 +119,6 @@ def wait_for_safemode_off(
     f"Waiting up to {sleep_minutes} minutes for the NameNode to leave Safemode..."
   )
 
-  if params.security_enabled and execute_kinit:
-    kinit_command = (
-      params.kinit_path_local,
-      "-kt",
-      params.hdfs_user_keytab,
-      params.hdfs_principal_name,
-    )
-    Execute(kinit_command, user=params.hdfs_user, logoutput=True)
-
   try:
     # Note, this fails if namenode_address isn't prefixed with "params."
 
@@ -120,6 +131,7 @@ def wait_for_safemode_off(
         safemode_command,
         user=params.hdfs_user,
         logoutput=True,
+        env=environment,
       )
       if code == 0 and output and "Safe mode is OFF" in output:
         break
@@ -137,6 +149,7 @@ def wait_for_safemode_off(
     Logger.error(
       "The NameNode is still in Safemode. Please be careful with commands that need Safemode OFF."
     )
+    raise
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -247,17 +260,6 @@ def namenode(
       create_pid_dir=True,
       create_log_dir=True,
     )
-
-    if params.security_enabled:
-      Execute(
-        (
-          params.kinit_path_local,
-          "-kt",
-          params.hdfs_user_keytab,
-          params.hdfs_principal_name,
-        ),
-        user=params.hdfs_user,
-      )
 
     name_service = get_name_service_by_hostname(params.hdfs_site, params.hostname)
 
@@ -543,27 +545,31 @@ def is_namenode_formatted(params):
 def refreshProxyUsers():
   import params
 
-  if params.security_enabled:
-    Execute(params.nn_kinit_cmd, user=params.hdfs_user)
-
   filesystem = (
     f"hdfs://{params.namenode_rpc}"
     if params.dfs_ha_enabled
     else params.namenode_address
   )
-  Execute(
-    (
-      "hdfs",
-      "--config",
-      params.hadoop_conf_dir,
-      "dfsadmin",
-      "-fs",
-      filesystem,
-      "-refreshSuperUserGroupsConfiguration",
-    ),
-    user=params.hdfs_user,
-    path=[params.hadoop_bin_dir],
-  )
+  with hdfs_kerberos_environment(
+    params,
+    "ambari-hdfs-refresh-proxy-users-",
+    keytab=params.nn_keytab if params.security_enabled else None,
+    principal=params.nn_principal_name if params.security_enabled else None,
+  ) as command_environment:
+    Execute(
+      (
+        "hdfs",
+        "--config",
+        params.hadoop_conf_dir,
+        "dfsadmin",
+        "-fs",
+        filesystem,
+        "-refreshSuperUserGroupsConfiguration",
+      ),
+      user=params.hdfs_user,
+      path=[params.hadoop_bin_dir],
+      environment=command_environment,
+    )
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -573,8 +579,6 @@ def decommission():
   hdfs_user = params.hdfs_user
   conf_dir = params.hadoop_conf_dir
   user_group = params.user_group
-  nn_kinit_cmd = params.nn_kinit_cmd
-
   File(
     params.exclude_file_path,
     content=Template("exclude_hosts_list.j2"),
@@ -601,26 +605,31 @@ def decommission():
   )
 
   if not params.update_files_only:
-    Execute(nn_kinit_cmd, user=hdfs_user)
-
     filesystem = (
       f"hdfs://{params.namenode_rpc}"
       if params.dfs_ha_enabled
       else params.namenode_address
     )
-    Execute(
-      (
-        "hdfs",
-        "--config",
-        params.hadoop_conf_dir,
-        "dfsadmin",
-        "-fs",
-        filesystem,
-        "-refreshNodes",
-      ),
-      user=hdfs_user,
-      path=[params.hadoop_bin_dir],
-    )
+    with hdfs_kerberos_environment(
+      params,
+      "ambari-hdfs-refresh-nodes-",
+      keytab=params.nn_keytab if params.security_enabled else None,
+      principal=params.nn_principal_name if params.security_enabled else None,
+    ) as command_environment:
+      Execute(
+        (
+          "hdfs",
+          "--config",
+          params.hadoop_conf_dir,
+          "dfsadmin",
+          "-fs",
+          filesystem,
+          "-refreshNodes",
+        ),
+        user=hdfs_user,
+        path=[params.hadoop_bin_dir],
+        environment=command_environment,
+      )
 
 
 def bootstrap_standby_namenode(params, use_path=False):
@@ -653,21 +662,30 @@ def bootstrap_standby_namenode(params, use_path=False):
       # Once out of INITIAL_START phase bootstrap only if we couldnt bootstrap during cluster deployment
       return True
     Logger.info(f"Boostrapping standby namenode: {bootstrap_cmd}")
-    for i in range(iterations):
-      Logger.info("Try %d out of %d" % (i + 1, iterations))
-      code, out = shell.call(bootstrap_cmd, logoutput=False, user=params.hdfs_user)
-      if code == 0:
-        Logger.info("Standby namenode bootstrapped successfully")
-        bootstrapped = True
-        break
-      elif code == 5:
-        Logger.info("Standby namenode already bootstrapped")
-        bootstrapped = True
-        break
-      else:
-        Logger.warning(
-          "Bootstrap standby namenode failed with %d error code. Will retry" % (code)
+    with hdfs_kerberos_environment(
+      params, "ambari-hdfs-namenode-bootstrap-retry-"
+    ) as command_environment:
+      for i in range(iterations):
+        Logger.info("Try %d out of %d" % (i + 1, iterations))
+        code, out = shell.call(
+          bootstrap_cmd,
+          logoutput=False,
+          user=params.hdfs_user,
+          env=command_environment,
         )
+        if code == 0:
+          Logger.info("Standby namenode bootstrapped successfully")
+          bootstrapped = True
+          break
+        elif code == 5:
+          Logger.info("Standby namenode already bootstrapped")
+          bootstrapped = True
+          break
+        else:
+          Logger.warning(
+            "Bootstrap standby namenode failed with %d error code. Will retry"
+            % (code)
+          )
   except Exception as ex:
     Logger.error(f"Bootstrap standby namenode threw an exception. Reason {str(ex)}")
   if bootstrapped:
@@ -723,15 +741,19 @@ def is_this_namenode_active(name_service):
   # returns ([], [('nn1', 'c6401.ambari.apache.org:50070')], [('nn2', 'c6402.ambari.apache.org:50070')], [])
   #          0                                              1                                             2
   #
-  namenode_states = namenode_ha_utils.get_namenode_states(
-    params.hdfs_site,
-    params.security_enabled,
-    params.hdfs_user,
-    times=5,
-    sleep_time=5,
-    backoff_factor=2,
-    name_service=name_service,
-  )
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-namenode-ha-state-"
+  ) as command_environment:
+    namenode_states = namenode_ha_utils.get_namenode_states(
+      params.hdfs_site,
+      params.security_enabled,
+      params.hdfs_user,
+      times=5,
+      sleep_time=5,
+      backoff_factor=2,
+      name_service=name_service,
+      environment=command_environment,
+    )
 
   # unwraps [('nn1', 'c6401.ambari.apache.org:50070')]
   active_namenodes = [] if len(namenode_states[0]) < 1 else namenode_states[0]

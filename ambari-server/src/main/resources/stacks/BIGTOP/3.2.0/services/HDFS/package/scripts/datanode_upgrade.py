@@ -22,11 +22,11 @@ import hdfs_process
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core import ComponentIsNotRunning
 from utils import get_dfsadmin_base_command
+from hdfs_kerberos import hdfs_kerberos_environment
 
 
 def pre_rolling_upgrade_shutdown(hdfs_binary):
@@ -44,9 +44,6 @@ def pre_rolling_upgrade_shutdown(hdfs_binary):
   Logger.info(
     'DataNode executing "shutdownDatanode" command in preparation for upgrade...'
   )
-  if params.security_enabled:
-    Execute(params.dn_kinit_cmd, user=params.hdfs_user)
-
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
   command = dfsadmin_base_command + (
     "-shutdownDatanode",
@@ -54,7 +51,15 @@ def pre_rolling_upgrade_shutdown(hdfs_binary):
     "upgrade",
   )
 
-  code, output = shell.call(command, user=params.hdfs_user)
+  with hdfs_kerberos_environment(
+    params,
+    "ambari-hdfs-datanode-shutdown-",
+    keytab=params.dn_keytab if params.security_enabled else None,
+    principal=params.dn_principal_name if params.security_enabled else None,
+  ) as command_environment:
+    code, output = shell.call(
+      command, user=params.hdfs_user, env=command_environment
+    )
   if code != 0:
     Logger.warning(
       "DataNode graceful shutdown failed with exit code "
@@ -74,11 +79,13 @@ def post_upgrade_check(hdfs_binary):
   import params
 
   Logger.info("Checking that the DataNode has rejoined the cluster after upgrade...")
-  if params.security_enabled:
-    Execute(params.dn_kinit_cmd, user=params.hdfs_user)
-
-  # verify that the datanode has started and rejoined the HDFS cluster
-  _check_datanode_startup(hdfs_binary)
+  with hdfs_kerberos_environment(
+    params,
+    "ambari-hdfs-datanode-upgrade-check-",
+    keytab=params.dn_keytab if params.security_enabled else None,
+    principal=params.dn_principal_name if params.security_enabled else None,
+  ) as command_environment:
+    _check_datanode_startup(hdfs_binary, environment=command_environment)
 
 
 def is_datanode_process_running():
@@ -101,7 +108,7 @@ def is_datanode_process_running():
 
 
 @retry(times=30, sleep_time=30, err_class=Fail)  # keep trying for 15 mins
-def _check_datanode_startup(hdfs_binary):
+def _check_datanode_startup(hdfs_binary, environment=None):
   """
   Checks that a DataNode process is running and DataNode is reported as being alive via the
   "hdfs dfsadmin -fs {namenode_address} -report -live" command. Once the DataNode is found to be
@@ -121,7 +128,9 @@ def _check_datanode_startup(hdfs_binary):
   try:
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
     command = dfsadmin_base_command + ("-report", "-live")
-    return_code, hdfs_output = shell.call(command, user=params.hdfs_user)
+    return_code, hdfs_output = shell.call(
+      command, user=params.hdfs_user, env=environment
+    )
   except Exception as error:
     raise Fail(
       "Unable to determine if the DataNode has started after upgrade."

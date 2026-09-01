@@ -32,7 +32,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core import shell
-from resource_management.core.shell import as_user, as_sudo
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import Template
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
@@ -45,6 +45,7 @@ from resource_management.libraries.functions.namenode_ha_utils import (
 from resource_management.libraries.functions.show_logs import show_logs
 from ambari_commons.inet_utils import create_ssl_context
 from zkfc_slave import ZkfcSlaveDefault
+from hdfs_kerberos import hdfs_kerberos_environment
 
 
 SUPPORTED_SERVICE_ACTIONS = {"start", "stop"}
@@ -58,9 +59,9 @@ SUPPORTED_SERVICE_NAMES = {
   "zkfc",
 }
 SUPPORTED_SERVICE_OPTIONS = {
-  "",
-  "-rollingUpgrade downgrade",
-  "-rollingUpgrade started",
+  "": (),
+  "-rollingUpgrade downgrade": ("-rollingUpgrade", "downgrade"),
+  "-rollingUpgrade started": ("-rollingUpgrade", "started"),
 }
 SERVICE_USER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]*[$]?\Z")
 
@@ -91,30 +92,28 @@ def safe_zkfc_op(action, env):
 
 
 def initiate_safe_zkfc_failover():
+  import params
+
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-zkfc-failover-"
+  ) as command_environment:
+    _initiate_safe_zkfc_failover(params, command_environment)
+
+
+def _initiate_safe_zkfc_failover(params, environment):
   """
   If this is the active namenode, initiate a safe failover and wait for it to become the standby.
 
   If an error occurs, force a failover to happen by killing zkfc on this host. In this case, during the Restart,
   will also have to start ZKFC manually.
   """
-  import params
-
-  # Must kinit before running the HDFS command
-  if params.security_enabled:
-    Execute(
-      (
-        params.kinit_path_local,
-        "-kt",
-        params.hdfs_user_keytab,
-        params.hdfs_principal_name,
-      ),
-      user=params.hdfs_user,
-    )
-
   active_namenode_id = None
   standby_namenode_id = None
   active_namenodes, standby_namenodes, unknown_namenodes = get_namenode_states(
-    params.hdfs_site, params.security_enabled, params.hdfs_user
+    params.hdfs_site,
+    params.security_enabled,
+    params.hdfs_user,
+    environment=environment,
   )
   if active_namenodes:
     active_namenode_id = active_namenodes[0][0]
@@ -165,7 +164,12 @@ def initiate_safe_zkfc_failover():
 
     msg = f"Rolling Upgrade - Initiating a ZKFC failover on active NameNode host {params.hostname}."
     Logger.info(msg)
-    code, out = shell.call(failover_command, user=params.hdfs_user, logoutput=True)
+    code, out = shell.call(
+      failover_command,
+      user=params.hdfs_user,
+      logoutput=True,
+      env=environment,
+    )
     Logger.info(format("Rolling Upgrade - failover command returned {code}"))
     wait_for_standby = False
 
@@ -174,7 +178,12 @@ def initiate_safe_zkfc_failover():
     else:
       # Try to kill ZKFC manually
       was_zkfc_killed = kill_zkfc(params.hdfs_user)
-      code, out = shell.call(check_standby_cmd, user=params.hdfs_user, logoutput=True)
+      code, out = shell.call(
+        check_standby_cmd,
+        user=params.hdfs_user,
+        logoutput=True,
+        env=environment,
+      )
       Logger.info(format("Rolling Upgrade - check for standby returned {code}"))
       if code == 255 and out:
         Logger.info("Rolling Upgrade - NameNode is already down.")
@@ -190,6 +199,7 @@ def initiate_safe_zkfc_failover():
           check_standby_cmd,
           user=params.hdfs_user,
           logoutput=True,
+          env=environment,
         )
         if code == 0 and output and output.strip().lower() == "standby":
           break
@@ -339,20 +349,23 @@ def service(
 
   hadoop_daemon = format("{hadoop_bin}/hadoop-daemon.sh")
 
-  if user == "root":
-    cmd = [hadoop_daemon, "--config", params.hadoop_conf_dir, action, name]
-    if options:
-      cmd += [
-        options,
-      ]
-    daemon_cmd = as_sudo(cmd)
-  else:
-    cmd = format(
-      "{ulimit_cmd} {hadoop_daemon} --config {hadoop_conf_dir} {action} {name}"
+  daemon_cmd = (
+    hadoop_daemon,
+    "--config",
+    params.hadoop_conf_dir,
+    action,
+    name,
+    *SUPPORTED_SERVICE_OPTIONS[options],
+  )
+  execute_as = {"sudo": True} if user == "root" else {"user": user}
+  if user != "root":
+    daemon_cmd = (
+      "bash",
+      "-c",
+      'ulimit -c unlimited; exec "$@"',
+      "ambari-hdfs-daemon",
+      *daemon_cmd,
     )
-    if options:
-      cmd += " " + options
-    daemon_cmd = as_user(cmd, user)
 
   if action == "start":
     running = hdfs_process.recover_running_process(
@@ -367,7 +380,13 @@ def service(
       return
 
     try:
-      Execute(daemon_cmd, environment=hadoop_env_exports)
+      Execute(
+        daemon_cmd,
+        environment=hadoop_env_exports,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        **execute_as,
+      )
       hdfs_process.wait_for_running_process(
         pid_file,
         process_user,
@@ -392,7 +411,13 @@ def service(
       return
 
     try:
-      Execute(daemon_cmd, environment=hadoop_env_exports)
+      Execute(
+        daemon_cmd,
+        environment=hadoop_env_exports,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        **execute_as,
+      )
     except Exception:
       show_logs(log_dir, user)
       raise
