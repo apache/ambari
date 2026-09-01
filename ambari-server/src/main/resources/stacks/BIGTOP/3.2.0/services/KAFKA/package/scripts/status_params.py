@@ -25,3 +25,6 @@ config = Script.get_config()
 
 kafka_pid_dir = config["configurations"]["kafka-env"]["kafka_pid_dir"]
 kafka_pid_file = format("{kafka_pid_dir}/kafka.pid")
+kafka_user = config["configurations"]["kafka-env"]["kafka_user"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
+kafka_server_properties = "/etc/kafka/conf/server.properties"
