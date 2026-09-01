@@ -54,5 +54,6 @@ class Register:
       "agentVersion": Utils.read_agent_version(self.config),
       "prefix": self.config.get("agent", "prefix"),
       "agentStartTime": self.init_time_ms,
+      "encryptionTypes": ["aes256_hex", "aes256_gcm"],
     }
     return register

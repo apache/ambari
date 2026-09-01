@@ -67,7 +67,8 @@ public class PropertiesEncryptor {
   }
 
   private boolean isEncryptedPassword(String password) {
-    return password != null && password.startsWith(Encryptor.ENCRYPTED_PROPERTY_PREFIX); // assuming previous encryption by this class
+    return password != null && (password.startsWith(Encryptor.ENCRYPTED_PROPERTY_PREFIX)
+        || password.startsWith(Encryptor.ENCRYPTED_PROPERTY_GCM_PREFIX));
   }
 
   private Set<String> getPasswordProperties(Cluster cluster, String configType) {
@@ -97,6 +98,11 @@ public class PropertiesEncryptor {
     return String.format(Encryptor.ENCRYPTED_PROPERTY_SCHEME, encrypted);
   }
 
+  protected String encryptAndDecoratePropertyValueGcm(String propertyValue, String encryptionKey) {
+    final String encrypted = encryptionService.encryptGcm(propertyValue, encryptionKey, TextEncoding.BIN_HEX);
+    return String.format(Encryptor.ENCRYPTED_PROPERTY_GCM_SCHEME, encrypted);
+  }
+
   protected void decrypt(Map<String, String> configProperties) {
     for (Map.Entry<String, String> property : configProperties.entrySet()) {
       if (isEncryptedPassword(property.getValue())) {
@@ -107,6 +113,10 @@ public class PropertiesEncryptor {
 
   private String decryptProperty(String property) {
     // sample value: ${enc=aes256_hex, value=5248...303d}
+    if (property.startsWith(Encryptor.ENCRYPTED_PROPERTY_GCM_PREFIX)) {
+      final String encrypted = property.substring(Encryptor.ENCRYPTED_PROPERTY_GCM_PREFIX.length(), property.indexOf('}'));
+      return encryptionService.decryptGcm(encrypted, encryptionService.getAmbariMasterKey(), TextEncoding.BIN_HEX);
+    }
     final String encrypted = property.substring(Encryptor.ENCRYPTED_PROPERTY_PREFIX.length(), property.indexOf('}'));
     return encryptionService.decrypt(encrypted, TextEncoding.BIN_HEX);
   }

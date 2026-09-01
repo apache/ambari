@@ -43,6 +43,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReport;
 import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReports;
+import org.apache.ambari.server.agent.stomp.MetadataHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
@@ -88,6 +89,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 
 /**
  * HeartbeatProcessor class is used for bulk processing data retrieved from agents in background
@@ -143,6 +145,9 @@ public class HeartbeatProcessor extends AbstractService{
   Gson gson;
 
   @Inject
+  Provider<MetadataHolder> metadataHolder;
+
+  @Inject
   public HeartbeatProcessor(Clusters clusterFsm, ActionManager am, HeartbeatMonitor heartbeatMonitor,
                             Injector injector) {
     injector.injectMembers(this);
@@ -185,6 +190,11 @@ public class HeartbeatProcessor extends AbstractService{
 
     @Override
     public void run() {
+      try {
+        metadataHolder.get().refreshResourceArchiveDigests();
+      } catch (Exception e) {
+        LOG.error("Unable to refresh resource archive digest metadata", e);
+      }
       while (shouldRun) {
         try {
           HeartBeat heartbeat = pollHeartbeat();

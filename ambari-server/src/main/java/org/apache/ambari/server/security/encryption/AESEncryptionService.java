@@ -21,6 +21,14 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import jakarta.inject.Inject;
 
@@ -30,8 +38,6 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -39,8 +45,13 @@ public class AESEncryptionService implements EncryptionService {
 
   private static final String ENCODED_TEXT_FIELD_DELIMITER = "::";
   private static final String UTF_8_CHARSET = StandardCharsets.UTF_8.name();
-
-  private final Cache<String, AESEncryptor> aesEncryptorCache = CacheBuilder.newBuilder().build();
+  private static final byte[] GCM_AAD = "ambari-agent-config-v2".getBytes(StandardCharsets.UTF_8);
+  private static final int GCM_ITERATIONS = 210000;
+  private static final int GCM_KEY_BITS = 256;
+  private static final int GCM_TAG_BITS = 128;
+  private static final int GCM_SALT_BYTES = 16;
+  private static final int GCM_NONCE_BYTES = 12;
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   private MasterKeyService environmentMasterKeyService;
 
@@ -72,14 +83,38 @@ public class AESEncryptionService implements EncryptionService {
     }
   }
 
-  private AESEncryptor getAesEncryptor(String key) {
-    AESEncryptor aesEncryptor = aesEncryptorCache.getIfPresent(key);
-    if (aesEncryptor == null) {
-      aesEncryptor = new AESEncryptor(key);
-      aesEncryptorCache.put(key, aesEncryptor);
+  @Override
+  public String encryptGcm(String toBeEncrypted, String key, TextEncoding textEncoding) {
+    byte[] salt = new byte[GCM_SALT_BYTES];
+    byte[] nonce = new byte[GCM_NONCE_BYTES];
+    SECURE_RANDOM.nextBytes(salt);
+    SECURE_RANDOM.nextBytes(nonce);
+    try {
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      cipher.init(Cipher.ENCRYPT_MODE, deriveGcmKey(key, salt), new GCMParameterSpec(GCM_TAG_BITS, nonce));
+      cipher.updateAAD(GCM_AAD);
+      byte[] ciphertext = cipher.doFinal(toBeEncrypted.getBytes(StandardCharsets.UTF_8));
+      EncryptionResult result = new EncryptionResult(salt, nonce, ciphertext);
+      return TextEncoding.BASE_64 == textEncoding ? encodeEncryptionResultBase64(result) : encodeEncryptionResultBinHex(result);
+    } catch (GeneralSecurityException | IOException e) {
+      throw new SecurityException("Unable to encrypt Agent configuration with AES-GCM", e);
     }
+  }
 
-    return aesEncryptor;
+  private SecretKeySpec deriveGcmKey(String key, byte[] salt) throws GeneralSecurityException {
+    PBEKeySpec keySpec = new PBEKeySpec(key.toCharArray(), salt, GCM_ITERATIONS, GCM_KEY_BITS);
+    try {
+      byte[] derivedKey = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(keySpec).getEncoded();
+      return new SecretKeySpec(derivedKey, "AES");
+    } finally {
+      keySpec.clearPassword();
+    }
+  }
+
+  private AESEncryptor getAesEncryptor(String key) {
+    // AESEncryptor owns mutable Cipher state and a random salt/IV. Reusing it
+    // across calls would be both thread-unsafe and cryptographically unsafe.
+    return new AESEncryptor(key);
   }
 
   @Override
@@ -140,6 +175,33 @@ public class AESEncryptionService implements EncryptionService {
       throw new UncheckedIOException(e);
     } catch (DecoderException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public String decryptGcm(String toBeDecrypted, String key, TextEncoding textEncoding) {
+    try {
+      byte[] decodedValue = TextEncoding.BASE_64 == textEncoding
+          ? Base64.decodeBase64(toBeDecrypted)
+          : Hex.decodeHex(toBeDecrypted.toCharArray());
+      String[] decodedParts = new String(decodedValue, StandardCharsets.UTF_8)
+          .split(ENCODED_TEXT_FIELD_DELIMITER, -1);
+      if (decodedParts.length != 3) {
+        throw new SecurityException("Agent AES-GCM envelope must contain exactly three fields");
+      }
+      byte[] salt = TextEncoding.BASE_64 == textEncoding ? Base64.decodeBase64(decodedParts[0]) : Hex.decodeHex(decodedParts[0].toCharArray());
+      byte[] nonce = TextEncoding.BASE_64 == textEncoding ? Base64.decodeBase64(decodedParts[1]) : Hex.decodeHex(decodedParts[1].toCharArray());
+      byte[] ciphertext = TextEncoding.BASE_64 == textEncoding ? Base64.decodeBase64(decodedParts[2]) : Hex.decodeHex(decodedParts[2].toCharArray());
+      if (salt.length != GCM_SALT_BYTES || nonce.length != GCM_NONCE_BYTES
+          || ciphertext.length < GCM_TAG_BITS / Byte.SIZE) {
+        throw new SecurityException("Agent AES-GCM envelope has invalid field lengths");
+      }
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      cipher.init(Cipher.DECRYPT_MODE, deriveGcmKey(key, salt), new GCMParameterSpec(GCM_TAG_BITS, nonce));
+      cipher.updateAAD(GCM_AAD);
+      return new String(cipher.doFinal(ciphertext), StandardCharsets.UTF_8);
+    } catch (GeneralSecurityException | DecoderException | RuntimeException e) {
+      throw new SecurityException("Unable to authenticate or decrypt Agent AES-GCM configuration", e);
     }
   }
 }

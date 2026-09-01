@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.agent;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -35,6 +38,7 @@ public class Register {
   private AgentEnv agentEnv;
   private String agentVersion;
   private String prefix;
+  private List<String> encryptionTypes = Collections.emptyList();
 
   @JsonProperty("id")
   @JsonAlias({"id", "responseId"})
@@ -98,6 +102,14 @@ public class Register {
 
   public void setAgentVersion(String agentVersion) {
     this.agentVersion = agentVersion;
+  }
+
+  public List<String> getEncryptionTypes() {
+    return encryptionTypes;
+  }
+
+  public void setEncryptionTypes(List<String> encryptionTypes) {
+    this.encryptionTypes = encryptionTypes == null ? Collections.emptyList() : encryptionTypes;
   }
 
   public int getCurrentPingPort() {

@@ -75,6 +75,41 @@ public class EncryptionServiceTest {
   }
 
   @Test
+  public void testEncryptAndDecryptGcmUsingCustomKey() {
+    final String key = "mySuperS3cr3tMast3rKey!";
+    final String plaintext = "mySuperS3cr3tP4ssW0rD!-配置";
+    EncryptionService encryptionService = new AESEncryptionService();
+
+    final String first = encryptionService.encryptGcm(plaintext, key, TextEncoding.BIN_HEX);
+    final String second = encryptionService.encryptGcm(plaintext, key, TextEncoding.BIN_HEX);
+
+    assertEquals(plaintext, encryptionService.decryptGcm(first, key, TextEncoding.BIN_HEX));
+    Assert.assertFalse("A fresh salt and nonce are required for every value", first.equals(second));
+  }
+
+  @Test
+  public void testDecryptsPythonGeneratedGcmVector() {
+    final String key = "i%r041K%1VC!C5 K=(";
+    final String encrypted = "30303131323233333434353536363737383839396161626263636464656566663a3a3130323133323433353436353736383739386139626163623a3a3631306139313833316330663132366634643433386639363435666164636138323438656130356232623664666233313136633339623638643936613832";
+
+    assertEquals("mysecret-配置",
+        new AESEncryptionService().decryptGcm(encrypted, key, TextEncoding.BIN_HEX));
+  }
+
+  @Test(expected = SecurityException.class)
+  public void testGcmRejectsTamperedAuthenticationTag() {
+    final String key = "i%r041K%1VC!C5 K=(";
+    final String encrypted = "30303131323233333434353536363737383839396161626263636464656566663a3a3130323133323433353436353736383739386139626163623a3a3631306139313833316330663132366634643433386639363435666164636138323438656130356232623664666233313136633339623638643936613833";
+
+    new AESEncryptionService().decryptGcm(encrypted, key, TextEncoding.BIN_HEX);
+  }
+
+  @Test(expected = SecurityException.class)
+  public void testGcmRejectsMalformedEnvelope() {
+    new AESEncryptionService().decryptGcm("30303a3a3131", "key", TextEncoding.BIN_HEX);
+  }
+
+  @Test
   public void testEncryptAndDecryptUsingPersistedMasterKey()throws Exception {
     final String fileDir = tmpFolder.newFolder("keys").getAbsolutePath();
     final File masterKeyFile = new File(fileDir, "master");

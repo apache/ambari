@@ -41,25 +41,30 @@ import com.google.inject.Singleton;
 public class AgentConfigUpdateEncryptor extends PropertiesEncryptor implements Encryptor<AgentConfigsUpdateEvent> {
   private final AgentEncryptionKey encryptionKey;
   private final Provider<Clusters> clusters;
+  private final AgentEncryptionCapabilities encryptionCapabilities;
 
   @Inject
-  public AgentConfigUpdateEncryptor(EncryptionService encryptionService, CredentialStoreService credentialStore, Provider<Clusters> clusters) {
+  public AgentConfigUpdateEncryptor(EncryptionService encryptionService, CredentialStoreService credentialStore,
+      Provider<Clusters> clusters, AgentEncryptionCapabilities encryptionCapabilities) {
     super(encryptionService);
     this.encryptionKey = AgentEncryptionKey.loadFrom(credentialStore, true);
     this.clusters = clusters;
+    this.encryptionCapabilities = encryptionCapabilities;
   }
 
   @Override
   public void encryptSensitiveData(AgentConfigsUpdateEvent event) {
+    boolean useGcm = encryptionCapabilities.supportsAesGcm(event.getHostId());
     for (Map.Entry<String, ClusterConfigs> each : event.getClustersConfigs().entrySet()) {
       Cluster cluster = getCluster(Long.parseLong(each.getKey()));
       ClusterConfigs clusterConfigs = each.getValue();
       for (Map.Entry<String, SortedMap<String, String>> clusterConfig : clusterConfigs.getConfigurations().entrySet()) {
-        encrypt(
-          clusterConfig.getValue(),
-          cluster,
-          clusterConfig.getKey(),
-          encryptionKey.toString());
+        if (useGcm) {
+          encrypt(clusterConfig.getValue(), cluster, clusterConfig.getKey(),
+              value -> encryptAndDecoratePropertyValueGcm(value, encryptionKey.toString()));
+        } else {
+          encrypt(clusterConfig.getValue(), cluster, clusterConfig.getKey(), encryptionKey.toString());
+        }
       }
     }
   }
