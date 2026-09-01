@@ -39,9 +39,9 @@
     </property>
     <property>
         <name>livy.server.session.timeout</name>
-        <value>3600000</value>
+        <value>1h</value>
         <description>
-            Time in milliseconds on how long Livy will wait before timing out an idle session.
+            How long Livy will wait before timing out an idle session.
             Default is one hour.
         </description>
         <on-ambari-upgrade add="false"/>
@@ -55,20 +55,12 @@
         <on-ambari-upgrade add="false"/>
     </property>
     <property>
-        <name>livy.impersonation.enabled</name>
-        <value>true</value>
-        <description>
-            If livy should use proxy users when submitting a job.
-        </description>
-        <on-ambari-upgrade add="false"/>
-    </property>
-    <property>
-        <name>livy.server.csrf_protection.enabled</name>
+        <name>livy.server.csrf-protection.enabled</name>
         <value>true</value>
         <description>
             Whether to enable csrf protection for livy's rest api.
         </description>
-        <on-ambari-upgrade add="false"/>
+        <on-ambari-upgrade add="true"/>
     </property>
     <property>
         <name>livy.spark.master</name>
@@ -87,12 +79,12 @@
         <on-ambari-upgrade add="false"/>
     </property>
     <property>
-        <name>livy.repl.enableHiveContext</name>
+        <name>livy.repl.enable-hive-context</name>
         <value>true</value>
         <description>
             Whether to enable HiveContext in livy interpreter
         </description>
-        <on-ambari-upgrade add="false"/>
+        <on-ambari-upgrade add="true"/>
     </property>
     <property>
         <name>livy.server.recovery.mode</name>

@@ -70,12 +70,9 @@
 
       <configuration-dependencies>
         <config-type>core-site</config-type>
-        <config-type>spark-defaults</config-type>
-        <config-type>spark-env</config-type>
-        <config-type>spark-log4j-properties</config-type>
-        <config-type>spark-metrics-properties</config-type>
-        <config-type>spark-hive-site-override</config-type>
-        <config-type>spark-thrift-fairscheduler</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <config-type>yarn-site</config-type>
         <config-type>livy-client-conf</config-type>
         <config-type>livy-conf</config-type>
         <config-type>livy-env</config-type>
