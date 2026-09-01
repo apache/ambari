@@ -23,7 +23,7 @@
       <name>YARN</name>
       <displayName>YARN</displayName>
       <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-      <version>3.3.4-1</version>
+      <version>3.3.6-1</version>
       <components>
 
         <component>
@@ -47,13 +47,6 @@
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>HBASE/HBASE_CLIENT</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
@@ -258,12 +251,11 @@
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
+        <timeout>600</timeout>
       </commandScript>
 
       <requiredServices>
         <service>HDFS</service>
-        <service>MAPREDUCE2</service>
         <service>ZOOKEEPER</service>
       </requiredServices>
 
@@ -308,7 +300,7 @@
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
       <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-      <version>3.3.4-1</version>
+      <version>3.3.6-1</version>
       <components>
         <component>
           <name>HISTORYSERVER</name>
@@ -324,20 +316,6 @@
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>TEZ/TEZ_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>SLIDER/SLIDER</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
@@ -402,7 +380,7 @@
       <commandScript>
         <script>scripts/mapred_service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
+        <timeout>600</timeout>
       </commandScript>
 
       <requiredServices>

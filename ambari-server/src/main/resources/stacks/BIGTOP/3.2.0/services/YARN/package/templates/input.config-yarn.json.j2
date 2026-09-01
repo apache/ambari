@@ -13,29 +13,31 @@
  # distributed under the License is distributed on an "AS IS" BASIS,
  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  # See the License for the specific language governing permissions and
- # limitations under the License.
- #}
+# limitations under the License.
+#}
+{% set yarn_log_dir_prefix = default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop') %}
+{% set yarn_user = default('/configurations/yarn-env/yarn_user', 'yarn') %}
 {
   "input":[
     {
       "type":"yarn_nodemanager",
       "rowtype":"service",
-      "path":"{{default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/yarn-env/yarn_user', 'yarn')}}/hadoop-{{default('configurations/yarn-env/yarn_user', 'yarn')}}-nodemanager-*.log"
+      "path":{{json.dumps(yarn_log_dir_prefix + '/' + yarn_user + '/hadoop-' + yarn_user + '-nodemanager-*.log')}}
     },
     {
       "type":"yarn_resourcemanager",
       "rowtype":"service",
-      "path":"{{default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/yarn-env/yarn_user', 'yarn')}}/hadoop-{{default('configurations/yarn-env/yarn_user', 'yarn')}}-resourcemanager-*.log"
+      "path":{{json.dumps(yarn_log_dir_prefix + '/' + yarn_user + '/hadoop-' + yarn_user + '-resourcemanager-*.log')}}
     },
     {
       "type":"yarn_timelineserver",
       "rowtype":"service",
-      "path":"{{default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/yarn-env/yarn_user', 'yarn')}}/hadoop-{{default('configurations/yarn-env/yarn_user', 'yarn')}}-timelineserver-*.log"
+      "path":{{json.dumps(yarn_log_dir_prefix + '/' + yarn_user + '/hadoop-' + yarn_user + '-timelineserver-*.log')}}
     },
     {
       "type":"yarn_jobsummary",
       "rowtype":"service",
-      "path":"{{default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop')}}/{{default('configurations/yarn-env/yarn_user', 'yarn')}}/hadoop-mapreduce.jobsummary.log"
+      "path":{{json.dumps(yarn_log_dir_prefix + '/' + yarn_user + '/hadoop-mapreduce.jobsummary.log')}}
     }
    ],
   "filter":[

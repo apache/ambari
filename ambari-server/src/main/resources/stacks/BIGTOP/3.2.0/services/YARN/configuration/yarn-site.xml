@@ -176,6 +176,20 @@
     <name>yarn.nodemanager.container-executor.class</name>
     <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
     <description>ContainerExecutor for launching containers</description>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+      <property>
+        <type>core-site</type>
+        <name>hadoop.security.authentication</name>
+      </property>
+      <property>
+        <type>container-executor</type>
+        <name>gpu_module_enabled</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -455,7 +469,7 @@
   </property>
   <property>
     <name>yarn.timeline-service.leveldb-timeline-store.path</name>
-    <value>/var/log/hadoop-yarn/timeline</value>
+    <value>/hadoop/yarn/timeline</value>
     <description>
       Store file name for leveldb timeline store
     </description>
@@ -517,7 +531,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
 
-  <!-- These properties were inherited from HDP 2.2 -->
   <property>
     <name>hadoop.registry.zk.quorum</name>
     <value>localhost:2181</value>
@@ -639,7 +652,7 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>yarn.resourcemanager.zk-address</name>
+    <name>hadoop.zk.address</name>
     <value>localhost:2181</value>
     <description>
       List Host:Port of the ZooKeeper servers to be used by the RM. comma separated host:port pairs, each corresponding to a zk server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002" If the optional chroot suffix is used the example would look like: "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002/app/a" where the client would be rooted at "/app/a" and all paths would be relative to this root - ie getting/setting/etc...  "/foo/bar" would result in operations being run on "/app/a/foo/bar" (from the server perspective).
@@ -653,7 +666,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.resourcemanager.zk-acl</name>
+    <name>hadoop.zk.acl</name>
     <value>world:anyone:rwcda</value>
     <description>ACL's to be used for ZooKeeper znodes.</description>
     <on-ambari-upgrade add="false"/>
@@ -677,23 +690,23 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.resourcemanager.zk-retry-interval-ms</name>
+    <name>hadoop.zk.retry-interval-ms</name>
     <value>1000</value>
     <description>"Retry interval in milliseconds when connecting to ZooKeeper.
       When HA is enabled, the value here is NOT used. It is generated
-      automatically from yarn.resourcemanager.zk-timeout-ms and
-      yarn.resourcemanager.zk-num-retries."
+      automatically from hadoop.zk.timeout-ms and
+      hadoop.zk.num-retries."
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.resourcemanager.zk-num-retries</name>
+    <name>hadoop.zk.num-retries</name>
     <value>1000</value>
     <description>Number of times RM tries to connect to ZooKeeper.</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.resourcemanager.zk-timeout-ms</name>
+    <name>hadoop.zk.timeout-ms</name>
     <value>10000</value>
     <description>ZooKeeper session timeout in milliseconds. Session expiration is managed by the ZooKeeper cluster itself, not by the client. This value is used by the cluster to determine when the client's session expires. Expirations happens when the cluster does not hear from the client within the specified session timeout period (i.e. no heartbeat).</description>
     <on-ambari-upgrade add="false"/>
@@ -705,9 +718,15 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.resourcemanager.fs.state-store.retry-policy-spec</name>
-    <value>2000, 500</value>
-    <description>hdfs client retry policy specification. hdfs client retry is always enabled. Specified in pairs of sleep-time and number-of-retries and (t0, n0), (t1, n1), ..., the first n0 retries sleep t0 milliseconds on average, the following n1 retries sleep t1 milliseconds on average, and so on.</description>
+    <name>yarn.resourcemanager.fs.state-store.num-retries</name>
+    <value>500</value>
+    <description>Number of retries used by the ResourceManager filesystem state store.</description>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.fs.state-store.retry-interval-ms</name>
+    <value>2000</value>
+    <description>Delay in milliseconds between ResourceManager filesystem state store retries.</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -720,23 +739,22 @@
     <name>yarn.resourcemanager.ha.enabled</name>
     <value>false</value>
     <description>enable RM HA or not</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
-    <value>org.apache.hadoop.yarn.server.nodemanager.util.DefaultLCEResourcesHandler</value>
-    <description>Pre-requisite to use CGroups</description>
+    <name>yarn.nodemanager.resource.cpu.enabled</name>
+    <value>false</value>
+    <description>Enable CPU resource enforcement through the configured cgroups handler chain</description>
     <depends-on>
       <property>
         <type>yarn-env</type>
         <name>yarn_cgroups_enabled</name>
       </property>
-      <property>
-        <type>container-executor</type>
-        <name>gpu_module_enabled</name>
-      </property>
     </depends-on>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
@@ -831,16 +849,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.node-labels.fs-store.retry-policy-spec</name>
-    <value>2000, 500</value>
-    <description>
-      Retry policy used for FileSystem node label store. The policy is
-      specified by N pairs of sleep-time in milliseconds and number-of-retries
-      &quot;s1,n1,s2,n2,...&quot;.
-    </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>yarn.nodemanager.disk-health-checker.min-free-space-per-disk-mb</name>
     <value>1000</value>
     <description>This is related to disk size on the machines, admins should set one of yarn.nodemanager.disk-health-checker.min-free-space-per-disk-mb or yarn.nodemanager.disk-health-checker.max-disk-utilization-per-disk-percentage but not both. If both are set, the more conservative value will be used</description>
@@ -926,12 +934,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.resourcemanager.system-metrics-publisher.enabled</name>
-    <value>true</value>
-    <description/>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>yarn.resourcemanager.system-metrics-publisher.dispatcher.pool-size</name>
     <value>10</value>
     <description>Number of worker threads that send the yarn system metrics data.</description>
@@ -950,17 +952,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.timeline-service.ttl-enable</name>
-    <value>true</value>
-    <description>
-      Enable age off of timeline store data.
-    </description>
-    <value-attributes>
-      <type>boolean</type>
-    </value-attributes>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>yarn.timeline-service.state-store-class</name>
     <value>org.apache.hadoop.yarn.server.timeline.recovery.LeveldbTimelineStateStore</value>
     <description>Store class name for timeline state store.</description>
@@ -970,15 +961,6 @@
     <name>yarn.timeline-service.leveldb-state-store.path</name>
     <value>/hadoop/yarn/timeline</value>
     <description>Store file name for leveldb state store.</description>
-    <value-attributes>
-      <type>directory</type>
-    </value-attributes>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>yarn.timeline-service.leveldb-timeline-store.path</name>
-    <value>/hadoop/yarn/timeline</value>
-    <description>Store file name for leveldb timeline store.</description>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -1123,26 +1105,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.nodemanager.container-executor.class</name>
-    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
-    <description>ContainerExecutor for launching containers</description>
-    <depends-on>
-      <property>
-        <type>yarn-env</type>
-        <name>yarn_cgroups_enabled</name>
-      </property>
-      <property>
-        <type>core-site</type>
-        <name>hadoop.security.authentication</name>
-      </property>
-      <property>
-        <type>container-executor</type>
-        <name>gpu_module_enabled</name>
-      </property>
-    </depends-on>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>yarn.resourcemanager.scheduler.monitor.enable</name>
     <description>
       Enable a set of periodic monitors (specified in
@@ -1167,11 +1129,6 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-  <!-- In HDP 2.3, these properties were deleted:
-yarn.node-labels.manager-class
--->
-
-  <!-- These configs were inherited from HDP 2.3 -->
   <property>
     <name>yarn.timeline-service.recovery.enabled</name>
     <description>
@@ -1207,13 +1164,13 @@ yarn.node-labels.manager-class
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.system-metricspublisher.enabled</name>
+    <name>yarn.system-metrics-publisher.enabled</name>
     <value>true</value>
     <description>Enables YARN to publish metrics to timeline v2</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.rm.system-metricspublisher.emit-container-events</name>
+    <name>yarn.rm.system-metrics-publisher.emit-container-events</name>
     <value>true</value>
     <description>Experimentally enable each container to post timeline events to timeline v2</description>
     <on-ambari-upgrade add="false"/>
@@ -1315,7 +1272,6 @@ yarn.node-labels.manager-class
   </property>
 
 
-  <!-- These configs were inherited from HDP 2.5 -->
   <property>
     <name>yarn.nodemanager.container-metrics.unregister-delay-ms</name>
     <value>60000</value>
@@ -1487,7 +1443,7 @@ yarn.node-labels.manager-class
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.nodemanager.resource-plugins.gpu.docker-plugin.nvidiadocker-v1.endpoint</name>
+    <name>yarn.nodemanager.resource-plugins.gpu.docker-plugin.nvidia-docker-v1.endpoint</name>
     <value>http://localhost:3476/v1.0/docker/cli</value>
     <display-name>GPU docker plugin endpoint for Nvidia Docker Version 1</display-name>
     <description>Specify end point of nvidia-docker-plugin</description>
@@ -1518,15 +1474,6 @@ yarn.node-labels.manager-class
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
-    <name>yarn.service.framework.path</name>
-    <value>/bigtop/apps/3.2.0/yarn/service-dep.tar.gz</value>
-    <description>
-      YARN Service AM dependency tarball location. Enables faster app submission.
-    </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-
   <!--ATSv2 properties-->
   <property>
     <name>yarn.nodemanager.aux-services.timeline_collector.class</name>
@@ -1595,7 +1542,7 @@ yarn.node-labels.manager-class
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.resourcemanager.display.per-user-apps</name>
+    <name>yarn.webapp.filter-entity-list-by-user</name>
     <value>true</value>
     <description>
       Flag to enable display of applications per user as an admin
@@ -1635,9 +1582,9 @@ yarn.node-labels.manager-class
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>yarn.nodemanager.resourcemanager.connect.wait.secs</name>
-    <value>1800</value>
-    <description>Max time, in seconds, to wait to establish a connection to RM when NM starts. The NM will shutdown if it cannot connect to RM within the specified max time period. If the value is set as -1, then NM will retry forever.</description>
+    <name>yarn.nodemanager.resourcemanager.connect.max-wait.ms</name>
+    <value>1800000</value>
+    <description>Maximum time in milliseconds for a NodeManager to establish a connection to the ResourceManager.</description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

@@ -16,9 +16,7 @@
 # limitations under the License.
 #}
 [network_topology]
-{% for host in all_hosts %}
-{% if host in slave_hosts or host in nm_hosts %}
-{{host}}={{all_racks[loop.index-1]}}
-{{all_ipv4_ips[loop.index-1]}}={{all_racks[loop.index-1]}}
-{% endif %}
+{% for host, ipv4_address, rack in topology_mappings %}
+{{host}}={{rack}}
+{{ipv4_address}}={{rack}}
 {% endfor %}

@@ -130,7 +130,9 @@ def setup_config():
   if params.logsearch_config_file_exists:
     File(
       format("{logsearch_logfeeder_conf}/" + params.logsearch_config_file_name),
-      content=Template(params.logsearch_config_file_path, extra_imports=[default]),
+      content=Template(
+        params.logsearch_config_file_path, extra_imports=[default, json]
+      ),
     )
   else:
     Logger.warning(

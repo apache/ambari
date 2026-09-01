@@ -315,7 +315,7 @@
       by current TaskID. Any other occurrences of '@' will go unchanged.
       For example, to enable verbose gc logging to a file named for the taskid in
       /tmp and to set the heap maximum to be a gigabyte, pass a 'value' of:
-      -Xmx1024m -verbose:gc -Xloggc:/tmp/@taskid@.gc
+      -Xmx1024m -Xlog:gc:file=/tmp/@taskid@.gc
 
       Usage of -Djava.library.path can cause programs to no longer function if
       hadoop native libraries are used. These values should instead be set as part

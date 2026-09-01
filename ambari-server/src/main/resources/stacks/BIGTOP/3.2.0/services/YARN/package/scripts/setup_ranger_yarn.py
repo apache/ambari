@@ -18,6 +18,26 @@ limitations under the License.
 from resource_management.core.logger import Logger
 
 
+def _create_ranger_yarn_audit_dirs(params):
+  params.HdfsResource(
+    "/ranger/audit",
+    type="directory",
+    action="create_on_execute",
+    owner=params.hdfs_user,
+    group=params.hdfs_user,
+    mode=0o755,
+  )
+  params.HdfsResource(
+    "/ranger/audit/yarn",
+    type="directory",
+    action="create_on_execute",
+    owner=params.yarn_user,
+    group=params.yarn_user,
+    mode=0o700,
+  )
+  params.HdfsResource(None, action="execute")
+
+
 def setup_ranger_yarn():
   import params
 
@@ -40,25 +60,7 @@ def setup_ranger_yarn():
       and params.enable_ranger_yarn
       and params.xa_audit_hdfs_is_enabled
     ):
-      params.HdfsResource(
-        "/ranger/audit",
-        type="directory",
-        action="create_on_execute",
-        owner=params.hdfs_user,
-        group=params.hdfs_user,
-        mode=0o755,
-        recursive_chmod=True,
-      )
-      params.HdfsResource(
-        "/ranger/audit/yarn",
-        type="directory",
-        action="create_on_execute",
-        owner=params.yarn_user,
-        group=params.yarn_user,
-        mode=0o700,
-        recursive_chmod=True,
-      )
-      params.HdfsResource(None, action="execute")
+      _create_ranger_yarn_audit_dirs(params)
 
     setup_ranger_plugin(
       "hadoop-yarn-resourcemanager",
