@@ -214,8 +214,6 @@ log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) -
 # Custom Logging levels
 
 hadoop.metrics.log.level=INFO
-#log4j.logger.org.apache.hadoop.mapred.JobTracker=DEBUG
-#log4j.logger.org.apache.hadoop.mapred.TaskTracker=DEBUG
 #log4j.logger.org.apache.hadoop.fs.FSNamesystem=DEBUG
 log4j.logger.org.apache.hadoop.metrics2=${hadoop.metrics.log.level}
 

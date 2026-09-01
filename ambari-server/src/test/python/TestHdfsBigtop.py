@@ -18,13 +18,15 @@ limitations under the License.
 """
 
 import importlib.util
+import os
 from pathlib import Path
 import sys
 from types import ModuleType
 import unittest
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, call, mock_open, patch
 import xml.etree.ElementTree as ET
 
+from ambari_commons import import_utils
 from resource_management.core.exceptions import Fail
 
 
@@ -50,7 +52,15 @@ def load_script(module_name, filename, dependencies=None):
   return module
 
 
+def load_module(module_name, path):
+  spec = importlib.util.spec_from_file_location(module_name, path)
+  module = importlib.util.module_from_spec(spec)
+  spec.loader.exec_module(module)
+  return module
+
+
 HDFS_PROCESS = load_script("bigtop_hdfs_process", "hdfs_process.py")
+HDFS_ADVISOR = load_module("bigtop_hdfs_service_advisor", HDFS / "service_advisor.py")
 
 HDFS_UTILS = dependency_module(
   "utils",
@@ -352,6 +362,37 @@ class TestHdfsBigtop(unittest.TestCase):
       with self.subTest(obsolete=obsolete):
         self.assertNotIn(obsolete, hadoop_env)
 
+  def test_hadoop_policy_matches_hadoop_336_rpc_providers(self):
+    root = ET.parse(HDFS / "configuration/hadoop-policy.xml").getroot()
+    policy_names = {item.findtext("name") for item in root.findall("property")}
+    for required in (
+      "security.datanode.lifeline.protocol.acl",
+      "security.ha.service.protocol.acl",
+      "security.interqjournal.service.protocol.acl",
+      "security.mrhs.admin.refresh.protocol.acl",
+      "security.mrhs.client.protocol.acl",
+      "security.qjournal.service.protocol.acl",
+      "security.reconfiguration.protocol.acl",
+      "security.refresh.callqueue.protocol.acl",
+      "security.refresh.generic.protocol.acl",
+      "security.refresh.user.mappings.protocol.acl",
+      "security.zkfc.protocol.acl",
+    ):
+      with self.subTest(required=required):
+        self.assertIn(required, policy_names)
+    for obsolete in (
+      "security.admin.operations.protocol.acl",
+      "security.inter.tracker.protocol.acl",
+      "security.refresh.usertogroups.mappings.protocol.acl",
+    ):
+      with self.subTest(obsolete=obsolete):
+        self.assertNotIn(obsolete, policy_names)
+
+    core_site = (HDFS / "configuration/core-site.xml").read_text(
+      encoding="utf-8"
+    )
+    self.assertNotIn("mapreduce.jobtracker.webinterface.trusted", core_site)
+
   def test_hdfs_params_do_not_require_unrelated_service_configs(self):
     params_source = (SCRIPTS / "params_linux.py").read_text(encoding="utf-8")
     for obsolete in (
@@ -375,6 +416,85 @@ class TestHdfsBigtop(unittest.TestCase):
         self.assertIn(
           f'"/configurations/hadoop-env/{heap_property}"', params_source
         )
+
+  def test_hdfs_advisor_uses_bigtop_names_and_current_topology(self):
+    advisor_source = (HDFS / "service_advisor.py").read_text(encoding="utf-8")
+    self.assertNotIn("HDP", advisor_source)
+    self.assertNotIn("Hortonworks", advisor_source)
+    self.assertNotIn("validateDuplicateHeapConfigurations", advisor_source)
+    self.assertIn(
+      '("dfs.namenode.name.dir", "NAMENODE", '
+      '"/hadoop/hdfs/namenode", "multi")',
+      advisor_source,
+    )
+    for property_name in (
+      "dfs.datanode.address",
+      "dfs.datanode.http.address",
+      "dfs.datanode.https.address",
+      "dfs.datanode.ipc.address",
+      "dfs.journalnode.http-address",
+      "dfs.journalnode.https-address",
+    ):
+      with self.subTest(property_name=property_name):
+        self.assertIn(f'      "{property_name}",', advisor_source)
+    for rejected_authority_check in (
+      'target != target.strip()',
+      'parsed.username is None',
+      'not parsed.path',
+      '0 < port <= 65535',
+    ):
+      with self.subTest(rejected_authority_check=rejected_authority_check):
+        self.assertIn(rejected_authority_check, advisor_source)
+    self.assertIn(
+      'str(services.get("gpl-license-accepted", "false")).lower() == "true"',
+      advisor_source,
+    )
+    self.assertIn('datanode_https_address = "dfs.datanode.https.address"', advisor_source)
+
+  def test_hdfs_advisor_validates_host_port_authorities(self):
+    for authority in (
+      "namenode.example.com:8020",
+      "0.0.0.0:9866",
+      "[::1]:9870",
+    ):
+      with self.subTest(authority=authority):
+        self.assertTrue(
+          HDFS_ADVISOR.HDFSValidator.is_valid_host_port_authority(authority)
+        )
+
+    for authority in (
+      None,
+      "",
+      " namenode.example.com:8020",
+      "http://namenode.example.com:8020",
+      "user@namenode.example.com:8020",
+      "namenode.example.com:8020/path",
+      "namenode.example.com",
+      "namenode.example.com:0",
+      "namenode.example.com:65536",
+      "name node.example.com:8020",
+    ):
+      with self.subTest(authority=authority):
+        self.assertFalse(
+          HDFS_ADVISOR.HDFSValidator.is_valid_host_port_authority(authority)
+        )
+
+  def test_hdfs_advisor_parent_load_failure_preserves_original_cause(self):
+    advisor_path = HDFS / "service_advisor.py"
+    with (
+      patch.dict(
+        os.environ, {"BASE_SERVICE_ADVISOR": "/missing/service_advisor.py"}
+      ),
+      patch("builtins.open", mock_open(read_data=b"")),
+      patch.object(import_utils, "load_module", side_effect=ValueError("bad parent")),
+    ):
+      with self.assertRaisesRegex(
+        RuntimeError,
+        "Failed to load parent service advisor /missing/service_advisor.py",
+      ) as raised:
+        load_module("bigtop_hdfs_broken_advisor", advisor_path)
+
+    self.assertIsInstance(raised.exception.__cause__, ValueError)
 
   def test_rolling_restart_timeout_uses_integer_ceiling(self):
     for timeout, expected_retries in ((1, 1), (29, 1), (30, 1), (31, 2)):

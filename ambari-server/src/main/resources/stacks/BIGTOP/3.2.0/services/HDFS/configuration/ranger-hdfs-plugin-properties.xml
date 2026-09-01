@@ -19,7 +19,7 @@
  */
 -->
 <configuration supports_final="true">
-  <!-- These configs were inherited from HDP 2.2 -->
+  <!-- Ranger HDFS configuration -->
   <property>
     <name>policy_user</name>
     <value>ambari-qa</value>

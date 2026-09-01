@@ -103,17 +103,6 @@
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
-  <!-- Web Interface Configuration -->
-  <property>
-    <name>mapreduce.jobtracker.webinterface.trusted</name>
-    <value>false</value>
-    <description> If set to true, the web interfaces of JT and NN may contain
-                actions, such as kill job, delete file, etc., that should
-                not be exposed to public. Enable this option if the interfaces
-                are only reachable by those who have the right authorization.
-  </description>
-    <on-ambari-upgrade add="true"/>
-  </property>
   <property>
     <name>hadoop.http.authentication.type</name>
     <value>simple</value>
