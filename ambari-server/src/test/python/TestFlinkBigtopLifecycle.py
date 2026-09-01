@@ -250,6 +250,28 @@ class TestFlinkProcess(unittest.TestCase):
       expected_cmdline=TOKENS,
     )
 
+  def test_identity_publication_failure_stops_only_discovered_identity(self):
+    start_error = Fail("Flink PID publication failed")
+    with patch.object(
+        safe_process, "wait_for_discovered_process", return_value=IDENTITY
+      ), \
+      patch.object(FLINK_PROCESS, "_publish_identity", side_effect=start_error), \
+      patch.object(FLINK_PROCESS, "stop_process") as stop:
+      with self.assertRaises(Fail) as raised:
+        FLINK_PROCESS.wait_for_started_process(
+          PID_FILE, "flink", "hadoop", CONFIG_DIR
+        )
+
+    self.assertIs(start_error, raised.exception)
+    stop.assert_called_once_with(
+      PID_FILE,
+      "flink",
+      "hadoop",
+      CONFIG_DIR,
+      expected_identity=IDENTITY,
+      allow_discovery=False,
+    )
+
 
 class TestFlinkService(unittest.TestCase):
   def test_start_is_idempotent_and_does_not_invoke_upstream_launcher(self):
@@ -346,10 +368,66 @@ class TestFlinkService(unittest.TestCase):
       patch.object(
         FLINK_SERVICE, "Execute", side_effect=RuntimeError("start failed")
       ), \
+      patch.object(FLINK_PROCESS, "stop_process", return_value=False) as stop, \
       patch.object(FLINK_SERVICE, "show_logs"), \
       self.assertRaisesRegex(RuntimeError, "start failed"):
       FLINK_SERVICE._start_history_server(params)
+    stop.assert_called_once_with(
+      PID_FILE,
+      "flink",
+      "hadoop",
+      CONFIG_DIR,
+      candidate_pid_file=launcher_pid,
+      allow_discovery=False,
+    )
     cleanup.assert_called_once_with(launcher_dir, launcher_pid, "/var/run/flink")
+
+  def test_start_preserves_original_error_when_daemon_rollback_fails(self):
+    params = params_module(
+      flink_history_server_pid_file=PID_FILE,
+      flink_user="flink",
+      user_group="hadoop",
+      flink_config_dir=CONFIG_DIR,
+      flink_pid_dir="/var/run/flink",
+      flink_log_dir="/var/log/flink",
+      jobmanager_archive_fs_dir="hdfs:///completed-jobs/",
+      HdfsResource=MagicMock(),
+      historyserver_script="/usr/lib/flink/bin/historyserver.sh",
+      security_enabled=False,
+      hadoop_executable="/usr/bin/hadoop",
+      java_home="/usr/lib/jvm/java-17",
+      hadoop_conf_dir="/etc/hadoop/conf",
+    )
+    launcher_dir = "/var/run/flink/.ambari-historyserver-" + "c" * 32
+    launcher_pid = launcher_dir + "/flink-ambari-historyserver-historyserver.pid"
+    start_error = Fail("Flink identity wait failed")
+    with patch.object(FLINK_PROCESS, "read_or_recover_process", return_value=None), \
+      patch.object(FLINK_UTILS, "validate_executable"), \
+      patch.object(
+        FLINK_UTILS, "resolve_hadoop_classpath", return_value="/hadoop/*"
+      ), \
+      patch.object(
+        FLINK_SERVICE,
+        "_launcher_pid_paths",
+        return_value=(launcher_dir, launcher_pid),
+      ), \
+      patch.object(FLINK_SERVICE, "_cleanup_launcher_pid") as cleanup, \
+      patch.object(FLINK_SERVICE, "Directory"), \
+      patch.object(FLINK_SERVICE, "Execute"), \
+      patch.object(
+        FLINK_PROCESS, "wait_for_started_process", side_effect=start_error
+      ), \
+      patch.object(
+        FLINK_PROCESS, "stop_process", side_effect=Fail("rollback failed")
+      ), \
+      patch.object(FLINK_SERVICE, "show_logs"), \
+      patch.object(FLINK_SERVICE.Logger, "warning") as warning:
+      with self.assertRaises(Fail) as raised:
+        FLINK_SERVICE._start_history_server(params)
+
+    self.assertIs(start_error, raised.exception)
+    cleanup.assert_called_once_with(launcher_dir, launcher_pid, "/var/run/flink")
+    warning.assert_called_once()
 
 
 class TestFlinkServiceCheck(unittest.TestCase):

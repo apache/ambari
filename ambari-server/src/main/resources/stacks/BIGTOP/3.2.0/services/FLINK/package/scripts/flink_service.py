@@ -100,7 +100,6 @@ def _start_history_server(params):
     mode=0o700,
   )
 
-  operation_error = None
   try:
     Execute(
       (params.historyserver_script, "start-foreground"),
@@ -122,24 +121,33 @@ def _start_history_server(params):
       params.user_group,
       params.flink_config_dir,
     )
-  except Exception as error:
-    operation_error = error
+  except Exception:
     try:
       show_logs(params.flink_log_dir, user=params.flink_user)
     except Exception as log_error:
       Logger.warning(f"Could not collect Flink logs after start failure: {log_error}")
-
-  try:
-    _cleanup_launcher_pid(launcher_dir, launcher_pid, params.flink_pid_dir)
-  except Exception as cleanup_error:
-    if operation_error is not None:
-      raise Fail(
-        f"Flink History Server start failed: {operation_error}; launcher PID "
-        f"cleanup also failed: {cleanup_error}"
-      ) from operation_error
+    try:
+      flink_process.stop_process(
+        params.flink_history_server_pid_file,
+        params.flink_user,
+        params.user_group,
+        params.flink_config_dir,
+        candidate_pid_file=launcher_pid,
+        allow_discovery=False,
+      )
+    except Exception as rollback_error:
+      Logger.warning(
+        f"Could not roll back failed Flink History Server start: {rollback_error}"
+      )
+    try:
+      _cleanup_launcher_pid(launcher_dir, launcher_pid, params.flink_pid_dir)
+    except Exception as cleanup_error:
+      Logger.warning(
+        f"Could not clean Flink launcher PID after start failure: {cleanup_error}"
+      )
     raise
-  if operation_error is not None:
-    raise operation_error
+
+  _cleanup_launcher_pid(launcher_dir, launcher_pid, params.flink_pid_dir)
 
 
 def flink_service(name, upgrade_type=None, action=None):

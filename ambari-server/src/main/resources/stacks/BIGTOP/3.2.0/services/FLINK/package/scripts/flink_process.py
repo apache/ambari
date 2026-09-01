@@ -20,6 +20,7 @@ limitations under the License.
 import os
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 import flink_utils
@@ -92,12 +93,64 @@ def wait_for_started_process(
     attempts=attempts,
     sleep_seconds=sleep_seconds,
   )
-  return _publish_identity(pid_file, identity, user, group, expected_tokens)
+  try:
+    return _publish_identity(pid_file, identity, user, group, expected_tokens)
+  except Exception:
+    try:
+      stop_process(
+        pid_file,
+        user,
+        group,
+        config_dir,
+        expected_identity=identity,
+        allow_discovery=False,
+      )
+    except Exception as rollback_error:
+      Logger.warning(
+        f"Could not roll back failed Flink History Server start: {rollback_error}"
+      )
+    raise
 
 
-def stop_process(pid_file, user, group, config_dir):
+def _read_process_from_pid_file(pid_file, user, expected_tokens):
+  identity = safe_process.read_running_process(pid_file, user, expected_tokens)
+  return identity
+
+
+def stop_process(
+  pid_file,
+  user,
+  group,
+  config_dir,
+  expected_identity=None,
+  candidate_pid_file=None,
+  allow_discovery=True,
+):
   expected_tokens = expected_process_tokens(config_dir)
-  identity = read_or_recover_process(pid_file, user, group, config_dir)
+  rollback_mode = (
+    expected_identity is not None
+    or candidate_pid_file is not None
+    or not allow_discovery
+  )
+  identity = expected_identity
+  if identity is not None:
+    current = safe_process.inspect_process(identity.pid, user, expected_tokens)
+    if current is None:
+      return False
+    if not identity.matches(current) or not safe_process.is_process_running(
+      identity.pid, user, expected_tokens, identity=identity
+    ):
+      raise Fail(
+        f"Refusing to stop changed Flink History Server pid {identity.pid}"
+      )
+  elif candidate_pid_file is not None:
+    identity = _read_process_from_pid_file(
+      candidate_pid_file, user, expected_tokens
+    )
+  if identity is None and allow_discovery:
+    identity = read_or_recover_process(pid_file, user, group, config_dir)
+  elif identity is None and candidate_pid_file is None:
+    identity = _read_process_from_pid_file(pid_file, user, expected_tokens)
   if identity is None:
     return False
   safe_process.terminate_process(
@@ -109,6 +162,10 @@ def stop_process(pid_file, user, group, config_dir):
     kill_wait_attempts=10,
     kill_wait_sleep=1,
   )
+  if rollback_mode:
+    pid = safe_process.read_pid(pid_file)
+    if pid != identity.pid:
+      return True
   safe_process.remove_pid_file_if_stopped(
     pid_file,
     identity.pid,
