@@ -21,6 +21,7 @@ import os
 import importlib
 import signal
 import stat
+import subprocess
 import tempfile
 import unittest
 from types import SimpleNamespace
@@ -58,7 +59,21 @@ class TestSafeProcess(unittest.TestCase):
     try:
       os.write(descriptor, b"pid\n")
       expected = os.lstat(path)
-      actual = sudo.lstat(path)
+      stat_command = ["stat", "-c", "%d %i %f %u %g %h %s %Y", "--", path]
+      if os.geteuid() == 0:
+        actual = sudo.lstat(path)
+      else:
+        stat_output = subprocess.check_output(stat_command, text=True)
+        with patch.object(
+          sudo.shell,
+          "checked_call",
+          return_value=(0, stat_output, ""),
+        ) as checked_call:
+          actual = sudo.lstat(path)
+
+        checked_call.assert_called_once_with(
+          stat_command, sudo=True, stderr=subprocess.PIPE
+        )
 
       self.assertEqual(expected.st_dev, actual.st_dev)
       self.assertEqual(expected.st_ino, actual.st_ino)
