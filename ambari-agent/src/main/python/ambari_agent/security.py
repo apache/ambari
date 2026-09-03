@@ -247,7 +247,7 @@ class CertificateManager:
   def checkCertExists(self):
     s = os.path.abspath(self.config.get("security", "keysdir")) + os.sep + "ca.crt"
 
-    server_crt_exists = os.path.exists(s)
+    server_crt_exists = os.path.exists(s) and os.path.getsize(s) > 0
 
     if not server_crt_exists:
       logger.info("Server certicate not exists, downloading")
@@ -255,7 +255,7 @@ class CertificateManager:
     else:
       logger.info("Server certicate exists, ok")
 
-    agent_key_exists = os.path.exists(self.getAgentKeyName())
+    agent_key_exists = os.path.exists(self.getAgentKeyName()) and os.path.getsize(self.getAgentKeyName()) > 0
 
     if not agent_key_exists:
       logger.info("Agent key not exists, generating request")
@@ -263,7 +263,7 @@ class CertificateManager:
     else:
       logger.info("Agent key exists, ok")
 
-    agent_crt_exists = os.path.exists(self.getAgentCrtName())
+    agent_crt_exists = os.path.exists(self.getAgentCrtName()) and os.path.getsize(self.getAgentCrtName()) > 0
 
     if not agent_crt_exists:
       logger.info("Agent certificate not exists, sending sign request")
@@ -280,7 +280,7 @@ class CertificateManager:
     response = stream.read()
     stream.close()
     srvr_crt_f = open(self.getSrvrCrtName(), "w+")
-    srvr_crt_f.write(response)
+    srvr_crt_f.write(response if isinstance(response, str) else response.decode('utf-8'))
     srvr_crt_f.close()
 
   def reqSignCrt(self):
@@ -291,7 +291,7 @@ class CertificateManager:
     passphrase_env_var = self.config.get("security", "passphrase_env_var_name")
     passphrase = os.environ[passphrase_env_var]
     register_data = {"csr": agent_crt_req_content, "passphrase": passphrase}
-    data = json.dumps(register_data)
+    data = json.dumps(register_data).encode('utf-8')
     proxy_handler = urllib.request.ProxyHandler({})
     opener = urllib.request.build_opener(proxy_handler)
     urllib.request.install_opener(opener)
