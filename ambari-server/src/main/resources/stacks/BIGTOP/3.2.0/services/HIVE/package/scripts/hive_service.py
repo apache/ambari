@@ -156,7 +156,18 @@ def wait_for_hive_process(
   pid_file, user, group, role, attempts=30, sleep_seconds=1
 ):
   for attempt in range(attempts):
-    identity = _find_hive_process(pid_file, user, role)
+    try:
+      identity = _find_hive_process(pid_file, user, role)
+    except Fail as error:
+      # The launcher writes its PID before the JVM has finished replacing the
+      # shell command line. Retry that bounded startup race, but keep all
+      # ownership, PID-file, and other identity failures fail-closed.
+      if "command line does not match expected service identity" not in str(error):
+        raise
+      if attempt + 1 >= attempts:
+        raise
+      time.sleep(sleep_seconds)
+      continue
     if identity is not None:
       try:
         return _publish_hive_process(pid_file, identity, user, group, role)

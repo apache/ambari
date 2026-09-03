@@ -63,6 +63,26 @@ def positive_int(value, name, minimum=1, maximum=None):
   return parsed
 
 
+def memory_megabytes(value, name, minimum=1, maximum=None):
+  if isinstance(value, bool):
+    raise Fail(f"{name} must be an integer number of megabytes")
+  if isinstance(value, int):
+    parsed = value
+  elif isinstance(value, str):
+    match = re.fullmatch(r"([0-9]+)(?:[mM])?", value, re.ASCII)
+    if match is None:
+      raise Fail(f"{name} must be an integer number of megabytes")
+    parsed = int(match.group(1))
+  else:
+    raise Fail(f"{name} must be an integer number of megabytes")
+  if parsed < minimum or (maximum is not None and parsed > maximum):
+    expected = f"at least {minimum} MB"
+    if maximum is not None:
+      expected = f"between {minimum} and {maximum} MB"
+    raise Fail(f"{name} must be {expected}")
+  return parsed
+
+
 def validate_absolute_path(path, name):
   if (
     not isinstance(path, str)

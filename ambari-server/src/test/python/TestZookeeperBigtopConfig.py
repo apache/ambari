@@ -18,12 +18,14 @@ limitations under the License.
 """
 
 import importlib.util
+import json
 from pathlib import Path
 import sys
 from types import ModuleType
 import unittest
 from unittest.mock import patch
 from xml.etree import ElementTree
+from jinja2 import Environment as JinjaEnvironment, StrictUndefined
 from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 
@@ -152,7 +154,19 @@ class TestZookeeperStackMetadata(unittest.TestCase):
     params_source = (SCRIPTS / "params_linux.py").read_text()
     self.assertIn("zoo_cfg_properties_map|dictsort", zoo_template)
     self.assertIn('"path":{{zk_log_path_json}}', input_template)
+    rendered = JinjaEnvironment(undefined=StrictUndefined).from_string(
+      input_template
+    ).render(zk_log_path_json=json.dumps('/var/log/zookeeper/zookeeper*.log'))
+    self.assertEqual(
+      "/var/log/zookeeper/zookeeper*.log",
+      json.loads(rendered)["input"][0]["path"],
+    )
     self.assertNotIn("default('/configurations", input_template)
+    hook_params = (
+      ZOOKEEPER.parents[4] / "stack-hooks/after-INSTALL/scripts/params.py"
+    ).read_text(encoding="utf-8")
+    self.assertIn("zk_log_path_json = json.dumps", hook_params)
+    self.assertIn('"/configurations/zookeeper-env/zk_log_dir"', hook_params)
     self.assertIn(
       'zk_server_heapsize = f"-Xmx{zk_server_heap_mb}m"', params_source
     )

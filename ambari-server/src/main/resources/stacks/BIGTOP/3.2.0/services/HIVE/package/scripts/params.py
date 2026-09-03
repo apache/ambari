@@ -59,6 +59,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions.java_home import resolve_java_home
 
 
 def as_bool(value):
@@ -175,7 +176,9 @@ zk_bin_dir = format("{zk_home}/bin")
 hive_bin_dir = format("{hive_home}/bin")
 hive_lib_dir = format("{hive_home}/lib")
 
-java64_home = config["ambariLevelParams"]["java_home"]
+java64_home = resolve_java_home(
+  "HIVE", default_home=config["ambariLevelParams"]["java_home"]
+)
 ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
 ambari_java_exec = format("{ambari_java_home}/bin/java")
 java_version = expect("/ambariLevelParams/java_version", int)

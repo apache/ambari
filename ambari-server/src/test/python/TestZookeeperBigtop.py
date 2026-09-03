@@ -91,6 +91,21 @@ ZOOKEEPER_SERVICE_CHECK = load_module(
 
 
 class TestZookeeperUtils(unittest.TestCase):
+  def test_heap_memory_accepts_ambari_unit_normalization(self):
+    for value in (1024, "1024", "1024m", "1024M"):
+      with self.subTest(value=value):
+        self.assertEqual(
+          1024,
+          ZOOKEEPER_UTILS.memory_megabytes(
+            value, "zookeeper-env/zk_server_heapsize", 256, 32768
+          ),
+        )
+    for value in (True, 1024.0, "1g", "1024mb", " 1024m", "1.5m", 255, 32769):
+      with self.subTest(value=value), self.assertRaises(Fail):
+        ZOOKEEPER_UTILS.memory_megabytes(
+          value, "zookeeper-env/zk_server_heapsize", 256, 32768
+        )
+
   def test_bigtop_identity_boole_paths_and_properties_fail_closed(self):
     self.assertEqual(
       "3.3.0", ZOOKEEPER_UTILS.validate_bigtop_stack("BIGTOP", "3.3.0")

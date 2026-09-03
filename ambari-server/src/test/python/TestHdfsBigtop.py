@@ -1498,6 +1498,13 @@ class TestHdfsBigtop(unittest.TestCase):
     )
     self.assertIn("-XX:+UseG1GC", hadoop_env)
     self.assertIn("-Xlog:gc*:", hadoop_env)
+    self.assertIn("--add-opens=java.base/java.lang=ALL-UNNAMED", hadoop_env)
+    self.assertIn("--add-opens=java.base/java.math=ALL-UNNAMED", hadoop_env)
+    self.assertIn("--add-opens=java.base/java.util.concurrent=ALL-UNNAMED", hadoop_env)
+    self.assertIn("--add-opens=java.base/java.net=ALL-UNNAMED", hadoop_env)
+    self.assertIn("--add-opens=java.base/java.text=ALL-UNNAMED", hadoop_env)
+    self.assertIn('if "$JAVA_HOME/bin/java" -version', hadoop_env)
+    self.assertIn("export HADOOP_OPTS=\"-Djava.net.preferIPv4Stack=true", hadoop_env)
     for obsolete in (
       "UseConcMarkSweepGC",
       "CMSInitiatingOccupancyFraction",

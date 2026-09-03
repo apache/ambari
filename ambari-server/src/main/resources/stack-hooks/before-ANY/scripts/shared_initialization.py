@@ -104,7 +104,10 @@ def create_dfs_cluster_admins():
 
   User(
     params.hdfs_user,
-    groups=params.user_to_groups_dict[params.hdfs_user] + groups_list,
+    # Older or partially populated host command payloads may omit the HDFS
+    # entry even though the user is present in user_list.  The user resource
+    # can still be updated with the administrator groups in that case.
+    groups=params.user_to_groups_dict.get(params.hdfs_user, []) + groups_list,
     fetch_nonlocal_groups=params.fetch_nonlocal_groups,
   )
 

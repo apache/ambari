@@ -256,8 +256,14 @@ export HADOOP_NAMENODE_INIT_HEAPSIZE="-Xms{{namenode_heapsize}}"
 HADOOP_OPTS="-Dzookeeper.sasl.client.username={{zk_principal_user}} $HADOOP_OPTS"
 {% endif %}
 
-# Extra Java runtime options.  Empty by default.
-export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}"
+# Extra Java runtime options.  Hadoop's Jersey/JAXB stack reflects into
+# Hadoop 3.3's reflection needs these modules on JDK 17. Keep the options
+# conditional so a Hive 3.1 Java 8 override can still invoke Hadoop clients.
+if "$JAVA_HOME/bin/java" -version 2>&1 | grep -q 'version "17'; then
+  export HADOOP_OPTS="--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.math=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED -Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}"
+else
+  export HADOOP_OPTS="-Djava.net.preferIPv4Stack=true ${HADOOP_OPTS}"
+fi
 
 USER="$(whoami)"
 # Command specific options appended to HADOOP_OPTS when specified

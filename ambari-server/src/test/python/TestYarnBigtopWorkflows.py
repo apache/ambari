@@ -2734,6 +2734,10 @@ class TestYarnFilesystemSafety(_YarnResourceTestCase):
     self.assertIn('(\"/var/log\",)', runtime_block)
     self.assertIn("privileged_registry_pid_dir", runtime_block)
     self.assertIn("mode=0o750", runtime_block)
+    self.assertLess(
+      runtime_block.index("for path, label, allowed_roots in"),
+      runtime_block.index("if params.yarn_nodemanager_recovery_dir"),
+    )
 
   def test_existing_safe_root_directory_is_not_reconfigured(self):
     directory_metadata = SimpleNamespace(st_mode=stat.S_IFDIR | 0o750)
@@ -2753,6 +2757,35 @@ class TestYarnFilesystemSafety(_YarnResourceTestCase):
         ),
       )
     directory.assert_not_called()
+
+  def test_root_directory_repairs_bigtop_packaged_target(self):
+    def metadata(path):
+      if path == "/var/log/hadoop-yarn":
+        return SimpleNamespace(st_uid=1001, st_mode=0o775)
+      return SimpleNamespace(st_uid=0, st_mode=0o755)
+
+    directory_metadata = SimpleNamespace(st_mode=stat.S_IFDIR | 0o755)
+    with patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+      patch.object(YARN_CONFIG.sudo, "path_islink", return_value=False), \
+      patch.object(YARN_CONFIG.sudo, "lstat", return_value=directory_metadata), \
+      patch.object(YARN_CONFIG.sudo, "stat", side_effect=metadata), \
+      patch.object(YARN_CONFIG, "Directory") as directory:
+      self.assertEqual(
+        "/var/log/hadoop-yarn",
+        YARN_CONFIG._root_owned_directory(
+          "/var/log/hadoop-yarn",
+          "YARN log prefix",
+          ("/var/log",),
+          group="hadoop",
+        ),
+      )
+    directory.assert_called_once_with(
+      "/var/log/hadoop-yarn",
+      owner="root",
+      group="hadoop",
+      create_parents=True,
+      mode=0o755,
+    )
 
   def test_root_directory_rejects_unsafe_location_or_parent(self):
     with self.assertRaisesRegex(Fail, "allowed roots"):
@@ -3157,6 +3190,36 @@ class TestYarnFilesystemSafety(_YarnResourceTestCase):
         YARN_CONFIG._validated_resource_manager_host_files(
           "/etc/hadoop/conf/yarn.exclude", config_dir, stack_root
         )
+
+  def test_resource_manager_host_files_accept_bigtop_conf_empty_layout(self):
+    config_dir = "/etc/hadoop/conf"
+    stack_root = "/usr/bigtop"
+    resolved = "/usr/bigtop/3.3.0/etc/hadoop/conf.empty"
+
+    def metadata(path):
+      if path.endswith(("yarn.exclude", "yarn.include")):
+        return SimpleNamespace(st_mode=stat.S_IFREG | 0o644, st_uid=0)
+      return SimpleNamespace(
+        st_mode=(stat.S_IFLNK | 0o777 if path == config_dir else stat.S_IFDIR | 0o755),
+        st_uid=0,
+      )
+
+    with patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+      patch.object(YARN_CONFIG.sudo, "path_islink", side_effect=lambda path: path == config_dir), \
+      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=metadata), \
+      patch.object(
+        YARN_CONFIG.os.path,
+        "realpath",
+        side_effect=lambda path: (
+          resolved if path in (config_dir, "/usr/bigtop/current/hadoop-client/conf") else path
+        ),
+      ):
+      self.assertEqual(
+        ("/etc/hadoop/conf/yarn.exclude", None),
+        YARN_CONFIG._validated_resource_manager_host_files(
+          "/etc/hadoop/conf/yarn.exclude", config_dir, stack_root
+        ),
+      )
 
   def test_resource_manager_generated_host_and_topology_files_are_root_owned(self):
     yarn_source = (SCRIPTS / "yarn.py").read_text(encoding="utf-8")

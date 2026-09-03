@@ -178,6 +178,7 @@ def _root_owned_directory(path, label, allowed_roots, group="root", mode=0o755):
   path_parts = [part for part in normalized.split(os.sep) if part]
   current = os.sep
   target_exists = False
+  target_needs_repair = False
   for path_part in path_parts:
     current = os.path.join(current, path_part)
     if not sudo.path_lexists(current):
@@ -189,12 +190,15 @@ def _root_owned_directory(path, label, allowed_roots, group="root", mode=0o755):
     elif not stat.S_ISDIR(sudo.lstat(current).st_mode):
       raise Fail(f"{label} parent must be a directory: {current}")
     metadata = sudo.stat(current)
+    if current == normalized:
+      target_needs_repair = metadata.st_uid != 0 or bool(metadata.st_mode & 0o022)
+      continue
     if metadata.st_uid != 0 or metadata.st_mode & 0o022:
       raise Fail(
         f"{label} parent must be root-owned and non-writable: {current}"
       )
 
-  if not target_exists:
+  if not target_exists or target_needs_repair:
     Directory(
       normalized,
       owner="root",
@@ -249,10 +253,23 @@ def _validate_root_managed_config_file(path, label, config_dir, stack_root):
     normalized_stack_root, "current", "hadoop-client", "conf"
   )
   managed_resolved_config_dir = os.path.realpath(managed_config_dir)
+  valid_bigtop_layout = False
+  stack_root_real = os.path.realpath(normalized_stack_root)
+  try:
+    relative_config_dir = os.path.relpath(resolved_config_dir, stack_root_real)
+    relative_parts = tuple(relative_config_dir.split(os.sep))
+    valid_bigtop_layout = (
+      len(relative_parts) == 4
+      and relative_parts[0]
+      and all(part.isdigit() or part in ".-" for part in relative_parts[0])
+      and relative_parts[1:] == ("etc", "hadoop", "conf.empty")
+    )
+  except (TypeError, ValueError):
+    valid_bigtop_layout = False
   if resolved_config_dir not in (
     normalized_config_dir,
     managed_resolved_config_dir,
-  ):
+  ) and not valid_bigtop_layout:
     raise Fail(
       f"{label} parent must resolve to the BIGTOP-managed Hadoop config directory"
     )
@@ -474,14 +491,6 @@ def yarn(name=None, config_dir=None):
     config_dir = params.hadoop_conf_dir
   manages_embedded_hbase = not params.use_external_hbase
 
-  if params.yarn_nodemanager_recovery_dir:
-    _daemon_owned_directory(
-      InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
-      "yarn.nodemanager.recovery.dir",
-      params.yarn_user,
-      params.user_group,
-    )
-
   for path, label, allowed_roots in (
     (params.yarn_pid_dir_prefix, "yarn_pid_dir_prefix", ("/run", "/var/run")),
     (params.yarn_log_dir_prefix, "yarn_log_dir_prefix", ("/var/log",)),
@@ -498,6 +507,13 @@ def yarn(name=None, config_dir=None):
     group=params.user_group,
     mode=0o750,
   )
+  if params.yarn_nodemanager_recovery_dir:
+    _daemon_owned_directory(
+      InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
+      "yarn.nodemanager.recovery.dir",
+      params.yarn_user,
+      params.user_group,
+    )
   for path, label in (
     (params.yarn_pid_dir, "yarn_pid_dir"),
     (params.yarn_log_dir, "yarn_log_dir"),

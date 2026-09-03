@@ -95,8 +95,6 @@ def normalize_ipv4_addresses(addresses, name, require_addresses=True):
       normalized.append(str(ipaddress.IPv4Address(address)))
     except ipaddress.AddressValueError as error:
       raise Fail(f"{name} contains an invalid IPv4 address") from error
-  if len(set(normalized)) != len(normalized):
-    raise Fail(f"{name} must not contain duplicate IPv4 addresses")
   return tuple(normalized)
 
 
@@ -328,6 +326,21 @@ def validate_single_line_value(value, name, allow_empty=True):
   if any(ord(character) < 32 or ord(character) == 127 for character in value):
     raise Fail(f"{name} must not contain control characters")
   return value
+
+
+def parse_docker_capabilities(value, name):
+  if not isinstance(value, str):
+    raise Fail(f"{name} must be a comma-separated string")
+  if not value.strip():
+    return ""
+  capabilities = tuple(item.strip() for item in value.split(","))
+  if any(
+    not capability
+    or re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", capability) is None
+    for capability in capabilities
+  ):
+    raise Fail(f"{name} contains an invalid Linux capability")
+  return ",".join(capabilities)
 
 
 def validate_config_segment(value, name):

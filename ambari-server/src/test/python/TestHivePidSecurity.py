@@ -270,6 +270,21 @@ class TestHiveLifecycle(unittest.TestCase):
       expected_cmdline=("org.apache.hive.service.server.HiveServer2",),
     )
 
+  def test_startup_retries_transient_command_line_identity_mismatch(self):
+    running = identity()
+    mismatch = Fail("Refusing process 123: command line does not match expected service identity")
+    with patch.object(
+      HIVE_SERVICE, "_find_hive_process", side_effect=[mismatch, running]
+    ), patch.object(
+      HIVE_SERVICE, "_publish_hive_process", return_value=running
+    ), patch.object(HIVE_SERVICE.time, "sleep") as sleep:
+      result = HIVE_SERVICE.wait_for_hive_process(
+        "/run/hive/server.pid", "hive", "hadoop", "hiveserver2", attempts=2
+      )
+
+    self.assertIs(running, result)
+    sleep.assert_called_once_with(1)
+
   def test_log_collection_failure_does_not_mask_start_failure(self):
     with patch.dict(sys.modules, {"params": self.params, "status_params": self.status}), \
       patch.object(HIVE_SERVICE, "read_or_discover_hive_process", return_value=None), \

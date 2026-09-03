@@ -324,6 +324,24 @@ class TestYarnRootShellContract(unittest.TestCase):
           YARN_FUNCTIONS.validate_single_line_value(invalid, "Docker value")
 
     self.assertEqual(
+      "CHOWN,NET_RAW,SETUID",
+      YARN_FUNCTIONS.parse_docker_capabilities(
+        "\n  CHOWN,NET_RAW,\n  SETUID  ", "Docker capabilities"
+      ),
+    )
+    self.assertEqual(
+      "none",
+      YARN_FUNCTIONS.parse_docker_capabilities("none", "Docker capabilities"),
+    )
+    self.assertEqual(
+      "", YARN_FUNCTIONS.parse_docker_capabilities(" \n ", "Docker capabilities")
+    )
+    for invalid in ("CHOWN,,SETUID", "NET RAW", "CHOWN;id", "CHOWN\0SETUID", 1, None):
+      with self.subTest(docker_capabilities=invalid):
+        with self.assertRaises(Fail):
+          YARN_FUNCTIONS.parse_docker_capabilities(invalid, "Docker capabilities")
+
+    self.assertEqual(
       "hadoop-users",
       YARN_FUNCTIONS.validate_unix_name("hadoop-users", "executor group"),
     )
@@ -522,6 +540,16 @@ class TestYarnRootShellContract(unittest.TestCase):
     ).read_text(encoding="utf-8")
     self.assertIn("extra_imports=[default, json]", hook)
 
+  def test_before_any_hdfs_admin_update_handles_missing_group_mapping(self):
+    hook = (
+      STACKS.parents[1]
+      / "stack-hooks/before-ANY/scripts/shared_initialization.py"
+    ).read_text(encoding="utf-8")
+    self.assertIn(
+      "params.user_to_groups_dict.get(params.hdfs_user, []) + groups_list",
+      hook,
+    )
+
   def test_embedded_hbase_temp_directory_avoids_shared_tmp_by_default(self):
     configured = property_value(
       YARN / "configuration/yarn-hbase-site.xml", "hbase.tmp.dir"
@@ -608,6 +636,12 @@ class TestYarnRootShellContract(unittest.TestCase):
     self.assertEqual(
       (), YARN_FUNCTIONS.parse_network_host_csv("", "decommissioned hosts")
     )
+    self.assertEqual(
+      ("127.0.0.1", "127.0.0.1"),
+      YARN_FUNCTIONS.normalize_ipv4_addresses(
+        ["127.0.0.1", "127.0.0.1"], "pending host IPv4 addresses"
+      ),
+    )
 
     for invalid in (
       "host,,other",
@@ -619,7 +653,7 @@ class TestYarnRootShellContract(unittest.TestCase):
       with self.subTest(decommissioned_hosts=invalid):
         with self.assertRaises(Fail):
           YARN_FUNCTIONS.parse_network_host_csv(invalid, "decommissioned hosts")
-    for invalid in (["10.0.0.999"], ["10.0.0.1", "10.0.0.1"], [" 10.0.0.1"]):
+    for invalid in (["10.0.0.999"], [" 10.0.0.1"]):
       with self.subTest(ipv4=invalid):
         with self.assertRaises(Fail):
           YARN_FUNCTIONS.normalize_ipv4_addresses(invalid, "IPv4 addresses")

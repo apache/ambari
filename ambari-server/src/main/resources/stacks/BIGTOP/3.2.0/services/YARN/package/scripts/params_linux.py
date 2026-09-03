@@ -66,6 +66,7 @@ from functions import (
   normalize_ipv4_addresses,
   parse_address_port,
   parse_boolean,
+  parse_docker_capabilities,
   parse_fraction,
   parse_nonnegative_int,
   parse_port,
@@ -890,18 +891,12 @@ if docker_binary:
   )
 elif docker_module_enabled == "true":
   raise Fail("container-executor/docker_binary is required when Docker is enabled")
-docker_allowed_capabilities = validate_single_line_value(
+docker_allowed_capabilities = parse_docker_capabilities(
   config["configurations"]["yarn-site"][
     "yarn.nodemanager.runtime.linux.docker.capabilities"
   ],
   "yarn-site/yarn.nodemanager.runtime.linux.docker.capabilities",
 )
-if docker_allowed_capabilities:
-  docker_allowed_capabilities = ",".join(
-    x.strip() for x in docker_allowed_capabilities.split(",")
-  )
-else:
-  docker_allowed_capabilities = ""
 docker_allowed_devices = validate_single_line_value(
   container_executor_config["docker_allowed_devices"],
   "container-executor/docker_allowed_devices",

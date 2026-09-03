@@ -350,8 +350,17 @@ def _call(
   # prepare command cmd
   if sudo:
     command = as_sudo(command, env=env)
+    # as_sudo() returns a shell command so that the generated environment and
+    # command arguments are interpreted by bash.  Keep that contract even when
+    # callers request shell=False for the original argument list.
+    shell = True
   elif user:
     command = as_user(command, user, env=env)
+    # as_user() necessarily contains the su -c shell fragment.  Executing the
+    # complete string as one argv element makes Popen look for a filename that
+    # contains spaces (and fails with ENOENT).  Run the already-escaped wrapper
+    # through the explicit bash path below; Popen itself remains shell=False.
+    shell = True
 
   if isinstance(command, str):
     subprocess_command = [command]

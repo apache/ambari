@@ -89,7 +89,7 @@ client_port = zookeeper_utils.positive_int(
   "zoo.cfg/clientPort",
   maximum=65535,
 )
-zk_server_heap_mb = zookeeper_utils.positive_int(
+zk_server_heap_mb = zookeeper_utils.memory_megabytes(
   default("/configurations/zookeeper-env/zk_server_heapsize", 1024),
   "zookeeper-env/zk_server_heapsize",
   minimum=256,
