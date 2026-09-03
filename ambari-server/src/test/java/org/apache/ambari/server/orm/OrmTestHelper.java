@@ -381,6 +381,7 @@ public class OrmTestHelper {
 
     clusterEntity.setClusterStateEntity(clusterStateEntity);
     clusterDAO.merge(clusterEntity);
+    getEntityManager().flush();
 
     // because this test method goes around the Clusters business object, we
     // forcefully will refresh the internal state so that any tests which
