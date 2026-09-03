@@ -96,7 +96,7 @@
     <jna.version>5.19.1</jna.version>
     <api.ldap.model.version>2.0.0.AM1</api.ldap.model.version>
     <api.ldap.client.api.version>2.0.0.AM1</api.ldap.client.api.version>
-    <apacheds.kerberos.codec.version>2.0.0-M24</apacheds.kerberos.codec.version>
+    <apacheds.kerberos.codec.version>2.0.0.AM27</apacheds.kerberos.codec.version>
     <kerberos.client.version>2.0.0-M24</kerberos.client.version>
     <json.schema.validator.version>0.1.10</json.schema.validator.version>
   </properties>
