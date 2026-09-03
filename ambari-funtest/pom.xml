@@ -21,6 +21,14 @@
   <name>Ambari Functional Tests</name>
   <description>Ambari Functional Tests</description>
   <build>
+    <testResources>
+      <testResource>
+        <directory>${project.basedir}/../ambari-server/conf/unix</directory>
+        <includes>
+          <include>ca.config</include>
+        </includes>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
