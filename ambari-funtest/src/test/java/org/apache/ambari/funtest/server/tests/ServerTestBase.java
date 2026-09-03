@@ -119,9 +119,11 @@ public class ServerTestBase {
             properties.setProperty(Configuration.AGENT_USE_SSL.getKey(), "false");
             properties.setProperty(Configuration.CLIENT_API_PORT.getKey(), Integer.toString(serverPort));
             properties.setProperty(Configuration.SRVR_ONE_WAY_SSL_PORT.getKey(), Integer.toString(serverAgentPort));
-            String tmpDir = System.getProperty("java.io.tmpdir");
-            properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(), tmpDir);
-            prepareCertificateDirectory(Paths.get(tmpDir));
+            Path keyStoreDirectory = Files.createTempDirectory(
+                Paths.get("/tmp"), "ambari-funtest-");
+            properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(),
+                keyStoreDirectory.toString());
+            prepareCertificateDirectory(keyStoreDirectory);
 
             ControllerModule testModule = new ControllerModule(properties);
 
