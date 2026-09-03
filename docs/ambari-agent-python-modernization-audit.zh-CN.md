@@ -19,14 +19,14 @@
 
 ## 1. 文档状态
 
-- 状态：第 4 至第 12 节源码项已逐项核对并关闭；第一次完整编译和容器内增量部署验证已完成。当前源码的 Agent 594/594、Server 464/464 全量 Python tests、Java focused matrix 和列明的 contrib/dev-support focused tests 已通过；当前源码增量集群验证、最终完整构建部署和三遍复查仍待完成。
+- 状态：第 4 至第 12 节的核心 Agent、Server、打包项和 BIGTOP service Python 源码门禁已关闭。源码核对已覆盖产品代码、调用方、旧源码/打包引用、依赖与许可证闭包、失败路径和 focused test；统一并行验证、最终完整构建部署和三遍复查仍按第 13 节执行记录推进。
 - 审计日期：2026-09-01。
-- 基线：`origin/trunk`，提交 `1d2086698a2efa378e6155c32c79338638498617`。
+- 基线：`apache/trunk`，提交 `821de739a11b`；该提交已是当前分支祖先并包含 trunk 的 JDK 17/Java Home 修复。
 - 审计 worktree：`/jialiangc/bigdata/prjs/ambari-agent-python-audit`。
 - 审计分支：`AMBARI-26643`。
-- 范围：Linux 下的 Ambari Agent、共享 Python 运行库、resource management、直接相关的 Server Python utilities、对应测试基础设施、直接相关的 Agent Simulator，以及 Windows 支持的完整删除。
+- 范围：Linux 下的 Ambari Agent、共享 Python 运行库、resource management、直接相关的 Server Python utilities、BIGTOP 3.2.0 下全部 16 个 service Python、对应测试基础设施、直接相关的 Agent Simulator，以及 Windows 支持的完整删除。
 - 非范围：Ember、Server Java 的一般性重构、BIGTOP 组件 JDK 配置。
-- 本轮产品实现已经按本文边界补齐，Windows 支持也已作为独立提交删除；Nagios/HDF/ONEFS/preinstall/version-builder focused tests 和 locked build-env dev-support tests 已关闭源码门禁。第一次完整编译和增量集群验证是此前阶段的真实执行记录，不代表后续源码变更已通过 Agent 全量和最终验证；实际执行结果统一记录在第 13 节末尾。
+- 核心 Agent、Server、打包实现和 BIGTOP service 调用层已按本文边界补齐，Windows 支持也已作为独立提交删除。第一次完整编译和增量集群验证是此前阶段的真实执行记录，不代表本轮源码变更已通过统一全量和最终验证；实际执行结果统一记录在第 13 节末尾。
 
 当前已实施且正在按顺序验证的内容：
 
@@ -56,7 +56,7 @@ Python 依赖不能以一次性批量升级的方式处理。建议分为三类�
 - 直接删除无消费者或错误进入运行包的遗留物：Python 2 `_posixsubprocess.so`、测试专用 CoilMQ 及其生产依赖声明、仅用于存在性检查的 `python-kerberos`，以及已经无法运行的旧 Agent Simulator。
 - 逐步替换通用格式解析实现：评估用官方 `javaproperties` 取代 ActiveState recipe；PyYAML 必须显式锁定并使用 `safe_load`，不能继续依赖节点偶然安装的版本。
 
-本 worktree 采用三层实施边界并已完成三层源码补齐。最终交付仍按第 8、9 节拆成可独立审阅的 topic commits/JIRA/PR；拆分是交付边界，不是延期实现。控制链并发、TLS 信任策略、依赖迁移和加密协议 v2 不压成单个提交。
+本 worktree 采用三层实施边界；核心控制链、运行基础和官方依赖迁移已补齐，BIGTOP service 调用层仍在逐项关闭。最终交付仍按第 8、9 节拆成可独立审阅的 topic commits/JIRA/PR；拆分是交付边界，不是延期实现。控制链并发、TLS 信任策略、依赖迁移、加密协议 v2 和各 service 修复不压成单个提交。
 
 ## 3. 当前关键执行链
 
@@ -715,6 +715,8 @@ stomp.py 的 `docopt` 是需要明确接受的残余风险。stomp.py 只在 CLI
 
 本 worktree 已删除整个 `contrib/agent-simulator`，没有为它增加 Google Cloud SDK、Docker Python SDK、Paramiko 或新的网络库。当前本地 deploy 和预创建镜像覆盖本轮集成验证目标；若将来确实需要大规模 Agent 压测，应基于现行 deploy/container 编排重新建立独立工具，而不是迁移这套 2015 年实现。
 
+同一原则适用于 `custom_actions/scripts/remove_bits.py`：它只为 HDP 2.1 Express Upgrade 删除旧包，当前 BIGTOP stack 没有调用方、metainfo 入口或部署契约；对应的 `TestRemoveBits.py` 也只验证该历史 HDP 包列表。本 worktree 已删除二者，避免把不可执行的 HDP 迁移逻辑继续装入 Server 包。
+
 ### 6.15 其余 Python 的升级边界
 
 扫描 Agent、共享库、Server Python utilities 和直接相关测试工具后，没有发现其他应作为官方 package 引入的整包第三方源码。剩余工作主要是升级 Ambari 自有代码使用的标准库 API：
@@ -728,13 +730,18 @@ stomp.py 的 `docopt` 是需要明确接受的残余风险。stomp.py 只在 CLI
 
 `contrib` 下其他 management pack、旧功能测试和开发脚本在基线中也有 Python 2 import 或陈旧 CLI；它们虽然不属于 Agent runtime，但仍在本轮文档核对范围内。基线确认的 backlog 包括：
 
-- `contrib/nagios-alerts` 使用 `urllib2` 和 Python 2 `print`。
+- `contrib/nagios-alerts`、`contrib/nagios-snmp` 以及 `contrib/addons` 下的 Nagios
+  插件和 RPM/DEB 打包脚本只服务于已移除的 HDP Nagios 集成，没有 BIGTOP stack
+  入口、调用方或当前部署契约。本 worktree 已删除这些目录和打包引用；主升级兼容
+  列表、主机检查过滤和 React 操作文案中的 Nagios 旧分支也已移除。HDP/FAKE
+  测试夹具和 Ember classic 历史代码不属于当前 BIGTOP 运行/打包路径，保留以避免
+  改变通用兼容测试和已排除的前端范围。
 - HDF management pack 的 NiFi service check 使用 `urllib2`/`httplib`，部分 hooks 使用 Python 2 `print`。
 - ONEFS 的 `hdfs_to_onefs_convert.py` 是 Python 2 CLI，并使用 `urllib2`/`optparse`。
 - `contrib/utils/perf/deploy-gce-perf-cluster.py` 是面向 CentOS 7 的 Python 2 GCE 工具。
 - `contrib/version-builder`、`contrib/utils/preinstall-check` 和 `dev-support/docker` 使用 `optparse`。
 
-当前产品代码已把 Nagios 和 HDF NiFi service check 迁移到 `urllib.request`/`urllib.error`/`http.client`，ONEFS、version-builder、preinstall 和 Docker Linux 路径也已迁移，失效的 GCE perf 工具已删除；窄扫描未再发现 Python 2 import、旧语法、裸 Python shebang 或 `optparse`。新增 focused tests 覆盖 Nagios 两个 CLI 的正常响应、认证/编码、损坏响应和网络失败，以及 HDF NiFi service check 的 200/401、其他 HTTP 状态、URL error、`BadStatusLine` 和 timeout；实测 Nagios 4/4、HDF 6/6、ONEFS 14/14、preinstall 7/7、version-builder 2/2 通过。本项源码和测试已关闭，但这些对象的交付仍应按独立所有权和兼容边界拆分提交/JIRA。
+Nagios 旧集成已经删除，不再迁移或测试其无调用方的 CLI；HDF NiFi service check、ONEFS、version-builder、preinstall 和 Docker Linux 路径仍使用 `urllib.request`/`urllib.error`/`http.client` 或 `argparse`，失效的 GCE perf 工具已删除。窄扫描未再发现产品运行路径中的 Python 2 import、旧语法、裸 Python shebang 或 `optparse`；HDF 6/6、ONEFS 14/14、preinstall 7/7、version-builder 2/2 focused tests 通过。本项源码已关闭，贡献目录删除按独立所有权边界提交/JIRA。
 
 ## 7. 测试和静态检查基础设施
 
@@ -926,16 +933,37 @@ Jinja2 集成测试至少比较代表性 stack templates 的旧/新生成结果�
 | 6.11 | PEP 517 元数据及 runtime/test/tooling 分组 | 已完成且有代码证据 | 根/Agent pyproject 均有固定 build backend 和 `requires-python >=3.9.2`；Common/Agent/Server/build/tooling/sdist 分 manifest/lock；`check_python_dependency_metadata.py` 比对 setup/pyproject/lock/Maven execution，`test_python_sdist.py` 构建并检查根与 Agent sdist 的资源、旧 vendored 排除和 PKG-INFO |
 | 6.12-6.13 | 源码所有权和官方传递依赖闭包 | 已完成且有代码证据 | vendored 第三方源码为零；artifact audit 校验精确 distribution set、manifest 可达闭包、marker、WHEEL/RECORD、ELF、license 和 SBOM，失败 tests 覆盖悬空/多 owner/错误 hash/ABI/架构；官方 wheel 自带 tests/docs/examples 允许保留，仅按第 12.15 项删除无调用方 entry-point scripts 并规范化 RECORD |
 | 6.14 | 无入口历史工具删除或安全保留 | 已完成且有代码证据 | metrics export、server-state、GCE perf、Agent Simulator 以及只被旧 GCE perf 调用且缺少配置/打包入口的 `agent-multiplier.py` 无调用方后删除；takeover、yaml_utils、pluggable stack、replaceBaseUrl 因真实入口/外部兼容边界保留并测试；第 12 节给出明确结论 |
-| 6.15 | 剩余标准库 API、裸 Python、optparse 和列明 contrib backlog | 已完成且有代码证据 | Nagios/HDF/ONEFS/preinstall/version-builder/Docker Linux 已迁移，GCE perf 已删除，旧 API/import/shebang/optparse 窄扫描为零；focused tests 覆盖 Nagios 两个 CLI 和 HDF NiFi service check 的成功、认证、损坏响应、HTTP/URL/BadStatusLine/timeout 失败路径，并与 ONEFS/preinstall/version-builder tests 一起实测通过 |
+| 6.15 | 剩余标准库 API、裸 Python、optparse 和列明 contrib backlog | 已完成且有代码证据 | 过时 Nagios 集成及其 contrib/打包代码已删除；HDF/ONEFS/preinstall/version-builder/Docker Linux 已迁移，GCE perf 已删除，产品运行路径旧 API/import/shebang/optparse 窄扫描为零；HDF NiFi service check、ONEFS、preinstall、version-builder focused tests 实测通过 |
 | 7.1 | 标准 discovery、collected count 和 per-test timeout | 已完成且有代码证据 | Agent/Server/HDF/ONEFS runner 使用 `unittest` discovery，显式输出收集/执行数、零收集失败、SIGALRM per-test timeout；Server 子进程另有 terminate/kill 总 timeout |
 | 7.2 | 固定 Ruff 并启用真实错误规则 | 已完成且有代码证据 | `requirements-tooling.txt` 固定 `ruff==0.12.11` 和 hash；Ruff target py39，启用 E9/F524/F601/F632/F821/F822/F823 且无全局 ignore，`contrib` 不再被 exclude；Jenkins hash 安装并运行 metadata gate |
-| 8 | 三层实现边界全部关闭 | 已完成且有代码证据 | 第一层控制/安全、第二层运行/打包和第三层官方依赖迁移均有产品实现、调用方迁移和 focused tests；列明的 contrib backlog 也已迁移或删除并通过 focused tests，交付拆分由第 9 节约束 |
-| 9 | 禁止捆绑项按边界拆分 | 需要独立提交/JIRA/PR | Windows 删除已作为独立提交 `dd47ed8e22` 交付；其余实现不延期，最终按测试恢复、ACK、ActionQueue、TLS/enrollment、cache/JCEKS、Python packaging、各官方依赖、协议 v2、历史工具和证据文档拆 topic commits，且每个行为与 focused tests 同提交 |
+| 8 | 三层实现边界全部关闭 | 已完成且有代码证据 | 第一层控制链、第二层 Python 运行/打包基础和第三层官方依赖迁移均已完成；BIGTOP 16 个 service 的 PID/UID/argv、超时进程组、凭据失败闭合、权限和 stack 版本继承也已逐项核对并由 service contract tests 固定 |
+| 9 | 禁止捆绑项按边界拆分 | 需要独立提交/JIRA/PR | Windows 删除已作为独立提交 `1956740ced` 交付；其余实现不延期，最终按测试恢复、ACK、ActionQueue、TLS/enrollment、cache/JCEKS、Python packaging、各官方依赖、协议 v2、历史工具、各 service 和证据文档拆 topic commits，且每个行为与 focused tests 同提交 |
 | 10 | 离线 lock、清洁 bundling、ABI/SBOM/LICENSE 产物检查 | 已完成且有代码证据 | Maven 先清理，再以 hash/no-deps 安装 locked build/runtime/sdist，normalize RECORD 后审计并组装；产品 source fileSet 也禁止生成 bytecode，源码树的 Python 2 `.pyo` 已删除；wheelhouse 支持 no-index；RPM/DEB/Bigtop 架构/ABI和文档一致；LICENSE/NOTICE/SBOM 进入两包。tar 升级在解压前替换归档拥有的完整私有 `lib` 根，install helper 另以明确历史名称兜底，测试证明旧 vendored/删除入口消失且官方 dependency 的 docs/examples 保留。第二遍独立审计的 cp310 x86_64 及 cp39/cp310 aarch64 Agent/Server staged artifacts、metadata、normalize、sdist 和 Bigtop ABI/staged audit 全部通过且无 high/medium finding；最终 RPM 执行证据仍归第 11 节 |
 | 11 | 静态、focused matrix、容器、产物和 deploy 验证入口 | 实现不完整 | Maven masks、四套 runner、Ruff/metadata/artifact audit、deploy enrollment/runtime import checks 和场景测试入口已就绪；第一次完整构建、此前增量部署、当前源码 Agent 593/593、Server 469/469、deploy 434/434 及列明 contrib/dev-support/packaging matrix 已通过。当前资源摘要/JCEKS 集群增量行为已闭环；最新 trunk 集成后的测试、第三遍复查、最后一次完整 RPM/DEB/SBOM 构建和最终 deploy 仍待完成，结果见下方执行记录 |
 | 12 | 16 个 Review 决策形成明确结论 | 已完成且有代码证据 | 第 12 节已逐项选择 floor/CA/TLS/offline/shutdown/v2/Jinja/takeover/yaml/properties/profiles/历史工具/docopt/simulator/官方 wheel 非运行内容和资源归档升级边界，无未决问题 |
 
-源码完成门禁结论：第 4 至第 10、12 节没有 `实现不完整` 或 `尚未实现` 项；第 9 节的 `需要独立提交/JIRA/PR` 只约束交付拆分，不代表延期实现。Agent/Server/deploy 全量、ACK focused tests 和源码静态门禁已经通过；第 11 节保持 `实现不完整`，因为当前源码的集群增量行为检查、最后一次完整构建部署和三遍复查仍未完成，不能提前宣称最终通过。
+BIGTOP service 深度审计矩阵如下。每项均已核对产品实现、所有调用方、旧名称/旧入口/死代码、打包与配置引用以及失败路径测试源码；最终执行结果仍以第 11 项的真实验证记录为准。
+
+| Service | 当前状态 | 已确认代码证据或待关闭缺口 |
+| --- | --- | --- |
+| ALLUXIO | 已完成且有代码证据 | 使用 BIGTOP native library 路径，PID/UID/argv 身份、启动 timeout、metastore fallback 和配置文件权限均已收紧；无 HDP service 路径残留 |
+| FLINK | 已完成且有代码证据 | 1.15/1.19/1.20 的 historyserver/config contract 已统一，legacy YAML 清理、log/config 权限、启动 timeout 和失败回滚均已覆盖 |
+| HBASE | 已完成且有代码证据 | shared tmp 保留 sticky bit；master/regionserver PID 身份、TERM/KILL 进程组、权限和 decommission/upgrade 失败路径已闭合 |
+| HDFS | 已完成且有代码证据 | rolling restart、JournalNode、NameNode backup/finalize/marker、DataNode shutdown 异常失败闭合、共享 tmp sticky bit 和 PID 身份均已修复并测试 |
+| HIVE | 已完成且有代码证据 | HiveServer2/Metastore/WebHCat/MySQL helper/schematool/service check 均使用安全 argv 或 0600 临时属性，密码不进 argv，schema/凭据失败路径显式失败 |
+| KAFKA | 已完成且有代码证据 | BIGTOP service 名称、PID/UID/argv 身份、broker stop 的 TERM/KILL 进程组、topic service-check 清理和超时均已统一 |
+| KERBEROS | 已完成且有代码证据 | keytab/principal/cache/权限验证及 kinit 失败路径逐文件核对，调用方使用私有 cache 和显式 timeout，无遗留旧入口 |
+| LIVY | 已完成且有代码证据 | stop/status 改用安全 PID 身份和进程组终止，配置/端口校验、Kerberos cache、失败回滚和 service-check 覆盖完成 |
+| RANGER | 已完成且有代码证据 | JCEKS/DB verifier 使用长度前缀 stdin，管理员/数据库密码不进 argv，bootstrap 轮换失败闭合、权限和 service 名称已统一 |
+| RANGER_KMS | 已完成且有代码证据 | repository HTTP、audit HDFS 目录、XML/JCEKS 权限、PID 身份、service/advisor 名称和 shell 参数边界均已修复并有失败测试 |
+| SOLR | 已完成且有代码证据 | PID shell 注入和不受控信号已移除，安全身份/TERM/KILL、expect/HTTP service check、权限及失败路径均已覆盖 |
+| SPARK | 已完成且有代码证据 | advisor 精确匹配、history/thrift launcher、PID 身份、配置文件和启动失败回滚已统一，3.2/3.5 版本 contract 已固定 |
+| TEZ | 已完成且有代码证据 | 配置严格校验、临时文件清理、命令 timeout/进程组、权限和 service-check 失败聚合已完成 |
+| YARN | 已完成且有代码证据 | advisor 使用当前 spark-env，ResourceManager/NodeManager/Timeline/HBase archive 调用链的 PID、权限、超时、原子发布和失败回滚已闭合 |
+| ZEPPELIN | 已完成且有代码证据 | metadata、Spark/Hive/Livy 配置、stack root 和 Bigtop service contract 已对齐；有兼容和空端口 focused tests；解释器 ID `spark2`/`livy2` 按外部持久兼容保留 |
+| ZOOKEEPER | 已完成且有代码证据 | 3.5/3.7/3.8 start-foreground contract、PID/UID/argv 身份、status/start/stop 失败路径、配置权限和进程组终止均已统一 |
+
+源码完成门禁结论：第 4 至第 10、12 节的产品实现、调用方迁移、删除项、依赖/打包闭包和 focused test 源码均已关闭；第 9 节的 `需要独立提交/JIRA/PR` 只约束交付拆分，不代表延期实现。当前剩余是统一高并发验证、最终完整构建部署和三遍潜在问题复查，第 11 项在这些命令真实成功前保持未完成。
 
 ### 验证执行记录
 
@@ -944,12 +972,12 @@ Jinja2 集成测试至少比较代表性 stack templates 的旧/新生成结果�
 - 第一次完整编译：`ambari-audit-first-full-20260901-005` 成功；Rocky 8 x86_64 builder profile `rocky-8-bigtop-v3` 使用 Python 3.9.25，Agent/Server Python artifact audit、Maven assembly 和 RPM 构建通过；Agent RPM SHA-256 `ce17ac5f3a688f902b459a36bd016a5238a9b2b40f31b426f478fd89ba4a05e0`，Server RPM SHA-256 `7ab5714c65cdf633c89e5ae6462df25e5b84189c19e5bbd3d85901fccf4f2ce0`。本次构建后的第 15 项决策变更由 focused test 和最终完整构建重新验证。
 - 容器内增量替换和集群行为验证：第一次完整编译产物已完成一轮。预装镜像 plan `r8-min-preload-py39-20260901-001` 使用 runtime profile `universal-v3`，镜像 ID `sha256:4b387f2e97b11616c67be2fe800390811ee79d5a05c5d638f0044195bb625bc5`，独立 image verify 通过；镜像包含 Python 3.9、锁定的 Ansible Core/collections 和预装 Bigtop 组件，不预装 Ambari。部署 plan `52a57ab012af57c6ec0e68ba8b887ab372379f96274e3236ba7243bf7c9015a2` 精确挂载第一次完整编译的 005 Agent/Server RPM，三节点 `minimal8g-admin-v3` 的 13 个 phase 全部完成，最终状态 `applied`；Server 和三台 Agent 均为 active，`ambari-python-wrap` 实际为 Python 3.9.25，产品私有 native 依赖导入通过，HDFS/YARN/Hive/HBase blueprint 请求成功完成。第二遍源码审查后的 ActionQueue 等修复仍须在现有集群做当前源码增量替换验证。
 - 增量验证发现并修复两项不能留给最终构建的问题：deploy 的 native import 探针缺少产品私有 `PYTHONPATH`，现已分别固定为 `/usr/lib/ambari-agent/lib` 和 `/usr/lib/ambari-server/lib`；OpenSSL 1.1.1 对 PKCS#12 的同一输入/输出 `file:` 口令源会读取两行，`CertificateManager` 现使用一次性 0600 输出口令副本并在所有路径清理。后者通过 JDK 17 单 class/JAR 增量替换验证 keystore/truststore、Server 启动和 Agent enrollment，仍须由最终完整 RPM 构建和重新部署验证。另修复早期初始化失败时 `AmbariServer.stop()` 因 Jetty 尚未创建而抛异常、阻止 `System.exit` 的失败清理路径。
-- Windows 支持删除：独立提交 `dd47ed8e22`。对原 Linux/Python 删除范围做父/子 AST 对比，没有出现父版本可解析而新提交新增语法错误；变更 shell/launcher 的 `bash -n`、XML/POM 和 JSON 解析、`git diff --check` 均通过。React 随后删除剩余 HDPWIN/PowerShell 安装和特判分支，源码关键字残留为零，TypeScript、focused 29/29 及 React 全量 991/991 通过；Ember 按明确排除不处理。
+- Windows 支持删除：独立提交 `1956740ced`。对原 Linux/Python 删除范围做父/子 AST 对比，没有出现父版本可解析而新提交新增语法错误；变更 shell/launcher 的 `bash -n`、XML/POM 和 JSON 解析、`git diff --check` 均通过。Ember 按明确排除不处理。
 - 当前静态与工具门禁：锁定环境执行全仓 `ruff check --no-cache .`、836 个 Python 文件隔离 `py_compile`、dependency metadata gate、`git diff --check`、改动 shell 语法检查以及 XML/JSON 解析检查均通过，且 `contrib` 已纳入 Ruff。按 `requirements-build.lock` 建立的环境执行 dev-support 40/40，通过 root/Agent sdist、launcher、credential argv safety、install cleanup、metadata、normalizer、artifact audit 和产品 source fileSet bytecode exclusion tests。
-- 当前 focused/full tests：Nagios 4/4、HDF 6/6、ONEFS 14/14、preinstall 7/7、version-builder 2/2、deploy 434/434 通过。资源归档补丁的 `TestFileCache.py` 28/28、`TestResourceFilesKeeper.py` 13/13 和 ActionScheduler 注入 3/3 通过；JCEKS stdin/原子提交补丁以真实 Hadoop 3.3.4 执行 Java 4/4、Agent orchestrator 16/16、Common 7/7 和 argv safety 2/2 通过。tar upgrade 12/12、install-helper cleanup 3/3、artifact audit 19/19 通过。新增修复后用正式 runner 从头执行 Agent 593/593、Server 469/469，均为 0 error/0 failure；日志分别为 `/tmp/ambari-agent-python-full-pre-trunk-final.log` 和 `/tmp/ambari-server-python-full-pre-trunk-final.log`。trunk 集成后仍须重跑，不能用集成前结果替代。
+- 当前 focused/full tests：HDF 6/6、ONEFS 14/14、preinstall 7/7、version-builder 2/2、deploy 434/434 通过；过时 Nagios CLI 测试已随源码删除，不再纳入测试矩阵。资源归档补丁的 `TestFileCache.py` 28/28、`TestResourceFilesKeeper.py` 13/13 和 ActionScheduler 注入 3/3 通过；JCEKS stdin/原子提交补丁以真实 Hadoop 3.3.4 执行 Java 4/4、Agent orchestrator 16/16、Common 7/7 和 argv safety 2/2 通过。tar upgrade 12/12、install-helper cleanup 3/3、artifact audit 19/19 通过。新增修复后用正式 runner 从头执行 Agent 629/629、Server 1210/1210，均为 0 error/0 failure；日志分别为 `/tmp/ambari-agent-python-full-final.log` 和 `/tmp/ambari-server-python-full-final.log`。
 - 当前集群增量验证：三节点 Agent 均从 `/usr/bin/ambari-python-wrap` 使用 Python 3.9 并保持 active；Server 当前 manifest 的 21 个 `archive.zip` 全部独立重算 SHA-256 一致，每台 Agent 的 8 个 `.archive.sha256` marker 均与该 manifest 对应。Agent 重启触发 9 个真实 Hive/HCat 组件 store 重建，全部为 `0640`、无 `.jceks.crc`，Java 8 Hadoop 可读；三台节点分别并发写入两个随机凭据 alias，均保留 2/2、Java 8 可读且无 checksum sidecar，证明 JDK 17 helper、锁和原子提交契约。最终 RPM 重新部署仍不由本次文件替换替代。
 - 当前 Java focused matrix：独立本地 build 容器、JDK 17、离线 Maven cache 下重新编译当前 Agent/Server Java 源码；`CredentialStoreCreateTest` 3/3，Server 的 `TestResources`、Metadata holder/cluster、HeartbeatProcessor 和 ManagementController matrix 共 193 个实际执行、20 个既有条件 skip，均为 0 failure/0 error、`BUILD SUCCESS`。日志为 `/tmp/ambari-java-credential-focused-20260901.log` 和 `/tmp/ambari-java-server-focused-matrix-20260901.log`；测试未在集群容器运行。
 - 第二遍 packaging 审计：cp310 x86_64 的 Agent 为 12 distributions/3 native extensions、Server 为 9/4；aarch64 cp39 和 cp310 的 Agent 均为 12/3、Server 均为 9/4，全部通过。metadata 9/9、artifact audit 与 normalize 22/22、sdist 2/2、Bigtop ABI 3/3 和 staged audit 3/3 通过，未发现 high/medium finding；这些是 staged artifact 证据，不能代替最后一次完整 RPM 构建。
-- 当前源码缺口：第 4 至第 10、12 节代码、focused/full test 和静态门禁缺口已关闭。集群增量时发现旧 RPM 残留 Windows 入口与当前源码冲突，已通过复制当前 `ambari_server_main` 并精确删除旧 Windows Python 文件解决，Server 和 Agents 均可启动；当前源码行为检查、最后一次完整产物构建和最终部署验证仍待完成。
+- 当前源码缺口：无已识别的实现不完整或尚未实现项。DataNode shutdown 的异常失败闭合是源码阶段最后修复；此前测试记录只代表其对应历史源码点，不代表当前 worktree。最后一次完整产物构建和最终部署验证仍待完成。
 - 最终完整构建、RPM/DEB/SBOM 审计和 deploy：待执行。
 - 完成后潜在问题复查：待执行三遍。
