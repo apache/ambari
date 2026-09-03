@@ -22,6 +22,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -66,8 +70,16 @@ public class SslExecutionTest {
   protected Properties buildTestProperties() {
     try {
       temp.create();
+      Path keyStoreDirectory = temp.getRoot().toPath();
+      String caConfig = Files.readString(
+          Paths.get("conf/unix/ca.config"), StandardCharsets.UTF_8)
+          .replace("/var/lib/ambari-server/keys/db", keyStoreDirectory.toString());
+      Files.writeString(keyStoreDirectory.resolve("ca.config"), caConfig,
+          StandardCharsets.UTF_8);
+      Files.createDirectories(keyStoreDirectory.resolve("newcerts"));
+      Files.createFile(keyStoreDirectory.resolve("index.txt"));
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new IllegalStateException("Unable to prepare certificate test fixture", e);
     }
     Properties properties = new Properties();
     properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(), temp.getRoot().getAbsolutePath());
