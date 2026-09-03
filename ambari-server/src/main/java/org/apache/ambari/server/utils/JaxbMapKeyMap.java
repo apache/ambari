@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.utils;
 
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElement;
 
 public class JaxbMapKeyMap {
   @XmlElement public String  key;

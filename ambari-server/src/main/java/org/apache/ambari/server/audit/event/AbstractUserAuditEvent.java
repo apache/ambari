@@ -19,7 +19,7 @@
 package org.apache.ambari.server.audit.event;
 
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Base class for audit events which are result of user actions. It appends

@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * KerberosDescriptor is an implementation of an AbstractKerberosDescriptorContainer that

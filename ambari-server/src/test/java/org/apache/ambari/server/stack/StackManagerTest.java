@@ -61,7 +61,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -748,7 +748,7 @@ public class StackManagerTest {
   public void testMetricsLoaded() throws Exception {
 
     URL rootDirectoryURL = StackManagerTest.class.getResource("/");
-    Assert.notNull(rootDirectoryURL);
+    Assert.notNull(rootDirectoryURL, "Test classes root must be available");
 
     File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/test/resources");
 

@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.stack.upgrade;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Indicates if an sequence of Groups should be for an upgrade or a downgrade.

@@ -82,8 +82,8 @@ import org.apache.ambari.server.topology.addservice.AddServiceRequest;
 import org.apache.ambari.server.utils.LoggingPreconditions;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1109,8 +1109,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     for (ServiceRequest request : requests) {
       final String clusterName = request.getClusterName();
       final String serviceName = request.getServiceName();
-      Validate.notEmpty(clusterName, "Cluster name should be provided when creating a service");
-      Validate.notEmpty(serviceName, "Service name should be provided when creating a service");
+      Validate.isTrue(clusterName != null && !clusterName.isEmpty(), "Cluster name should be provided when creating a service");
+      Validate.isTrue(serviceName != null && !serviceName.isEmpty(), "Service name should be provided when creating a service");
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received a createService request, clusterName={}, serviceName={}, request={}", clusterName, serviceName, request);

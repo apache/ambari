@@ -21,7 +21,7 @@ package org.apache.ambari.server.utils;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class should be used to compare module(service) versions.

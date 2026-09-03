@@ -40,7 +40,7 @@ import org.apache.ambari.server.security.authentication.TooManyLoginFailuresExce
 import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;

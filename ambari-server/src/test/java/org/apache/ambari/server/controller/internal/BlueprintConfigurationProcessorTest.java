@@ -77,7 +77,7 @@ import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.TopologyRequest;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
@@ -108,7 +108,7 @@ import com.google.common.collect.Sets;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariServer.class)
-@PowerMockIgnore({"org.apache.logging.log4j.*","org.slf4j.*"})
+@PowerMockIgnore({"javax.xml.parsers.*", "org.xml.sax.*", "org.apache.logging.log4j.*", "org.slf4j.*"})
 public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
   private static final Configuration EMPTY_CONFIG = new Configuration(emptyMap(), emptyMap());

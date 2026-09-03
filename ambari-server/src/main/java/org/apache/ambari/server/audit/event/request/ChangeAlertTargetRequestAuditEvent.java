@@ -21,7 +21,7 @@ package org.apache.ambari.server.audit.event.request;
 import java.util.List;
 
 import org.apache.ambari.server.audit.request.RequestAuditEvent;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ChangeAlertTargetRequestAuditEvent extends RequestAuditEvent {
 

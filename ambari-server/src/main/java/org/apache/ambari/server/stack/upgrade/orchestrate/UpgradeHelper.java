@@ -91,7 +91,7 @@ import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

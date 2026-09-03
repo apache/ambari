@@ -32,7 +32,7 @@ import jakarta.persistence.OneToOne;
 
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.State;
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 @jakarta.persistence.IdClass(ServiceDesiredStateEntityPK.class)
 @jakarta.persistence.Table(name = "servicedesiredstate")

@@ -110,6 +110,13 @@ pipeline {
             }
         }
 
+        stage('Java Dependency SBOM') {
+            steps {
+                sh 'mvn -B -Psbom -DskipTests -DskipPythonTests -DskipAdminWebTests=true -DskipUiBuild=true -Drat.skip org.cyclonedx:cyclonedx-maven-plugin:2.9.1:makeAggregateBom'
+                archiveArtifacts artifacts: 'target/ambari-sbom.json', fingerprint: true
+            }
+        }
+
         stage('Ambari Agent Tests') {
             steps {
                 sh 'pip3 install distro'

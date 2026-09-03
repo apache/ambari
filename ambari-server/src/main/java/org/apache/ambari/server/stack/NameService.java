@@ -20,7 +20,7 @@
 
 package org.apache.ambari.server.stack;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -32,7 +32,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * I represent a nameServiceId that belongs to HDFS. Multiple namenodes may belong to the same nameServiceId.

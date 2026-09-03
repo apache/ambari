@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnumValue;
 
 /**
  * Enumerates the supported KDC types

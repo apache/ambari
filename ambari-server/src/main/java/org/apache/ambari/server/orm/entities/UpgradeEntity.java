@@ -44,7 +44,7 @@ import org.apache.ambari.server.stack.upgrade.Direction;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.upgrade.UpgradeType;
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import com.google.common.base.Objects;
 

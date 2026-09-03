@@ -33,7 +33,7 @@ import org.apache.ambari.server.api.services.stackadvisor.recommendations.Recomm
 import org.apache.ambari.server.state.ChangedConfigInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Configuration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.base.Preconditions;

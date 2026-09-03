@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.puppycrawl.tools.checkstyle.api.AbstractCheck;
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
-import com.puppycrawl.tools.checkstyle.utils.AnnotationUtility;
+import com.puppycrawl.tools.checkstyle.utils.AnnotationUtil;
 
 /**
  * REST API operations should either be documented, or marked to be ignored.
@@ -77,11 +77,11 @@ public class UndocumentedRestApiOperationCheck extends AbstractCheck {
   }
 
   private static boolean isDocumentedApiOperation(DetailAST ast) {
-    return AnnotationUtility.containsAnnotation(ast, API_OPERATION);
+    return AnnotationUtil.containsAnnotation(ast, API_OPERATION);
   }
 
   private static boolean isIgnoredApi(DetailAST ast) {
-    return AnnotationUtility.containsAnnotation(ast, API_IGNORE);
+    return AnnotationUtil.containsAnnotation(ast, API_IGNORE);
   }
 
 }

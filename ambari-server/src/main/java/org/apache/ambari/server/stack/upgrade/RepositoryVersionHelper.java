@@ -58,7 +58,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.RepoTag;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.upgrade.UpgradeType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -34,7 +34,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.NotificationState;
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 /**
  * The {@link AlertNoticeEntity} class represents the need to dispatch a

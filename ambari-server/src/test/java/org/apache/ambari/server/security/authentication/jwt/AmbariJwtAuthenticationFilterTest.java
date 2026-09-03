@@ -58,7 +58,7 @@ import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilt
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
 import org.apache.ambari.server.security.authorization.Users;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
@@ -85,7 +85,7 @@ public class AmbariJwtAuthenticationFilterTest extends EasyMockSupport {
   @BeforeClass
   public static void generateKeyPair() throws NoSuchAlgorithmException {
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-    keyPairGenerator.initialize(512);
+    keyPairGenerator.initialize(2048);
     KeyPair keyPair = keyPairGenerator.generateKeyPair();
     publicKey = (RSAPublicKey) keyPair.getPublic();
     privateKey = (RSAPrivateKey) keyPair.getPrivate();

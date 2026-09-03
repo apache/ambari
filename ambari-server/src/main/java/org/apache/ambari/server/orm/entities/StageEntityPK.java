@@ -21,7 +21,7 @@ package org.apache.ambari.server.orm.entities;
 import java.io.Serializable;
 import java.util.Objects;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 @SuppressWarnings("serial")
 public class StageEntityPK implements Serializable {

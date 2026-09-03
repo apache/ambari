@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import static org.apache.commons.lang.StringUtils.defaultString;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;

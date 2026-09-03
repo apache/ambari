@@ -33,10 +33,6 @@
   <artifactId>ambari-serviceadvisor</artifactId>
   <name>Ambari Service Advisor</name>
   <description>Service Advisor</description>
-  <properties>
-    <jdk.version>1.8</jdk.version>
-  </properties>
-
   <dependencies>
     <!-- Log Factory logging
     The main class is expected to write to stdout and stderr appropriately.
@@ -51,26 +47,11 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.20</version>
     </dependency>
-      <dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.9</version>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
     </dependency>
   </dependencies>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>oss.sonatype.org</id>
-      <name>OSS Sonatype Staging</name>
-      <url>https://oss.sonatype.org/content/groups/staging</url>
-    </pluginRepository>
-  </pluginRepositories>
 
   <packaging>jar</packaging>
   <!-- Run with mvn clean package .
@@ -109,10 +90,8 @@
       -->
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <release>${jdk.version}</release>
         </configuration>
       </plugin>
       <plugin>

@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.stack.upgrade;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnumValue;
 
 /**
  * The {@link ExecuteHostType} enum is used to represent where an

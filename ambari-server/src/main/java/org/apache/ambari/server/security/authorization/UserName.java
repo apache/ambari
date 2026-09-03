@@ -20,7 +20,7 @@ package org.apache.ambari.server.security.authorization;
 
 import java.util.Arrays;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents an Ambari user name

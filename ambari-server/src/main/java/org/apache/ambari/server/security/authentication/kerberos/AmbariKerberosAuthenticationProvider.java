@@ -22,7 +22,7 @@ import jakarta.inject.Inject;
 
 import org.apache.ambari.server.security.authentication.AmbariProxiedUserDetailsImpl;
 import org.apache.ambari.server.security.authentication.tproxy.TrustedProxyAuthenticationDetails;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;

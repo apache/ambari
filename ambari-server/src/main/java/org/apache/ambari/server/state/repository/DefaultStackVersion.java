@@ -22,7 +22,7 @@ import java.util.Comparator;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.spi.stack.StackReleaseInfo;
 import org.apache.ambari.spi.stack.StackReleaseVersion;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This is the default implementation if no stack provides an implementation.

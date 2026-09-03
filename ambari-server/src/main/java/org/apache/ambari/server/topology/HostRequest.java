@@ -49,7 +49,7 @@ import org.apache.ambari.server.topology.tasks.RegisterWithConfigGroupTask;
 import org.apache.ambari.server.topology.tasks.StartHostTask;
 import org.apache.ambari.server.topology.tasks.TopologyHostTask;
 import org.apache.ambari.server.topology.tasks.TopologyTask;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

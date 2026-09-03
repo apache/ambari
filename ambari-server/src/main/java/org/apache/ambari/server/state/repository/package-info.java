@@ -18,6 +18,6 @@
 @XmlJavaTypeAdapter(value=TrimmingAdapter.class,type=String.class)
 package org.apache.ambari.server.state.repository;
 
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.ambari.server.state.stack.TrimmingAdapter;

@@ -32,7 +32,7 @@ import jakarta.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SortRequestProperty;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * The {@link JpaSortBuilder} class is used to convert and Ambari

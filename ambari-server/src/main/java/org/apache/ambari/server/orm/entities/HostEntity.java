@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import static org.apache.commons.lang.StringUtils.defaultString;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import java.util.Collection;
 import java.util.Collections;

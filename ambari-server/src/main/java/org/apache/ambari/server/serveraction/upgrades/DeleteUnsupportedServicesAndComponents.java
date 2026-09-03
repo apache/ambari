@@ -43,7 +43,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentSupport;
 import org.apache.ambari.server.topology.STOMPComponentsDeleteHandler;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.inject.Inject;
 
