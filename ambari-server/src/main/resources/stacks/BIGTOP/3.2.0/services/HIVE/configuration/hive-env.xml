@@ -421,14 +421,14 @@ export METASTORE_PORT={{hive_metastore_port}}
 
 if [ "${SERVICE:-}" = "metastore" ]; then
   export HADOOP_HEAPSIZE={{hive_metastore_heapsize}}
-  if "$JAVA_HOME/bin/java" -version 2>&1 | grep -q 'version "17'; then
+  if "$JAVA_HOME/bin/java" -version 2>&amp;1 | grep -q 'version "17'; then
     export HADOOP_OPTS="${HADOOP_OPTS:-} -XX:+UseG1GC -Xlog:gc*:file={{hive_log_dir}}/hivemetastore-gc.log:time,uptime,level,tags:filecount=10,filesize=10M -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hivemetastore.log"
   else
     export HADOOP_OPTS="${HADOOP_OPTS:-} -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hivemetastore.log"
   fi
 elif [ "${SERVICE:-}" = "hiveserver2" ]; then
   export HADOOP_HEAPSIZE={{hive_heapsize}}
-  if "$JAVA_HOME/bin/java" -version 2>&1 | grep -q 'version "17'; then
+  if "$JAVA_HOME/bin/java" -version 2>&amp;1 | grep -q 'version "17'; then
     export HADOOP_OPTS="${HADOOP_OPTS:-} -XX:+UseG1GC -Xlog:gc*:file={{hive_log_dir}}/hiveserver2-gc.log:time,uptime,level,tags:filecount=10,filesize=10M -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2.log"
   else
     export HADOOP_OPTS="${HADOOP_OPTS:-} -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2.log"

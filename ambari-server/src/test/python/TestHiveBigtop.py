@@ -19,6 +19,7 @@ limitations under the License.
 
 import pathlib
 import unittest
+import xml.etree.ElementTree as ET
 
 
 HIVE_ENV = (
@@ -28,6 +29,11 @@ HIVE_ENV = (
 
 
 class TestHiveBigtop(unittest.TestCase):
+  def test_bigtop_shell_configuration_is_well_formed_xml(self):
+    hdfs_env = HIVE_ENV.parents[2] / "HDFS/configuration/hadoop-env.xml"
+    for configuration in (HIVE_ENV, hdfs_env):
+      ET.parse(configuration)
+
   def test_java8_override_does_not_receive_jdk17_gc_flags(self):
     content = HIVE_ENV.read_text(encoding="utf-8")
 
