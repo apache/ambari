@@ -25,6 +25,9 @@ import re
 from pathlib import Path
 
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.setup_ranger_plugin_xml import (
+  require_external_ranger_credentials,
+)
 
 
 _ABSOLUTE_PATH_PATTERN = re.compile(r"/[A-Za-z0-9_./+@=-]*", re.ASCII)
@@ -238,11 +241,13 @@ def resolve_local_rm_ha_id(rm_hostnames, local_hostname, require_match=True):
       "." not in left or "." not in right
     )
 
-  local_hostname = canonical_hostname(local_hostname)
+  if not isinstance(local_hostname, str):
+    raise Fail("ResourceManager hostname must be a non-empty host")
+  local_hostname = canonical_hostname(local_hostname.strip())
   matches = [
     rm_id
     for rm_id, rm_hostname in rm_hostnames.items()
-    if hostnames_match(canonical_hostname(rm_hostname), local_hostname)
+    if hostnames_match(canonical_hostname(str(rm_hostname).strip()), local_hostname)
   ]
   if len(matches) > 1:
     raise Fail(
@@ -397,6 +402,8 @@ def parse_address_port(value, name):
     closing_bracket = address.find("]")
     if closing_bracket < 2 or address[closing_bracket + 1 : closing_bracket + 2] != ":":
       raise Fail(f"{name} must be a bracketed IPv6 host and port")
+    if ":" not in address[1:closing_bracket]:
+      raise Fail(f"{name} must be a bracketed IPv6 host and port")
     _normalize_network_host(
       address[: closing_bracket + 1], name, bracket_ipv6=False
     )
@@ -447,27 +454,6 @@ def validate_hbase_backend_mode(
     raise Fail("hbase_within_cluster requires at least one managed HBase master")
   if hbase_within_cluster and not has_hbase_site:
     raise Fail("hbase_within_cluster requires the managed hbase-site configuration")
-
-
-def require_external_ranger_credentials(properties):
-  required_properties = (
-    "external_admin_username",
-    "external_admin_password",
-    "external_ranger_admin_username",
-    "external_ranger_admin_password",
-  )
-  missing_properties = [
-    property_name
-    for property_name in required_properties
-    if not isinstance(properties.get(property_name), str)
-    or not properties[property_name].strip()
-  ]
-  if missing_properties:
-    raise Fail(
-      "External Ranger integration requires non-empty properties: "
-      + ", ".join(missing_properties)
-    )
-  return {property_name: properties[property_name] for property_name in required_properties}
 
 
 def calc_heap_memory(memorysize, heapmemory_factor):

@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 import os
 import re
 import socket
@@ -25,7 +26,9 @@ import time
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.core import sudo
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions.stack_tools import get_stack_root
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -41,6 +44,7 @@ SEARCH_PATHS_KEY = "{{kerberos-env/executable_search_paths}}"
 SPARK_USER_KEY = "{{spark-env/spark_user}}"
 KEYTAB_KEY = "{{spark-hive-site-override/hive.server2.authentication.kerberos.keytab}}"
 PRINCIPAL_KEY = "{{spark-hive-site-override/hive.server2.authentication.kerberos.principal}}"
+STACK_ROOT_KEY = "{{cluster-env/stack_root}}"
 TIMEOUT_KEY = "check.command.timeout"
 _HOST_PATTERN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?", re.ASCII)
 _PATH_PATTERN = re.compile(r"/[A-Za-z0-9_./+@=-]*", re.ASCII)
@@ -59,11 +63,15 @@ def get_tokens():
     SPARK_USER_KEY,
     KEYTAB_KEY,
     PRINCIPAL_KEY,
+    STACK_ROOT_KEY,
   )
 
 
-def _boolean(value):
-  return str(value).strip().lower() == "true"
+def _boolean(value, name):
+  normalized = str(value).strip().lower()
+  if normalized not in ("true", "false"):
+    raise ValueError(f"{name} must be true or false")
+  return normalized == "true"
 
 
 def _bounded_port(value):
@@ -86,6 +94,32 @@ def _regular_file(path, name, executable=False):
   if executable and sudo.stat(path).st_mode & 0o111 == 0:
     raise ValueError(f"{name} is not executable")
   return path
+
+
+def _resolve_stack_root(configured_stack_root):
+  if not isinstance(configured_stack_root, str) or not configured_stack_root.strip():
+    raise ValueError("cluster-env/stack_root is required")
+  configured_stack_root = configured_stack_root.strip()
+  if configured_stack_root.startswith("{"):
+    try:
+      stack_roots = json.loads(configured_stack_root)
+    except json.JSONDecodeError as error:
+      raise ValueError("cluster-env/stack_root must be valid JSON") from error
+    if not isinstance(stack_roots, dict) or "BIGTOP" not in stack_roots:
+      raise ValueError("cluster-env/stack_root must define BIGTOP")
+    stack_root = get_stack_root("BIGTOP", configured_stack_root)
+  else:
+    stack_root = configured_stack_root
+  if (
+    not isinstance(stack_root, str)
+    or not os.path.isabs(stack_root)
+    or stack_root.startswith("//")
+    or os.path.normpath(stack_root) != stack_root
+    or stack_root == os.sep
+    or _PATH_PATTERN.fullmatch(stack_root) is None
+  ):
+    raise ValueError("BIGTOP stack root must be a safe absolute directory")
+  return stack_root
 
 
 def _beeline_url(host, port, transport, endpoint, ssl_enabled, principal):
@@ -118,15 +152,16 @@ def execute(configurations=None, parameters=None, host_name=None):
     timeout = int(float(parameters.get(TIMEOUT_KEY, 60)))
     if not 1 <= timeout <= 300:
       raise ValueError("check timeout must be between 1 and 300 seconds")
-    secure = _boolean(configurations.get(SECURITY_KEY, False))
+    secure = _boolean(configurations.get(SECURITY_KEY, False), "security_enabled")
     user = configurations[SPARK_USER_KEY]
     endpoint = configurations.get(ENDPOINT_KEY, "cliservice")
+    stack_root = _resolve_stack_root(configurations.get(STACK_ROOT_KEY))
     url = _beeline_url(
       host,
       port,
       transport,
       endpoint,
-      _boolean(configurations.get(SSL_KEY, False)),
+      _boolean(configurations.get(SSL_KEY, False), "hive.server2.use.SSL"),
       configurations.get(PRINCIPAL_KEY) if secure else None,
     )
   except (KeyError, TypeError, ValueError) as error:
@@ -134,7 +169,11 @@ def execute(configurations=None, parameters=None, host_name=None):
 
   started = time.monotonic()
   try:
-    beeline = _regular_file("/usr/lib/spark/bin/beeline", "Spark Beeline", executable=True)
+    beeline = _regular_file(
+      os.path.join(stack_root, "current", "spark-client", "bin", "beeline"),
+      "Spark Beeline",
+      executable=True,
+    )
     command = (beeline, "-u", url, "-e", "SELECT 1")
     if secure:
       keytab = configurations.get(KEYTAB_KEY)
@@ -153,9 +192,20 @@ def execute(configurations=None, parameters=None, host_name=None):
           principal.replace("_HOST", host),
           timeout=30,
         )
-        Execute(command, user=user, environment=cache.environment, timeout=timeout)
+        Execute(
+          command,
+          user=user,
+          environment=cache.environment,
+          timeout=timeout,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
     else:
-      Execute(command, user=user, timeout=timeout)
+      Execute(
+        command,
+        user=user,
+        timeout=timeout,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
     elapsed = time.monotonic() - started
     return "OK", [
       f"Spark Thrift Server responded on port {port} in {elapsed:.3f}s"

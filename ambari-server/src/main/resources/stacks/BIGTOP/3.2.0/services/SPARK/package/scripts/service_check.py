@@ -22,6 +22,7 @@ from contextlib import nullcontext
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -43,6 +44,8 @@ def build_beeline_url(params, host):
   )
   options = []
   if params.security_enabled:
+    if not params.default_hive_kerberos_principal:
+      raise Fail("Spark Thrift Server Kerberos principal is required")
     principal = params.default_hive_kerberos_principal.replace("_HOST", host.lower())
     spark_utils.validate_principal(principal, "Spark Thrift Server principal")
     options.append(f"principal={principal}")
@@ -111,6 +114,7 @@ class SparkServiceCheck(Script):
         user=params.smoke_user,
         environment=environment,
         timeout=CHECK_TIMEOUT_SECONDS + 5,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         tries=5,
         try_sleep=3,
         logoutput=True,
@@ -127,6 +131,7 @@ class SparkServiceCheck(Script):
             user=params.smoke_user,
             environment=environment,
             timeout=CHECK_TIMEOUT_SECONDS,
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
             logoutput=True,
           )
           return

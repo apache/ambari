@@ -51,7 +51,11 @@ def router(action=None, env=None):
     import status_params
 
     hdfs_process.check_component_status(
-      status_params.router_pid_file, status_params.hdfs_user, "dfsrouter"
+      status_params.router_pid_file,
+      status_params.hdfs_user,
+      "dfsrouter",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
     )
   else:
     raise Fail(f"Unsupported HDFS Router action: {action!r}")

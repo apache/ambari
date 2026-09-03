@@ -822,6 +822,7 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
       ("hadoop-env", self.validateHeapConfigurations),
       ("core-site", self.validateCoreSiteConfigurations),
       ("hdfs-site", self.validateSecurityConfigurations),
+      ("ssl-server", self.validateSslServerConfigurations),
       (
         "ranger-hdfs-plugin-properties",
         self.validateRangerPluginConfigurations,
@@ -1224,6 +1225,35 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
           )
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
+  def validateSslServerConfigurations(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    hdfs_site = self.getSiteProperties(configurations, "hdfs-site") or {}
+    if not hdfs_site:
+      hdfs_site = self.getServicesSiteProperties(services, "hdfs-site") or {}
+    if str(hdfs_site.get("dfs.http.policy", "HTTP_ONLY")).upper() not in (
+      "HTTPS_ONLY",
+      "HTTP_AND_HTTPS",
+    ):
+      return []
+
+    validationItems = []
+    for name in (
+      "ssl.server.truststore.password",
+      "ssl.server.keystore.password",
+      "ssl.server.keystore.keypassword",
+    ):
+      if not str(properties.get(name, "")).strip():
+        validationItems.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(
+              f"{name} must not be empty when HDFS HTTPS is enabled"
+            ),
+          }
+        )
+    return self.toConfigurationValidationProblems(validationItems, "ssl-server")
+
   def validateRangerPluginConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
@@ -1241,6 +1271,15 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
       else "No"
     )
     if str(ranger_plugin_enabled).lower() == "yes":
+      if not str(ranger_plugin_properties.get("REPOSITORY_CONFIG_PASSWORD", "")).strip():
+        validationItems.append(
+          {
+            "config-name": "REPOSITORY_CONFIG_PASSWORD",
+            "item": self.getErrorItem(
+              "REPOSITORY_CONFIG_PASSWORD must not be empty when the Ranger HDFS plugin is enabled"
+            ),
+          }
+        )
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = self.getServicesSiteProperties(services, "ranger-env")
       if (

@@ -27,6 +27,7 @@ from ambari_commons.parallel_processing import (
 from service_check import post_metrics_to_collector
 from resource_management.core.logger import Logger
 from resource_management.core.base import Fail
+from resource_management.core.utils import PasswordString
 from resource_management.libraries.script.script import Script
 from resource_management import Template
 from metrics_utils import url_host
@@ -45,7 +46,13 @@ GRAFANA_USER_URL = "/api/user"
 GRAFANA_DASHBOARDS_URL = "/api/dashboards/db"
 METRICS_GRAFANA_DATASOURCE_NAME = "AMBARI_METRICS"
 
-Server = namedtuple("Server", ["protocol", "host", "port", "user", "password"])
+class Server(namedtuple("ServerBase", ["protocol", "host", "port", "user", "password"])):
+  __slots__ = ()
+
+  def __new__(cls, protocol, host, port, user, password):
+    return super().__new__(
+      cls, protocol, host, port, user, PasswordString(password)
+    )
 
 
 class GrafanaResponse(namedtuple("GrafanaResponseBase", ["status", "reason", "data"])):

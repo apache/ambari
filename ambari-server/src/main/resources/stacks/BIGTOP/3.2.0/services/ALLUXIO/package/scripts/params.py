@@ -36,6 +36,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
 
 from alluxio_utils import (
+  as_bool,
   resolve_master_metastore_dir,
   resolve_underfs_address,
   validate_data_size,
@@ -178,7 +179,10 @@ alluxio_metrics_properties = config["configurations"]["alluxio-metrics-propertie
 alluxio_hdfs_user_dir = format("/user/{alluxio_user}")
 
 # security_enabled
-security_enabled = default("/configurations/cluster-env/security_enabled", None)
+security_enabled = as_bool(
+  default("/configurations/cluster-env/security_enabled", False),
+  "cluster-env/security_enabled",
+)
 kinit_path_local = get_kinit_path(
   default("/configurations/kerberos-env/executable_search_paths", None)
 )

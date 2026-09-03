@@ -20,6 +20,7 @@ limitations under the License.
 import os
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 import infra_solr_utils
@@ -50,21 +51,15 @@ def validate_pid_file(pid_file, port):
 
 
 def _publish(pid_file, identity, user, group, expected):
-  try:
-    return safe_process.create_pid_file_for_identity(
-      pid_file,
-      identity,
-      expected_user=user,
-      expected_cmdline=expected,
-      owner=user,
-      group=group,
-      mode=0o640,
-    )
-  except Fail:
-    current = safe_process.read_running_process(pid_file, user, expected)
-    if current is not None and identity.matches(current):
-      return current
-    raise
+  return safe_process.publish_pid_file_for_identity(
+    pid_file,
+    identity,
+    expected_user=user,
+    expected_cmdline=expected,
+    owner=user,
+    group=group,
+    mode=0o640,
+  )
 
 
 def read_or_recover_process(pid_file, user, group, port, solr_home):
@@ -74,7 +69,7 @@ def read_or_recover_process(pid_file, user, group, port, solr_home):
   if recorded_pid is not None:
     identity = safe_process.read_running_process(pid_file, user, expected)
     if identity is not None:
-      return identity
+      return _publish(pid_file, identity, user, group, expected)
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       recorded_pid,
@@ -93,31 +88,20 @@ def wait_for_started_process(pid_file, user, group, port, solr_home):
   identity = safe_process.wait_for_discovered_process(
     user, expected, attempts=30, sleep_seconds=1
   )
-  generated_pid = safe_process.read_pid(pid_file)
-  if generated_pid is None:
+  try:
     return _publish(pid_file, identity, user, group, expected)
-  if generated_pid != identity.pid:
-    raise Fail(
-      f"Infra Solr PID file contains {generated_pid}, expected {identity.pid}"
-    )
-  return safe_process.secure_pid_file_for_identity(
-    pid_file,
-    identity,
-    expected_user=user,
-    expected_cmdline=expected,
-    owner=user,
-    group=group,
-    mode=0o640,
-  )
+  except Exception:
+    try:
+      terminate_identity(identity, pid_file, user, port, solr_home)
+    except Exception as cleanup_error:
+      Logger.warning(
+        f"Infra Solr PID publication cleanup failed: {cleanup_error}"
+      )
+    raise
 
 
-def stop_process(pid_file, user, group, port, solr_home):
+def terminate_identity(identity, pid_file, user, port, solr_home):
   expected = process_tokens(port, solr_home)
-  identity = read_or_recover_process(
-    pid_file, user, group, port, solr_home
-  )
-  if identity is None:
-    return False
   safe_process.terminate_process(
     identity,
     user,
@@ -133,4 +117,13 @@ def stop_process(pid_file, user, group, port, solr_home):
     expected_user=user,
     expected_cmdline=expected,
   )
+
+
+def stop_process(pid_file, user, group, port, solr_home):
+  identity = read_or_recover_process(
+    pid_file, user, group, port, solr_home
+  )
+  if identity is None:
+    return False
+  terminate_identity(identity, pid_file, user, port, solr_home)
   return True

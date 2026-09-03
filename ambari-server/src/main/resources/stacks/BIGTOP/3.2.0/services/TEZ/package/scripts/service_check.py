@@ -26,14 +26,15 @@ from contextlib import nullcontext
 
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import File
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.libraries.script import Script
 
 import tez_utils
@@ -133,28 +134,35 @@ class TezServiceCheckLinux(TezServiceCheck):
             timeout=60,
           )
 
-        ExecuteHadoop(
-          ("jar", path_to_tez_jar, "orderedwordcount", hdfs_input, hdfs_output),
+        hadoop_command = (
+          os.path.join(params.hadoop_bin_dir, "hadoop"),
+          "--config",
+          params.hadoop_conf_dir,
+        )
+        Execute(
+          hadoop_command
+          + ("jar", path_to_tez_jar, "orderedwordcount", hdfs_input, hdfs_output),
           tries=3,
           try_sleep=5,
           user=params.smokeuser,
-          conf_dir=params.hadoop_conf_dir,
-          bin_dir=params.hadoop_bin_dir,
           environment=command_environment,
+          timeout=330,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
-        ExecuteHadoop(
-          ("fs", "-test", "-e", f"{hdfs_output}/_SUCCESS"),
+        Execute(
+          hadoop_command + ("fs", "-test", "-e", f"{hdfs_output}/_SUCCESS"),
           tries=10,
           try_sleep=6,
           user=params.smokeuser,
-          conf_dir=params.hadoop_conf_dir,
-          bin_dir=params.hadoop_bin_dir,
           environment=command_environment,
+          timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
     except Exception as error:
       operation_error = error
       raise
     finally:
+      hdfs_cleanup_error = None
       try:
         params.HdfsResource(
           hdfs_root,
@@ -162,15 +170,23 @@ class TezServiceCheckLinux(TezServiceCheck):
           type="directory",
         )
         params.HdfsResource(None, action="execute")
-      except Exception as cleanup_error:
+      except Exception as error:
+        hdfs_cleanup_error = error
         if operation_error is not None:
-          raise Fail(
-            f"Tez service check failed: {operation_error}; "
-            f"HDFS cleanup also failed: {cleanup_error}"
-          ) from operation_error
-        raise
-      finally:
+          Logger.warning(
+            f"Could not clean HDFS data after Tez service check failure: {error}"
+          )
+      try:
         File(local_input, action="delete")
+      except Exception as error:
+        if operation_error is not None or hdfs_cleanup_error is not None:
+          Logger.warning(
+            f"Could not remove local input after Tez service check failure: {error}"
+          )
+        else:
+          raise
+      if operation_error is None and hdfs_cleanup_error is not None:
+        raise hdfs_cleanup_error
 
 
 if __name__ == "__main__":

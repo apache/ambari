@@ -88,7 +88,7 @@ class HiveServiceCheck(Script):
                 env=environment,
                 path=params.execute_path,
                 timeout=30,
-                timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+                timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
               )
             Logger.info(
               f"Successfully connected to HiveServer2 at {address}:"

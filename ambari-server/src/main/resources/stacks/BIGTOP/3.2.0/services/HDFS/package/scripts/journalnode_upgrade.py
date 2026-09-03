@@ -22,6 +22,7 @@ import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.default import default
 from resource_management.core.exceptions import Fail
 import utils
@@ -102,6 +103,8 @@ def hdfs_roll_edits(environment=None):
     user=params.hdfs_user,
     tries=1,
     environment=environment,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
 

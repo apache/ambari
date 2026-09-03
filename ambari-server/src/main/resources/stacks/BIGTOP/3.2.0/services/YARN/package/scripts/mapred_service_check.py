@@ -26,6 +26,7 @@ from contextlib import nullcontext
 
 from resource_management.libraries.script.script import Script
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.signal_utils import TerminateStrategy
 from ambari_commons.os_family_impl import OsFamilyImpl
@@ -157,9 +158,9 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
         cleanup_message = "; ".join(cleanup_errors)
         if primary_error is None:
           raise RuntimeError(cleanup_message)
-        raise RuntimeError(
-          f"{primary_error}; additionally {cleanup_message}"
-        ) from primary_error
+        Logger.warning(
+          f"Could not clean MapReduce service-check resources: {cleanup_message}"
+        )
 
 
 if __name__ == "__main__":

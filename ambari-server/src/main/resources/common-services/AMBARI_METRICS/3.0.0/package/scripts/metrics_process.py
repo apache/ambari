@@ -21,6 +21,7 @@ import os
 import time
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 
@@ -60,21 +61,60 @@ def hbase_pid_file(pid_dir, user, role):
   return os.path.join(pid_dir, f"hbase-{user}-{role}.pid")
 
 
-def _read_or_discover(pid_file, user, group, tokens):
+def _finalize_identity(
+  identity,
+  pid_file,
+  user,
+  tokens,
+  finalize,
+  rollback_on_failure,
+  rollback_wait_attempts,
+):
+  try:
+    return finalize()
+  except Exception:
+    if rollback_on_failure:
+      try:
+        _stop_process(
+          identity, pid_file, user, tokens, rollback_wait_attempts
+        )
+      except Exception as cleanup_error:
+        Logger.error(
+          f"Failed to roll back process after PID publication failure: {cleanup_error}"
+        )
+    raise
+
+
+def _read_or_discover(
+  pid_file,
+  user,
+  group,
+  tokens,
+  rollback_on_failure=False,
+  rollback_wait_attempts=15,
+):
   pid = safe_process.read_pid(pid_file)
   if pid is not None:
     identity = safe_process.inspect_process(pid, user, tokens)
     if identity is not None and safe_process.is_process_running(
       pid, user, tokens, identity=identity
     ):
-      return safe_process.secure_pid_file_for_identity(
-        pid_file,
+      return _finalize_identity(
         identity,
+        pid_file,
         user,
         tokens,
-        owner=user,
-        group=group,
-        mode=0o640,
+        lambda: safe_process.publish_pid_file_for_identity(
+          pid_file,
+          identity,
+          user,
+          tokens,
+          owner=user,
+          group=group,
+          mode=0o640,
+        ),
+        rollback_on_failure,
+        rollback_wait_attempts,
       )
     safe_process.remove_pid_file_if_stopped(
       pid_file,
@@ -86,14 +126,22 @@ def _read_or_discover(pid_file, user, group, tokens):
   identity = safe_process.discover_running_process(user, tokens)
   if identity is None:
     return None
-  return safe_process.create_pid_file_for_identity(
-    pid_file,
+  return _finalize_identity(
     identity,
+    pid_file,
     user,
     tokens,
-    owner=user,
-    group=group,
-    mode=0o640,
+    lambda: safe_process.publish_pid_file_for_identity(
+      pid_file,
+      identity,
+      user,
+      tokens,
+      owner=user,
+      group=group,
+      mode=0o640,
+    ),
+    rollback_on_failure,
+    rollback_wait_attempts,
   )
 
 
@@ -119,7 +167,14 @@ def wait_for_ams_process(
   pid_file, user, group, component, attempts=15, sleep_seconds=1
 ):
   return _wait_for_process(
-    lambda: read_or_discover_ams_process(pid_file, user, group, component),
+    lambda: _read_or_discover(
+      pid_file,
+      user,
+      group,
+      ams_process_tokens(component),
+      rollback_on_failure=True,
+      rollback_wait_attempts=15,
+    ),
     f"Ambari Metrics {component}",
     attempts,
     sleep_seconds,
@@ -130,7 +185,14 @@ def wait_for_hbase_process(
   pid_file, user, group, role, attempts=15, sleep_seconds=1
 ):
   return _wait_for_process(
-    lambda: read_or_discover_hbase_process(pid_file, user, group, role),
+    lambda: _read_or_discover(
+      pid_file,
+      user,
+      group,
+      hbase_process_tokens(role),
+      rollback_on_failure=True,
+      rollback_wait_attempts=30,
+    ),
     f"AMS HBase {role}",
     attempts,
     sleep_seconds,
@@ -178,7 +240,19 @@ def stop_ams_process(pid_file, user, group, component, wait_attempts=15):
   return _stop_process(identity, pid_file, user, tokens, wait_attempts)
 
 
+def stop_ams_identity(identity, pid_file, user, component, wait_attempts=15):
+  return _stop_process(
+    identity, pid_file, user, ams_process_tokens(component), wait_attempts
+  )
+
+
 def stop_hbase_process(pid_file, user, group, role, wait_attempts=30):
   tokens = hbase_process_tokens(role)
   identity = read_or_discover_hbase_process(pid_file, user, group, role)
   return _stop_process(identity, pid_file, user, tokens, wait_attempts)
+
+
+def stop_hbase_identity(identity, pid_file, user, role, wait_attempts=30):
+  return _stop_process(
+    identity, pid_file, user, hbase_process_tokens(role), wait_attempts
+  )

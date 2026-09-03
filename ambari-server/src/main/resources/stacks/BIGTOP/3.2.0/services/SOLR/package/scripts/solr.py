@@ -22,6 +22,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.zkmigrator import ZkMigrator
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.script.script import Script
@@ -56,7 +57,9 @@ def read_or_discover_solr_process(pid_file, user, group, process_tokens):
       process_tokens,
       identity=identity,
     ):
-      return identity
+      return publish_solr_process(
+        pid_file, identity, user, group, process_tokens
+      )
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       pid,
@@ -67,7 +70,13 @@ def read_or_discover_solr_process(pid_file, user, group, process_tokens):
   identity = safe_process.discover_running_process(user, process_tokens)
   if identity is None:
     return None
-  return safe_process.create_pid_file_for_identity(
+  return publish_solr_process(
+    pid_file, identity, user, group, process_tokens
+  )
+
+
+def publish_solr_process(pid_file, identity, user, group, process_tokens):
+  return safe_process.publish_pid_file_for_identity(
     pid_file,
     identity,
     user,
@@ -78,10 +87,7 @@ def read_or_discover_solr_process(pid_file, user, group, process_tokens):
   )
 
 
-def rollback_started_solr_process(pid_file, user, process_tokens):
-  identity = safe_process.read_running_process(pid_file, user, process_tokens)
-  if identity is None:
-    return False
+def rollback_started_solr_process(pid_file, identity, user, process_tokens):
   safe_process.terminate_process(identity, user, process_tokens)
   pid = safe_process.read_pid(pid_file)
   if pid == identity.pid:
@@ -92,6 +98,36 @@ def rollback_started_solr_process(pid_file, user, process_tokens):
       expected_cmdline=process_tokens,
     )
   return True
+
+
+def wait_for_started_solr_process(
+  pid_file,
+  user,
+  group,
+  process_tokens,
+  attempts=10,
+  sleep_seconds=1,
+):
+  identity = safe_process.wait_for_discovered_process(
+    user,
+    process_tokens,
+    attempts=attempts,
+    sleep_seconds=sleep_seconds,
+  )
+  try:
+    return publish_solr_process(
+      pid_file, identity, user, group, process_tokens
+    )
+  except Exception:
+    try:
+      rollback_started_solr_process(
+        pid_file, identity, user, process_tokens
+      )
+    except Exception as rollback_error:
+      Logger.warning(
+        f"Could not roll back failed Solr PID publication: {rollback_error}"
+      )
+    raise
 
 
 class Solr(Script):
@@ -150,28 +186,22 @@ class Solr(Script):
         f"-Dsolr.kerberos.name.rules={params.solr_kerberos_name_rules}"
       )
 
-    try:
-      Execute(
-        tuple(start_argv),
-        environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
-        user=params.solr_user,
-        logoutput=True,
-      )
-      safe_process.wait_for_running_process(
-        params.solr_pidfile,
-        params.solr_user,
-        process_tokens,
-        attempts=10,
-        sleep_seconds=1,
-      )
-    except Exception:
-      try:
-        rollback_started_solr_process(
-          params.solr_pidfile, params.solr_user, process_tokens
-        )
-      except Exception as rollback_error:
-        Logger.warning(f"Could not roll back failed Solr start: {rollback_error}")
-      raise
+    Execute(
+      tuple(start_argv),
+      environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
+      user=params.solr_user,
+      logoutput=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
+    wait_for_started_solr_process(
+      params.solr_pidfile,
+      params.solr_user,
+      params.user_group,
+      process_tokens,
+      attempts=10,
+      sleep_seconds=1,
+    )
 
   def stop(self, env, upgrade_type=None):
     import params
@@ -265,7 +295,10 @@ class Solr(Script):
     try:
       safe_process.terminate_process(identity, user, process_tokens)
     except Exception:
-      show_logs(log_dir, user)
+      try:
+        show_logs(log_dir, user)
+      except Exception as error:
+        Logger.warning(f"Could not collect Solr logs after stop failure: {error}")
       raise
 
     self._delete_stopped_pid_file(pid_file, pid, user, process_tokens)

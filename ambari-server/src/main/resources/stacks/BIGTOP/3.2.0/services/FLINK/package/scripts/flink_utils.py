@@ -24,6 +24,7 @@ from urllib.parse import urlsplit
 
 from resource_management.core import shell, sudo
 from resource_management.core.exceptions import Fail
+from resource_management.core.signal_utils import TerminateStrategy
 
 
 _ABSOLUTE_PATH_PATTERN = re.compile(r"/[A-Za-z0-9_./+@=-]*", re.ASCII)
@@ -207,6 +208,7 @@ def resolve_hadoop_classpath(hadoop_executable, user, java_home, timeout=60):
     user=user,
     env={"JAVA_HOME": java_home},
     timeout=timeout,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
   classpath = output.strip()
   if (

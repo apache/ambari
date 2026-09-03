@@ -22,6 +22,7 @@ import os
 from resource_management.core.exceptions import ExecutionFailed, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, Directory, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.resources.zkmigrator import ZkMigrator
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions.format import format
@@ -142,6 +143,8 @@ def setup_solr_znode_env():
         environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
         user=params.solr_user,
         logoutput=True,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
     else:
       _remove_security_json(params)
@@ -174,6 +177,8 @@ def _remove_security_json(params):
       environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
       user=params.solr_user,
       logoutput=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   except ExecutionFailed as error:
     message = str(error)
@@ -200,6 +205,8 @@ def create_solr_znode():
       environment={"SOLR_INCLUDE": f"{params.solr_conf}/solr-env.sh"},
       user=params.solr_user,
       logoutput=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   except ExecutionFailed as error:
     if f"NodeExists for {params.solr_znode}" in str(error):

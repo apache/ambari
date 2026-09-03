@@ -145,15 +145,22 @@ def hbase(
     os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
     owner=params.hbase_user,
     group=params.user_group,
+    mode=0o600,
     content=Template("hadoop-metrics2-hbase.properties.j2"),
   )
 
   hbase_TemplateConfig("regionservers", user=params.hbase_user)
 
   if params.security_enabled:
-    hbase_TemplateConfig(format("hbase_{name}_jaas.conf"), user=params.hbase_user)
-    hbase_TemplateConfig(format("hbase_client_jaas.conf"), user=params.hbase_user)
-    hbase_TemplateConfig(format("ams_zookeeper_jaas.conf"), user=params.hbase_user)
+    hbase_TemplateConfig(
+      format("hbase_{name}_jaas.conf"), user=params.hbase_user, mode=0o600
+    )
+    hbase_TemplateConfig(
+      format("hbase_client_jaas.conf"), user=params.hbase_user, mode=0o600
+    )
+    hbase_TemplateConfig(
+      format("ams_zookeeper_jaas.conf"), user=params.hbase_user, mode=0o600
+    )
 
   if name != "client":
     Directory(
@@ -222,9 +229,13 @@ def hbase(
     )
 
 
-def hbase_TemplateConfig(name, tag=None, user=None):
+def hbase_TemplateConfig(name, tag=None, user=None, mode=None):
   import params
 
   TemplateConfig(
-    os.path.join(params.hbase_conf_dir, name), owner=user, template_tag=tag
+    os.path.join(params.hbase_conf_dir, name),
+    owner=user,
+    group=params.user_group,
+    mode=mode,
+    template_tag=tag,
   )

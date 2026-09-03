@@ -732,16 +732,20 @@ if enable_ranger_yarn and is_supported_yarn_ranger:
   ranger_plugin_properties = config["configurations"]["ranger-yarn-plugin-properties"]
   policy_user = config["configurations"]["ranger-yarn-plugin-properties"]["policy_user"]
   yarn_rest_url = yarn_rm_address
+  repo_config_password = config["configurations"]["ranger-yarn-plugin-properties"][
+    "REPOSITORY_CONFIG_PASSWORD"
+  ]
+  if not isinstance(repo_config_password, str) or not repo_config_password.strip():
+    raise Fail(
+      "ranger-yarn-plugin-properties/REPOSITORY_CONFIG_PASSWORD must not be "
+      "empty when the Ranger YARN plugin is enabled"
+    )
 
   ranger_plugin_config = {
     "username": config["configurations"]["ranger-yarn-plugin-properties"][
       "REPOSITORY_CONFIG_USERNAME"
     ],
-    "password": str(
-      config["configurations"]["ranger-yarn-plugin-properties"][
-        "REPOSITORY_CONFIG_PASSWORD"
-      ]
-    ),
+    "password": repo_config_password,
     "yarn.url": format("{scheme}://{yarn_rest_url}"),
     "commonNameForCertificate": config["configurations"][
       "ranger-yarn-plugin-properties"

@@ -20,6 +20,7 @@ limitations under the License.
 import os
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 import spark_utils
@@ -54,21 +55,15 @@ def validate_pid_file(component, pid_file):
 
 def _publish(component, pid_file, identity, user, group, conf_file):
   expected = expected_process_tokens(component, conf_file)
-  try:
-    return safe_process.create_pid_file_for_identity(
-      pid_file,
-      identity,
-      expected_user=user,
-      expected_cmdline=expected,
-      owner=user,
-      group=group,
-      mode=0o640,
-    )
-  except Fail:
-    current = safe_process.read_running_process(pid_file, user, expected)
-    if current is not None and identity.matches(current):
-      return current
-    raise
+  return safe_process.publish_pid_file_for_identity(
+    pid_file,
+    identity,
+    expected_user=user,
+    expected_cmdline=expected,
+    owner=user,
+    group=group,
+    mode=0o640,
+  )
 
 
 def read_or_recover_process(component, pid_file, user, group, conf_file=None):
@@ -78,7 +73,7 @@ def read_or_recover_process(component, pid_file, user, group, conf_file=None):
   if recorded_pid is not None:
     identity = safe_process.read_running_process(pid_file, user, expected)
     if identity is not None:
-      return identity
+      return _publish(component, pid_file, identity, user, group, conf_file)
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       recorded_pid,
@@ -94,8 +89,39 @@ def read_or_recover_process(component, pid_file, user, group, conf_file=None):
 def wait_for_started_process(component, pid_file, user, group, conf_file=None):
   validate_pid_file(component, pid_file)
   expected = expected_process_tokens(component, conf_file)
-  identity = safe_process.wait_for_discovered_process(user, expected, attempts=30, sleep_seconds=1)
-  return _publish(component, pid_file, identity, user, group, conf_file)
+  identity = safe_process.wait_for_discovered_process(
+    user, expected, attempts=30, sleep_seconds=1
+  )
+  try:
+    return _publish(component, pid_file, identity, user, group, conf_file)
+  except Exception:
+    try:
+      rollback_started_process(component, pid_file, identity, user, conf_file)
+    except Exception as error:
+      Logger.warning(
+        f"Could not roll back Spark {component} after PID publication failure: {error}"
+      )
+    raise
+
+
+def rollback_started_process(component, pid_file, identity, user, conf_file=None):
+  validate_pid_file(component, pid_file)
+  expected = expected_process_tokens(component, conf_file)
+  safe_process.terminate_process(
+    identity,
+    user,
+    expected,
+    term_wait_attempts=30,
+    term_wait_sleep=1,
+    kill_wait_attempts=10,
+    kill_wait_sleep=1,
+  )
+  safe_process.remove_pid_file_if_stopped(
+    pid_file,
+    identity.pid,
+    expected_user=user,
+    expected_cmdline=expected,
+  )
 
 
 def stop_process(component, pid_file, user, group, conf_file=None):

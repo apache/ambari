@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.core.resources.system import Execute
 from resource_management.core.logger import Logger
+from resource_management.core.signal_utils import TerminateStrategy
 from ranger_process import (
   find_process,
   rollback_started_process,
@@ -67,18 +68,28 @@ def ranger_service(name, action=None):
   if find_process(name, pid_file, params.unix_user, params.unix_group) is not None:
     return
 
+  started_identity = None
   try:
     Execute(
       (service_file, "start"),
       environment=env_dict,
       user=params.unix_user,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
-    secure_started_process(name, pid_file, params.unix_user, params.unix_group)
+    started_identity = secure_started_process(
+      name, pid_file, params.unix_user, params.unix_group
+    )
   except Exception:
+    if started_identity is not None:
+      try:
+        rollback_started_process(
+          name, pid_file, started_identity, params.unix_user
+        )
+      except Exception as cleanup_error:
+        Logger.warning(f"Could not roll back failed {name} start: {cleanup_error}")
     try:
-      rollback_started_process(name, pid_file, params.unix_user)
-    except Exception as cleanup_error:
-      Logger.warning(f"Could not roll back failed {name} start: {cleanup_error}")
-    show_logs(log_dir, params.unix_user)
+      show_logs(log_dir, params.unix_user)
+    except Exception as log_error:
+      Logger.warning(f"Could not collect {name} logs after start failure: {log_error}")
     raise

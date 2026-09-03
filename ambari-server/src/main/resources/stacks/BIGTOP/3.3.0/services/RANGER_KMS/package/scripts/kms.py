@@ -18,16 +18,14 @@ limitations under the License.
 
 """
 
-import sys
-import fileinput
 import glob
 import os
 import json
 from ambari_commons.db_connection_helper import verify_db_connection
-import urllib.request, urllib.error, urllib.parse, base64, http.client
-from io import StringIO as BytesIO
+import urllib.request, urllib.error, base64
 from datetime import datetime
 from resource_management.core.resources.system import Directory, Execute, File, Link
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.modify_properties_file import (
   ModifyPropertiesFile,
@@ -99,6 +97,7 @@ def setup_kms_db(stack_version=None):
         tries=5,
         try_sleep=10,
         timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
     else:
       Logger.info(
@@ -112,6 +111,7 @@ def setup_kms_db(stack_version=None):
       tries=5,
       try_sleep=10,
       timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     File(
@@ -144,6 +144,7 @@ def setup_java_patch():
       tries=5,
       try_sleep=10,
       timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     kms_lib_path = params.kms_lib_path
@@ -165,6 +166,8 @@ def setup_java_patch():
               "{kms_home}/ews/webapp/META-INF/services/org.apache.hadoop.crypto.key.KeyProviderFactory"
             ),
           ),
+          timeout=120,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
 
         File(format("{kms_lib_path}/{f}"), owner="root", group="root")
@@ -208,6 +211,11 @@ def do_keystore_setup(cred_provider_path, credential_alias, credential_password)
 
 def kms(upgrade_type=None):
   import params
+
+  if params.ranger_kms_ssl_enabled:
+    password_validation(
+      params.ranger_kms_ssl_passwd, "Ranger KMS HTTPS keystore"
+    )
 
   if params.has_ranger_admin:
     Directory(
@@ -309,6 +317,8 @@ def kms(upgrade_type=None):
         ),
         path=["/bin", "/usr/bin/"],
         sudo=True,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
       File(params.driver_target, mode=0o644)
@@ -524,6 +534,8 @@ def copy_jdbc_connector(kms_home):
     Execute(
       ("tar", "-xvf", params.downloaded_custom_connector, "-C", params.tmp_dir),
       sudo=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     Execute(
@@ -535,6 +547,8 @@ def copy_jdbc_connector(kms_home):
       ),
       path=["/bin", "/usr/bin/"],
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     Directory(params.jdbc_libs_dir, cd_access="a", create_parents=True)
@@ -547,6 +561,8 @@ def copy_jdbc_connector(kms_home):
         ("cp", "--remove-destination", native_library, params.jdbc_libs_dir),
         path=["/bin", "/usr/bin/"],
         sudo=True,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
     File(os.path.join(params.kms_lib_path, "sajdbc4.jar"), mode=0o644)
@@ -560,6 +576,8 @@ def copy_jdbc_connector(kms_home):
       ),
       path=["/bin", "/usr/bin/"],
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     File(os.path.join(params.kms_lib_path, params.jdbc_jar_name), mode=0o644)
@@ -595,6 +613,9 @@ def enable_kms_plugin():
   import params
 
   if params.has_ranger_admin:
+    password_validation(
+      params.repo_config_password, "Ranger KMS repository config"
+    )
     ranger_flag = False
 
     if params.stack_supports_ranger_kerberos and params.security_enabled:
@@ -802,6 +823,8 @@ def setup_kms_jce():
       and os.path.isfile(jce_target),
       path=["/bin/", "/usr/bin"],
       sudo=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   else:
     Logger.warning("Required jce policy zip is not available, need to setup manually")

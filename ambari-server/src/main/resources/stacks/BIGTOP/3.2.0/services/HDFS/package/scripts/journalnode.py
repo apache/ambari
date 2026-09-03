@@ -119,6 +119,8 @@ class JournalNodeDefault(JournalNode):
       status_params.journalnode_pid_file,
       status_params.hdfs_user,
       "journalnode",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
     )
 
   def get_log_folder(self):

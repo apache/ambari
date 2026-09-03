@@ -21,6 +21,7 @@ import re
 import time
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 
@@ -90,7 +91,15 @@ def recover_running_process(
       pid_file, expected_user, component, privileged
     )
     if identity is not None:
-      return identity
+      return safe_process.publish_pid_file_for_identity(
+        pid_file,
+        identity,
+        expected_user,
+        expected_cmdline(component, privileged),
+        owner,
+        group,
+        mode=0o640,
+      )
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       pid,
@@ -103,7 +112,7 @@ def recover_running_process(
   )
   if identity is None:
     return None
-  return safe_process.create_pid_file_for_identity(
+  return safe_process.publish_pid_file_for_identity(
     pid_file,
     identity,
     expected_user,
@@ -166,20 +175,58 @@ def wait_for_running_process(
   sleep_seconds=1,
 ):
   for attempt in range(attempts):
-    identity = recover_running_process(
-      pid_file,
-      expected_user,
-      component,
-      owner,
-      group,
-      privileged,
+    identity = read_running_process(
+      pid_file, expected_user, component, privileged
     )
     if identity is not None:
-      return identity
+      try:
+        return safe_process.publish_pid_file_for_identity(
+          pid_file,
+          identity,
+          expected_user,
+          expected_cmdline(component, privileged),
+          owner,
+          group,
+          mode=0o640,
+        )
+      except Exception:
+        try:
+          rollback_started_process(
+            pid_file,
+            identity,
+            expected_user,
+            component,
+            privileged,
+          )
+        except Exception as cleanup_error:
+          Logger.warning(
+            f"Could not roll back failed YARN {component} PID publication: "
+            f"{cleanup_error}"
+          )
+        raise
     if attempt + 1 < attempts:
       time.sleep(sleep_seconds)
   description = _process_description(component, privileged)
   raise Fail(f"YARN {description} did not start with a valid process")
+
+
+def rollback_started_process(
+  pid_file,
+  identity,
+  expected_user,
+  component,
+  privileged=False,
+):
+  expected = expected_cmdline(component, privileged)
+  safe_process.terminate_process(identity, expected_user, expected)
+  if safe_process.read_pid(pid_file) == identity.pid:
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user,
+      expected,
+    )
+  return True
 
 
 def stop_process(

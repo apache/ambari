@@ -29,6 +29,7 @@ from ambari_commons import constants
 from resource_management.core import shell
 from resource_management.core.source import Template
 from resource_management.core.resources.system import File, Execute, Directory
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.resources.service import Service
 from resource_management.libraries.functions import namenode_ha_utils
 from resource_management.libraries.functions.decorator import retry
@@ -132,6 +133,9 @@ def _wait_for_safemode_off(
         user=params.hdfs_user,
         logoutput=True,
         env=environment,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        shell=False,
       )
       if code == 0 and output and "Safe mode is OFF" in output:
         break
@@ -339,7 +343,11 @@ def namenode(
     import status_params
 
     hdfs_process.check_component_status(
-      status_params.namenode_pid_file, status_params.hdfs_user, "namenode"
+      status_params.namenode_pid_file,
+      status_params.hdfs_user,
+      "namenode",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
     )
   elif action == "decommission":
     decommission()
@@ -416,6 +424,8 @@ def format_namenode(force=None):
           user=params.hdfs_user,
           path=[params.hadoop_bin_dir],
           logoutput=True,
+          timeout=300,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
         for m_dir in mark_dir:
           Directory(m_dir, create_parents=True)
@@ -447,6 +457,8 @@ def format_namenode(force=None):
             user=params.hdfs_user,
             path=[params.hadoop_bin_dir],
             logoutput=True,
+            timeout=300,
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
           )
           for m_dir in mark_dir:
             Directory(m_dir, create_parents=True)
@@ -496,7 +508,12 @@ def is_namenode_formatted(params):
   for old_mark_dir in old_mark_dirs:
     if os.path.isdir(old_mark_dir):
       for mark_dir in mark_dirs:
-        Execute(("cp", "-ar", old_mark_dir, mark_dir), sudo=True)
+        Execute(
+          ("cp", "-ar", old_mark_dir, mark_dir),
+          sudo=True,
+          timeout=300,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
         marked = True
       Directory(old_mark_dir, action="delete")
     elif os.path.isfile(old_mark_dir):
@@ -569,6 +586,8 @@ def refreshProxyUsers():
       user=params.hdfs_user,
       path=[params.hadoop_bin_dir],
       environment=command_environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
 
@@ -601,7 +620,7 @@ def decommission():
     owner=params.hdfs_user,
     group=params.user_group,
     mode=0o644,
-    only_if=("test", "-d", hadoop_conf_dir),
+    only_if=("test", "-d", conf_dir),
   )
 
   if not params.update_files_only:
@@ -629,6 +648,8 @@ def decommission():
         user=hdfs_user,
         path=[params.hadoop_bin_dir],
         environment=command_environment,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
 
@@ -672,6 +693,9 @@ def bootstrap_standby_namenode(params, use_path=False):
           logoutput=False,
           user=params.hdfs_user,
           env=command_environment,
+          timeout=300,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          shell=False,
         )
         if code == 0:
           Logger.info("Standby namenode bootstrapped successfully")

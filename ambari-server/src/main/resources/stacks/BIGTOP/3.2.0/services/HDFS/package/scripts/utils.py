@@ -66,6 +66,13 @@ SUPPORTED_SERVICE_OPTIONS = {
 SERVICE_USER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]*[$]?\Z")
 
 
+def _show_logs_without_masking(log_dir, user):
+  try:
+    show_logs(log_dir, user)
+  except Exception as log_error:
+    Logger.error(f"Could not collect HDFS logs from {log_dir}: {log_error}")
+
+
 def safe_zkfc_op(action, env):
   """
   Idempotent operation on the zkfc process to either start or stop it.
@@ -169,6 +176,9 @@ def _initiate_safe_zkfc_failover(params, environment):
       user=params.hdfs_user,
       logoutput=True,
       env=environment,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      shell=False,
     )
     Logger.info(format("Rolling Upgrade - failover command returned {code}"))
     wait_for_standby = False
@@ -183,6 +193,9 @@ def _initiate_safe_zkfc_failover(params, environment):
         user=params.hdfs_user,
         logoutput=True,
         env=environment,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        shell=False,
       )
       Logger.info(format("Rolling Upgrade - check for standby returned {code}"))
       if code == 255 and out:
@@ -200,6 +213,9 @@ def _initiate_safe_zkfc_failover(params, environment):
           user=params.hdfs_user,
           logoutput=True,
           env=environment,
+          timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          shell=False,
         )
         if code == 0 and output and output.strip().lower() == "standby":
           break
@@ -227,7 +243,11 @@ def kill_zkfc(zkfc_user):
   if params.dfs_ha_enabled:
     if params.zkfc_pid_file:
       identity = hdfs_process.recover_running_process(
-        params.zkfc_pid_file, zkfc_user, "zkfc"
+        params.zkfc_pid_file,
+        zkfc_user,
+        "zkfc",
+        owner=zkfc_user,
+        group=params.user_group,
       )
       if identity is not None:
         Logger.debug("ZKFC is running and will be killed.")
@@ -336,6 +356,8 @@ def service(
           hadoop_secure_dn_pid_file,
           process_user,
           "datanode",
+          owner=process_user,
+          group=params.user_group,
           privileged=privileged,
         )
 
@@ -396,7 +418,7 @@ def service(
         privileged=privileged,
       )
     except Exception:
-      show_logs(log_dir, user)
+      _show_logs_without_masking(log_dir, user)
       raise
   elif action == "stop":
     identity = hdfs_process.recover_running_process(
@@ -419,7 +441,23 @@ def service(
         **execute_as,
       )
     except Exception:
-      show_logs(log_dir, user)
+      try:
+        hdfs_process.terminate_process(
+          identity, process_user, name, privileged=privileged
+        )
+        hdfs_process.remove_pid_file_if_stopped(
+          pid_file,
+          identity,
+          process_user,
+          name,
+          privileged=privileged,
+        )
+      except Exception as cleanup_error:
+        Logger.error(
+          f"Could not finish stopping HDFS {name} after its stop command failed: "
+          f"{cleanup_error}"
+        )
+      _show_logs_without_masking(log_dir, user)
       raise
 
     if not hdfs_process.wait_for_process_stopped(
@@ -613,6 +651,6 @@ def set_up_zkfc_security(params):
     os.path.join(params.hadoop_conf_secure_dir, "hdfs_jaas.conf"),
     owner=params.hdfs_user,
     group=params.user_group,
-    mode=0o644,
+    mode=0o640,
     content=Template("hdfs_jaas.conf.j2"),
   )

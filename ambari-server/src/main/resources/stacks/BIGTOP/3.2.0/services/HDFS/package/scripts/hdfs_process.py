@@ -17,7 +17,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
+
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 
@@ -66,7 +69,17 @@ def recover_running_process(
   if pid is not None:
     identity = safe_process.read_running_process(pid_file, expected_user, tokens)
     if identity is not None:
-      return identity
+      if owner is None or group is None:
+        return identity
+      return safe_process.publish_pid_file_for_identity(
+        pid_file,
+        identity,
+        expected_user,
+        tokens,
+        owner,
+        group,
+        mode=0o640,
+      )
     safe_process.remove_pid_file_if_stopped(
       pid_file, pid, expected_user, tokens
     )
@@ -74,7 +87,7 @@ def recover_running_process(
   identity = safe_process.discover_running_process(expected_user, tokens)
   if identity is None or owner is None or group is None:
     return identity
-  return safe_process.create_pid_file_for_identity(
+  return safe_process.publish_pid_file_for_identity(
     pid_file,
     identity,
     expected_user,
@@ -96,29 +109,60 @@ def wait_for_running_process(
   sleep_seconds=1,
 ):
   tokens = expected_cmdline(component, privileged)
-  identity = safe_process.wait_for_running_process(
-    pid_file,
-    expected_user,
-    tokens,
-    attempts=attempts,
-    sleep_seconds=sleep_seconds,
-  )
-  return safe_process.secure_pid_file_for_identity(
-    pid_file,
-    identity,
-    expected_user,
-    tokens,
-    owner,
-    group,
-    mode=0o640,
-  )
+  identity = None
+  for attempt in range(attempts):
+    pid = safe_process.read_pid(pid_file)
+    if pid is None:
+      identity = safe_process.discover_running_process(expected_user, tokens)
+    else:
+      identity = safe_process.read_running_process(
+        pid_file, expected_user, tokens
+      )
+    if identity is not None:
+      break
+    if attempt + 1 < attempts:
+      time.sleep(sleep_seconds)
+  if identity is None:
+    raise Fail(
+      f"HDFS {component} did not start with a valid process identity"
+    )
+  try:
+    return safe_process.publish_pid_file_for_identity(
+      pid_file,
+      identity,
+      expected_user,
+      tokens,
+      owner,
+      group,
+      mode=0o640,
+    )
+  except Exception:
+    try:
+      safe_process.terminate_process(identity, expected_user, tokens)
+      safe_process.remove_pid_file_if_stopped(
+        pid_file,
+        identity.pid,
+        expected_user,
+        tokens,
+      )
+    except Exception as cleanup_error:
+      Logger.error(
+        f"Could not roll back HDFS {component} after PID publication failed: "
+        f"{cleanup_error}"
+      )
+    raise
 
 
 def check_component_status(
-  pid_file, expected_user, component, privileged=False
+  pid_file, expected_user, component, owner, group, privileged=False
 ):
-  identity = safe_process.read_running_process(
-    pid_file, expected_user, expected_cmdline(component, privileged)
+  identity = recover_running_process(
+    pid_file,
+    expected_user,
+    component,
+    owner=owner,
+    group=group,
+    privileged=privileged,
   )
   if identity is None:
     raise ComponentIsNotRunning(f"HDFS {component} is not running")

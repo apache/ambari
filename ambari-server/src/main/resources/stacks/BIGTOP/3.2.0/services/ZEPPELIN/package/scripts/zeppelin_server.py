@@ -19,13 +19,16 @@ limitations under the License.
 """
 
 from contextlib import nullcontext
+import hashlib
 import os
+import re
 
 from resource_management.core import shell, sudo
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import Template, InlineTemplate
 from resource_management.libraries import XmlConfig
 from resource_management.libraries.functions import StackFeature
@@ -47,6 +50,55 @@ from zeppelin_process import (
   start_zeppelin,
   stop_zeppelin,
 )
+
+
+_LEGACY_LOCAL_USER_DIGESTS = frozenset(
+  (
+    "0051e9a0197704a027623c2376b1758a2519a3f5a0b67a507144d7cb10bbc961",
+    "e406380da87579e67e29e7d19a0c7aae1f73630774c5f4c0953bf709284e85a9",
+    "78f23667e87d9f7fe5e5da4e80411a81f4477f8bb9b5bfdb2536c0145181bbb0",
+    "7053e375d3d158c3899072fce62a53b7050f2052352957d3e691456d17edd12f",
+  )
+)
+
+
+def validate_shiro_ini_content(content):
+  if not isinstance(content, str) or not content.strip():
+    raise Fail("Zeppelin Shiro configuration must not be empty")
+  if "\x00" in content:
+    raise Fail("Zeppelin Shiro configuration contains a NUL character")
+
+  section = None
+  catch_all = None
+  for raw_line in content.splitlines():
+    line = raw_line.strip()
+    if not line or line.startswith(("#", ";")):
+      continue
+    if line.startswith("[") and line.endswith("]"):
+      section = line[1:-1].strip().lower()
+      continue
+    if section == "users" and "=" in line:
+      normalized = re.sub(r"\s+", "", line)
+      digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+      if digest in _LEGACY_LOCAL_USER_DIGESTS:
+        raise Fail(
+          "Remove the insecure packaged Zeppelin local accounts before startup"
+        )
+    if section == "urls" and "=" in line:
+      path, rule = line.split("=", 1)
+      if path.strip() == "/**":
+        catch_all = rule.strip()
+
+  if catch_all is None:
+    raise Fail("Zeppelin Shiro configuration must define a /** authentication rule")
+  filters = {
+    item.strip().split("[", 1)[0]
+    for item in catch_all.split(",")
+    if item.strip()
+  }
+  if "anon" in filters or "authc" not in filters:
+    raise Fail("Zeppelin Shiro /** rule must require authc and must not allow anon")
+  return content
 
 
 class ZeppelinServer(Script):
@@ -159,6 +211,7 @@ class ZeppelinServer(Script):
     )
 
     # write out shiro.ini
+    validate_shiro_ini_content(params.shiro_ini_content)
     shiro_ini_content = InlineTemplate(params.shiro_ini_content)
     File(
       format("{params.zeppelin_conf_dir}/shiro.ini"),
@@ -453,6 +506,7 @@ class ZeppelinServer(Script):
         user=as_user,
         env=environment,
         timeout=30,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
   def is_hdfs_directory(self, path, as_user):

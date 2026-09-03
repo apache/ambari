@@ -97,5 +97,7 @@ def datanode(action=None):
       status_params.datanode_pid_file,
       expected_user,
       "datanode",
+      owner=expected_user,
+      group=status_params.user_group,
       privileged=privileged,
     )

@@ -15,11 +15,15 @@
   <script>
       function loadReact() {
           console.log('Loading React latest');
-          window.location.href = 'latest/#';
+          if (!window.location.href.includes("latest/#")) {
+            window.location.href = 'latest/#';
+          }
       }
       function loadEmber() {
           console.log('Loading Ember classic');
-          window.location.href = 'classic/#';
+          if (!window.location.href.includes("classic/#")) {
+            window.location.href = 'classic/#';
+          }
       }
 
       if(window.location.href.includes("latest/#")){
@@ -28,11 +32,12 @@
       if(window.location.href.includes("classic/#")){
         localStorage.setItem("version","classic")
       }
-      if(localStorage.getItem("version")==="latest"){
-        loadReact()
-      }
-      else{
-        loadEmber()
+      const version = localStorage.getItem("version") || "latest";
+      localStorage.setItem("version", version);
+      if (version === "classic") {
+        loadEmber();
+      } else {
+        loadReact();
       }
         </script>
 </body>

@@ -153,6 +153,7 @@ def service(componentName, action="start", serviceName="yarn"):
         params, status_params, keep_pid_file=spec["pid_file"]
       )
 
+    started_identity = None
     try:
       Execute(
         (
@@ -168,7 +169,7 @@ def service(componentName, action="start", serviceName="yarn"):
         timeout=300,
         timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
-      yarn_process_utils.wait_for_running_process(
+      started_identity = yarn_process_utils.wait_for_running_process(
         spec["pid_file"],
         spec["expected_user"],
         componentName,
@@ -176,30 +177,22 @@ def service(componentName, action="start", serviceName="yarn"):
         spec["pid_group"],
         spec["privileged"],
       )
-    except Exception as error:
-      cleanup_errors = []
-      try:
-        if componentName == "registrydns":
-          _stop_registry_dns_processes(params, status_params)
-        else:
-          yarn_process_utils.stop_process(
+    except Exception:
+      if started_identity is not None:
+        try:
+          yarn_process_utils.rollback_started_process(
             spec["pid_file"],
+            started_identity,
             spec["expected_user"],
             componentName,
-            spec["pid_owner"],
-            spec["pid_group"],
             spec["privileged"],
           )
-      except Exception as cleanup_error:
-        cleanup_errors.append(f"startup rollback failed: {cleanup_error}")
+        except Exception as cleanup_error:
+          Logger.warning(f"Could not roll back failed YARN start: {cleanup_error}")
       try:
         show_logs(spec["log_dir"], spec["expected_user"])
       except Exception as log_error:
-        cleanup_errors.append(f"log collection failed: {log_error}")
-      if cleanup_errors:
-        raise RuntimeError(
-          f"{error}; additionally {'; '.join(cleanup_errors)}"
-        ) from error
+        Logger.warning(f"Could not collect YARN logs after start failure: {log_error}")
       raise
 
   elif action == "stop":
@@ -216,7 +209,10 @@ def service(componentName, action="start", serviceName="yarn"):
           spec["privileged"],
         )
       except Exception:
-        show_logs(spec["log_dir"], spec["expected_user"])
+        try:
+          show_logs(spec["log_dir"], spec["expected_user"])
+        except Exception as log_error:
+          Logger.warning(f"Could not collect YARN logs after stop failure: {log_error}")
         raise
 
   elif action == "refreshQueues":

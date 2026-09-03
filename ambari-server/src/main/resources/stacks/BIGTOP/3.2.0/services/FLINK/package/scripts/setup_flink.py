@@ -76,7 +76,7 @@ def setup_flink(env, component, upgrade_type=None, action=None):
 
     params.HdfsResource(None, action="execute")
 
-  # Flink 1.19 supports this flattened file, which also remains valid for 1.15.
+  # Flink 1.20 still prioritizes this legacy flat file, which is also valid for 1.15.
   File(os.path.join(params.flink_config_dir, "config.yaml"), action="delete")
   flink_conf_file_path = os.path.join(params.flink_config_dir, "flink-conf.yaml")
   File(

@@ -54,13 +54,13 @@ class ApplicationTimelineReader(Script):
       started_hbase_roles = hbase(action="start")
     try:
       service("timelinereader", action="start")
-    except Exception as error:
+    except Exception:
       cleanup_errors = rollback_hbase_roles(started_hbase_roles)
       if cleanup_errors:
-        raise RuntimeError(
-          f"{error}; additionally failed to roll back HBase roles: "
+        Logger.warning(
+          "Could not roll back YARN ATS HBase after Timeline Reader start failure: "
           + "; ".join(cleanup_errors)
-        ) from error
+        )
       raise
 
   def stop(self, env, upgrade_type=None):

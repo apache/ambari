@@ -56,6 +56,7 @@ from resource_management.libraries.functions.format_jvm_option import format_jvm
 from resource_management.libraries.functions.setup_ranger_plugin_xml import (
   get_audit_configs,
   generate_ranger_service_config,
+  require_external_ranger_credentials,
 )
 from resource_management.libraries.functions.namenode_ha_utils import (
   get_properties_for_all_nameservices,
@@ -128,6 +129,17 @@ dfs_dn_https_addr = default(
   "/configurations/hdfs-site/dfs.datanode.https.address", None
 )
 dfs_http_policy = default("/configurations/hdfs-site/dfs.http.policy", None)
+if str(dfs_http_policy or "").upper() in ("HTTPS_ONLY", "HTTP_AND_HTTPS"):
+  ssl_server_properties = config["configurations"].get("ssl-server", {})
+  for ssl_password_property in (
+    "ssl.server.truststore.password",
+    "ssl.server.keystore.password",
+    "ssl.server.keystore.keypassword",
+  ):
+    if is_empty(ssl_server_properties.get(ssl_password_property)):
+      raise Fail(
+        f"{ssl_password_property} must not be empty when HDFS HTTPS is enabled"
+      )
 dfs_dn_ipc_address = config["configurations"]["hdfs-site"]["dfs.datanode.ipc.address"]
 secure_dn_ports_are_in_use = False
 
@@ -601,31 +613,29 @@ if enable_ranger_hdfs:
 
   # create ranger-env config having external ranger credential properties
   if not has_ranger_admin and enable_ranger_hdfs:
-    external_admin_username = default(
-      "/configurations/ranger-hdfs-plugin-properties/external_admin_username", "admin"
+    external_credentials = require_external_ranger_credentials(
+      config["configurations"]["ranger-hdfs-plugin-properties"]
     )
-    external_admin_password = default(
-      "/configurations/ranger-hdfs-plugin-properties/external_admin_password", "admin"
-    )
-    external_ranger_admin_username = default(
-      "/configurations/ranger-hdfs-plugin-properties/external_ranger_admin_username",
-      "amb_ranger_admin",
-    )
-    external_ranger_admin_password = default(
-      "/configurations/ranger-hdfs-plugin-properties/external_ranger_admin_password",
-      "amb_ranger_admin",
-    )
-    ranger_env = {}
-    ranger_env["admin_username"] = external_admin_username
-    ranger_env["admin_password"] = external_admin_password
-    ranger_env["ranger_admin_username"] = external_ranger_admin_username
-    ranger_env["ranger_admin_password"] = external_ranger_admin_password
+    ranger_env = {
+      "admin_username": external_credentials["external_admin_username"],
+      "admin_password": external_credentials["external_admin_password"],
+      "ranger_admin_username": external_credentials[
+        "external_ranger_admin_username"
+      ],
+      "ranger_admin_password": external_credentials[
+        "external_ranger_admin_password"
+      ],
+    }
 
   ranger_plugin_properties = config["configurations"]["ranger-hdfs-plugin-properties"]
   policy_user = config["configurations"]["ranger-hdfs-plugin-properties"]["policy_user"]
   repo_config_password = config["configurations"]["ranger-hdfs-plugin-properties"][
     "REPOSITORY_CONFIG_PASSWORD"
   ]
+  if is_empty(repo_config_password):
+    raise Fail(
+      "REPOSITORY_CONFIG_PASSWORD must not be empty when the Ranger HDFS plugin is enabled"
+    )
 
   xa_audit_db_password = ""
   if (

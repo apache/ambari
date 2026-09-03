@@ -26,6 +26,7 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Directory, Execute, Link
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import DownloadSource, InlineTemplate, Template
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.modify_properties_file import (
@@ -129,14 +130,24 @@ def setup_ranger_admin(upgrade_type=None):
       "{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/ranger-admin-default-site.xml"
     )
     dst_file = format("{ranger_home}/conf/ranger-admin-default-site.xml")
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
     src_file = format(
       "{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/security-applicationContext.xml"
     )
     dst_file = format("{ranger_home}/conf/security-applicationContext.xml")
 
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
   Directory(
     params.ranger_pid_dir,
@@ -168,7 +179,12 @@ def setup_ranger_admin(upgrade_type=None):
       "{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/ranger-admin-default-site.xml"
     )
     dst_file = format("{ranger_home}/conf/ranger-admin-default-site.xml")
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
     File(
       params.ranger_admin_default_file, owner=params.unix_user, group=params.unix_group
     )
@@ -185,7 +201,12 @@ def setup_ranger_admin(upgrade_type=None):
       "{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/security-applicationContext.xml"
     )
     dst_file = format("{ranger_home}/conf/security-applicationContext.xml")
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
     File(
       params.security_app_context_file, owner=params.unix_user, group=params.unix_group
     )
@@ -340,6 +361,7 @@ def setup_ranger_db(stack_version=None):
       logoutput=True,
       user=params.unix_user,
       timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   else:
     Logger.info("Separate DBA property not set. Assuming Ranger DB and DB User exists!")
@@ -350,6 +372,7 @@ def setup_ranger_db(stack_version=None):
     logoutput=True,
     user=params.unix_user,
     timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
 
@@ -377,6 +400,7 @@ def setup_java_patch(stack_version=None):
     environment=env_dict,
     logoutput=True,
     timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
 
@@ -385,6 +409,11 @@ def do_keystore_setup(upgrade_type=None):
 
   ranger_home = params.ranger_home
   cred_lib_path = params.cred_lib_path
+
+  if params.https_enabled:
+    password_validation(
+      params.https_keystore_password, "Ranger Admin HTTPS keystore"
+    )
 
   ranger_credential_helper(
     cred_lib_path,
@@ -417,7 +446,7 @@ def do_keystore_setup(upgrade_type=None):
       params.ranger_credential_provider_path,
     )
 
-    if params.https_enabled and not params.http_enabled:
+    if params.https_enabled:
       ranger_credential_helper(
         params.cred_lib_path,
         params.ranger_https_keystore_alias,
@@ -440,11 +469,9 @@ def do_keystore_setup(upgrade_type=None):
   )
 
 
-def password_validation(password):
+def password_validation(password, key="Bind user"):
   if not isinstance(password, str) or password.strip() == "":
-    raise Fail(
-      "Blank password is not allowed for Bind user. Please enter valid password."
-    )
+    raise Fail(f"Blank password is not allowed for {key}. Please enter valid password.")
   Logger.info("Password validated")
 
 
@@ -499,6 +526,8 @@ def copy_jdbc_connector(ranger_home):
     Execute(
       ("tar", "-xvf", params.downloaded_custom_connector, "-C", params.tmp_dir),
       sudo=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     Execute(
@@ -510,6 +539,8 @@ def copy_jdbc_connector(ranger_home):
       ),
       path=["/bin", "/usr/bin/"],
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     File(os.path.join(ranger_home, "ews", "lib", "sajdbc4.jar"), mode=0o644)
@@ -524,6 +555,8 @@ def copy_jdbc_connector(ranger_home):
         ("cp", "--remove-destination", native_library, params.jdbc_libs_dir),
         path=["/bin", "/usr/bin/"],
         sudo=True,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
   else:
     Execute(
@@ -535,6 +568,8 @@ def copy_jdbc_connector(ranger_home):
       ),
       path=["/bin", "/usr/bin/"],
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     File(os.path.join(ranger_home, "ews", "lib", params.jdbc_jar_name), mode=0o644)
@@ -546,6 +581,11 @@ def setup_usersync(upgrade_type=None):
   usersync_home = params.usersync_home
   ranger_home = params.ranger_home
   ranger_ugsync_conf = params.ranger_ugsync_conf
+
+  if params.ranger_usersync_ssl_enabled:
+    password_validation(
+      params.ranger_usersync_keystore_password, "Ranger Usersync keystore"
+    )
 
   if (
     not is_empty(params.ranger_usersync_ldap_ldapbindpassword)
@@ -587,7 +627,12 @@ def setup_usersync(upgrade_type=None):
   if upgrade_type is not None:
     src_file = format("{usersync_home}/conf.dist/ranger-ugsync-default.xml")
     dst_file = format("{usersync_home}/conf/ranger-ugsync-default.xml")
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
   File(
     format("{params.ranger_ugsync_conf}/logback.xml"),
@@ -627,12 +672,13 @@ def setup_usersync(upgrade_type=None):
   if os.path.isfile(params.pam_cred_validator_file):
     File(params.pam_cred_validator_file, group=params.unix_group, mode=0o750)
 
-  ranger_credential_helper(
-    params.ugsync_cred_lib,
-    "usersync.ssl.key.password",
-    params.ranger_usersync_keystore_password,
-    params.ugsync_jceks_path,
-  )
+  if params.ranger_usersync_ssl_enabled:
+    ranger_credential_helper(
+      params.ugsync_cred_lib,
+      "usersync.ssl.key.password",
+      params.ranger_usersync_keystore_password,
+      params.ugsync_jceks_path,
+    )
 
   if (
     not is_empty(params.ranger_usersync_ldap_ldapbindpassword)
@@ -672,7 +718,9 @@ def setup_usersync(upgrade_type=None):
     mode=0o755,
   )
 
-  if not os.path.isfile(params.ranger_usersync_keystore_file):
+  if params.ranger_usersync_ssl_enabled and not os.path.isfile(
+    params.ranger_usersync_keystore_file
+  ):
     with private_secret_file(
       params.ranger_pid_dir,
       params.unix_user,
@@ -701,6 +749,7 @@ def setup_usersync(upgrade_type=None):
           params.default_dn_name,
         ),
         timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         user=params.unix_user,
       )
 
@@ -1000,16 +1049,16 @@ def setup_ranger_admin_passwd_change(username, user_password, user_default_passw
 
 def setup_ranger_all_admin_password_change(
   admin_username,
-  default_admin_password,
+  upstream_bootstrap_admin_password,
   admin_password,
   rangerusersync_username,
-  default_rangerusersync_user_password,
+  upstream_bootstrap_rangerusersync_password,
   rangerusersync_user_password,
   rangertagsync_username,
-  default_rangertagsync_user_password,
+  upstream_bootstrap_rangertagsync_password,
   rangertagsync_user_password,
   keyadmin_username,
-  default_keyadmin_user_password,
+  upstream_bootstrap_keyadmin_password,
   keyadmin_user_password,
 ):
   import params
@@ -1023,18 +1072,18 @@ def setup_ranger_all_admin_password_change(
     }
 
   password_changes = [
-    [admin_username, default_admin_password, admin_password],
+    [admin_username, upstream_bootstrap_admin_password, admin_password],
     [
       rangerusersync_username,
-      default_rangerusersync_user_password,
+      upstream_bootstrap_rangerusersync_password,
       rangerusersync_user_password,
     ],
     [
       rangertagsync_username,
-      default_rangertagsync_user_password,
+      upstream_bootstrap_rangertagsync_password,
       rangertagsync_user_password,
     ],
-    [keyadmin_username, default_keyadmin_user_password, keyadmin_user_password],
+    [keyadmin_username, upstream_bootstrap_keyadmin_password, keyadmin_user_password],
   ]
   _execute_password_change(params, env_dict, password_changes)
 
@@ -1059,6 +1108,7 @@ def _execute_password_change(params, environment, password_changes):
       tries=3,
       try_sleep=5,
       timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
 

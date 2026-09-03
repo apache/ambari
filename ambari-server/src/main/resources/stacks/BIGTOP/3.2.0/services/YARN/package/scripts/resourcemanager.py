@@ -288,6 +288,7 @@ class ResourcemanagerDefault(Resourcemanager):
           user=params.hdfs_user,
           env=command_environment,
           timeout=30,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )[0]
         dir_exists = not dfs_ret_code  # dfs -test -d returns 0 in case the dir exists
 

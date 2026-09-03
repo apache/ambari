@@ -25,6 +25,7 @@ from urllib.parse import urlsplit
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -106,6 +107,7 @@ class RangerServiceCheck(Script):
         tries=10,
         try_sleep=3,
         timeout=CHECK_TIMEOUT_SECONDS + 5,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         user=params.unix_user,
         logoutput=True,
         **execute_options,

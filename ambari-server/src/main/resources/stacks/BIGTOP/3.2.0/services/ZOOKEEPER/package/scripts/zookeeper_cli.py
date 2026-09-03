@@ -24,6 +24,7 @@ import uuid
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import File
+from resource_management.core.signal_utils import TerminateStrategy
 
 import zookeeper_utils
 
@@ -84,6 +85,7 @@ def run_cli_command(
       user=user,
       env=dict(environment or {}),
       timeout=timeout,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   except Exception as error:
     operation_error = error

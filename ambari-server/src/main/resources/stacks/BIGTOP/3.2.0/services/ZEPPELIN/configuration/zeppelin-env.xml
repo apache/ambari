@@ -87,7 +87,7 @@
   <property>
     <name>spark_home</name>
     <display-name>Spark Home</display-name>
-    <value>/usr/lib/spark</value>
+    <value>/usr/bigtop/current/spark-client</value>
     <description>Spark Home</description>
     <on-ambari-upgrade add="false"/>
   </property>

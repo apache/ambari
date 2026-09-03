@@ -37,6 +37,7 @@ from setup_ranger_hive import setup_ranger_hive_metastore_service
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.constants import Direction
@@ -172,6 +173,8 @@ class HiveMetastore(Script):
           tries=1,
           environment=cache.merge_environment(environment),
           logoutput=True,
+          timeout=300,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
     else:
       Execute(
@@ -180,6 +183,8 @@ class HiveMetastore(Script):
         tries=1,
         environment=environment,
         logoutput=True,
+        timeout=300,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
   def get_log_folder(self):

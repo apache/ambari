@@ -532,6 +532,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
       ("ams-hbase-site", self.validateAmsHbaseSiteConfigurations),
       ("ams-hbase-env", self.validateAmsHbaseEnvConfigurations),
       ("ams-site", self.validateAmsSiteConfigurations),
+      ("ams-ssl-server", self.validateAmsSslServerConfigurations),
       ("ams-env", self.validateAmsEnvConfigurations),
       ("ams-grafana-env", self.validateGrafanaEnvConfigurations),
     ]
@@ -1038,6 +1039,40 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
       ]
     )
     return self.toConfigurationValidationProblems(validationItems, "ams-site")
+
+  def validateAmsSslServerConfigurations(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    ams_site = self.getSiteProperties(configurations, "ams-site") or {}
+    if not ams_site:
+      ams_site = self.getServicesSiteProperties(services, "ams-site") or {}
+    https_enabled = any(
+      str(ams_site.get(name, "HTTP_ONLY")).upper() == "HTTPS_ONLY"
+      for name in (
+        "timeline.metrics.service.http.policy",
+        "timeline.metrics.host.inmemory.aggregation.http.policy",
+      )
+    )
+    if not https_enabled:
+      return []
+
+    validationItems = []
+    for name in (
+      "ssl.server.keystore.password",
+      "ssl.server.keystore.keypassword",
+    ):
+      if not str(properties.get(name, "")).strip():
+        validationItems.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(
+              f"{name} must not be empty when Ambari Metrics HTTPS is enabled"
+            ),
+          }
+        )
+    return self.toConfigurationValidationProblems(
+      validationItems, "ams-ssl-server"
+    )
 
   def validateAmsEnvConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts

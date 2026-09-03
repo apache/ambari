@@ -17,6 +17,7 @@ limitations under the License.
 """
 
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.script.script import Script
 
 
@@ -26,7 +27,12 @@ class AlluxioServiceCheck(Script):
 
     env.set_params(params)
 
-    Execute(params.alluxio_test_cmd, user=params.alluxio_user, timeout=300)
+    Execute(
+      params.alluxio_test_cmd,
+      user=params.alluxio_user,
+      timeout=300,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
 
 if __name__ == "__main__":

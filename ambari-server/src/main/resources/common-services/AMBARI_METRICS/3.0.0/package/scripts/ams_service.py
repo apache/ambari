@@ -23,6 +23,7 @@ import os
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.show_logs import show_logs
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from hbase_service import hbase_service
@@ -30,7 +31,9 @@ from metrics_process import (
   hbase_pid_file,
   read_or_discover_ams_process,
   read_or_discover_hbase_process,
+  stop_ams_identity,
   stop_ams_process,
+  stop_hbase_identity,
   wait_for_ams_process,
   wait_for_hbase_process,
 )
@@ -105,6 +108,7 @@ def ams_service(name, action):
 
   command = [script, "--config", config_dir]
   started_hbase_roles = []
+  started_identity = None
   environment = {"JAVA_HOME": params.java64_home}
   if name == "monitor":
     environment["PYTHON"] = params.python_binary
@@ -113,6 +117,7 @@ def ams_service(name, action):
 
   command.append("start")
   embedded_master_was_running = False
+  embedded_master_identity = None
   master_pid_file = None
   try:
     if name == "monitor":
@@ -124,12 +129,14 @@ def ams_service(name, action):
         ),
         user=params.ams_user,
         timeout=15,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
     if name == "collector":
       if params.is_hbase_distributed:
         for role in ("master", "regionserver"):
-          if hbase_service(role, action="start"):
-            started_hbase_roles.append(role)
+          hbase_identity = hbase_service(role, action="start")
+          if hbase_identity is not False:
+            started_hbase_roles.append((role, hbase_identity))
         command.insert(-1, "--distributed")
       else:
         master_pid_file = hbase_pid_file(
@@ -158,6 +165,7 @@ def ams_service(name, action):
           ),
           user=params.ams_user,
           timeout=30,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
         File(
           kerberos_cache,
@@ -172,31 +180,48 @@ def ams_service(name, action):
       user=params.ams_user,
       environment=environment,
       timeout=_AMS_START_TIMEOUTS[name],
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
-    wait_for_ams_process(
+    started_identity = wait_for_ams_process(
       pid_file, params.ams_user, params.user_group, name
     )
     if name == "collector" and not params.is_hbase_distributed:
-      wait_for_hbase_process(
+      embedded_master_identity = wait_for_hbase_process(
         master_pid_file,
         params.hbase_user,
         params.user_group,
         "master",
       )
   except Exception:
-    try:
-      _stop_component(name, pid_file, params)
-    except Exception as cleanup_error:
-      Logger.error(f"Failed to roll back Ambari Metrics {name}: {cleanup_error}")
+    if started_identity is not None:
+      try:
+        stop_ams_identity(
+          started_identity, pid_file, params.ams_user, name
+        )
+      except Exception as cleanup_error:
+        Logger.error(f"Failed to roll back Ambari Metrics {name}: {cleanup_error}")
     if name == "collector":
       rollback_roles = (
         reversed(started_hbase_roles)
         if params.is_hbase_distributed
-        else (() if embedded_master_was_running else ("master",))
+        else (
+          (("master", embedded_master_identity),)
+          if not embedded_master_was_running
+          and embedded_master_identity is not None
+          else ()
+        )
       )
-      for role in rollback_roles:
+      for role, identity in rollback_roles:
         try:
-          hbase_service(role, action="stop")
+          stop_hbase_identity(
+            identity,
+            hbase_pid_file(params.hbase_pid_dir, params.hbase_user, role),
+            params.hbase_user,
+            role,
+            wait_attempts=max(
+              1, int(params.hbase_regionserver_shutdown_timeout)
+            ),
+          )
         except Exception as cleanup_error:
           Logger.error(f"Failed to roll back AMS HBase {role}: {cleanup_error}")
       if params.security_enabled:
@@ -208,5 +233,8 @@ def ams_service(name, action):
         )
     elif params.security_enabled and params.monitor_kinit_cmd:
       File(params.monitor_credential_cache, action="delete")
-    show_logs(log_dir, params.ams_user)
+    try:
+      show_logs(log_dir, params.ams_user)
+    except Exception as log_error:
+      Logger.warning(f"Unable to show Ambari Metrics {name} logs: {log_error}")
     raise

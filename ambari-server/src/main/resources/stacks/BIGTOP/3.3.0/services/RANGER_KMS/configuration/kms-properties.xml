@@ -26,10 +26,10 @@
     <description/>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
+  <property require-input="true">
     <name>REPOSITORY_CONFIG_PASSWORD</name>
     <display-name>Repository config password</display-name>
-    <value>keyadmin</value>
+    <value/>
     <property-type>PASSWORD</property-type>
     <description/>
     <value-attributes>

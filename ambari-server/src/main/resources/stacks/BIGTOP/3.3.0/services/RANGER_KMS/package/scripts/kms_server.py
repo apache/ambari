@@ -24,6 +24,7 @@ from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.default import default
@@ -56,6 +57,8 @@ class KmsServer(Script):
         os.path.join(params.kms_home, "install.properties")
       ),
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     File(
       os.path.join(params.kms_home, "install-backup.properties"),

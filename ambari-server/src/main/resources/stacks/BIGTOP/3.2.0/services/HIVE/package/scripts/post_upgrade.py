@@ -27,6 +27,7 @@ from hive import create_hive_hdfs_dirs
 
 # Ambari Commons & Resource Management Imports
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -77,6 +78,7 @@ class HivePostUpgrade(Script):
         environment=environment,
         user=params.hdfs_user,
         timeout=1200,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
 

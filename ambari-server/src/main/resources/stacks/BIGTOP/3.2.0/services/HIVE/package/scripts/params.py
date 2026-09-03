@@ -49,6 +49,7 @@ from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.setup_ranger_plugin_xml import (
   get_audit_configs,
   generate_ranger_service_config,
+  require_external_ranger_credentials,
 )
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import (
@@ -116,6 +117,7 @@ service_name = "hive"
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
+stack_root = validated_shell_path(Script.get_stack_root(), "BIGTOP stack root")
 
 credential_store_enabled = False
 if "credentialStoreEnabled" in config:
@@ -159,10 +161,10 @@ hadoop_home = stack_select.get_hadoop_dir("home")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 tez_conf_dir = "/etc/tez/conf"
-zk_home = format("/usr/lib/zookeeper")
+zk_home = os.path.join(stack_root, "current", "zookeeper-client")
 
 hive_conf_dir = "/etc/hive/conf"
-hive_home = "/usr/lib/hive"
+hive_home = os.path.join(stack_root, "current", "hive-client")
 hive_var_lib = "/var/lib/hive"
 hive_user_home_dir = "/home/hive"
 ranger_hive_ssl_config_file = os.path.join(
@@ -492,7 +494,9 @@ hive_conf_dir_shell = quote_bash_args(
   validated_shell_path(hive_conf_dir, "Hive configuration directory")
 )
 hive_hcatalog_home_shell = quote_bash_args(
-  validated_shell_path("/usr/lib/hive-hcatalog", "HCatalog home")
+  validated_shell_path(
+    os.path.join(stack_root, "current", "hive-webhcat"), "HCatalog home"
+  )
 )
 
 
@@ -657,8 +661,8 @@ webhcat_conf_dir = "/etc/hive-webhcat/conf"
 hcat_conf_dir = "/etc/hive-hcatalog/conf"
 hive_apps_whs_dir = hive_metastore_warehouse_dir
 
-# there are no client versions of these, use server versions directly
-hive_hcatalog_home = "/usr/lib/hive-hcatalog"
+# HCatalog and WebHCat share the hive-webhcat selector leaf.
+hive_hcatalog_home = os.path.join(stack_root, "current", "hive-webhcat")
 hcat_lib = format("{hive_hcatalog_home}/share/hcatalog")
 webhcat_bin_dir = format("{hive_hcatalog_home}/sbin")
 templeton_port = validated_port(
@@ -870,31 +874,29 @@ if enable_ranger_hive:
 
   # create ranger-env config having external ranger credential properties
   if not has_ranger_admin and enable_ranger_hive:
-    external_admin_username = default(
-      "/configurations/ranger-hive-plugin-properties/external_admin_username", "admin"
+    external_credentials = require_external_ranger_credentials(
+      config["configurations"]["ranger-hive-plugin-properties"]
     )
-    external_admin_password = default(
-      "/configurations/ranger-hive-plugin-properties/external_admin_password", "admin"
-    )
-    external_ranger_admin_username = default(
-      "/configurations/ranger-hive-plugin-properties/external_ranger_admin_username",
-      "amb_ranger_admin",
-    )
-    external_ranger_admin_password = default(
-      "/configurations/ranger-hive-plugin-properties/external_ranger_admin_password",
-      "amb_ranger_admin",
-    )
-    ranger_env = {}
-    ranger_env["admin_username"] = external_admin_username
-    ranger_env["admin_password"] = external_admin_password
-    ranger_env["ranger_admin_username"] = external_ranger_admin_username
-    ranger_env["ranger_admin_password"] = external_ranger_admin_password
+    ranger_env = {
+      "admin_username": external_credentials["external_admin_username"],
+      "admin_password": external_credentials["external_admin_password"],
+      "ranger_admin_username": external_credentials[
+        "external_ranger_admin_username"
+      ],
+      "ranger_admin_password": external_credentials[
+        "external_ranger_admin_password"
+      ],
+    }
 
   ranger_plugin_properties = config["configurations"]["ranger-hive-plugin-properties"]
   policy_user = config["configurations"]["ranger-hive-plugin-properties"]["policy_user"]
   repo_config_password = config["configurations"]["ranger-hive-plugin-properties"][
     "REPOSITORY_CONFIG_PASSWORD"
   ]
+  if is_empty(repo_config_password):
+    raise Fail(
+      "REPOSITORY_CONFIG_PASSWORD must not be empty when Ranger Hive authorization is enabled"
+    )
 
   ranger_downloaded_custom_connector = None
   ranger_previous_jdbc_jar_name = None

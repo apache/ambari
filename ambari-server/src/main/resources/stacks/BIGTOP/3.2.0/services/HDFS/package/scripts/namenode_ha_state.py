@@ -21,6 +21,7 @@ limitations under the License.
 from urllib.parse import urlparse
 
 from resource_management.core import shell
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.jmx import get_value_from_jmx
@@ -132,6 +133,9 @@ class NamenodeHAState:
               logoutput=True,
               user=run_user,
               env=environment,
+              timeout=60,
+              timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+              shell=False,
             )
             if code == 0 and out:
               reported_state = out.strip().lower()

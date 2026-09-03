@@ -122,7 +122,6 @@ class CheckHost(Script):
     "epel-release",
     "ambari-server",
     "ambari-agent",
-    "nagios",
     # ganglia related:
     "ganglia",
     "libganglia",

@@ -27,9 +27,7 @@ from resource_management.core.shell import quote_bash_args
 from resource_management.libraries.resources import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -72,14 +70,8 @@ hadoop_bin_dir = tez_utils.validate_absolute_path(
 hadoop_conf_dir = tez_utils.validate_absolute_path(
   conf_select.get_hadoop_conf_dir(), "Hadoop configuration directory"
 )
-tez_home = "/usr/lib/tez"
+tez_home = format("{stack_root}/current/{component_directory}")
 tez_conf_dir = "/etc/tez/conf"
-
-# hadoop parameters for stacks that support rolling_upgrade
-if stack_version_formatted and check_stack_feature(
-  StackFeature.ROLLING_UPGRADE, stack_version_formatted
-):
-  tez_home = format("{stack_root}/current/{component_directory}")
 tez_home = tez_utils.validate_absolute_path(tez_home, "Tez home directory")
 
 tez_examples_jar_pattern = format("{tez_home}/tez-examples*.jar")

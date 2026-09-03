@@ -21,6 +21,9 @@ limitations under the License.
 import re
 
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.setup_ranger_plugin_xml import (
+  require_external_ranger_credentials,
+)
 
 
 _CONFIG_SEGMENT_PATTERN = re.compile(
@@ -38,6 +41,15 @@ def as_bool(value, name):
     if normalized == "false":
       return False
   raise Fail(f"{name} must be true or false")
+
+
+def http_policy_scheme(value, name):
+  policy = str(value).strip().upper()
+  if policy == "HTTP_ONLY":
+    return "http"
+  if policy == "HTTPS_ONLY":
+    return "https"
+  raise Fail(f"{name} must be HTTP_ONLY or HTTPS_ONLY")
 
 
 def as_yes_no(value, name):
@@ -59,26 +71,6 @@ def validate_config_segment(value, name):
   ):
     raise Fail(f"{name} must be a single filesystem-safe configuration segment")
   return value
-
-
-def require_external_ranger_credentials(properties):
-  required = (
-    "external_admin_username",
-    "external_admin_password",
-    "external_ranger_admin_username",
-    "external_ranger_admin_password",
-  )
-  missing = [
-    name
-    for name in required
-    if not isinstance(properties.get(name), str) or not properties[name].strip()
-  ]
-  if missing:
-    raise Fail(
-      "External Ranger integration requires non-empty properties: "
-      + ", ".join(missing)
-    )
-  return {name: properties[name] for name in required}
 
 
 def ranger_environment(configurations, has_ranger_admin):

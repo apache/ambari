@@ -71,4 +71,6 @@ def snamenode(action=None, format=False):
       status_params.snamenode_pid_file,
       status_params.hdfs_user,
       "secondarynamenode",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
     )

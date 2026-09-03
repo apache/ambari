@@ -25,6 +25,7 @@ import logging
 import math
 import re
 import time
+from contextlib import nullcontext
 
 from .get_kinit_path import get_kinit_path
 from resource_management.core.exceptions import Fail
@@ -33,6 +34,9 @@ from resource_management.libraries.functions.get_user_call_output import (
 )
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
+)
+from resource_management.libraries.functions.private_temporary_file import (
+  private_temporary_file,
 )
 
 CONNECTION_TIMEOUT_DEFAULT = 10
@@ -122,50 +126,62 @@ def curl_krb_request(
   ) as kerberos_cache:
     kerberos_cache.kinit(kinit_path_local, keytab, principal)
     cookie_file = f"{kerberos_cache.cache_dir}/cookies"
-    curl_command = (
-      ["curl", "--silent", "--show-error", "--location"]
-      + ssl_options
-      + proxy_options
-      + [
-        "--negotiate",
-        "-u",
-        ":",
-        "-b",
-        cookie_file,
-        "-c",
-        cookie_file,
-      ]
-    )
-    if return_only_http_code:
-      curl_command.extend(["-w", "%{http_code}", "-o", "/dev/null"])
-    curl_command.extend(
-      [
-        "--connect-timeout",
-        str(connection_timeout),
-        "--max-time",
-        str(maximum_timeout),
-      ]
-    )
-    if method:
-      if header:
-        curl_command.extend(["-H", header])
-      curl_command.extend(["-X", method])
-      if body:
-        curl_command.extend(["-d", body])
-    curl_command.append(url)
-
-    start_time = time.time()
-    try:
-      _, curl_stdout, curl_stderr = get_user_call_output(
-        curl_command,
-        user=user,
-        env=kerberos_cache.environment,
+    body_context = (
+      private_temporary_file(
+        body,
+        user,
+        temp_dir=kerberos_cache.cache_dir,
+        prefix="ambari-curl-body-",
       )
-    except Fail:
-      if logger.isEnabledFor(logging.DEBUG):
-        logger.exception(f"Unable to make a curl request for {caller_label}.")
-      raise
-    elapsed_time = time.time() - start_time
+      if body
+      else nullcontext(None)
+    )
+
+    with body_context as request_body_file:
+      curl_command = (
+        ["curl", "--silent", "--show-error", "--location"]
+        + ssl_options
+        + proxy_options
+        + [
+          "--negotiate",
+          "-u",
+          ":",
+          "-b",
+          cookie_file,
+          "-c",
+          cookie_file,
+        ]
+      )
+      if return_only_http_code:
+        curl_command.extend(["-w", "%{http_code}", "-o", "/dev/null"])
+      curl_command.extend(
+        [
+          "--connect-timeout",
+          str(connection_timeout),
+          "--max-time",
+          str(maximum_timeout),
+        ]
+      )
+      if method:
+        if header:
+          curl_command.extend(["-H", header])
+        curl_command.extend(["-X", method])
+        if request_body_file is not None:
+          curl_command.extend(["--data-binary", f"@{request_body_file}"])
+      curl_command.append(url)
+
+      start_time = time.time()
+      try:
+        _, curl_stdout, curl_stderr = get_user_call_output(
+          curl_command,
+          user=user,
+          env=kerberos_cache.environment,
+          quiet=True,
+        )
+      except Fail:
+        logger.debug("Unable to make a curl request for %s.", caller_label)
+        raise Fail(f"Unable to make a curl request for {caller_label}.") from None
+      elapsed_time = time.time() - start_time
 
   error_msg = curl_stderr or None
   if curl_stdout:

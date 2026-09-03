@@ -66,6 +66,8 @@ def _is_trusted_var_run_alias(path):
 def _validate_local_path(path, label, minimum_parts):
   if not isinstance(path, str) or not path:
     raise Fail(f"{label} must be a non-empty absolute path")
+  if path != path.strip():
+    raise Fail(f"{label} must be a normalized absolute path: {path!r}")
   normalized = os.path.normpath(path)
   if path != normalized:
     raise Fail(f"{label} must be a normalized absolute path: {path!r}")
@@ -298,7 +300,7 @@ def _validated_resource_manager_host_files(
 
 def _configured_node_manager_directories(paths, label):
   return [
-    _validate_local_service_directory(path, label)
+    _validate_local_service_directory(path.strip(), label)
     for path in paths
     if isinstance(path, str) and path.strip()
   ]

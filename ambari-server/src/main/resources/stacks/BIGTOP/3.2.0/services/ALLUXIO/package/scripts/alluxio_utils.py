@@ -93,6 +93,17 @@ def validate_service_account(value, name):
   return value
 
 
+def as_bool(value, name):
+  if isinstance(value, bool):
+    return value
+  normalized = str(value).strip().lower()
+  if normalized == "true":
+    return True
+  if normalized == "false":
+    return False
+  raise ValueError(f"{name} must be true or false")
+
+
 def validate_port(value, name):
   if isinstance(value, bool):
     parsed = None
@@ -167,10 +178,7 @@ def validate_principal(value):
   return value
 
 
-def rollback_started_process(pid_file, user, process_class):
-  identity = safe_process.discover_running_process(user, process_class)
-  if identity is None:
-    return
+def rollback_started_process(pid_file, identity, user, process_class):
   safe_process.terminate_process(identity, user, process_class)
   pid = safe_process.read_pid(pid_file)
   if pid == identity.pid:

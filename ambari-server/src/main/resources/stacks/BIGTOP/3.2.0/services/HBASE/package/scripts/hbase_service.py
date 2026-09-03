@@ -18,11 +18,11 @@ limitations under the License.
 """
 
 import os
-import time
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions.show_logs import show_logs
 
@@ -54,7 +54,7 @@ def read_or_discover_hbase_process(pid_file, user, group, role):
     if identity is not None and safe_process.is_process_running(
       pid, user, tokens, identity=identity
     ):
-      return identity
+      return publish_hbase_process(pid_file, identity, user, group, role)
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       pid,
@@ -65,7 +65,12 @@ def read_or_discover_hbase_process(pid_file, user, group, role):
   identity = safe_process.discover_running_process(user, tokens)
   if identity is None:
     return None
-  return safe_process.create_pid_file_for_identity(
+  return publish_hbase_process(pid_file, identity, user, group, role)
+
+
+def publish_hbase_process(pid_file, identity, user, group, role):
+  tokens = expected_process_tokens(role)
+  return safe_process.publish_pid_file_for_identity(
     pid_file,
     identity,
     user,
@@ -76,16 +81,39 @@ def read_or_discover_hbase_process(pid_file, user, group, role):
   )
 
 
+def rollback_started_hbase_process(pid_file, identity, user, role):
+  tokens = expected_process_tokens(role)
+  safe_process.terminate_process(identity, user, tokens)
+  pid = safe_process.read_pid(pid_file)
+  if pid == identity.pid:
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user=user,
+      expected_cmdline=tokens,
+    )
+
+
 def wait_for_hbase_process(
   pid_file, user, group, role, attempts=10, sleep_seconds=1
 ):
-  for attempt in range(attempts):
-    identity = read_or_discover_hbase_process(pid_file, user, group, role)
-    if identity is not None:
-      return identity
-    if attempt + 1 < attempts:
-      time.sleep(sleep_seconds)
-  raise Fail(f"HBase {role} did not start with a valid process identity")
+  tokens = expected_process_tokens(role)
+  identity = safe_process.wait_for_discovered_process(
+    user,
+    tokens,
+    attempts=attempts,
+    sleep_seconds=sleep_seconds,
+  )
+  try:
+    return publish_hbase_process(pid_file, identity, user, group, role)
+  except Exception:
+    try:
+      rollback_started_hbase_process(pid_file, identity, user, role)
+    except Exception as error:
+      Logger.warning(
+        f"Could not roll back failed HBase {role} PID publication: {error}"
+      )
+    raise
 
 
 def check_hbase_process_status(pid_file, user, group, role):
@@ -124,13 +152,7 @@ def hbase_service(name, action=None, extra_args=()):
       name,
       *extra_args,
     )
-    rollback_command = (
-      params.daemon_script,
-      "--config",
-      params.hbase_conf_dir,
-      "stop",
-      name,
-    )
+    started_identity = None
     try:
       Execute(
         command,
@@ -138,31 +160,23 @@ def hbase_service(name, action=None, extra_args=()):
         environment={"JAVA_HOME": params.java64_home},
         logoutput=True,
         timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
-      wait_for_hbase_process(
+      started_identity = wait_for_hbase_process(
         pid_file, params.hbase_user, params.user_group, name
       )
-    except Exception as start_error:
-      rollback_error = None
-      try:
-        Execute(
-          rollback_command,
-          user=params.hbase_user,
-          environment={"JAVA_HOME": params.java64_home},
-          logoutput=True,
-          timeout=60,
-        )
-      except Exception as error:
-        rollback_error = error
+    except Exception:
+      if started_identity is not None:
+        try:
+          rollback_started_hbase_process(
+            pid_file, started_identity, params.hbase_user, name
+          )
+        except Exception as error:
+          Logger.warning(f"Could not roll back failed HBase {name} start: {error}")
       try:
         show_logs(params.log_dir, params.hbase_user)
       except Exception as error:
         Logger.warning(f"Could not collect HBase logs after start failure: {error}")
-      if rollback_error is not None:
-        raise Fail(
-          f"HBase {name} start failed: {start_error}; daemon rollback also "
-          f"failed: {rollback_error}"
-        ) from start_error
       raise
     return
 
@@ -188,5 +202,8 @@ def hbase_service(name, action=None, extra_args=()):
       expected_cmdline=tokens,
     )
   except Exception:
-    show_logs(params.log_dir, params.hbase_user)
+    try:
+      show_logs(params.log_dir, params.hbase_user)
+    except Exception as error:
+      Logger.warning(f"Could not collect HBase logs after stop failure: {error}")
     raise

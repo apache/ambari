@@ -24,6 +24,7 @@ from contextlib import nullcontext
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions.format import format
@@ -126,7 +127,7 @@ class AlluxioWorker(Script):
         params.alluxio_user, params.alluxio_worker_process_class
       )
       if identity is not None:
-        safe_process.create_pid_file_for_identity(
+        safe_process.publish_pid_file_for_identity(
           params.alluxio_worker_pid_file,
           identity,
           params.alluxio_user,
@@ -146,6 +147,15 @@ class AlluxioWorker(Script):
         raise Fail(
           f"Alluxio worker PID file refers to a stale process {pid_in_file}"
         )
+      safe_process.publish_pid_file_for_identity(
+        params.alluxio_worker_pid_file,
+        identity,
+        params.alluxio_user,
+        params.alluxio_worker_process_class,
+        params.alluxio_user,
+        params.alluxio_group,
+        mode=0o640,
+      )
       return
 
     cache_context = nullcontext(None)
@@ -157,10 +167,15 @@ class AlluxioWorker(Script):
       )
 
     mount_attempted = False
-    launch_attempted = False
+    started_identity = None
     try:
       mount_attempted = True
-      Execute(params.alluxio_worker_mount_cmd, sudo=True, timeout=60)
+      Execute(
+        params.alluxio_worker_mount_cmd,
+        sudo=True,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
 
       with cache_context as kerberos_cache:
         command_environment = {"JAVA_HOME": params.java_home}
@@ -175,48 +190,40 @@ class AlluxioWorker(Script):
             command_environment
           )
 
-        launch_attempted = True
         Execute(
           params.alluxio_worker_start_cmd,
           user=params.alluxio_user,
           environment=command_environment,
           timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
 
-        identity = safe_process.wait_for_discovered_process(
+        started_identity = safe_process.wait_for_discovered_process(
           params.alluxio_user,
           params.alluxio_worker_process_class,
           attempts=60,
           sleep_seconds=1,
         )
-        pid_in_file = safe_process.read_pid(params.alluxio_worker_pid_file)
-        if pid_in_file is None:
-          safe_process.create_pid_file_for_identity(
-            params.alluxio_worker_pid_file,
-            identity,
-            params.alluxio_user,
-            params.alluxio_worker_process_class,
-            params.alluxio_user,
-            params.alluxio_group,
-            mode=0o640,
-          )
-        elif pid_in_file != identity.pid:
-          raise Fail("Alluxio worker PID file does not match the started process")
-
-        stored_identity = safe_process.read_running_process(
+        identity = started_identity
+        stored_identity = safe_process.publish_pid_file_for_identity(
           params.alluxio_worker_pid_file,
+          identity,
           params.alluxio_user,
           params.alluxio_worker_process_class,
+          params.alluxio_user,
+          params.alluxio_group,
+          mode=0o640,
         )
-        if stored_identity is None or not identity.matches(stored_identity):
+        if not identity.matches(stored_identity):
           raise Fail(
             "Alluxio worker process changed while its PID file was being stored"
           )
     except Exception:
-      if launch_attempted:
+      if started_identity is not None:
         try:
           rollback_started_process(
             params.alluxio_worker_pid_file,
+            started_identity,
             params.alluxio_user,
             params.alluxio_worker_process_class,
           )
@@ -226,7 +233,12 @@ class AlluxioWorker(Script):
           )
       if mount_attempted:
         try:
-          Execute(params.alluxio_worker_unmount_cmd, sudo=True, timeout=60)
+          Execute(
+            params.alluxio_worker_unmount_cmd,
+            sudo=True,
+            timeout=60,
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          )
         except Exception as cleanup_error:
           Logger.warning(
             f"Could not unmount failed Alluxio worker start: {cleanup_error}"

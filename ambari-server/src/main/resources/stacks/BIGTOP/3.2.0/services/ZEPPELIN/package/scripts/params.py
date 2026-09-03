@@ -23,7 +23,6 @@ import os
 import re
 import socket
 import status_params
-from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
@@ -31,7 +30,6 @@ from resource_management.core.shell import quote_bash_args
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_stack_version import get_stack_version
-from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import (
   format_stack_version,
 )
@@ -107,24 +105,18 @@ hbase_conf_dir = config["configurations"]["zeppelin-env"]["hbase_conf_dir"]
 
 zeppelin_conf_dir = "/etc/zeppelin/conf"
 external_dependency_conf = format("{zeppelin_conf_dir}/external-dependency-conf")
-zeppelin_home = "/usr/lib/zeppelin"
-zeppelin_daemon = os.path.join(zeppelin_home, "bin", "zeppelin-daemon.sh")
-
-use_current_stack_paths = stack_version_formatted and check_stack_feature(
-  StackFeature.ROLLING_UPGRADE, stack_version_formatted
-)
+zeppelin_home = format("{stack_root}/current/zeppelin-server")
 spark_home = get_spark_home(
   config["configurations"]["zeppelin-env"]["spark_home"],
   stack_root,
-  use_current_stack_paths,
+  True,
 )
 
-if use_current_stack_paths:
-  hbase_home = format("{stack_root}/current/hbase-client")
-  zeppelin_home = format("{stack_root}/current/zeppelin-server")
-  local_notebook_dir = format(
-    "{stack_root}/{stack_version_formatted}/{local_notebook_dir}"
-  )
+hbase_home = format("{stack_root}/current/hbase-client")
+local_notebook_dir = format(
+  "{stack_root}/{stack_version_formatted}/{local_notebook_dir}"
+)
+zeppelin_daemon = os.path.join(zeppelin_home, "bin", "zeppelin-daemon.sh")
 
 spark_version = None
 if "spark-defaults" in config["configurations"]:

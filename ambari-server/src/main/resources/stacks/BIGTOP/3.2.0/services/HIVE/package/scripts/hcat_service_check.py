@@ -24,6 +24,7 @@ from contextlib import nullcontext
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
@@ -84,6 +85,7 @@ def _run_hcat(params, statement, environment):
     env={"JAVA_HOME": params.java64_home, **(environment or {})},
     path=params.execute_path,
     timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     tries=3,
     try_sleep=5,
   )
@@ -108,6 +110,7 @@ def _check_hdfs_path(params, path):
       env=environment,
       path=params.execute_path,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       shell=False,
     )
     if return_code != 0:

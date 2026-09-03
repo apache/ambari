@@ -36,6 +36,7 @@ from resource_management.libraries.functions.security_commons import (
   FILE_TYPE_XML,
 )
 from resource_management.core.logger import Logger
+from resource_management.core.signal_utils import TerminateStrategy
 from hdfs import hdfs, reconfig
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
@@ -137,7 +138,6 @@ class DataNode(Script):
       params.dfs_dn_ipc_address,
     )
 
-    is_datanode_deregistered = False
     with hdfs_kerberos_environment(
       params,
       "ambari-hdfs-datanode-shutdown-check-",
@@ -145,19 +145,28 @@ class DataNode(Script):
       principal=params.dn_principal_name if params.security_enabled else None,
     ) as command_environment:
       try:
-        shell.checked_call(
+        return_code, output = shell.call(
           command,
           user=params.hdfs_user,
           tries=1,
           env=command_environment,
+          timeout=30,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          shell=False,
         )
-      except Exception:
-        is_datanode_deregistered = True
+      except Exception as error:
+        Logger.warning(
+          "Unable to determine whether the DataNode deregistered: %s" % error
+        )
+        raise Fail("Unable to determine DataNode shutdown state") from error
 
-    if not is_datanode_deregistered:
+    # getDatanodeInfo returns a non-zero status when the DataNode is no longer
+    # registered.  A successful command means it is still serving requests.
+    if return_code == 0:
       Logger.info("DataNode has not yet deregistered from the NameNode...")
       raise Fail("DataNode has not yet deregistered from the NameNode...")
 
+    Logger.info("DataNode shutdown check returned %s: %s" % (return_code, output))
     Logger.info("DataNode has successfully shutdown.")
     return True
 

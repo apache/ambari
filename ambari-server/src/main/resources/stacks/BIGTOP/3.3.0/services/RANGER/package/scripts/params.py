@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import os
-from ranger_utils import strict_bool, strict_yes_no
+from ranger_utils import require_nonempty_secret, strict_bool, strict_yes_no
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
@@ -345,6 +345,10 @@ ranger_audit_source_type = config["configurations"]["ranger-admin-site"][
   "ranger.audit.source.type"
 ]
 
+ranger_usersync_ssl_enabled = strict_bool(
+  config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ssl"],
+  "ranger-ugsync-site/ranger.usersync.ssl",
+)
 ranger_usersync_keystore_password = str(
   config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.password"]
 )
@@ -605,7 +609,9 @@ ranger_usersync_pid_file = format("{ranger_pid_dir}/usersync.pid")
 # admin credential
 admin_username = config["configurations"]["ranger-env"]["admin_username"]
 admin_password = config["configurations"]["ranger-env"]["admin_password"]
-default_admin_password = "admin"
+# Ranger seeds these accounts before Ambari can supply deployment credentials. These
+# values are accepted only as the old side of the mandatory pre-start rotation.
+upstream_bootstrap_admin_password = "admin"
 
 ranger_is_solr_kerberised = "false"
 if audit_solr_enabled and is_solrCloud_enabled:
@@ -727,26 +733,30 @@ rangerusersync_username = "rangerusersync"
 rangerusersync_user_password = config["configurations"]["ranger-env"][
   "rangerusersync_user_password"
 ]
-default_rangerusersync_user_password = "rangerusersync"
+upstream_bootstrap_rangerusersync_password = "rangerusersync"
 
 # rangertagsync user credential
 rangertagsync_username = "rangertagsync"
 rangertagsync_user_password = config["configurations"]["ranger-env"][
   "rangertagsync_user_password"
 ]
-default_rangertagsync_user_password = "rangertagsync"
+upstream_bootstrap_rangertagsync_password = "rangertagsync"
 
 # keyadmin user credential
 keyadmin_username = "keyadmin"
 keyadmin_user_password = config["configurations"]["ranger-env"][
   "keyadmin_user_password"
 ]
-default_keyadmin_user_password = "keyadmin"
+upstream_bootstrap_keyadmin_password = "keyadmin"
 
 # atlas admin user password
 atlas_admin_password = default(
-  "/configurations/atlas-env/atlas.admin.password", "admin"
+  "/configurations/atlas-env/atlas.admin.password", None
 )
+if is_ranger_tagsync_host and stack_supports_ranger_tagsync_ssl_xml_support:
+  atlas_admin_password = require_nonempty_secret(
+    atlas_admin_password, "atlas-env/atlas.admin.password"
+  )
 
 mount_table_content = None
 if "viewfs-mount-table" in config["configurations"]:

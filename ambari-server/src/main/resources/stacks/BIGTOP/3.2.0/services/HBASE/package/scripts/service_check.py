@@ -24,6 +24,7 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -69,6 +70,7 @@ def run_hbase_shell(
       command,
       user=user,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       tries=tries,
       try_sleep=5,
     )[1]
@@ -89,6 +91,7 @@ def run_hbase_shell(
       user=user,
       env=kerberos_cache.environment,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       tries=tries,
       try_sleep=5,
     )[1]

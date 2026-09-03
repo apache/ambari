@@ -21,6 +21,7 @@ from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.zkmigrator import ZkMigrator
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.script.script import Script
 
@@ -86,6 +87,7 @@ class InfraSolr(Script):
         environment={"SOLR_INCLUDE": params.infra_solr_include},
         user=params.infra_solr_user,
         timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         logoutput=True,
       )
       infra_solr_process.wait_for_started_process(
@@ -97,16 +99,9 @@ class InfraSolr(Script):
       )
     except Exception:
       try:
-        infra_solr_process.stop_process(
-          params.infra_solr_pidfile,
-          params.infra_solr_user,
-          params.user_group,
-          params.infra_solr_port,
-          params.infra_solr_datadir,
-        )
-      except Exception as cleanup_error:
-        Logger.warning(f"Infra Solr startup cleanup failed: {cleanup_error}")
-      show_logs(params.infra_solr_log_dir, params.infra_solr_user)
+        show_logs(params.infra_solr_log_dir, params.infra_solr_user)
+      except Exception as log_error:
+        Logger.warning(f"Unable to show Infra Solr startup logs: {log_error}")
       raise
 
   def stop(self, env, upgrade_type=None):
@@ -124,7 +119,10 @@ class InfraSolr(Script):
       if not stopped:
         Logger.info("No running Infra Solr process was found")
     except Exception:
-      show_logs(params.infra_solr_log_dir, params.infra_solr_user)
+      try:
+        show_logs(params.infra_solr_log_dir, params.infra_solr_user)
+      except Exception as log_error:
+        Logger.warning(f"Unable to show Infra Solr shutdown logs: {log_error}")
       raise
 
   def status(self, env):

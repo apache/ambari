@@ -45,17 +45,20 @@ stack_version = config["clusterLevelParams"]["stack_version"]
 spark_utils.validate_bigtop_stack(stack_name, stack_version)
 version = default("/commandParams/version", None)
 
-spark_home = "/usr/lib/spark"
+stack_root = spark_utils.validate_absolute_path(Script.get_stack_root(), "BIGTOP stack root")
+if stack_root == os.sep:
+  raise Fail("BIGTOP stack root must not be the filesystem root")
+spark_home = os.path.join(stack_root, "current", "spark-client")
 spark_conf_dir = "/etc/spark/conf"
 spark_lib_dir = "/var/lib/spark"
 spark_class = os.path.join(spark_home, "bin", "spark-class")
 spark_submit = os.path.join(spark_home, "bin", "spark-submit")
 spark_beeline = os.path.join(spark_home, "bin", "beeline")
 spark_defaults_file = os.path.join(spark_conf_dir, "spark-defaults.conf")
-hadoop_home = "/usr/lib/hadoop"
+hadoop_home = os.path.join(stack_root, "current", "hadoop-client")
 hadoop_bin_dir = os.path.join(hadoop_home, "bin")
 hadoop_conf_dir = "/etc/hadoop/conf"
-hive_home = "/usr/lib/hive"
+hive_home = os.path.join(stack_root, "current", "hive-client")
 
 spark_user = status_params.spark_user
 spark_group = status_params.spark_group

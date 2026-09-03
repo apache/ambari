@@ -23,6 +23,7 @@ import uuid
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -65,6 +66,7 @@ def _execute_hbase_shell(params, command_file, environment=None):
     environment=environment,
     logoutput=True,
     timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
 
@@ -89,6 +91,7 @@ def _move_regions(params, host, operation, environment=None):
     environment=environment,
     logoutput=True,
     timeout=params.hbase_region_mover_timeout,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
 

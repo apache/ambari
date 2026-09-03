@@ -24,6 +24,7 @@ from contextlib import nullcontext
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions.format import format
@@ -146,7 +147,7 @@ class AlluxioMaster(Script):
         params.alluxio_user, params.alluxio_master_process_class
       )
       if identity is not None:
-        safe_process.create_pid_file_for_identity(
+        safe_process.publish_pid_file_for_identity(
           params.alluxio_master_pid_file,
           identity,
           params.alluxio_user,
@@ -166,6 +167,15 @@ class AlluxioMaster(Script):
         raise Fail(
           f"Alluxio master PID file refers to a stale process {pid_in_file}"
         )
+      safe_process.publish_pid_file_for_identity(
+        params.alluxio_master_pid_file,
+        identity,
+        params.alluxio_user,
+        params.alluxio_master_process_class,
+        params.alluxio_user,
+        params.alluxio_group,
+        mode=0o640,
+      )
       return
 
     cache_context = nullcontext(None)
@@ -176,7 +186,7 @@ class AlluxioMaster(Script):
         prefix="ambari-alluxio-master-",
       )
 
-    launch_attempted = False
+    started_identity = None
     try:
       with cache_context as kerberos_cache:
         command_environment = {"JAVA_HOME": params.java_home}
@@ -191,48 +201,40 @@ class AlluxioMaster(Script):
             command_environment
           )
 
-        launch_attempted = True
         Execute(
           params.alluxio_master_start_cmd,
           user=params.alluxio_user,
           environment=command_environment,
           timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
 
-        identity = safe_process.wait_for_discovered_process(
+        started_identity = safe_process.wait_for_discovered_process(
           params.alluxio_user,
           params.alluxio_master_process_class,
           attempts=60,
           sleep_seconds=1,
         )
-        pid_in_file = safe_process.read_pid(params.alluxio_master_pid_file)
-        if pid_in_file is None:
-          safe_process.create_pid_file_for_identity(
-            params.alluxio_master_pid_file,
-            identity,
-            params.alluxio_user,
-            params.alluxio_master_process_class,
-            params.alluxio_user,
-            params.alluxio_group,
-            mode=0o640,
-          )
-        elif pid_in_file != identity.pid:
-          raise Fail("Alluxio master PID file does not match the started process")
-
-        stored_identity = safe_process.read_running_process(
+        identity = started_identity
+        stored_identity = safe_process.publish_pid_file_for_identity(
           params.alluxio_master_pid_file,
+          identity,
           params.alluxio_user,
           params.alluxio_master_process_class,
+          params.alluxio_user,
+          params.alluxio_group,
+          mode=0o640,
         )
-        if stored_identity is None or not identity.matches(stored_identity):
+        if not identity.matches(stored_identity):
           raise Fail(
             "Alluxio master process changed while its PID file was being stored"
           )
     except Exception:
-      if launch_attempted:
+      if started_identity is not None:
         try:
           rollback_started_process(
             params.alluxio_master_pid_file,
+            started_identity,
             params.alluxio_user,
             params.alluxio_master_process_class,
           )

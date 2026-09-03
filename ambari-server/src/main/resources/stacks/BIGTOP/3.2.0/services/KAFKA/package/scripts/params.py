@@ -38,6 +38,7 @@ from utils import (
   as_bool,
   as_yes_no,
   get_bare_principal,
+  http_policy_scheme,
   ranger_environment,
   validate_config_segment,
 )
@@ -261,15 +262,12 @@ if has_metric_collector:
       metric_collector_port = metric_collector_web_address.split(":")[1]
     else:
       metric_collector_port = "6188"
-  if (
+  metric_collector_protocol = http_policy_scheme(
     default(
       "/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY"
-    )
-    == "HTTPS_ONLY"
-  ):
-    metric_collector_protocol = "https"
-  else:
-    metric_collector_protocol = "http"
+    ),
+    "ams-site/timeline.metrics.service.http.policy",
+  )
 
 # Security-related params
 kerberos_security_enabled = as_bool(
@@ -471,14 +469,20 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
   policy_user = config["configurations"]["ranger-kafka-plugin-properties"][
     "policy_user"
   ]
+  repo_config_password = config["configurations"]["ranger-kafka-plugin-properties"][
+    "REPOSITORY_CONFIG_PASSWORD"
+  ]
+  if not isinstance(repo_config_password, str) or not repo_config_password.strip():
+    raise Fail(
+      "ranger-kafka-plugin-properties/REPOSITORY_CONFIG_PASSWORD must not be "
+      "empty when the Ranger Kafka plugin is enabled"
+    )
 
   ranger_plugin_config = {
     "username": config["configurations"]["ranger-kafka-plugin-properties"][
       "REPOSITORY_CONFIG_USERNAME"
     ],
-    "password": config["configurations"]["ranger-kafka-plugin-properties"][
-      "REPOSITORY_CONFIG_PASSWORD"
-    ],
+    "password": repo_config_password,
     "zookeeper.connect": config["configurations"]["ranger-kafka-plugin-properties"][
       "zookeeper.connect"
     ],

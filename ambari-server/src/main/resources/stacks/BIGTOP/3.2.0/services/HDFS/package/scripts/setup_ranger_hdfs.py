@@ -21,6 +21,7 @@ limitations under the License.
 import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import Direction
@@ -163,6 +164,8 @@ def setup_ranger_hdfs(upgrade_type=None):
           ("mv", source_file, target_file),
           sudo=True,
           only_if=("test", "-f", source_file),
+          timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
   else:
     Logger.info("Ranger Hdfs plugin is not enabled")

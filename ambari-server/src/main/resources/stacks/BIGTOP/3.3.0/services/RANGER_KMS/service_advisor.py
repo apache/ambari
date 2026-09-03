@@ -712,6 +712,7 @@ class RangerKMSValidator(service_advisor.ServiceAdvisor):
     self.validators = [
       ("kms-env", self.validateEnvironment),
       ("ranger-kms-site", self.validateRuntimeSite),
+      ("kms-properties", self.validateRepositoryCredentials),
     ]
 
   def validateEnvironment(
@@ -796,6 +797,47 @@ class RangerKMSValidator(service_advisor.ServiceAdvisor):
           "item": self.getErrorItem("Ranger KMS keystore must be a safe absolute path"),
         }
       )
+    keystore_password_property = "ranger.service.https.attrib.keystore.pass"
+    keystore_password = properties.get(keystore_password_property)
+    if ssl_enabled and (
+      not isinstance(keystore_password, str) or not keystore_password.strip()
+    ):
+      validation_items.append(
+        {
+          "config-name": keystore_password_property,
+          "item": self.getErrorItem(
+            "Ranger KMS HTTPS keystore password must not be empty"
+          ),
+        }
+      )
     return self.toConfigurationValidationProblems(
       validation_items, "ranger-kms-site"
+    )
+
+  def validateRepositoryCredentials(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    validation_items = []
+    service_names = {
+      service["StackServices"]["service_name"]
+      for service in services.get("services", [])
+    }
+    if "RANGER" not in service_names:
+      return self.toConfigurationValidationProblems(
+        validation_items, "kms-properties"
+      )
+
+    password_property = "REPOSITORY_CONFIG_PASSWORD"
+    password = properties.get(password_property)
+    if not isinstance(password, str) or not password.strip():
+      validation_items.append(
+        {
+          "config-name": password_property,
+          "item": self.getErrorItem(
+            "Ranger KMS repository config password must not be empty"
+          ),
+        }
+      )
+    return self.toConfigurationValidationProblems(
+      validation_items, "kms-properties"
     )

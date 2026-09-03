@@ -29,6 +29,7 @@ import time
 
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.stack_tools import get_stack_root
@@ -359,6 +360,7 @@ def get_ats_hbase_status(yarn_executable, user, timeout, environment=None):
     user=user,
     stderr=subprocess.PIPE,
     timeout=timeout,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     logoutput=False,
     env=environment,
   )

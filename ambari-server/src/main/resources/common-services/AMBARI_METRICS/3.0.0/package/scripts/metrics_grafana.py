@@ -21,11 +21,13 @@ limitations under the License.
 from resource_management import Script, Execute
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.show_logs import show_logs
 from status import check_service_status
 from ams import ams
 from metrics_process import (
   read_or_discover_ams_process,
+  stop_ams_identity,
   stop_ams_process,
   wait_for_ams_process,
 )
@@ -61,19 +63,21 @@ class AmsGrafana(Script):
     self.configure(env, action="start")
 
     pid_file = params.grafana_pid_file
-    started_here = read_or_discover_ams_process(
+    existing_identity = read_or_discover_ams_process(
       pid_file, params.ams_user, params.user_group, "grafana"
-    ) is None
+    )
+    started_identity = None
 
     try:
-      if started_here:
+      if existing_identity is None:
         Execute(
           (params.ams_grafana_script, "start"),
           user=params.ams_user,
           environment={"JAVA_HOME": params.java64_home},
           timeout=150,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
-        wait_for_ams_process(
+        started_identity = wait_for_ams_process(
           pid_file, params.ams_user, params.user_group, "grafana"
         )
 
@@ -87,14 +91,17 @@ class AmsGrafana(Script):
       create_ams_datasource()
       create_ams_dashboards()
     except Exception:
-      if started_here:
+      if started_identity is not None:
         try:
-          stop_ams_process(
-            pid_file, params.ams_user, params.user_group, "grafana"
+          stop_ams_identity(
+            started_identity, pid_file, params.ams_user, "grafana"
           )
         except Exception as cleanup_error:
           Logger.error(f"Failed to roll back Ambari Metrics Grafana: {cleanup_error}")
-      show_logs(params.ams_grafana_log_dir, params.ams_user)
+      try:
+        show_logs(params.ams_grafana_log_dir, params.ams_user)
+      except Exception as log_error:
+        Logger.warning(f"Unable to show Ambari Metrics Grafana logs: {log_error}")
       raise
 
   def stop(self, env, upgrade_type=None):

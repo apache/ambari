@@ -26,6 +26,7 @@ import stat
 import tempfile
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 
 
 def strict_bool(value, property_name):
@@ -48,6 +49,12 @@ def strict_yes_no(value, property_name):
     if normalized == "no":
       return False
   raise Fail(f"{property_name} must be Yes or No")
+
+
+def require_nonempty_secret(value, property_name):
+  if not isinstance(value, str) or not value.strip():
+    raise Fail(f"{property_name} must be explicitly configured and non-empty")
+  return value
 
 
 @contextmanager
@@ -80,6 +87,7 @@ def private_secret_file(directory, owner, group, value, json_value=False):
   descriptor = None
   path = None
   file_identity = None
+  primary_error = None
   try:
     descriptor, path = tempfile.mkstemp(prefix=".ambari-ranger-secret-", dir=directory)
     descriptor_stat = os.fstat(descriptor)
@@ -101,15 +109,38 @@ def private_secret_file(directory, owner, group, value, json_value=False):
     os.close(descriptor)
     descriptor = None
     yield path
+  except BaseException as error:
+    primary_error = error
+    raise
   finally:
+    cleanup_errors = []
     if descriptor is not None:
-      os.close(descriptor)
+      try:
+        os.close(descriptor)
+      except OSError as error:
+        cleanup_errors.append(error)
     if path is not None and os.path.lexists(path):
-      path_stat = os.lstat(path)
-      if stat.S_ISREG(path_stat.st_mode) and (
-        path_stat.st_dev,
-        path_stat.st_ino,
-      ) == file_identity:
-        os.unlink(path)
+      try:
+        path_stat = os.lstat(path)
+        if stat.S_ISREG(path_stat.st_mode) and (
+          path_stat.st_dev,
+          path_stat.st_ino,
+        ) == file_identity:
+          os.unlink(path)
+        else:
+          cleanup_errors.append(
+            Fail("Private secret file was replaced before cleanup")
+          )
+      except OSError as error:
+        cleanup_errors.append(error)
+    if cleanup_errors:
+      cleanup_details = "; ".join(str(error) for error in cleanup_errors)
+      if primary_error is not None:
+        Logger.warning(
+          "Could not clean up private secret file after operation failure: "
+          f"{cleanup_details}"
+        )
       else:
-        raise Fail("Private secret file was replaced before cleanup")
+        raise Fail(
+          f"Could not clean up private secret file: {cleanup_details}"
+        ) from cleanup_errors[0]

@@ -73,9 +73,9 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
+  <property require-input="true">
     <name>REPOSITORY_CONFIG_PASSWORD</name>
-    <value>kafka</value>
+    <value/>
     <property-type>PASSWORD</property-type>
     <display-name>Ranger repository config password</display-name>
     <description>Used for repository creation on ranger admin</description>

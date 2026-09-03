@@ -449,6 +449,15 @@ else:
   host_in_memory_aggregation_protocol = "http"
 
 if metric_collector_https_enabled or is_aggregation_https_enabled:
+  ssl_server_properties = config["configurations"].get("ams-ssl-server", {})
+  for ssl_password_property in (
+    "ssl.server.keystore.password",
+    "ssl.server.keystore.keypassword",
+  ):
+    if not str(ssl_server_properties.get(ssl_password_property, "")).strip():
+      raise Fail(
+        f"{ssl_password_property} must not be empty when Ambari Metrics HTTPS is enabled"
+      )
   metric_truststore_path = validate_absolute_path(
     metric_truststore_path, "Metrics truststore path"
   )

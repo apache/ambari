@@ -17,15 +17,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import time
-
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import safe_process
 
 
 ZEPPELIN_PROCESS_TOKENS = ("org.apache.zeppelin.server.ZeppelinServer",)
+
+
+def _publish_zeppelin_process(pid_file, identity, user, group):
+  return safe_process.publish_pid_file_for_identity(
+    pid_file,
+    identity,
+    user,
+    ZEPPELIN_PROCESS_TOKENS,
+    owner=user,
+    group=group,
+    mode=0o640,
+  )
 
 
 def read_or_discover_zeppelin_process(pid_file, user, group):
@@ -38,7 +49,7 @@ def read_or_discover_zeppelin_process(pid_file, user, group):
       ZEPPELIN_PROCESS_TOKENS,
       identity=identity,
     ):
-      return identity
+      return _publish_zeppelin_process(pid_file, identity, user, group)
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       pid,
@@ -49,25 +60,36 @@ def read_or_discover_zeppelin_process(pid_file, user, group):
   identity = safe_process.discover_running_process(user, ZEPPELIN_PROCESS_TOKENS)
   if identity is None:
     return None
-  return safe_process.create_pid_file_for_identity(
-    pid_file,
-    identity,
-    user,
-    ZEPPELIN_PROCESS_TOKENS,
-    owner=user,
-    group=group,
-    mode=0o640,
-  )
+  return _publish_zeppelin_process(pid_file, identity, user, group)
 
 
 def wait_for_zeppelin_process(pid_file, user, group, attempts=30, sleep_seconds=1):
-  for attempt in range(attempts):
-    identity = read_or_discover_zeppelin_process(pid_file, user, group)
-    if identity is not None:
-      return identity
-    if attempt + 1 < attempts:
-      time.sleep(sleep_seconds)
-  raise Fail("Zeppelin Server did not start with a valid process identity")
+  identity = safe_process.wait_for_discovered_process(
+    user,
+    ZEPPELIN_PROCESS_TOKENS,
+    attempts=attempts,
+    sleep_seconds=sleep_seconds,
+  )
+  try:
+    return _publish_zeppelin_process(pid_file, identity, user, group)
+  except Exception:
+    try:
+      rollback_started_zeppelin_process(pid_file, identity, user)
+    except Exception as error:
+      Logger.warning(
+        f"Could not roll back Zeppelin after PID publication failure: {error}"
+      )
+    raise
+
+
+def rollback_started_zeppelin_process(pid_file, identity, user):
+  safe_process.terminate_process(identity, user, ZEPPELIN_PROCESS_TOKENS)
+  safe_process.remove_pid_file_if_stopped(
+    pid_file,
+    identity.pid,
+    expected_user=user,
+    expected_cmdline=ZEPPELIN_PROCESS_TOKENS,
+  )
 
 
 def start_zeppelin(daemon, conf_dir, pid_file, user, group, java_home):
@@ -81,6 +103,7 @@ def start_zeppelin(daemon, conf_dir, pid_file, user, group, java_home):
     user=user,
     environment={"JAVA_HOME": java_home},
     timeout=60,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     logoutput=True,
   )
   return wait_for_zeppelin_process(pid_file, user, group)

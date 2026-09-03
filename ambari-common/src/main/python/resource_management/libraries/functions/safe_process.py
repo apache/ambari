@@ -433,6 +433,43 @@ def secure_pid_file_for_identity(
   return published
 
 
+def publish_pid_file_for_identity(
+  pid_file,
+  identity,
+  expected_user,
+  expected_cmdline,
+  owner,
+  group,
+  mode=0o640,
+):
+  """Create a missing PID file or secure a launcher-created one."""
+  launcher_pid = read_pid(pid_file)
+  if launcher_pid is None:
+    return create_pid_file_for_identity(
+      pid_file,
+      identity,
+      expected_user,
+      expected_cmdline,
+      owner,
+      group,
+      mode,
+    )
+  if launcher_pid != identity.pid:
+    raise Fail(
+      f"PID file {pid_file} identifies process {launcher_pid}, "
+      f"expected {identity.pid}"
+    )
+  return secure_pid_file_for_identity(
+    pid_file,
+    identity,
+    expected_user,
+    expected_cmdline,
+    owner,
+    group,
+    mode,
+  )
+
+
 def _rollback_pid_file(pid_file, published_file_identity):
   if published_file_identity is None:
     return

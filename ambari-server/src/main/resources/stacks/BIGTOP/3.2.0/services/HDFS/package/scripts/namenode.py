@@ -28,6 +28,7 @@ from ambari_commons import constants
 
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Directory, Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core import shell
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import upgrade_summary
@@ -166,6 +167,8 @@ class NameNode(Script):
         path=[params.hadoop_bin_dir],
         logoutput=True,
         environment=command_environment,
+        timeout=300,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
   def bootstrap_standby(self, env):
@@ -185,6 +188,8 @@ class NameNode(Script):
         logoutput=True,
         path=[params.hadoop_bin_dir],
         environment=command_environment,
+        timeout=300,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
   def start(self, env, upgrade_type=None):
@@ -262,6 +267,8 @@ class NameNode(Script):
         path=[params.hadoop_bin_dir],
         logoutput=True,
         environment=command_environment,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
 
@@ -362,6 +369,8 @@ class NameNodeDefault(NameNode):
         tries=60,
         try_sleep=10,
         environment=command_environment,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
   def rebalancehdfs(self, env):
@@ -408,8 +417,19 @@ class NameNodeDefault(NameNode):
         params.hdfs_user_keytab,
         params.hdfs_principal_name,
       )
-      if shell.call(klist_cmd, user=params.hdfs_user)[0] != 0:
-        Execute(kinit_cmd, user=params.hdfs_user)
+      if shell.call(
+        klist_cmd,
+        user=params.hdfs_user,
+        timeout=30,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        shell=False,
+      )[0] != 0:
+        Execute(
+          kinit_cmd,
+          user=params.hdfs_user,
+          timeout=30,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
 
     command = (
       "hdfs",

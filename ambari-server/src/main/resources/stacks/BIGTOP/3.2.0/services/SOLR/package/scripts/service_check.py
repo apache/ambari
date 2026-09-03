@@ -24,6 +24,7 @@ import uuid
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.script.script import Script
 
 
@@ -122,6 +123,8 @@ class ServiceCheck(Script):
           environment=kerberos_environment,
           user=params.smokeuser,
           logoutput=True,
+          timeout=30,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
 
       curl_argv = [
@@ -149,6 +152,8 @@ class ServiceCheck(Script):
         try_sleep=3,
         user=params.smokeuser,
         logoutput=True,
+        timeout=15,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         **execute_options,
       )
     except Exception as error:

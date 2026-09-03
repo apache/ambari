@@ -27,6 +27,7 @@ from urllib.parse import urlparse
 from ambari_commons.constants import SERVICE
 from resource_management.core import shell
 from resource_management.core.resources.system import File, Execute, Directory
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.logger import Logger
 from resource_management.core.source import (
   StaticFile,
@@ -343,6 +344,8 @@ def create_hive_hdfs_dirs():
             user=params.hdfs_user,
             environment=environment,
             path=params.execute_path,
+            timeout=120,
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
           )
     else:
       Logger.info(
@@ -382,12 +385,17 @@ def __is_hdfs_acls_enabled():
   hdfs_protocol = params.fs_root.startswith("hdfs://")
 
   return_code, stdout, _ = get_user_call_output(
-    "hdfs getconf -confKey dfs.namenode.acls.enabled", user=params.hdfs_user
+    "hdfs getconf -confKey dfs.namenode.acls.enabled",
+    user=params.hdfs_user,
+    timeout=60,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
   acls_enabled = stdout == "true"
   return_code, stdout, _ = get_user_call_output(
     "hdfs getconf -confKey dfs.namenode.posix.acl.inheritance.enabled",
     user=params.hdfs_user,
+    timeout=60,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
   acls_inheritance_enabled = stdout == "true"
 
@@ -514,6 +522,8 @@ def refresh_yarn():
       user=params.yarn_user,
       environment=environment,
       path=params.execute_path,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   File(YARN_REFRESHED_FILE, owner="root", group="root", mode=0o644)
 
@@ -535,6 +545,7 @@ def create_hive_metastore_schema():
       user=params.hive_user,
       env={"HIVE_CONF_DIR": params.hive_conf_dir, **(environment or {})},
       timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       shell=False,
     )
     if return_code != 0:
@@ -543,6 +554,7 @@ def create_hive_metastore_schema():
         user=params.hive_user,
         environment={"HIVE_CONF_DIR": params.hive_conf_dir, **(environment or {})},
         timeout=300,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
   File(SYS_DB_CREATED_FILE, owner="root", group="root", mode=0o644)
@@ -568,6 +580,7 @@ def create_metastore_schema():
       user=params.hive_user,
       env=command_environment,
       timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       shell=False,
     )
     if return_code != 0:
@@ -576,6 +589,7 @@ def create_metastore_schema():
         user=params.hive_user,
         environment=command_environment,
         timeout=300,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
 
 
@@ -707,6 +721,8 @@ def jdbc_connector(target, hive_previous_jdbc_jar):
       ("cp", "--remove-destination", params.mariadb_jdbc_driver_jar, target),
       path=["/bin", "/usr/bin/"],
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   else:
     File(
@@ -720,6 +736,8 @@ def jdbc_connector(target, hive_previous_jdbc_jar):
       ("cp", "--remove-destination", params.downloaded_custom_connector, target),
       path=["/bin", "/usr/bin/"],
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
   File(

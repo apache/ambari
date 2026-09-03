@@ -78,9 +78,9 @@
     </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
+  <property require-input="true">
     <name>REPOSITORY_CONFIG_PASSWORD</name>
-    <value>yarn</value>
+    <value/>
     <display-name>Ranger repository config password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Used for repository creation on ranger admin</description>

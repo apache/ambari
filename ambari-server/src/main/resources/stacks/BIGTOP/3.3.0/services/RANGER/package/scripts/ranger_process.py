@@ -22,6 +22,7 @@ import pwd
 import stat
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 
@@ -89,12 +90,14 @@ def find_process(component, pid_file, user, group, publish_discovered=True):
   expected_cmdline = _PROCESS_TOKENS[component]
   identity = safe_process.read_running_process(pid_file, user, expected_cmdline)
   if identity is not None:
-    return identity
+    return safe_process.publish_pid_file_for_identity(
+      pid_file, identity, user, expected_cmdline, user, group
+    )
 
   _remove_stale_pid_file(pid_file, user, expected_cmdline)
   identity = safe_process.discover_running_process(user, expected_cmdline)
   if identity is not None and publish_discovered:
-    return safe_process.create_pid_file_for_identity(
+    return safe_process.publish_pid_file_for_identity(
       pid_file, identity, user, expected_cmdline, user, group
     )
   return identity
@@ -107,16 +110,16 @@ def secure_started_process(component, pid_file, user, group):
   identity = safe_process.wait_for_discovered_process(
     user, expected_cmdline, attempts=30, sleep_seconds=1
   )
-  launcher_pid = safe_process.read_pid(pid_file)
-  if launcher_pid is None:
-    return safe_process.create_pid_file_for_identity(
+  try:
+    return safe_process.publish_pid_file_for_identity(
       pid_file, identity, user, expected_cmdline, user, group
     )
-  if launcher_pid != identity.pid:
-    raise Fail(f"Ranger launcher wrote an unexpected PID for {component}")
-  return safe_process.secure_pid_file_for_identity(
-    pid_file, identity, user, expected_cmdline, user, group
-  )
+  except Exception:
+    try:
+      rollback_started_process(component, pid_file, identity, user)
+    except Exception as error:
+      Logger.warning(f"Could not roll back failed Ranger PID publication: {error}")
+    raise
 
 
 def stop_process(component, pid_file, user, group):
@@ -132,12 +135,9 @@ def stop_process(component, pid_file, user, group):
     )
 
 
-def rollback_started_process(component, pid_file, user):
+def rollback_started_process(component, pid_file, identity, user):
   _validate_pid_file(component, pid_file)
   expected_cmdline = _PROCESS_TOKENS[component]
-  identity = safe_process.discover_running_process(user, expected_cmdline)
-  if identity is None:
-    return
   safe_process.terminate_process(identity, user, expected_cmdline)
   try:
     _validate_pid_directory(pid_file, user)

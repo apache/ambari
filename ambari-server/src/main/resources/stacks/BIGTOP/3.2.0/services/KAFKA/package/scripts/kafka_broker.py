@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management import Script
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -79,7 +80,12 @@ class KafkaBroker(Script):
       params.kafka_server_properties,
     )
     try:
-      Execute(start_command, user=params.kafka_user, timeout=60)
+      Execute(
+        start_command,
+        user=params.kafka_user,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
       kafka_process.wait_for_started_process(
         params.kafka_pid_file,
         params.kafka_user,
@@ -88,14 +94,9 @@ class KafkaBroker(Script):
       )
     except Exception:
       try:
-        kafka_process.rollback_started_process(
-          params.kafka_pid_file,
-          params.kafka_user,
-          params.kafka_server_properties,
-        )
-      except Exception as cleanup_error:
-        Logger.warning(f"Could not roll back failed Kafka start: {cleanup_error}")
-      show_logs(params.kafka_log_dir, params.kafka_user)
+        show_logs(params.kafka_log_dir, params.kafka_user)
+      except Exception as error:
+        Logger.warning(f"Could not collect Kafka logs after start failure: {error}")
       raise
 
   def stop(self, env, upgrade_type=None):
@@ -145,6 +146,7 @@ class KafkaBroker(Script):
       logoutput=True,
       tries=3,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
   def status(self, env):

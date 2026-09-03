@@ -20,6 +20,7 @@ limitations under the License.
 from contextlib import nullcontext
 
 from resource_management.core import shell
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -83,6 +84,7 @@ class FlinkServiceCheck(Script):
         user=params.smokeuser,
         env=command_environment,
         timeout=240,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         logoutput=True,
       )
 

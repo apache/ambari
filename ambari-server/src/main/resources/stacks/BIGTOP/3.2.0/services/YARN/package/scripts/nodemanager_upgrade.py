@@ -23,6 +23,7 @@ import socket
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core import shell
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.private_kerberos_cache import (
@@ -55,7 +56,12 @@ def post_upgrade_check():
     else:
       _check_nodemanager_startup({})
   except Fail:
-    show_logs(params.yarn_log_dir, params.yarn_user)
+    try:
+      show_logs(params.yarn_log_dir, params.yarn_user)
+    except Exception as log_error:
+      Logger.warning(
+        f"Could not collect YARN logs after NodeManager upgrade check failure: {log_error}"
+      )
     raise
 
 
@@ -82,6 +88,7 @@ def _check_nodemanager_startup(command_environment):
     user=params.yarn_user,
     env=command_environment,
     timeout=60,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
   hostname = params.hostname.lower()

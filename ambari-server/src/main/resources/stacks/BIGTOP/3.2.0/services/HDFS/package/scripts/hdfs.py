@@ -22,6 +22,7 @@ Ambari Agent
 
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Execute, Directory, File, Link
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.resources import Package
 from resource_management.core.source import Template
 from resource_management.core.resources.service import ServiceConfig
@@ -60,12 +61,14 @@ def hdfs(name=None):
       os.path.join(params.hadoop_conf_dir, "hdfs_dn_jaas.conf"),
       owner=params.hdfs_user,
       group=params.user_group,
+      mode=0o640,
       content=Template("hdfs_dn_jaas.conf.j2"),
     )
     File(
       os.path.join(params.hadoop_conf_dir, "hdfs_nn_jaas.conf"),
       owner=params.hdfs_user,
       group=params.user_group,
+      mode=0o640,
       content=Template("hdfs_nn_jaas.conf.j2"),
     )
     if params.dfs_ha_enabled:
@@ -73,6 +76,7 @@ def hdfs(name=None):
         os.path.join(params.hadoop_conf_dir, "hdfs_jn_jaas.conf"),
         owner=params.hdfs_user,
         group=params.user_group,
+        mode=0o640,
         content=Template("hdfs_jn_jaas.conf.j2"),
       )
 
@@ -236,6 +240,8 @@ def reconfig(componentName, componentAddress):
       logoutput=True,
       path=[params.hadoop_bin_dir],
       environment=command_environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     nn_reconfig_cmd = (
@@ -256,6 +262,8 @@ def reconfig(componentName, componentAddress):
       path=[params.hadoop_bin_dir],
       on_new_line=config_status_parser.handle_new_line,
       environment=command_environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
   if not config_status_parser.reconfig_successful:

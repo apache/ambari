@@ -28,6 +28,7 @@ from resource_management.libraries.functions.curl_krb_request import curl_krb_re
 from resource_management.libraries import functions
 from resource_management.libraries.functions.format import format
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import StaticFile
 from resource_management.core.resources.system import Execute, File
@@ -119,9 +120,18 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
               JOURNALNODE_CONNECTION_TIMEOUT + 5,
               len(params.journalnode_hosts) * JOURNALNODE_CONNECTION_TIMEOUT + 5,
             ),
-            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
           )
-        finally:
+        except Exception:
+          try:
+            File(checkWebUIFilePath, action="delete")
+          except Exception as cleanup_error:
+            Logger.error(
+              f"Could not remove HDFS Web UI checker {checkWebUIFilePath}: "
+              f"{cleanup_error}"
+            )
+          raise
+        else:
           File(checkWebUIFilePath, action="delete")
 
     if params.is_namenode_master:

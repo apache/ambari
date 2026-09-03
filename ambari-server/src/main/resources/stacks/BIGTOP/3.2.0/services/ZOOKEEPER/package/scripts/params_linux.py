@@ -22,10 +22,8 @@ import os
 
 from resource_management.core.exceptions import Fail
 from resource_management.core.shell import quote_bash_args
-from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
 
@@ -50,11 +48,7 @@ version = default("/commandParams/version", None)
 if version is not None:
   zookeeper_utils.validate_bigtop_stack(stack_name, format_stack_version(version))
 
-zk_home = "/usr/lib/zookeeper"
-if stack_version_formatted and check_stack_feature(
-  StackFeature.ROLLING_UPGRADE, stack_version_formatted
-):
-  zk_home = os.path.join(stack_root, "current", status_params.component_directory)
+zk_home = os.path.join(stack_root, "current", status_params.component_directory)
 zk_home = zookeeper_utils.validate_absolute_path(zk_home, "ZooKeeper home")
 
 config_dir = status_params.config_dir

@@ -80,7 +80,11 @@ class NFSGateway(Script):
     env.set_params(status_params)
 
     hdfs_process.check_component_status(
-      status_params.nfsgateway_pid_file, status_params.root_user, "nfs3"
+      status_params.nfsgateway_pid_file,
+      status_params.root_user,
+      "nfs3",
+      owner=status_params.root_user,
+      group=status_params.user_group,
     )
 
   def get_log_folder(self):

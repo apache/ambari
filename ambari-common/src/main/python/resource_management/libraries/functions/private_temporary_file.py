@@ -25,6 +25,7 @@ import re
 import tempfile
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 
 
 _SAFE_PREFIX = re.compile(r"[A-Za-z0-9_.-]{1,64}\Z", re.ASCII)
@@ -34,18 +35,19 @@ _SAFE_PREFIX = re.compile(r"[A-Za-z0-9_.-]{1,64}\Z", re.ASCII)
 def private_temporary_file(
   content,
   owner,
-  group,
+  group=None,
   temp_dir="/tmp",
   prefix="ambari-secret-",
 ):
-  if not owner or not group:
-    raise Fail("Private temporary files require an owner and group")
+  if not owner:
+    raise Fail("Private temporary files require an owner")
   if not isinstance(prefix, str) or _SAFE_PREFIX.fullmatch(prefix) is None:
     raise Fail("Private temporary file prefix contains unsupported characters")
 
   try:
-    uid = pwd.getpwnam(owner).pw_uid
-    gid = grp.getgrnam(group).gr_gid
+    owner_record = pwd.getpwnam(owner)
+    uid = owner_record.pw_uid
+    gid = grp.getgrnam(group).gr_gid if group else owner_record.pw_gid
   except KeyError as error:
     raise Fail("Private temporary file owner or group does not exist") from error
 
@@ -85,10 +87,11 @@ def private_temporary_file(
         pass
       except OSError as cleanup_error:
         if primary_error is not None:
-          raise Fail(
-            "Operation failed and private temporary file cleanup also failed: "
+          Logger.warning(
+            "Could not remove private temporary file after operation failure: "
             f"{cleanup_error}"
-          ) from primary_error
-        raise Fail(
-          f"Could not remove private temporary file: {cleanup_error}"
-        ) from cleanup_error
+          )
+        else:
+          raise Fail(
+            f"Could not remove private temporary file: {cleanup_error}"
+          ) from cleanup_error

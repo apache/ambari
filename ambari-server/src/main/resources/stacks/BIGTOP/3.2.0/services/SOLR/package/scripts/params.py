@@ -26,9 +26,7 @@ from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions import StackFeature
 
 import status_params
 import solr_utils
@@ -90,12 +88,7 @@ java64_home = java_home
 # Solr configs
 #####################################
 
-solr_dir = "/usr/lib/solr"
-
-if stack_version_formatted and check_stack_feature(
-  StackFeature.ROLLING_UPGRADE, stack_version_formatted
-):
-  solr_dir = format("{stack_root}/current/{component_directory}")
+solr_dir = format("{stack_root}/current/{component_directory}")
 
 solr_bindir = solr_dir + "/bin"
 

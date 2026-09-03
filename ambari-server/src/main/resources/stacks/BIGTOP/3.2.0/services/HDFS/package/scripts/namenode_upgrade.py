@@ -24,6 +24,7 @@ import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import Directory, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
@@ -131,6 +132,8 @@ def prepare_upgrade_save_namespace(hdfs_binary, environment=None):
       user=params.hdfs_user,
       environment=command_environment,
       logoutput=True,
+      timeout=300,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   except Exception as e:
     message = (
@@ -176,7 +179,12 @@ def prepare_upgrade_backup_namenode_dir():
     try:
       os.makedirs(backup_current_folder)
       backup_folder_created = True
-      Execute(("cp", "-ar", namenode_current_image, backup_current_folder), sudo=True)
+      Execute(
+        ("cp", "-ar", namenode_current_image, backup_current_folder),
+        sudo=True,
+        timeout=300,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
     except Exception:
       failed_paths.append(namenode_current_image)
       if backup_folder_created:
@@ -207,27 +215,27 @@ def prepare_upgrade_finalize_previous_upgrades(hdfs_binary, environment=None):
 
   dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
   finalize_command = dfsadmin_base_command + ("-rollingUpgrade", "finalize")
-  try:
-    Logger.info(
-      "Attempt to Finalize if there are any in-progress upgrades. "
-      "This will return 255 if no upgrades are in progress."
+  Logger.info(
+    "Attempt to finalize any in-progress upgrade. "
+    "HDFS returns 255 when no rolling upgrade is in progress."
+  )
+  code, _ = shell.call(
+    finalize_command,
+    logoutput=True,
+    user=params.hdfs_user,
+    env=environment,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    shell=False,
+  )
+  if code == 255:
+    Logger.info("No previous HDFS rolling upgrade is in progress")
+    return
+  if code != 0:
+    raise Fail(
+      "Could not finalize the previous HDFS rolling upgrade; "
+      f"command exited with status {code}"
     )
-    code, out = shell.checked_call(
-      finalize_command,
-      logoutput=True,
-      user=params.hdfs_user,
-      env=environment,
-    )
-    if out:
-      expected_substring = "there is no rolling upgrade in progress"
-      if expected_substring not in out.lower():
-        Logger.warning(
-          f"Finalize command did not contain substring: {expected_substring}"
-        )
-    else:
-      Logger.warning("Finalize command did not return any output.")
-  except Exception:
-    Logger.warning("Ensure no upgrades are in progress.")
 
 
 def reach_safemode_state(
@@ -251,7 +259,13 @@ def reach_safemode_state(
   safemode_check_cmd = dfsadmin_base_command + ("-safemode", "get")
 
   code, out = shell.call(
-    safemode_check_cmd, user=user, logoutput=True, env=environment
+    safemode_check_cmd,
+    user=user,
+    logoutput=True,
+    env=environment,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    shell=False,
   )
   Logger.info("Command: %s\nCode: %d." % (safemode_check_cmd, code))
   if code == 0 and out is not None:
@@ -276,10 +290,17 @@ def reach_safemode_state(
           logoutput=True,
           path=[params.hadoop_bin_dir],
           environment=environment,
+          timeout=120,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
 
         code, out = shell.call(
-          safemode_check_cmd, user=user, env=environment
+          safemode_check_cmd,
+          user=user,
+          env=environment,
+          timeout=120,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          shell=False,
         )
         Logger.info(
           "Command: %s\nCode: %d. Out: %s" % (safemode_check_cmd, code, out)
@@ -344,12 +365,16 @@ def _prepare_rolling_upgrade(hdfs_binary, environment):
       user=params.hdfs_user,
       logoutput=True,
       environment=environment,
+      timeout=300,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     Execute(
       query,
       user=params.hdfs_user,
       logoutput=True,
       environment=environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
 
@@ -380,18 +405,24 @@ def _finalize_upgrade(upgrade_type, hdfs_binary, environment):
     user=params.hdfs_user,
     logoutput=True,
     environment=environment,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
   Execute(
     finalize_cmd,
     user=params.hdfs_user,
     logoutput=True,
     environment=environment,
+    timeout=300,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
   Execute(
     query_cmd,
     user=params.hdfs_user,
     logoutput=True,
     environment=environment,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
   # upgrade is finalized; remove the upgrade marker
@@ -411,18 +442,19 @@ def get_upgrade_in_progress_marker():
 def create_upgrade_marker():
   """
   Creates the marker file indicating that NameNode has begun participating in a stack upgrade.
-  If the file already exists, nothing will be done. This will silently log exceptions on failure.
+  If the file already exists, nothing will be done. Creation failures abort the upgrade so
+  later restart and finalization decisions cannot proceed without durable state.
   :return:
   """
   namenode_upgrade_in_progress_marker = get_upgrade_in_progress_marker()
-  try:
-    if not os.path.isfile(namenode_upgrade_in_progress_marker):
+  if not os.path.isfile(namenode_upgrade_in_progress_marker):
+    try:
       File(namenode_upgrade_in_progress_marker)
-  except Exception as error:
-    Logger.warning(
-      "Unable to create NameNode upgrade marker file "
-      f"{namenode_upgrade_in_progress_marker}: {error}"
-    )
+    except Exception as error:
+      raise Fail(
+        "Unable to create NameNode upgrade marker file "
+        f"{namenode_upgrade_in_progress_marker}"
+      ) from error
 
 
 def delete_upgrade_marker():

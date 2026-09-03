@@ -465,6 +465,11 @@ if enable_ranger_hbase:
   repo_config_password = config["configurations"]["ranger-hbase-plugin-properties"][
     "REPOSITORY_CONFIG_PASSWORD"
   ]
+  if not isinstance(repo_config_password, str) or not repo_config_password.strip():
+    raise Fail(
+      "ranger-hbase-plugin-properties/REPOSITORY_CONFIG_PASSWORD must not be "
+      "empty when the Ranger HBase plugin is enabled"
+    )
 
   # ranger-env config
   ranger_env = config["configurations"]["ranger-env"]

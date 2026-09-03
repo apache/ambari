@@ -22,19 +22,14 @@ import time
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import safe_process
 
 
 LIVY_SERVER_PROCESS_TOKENS = ("org.apache.livy.server.LivyServer",)
 
 
-def rollback_started_livy_process(pid_file, user, identity=None):
-  if identity is None:
-    identity = safe_process.read_running_process(
-      pid_file, user, LIVY_SERVER_PROCESS_TOKENS
-    )
-  if identity is None:
-    return False
+def rollback_started_livy_process(pid_file, identity, user):
   safe_process.terminate_process(identity, user, LIVY_SERVER_PROCESS_TOKENS)
   pid = safe_process.read_pid(pid_file)
   if pid == identity.pid:
@@ -61,7 +56,15 @@ def read_or_discover_livy_process(
       LIVY_SERVER_PROCESS_TOKENS,
       identity=identity,
     ):
-      return identity
+      return safe_process.publish_pid_file_for_identity(
+        pid_file,
+        identity,
+        user,
+        LIVY_SERVER_PROCESS_TOKENS,
+        owner=user,
+        group=group,
+        mode=0o640,
+      )
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       pid,
@@ -75,7 +78,7 @@ def read_or_discover_livy_process(
   if identity is None:
     return None
   try:
-    return safe_process.create_pid_file_for_identity(
+    return safe_process.publish_pid_file_for_identity(
       pid_file,
       identity,
       user,
@@ -87,7 +90,7 @@ def read_or_discover_livy_process(
   except Exception:
     if rollback_discovered:
       try:
-        rollback_started_livy_process(pid_file, user, identity=identity)
+        rollback_started_livy_process(pid_file, identity, user)
       except Exception as rollback_error:
         Logger.warning(
           f"Could not roll back failed Livy start: {rollback_error}"
@@ -132,21 +135,14 @@ def livy_service(name, upgrade_type=None, action=None):
         f"FILE:{params.livy_server_kerberos_cache_file}"
       )
     File(params.livy_server_kerberos_cache_file, action="delete")
-    try:
-      Execute(
-        (params.livy_server_command, "start"),
-        user=params.livy_user,
-        environment=process_environment,
-        logoutput=True,
-      )
-    except Exception:
-      try:
-        rollback_started_livy_process(
-          params.livy_server_pid_file, params.livy_user
-        )
-      except Exception as rollback_error:
-        Logger.warning(f"Could not roll back failed Livy start: {rollback_error}")
-      raise
+    Execute(
+      (params.livy_server_command, "start"),
+      user=params.livy_user,
+      environment=process_environment,
+      logoutput=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
     wait_for_livy_process(
       params.livy_server_pid_file,
       params.livy_user,

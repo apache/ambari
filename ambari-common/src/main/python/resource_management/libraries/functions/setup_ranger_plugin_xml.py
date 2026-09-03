@@ -23,6 +23,7 @@ __all__ = [
   "setup_ranger_plugin_keystore",
   "get_audit_configs",
   "generate_ranger_service_config",
+  "require_external_ranger_credentials",
 ]
 
 import os
@@ -75,6 +76,32 @@ def _require_safe_jar_path(path, label):
   ):
     raise Fail(f"{label} must end in a filesystem-safe JAR file name")
   return normalized
+
+
+def require_external_ranger_credentials(properties):
+  if not isinstance(properties, dict):
+    raise Fail("External Ranger integration properties must be a mapping")
+  required_properties = (
+    "external_admin_username",
+    "external_admin_password",
+    "external_ranger_admin_username",
+    "external_ranger_admin_password",
+  )
+  missing_properties = [
+    property_name
+    for property_name in required_properties
+    if not isinstance(properties.get(property_name), str)
+    or not properties[property_name].strip()
+  ]
+  if missing_properties:
+    raise Fail(
+      "External Ranger integration requires non-empty properties: "
+      + ", ".join(missing_properties)
+    )
+  return {
+    property_name: properties[property_name]
+    for property_name in required_properties
+  }
 
 
 def setup_ranger_plugin(

@@ -24,6 +24,7 @@ from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from ranger_service import ranger_service
@@ -60,6 +61,8 @@ class RangerAdmin(Script):
           os.path.join(params.ranger_home, "install.properties")
         ),
         sudo=True,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
       File(
         ranger_admin_setup_marker,
@@ -210,40 +213,42 @@ class RangerAdmin(Script):
       if params.stack_supports_ranger_all_admin_change_default_password:
         setup_ranger_xml.setup_ranger_all_admin_password_change(
           params.admin_username,
-          params.default_admin_password,
+          params.upstream_bootstrap_admin_password,
           params.admin_password,
           params.rangerusersync_username,
-          params.default_rangerusersync_user_password,
+          params.upstream_bootstrap_rangerusersync_password,
           params.rangerusersync_user_password,
           params.rangertagsync_username,
-          params.default_rangertagsync_user_password,
+          params.upstream_bootstrap_rangertagsync_password,
           params.rangertagsync_user_password,
           params.keyadmin_username,
-          params.default_keyadmin_user_password,
+          params.upstream_bootstrap_keyadmin_password,
           params.keyadmin_user_password,
         )
       else:
         # Updating password for Ranger Admin user
         setup_ranger_xml.setup_ranger_admin_passwd_change(
-          params.admin_username, params.admin_password, params.default_admin_password
+          params.admin_username,
+          params.admin_password,
+          params.upstream_bootstrap_admin_password,
         )
         # Updating password for Ranger Usersync user
         setup_ranger_xml.setup_ranger_admin_passwd_change(
           params.rangerusersync_username,
           params.rangerusersync_user_password,
-          params.default_rangerusersync_user_password,
+          params.upstream_bootstrap_rangerusersync_password,
         )
         # Updating password for Ranger Tagsync user
         setup_ranger_xml.setup_ranger_admin_passwd_change(
           params.rangertagsync_username,
           params.rangertagsync_user_password,
-          params.default_rangertagsync_user_password,
+          params.upstream_bootstrap_rangertagsync_password,
         )
         # Updating password for Ranger Keyadmin user
         setup_ranger_xml.setup_ranger_admin_passwd_change(
           params.keyadmin_username,
           params.keyadmin_user_password,
-          params.default_keyadmin_user_password,
+          params.upstream_bootstrap_keyadmin_password,
         )
 
   def set_ru_rangeradmin_in_progress(self, upgrade_marker_file):

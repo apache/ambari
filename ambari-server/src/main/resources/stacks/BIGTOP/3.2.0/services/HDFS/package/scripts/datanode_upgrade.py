@@ -22,6 +22,7 @@ import hdfs_process
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core import shell
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core import ComponentIsNotRunning
@@ -58,7 +59,12 @@ def pre_rolling_upgrade_shutdown(hdfs_binary):
     principal=params.dn_principal_name if params.security_enabled else None,
   ) as command_environment:
     code, output = shell.call(
-      command, user=params.hdfs_user, env=command_environment
+      command,
+      user=params.hdfs_user,
+      env=command_environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      shell=False,
     )
   if code != 0:
     Logger.warning(
@@ -100,6 +106,8 @@ def is_datanode_process_running():
       params.datanode_pid_file,
       expected_user,
       "datanode",
+      owner=expected_user,
+      group=params.user_group,
       privileged=privileged,
     )
     return True
@@ -129,7 +137,12 @@ def _check_datanode_startup(hdfs_binary, environment=None):
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
     command = dfsadmin_base_command + ("-report", "-live")
     return_code, hdfs_output = shell.call(
-      command, user=params.hdfs_user, env=environment
+      command,
+      user=params.hdfs_user,
+      env=environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      shell=False,
     )
   except Exception as error:
     raise Fail(

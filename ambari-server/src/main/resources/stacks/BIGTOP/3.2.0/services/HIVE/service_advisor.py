@@ -349,6 +349,7 @@ class HiveValidator(service_advisor.ServiceAdvisor):
       ("hive-site", self.validateHiveSite),
       ("hive-env", self.validateHiveEnvironment),
       ("hiveserver2-site", self.validateHiveServer2Site),
+      ("ranger-hive-plugin-properties", self.validateRangerHivePlugin),
     ]
 
   def validateHiveSite(
@@ -552,6 +553,34 @@ class HiveValidator(service_advisor.ServiceAdvisor):
           )
     return self.toConfigurationValidationProblems(
       validation_items, "hiveserver2-site"
+    )
+
+  def validateRangerHivePlugin(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    authorization = str(
+      effective_property(
+        configurations,
+        services,
+        "hive-env",
+        "hive_security_authorization",
+        "None",
+      )
+    ).strip().lower()
+    validation_items = []
+    if authorization == "ranger" and not str(
+      properties.get("REPOSITORY_CONFIG_PASSWORD", "")
+    ).strip():
+      validation_items.append(
+        {
+          "config-name": "REPOSITORY_CONFIG_PASSWORD",
+          "item": self.getErrorItem(
+            "REPOSITORY_CONFIG_PASSWORD must not be empty when Ranger Hive authorization is enabled"
+          ),
+        }
+      )
+    return self.toConfigurationValidationProblems(
+      validation_items, "ranger-hive-plugin-properties"
     )
 
   def _validate_port(self, properties, name, validation_items):

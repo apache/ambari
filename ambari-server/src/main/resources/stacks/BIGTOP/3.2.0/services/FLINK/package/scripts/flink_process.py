@@ -44,21 +44,15 @@ def expected_process_tokens(config_dir):
 
 
 def _publish_identity(pid_file, identity, user, group, expected_tokens):
-  try:
-    return safe_process.create_pid_file_for_identity(
-      pid_file,
-      identity,
-      expected_user=user,
-      expected_cmdline=expected_tokens,
-      owner=user,
-      group=group,
-      mode=0o640,
-    )
-  except Fail:
-    current = safe_process.read_running_process(pid_file, user, expected_tokens)
-    if current is not None and identity.matches(current):
-      return current
-    raise
+  return safe_process.publish_pid_file_for_identity(
+    pid_file,
+    identity,
+    expected_user=user,
+    expected_cmdline=expected_tokens,
+    owner=user,
+    group=group,
+    mode=0o640,
+  )
 
 
 def read_or_recover_process(pid_file, user, group, config_dir):
@@ -68,7 +62,7 @@ def read_or_recover_process(pid_file, user, group, config_dir):
   if recorded_pid is not None:
     identity = safe_process.read_running_process(pid_file, user, expected_tokens)
     if identity is not None:
-      return identity
+      return _publish_identity(pid_file, identity, user, group, expected_tokens)
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       recorded_pid,

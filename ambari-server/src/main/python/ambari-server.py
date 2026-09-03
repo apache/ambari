@@ -1418,7 +1418,12 @@ def init_logging():
   python_log_level = logging.INFO
   python_log_name = "ambari-server-command.log"
 
-  custom_log_level = properties["server.python.log.level"]
+  # Configuration loading is best-effort during setup and startup diagnostics.
+  # Preserve the default logging contract when the properties file is absent
+  # or cannot be parsed instead of indexing the ``-1`` failure sentinel.
+  custom_log_level = (
+    properties["server.python.log.level"] if properties != -1 else ""
+  )
 
   if custom_log_level:
     if custom_log_level == "INFO":
@@ -1426,7 +1431,7 @@ def init_logging():
     if custom_log_level == "DEBUG":
       python_log_level = logging.DEBUG
 
-  custom_log_name = properties["server.python.log.name"]
+  custom_log_name = properties["server.python.log.name"] if properties != -1 else ""
 
   if custom_log_name:
     python_log_name = custom_log_name

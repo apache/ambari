@@ -49,6 +49,8 @@ def validate_hdfs_directory(path, label, allow_top_level=False, allow_uri=False)
   if not isinstance(path, str) or not path.strip():
     raise Fail(f"{label} must be a non-empty absolute HDFS directory")
   value = path.strip()
+  if value != path:
+    raise Fail(f"{label} must not contain surrounding whitespace: {path!r}")
   if any(ord(character) < 32 or ord(character) == 127 for character in value):
     raise Fail(f"{label} must not contain control characters: {path!r}")
   parsed = urllib.parse.urlsplit(value)
@@ -67,7 +69,7 @@ def validate_hdfs_directory(path, label, allow_top_level=False, allow_uri=False)
       raise Fail(f"{label} has an unsupported HDFS path: {path!r}")
     raw_path = parsed.path
 
-  if "%" in parsed.netloc or "%" in raw_path or "\" in raw_path:
+  if "%" in parsed.netloc or "%" in raw_path or "\\" in raw_path:
     raise Fail(f"{label} must not contain encoded or backslash path data: {path!r}")
 
   raw_parts = [part for part in raw_path.split("/") if part]
@@ -82,9 +84,10 @@ def validate_hdfs_directory(path, label, allow_top_level=False, allow_uri=False)
     raise Fail(f"{label} is an unsafe HDFS directory: {path!r}")
   if not parsed.scheme:
     return normalized_path
-  return urllib.parse.urlunsplit(
+  normalized_uri = urllib.parse.urlunsplit(
     (parsed.scheme.lower(), parsed.netloc, normalized_path, "", "")
   )
+  return normalized_uri if parsed.netloc else f"{parsed.scheme.lower()}://{normalized_path}"
 
 
 def join_hdfs_directory(base, *segments):
@@ -92,9 +95,10 @@ def join_hdfs_directory(base, *segments):
   joined_path = posixpath.join(parsed.path if parsed.scheme else base, *segments)
   if not parsed.scheme:
     return joined_path
-  return urllib.parse.urlunsplit(
+  joined_uri = urllib.parse.urlunsplit(
     (parsed.scheme, parsed.netloc, joined_path, "", "")
   )
+  return joined_uri if parsed.netloc else f"{parsed.scheme}://{joined_path}"
 
 
 def _validate_archive_directory(path, version):
@@ -111,7 +115,7 @@ def _validate_archive_directory(path, version):
       continue
     metadata = sudo.lstat(current)
     if sudo.path_islink(current):
-      raise Fail(f"ATS HBase archive directory must not contain a symlink: {current}")
+      raise Fail(f"ATS HBase archive directory must not contain a symbolic link: {current}")
     if not stat.S_ISDIR(metadata.st_mode):
       raise Fail(f"ATS HBase archive parent must be a directory: {current}")
     if metadata.st_uid != 0 or metadata.st_mode & 0o022:
@@ -399,7 +403,7 @@ def hbase_service(name, action="start"):  # 'start' or 'stop'
   pid_file = format("{yarn_hbase_pid_dir}/hbase-{yarn_hbase_user}-{role}.pid")
 
   if action == "start":
-    start_attempted = False
+    started_identity = None
     try:
       running = yarn_process_utils.recover_running_process(
         pid_file,
@@ -410,45 +414,40 @@ def hbase_service(name, action="start"):  # 'start' or 'stop'
       )
       if running is not None:
         Logger.info(f"YARN ATS HBase {role} is already running as pid {running.pid}")
-        return False
-      start_attempted = True
+        return None
       Execute(
         (daemon_script, "--config", params.yarn_hbase_conf_dir, "start", role),
         user=params.yarn_hbase_user,
         timeout=300,
         timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
-      yarn_process_utils.wait_for_running_process(
+      started_identity = yarn_process_utils.wait_for_running_process(
         pid_file,
         params.yarn_hbase_user,
         role,
         params.yarn_hbase_user,
         params.user_group,
       )
-      return True
-    except Exception as error:
-      secondary_errors = []
-      if start_attempted:
+      return started_identity
+    except Exception:
+      if started_identity is not None:
         try:
-          yarn_process_utils.stop_process(
+          yarn_process_utils.rollback_started_process(
             pid_file,
+            started_identity,
             params.yarn_hbase_user,
             role,
-            params.yarn_hbase_user,
-            params.user_group,
           )
         except Exception as cleanup_error:
-          secondary_errors.append(
-            f"failed to stop newly started HBase {role}: {cleanup_error}"
+          Logger.warning(
+            f"Could not roll back failed YARN ATS HBase {role} start: {cleanup_error}"
           )
       try:
         show_logs(params.yarn_hbase_log_dir, params.yarn_hbase_user)
       except Exception as log_error:
-        secondary_errors.append(f"log collection failed: {log_error}")
-      if secondary_errors:
-        raise RuntimeError(
-          f"{error}; additionally {'; '.join(secondary_errors)}"
-        ) from error
+        Logger.warning(
+          f"Could not collect YARN ATS HBase logs after start failure: {log_error}"
+        )
       raise
   elif action == "stop":
     try:
@@ -459,21 +458,29 @@ def hbase_service(name, action="start"):  # 'start' or 'stop'
         params.yarn_hbase_user,
         params.user_group,
       )
-    except Exception as error:
+    except Exception:
       try:
         show_logs(params.yarn_hbase_log_dir, params.yarn_hbase_user)
       except Exception as log_error:
-        raise RuntimeError(
-          f"{error}; additionally log collection failed: {log_error}"
-        ) from error
+        Logger.warning(
+          f"Could not collect YARN ATS HBase logs after stop failure: {log_error}"
+        )
       raise
 
 
 def rollback_hbase_roles(started_roles):
+  import params
+
   cleanup_errors = []
-  for role in reversed(started_roles):
+  for role, identity in reversed(started_roles):
+    pid_file = format("{yarn_hbase_pid_dir}/hbase-{yarn_hbase_user}-{role}.pid")
     try:
-      hbase_service(role, action="stop")
+      yarn_process_utils.rollback_started_process(
+        pid_file,
+        identity,
+        params.yarn_hbase_user,
+        role,
+      )
     except Exception as error:
       cleanup_errors.append(f"{role}: {error}")
   return cleanup_errors
@@ -496,19 +503,21 @@ def hbase(action):
     Logger.info("Starting HBase daemons")
     started_roles = []
     try:
-      if hbase_service("master", action=action):
-        started_roles.append("master")
-      if hbase_service("regionserver", action=action):
-        started_roles.append("regionserver")
+      master_identity = hbase_service("master", action=action)
+      if master_identity is not None:
+        started_roles.append(("master", master_identity))
+      regionserver_identity = hbase_service("regionserver", action=action)
+      if regionserver_identity is not None:
+        started_roles.append(("regionserver", regionserver_identity))
       createTables()
       return tuple(started_roles)
-    except Exception as error:
+    except Exception:
       cleanup_errors = rollback_hbase_roles(started_roles)
       if cleanup_errors:
-        raise Fail(
-          f"{error}; additionally failed to roll back HBase roles: "
+        Logger.warning(
+          "Could not roll back newly started YARN ATS HBase roles: "
           + "; ".join(cleanup_errors)
-        ) from error
+        )
       raise
 
 
@@ -863,11 +872,10 @@ def create_hbase_package():
       except Exception as cleanup_error:
         rollback_error = cleanup_error
     if rollback_error is not None:
-      primary_error = Fail(
-        f"{error}; additionally failed to roll back HBase archive publication: "
+      Logger.warning(
+        "Could not roll back failed HBase archive publication: "
         f"{rollback_error}"
       )
-      raise primary_error from error
     primary_error = error
     raise
   finally:
@@ -876,10 +884,10 @@ def create_hbase_package():
     except Exception as cleanup_error:
       if primary_error is None:
         raise
-      raise Fail(
-        f"{primary_error}; additionally failed to remove staging directory "
-        f"{staging_dir}: {cleanup_error}"
-      ) from primary_error
+      Logger.warning(
+        f"Could not remove HBase archive staging directory {staging_dir}: "
+        f"{cleanup_error}"
+      )
 
 
 def copy_hbase_package_to_hdfs():
@@ -924,7 +932,11 @@ def createTables():
 
   try:
     Logger.info("Creating HBase tables")
-    Execute(("sleep", "10"), timeout=15)
+    Execute(
+      ("sleep", "10"),
+      timeout=15,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
     def execute_hbase_commands(environment, grant_permissions_file=None):
       Execute(
         (
@@ -983,5 +995,10 @@ def createTables():
     else:
       execute_hbase_commands(base_environment)
   except Exception:
-    show_logs(params.yarn_hbase_log_dir, params.yarn_hbase_user)
+    try:
+      show_logs(params.yarn_hbase_log_dir, params.yarn_hbase_user)
+    except Exception as log_error:
+      Logger.warning(
+        f"Could not collect YARN ATS HBase logs after schema failure: {log_error}"
+      )
     raise

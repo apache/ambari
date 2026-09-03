@@ -494,6 +494,20 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
     )
     servicesList = _service_names(services)
     security_enabled = KafkaServiceAdvisor.isKerberosEnabled(services, configurations)
+    if ranger_plugin_enabled.lower() == "yes":
+      repository_password = ranger_plugin_properties.get(
+        "REPOSITORY_CONFIG_PASSWORD"
+      )
+      if not isinstance(repository_password, str) or not repository_password.strip():
+        validationItems.append(
+          {
+            "config-name": "REPOSITORY_CONFIG_PASSWORD",
+            "item": self.getErrorItem(
+              "Ranger Kafka repository config password must not be empty when "
+              "the plugin is enabled"
+            ),
+          }
+        )
     if "RANGER" in servicesList and ranger_plugin_enabled.lower() == "yes":
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = self.getServicesSiteProperties(services, "ranger-env")

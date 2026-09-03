@@ -22,6 +22,9 @@ import re
 import math
 
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.setup_ranger_plugin_xml import (
+  require_external_ranger_credentials,
+)
 
 
 MEMORY_PATTERN = re.compile(r"\s*([0-9]+)\s*([kmg]?)\s*", re.IGNORECASE)
@@ -49,30 +52,6 @@ def strict_bool(value, property_name):
     if normalized == "false":
       return False
   raise Fail(f"{property_name} must be true or false")
-
-
-def require_external_ranger_credentials(properties):
-  required_properties = (
-    "external_admin_username",
-    "external_admin_password",
-    "external_ranger_admin_username",
-    "external_ranger_admin_password",
-  )
-  missing_properties = [
-    property_name
-    for property_name in required_properties
-    if not isinstance(properties.get(property_name), str)
-    or not properties[property_name].strip()
-  ]
-  if missing_properties:
-    raise Fail(
-      "External Ranger integration requires non-empty properties: "
-      + ", ".join(missing_properties)
-    )
-  return {
-    property_name: properties[property_name]
-    for property_name in required_properties
-  }
 
 
 def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):

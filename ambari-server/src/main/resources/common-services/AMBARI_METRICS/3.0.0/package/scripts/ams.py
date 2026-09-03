@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.core.source import InlineTemplate, StaticFile, Template
@@ -106,6 +107,7 @@ def ams(name=None, action=None):
       ],
       owner=params.ams_user,
       group=params.user_group,
+      mode=0o600,
     )
 
     merged_ams_hbase_site = {}
@@ -136,6 +138,8 @@ def ams(name=None, action=None):
       TemplateConfig(
         os.path.join(params.hbase_conf_dir, "ams_collector_jaas.conf"),
         owner=params.ams_user,
+        group=params.user_group,
+        mode=0o600,
         template_tag=None,
       )
 
@@ -292,6 +296,7 @@ def ams(name=None, action=None):
         ],
         owner=params.ams_user,
         group=params.user_group,
+        mode=0o600,
       )
 
     Directory(
@@ -306,6 +311,7 @@ def ams(name=None, action=None):
       format("{ams_monitor_conf_dir}/metric_monitor.ini"),
       owner=params.ams_user,
       group=params.user_group,
+      mode=0o600,
       template_tag=None,
     )
 
@@ -438,6 +444,7 @@ def export_ca_certs(dir_path):
         sudo=True,
         environment=secret_environment,
         timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
       truststore = truststore_p12
 
@@ -457,6 +464,7 @@ def export_ca_certs(dir_path):
       sudo=True,
       environment=secret_environment,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     File(
       ca_certs_path,

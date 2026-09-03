@@ -23,6 +23,7 @@ import re
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -126,6 +127,7 @@ class LivyServiceCheck(Script):
           Execute(
             tuple(curl_argv),
             timeout=CHECK_COMMAND_TIMEOUT_SECONDS + 5,
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
             tries=3,
             try_sleep=1,
             logoutput=True,

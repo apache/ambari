@@ -21,6 +21,7 @@ from contextlib import nullcontext
 
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -70,6 +71,7 @@ def webhcat_service_check():
       user=params.smokeuser,
       env=environment,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       tries=3,
       try_sleep=5,
     )
@@ -87,6 +89,7 @@ def webhcat_service_check():
       user=params.smokeuser,
       env=environment,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       tries=3,
       try_sleep=5,
     )

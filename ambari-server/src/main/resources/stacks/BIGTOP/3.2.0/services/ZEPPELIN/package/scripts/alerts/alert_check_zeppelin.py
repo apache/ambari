@@ -25,6 +25,7 @@ import time
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
@@ -146,7 +147,7 @@ def execute(configurations=None, parameters=None, host_name=None):
         environment = kerberos_cache.environment
 
       command = [
-        "curl",
+        "/usr/bin/curl",
         "--disable",
         "--silent",
         "--show-error",
@@ -168,6 +169,7 @@ def execute(configurations=None, parameters=None, host_name=None):
       Execute(
         tuple(command),
         timeout=check_timeout + 5,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         user=zeppelin_user,
         logoutput=True,
         **execute_options,

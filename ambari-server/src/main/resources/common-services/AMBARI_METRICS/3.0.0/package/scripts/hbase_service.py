@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.show_logs import show_logs
 
 from metrics_process import (
@@ -60,24 +61,18 @@ def hbase_service(name, action="start"):  # 'start' or 'stop' or 'status'
         user=params.hbase_user,
         environment={"JAVA_HOME": params.java64_home},
         timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
-      wait_for_hbase_process(
+      started_identity = wait_for_hbase_process(
         pid_file, params.hbase_user, params.user_group, name
       )
     except Exception:
       try:
-        stop_hbase_process(
-          pid_file,
-          params.hbase_user,
-          params.user_group,
-          name,
-          wait_attempts=max(1, int(params.hbase_regionserver_shutdown_timeout)),
-        )
-      except Exception as cleanup_error:
-        Logger.error(f"Failed to roll back AMS HBase {name}: {cleanup_error}")
-      show_logs(params.hbase_log_dir, params.hbase_user)
+        show_logs(params.hbase_log_dir, params.hbase_user)
+      except Exception as log_error:
+        Logger.warning(f"Unable to show AMS HBase startup logs: {log_error}")
       raise
-    return True
+    return started_identity
 
   if identity is None:
     Logger.info(f"No running AMS HBase {name} process was found")
@@ -93,5 +88,8 @@ def hbase_service(name, action="start"):  # 'start' or 'stop' or 'status'
       wait_attempts=wait_attempts,
     )
   except Exception:
-    show_logs(params.hbase_log_dir, params.hbase_user)
+    try:
+      show_logs(params.hbase_log_dir, params.hbase_user)
+    except Exception as log_error:
+      Logger.warning(f"Unable to show AMS HBase shutdown logs: {log_error}")
     raise

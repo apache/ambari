@@ -23,7 +23,6 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import solr_cloud_util
-from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 
 import infra_solr_utils
@@ -192,7 +191,6 @@ def setup_solr_znode_env():
     )
 
 
-@retry(times=30, sleep_time=5, err_class=Fail)
 def create_ambari_solr_znode(java_opts, jaas_file):
   import params
 

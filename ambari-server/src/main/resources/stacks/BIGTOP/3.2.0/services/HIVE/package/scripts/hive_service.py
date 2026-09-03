@@ -26,7 +26,8 @@ from ambari_commons.db_connection_helper import verify_db_connection
 from resource_management.core import shell
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
@@ -112,7 +113,7 @@ def expected_process_tokens(role):
     raise Fail(f"Unsupported Hive service role: {role}") from error
 
 
-def read_or_discover_hive_process(pid_file, user, group, role):
+def _find_hive_process(pid_file, user, role):
   tokens = expected_process_tokens(role)
   pid = safe_process.read_pid(pid_file)
   if pid is not None:
@@ -128,10 +129,14 @@ def read_or_discover_hive_process(pid_file, user, group, role):
       expected_cmdline=tokens,
     )
 
-  identity = safe_process.discover_running_process(user, tokens)
+  return safe_process.discover_running_process(user, tokens)
+
+
+def _publish_hive_process(pid_file, identity, user, group, role):
+  tokens = expected_process_tokens(role)
   if identity is None:
     return None
-  return safe_process.create_pid_file_for_identity(
+  return safe_process.publish_pid_file_for_identity(
     pid_file,
     identity,
     user,
@@ -142,16 +147,53 @@ def read_or_discover_hive_process(pid_file, user, group, role):
   )
 
 
+def read_or_discover_hive_process(pid_file, user, group, role):
+  identity = _find_hive_process(pid_file, user, role)
+  return _publish_hive_process(pid_file, identity, user, group, role)
+
+
 def wait_for_hive_process(
   pid_file, user, group, role, attempts=30, sleep_seconds=1
 ):
   for attempt in range(attempts):
-    identity = read_or_discover_hive_process(pid_file, user, group, role)
+    identity = _find_hive_process(pid_file, user, role)
     if identity is not None:
-      return identity
+      try:
+        return _publish_hive_process(pid_file, identity, user, group, role)
+      except Exception:
+        tokens = expected_process_tokens(role)
+        try:
+          safe_process.terminate_process(
+            identity,
+            user,
+            tokens,
+            term_wait_attempts=10,
+            term_wait_sleep=1,
+            kill_wait_attempts=10,
+            kill_wait_sleep=1,
+          )
+          safe_process.remove_pid_file_if_stopped(
+            pid_file,
+            identity.pid,
+            expected_user=user,
+            expected_cmdline=tokens,
+          )
+        except Exception as cleanup_error:
+          Logger.error(
+            f"Could not roll back Hive {role} after PID publication failed: "
+            f"{cleanup_error}"
+          )
+        raise
     if attempt + 1 < attempts:
       time.sleep(sleep_seconds)
   raise Fail(f"Hive {role} did not start with a valid process identity")
+
+
+def _show_logs_without_masking(log_dir, user, role):
+  try:
+    show_logs(log_dir, user)
+  except Exception as log_error:
+    Logger.error(f"Could not collect {role} logs from {log_dir}: {log_error}")
 
 
 def check_hive_process_status(pid_file, user, group, role):
@@ -248,15 +290,10 @@ def hive_service(name, action="start", upgrade_type=None):
         path=params.execute_path,
         logoutput=True,
         timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
       started_identity = wait_for_hive_process(
         pid_file, params.hive_user, params.user_group, name
-      )
-      File(
-        pid_file,
-        owner=params.hive_user,
-        group=params.user_group,
-        mode=0o640,
       )
       if name == "hiveserver2":
         _wait_for_secure_znode(params)
@@ -280,7 +317,9 @@ def hive_service(name, action="start", upgrade_type=None):
           )
         except Exception as cleanup_error:
           Logger.error(f"Could not roll back failed Hive {name} start: {cleanup_error}")
-      show_logs(params.hive_log_dir, params.hive_user)
+      _show_logs_without_masking(
+        params.hive_log_dir, params.hive_user, f"Hive {name}"
+      )
       raise
     return
 
@@ -307,7 +346,9 @@ def hive_service(name, action="start", upgrade_type=None):
       expected_cmdline=tokens,
     )
   except Exception:
-    show_logs(params.hive_log_dir, params.hive_user)
+    _show_logs_without_masking(
+      params.hive_log_dir, params.hive_user, f"Hive {name}"
+    )
     raise
 
 
@@ -343,7 +384,9 @@ def validate_connection(target_path_to_jdbc, hive_lib_path):
       try_sleep=10,
     )
   except Exception:
-    show_logs(params.hive_log_dir, params.hive_user)
+    _show_logs_without_masking(
+      params.hive_log_dir, params.hive_user, "Hive database validation"
+    )
     raise
 
 
@@ -372,6 +415,7 @@ def wait_for_znode(environment=None):
     user=params.hive_user,
     env=environment,
     timeout=60,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
   if "serverUri=" not in str(output):
     raise Fail(f"ZooKeeper node /{namespace} is not ready yet")

@@ -24,6 +24,7 @@ from contextlib import nullcontext
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -66,6 +67,7 @@ def deregister():
       user=params.hive_user,
       environment=environment,
       timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       tries=1,
     )
 
@@ -78,6 +80,7 @@ def _get_current_hiveserver_version(params, environment=None):
       env=environment,
       path=params.execute_path,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   except Exception as exception:
     raise Fail(

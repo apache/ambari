@@ -21,13 +21,14 @@ import os
 
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import safe_process
-from resource_management.libraries.functions.show_logs import show_logs
 
 from hive_service import (
   expected_process_tokens,
   read_or_discover_hive_process,
+  _show_logs_without_masking,
   wait_for_hive_process,
 )
 
@@ -64,18 +65,13 @@ def webhcat_service(action="start", upgrade_type=None):
         cwd=params.hcat_pid_dir,
         logoutput=True,
         timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
       started_identity = wait_for_hive_process(
         params.webhcat_pid_file,
         params.webhcat_user,
         params.user_group,
         role,
-      )
-      File(
-        params.webhcat_pid_file,
-        owner=params.webhcat_user,
-        group=params.user_group,
-        mode=0o640,
       )
     except Exception:
       if started_identity is not None:
@@ -97,7 +93,9 @@ def webhcat_service(action="start", upgrade_type=None):
           )
         except Exception as cleanup_error:
           Logger.error(f"Could not roll back failed WebHCat start: {cleanup_error}")
-      show_logs(params.hcat_log_dir, params.webhcat_user)
+      _show_logs_without_masking(
+        params.hcat_log_dir, params.webhcat_user, "WebHCat"
+      )
       raise
     return
 
@@ -122,5 +120,7 @@ def webhcat_service(action="start", upgrade_type=None):
       expected_cmdline=tokens,
     )
   except Exception:
-    show_logs(params.hcat_log_dir, params.webhcat_user)
+    _show_logs_without_masking(
+      params.hcat_log_dir, params.webhcat_user, "WebHCat"
+    )
     raise

@@ -1340,6 +1340,7 @@ class RangerValidator(service_advisor.ServiceAdvisor):
       ("ranger-tagsync-site", self.validateRangerTagsyncConfigurations),
       ("ranger-ugsync-site", self.validateRangerUsersyncConfigurations),
       ("ranger-env", self.validateRangerPasswordConfigurations),
+      ("ranger-admin-site", self.validateRangerRuntimeConfigurations),
     ]
 
   def validateRangerAuditConfigurations(
@@ -1388,6 +1389,40 @@ class RangerValidator(service_advisor.ServiceAdvisor):
           }
         )
     return self.toConfigurationValidationProblems(validationItems, "admin-properties")
+
+  def validateRangerRuntimeConfigurations(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    validationItems = []
+    ssl_property = "ranger.service.https.attrib.ssl.enabled"
+    try:
+      ssl_enabled = _strict_bool(properties.get(ssl_property), ssl_property)
+    except ValueError as error:
+      ssl_enabled = False
+      validationItems.append(
+        {
+          "config-name": ssl_property,
+          "item": self.getErrorItem(str(error)),
+        }
+      )
+
+    keystore_password_property = "ranger.service.https.attrib.keystore.pass"
+    keystore_password = properties.get(keystore_password_property)
+    if ssl_enabled and (
+      not isinstance(keystore_password, str) or not keystore_password.strip()
+    ):
+      validationItems.append(
+        {
+          "config-name": keystore_password_property,
+          "item": self.getErrorItem(
+            "Ranger Admin HTTPS keystore password must not be empty"
+          ),
+        }
+      )
+
+    return self.toConfigurationValidationProblems(
+      validationItems, "ranger-admin-site"
+    )
 
   def validateRangerPluginConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
@@ -1457,6 +1492,37 @@ class RangerValidator(service_advisor.ServiceAdvisor):
   ):
     ranger_usersync_properties = properties
     validationItems = []
+
+    ssl_property = "ranger.usersync.ssl"
+    try:
+      ssl_enabled = _strict_bool(
+        ranger_usersync_properties.get(ssl_property),
+        f"ranger-ugsync-site/{ssl_property}",
+      )
+    except ValueError as error:
+      ssl_enabled = False
+      validationItems.append(
+        {
+          "config-name": ssl_property,
+          "item": self.getErrorItem(str(error)),
+        }
+      )
+
+    keystore_password_property = "ranger.usersync.keystore.password"
+    keystore_password = ranger_usersync_properties.get(
+      keystore_password_property
+    )
+    if ssl_enabled and (
+      not isinstance(keystore_password, str) or not keystore_password.strip()
+    ):
+      validationItems.append(
+        {
+          "config-name": keystore_password_property,
+          "item": self.getErrorItem(
+            "Ranger Usersync keystore password must not be empty"
+          ),
+        }
+      )
 
     delta_sync_enabled = (
       "ranger.usersync.ldap.deltasync" in ranger_usersync_properties

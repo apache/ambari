@@ -20,6 +20,13 @@ limitations under the License.
 import os
 
 
+def _parse_boolean(value, name):
+  normalized = str(value).strip().lower()
+  if normalized not in ("true", "false"):
+    raise ValueError(f"{name} must be true or false")
+  return normalized == "true"
+
+
 def get_spark_home(configured_home, stack_root, use_current):
   if use_current:
     return os.path.join(stack_root, "current", "spark-client")
@@ -29,19 +36,34 @@ def get_spark_home(configured_home, stack_root, use_current):
 def get_spark_thriftserver_settings(configurations, cluster_host_info):
   spark_config = configurations.get("spark-hive-site-override", {})
   hosts = cluster_host_info.get("spark_thriftserver_hosts", [])
-  transport_mode = spark_config.get("hive.server2.transport.mode", "binary")
+  transport_mode = str(
+    spark_config.get("hive.server2.transport.mode", "binary")
+  ).strip().lower()
+  if transport_mode not in ("binary", "http"):
+    raise ValueError("Spark Thrift transport mode must be binary or http")
   port_property = (
     "hive.server2.thrift.http.port"
-    if str(transport_mode).lower() == "http"
+    if transport_mode == "http"
     else "hive.server2.thrift.port"
   )
   port = spark_config.get(port_property)
   port_available = port is not None and bool(str(port).strip())
-  ssl_enabled = str(spark_config.get("hive.server2.use.SSL", False)).lower() == "true"
+  if port_available:
+    try:
+      port_number = int(port)
+    except (TypeError, ValueError) as error:
+      raise ValueError("Spark Thrift port must be an integer") from error
+    if not 1 <= port_number <= 65535:
+      raise ValueError("Spark Thrift port must be between 1 and 65535")
+    port = str(port_number)
+  ssl_enabled = _parse_boolean(
+    spark_config.get("hive.server2.use.SSL", False),
+    "hive.server2.use.SSL",
+  )
 
   return {
     "host": str(hosts[0]) if hosts and port_available else None,
-    "port": str(port) if port_available else None,
+    "port": port if port_available else None,
     "principal": spark_config.get("hive.server2.authentication.kerberos.principal"),
     "transport_mode": transport_mode,
     "http_path": spark_config.get("hive.server2.http.endpoint"),

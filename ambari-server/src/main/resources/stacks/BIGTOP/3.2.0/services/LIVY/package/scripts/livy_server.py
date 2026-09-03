@@ -22,6 +22,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.providers.hdfs_resource import HdfsResourceProvider
 from resource_management import is_empty
 from resource_management import shell
@@ -163,6 +164,7 @@ class LivyServer(Script):
         user=params.livy_user,
         env=kerberos_environment,
         timeout=30,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )[0]
       dir_exists = dfs_ret_code == 0
 

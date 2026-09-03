@@ -35,6 +35,7 @@ from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
 from resource_management.core.exceptions import Fail, ComponentIsNotRunning
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 
 
 class ZkfcSlave(Script):
@@ -67,6 +68,8 @@ class ZkfcSlave(Script):
       returns=[0, 2],  # Returns 0 on success ; Returns 2 if zkfc is already formatted
       user=params.hdfs_user,
       logoutput=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
 
@@ -130,7 +133,11 @@ class ZkfcSlaveDefault(ZkfcSlave):
 
     env.set_params(status_params)
     hdfs_process.check_component_status(
-      status_params.zkfc_pid_file, status_params.hdfs_user, "zkfc"
+      status_params.zkfc_pid_file,
+      status_params.hdfs_user,
+      "zkfc",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
     )
 
   def disable_security(self, env):
@@ -186,7 +193,14 @@ def initialize_ha_zookeeper(params):
     Logger.info(f"Initialize HA state in ZooKeeper: {formatZK_cmd}")
     for i in range(iterations):
       Logger.info("Try %d out of %d" % (i + 1, iterations))
-      code, out = shell.call(formatZK_cmd, logoutput=False, user=params.hdfs_user)
+      code, out = shell.call(
+        formatZK_cmd,
+        logoutput=False,
+        user=params.hdfs_user,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        shell=False,
+      )
       if code == 0:
         Logger.info("HA state initialized in ZooKeeper successfully")
         return True

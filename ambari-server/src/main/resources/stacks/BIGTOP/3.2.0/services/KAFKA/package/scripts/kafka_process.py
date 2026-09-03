@@ -20,6 +20,7 @@ limitations under the License.
 import os
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 
@@ -65,21 +66,15 @@ def expected_process_tokens(server_properties):
 
 
 def _publish_identity(pid_file, identity, user, group, expected_tokens):
-  try:
-    return safe_process.create_pid_file_for_identity(
-      pid_file,
-      identity,
-      expected_user=user,
-      expected_cmdline=expected_tokens,
-      owner=user,
-      group=group,
-      mode=0o640,
-    )
-  except Fail:
-    current = safe_process.read_running_process(pid_file, user, expected_tokens)
-    if current is not None and identity.matches(current):
-      return current
-    raise
+  return safe_process.publish_pid_file_for_identity(
+    pid_file,
+    identity,
+    expected_user=user,
+    expected_cmdline=expected_tokens,
+    owner=user,
+    group=group,
+    mode=0o640,
+  )
 
 
 def read_or_recover_process(pid_file, user, group, server_properties):
@@ -89,7 +84,7 @@ def read_or_recover_process(pid_file, user, group, server_properties):
   if recorded_pid is not None:
     identity = safe_process.read_running_process(pid_file, user, expected_tokens)
     if identity is not None:
-      return identity
+      return _publish_identity(pid_file, identity, user, group, expected_tokens)
     safe_process.remove_pid_file_if_stopped(
       pid_file,
       recorded_pid,
@@ -119,15 +114,19 @@ def wait_for_started_process(
     attempts=attempts,
     sleep_seconds=sleep_seconds,
   )
-  return _publish_identity(pid_file, identity, user, group, expected_tokens)
+  try:
+    return _publish_identity(pid_file, identity, user, group, expected_tokens)
+  except Exception:
+    try:
+      rollback_started_process(pid_file, identity, user, server_properties)
+    except Exception as error:
+      Logger.warning(f"Could not roll back Kafka after PID publication failure: {error}")
+    raise
 
 
-def rollback_started_process(pid_file, user, server_properties):
+def rollback_started_process(pid_file, identity, user, server_properties):
   validate_pid_file(pid_file)
   expected_tokens = expected_process_tokens(server_properties)
-  identity = safe_process.discover_running_process(user, expected_tokens)
-  if identity is None:
-    return
   safe_process.terminate_process(
     identity,
     user,
@@ -137,14 +136,12 @@ def rollback_started_process(pid_file, user, server_properties):
     kill_wait_attempts=5,
     kill_wait_sleep=1,
   )
-  pid = safe_process.read_pid(pid_file)
-  if pid == identity.pid:
-    safe_process.remove_pid_file_if_stopped(
-      pid_file,
-      identity.pid,
-      expected_user=user,
-      expected_cmdline=expected_tokens,
-    )
+  safe_process.remove_pid_file_if_stopped(
+    pid_file,
+    identity.pid,
+    expected_user=user,
+    expected_cmdline=expected_tokens,
+  )
 
 
 def stop_process(pid_file, user, group, server_properties):

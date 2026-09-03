@@ -23,6 +23,7 @@ import uuid
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
@@ -101,6 +102,7 @@ class ServiceCheck(Script):
         user=params.kafka_user,
         env=command_environment,
         timeout=params.kafka_service_check_timeout,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
       topic_created = True
 
@@ -109,6 +111,7 @@ class ServiceCheck(Script):
         user=params.kafka_user,
         env=command_environment,
         timeout=params.kafka_service_check_timeout,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
       if f"Topic: {topic}" not in description:
         raise Fail(f"Kafka did not describe service-check topic {topic}")
@@ -119,6 +122,7 @@ class ServiceCheck(Script):
         user=params.kafka_user,
         env=command_environment,
         timeout=params.kafka_service_check_timeout,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
       if any(
         line.lstrip().startswith("Topic:") for line in under_replicated.splitlines()
@@ -135,6 +139,7 @@ class ServiceCheck(Script):
             user=params.kafka_user,
             env=command_environment,
             timeout=params.kafka_service_check_timeout,
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
           )
         except Exception as error:
           if check_failed:

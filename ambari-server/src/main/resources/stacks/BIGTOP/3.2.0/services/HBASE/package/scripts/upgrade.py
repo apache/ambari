@@ -25,6 +25,7 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.decorator import retry
@@ -112,7 +113,10 @@ def _hbase_status_output(params, command_file):
   )
   if not params.security_enabled:
     return shell.checked_call(
-      command, user=params.hbase_user, timeout=60
+      command,
+      user=params.hbase_user,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )[1]
 
   required = (
@@ -134,6 +138,7 @@ def _hbase_status_output(params, command_file):
       user=params.hbase_user,
       env=kerberos_cache.environment,
       timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )[1]
 
 

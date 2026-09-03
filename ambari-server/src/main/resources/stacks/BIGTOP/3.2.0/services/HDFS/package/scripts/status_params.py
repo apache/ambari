@@ -30,6 +30,7 @@ hadoop_pid_dir_prefix = config["configurations"]["hadoop-env"][
   "hadoop_pid_dir_prefix"
 ]
 hdfs_user = config["configurations"]["hadoop-env"]["hdfs_user"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
 hadoop_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
 
 root_user = "root"

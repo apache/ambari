@@ -22,6 +22,7 @@ import pwd
 import stat
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
 
 
@@ -74,11 +75,13 @@ def find_process(pid_file, user, group, publish_discovered=True):
   _validate_pid_directory(pid_file, user)
   identity = safe_process.read_running_process(pid_file, user, _EXPECTED_CMDLINE)
   if identity is not None:
-    return identity
+    return safe_process.publish_pid_file_for_identity(
+      pid_file, identity, user, _EXPECTED_CMDLINE, user, group
+    )
   _remove_stale_pid_file(pid_file, user)
   identity = safe_process.discover_running_process(user, _EXPECTED_CMDLINE)
   if identity is not None and publish_discovered:
-    return safe_process.create_pid_file_for_identity(
+    return safe_process.publish_pid_file_for_identity(
       pid_file, identity, user, _EXPECTED_CMDLINE, user, group
     )
   return identity
@@ -90,16 +93,18 @@ def secure_started_process(pid_file, user, group):
   identity = safe_process.wait_for_discovered_process(
     user, _EXPECTED_CMDLINE, attempts=30, sleep_seconds=1
   )
-  launcher_pid = safe_process.read_pid(pid_file)
-  if launcher_pid is None:
-    return safe_process.create_pid_file_for_identity(
+  try:
+    return safe_process.publish_pid_file_for_identity(
       pid_file, identity, user, _EXPECTED_CMDLINE, user, group
     )
-  if launcher_pid != identity.pid:
-    raise Fail("Ranger KMS launcher wrote an unexpected PID")
-  return safe_process.secure_pid_file_for_identity(
-    pid_file, identity, user, _EXPECTED_CMDLINE, user, group
-  )
+  except Exception:
+    try:
+      rollback_started_process(pid_file, identity, user)
+    except Exception as error:
+      Logger.warning(
+        f"Could not roll back failed Ranger KMS PID publication: {error}"
+      )
+    raise
 
 
 def stop_process(pid_file, user, group):
@@ -114,11 +119,8 @@ def stop_process(pid_file, user, group):
     )
 
 
-def rollback_started_process(pid_file, user):
+def rollback_started_process(pid_file, identity, user):
   _validate_pid_file(pid_file)
-  identity = safe_process.discover_running_process(user, _EXPECTED_CMDLINE)
-  if identity is None:
-    return
   safe_process.terminate_process(identity, user, _EXPECTED_CMDLINE)
   try:
     _validate_pid_directory(pid_file, user)

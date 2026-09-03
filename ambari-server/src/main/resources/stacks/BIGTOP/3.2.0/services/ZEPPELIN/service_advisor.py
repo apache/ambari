@@ -19,6 +19,7 @@ limitations under the License.
 
 # Python imports
 from ambari_commons import import_utils
+import hashlib
 import os
 import re
 
@@ -38,6 +39,51 @@ except Exception as error:
 
 
 _USER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]*\$?", re.ASCII)
+_LEGACY_LOCAL_USER_DIGESTS = frozenset(
+  (
+    "0051e9a0197704a027623c2376b1758a2519a3f5a0b67a507144d7cb10bbc961",
+    "e406380da87579e67e29e7d19a0c7aae1f73630774c5f4c0953bf709284e85a9",
+    "78f23667e87d9f7fe5e5da4e80411a81f4477f8bb9b5bfdb2536c0145181bbb0",
+    "7053e375d3d158c3899072fce62a53b7050f2052352957d3e691456d17edd12f",
+  )
+)
+
+
+def _shiro_configuration_error(content):
+  if not isinstance(content, str) or not content.strip():
+    return "Zeppelin Shiro configuration must not be empty"
+  if "\x00" in content:
+    return "Zeppelin Shiro configuration contains a NUL character"
+
+  section = None
+  catch_all = None
+  for raw_line in content.splitlines():
+    line = raw_line.strip()
+    if not line or line.startswith(("#", ";")):
+      continue
+    if line.startswith("[") and line.endswith("]"):
+      section = line[1:-1].strip().lower()
+      continue
+    if section == "users" and "=" in line:
+      normalized = re.sub(r"\s+", "", line)
+      digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+      if digest in _LEGACY_LOCAL_USER_DIGESTS:
+        return "Remove the insecure packaged Zeppelin local accounts"
+    if section == "urls" and "=" in line:
+      path, rule = line.split("=", 1)
+      if path.strip() == "/**":
+        catch_all = rule.strip()
+
+  if catch_all is None:
+    return "Zeppelin Shiro configuration must define a /** authentication rule"
+  filters = {
+    item.strip().split("[", 1)[0]
+    for item in catch_all.split(",")
+    if item.strip()
+  }
+  if "anon" in filters or "authc" not in filters:
+    return "Zeppelin Shiro /** rule must require authc and must not allow anon"
+  return None
 
 
 def _integer(value):
@@ -317,7 +363,22 @@ class ZeppelinValidator(service_advisor.ServiceAdvisor):
     self.validators = [
       ("zeppelin-site", self.validate_site),
       ("zeppelin-env", self.validate_environment),
+      ("zeppelin-shiro-ini", self.validate_shiro),
     ]
+
+  def validate_shiro(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    error = _shiro_configuration_error(properties.get("shiro_ini_content"))
+    items = []
+    if error is not None:
+      items.append(
+        {
+          "config-name": "shiro_ini_content",
+          "item": self.getErrorItem(error),
+        }
+      )
+    return self.toConfigurationValidationProblems(items, "zeppelin-shiro-ini")
 
   def validate_site(
     self, properties, recommendedDefaults, configurations, services, hosts

@@ -118,21 +118,11 @@ def _start(params, name):
     spark_process.wait_for_started_process(
       name, pid_file, params.spark_user, params.user_group, conf_file
     )
-  except Exception as start_error:
-    cleanup_error = None
-    try:
-      spark_process.stop_process(name, pid_file, params.spark_user, params.user_group, conf_file)
-    except Exception as error:
-      cleanup_error = error
+  except Exception:
     try:
       show_logs(params.spark_log_dir, user=params.spark_user)
     except Exception as error:
       Logger.warning(f"Could not collect Spark logs after start failure: {error}")
-    if cleanup_error is not None:
-      raise Fail(
-        f"Spark {name} start failed: {start_error}; cleanup also failed: "
-        f"{cleanup_error}"
-      ) from start_error
     raise
 
 

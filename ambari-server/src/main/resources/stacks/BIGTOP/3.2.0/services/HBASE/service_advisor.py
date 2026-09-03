@@ -1069,6 +1069,20 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
     ranger_plugin_enabled = (ranger_plugin_properties or {}).get(
       "ranger-hbase-plugin-enabled", "No"
     )
+    if self.is_enabled(ranger_plugin_enabled):
+      repository_password = (ranger_plugin_properties or {}).get(
+        "REPOSITORY_CONFIG_PASSWORD"
+      )
+      if not isinstance(repository_password, str) or not repository_password.strip():
+        validationItems.append(
+          {
+            "config-name": "REPOSITORY_CONFIG_PASSWORD",
+            "item": self.getErrorItem(
+              "Ranger HBase repository config password must not be empty when "
+              "the plugin is enabled"
+            ),
+          }
+        )
     if "RANGER" in servicesList and self.is_enabled(ranger_plugin_enabled):
       # The service-specific plugin flag must agree with ranger-env.
       ranger_env = self.getServicesSiteProperties(services, "ranger-env")

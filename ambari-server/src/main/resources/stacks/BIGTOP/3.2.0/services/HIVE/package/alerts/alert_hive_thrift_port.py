@@ -463,7 +463,7 @@ def _run_beeline_alert(
       user=smokeuser,
       env=environment,
       timeout=timeout,
-      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
 

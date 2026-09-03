@@ -22,6 +22,7 @@ import re
 from mysql_service import get_daemon_name
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.private_temporary_file import (
@@ -39,7 +40,7 @@ def mysql_adduser():
   was_running = _service_is_running(daemon_name)
 
   action = "restart" if was_running else "start"
-  Execute(("service", daemon_name, action), sudo=True, logoutput=True)
+  _service_command(daemon_name, action)
   try:
     statement = (
       f"CREATE DATABASE IF NOT EXISTS `{database}`; "
@@ -68,11 +69,15 @@ def mysql_adduser():
         try_sleep=5,
         logoutput=False,
         timeout=120,
-        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
-  finally:
+  except Exception:
     if not was_running:
-      Execute(("service", daemon_name, "stop"), sudo=True, logoutput=True)
+      _stop_service_without_masking(daemon_name)
+    raise
+  else:
+    if not was_running:
+      _service_command(daemon_name, "stop")
 
 
 def mysql_deluser():
@@ -82,7 +87,7 @@ def mysql_deluser():
   daemon_name = get_daemon_name()
   was_running = _service_is_running(daemon_name)
   if not was_running:
-    Execute(("service", daemon_name, "start"), sudo=True, logoutput=True)
+    _service_command(daemon_name, "start")
   try:
     Execute(
       (
@@ -95,18 +100,46 @@ def mysql_deluser():
       sudo=True,
       tries=3,
       try_sleep=5,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
-  finally:
+  except Exception:
     if not was_running:
-      Execute(("service", daemon_name, "stop"), sudo=True, logoutput=True)
+      _stop_service_without_masking(daemon_name)
+    raise
+  else:
+    if not was_running:
+      _service_command(daemon_name, "stop")
 
 
 def _service_is_running(daemon_name):
   return_code, _ = shell.call(
     ("service", daemon_name, "status"),
     sudo=True,
+    timeout=30,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    shell=False,
   )
   return return_code == 0
+
+
+def _service_command(daemon_name, action):
+  Execute(
+    ("service", daemon_name, action),
+    sudo=True,
+    logoutput=True,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+  )
+
+
+def _stop_service_without_masking(daemon_name):
+  try:
+    _service_command(daemon_name, "stop")
+  except Exception as cleanup_error:
+    Logger.error(
+      f"Could not restore stopped MySQL service {daemon_name}: {cleanup_error}"
+    )
 
 
 def _sql_identifier(value, description):

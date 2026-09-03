@@ -1884,6 +1884,20 @@ class YARNValidator(service_advisor.ServiceAdvisor):
           "item": self.getErrorItem(str(error)),
         }
       )
+    if ranger_plugin_enabled:
+      repository_password = ranger_plugin_properties.get(
+        "REPOSITORY_CONFIG_PASSWORD"
+      )
+      if not isinstance(repository_password, str) or not repository_password.strip():
+        validationItems.append(
+          {
+            "config-name": "REPOSITORY_CONFIG_PASSWORD",
+            "item": self.getErrorItem(
+              "Ranger YARN repository config password must not be empty when "
+              "the plugin is enabled"
+            ),
+          }
+        )
     if (
       ranger_plugin_enabled is not None
       and ranger_env_enabled is not None
