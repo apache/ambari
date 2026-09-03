@@ -85,7 +85,7 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.spi.RepositoryType;
 import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

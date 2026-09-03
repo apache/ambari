@@ -20,7 +20,7 @@ package org.apache.ambari.server.notifications;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * The {@link Notification} class is a generic way to relay content through an

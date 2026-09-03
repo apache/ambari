@@ -48,7 +48,7 @@ import java.io.StringReader;
 import java.util.Map;
 import java.lang.StringBuilder;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * REST API Client that performs various operations on the Ambari Server

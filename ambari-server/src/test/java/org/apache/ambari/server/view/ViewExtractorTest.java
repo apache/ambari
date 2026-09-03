@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.ViewDAO;

@@ -24,10 +24,8 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5</version>
         <configuration>
-          <source>${jdk.version}</source>
-          <target>${jdk.version}</target>
+          <release>${jdk.version}</release>
           <useIncrementalCompilation>false</useIncrementalCompilation>
          </configuration>
       </plugin>
@@ -62,7 +60,7 @@
         <executions>
           <execution>
             <id>build-tarball</id>
-            <phase>package</phase>
+            <phase>none</phase>
             <goals>
               <goal>single</goal>
             </goals>
@@ -199,8 +197,8 @@
       <artifactId>commons-codec</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

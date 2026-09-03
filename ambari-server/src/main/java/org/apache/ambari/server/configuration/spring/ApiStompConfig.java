@@ -30,6 +30,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import com.google.inject.Injector;
 
@@ -60,8 +61,13 @@ public class ApiStompConfig implements WebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/v1")
+      .setHandshakeHandler(getHandshakeHandler())
       .setAllowedOriginPatterns("*")
       .withSockJS().setHeartbeatTime(configuration.getAPIHeartbeatInterval());
+  }
+
+  DefaultHandshakeHandler getHandshakeHandler() {
+    return new DefaultHandshakeHandler(new Jetty11RequestUpgradeStrategy());
   }
 
   @Override

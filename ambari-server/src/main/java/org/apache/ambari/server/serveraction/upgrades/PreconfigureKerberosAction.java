@@ -66,7 +66,7 @@ import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.inject.Inject;
 

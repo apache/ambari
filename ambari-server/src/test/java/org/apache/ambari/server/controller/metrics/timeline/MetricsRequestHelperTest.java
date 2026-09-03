@@ -39,7 +39,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.AnnotationIntrospector;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationIntrospector;
 
 public class MetricsRequestHelperTest {
 
@@ -60,7 +60,7 @@ public class MetricsRequestHelperTest {
     metrics.getMetrics().add(timelineMetric);
 
     ObjectMapper mapper = new ObjectMapper();
-    AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
+    AnnotationIntrospector introspector = new JakartaXmlBindAnnotationIntrospector();
     mapper.setAnnotationIntrospector(introspector);
     ObjectWriter writer = mapper.writerWithDefaultPrettyPrinter();
     String metricsResponse = writer.writeValueAsString(metrics);

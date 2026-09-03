@@ -822,7 +822,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
         public synchronized void processPdu(CommandResponderEvent e){
           PDU command = e.getPDU();
           if (command != null) {
-            receivedTrapsVectors.add(command.getVariableBindings());
+            receivedTrapsVectors.add(new Vector<>(command.getVariableBindings()));
           }
         }
       };

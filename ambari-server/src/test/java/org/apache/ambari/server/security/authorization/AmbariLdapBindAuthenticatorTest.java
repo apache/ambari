@@ -35,7 +35,7 @@ import javax.naming.ldap.LdapName;
 
 import org.apache.ambari.server.configuration.AmbariServerConfigurationKey;
 import org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMockSupport;
 import org.junit.Before;
 import org.junit.Test;

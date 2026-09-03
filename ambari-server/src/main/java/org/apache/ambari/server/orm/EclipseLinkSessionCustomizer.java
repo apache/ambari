@@ -19,7 +19,7 @@ package org.apache.ambari.server.orm;
 
 import java.util.ArrayList;
 
-import javax.activation.DataSource;
+import jakarta.activation.DataSource;
 
 import org.eclipse.persistence.config.PersistenceUnitProperties;
 import org.eclipse.persistence.config.SessionCustomizer;

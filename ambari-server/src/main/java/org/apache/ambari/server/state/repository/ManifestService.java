@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.state.repository;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlAttribute;
 
 /**
  * Represents a service definition in the manifest.  The service manifest is a list

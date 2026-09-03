@@ -20,7 +20,7 @@ package org.apache.ambari.view.utils.ambari;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.slf4j.Logger;

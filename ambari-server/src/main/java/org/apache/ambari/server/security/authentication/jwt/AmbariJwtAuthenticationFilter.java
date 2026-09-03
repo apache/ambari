@@ -39,7 +39,7 @@ import org.apache.ambari.server.security.authentication.AmbariAuthenticationExce
 import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.security.authentication.AmbariDelegatingAuthenticationFilter;
 import org.apache.ambari.server.security.authentication.AmbariUserAuthentication;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;

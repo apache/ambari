@@ -40,8 +40,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
 
 import org.apache.ambari.server.security.authorization.UserAuthenticationType;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 @Table(name = "user_authentication")
 @Entity

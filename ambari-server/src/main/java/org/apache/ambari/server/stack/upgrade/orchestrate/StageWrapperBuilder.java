@@ -33,7 +33,7 @@ import org.apache.ambari.server.stack.upgrade.Task;
 import org.apache.ambari.server.stack.upgrade.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Defines how to build stages for an Upgrade or Downgrade.

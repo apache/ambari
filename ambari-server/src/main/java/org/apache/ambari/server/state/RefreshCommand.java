@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlAttribute;
 
 /**
  * Represents a RefreshCommand defined for a component and a property.

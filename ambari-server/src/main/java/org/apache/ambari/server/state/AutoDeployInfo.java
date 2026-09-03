@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.state;
 
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElement;
 
 /**
  * Represents auto-deployment stack information.

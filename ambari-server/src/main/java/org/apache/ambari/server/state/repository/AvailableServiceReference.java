@@ -20,8 +20,8 @@ package org.apache.ambari.server.state.repository;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
 
 /**
  * An available service can be upgraded.  This is mostly a marker class identifying the

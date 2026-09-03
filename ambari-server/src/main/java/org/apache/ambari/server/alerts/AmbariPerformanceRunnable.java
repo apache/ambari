@@ -47,7 +47,7 @@ import org.apache.ambari.server.state.alert.AlertDefinitionFactory;
 import org.apache.ambari.server.state.alert.ParameterizedSource.AlertParameter;
 import org.apache.ambari.server.state.alert.ServerSource;
 import org.apache.ambari.server.state.services.AmbariServerAlertService;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;

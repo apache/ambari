@@ -28,9 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.stack.HostsType;
@@ -43,7 +43,7 @@ import org.apache.ambari.server.stack.upgrade.orchestrate.TaskWrapperBuilder;
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.SetUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.esotericsoftware.yamlbeans.YamlReader;
 import com.google.common.base.MoreObjects;

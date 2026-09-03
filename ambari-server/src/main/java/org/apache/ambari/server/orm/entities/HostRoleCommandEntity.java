@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import static org.apache.commons.lang.StringUtils.defaultString;
+import static org.apache.commons.lang3.StringUtils.defaultString;
 
 import java.util.Arrays;
 
@@ -46,7 +46,7 @@ import jakarta.persistence.TableGenerator;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 @Entity
 @Table(name = "host_role_command"

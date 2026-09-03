@@ -51,8 +51,8 @@ public class CredentialProviderTest {
   @Test
   public void testInitialization() throws Exception {
     CredentialProvider cr;
-    File msFile = tmpFolder.newFile(Configuration.MASTER_KEY_FILENAME_DEFAULT);
-    File mksFile = tmpFolder.newFile(Configuration.MASTER_KEYSTORE_FILENAME_DEFAULT);
+    File msFile = new File(tmpFolder.getRoot(), Configuration.MASTER_KEY_FILENAME_DEFAULT);
+    File mksFile = new File(tmpFolder.getRoot(), Configuration.MASTER_KEYSTORE_FILENAME_DEFAULT);
     Configuration configuration = new Configuration(new Properties());
     configuration.setProperty(Configuration.MASTER_KEY_LOCATION, msFile.getParent());
     configuration.setProperty(Configuration.MASTER_KEYSTORE_LOCATION, mksFile.getParent());
@@ -89,8 +89,8 @@ public class CredentialProviderTest {
 
   @Test
   public void testCredentialStore() throws Exception {
-    File msFile = tmpFolder.newFile(Configuration.MASTER_KEY_FILENAME_DEFAULT);
-    File mksFile = tmpFolder.newFile(Configuration.MASTER_KEYSTORE_FILENAME_DEFAULT);
+    File msFile = new File(tmpFolder.getRoot(), Configuration.MASTER_KEY_FILENAME_DEFAULT);
+    File mksFile = new File(tmpFolder.getRoot(), Configuration.MASTER_KEYSTORE_FILENAME_DEFAULT);
     Configuration configuration = new Configuration(new Properties());
     configuration.setProperty(Configuration.MASTER_KEY_LOCATION, msFile.getParent());
     configuration.setProperty(Configuration.MASTER_KEYSTORE_LOCATION, mksFile.getParent());

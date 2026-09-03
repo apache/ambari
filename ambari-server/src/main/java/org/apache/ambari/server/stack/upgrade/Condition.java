@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.stack.upgrade;
 
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 

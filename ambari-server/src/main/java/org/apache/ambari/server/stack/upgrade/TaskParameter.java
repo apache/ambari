@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.stack.upgrade;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlValue;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlValue;
 
 /**
  * Optional parameter defined in upgrade packs to be used by server actions.

@@ -43,7 +43,7 @@ import jakarta.persistence.UniqueConstraint;
 
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.State;
-import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 @Entity
 @Table(
