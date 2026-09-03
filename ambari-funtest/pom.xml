@@ -23,6 +23,9 @@
   <build>
     <testResources>
       <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+      </testResource>
+      <testResource>
         <directory>${project.basedir}/../ambari-server/conf/unix</directory>
         <includes>
           <include>ca.config</include>
