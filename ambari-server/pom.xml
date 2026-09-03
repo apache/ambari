@@ -46,51 +46,51 @@
     <stackHooksLocation>src/main/resources/stack-hooks</stackHooksLocation>
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
-    <hadoop.version>3.3.4</hadoop.version>
+    <hadoop.version>3.5.0</hadoop.version>
     <ambari.metrics.version>2.7.0.0.0</ambari.metrics.version>
     <empty.dir>src/main/package</empty.dir>
     <el.log>ALL</el.log>
     <xlint>none</xlint>
     
     <!-- Maven Plugin Versions -->
-    <maven.jar.version>3.0.2</maven.jar.version>
+    <maven.jar.version>3.5.1</maven.jar.version>
     <coderplus.maven.version>1.0.1</coderplus.maven.version>
     
     <!-- Library Versions -->
-    <spotbugs.plugin.version>4.8.6.4</spotbugs.plugin.version>
-    <spotbugs.version>4.8.6</spotbugs.version>
-    <xml.version>1.0</xml.version>
-    <findbugs.version>2.0.0</findbugs.version>
-    <equalsverifier.version>3.15.6</equalsverifier.version>
-    <persistence.version>3.1.0</persistence.version>
-    <collections4.version>4.4</collections4.version>
-    <commons.compress.version>1.21</commons.compress.version>
-    <commons.text.version>1.10.0</commons.text.version>
+    <spotbugs.plugin.version>4.10.4.0</spotbugs.plugin.version>
+    <spotbugs.version>4.10.4</spotbugs.version>
+    <xml.version>1.2.1</xml.version>
+    <findbugs.version>2.0.3</findbugs.version>
+    <equalsverifier.version>3.19.4</equalsverifier.version>
+    <persistence.version>3.2.0</persistence.version>
+    <collections4.version>4.6.0</collections4.version>
+    <commons.compress.version>1.28.0</commons.compress.version>
+    <commons.text.version>1.15.0</commons.text.version>
     <commons.net.version>3.13.0</commons.net.version>
-    <cloning.version>1.9.2</cloning.version>
-    <guava.version>32.1.3-jre</guava.version>
-    <h2database.version>1.4.193</h2database.version>
-    <mockito.core.version>3.5.10</mockito.core.version>
-    <mockito.inline.version>3.5.10</mockito.inline.version>
-    <objenesis.tck.version>1.2</objenesis.tck.version>
+    <cloning.version>1.9.12</cloning.version>
+    <guava.version>27.1-jre</guava.version>
+    <h2database.version>1.4.200</h2database.version>
+    <mockito.core.version>3.12.4</mockito.core.version>
+    <mockito.inline.version>3.12.4</mockito.inline.version>
+    <objenesis.tck.version>1.4</objenesis.tck.version>
     <cglib.version>3.3.0</cglib.version>
-    <gson.version>2.9.0</gson.version>
+    <gson.version>2.14.0</gson.version>
     <jsr305.version>1.3.9</jsr305.version>
-    <quartz.version>2.3.2</quartz.version>
-    <quartz.jobs.version>2.3.2</quartz.jobs.version>
-    <velocity.engine.core.version>2.3</velocity.engine.core.version>
+    <quartz.version>2.5.2</quartz.version>
+    <quartz.jobs.version>2.5.2</quartz.jobs.version>
+    <velocity.engine.core.version>2.4.1</velocity.engine.core.version>
     <jakarta.mail.version>2.1.5</jakarta.mail.version>
     <angus.mail.version>2.0.5</angus.mail.version>
     <snmp4j.version>3.13.1</snmp4j.version>
-    <yamlbeans.version>1.13</yamlbeans.version>
+    <yamlbeans.version>1.17</yamlbeans.version>
     <jaxb.api.version>4.0.5</jaxb.api.version>
     <jaxb.runtime.version>4.0.9</jaxb.runtime.version>
     <istack.commons.runtime.version>4.0.0</istack.commons.runtime.version>
     <FastInfoset.version>1.2.16</FastInfoset.version>
-    <ehcache.version>3.10.0</ehcache.version>
+    <ehcache.version>3.12.0</ehcache.version>
     <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
     <jsch.version>0.2.26</jsch.version>
-    <c3p0.version>0.11.2</c3p0.version>
+    <c3p0.version>[0.14.1]</c3p0.version>
     <metrics.version>4.2.40</metrics.version>
     <libpam4j.version>1.11</libpam4j.version>
     <jna.version>5.19.1</jna.version>
@@ -98,7 +98,7 @@
     <api.ldap.client.api.version>2.0.0.AM1</api.ldap.client.api.version>
     <apacheds.kerberos.codec.version>2.0.0-M24</apacheds.kerberos.codec.version>
     <kerberos.client.version>2.0.0-M24</kerberos.client.version>
-    <json.schema.validator.version>0.1.10</json.schema.validator.version>
+    <json.schema.validator.version>0.1.26</json.schema.validator.version>
   </properties>
   <build>
     <plugins>
@@ -1210,7 +1210,7 @@
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
-      <version>6.0.0</version>
+      <version>6.1.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -1322,12 +1322,12 @@
     <dependency>
       <groupId>org.springframework.security.kerberos</groupId>
       <artifactId>spring-security-kerberos-web</artifactId>
-      <version>2.1.0</version>
+      <version>2.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security.kerberos</groupId>
       <artifactId>spring-security-kerberos-core</artifactId>
-      <version>2.1.0</version>
+      <version>2.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -2028,7 +2028,7 @@
     <dependency>
       <groupId>com.mchange</groupId>
       <artifactId>c3p0</artifactId>
-      <version>[${c3p0.version}]</version>
+      <version>[${c3p0.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
