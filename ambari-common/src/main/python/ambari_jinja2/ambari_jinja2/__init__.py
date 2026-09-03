@@ -30,9 +30,10 @@ Here a small example of a Jinja2 template::
 
 __docformat__ = "restructuredtext en"
 try:
-  __version__ = __import__("pkg_resources").get_distribution("Jinja2").version
-except:
-  __version__ = "unknown"
+    from importlib.metadata import version
+    __version__ = version('Jinja2')
+except Exception:
+    __version__ = 'unknown'
 
 # high level interface
 from ambari_jinja2.environment import Environment, Template
