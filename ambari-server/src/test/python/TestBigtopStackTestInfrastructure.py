@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import json
+import tempfile
 from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
@@ -87,3 +88,10 @@ class TestBigtopStackTestInfrastructure(TestCase):
     files.extend(STACK_HOOKS.rglob("*.py"))
     for path in files:
       self.assertNotIn("hdp", path.read_text(encoding="utf-8").lower(), path)
+
+  def test_imported_runner_does_not_nest_temporary_directory(self):
+    temporary_directory = Path(tempfile.gettempdir())
+    self.assertFalse(
+      temporary_directory.name == "ambari-test"
+      and temporary_directory.parent.name == "ambari-test"
+    )

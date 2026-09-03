@@ -44,7 +44,8 @@ CUSTOM_TEST_MASK = "_[Tt]est*.py"
 
 oldtmpdirpath = tempfile.gettempdir()
 newtmpdirpath = os.path.join(oldtmpdirpath, "ambari-test")
-tempfile.tempdir = newtmpdirpath
+if __name__ == "__main__":
+  tempfile.tempdir = newtmpdirpath
 TEST_TIMEOUT_SECONDS = int(os.environ.get("AMBARI_TEST_TIMEOUT_SECONDS", "300"))
 TEST_PROCESS_TIMEOUT_SECONDS = int(
   os.environ.get("AMBARI_TEST_PROCESS_TIMEOUT_SECONDS", "900")
