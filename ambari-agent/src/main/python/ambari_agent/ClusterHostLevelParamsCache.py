@@ -34,13 +34,13 @@ class ClusterHostLevelParamsCache(ClusterCache):
   differently for every host.
   """
 
-  def __init__(self, cluster_cache_dir):
+  def __init__(self, cluster_cache_dir, secret=None):
     """
     Initializes the host level params cache.
     :param cluster_cache_dir:
     :return:
     """
-    super(ClusterHostLevelParamsCache, self).__init__(cluster_cache_dir)
+    super(ClusterHostLevelParamsCache, self).__init__(cluster_cache_dir, secret)
 
   def get_cache_name(self):
     return "host_level_params"

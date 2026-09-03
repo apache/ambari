@@ -38,7 +38,7 @@ class ClusterMetadataCache(ClusterCache):
     :return:
     """
     self.config = config
-    super(ClusterMetadataCache, self).__init__(cluster_cache_dir)
+    super(ClusterMetadataCache, self).__init__(cluster_cache_dir, config.get_agent_secret())
 
   def on_cache_update(self):
     try:

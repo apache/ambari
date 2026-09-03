@@ -50,7 +50,7 @@ class ClusterTopologyCache(ClusterCache):
     self.cluster_local_components = {}
     self.cluster_host_info = None
     self.component_version_map = {}
-    super(ClusterTopologyCache, self).__init__(cluster_cache_dir)
+    super(ClusterTopologyCache, self).__init__(cluster_cache_dir, config.get_agent_secret())
 
   def get_cache_name(self):
     return "topology"

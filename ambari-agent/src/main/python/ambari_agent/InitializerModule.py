@@ -90,11 +90,16 @@ class InitializerModule:
       self.config.cluster_cache_dir, self.config
     )
     self.host_level_params_cache = ClusterHostLevelParamsCache(
-      self.config.cluster_cache_dir
+      self.config.cluster_cache_dir,
+      self.config.get_agent_secret()
     )
-    self.configurations_cache = ClusterConfigurationCache(self.config.cluster_cache_dir)
+    self.configurations_cache = ClusterConfigurationCache(
+      self.config.cluster_cache_dir,
+      self.config.get_agent_secret()
+    )
     self.alert_definitions_cache = ClusterAlertDefinitionsCache(
-      self.config.cluster_cache_dir
+      self.config.cluster_cache_dir,
+      self.config.get_agent_secret()
     )
     self.configuration_builder = ConfigurationBuilder(self)
     self.stale_alerts_monitor = StaleAlertsMonitor(self)

@@ -31,13 +31,13 @@ class ClusterConfigurationCache(ClusterCache):
   configuration properties.
   """
 
-  def __init__(self, cluster_cache_dir):
+  def __init__(self, cluster_cache_dir, secret=None):
     """
     Initializes the configuration cache.
     :param cluster_cache_dir: directory the changed json are saved
     :return:
     """
-    super(ClusterConfigurationCache, self).__init__(cluster_cache_dir)
+    super(ClusterConfigurationCache, self).__init__(cluster_cache_dir, secret)
 
   def get_cache_name(self):
     return "configurations"
