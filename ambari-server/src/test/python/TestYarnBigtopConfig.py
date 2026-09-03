@@ -354,7 +354,7 @@ class TestYarnRootShellContract(unittest.TestCase):
       yarn_hierarchy="yarn",
     )
     self.assertIn("min.user.id=1000", rendered)
-    self.assertIn("  root=/sys/fs/cgroup\n  yarn-hierarchy=yarn\n", rendered)
+    self.assertIn("  root=/sys/fs/cgroup\n  yarn-hierarchy=yarn", rendered)
     self.assertNotIn("yarn-hierarchy=yarn)", rendered)
 
     params_source = (SCRIPTS / "params_linux.py").read_text(encoding="utf-8")
@@ -730,7 +730,12 @@ class TestYarnRootShellContract(unittest.TestCase):
           assignments[name] = value
 
     self.assertEqual([malicious], shlex.split(assignments["HADOOP_YARN_HOME"]))
-    self.assertEqual([malicious], shlex.split(assignments["JAVA_HOME"]))
+    export_java_home = next(
+      line.split("=", 1)[1]
+      for line in rendered.splitlines()
+      if line.strip().startswith("export JAVA_HOME=")
+    )
+    self.assertEqual([malicious], shlex.split(export_java_home))
     self.assertEqual(
       [f"-Dregistry={malicious}"],
       shlex.split(assignments["YARN_REGISTRYDNS_OPTS"]),
@@ -1015,7 +1020,7 @@ class TestYarnServiceJsonContract(unittest.TestCase):
     document, _ = self._render("yarn_hbase_secure.yarnfile.j2", True)
     self.assertEqual('yarn/host@REALM"', document["kerberos_principal"]["principal_name"])
     self.assertEqual(
-      "file:///etc/key tabs/yarn.keytab",
+      "file:///etc/key%20tabs/yarn.keytab",
       document["kerberos_principal"]["keytab"],
     )
     client = next(
@@ -1219,6 +1224,15 @@ class TestYarnVersionAndResidue(unittest.TestCase):
     params_source = (SCRIPTS / "params_linux.py").read_text(encoding="utf-8")
     self.assertNotIn('external_admin_username", "admin"', params_source)
     self.assertNotIn('"amb_ranger_admin"', params_source)
+
+    audit_root = ET.parse(YARN / "configuration/ranger-yarn-audit.xml").getroot()
+    audit_password = next(
+      property_element
+      for property_element in audit_root.findall("property")
+      if property_element.findtext("name")
+      == "xasecure.audit.destination.db.password"
+    )
+    self.assertEqual("", audit_password.findtext("value", ""))
 
   def test_external_hbase_configuration_is_never_managed_by_yarn(self):
     source = (SCRIPTS / "yarn.py").read_text(encoding="utf-8")

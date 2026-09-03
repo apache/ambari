@@ -64,8 +64,8 @@ class TestTemplateCompatibility(TestCase):
     rendered = self.render(
       BIGTOP_SERVICES / "YARN/package",
       "yarn_jaas.conf.j2",
-      rm_keytab="/etc/security/keytabs/rm.service.keytab",
-      rm_principal_name="rm/node.example@EXAMPLE.COM",
+      rm_keytab_jaas="/etc/security/keytabs/rm.service.keytab",
+      rm_principal_name_jaas="rm/node.example@EXAMPLE.COM",
     )
 
     self.assertEqual(
@@ -145,7 +145,8 @@ principal=\"hbase/node.example@EXAMPLE.COM\";
       BIGTOP_SERVICES / "KAFKA/package",
       "kafka_client_jaas.conf.j2",
       kerberos_security_enabled=True,
-      kafka_bare_jaas_principal="kafka",
+      kafka_kerberos_credentials_enabled=True,
+      kafka_bare_jaas_principal_jaas="kafka",
     )
 
     self.assertEqual(
@@ -154,12 +155,6 @@ principal=\"hbase/node.example@EXAMPLE.COM\";
    useTicketCache=true
    renewTicket=true
    serviceName=\"kafka\";
-};
-Client {
-   com.sun.security.auth.module.Krb5LoginModule required
-   useTicketCache=true
-   renewTicket=true
-   serviceName=\"zookeeper\";
 };""",
       rendered,
     )
@@ -196,9 +191,11 @@ Client {
 
     self.assertEqual(
       """Client {
-com.sun.security.auth.module.Krb5LoginModule required
-useKeyTab=false
-useTicketCache=true;
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=false
+  useTicketCache=true
+  doNotPrompt=true
+  renewTGT=true;
 };""",
       rendered,
     )

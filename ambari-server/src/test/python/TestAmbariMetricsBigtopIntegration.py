@@ -90,6 +90,11 @@ class TestAmbariMetricsHttpContract(unittest.TestCase):
     self.assertEqual(7, connection.timeout)
     connection.close.assert_called_once_with()
 
+  def test_grafana_server_repr_does_not_disclose_admin_password(self):
+    self.assertNotIn("secret", repr(self.server))
+    self.assertIn("[PROTECTED]", repr(self.server))
+    self.assertEqual("secret", str(self.server.password))
+
   def test_metrics_response_rejects_invalid_json_shapes(self):
     for payload in (b"not-json", b"{}", b'{"metrics": {}}', b'{"metrics": [{}]}'):
       with self.subTest(payload=payload):

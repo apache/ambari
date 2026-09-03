@@ -24,6 +24,8 @@ from types import ModuleType
 import unittest
 from unittest.mock import patch
 from xml.etree import ElementTree
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 ZOOKEEPER = (
@@ -55,6 +57,14 @@ ZOOKEEPER_CONFIG = load_module(
 
 
 class TestZookeeperConfiguration(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(ZOOKEEPER / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
+
   def test_server_configuration_has_stable_ownership_and_modes(self):
     params = params_module(
       config_dir="/etc/zookeeper/conf",
@@ -69,6 +79,7 @@ class TestZookeeperConfiguration(unittest.TestCase):
       log4j_props="log4j.rootLogger=INFO, CONSOLE",
       security_enabled=True,
     )
+    self._environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(ZOOKEEPER_CONFIG, "Directory") as directory, \
       patch.object(ZOOKEEPER_CONFIG, "File") as file_resource:
@@ -106,6 +117,7 @@ class TestZookeeperConfiguration(unittest.TestCase):
       log4j_props=None,
       security_enabled=False,
     )
+    self._environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(ZOOKEEPER_CONFIG, "Directory") as directory, \
       patch.object(ZOOKEEPER_CONFIG, "File"), \
@@ -155,11 +167,11 @@ class TestZookeeperStackMetadata(unittest.TestCase):
     }
     self.assertEqual(
       "zookeeper_${stack_version}",
-      packages["redhat7,redhat8,redhat9,openeuler22"],
+      packages["redhat8,redhat9,openeuler22"],
     )
     self.assertEqual(
       "zookeeper-${stack_version}",
-      packages["debian10,debian11,ubuntu20,ubuntu22"],
+      packages["ubuntu22"],
     )
 
 

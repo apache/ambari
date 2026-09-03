@@ -35,17 +35,27 @@ HIVE_SERVICE = import_utils.load_source(
   "bigtop_hive_db_connection",
   str(STACK_ROOT / "3.2.0/services/HIVE/package/scripts/hive_service.py"),
 )
-RANGER_SETUP = import_utils.load_source(
-  "bigtop_ranger_db_connection",
-  str(
-    STACK_ROOT
-    / "3.3.0/services/RANGER/package/scripts/setup_ranger_xml.py"
-  ),
+RANGER_UTILS = import_utils.load_source(
+  "ranger_utils",
+  str(STACK_ROOT / "3.3.0/services/RANGER/package/scripts/ranger_utils.py"),
 )
-RANGER_KMS = import_utils.load_source(
-  "bigtop_ranger_kms_db_connection",
-  str(STACK_ROOT / "3.3.0/services/RANGER_KMS/package/scripts/kms.py"),
+with patch.dict(sys.modules, {"ranger_utils": RANGER_UTILS}):
+  RANGER_SETUP = import_utils.load_source(
+    "bigtop_ranger_db_connection",
+    str(
+      STACK_ROOT
+      / "3.3.0/services/RANGER/package/scripts/setup_ranger_xml.py"
+    ),
+  )
+KMS_UTILS = import_utils.load_source(
+  "kms_utils",
+  str(STACK_ROOT / "3.3.0/services/RANGER_KMS/package/scripts/kms_utils.py"),
 )
+with patch.dict(sys.modules, {"kms_utils": KMS_UTILS}):
+  RANGER_KMS = import_utils.load_source(
+    "bigtop_ranger_kms_db_connection",
+    str(STACK_ROOT / "3.3.0/services/RANGER_KMS/package/scripts/kms.py"),
+  )
 
 
 def formatter(params):
@@ -150,6 +160,7 @@ class TestDbConnectionCallers(TestCase):
   def test_ranger_kms_passes_database_secret_only_to_shared_helper(self):
     params = SimpleNamespace(
       has_ranger_admin=True,
+      ranger_kms_ssl_enabled=False,
       kms_home="/opt/ranger-kms",
       kms_conf_dir="/etc/ranger/kms",
       kms_user="kms",

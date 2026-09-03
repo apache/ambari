@@ -25,7 +25,10 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
+
+Logger.initialize_logger()
 
 
 FLINK = (
@@ -136,6 +139,7 @@ class TestFlinkUtilities(unittest.TestCase):
       user="flink",
       env={"JAVA_HOME": "/usr/lib/jvm/java-17"},
       timeout=60,
+      timeout_kill_strategy=FLINK_UTILS.TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     with patch.object(FLINK_UTILS.sudo, "path_lexists", return_value=True), \
@@ -176,7 +180,7 @@ class TestFlinkProcess(unittest.TestCase):
         safe_process, "discover_running_process", return_value=IDENTITY
       ) as discover, \
       patch.object(
-        safe_process, "create_pid_file_for_identity", return_value=IDENTITY
+        safe_process, "publish_pid_file_for_identity", return_value=IDENTITY
       ) as create:
       result = FLINK_PROCESS.read_or_recover_process(
         PID_FILE, "flink", "hadoop", CONFIG_DIR
@@ -193,6 +197,33 @@ class TestFlinkProcess(unittest.TestCase):
       group="hadoop",
       mode=0o640,
     )
+
+  def test_existing_pid_is_revalidated_and_secured_before_reuse(self):
+    with patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(
+        safe_process, "read_running_process", return_value=IDENTITY
+      ), \
+      patch.object(
+        safe_process,
+        "publish_pid_file_for_identity",
+        return_value=IDENTITY,
+      ) as publish, \
+      patch.object(safe_process, "discover_running_process") as discover:
+      result = FLINK_PROCESS.read_or_recover_process(
+        PID_FILE, "flink", "hadoop", CONFIG_DIR
+      )
+
+    self.assertIs(IDENTITY, result)
+    publish.assert_called_once_with(
+      PID_FILE,
+      IDENTITY,
+      expected_user="flink",
+      expected_cmdline=TOKENS,
+      owner="flink",
+      group="hadoop",
+      mode=0o640,
+    )
+    discover.assert_not_called()
 
   def test_stale_pid_is_removed_and_ambiguous_recovery_fails_closed(self):
     with patch.object(safe_process, "read_pid", return_value=123), \

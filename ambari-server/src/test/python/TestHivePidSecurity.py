@@ -25,6 +25,7 @@ import unittest
 from unittest.mock import patch
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 
 
 SCRIPTS = (
@@ -78,12 +79,26 @@ class TestHiveProcessIdentity(unittest.TestCase):
     with patch.object(HIVE_SERVICE.safe_process, "read_pid", return_value=123), \
       patch.object(HIVE_SERVICE.safe_process, "inspect_process", return_value=running), \
       patch.object(HIVE_SERVICE.safe_process, "is_process_running", return_value=True), \
+      patch.object(
+        HIVE_SERVICE.safe_process,
+        "publish_pid_file_for_identity",
+        return_value=running,
+      ) as publish, \
       patch.object(HIVE_SERVICE.safe_process, "discover_running_process") as discover:
       result = HIVE_SERVICE.read_or_discover_hive_process(
         "/run/hive/server.pid", "hive", "hadoop", "hiveserver2"
       )
     self.assertIs(running, result)
     discover.assert_not_called()
+    publish.assert_called_once_with(
+      "/run/hive/server.pid",
+      running,
+      "hive",
+      ("org.apache.hive.service.server.HiveServer2",),
+      owner="hive",
+      group="hadoop",
+      mode=0o640,
+    )
 
   def test_stale_pid_is_removed_before_unique_discovery(self):
     with patch.object(HIVE_SERVICE.safe_process, "read_pid", return_value=123), \
@@ -111,14 +126,14 @@ class TestHiveProcessIdentity(unittest.TestCase):
       ), \
       patch.object(
         HIVE_SERVICE.safe_process,
-        "create_pid_file_for_identity",
+        "publish_pid_file_for_identity",
         return_value=running,
-      ) as create:
+      ) as publish:
       result = HIVE_SERVICE.read_or_discover_hive_process(
         "/run/hive/server.pid", "hive", "hadoop", "hiveserver2"
       )
     self.assertIs(running, result)
-    create.assert_called_once_with(
+    publish.assert_called_once_with(
       "/run/hive/server.pid",
       running,
       "hive",
@@ -173,6 +188,7 @@ class TestHiveZooKeeperQuorum(unittest.TestCase):
 
 class TestHiveLifecycle(unittest.TestCase):
   def setUp(self):
+    Logger.initialize_logger()
     self.params = module_with(
       hive_user="hive",
       user_group="hadoop",
@@ -205,25 +221,62 @@ class TestHiveLifecycle(unittest.TestCase):
       HIVE_SERVICE.hive_service("metastore", "start")
     execute.assert_not_called()
 
-  def test_start_uses_structured_wrapper_and_fixes_pid_metadata(self):
+  def test_start_uses_structured_wrapper_and_process_group_timeout(self):
     running = identity()
     with patch.dict(sys.modules, {"params": self.params, "status_params": self.status}), \
       patch.object(HIVE_SERVICE, "read_or_discover_hive_process", return_value=None), \
       patch.object(HIVE_SERVICE, "wait_for_hive_process", return_value=running), \
-      patch.object(HIVE_SERVICE, "Execute") as execute, \
-      patch.object(HIVE_SERVICE, "File") as file_resource:
+      patch.object(HIVE_SERVICE, "Execute") as execute:
       HIVE_SERVICE.hive_service("metastore", "start")
 
     command = execute.call_args.args[0]
     self.assertEqual("/tmp/start-metastore", command[0])
     self.assertEqual("/run/hive/metastore.pid", command[3])
     self.assertNotIsInstance(command, str)
-    file_resource.assert_called_once_with(
-      "/run/hive/metastore.pid",
-      owner="hive",
-      group="hadoop",
-      mode=0o640,
+    self.assertEqual(60, execute.call_args.kwargs["timeout"])
+    self.assertEqual(
+      HIVE_SERVICE.TerminateStrategy.KILL_PROCESS_GROUP,
+      execute.call_args.kwargs["timeout_kill_strategy"],
     )
+
+  def test_pid_publication_failure_rolls_back_only_pinned_identity(self):
+    running = identity()
+    with patch.object(HIVE_SERVICE, "_find_hive_process", return_value=running), \
+      patch.object(
+        HIVE_SERVICE,
+        "_publish_hive_process",
+        side_effect=Fail("publication failed"),
+      ), \
+      patch.object(HIVE_SERVICE.safe_process, "terminate_process") as terminate, \
+      patch.object(HIVE_SERVICE.safe_process, "remove_pid_file_if_stopped") as remove:
+      with self.assertRaisesRegex(Fail, "publication failed"):
+        HIVE_SERVICE.wait_for_hive_process(
+          "/run/hive/server.pid", "hive", "hadoop", "hiveserver2"
+        )
+
+    terminate.assert_called_once_with(
+      running,
+      "hive",
+      ("org.apache.hive.service.server.HiveServer2",),
+      term_wait_attempts=10,
+      term_wait_sleep=1,
+      kill_wait_attempts=10,
+      kill_wait_sleep=1,
+    )
+    remove.assert_called_once_with(
+      "/run/hive/server.pid",
+      123,
+      expected_user="hive",
+      expected_cmdline=("org.apache.hive.service.server.HiveServer2",),
+    )
+
+  def test_log_collection_failure_does_not_mask_start_failure(self):
+    with patch.dict(sys.modules, {"params": self.params, "status_params": self.status}), \
+      patch.object(HIVE_SERVICE, "read_or_discover_hive_process", return_value=None), \
+      patch.object(HIVE_SERVICE, "Execute", side_effect=Fail("start failed")), \
+      patch.object(HIVE_SERVICE, "show_logs", side_effect=Fail("logs failed")):
+      with self.assertRaisesRegex(Fail, "start failed"):
+        HIVE_SERVICE.hive_service("metastore", "start")
 
   def test_readiness_failure_terminates_the_started_identity(self):
     running = identity()
@@ -232,7 +285,6 @@ class TestHiveLifecycle(unittest.TestCase):
       patch.object(HIVE_SERVICE, "wait_for_hive_process", return_value=running), \
       patch.object(HIVE_SERVICE, "_wait_for_secure_znode", side_effect=Fail("not ready")), \
       patch.object(HIVE_SERVICE, "Execute"), \
-      patch.object(HIVE_SERVICE, "File"), \
       patch.object(HIVE_SERVICE.safe_process, "terminate_process") as terminate, \
       patch.object(HIVE_SERVICE.safe_process, "remove_pid_file_if_stopped") as remove, \
       patch.object(HIVE_SERVICE, "show_logs"):
@@ -279,7 +331,7 @@ class TestHiveLifecycle(unittest.TestCase):
 
 
 class TestWebHCatLifecycle(unittest.TestCase):
-  def test_failed_start_rolls_back_exact_webhcat_process(self):
+  def test_start_uses_structured_command_and_process_group_timeout(self):
     params = module_with(
       webhcat_pid_file="/var/lib/hive-hcatalog/webhcat.pid",
       webhcat_user="hive",
@@ -297,26 +349,16 @@ class TestWebHCatLifecycle(unittest.TestCase):
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(WEBHCAT_SERVICE, "read_or_discover_hive_process", return_value=None), \
       patch.object(WEBHCAT_SERVICE, "wait_for_hive_process", return_value=running), \
-      patch.object(WEBHCAT_SERVICE, "File", side_effect=Fail("metadata failed")), \
-      patch.object(WEBHCAT_SERVICE, "Execute") as execute, \
-      patch.object(WEBHCAT_SERVICE.safe_process, "terminate_process") as terminate, \
-      patch.object(WEBHCAT_SERVICE.safe_process, "remove_pid_file_if_stopped"), \
-      patch.object(WEBHCAT_SERVICE, "show_logs"):
-      with self.assertRaisesRegex(Fail, "metadata failed"):
-        WEBHCAT_SERVICE.webhcat_service("start")
+      patch.object(WEBHCAT_SERVICE, "Execute") as execute:
+      WEBHCAT_SERVICE.webhcat_service("start")
 
     self.assertEqual(
       ("/usr/lib/hive-hcatalog/sbin/webhcat_server.sh", "start"),
       execute.call_args.args[0],
     )
-    terminate.assert_called_once_with(
-      running,
-      "hive",
-      ("org.apache.hive.hcatalog.templeton.Main",),
-      term_wait_attempts=10,
-      term_wait_sleep=1,
-      kill_wait_attempts=10,
-      kill_wait_sleep=1,
+    self.assertEqual(
+      WEBHCAT_SERVICE.TerminateStrategy.KILL_PROCESS_GROUP,
+      execute.call_args.kwargs["timeout_kill_strategy"],
     )
 
 

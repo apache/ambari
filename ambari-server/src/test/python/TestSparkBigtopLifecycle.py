@@ -23,9 +23,13 @@ import sys
 from types import ModuleType
 import unittest
 from unittest.mock import MagicMock, patch
+from resource_management.core.environment import Environment
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import safe_process
+
+Logger.initialize_logger()
 
 
 SPARK = Path(__file__).resolve().parents[2] / "main/resources/stacks/BIGTOP/3.2.0/services/SPARK"
@@ -125,7 +129,11 @@ class TestSparkProcess(unittest.TestCase):
   def test_pidless_process_is_uniquely_discovered_and_published_0640(self):
     with patch.object(safe_process, "read_pid", return_value=None), \
       patch.object(safe_process, "discover_running_process", return_value=IDENTITY) as discover, \
-      patch.object(safe_process, "create_pid_file_for_identity", return_value=IDENTITY) as create:
+      patch.object(
+        safe_process,
+        "publish_pid_file_for_identity",
+        return_value=IDENTITY,
+      ) as create:
       self.assertIs(
         IDENTITY,
         SPARK_PROCESS.read_or_recover_process(
@@ -142,6 +150,33 @@ class TestSparkProcess(unittest.TestCase):
       group="hadoop",
       mode=0o640,
     )
+
+  def test_existing_pid_is_revalidated_and_secured_before_reuse(self):
+    with patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(
+        safe_process, "read_running_process", return_value=IDENTITY
+      ), \
+      patch.object(
+        safe_process,
+        "publish_pid_file_for_identity",
+        return_value=IDENTITY,
+      ) as publish, \
+      patch.object(safe_process, "discover_running_process") as discover:
+      result = SPARK_PROCESS.read_or_recover_process(
+        "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
+      )
+
+    self.assertIs(IDENTITY, result)
+    publish.assert_called_once_with(
+      PID_FILE,
+      IDENTITY,
+      expected_user="spark",
+      expected_cmdline=HISTORY_TOKENS,
+      owner="spark",
+      group="hadoop",
+      mode=0o640,
+    )
+    discover.assert_not_called()
 
   def test_stop_uses_term_wait_kill_and_removes_only_stopped_identity(self):
     with patch.object(SPARK_PROCESS, "read_or_recover_process", return_value=IDENTITY), \
@@ -195,6 +230,31 @@ class TestSparkProcess(unittest.TestCase):
         "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
       )
 
+  def test_pid_publication_failure_rolls_back_only_discovered_identity(self):
+    with patch.object(safe_process, "wait_for_discovered_process", return_value=IDENTITY), \
+      patch.object(SPARK_PROCESS, "_publish", side_effect=Fail("publish failed")), \
+      patch.object(SPARK_PROCESS, "rollback_started_process") as rollback, \
+      self.assertRaisesRegex(Fail, "publish failed"):
+      SPARK_PROCESS.wait_for_started_process(
+        "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
+      )
+    rollback.assert_called_once_with(
+      "jobhistoryserver", PID_FILE, IDENTITY, "spark", CONF_FILE
+    )
+
+  def test_rollback_failure_preserves_pid_publication_error(self):
+    with patch.object(safe_process, "wait_for_discovered_process", return_value=IDENTITY), \
+      patch.object(SPARK_PROCESS, "_publish", side_effect=Fail("publish failed")), \
+      patch.object(
+        SPARK_PROCESS,
+        "rollback_started_process",
+        side_effect=Fail("rollback failed"),
+      ), \
+      self.assertRaisesRegex(Fail, "publish failed"):
+      SPARK_PROCESS.wait_for_started_process(
+        "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
+      )
+
 
 class TestSparkService(unittest.TestCase):
   def test_start_is_idempotent(self):
@@ -216,7 +276,7 @@ class TestSparkService(unittest.TestCase):
       spark_user="spark",
       user_group="hadoop",
       security_enabled=False,
-      spark_submit="/usr/lib/spark/bin/spark-submit",
+      spark_submit="/usr/bigtop/current/spark-client/bin/spark-submit",
       spark_thrift_cmd_opts=("--master", "yarn"),
       hadoop_conf_dir="/etc/hadoop/conf",
       java_home="/usr/lib/jvm/java-17",
@@ -231,12 +291,12 @@ class TestSparkService(unittest.TestCase):
       patch.object(SPARK_SERVICE, "Execute") as execute:
       SPARK_SERVICE._start(params, "sparkthriftserver")
     command = execute.call_args.args[0]
-    self.assertEqual("/usr/lib/spark/bin/spark-submit", command[0])
+    self.assertEqual("/usr/bigtop/current/spark-client/bin/spark-submit", command[0])
     self.assertIn("org.apache.spark.sql.hive.thriftserver.HiveThriftServer2", command)
     self.assertEqual(("--properties-file", CONF_FILE), command[5:7])
     self.assertFalse(execute.call_args.kwargs["wait_for_finish"])
 
-  def test_start_failure_attempts_identity_safe_cleanup(self):
+  def test_ambiguous_start_failure_does_not_guess_process_to_stop(self):
     params = params_module(
       spark_history_server_pid_file=PID_FILE,
       spark_defaults_file=CONF_FILE,
@@ -245,7 +305,7 @@ class TestSparkService(unittest.TestCase):
       security_enabled=False,
       spark_history_dir="hdfs:///spark-history/",
       HdfsResource=MagicMock(),
-      spark_class="/usr/lib/spark/bin/spark-class",
+      spark_class="/usr/bigtop/current/spark-client/bin/spark-class",
       hadoop_conf_dir="/etc/hadoop/conf",
       java_home="/usr/lib/jvm/java-17",
       spark_conf_dir="/etc/spark/conf",
@@ -257,7 +317,7 @@ class TestSparkService(unittest.TestCase):
         "wait_for_started_process",
         side_effect=Fail("ambiguous process discovery"),
       ), \
-      patch.object(SPARK_PROCESS, "stop_process", return_value=True) as stop, \
+      patch.object(SPARK_PROCESS, "stop_process") as stop, \
       patch.object(SPARK_UTILS, "validate_executable"), \
       patch.object(SPARK_SERVICE.sudo, "path_lexists", return_value=False), \
       patch.object(SPARK_SERVICE, "File"), \
@@ -265,9 +325,7 @@ class TestSparkService(unittest.TestCase):
       patch.object(SPARK_SERVICE, "show_logs"), \
       self.assertRaisesRegex(Fail, "ambiguous"):
       SPARK_SERVICE._start(params, "jobhistoryserver")
-    stop.assert_called_once_with(
-      "jobhistoryserver", PID_FILE, "spark", "hadoop", CONF_FILE
-    )
+    stop.assert_not_called()
 
 
 class TestSparkConfiguration(unittest.TestCase):
@@ -291,12 +349,16 @@ class TestSparkConfiguration(unittest.TestCase):
       spark_metrics_properties="*.sink.jmx.class=x",
       spark_thrift_fairscheduler_content="<allocations/>",
     )
+    environment = Environment(str(SPARK / "package"), test_mode=True)
+    environment.__enter__()
+    environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(SPARK_SETUP, "Directory"), \
       patch.object(SPARK_SETUP, "PropertiesFile") as properties_file, \
       patch.object(SPARK_SETUP, "File") as file_resource, \
       patch.object(SPARK_SETUP, "generate_logfeeder_input_config"):
       SPARK_SETUP.setup_spark(MagicMock(), "historyserver", action="config")
+    environment.__exit__(None, None, None)
     self.assertEqual(0o640, properties_file.call_args.kwargs["mode"])
     file_by_path = {call.args[0]: call.kwargs for call in file_resource.call_args_list}
     self.assertEqual(0o640, file_by_path["/etc/spark/conf/spark-env.sh"]["mode"])

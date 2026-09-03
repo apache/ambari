@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import os
+import importlib
 import signal
 import stat
 import tempfile
@@ -27,9 +28,11 @@ from unittest.mock import call, mock_open, patch
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core import sudo
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
+from resource_management.core.logger import Logger
+check_process_status_module = importlib.import_module(
+  "resource_management.libraries.functions.check_process_status"
 )
+check_process_status = check_process_status_module.check_process_status
 from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions import safe_process_signal
 
@@ -45,6 +48,10 @@ class TestSafeProcess(unittest.TestCase):
   USER = "service"
   CMDLINE = b"/usr/bin/java\0org.example.Service\0--daemon\0"
   FILE_STAT = SimpleNamespace(st_dev=10, st_ino=20, st_mode=0o100640)
+
+  @classmethod
+  def setUpClass(cls):
+    Logger.initialize_logger()
 
   def test_lstat_exposes_complete_file_identity(self):
     descriptor, path = tempfile.mkstemp()
@@ -101,7 +108,7 @@ class TestSafeProcess(unittest.TestCase):
     path_islink, path_exists, path_isfile, read_file, stat, getpwnam, kill = (
       self._process_patches()
     )
-    with path_islink, path_exists, path_isfile, read_file, stat, getpwnam, kill:
+    with path_islink, path_exists, path_isfile, read_file, stat, getpwnam, kill as kill_mock:
       identity = safe_process.read_running_process(
         self.PID_FILE, self.USER, ("org.example.Service", "--daemon")
       )
@@ -111,7 +118,7 @@ class TestSafeProcess(unittest.TestCase):
     self.assertEqual(456, identity.start_time)
     self.assertEqual("S", identity.state)
     self.assertEqual("/usr/bin/java org.example.Service --daemon", identity.cmdline)
-    kill.assert_called_once_with(self.PID, 0)
+    kill_mock.assert_called_once_with(self.PID, 0)
 
   def test_rejects_invalid_pid_file_without_using_value(self):
     invalid_values = (b"0", b"-1", b"1 2", b"1; touch /tmp/injected", b"\xff")
@@ -295,10 +302,12 @@ class TestSafeProcess(unittest.TestCase):
         safe_process_signal, "_validate_identity", return_value=identity
       ), \
       patch.object(safe_process_signal, "_pidfd_supported", return_value=True), \
-      patch.object(safe_process_signal.os, "pidfd_open", return_value=11), \
+      patch.object(
+        safe_process_signal.os, "pidfd_open", return_value=11, create=True
+      ), \
       patch.object(safe_process_signal.os, "close") as close, \
       patch.object(
-        safe_process_signal.signal, "pidfd_send_signal"
+        safe_process_signal.signal, "pidfd_send_signal", create=True
       ) as send_signal, \
       patch.object(safe_process_signal.os, "kill") as legacy_kill:
       result = safe_process_signal._signal_process(
@@ -749,6 +758,84 @@ class TestSafeProcess(unittest.TestCase):
     fchown.assert_not_called()
     fchmod.assert_not_called()
 
+  def test_publish_pid_file_creates_only_when_launcher_file_is_missing(self):
+    identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
+    with patch.object(safe_process, "read_pid", return_value=None), \
+      patch.object(
+        safe_process,
+        "create_pid_file_for_identity",
+        return_value=identity,
+      ) as create, \
+      patch.object(safe_process, "secure_pid_file_for_identity") as secure:
+      result = safe_process.publish_pid_file_for_identity(
+        self.PID_FILE,
+        identity,
+        self.USER,
+        "ServiceMain",
+        self.USER,
+        "service-group",
+      )
+
+    self.assertIs(identity, result)
+    create.assert_called_once_with(
+      self.PID_FILE,
+      identity,
+      self.USER,
+      "ServiceMain",
+      self.USER,
+      "service-group",
+      0o640,
+    )
+    secure.assert_not_called()
+
+  def test_publish_pid_file_secures_only_the_matching_launcher_identity(self):
+    identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
+    with patch.object(safe_process, "read_pid", return_value=self.PID), \
+      patch.object(safe_process, "create_pid_file_for_identity") as create, \
+      patch.object(
+        safe_process,
+        "secure_pid_file_for_identity",
+        return_value=identity,
+      ) as secure:
+      result = safe_process.publish_pid_file_for_identity(
+        self.PID_FILE,
+        identity,
+        self.USER,
+        "ServiceMain",
+        self.USER,
+        "service-group",
+      )
+
+    self.assertIs(identity, result)
+    create.assert_not_called()
+    secure.assert_called_once_with(
+      self.PID_FILE,
+      identity,
+      self.USER,
+      "ServiceMain",
+      self.USER,
+      "service-group",
+      0o640,
+    )
+
+  def test_publish_pid_file_rejects_a_launcher_pid_mismatch(self):
+    identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
+    with patch.object(safe_process, "read_pid", return_value=self.PID + 1), \
+      patch.object(safe_process, "create_pid_file_for_identity") as create, \
+      patch.object(safe_process, "secure_pid_file_for_identity") as secure, \
+      self.assertRaisesRegex(Fail, "identifies process 124, expected 123"):
+      safe_process.publish_pid_file_for_identity(
+        self.PID_FILE,
+        identity,
+        self.USER,
+        "ServiceMain",
+        self.USER,
+        "service-group",
+      )
+
+    create.assert_not_called()
+    secure.assert_not_called()
+
   def test_create_pid_file_rejects_existing_or_broken_symlink(self):
     identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
     with patch.object(safe_process.sudo, "path_islink", return_value=True), \
@@ -927,8 +1014,8 @@ class TestSafeProcess(unittest.TestCase):
     unlink.assert_not_called()
 
   def test_identity_validation_failure_is_not_downgraded_to_stopped(self):
-    with patch(
-      "resource_management.libraries.functions.check_process_status."
+    with patch.object(
+      check_process_status_module,
       "read_running_process",
       side_effect=Fail("owner mismatch"),
     ):
@@ -938,8 +1025,8 @@ class TestSafeProcess(unittest.TestCase):
         )
 
   def test_legacy_status_maps_invalid_pid_to_component_not_running(self):
-    with patch(
-      "resource_management.libraries.functions.check_process_status."
+    with patch.object(
+      check_process_status_module,
       "read_running_process",
       side_effect=Fail("invalid pid"),
     ):
@@ -948,16 +1035,16 @@ class TestSafeProcess(unittest.TestCase):
 
   def test_legacy_status_accepts_running_process(self):
     identity = safe_process.ProcessIdentity(self.PID, 1001, 456, ())
-    with patch(
-      "resource_management.libraries.functions.check_process_status."
+    with patch.object(
+      check_process_status_module,
       "read_running_process",
       return_value=identity,
     ):
       self.assertIsNone(check_process_status(self.PID_FILE))
 
   def test_legacy_status_maps_missing_or_stale_pid_to_not_running(self):
-    with patch(
-      "resource_management.libraries.functions.check_process_status."
+    with patch.object(
+      check_process_status_module,
       "read_running_process",
       return_value=None,
     ):

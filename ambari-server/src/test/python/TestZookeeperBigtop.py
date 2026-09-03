@@ -179,7 +179,7 @@ class TestZookeeperProcess(unittest.TestCase):
       ) as discover, \
       patch.object(
         safe_process,
-        "create_pid_file_for_identity",
+        "publish_pid_file_for_identity",
         return_value=IDENTITY,
       ) as create:
       result = ZOOKEEPER_PROCESS.read_or_recover_process(
@@ -197,6 +197,33 @@ class TestZookeeperProcess(unittest.TestCase):
       group="hadoop",
       mode=0o640,
     )
+
+  def test_existing_pid_is_revalidated_and_secured_before_reuse(self):
+    with patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(
+        safe_process, "read_running_process", return_value=IDENTITY
+      ), \
+      patch.object(
+        safe_process,
+        "publish_pid_file_for_identity",
+        return_value=IDENTITY,
+      ) as publish, \
+      patch.object(safe_process, "discover_running_process") as discover:
+      result = ZOOKEEPER_PROCESS.read_or_recover_process(
+        PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
+      )
+
+    self.assertIs(IDENTITY, result)
+    publish.assert_called_once_with(
+      PID_FILE,
+      IDENTITY,
+      expected_user="zookeeper",
+      expected_cmdline=TOKENS,
+      owner="zookeeper",
+      group="hadoop",
+      mode=0o640,
+    )
+    discover.assert_not_called()
 
   def test_stale_pid_is_removed_but_wrong_identity_fails_closed(self):
     with patch.object(safe_process, "read_pid", return_value=123), \
@@ -236,7 +263,7 @@ class TestZookeeperProcess(unittest.TestCase):
         "discover_running_process",
         side_effect=Fail("ambiguous process discovery"),
       ), \
-      patch.object(safe_process, "create_pid_file_for_identity") as create, \
+      patch.object(safe_process, "publish_pid_file_for_identity") as create, \
       self.assertRaisesRegex(Fail, "ambiguous process discovery"):
       ZOOKEEPER_PROCESS.read_or_recover_process(
         PID_FILE, "zookeeper", "hadoop", CONFIG_FILE
@@ -293,9 +320,9 @@ class TestZookeeperProcess(unittest.TestCase):
     self.assertIs(start_error, raised.exception)
     rollback.assert_called_once_with(
       PID_FILE,
+      IDENTITY,
       "zookeeper",
       CONFIG_FILE,
-      expected_identity=IDENTITY,
     )
     warning.assert_called_once()
 

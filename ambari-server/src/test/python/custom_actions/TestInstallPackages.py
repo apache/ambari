@@ -50,6 +50,23 @@ class TestInstallPackages(RMFTestCase):
     self.maxDiff = None
 
   @staticmethod
+  def _normalize_stack(payload):
+    """Exercise package installation against the supported BIGTOP stack root."""
+    payload["clusterLevelParams"]["stack_name"] = "BIGTOP"
+    payload["clusterLevelParams"]["stack_version"] = "3.3.0"
+    payload["repositoryFile"]["stackName"] = "BIGTOP"
+    return payload
+
+  def get_config_file(self, configs_path, config_file):
+    return self._normalize_stack(super().get_config_file(configs_path, config_file))
+
+  def executeScript(self, *args, **kwargs):
+    config_dict = kwargs.get("config_dict")
+    if config_dict is not None:
+      self._normalize_stack(config_dict)
+    return super().executeScript(*args, **kwargs)
+
+  @staticmethod
   def _add_packages(*args, **kwargs):
     return [["pkg1", "1.0", "repo"], ["pkg2", "2.0", "repo2"]]
 

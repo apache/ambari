@@ -27,6 +27,8 @@ from unittest.mock import MagicMock, patch
 from xml.etree import ElementTree
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 LIVY = (
@@ -60,6 +62,13 @@ def params_module(**values):
 
 
 class TestLivyConfigurationContract(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(LIVY / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
   def test_33_overlay_matches_bigtop_livy_version(self):
     root = ElementTree.parse(LIVY_33 / "metainfo.xml").getroot()
     self.assertEqual("LIVY", root.findtext("./services/service/name"))
@@ -84,14 +93,14 @@ class TestLivyConfigurationContract(unittest.TestCase):
     )
     self.assertEqual(
       ["spark-${stack_version}-core", "spark-${stack_version}-python", "livy"],
-      os_packages["debian10,debian11,ubuntu20,ubuntu22"],
+      os_packages["ubuntu22"],
     )
 
     stack_packages = json.loads(
-      (LIVY.parents[2] / "properties/stack_packages.json").read_text(
+      (LIVY.parents[1] / "properties/stack_packages.json").read_text(
         encoding="utf-8"
       )
-    )["stack-packages"]["LIVY"]
+    )["BIGTOP"]["stack-select"]["LIVY"]
     self.assertEqual({"LIVY_SERVER"}, set(stack_packages))
     server_packages = stack_packages["LIVY_SERVER"]
     self.assertEqual("livy-server", server_packages["STACK-SELECT-PACKAGE"])
@@ -202,6 +211,7 @@ class TestLivyConfigurationContract(unittest.TestCase):
       patch.object(SETUP_LIVY, "InlineTemplate", side_effect=lambda value: value), \
       patch.object(SETUP_LIVY, "generate_logfeeder_input_config"), \
       patch.object(SETUP_LIVY, "Template"):
+      self._environment.set_params(params)
       SETUP_LIVY.setup_livy(MagicMock(), "server", action="config")
 
     runtime = directory.call_args_list[0]

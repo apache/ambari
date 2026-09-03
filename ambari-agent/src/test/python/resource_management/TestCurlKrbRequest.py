@@ -37,8 +37,14 @@ class TestCurlKrbRequest(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"}
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context), \
+    body_context = MagicMock()
+    body_context.__enter__.return_value = "/tmp/private/cache/request-body"
+    body_context.__exit__.return_value = False
+    with patch.object(
+      curl_krb, "PrivateKerberosCache", return_value=cache_context
+    ) as private_cache, \
       patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"), \
+      patch.object(curl_krb, "private_temporary_file", return_value=body_context), \
       patch.object(
         curl_krb, "get_user_call_output", return_value=(0, "200", "")
       ) as call_output, \
@@ -58,7 +64,7 @@ class TestCurlKrbRequest(unittest.TestCase):
       )
 
     self.assertEqual((200, None, 1), result)
-    curl_krb.PrivateKerberosCache.assert_called_once_with(
+    private_cache.assert_called_once_with(
       "ambari-qa",
       temp_dir="/tmp",
       prefix="ambari-curl-ams___id_-",
@@ -131,8 +137,14 @@ class TestCurlKrbRequest(unittest.TestCase):
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/private/cache/krb5cc"}
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
-    with patch.object(curl_krb, "PrivateKerberosCache", return_value=cache_context), \
+    body_context = MagicMock()
+    body_context.__enter__.return_value = "/tmp/private/cache/request-body"
+    body_context.__exit__.return_value = False
+    with patch.object(
+      curl_krb, "PrivateKerberosCache", return_value=cache_context
+    ), \
       patch.object(curl_krb, "get_kinit_path", return_value="/usr/bin/kinit"), \
+      patch.object(curl_krb, "private_temporary_file", return_value=body_context), \
       patch.object(
         curl_krb, "get_user_call_output", return_value=(0, "{}", "")
       ) as call_output:
@@ -158,7 +170,10 @@ class TestCurlKrbRequest(unittest.TestCase):
     self.assertEqual(
       "Content-Type: application/json;$(id)", command[command.index("-H") + 1]
     )
-    self.assertEqual('{"value":"a;$(id)"}', command[command.index("-d") + 1])
+    self.assertEqual(
+      "@/tmp/private/cache/request-body",
+      command[command.index("--data-binary") + 1],
+    )
 
   def test_http_code_result_preserves_public_return_contract(self):
     cache = MagicMock()

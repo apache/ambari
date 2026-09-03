@@ -27,6 +27,8 @@ from unittest.mock import MagicMock, call, patch
 from xml.etree import ElementTree
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 TEZ = (
@@ -135,6 +137,13 @@ class TestTezUtils(unittest.TestCase):
 
 
 class TestTezConfiguration(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(TEZ / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
   def test_managed_configuration_has_stable_ownership_and_modes(self):
     params = params_module(
       tez_conf_dir="/etc/tez/conf",
@@ -143,6 +152,7 @@ class TestTezConfiguration(unittest.TestCase):
       config={},
       tez_env_sh_template="export JAVA_HOME={{java64_home}}",
     )
+    self._environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(TEZ_CONFIG, "Directory") as directory, \
       patch.object(TEZ_CONFIG, "XmlConfig") as xml_config, \
@@ -191,7 +201,7 @@ class TestTezServiceCheck(unittest.TestCase):
       sysprep_skip_copy_tarballs_hdfs=False,
       tez_lib_base_dir_path="/bigtop/apps/3.3.0/tez",
       tez_lib_uris="/bigtop/apps/3.3.0/tez/tez.tar.gz",
-      tez_home="/usr/lib/tez",
+      tez_home="/usr/bigtop/current/tez-client",
       security_enabled=security_enabled,
       smoke_user_keytab="/etc/security/keytabs/smoke.keytab",
       hdfs_user_keytab="/etc/security/keytabs/hdfs.keytab",
@@ -215,17 +225,23 @@ class TestTezServiceCheck(unittest.TestCase):
       ), \
       patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=False), \
       patch.object(TEZ_SERVICE_CHECK, "File") as file_resource, \
-      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop:
+      patch.object(TEZ_SERVICE_CHECK, "Execute") as execute:
       service_check.service_check(MagicMock())
 
-    run_command = execute_hadoop.call_args_list[0]
-    self.assertEqual("jar", run_command.args[0][0])
-    self.assertEqual("orderedwordcount", run_command.args[0][2])
-    self.assertIn("unique-check", run_command.args[0][3])
+    run_command = execute.call_args_list[0]
+    self.assertEqual(
+      ("/usr/bin/hadoop", "--config", "/etc/hadoop/conf"),
+      run_command.args[0][:3],
+    )
+    self.assertEqual("jar", run_command.args[0][3])
+    self.assertEqual("orderedwordcount", run_command.args[0][5])
+    self.assertIn("unique-check", run_command.args[0][6])
     self.assertEqual({}, run_command.kwargs["environment"])
-    success_command = execute_hadoop.call_args_list[1]
-    self.assertEqual(("fs", "-test", "-e"), success_command.args[0][:3])
-    self.assertIn("unique-check", success_command.args[0][3])
+    self.assertEqual(330, run_command.kwargs["timeout"])
+    success_command = execute.call_args_list[1]
+    self.assertEqual(("fs", "-test", "-e"), success_command.args[0][3:6])
+    self.assertIn("unique-check", success_command.args[0][6])
+    self.assertEqual(60, success_command.kwargs["timeout"])
     file_resource.assert_has_calls(
       [
         call(
@@ -276,7 +292,7 @@ class TestTezServiceCheck(unittest.TestCase):
         TEZ_SERVICE_CHECK, "PrivateKerberosCache", return_value=cache_context
       ) as cache_factory, \
       patch.object(TEZ_SERVICE_CHECK, "File"), \
-      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop:
+      patch.object(TEZ_SERVICE_CHECK, "Execute") as execute:
       service_check.service_check(MagicMock())
 
     self.assertEqual(
@@ -295,7 +311,7 @@ class TestTezServiceCheck(unittest.TestCase):
       "ambari-qa@EXAMPLE.COM",
       timeout=60,
     )
-    for command_call in execute_hadoop.call_args_list:
+    for command_call in execute.call_args_list:
       self.assertEqual(
         {"KRB5CCNAME": "FILE:/private/cache"},
         command_call.kwargs["environment"],
@@ -314,11 +330,11 @@ class TestTezServiceCheck(unittest.TestCase):
       patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=True), \
       patch.object(TEZ_SERVICE_CHECK, "copy_to_hdfs", return_value=False), \
       patch.object(TEZ_SERVICE_CHECK, "File") as file_resource, \
-      patch.object(TEZ_SERVICE_CHECK, "ExecuteHadoop") as execute_hadoop, \
+      patch.object(TEZ_SERVICE_CHECK, "Execute") as execute, \
       self.assertRaisesRegex(Fail, "runtime archive"):
       service_check.service_check(MagicMock())
 
-    execute_hadoop.assert_not_called()
+    execute.assert_not_called()
     self.assertEqual("delete", file_resource.call_args_list[-1].kwargs["action"])
     self.assertEqual(
       "delete_on_execute",
@@ -328,7 +344,7 @@ class TestTezServiceCheck(unittest.TestCase):
       "execute", params.HdfsResource.call_args_list[-1].kwargs["action"]
     )
 
-  def test_operation_and_cleanup_failures_are_both_reported(self):
+  def test_cleanup_failure_is_logged_without_replacing_operation_failure(self):
     params = self._params()
 
     def hdfs_resource(target, **options):
@@ -346,12 +362,13 @@ class TestTezServiceCheck(unittest.TestCase):
       patch.object(TEZ_SERVICE_CHECK, "check_stack_feature", return_value=True), \
       patch.object(TEZ_SERVICE_CHECK, "copy_to_hdfs", return_value=False), \
       patch.object(TEZ_SERVICE_CHECK, "File") as file_resource, \
-      self.assertRaisesRegex(
-        Fail, "runtime archive.*cleanup unavailable"
-      ):
+      patch.object(TEZ_SERVICE_CHECK.Logger, "warning") as warning, \
+      self.assertRaisesRegex(Fail, "runtime archive"):
       service_check.service_check(MagicMock())
 
     self.assertEqual("delete", file_resource.call_args_list[-1].kwargs["action"])
+    warning.assert_called_once()
+    self.assertIn("cleanup unavailable", warning.call_args.args[0])
 
 
 class TestTezAdvisorAndMetadata(unittest.TestCase):
@@ -565,7 +582,7 @@ class TestTezAdvisorAndMetadata(unittest.TestCase):
     }
     self.assertEqual(
       ["tez_${stack_version}"],
-      packages_by_os["redhat7,redhat8,redhat9,openeuler22"],
+      packages_by_os["redhat8,redhat9,openeuler22"],
     )
     self.assertEqual(["tez-${stack_version}"], packages_by_os["ubuntu22"])
 

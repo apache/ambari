@@ -118,6 +118,9 @@ def component_cases():
           user="alluxio",
           environment={"JAVA_HOME": "/usr/lib/jvm/java"},
           timeout=60,
+          timeout_kill_strategy=(
+            ALLUXIO_MASTER.TerminateStrategy.KILL_PROCESS_GROUP
+          ),
         )
       ],
     ),
@@ -129,12 +132,22 @@ def component_cases():
       "/run/alluxio/alluxio-worker.pid",
       WORKER_PROCESS_CLASS,
       [
-        call(("alluxio-mount.sh", "Mount"), sudo=True, timeout=60),
+        call(
+          ("alluxio-mount.sh", "Mount"),
+          sudo=True,
+          timeout=60,
+          timeout_kill_strategy=(
+            ALLUXIO_WORKER.TerminateStrategy.KILL_PROCESS_GROUP
+          ),
+        ),
         call(
           ("alluxio-start.sh", "-a", "-N", "worker", "NoMount"),
           user="alluxio",
           environment={"JAVA_HOME": "/usr/lib/jvm/java"},
           timeout=60,
+          timeout_kill_strategy=(
+            ALLUXIO_WORKER.TerminateStrategy.KILL_PROCESS_GROUP
+          ),
         ),
       ],
     ),
@@ -205,13 +218,25 @@ class TestAlluxioLifecycle(unittest.TestCase):
             module.safe_process, "discover_running_process", return_value=identity
           ) as discover, \
           patch.object(
-            module.safe_process, "create_pid_file_for_identity"
-          ) as create_pid:
+            module.safe_process,
+            "publish_pid_file_for_identity",
+            return_value=identity,
+          ) as publish_pid:
           service.start(MagicMock())
 
         execute.assert_not_called()
         discover.assert_not_called()
-        create_pid.assert_not_called()
+        publish_pid.assert_called_once_with(
+          params.alluxio_master_pid_file
+          if name == "master"
+          else params.alluxio_worker_pid_file,
+          identity,
+          "alluxio",
+          process_class,
+          "alluxio",
+          "hadoop",
+          mode=0o640,
+        )
 
   def test_start_recovers_a_missing_pid_file_for_a_unique_process(self):
     for (
@@ -234,8 +259,8 @@ class TestAlluxioLifecycle(unittest.TestCase):
             module.safe_process, "discover_running_process", return_value=identity
           ) as discover, \
           patch.object(
-            module.safe_process, "create_pid_file_for_identity"
-          ) as create_pid, \
+            module.safe_process, "publish_pid_file_for_identity"
+          ) as publish_pid, \
           patch.object(
             module.safe_process, "wait_for_discovered_process"
           ) as wait_for_process:
@@ -243,7 +268,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
 
         execute.assert_not_called()
         discover.assert_called_once_with("alluxio", process_class)
-        create_pid.assert_called_once_with(
+        publish_pid.assert_called_once_with(
           pid_file,
           identity,
           "alluxio",
@@ -276,13 +301,13 @@ class TestAlluxioLifecycle(unittest.TestCase):
             ), \
             patch.object(
               module.safe_process,
-              "create_pid_file_for_identity",
+              "publish_pid_file_for_identity",
               side_effect=(
                 Fail("PID file was created concurrently")
                 if failure_stage == "recovery"
                 else None
               ),
-            ) as create_pid:
+            ) as publish_pid:
             expected = (
               "ambiguous process discovery"
               if failure_stage == "discovery"
@@ -293,7 +318,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
 
           execute.assert_not_called()
           if failure_stage == "discovery":
-            create_pid.assert_not_called()
+            publish_pid.assert_not_called()
 
   def test_start_uses_safe_identity_and_writes_a_missing_pid_file(self):
     for (
@@ -311,11 +336,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
         with patch.dict(sys.modules, {"params": params}), \
           patch.object(service, "configure"), \
           patch.object(module, "Execute") as execute, \
-          patch.object(
-            module.safe_process,
-            "read_running_process",
-            return_value=identity,
-          ) as read_running, \
+          patch.object(module.safe_process, "read_pid", return_value=None), \
           patch.object(
             module.safe_process, "discover_running_process", return_value=None
           ) as discover, \
@@ -325,11 +346,10 @@ class TestAlluxioLifecycle(unittest.TestCase):
             return_value=identity,
           ) as wait_for_process, \
           patch.object(
-            module.safe_process, "read_pid", side_effect=(None, None)
-          ), \
-          patch.object(
-            module.safe_process, "create_pid_file_for_identity"
-          ) as create_pid:
+            module.safe_process,
+            "publish_pid_file_for_identity",
+            return_value=identity,
+          ) as publish_pid:
           service.start(MagicMock())
 
         self.assertEqual(execute_calls, execute.call_args_list)
@@ -337,7 +357,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
         wait_for_process.assert_called_once_with(
           "alluxio", process_class, attempts=60, sleep_seconds=1
         )
-        create_pid.assert_called_once_with(
+        publish_pid.assert_called_once_with(
           pid_file,
           identity,
           "alluxio",
@@ -346,7 +366,6 @@ class TestAlluxioLifecycle(unittest.TestCase):
           "hadoop",
           mode=0o640,
         )
-        read_running.assert_called_once_with(pid_file, "alluxio", process_class)
 
   def test_start_rejects_pid_file_creation_and_process_races(self):
     failures = ("PID file was created concurrently", "Process 123 disappeared")
@@ -358,9 +377,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
           with patch.dict(sys.modules, {"params": params}), \
             patch.object(service, "configure"), \
             patch.object(module, "Execute"), \
-            patch.object(
-              module.safe_process, "read_running_process", return_value=None
-            ), \
+            patch.object(module.safe_process, "read_pid", return_value=None), \
             patch.object(
               module.safe_process, "discover_running_process", return_value=None
             ), \
@@ -369,16 +386,24 @@ class TestAlluxioLifecycle(unittest.TestCase):
               "wait_for_discovered_process",
               return_value=identity,
             ), \
-            patch.object(module.safe_process, "read_pid", side_effect=(None, None)), \
             patch.object(
               module.safe_process,
-              "create_pid_file_for_identity",
+              "publish_pid_file_for_identity",
               side_effect=Fail(failure),
-            ) as create_pid:
+            ) as publish_pid, \
+            patch.object(module, "rollback_started_process") as rollback:
             with self.assertRaisesRegex(Fail, failure):
               service.start(MagicMock())
 
-          create_pid.assert_called_once()
+          publish_pid.assert_called_once()
+          rollback.assert_called_once_with(
+            params.alluxio_master_pid_file
+            if name == "master"
+            else params.alluxio_worker_pid_file,
+            identity,
+            "alluxio",
+            process_class,
+          )
 
   def test_start_rejects_identity_change_after_pid_file_write(self):
     for name, module, service_class, params, _, process_class, _ in component_cases():
@@ -389,11 +414,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
         with patch.dict(sys.modules, {"params": params}), \
           patch.object(service, "configure"), \
           patch.object(module, "Execute"), \
-          patch.object(
-            module.safe_process,
-            "read_running_process",
-            return_value=replacement,
-          ), \
+          patch.object(module.safe_process, "read_pid", return_value=None), \
           patch.object(
             module.safe_process, "discover_running_process", return_value=None
           ), \
@@ -402,12 +423,24 @@ class TestAlluxioLifecycle(unittest.TestCase):
             "wait_for_discovered_process",
             return_value=identity,
           ), \
-          patch.object(module.safe_process, "read_pid", side_effect=(None, None)), \
-          patch.object(module.safe_process, "create_pid_file_for_identity") as create_pid:
+          patch.object(
+            module.safe_process,
+            "publish_pid_file_for_identity",
+            return_value=replacement,
+          ) as publish_pid, \
+          patch.object(module, "rollback_started_process") as rollback:
           with self.assertRaisesRegex(Fail, "process changed"):
             service.start(MagicMock())
 
-        create_pid.assert_called_once()
+        publish_pid.assert_called_once()
+        rollback.assert_called_once_with(
+          params.alluxio_master_pid_file
+          if name == "master"
+          else params.alluxio_worker_pid_file,
+          identity,
+          "alluxio",
+          process_class,
+        )
 
   def test_start_and_wait_failures_propagate_without_false_success(self):
     for name, module, service_class, params, _, _, _ in component_cases():
@@ -425,7 +458,7 @@ class TestAlluxioLifecycle(unittest.TestCase):
               module,
               "Execute",
               side_effect=execute_effect if failure_stage == "command" else None,
-            ), \
+            ) as execute, \
             patch.object(module, "File") as file_resource, \
             patch.object(module.safe_process, "read_pid", return_value=None), \
             patch.object(
@@ -444,24 +477,23 @@ class TestAlluxioLifecycle(unittest.TestCase):
               service.start(MagicMock())
 
           file_resource.assert_not_called()
-          rollback.assert_called_once_with(
-            params.alluxio_master_pid_file
-            if name == "master"
-            else params.alluxio_worker_pid_file,
-            "alluxio",
-            params.alluxio_master_process_class
-            if name == "master"
-            else params.alluxio_worker_process_class,
-          )
+          rollback.assert_not_called()
           if name == "worker":
             self.assertEqual(
-              call(("alluxio-mount.sh", "Umount"), sudo=True, timeout=60),
+              call(
+                ("alluxio-mount.sh", "Umount"),
+                sudo=True,
+                timeout=60,
+                timeout_kill_strategy=(
+                  ALLUXIO_WORKER.TerminateStrategy.KILL_PROCESS_GROUP
+                ),
+              ),
               execute.call_args_list[-1],
             )
           if failure_stage == "command":
             wait_for_process.assert_not_called()
 
-  def test_start_preserves_original_failure_when_rollback_fails(self):
+  def test_start_does_not_guess_a_rollback_identity_on_launcher_failure(self):
     for name, module, service_class, params, _, _, _ in component_cases():
       service = service_class()
       execute_effect = (
@@ -477,23 +509,18 @@ class TestAlluxioLifecycle(unittest.TestCase):
           patch.object(
             module.safe_process, "discover_running_process", return_value=None
           ), \
-          patch.object(
-            module,
-            "rollback_started_process",
-            side_effect=Fail("cleanup failed"),
-          ), \
+          patch.object(module, "rollback_started_process") as rollback, \
           patch.object(module.Logger, "warning") as warning:
           with self.assertRaisesRegex(Fail, "command failed"):
             service.start(MagicMock())
 
-        warning.assert_called_once()
+        rollback.assert_not_called()
+        warning.assert_not_called()
 
-  def test_rollback_terminates_only_the_discovered_identity(self):
+  def test_rollback_terminates_only_the_pinned_identity(self):
     identity = process_identity(MASTER_PROCESS_CLASS)
     with patch.object(
-      ALLUXIO_UTILS.safe_process,
-      "discover_running_process",
-      return_value=identity,
+      ALLUXIO_UTILS.safe_process, "discover_running_process"
     ) as discover, \
       patch.object(ALLUXIO_UTILS.safe_process, "terminate_process") as terminate, \
       patch.object(ALLUXIO_UTILS.safe_process, "read_pid", return_value=123), \
@@ -501,10 +528,13 @@ class TestAlluxioLifecycle(unittest.TestCase):
         ALLUXIO_UTILS.safe_process, "remove_pid_file_if_stopped"
       ) as remove_pid:
       ALLUXIO_UTILS.rollback_started_process(
-        "/run/alluxio/alluxio-master.pid", "alluxio", MASTER_PROCESS_CLASS
+        "/run/alluxio/alluxio-master.pid",
+        identity,
+        "alluxio",
+        MASTER_PROCESS_CLASS,
       )
 
-    discover.assert_called_once_with("alluxio", MASTER_PROCESS_CLASS)
+    discover.assert_not_called()
     terminate.assert_called_once_with(identity, "alluxio", MASTER_PROCESS_CLASS)
     remove_pid.assert_called_once_with(
       "/run/alluxio/alluxio-master.pid",
@@ -728,17 +758,16 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
       patch.object(
         module, "PrivateKerberosCache", return_value=kerberos_cache
       ) as private_cache, \
-      patch.object(
-        module.safe_process,
-        "read_running_process",
-        return_value=identity,
-      ), \
+      patch.object(module.safe_process, "read_pid", return_value=None), \
       patch.object(module.safe_process, "discover_running_process", return_value=None), \
       patch.object(
         module.safe_process, "wait_for_discovered_process", return_value=identity
       ), \
-      patch.object(module.safe_process, "read_pid", side_effect=(None, None)), \
-      patch.object(module.safe_process, "create_pid_file_for_identity"):
+      patch.object(
+        module.safe_process,
+        "publish_pid_file_for_identity",
+        return_value=identity,
+      ):
       service.start(MagicMock())
     return execute.call_args_list, private_cache, kerberos_cache
 
@@ -787,6 +816,9 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
         user="alluxio",
         environment=expected_environment,
         timeout=60,
+        timeout_kill_strategy=(
+          ALLUXIO_MASTER.TerminateStrategy.KILL_PROCESS_GROUP
+        ),
       ),
       master_calls[0],
     )
@@ -796,6 +828,9 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
         user="alluxio",
         environment=expected_environment,
         timeout=60,
+        timeout_kill_strategy=(
+          ALLUXIO_WORKER.TerminateStrategy.KILL_PROCESS_GROUP
+        ),
       ),
       worker_calls[1],
     )
@@ -818,8 +853,22 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
         ALLUXIO_WORKER.AlluxioWorker,
         worker_params(True, **common),
         [
-          call(("alluxio-mount.sh", "Mount"), sudo=True, timeout=60),
-          call(("alluxio-mount.sh", "Umount"), sudo=True, timeout=60),
+          call(
+            ("alluxio-mount.sh", "Mount"),
+            sudo=True,
+            timeout=60,
+            timeout_kill_strategy=(
+              ALLUXIO_WORKER.TerminateStrategy.KILL_PROCESS_GROUP
+            ),
+          ),
+          call(
+            ("alluxio-mount.sh", "Umount"),
+            sudo=True,
+            timeout=60,
+            timeout_kill_strategy=(
+              ALLUXIO_WORKER.TerminateStrategy.KILL_PROCESS_GROUP
+            ),
+          ),
         ],
       ),
     )
@@ -892,8 +941,22 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
 
     self.assertEqual(
       [
-        call(params.alluxio_worker_mount_cmd, sudo=True, timeout=60),
-        call(params.alluxio_worker_unmount_cmd, sudo=True, timeout=60),
+        call(
+          params.alluxio_worker_mount_cmd,
+          sudo=True,
+          timeout=60,
+          timeout_kill_strategy=(
+            ALLUXIO_WORKER.TerminateStrategy.KILL_PROCESS_GROUP
+          ),
+        ),
+        call(
+          params.alluxio_worker_unmount_cmd,
+          sudo=True,
+          timeout=60,
+          timeout_kill_strategy=(
+            ALLUXIO_WORKER.TerminateStrategy.KILL_PROCESS_GROUP
+          ),
+        ),
       ],
       execute.call_args_list,
     )
@@ -918,6 +981,13 @@ class TestAlluxioKerberosStartup(unittest.TestCase):
 
 
 class TestAlluxioConfiguration(unittest.TestCase):
+  def test_security_flag_is_parsed_strictly(self):
+    self.assertTrue(ALLUXIO_UTILS.as_bool(" true ", "security flag"))
+    self.assertFalse(ALLUXIO_UTILS.as_bool("FALSE", "security flag"))
+    self.assertFalse(ALLUXIO_UTILS.as_bool(False, "security flag"))
+    with self.assertRaisesRegex(ValueError, "must be true or false"):
+      ALLUXIO_UTILS.as_bool("enabled", "security flag")
+
   @staticmethod
   def _params(hdfs_resource=None):
     return params_module(
@@ -1067,9 +1137,7 @@ class TestAlluxioServiceCheck(unittest.TestCase):
     source = (ALLUXIO_SCRIPTS / "worker.py").read_text(encoding="utf-8")
     self.assertLess(
       source.index("self.configure(env)"),
-      source.index(
-        "Execute(params.alluxio_worker_mount_cmd, sudo=True, timeout=60)"
-      ),
+      source.index("params.alluxio_worker_mount_cmd"),
     )
 
   def test_service_check_asf_header_is_undamaged(self):
@@ -1089,7 +1157,14 @@ class TestAlluxioServiceCheck(unittest.TestCase):
       patch.object(ALLUXIO_SERVICE_CHECK, "Execute") as execute:
       ALLUXIO_SERVICE_CHECK.AlluxioServiceCheck().service_check(MagicMock())
 
-    execute.assert_called_once_with(command, user="alluxio", timeout=300)
+    execute.assert_called_once_with(
+      command,
+      user="alluxio",
+      timeout=300,
+      timeout_kill_strategy=(
+        ALLUXIO_SERVICE_CHECK.TerminateStrategy.KILL_PROCESS_GROUP
+      ),
+    )
 
   def test_check_propagates_nonzero_and_timeout_failures(self):
     params = params_module(

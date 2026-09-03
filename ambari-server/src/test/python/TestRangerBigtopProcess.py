@@ -50,7 +50,7 @@ class TestRangerBigtopProcess(unittest.TestCase):
     ):
       self.assertIn(token, source)
     self.assertIn("safe_process.terminate_process", source)
-    self.assertIn("safe_process.secure_pid_file_for_identity", source)
+    self.assertIn("safe_process.publish_pid_file_for_identity", source)
     self.assertIn("PID directory ownership or permissions are unsafe", source)
 
     lifecycle_sources = "\n".join(
@@ -68,11 +68,17 @@ class TestRangerBigtopProcess(unittest.TestCase):
     identity = SimpleNamespace(pid=4217)
     with patch.object(module, "_validate_pid_file"), \
       patch.object(module, "_validate_pid_directory"), \
+      patch.object(module, "_validate_pid_directory"), \
       patch.object(
         module.safe_process,
         "read_running_process",
         return_value=identity,
       ) as read_running_process, \
+      patch.object(
+        module.safe_process,
+        "publish_pid_file_for_identity",
+        return_value=identity,
+      ) as publish_pid, \
       patch.object(module.safe_process, "discover_running_process") as discover:
       self.assertIs(
         identity,
@@ -89,6 +95,14 @@ class TestRangerBigtopProcess(unittest.TestCase):
       "ranger",
       ("-Dproc_rangeradmin",),
     )
+    publish_pid.assert_called_once_with(
+      "/run/ranger/rangeradmin.pid",
+      identity,
+      "ranger",
+      ("-Dproc_rangeradmin",),
+      "ranger",
+      "ranger",
+    )
     discover.assert_not_called()
 
   def test_lifecycle_rejects_a_launcher_pid_mismatch(self):
@@ -104,16 +118,68 @@ class TestRangerBigtopProcess(unittest.TestCase):
         "wait_for_discovered_process",
         return_value=identity,
       ), \
-      patch.object(module.safe_process, "read_pid", return_value=4218), \
-      patch.object(module.safe_process, "secure_pid_file_for_identity") as secure, \
-      self.assertRaisesRegex(Fail, "unexpected PID"):
+      patch.object(
+        module.safe_process,
+        "publish_pid_file_for_identity",
+        side_effect=Fail("PID file identifies process 4218, expected 4217"),
+      ) as publish_pid, \
+      patch.object(module, "rollback_started_process") as rollback, \
+      self.assertRaisesRegex(Fail, "identifies process"):
       module.secure_started_process(
         "ranger_admin",
         "/run/ranger/rangeradmin.pid",
         "ranger",
         "ranger",
       )
-    secure.assert_not_called()
+    publish_pid.assert_called_once_with(
+      "/run/ranger/rangeradmin.pid",
+      identity,
+      "ranger",
+      ("-Dproc_rangeradmin",),
+      "ranger",
+      "ranger",
+    )
+    rollback.assert_called_once_with(
+      "ranger_admin",
+      "/run/ranger/rangeradmin.pid",
+      identity,
+      "ranger",
+    )
+
+  def test_start_timeout_terminates_the_process_group(self):
+    source = (RANGER / "package/scripts/ranger_service.py").read_text()
+    self.assertIn("timeout=60", source)
+    self.assertIn(
+      "timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP", source
+    )
+
+  def test_start_rollback_uses_only_the_pinned_identity(self):
+    module = load_module(
+      "ranger_process_rollback_test",
+      RANGER / "package/scripts/ranger_process.py",
+    )
+    identity = SimpleNamespace(pid=4217)
+    with patch.object(module, "_validate_pid_file"), \
+      patch.object(module, "_validate_pid_directory"), \
+      patch.object(module.safe_process, "terminate_process") as terminate, \
+      patch.object(module.safe_process, "read_pid", return_value=4217), \
+      patch.object(module.safe_process, "remove_pid_file_if_stopped") as remove, \
+      patch.object(module.safe_process, "discover_running_process") as discover:
+      module.rollback_started_process(
+        "ranger_admin",
+        "/run/ranger/rangeradmin.pid",
+        identity,
+        "ranger",
+      )
+
+    discover.assert_not_called()
+    terminate.assert_called_once_with(identity, "ranger", ("-Dproc_rangeradmin",))
+    remove.assert_called_once_with(
+      "/run/ranger/rangeradmin.pid",
+      4217,
+      "ranger",
+      ("-Dproc_rangeradmin",),
+    )
 
   def test_lifecycle_stops_and_removes_only_the_matching_pid(self):
     module = load_module(

@@ -25,6 +25,34 @@ from resource_management.libraries.functions import setup_ranger_plugin_xml
 
 
 class TestSetupRangerPluginXml(TestCase):
+  def test_external_ranger_credentials_must_be_explicit_and_nonempty(self):
+    credentials = {
+      "external_admin_username": "external-admin",
+      "external_admin_password": "secret-one",
+      "external_ranger_admin_username": "service-account",
+      "external_ranger_admin_password": "secret-two",
+    }
+    self.assertEqual(
+      credentials,
+      setup_ranger_plugin_xml.require_external_ranger_credentials(credentials),
+    )
+    for property_name in credentials:
+      for invalid_value in (None, "", "   ", 1):
+        with self.subTest(
+          property_name=property_name, invalid_value=invalid_value
+        ):
+          invalid = dict(credentials)
+          invalid[property_name] = invalid_value
+          with self.assertRaisesRegex(Fail, property_name):
+            setup_ranger_plugin_xml.require_external_ranger_credentials(invalid)
+
+    for invalid_properties in (None, (), []):
+      with self.subTest(invalid_properties=invalid_properties):
+        with self.assertRaisesRegex(Fail, "must be a mapping"):
+          setup_ranger_plugin_xml.require_external_ranger_credentials(
+            invalid_properties
+          )
+
   def test_ranger_repository_and_connector_paths_fail_closed(self):
     self.assertEqual(
       "service-1",

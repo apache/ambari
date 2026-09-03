@@ -21,6 +21,7 @@ import importlib.util
 from pathlib import Path
 import unittest
 from unittest.mock import MagicMock
+from xml.etree import ElementTree
 
 
 HIVE = (
@@ -221,6 +222,53 @@ class TestHiveServiceAdvisor(unittest.TestCase):
     for obsolete in ("hdp", "hive_interactive", "hive-interactive", "llap"):
       with self.subTest(obsolete=obsolete):
         self.assertNotIn(obsolete, source)
+
+  def test_ranger_repository_password_is_required_only_for_ranger_authorization(self):
+    validator = object.__new__(ADVISOR.HiveValidator)
+    ranger_configurations = {
+      "hive-env": {"properties": {"hive_security_authorization": "Ranger"}}
+    }
+    problems = validator.validateRangerHivePlugin(
+      {}, {}, ranger_configurations, {"configurations": {}}, {}
+    )
+    self.assertEqual(
+      ["REPOSITORY_CONFIG_PASSWORD"],
+      [problem["config-name"] for problem in problems],
+    )
+    self.assertEqual(
+      [],
+      validator.validateRangerHivePlugin(
+        {},
+        {},
+        {"hive-env": {"properties": {"hive_security_authorization": "None"}}},
+        {"configurations": {}},
+        {},
+      ),
+    )
+
+  def test_ranger_repository_password_has_no_packaged_default_and_runtime_fails_closed(self):
+    root = ElementTree.parse(
+      HIVE / "configuration/ranger-hive-plugin-properties.xml"
+    )
+    password = next(
+      element
+      for element in root.findall("property")
+      if element.findtext("name") == "REPOSITORY_CONFIG_PASSWORD"
+    )
+    self.assertEqual("", password.findtext("value", ""))
+    self.assertEqual(
+      "false", password.findtext("value-attributes/empty-value-valid")
+    )
+    params_source = (HIVE / "package/scripts/params.py").read_text(
+      encoding="utf-8"
+    )
+    self.assertIn(
+      "must not be empty when Ranger Hive authorization is enabled",
+      params_source,
+    )
+    self.assertIn("require_external_ranger_credentials", params_source)
+    self.assertNotIn('external_admin_password", "admin"', params_source)
+    self.assertNotIn('external_ranger_admin_password",', params_source)
 
 
 if __name__ == "__main__":

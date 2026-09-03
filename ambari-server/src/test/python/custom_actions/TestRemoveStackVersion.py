@@ -34,7 +34,7 @@ class TestRemoveStackVersion(RMFTestCase):
     return [
       ["pkg12_1_0_0_400", "1.0", "repo"],
       ["pkg22_1_0_1_885", "2.0", "repo2"],
-      ["hdp-select2_1_0_1_885", "2.0", "repo2"],
+      ["distro-select2_1_0_1_885", "2.0", "repo2"],
     ]
 
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
@@ -48,7 +48,7 @@ class TestRemoveStackVersion(RMFTestCase):
   )
   @patch(
     "resource_management.libraries.functions.stack_tools.get_stack_tool_package",
-    new=MagicMock(return_value="hdp-select"),
+    new=MagicMock(return_value="distro-select"),
   )
   @patch("os.listdir", new=MagicMock(return_value=["somefile"]))
   def test_normal_flow(
@@ -73,7 +73,7 @@ class TestRemoveStackVersion(RMFTestCase):
       os_type=("Redhat", "6.4", "Final"),
     )
     self.assertTrue(stack_versions_mock.called)
-    self.assertEqual(stack_versions_mock.call_args[0][0], "/usr/hdp")
+    self.assertEqual(stack_versions_mock.call_args[0][0], "/usr/bigtop")
 
     self.assertResourceCalled("Package", "pkg12_1_0_0_400", action=["remove"])
     self.assertTrue(put_structured_out_mock.called)
@@ -88,7 +88,7 @@ class TestRemoveStackVersion(RMFTestCase):
     )
     self.assertResourceCalled(
       "Execute",
-      ("rm", "-f", "/usr/hdp2.1.0.0-400"),
+      ("rm", "-f", "/usr/bigtop2.1.0.0-400"),
       sudo=True,
     )
     self.assertNoMoreResources()
@@ -104,7 +104,7 @@ class TestRemoveStackVersion(RMFTestCase):
   )
   @patch(
     "resource_management.libraries.functions.stack_tools.get_stack_tool_package",
-    new=MagicMock(return_value="hdp-select"),
+    new=MagicMock(return_value="distro-select"),
   )
   @patch("os.listdir", new=MagicMock(return_value=["somefile"]))
   def test_without_versions(
@@ -130,7 +130,7 @@ class TestRemoveStackVersion(RMFTestCase):
       os_type=("Redhat", "6.4", "Final"),
     )
     self.assertTrue(stack_versions_mock.called)
-    self.assertEqual(stack_versions_mock.call_args[0][0], "/usr/hdp")
+    self.assertEqual(stack_versions_mock.call_args[0][0], "/usr/bigtop")
     self.assertNoMoreResources()
 
   @patch("ambari_commons.repo_manager.ManagerFactory.get")
@@ -144,7 +144,7 @@ class TestRemoveStackVersion(RMFTestCase):
   )
   @patch(
     "resource_management.libraries.functions.stack_tools.get_stack_tool_package",
-    new=MagicMock(return_value="hdp-select"),
+    new=MagicMock(return_value="distro-select"),
   )
   @patch("os.listdir", new=MagicMock(return_value=["somefile" + OLD_VERSION_STUB]))
   def test_symlink_exist(
@@ -173,10 +173,10 @@ class TestRemoveStackVersion(RMFTestCase):
       self.fail("Should throw exception")
     except Fail as e:
       self.assertEqual(
-        str(e), "/usr/hdp/current/ contains symlink to version for remove! 2.1.0.0-400"
+        str(e), "/usr/bigtop/current/ contains symlink to version for remove! 2.1.0.0-400"
       )
       pass  # Expected
 
     self.assertTrue(stack_versions_mock.called)
-    self.assertEqual(stack_versions_mock.call_args[0][0], "/usr/hdp")
+    self.assertEqual(stack_versions_mock.call_args[0][0], "/usr/bigtop")
     self.assertNoMoreResources()

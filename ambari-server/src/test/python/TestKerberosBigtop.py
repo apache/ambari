@@ -455,7 +455,7 @@ class TestKerberosParamsAndMetadata(unittest.TestCase):
     self.assertEqual(
       {
         "redhat8,redhat9,openeuler22",
-        "debian10,debian11,ubuntu20,ubuntu22",
+        "ubuntu22",
       },
       families,
     )

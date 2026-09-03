@@ -58,6 +58,9 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled(
       "Package", "curl", retry_count=5, retry_on_repo_unavailability=False
     )
+    self.assertResourceCalled(
+      "Package", "bigtop-select", retry_count=5, retry_on_repo_unavailability=False
+    )
     self.assertNoMoreResources()
 
   def test_hook_no_repos(self):
@@ -80,6 +83,9 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled(
       "Package", "curl", retry_count=5, retry_on_repo_unavailability=False
+    )
+    self.assertResourceCalled(
+      "Package", "bigtop-select", retry_count=5, retry_on_repo_unavailability=False
     )
     self.assertNoMoreResources()
 
@@ -112,5 +118,8 @@ class TestHookBeforeInstall(RMFTestCase):
     )
     self.assertResourceCalled(
       "Package", "curl", retry_count=5, retry_on_repo_unavailability=False
+    )
+    self.assertResourceCalled(
+      "Package", "bigtop-select", retry_count=5, retry_on_repo_unavailability=False
     )
     self.assertNoMoreResources()

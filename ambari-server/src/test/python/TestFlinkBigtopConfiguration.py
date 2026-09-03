@@ -24,6 +24,8 @@ from types import ModuleType
 import unittest
 from unittest.mock import MagicMock, patch
 from xml.etree import ElementTree
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 FLINK = (
@@ -46,6 +48,8 @@ def params_module(**values):
   module = ModuleType("params")
   for name, value in values.items():
     setattr(module, name, value)
+  if Environment.has_instance():
+    Environment.get_instance().set_params(module)
   return module
 
 
@@ -73,6 +77,14 @@ def base_params():
 
 
 class TestFlinkConfigurationResources(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(FLINK / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
+
   def test_history_server_configuration_has_restrictive_ownership_and_modes(self):
     params = base_params()
     with patch.dict(sys.modules, {"params": params}), \
@@ -136,11 +148,11 @@ class TestFlinkStackMetadata(unittest.TestCase):
     }
     self.assertEqual(
       "flink_${stack_version}",
-      packages["redhat7,redhat8,redhat9,openeuler22"],
+      packages["redhat8,redhat9,openeuler22"],
     )
     self.assertEqual(
       "flink-${stack_version}",
-      packages["debian10,debian11,ubuntu20,ubuntu22"],
+      packages["ubuntu22"],
     )
     config_file = root.find(
       "./services/service/components/component[2]/configFiles/configFile"

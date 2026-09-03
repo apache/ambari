@@ -19,6 +19,7 @@ limitations under the License.
 
 import importlib.util
 import io
+import json
 import os
 from pathlib import Path
 import pwd
@@ -29,8 +30,11 @@ import tempfile
 from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import ANY, MagicMock, call, patch
+from xml.etree import ElementTree
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 YARN = (
@@ -79,6 +83,7 @@ YARN_CONFIG = load_module(
   SCRIPTS / "yarn.py",
   {"hbase_service": HBASE_SERVICE},
 )
+YARN_FUNCTIONS = load_module("bigtop_yarn_functions", SCRIPTS / "functions.py")
 RANGER_YARN = load_module(
   "bigtop_setup_ranger_yarn", SCRIPTS / "setup_ranger_yarn.py"
 )
@@ -132,9 +137,20 @@ NODEMANAGER_UPGRADE = load_module(
 YARN_ADVISOR = load_module("bigtop_yarn_service_advisor", YARN / "service_advisor.py")
 
 
-class TestYarnComponentWorkflows(unittest.TestCase):
+class _YarnResourceTestCase(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._resource_environment = Environment(str(YARN / "package"), test_mode=True)
+    self._resource_environment.__enter__()
+
+  def tearDown(self):
+    self._resource_environment.__exit__(None, None, None)
+
+
+class TestYarnComponentWorkflows(_YarnResourceTestCase):
   def test_timeline_reader_stops_before_embedded_hbase(self):
     params = params_module(
+      atsv2_backend_enabled=True,
       use_external_hbase=False,
       is_hbase_system_service_launch=False,
     )
@@ -155,6 +171,7 @@ class TestYarnComponentWorkflows(unittest.TestCase):
 
   def test_timeline_reader_stop_failure_still_stops_embedded_hbase(self):
     params = params_module(
+      atsv2_backend_enabled=True,
       use_external_hbase=False,
       is_hbase_system_service_launch=False,
     )
@@ -167,6 +184,7 @@ class TestYarnComponentWorkflows(unittest.TestCase):
 
   def test_timeline_reader_stop_reports_reader_and_hbase_failures(self):
     params = params_module(
+      atsv2_backend_enabled=True,
       use_external_hbase=False,
       is_hbase_system_service_launch=False,
     )
@@ -186,12 +204,16 @@ class TestYarnComponentWorkflows(unittest.TestCase):
     )
     reader = TIMELINE_READER.ApplicationTimelineReader()
     env = MagicMock()
+    started_roles = (
+      ("master", MagicMock(name="master_identity")),
+      ("regionserver", MagicMock(name="regionserver_identity")),
+    )
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(reader, "configure"), \
       patch.object(
         TIMELINE_READER,
         "hbase",
-        return_value=("master", "regionserver"),
+        return_value=started_roles,
       ), \
       patch.object(
         TIMELINE_READER,
@@ -203,7 +225,28 @@ class TestYarnComponentWorkflows(unittest.TestCase):
       ) as rollback:
       with self.assertRaisesRegex(Fail, "reader start failed"):
         reader.start(env)
-    rollback.assert_called_once_with(("master", "regionserver"))
+    rollback.assert_called_once_with(started_roles)
+
+  def test_timeline_reader_rollback_failure_preserves_start_error(self):
+    params = params_module(
+      use_external_hbase=False,
+      is_hbase_system_service_launch=False,
+    )
+    reader = TIMELINE_READER.ApplicationTimelineReader()
+    started_roles = (("master", MagicMock(name="master_identity")),)
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(reader, "configure"), \
+      patch.object(TIMELINE_READER, "hbase", return_value=started_roles), \
+      patch.object(
+        TIMELINE_READER, "service", side_effect=Fail("reader start failed")
+      ), \
+      patch.object(
+        TIMELINE_READER,
+        "rollback_hbase_roles",
+        return_value=["master: rollback failed"],
+      ), \
+      self.assertRaisesRegex(Fail, "reader start failed"):
+      reader.start(MagicMock())
 
   def test_secure_nodemanager_upgrade_requires_complete_credentials(self):
     params = params_module(
@@ -220,6 +263,26 @@ class TestYarnComponentWorkflows(unittest.TestCase):
       with self.assertRaisesRegex(Fail, "principal and keytab are required"):
         NODEMANAGER_UPGRADE.post_upgrade_check()
     cache.assert_not_called()
+
+  def test_nodemanager_upgrade_preserves_check_failure_when_logs_fail(self):
+    params = params_module(
+      security_enabled=False,
+      yarn_user="yarn",
+      yarn_log_dir="/var/log/hadoop-yarn",
+    )
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        NODEMANAGER_UPGRADE,
+        "_check_nodemanager_startup",
+        side_effect=Fail("startup check failed"),
+      ), \
+      patch.object(
+        NODEMANAGER_UPGRADE,
+        "show_logs",
+        side_effect=Fail("logs failed"),
+      ), \
+      self.assertRaisesRegex(Fail, "startup check failed"):
+      NODEMANAGER_UPGRADE.post_upgrade_check()
 
   def test_nodemanager_upgrade_matches_exact_running_node_id(self):
     output = """Total Nodes:2
@@ -390,7 +453,7 @@ nm10.example:45454 RUNNING nm10.example:8042 0
       ), \
       patch.object(
         RESOURCE_MANAGER.WebHDFSUtil, "is_webhdfs_available", return_value=False
-      ), \
+      ) as available, \
       patch.object(RESOURCE_MANAGER.shell, "call", return_value=(0, "")) as call:
       RESOURCE_MANAGER.ResourcemanagerDefault().wait_for_dfs_directory_created(
         "/ats/active", [], environment
@@ -398,7 +461,7 @@ nm10.example:45454 RUNNING nm10.example:8042 0
     self.assertEqual("hdfs", call.call_args.args[0][0].rsplit("/", 1)[-1])
     self.assertEqual(environment, call.call_args.kwargs["env"])
     self.assertEqual(30, call.call_args.kwargs["timeout"])
-    RESOURCE_MANAGER.WebHDFSUtil.is_webhdfs_available.assert_called_once_with(
+    available.assert_called_once_with(
       False, "HDFS"
     )
 
@@ -1044,7 +1107,10 @@ class TestYarnAdvisorContract(unittest.TestCase):
             "properties": {"ranger-yarn-plugin-enabled": old_value}
           },
           "ranger-yarn-plugin-properties": {
-            "properties": {"ranger-yarn-plugin-enabled": old_value}
+            "properties": {
+              "ranger-yarn-plugin-enabled": old_value,
+              "REPOSITORY_CONFIG_PASSWORD": "test-password",
+            }
           },
         }
       }
@@ -1080,7 +1146,10 @@ class TestYarnAdvisorContract(unittest.TestCase):
       validator_configurations = {
         **configurations,
         "ranger-yarn-plugin-properties": {
-          "properties": {"ranger-yarn-plugin-enabled": proposed_value}
+          "properties": {
+            "ranger-yarn-plugin-enabled": proposed_value,
+            "REPOSITORY_CONFIG_PASSWORD": "test-password",
+          }
         },
       }
       with patch.object(
@@ -1116,6 +1185,46 @@ class TestYarnAdvisorContract(unittest.TestCase):
       )
     self.assertEqual(2, len(problems))
     self.assertTrue(all("Yes or No" in problem["item"] for problem in problems))
+
+    enabled_without_password = {
+      "ranger-env": {
+        "properties": {"ranger-yarn-plugin-enabled": "Yes"}
+      },
+      "ranger-yarn-plugin-properties": {
+        "properties": {
+          "ranger-yarn-plugin-enabled": "Yes",
+          "REPOSITORY_CONFIG_PASSWORD": "",
+        }
+      },
+    }
+    with patch.object(validator, "getErrorItem", side_effect=lambda message: message), \
+      patch.object(
+        validator,
+        "toConfigurationValidationProblems",
+        side_effect=lambda items, _: items,
+      ):
+      problems = validator.validateYarnRangerConfigurations(
+        {}, {}, enabled_without_password, {}, {}
+      )
+    self.assertIn(
+      "REPOSITORY_CONFIG_PASSWORD",
+      [problem["config-name"] for problem in problems],
+    )
+
+    root = ElementTree.parse(
+      YARN / "configuration/ranger-yarn-plugin-properties.xml"
+    ).getroot()
+    properties = {
+      item.findtext("name"): item for item in root.findall("property")
+    }
+    password = properties["REPOSITORY_CONFIG_PASSWORD"]
+    self.assertEqual("true", password.attrib.get("require-input"))
+    self.assertEqual("", password.findtext("value", default=""))
+    runtime_source = (YARN / "package/scripts/params_linux.py").read_text()
+    self.assertIn(
+      "ranger-yarn-plugin-properties/REPOSITORY_CONFIG_PASSWORD must not be ",
+      runtime_source,
+    )
 
   def test_ats_memory_recommendations_use_host_memory_in_mb(self):
     recommender = YARN_ADVISOR.YARNRecommender()
@@ -1975,7 +2084,7 @@ class TestMapReduceServiceCheck(unittest.TestCase):
     ]
     self.assertTrue(all(options["timeout"] == 60 for options in result_checks))
 
-  def test_primary_failure_and_cleanup_failure_are_both_reported(self):
+  def test_cleanup_failure_is_logged_without_replacing_mapreduce_failure(self):
     params = self._params()
     params.HdfsResource.side_effect = (
       None,
@@ -1991,17 +2100,29 @@ class TestMapReduceServiceCheck(unittest.TestCase):
         MAPRED_SERVICE_CHECK,
         "Execute",
         side_effect=Fail("wordcount failed"),
-      ):
-      with self.assertRaisesRegex(
-        RuntimeError, "wordcount failed.*HDFS cleanup failed"
-      ) as raised:
+      ), \
+      patch.object(MAPRED_SERVICE_CHECK.Logger, "warning") as warning:
+      with self.assertRaisesRegex(Fail, "wordcount failed") as raised:
         MAPRED_SERVICE_CHECK.MapReduce2ServiceCheckDefault().service_check(
           MagicMock()
         )
-    self.assertIsInstance(raised.exception.__cause__, Fail)
+    self.assertIsNone(raised.exception.__cause__)
+    warning.assert_called_once()
+    self.assertIn("HDFS cleanup failed", warning.call_args.args[0])
+
+  def test_hbase_archive_cleanup_source_preserves_primary_failure(self):
+    source = (SCRIPTS / "hbase_service.py").read_text(encoding="utf-8")
+    archive_block = source[
+      source.index("def create_hbase_package"):
+      source.index("def copy_hbase_package_to_hdfs")
+    ]
+    self.assertIn("Could not roll back failed HBase archive publication", archive_block)
+    self.assertIn("Could not remove HBase archive staging directory", archive_block)
+    self.assertNotIn("additionally failed to roll back HBase archive", archive_block)
+    self.assertNotIn("additionally failed to remove staging directory", archive_block)
 
 
-class TestAtsHBasePackage(unittest.TestCase):
+class TestAtsHBasePackage(_YarnResourceTestCase):
   def _params(self, version="3.3.6-1"):
     return params_module(
       version=version,
@@ -2011,6 +2132,7 @@ class TestAtsHBasePackage(unittest.TestCase):
         else "/var/lib/ambari-agent/yarn-ats-hbase/missing"
       ),
       yarn_hbase_user="yarn-ats",
+      yarn_hbase_conf_dir="/etc/hadoop/conf/embedded-yarn-ats-hbase",
       user_group="hadoop",
       stack_root="/usr/bigtop",
     )
@@ -2360,7 +2482,7 @@ class TestAtsHBasePackage(unittest.TestCase):
     self.assertNotIn("cp -", source)
     self.assertNotIn("mapreduce.tar.gz", source)
     self.assertNotIn("tar\", \"-xzf", source)
-    self.assertIn('("cp", "-R", "--preserve=mode,timestamps,links"', source)
+    self.assertIn('"cp",\n      "-R",\n      "--preserve=mode,timestamps,links"', source)
     self.assertIn('(\"hadoop*.jar\",)', source)
     self.assertEqual(3, source.count("_replace_external_zookeeper_links("))
     self.assertIn('"share", "hadoop", "mapreduce"', source)
@@ -2465,7 +2587,7 @@ class TestAtsHBasePackage(unittest.TestCase):
     )
 
 
-class TestYarnFilesystemSafety(unittest.TestCase):
+class TestYarnFilesystemSafety(_YarnResourceTestCase):
   def test_local_directory_rejects_noncanonical_dot_segments(self):
     for path in (
       "/data/yarn/../ssh",
@@ -3042,7 +3164,8 @@ class TestYarnFilesystemSafety(unittest.TestCase):
     setup_block = setup_block[: setup_block.index("def setup_ats()")]
     self.assertEqual(2, setup_block.count('owner="root"'))
     self.assertEqual(2, setup_block.count("mode=0o644"))
-    self.assertNotIn("owner=params.yarn_user", setup_block)
+    file_block = setup_block[: setup_block.index("if params.node_label_enable")]
+    self.assertNotIn("owner=params.yarn_user", file_block)
 
     rm_source = (SCRIPTS / "resourcemanager.py").read_text(encoding="utf-8")
     decommission_block = rm_source[rm_source.index("def decommission") :]
@@ -3120,7 +3243,7 @@ class TestYarnFilesystemSafety(unittest.TestCase):
     self.assertIn('owner="root"', source[source.index("def setup_nodemanager()") :])
     log_block = source[source.index("def create_log_dir") :]
     log_block = log_block[: log_block.index("def create_local_dir")]
-    self.assertIn("mode=0o755", log_block)
+    self.assertIn("_daemon_owned_directory", log_block)
     self.assertNotIn("mode=0o775", log_block)
 
   def test_ats_hdfs_resources_never_change_parent_permissions_recursively(self):
@@ -3163,7 +3286,7 @@ class TestYarnFilesystemSafety(unittest.TestCase):
     self.assertNotIn("entity_file_history_directory", params_source)
     history_block = source[source.index("def setup_historyserver()") :]
     history_block = history_block[: history_block.index("def setup_nodemanager()")]
-    self.assertIn("_validate_local_service_directory", history_block)
+    self.assertIn("_daemon_owned_directory", history_block)
     self.assertNotIn("recursive_ownership", history_block)
 
   def test_ats_leveldb_paths_are_validated_and_created_once(self):
@@ -3172,7 +3295,7 @@ class TestYarnFilesystemSafety(unittest.TestCase):
     self.assertEqual(1, source.count("params.ats_leveldb_state_store_dir"))
     ats_block = source[source.index("def setup_ats()") :]
     ats_block = ats_block[: ats_block.index("def create_log_dir")]
-    self.assertEqual(2, ats_block.count("_validate_local_service_directory"))
+    self.assertEqual(2, ats_block.count("_daemon_owned_directory"))
 
   def test_ranger_yarn_audit_resources_do_not_modify_existing_trees(self):
     params = params_module(
@@ -3188,7 +3311,7 @@ class TestYarnFilesystemSafety(unittest.TestCase):
       self.assertNotIn("recursive_chown", resource.kwargs)
 
 
-class TestYarnSystemServicePublication(unittest.TestCase):
+class TestYarnSystemServicePublication(_YarnResourceTestCase):
   def _params(self):
     return params_module(
       version="3.3.6-1",
@@ -3250,6 +3373,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
   def test_system_service_preserves_valid_hdfs_uri_authority(self):
     params = self._params()
     params.yarn_system_service_dir = "hdfs://nameservice/services"
+    self._resource_environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
       patch.object(YARN_CONFIG, "File"), \
@@ -3268,6 +3392,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
   def test_ha_system_service_requires_local_id_and_isolated_paths(self):
     params = self._params()
     params.rm_ha_enabled = True
+    self._resource_environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_CONFIG, "File") as file_resource:
       with self.assertRaisesRegex(Fail, "must match exactly one HA ID"):
@@ -3275,6 +3400,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
     file_resource.assert_not_called()
 
     params.rm_ha_id = "rm0"
+    self._resource_environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_CONFIG, "File") as file_resource:
       with self.assertRaisesRegex(Fail, "isolated"):
@@ -3282,6 +3408,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
     file_resource.assert_not_called()
 
     params.yarn_hbase_app_hdfs_path += "/rm0"
+    self._resource_environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
       patch.object(YARN_CONFIG, "File"), \
@@ -3298,6 +3425,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
       events.append(("hdfs", path, kwargs))
 
     params.HdfsResource.side_effect = hdfs_resource
+    self._resource_environment.set_params(params)
 
     def execute(command, **kwargs):
       events.append(("execute", command, kwargs))
@@ -3328,7 +3456,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
     manifest_index = next(
       index
       for index, event in enumerate(events)
-      if len(event) > 1 and event[1].endswith("hbase.yarnfile")
+      if len(event) > 1 and isinstance(event[1], str) and event[1].endswith("hbase.yarnfile")
     )
     self.assertLess(framework_index, create_index)
     self.assertLess(create_index, copy_index)
@@ -3347,6 +3475,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
 
   def test_configure_never_overwrites_the_fast_launch_dependency_archive(self):
     params = self._params()
+    self._resource_environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
       patch.object(YARN_CONFIG, "File"), \
@@ -3367,6 +3496,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
     params.yarn_hbase_grant_permissions_file = (
       "/etc/hadoop/conf/embedded-yarn-ats-hbase/hbase_grant_permissions.rb"
     )
+    self._resource_environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_CONFIG, "setup_atsv2_hbase_files"), \
       patch.object(YARN_CONFIG, "File") as file_resource, \
@@ -3381,7 +3511,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
       for entry in file_resource.call_args_list
       if entry.args[0].endswith("hbase.yarnfile")
     )
-    self.assertEqual(0o644, manifest.kwargs["mode"])
+    self.assertEqual(0o640, manifest.kwargs["mode"])
     grant_upload = next(
       entry
       for entry in params.HdfsResource.call_args_list
@@ -3392,7 +3522,7 @@ class TestYarnSystemServicePublication(unittest.TestCase):
     published_manifest = next(
       entry
       for entry in params.HdfsResource.call_args_list
-      if entry.args and entry.args[0].endswith("hbase.yarnfile")
+      if entry.args and isinstance(entry.args[0], str) and entry.args[0].endswith("hbase.yarnfile")
     )
     self.assertEqual(0o644, published_manifest.kwargs["mode"])
 

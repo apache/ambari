@@ -17,12 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ast
 import importlib.util
 from pathlib import Path
+import re
 import sys
 from types import SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, patch
+from xml.etree import ElementTree
 
 
 SERVICE = Path(__file__).resolve().parents[2] / (
@@ -39,9 +42,63 @@ def load_module(module_name, path):
 
 
 AMS = load_module("ambari_metrics_configuration", SCRIPTS / "ams.py")
+ADVISOR = load_module(
+  "ambari_metrics_configuration_advisor", SERVICE / "service_advisor.py"
+)
 
 
 class TestAmbariMetricsConfiguration(unittest.TestCase):
+  def test_synchronous_commands_use_process_group_timeouts(self):
+    for script_path in SCRIPTS.glob("*.py"):
+      tree = ast.parse(script_path.read_text(encoding="utf-8"))
+      for node in ast.walk(tree):
+        if not (
+          isinstance(node, ast.Call)
+          and isinstance(node.func, ast.Name)
+          and node.func.id == "Execute"
+        ):
+          continue
+        keywords = {keyword.arg: keyword.value for keyword in node.keywords}
+        self.assertIn("timeout", keywords, f"{script_path.name}:{node.lineno}")
+        strategy = keywords.get("timeout_kill_strategy")
+        self.assertIsInstance(strategy, ast.Attribute)
+        self.assertEqual("KILL_PROCESS_GROUP", strategy.attr)
+
+  def test_generated_password_and_jaas_files_are_private(self):
+    ams_source = (SCRIPTS / "ams.py").read_text(encoding="utf-8")
+    hbase_source = (SCRIPTS / "hbase.py").read_text(encoding="utf-8")
+
+    ssl_resources = re.findall(
+      r'XmlConfig\(\s*"ssl-server\.xml".*?\n\s*\)',
+      ams_source,
+      flags=re.DOTALL,
+    )
+    self.assertEqual(2, len(ssl_resources))
+    for resource in ssl_resources:
+      self.assertIn("mode=0o600", resource)
+
+    metrics_properties = re.search(
+      r'File\(\s*os\.path\.join\('
+      r'params\.hbase_conf_dir, "hadoop-metrics2-hbase\.properties"\)'
+      r'.*?\n\s*\)',
+      hbase_source,
+      flags=re.DOTALL,
+    )
+    self.assertIsNotNone(metrics_properties)
+    self.assertIn("mode=0o600", metrics_properties.group(0))
+    self.assertEqual(3, hbase_source.count("user=params.hbase_user, mode=0o600"))
+    collector_jaas = re.search(
+      r'"ams_collector_jaas\.conf"\)[\s\S]{0,200}?mode=0o600',
+      ams_source,
+    )
+    self.assertIsNotNone(collector_jaas)
+    monitor_ini = re.search(
+      r'"\{ams_monitor_conf_dir\}/metric_monitor\.ini"\)'
+      r'[\s\S]{0,200}?mode=0o600',
+      ams_source,
+    )
+    self.assertIsNotNone(monitor_ini)
+
   def test_jks_password_is_passed_only_through_the_command_environment(self):
     params = SimpleNamespace(
       metric_truststore_ca_certs="ca.pem",
@@ -74,6 +131,60 @@ class TestAmbariMetricsConfiguration(unittest.TestCase):
       )
     directory.assert_called_once_with(
       "/tmp/ams-truststore-private", action="delete"
+    )
+
+  def test_private_key_passwords_require_input_when_ams_https_is_enabled(self):
+    ssl_root = ElementTree.parse(SERVICE / "configuration/ams-ssl-server.xml")
+    values = {
+      element.findtext("name"): element
+      for element in ssl_root.findall("property")
+    }
+    self.assertEqual(
+      "bigdata",
+      values["ssl.server.truststore.password"].findtext("value"),
+    )
+    for name in (
+      "ssl.server.keystore.password",
+      "ssl.server.keystore.keypassword",
+    ):
+      self.assertEqual("", values[name].findtext("value", ""))
+      self.assertEqual(
+        "false", values[name].findtext("value-attributes/empty-value-valid")
+      )
+
+    validator = object.__new__(ADVISOR.AMBARI_METRICSValidator)
+    problems = validator.validateAmsSslServerConfigurations(
+      {},
+      {},
+      {
+        "ams-site": {
+          "properties": {"timeline.metrics.service.http.policy": "HTTPS_ONLY"}
+        }
+      },
+      {"configurations": {}},
+      {},
+    )
+    self.assertEqual(
+      {"ssl.server.keystore.password", "ssl.server.keystore.keypassword"},
+      {problem["config-name"] for problem in problems},
+    )
+    self.assertEqual(
+      [],
+      validator.validateAmsSslServerConfigurations(
+        {},
+        {},
+        {
+          "ams-site": {
+            "properties": {"timeline.metrics.service.http.policy": "HTTP_ONLY"}
+          }
+        },
+        {"configurations": {}},
+        {},
+      ),
+    )
+    params_source = (SCRIPTS / "params.py").read_text(encoding="utf-8")
+    self.assertIn(
+      "must not be empty when Ambari Metrics HTTPS is enabled", params_source
     )
 
 

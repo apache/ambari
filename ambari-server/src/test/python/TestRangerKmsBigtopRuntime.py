@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ast
 import importlib.util
 from pathlib import Path
 import sys
@@ -42,6 +43,33 @@ def load_module(name, path):
 
 
 class TestRangerKmsBigtopRuntime(unittest.TestCase):
+  def test_synchronous_execute_calls_are_bounded_and_kill_process_groups(self):
+    failures = []
+    for path in sorted((KMS / "package").rglob("*.py")):
+      tree = ast.parse(path.read_text(), filename=str(path))
+      for node in ast.walk(tree):
+        if not (
+          isinstance(node, ast.Call)
+          and isinstance(node.func, ast.Name)
+          and node.func.id == "Execute"
+        ):
+          continue
+        keywords = {keyword.arg: keyword.value for keyword in node.keywords}
+        wait_for_finish = keywords.get("wait_for_finish")
+        if (
+          isinstance(wait_for_finish, ast.Constant)
+          and wait_for_finish.value is False
+        ):
+          continue
+        strategy = keywords.get("timeout_kill_strategy")
+        if "timeout" not in keywords or not (
+          isinstance(strategy, ast.Attribute)
+          and strategy.attr == "KILL_PROCESS_GROUP"
+        ):
+          failures.append(f"{path.relative_to(KMS)}:{node.lineno}")
+
+    self.assertEqual([], failures)
+
   def test_runtime_boolean_contract_is_strict(self):
     module = load_module("kms_utils_test", KMS / "package/scripts/kms_utils.py")
     self.assertTrue(module.strict_bool(" true ", "value"))
@@ -75,7 +103,7 @@ class TestRangerKmsBigtopRuntime(unittest.TestCase):
     process_source = (KMS / "package/scripts/kms_process.py").read_text()
     self.assertIn("-Dproc_rangerkms", process_source)
     self.assertIn("safe_process.terminate_process", process_source)
-    self.assertIn("safe_process.secure_pid_file_for_identity", process_source)
+    self.assertIn("safe_process.publish_pid_file_for_identity", process_source)
     self.assertIn("PID directory ownership or permissions are unsafe", process_source)
 
     lifecycle_sources = "\n".join(
@@ -92,11 +120,17 @@ class TestRangerKmsBigtopRuntime(unittest.TestCase):
     identity = SimpleNamespace(pid=4217)
     with patch.object(module, "_validate_pid_file"), \
       patch.object(module, "_validate_pid_directory"), \
+      patch.object(module, "_validate_pid_directory"), \
       patch.object(
         module.safe_process,
         "read_running_process",
         return_value=identity,
       ) as read_running_process, \
+      patch.object(
+        module.safe_process,
+        "publish_pid_file_for_identity",
+        return_value=identity,
+      ) as publish_pid, \
       patch.object(module.safe_process, "discover_running_process") as discover:
       self.assertIs(
         identity,
@@ -109,6 +143,14 @@ class TestRangerKmsBigtopRuntime(unittest.TestCase):
       "/run/ranger_kms/rangerkms.pid",
       "kms",
       ("-Dproc_rangerkms",),
+    )
+    publish_pid.assert_called_once_with(
+      "/run/ranger_kms/rangerkms.pid",
+      identity,
+      "kms",
+      ("-Dproc_rangerkms",),
+      "kms",
+      "kms",
     )
     discover.assert_not_called()
 
@@ -124,13 +166,58 @@ class TestRangerKmsBigtopRuntime(unittest.TestCase):
         "wait_for_discovered_process",
         return_value=identity,
       ), \
-      patch.object(module.safe_process, "read_pid", return_value=4218), \
-      patch.object(module.safe_process, "secure_pid_file_for_identity") as secure, \
-      self.assertRaisesRegex(Fail, "unexpected PID"):
+      patch.object(
+        module.safe_process,
+        "publish_pid_file_for_identity",
+        side_effect=Fail("PID file identifies process 4218, expected 4217"),
+      ) as publish_pid, \
+      patch.object(module, "rollback_started_process") as rollback, \
+      self.assertRaisesRegex(Fail, "identifies process"):
       module.secure_started_process(
         "/run/ranger_kms/rangerkms.pid", "kms", "kms"
       )
-    secure.assert_not_called()
+    publish_pid.assert_called_once_with(
+      "/run/ranger_kms/rangerkms.pid",
+      identity,
+      "kms",
+      ("-Dproc_rangerkms",),
+      "kms",
+      "kms",
+    )
+    rollback.assert_called_once_with(
+      "/run/ranger_kms/rangerkms.pid", identity, "kms"
+    )
+
+  def test_start_timeout_terminates_the_process_group(self):
+    source = (KMS / "package/scripts/kms_service.py").read_text()
+    self.assertIn("timeout=60", source)
+    self.assertIn(
+      "timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP", source
+    )
+
+  def test_start_rollback_uses_only_the_pinned_identity(self):
+    module = load_module(
+      "kms_process_rollback_test", KMS / "package/scripts/kms_process.py"
+    )
+    identity = SimpleNamespace(pid=4217)
+    with patch.object(module, "_validate_pid_file"), \
+      patch.object(module, "_validate_pid_directory"), \
+      patch.object(module.safe_process, "terminate_process") as terminate, \
+      patch.object(module.safe_process, "read_pid", return_value=4217), \
+      patch.object(module.safe_process, "remove_pid_file_if_stopped") as remove, \
+      patch.object(module.safe_process, "discover_running_process") as discover:
+      module.rollback_started_process(
+        "/run/ranger_kms/rangerkms.pid", identity, "kms"
+      )
+
+    discover.assert_not_called()
+    terminate.assert_called_once_with(identity, "kms", ("-Dproc_rangerkms",))
+    remove.assert_called_once_with(
+      "/run/ranger_kms/rangerkms.pid",
+      4217,
+      "kms",
+      ("-Dproc_rangerkms",),
+    )
 
   def test_lifecycle_stops_and_removes_only_the_matching_pid(self):
     module = load_module(
@@ -285,6 +372,11 @@ class TestRangerKmsBigtopRuntime(unittest.TestCase):
     self.assertTrue(any("redhat8" in item for item in os_families))
     self.assertFalse(any("redhat7" in item for item in os_families))
 
+    override_root = ElementTree.parse(
+      KMS.parents[2] / "3.4.0/services/RANGER_KMS/metainfo.xml"
+    ).getroot()
+    self.assertEqual("2.6.0-1", override_root.findtext("./services/service/version"))
+
   def test_required_setup_failures_are_propagated(self):
     source = (KMS / "package/scripts/kms.py").read_text()
     self.assertIn("Could not create Ranger KMS HDFS audit directories", source)
@@ -302,6 +394,81 @@ class TestRangerKmsBigtopRuntime(unittest.TestCase):
   def test_runtime_configuration_directories_are_private(self):
     source = (KMS / "package/scripts/kms.py").read_text()
     self.assertGreaterEqual(source.count("mode=0o750"), 3)
+
+  def test_fixed_runtime_credentials_are_removed_and_validated_when_used(self):
+    config_expectations = {
+      "configuration/kms-properties.xml": "REPOSITORY_CONFIG_PASSWORD",
+      "configuration/ranger-kms-site.xml": (
+        "ranger.service.https.attrib.keystore.pass"
+      ),
+    }
+    for relative_path, property_name in config_expectations.items():
+      with self.subTest(property_name=property_name):
+        root = ElementTree.parse(KMS / relative_path).getroot()
+        properties = {
+          item.findtext("name"): item for item in root.findall("property")
+        }
+        credential = properties[property_name]
+        self.assertEqual("true", credential.attrib.get("require-input"))
+        self.assertEqual("", credential.findtext("value", default=""))
+
+    source = (KMS / "package/scripts/kms.py").read_text()
+    self.assertIn(
+      'params.ranger_kms_ssl_passwd, "Ranger KMS HTTPS keystore"', source
+    )
+    self.assertIn(
+      'params.repo_config_password, "Ranger KMS repository config"', source
+    )
+
+  def test_advisor_requires_credentials_only_for_active_features(self):
+    module = load_module("kms_credential_advisor_test", KMS / "service_advisor.py")
+    validator = object.__new__(module.RangerKMSValidator)
+    validator.getErrorItem = lambda message: message
+    validator.toConfigurationValidationProblems = lambda items, _: items
+    ssl_property = "ranger.service.https.attrib.ssl.enabled"
+    password_property = "ranger.service.https.attrib.keystore.pass"
+    runtime_properties = {
+      "ranger.service.http.port": "9292",
+      "ranger.service.https.port": "9393",
+      "ranger.service.shutdown.port": "7085",
+      "ranger.service.https.attrib.keystore.file": (
+        "/etc/security/serverKeys/ranger-kms-keystore.jks"
+      ),
+      password_property: "",
+    }
+
+    self.assertEqual(
+      [],
+      validator.validateRuntimeSite(
+        dict(runtime_properties, **{ssl_property: "false"}), {}, {}, {}, {}
+      ),
+    )
+    validation = validator.validateRuntimeSite(
+      dict(runtime_properties, **{ssl_property: "true"}), {}, {}, {}, {}
+    )
+    self.assertIn(password_property, [item["config-name"] for item in validation])
+
+    repository_password = "REPOSITORY_CONFIG_PASSWORD"
+    self.assertEqual(
+      [],
+      validator.validateRepositoryCredentials(
+        {repository_password: ""}, {}, {}, {"services": []}, {}
+      ),
+    )
+    validation = validator.validateRepositoryCredentials(
+      {repository_password: " "},
+      {},
+      {},
+      {
+        "services": [
+          {"StackServices": {"service_name": "RANGER"}},
+        ]
+      },
+      {},
+    )
+    self.assertEqual(
+      [repository_password], [item["config-name"] for item in validation]
+    )
 
   def test_advisor_has_no_distribution_specific_legacy_names(self):
     advisor = (KMS / "service_advisor.py").read_text()

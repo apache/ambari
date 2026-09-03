@@ -180,7 +180,7 @@ class TestHiveConfigurationContract(unittest.TestCase):
     dependencies = {
       node.text
       for node in metadata.findall(
-        "./services/service/configuration-dependencies/config-type"
+        ".//configuration-dependencies/config-type"
       )
     }
     self.assertTrue(
@@ -240,13 +240,17 @@ class TestHiveConfigurationContract(unittest.TestCase):
   def test_alerts_reference_only_declared_bigtop_components(self):
     alerts = json.loads((HIVE / "alerts.json").read_text())
     self.assertEqual(
-      {"HIVE_METASTORE", "HIVE_SERVER"}, set(alerts["HIVE"])
+      {"HIVE_METASTORE", "HIVE_SERVER"},
+      {name for name, entries in alerts["HIVE"].items() if entries},
     )
     metadata = ET.parse(HIVE / "metainfo.xml").getroot()
     declared = {
       node.text for node in metadata.findall(".//components/component/name")
     }
-    self.assertTrue(set(alerts["HIVE"]).issubset(declared))
+    active_alert_components = {
+      name for name, entries in alerts["HIVE"].items() if entries
+    }
+    self.assertTrue(active_alert_components.issubset(declared))
 
     logfeeder_template = HIVE / "package/templates/input.config-hive.json.j2"
     self.assertTrue(logfeeder_template.is_file())

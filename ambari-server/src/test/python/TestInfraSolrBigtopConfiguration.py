@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ast
 import importlib.util
 from pathlib import Path
 import sys
@@ -62,6 +63,22 @@ ADVISOR = load_module(
 
 
 class TestInfraSolrServiceCheck(unittest.TestCase):
+  def test_synchronous_commands_use_process_group_timeouts(self):
+    for script_path in SCRIPTS.glob("*.py"):
+      tree = ast.parse(script_path.read_text(encoding="utf-8"))
+      for node in ast.walk(tree):
+        if not (
+          isinstance(node, ast.Call)
+          and isinstance(node.func, ast.Name)
+          and node.func.id == "Execute"
+        ):
+          continue
+        keywords = {keyword.arg: keyword.value for keyword in node.keywords}
+        self.assertIn("timeout", keywords, f"{script_path.name}:{node.lineno}")
+        strategy = keywords.get("timeout_kill_strategy")
+        self.assertIsInstance(strategy, ast.Attribute)
+        self.assertEqual("KILL_PROCESS_GROUP", strategy.attr)
+
   def test_secure_check_uses_private_cache_and_falls_back_across_hosts(self):
     params = params_module(
       infra_solr_hosts=("solr1.example.com", "solr2.example.com"),
@@ -141,7 +158,7 @@ class TestInfraSolrMetadata(unittest.TestCase):
     self.assertEqual(
       {
         "redhat8,redhat9,openeuler22",
-        "debian10,debian11,ubuntu20,ubuntu22",
+        "ubuntu22",
       },
       os_families,
     )

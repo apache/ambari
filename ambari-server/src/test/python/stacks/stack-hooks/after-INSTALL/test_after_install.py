@@ -118,6 +118,17 @@ class TestHookAfterInstall(RMFTestCase):
       ),
       sudo=True,
     )
+    self.assertResourceCalled(
+      "Execute",
+      (
+        "ambari-python-wrap",
+        "/usr/lib/bigtop-select/distro-select",
+        "set",
+        "hive-client",
+        "3.3.0-1",
+      ),
+      sudo=True,
+    )
 
     self.assertResourceCalled(
       "XmlConfig",
@@ -211,6 +222,17 @@ class TestHookAfterInstall(RMFTestCase):
         "/usr/lib/bigtop-select/distro-select",
         "set",
         "hive-server2",
+        "3.3.0-1",
+      ),
+      sudo=True,
+    )
+    self.assertResourceCalled(
+      "Execute",
+      (
+        "ambari-python-wrap",
+        "/usr/lib/bigtop-select/distro-select",
+        "set",
+        "hive-client",
         "3.3.0-1",
       ),
       sudo=True,

@@ -54,6 +54,7 @@ class TestHdfsResourceKerberos(unittest.TestCase):
     cache_context = MagicMock()
     cache_context.__enter__.return_value = cache
     main_resource = MagicMock()
+    main_resource.assert_parameter_is_set = MagicMock()
     main_resource.resource = SimpleNamespace(
       user="hdfs",
       hadoop_bin_dir="/usr/bin",

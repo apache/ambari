@@ -93,6 +93,68 @@ class TestRangerBigtopAdvisor(unittest.TestCase):
       self.assertIn("Special characters are supported", description)
       self.assertNotIn("Unsupported special characters", description)
 
+  def test_https_keystore_password_is_required_only_when_https_is_enabled(self):
+    validator = object.__new__(ADVISOR.RangerValidator)
+    validator.getErrorItem = lambda message: message
+    validator.toConfigurationValidationProblems = lambda items, _: items
+    ssl_property = "ranger.service.https.attrib.ssl.enabled"
+    password_property = "ranger.service.https.attrib.keystore.pass"
+
+    self.assertEqual(
+      [],
+      validator.validateRangerRuntimeConfigurations(
+        {ssl_property: "false", password_property: ""}, {}, {}, {}, {}
+      ),
+    )
+    validation = validator.validateRangerRuntimeConfigurations(
+      {ssl_property: "true", password_property: " "}, {}, {}, {}, {}
+    )
+    self.assertEqual([password_property], [item["config-name"] for item in validation])
+
+  def test_https_keystore_password_has_no_fixed_default(self):
+    root = ElementTree.parse(RANGER / "configuration/ranger-admin-site.xml").getroot()
+    properties = {
+      item.findtext("name"): item for item in root.findall("property")
+    }
+    keystore_password = properties[
+      "ranger.service.https.attrib.keystore.pass"
+    ]
+    self.assertEqual("true", keystore_password.attrib.get("require-input"))
+    self.assertEqual("", keystore_password.findtext("value", default=""))
+
+  def test_usersync_keystore_password_is_required_only_for_ssl(self):
+    validator = object.__new__(ADVISOR.RangerValidator)
+    validator.getErrorItem = lambda message: message
+    validator.getWarnItem = lambda message: message
+    validator.toConfigurationValidationProblems = lambda items, _: items
+    ssl_property = "ranger.usersync.ssl"
+    password_property = "ranger.usersync.keystore.password"
+    base_properties = {
+      "ranger.usersync.ldap.deltasync": "false",
+      "ranger.usersync.group.searchenabled": "false",
+    }
+
+    self.assertEqual(
+      [],
+      validator.validateRangerUsersyncConfigurations(
+        {**base_properties, ssl_property: "false", password_property: ""},
+        {}, {}, {}, {},
+      ),
+    )
+    validation = validator.validateRangerUsersyncConfigurations(
+      {**base_properties, ssl_property: "true", password_property: " "},
+      {}, {}, {}, {},
+    )
+    self.assertIn(password_property, [item["config-name"] for item in validation])
+
+    root = ElementTree.parse(RANGER / "configuration/ranger-ugsync-site.xml").getroot()
+    properties = {
+      item.findtext("name"): item for item in root.findall("property")
+    }
+    keystore_password = properties[password_property]
+    self.assertEqual("true", keystore_password.attrib.get("require-input"))
+    self.assertEqual("", keystore_password.findtext("value", default=""))
+
   def test_advisor_has_no_distribution_specific_legacy_names(self):
     source = (RANGER / "service_advisor.py").read_text()
     self.assertNotIn("HDP", source)

@@ -24,7 +24,9 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, call, patch
 
+from resource_management.core.environment import Environment
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import safe_process
 
@@ -43,6 +45,22 @@ IDENTITY = safe_process.ProcessIdentity(
     "/usr/bin/java",
     "-Dproc_resourcemanager",
     "org.apache.hadoop.yarn.server.resourcemanager.ResourceManager",
+  ),
+)
+MASTER_IDENTITY = safe_process.ProcessIdentity(
+  124,
+  1002,
+  457,
+  ("/usr/bin/java", "-Dproc_master", "org.apache.hadoop.hbase.master.HMaster"),
+)
+REGIONSERVER_IDENTITY = safe_process.ProcessIdentity(
+  125,
+  1002,
+  458,
+  (
+    "/usr/bin/java",
+    "-Dproc_regionserver",
+    "org.apache.hadoop.hbase.regionserver.HRegionServer",
   ),
 )
 
@@ -104,14 +122,26 @@ class TestYarnProcessLifecycle(unittest.TestCase):
         return_value=IDENTITY,
       ), \
       patch.object(safe_process, "discover_running_process") as discover, \
-      patch.object(safe_process, "create_pid_file_for_identity") as create:
+      patch.object(
+        safe_process,
+        "publish_pid_file_for_identity",
+        return_value=IDENTITY,
+      ) as publish:
       result = YARN_PROCESS_UTILS.recover_running_process(
         PID_FILE, "yarn", "resourcemanager", "yarn", "hadoop"
       )
 
     self.assertIs(IDENTITY, result)
     discover.assert_not_called()
-    create.assert_not_called()
+    publish.assert_called_once_with(
+      PID_FILE,
+      IDENTITY,
+      "yarn",
+      YARN_PROCESS_UTILS.expected_cmdline("resourcemanager"),
+      "yarn",
+      "hadoop",
+      mode=0o640,
+    )
 
   def test_pidless_process_is_discovered_and_atomically_restored(self):
     with patch.object(safe_process, "read_pid", return_value=None), \
@@ -120,9 +150,9 @@ class TestYarnProcessLifecycle(unittest.TestCase):
       ) as discover, \
       patch.object(
         safe_process,
-        "create_pid_file_for_identity",
+        "publish_pid_file_for_identity",
         return_value=IDENTITY,
-      ) as create:
+      ) as publish:
       result = YARN_PROCESS_UTILS.recover_running_process(
         PID_FILE, "yarn", "resourcemanager", "yarn", "hadoop"
       )
@@ -130,7 +160,7 @@ class TestYarnProcessLifecycle(unittest.TestCase):
     tokens = YARN_PROCESS_UTILS.expected_cmdline("resourcemanager")
     self.assertIs(IDENTITY, result)
     discover.assert_called_once_with("yarn", tokens)
-    create.assert_called_once_with(
+    publish.assert_called_once_with(
       PID_FILE,
       IDENTITY,
       "yarn",
@@ -180,7 +210,7 @@ class TestYarnProcessLifecycle(unittest.TestCase):
           ), \
           patch.object(
             safe_process,
-            "create_pid_file_for_identity",
+            "publish_pid_file_for_identity",
             side_effect=failure if create_failure else None,
           ):
           with self.assertRaises(Fail):
@@ -215,8 +245,117 @@ class TestYarnProcessLifecycle(unittest.TestCase):
           PID_FILE, "yarn", "resourcemanager", "yarn", "hadoop"
         )
 
+  def test_start_wait_and_rollback_never_discover_an_unpinned_process(self):
+    with patch.object(
+        YARN_PROCESS_UTILS,
+        "read_running_process",
+        side_effect=(None, IDENTITY),
+      ) as read, \
+      patch.object(safe_process, "discover_running_process") as discover, \
+      patch.object(YARN_PROCESS_UTILS.time, "sleep"), \
+      patch.object(
+        safe_process,
+        "publish_pid_file_for_identity",
+        return_value=IDENTITY,
+      ) as publish, \
+      patch.object(safe_process, "terminate_process") as terminate, \
+      patch.object(safe_process, "read_pid", return_value=123), \
+      patch.object(safe_process, "remove_pid_file_if_stopped"):
+      self.assertIs(
+        IDENTITY,
+        YARN_PROCESS_UTILS.wait_for_running_process(
+          PID_FILE,
+          "yarn",
+          "resourcemanager",
+          "yarn",
+          "hadoop",
+          attempts=2,
+          sleep_seconds=0,
+        ),
+      )
+      self.assertTrue(
+        YARN_PROCESS_UTILS.rollback_started_process(
+          PID_FILE, IDENTITY, "yarn", "resourcemanager"
+        )
+      )
+    discover.assert_not_called()
+    self.assertEqual(2, read.call_count)
+    publish.assert_called_once_with(
+      PID_FILE,
+      IDENTITY,
+      "yarn",
+      YARN_PROCESS_UTILS.expected_cmdline("resourcemanager"),
+      "yarn",
+      "hadoop",
+      mode=0o640,
+    )
+    terminate.assert_called_once_with(
+      IDENTITY,
+      "yarn",
+      YARN_PROCESS_UTILS.expected_cmdline("resourcemanager"),
+    )
+
+  def test_wait_publication_failure_rolls_back_only_the_pinned_identity(self):
+    publication_error = Fail("PID publication failed")
+    with patch.object(
+        YARN_PROCESS_UTILS,
+        "read_running_process",
+        return_value=IDENTITY,
+      ), \
+      patch.object(
+        safe_process,
+        "publish_pid_file_for_identity",
+        side_effect=publication_error,
+      ), \
+      patch.object(YARN_PROCESS_UTILS, "rollback_started_process") as rollback:
+      with self.assertRaises(Fail) as raised:
+        YARN_PROCESS_UTILS.wait_for_running_process(
+          PID_FILE,
+          "yarn",
+          "resourcemanager",
+          "yarn",
+          "hadoop",
+          attempts=1,
+        )
+
+    self.assertIs(publication_error, raised.exception)
+    rollback.assert_called_once_with(
+      PID_FILE,
+      IDENTITY,
+      "yarn",
+      "resourcemanager",
+      False,
+    )
+
+  def test_rollback_never_substitutes_a_rebound_pid_identity(self):
+    mismatch = Fail("Process identity changed before termination")
+    with patch.object(
+        safe_process, "terminate_process", side_effect=mismatch
+      ) as terminate, \
+      patch.object(safe_process, "read_pid") as read_pid, \
+      patch.object(safe_process, "remove_pid_file_if_stopped") as remove, \
+      self.assertRaisesRegex(Fail, "identity changed"):
+      YARN_PROCESS_UTILS.rollback_started_process(
+        PID_FILE, IDENTITY, "yarn", "resourcemanager"
+      )
+    terminate.assert_called_once_with(
+      IDENTITY,
+      "yarn",
+      YARN_PROCESS_UTILS.expected_cmdline("resourcemanager"),
+    )
+    read_pid.assert_not_called()
+    remove.assert_not_called()
+
 
 class TestDaemonLaunchBounds(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(YARN / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
+
   def test_timeline_server_start_never_deletes_leveldb_lock_as_root(self):
     source = (SCRIPTS / "service.py").read_text(encoding="utf-8")
     self.assertNotIn("ats_leveldb_lock_file", source)
@@ -304,7 +443,7 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
-  def test_failed_yarn_start_rolls_back_the_exact_component_identity(self):
+  def test_failed_yarn_wait_does_not_guess_an_identity_to_roll_back(self):
     params = SimpleNamespace(
       yarn_container_bin="/usr/lib/hadoop-yarn/bin",
       yarn_user="yarn",
@@ -326,22 +465,15 @@ class TestDaemonLaunchBounds(unittest.TestCase):
         "wait_for_running_process",
         side_effect=Fail("invalid startup identity"),
       ), \
-      patch.object(YARN_PROCESS_UTILS, "stop_process") as stop, \
+      patch.object(YARN_PROCESS_UTILS, "rollback_started_process") as rollback, \
       patch.object(YARN_SERVICE, "Execute"), \
       patch.object(YARN_SERVICE, "show_logs"):
       with self.assertRaisesRegex(Fail, "invalid startup identity"):
         YARN_SERVICE.service("resourcemanager", "start")
 
-    stop.assert_called_once_with(
-      "/run/hadoop-yarn/yarn/hadoop-yarn-resourcemanager.pid",
-      "yarn",
-      "resourcemanager",
-      "yarn",
-      "hadoop",
-      False,
-    )
+    rollback.assert_not_called()
 
-  def test_yarn_start_reports_primary_and_rollback_failures(self):
+  def test_yarn_start_preserves_primary_when_log_collection_fails(self):
     params = SimpleNamespace(
       yarn_container_bin="/usr/lib/hadoop-yarn/bin",
       yarn_user="yarn",
@@ -359,17 +491,37 @@ class TestDaemonLaunchBounds(unittest.TestCase):
     with patch.dict(sys.modules, {"params": params, "status_params": status}), \
       patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
       patch.object(YARN_SERVICE, "Execute", side_effect=Fail("launch failed")), \
+      patch.object(YARN_PROCESS_UTILS, "rollback_started_process") as rollback, \
+      patch.object(YARN_SERVICE, "show_logs", side_effect=Fail("logs failed")):
+      with self.assertRaisesRegex(Fail, "launch failed") as raised:
+        YARN_SERVICE.service("resourcemanager", "start")
+    self.assertIsNone(raised.exception.__cause__)
+    rollback.assert_not_called()
+
+  def test_yarn_stop_preserves_primary_when_log_collection_fails(self):
+    params = SimpleNamespace(
+      yarn_container_bin="/usr/lib/hadoop-yarn/bin",
+      yarn_user="yarn",
+      yarn_log_dir="/var/log/hadoop-yarn/yarn",
+      yarn_pid_dir_prefix="/run/hadoop-yarn",
+      yarn_pid_dir="/run/hadoop-yarn/yarn",
+      user_group="hadoop",
+      hadoop_libexec_dir="/usr/lib/hadoop/libexec",
+      hadoop_conf_dir="/etc/hadoop/conf",
+    )
+    status = SimpleNamespace(
+      registry_dns_needs_privileged_access=False,
+      root_user="root",
+    )
+    with patch.dict(sys.modules, {"params": params, "status_params": status}), \
       patch.object(
         YARN_PROCESS_UTILS,
         "stop_process",
-        side_effect=Fail("rollback failed"),
+        side_effect=Fail("stop failed"),
       ), \
-      patch.object(YARN_SERVICE, "show_logs"):
-      with self.assertRaisesRegex(
-        RuntimeError, "launch failed.*rollback failed"
-      ) as raised:
-        YARN_SERVICE.service("resourcemanager", "start")
-    self.assertIsInstance(raised.exception.__cause__, Fail)
+      patch.object(YARN_SERVICE, "show_logs", side_effect=Fail("logs failed")), \
+      self.assertRaisesRegex(Fail, "stop failed"):
+      YARN_SERVICE.service("resourcemanager", "stop")
 
   def test_embedded_hbase_start_has_timeout_and_process_group_cleanup(self):
     params = SimpleNamespace(
@@ -380,19 +532,23 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       yarn_hbase_log_dir="/var/log/hbase",
       user_group="hadoop",
     )
+    self._environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
-      patch.object(YARN_PROCESS_UTILS, "wait_for_running_process"), \
+      patch.object(
+        YARN_PROCESS_UTILS, "wait_for_running_process", return_value=MASTER_IDENTITY
+      ), \
       patch.object(HBASE_SERVICE, "Execute") as execute:
-      HBASE_SERVICE.hbase_service("master", "start")
+      result = HBASE_SERVICE.hbase_service("master", "start")
 
+    self.assertIs(MASTER_IDENTITY, result)
     self.assertEqual(300, execute.call_args.kwargs["timeout"])
     self.assertEqual(
       TerminateStrategy.KILL_PROCESS_GROUP,
       execute.call_args.kwargs["timeout_kill_strategy"],
     )
 
-  def test_embedded_hbase_start_rolls_back_before_failed_log_collection(self):
+  def test_embedded_hbase_launch_failure_does_not_guess_a_rollback_identity(self):
     params = SimpleNamespace(
       yarn_hbase_bin="/usr/lib/hbase/bin",
       yarn_hbase_pid_dir="/run/hbase",
@@ -401,6 +557,7 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       yarn_hbase_log_dir="/var/log/hbase",
       user_group="hadoop",
     )
+    self._environment.set_params(params)
     events = []
 
     def fail_log_collection(*_):
@@ -410,21 +567,18 @@ class TestDaemonLaunchBounds(unittest.TestCase):
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
       patch.object(HBASE_SERVICE, "Execute", side_effect=Fail("launch failed")), \
-      patch.object(
-        YARN_PROCESS_UTILS,
-        "stop_process",
-        side_effect=lambda *args: events.append("rollback"),
-      ), \
+      patch.object(YARN_PROCESS_UTILS, "rollback_started_process") as rollback, \
       patch.object(
         HBASE_SERVICE,
         "show_logs",
         side_effect=fail_log_collection,
       ):
-      with self.assertRaisesRegex(RuntimeError, "launch failed.*logs failed"):
+      with self.assertRaisesRegex(Fail, "launch failed"):
         HBASE_SERVICE.hbase_service("master", "start")
-    self.assertEqual(["rollback", "logs"], events)
+    self.assertEqual(["logs"], events)
+    rollback.assert_not_called()
 
-  def test_embedded_hbase_start_reports_rollback_and_log_failures(self):
+  def test_embedded_hbase_start_preserves_primary_after_secondary_failures(self):
     params = SimpleNamespace(
       yarn_hbase_bin="/usr/lib/hbase/bin",
       yarn_hbase_pid_dir="/run/hbase",
@@ -433,17 +587,15 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       yarn_hbase_log_dir="/var/log/hbase",
       user_group="hadoop",
     )
+    self._environment.set_params(params)
     with patch.dict(sys.modules, {"params": params}), \
       patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
       patch.object(HBASE_SERVICE, "Execute", side_effect=Fail("launch failed")), \
-      patch.object(
-        YARN_PROCESS_UTILS, "stop_process", side_effect=Fail("rollback failed")
-      ), \
+      patch.object(YARN_PROCESS_UTILS, "rollback_started_process") as rollback, \
       patch.object(HBASE_SERVICE, "show_logs", side_effect=Fail("logs failed")):
-      with self.assertRaisesRegex(
-        RuntimeError, "launch failed.*rollback failed.*logs failed"
-      ):
+      with self.assertRaisesRegex(Fail, "launch failed"):
         HBASE_SERVICE.hbase_service("master", "start")
+    rollback.assert_not_called()
 
   def test_embedded_hbase_stop_attempts_both_roles(self):
     with patch.object(
@@ -461,12 +613,39 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       role_service.call_args_list,
     )
 
+  def test_embedded_hbase_stop_preserves_failure_when_logs_fail(self):
+    params = SimpleNamespace(
+      yarn_hbase_bin="/usr/lib/hbase/bin",
+      yarn_hbase_pid_dir="/run/hbase",
+      yarn_hbase_user="yarn-ats",
+      yarn_hbase_conf_dir="/etc/hbase/conf",
+      yarn_hbase_log_dir="/var/log/hbase",
+      user_group="hadoop",
+    )
+    self._environment.set_params(params)
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        YARN_PROCESS_UTILS,
+        "stop_process",
+        side_effect=Fail("stop failed"),
+      ), \
+      patch.object(HBASE_SERVICE, "show_logs", side_effect=Fail("logs failed")), \
+      self.assertRaisesRegex(Fail, "stop failed"):
+      HBASE_SERVICE.hbase_service("master", action="stop")
+
   def test_regionserver_failure_rolls_back_new_master(self):
-    with patch.object(
+    params = SimpleNamespace(
+      yarn_hbase_pid_dir="/run/hbase",
+      yarn_hbase_user="yarn-ats",
+    )
+    self._environment.set_params(params)
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
         HBASE_SERVICE,
         "hbase_service",
-        side_effect=[True, Fail("regionserver failed"), None],
+        side_effect=[MASTER_IDENTITY, Fail("regionserver failed")],
       ) as role_service, \
+      patch.object(YARN_PROCESS_UTILS, "rollback_started_process") as rollback, \
       patch.object(HBASE_SERVICE, "createTables"):
       with self.assertRaisesRegex(Fail, "regionserver failed"):
         HBASE_SERVICE.hbase("start")
@@ -474,17 +653,29 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       [
         call("master", action="start"),
         call("regionserver", action="start"),
-        call("master", action="stop"),
       ],
       role_service.call_args_list,
     )
+    rollback.assert_called_once_with(
+      "/run/hbase/hbase-yarn-ats-master.pid",
+      MASTER_IDENTITY,
+      "yarn-ats",
+      "master",
+    )
 
   def test_schema_failure_rolls_back_new_roles_in_reverse_order(self):
-    with patch.object(
+    params = SimpleNamespace(
+      yarn_hbase_pid_dir="/run/hbase",
+      yarn_hbase_user="yarn-ats",
+    )
+    self._environment.set_params(params)
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
         HBASE_SERVICE,
         "hbase_service",
-        side_effect=[True, True, None, None],
+        side_effect=[MASTER_IDENTITY, REGIONSERVER_IDENTITY],
       ) as role_service, \
+      patch.object(YARN_PROCESS_UTILS, "rollback_started_process") as rollback, \
       patch.object(HBASE_SERVICE, "createTables", side_effect=Fail("schema failed")):
       with self.assertRaisesRegex(Fail, "schema failed"):
         HBASE_SERVICE.hbase("start")
@@ -492,17 +683,60 @@ class TestDaemonLaunchBounds(unittest.TestCase):
       [
         call("master", action="start"),
         call("regionserver", action="start"),
-        call("regionserver", action="stop"),
-        call("master", action="stop"),
       ],
       role_service.call_args_list,
     )
+    self.assertEqual(
+      [
+        call(
+          "/run/hbase/hbase-yarn-ats-regionserver.pid",
+          REGIONSERVER_IDENTITY,
+          "yarn-ats",
+          "regionserver",
+        ),
+        call(
+          "/run/hbase/hbase-yarn-ats-master.pid",
+          MASTER_IDENTITY,
+          "yarn-ats",
+          "master",
+        ),
+      ],
+      rollback.call_args_list,
+    )
 
-  def test_preexisting_master_is_not_stopped_when_regionserver_fails(self):
-    with patch.object(
+  def test_hbase_rollback_failure_preserves_schema_error(self):
+    params = SimpleNamespace(
+      yarn_hbase_pid_dir="/run/hbase",
+      yarn_hbase_user="yarn-ats",
+    )
+    self._environment.set_params(params)
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
         HBASE_SERVICE,
         "hbase_service",
-        side_effect=[False, Fail("regionserver failed")],
+        side_effect=[MASTER_IDENTITY, REGIONSERVER_IDENTITY],
+      ), \
+      patch.object(
+        YARN_PROCESS_UTILS,
+        "rollback_started_process",
+        side_effect=[Fail("regionserver rollback failed"), None],
+      ), \
+      patch.object(
+        HBASE_SERVICE, "createTables", side_effect=Fail("schema failed")
+      ), \
+      self.assertRaisesRegex(Fail, "schema failed"):
+      HBASE_SERVICE.hbase("start")
+
+  def test_preexisting_master_is_not_stopped_when_regionserver_fails(self):
+    params = SimpleNamespace(
+      yarn_hbase_pid_dir="/run/hbase",
+      yarn_hbase_user="yarn-ats",
+    )
+    self._environment.set_params(params)
+    with patch.dict(sys.modules, {"params": params}), patch.object(
+        HBASE_SERVICE,
+        "hbase_service",
+        side_effect=[None, Fail("regionserver failed")],
       ) as role_service, \
       patch.object(HBASE_SERVICE, "createTables"):
       with self.assertRaisesRegex(Fail, "regionserver failed"):
@@ -603,13 +837,13 @@ class TestRegistryDnsContract(unittest.TestCase):
       self.status.yarn_registry_dns_wrapper_pid_file, stopped_pid_files
     )
 
-  def test_failed_secure_start_cleans_normal_secure_and_wrapper_identities(self):
+  def test_failed_secure_start_does_not_guess_registry_dns_identities(self):
     with patch.dict(
         sys.modules,
         {"params": self.params, "status_params": self.status},
       ), \
       patch.object(YARN_PROCESS_UTILS, "recover_running_process", return_value=None), \
-      patch.object(YARN_PROCESS_UTILS, "stop_process") as stop, \
+      patch.object(YARN_PROCESS_UTILS, "rollback_started_process") as rollback, \
       patch.object(YARN_SERVICE, "Execute"), \
       patch.object(
         YARN_PROCESS_UTILS,
@@ -620,15 +854,7 @@ class TestRegistryDnsContract(unittest.TestCase):
       with self.assertRaisesRegex(Fail, "secure Registry DNS did not start"):
         YARN_SERVICE.service("registrydns", "start")
 
-    rollback_pid_files = [entry.args[0] for entry in stop.call_args_list[-3:]]
-    self.assertEqual(
-      [
-        self.status.yarn_registry_dns_pid_file,
-        self.status.yarn_registry_dns_secure_pid_file,
-        self.status.yarn_registry_dns_wrapper_pid_file,
-      ],
-      rollback_pid_files,
-    )
+    rollback.assert_not_called()
 
 
 if __name__ == "__main__":

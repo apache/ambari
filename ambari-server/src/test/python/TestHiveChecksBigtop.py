@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ast
 import importlib.util
 from contextlib import contextmanager
 from pathlib import Path
@@ -26,6 +27,8 @@ import unittest
 from unittest.mock import MagicMock, call, patch
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 SCRIPTS = (
@@ -69,7 +72,39 @@ def module_with(**values):
   module = ModuleType("test_params")
   for name, value in values.items():
     setattr(module, name, value)
+  if Environment.has_instance():
+    Environment.get_instance().set_params(module)
   return module
+
+
+class TestHiveCommandTimeoutContract(unittest.TestCase):
+  def test_synchronous_execute_calls_use_process_group_timeouts(self):
+    for script_path in SCRIPTS.glob("*.py"):
+      tree = ast.parse(script_path.read_text(encoding="utf-8"))
+      for node in ast.walk(tree):
+        if not (
+          isinstance(node, ast.Call)
+          and isinstance(node.func, ast.Name)
+          and node.func.id == "Execute"
+        ):
+          continue
+        keywords = {keyword.arg: keyword.value for keyword in node.keywords}
+        self.assertIn(
+          "timeout",
+          keywords,
+          f"{script_path.name}:{node.lineno} lacks a timeout",
+        )
+        strategy = keywords.get("timeout_kill_strategy")
+        self.assertIsInstance(
+          strategy,
+          ast.Attribute,
+          f"{script_path.name}:{node.lineno} lacks a process-group strategy",
+        )
+        self.assertEqual(
+          "KILL_PROCESS_GROUP",
+          strategy.attr,
+          f"{script_path.name}:{node.lineno} has the wrong timeout strategy",
+        )
 
 
 class CacheContext:
@@ -287,6 +322,16 @@ class TestHCatAndWebHCatChecks(unittest.TestCase):
 
 
 class TestBundledMariaDbWorkflow(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(
+      str(SCRIPTS.parent), test_mode=True
+    )
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
+
   def test_database_setup_uses_structured_mysql_command_and_hides_password(self):
     params = module_with(
       hive_metastore_user_name="hive",
@@ -318,9 +363,21 @@ class TestBundledMariaDbWorkflow(unittest.TestCase):
     self.assertEqual("root", private_file.call_args.args[2])
     self.assertEqual(
       [
-        call(("service", "mariadb", "start"), sudo=True, logoutput=True),
+        call(
+          ("service", "mariadb", "start"),
+          sudo=True,
+          logoutput=True,
+          timeout=120,
+          timeout_kill_strategy=MYSQL_USERS.TerminateStrategy.KILL_PROCESS_GROUP,
+        ),
         execute.call_args_list[1],
-        call(("service", "mariadb", "stop"), sudo=True, logoutput=True),
+        call(
+          ("service", "mariadb", "stop"),
+          sudo=True,
+          logoutput=True,
+          timeout=120,
+          timeout_kill_strategy=MYSQL_USERS.TerminateStrategy.KILL_PROCESS_GROUP,
+        ),
       ],
       execute.call_args_list,
     )
@@ -391,9 +448,39 @@ class TestBundledMariaDbWorkflow(unittest.TestCase):
 
     self.assertEqual([True], cleaned)
     self.assertEqual(
-      call(("service", "mariadb", "stop"), sudo=True, logoutput=True),
+      call(
+        ("service", "mariadb", "stop"),
+        sudo=True,
+        logoutput=True,
+        timeout=120,
+        timeout_kill_strategy=MYSQL_USERS.TerminateStrategy.KILL_PROCESS_GROUP,
+      ),
       execute.call_args_list[-1],
     )
+
+  def test_restore_failure_does_not_mask_database_setup_failure(self):
+    params = module_with(
+      hive_metastore_user_name="hive",
+      hive_db_schema_name="hive",
+      hive_metastore_user_passwd="secret",
+      tmp_dir="/var/lib/ambari-agent/tmp",
+    )
+
+    @contextmanager
+    def private_sql(*args, **kwargs):
+      yield "/var/lib/ambari-agent/tmp/ambari-hive-mysql-private"
+
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(MYSQL_USERS, "get_daemon_name", return_value="mariadb"), \
+      patch.object(MYSQL_USERS.shell, "call", return_value=(1, "stopped")), \
+      patch.object(MYSQL_USERS, "private_temporary_file", side_effect=private_sql), \
+      patch.object(
+        MYSQL_USERS,
+        "Execute",
+        side_effect=(None, Fail("mysql failed"), Fail("stop failed")),
+      ):
+      with self.assertRaisesRegex(Fail, "mysql failed"):
+        MYSQL_USERS.mysql_adduser()
 
   def test_database_configuration_uses_root_owned_mariadb_drop_in(self):
     params = module_with(mysql_conf_dir="/etc/my.cnf.d")

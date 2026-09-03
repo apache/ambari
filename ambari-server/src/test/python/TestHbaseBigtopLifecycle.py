@@ -23,6 +23,7 @@ import sys
 from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import patch
+from xml.etree import ElementTree
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 
@@ -52,6 +53,45 @@ HBASE_SERVICE = load_module("bigtop_hbase_service", SCRIPTS / "hbase_service.py"
 
 
 class TestHbaseProcessLifecycle(unittest.TestCase):
+  def test_ranger_repository_password_has_no_default_and_is_conditionally_required(self):
+    advisor = load_module("bigtop_hbase_credential_advisor", HBASE / "service_advisor.py")
+    validator = object.__new__(advisor.HBASEValidator)
+    validator.getErrorItem = lambda message: message
+    validator.getWarnItem = lambda message: message
+    validator.toConfigurationValidationProblems = lambda items, _: items
+    validator.getServicesSiteProperties = lambda *_args: None
+    plugin_properties = {}
+    validator.getSiteProperties = lambda *_args: plugin_properties
+    services = {"services": []}
+
+    plugin_properties.update(
+      {"ranger-hbase-plugin-enabled": "No", "REPOSITORY_CONFIG_PASSWORD": ""}
+    )
+    self.assertEqual(
+      [], validator.validateRangerPlugin({}, {}, {}, services, {})
+    )
+    plugin_properties["ranger-hbase-plugin-enabled"] = "Yes"
+    validation = validator.validateRangerPlugin({}, {}, {}, services, {})
+    self.assertIn(
+      "REPOSITORY_CONFIG_PASSWORD",
+      [item["config-name"] for item in validation],
+    )
+
+    root = ElementTree.parse(
+      HBASE / "configuration/ranger-hbase-plugin-properties.xml"
+    ).getroot()
+    properties = {
+      item.findtext("name"): item for item in root.findall("property")
+    }
+    password = properties["REPOSITORY_CONFIG_PASSWORD"]
+    self.assertEqual("true", password.attrib.get("require-input"))
+    self.assertEqual("", password.findtext("value", default=""))
+    runtime_source = (SCRIPTS / "params_linux.py").read_text()
+    self.assertIn(
+      "ranger-hbase-plugin-properties/REPOSITORY_CONFIG_PASSWORD must not be ",
+      runtime_source,
+    )
+
   def setUp(self):
     self.identity = SimpleNamespace(pid=4217)
     self.pid_file = "/var/run/hbase/hbase-hbase-regionserver.pid"
@@ -94,6 +134,10 @@ class TestHbaseProcessLifecycle(unittest.TestCase):
     ) as inspect_process, patch.object(
       HBASE_SERVICE.safe_process, "is_process_running", return_value=True
     ) as is_running, patch.object(
+      HBASE_SERVICE.safe_process,
+      "publish_pid_file_for_identity",
+      return_value=self.identity,
+    ) as publish_pid, patch.object(
       HBASE_SERVICE.safe_process, "discover_running_process"
     ) as discover:
       result = HBASE_SERVICE.read_or_discover_hbase_process(
@@ -105,6 +149,15 @@ class TestHbaseProcessLifecycle(unittest.TestCase):
     inspect_process.assert_called_once_with(4217, "hbase", tokens)
     is_running.assert_called_once_with(
       4217, "hbase", tokens, identity=self.identity
+    )
+    publish_pid.assert_called_once_with(
+      self.pid_file,
+      self.identity,
+      "hbase",
+      tokens,
+      owner="hbase",
+      group="hadoop",
+      mode=0o640,
     )
     discover.assert_not_called()
 
@@ -122,7 +175,7 @@ class TestHbaseProcessLifecycle(unittest.TestCase):
       return_value=recovered,
     ) as discover, patch.object(
       HBASE_SERVICE.safe_process,
-      "create_pid_file_for_identity",
+      "publish_pid_file_for_identity",
       return_value=recovered,
     ) as create_pid:
       result = HBASE_SERVICE.read_or_discover_hbase_process(
@@ -216,12 +269,13 @@ class TestHbaseProcessLifecycle(unittest.TestCase):
       environment={"JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"},
       logoutput=True,
       timeout=60,
+      timeout_kill_strategy=HBASE_SERVICE.TerminateStrategy.KILL_PROCESS_GROUP,
     )
     wait.assert_called_once_with(
       "/var/run/hbase/hbase-hbase-thrift.pid", "hbase", "hadoop", "thrift"
     )
 
-  def test_identity_wait_failure_runs_exact_daemon_rollback(self):
+  def test_identity_wait_failure_does_not_guess_a_rollback_target(self):
     params = self._params()
     start_error = Fail("HBase regionserver identity was not published")
     with patch.dict(sys.modules, {"params": params}), patch.object(
@@ -229,55 +283,80 @@ class TestHbaseProcessLifecycle(unittest.TestCase):
     ), patch.object(
       HBASE_SERVICE, "wait_for_hbase_process", side_effect=start_error
     ), patch.object(HBASE_SERVICE, "Execute") as execute, patch.object(
+      HBASE_SERVICE, "rollback_started_hbase_process"
+    ) as rollback, patch.object(
       HBASE_SERVICE, "show_logs"
     ) as show_logs:
       with self.assertRaises(Fail) as raised:
         HBASE_SERVICE.hbase_service("regionserver", action="start")
 
     self.assertIs(start_error, raised.exception)
-    self.assertEqual(2, execute.call_count)
-    self.assertEqual(
-      (
-        "/usr/lib/hbase/bin/hbase-daemon.sh",
-        "--config",
-        "/etc/hbase/conf",
-        "stop",
-        "regionserver",
-      ),
-      execute.call_args_list[1].args[0],
-    )
-    self.assertEqual(
-      {
-        "user": "hbase",
-        "environment": {"JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"},
-        "logoutput": True,
-        "timeout": 60,
-      },
-      execute.call_args_list[1].kwargs,
-    )
+    self.assertEqual(1, execute.call_count)
+    rollback.assert_not_called()
     show_logs.assert_called_once_with("/var/log/hbase", "hbase")
 
-  def test_daemon_rollback_failure_preserves_start_failure_context(self):
-    params = self._params()
-    start_error = Fail("HBase master identity was not published")
-    rollback_error = Fail("daemon stop failed")
-    with patch.dict(sys.modules, {"params": params}), patch.object(
-      HBASE_SERVICE, "read_or_discover_hbase_process", return_value=None
+  def test_pid_publication_failure_rolls_back_only_the_pinned_identity(self):
+    start_error = Fail("HBase PID publication failed")
+    rollback_error = Fail("identity rollback failed")
+    with patch.object(
+      HBASE_SERVICE.safe_process,
+      "wait_for_discovered_process",
+      return_value=self.identity,
     ), patch.object(
-      HBASE_SERVICE, "wait_for_hbase_process", side_effect=start_error
+      HBASE_SERVICE,
+      "publish_hbase_process",
+      side_effect=start_error,
     ), patch.object(
-      HBASE_SERVICE, "Execute", side_effect=(None, rollback_error)
-    ), patch.object(
-      HBASE_SERVICE, "show_logs", side_effect=OSError("log directory unavailable")
-    ), patch.object(HBASE_SERVICE.Logger, "warning") as warning:
-      with self.assertRaisesRegex(
-        Fail, "HBase master start failed.*daemon rollback also failed"
-      ) as raised:
-        HBASE_SERVICE.hbase_service("master", action="start")
+      HBASE_SERVICE,
+      "rollback_started_hbase_process",
+      side_effect=rollback_error,
+    ) as rollback, patch.object(HBASE_SERVICE.Logger, "warning") as warning:
+      with self.assertRaises(Fail) as raised:
+        HBASE_SERVICE.wait_for_hbase_process(
+          "/var/run/hbase/hbase-hbase-master.pid",
+          "hbase",
+          "hadoop",
+          "master",
+        )
 
-    self.assertIs(start_error, raised.exception.__cause__)
+    self.assertIs(start_error, raised.exception)
+    rollback.assert_called_once_with(
+      "/var/run/hbase/hbase-hbase-master.pid",
+      self.identity,
+      "hbase",
+      "master",
+    )
     warning.assert_called_once_with(
-      "Could not collect HBase logs after start failure: log directory unavailable"
+      "Could not roll back failed HBase master PID publication: "
+      "identity rollback failed"
+    )
+
+  def test_start_rollback_never_discovers_a_replacement_process(self):
+    with patch.object(
+      HBASE_SERVICE.safe_process, "terminate_process"
+    ) as terminate, patch.object(
+      HBASE_SERVICE.safe_process, "read_pid", return_value=self.identity.pid
+    ), patch.object(
+      HBASE_SERVICE.safe_process, "remove_pid_file_if_stopped"
+    ) as remove, patch.object(
+      HBASE_SERVICE.safe_process, "discover_running_process"
+    ) as discover:
+      HBASE_SERVICE.rollback_started_hbase_process(
+        "/var/run/hbase/hbase-hbase-master.pid",
+        self.identity,
+        "hbase",
+        "master",
+      )
+
+    discover.assert_not_called()
+    terminate.assert_called_once_with(
+      self.identity, "hbase", ("org.apache.hadoop.hbase.master.HMaster",)
+    )
+    remove.assert_called_once_with(
+      "/var/run/hbase/hbase-hbase-master.pid",
+      self.identity.pid,
+      expected_user="hbase",
+      expected_cmdline=("org.apache.hadoop.hbase.master.HMaster",),
     )
 
   def test_stop_terminates_only_pinned_identity_and_removes_safe_pid(self):
@@ -309,6 +388,33 @@ class TestHbaseProcessLifecycle(unittest.TestCase):
       expected_user="hbase",
       expected_cmdline=tokens,
     )
+
+  def test_stop_preserves_primary_failure_when_log_collection_fails(self):
+    params = self._params()
+    primary_error = Fail("HBase process did not stop")
+    with patch.dict(sys.modules, {"params": params}), patch.object(
+      HBASE_SERVICE,
+      "read_or_discover_hbase_process",
+      return_value=self.identity,
+    ), patch.object(
+      HBASE_SERVICE.safe_process,
+      "terminate_process",
+      side_effect=primary_error,
+    ), patch.object(
+      HBASE_SERVICE, "show_logs", side_effect=OSError("logs unavailable")
+    ), patch.object(
+      HBASE_SERVICE.Logger, "warning"
+    ) as warning, patch.object(
+      HBASE_SERVICE.safe_process, "remove_pid_file_if_stopped"
+    ) as remove_pid:
+      with self.assertRaises(Fail) as raised:
+        HBASE_SERVICE.hbase_service("regionserver", action="stop")
+
+    self.assertIs(primary_error, raised.exception)
+    warning.assert_called_once_with(
+      "Could not collect HBase logs after stop failure: logs unavailable"
+    )
+    remove_pid.assert_not_called()
 
   def test_invalid_action_or_argv_token_is_rejected_before_execution(self):
     params = self._params()

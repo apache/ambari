@@ -688,9 +688,11 @@ class TestAmbariServer(TestCase):
 
     tmp_argv = sys.argv
     try:
-      sys.argv = ["ambari-server", "setup", "-s"]
+      sys.argv = ["ambari-server", "setup"]
 
-      _ambari_server_.mainBody()
+      with patch("ambari_server.serverConfiguration.get_YN_input", return_value=True):
+        with patch("ambari_server.serverSetup.get_YN_input", return_value=False):
+          _ambari_server_.mainBody()
 
       self.assertTrue(setup_local_db_method.called)
       pass
@@ -2102,17 +2104,18 @@ class TestAmbariServer(TestCase):
     p.get_property.side_effect = ["key_dir", "5555", "true"]
     get_YN_input_mock.side_effect = [False, True]
     get_validated_string_input_mock.side_effect = ["4444"]
-    get_property_expected = (
-      "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl')]"
-    )
+    get_property_expected = [
+      call("security.server.keys_dir"),
+      call("client.api.ssl.port"),
+      call("api.ssl"),
+    ]
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     set_silent(False)
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
-    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(p.get_property.call_args_list, get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
     self.assertTrue(import_cert_and_key_action_mock.called)
@@ -2126,16 +2129,17 @@ class TestAmbariServer(TestCase):
     p.get_property.side_effect = ["key_dir", "", "true"]
     get_YN_input_mock.side_effect = [True]
     get_validated_string_input_mock.side_effect = ["4444"]
-    get_property_expected = (
-      "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl')]"
-    )
+    get_property_expected = [
+      call("security.server.keys_dir"),
+      call("client.api.ssl.port"),
+      call("api.ssl"),
+    ]
     process_pair_expected = "[call('api.ssl', 'false')]"
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
-    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(p.get_property.call_args_list, get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
     self.assertFalse(import_cert_and_key_action_mock.called)
@@ -2150,16 +2154,17 @@ class TestAmbariServer(TestCase):
     p.get_property.side_effect = ["key_dir", "", None]
     get_YN_input_mock.side_effect = [True, True]
     get_validated_string_input_mock.side_effect = ["4444"]
-    get_property_expected = (
-      "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl')]"
-    )
+    get_property_expected = [
+      call("security.server.keys_dir"),
+      call("client.api.ssl.port"),
+      call("api.ssl"),
+    ]
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     setup_https(args)
 
     self.assertTrue(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
-    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(p.get_property.call_args_list, get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertTrue(p.store.called)
     self.assertTrue(import_cert_and_key_action_mock.called)
@@ -2174,16 +2179,17 @@ class TestAmbariServer(TestCase):
     p.get_property.side_effect = ["key_dir", "", None]
     get_YN_input_mock.side_effect = [False]
     get_validated_string_input_mock.side_effect = ["4444"]
-    get_property_expected = (
-      "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl')]"
-    )
+    get_property_expected = [
+      call("security.server.keys_dir"),
+      call("client.api.ssl.port"),
+      call("api.ssl"),
+    ]
     process_pair_expected = "[]"
     setup_https(args)
 
     self.assertFalse(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
-    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(p.get_property.call_args_list, get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertFalse(p.store.called)
     self.assertFalse(import_cert_and_key_action_mock.called)
@@ -2198,15 +2204,16 @@ class TestAmbariServer(TestCase):
     get_YN_input_mock.side_effect = [True]
     import_cert_and_key_action_mock.side_effect = [False]
     get_validated_string_input_mock.side_effect = ["4444"]
-    get_property_expected = (
-      "[call('security.server.keys_dir'),\n"
-      + " call('client.api.ssl.port'),\n call('api.ssl')]"
-    )
+    get_property_expected = [
+      call("security.server.keys_dir"),
+      call("client.api.ssl.port"),
+      call("api.ssl"),
+    ]
     process_pair_expected = "[call('client.api.ssl.port', '4444')]"
     self.assertFalse(setup_https(args))
     self.assertTrue(p.process_pair.called)
     self.assertTrue(p.get_property.call_count == 3)
-    self.assertEqual(str(p.get_property.call_args_list), get_property_expected)
+    self.assertEqual(p.get_property.call_args_list, get_property_expected)
     self.assertEqual(str(p.process_pair.call_args_list), process_pair_expected)
     self.assertFalse(p.store.called)
     self.assertTrue(import_cert_and_key_action_mock.called)
@@ -6467,8 +6474,6 @@ class TestAmbariServer(TestCase):
     pass
 
   @staticmethod
-
-  @staticmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
   def _init_test_ldap_properties_map_invalid_input_1():
     ldap_properties_map = {
@@ -6495,8 +6500,6 @@ class TestAmbariServer(TestCase):
       "ambari.ldap.enabled_services": "*",
     }
     return ldap_properties_map
-
-  @staticmethod
 
   @staticmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -6720,8 +6723,6 @@ class TestAmbariServer(TestCase):
 
     sys.stdout = sys.__stdout__
     pass
-
-  @staticmethod
 
   @staticmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)

@@ -104,7 +104,7 @@ class TestPrivateTemporaryFile(unittest.TestCase):
 
     self.assertFalse(os.path.exists(path))
 
-  def test_primary_and_cleanup_failures_do_not_expose_content(self):
+  def test_primary_error_is_preserved_when_cleanup_also_fails(self):
     owner = pwd.getpwuid(os.getuid()).pw_name
     group = grp.getgrgid(os.getgid()).gr_name
     with tempfile.TemporaryDirectory() as temp_dir, patch.object(
@@ -112,9 +112,8 @@ class TestPrivateTemporaryFile(unittest.TestCase):
       "unlink",
       side_effect=OSError("cleanup denied"),
     ):
-      with self.assertRaisesRegex(
-        Fail, "Operation failed.*cleanup also failed"
-      ) as raised:
+      with patch.object(private_temporary_file.Logger, "warning") as warning, \
+        self.assertRaisesRegex(Fail, "operation failed") as raised:
         with private_temporary_file.private_temporary_file(
           "highly confidential value",
           owner,
@@ -124,7 +123,24 @@ class TestPrivateTemporaryFile(unittest.TestCase):
           raise Fail("operation failed")
 
     self.assertNotIn("highly confidential value", str(raised.exception))
-    self.assertIsInstance(raised.exception.__cause__, Fail)
+    self.assertIsNone(raised.exception.__cause__)
+    warning.assert_called_once()
+    self.assertNotIn("highly confidential value", warning.call_args.args[0])
+
+  def test_owner_primary_group_is_used_when_group_is_omitted(self):
+    owner_record = pwd.getpwuid(os.getuid())
+    owner = owner_record.pw_name
+    with tempfile.TemporaryDirectory() as temp_dir, patch.object(
+      private_temporary_file.os, "fchown"
+    ) as fchown:
+      with private_temporary_file.private_temporary_file(
+        "secret",
+        owner,
+        temp_dir=temp_dir,
+      ):
+        pass
+
+    self.assertEqual(owner_record.pw_gid, fchown.call_args.args[2])
 
 
 if __name__ == "__main__":

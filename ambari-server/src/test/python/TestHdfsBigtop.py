@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import argparse
+import ast
 from contextlib import contextmanager
 import importlib.util
 import json
@@ -31,7 +32,9 @@ from unittest.mock import MagicMock, call, mock_open, patch
 import xml.etree.ElementTree as ET
 
 from ambari_commons import import_utils
-from resource_management.core.exceptions import Fail
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import jmx, namenode_ha_utils
 
 
@@ -152,6 +155,24 @@ DATANODE_UPGRADE = load_script(
   },
 )
 
+DATANODE = load_script(
+  "bigtop_datanode",
+  "datanode.py",
+  {
+    "datanode_upgrade": DATANODE_UPGRADE,
+    "hdfs_datanode": dependency_module("hdfs_datanode", datanode=MagicMock()),
+    "hdfs": dependency_module("hdfs", hdfs=MagicMock(), reconfig=MagicMock()),
+    "utils": dependency_module(
+      "utils",
+      get_hdfs_binary=MagicMock(return_value="hdfs"),
+      get_dfsadmin_base_command=MagicMock(
+        return_value=("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
+      ),
+    ),
+    "hdfs_kerberos": HDFS_KERBEROS,
+  },
+)
+
 NAMENODE = load_script(
   "bigtop_namenode",
   "namenode.py",
@@ -182,10 +203,55 @@ NAMENODE = load_script(
 
 
 def params_module(**values):
-  return dependency_module("params", **values)
+  module = dependency_module("params", **values)
+  if Environment.has_instance():
+    Environment.get_instance().set_params(module)
+  return module
 
 
 class TestHdfsBigtop(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(HDFS / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
+
+  def test_synchronous_execute_calls_are_bounded_by_process_group_timeout(self):
+    for script_path in SCRIPTS.glob("*.py"):
+      tree = ast.parse(script_path.read_text(encoding="utf-8"))
+      for node in ast.walk(tree):
+        if not (
+          isinstance(node, ast.Call)
+          and isinstance(node.func, ast.Name)
+          and node.func.id == "Execute"
+        ):
+          continue
+        keywords = {keyword.arg: keyword.value for keyword in node.keywords}
+        wait_for_finish = keywords.get("wait_for_finish")
+        if (
+          isinstance(wait_for_finish, ast.Constant)
+          and wait_for_finish.value is False
+        ):
+          continue
+        self.assertIn(
+          "timeout",
+          keywords,
+          f"{script_path.name}:{node.lineno} lacks a timeout",
+        )
+        strategy = keywords.get("timeout_kill_strategy")
+        self.assertIsInstance(
+          strategy,
+          ast.Attribute,
+          f"{script_path.name}:{node.lineno} lacks a process-group strategy",
+        )
+        self.assertEqual(
+          "KILL_PROCESS_GROUP",
+          strategy.attr,
+          f"{script_path.name}:{node.lineno} has the wrong timeout strategy",
+        )
+
   def test_router_client_configuration_is_deterministic(self):
     hdfs_site = {"dfs.nameservices": "ns1,ns2"}
     core_site = {
@@ -394,6 +460,166 @@ class TestHdfsBigtop(unittest.TestCase):
     with self.assertRaisesRegex(Fail, "Unsupported HDFS process"):
       HDFS_PROCESS.expected_cmdline("unknown")
 
+  def test_status_revalidates_and_hardens_the_pid_file(self):
+    identity = MagicMock(pid=1234)
+    with patch.object(
+      HDFS_PROCESS, "recover_running_process", return_value=identity
+    ) as recover:
+      actual = HDFS_PROCESS.check_component_status(
+        "/run/hadoop/hdfs-namenode.pid",
+        "hdfs",
+        "namenode",
+        owner="hdfs",
+        group="hadoop",
+      )
+
+    self.assertIs(identity, actual)
+    recover.assert_called_once_with(
+      "/run/hadoop/hdfs-namenode.pid",
+      "hdfs",
+      "namenode",
+      owner="hdfs",
+      group="hadoop",
+      privileged=False,
+    )
+
+  def test_status_fails_closed_when_no_valid_process_can_be_recovered(self):
+    with patch.object(HDFS_PROCESS, "recover_running_process", return_value=None), \
+      self.assertRaises(ComponentIsNotRunning):
+      HDFS_PROCESS.check_component_status(
+        "/run/hadoop/hdfs-namenode.pid",
+        "hdfs",
+        "namenode",
+        owner="hdfs",
+        group="hadoop",
+      )
+
+  def test_zkfc_recovery_publishes_a_private_pid_file_before_termination(self):
+    params = params_module(
+      dfs_ha_enabled=True,
+      zkfc_pid_file="/run/hadoop/hdfs-zkfc.pid",
+      user_group="hadoop",
+    )
+    identity = MagicMock(pid=4321)
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process,
+        "recover_running_process",
+        return_value=identity,
+      ) as recover, \
+      patch.object(HDFS_RUNTIME_UTILS.hdfs_process, "terminate_process"), \
+      patch.object(HDFS_RUNTIME_UTILS.hdfs_process, "remove_pid_file_if_stopped"):
+      self.assertTrue(HDFS_RUNTIME_UTILS.kill_zkfc("hdfs"))
+
+    recover.assert_called_once_with(
+      "/run/hadoop/hdfs-zkfc.pid",
+      "hdfs",
+      "zkfc",
+      owner="hdfs",
+      group="hadoop",
+    )
+
+  def test_sensitive_defaults_require_operator_input_and_enabled_runtime_checks(self):
+    ssl_root = ET.parse(HDFS / "configuration/ssl-server.xml")
+    for name in (
+      "ssl.server.truststore.password",
+      "ssl.server.keystore.password",
+      "ssl.server.keystore.keypassword",
+    ):
+      property_element = next(
+        element
+        for element in ssl_root.findall("property")
+        if element.findtext("name") == name
+      )
+      self.assertEqual("", property_element.findtext("value", ""))
+      self.assertEqual(
+        "false",
+        property_element.findtext("value-attributes/empty-value-valid"),
+      )
+
+    ranger_root = ET.parse(
+      HDFS / "configuration/ranger-hdfs-plugin-properties.xml"
+    )
+    ranger_password = next(
+      element
+      for element in ranger_root.findall("property")
+      if element.findtext("name") == "REPOSITORY_CONFIG_PASSWORD"
+    )
+    self.assertEqual("", ranger_password.findtext("value", ""))
+    self.assertEqual(
+      "false",
+      ranger_password.findtext("value-attributes/empty-value-valid"),
+    )
+    params_source = (SCRIPTS / "params_linux.py").read_text(encoding="utf-8")
+    self.assertIn(
+      "must not be empty when HDFS HTTPS is enabled", params_source
+    )
+    self.assertIn(
+      "must not be empty when the Ranger HDFS plugin is enabled",
+      params_source,
+    )
+    self.assertIn("require_external_ranger_credentials", params_source)
+    self.assertNotIn('external_admin_password", "admin"', params_source)
+    self.assertNotIn('external_ranger_admin_password",', params_source)
+
+  def test_kerberos_configuration_files_are_group_readable_only(self):
+    hdfs_source = (SCRIPTS / "hdfs.py").read_text(encoding="utf-8")
+    self.assertEqual(3, hdfs_source.count("mode=0o640"))
+    utils_source = (SCRIPTS / "utils.py").read_text(encoding="utf-8")
+    self.assertIn('"hdfs_jaas.conf"),', utils_source)
+    self.assertIn("mode=0o640", utils_source)
+
+  def test_advisor_requires_hdfs_tls_and_ranger_secrets_only_when_enabled(self):
+    validator = object.__new__(HDFS_ADVISOR.HDFSValidator)
+    https_configurations = {
+      "hdfs-site": {"properties": {"dfs.http.policy": "HTTP_AND_HTTPS"}}
+    }
+    tls_problems = validator.validateSslServerConfigurations(
+      {}, {}, https_configurations, {"configurations": {}}, {}
+    )
+    self.assertEqual(
+      {
+        "ssl.server.truststore.password",
+        "ssl.server.keystore.password",
+        "ssl.server.keystore.keypassword",
+      },
+      {problem["config-name"] for problem in tls_problems},
+    )
+    self.assertEqual(
+      [],
+      validator.validateSslServerConfigurations(
+        {},
+        {},
+        {"hdfs-site": {"properties": {"dfs.http.policy": "HTTP_ONLY"}}},
+        {"configurations": {}},
+        {},
+      ),
+    )
+
+    ranger_configurations = {
+      "ranger-hdfs-plugin-properties": {
+        "properties": {"ranger-hdfs-plugin-enabled": "Yes"}
+      }
+    }
+    ranger_services = {
+      "configurations": {
+        "ranger-env": {
+          "properties": {"ranger-hdfs-plugin-enabled": "yes"}
+        }
+      }
+    }
+    ranger_problems = validator.validateRangerPluginConfigurations(
+      ranger_configurations["ranger-hdfs-plugin-properties"]["properties"],
+      {},
+      ranger_configurations,
+      ranger_services,
+      {},
+    )
+    self.assertEqual(
+      ["REPOSITORY_CONFIG_PASSWORD"],
+      [problem["config-name"] for problem in ranger_problems],
+    )
+
   def test_process_recovery_rejects_wrong_pid_identity(self):
     with patch.object(HDFS_PROCESS.safe_process, "read_pid", return_value=8123), \
       patch.object(
@@ -410,6 +636,81 @@ class TestHdfsBigtop(unittest.TestCase):
         )
 
     remove_pid.assert_not_called()
+
+  def test_process_recovery_secures_existing_pid_file(self):
+    running = MagicMock(pid=8123)
+    with patch.object(HDFS_PROCESS.safe_process, "read_pid", return_value=8123), \
+      patch.object(
+        HDFS_PROCESS.safe_process,
+        "read_running_process",
+        return_value=running,
+      ), \
+      patch.object(
+        HDFS_PROCESS.safe_process,
+        "publish_pid_file_for_identity",
+        return_value=running,
+      ) as publish:
+      result = HDFS_PROCESS.recover_running_process(
+        "/run/hdfs.pid",
+        "hdfs",
+        "namenode",
+        owner="hdfs",
+        group="hadoop",
+      )
+
+    self.assertIs(running, result)
+    publish.assert_called_once_with(
+      "/run/hdfs.pid",
+      running,
+      "hdfs",
+      (
+        "-Dproc_namenode",
+        "org.apache.hadoop.hdfs.server.namenode.NameNode",
+      ),
+      "hdfs",
+      "hadoop",
+      mode=0o640,
+    )
+
+  def test_pid_publication_failure_rolls_back_only_pinned_identity(self):
+    running = MagicMock(pid=8123)
+    with patch.object(HDFS_PROCESS.safe_process, "read_pid", return_value=None), \
+      patch.object(
+        HDFS_PROCESS.safe_process,
+        "discover_running_process",
+        return_value=running,
+      ), \
+      patch.object(
+        HDFS_PROCESS.safe_process,
+        "publish_pid_file_for_identity",
+        side_effect=Fail("publication failed"),
+      ), \
+      patch.object(HDFS_PROCESS.safe_process, "terminate_process") as terminate, \
+      patch.object(
+        HDFS_PROCESS.safe_process, "remove_pid_file_if_stopped"
+      ) as remove:
+      with self.assertRaisesRegex(Fail, "publication failed"):
+        HDFS_PROCESS.wait_for_running_process(
+          "/run/hdfs.pid", "hdfs", "namenode", "hdfs", "hadoop"
+        )
+
+    terminate.assert_called_once_with(
+      running,
+      "hdfs",
+      (
+        "-Dproc_namenode",
+        "org.apache.hadoop.hdfs.server.namenode.NameNode",
+      ),
+    )
+    remove.assert_called_once_with(
+      "/run/hdfs.pid",
+      8123,
+      "hdfs",
+      (
+        "-Dproc_namenode",
+        "org.apache.hadoop.hdfs.server.namenode.NameNode",
+      ),
+    )
 
   def test_service_start_does_not_duplicate_discovered_process(self):
     params = params_module(
@@ -627,6 +928,37 @@ class TestHdfsBigtop(unittest.TestCase):
     show_logs.assert_called_once_with("/var/log/hadoop/hdfs", "hdfs")
     wait.assert_not_called()
 
+  def test_log_collection_failure_does_not_mask_start_failure(self):
+    params = params_module(
+      hadoop_pid_dir_prefix="/run/hadoop",
+      hdfs_log_dir_prefix="/var/log/hadoop",
+      hadoop_libexec_dir="/usr/lib/hadoop/libexec",
+      hadoop_bin="/usr/lib/hadoop/sbin",
+      hadoop_conf_dir="/etc/hadoop/conf",
+      security_enabled=False,
+      user_group="hadoop",
+      hdfs_user="hdfs",
+      root_user="root",
+      root_group="root",
+    )
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(HDFS_RUNTIME_UTILS, "Directory"), \
+      patch.object(
+        HDFS_RUNTIME_UTILS.hdfs_process,
+        "recover_running_process",
+        return_value=None,
+      ), \
+      patch.object(
+        HDFS_RUNTIME_UTILS, "Execute", side_effect=Fail("start failed")
+      ), \
+      patch.object(
+        HDFS_RUNTIME_UTILS, "show_logs", side_effect=Fail("logs failed")
+      ):
+      with self.assertRaisesRegex(Fail, "start failed"):
+        HDFS_RUNTIME_UTILS.service(
+          action="start", name="namenode", user="hdfs"
+        )
+
   def test_failed_graceful_datanode_shutdown_uses_stop_fallback(self):
     params = params_module(
       security_enabled=False,
@@ -654,7 +986,48 @@ class TestHdfsBigtop(unittest.TestCase):
       + ("-shutdownDatanode", "datanode.example.com:9867", "upgrade"),
       user="hdfs",
       env=None,
+      timeout=120,
+      timeout_kill_strategy=DATANODE_UPGRADE.TerminateStrategy.KILL_PROCESS_GROUP,
+      shell=False,
     )
+
+  def test_datanode_shutdown_accepts_only_explicit_deregistration_status(self):
+    params = params_module(
+      security_enabled=False,
+      hdfs_user="hdfs",
+      dfs_dn_ipc_address="datanode.example.com:9867",
+    )
+    base_command = ("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        DATANODE,
+        "get_dfsadmin_base_command",
+        return_value=base_command,
+      ), \
+      patch.object(DATANODE.shell, "call", return_value=(1, "not registered")):
+      self.assertTrue(DATANODE.DataNode().check_datanode_shutdown("hdfs"))
+
+  def test_datanode_shutdown_fails_closed_on_command_exception(self):
+    params = params_module(
+      security_enabled=False,
+      hdfs_user="hdfs",
+      dfs_dn_ipc_address="datanode.example.com:9867",
+    )
+    base_command = ("hdfs", "dfsadmin", "-fs", "hdfs://cluster")
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        DATANODE,
+        "get_dfsadmin_base_command",
+        return_value=base_command,
+      ), \
+      patch.object(
+        DATANODE.shell, "call", side_effect=RuntimeError("timeout")
+      ), \
+      patch(
+        "resource_management.libraries.functions.decorator.time.sleep"
+      ):
+      with self.assertRaisesRegex(Fail, "Unable to determine DataNode shutdown state"):
+        DATANODE.DataNode().check_datanode_shutdown("hdfs")
 
   def test_hdfs_network_port_parser_rejects_partial_and_unsafe_values(self):
     self.assertEqual(9866, HDFS_RUNTIME_UTILS.get_port("0.0.0.0:9866"))
@@ -755,6 +1128,8 @@ class TestHdfsBigtop(unittest.TestCase):
       user="hdfs",
       environment={"PATH": "/usr/bin"},
       logoutput=True,
+      timeout=300,
+      timeout_kill_strategy=NAMENODE_UPGRADE.TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     with patch.dict(sys.modules, {"params": params}), \
@@ -796,7 +1171,18 @@ class TestHdfsBigtop(unittest.TestCase):
       )
 
     self.assertEqual(
-      [call(command, user="hdfs", logoutput=True, env=None)] * 2,
+      [
+        call(
+          command,
+          user="hdfs",
+          logoutput=True,
+          env=None,
+          timeout=60,
+          timeout_kill_strategy=HDFS_NAMENODE.TerminateStrategy.KILL_PROCESS_GROUP,
+          shell=False,
+        )
+      ]
+      * 2,
       shell_call.call_args_list,
     )
     self.assertEqual([call(1), call(0)], sleep.call_args_list)
@@ -828,6 +1214,8 @@ class TestHdfsBigtop(unittest.TestCase):
       user="hdfs",
       path=["/usr/bin"],
       environment=None,
+      timeout=120,
+      timeout_kill_strategy=HDFS_NAMENODE.TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
   def test_hdfs_kerberos_environment_cleans_up_after_command_failure(self):
@@ -1035,6 +1423,9 @@ class TestHdfsBigtop(unittest.TestCase):
       ),
       user="hdfs",
       env={"KRB5CCNAME": "FILE:/private/dn-krb5cc"},
+      timeout=120,
+      timeout_kill_strategy=DATANODE_UPGRADE.TerminateStrategy.KILL_PROCESS_GROUP,
+      shell=False,
     )
 
   def test_safemode_wait_failure_is_not_reported_as_success(self):
@@ -1468,7 +1859,10 @@ class TestHdfsBigtop(unittest.TestCase):
 
     makedirs.assert_called_once_with(backup_destination)
     execute.assert_called_once_with(
-      ("cp", "-ar", "/namenode/current", backup_destination), sudo=True
+      ("cp", "-ar", "/namenode/current", backup_destination),
+      sudo=True,
+      timeout=300,
+      timeout_kill_strategy=NAMENODE_UPGRADE.TerminateStrategy.KILL_PROCESS_GROUP,
     )
     cleanup_directory.assert_called_once_with(backup_destination, action="delete")
 
@@ -1504,6 +1898,54 @@ class TestHdfsBigtop(unittest.TestCase):
     finalize.assert_not_called()
     rolling_upgrade.assert_not_called()
     create_marker.assert_not_called()
+
+  def test_previous_upgrade_finalize_accepts_only_success_or_no_upgrade(self):
+    params = params_module(hdfs_user="hdfs")
+    expected_command = (
+      "hdfs",
+      "dfsadmin",
+      "-fs",
+      "hdfs://cluster",
+      "-rollingUpgrade",
+      "finalize",
+    )
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(NAMENODE_UPGRADE.Logger, "info"), \
+      patch.object(NAMENODE_UPGRADE.shell, "call") as shell_call:
+      for return_code in (0, 255):
+        with self.subTest(return_code=return_code):
+          shell_call.reset_mock()
+          shell_call.return_value = (return_code, "")
+          NAMENODE_UPGRADE.prepare_upgrade_finalize_previous_upgrades(
+            "hdfs", environment={"KRB5CCNAME": "FILE:/private/cache"}
+          )
+          shell_call.assert_called_once_with(
+            expected_command,
+            logoutput=True,
+            user="hdfs",
+            env={"KRB5CCNAME": "FILE:/private/cache"},
+            timeout=120,
+            timeout_kill_strategy=(
+              NAMENODE_UPGRADE.TerminateStrategy.KILL_PROCESS_GROUP
+            ),
+            shell=False,
+          )
+
+      shell_call.return_value = (1, "finalize failed")
+      with self.assertRaisesRegex(Fail, "exited with status 1"):
+        NAMENODE_UPGRADE.prepare_upgrade_finalize_previous_upgrades("hdfs")
+
+  def test_upgrade_marker_creation_failure_is_fail_closed(self):
+    with patch.object(
+      NAMENODE_UPGRADE,
+      "get_upgrade_in_progress_marker",
+      return_value="/private/namenode-upgrade-marker",
+    ), patch.object(NAMENODE_UPGRADE.os.path, "isfile", return_value=False), \
+      patch.object(
+        NAMENODE_UPGRADE, "File", side_effect=OSError("read-only filesystem")
+      ):
+      with self.assertRaisesRegex(Fail, "Unable to create NameNode upgrade marker"):
+        NAMENODE_UPGRADE.create_upgrade_marker()
 
   def test_service_advisor_has_intact_asf_license_header(self):
     header = (HDFS / "service_advisor.py").read_text(encoding="utf-8")[:800]

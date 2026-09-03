@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -27,6 +28,7 @@ from unittest.mock import MagicMock, patch
 import xml.etree.ElementTree as ET
 
 from ambari_commons import import_utils
+from resource_management.core.exceptions import Fail
 
 
 RESOURCES = Path(__file__).resolve().parents[2] / "main" / "resources"
@@ -121,18 +123,81 @@ class TestZeppelinBigtop(TestCase):
       os_packages["redhat8,redhat9,openeuler22"],
     )
     self.assertEqual(
-      ["zeppelin-${stack_version}"],
-      os_packages["debian10,debian11,ubuntu20,ubuntu22"],
+      ["zeppelin"],
+      os_packages["ubuntu22"],
     )
 
     stack_packages = json.loads(
       (STACKS / "BIGTOP/3.2.0/properties/stack_packages.json").read_text(
         encoding="utf-8"
       )
-    )["stack-packages"]["ZEPPELIN"]["ZEPPELIN_SERVER"]
+    )["BIGTOP"]["stack-select"]["ZEPPELIN"]["ZEPPELIN_SERVER"]
     self.assertEqual("zeppelin-server", stack_packages["STACK-SELECT-PACKAGE"])
     for scope in ("INSTALL", "PATCH", "STANDARD"):
       self.assertEqual(["zeppelin"], stack_packages[scope])
+
+  def test_new_install_requires_safe_shiro_input_without_local_accounts(self):
+    root = ET.parse(
+      ZEPPELIN / "configuration/zeppelin-shiro-ini.xml"
+    ).getroot()
+    prop = root.find("./property[name='shiro_ini_content']")
+    self.assertIsNotNone(prop)
+    self.assertEqual("true", prop.attrib.get("require-input"))
+    self.assertEqual("false", prop.find("on-ambari-upgrade").attrib.get("add"))
+
+    content = prop.findtext("value")
+    section = None
+    local_users = []
+    for raw_line in content.splitlines():
+      line = raw_line.strip()
+      if not line or line.startswith(("#", ";")):
+        continue
+      if line.startswith("[") and line.endswith("]"):
+        section = line[1:-1].strip().lower()
+      elif section == "users" and "=" in line:
+        local_users.append(line)
+    self.assertEqual([], local_users)
+    self.assertIn("/** = authc", content)
+
+  def test_runtime_and_advisor_reject_legacy_or_anonymous_shiro(self):
+    safe_content = "[users]\n\n[urls]\n/** = authc\n"
+    self.assertEqual(
+      safe_content,
+      self.server_module.validate_shiro_ini_content(safe_content),
+    )
+    validator = self.advisor_module.ZeppelinValidator()
+    self.assertEqual(
+      [],
+      validator.validate_shiro(
+        {"shiro_ini_content": safe_content}, {}, {}, {}, {}
+      ),
+    )
+
+    with self.assertRaisesRegex(Fail, "must require authc"):
+      self.server_module.validate_shiro_ini_content(
+        "[users]\n\n[urls]\n/** = anon\n"
+      )
+
+    legacy_line = "packaged = fixed-hash, admin"
+    legacy_digest = hashlib.sha256(
+      legacy_line.replace(" ", "").encode("utf-8")
+    ).hexdigest()
+    legacy_content = f"[users]\n{legacy_line}\n[urls]\n/** = authc\n"
+    with patch.object(
+      self.server_module,
+      "_LEGACY_LOCAL_USER_DIGESTS",
+      frozenset((legacy_digest,)),
+    ), self.assertRaisesRegex(Fail, "insecure packaged"):
+      self.server_module.validate_shiro_ini_content(legacy_content)
+    with patch.object(
+      self.advisor_module,
+      "_LEGACY_LOCAL_USER_DIGESTS",
+      frozenset((legacy_digest,)),
+    ):
+      failures = validator.validate_shiro(
+        {"shiro_ini_content": legacy_content}, {}, {}, {}, {}
+      )
+    self.assertEqual("shiro_ini_content", failures[0]["config-name"])
 
   def test_environment_quotes_dynamic_shell_values_and_has_no_fixed_tls_password(self):
     env_source = (ZEPPELIN / "configuration/zeppelin-env.xml").read_text(
@@ -300,6 +365,48 @@ class TestZeppelinBigtop(TestCase):
         self.assertIsNone(settings["host"])
         self.assertIsNone(settings["port"])
 
+  def test_spark_endpoint_rejects_invalid_protocol_boolean_and_port(self):
+    invalid_settings = (
+      {
+        "hive.server2.transport.mode": "thrift",
+        "hive.server2.thrift.port": "10016",
+      },
+      {
+        "hive.server2.transport.mode": "binary",
+        "hive.server2.thrift.port": "10016",
+        "hive.server2.use.SSL": "enabled",
+      },
+      {
+        "hive.server2.transport.mode": "binary",
+        "hive.server2.thrift.port": "70000",
+      },
+    )
+    for spark_config in invalid_settings:
+      with self.subTest(spark_config=spark_config), self.assertRaises(ValueError):
+        self.contract_module.get_spark_thriftserver_settings(
+          {"spark-hive-site-override": spark_config},
+          {"spark_thriftserver_hosts": ["spark.example.com"]},
+        )
+
+  def test_default_pyspark_interpreter_uses_python3(self):
+    template = (SCRIPTS / "interpreter_json_template.py").read_text(
+      encoding="utf-8"
+    )
+    self.assertIn('"zeppelin.pyspark.python"', template)
+    self.assertIn('"value": "python3"', template)
+    self.assertNotIn("dl.bintray.com", template)
+    self.assertNotIn('"url": "http://repo1.maven.org', template)
+    self.assertIn('"url": "https://repo1.maven.org', template)
+
+  def test_service_and_alert_checks_use_absolute_curl(self):
+    for relative_path in (
+      "service_check.py",
+      "alerts/alert_check_zeppelin.py",
+    ):
+      source = (SCRIPTS / relative_path).read_text(encoding="utf-8")
+      self.assertIn('"/usr/bin/curl"', source)
+      self.assertNotIn('\n        "curl",', source)
+
   def test_spark_home_preserves_fallback_until_current_path_is_reliable(self):
     get_spark_home = self.contract_module.get_spark_home
 
@@ -448,8 +555,8 @@ class TestZeppelinBigtop(TestCase):
       "zeppelin_pid_dir": "/var/run/zeppelin/../other",
       "zeppelin_log_dir": "/var/log/zeppelin",
       "zeppelin_war_tempdir": "/var/run/zeppelin/webapps",
-      "spark_home": "/usr/lib/spark",
-      "hbase_home": "/usr/lib/hbase",
+      "spark_home": "/usr/bigtop/current/spark-client",
+      "hbase_home": "/usr/bigtop/current/hbase-client",
       "hbase_conf_dir": "/etc/hbase/conf",
     }
     failures = validator.validate_environment(properties, {}, {}, {}, {})

@@ -25,6 +25,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 LIVY = (
@@ -65,8 +67,19 @@ def params_module(**values):
   return dependency_module("params", **values)
 
 
-class TestLivyProcessLifecycle(unittest.TestCase):
+class _LivyResourceTestCase(unittest.TestCase):
   def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(LIVY / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
+
+
+class TestLivyProcessLifecycle(_LivyResourceTestCase):
+  def setUp(self):
+    super().setUp()
     self.identity = SimpleNamespace(pid=4217)
     self.pid_file = "/var/run/livy/livy-livy-server.pid"
 
@@ -83,6 +96,11 @@ class TestLivyProcessLifecycle(unittest.TestCase):
         return_value=True,
       ), \
       patch.object(
+        LIVY_SERVICE.safe_process,
+        "publish_pid_file_for_identity",
+        return_value=self.identity,
+      ) as publish_pid, \
+      patch.object(
         LIVY_SERVICE.safe_process, "discover_running_process"
       ) as discover:
       result = LIVY_SERVICE.read_or_discover_livy_process(
@@ -92,6 +110,15 @@ class TestLivyProcessLifecycle(unittest.TestCase):
     self.assertIs(self.identity, result)
     inspect_process.assert_called_once_with(
       4217, "livy", LIVY_SERVICE.LIVY_SERVER_PROCESS_TOKENS
+    )
+    publish_pid.assert_called_once_with(
+      self.pid_file,
+      self.identity,
+      "livy",
+      LIVY_SERVICE.LIVY_SERVER_PROCESS_TOKENS,
+      owner="livy",
+      group="livy",
+      mode=0o640,
     )
     discover.assert_not_called()
 
@@ -109,7 +136,7 @@ class TestLivyProcessLifecycle(unittest.TestCase):
       ) as discover, \
       patch.object(
         LIVY_SERVICE.safe_process,
-        "create_pid_file_for_identity",
+        "publish_pid_file_for_identity",
         return_value=recovered,
       ) as create_pid:
       result = LIVY_SERVICE.read_or_discover_livy_process(
@@ -168,7 +195,7 @@ class TestLivyProcessLifecycle(unittest.TestCase):
       ), \
       patch.object(
         LIVY_SERVICE.safe_process,
-        "create_pid_file_for_identity",
+        "publish_pid_file_for_identity",
         return_value=self.identity,
       ) as create_pid:
       result = LIVY_SERVICE.read_or_discover_livy_process(
@@ -222,6 +249,8 @@ class TestLivyProcessLifecycle(unittest.TestCase):
       user="livy",
       environment={"JAVA_HOME": "/usr/lib/jvm/java;$(id)"},
       logoutput=True,
+      timeout=60,
+      timeout_kill_strategy=LIVY_SERVICE.TerminateStrategy.KILL_PROCESS_GROUP,
     )
     file_resource.assert_called_once_with(
       "/var/run/livy/.livy-server-krb5cc", action="delete"
@@ -248,7 +277,7 @@ class TestLivyProcessLifecycle(unittest.TestCase):
       execute.call_args.kwargs["environment"],
     )
 
-  def test_start_failure_preserves_original_error_when_rollback_fails(self):
+  def test_start_failure_does_not_guess_a_rollback_identity(self):
     params = self._service_params()
     start_error = Fail("Livy launcher failed after writing its PID")
     with patch.dict(sys.modules, {"params": params}), \
@@ -259,15 +288,14 @@ class TestLivyProcessLifecycle(unittest.TestCase):
       patch.object(
         LIVY_SERVICE,
         "rollback_started_livy_process",
-        side_effect=Fail("rollback failed"),
       ) as rollback, \
       patch.object(LIVY_SERVICE.Logger, "warning") as warning:
       with self.assertRaises(Fail) as raised:
         LIVY_SERVICE.livy_service("server", action="start")
 
     self.assertIs(start_error, raised.exception)
-    rollback.assert_called_once_with(self.pid_file, "livy")
-    warning.assert_called_once()
+    rollback.assert_not_called()
+    warning.assert_not_called()
 
   def test_identity_publication_failure_rolls_back_discovered_identity(self):
     start_error = Fail("Livy PID publication failed")
@@ -279,7 +307,7 @@ class TestLivyProcessLifecycle(unittest.TestCase):
       ), \
       patch.object(
         LIVY_SERVICE.safe_process,
-        "create_pid_file_for_identity",
+        "publish_pid_file_for_identity",
         side_effect=start_error,
       ), \
       patch.object(
@@ -292,16 +320,13 @@ class TestLivyProcessLifecycle(unittest.TestCase):
 
     self.assertIs(start_error, raised.exception)
     rollback.assert_called_once_with(
-      self.pid_file, "livy", identity=self.identity
+      self.pid_file, self.identity, "livy"
     )
 
   def test_start_rollback_uses_only_the_pid_bound_identity(self):
     with patch.object(
-        LIVY_SERVICE.safe_process,
-        "read_running_process",
-        return_value=self.identity,
-      ), \
-      patch.object(LIVY_SERVICE.safe_process, "terminate_process") as terminate, \
+        LIVY_SERVICE.safe_process, "terminate_process"
+      ) as terminate, \
       patch.object(LIVY_SERVICE.safe_process, "read_pid", return_value=4217), \
       patch.object(
         LIVY_SERVICE.safe_process, "remove_pid_file_if_stopped"
@@ -310,7 +335,9 @@ class TestLivyProcessLifecycle(unittest.TestCase):
         LIVY_SERVICE.safe_process, "discover_running_process"
       ) as discover:
       self.assertTrue(
-        LIVY_SERVICE.rollback_started_livy_process(self.pid_file, "livy")
+        LIVY_SERVICE.rollback_started_livy_process(
+          self.pid_file, self.identity, "livy"
+        )
       )
 
     discover.assert_not_called()
@@ -466,7 +493,7 @@ class TestLivyProcessLifecycle(unittest.TestCase):
         server.status(env)
 
 
-class TestLivyKerberosAndDfsLifecycle(unittest.TestCase):
+class TestLivyKerberosAndDfsLifecycle(_LivyResourceTestCase):
   def test_secure_dfs_check_uses_structured_kinit_and_private_cache(self):
     cache = MagicMock()
     cache.cache_name = "FILE:/tmp/livy-cache/krb5cc"
@@ -539,6 +566,7 @@ class TestLivyKerberosAndDfsLifecycle(unittest.TestCase):
       user="livy",
       env=kerberos_environment,
       timeout=30,
+      timeout_kill_strategy=LIVY_SERVER.TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
 

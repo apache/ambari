@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ast
 import importlib.util
 import grp
 import os
@@ -48,6 +49,33 @@ def load_module(name, path):
 
 
 class TestRangerBigtopRuntime(unittest.TestCase):
+  def test_synchronous_execute_calls_are_bounded_and_kill_process_groups(self):
+    failures = []
+    for path in sorted((RANGER / "package").rglob("*.py")):
+      tree = ast.parse(path.read_text(), filename=str(path))
+      for node in ast.walk(tree):
+        if not (
+          isinstance(node, ast.Call)
+          and isinstance(node.func, ast.Name)
+          and node.func.id == "Execute"
+        ):
+          continue
+        keywords = {keyword.arg: keyword.value for keyword in node.keywords}
+        wait_for_finish = keywords.get("wait_for_finish")
+        if (
+          isinstance(wait_for_finish, ast.Constant)
+          and wait_for_finish.value is False
+        ):
+          continue
+        strategy = keywords.get("timeout_kill_strategy")
+        if "timeout" not in keywords or not (
+          isinstance(strategy, ast.Attribute)
+          and strategy.attr == "KILL_PROCESS_GROUP"
+        ):
+          failures.append(f"{path.relative_to(RANGER)}:{node.lineno}")
+
+    self.assertEqual([], failures)
+
   def test_runtime_boolean_contract_is_strict(self):
     module = load_module(
       "ranger_utils_test", RANGER / "package/scripts/ranger_utils.py"
@@ -63,6 +91,30 @@ class TestRangerBigtopRuntime(unittest.TestCase):
     for invalid in ("true", "1", "", None, 1):
       with self.assertRaises(Fail):
         module.strict_yes_no(invalid, "value")
+
+  def test_tagsync_atlas_password_must_be_explicit_and_nonempty(self):
+    module = load_module(
+      "ranger_utils_secret_test", RANGER / "package/scripts/ranger_utils.py"
+    )
+    self.assertEqual(
+      "configured-secret",
+      module.require_nonempty_secret(
+        "configured-secret", "atlas-env/atlas.admin.password"
+      ),
+    )
+    for invalid in (None, "", "   ", 1):
+      with self.subTest(invalid=invalid), self.assertRaisesRegex(
+        Fail, "atlas-env/atlas.admin.password"
+      ):
+        module.require_nonempty_secret(
+          invalid, "atlas-env/atlas.admin.password"
+        )
+
+    params_source = (RANGER / "package/scripts/params.py").read_text(
+      encoding="utf-8"
+    )
+    self.assertNotIn('atlas.admin.password", "admin"', params_source)
+    self.assertIn("is_ranger_tagsync_host", params_source)
 
   def test_private_secret_file_is_private_and_removed_on_failure(self):
     module = load_module(
@@ -101,6 +153,35 @@ class TestRangerBigtopRuntime(unittest.TestCase):
         with module.private_secret_file(directory, owner, group, "x" * 65537):
           self.fail("oversize secret was accepted")
       self.assertEqual([], os.listdir(directory))
+
+  def test_private_secret_cleanup_does_not_replace_primary_error(self):
+    module = load_module(
+      "ranger_secret_primary_error_test",
+      RANGER / "package/scripts/ranger_utils.py",
+    )
+    owner = pwd.getpwuid(os.getuid()).pw_name
+    group = grp.getgrgid(os.getgid()).gr_name
+    replacement_identity = SimpleNamespace(
+      st_mode=stat.S_IFREG,
+      st_dev=-1,
+      st_ino=-1,
+    )
+    with tempfile.TemporaryDirectory() as directory, patch.object(
+      module.Logger, "warning"
+    ) as warning, patch.object(
+      module.os, "lstat", return_value=replacement_identity
+    ):
+      with self.assertRaisesRegex(RuntimeError, "primary operation failed"):
+        with module.private_secret_file(
+          directory, owner, group, "test-value"
+        ) as path:
+          os.unlink(path)
+          with open(path, "w", encoding="utf-8") as replacement:
+            replacement.write("replacement")
+          raise RuntimeError("primary operation failed")
+
+    warning.assert_called_once()
+    self.assertNotIn("test-value", warning.call_args.args[0])
 
   def test_credentials_do_not_cross_process_argv(self):
     setup_source = (RANGER / "package/scripts/setup_ranger_xml.py").read_text()
@@ -218,6 +299,11 @@ class TestRangerBigtopRuntime(unittest.TestCase):
     alerts = (RANGER / "alerts.json").read_text()
     self.assertIn("BIGTOP/3.3.0/services/RANGER/package/alerts", alerts)
     self.assertNotIn("BIGTOP/3.2.0/services/RANGER/package/alerts", alerts)
+
+    override_root = ElementTree.parse(
+      RANGER.parents[2] / "3.4.0/services/RANGER/metainfo.xml"
+    ).getroot()
+    self.assertEqual("2.6.0-1", override_root.findtext("./services/service/version"))
 
   def test_required_setup_failures_are_propagated(self):
     ranger_setup = (RANGER / "package/scripts/setup_ranger_xml.py").read_text()

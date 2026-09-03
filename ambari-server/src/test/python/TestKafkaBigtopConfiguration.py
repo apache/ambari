@@ -28,6 +28,8 @@ from unittest.mock import MagicMock, patch
 from xml.etree import ElementTree
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 
 
 KAFKA = (
@@ -81,6 +83,15 @@ class TestKafkaClientContract(unittest.TestCase):
       with self.subTest(parser="yes-no", value=value):
         with self.assertRaises(Fail):
           KAFKA_UTILS.as_yes_no(value, "setting")
+
+    self.assertEqual(
+      "http", KAFKA_UTILS.http_policy_scheme("HTTP_ONLY", "metrics policy")
+    )
+    self.assertEqual(
+      "https", KAFKA_UTILS.http_policy_scheme(" https_only ", "metrics policy")
+    )
+    with self.assertRaisesRegex(Fail, "HTTP_ONLY or HTTPS_ONLY"):
+      KAFKA_UTILS.http_policy_scheme("AUTO", "metrics policy")
 
     credentials = {
       "external_admin_username": "admin",
@@ -166,7 +177,7 @@ class TestKafkaClientContract(unittest.TestCase):
       ),
     )
     self.assertEqual(
-      "SASL_PLAINTEXT://broker.example.com:19092,SASL_SSL://host:9093",
+      "SASL_PLAINTEXT://broker.example.com:19092,SASL_SSL://:9093",
       KAFKA_CLIENT.merge_advertised_listeners(
         "SASL_PLAINTEXT://:9092,SASL_SSL://:9093",
         "SASL_PLAINTEXT://broker.example.com:19092",
@@ -245,6 +256,14 @@ class TestKafkaClientContract(unittest.TestCase):
 
 
 class TestKafkaConfigurationResources(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(KAFKA / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
+
   def _params(self, secure=False):
     protocol = "SASL_PLAINTEXT" if secure else "PLAINTEXT"
     return SimpleNamespace(
@@ -282,6 +301,7 @@ class TestKafkaConfigurationResources(unittest.TestCase):
 
   def _configure(self, secure=False):
     params = self._params(secure)
+    self._environment.set_params(params)
     patches = (
       patch.dict(sys.modules, {"params": params}),
       patch.object(KAFKA_CONFIG, "check_stack_feature", return_value=True),
@@ -606,6 +626,47 @@ class TestKafkaAdvisorAndMetadata(unittest.TestCase):
     }
     self.assertTrue(
       self.advisor.KafkaServiceAdvisor.isKerberosEnabled({}, custom_listener)
+    )
+
+  def test_ranger_repository_password_has_no_default_and_is_conditionally_required(self):
+    validator = object.__new__(self.advisor.KafkaValidator)
+    validator.getErrorItem = lambda message: message
+    validator.getWarnItem = lambda message: message
+    validator.getServicesSiteProperties = lambda *_args: None
+    validator.toConfigurationValidationProblems = lambda items, _: items
+    plugin_properties = {}
+    validator.getSiteProperties = lambda *_args: plugin_properties
+    services = {"services": [], "configurations": {}}
+
+    with patch.object(
+      self.advisor.KafkaServiceAdvisor, "isKerberosEnabled", return_value=True
+    ):
+      plugin_properties.update(
+        {"ranger-kafka-plugin-enabled": "No", "REPOSITORY_CONFIG_PASSWORD": ""}
+      )
+      self.assertEqual(
+        [], validator.validateRangerPlugin({}, {}, {}, services, {})
+      )
+      plugin_properties["ranger-kafka-plugin-enabled"] = "Yes"
+      validation = validator.validateRangerPlugin({}, {}, {}, services, {})
+    self.assertIn(
+      "REPOSITORY_CONFIG_PASSWORD",
+      [item["config-name"] for item in validation],
+    )
+
+    root = ElementTree.parse(
+      KAFKA / "configuration/ranger-kafka-plugin-properties.xml"
+    ).getroot()
+    properties = {
+      item.findtext("name"): item for item in root.findall("property")
+    }
+    password = properties["REPOSITORY_CONFIG_PASSWORD"]
+    self.assertEqual("true", password.attrib.get("require-input"))
+    self.assertEqual("", password.findtext("value", default=""))
+    runtime_source = (KAFKA / "package/scripts/params.py").read_text()
+    self.assertIn(
+      "ranger-kafka-plugin-properties/REPOSITORY_CONFIG_PASSWORD must not be ",
+      runtime_source,
     )
 
   def test_listener_recommendation_prefers_updates_and_migrates_custom_map(self):

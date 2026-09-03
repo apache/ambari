@@ -34,6 +34,8 @@ from resource_management.core.exceptions import (
   ExecutionFailed,
   Fail,
 )
+from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
 from resource_management.core.shell import quote_bash_args
 
 
@@ -71,10 +73,21 @@ SOLR_UTILS = load_module("bigtop_solr_utils", SCRIPTS / "solr_utils.py")
 
 
 def params_module(**values):
-  return dependency_module("params", **values)
+  module = dependency_module("params", **values)
+  if Environment.has_instance():
+    Environment.get_instance().set_params(module)
+  return module
 
 
 class TestSolrSetupAndServiceCheck(unittest.TestCase):
+  def setUp(self):
+    Logger.initialize_logger()
+    self._environment = Environment(str(SOLR / "package"), test_mode=True)
+    self._environment.__enter__()
+
+  def tearDown(self):
+    self._environment.__exit__(None, None, None)
+
   def test_znode_creation_uses_structured_argv_with_metacharacters(self):
     params = params_module(
       solr_bindir="/opt/solr/bin;$(id)",
@@ -101,6 +114,10 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       environment={"SOLR_INCLUDE": "/etc/solr/conf/solr-env.sh"},
       user="solr",
       logoutput=True,
+      timeout=120,
+      timeout_kill_strategy=(
+        SETUP_SOLR_SCRIPT.TerminateStrategy.KILL_PROCESS_GROUP
+      ),
     )
 
   def test_znode_creation_ignores_only_matching_node_exists(self):
@@ -300,6 +317,11 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
     self.assertNotIn("--negotiate", command)
     self.assertNotIn("-k", command)
     self.assertNotIn("#/", command[-1])
+    self.assertEqual(15, execute.call_args.kwargs["timeout"])
+    self.assertEqual(
+      SERVICE_CHECK_SCRIPT.TerminateStrategy.KILL_PROCESS_GROUP,
+      execute.call_args.kwargs["timeout_kill_strategy"],
+    )
 
   def test_secure_service_check_separates_kinit_and_curl_argv(self):
     params = self._service_params(True)
@@ -347,6 +369,11 @@ class TestSolrSetupAndServiceCheck(unittest.TestCase):
       kerberos_environment,
       execute.call_args_list[0].kwargs["environment"],
     )
+    for execute_call in execute.call_args_list:
+      self.assertEqual(
+        SERVICE_CHECK_SCRIPT.TerminateStrategy.KILL_PROCESS_GROUP,
+        execute_call.kwargs["timeout_kill_strategy"],
+      )
     curl_command = execute.call_args_list[1].args[0]
     self.assertIn("--negotiate", curl_command)
     self.assertIn(("--user", ":"), tuple(zip(curl_command, curl_command[1:])))

@@ -285,6 +285,8 @@ class TestAlluxioSourceContracts(unittest.TestCase):
     self.assertEqual(
       {
         "_safe_absolute_path",
+        "as_bool",
+        "rollback_started_process",
         "resolve_master_metastore_dir",
         "resolve_underfs_address",
         "validate_data_size",
@@ -531,7 +533,7 @@ class TestAlluxioVersionContract(unittest.TestCase):
       (STACKS / "BIGTOP/3.2.0/properties/stack_packages.json").read_text(
         encoding="utf-8"
       )
-    )["stack-packages"]["ALLUXIO"]
+    )["BIGTOP"]["stack-select"]["ALLUXIO"]
     self.assertEqual({"ALLUXIO_MASTER", "ALLUXIO_WORKER"}, set(stack_packages))
     for component in stack_packages.values():
       self.assertEqual("alluxio", component["STACK-SELECT-PACKAGE"])

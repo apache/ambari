@@ -28,7 +28,10 @@ from unittest.mock import MagicMock, call, patch
 import xml.etree.ElementTree as ET
 
 from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
 from resource_management.libraries.functions import package_conditions
+
+Logger.initialize_logger()
 
 
 HBASE = (
@@ -137,6 +140,9 @@ class TestHbaseDecommissionWorkflow(unittest.TestCase):
       environment=environment,
       logoutput=True,
       timeout=540,
+      timeout_kill_strategy=(
+        HBASE_DECOMMISSION.TerminateStrategy.KILL_PROCESS_GROUP
+      ),
     )
     with self.assertRaises(Fail):
       HBASE_DECOMMISSION._move_regions(params, "rs1", "delete")
@@ -213,6 +219,7 @@ class TestHbaseServiceCheckWorkflow(unittest.TestCase):
       ),
       user="ambari-qa",
       timeout=60,
+      timeout_kill_strategy=SERVICE_CHECK.TerminateStrategy.KILL_PROCESS_GROUP,
       tries=3,
       try_sleep=5,
     )

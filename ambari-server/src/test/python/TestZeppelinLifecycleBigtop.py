@@ -25,6 +25,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
 
 
 ZEPPELIN = (
@@ -32,6 +33,8 @@ ZEPPELIN = (
   / "main/resources/stacks/BIGTOP/3.2.0/services/ZEPPELIN"
 )
 SCRIPTS = ZEPPELIN / "package/scripts"
+
+Logger.initialize_logger()
 
 
 def load_module(name, path, dependencies=None):
@@ -68,6 +71,11 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
         PROCESS.safe_process, "inspect_process", return_value=self.identity
       ) as inspect, \
       patch.object(PROCESS.safe_process, "is_process_running", return_value=True), \
+      patch.object(
+        PROCESS.safe_process,
+        "publish_pid_file_for_identity",
+        return_value=self.identity,
+      ) as publish_pid, \
       patch.object(PROCESS.safe_process, "discover_running_process") as discover:
       result = PROCESS.read_or_discover_zeppelin_process(
         self.pid_file, "zeppelin", "zeppelin"
@@ -76,6 +84,15 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
     self.assertIs(self.identity, result)
     inspect.assert_called_once_with(
       4123, "zeppelin", PROCESS.ZEPPELIN_PROCESS_TOKENS
+    )
+    publish_pid.assert_called_once_with(
+      self.pid_file,
+      self.identity,
+      "zeppelin",
+      PROCESS.ZEPPELIN_PROCESS_TOKENS,
+      owner="zeppelin",
+      group="zeppelin",
+      mode=0o640,
     )
     discover.assert_not_called()
 
@@ -91,7 +108,7 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
       ), \
       patch.object(
         PROCESS.safe_process,
-        "create_pid_file_for_identity",
+        "publish_pid_file_for_identity",
         return_value=recovered,
       ) as create_pid:
       result = PROCESS.read_or_discover_zeppelin_process(
@@ -150,6 +167,7 @@ class TestZeppelinProcessLifecycle(unittest.TestCase):
       user="zeppelin",
       environment={"JAVA_HOME": "/usr/lib/jvm/java;$(id)"},
       timeout=60,
+      timeout_kill_strategy=PROCESS.TerminateStrategy.KILL_PROCESS_GROUP,
       logoutput=True,
     )
     wait.assert_called_once_with(self.pid_file, "zeppelin", "zeppelin")
@@ -225,6 +243,7 @@ class TestZeppelinHdfsOperations(unittest.TestCase):
       user="zeppelin",
       env=None,
       timeout=30,
+      timeout_kill_strategy=SERVER.TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
   def test_secure_hdfs_probe_uses_private_cache(self):

@@ -24,9 +24,12 @@ from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, patch
 
+from resource_management.core.exceptions import Fail
+
 
 SPARK = Path(__file__).resolve().parents[2] / "main/resources/stacks/BIGTOP/3.2.0/services/SPARK"
 SCRIPTS = SPARK / "package/scripts"
+ALERTS = SCRIPTS / "alerts"
 
 
 def load_module(name, path, dependencies=None):
@@ -50,6 +53,10 @@ SPARK_CHECK = load_module(
   SCRIPTS / "service_check.py",
   {"spark_utils": SPARK_UTILS},
 )
+SPARK_ALERT = load_module(
+  "bigtop_spark_thrift_alert",
+  ALERTS / "alert_spark_thrift_port.py",
+)
 
 
 class TestSparkChecks(unittest.TestCase):
@@ -62,7 +69,7 @@ class TestSparkChecks(unittest.TestCase):
       smoke_user="ambari-qa",
       user_group="hadoop",
       tmp_dir="/var/lib/ambari-agent/tmp",
-      spark_beeline="/usr/lib/spark/bin/beeline",
+      spark_beeline="/usr/bigtop/current/spark-client/bin/beeline",
       java_home="/usr/lib/jvm/java-17",
       spark_conf_dir="/etc/spark/conf",
       spark_history_scheme="https",
@@ -94,9 +101,40 @@ class TestSparkChecks(unittest.TestCase):
     factory.assert_called_once()
     cache.kinit.assert_called_once()
     self.assertEqual("/usr/bin/curl", execute.call_args_list[0].args[0][0])
-    self.assertEqual("/usr/lib/spark/bin/beeline", execute.call_args_list[1].args[0][0])
+    self.assertEqual(
+      "/usr/bigtop/current/spark-client/bin/beeline",
+      execute.call_args_list[1].args[0][0],
+    )
     thrift_environment = execute.call_args_list[1].kwargs["environment"]
     self.assertEqual("FILE:/private/krb5cc", thrift_environment["KRB5CCNAME"])
+
+  def test_alert_stack_root_resolves_plain_and_json_contracts(self):
+    self.assertEqual("/usr/bigtop", SPARK_ALERT._resolve_stack_root("/usr/bigtop"))
+    self.assertEqual(
+      "/opt/bigtop",
+      SPARK_ALERT._resolve_stack_root('{"BIGTOP": "/opt/bigtop"}'),
+    )
+
+  def test_alert_stack_root_rejects_unsafe_values(self):
+    for value in (None, "relative", "/", "/usr/../etc", '{"HDP": "/usr/hdp"}'):
+      with self.subTest(value=value), self.assertRaises(ValueError):
+        SPARK_ALERT._resolve_stack_root(value)
+
+  def test_secure_beeline_url_requires_principal(self):
+    params = params_module(
+      security_enabled=True,
+      spark_thrift_port=10016,
+      default_hive_kerberos_principal=None,
+      spark_transport_mode="binary",
+    )
+    with self.assertRaisesRegex(Fail, "principal is required"):
+      SPARK_CHECK.build_beeline_url(params, "thrift.example.com")
+
+  def test_alert_boolean_parser_rejects_unknown_values(self):
+    self.assertTrue(SPARK_ALERT._boolean("true", "setting"))
+    self.assertFalse(SPARK_ALERT._boolean("false", "setting"))
+    with self.assertRaisesRegex(ValueError, "true or false"):
+      SPARK_ALERT._boolean("enabled", "setting")
 
 
 if __name__ == "__main__":
