@@ -169,6 +169,10 @@ public abstract class ParameterizedSource extends Source {
       return m_threshold;
     }
 
+    public void setValue(Object value) {
+      this.m_value = value;
+    }
+
     @Override
     public int hashCode() {
       return Objects.hash(m_description, m_displayName, m_name, m_threshold, m_type, m_units, m_value, m_visibility);
