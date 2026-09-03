@@ -774,8 +774,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
+  @patch.object(_ambari_server_, "init_logging")
   def test_main_test_start_debug_short_linux(
-    self, reset_method, stop_method, start_method, setup_method
+    self, init_logging_method, reset_method, stop_method, start_method, setup_method
   ):
     temp_args = sys.argv
 
@@ -799,8 +800,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "start")
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
+  @patch.object(_ambari_server_, "init_logging")
   def test_main_test_start_debug_long_linux(
-    self, reset_method, stop_method, start_method, setup_method
+    self, init_logging_method, reset_method, stop_method, start_method, setup_method
   ):
     temp_args = sys.argv
 
@@ -914,8 +916,10 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "is_server_runing")
   @patch.object(_ambari_server_, "reset")
   @patch.object(_ambari_server_.argparse, "ArgumentParser")
+  @patch.object(_ambari_server_, "init_logging")
   def test_main_test_stop_linux(
     self,
+    init_logging_method,
     optionParserMock,
     reset_method,
     is_server_runing_method,
@@ -1664,8 +1668,10 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.print_error_msg")
   @patch("ambari_server.serverSetup.print_warning_msg")
   @patch("ambari_server.serverSetup.print_info_msg")
+  @patch("ambari_server.serverSetup.getpass.getuser", return_value="root")
   def test_check_ambari_user_linux(
     self,
+    getuser_mock,
     print_info_msg_mock,
     print_warning_msg_mock,
     print_error_msg_mock,
@@ -5640,7 +5646,8 @@ class TestAmbariServer(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(_ambari_server_, "setup")
-  def test_main_db_options_linux(self, setup_mock):
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_db_options_linux(self, init_logging_method, setup_mock):
     base_args = ["ambari-server.py", "setup"]
     db_args = [
       "--database",

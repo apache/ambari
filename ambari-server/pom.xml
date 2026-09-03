@@ -410,7 +410,6 @@
             <exclude>**/balancer.log</exclude>
             <exclude>**/balancer-err.log</exclude>
             <exclude>${swagger.spec.dir}/**</exclude>
-            <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
             <exclude>**/*.json</exclude>
