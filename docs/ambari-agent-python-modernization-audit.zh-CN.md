@@ -20,12 +20,12 @@
 ## 1. 文档状态
 
 - 状态：第 4 至第 12 节的核心 Agent、Server、打包项和 BIGTOP service Python 源码门禁已关闭。源码核对已覆盖产品代码、调用方、旧源码/打包引用、依赖与许可证闭包、失败路径和 focused test；统一并行验证、最终完整构建部署和三遍复查仍按第 13 节执行记录推进。
-- 审计日期：2026-09-01。
+- 审计日期：2026-09-03。
 - 基线：`apache/trunk`，提交 `821de739a11b`；该提交已是当前分支祖先并包含 trunk 的 JDK 17/Java Home 修复。
 - 审计 worktree：`/jialiangc/bigdata/prjs/ambari-agent-python-audit`。
 - 审计分支：`AMBARI-26643`。
 - 范围：Linux 下的 Ambari Agent、共享 Python 运行库、resource management、直接相关的 Server Python utilities、BIGTOP 3.2.0 下全部 16 个 service Python、对应测试基础设施、直接相关的 Agent Simulator，以及 Windows 支持的完整删除。
-- 非范围：Ember、Server Java 的一般性重构、BIGTOP 组件 JDK 配置。
+- 非范围：Ember、Server Java 的一般性重构。BIGTOP 组件 JDK 选择属于本次运行兼容性验收范围：Hadoop/YARN 使用 Java 17，Hive 3.1 在 Java 17 主机上通过显式 `cluster-env/java_home_overrides` 使用预装 Java 8，并由服务模板条件化 GC 参数。
 - 核心 Agent、Server、打包实现和 BIGTOP service 调用层已按本文边界补齐，Windows 支持也已作为独立提交删除。第一次完整编译和增量集群验证是此前阶段的真实执行记录，不代表本轮源码变更已通过统一全量和最终验证；实际执行结果统一记录在第 13 节末尾。
 
 当前已实施且正在按顺序验证的内容：
@@ -917,7 +917,7 @@ Jinja2 集成测试至少比较代表性 stack templates 的旧/新生成结果�
 | 4.6 | JCEKS stdin 协议、权限、密钥单次环境注入和日志脱敏 | 已完成且有代码证据 | Java `CredentialStoreCreate` 只接受 `create <alias> -provider <path> [-f]`，通过 4-byte 长度前缀 UTF-8 stdin 读取最多 1 MiB 凭据并在成功、截断、尾随和 malformed 路径清零 buffer，拒绝 `-value`；Common helper 统一调用，Agent、Ranger、Ranger KMS 四条产品链已迁移，产品残留扫描为零。helper jar 进入现有 Agent `cred/lib`，没有新增第三方 runtime/license；本地 JCEKS 更新使用同目录持久 lock、staging、`fsync`、删除旧 Hadoop CRC sidecar 后 `os.replace`，并发更新不丢 alias，失败保留可读旧 store。Agent 整库重建对最终路径持锁，文件位于 `0750` service group 目录并发布为 `0640`。所有产品调用使用 `ambari_java_home` 运行 JDK 17 helper，组件 Java Home 不参与；Java 17 生成格式仍可由 Java 8 Hadoop 读取。`AGENT_ENCRYPTION_KEY` 只进入需要解密的单个 command env；命令日志和 status transport 脱敏。真实 Hadoop 3.3.4 Java 4/4、Agent orchestrator 16/16、Common 7/7、argv safety 2/2 通过；标准 Maven assembly 归第 11 节最终构建验证 |
 | 4.7 | 删除生产远程调试代码执行接口 | 已完成且有代码证据 | `RemoteDebugUtils.py`、`debug.py`、SIGUSR2/FIFO/pickle 入口和打包引用均已删除；全仓文件/引用扫描为零 |
 | 4.8 | 删除默认 `DEV` enrollment passphrase | 已完成且有代码证据 | Agent/Server env 不再回退 `DEV`；Server 生成高熵 secret，Linux bootstrap 通过预置 `0600` 文件传递并一次消费，环境随即清理；`TestBootstrap.py`/`TestSetupAgent.py` 覆盖传递、消费和失败路径，`test_ambari_server_launcher.py` 直接覆盖随机生成、显式环境覆盖、`0600` 持久化及 openssl/mkdir/mktemp/sed/chmod/mv 失败 |
-| 5.1-5.2 | Python >= 3.9.2 解释器、RPM/DEB、wrapper 和 wheel ABI 契约 | 已完成且有代码证据 | pyproject/setup/wrapper/RPM/DEB/Bigtop 一致；cp39、cp310、x86_64、aarch64 分 profile；安装和启动脚本从原生扩展推导唯一 ABI 并拒绝 minor 不匹配；tar/custom-root tests 覆盖缺失和混合 ABI |
+| 5.1-5.2 | Python >= 3.9.2 解释器、RPM、wrapper 和 wheel ABI 契约 | 已完成且有代码证据 | pyproject/setup/wrapper/RPM/Bigtop 一致；本次交付按用户范围只生成 Linux x86_64 RPM，不构建 DEB；cp39、cp310、x86_64、aarch64 的兼容 profile 和 staged artifact 门禁仍保留；安装和启动脚本从原生扩展推导唯一 ABI 并拒绝 minor 不匹配；tar/custom-root tests 覆盖缺失和混合 ABI |
 | 5.3 | Python 3.12/3.13 已删除 API和启动阻塞 | 已完成且有代码证据 | Linux 产品路径已迁移 `urllib`、argparse、现代 XML/SSL/configparser/importlib API；`AttributeDictionary.__unicode__` 兼容入口改用 `str()`；窄扫描无 Python 2 import/语法、裸 Python shebang、`optparse` 或已删除 API；Windows 产品支持已由独立提交删除，不再作为扫描排除项 |
 | 6.1 | vendored mock 删除并迁移 `unittest.mock` | 已完成且有代码证据 | vendored 目录和打包引用已删除，所有调用方改为 `unittest.mock`；旧 import 扫描为零 |
 | 6.2 | simplejson 删除并迁移标准库 `json` | 已完成且有代码证据 | 产品 import、vendored 源码和打包引用已删除；cache restart、STOMP payload 和 command status tests 覆盖 Unicode、大整数、NaN、bytes 拒绝和排序无关语义 |
@@ -938,8 +938,8 @@ Jinja2 集成测试至少比较代表性 stack templates 的旧/新生成结果�
 | 7.2 | 固定 Ruff 并启用真实错误规则 | 已完成且有代码证据 | `requirements-tooling.txt` 固定 `ruff==0.12.11` 和 hash；Ruff target py39，启用 E9/F524/F601/F632/F821/F822/F823 且无全局 ignore，`contrib` 不再被 exclude；Jenkins hash 安装并运行 metadata gate |
 | 8 | 三层实现边界全部关闭 | 已完成且有代码证据 | 第一层控制链、第二层 Python 运行/打包基础和第三层官方依赖迁移均已完成；BIGTOP 16 个 service 的 PID/UID/argv、超时进程组、凭据失败闭合、权限和 stack 版本继承也已逐项核对并由 service contract tests 固定 |
 | 9 | 禁止捆绑项按边界拆分 | 需要独立提交/JIRA/PR | Windows 删除已作为独立提交 `1956740ced` 交付；其余实现不延期，最终按测试恢复、ACK、ActionQueue、TLS/enrollment、cache/JCEKS、Python packaging、各官方依赖、协议 v2、历史工具、各 service 和证据文档拆 topic commits，且每个行为与 focused tests 同提交 |
-| 10 | 离线 lock、清洁 bundling、ABI/SBOM/LICENSE 产物检查 | 已完成且有代码证据 | Maven 先清理，再以 hash/no-deps 安装 locked build/runtime/sdist，normalize RECORD 后审计并组装；产品 source fileSet 也禁止生成 bytecode，源码树的 Python 2 `.pyo` 已删除；wheelhouse 支持 no-index；RPM/DEB/Bigtop 架构/ABI和文档一致；LICENSE/NOTICE/SBOM 进入两包。tar 升级在解压前替换归档拥有的完整私有 `lib` 根，install helper 另以明确历史名称兜底，测试证明旧 vendored/删除入口消失且官方 dependency 的 docs/examples 保留。第二遍独立审计的 cp310 x86_64 及 cp39/cp310 aarch64 Agent/Server staged artifacts、metadata、normalize、sdist 和 Bigtop ABI/staged audit 全部通过且无 high/medium finding；最终 RPM 执行证据仍归第 11 节 |
-| 11 | 静态、focused matrix、容器、产物和 deploy 验证入口 | 实现不完整 | Maven masks、四套 runner、Ruff/metadata/artifact audit、deploy enrollment/runtime import checks 和场景测试入口已就绪；第一次完整构建、此前增量部署、当前源码 Agent 593/593、Server 469/469、deploy 434/434 及列明 contrib/dev-support/packaging matrix 已通过。当前资源摘要/JCEKS 集群增量行为已闭环；最新 trunk 集成后的测试、第三遍复查、最后一次完整 RPM/DEB/SBOM 构建和最终 deploy 仍待完成，结果见下方执行记录 |
+| 10 | 离线 lock、清洁 bundling、ABI/SBOM/LICENSE 产物检查 | 已完成且有代码证据 | Maven 先清理，再以 hash/no-deps 安装 locked build/runtime/sdist，normalize RECORD 后审计并组装；产品 source fileSet 也禁止生成 bytecode，源码树的 Python 2 `.pyo` 已删除；wheelhouse 支持 no-index；本次交付只验证和发布 RPM，DEB 不在用户要求范围内，不进行 DEB 构建；RPM/Bigtop 架构/ABI和文档一致，LICENSE/NOTICE/SBOM 纳入 RPM。tar 升级在解压前替换归档拥有的完整私有 `lib` 根，install helper 另以明确历史名称兜底，测试证明旧 vendored/删除入口消失且官方 dependency 的 docs/examples 保留。第二遍独立审计的 cp310 x86_64 及 cp39/cp310 aarch64 Agent/Server staged artifacts、metadata、normalize、sdist 和 Bigtop ABI/staged audit 全部通过且无 high/medium finding；最终 RPM 执行证据仍归第 11 节 |
+| 11 | 静态、focused matrix、容器、RPM 产物和 deploy 验证入口 | 实现不完整 | Maven masks、四套 runner、Ruff/metadata/artifact audit、deploy enrollment/runtime import checks 和场景测试入口已就绪；第一次完整构建、此前增量部署、当前源码 Agent 593/593、Server 469/469、deploy 434/434 及列明 contrib/dev-support/packaging matrix 已通过。当前资源摘要/JCEKS 集群增量行为已闭环；最新 trunk 集成后的测试、第三遍复查、最后一次完整 RPM/SBOM 构建和最终 deploy 仍待完成，结果见下方执行记录；本次不构建 DEB 或容器镜像 |
 | 12 | 16 个 Review 决策形成明确结论 | 已完成且有代码证据 | 第 12 节已逐项选择 floor/CA/TLS/offline/shutdown/v2/Jinja/takeover/yaml/properties/profiles/历史工具/docopt/simulator/官方 wheel 非运行内容和资源归档升级边界，无未决问题 |
 
 BIGTOP service 深度审计矩阵如下。每项均已核对产品实现、所有调用方、旧名称/旧入口/死代码、打包与配置引用以及失败路径测试源码；最终执行结果仍以第 11 项的真实验证记录为准。
