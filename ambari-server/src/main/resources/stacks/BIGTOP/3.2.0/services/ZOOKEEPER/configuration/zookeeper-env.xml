@@ -84,7 +84,6 @@
   <property>
     <name>zookeeper_keytab_path</name>
     <description>ZooKeeper keytab path</description>
-    <property-type>KERBEROS_KEYTAB</property-type>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- zookeeper-env.sh -->

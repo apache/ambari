@@ -57,7 +57,6 @@
   <property>
     <name>security.kerberos.login.keytab</name>
     <description>Flink keytab path</description>
-    <property-type>KERBEROS_KEYTAB</property-type>
     <value>none</value>
     <on-ambari-upgrade add="true"/>
   </property>
