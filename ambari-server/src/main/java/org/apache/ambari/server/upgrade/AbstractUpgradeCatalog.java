@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import java.io.File;
 import java.io.StringReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
