@@ -81,6 +81,12 @@ export const hostComponentCustomCommandMap = {
     context: translate("services.service.actions.run.makeObserver.context"),
     label: translate("services.service.actions.run.makeObserver"),
   },
+  MAKESTANDBY: {
+    action: "makeStandby",
+    customCommand: "MAKESTANDBY",
+    context: translate("services.service.actions.run.makeStandby.context"),
+    label: translate("services.service.actions.run.makeStandby"),
+  },
   IMMEDIATE_STOP_HAWQ_SERVICE: {
     action: "executeHawqCustomCommand",
     customCommand: "IMMEDIATE_STOP_HAWQ_SERVICE",
@@ -213,20 +219,16 @@ export const isClientUsingComponentName = (
   componentName: string,
   serviceComponentInfo: any
 ) => {
-  get(serviceComponentInfo, "items", []).forEach((item: any) => {
-    get(item, "components", []).forEach((component: any) => {
-      if (
-        get(component, "ServiceComponentInfo.component_name", "") ===
-        componentName
-      ) {
-        return (
-          get(component, "ServiceComponentInfo.component_category", "") ===
-          ComponentType.CLIENT
-        );
-      }
-    });
-  });
-  return false;
+  return get(serviceComponentInfo, "items", []).some((service: any) =>
+    get(service, "components", []).some((component: any) => {
+      const info = get(component, "StackServiceComponents", {});
+      return (
+        get(info, "component_name", "") === componentName &&
+        (get(info, "component_category", "") === ComponentType.CLIENT ||
+          get(info, "is_client", false) === true)
+      );
+    })
+  );
 };
 
 export const isSlave = (component: IHostComponent) => {
@@ -521,8 +523,28 @@ export const getCustomCommands = (
   component: IHostComponent,
   clusterComponents: any
 ) => {
-  const commands: string[] = get(component, "customCommands", []);
+  let commands: string[] = get(component, "customCommands", []);
   let customCommands: any[] = [];
+
+  // NAMENODE HA transition actions must reflect the node's current HA state.
+  // Strip all HA-transition commands first, then add back exactly one based on
+  // nnHAState: standby → MAKEOBSERVER, observer → MAKESTANDBY, active → none.
+  if (getComponentName(component) === "NAMENODE") {
+    commands = commands.filter(
+      (command: string) =>
+        command !== "TRANSITION_NAMENODE" &&
+        command !== "MAKEOBSERVER" &&
+        command !== "MAKESTANDBY"
+    );
+    if (get(component, "workStatus", "") === ComponentStatus.STARTED) {
+      const nnHAState = get(component, "nnHAState", "").toLowerCase();
+      if (nnHAState === "standby") {
+        commands = [...commands, "MAKEOBSERVER"];
+      } else if (nnHAState === "observer") {
+        commands = [...commands, "MAKESTANDBY"];
+      }
+    }
+  }
 
   commands.forEach((command: string) => {
     if (
@@ -1094,8 +1116,11 @@ export const getHostComponentsInfo = (
 };
 
 export const serviceActiveComponents = (hostComponents: IHostComponent[]) => {
-  return filter(hostComponents, (component: IHostComponent) =>
-    component.isActive()
+  // Exclude only components whose service is in maintenance, not host (Ember parity).
+  return filter(
+    hostComponents,
+    (component: IHostComponent) =>
+      get(component, "service.passiveState", "OFF") !== "ON"
   );
 };
 

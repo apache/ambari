@@ -107,8 +107,6 @@ abstract class BaseDecommissionableComponent {
             isComponentDecommissioning: true,
             isComponentDecommissionAvailable: false,
           };
-          // Start polling when decommissioning
-          this.startPolling(component);
           break;
 
         case "DECOMMISSIONED":
@@ -118,8 +116,6 @@ abstract class BaseDecommissionableComponent {
             isComponentDecommissioning: false,
             isComponentDecommissionAvailable: false,
           };
-          // Stop polling when decommissioned
-          this.stopPolling(component);
           break;
 
         case "RS_DECOMMISSIONED":
@@ -188,66 +184,87 @@ class DataNodeComponent extends BaseDecommissionableComponent {
       activeNNHostNames = get(hdfs, "nameNode.hostName");
     }
 
+    // Desired admin state is authoritative for the target; the live LiveNodes
+    // view only tells us whether that target has been reached. Reconciling both
+    // avoids settling on a transient live reading.
+    let liveMetrics: any[] = [];
+    let desiredAdminState: string | null = null;
     try {
       const response = await HostsApi.getDecommissionStatusForDataNode(
         this.clusterName,
         activeNNHostNames
       );
-      this.handleDecommissionStatusResponse(response, component);
+      if (response && response.items) {
+        liveMetrics = response.items.map((item: any) =>
+          get(item, "metrics.dfs.namenode")
+        );
+      }
     } catch (error) {
       console.error("Failed to get DataNode decommission status");
     }
-  }
-
-  private handleDecommissionStatusResponse(
-    response: any,
-    component: IHostComponent
-  ): void {
-    if (response && response.items) {
-      const statusObjects = response.items.map((item: any) =>
-        get(item, "metrics.dfs.namenode")
+    try {
+      const dResp = await HostsApi.getSlaveDesiredAdminState(
+        this.clusterName,
+        get(component, "hostName"),
+        getComponentName(component)
       );
-      this.computeStatus(statusObjects, component);
+      desiredAdminState = get(dResp, "HostRoles.desired_admin_state", null);
+    } catch (error) {
+      desiredAdminState = null;
     }
+
+    this.reconcileStatus(liveMetrics, desiredAdminState, component);
   }
 
-  private computeStatus(metricObjects: any[], component: IHostComponent): void {
-    const hostName = get(component, "hostName");
-    let inServiceCount = 0;
-    let decommissioningCount = 0;
-    let decommissionedCount = 0;
-
-    metricObjects.forEach((curObj) => {
-      if (curObj) {
-        const liveNodesJson = JSON.parse(curObj.LiveNodes || "{}");
-        for (const hostPort in liveNodesJson) {
-          if (hostPort.indexOf(hostName) === 0) {
-            switch (liveNodesJson[hostPort].adminState) {
-              case "In Service":
-                inServiceCount++;
-                break;
-              case "Decommission In Progress":
-                decommissioningCount++;
-                break;
-              case "Decommissioned":
-                decommissionedCount++;
-                break;
-            }
-            return;
-          }
+  private getLiveAdminState(
+    metricObjects: any[],
+    hostName: string
+  ): string | null {
+    for (const curObj of metricObjects) {
+      if (!curObj) continue;
+      const liveNodesJson = JSON.parse(curObj.LiveNodes || "{}");
+      for (const hostPort in liveNodesJson) {
+        if (hostPort.indexOf(hostName) === 0) {
+          return liveNodesJson[hostPort].adminState;
         }
       }
-    });
+    }
+    return null;
+  }
 
-    if (decommissioningCount) {
-      this.setStatusAs("DECOMMISSIONING", component);
-    } else if (inServiceCount && !decommissionedCount) {
-      this.setStatusAs("INSERVICE", component);
-    } else if (!inServiceCount && decommissionedCount) {
+  private reconcileStatus(
+    metricObjects: any[],
+    desiredAdminState: string | null,
+    component: IHostComponent
+  ): void {
+    const hostName = get(component, "hostName");
+    const liveAdminState = this.getLiveAdminState(metricObjects, hostName);
+
+    // Desired admin state reflects the operator's request and is what the icon
+    // shows. Polling keeps running so a later backend change is picked up.
+    if (desiredAdminState === "DECOMMISSIONED") {
       this.setStatusAs("DECOMMISSIONED", component);
-    } else {
-      // If namenodes are down, get desired_admin_state to decide if the user had issued a decommission
-      this.getDesiredAdminState(component);
+      return;
+    }
+
+    if (desiredAdminState === "INSERVICE") {
+      this.setStatusAs("INSERVICE", component);
+      return;
+    }
+
+    // No desired admin state - fall back to the live reading.
+    switch (liveAdminState) {
+      case "Decommission In Progress":
+        this.setStatusAs("DECOMMISSIONING", component);
+        break;
+      case "Decommissioned":
+        this.setStatusAs("DECOMMISSIONED", component);
+        break;
+      case "In Service":
+        this.setStatusAs("INSERVICE", component);
+        break;
+      default:
+        this.setStatusAs("INSERVICE", component);
     }
   }
 }
@@ -595,6 +612,11 @@ export const useDecommissionable = (host: IHost) => {
     });
 
   const pollingTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  // Active polling keys; a terminal state removes its key so the in-flight tick
+  // knows not to re-arm.
+  const activePolls = useRef<Set<string>>(new Set());
+  // Ref to the latest loader so the polling closure never reads a stale snapshot.
+  const loadStatusRef = useRef<((component: IHostComponent) => Promise<void>) | undefined>(undefined);
 
   useEffect(() => {
     return () => {
@@ -602,6 +624,7 @@ export const useDecommissionable = (host: IHost) => {
         clearTimeout(timer);
       });
       pollingTimers.current.clear();
+      activePolls.current.clear();
     };
   }, []);
 
@@ -611,15 +634,18 @@ export const useDecommissionable = (host: IHost) => {
         component
       )}`;
 
-      if (!pollingTimers.current.has(componentKey)) {
+      if (!activePolls.current.has(componentKey)) {
+        activePolls.current.add(componentKey);
         const pollStatus = async () => {
           try {
-            await loadComponentDecommissionStatus(component);
-            const timer = setTimeout(pollStatus, POLLING_INTERVAL);
-            pollingTimers.current.set(componentKey, timer);
+            await loadStatusRef.current?.(component);
           } catch (error) {
             console.error("Error during decommission status polling:", error);
-            pollingTimers.current.delete(componentKey);
+          }
+          // Re-arm while active; cleared only on unmount.
+          if (activePolls.current.has(componentKey)) {
+            const next = setTimeout(pollStatus, POLLING_INTERVAL);
+            pollingTimers.current.set(componentKey, next);
           }
         };
 
@@ -635,6 +661,7 @@ export const useDecommissionable = (host: IHost) => {
       const componentKey = `${get(component, "hostName")}_${getComponentName(
         component
       )}`;
+      activePolls.current.delete(componentKey);
       const timer = pollingTimers.current.get(componentKey);
 
       if (timer) {
@@ -696,8 +723,11 @@ export const useDecommissionable = (host: IHost) => {
     }
   };
   
+  // Keep the polling closure pointed at the current loader.
+  loadStatusRef.current = loadComponentDecommissionStatus;
+
   useEffect(() => {
-    if (!isEmpty(host)) {    
+    if (!isEmpty(host)) {
       get(host, "hostComponents", []).forEach((hostComponent: IHostComponent) => {
         loadComponentDecommissionStatus(hostComponent);
       });

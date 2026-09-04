@@ -48,7 +48,8 @@ export const useConfigSaver = (
   configProperties: ConfigPropertiesType,
   serviceName: string,
   configGroupsData: any,
-  serviceConfigVersionNote: string
+  serviceConfigVersionNote: string,
+  onSaveComplete?: () => void
 ) => {
   const [saveInProgress, setSaveInProgress] = useState(false);
 
@@ -622,7 +623,9 @@ export const useConfigSaver = (
       popupOptions.urlParams,
       doConfigActions
     );
-    // clearAllRecommendations();
+    if (result.flag && onSaveComplete) {
+      onSaveComplete();
+    }
   };
 
   const getSaveConfigsPopupOptions = (result: any) => {

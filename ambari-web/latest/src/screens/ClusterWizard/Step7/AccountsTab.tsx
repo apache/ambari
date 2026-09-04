@@ -19,7 +19,8 @@
 import { cloneDeep, get, isEmpty, set } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { Card, Col, Container, Row } from "react-bootstrap";
-import { getDependentConfigChanges, isValidUserName } from "../utils";
+import { getDependentConfigChanges } from "../utils";
+import { configValidator } from "../../../Utils/validators";
 import Table from "../../../components/Table";
 import Modal from "../../../components/Modal";
 import TooltipInput from "../../../components/TooltipInput";
@@ -256,7 +257,7 @@ export default function AccountsTab({
                                   setShowWarning(true);
                                 }
                               },
-                              className: isValidUserName(config.value)
+                              className: configValidator.isValidDbUserName(config.value as string)
                                 ? "rounded-0"
                                 : "rounded-0 border-danger",
                             }}

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { capitalize, cloneDeep, get, set, uniq } from "lodash";
+import { capitalize, get, uniq } from "lodash";
 import { HostsApi } from "../../api/hostsApi";
 import {
   doDecommissionRegionServer,
@@ -48,7 +48,6 @@ import {
 import { addDeleteComponentsMap } from "../../Utils/Utility";
 import RecommendationModal from "../../components/RecommendationModal";
 import ConfirmationModal from "../../components/ConfirmationModal";
-import { IHost } from "../../models/host";
 import ConfigsApi from "../../api/configsApi";
 
 export const sendComponentCommand = async (
@@ -459,7 +458,7 @@ const runDecommission = (component: IHostComponent, data?: any) => {
   const clusterName = get(component, "clusterName", "");
   switch (svcName) {
     case "HDFS":
-      doDecommission(clusterName, hostName, svcName, "NAMENODE", "DATANODE", data);
+      doDecommission(clusterName, hostName, svcName, "NAMENODE", "DATANODE");
       break;
     case "YARN":
       doDecommission(
@@ -467,8 +466,7 @@ const runDecommission = (component: IHostComponent, data?: any) => {
         hostName,
         svcName,
         "RESOURCEMANAGER",
-        "NODEMANAGER",
-        data
+        "NODEMANAGER"
       );
       break;
     case "HBASE":
@@ -481,8 +479,7 @@ const doDecommission = async (
   hostName: string,
   serviceName: string,
   componentName: string,
-  slaveType: string,
-  data?: any
+  slaveType: string
 ) => {
   const contextNameString =
     "hosts.host." + slaveType.toLowerCase() + ".decommission";
@@ -498,26 +495,8 @@ const doDecommission = async (
   };
   const response = await HostsApi.decommissionSlave(clusterName, requestData);
   const requestId = get(response, "Requests.id", -1);
-  if((requestId != -1) && data && data.setAllHostModels){
-    data.setAllHostModels((prevModels: IHost[]) => {
-      return prevModels.map((host) => {
-        if (host.hostName === hostName) {
-          const hostModel = cloneDeep(host);
-          const hostComponents = get(hostModel, "hostComponents", []);
-          const updatedComponents = hostComponents.map((hc: IHostComponent) => {
-            if (getComponentName(hc) === slaveType) {
-              return { ...hc, adminState: "DECOMMISSIONED" };
-            }
-            return hc;
-          });
-          set(hostModel, "hostComponents", updatedComponents);
-          
-          return hostModel;
-        }
-        return host;
-      });
-    });
-  }
+  // Status is driven by the polled NameNode state (see useDecommissionable),
+  // not an optimistic adminState write here.
   defaultSuccessCallback(requestId);
 };
 
@@ -851,13 +830,15 @@ export const transitionToObserver = async (component: IHostComponent) => {
         }
       )}
       successCallback={async () => {
+        // Close the confirmation modal before showing the next modal.
+        modalManager.hide();
         try {
           const context = translate("services.service.actions.run.makeObserver.context");
           const response = await HostsApi.transitionToObserver(clusterName, {
             hostName: hostName,
             context: context,
           });
-          
+
           const requestId = get(response, "Requests.id", -1);
           if (requestId !== -1) {
             modalManager.show(
@@ -873,11 +854,77 @@ export const transitionToObserver = async (component: IHostComponent) => {
         } catch (error: any) {
           showAlertModal(
             translate("common.error"),
-            translate("services.service.actions.run.makeObserver.error") + 
+            translate("services.service.actions.run.makeObserver.error") +
             (error.message || "")
           );
         }
+      }}
+    />
+  );
+};
+
+export const transitionToStandby = async (component: IHostComponent) => {
+  const clusterName = get(component, "clusterName", "");
+  const hostName = get(component, "hostName", "");
+  const componentName = getComponentName(component);
+
+  if (componentName !== "NAMENODE") {
+    showAlertModal(
+      translate("common.error"),
+      "Transition to Standby is only available for NameNode components."
+    );
+    return;
+  }
+
+  const workStatus = get(component, "workStatus");
+  if (workStatus !== "STARTED") {
+    showAlertModal(
+      translate("common.error"),
+      "NameNode must be in STARTED state to transition to Standby."
+    );
+    return;
+  }
+
+  modalManager.show(
+    <ConfirmationModal
+      isOpen={true}
+      onClose={() => modalManager.hide()}
+      modalTitle={translate("services.service.actions.run.makeStandby.context")}
+      modalBody={translateWithVariables(
+        "question.sure.makeStandby",
+        {
+          "0": get(component, "displayName", "NameNode"),
+        }
+      )}
+      successCallback={async () => {
+        // Close the confirmation modal before showing the next modal.
         modalManager.hide();
+        try {
+          const context = translate("services.service.actions.run.makeStandby.context");
+          const response = await HostsApi.transitionToStandby(clusterName, {
+            hostName: hostName,
+            context: context,
+          });
+
+          const requestId = get(response, "Requests.id", -1);
+          if (requestId !== -1) {
+            modalManager.show(
+              <BackgroundOperations
+                isOpen={true}
+                onClose={() => {
+                  modalManager.hide();
+                }}
+                requestId={requestId}
+              />
+            );
+          }
+        } catch (error: any) {
+          showAlertModal(
+            translate("common.error"),
+            translate("services.service.actions.run.makeStandby.error") +
+            (error.message || "")
+          );
+        }
       }}
     />
   );

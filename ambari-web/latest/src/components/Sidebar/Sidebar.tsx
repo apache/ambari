@@ -57,9 +57,23 @@ const SideBar = ({
   } = useContext(AppContext);
   const [openOptions, setOpenOptions] = useState<string[]>([SideItemLabels.SERVICES]);
   const [selectedOption, setSelectedOption] = useState<string>("");
-  const { allServiceModels  } = useContext(ServiceContext);
+  const { allServiceModels, serviceStatesData, polledHostComponentsData } = useContext(ServiceContext);
   const location = useLocation();
-  
+
+  // Derive the set of service names that currently have any host component with
+  // stale_configs === true. This mirrors RestartWarning.tsx so the Sidebar restart
+  // icon stays in sync instead of relying on the isRestartRequiredForService flag
+  // on the (non-reactively-tracked) service models.
+  const servicesNeedingRestart = new Set<string>();
+  (polledHostComponentsData?.items ?? []).forEach((item: any) => {
+    const svc = item?.ServiceComponentInfo?.service_name;
+    if (!svc) return;
+    const hasStale = (item?.host_components ?? []).some(
+      (hc: any) => hc?.HostRoles?.stale_configs === true
+    );
+    if (hasStale) servicesNeedingRestart.add(svc);
+  });
+
   // Authorization hooks - implementing Ember.js menu authorization patterns
   const { havePermissions, isAuthorized } = useAuthorizationPolicy();
   
@@ -117,6 +131,14 @@ const SideBar = ({
             return null;
           }
 
+          // Alert counts from serviceStatesData (updated reactively from socket events).
+          // Ember's alertDefinitionSummaryMapper immediately updates service.alertsCount +
+          // service.hasCriticalAlerts on each /events/alerts socket push; allServiceModels
+          // instances are never updated so we must read from serviceStatesData.
+          const stateData = serviceStatesData.get(serviceName);
+          const alertsCount = stateData?.alertsCount ?? currentServiceModel["alertsCount"] ?? 0;
+          const hasCriticalAlerts = stateData?.hasCriticalAlerts ?? currentServiceModel["hasCriticalAlerts"] ?? false;
+
           // Create the service object with proper state handling
           const serviceData = {
             name:
@@ -130,15 +152,17 @@ const SideBar = ({
                 ? currentServiceModel["serviceState"]
                 : "UNKNOWN",
             alertsCountDisplay:
-              currentServiceModel["alertsCount"] > 0
-                ? currentServiceModel["alertsCount"]
+              alertsCount > 0
+                ? alertsCount
                 : undefined,
-            noAlerts: currentServiceModel["alertsCount"] === 0,
-            hasCriticalAlerts:
-              currentServiceModel["hasCriticalAlerts"] || false,
+            noAlerts: alertsCount === 0,
+            hasCriticalAlerts: hasCriticalAlerts,
             isClientOnlyService: currentServiceModel["isClientOnlyService"] || false,
             isInPassiveForService: currentServiceModel["isInPassiveForService"] || false,
-            isRestartRequiredForService: currentServiceModel["isRestartRequiredForService"] || false
+            isRestartRequiredForService:
+              servicesNeedingRestart.has(serviceName) ||
+              currentServiceModel["isRestartRequiredForService"] ||
+              false
           };
 
           return serviceData;
@@ -170,7 +194,12 @@ const SideBar = ({
     };
 
     processServices();
-  }, [JSON.stringify(allServiceModels), clusterName, contextServices]);
+  // serviceStatesData is a new Map reference on each update (from setServiceStatesData),
+  // so React detects changes immediately when alert counts update from socket events.
+  // polledHostComponentsData drives the restart-required indicator (stale_configs),
+  // updated by both the 5s poll and the WebSocket /events/hostcomponents handler.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(allServiceModels), clusterName, contextServices, serviceStatesData, polledHostComponentsData]);
 
   const getStateColor = (
     state: string,

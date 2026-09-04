@@ -428,12 +428,13 @@ class NnHaConfigInitializer {
   }
 
   private _initDfsJnEditsDir(config: ConfigProperty, localDB: ExtendedTopologyLocalDB, dependencies: NnHaConfigDependencies): ConfigProperty {
-    console.log("Dependencies is",dependencies,localDB);
-    // if (localDB.installedServices.includes('HDFS')) {
-    //   const value = dependencies.serverConfigs.find(config => config.type === 'hdfs-site')?.properties['dfs.journalnode.edits.dir'];
-    //   config.value = value || '';
-    //   config.recommendedValue = value || '';
-    // }
+    if (localDB.installedServices.includes('HDFS')) {
+      const value = dependencies.serverConfigs.find(config => config.type === 'hdfs-site')?.properties['dfs.journalnode.edits.dir'];
+      if (value) {
+        config.value = value;
+        config.recommendedValue = value;
+      }
+    }
     return config;
   }
 

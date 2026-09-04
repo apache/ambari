@@ -27,8 +27,8 @@ import {
 import { Card, Form } from "react-bootstrap";
 import { ConfigPropertiesType } from "../../CommonConfigs/types";
 import { CredentialConfigType } from "../types/step7Types";
-import { isValidUserName } from "../utils";
 import TooltipInput from "../../../components/TooltipInput";
+import { configValidator } from "../../../Utils/validators";
 
 interface CredentialsTabProps {
   themes: object;
@@ -92,7 +92,7 @@ export default function CredentialsTab({
     const allCredentialsValid = allCredentials.every((config) => {
       return (
         (get(config, "usernameProperty")
-          ? isValidUserName(get(config, "usernameProperty.property_value", ""))
+          ? configValidator.isValidDbUserName(get(config, "usernameProperty.property_value", ""))
           : true) && isValidPassword(config)
       );
     });
@@ -118,7 +118,7 @@ export default function CredentialsTab({
     const isPasswordProperty = propertyType.toLowerCase().includes("password");
     const isInputValid = isPasswordProperty
       ? isValidPassword(config)
-      : isValidUserName(property_value);
+      : configValidator.isValidDbUserName(get(config, "usernameProperty.property_value", "") as string);
 
     let tooltipHeading = "";
     if (property_display_name && property_name) {

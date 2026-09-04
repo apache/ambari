@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useCallback, useContext, useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useBlocker, useLocation, useNavigate, useParams } from "react-router-dom";
 import ConfigsApi from "../../api/configsApi";
 import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
@@ -61,6 +61,7 @@ import ConfigsComparator from "../ConfigVersions/ConfigsComparator";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExchangeAlt, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { ServiceContext } from "../../store/ServiceContext";
+import { cachedServiceApi } from "../../api/cachedServiceApi";
 import { serviceNameModelMapping } from "../../constants";
 import useEnhancedConfigs from "../../hooks/useEnhancedConfigs";
 import useHostComponents from "../ClusterWizard/hooks/useHostComponents";
@@ -125,6 +126,19 @@ export default function ServiceConfigs({
   const [configProperties, setConfigProperties] =
     useState<ConfigPropertiesType>({});
   const [propertyValues, setPropertyValues] = useState<any>({});
+
+  // This service's non-default groups; memoized for a stable reference across renders.
+  const overrideConfigGroupNames = useMemo(
+    () =>
+      propertyValues?.items
+        ?.filter(
+          (item: any) =>
+            item.group_name !== "Default" && item.service_name === serviceName
+        )
+        .map((item: any) => item.group_name) || [],
+    [propertyValues, serviceName]
+  );
+
   const [defaultVersionNumber, setDefaultVersionNumber] = useState<string>();
   const [selectedVersion, setSelectedVersion] = useState<string>();
   const [configGroup, setConfigGroup] = useState<string>("Default");
@@ -1443,6 +1457,8 @@ export default function ServiceConfigs({
   }
 
   async function saveConfigs() {
+    // Disable submit immediately to prevent double-submission while the async save is in flight.
+    setIsSubmitDisabled(true);
     const saved = await saveStepConfigs();
     if (!saved) {
       return false;
@@ -1453,6 +1469,10 @@ export default function ServiceConfigs({
     setShowUnsaveChangesModal(false);
     setServiceConfigVersionNote("");
     await getPropertiesValues();
+    // Re-poll host components so stale_configs (and therefore the Sidebar
+    // restart icon / RestartWarning) update immediately after a save instead
+    // of waiting for the next 5s poll cycle.
+    cachedServiceApi.fetchAllServiceComponents(clusterName);
     if (blocker.state === "blocked") {
       blocker.proceed();
     }
@@ -1682,13 +1702,13 @@ export default function ServiceConfigs({
         isOpen={showAddToGroupModal}
         onClose={() => setShowAddToGroupModal(false)}
         serviceName={serviceName}
-        configGroupNames={
-          propertyValues?.items
-            ?.filter((item: any) => item.group_name !== "Default")
-            .map((item: any) => item.group_name) || []
-        }
+        configGroupNames={overrideConfigGroupNames}
         onConfigGroupSelect={(configGroup: string) => {
           setConfigGroup(configGroup);
+          setIsComparing(false);
+          setVersionCompared("");
+          // Refresh the dropdown's group list so a newly created/selected group is available.
+          setRefetchTrigger((prev) => prev + 1);
         }}
         setShowManageConfigGroupModal={setShowManageConfigGroupModal}
       />

@@ -271,6 +271,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const [dependentConfigsToShow, setDependentConfigsToShow] = useState<any[]>(
     []
   );
+  const [requiredConfigsToShow, setRequiredConfigsToShow] = useState<any[]>([]);
+  const initialRecommendationRequestedRef = useRef(false);
 
   const [configPropertiesLoaded, setConfigPropertiesLoaded] = useState(false);
   const [propertyValues, setPropertyValues] = useState<any>({});
@@ -580,23 +582,27 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     setIsNextEnabled(true);
   }, [configProperties, selectedTab, themes, validationErrors]);
   useEffect(() => {
-    if (configPropertiesLoaded) {
-      if (wizardName === "clusterCreation") {
-        // Load recommendations for cluster creation - this was missing the proper call
-        loadConfigRecommendations();
-      } else if (wizardName === "addService") {
-        const newlyAddingServices = services.filter(service => 
-          !installedServices?.includes(service) && service !== "MISC"
-        );
-        
-        loadAddServiceRecommendations(
-          configProperties,
-          newlyAddingServices, // Pass only newly adding services
-          getValidationRequestBody()
-        );
-      }
+    if (!configPropertiesLoaded || initialRecommendationRequestedRef.current) {
+      return;
     }
-  }, [configPropertiesLoaded]);
+    if (wizardName === "clusterCreation") {
+      initialRecommendationRequestedRef.current = true;
+      loadConfigRecommendations();
+    } else if (wizardName === "addService") {
+      const newlyAddingServices = services.filter(
+        (service) => !installedServices?.includes(service) && service !== "MISC"
+      );
+      if (newlyAddingServices.length === 0) {
+        return;
+      }
+      initialRecommendationRequestedRef.current = true;
+      loadAddServiceRecommendations(
+        configProperties,
+        newlyAddingServices,
+        getValidationRequestBody()
+      );
+    }
+  }, [configPropertiesLoaded, services, installedServices]);
 
   // Monitor recommended changes and prepare data for add service wizard
   // This implements the Ember.js filtering logic from changedProperties and filterRequiredChanges
@@ -629,38 +635,31 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         }
       );
       
-      // Combine both types of changes (matching Ember.js showChangedDependentConfigs)
-      const allChanges = [...recommendedChanges_filtered, ...requiredChanges];
-      
-      if (allChanges.length > 0) {
-        // Further filter to only show changes for installed services (dependent configs)
-        const dependentChanges = allChanges.filter((change: any) => {
-          return installedServices.includes(change.serviceName);
-        });
+      const formatChange = (change: any) => ({
+        propertyName: change.propertyName,
+        serviceName: change.serviceName,
+        serviceDisplayName: change.serviceName,
+        configGroup: change.configGroup || "Default",
+        propertyFileName: change.fileName,
+        initialValue: change.initialValue,
+        originalValue: change.initialValue,
+        recommendedValue: change.recommendedValue,
+        saveRecommended: change.saveRecommended !== false,
+        isEditable: change.isEditable !== false,
+      });
 
-        if (dependentChanges.length > 0) {
-          const formattedChanges = dependentChanges.map((change: any) => ({
-            propertyName: change.propertyName,
-            serviceName: change.serviceName,
-            serviceDisplayName: change.serviceName,
-            configGroup: change.configGroup || "Default",
-            propertyFileName: change.fileName, // Use fileName instead of propertyFileName
-            initialValue: change.initialValue,
-            originalValue: change.initialValue, // Add originalValue for backward compatibility
-            recommendedValue: change.recommendedValue,
-            saveRecommended: change.saveRecommended !== false,
-            isEditable: change.isEditable !== false,
-          }));
-          
-          setDependentConfigsToShow(formattedChanges);
-        } else {
-          setDependentConfigsToShow([]);
-        }
-      } else {
-        setDependentConfigsToShow([]);
-      }
+      const dependentEditable = recommendedChanges_filtered
+        .filter((c: any) => installedServices.includes(c.serviceName))
+        .map(formatChange);
+      const dependentRequired = requiredChanges
+        .filter((c: any) => installedServices.includes(c.serviceName))
+        .map(formatChange);
+
+      setDependentConfigsToShow(dependentEditable);
+      setRequiredConfigsToShow(dependentRequired);
     } else {
       setDependentConfigsToShow([]);
+      setRequiredConfigsToShow([]);
     }
   }, [recommendedChanges, wizardName, installedServices]);
 
@@ -2778,7 +2777,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         <DependentConfigurationsModal
           isOpen={showDependentConfigsModal}
           onClose={() => setShowDependentConfigsModal(false)}
-          dependentConfigs={dependentConfigsToShow}
+          recommendations={dependentConfigsToShow}
+          requiredChanges={requiredConfigsToShow}
           onSave={handleDependentConfigsModalCallback}
         />
       )}

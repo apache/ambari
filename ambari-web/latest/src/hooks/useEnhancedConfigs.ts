@@ -690,6 +690,11 @@ function useEnhancedConfigs(
     
     recommededConfigsRef.current = filteredRecommendations;
   }
+  function clearAllRecommendations() {
+    recommededConfigsRef.current = {};
+    setRecommendedChanges({});
+  }
+
   //@ts-ignore
   function clearRecommendationsByServiceName(serviceNames: string[]) {
     const filteredRecommendations: { [key: string]: any } = {};
@@ -933,6 +938,7 @@ function useEnhancedConfigs(
     loadAddServiceRecommendations,
     recommendedChanges,
     setRecommendedChanges,
+    clearAllRecommendations,
   };
 }
 export default useEnhancedConfigs;

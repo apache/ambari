@@ -83,6 +83,11 @@ export type PropertyType = {
   isSecureConfig?: boolean;
   unit?: string; // Unit for the property value
   widget?: Record<string, any>;
+  initialValue?: string | null;
+  savedValue?: string | null;
+  group?: { name: string } | null;
+  hiddenBySection?: boolean;
+  [dynamicKey: string]: any;
 };
 
 export type ThemeType = {
@@ -172,6 +177,25 @@ export type configGroupOverrides = {
   errorMessage?:string;
   [dynamicKey: string]: any;
 }
+
+export type Recommendation = {
+  saveRecommended: boolean;
+  saveRecommendedDefault: boolean;
+  isDeleted: boolean;
+  notDefined: boolean;
+  propertyName: string;
+  propertyFileName: string;
+  propertyTitle?: string;
+  propertyDescription?: string;
+  configGroup: string;
+  serviceName: string;
+  serviceDisplayName: string;
+  initialValue: string | null;
+  recommendedValue: string | null;
+  allowChangeGroup: boolean;
+  parentConfigs: string[];
+  isEditable: boolean;
+};
 
 export type TabErrorsType = {
   [key: string]: {
