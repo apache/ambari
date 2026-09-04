@@ -23,6 +23,7 @@ import {
   panelCustomOptions,
   panelNumericBounds,
   panelValueColor,
+  panelValueText,
   type DashboardPanelResult,
 } from "../data/panelData";
 
@@ -60,7 +61,7 @@ export default function GaugeRenderer({ panel, results }: GaugeRendererProps) {
               <circle className="dashboard-gauge-value" cx="60" cy="60" r="48"
                 stroke={color} strokeDasharray={dash} />
             </svg>
-            {textMode !== "name" && <strong style={{ color }}>{formatMetricValue(value, unit, decimals)}</strong>}
+            {textMode !== "name" && <strong style={{ color }}>{panelValueText(panel, value) || formatMetricValue(value, unit, decimals)}</strong>}
             {textMode !== "value" && <span title={result.displayName}>{result.displayName}</span>}
           </div>
         );

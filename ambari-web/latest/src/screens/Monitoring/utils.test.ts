@@ -101,6 +101,53 @@ describe("monitoring dashboard helpers", () => {
     ])).toBe(9);
   });
 
+  it("resolves a panel datasource through an Ambari dashboard variable", () => {
+    const panel: DashboardPanel = {
+      id: "panel", name: "Panel", type: "timeseries", layout, targets: [],
+      datasourceCate: "prometheus", datasourceValue: "${prom}",
+    };
+    expect(resolvePanelDatasourceId(panel, { prom: 8 }, [datasource(8), datasource(9)])).toBe(8);
+  });
+
+  it("validates Prometheus query variables and their selection options", () => {
+    const payload = normalizeDashboardPayload({
+      version: DASHBOARD_SCHEMA_VERSION,
+      var: [{
+        name: "host",
+        type: "query",
+        definition: 'max by (host) (ambari_agent_host_info{cluster="${cluster}"})',
+        value: ".*",
+        multi: true,
+        includeAll: true,
+      }],
+      panels: [],
+    });
+
+    expect(payload.var[0]).toMatchObject({ name: "host", type: "query", multi: true, includeAll: true });
+    expect(() => normalizeDashboardPayload({
+      version: DASHBOARD_SCHEMA_VERSION,
+      var: [{ name: "host", type: "query" }],
+      panels: [],
+    })).toThrow("query variables require a PromQL definition");
+  });
+
+  it("preserves localized panel title keys", () => {
+    const payload = normalizeDashboardPayload({
+      version: DASHBOARD_SCHEMA_VERSION,
+      var: [],
+      panels: [{
+        id: "system",
+        name: "System resources",
+        titleKey: "monitoring.dashboard.sections.systemResources",
+        type: "row",
+        layout: { ...layout, h: 1, w: 24 },
+        targets: [],
+      }],
+    });
+
+    expect(payload.panels[0].titleKey).toBe("monitoring.dashboard.sections.systemResources");
+  });
+
   it("matches service display locations case-insensitively", () => {
     const dashboard = { display_locations: "HDFS, YARN" } as Dashboard;
     expect(dashboardAppearsAt(dashboard, "hdfs")).toBe(true);

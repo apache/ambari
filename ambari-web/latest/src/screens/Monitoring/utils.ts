@@ -65,12 +65,12 @@ const asOptionalJsonObject = (value: unknown, path: string): JsonObject | undefi
 };
 
 const PANEL_KEYS = new Set([
-  "id", "name", "description", "type", "datasourceCate", "datasourceValue", "targets", "layout",
+  "id", "name", "titleKey", "description", "type", "datasourceCate", "datasourceValue", "targets", "layout",
   "version", "collapsed", "custom", "options", "overrides", "links", "maxPerRow", "transformations", "panels",
 ]);
 const LAYOUT_KEYS = new Set(["h", "w", "x", "y", "i", "isResizable"]);
 const TARGET_KEYS = new Set(["refId", "expr", "legend", "instant", "hide", "maxDataPoints", "time", "variables", "__mode__"]);
-const VARIABLE_KEYS = new Set(["name", "label", "type", "definition", "value"]);
+const VARIABLE_KEYS = new Set(["name", "label", "type", "definition", "value", "multi", "includeAll"]);
 const SUPPORTED_PANEL_TYPES = new Set<string>(DASHBOARD_PANEL_TYPES);
 
 const normalizeDashboardLayout = (value: unknown, path: string) => {
@@ -130,7 +130,9 @@ const normalizeDashboardVariable = (value: unknown, path: string): DashboardVari
   const object = requireJsonObject(value, path);
   assertObjectKeys(object, VARIABLE_KEYS, path);
   const type = object.type;
-  if (type !== "textbox" && type !== "datasource") failSchema(`${path}.type`, "expected textbox or datasource");
+  if (type !== "textbox" && type !== "datasource" && type !== "query") {
+    failSchema(`${path}.type`, "expected textbox, datasource, or query");
+  }
   const variable: DashboardVariable = {
     name: asRequiredString(object.name, `${path}.name`),
     type: type as DashboardVariable["type"],
@@ -138,6 +140,15 @@ const normalizeDashboardVariable = (value: unknown, path: string): DashboardVari
   (["label", "definition", "value"] as const).forEach((key) => {
     if (object[key] !== undefined) variable[key] = asRequiredString(object[key], `${path}.${key}`);
   });
+  (["multi", "includeAll"] as const).forEach((key) => {
+    if (object[key] !== undefined && typeof object[key] !== "boolean") {
+      failSchema(`${path}.${key}`, "expected a boolean");
+    }
+    if (object[key] !== undefined) variable[key] = object[key] as boolean;
+  });
+  if (type === "query" && !variable.definition) {
+    failSchema(`${path}.definition`, "query variables require a PromQL definition");
+  }
   return variable;
 };
 
@@ -168,7 +179,7 @@ const normalizeDashboardPanel = (value: unknown, path: string): DashboardPanel =
     layout: normalizeDashboardLayout(object.layout, `${path}.layout`),
     targets: targets.map((target, index) => normalizeDashboardTarget(target, `${path}.targets[${index}]`)),
   };
-  (["description", "datasourceCate", "version"] as const).forEach((key) => {
+  (["titleKey", "description", "datasourceCate", "version"] as const).forEach((key) => {
     if (object[key] !== undefined) panel[key] = asRequiredString(object[key], `${path}.${key}`);
   });
   if (object.datasourceValue !== undefined) {

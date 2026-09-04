@@ -131,6 +131,7 @@ export interface DashboardLayout {
 export interface DashboardPanel {
   id: string;
   name: string;
+  titleKey?: string;
   description?: string;
   type: DashboardPanelType;
   datasourceCate?: string;
@@ -151,9 +152,11 @@ export interface DashboardPanel {
 export interface DashboardVariable {
   name: string;
   label?: string;
-  type: "textbox" | "datasource";
+  type: "textbox" | "datasource" | "query";
   definition?: string;
   value?: string;
+  multi?: boolean;
+  includeAll?: boolean;
 }
 
 export interface DashboardPayload {

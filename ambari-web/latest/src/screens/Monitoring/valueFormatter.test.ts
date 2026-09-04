@@ -35,6 +35,10 @@ describe("monitoring value formatter", () => {
     expect(formatMetricValue(12.25, "seconds")).toBe("12.25 s");
     expect(formatMetricValue(7, "cps")).toBe("7 cps");
     expect(formatMetricValue(3.5, "reqps")).toBe("3.5 req/s");
+    expect(formatMetricValue(1250000, "bitsSecSI")).toBe("1.25 Mb/s");
+    expect(formatMetricValue(1800, "packetsSec")).toBe("1.8 kp/s");
+    expect(formatMetricValue(42000, "iops")).toBe("42 kio/s");
+    expect(formatMetricValue(7200, "seconds")).toBe("2 hour");
   });
 
   it("preserves raw values for empty, unknown, and non-numeric units", () => {

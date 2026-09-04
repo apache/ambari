@@ -202,6 +202,8 @@ export default function DashboardPanel({
                   `Series ${values.length + 1}`,
                 ),
                 seriesKey: seriesKey(target, targetIndex, result, resultIndex),
+                targetRefId: target.refId,
+                targetName: target.legend || target.refId,
               });
             });
         });

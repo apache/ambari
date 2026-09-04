@@ -24,6 +24,7 @@ import {
   panelNumericBounds,
   panelThresholds,
   panelValueColor,
+  panelValueText,
   type DashboardPanelResult,
 } from "./panelData";
 
@@ -41,6 +42,8 @@ const result: DashboardPanelResult = {
   values: [[1, "2"], [2, "4.5"]],
   displayName: "worker-1",
   seriesKey: "A:worker-1",
+  targetRefId: "A",
+  targetName: "worker-1",
 };
 
 describe("dashboard panel data", () => {
@@ -67,6 +70,19 @@ describe("dashboard panel data", () => {
     expect(panelThresholds(config).map((step) => step.value)).toEqual([null, 50, 80]);
     expect(panelValueColor(config, 65)).toBe("#bd6418");
     expect(panelValueColor(config, 90)).toBe("#b33a3a");
+  });
+
+  it("applies inclusive range value mappings before thresholds", () => {
+    const config = panel({
+      thresholds: { steps: [{ value: null, color: "red" }] },
+      valueMappings: [
+        { type: "range", match: { from: 0, to: 0 }, result: { color: "#369903", text: "Healthy" } },
+        { type: "range", match: { from: 1, to: null }, result: { color: "#f0310f" } },
+      ],
+    });
+    expect(panelValueColor(config, 0)).toBe("#369903");
+    expect(panelValueText(config, 0)).toBe("Healthy");
+    expect(panelValueColor(config, 1)).toBe("#f0310f");
   });
 
   it("exposes numeric bounds from standard options", () => {

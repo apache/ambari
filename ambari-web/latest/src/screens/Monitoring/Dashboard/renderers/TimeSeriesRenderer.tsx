@@ -19,7 +19,7 @@
 import type { DashboardPanel } from "../../types";
 import PrometheusChart from "../../PrometheusChart";
 import { getPanelDecimals, getPanelUnit } from "../../valueFormatter";
-import { panelCustomOptions, panelNumericBounds, type DashboardPanelResult } from "../data/panelData";
+import { panelCustomOptions, panelNumericBounds, panelThresholds, type DashboardPanelResult } from "../data/panelData";
 
 interface TimeSeriesRendererProps {
   panel: DashboardPanel;
@@ -56,8 +56,11 @@ export default function TimeSeriesRenderer({ panel, results, height, graphToolti
       pointSize={typeof custom.pointSize === "number" ? custom.pointSize : 4}
       spanNulls={custom.spanNulls !== false}
       legendDisplay={legend.displayMode !== "hidden"}
+      legendMode={String(legend.displayMode || "list")}
+      legendColumns={Array.isArray(legend.columns) ? legend.columns.filter((column): column is string => typeof column === "string") : []}
       legendPlacement={String(legend.placement || "bottom") as "top" | "left" | "right" | "bottom"}
       barWidthFactor={typeof custom.barWidthFactor === "number" ? custom.barWidthFactor : 0.6}
+      thresholds={panelThresholds(panel).filter((threshold) => threshold.value !== null)}
       height={height}
     />
   );

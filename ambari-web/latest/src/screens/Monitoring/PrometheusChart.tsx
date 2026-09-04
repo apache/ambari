@@ -75,8 +75,11 @@ export default function PrometheusChart({
   pointSize = 4,
   spanNulls = true,
   legendDisplay = true,
+  legendMode = "list",
+  legendColumns = [],
   legendPlacement = "bottom",
   barWidthFactor = 0.6,
+  thresholds = [],
   height,
 }: {
   results: DisplayResult[];
@@ -96,8 +99,11 @@ export default function PrometheusChart({
   pointSize?: number;
   spanNulls?: boolean;
   legendDisplay?: boolean;
+  legendMode?: string;
+  legendColumns?: string[];
   legendPlacement?: "top" | "left" | "right" | "bottom";
   barWidthFactor?: number;
+  thresholds?: Array<{ value: number | null; color: string }>;
   height?: number;
 }) {
   const timestampSet = new Set<number>();
@@ -144,11 +150,59 @@ export default function PrometheusChart({
     : tooltipSort === "desc"
       ? (left: unknown, right: unknown) => tooltipValue(right) - tooltipValue(left)
       : undefined;
+  const tableLegend = legendDisplay && legendMode === "table";
+  const visibleLegendColumns = legendColumns.length ? legendColumns : ["last"];
+  const legendValue = (result: DisplayResult, calculation: string) => {
+    const values = (result.values || (result.value ? [result.value] : []))
+      .map(([, value]) => Number(value))
+      .filter(Number.isFinite);
+    if (!values.length) return null;
+    switch (calculation) {
+      case "min": return Math.min(...values);
+      case "max": return Math.max(...values);
+      case "avg": return values.reduce((sum, value) => sum + value, 0) / values.length;
+      case "sum": return values.reduce((sum, value) => sum + value, 0);
+      case "first": return values[0];
+      default: return values.at(-1) ?? null;
+    }
+  };
+  const legendTable = tableLegend ? <div className="dashboard-chart-legend-table">
+    <table>
+      <thead><tr><th>Series</th>{visibleLegendColumns.map((column) => <th key={column}>{column}</th>)}</tr></thead>
+      <tbody>{results.map((result, index) => <tr key={`${seriesName(result, index)}-${index}`}>
+        <td title={seriesName(result, index)}><i style={{ backgroundColor: COLORS[index % COLORS.length] }} />{seriesName(result, index)}</td>
+        {visibleLegendColumns.map((column) => <td key={column}>{formatMetricValue(legendValue(result, column), unit, decimals)}</td>)}
+      </tr>)}</tbody>
+    </table>
+  </div> : null;
+  const thresholdPlugin = {
+    id: "ambariThresholdLines",
+    afterDatasetsDraw: (chart: ChartJs) => {
+      const yScale = chart.scales.y;
+      const { ctx, chartArea } = chart;
+      if (!yScale || !chartArea) return;
+      thresholds.forEach((threshold) => {
+        if (threshold.value === null) return;
+        const y = yScale.getPixelForValue(threshold.value);
+        if (y < chartArea.top || y > chartArea.bottom) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = threshold.color;
+        ctx.lineWidth = 1;
+        ctx.moveTo(chartArea.left, y);
+        ctx.lineTo(chartArea.right, y);
+        ctx.stroke();
+        ctx.restore();
+      });
+    },
+  };
 
   if (drawStyle === "bars") {
     return (
-      <div className="dashboard-chart-wrap" style={{ height: Math.max(180, height || 300) }}>
-        <Bar
+      <div className={`dashboard-chart-wrap ${tableLegend ? "dashboard-chart-with-table-legend" : ""}`} style={{ height: Math.max(180, height || 300) }}>
+        <div className="dashboard-chart-canvas"><Bar
+          plugins={thresholds.length ? [thresholdPlugin] : undefined}
           data={{
             labels: timestamps.map((timestamp) => formatTimestamp(timestamp * 1000)),
             datasets: results.map((result, index) => {
@@ -170,7 +224,7 @@ export default function PrometheusChart({
             maintainAspectRatio: false,
             interaction: { mode: tooltipMode === "single" ? "nearest" : "index", intersect: false },
             plugins: {
-              legend: { display: legendDisplay, position: legendPosition, labels: { boxWidth: 12 } },
+              legend: { display: legendDisplay && !tableLegend, position: legendPosition, labels: { boxWidth: 12 } },
               tooltip: {
                 itemSort,
                 callbacks: { label: (context) => `${context.dataset.label || "Series"}: ${formatMetricValue(context.parsed.y, unit, decimals)}` },
@@ -181,14 +235,16 @@ export default function PrometheusChart({
               y: { type: scaleType === "log" ? "logarithmic" : "linear", stacked: stack, min: minimum, max: maximum, ticks: { callback: (value) => formatMetricValue(value, unit, decimals) } },
             },
           }}
-        />
+        /></div>
+        {legendTable}
       </div>
     );
   }
 
   return (
-    <div className="dashboard-chart-wrap" style={{ height: Math.max(180, height || 300) }}>
-      <Line
+    <div className={`dashboard-chart-wrap ${tableLegend ? "dashboard-chart-with-table-legend" : ""}`} style={{ height: Math.max(180, height || 300) }}>
+      <div className="dashboard-chart-canvas"><Line
+        plugins={thresholds.length ? [thresholdPlugin] : undefined}
         data={{
           datasets,
         }}
@@ -197,7 +253,7 @@ export default function PrometheusChart({
           maintainAspectRatio: false,
           interaction: { mode: tooltipMode === "single" ? "nearest" : "index", intersect: false },
           plugins: {
-            legend: { display: legendDisplay, position: legendPosition, labels: { boxWidth: 12 } },
+            legend: { display: legendDisplay && !tableLegend, position: legendPosition, labels: { boxWidth: 12 } },
             tooltip: {
               itemSort,
               callbacks: {
@@ -228,7 +284,8 @@ export default function PrometheusChart({
             },
           },
         }}
-      />
+      /></div>
+      {legendTable}
     </div>
   );
 }

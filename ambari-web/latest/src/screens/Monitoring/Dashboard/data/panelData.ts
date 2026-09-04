@@ -21,11 +21,18 @@ import type { DashboardPanel, JsonObject, PrometheusResult } from "../../types";
 export interface DashboardPanelResult extends PrometheusResult {
   displayName: string;
   seriesKey: string;
+  targetRefId: string;
+  targetName: string;
 }
 
 export interface DashboardThreshold {
   value: number | null;
   color: string;
+}
+
+export interface DashboardValueMapping {
+  color?: string;
+  text?: string;
 }
 
 const asRecord = (value: unknown): JsonObject => (
@@ -96,7 +103,32 @@ export function panelThresholds(panel: DashboardPanel): DashboardThreshold[] {
     .sort((left, right) => (left.value ?? Number.NEGATIVE_INFINITY) - (right.value ?? Number.NEGATIVE_INFINITY));
 }
 
+const valueMapping = (value: number, rawMappings: unknown): DashboardValueMapping | undefined => {
+  const mappings = Array.isArray(rawMappings) ? rawMappings.map(asRecord) : [];
+  const mapping = mappings.find((item) => {
+    if (item.type !== "range") return false;
+    const match = asRecord(item.match);
+    const from = typeof match.from === "number" ? match.from : Number.NEGATIVE_INFINITY;
+    const to = typeof match.to === "number" ? match.to : Number.POSITIVE_INFINITY;
+    return value >= from && value <= to;
+  });
+  if (!mapping) return undefined;
+  const result = asRecord(mapping.result);
+  const color = resolveColor(result.color, "");
+  const text = typeof result.text === "string" && result.text.length > 0 ? result.text : undefined;
+  return color || text ? { color: color || undefined, text } : undefined;
+};
+
+export function panelValueText(panel: DashboardPanel, value: number | null) {
+  if (value === null) return undefined;
+  return valueMapping(value, asRecord(panel.options).valueMappings)?.text;
+}
+
 export function panelValueColor(panel: DashboardPanel, value: number | null) {
+  if (value !== null) {
+    const mappedColor = valueMapping(value, asRecord(panel.options).valueMappings)?.color;
+    if (mappedColor) return mappedColor;
+  }
   const thresholds = panelThresholds(panel);
   if (value === null || thresholds.length === 0) return undefined;
   let color: string | undefined;
@@ -109,6 +141,36 @@ export function panelValueColor(panel: DashboardPanel, value: number | null) {
 export function panelStandardOptions(panel: DashboardPanel): JsonObject {
   const options = asRecord(panel.options);
   return asRecord(options.standardOptions);
+}
+
+const matchingOverride = (panel: DashboardPanel, refId: string): JsonObject | undefined => (
+  (panel.overrides || []).map(asRecord).find((override) => {
+    const matcher = asRecord(override.matcher);
+    return matcher.id === "byFrameRefID" && matcher.value === refId;
+  })
+);
+
+export function panelFieldStandardOptions(panel: DashboardPanel, refId: string): JsonObject {
+  const override = matchingOverride(panel, refId);
+  const properties = asRecord(override?.properties);
+  return {
+    ...panelStandardOptions(panel),
+    ...asRecord(properties.standardOptions),
+  };
+}
+
+export function panelFieldColor(panel: DashboardPanel, refId: string, value: number | null) {
+  if (value === null) return undefined;
+  const override = matchingOverride(panel, refId);
+  const properties = asRecord(override?.properties);
+  return valueMapping(value, properties.valueMappings)?.color || panelValueColor(panel, value);
+}
+
+export function panelFieldValueText(panel: DashboardPanel, refId: string, value: number | null) {
+  if (value === null) return undefined;
+  const override = matchingOverride(panel, refId);
+  const properties = asRecord(override?.properties);
+  return valueMapping(value, properties.valueMappings)?.text || panelValueText(panel, value);
 }
 
 export function panelNumericBounds(panel: DashboardPanel): { min?: number; max?: number } {

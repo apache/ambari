@@ -21,6 +21,8 @@ import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFo
 import {
   calculatePanelValue,
   panelCustomOptions,
+  panelValueColor,
+  panelValueText,
   type DashboardPanelResult,
 } from "../data/panelData";
 
@@ -50,6 +52,14 @@ const interpolateColor = (colors: string[], ratio: number) => {
   return `rgb(${left.map((channel, channelIndex) => Math.round(channel + (right[channelIndex] - channel) * offset)).join(", ")})`;
 };
 
+const panelLink = (template: unknown, labels: Record<string, string>) => {
+  if (typeof template !== "string" || !template.startsWith("/main/")) return undefined;
+  const route = template
+    .replace(/\$\{__field\.labels\.([^}]+)}/g, (_match, label: string) => encodeURIComponent(labels[label] || ""))
+    .replace(/\$\{([^}]+)}/g, (_match, label: string) => encodeURIComponent(labels[label] || ""));
+  return `${window.location.origin}${window.location.pathname}#${route}`;
+};
+
 export default function HexbinRenderer({ panel, results }: HexbinRendererProps) {
   const custom = panelCustomOptions(panel);
   const calculation = String(custom.calc || "lastNotNull");
@@ -57,8 +67,10 @@ export default function HexbinRenderer({ panel, results }: HexbinRendererProps) 
   const numeric = values.map((item) => item.value).filter((value): value is number => value !== null);
   const minimum = numeric.length ? Math.min(...numeric) : 0;
   const maximum = numeric.length ? Math.max(...numeric) : 1;
-  const palette = asColors(custom.colorRange).length
-    ? asColors(custom.colorRange)
+  const configuredColors = asColors(custom.colorRange);
+  const thresholdColors = configuredColors.includes("thresholds");
+  const palette = configuredColors.length && !thresholdColors
+    ? configuredColors
     : ["#dbeafe", "#38bdf8", "#075985"];
   const colors = custom.reverseColorOrder ? [...palette].reverse() : palette;
   const textMode = String(custom.textMode || "valueAndName");
@@ -69,11 +81,18 @@ export default function HexbinRenderer({ panel, results }: HexbinRendererProps) 
     <div className="dashboard-hexbin-grid">
       {values.map(({ result, value }) => {
         const ratio = value === null || maximum === minimum ? 0.5 : (value - minimum) / (maximum - minimum);
-        const valueText = formatMetricValue(value, unit, decimals);
-        return <div className="dashboard-hexbin-item" key={result.seriesKey} style={{ backgroundColor: interpolateColor(colors, ratio) }} title={`${result.displayName}: ${valueText}`}>
+        const valueText = panelValueText(panel, value) || formatMetricValue(value, unit, decimals);
+        const backgroundColor = thresholdColors
+          ? panelValueColor(panel, value) || interpolateColor(colors, ratio)
+          : interpolateColor(colors, ratio);
+        const href = panelLink(custom.detailUrl, result.metric);
+        const content = <>
           {textMode !== "name" && <strong>{valueText}</strong>}
           {textMode !== "value" && <span>{result.displayName}</span>}
-        </div>;
+        </>;
+        return href
+          ? <a className="dashboard-hexbin-item" href={href} key={result.seriesKey} style={{ backgroundColor }} title={`${result.displayName}: ${valueText}`}>{content}</a>
+          : <div className="dashboard-hexbin-item" key={result.seriesKey} style={{ backgroundColor }} title={`${result.displayName}: ${valueText}`}>{content}</div>;
       })}
     </div>
   );

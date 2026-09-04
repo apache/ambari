@@ -32,6 +32,38 @@ const formatBytes = (value: number, decimals?: number) => {
   return `${formatNumber(value / 1024 ** safeUnitIndex, decimals)} ${units[safeUnitIndex]}`;
 };
 
+const formatSiRate = (value: number, decimals: number | undefined, suffix: string) => {
+  const units = ["", "k", "M", "G", "T", "P"];
+  const magnitude = value === 0
+    ? 0
+    : Math.min(Math.max(Math.floor(Math.log10(Math.abs(value)) / 3), 0), units.length - 1);
+  return `${formatNumber(value / 1000 ** magnitude, decimals)} ${units[magnitude]}${suffix}`;
+};
+
+const formatSeconds = (value: number, decimals?: number) => {
+  const absolute = Math.abs(value);
+  if (absolute === 0) return "0 s";
+  if (absolute !== 0 && absolute < 0.000001) return `${formatNumber(value * 1e9, decimals)} ns`;
+  if (absolute < 0.001) return `${formatNumber(value * 1e6, decimals)} us`;
+  if (absolute < 1) return `${formatNumber(value * 1e3, decimals)} ms`;
+  if (absolute < 60) return `${formatNumber(value, decimals)} s`;
+  if (absolute < 3600) return `${formatNumber(value / 60, decimals)} min`;
+  if (absolute < 86400) return `${formatNumber(value / 3600, decimals)} hour`;
+  if (absolute < 604800) return `${formatNumber(value / 86400, decimals)} day`;
+  if (absolute < 31536000) return `${formatNumber(value / 604800, decimals)} week`;
+  return `${formatNumber(value / 31556900, decimals)} year`;
+};
+
+const formatMilliseconds = (value: number, decimals?: number) => {
+  const absolute = Math.abs(value);
+  if (absolute < 1000) return `${formatNumber(value, decimals)} ms`;
+  if (absolute < 60000) return `${formatNumber(value / 1000, decimals)} s`;
+  if (absolute < 3600000) return `${formatNumber(value / 60000, decimals)} min`;
+  if (absolute < 86400000) return `${formatNumber(value / 3600000, decimals)} hour`;
+  if (absolute < 31536000000) return `${formatNumber(value / 86400000, decimals)} day`;
+  return `${formatNumber(value / 31536000000, decimals)} year`;
+};
+
 export const getPanelUnit = (options: unknown): string => {
   if (!options || typeof options !== "object" || Array.isArray(options)) return "";
   const standardOptions = (options as Record<string, unknown>).standardOptions;
@@ -71,14 +103,20 @@ export const formatMetricValue = (
     case "bytesSecIEC":
     case "Bps":
       return `${formatBytes(numericValue, decimals)}/s`;
+    case "bitsSecSI":
+      return formatSiRate(numericValue, decimals, "b/s");
+    case "packetsSec":
+      return formatSiRate(numericValue, decimals, "p/s");
+    case "iops":
+      return formatSiRate(numericValue, decimals, "io/s");
     case "percentUnit":
       return `${formatNumber(numericValue * 100, decimals)}%`;
     case "percent":
       return `${formatNumber(numericValue, decimals)}%`;
     case "seconds":
-      return `${formatNumber(numericValue, decimals)} s`;
+      return formatSeconds(numericValue, decimals);
     case "milliseconds":
-      return `${formatNumber(numericValue, decimals)} ms`;
+      return formatMilliseconds(numericValue, decimals);
     case "cps":
       return `${formatNumber(numericValue, decimals)} cps`;
     case "reqps":

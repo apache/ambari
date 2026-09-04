@@ -22,6 +22,7 @@ import {
   calculatePanelValue,
   panelCustomOptions,
   panelValueColor,
+  panelValueText,
   type DashboardPanelResult,
 } from "../data/panelData";
 
@@ -56,7 +57,7 @@ export default function StatRenderer({ panel, results }: StatRendererProps) {
         return (
           <div className={`dashboard-stat-item ${colorMode === "background" ? "dashboard-stat-background" : ""}`} key={result.seriesKey} style={colorMode === "background" && color ? { backgroundColor: color } : undefined}>
             {graphMode === "area" && points.length > 1 && <svg className="dashboard-stat-sparkline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points={polyline} /></svg>}
-            {textMode !== "name" && <strong style={{ color: colorMode === "value" ? color : undefined, fontSize: typeof textSize.value === "number" ? textSize.value : undefined }}>{formatMetricValue(value, unit, decimals)}</strong>}
+            {textMode !== "name" && <strong style={{ color: colorMode === "value" ? color : undefined, fontSize: typeof textSize.value === "number" ? textSize.value : undefined }}>{panelValueText(panel, value) || formatMetricValue(value, unit, decimals)}</strong>}
             {textMode !== "value" && <span title={result.displayName} style={{ fontSize: typeof textSize.title === "number" ? textSize.title : undefined }}>{result.displayName}</span>}
           </div>
         );

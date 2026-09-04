@@ -23,6 +23,7 @@ import {
   panelCustomOptions,
   panelNumericBounds,
   panelValueColor,
+  panelValueText,
   type DashboardPanelResult,
 } from "../data/panelData";
 
@@ -60,7 +61,7 @@ export default function BarGaugeRenderer({ panel, results }: BarGaugeRendererPro
           <div className="dashboard-bar-gauge-item" key={result.seriesKey}>
             <div className="dashboard-bar-gauge-label">
               <span title={result.displayName}>{result.displayName}</span>
-              {valueMode !== "hidden" && <strong style={valueMode === "color" ? { color } : undefined}>{formatMetricValue(value, unit, decimals)}</strong>}
+              {valueMode !== "hidden" && <strong style={valueMode === "color" ? { color } : undefined}>{panelValueText(panel, value) || formatMetricValue(value, unit, decimals)}</strong>}
             </div>
             <div className={`dashboard-bar-gauge-track ${displayMode === "lcd" ? "dashboard-bar-gauge-lcd" : ""}`} role="meter" aria-label={result.displayName}
               aria-valuemin={min} aria-valuemax={max} aria-valuenow={value ?? undefined}>
