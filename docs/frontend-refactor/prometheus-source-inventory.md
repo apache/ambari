@@ -106,12 +106,12 @@ artifact.
 
 | Source route | Source area | Target route or consumer |
 | --- | --- | --- |
-| `/monitoring/help/source` | Datasource list, create, edit, delete, and test | `/main/monitoring/datasources` |
-| `/monitoring/metric/explorer` | PromQL query, labels, series, time range, and chart/table result | `/main/monitoring/query` |
+| `/monitoring/help/source` | Datasource list, create, edit, delete, and test | `/main/monitoring/data-sources` |
+| `/monitoring/metric/explorer` | PromQL query, labels, series, time range, and chart/table result | `/main/monitoring/explorer` |
 | `/monitoring/dashboards` | Dashboard list, import, clone, delete, and visibility | `/main/monitoring/dashboards` |
 | `/monitoring/dashboards/:id` | Dashboard view and edit | `/main/monitoring/dashboards/:dashboardId` |
 | `/monitoring/machines` | Target list, metadata, tags, note, and business group | `/main/monitoring/targets` |
-| `/monitoring/chart/:ids` | Shared chart rendering | `/main/monitoring/charts/:shareIds` |
+| `/monitoring/chart/:ids` | Shared chart rendering | `/main/monitoring/shared-charts/:shareIds` |
 | `/services/:serviceName/metrics` | Service dashboard metrics | Existing `/main/services/:serviceName/metrics` tab |
 | `/dashboard/metrics` | Cluster dashboard metrics | Existing `/main/dashboard/metrics` tab |
 

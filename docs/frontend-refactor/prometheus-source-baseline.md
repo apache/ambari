@@ -38,12 +38,12 @@ is integrated only after the core migration is complete.
 
 | Source route | Target route | Active source owner | Target permission |
 | --- | --- | --- | --- |
-| `/monitoring/help/source` | `/main/monitoring/datasources` | `pages/datasource` | `CLUSTER.VIEW_METRICS` |
-| `/monitoring/help/source/:action/:type/:id?` | `/main/monitoring/datasources/:action/:type/:id?` | `pages/datasource/Form.tsx` | Read plus `AMBARI.MANAGE_SETTINGS` for mutation |
-| `/monitoring/metric/explorer` | `/main/monitoring/query` | `pages/explorer/Metric` | `CLUSTER.VIEW_METRICS` |
+| `/monitoring/help/source` | `/main/monitoring/data-sources` | `pages/datasource` | `CLUSTER.VIEW_METRICS` |
+| `/monitoring/help/source/:action/:type/:id?` | `/main/monitoring/data-sources/:action/:type/:id?` | `pages/datasource/Form.tsx` | Read plus `AMBARI.MANAGE_SETTINGS` for mutation |
+| `/monitoring/metric/explorer` | `/main/monitoring/explorer` | `pages/explorer/Metric` | `CLUSTER.VIEW_METRICS` |
 | `/monitoring/dashboards` | `/main/monitoring/dashboards` | `pages/dashboard/List` | `CLUSTER.VIEW_METRICS` |
 | `/monitoring/dashboards/:id` | `/main/monitoring/dashboards/:dashboardId` | `pages/dashboard/Detail` | `CLUSTER.VIEW_METRICS` |
-| `/monitoring/chart/:ids` | `/main/monitoring/charts/:shareIds` | `pages/chart` | Authenticated `CLUSTER.VIEW_METRICS` |
+| `/monitoring/chart/:ids` | `/main/monitoring/shared-charts/:shareIds` | `pages/chart` | Authenticated `CLUSTER.VIEW_METRICS` |
 | `/monitoring/machines` | `/main/monitoring/targets` | `pages/targets` | `HOST.VIEW_METRICS` |
 | `/dashboard/metrics` | Existing `/main/dashboard/metrics` | `pages/metrics/dashboard` | `CLUSTER.VIEW_METRICS` |
 | Service metrics bridge | Existing `/main/services/:serviceName/metrics` | `pages/metrics/service` | `SERVICE.VIEW_METRICS` |

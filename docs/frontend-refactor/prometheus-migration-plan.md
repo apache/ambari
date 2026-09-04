@@ -130,12 +130,12 @@ Add a top-level Monitoring sidebar group with these native routes:
 
 | Route | Screen | Minimum read authorization |
 | --- | --- | --- |
-| `/main/monitoring/datasources` | Datasource management | `CLUSTER.VIEW_METRICS` |
-| `/main/monitoring/query` | PromQL explorer | `CLUSTER.VIEW_METRICS` |
+| `/main/monitoring/data-sources` | Datasource management | `CLUSTER.VIEW_METRICS` |
+| `/main/monitoring/explorer` | PromQL explorer | `CLUSTER.VIEW_METRICS` |
 | `/main/monitoring/dashboards` | Dashboard list | `CLUSTER.VIEW_METRICS` |
 | `/main/monitoring/dashboards/:dashboardId` | Dashboard view/edit | `CLUSTER.VIEW_METRICS` |
 | `/main/monitoring/targets` | Target machines | `HOST.VIEW_METRICS` |
-| `/main/monitoring/charts/:shareIds` | Shared charts | `CLUSTER.VIEW_METRICS` |
+| `/main/monitoring/shared-charts/:shareIds` | Shared charts | `CLUSTER.VIEW_METRICS` |
 
 Retain and update these existing consumers:
 
