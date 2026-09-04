@@ -1,0 +1,2558 @@
+{
+  "id": null,
+  "title": "AMS HBase - Home",
+  "originalTitle": "AMS HBase - Home",
+  "tags": [
+    "ams-hbase"
+  ],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "hideControls": false,
+  "sharedCrosshair": false,
+  "rows": [
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "25px",
+      "panels": [
+        {
+          "content": "<h4 align=\"center\">Metrics to see the overall status of AMS-HBase. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
+          "editable": true,
+          "error": false,
+          "id": 22,
+          "isNew": true,
+          "links": [],
+          "mode": "html",
+          "span": 12,
+          "style": {},
+          "title": "",
+          "type": "text"
+        }
+      ],
+      "showTitle": false,
+      "title": "Description"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "25px",
+      "panels": [
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "hideTimeOverride": true,
+          "id": 2,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "100%",
+          "prefix": "",
+          "prefixFontSize": "100%",
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": true,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "targets": [
+            {
+              "aggregator": "max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "master.Server.numRegionServers",
+              "precision": "default",
+              "refId": "A"
+            }
+          ],
+          "thresholds": "",
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Num RegionServers",
+          "type": "singlestat",
+          "valueFontSize": "100%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "hideTimeOverride": true,
+          "id": 3,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "100%",
+          "prefix": "",
+          "prefixFontSize": "100%",
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": true,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "targets": [
+            {
+              "aggregator": "max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "master.Server.numDeadRegionServers",
+              "precision": "default",
+              "refId": "A"
+            }
+          ],
+          "thresholds": "",
+          "timeFrom": null,
+          "title": "Num Dead RegionServers",
+          "type": "singlestat",
+          "valueFontSize": "100%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "hideTimeOverride": true,
+          "id": 5,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": true,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "targets": [
+            {
+              "aggregator": "sum",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "regionserver.Server.regionCount",
+              "precision": "default",
+              "refId": "A"
+            }
+          ],
+          "thresholds": "",
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Num Regions",
+          "type": "singlestat",
+          "valueFontSize": "100%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
+        },
+        {
+          "cacheTimeout": null,
+          "colorBackground": false,
+          "colorValue": false,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "datasource": null,
+          "decimals": 1,
+          "editable": true,
+          "error": false,
+          "format": "none",
+          "hideTimeOverride": true,
+          "id": 4,
+          "interval": null,
+          "isNew": true,
+          "links": [],
+          "maxDataPoints": 100,
+          "nullPointMode": "connected",
+          "nullText": null,
+          "postfix": "",
+          "postfixFontSize": "50%",
+          "prefix": "",
+          "prefixFontSize": "50%",
+          "span": 3,
+          "sparkline": {
+            "fillColor": "rgba(31, 118, 189, 0.18)",
+            "full": true,
+            "lineColor": "rgb(31, 120, 193)",
+            "show": true
+          },
+          "targets": [
+            {
+              "aggregator": "max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "master.Server.averageLoad",
+              "precision": "default",
+              "refId": "A"
+            }
+          ],
+          "thresholds": "",
+          "timeFrom": null,
+          "title": "Avg Num Regions per RegionServer",
+          "type": "singlestat",
+          "valueFontSize": "100%",
+          "valueMaps": [
+            {
+              "op": "=",
+              "text": "N/A",
+              "value": "null"
+            }
+          ],
+          "valueName": "current"
+        }
+      ],
+      "showTitle": false,
+      "title": "RegionServers / Regions"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "200px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 1,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "alias": "regionCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "regionserver.Server.regionCount",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "sum",
+              "alias": "storeCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.storeCount",
+              "precision": "default",
+              "refId": "B"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Num Regions / Stores - Total",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 6,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "storeFileCount",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "alias": "storeFileSize",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.storeFileSize",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "sum",
+              "alias": "storeFileCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.storeFileCount",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "sum",
+              "alias": "storeFileIndexSize",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.storeFileIndexSize",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "staticIndexSize",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.staticIndexSize",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "staticBloomSize",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.staticBloomSize",
+              "precision": "default",
+              "refId": "E"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Store File Size / Count - Total",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Num Regions / Stores"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 7,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "totalRequestCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.totalRequestCount",
+              "precision": "default",
+              "refId": "B",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "readRequestCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.readRequestCount",
+              "precision": "default",
+              "refId": "C",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "writeRequestCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.writeRequestCount",
+              "precision": "default",
+              "refId": "D",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "rpcCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.RegionServer.TotalCallTime_num_ops",
+              "precision": "default",
+              "refId": "E",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Num Requests - Total",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ops",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 8,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "hideEmpty": false,
+            "hideZero": false,
+            "max": false,
+            "min": false,
+            "rightSide": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "getCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Get_num_ops",
+              "precision": "default",
+              "refId": "A",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "scanNextCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.ScanNext_num_ops",
+              "precision": "default",
+              "refId": "B",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "mutateCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_num_ops",
+              "precision": "default",
+              "refId": "C",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "deleteCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_num_ops",
+              "precision": "default",
+              "refId": "D",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "incrementCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_num_ops",
+              "precision": "default",
+              "refId": "E",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "appendCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_num_ops",
+              "precision": "default",
+              "refId": "F",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "replayCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_num_ops",
+              "precision": "default",
+              "refId": "H",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Num Request - Breakdown - Total",
+          "tooltip": {
+            "shared": true,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ops",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Num Requests"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "200px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 10,
+          "isNew": true,
+          "leftYAxisLabel": "",
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "MemHeapMax",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "jvm.RegionServer.JvmMetrics.MemHeapMaxM",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "MemHeapUsed",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "jvm.RegionServer.JvmMetrics.MemHeapUsedM",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "MemHeapCommitted",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "jvm.RegionServer.JvmMetrics.MemHeapCommittedM",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "MemNonHeapMax",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapMaxM",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "MemNonHeapUsed",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapUsedM",
+              "precision": "default",
+              "refId": "E"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "MemNonHeapCommitted",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapCommittedM",
+              "precision": "default",
+              "refId": "F"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "RegionServer Memory - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "mbytes",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 11,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "MemNonHeapMax",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapMaxM",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "MemNonHeapUsed",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapUsedM",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "MemNonHeapCommitted",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "jvm.RegionServer.JvmMetrics.MemNonHeapCommittedM",
+              "precision": "default",
+              "refId": "C"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "RegionServer Offheap Memory - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "mbytes",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "RegionServer Memory"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 12,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "memStoreSize",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.memStoreSize",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "blockCacheSize",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "regionserver.Server.blockCacheSize",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "blockCacheFreeSize",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "regionserver.Server.blockCacheFreeSize",
+              "precision": "default",
+              "refId": "C"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Memstore / BlockCache - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "bytes",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 24,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "alias": "blochCacheCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.blockCacheCount",
+              "precision": "default",
+              "refId": "A"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Num Blocks in BlockCache - Total",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Memory - MemStore / BlockCache"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": 0,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 13,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "alias": "blockCacheHitCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.blockCacheHitCount",
+              "precision": "default",
+              "refId": "D",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "sum",
+              "alias": "blockCacheMissCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.blockCacheMissCount",
+              "precision": "default",
+              "refId": "E",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "sum",
+              "alias": "blockCacheEvictionCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.blockCacheEvictionCount",
+              "precision": "default",
+              "refId": "A",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "BlockCache Hit / Miss /s - Total",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ops",
+            "percent"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": 0,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 23,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "blockCacheExpressHitPercent",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.blockCacheExpressHitPercent",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "blockCacheCountHitPercent",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.blockCacheCountHitPercent",
+              "precision": "default",
+              "refId": "B"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "BlockCache Hit Percent - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "percent",
+            "percent"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "BlockCache"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 10,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": 0,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 14,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "regionserver.Server.Get_num_ops",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Get_mean",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Get_mean",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Get_median",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Get_median",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Get_75th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Get_75th_percentile",
+              "precision": "default",
+              "refId": "E"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Get_95th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Get_95th_percentile",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Get_99th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Get_99th_percentile",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Get_max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Get_max",
+              "precision": "default",
+              "refId": "G"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Get_min",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Get_min",
+              "precision": "default",
+              "refId": "F"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Get_num_ops",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "regionserver.Server.Get_num_ops",
+              "precision": "default",
+              "refId": "H",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Get Latencies - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 10,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": 0,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 15,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "regionserver.Server.Mutate_num_ops",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Mutate_mean",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_mean",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Mutate_median",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_median",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Mutate_75th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_75th_percentile",
+              "precision": "default",
+              "refId": "E"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Mutate_95th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_95th_percentile",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Mutate_99th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_99th_percentile",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Mutate_max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_max",
+              "precision": "default",
+              "refId": "G"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Mutate_min",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_min",
+              "precision": "default",
+              "refId": "F"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Mutate_num_ops",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Mutate_num_ops",
+              "precision": "default",
+              "refId": "H",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Mutate Latencies - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Operation Latencies - Get / Mutate"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 10,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": 0,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 16,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "regionserver.Server.Delete_num_ops",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Delete_mean",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_mean",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Delete_median",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_median",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Delete_75th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_75th_percentile",
+              "precision": "default",
+              "refId": "E"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Delete_95th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_95th_percentile",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Delete_99th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_99th_percentile",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Delete_max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_max",
+              "precision": "default",
+              "refId": "G"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Delete_min",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_min",
+              "precision": "default",
+              "refId": "F"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Delete_num_ops",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Delete_num_ops",
+              "precision": "default",
+              "refId": "H",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Delete Latencies - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 10,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": 0,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 17,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "regionserver.Server.Increment_num_ops",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Increment_mean",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_mean",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Increment_median",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_median",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Increment_75th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_75th_percentile",
+              "precision": "default",
+              "refId": "E"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Increment_95th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_95th_percentile",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Increment_99th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_99th_percentile",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Increment_max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_max",
+              "precision": "default",
+              "refId": "G"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Increment_min",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_min",
+              "precision": "default",
+              "refId": "F"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Increment_num_ops",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Increment_num_ops",
+              "precision": "default",
+              "refId": "H",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Increment Latencies - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Operation Latencies - Delete / Increment"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 10,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": 0,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 18,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "regionserver.Server.Append_num_ops",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Append_mean",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_mean",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Append_median",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_median",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Append_75th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_75th_percentile",
+              "precision": "default",
+              "refId": "E"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Append_95th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_95th_percentile",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Append_99th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_99th_percentile",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Append_max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_max",
+              "precision": "default",
+              "refId": "G"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Append_min",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_min",
+              "precision": "default",
+              "refId": "F"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Append_num_ops",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Append_num_ops",
+              "precision": "default",
+              "refId": "H",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Append Latencies - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 10,
+            "leftMax": null,
+            "leftMin": 0,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": 0,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 19,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "regionserver.Server.Replay_num_ops",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Replay_mean",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_mean",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Replay_median",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_median",
+              "precision": "default",
+              "refId": "B"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Replay_75th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_75th_percentile",
+              "precision": "default",
+              "refId": "E"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Replay_95th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_95th_percentile",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Replay_99th_percentile",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_99th_percentile",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Replay_max",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_max",
+              "precision": "default",
+              "refId": "G"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Replay_min",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_min",
+              "precision": "default",
+              "refId": "F"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Replay_num_ops",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.Server.Replay_num_ops",
+              "precision": "default",
+              "refId": "H",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "Replay Latencies - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "ms",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "Operation Latencies - Append / Replay"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 20,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "regionserver.RegionServer.queueSize",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "sum",
+              "alias": "rpcCount",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hide": false,
+              "metric": "master.Master.TotalCallTime_num_ops",
+              "precision": "default",
+              "refId": "C",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "numActiveHandler",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.RegionServer.numActiveHandler",
+              "precision": "default",
+              "refId": "A"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "numOpenConnections",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.RegionServer.numOpenConnections",
+              "precision": "default",
+              "refId": "B"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "RegionServer RPC - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "bytes"
+          ]
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 25,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "queueSize",
+              "yaxis": 2
+            }
+          ],
+          "span": 6,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "numCallsInGeneralQueue",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.RegionServer.numCallsInGeneralQueue",
+              "precision": "default",
+              "refId": "C"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "numCallsInPriorityQueue",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hide": false,
+              "metric": "regionserver.RegionServer.numCallsInPriorityQueue",
+              "precision": "default",
+              "refId": "D"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "numCallsInReplicationQueue",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.RegionServer.numCallsInReplicationQueue",
+              "precision": "default",
+              "refId": "E"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "queueSize",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.RegionServer.queueSize",
+              "precision": "default",
+              "refId": "G"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "RegionServer RPC Queues - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "bytes"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "RegionServer RPC"
+    },
+    {
+      "collapse": true,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 0,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 21,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [
+            {
+              "alias": "numActiveHandler",
+              "yaxis": 2
+            }
+          ],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "receivedBytes",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.RegionServer.receivedBytes",
+              "precision": "default",
+              "refId": "A",
+              "transform": "rate"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "sentBytes",
+              "app": "ams-hbase",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "regionserver.RegionServer.sentBytes",
+              "precision": "default",
+              "refId": "B",
+              "transform": "rate"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "RegionServer RPC Throughput - Average",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "Bps",
+            "short"
+          ]
+        }
+      ],
+      "showTitle": true,
+      "title": "RegionServer RPC"
+    }
+  ],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "now": true,
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "schemaVersion": 8,
+  "version": 0,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "keepTime": true,
+      "tags": [
+        "ams-hbase"
+      ],
+      "title": "AMS-HBase Dashboards",
+      "type": "dashboards"
+    }
+  ]
+}
