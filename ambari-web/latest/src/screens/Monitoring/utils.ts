@@ -49,15 +49,19 @@ const assertObjectKeys = (value: JsonObject, allowed: ReadonlySet<string>, path:
   });
 };
 
-const asRequiredString = (value: unknown, path: string) => {
+const asRequiredString = (value: unknown, path: string): string => {
   if (typeof value !== "string" || !value.trim()) failSchema(path, "expected a non-empty string");
-  return value;
+  return value as string;
 };
 
-const asOptionalJsonObject = (value: unknown, path: string) => {
-  if (value === undefined) return undefined;
+const requireJsonObject = (value: unknown, path: string): JsonObject => {
   if (!isJsonObject(value)) failSchema(path, "expected an object");
-  return value;
+  return value as JsonObject;
+};
+
+const asOptionalJsonObject = (value: unknown, path: string): JsonObject | undefined => {
+  if (value === undefined) return undefined;
+  return requireJsonObject(value, path);
 };
 
 const PANEL_KEYS = new Set([
@@ -70,136 +74,142 @@ const VARIABLE_KEYS = new Set(["name", "label", "type", "definition", "value"]);
 const SUPPORTED_PANEL_TYPES = new Set<string>(DASHBOARD_PANEL_TYPES);
 
 const normalizeDashboardLayout = (value: unknown, path: string) => {
-  if (!isJsonObject(value)) failSchema(path, "layout is required");
-  assertObjectKeys(value, LAYOUT_KEYS, path);
-  const numeric = ["h", "w", "x", "y"].map((key) => [key, value[key]] as const);
+  const object = requireJsonObject(value, path);
+  assertObjectKeys(object, LAYOUT_KEYS, path);
+  const numeric = ["h", "w", "x", "y"].map((key) => [key, object[key]] as const);
   numeric.forEach(([key, item]) => {
     if (typeof item !== "number" || !Number.isInteger(item) || item < 0) {
       failSchema(`${path}.${key}`, "expected a non-negative integer");
     }
   });
-  if (value.w === 0 || value.h === 0) failSchema(path, "width and height must be greater than zero");
-  if ((value.w as number) > 24 || (value.x as number) + (value.w as number) > 24) {
+  const height = object.h as number;
+  const width = object.w as number;
+  const x = object.x as number;
+  if (width === 0 || height === 0) failSchema(path, "width and height must be greater than zero");
+  if (width > 24 || x + width > 24) {
     failSchema(path, "panel must fit within the 24-column grid");
   }
-  const id = asRequiredString(value.i, `${path}.i`);
-  if (typeof value.isResizable !== "boolean") failSchema(`${path}.isResizable`, "expected a boolean");
+  const id = asRequiredString(object.i, `${path}.i`);
+  if (typeof object.isResizable !== "boolean") failSchema(`${path}.isResizable`, "expected a boolean");
   return {
-    h: value.h as number,
-    w: value.w as number,
-    x: value.x as number,
-    y: value.y as number,
+    h: height,
+    w: width,
+    x,
+    y: object.y as number,
     i: id,
-    isResizable: value.isResizable,
+    isResizable: object.isResizable as boolean,
   };
 };
 
 const normalizeDashboardTarget = (value: unknown, path: string): DashboardTarget => {
-  if (!isJsonObject(value)) failSchema(path, "target must be an object");
-  assertObjectKeys(value, TARGET_KEYS, path);
+  const object = requireJsonObject(value, path);
+  assertObjectKeys(object, TARGET_KEYS, path);
   const target = {
-    refId: asRequiredString(value.refId, `${path}.refId`),
-    expr: asRequiredString(value.expr, `${path}.expr`),
+    refId: asRequiredString(object.refId, `${path}.refId`),
+    expr: asRequiredString(object.expr, `${path}.expr`),
   } as DashboardTarget;
   (["legend", "__mode__"] as const).forEach((key) => {
-    if (value[key] !== undefined) target[key] = asRequiredString(value[key], `${path}.${key}`);
+    if (object[key] !== undefined) target[key] = asRequiredString(object[key], `${path}.${key}`);
   });
   (["instant", "hide"] as const).forEach((key) => {
-    if (value[key] !== undefined && typeof value[key] !== "boolean") failSchema(`${path}.${key}`, "expected a boolean");
-    if (value[key] !== undefined) target[key] = value[key] as boolean;
+    if (object[key] !== undefined && typeof object[key] !== "boolean") failSchema(`${path}.${key}`, "expected a boolean");
+    if (object[key] !== undefined) target[key] = object[key] as boolean;
   });
-  if (value.maxDataPoints !== undefined) {
-    if (typeof value.maxDataPoints !== "number" || !Number.isInteger(value.maxDataPoints) || value.maxDataPoints < 1) {
+  if (object.maxDataPoints !== undefined) {
+    if (typeof object.maxDataPoints !== "number" || !Number.isInteger(object.maxDataPoints) || object.maxDataPoints < 1) {
       failSchema(`${path}.maxDataPoints`, "expected a positive integer");
     }
-    target.maxDataPoints = value.maxDataPoints;
+    target.maxDataPoints = object.maxDataPoints as number;
   }
-  target.time = asOptionalJsonObject(value.time, `${path}.time`);
-  target.variables = asOptionalJsonObject(value.variables, `${path}.variables`);
+  target.time = asOptionalJsonObject(object.time, `${path}.time`);
+  target.variables = asOptionalJsonObject(object.variables, `${path}.variables`);
   return target;
 };
 
 const normalizeDashboardVariable = (value: unknown, path: string): DashboardVariable => {
-  if (!isJsonObject(value)) failSchema(path, "variable must be an object");
-  assertObjectKeys(value, VARIABLE_KEYS, path);
-  const type = value.type;
+  const object = requireJsonObject(value, path);
+  assertObjectKeys(object, VARIABLE_KEYS, path);
+  const type = object.type;
   if (type !== "textbox" && type !== "datasource") failSchema(`${path}.type`, "expected textbox or datasource");
   const variable: DashboardVariable = {
-    name: asRequiredString(value.name, `${path}.name`),
-    type,
+    name: asRequiredString(object.name, `${path}.name`),
+    type: type as DashboardVariable["type"],
   };
   (["label", "definition", "value"] as const).forEach((key) => {
-    if (value[key] !== undefined) variable[key] = asRequiredString(value[key], `${path}.${key}`);
+    if (object[key] !== undefined) variable[key] = asRequiredString(object[key], `${path}.${key}`);
   });
   return variable;
 };
 
 const normalizeDashboardPanel = (value: unknown, path: string): DashboardPanel => {
-  if (!isJsonObject(value)) failSchema(path, "panel must be an object");
-  assertObjectKeys(value, PANEL_KEYS, path);
-  const type = value.type;
-  if (typeof type !== "string" || !SUPPORTED_PANEL_TYPES.has(type)) {
-    failSchema(`${path}.type`, `unsupported panel type ${String(type)}`);
+  const object = requireJsonObject(value, path);
+  assertObjectKeys(object, PANEL_KEYS, path);
+  const rawType = object.type;
+  if (typeof rawType !== "string" || !SUPPORTED_PANEL_TYPES.has(rawType)) {
+    failSchema(`${path}.type`, `unsupported panel type ${String(rawType)}`);
   }
-  const targets = value.targets === undefined ? [] : value.targets;
-  if (!Array.isArray(targets)) failSchema(`${path}.targets`, "expected an array");
-  const panels = value.panels === undefined ? undefined : value.panels;
-  if (panels !== undefined && !Array.isArray(panels)) failSchema(`${path}.panels`, "expected an array");
+  const type = rawType as DashboardPanelType;
+  const targetsValue = object.targets === undefined ? [] : object.targets;
+  if (!Array.isArray(targetsValue)) failSchema(`${path}.targets`, "expected an array");
+  const targets = targetsValue as unknown[];
+  const panelsValue = object.panels === undefined ? undefined : object.panels;
+  if (panelsValue !== undefined && !Array.isArray(panelsValue)) failSchema(`${path}.panels`, "expected an array");
+  const panels = panelsValue as unknown[] | undefined;
   if (type !== "row" && type !== "text" && type !== "iframe" && targets.length === 0) {
     failSchema(`${path}.targets`, "at least one target is required");
   }
-  if (type === "row" && (value.layout as JsonObject | undefined)?.w !== 24) {
+  if (type === "row" && (object.layout as JsonObject | undefined)?.w !== 24) {
     failSchema(`${path}.layout.w`, "row panels must span all 24 columns");
   }
   const panel: DashboardPanel = {
-    id: asRequiredString(value.id, `${path}.id`),
-    name: asRequiredString(value.name, `${path}.name`),
-    type: type as DashboardPanelType,
-    layout: normalizeDashboardLayout(value.layout, `${path}.layout`),
+    id: asRequiredString(object.id, `${path}.id`),
+    name: asRequiredString(object.name, `${path}.name`),
+    type,
+    layout: normalizeDashboardLayout(object.layout, `${path}.layout`),
     targets: targets.map((target, index) => normalizeDashboardTarget(target, `${path}.targets[${index}]`)),
   };
   (["description", "datasourceCate", "version"] as const).forEach((key) => {
-    if (value[key] !== undefined) panel[key] = asRequiredString(value[key], `${path}.${key}`);
+    if (object[key] !== undefined) panel[key] = asRequiredString(object[key], `${path}.${key}`);
   });
-  if (value.datasourceValue !== undefined) {
-    if (typeof value.datasourceValue !== "number" && typeof value.datasourceValue !== "string") {
+  if (object.datasourceValue !== undefined) {
+    if (typeof object.datasourceValue !== "number" && typeof object.datasourceValue !== "string") {
       failSchema(`${path}.datasourceValue`, "expected a number or string");
     }
-    panel.datasourceValue = value.datasourceValue;
+    panel.datasourceValue = object.datasourceValue as number | string;
   }
-  if (value.collapsed !== undefined) {
-    if (typeof value.collapsed !== "boolean") failSchema(`${path}.collapsed`, "expected a boolean");
-    panel.collapsed = value.collapsed;
+  if (object.collapsed !== undefined) {
+    if (typeof object.collapsed !== "boolean") failSchema(`${path}.collapsed`, "expected a boolean");
+    panel.collapsed = object.collapsed as boolean;
   }
-  panel.custom = asOptionalJsonObject(value.custom, `${path}.custom`);
-  panel.options = asOptionalJsonObject(value.options, `${path}.options`);
+  panel.custom = asOptionalJsonObject(object.custom, `${path}.custom`);
+  panel.options = asOptionalJsonObject(object.options, `${path}.options`);
   (["overrides", "links", "transformations"] as const).forEach((key) => {
-    if (value[key] !== undefined) {
-      if (!Array.isArray(value[key])) failSchema(`${path}.${key}`, "expected an array");
-      panel[key] = value[key] as unknown[];
+    if (object[key] !== undefined) {
+      if (!Array.isArray(object[key])) failSchema(`${path}.${key}`, "expected an array");
+      panel[key] = object[key] as unknown[];
     }
   });
-  if (value.maxPerRow !== undefined) {
-    if (typeof value.maxPerRow !== "number" || !Number.isInteger(value.maxPerRow) || value.maxPerRow < 1) {
+  if (object.maxPerRow !== undefined) {
+    if (typeof object.maxPerRow !== "number" || !Number.isInteger(object.maxPerRow) || object.maxPerRow < 1) {
       failSchema(`${path}.maxPerRow`, "expected a positive integer");
     }
-    panel.maxPerRow = value.maxPerRow;
+    panel.maxPerRow = object.maxPerRow as number;
   }
   if (panels !== undefined) panel.panels = panels.map((child, index) => normalizeDashboardPanel(child, `${path}.panels[${index}]`));
   return panel;
 };
 
 export const normalizeDashboardPayload = (value: unknown): DashboardPayload => {
-  if (!isJsonObject(value)) failSchema("$", "expected an object");
-  assertObjectKeys(value, new Set(["version", "var", "panels", "graphTooltip", "graphZoom"]), "$");
-  if (value.version !== DASHBOARD_SCHEMA_VERSION) {
+  const object = requireJsonObject(value, "$");
+  assertObjectKeys(object, new Set(["version", "var", "panels", "graphTooltip", "graphZoom"]), "$");
+  if (object.version !== DASHBOARD_SCHEMA_VERSION) {
     failSchema("$.version", `expected ${DASHBOARD_SCHEMA_VERSION}`);
   }
-  if (!Array.isArray(value.var)) failSchema("$.var", "expected an array");
-  if (!Array.isArray(value.panels)) failSchema("$.panels", "expected an array");
-  if (value.graphTooltip !== undefined && typeof value.graphTooltip !== "string") failSchema("$.graphTooltip", "expected a string");
-  if (value.graphZoom !== undefined && typeof value.graphZoom !== "string") failSchema("$.graphZoom", "expected a string");
-  const panels = value.panels.map((panel, index) => normalizeDashboardPanel(panel, `$.panels[${index}]`));
+  if (!Array.isArray(object.var)) failSchema("$.var", "expected an array");
+  if (!Array.isArray(object.panels)) failSchema("$.panels", "expected an array");
+  if (object.graphTooltip !== undefined && typeof object.graphTooltip !== "string") failSchema("$.graphTooltip", "expected a string");
+  if (object.graphZoom !== undefined && typeof object.graphZoom !== "string") failSchema("$.graphZoom", "expected a string");
+  const panels = (object.panels as unknown[]).map((panel, index) => normalizeDashboardPanel(panel, `$.panels[${index}]`));
   const ids = new Set<string>();
   const validateUniqueIds = (items: DashboardPanel[], path: string) => {
     items.forEach((panel, index) => {
@@ -212,11 +222,11 @@ export const normalizeDashboardPayload = (value: unknown): DashboardPayload => {
   validateUniqueIds(panels, "$.panels");
   const result: DashboardPayload = {
     version: DASHBOARD_SCHEMA_VERSION,
-    var: value.var.map((variable, index) => normalizeDashboardVariable(variable, `$.var[${index}]`)),
+    var: (object.var as unknown[]).map((variable, index) => normalizeDashboardVariable(variable, `$.var[${index}]`)),
     panels,
   };
-  if (value.graphTooltip !== undefined) result.graphTooltip = value.graphTooltip as string;
-  if (value.graphZoom !== undefined) result.graphZoom = value.graphZoom as string;
+  if (object.graphTooltip !== undefined) result.graphTooltip = object.graphTooltip as string;
+  if (object.graphZoom !== undefined) result.graphZoom = object.graphZoom as string;
   return result;
 };
 
