@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useState, useContext } from "react";
+import { useState, useContext, useRef } from "react";
 import { isEmpty, isArray, get } from "lodash";
 import {
   ConfigPropertiesType,
@@ -29,6 +29,8 @@ import { trimProperty } from "../screens/CommonConfigs/ConfigUtils";
 import { messages } from "../screens/messages";
 import ConfirmationModal from "../components/ConfirmationModal";
 import modalManager from "../store/ModalManager";
+import { HostsApi } from "../api/hostsApi";
+import { ActionsApi } from "../api/actionsApi";
 
 interface AttributesType {
   final: { [key: string]: string };
@@ -52,6 +54,9 @@ export const useConfigSaver = (
   onSaveComplete?: () => void
 ) => {
   const [saveInProgress, setSaveInProgress] = useState(false);
+  // Ember.js ComponentActionsByConfigs#showPopup: capacity-scheduler.xml
+  // changes should prompt a "Refresh YARN Queues" confirmation after save.
+  const yarnQueueRefreshNeededRef = useRef(false);
 
   const heapsizeException = [
     "hadoop_heapsize",
@@ -139,6 +144,12 @@ export const useConfigSaver = (
 
   const saveConfigsForDefaultGroup = async () => {
     let data: any = [];
+    yarnQueueRefreshNeededRef.current = Object.keys(configProperties).some(
+      (svcName) =>
+        getModifiedConfigs(configProperties, svcName).some(
+          (config) => config.fileName === "capacity-scheduler.xml"
+        )
+    );
     Object.keys(configProperties).map((serviceName: string) => {
       var serviceConfigs = getServiceConfigToSave(
         serviceName,
@@ -671,7 +682,7 @@ export const useConfigSaver = (
     _value: string | undefined,
     _status: string,
     _urlParams: string,
-    _doConfigActions: boolean | undefined
+    doConfigActions: boolean | undefined
   ) => {
     modalManager.show(
       <ConfirmationModal
@@ -679,12 +690,98 @@ export const useConfigSaver = (
         onClose={() => modalManager.hide()}
         modalTitle={header}
         modalBody={<div className={messageClass}>{message}</div>}
-        successCallback={() => modalManager.hide()}
+        successCallback={() => {
+          modalManager.hide();
+          // Ember.js ComponentActionsByConfigs#showPopup: prompt to refresh
+          // YARN queues after a successful capacity-scheduler.xml change.
+          if (isSuccess && doConfigActions && yarnQueueRefreshNeededRef.current) {
+            yarnQueueRefreshNeededRef.current = false;
+            showRefreshYarnQueuesPopup();
+          }
+        }}
         buttonVariant={isSuccess ? "success" : "danger"}
         cancellable={false}
         okButtonText="OK"
       />
     );
+  };
+
+  const showRefreshYarnQueuesPopup = () => {
+    modalManager.show(
+      <ConfirmationModal
+        isOpen={true}
+        onClose={() => modalManager.hide()}
+        modalTitle={get(messages, "popup.confirmation.commonHeader", "Confirmation")}
+        modalBody={
+          <div
+            dangerouslySetInnerHTML={{
+              __html: get(messages, "popup.confirmation.refreshYarnQueues.body", ""),
+            }}
+          />
+        }
+        successCallback={() => {
+          modalManager.hide();
+          refreshYarnQueues();
+        }}
+        cancellable={true}
+        okButtonText={get(
+          messages,
+          "popup.confirmation.refreshYarnQueues.buttonText",
+          "Refresh Yarn Queues"
+        )}
+      />
+    );
+  };
+
+  const refreshYarnQueues = async () => {
+    try {
+      const fields =
+        "fields=Hosts/host_name,host_components/HostRoles/component_name";
+      const hostDetailsResponse = await HostsApi.getHostComponentsDetails(
+        clusterName,
+        fields
+      );
+      type HostComponentDetails = {
+        Hosts: { host_name: string };
+        host_components?: { HostRoles: { component_name: string } }[];
+      };
+      const hostNames = (
+        (hostDetailsResponse?.items || []) as HostComponentDetails[]
+      ).flatMap((host) => {
+        const matches = (host.host_components || []).filter(
+          (component) =>
+            component.HostRoles.component_name === "RESOURCEMANAGER"
+        );
+        return matches.map(() => host.Hosts.host_name);
+      });
+
+      if (!hostNames.length) {
+        return;
+      }
+
+      const payloadData = {
+        RequestInfo: {
+          command: "REFRESHQUEUES",
+          context: get(
+            messages,
+            "services.service.actions.run.yarnRefreshQueues.context",
+            "Refresh YARN Capacity Scheduler"
+          ),
+          "parameters/forceRefreshConfigTags": "capacity-scheduler",
+        },
+        "Requests/resource_filters": [
+          {
+            service_name: "YARN",
+            component_name: "RESOURCEMANAGER",
+            hosts: hostNames.join(","),
+          },
+        ],
+      };
+
+      await ActionsApi.submitActionRequest(clusterName, payloadData);
+    } catch (error) {
+      console.error("Error refreshing YARN queues:", error);
+    }
   };
 
   // const showSavePopup = () => {
