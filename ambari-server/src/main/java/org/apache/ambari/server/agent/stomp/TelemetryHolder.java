@@ -16,6 +16,8 @@
  */
 package org.apache.ambari.server.agent.stomp;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.HostRegisteredEvent;
@@ -27,6 +29,7 @@ import org.apache.ambari.server.events.TelemetryUpdateEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +60,12 @@ public class TelemetryHolder extends AgentHostDataHolder<TelemetryUpdateEvent> {
   @Override
   protected TelemetryUpdateEvent getCurrentData(Long hostId) throws AmbariException {
     return compiler.compile(hostId);
+  }
+
+  @Override
+  protected TelemetryUpdateEvent getCurrentData(Long hostId,
+      Map<Long, Map<String, DesiredConfig>> cachedClustersDesiredConfigs) throws AmbariException {
+    return getCurrentData(hostId);
   }
 
   @Override
