@@ -19,6 +19,7 @@
         "type": "row",
         "id": "linux-fleet-health-row",
         "name": "Fleet health",
+        "titleKey": "monitoring.dashboard.sections.linuxFleet.health",
         "collapsed": false,
         "layout": { "h": 1, "w": 24, "x": 0, "y": 0, "i": "linux-fleet-health-row", "isResizable": false },
         "panels": []
@@ -191,6 +192,7 @@
         "type": "row",
         "id": "linux-fleet-storage-row",
         "name": "Storage",
+        "titleKey": "monitoring.dashboard.sections.linuxFleet.storage",
         "collapsed": false,
         "layout": { "h": 1, "w": 24, "x": 0, "y": 17, "i": "linux-fleet-storage-row", "isResizable": false },
         "panels": []
@@ -306,6 +308,7 @@
         "type": "row",
         "id": "linux-fleet-network-row",
         "name": "Network and kernel",
+        "titleKey": "monitoring.dashboard.sections.linuxFleet.networkKernel",
         "collapsed": false,
         "layout": { "h": 1, "w": 24, "x": 0, "y": 36, "i": "linux-fleet-network-row", "isResizable": false },
         "panels": []

@@ -20,8 +20,9 @@
       {
         "type": "row",
         "id": "395024ed-3fb8-4111-acbc-08f3f4e21735",
-        "name": "Hbase RegionServer基础情况",
-        "collapsed": true,
+        "name": "HBase RegionServer overview",
+        "titleKey": "monitoring.dashboard.sections.regionServer.overview",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -410,8 +411,9 @@
       {
         "type": "row",
         "id": "4a2c73c4-a41f-4217-84dc-7003a97e9f67",
-        "name": "RegionServer Memstore & BlockCache 监控",
-        "collapsed": true,
+        "name": "RegionServer MemStore and BlockCache",
+        "titleKey": "monitoring.dashboard.sections.regionServer.cache",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -890,8 +892,9 @@
       {
         "type": "row",
         "id": "1f27fb3b-7160-4803-ad2c-5cfdff824e32",
-        "name": "RegionServer 队列",
-        "collapsed": true,
+        "name": "RegionServer queues",
+        "titleKey": "monitoring.dashboard.sections.regionServer.queues",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -1297,7 +1300,8 @@
         "type": "row",
         "id": "3a58e54f-4a71-4b93-96bc-5c9a9cd42d93",
         "name": "RegionServer request throughput",
-        "collapsed": true,
+        "titleKey": "monitoring.dashboard.sections.regionServer.requestThroughput",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,

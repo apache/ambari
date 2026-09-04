@@ -20,8 +20,9 @@
       {
         "type": "row",
         "id": "b8e1e2ac-7007-4168-9798-cfeb377dc5ee",
-        "name": "Yarn ResourceManager JVM监控",
-        "collapsed": true,
+        "name": "ResourceManager JVM",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.jvm",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -446,8 +447,9 @@
       {
         "type": "row",
         "id": "cfdba75a-9452-4a02-92d6-cc44d6136823",
-        "name": "Yarn ResourceManager 线程监控",
-        "collapsed": true,
+        "name": "ResourceManager threads",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.threads",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -773,8 +775,9 @@
       {
         "type": "row",
         "id": "b08df038-434f-4c4b-b7ab-83c02c59b952",
-        "name": "Yarn ResourceManager 网络传输",
-        "collapsed": true,
+        "name": "ResourceManager network traffic",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.networkTraffic",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -947,8 +950,9 @@
       {
         "type": "row",
         "id": "d38ca3c1-b987-4b9c-ab61-66a3391af391",
-        "name": "Yarn ResourceManager 系统资源使用",
-        "collapsed": true,
+        "name": "ResourceManager system resource usage",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.systemResources",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -1357,8 +1361,9 @@
       {
         "type": "row",
         "id": "95b583e9-ac8c-4e85-af01-ae55c93a00d0",
-        "name": "Yarn ResourceManager RPC 性能指标",
-        "collapsed": true,
+        "name": "ResourceManager RPC performance",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.rpcPerformance",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,

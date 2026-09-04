@@ -57,7 +57,8 @@ public class BuiltinDashboardContractTest {
   private static final Set<String> RAW_COUNTER_GAUGES = Set.of(
       "startup_progress_elapsed_time");
   private static final Set<String> SUPPORTED_UNITS = Set.of(
-      "", "bytesIEC", "bytesSecIEC", "cps", "percent", "percentUnit", "reqps", "seconds");
+      "", "bitsSecSI", "bytesIEC", "bytesSecIEC", "cps", "iops", "packetsSec", "percent",
+      "percentUnit", "reqps", "seconds");
 
   private static final Map<String, DashboardContract> DASHBOARDS = new LinkedHashMap<>();
   private static final String[] PROFILE_RESOURCES = {
@@ -77,8 +78,8 @@ public class BuiltinDashboardContractTest {
     DASHBOARDS.put("YARN_NodeManager.json", new DashboardContract("YARN", "NODEMANAGER", 20));
     DASHBOARDS.put("YARN_ResourceManager.json", new DashboardContract("YARN", "RESOURCEMANAGER", 30));
     DASHBOARDS.put("YARN_ResourceManager_Sys.json", new DashboardContract("YARN", "RESOURCEMANAGER", 22));
-    DASHBOARDS.put("Linux_Fleet_Overview.json", new DashboardContract(21, false));
-    DASHBOARDS.put("Linux_Host_Detail.json", new DashboardContract(43, true));
+    DASHBOARDS.put("Linux_Fleet_Overview.json", new DashboardContract(23, false));
+    DASHBOARDS.put("Linux_Host_Detail.json", new DashboardContract(77, true));
   }
 
   @Test

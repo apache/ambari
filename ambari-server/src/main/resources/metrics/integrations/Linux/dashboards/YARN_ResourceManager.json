@@ -21,7 +21,8 @@
         "type": "row",
         "id": "8f706de4-0e8f-48fe-8c34-5ce917e332e2",
         "name": "Cluster resources",
-        "collapsed": true,
+        "titleKey": "monitoring.dashboard.sections.resourceManager.clusterResources",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -287,7 +288,8 @@
         "type": "row",
         "id": "af4eefe2-873f-48cd-b0c5-e09deea615e4",
         "name": "Queue allocation",
-        "collapsed": true,
+        "titleKey": "monitoring.dashboard.sections.resourceManager.queueAllocation",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -764,7 +766,8 @@
         "type": "row",
         "id": "1383fd15-9ba2-4109-bb88-d284691a2c3a",
         "name": "Applications",
-        "collapsed": true,
+        "titleKey": "monitoring.dashboard.sections.resourceManager.applications",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -1156,7 +1159,8 @@
         "type": "row",
         "id": "6465f48b-0157-444f-bbc0-6a3093d41dda",
         "name": "Queue and ApplicationMaster resources",
-        "collapsed": true,
+        "titleKey": "monitoring.dashboard.sections.resourceManager.queueApplicationMaster",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,

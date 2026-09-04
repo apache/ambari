@@ -22,6 +22,7 @@
         "type": "row",
         "id": "hive-sessions-row",
         "name": "Sessions and connections",
+        "titleKey": "monitoring.dashboard.sections.hive.sessionsConnections",
         "collapsed": false,
         "layout": {
           "h": 1,
@@ -129,6 +130,7 @@
         "type": "row",
         "id": "hive-query-row",
         "name": "Queries",
+        "titleKey": "monitoring.dashboard.sections.hive.queries",
         "collapsed": false,
         "layout": {
           "h": 1,
@@ -220,6 +222,7 @@
         "type": "row",
         "id": "hive-runtime-row",
         "name": "Runtime",
+        "titleKey": "monitoring.dashboard.sections.hive.runtime",
         "collapsed": false,
         "layout": {
           "h": 1,

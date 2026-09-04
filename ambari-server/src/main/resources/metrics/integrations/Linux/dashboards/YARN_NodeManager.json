@@ -20,8 +20,9 @@
       {
         "type": "row",
         "id": "8f706de4-0e8f-48fe-8c34-5ce917e332e2",
-        "name": "Yarn NodeManager 资源使用情况",
-        "collapsed": true,
+        "name": "NodeManager resource usage",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.resourceUsage",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -507,8 +508,9 @@
       {
         "type": "row",
         "id": "af4eefe2-873f-48cd-b0c5-e09deea615e4",
-        "name": "Yarn NodeManager 容器资源分配",
-        "collapsed": true,
+        "name": "NodeManager container allocation",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.containerAllocation",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -1148,8 +1150,9 @@
       {
         "type": "row",
         "id": "1383fd15-9ba2-4109-bb88-d284691a2c3a",
-        "name": "Yarn NodeManager 磁盘和目录状态",
-        "collapsed": true,
+        "name": "NodeManager disk and local directories",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.storage",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -1514,8 +1517,9 @@
       {
         "type": "row",
         "id": "6465f48b-0157-444f-bbc0-6a3093d41dda",
-        "name": "Yarn NodeManager系统资源使用",
-        "collapsed": true,
+        "name": "NodeManager system resource usage",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.systemResources",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -1768,8 +1772,9 @@
       {
         "type": "row",
         "id": "604504ef-d12e-43ae-a4b6-e85ccf6092f5",
-        "name": "Yarn NodeManager  RPC 和网络",
-        "collapsed": true,
+        "name": "NodeManager RPC and network",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.rpcNetwork",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,

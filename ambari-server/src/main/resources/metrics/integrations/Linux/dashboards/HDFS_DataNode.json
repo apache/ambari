@@ -20,8 +20,9 @@
       {
         "type": "row",
         "id": "8eebe4d4-c1ad-46ad-b97f-90374910a8e6",
-        "name": "DN系统信息",
-        "collapsed": true,
+        "name": "DataNode system information",
+        "titleKey": "monitoring.dashboard.sections.dataNode.systemInformation",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -431,8 +432,9 @@
       {
         "type": "row",
         "id": "7e08d752-1e67-4277-a549-489b2c11900c",
-        "name": "心跳",
-        "collapsed": true,
+        "name": "Heartbeats",
+        "titleKey": "monitoring.dashboard.sections.dataNode.heartbeats",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -605,8 +607,9 @@
       {
         "type": "row",
         "id": "2bb657ef-e515-4673-8fff-7efc111b8b08",
-        "name": "容量",
-        "collapsed": true,
+        "name": "Capacity",
+        "titleKey": "monitoring.dashboard.sections.dataNode.capacity",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -1094,8 +1097,9 @@
       {
         "type": "row",
         "id": "c7dd3090-bdf7-429f-8bb4-d1101530b13c",
-        "name": "blocks监控",
-        "collapsed": true,
+        "name": "Block monitoring",
+        "titleKey": "monitoring.dashboard.sections.dataNode.blocks",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -1743,8 +1747,9 @@
       {
         "type": "row",
         "id": "a9530fdb-88da-45c0-bdb5-a0fb38984256",
-        "name": "读写监控",
-        "collapsed": true,
+        "name": "Read and write operations",
+        "titleKey": "monitoring.dashboard.sections.dataNode.readWrite",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -2077,8 +2082,9 @@
       {
         "type": "row",
         "id": "ca4db552-dbcd-4d43-b7cd-6fbe8c675f4d",
-        "name": "RPC相关 - 反映与其他组件的通信状态",
-        "collapsed": true,
+        "name": "RPC communication",
+        "titleKey": "monitoring.dashboard.sections.dataNode.rpcCommunication",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,
@@ -2649,7 +2655,8 @@
         "type": "row",
         "id": "9cbc6669-584a-4ab9-b6e4-1f87d3113b98",
         "name": "JVM",
-        "collapsed": true,
+        "titleKey": "monitoring.dashboard.sections.dataNode.jvm",
+        "collapsed": false,
         "layout": {
           "h": 1,
           "w": 24,

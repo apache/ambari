@@ -13,595 +13,3318 @@
   "built_in": 0,
   "hide": 0,
   "configs": {
+    "version": "3.0.0",
     "var": [
+      {
+        "name": "prom",
+        "label": "Data source",
+        "type": "datasource",
+        "definition": "prometheus"
+      },
       {
         "name": "host",
         "label": "Host",
-        "type": "textbox",
-        "definition": "Host name or regular expression",
-        "value": ".*"
+        "type": "query",
+        "definition": "max by (host) (ambari_agent_host_info{cluster=\"${cluster}\",ambari_target=\"host\"})",
+        "value": ".*",
+        "multi": true,
+        "includeAll": true
       }
     ],
     "panels": [
       {
-        "type": "row",
-        "id": "linux-host-overview-row",
+        "id": "linux-host-overview",
         "name": "Host overview",
+        "titleKey": "monitoring.dashboard.sections.linuxHost.overview",
+        "type": "row",
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0,
+          "i": "linux-host-overview",
+          "isResizable": false
+        },
+        "targets": [],
         "collapsed": false,
-        "layout": { "h": 1, "w": 24, "x": 0, "y": 0, "i": "linux-host-overview-row", "isResizable": false },
         "panels": []
       },
       {
-        "type": "stat",
-        "id": "linux-host-uptime",
+        "id": "linux-host-system-uptime",
         "name": "System uptime",
-        "layout": { "h": 4, "w": 6, "x": 0, "y": 1, "i": "linux-host-uptime", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "type": "stat",
+        "layout": {
+          "h": 5,
+          "w": 6,
+          "x": 0,
+          "y": 1,
+          "i": "linux-host-system-uptime",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
             "expr": "max by (host) (ambari_agent_system_uptime_seconds{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
             "legend": "{{host}}",
-            "instant": true
+            "instant": true,
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "seconds", "min": 0, "decimals": 0 } }
-      },
-      {
-        "type": "stat",
-        "id": "linux-host-cpu-busy",
-        "name": "CPU busy ratio",
-        "layout": { "h": 4, "w": 6, "x": 6, "y": 1, "i": "linux-host-cpu-busy", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "textMode": "valueAndName",
+          "graphMode": "none",
+          "colorMode": "background",
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colSpan": 0,
+          "textSize": {
+            "title": null,
+            "value": null
+          },
+          "orientation": "auto"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "rgba(148, 112, 255, 1)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "valueMappings": [],
+          "standardOptions": {
+            "util": "seconds",
+            "decimals": 1
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#6C53B1",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-swap-memory-used",
+        "name": "Swap memory used",
+        "type": "stat",
+        "layout": {
+          "h": 5,
+          "w": 6,
+          "x": 6,
+          "y": 1,
+          "i": "linux-host-swap-memory-used",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "1 - avg by (host) (rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",cpu!=\"total\",mode=\"idle\"}[$__rate_interval]))",
+            "expr": "ambari_agent_memory_swap_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} - ambari_agent_memory_swap_free_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
             "legend": "{{host}}",
-            "instant": true
+            "instant": true,
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
-      },
-      {
-        "type": "stat",
-        "id": "linux-host-memory-used",
-        "name": "Memory used ratio",
-        "layout": { "h": 4, "w": 6, "x": 12, "y": 1, "i": "linux-host-memory-used", "isResizable": true },
+        "description": "High swap use can degrade I/O performance. If memory is available, review the host swappiness setting.",
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "textMode": "valueAndName",
+          "graphMode": "none",
+          "colorMode": "background",
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colSpan": 0,
+          "textSize": {
+            "value": null
+          },
+          "orientation": "auto"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "rgba(148, 112, 255, 1)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "valueMappings": [],
+          "standardOptions": {
+            "util": "bytesIEC",
+            "decimals": 1
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#6C53B1",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-filesystem-device-errors",
+        "name": "Filesystem device errors",
+        "type": "stat",
+        "layout": {
+          "h": 5,
+          "w": 6,
+          "x": 12,
+          "y": 1,
+          "i": "linux-host-filesystem-device-errors",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "1 - max by (host) (ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) / clamp_min(max by (host) (ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
+            "expr": "sum(ambari_agent_filesystem_device_error{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",mountpoint!~\"/var/lib/.*\",mountpoint!~\"/run.*\"}) by (host)",
             "legend": "{{host}}",
-            "instant": true
+            "instant": true,
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
-      },
-      {
-        "type": "stat",
-        "id": "linux-host-load-per-cpu",
-        "name": "One-minute load per CPU",
-        "layout": { "h": 4, "w": 6, "x": 18, "y": 1, "i": "linux-host-load-per-cpu", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
+        "datasourceValue": "${prom}",
+        "custom": {
+          "textMode": "valueAndName",
+          "graphMode": "none",
+          "colorMode": "background",
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colSpan": 0,
+          "textSize": {
+            "value": null
+          },
+          "orientation": "auto"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "valueMappings": [
+            {
+              "match": {
+                "from": 0,
+                "to": 0
+              },
+              "result": {
+                "color": "#369903"
+              },
+              "type": "range"
+            },
+            {
+              "match": {
+                "from": 1,
+                "to": null
+              },
+              "result": {
+                "color": "#f0310f"
+              },
+              "type": "range"
+            }
+          ],
+          "standardOptions": {
+            "decimals": 1
+          }
+        },
+        "overrides": [
           {
-            "refId": "A",
-            "expr": "max by (host) (ambari_agent_system_load1{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) / clamp_min(max by (host) (ambari_agent_system_cpu_count{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
-            "legend": "{{host}}",
-            "instant": true
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#6C53B1",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
           }
         ],
-        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 2 } }
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
       },
       {
+        "id": "linux-host-oom-kills-per-second",
+        "name": "OOM kills per second",
         "type": "timeseries",
-        "id": "linux-host-cpu-modes",
-        "name": "CPU time ratio by mode",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 5, "i": "linux-host-cpu-modes", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "layout": {
+          "h": 5,
+          "w": 6,
+          "x": 18,
+          "y": 1,
+          "i": "linux-host-oom-kills-per-second",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "avg by (host, mode) (rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",cpu!=\"total\"}[$__rate_interval]))",
-            "legend": "{{host}} {{mode}}"
+            "expr": "rate(ambari_agent_oom_kills_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+        "description": "A value above zero means the kernel killed a process because memory was exhausted.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "decimals": 0
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              },
+              {
+                "color": "#f90101",
+                "value": 1
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
       },
       {
+        "id": "linux-host-filesystem-utilization",
+        "name": "Filesystem utilization",
+        "type": "hexbin",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 6,
+          "i": "linux-host-filesystem-utilization",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(25, max(100 - ((ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} * 100) / ambari_agent_filesystem_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})) by (host, mountpoint))",
+            "legend": "{{host}} {{mountpoint}}",
+            "instant": true,
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "textMode": "valueAndName",
+          "fontBackground": true,
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colorRange": [
+            "thresholds"
+          ]
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "rgb(255, 101, 107)",
+                "value": 95,
+                "type": ""
+              },
+              {
+                "color": "rgba(230, 198, 39, 1)",
+                "value": 75,
+                "type": ""
+              },
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 1
+          }
+        },
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-inode-utilization",
+        "name": "Inode utilization",
+        "type": "hexbin",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 6,
+          "i": "linux-host-inode-utilization",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(25, max(100 - ((ambari_agent_filesystem_files_free{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",mountpoint!~\"/var/lib/.*\",mountpoint!~\"/run/user.*\"} * 100) / ambari_agent_filesystem_files{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",mountpoint!~\"/var/lib/.*\",mountpoint!~\"/run/user.*\"})) by (host, mountpoint))",
+            "legend": "{{host}} {{mountpoint}}",
+            "instant": true,
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "textMode": "valueAndName",
+          "fontBackground": true,
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colorRange": [
+            "thresholds"
+          ]
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "rgb(255, 101, 107)",
+                "value": 75,
+                "type": ""
+              },
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 1
+          }
+        },
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-file-descriptor-utilization",
+        "name": "File descriptor utilization",
         "type": "timeseries",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 6,
+          "i": "linux-host-file-descriptor-utilization",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "ambari_agent_file_descriptors_allocated{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}/ambari_agent_file_descriptors_maximum{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}*100",
+            "legend": "{{host}}",
+            "instant": false,
+            "maxDataPoints": 480
+          }
+        ],
+        "description": "Sustained utilization above 80% requires a higher system file descriptor limit or reduced workload.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#6C53B1",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-cpu-utilization",
+        "name": "CPU utilization",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 11,
+          "i": "linux-host-cpu-utilization",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "avg without (mode,cpu) ( 1 - rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",mode=\"idle\"}[$__rate_interval]) ) * 100",
+            "legend": "{{host}}",
+            "instant": false,
+            "maxDataPoints": 480
+          }
+        ],
+        "description": "Sustained high utilization can indicate an abnormal process or insufficient host capacity.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-memory-utilization",
+        "name": "Memory utilization",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 8,
+          "y": 11,
+          "i": "linux-host-memory-utilization",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "(1 - (ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} / ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})) * 100",
+            "legend": "{{host}}",
+            "instant": false,
+            "maxDataPoints": 480
+          }
+        ],
+        "description": "Sustained high utilization can indicate that the service or host needs more memory.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#6C53B1",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-disk-i-o-utilization",
+        "name": "Disk I/O utilization",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 16,
+          "y": 11,
+          "i": "linux-host-disk-i-o-utilization",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "rate(ambari_agent_disk_io_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) * 100",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(255, 101, 107)",
+                "value": 75,
+                "type": ""
+              },
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-system-metrics",
+        "name": "System metrics",
+        "titleKey": "monitoring.dashboard.sections.linuxHost.systemMetrics",
+        "type": "row",
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 17,
+          "i": "linux-host-system-metrics",
+          "isResizable": false
+        },
+        "targets": [],
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": "linux-host-processes-running",
+        "name": "Processes running",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 0,
+          "y": 18,
+          "i": "linux-host-processes-running",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "ambari_agent_system_processes_running{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "description": "A persistently high runnable process count can indicate host saturation.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              },
+              {
+                "color": "#ff0000",
+                "value": 2000
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-context-switches-and-interrupts",
+        "name": "Context switches and interrupts",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 6,
+          "y": 18,
+          "i": "linux-host-context-switches-and-interrupts",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "rate(ambari_agent_system_interrupts_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} interrupts",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "B",
+            "expr": "irate(ambari_agent_system_context_switches_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} context switches",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-available-entropy",
+        "name": "Available entropy",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 12,
+          "y": 18,
+          "i": "linux-host-available-entropy",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "ambari_agent_entropy_available_bits{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "description": "A depleted entropy pool can block consumers of kernel randomness.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "decimals": null
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              },
+              {
+                "color": "#f70202",
+                "value": 100
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-ntp-offset",
+        "name": "NTP offset",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 18,
+          "y": 18,
+          "i": "linux-host-ntp-offset",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "ambari_agent_timex_offset_seconds{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "seconds",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-cpu-details",
+        "name": "CPU details",
+        "titleKey": "monitoring.dashboard.sections.linuxHost.cpu",
+        "type": "row",
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 24,
+          "i": "linux-host-cpu-details",
+          "isResizable": false
+        },
+        "targets": [],
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": "linux-host-cpu-idle-ratio",
+      "name": "CPU idle percentage",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 8,
+          "x": 0,
+          "y": 25,
+          "i": "linux-host-cpu-idle-ratio",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": " (avg without (cpu, mode)(rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",mode=\"idle\"}[$__rate_interval])))*100",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              },
+              {
+                "color": "#f90101",
+                "value": 10
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-cpu-utilization-by-mode",
+        "name": "CPU utilization by mode",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 8,
+          "x": 8,
+          "y": 25,
+          "i": "linux-host-cpu-utilization-by-mode",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": " (avg without (cpu)(rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",mode!=\"idle\"}[$__rate_interval])))*100",
+            "legend": "{{host}} {{mode}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
         "id": "linux-host-load-average",
         "name": "Load average",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 5, "i": "linux-host-load-average", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 8,
+          "x": 16,
+          "y": 25,
+          "i": "linux-host-load-average",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "max by (host) (ambari_agent_system_load1{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} 1m"
+            "expr": "ambari_agent_system_load1{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} load1",
+            "maxDataPoints": 480
           },
           {
             "refId": "B",
-            "expr": "max by (host) (ambari_agent_system_load5{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} 5m"
+            "expr": "ambari_agent_system_load5{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} load5",
+            "maxDataPoints": 480
           },
           {
             "refId": "C",
-            "expr": "max by (host) (ambari_agent_system_load15{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} 15m"
+            "expr": "ambari_agent_system_load15{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} load15",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 2 } }
-      },
-      {
-        "type": "timeseries",
-        "id": "linux-host-memory",
-        "name": "Memory capacity and composition",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 11, "i": "linux-host-memory", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-memory-details",
+        "name": "Memory details",
+        "titleKey": "monitoring.dashboard.sections.linuxHost.memory",
+        "type": "row",
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 32,
+          "i": "linux-host-memory-details",
+          "isResizable": false
+        },
+        "targets": [],
+        "collapsed": false,
+        "panels": []
+      },
+      {
+        "id": "linux-host-user-memory-details",
+        "name": "User memory details",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 12,
+          "x": 0,
+          "y": 33,
+          "i": "linux-host-user-memory-details",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "max by (host) (ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} total"
+            "expr": "ambari_agent_memory_hugepages_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} * on(cluster, host, ambari_target) ambari_agent_memory_hugepages_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} hugepages total bytes",
+            "maxDataPoints": 480
           },
           {
             "refId": "B",
-            "expr": "max by (host) (ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} available"
+            "expr": "ambari_agent_memory_hugepages_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           },
           {
             "refId": "C",
-            "expr": "max by (host) (ambari_agent_memory_cached_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} page cache"
+            "expr": "ambari_agent_memory_hugepages_surplus{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} * on(cluster, host, ambari_target) ambari_agent_memory_hugepages_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} hugepages surplus bytes",
+            "maxDataPoints": 480
           },
           {
             "refId": "D",
-            "expr": "max by (host) (ambari_agent_memory_active_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} active"
+            "expr": "ambari_agent_memory_hugepages_free{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} * on(cluster, host, ambari_target) ambari_agent_memory_hugepages_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} hugepages free bytes",
+            "maxDataPoints": 480
           },
           {
             "refId": "E",
-            "expr": "max by (host) (ambari_agent_memory_inactive_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} inactive"
+            "expr": "ambari_agent_memory_hugepages_reserved{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} * on(cluster, host, ambari_target) ambari_agent_memory_hugepages_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} hugepages reserved bytes",
+            "maxDataPoints": 480
           },
           {
             "refId": "F",
-            "expr": "max by (host) (ambari_agent_memory_buffers_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} buffers"
+            "expr": "ambari_agent_memory_anon_huge_pages_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           },
           {
             "refId": "G",
-            "expr": "max by (host) (ambari_agent_memory_slab_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} slab"
+            "expr": "ambari_agent_memory_inactive_file_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "H",
+            "expr": "ambari_agent_memory_inactive_anon_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "I",
+            "expr": "ambari_agent_memory_active_file_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "J",
+            "expr": "ambari_agent_memory_active_anon_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "K",
+            "expr": "ambari_agent_memory_unevictable_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "L",
+            "expr": "ambari_agent_memory_anon_pages_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "M",
+            "expr": "ambari_agent_memory_shmem_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "N",
+            "expr": "ambari_agent_memory_mapped_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "O",
+            "expr": "ambari_agent_memory_cached_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} ",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "P",
+            "expr": "ambari_agent_memory_swap_cached_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "Q",
+            "expr": "ambari_agent_memory_mlocked_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "R",
+            "expr": "ambari_agent_memory_buffers_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "bytesIEC", "min": 0 } }
-      },
-      {
-        "type": "timeseries",
-        "id": "linux-host-swap",
-        "name": "Swap used ratio",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 11, "i": "linux-host-swap", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "displayMode": "table",
+            "placement": "bottom",
+            "columns": [
+              "last"
+            ],
+            "behaviour": "showItem",
+            "selectMode": "single",
+            "heightInPercentage": null
+          },
+          "standardOptions": {
+            "util": "bytesIEC",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-kernel-memory-details",
+        "name": "Kernel memory details",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 12,
+          "x": 12,
+          "y": 33,
+          "i": "linux-host-kernel-memory-details",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "(max by (host) (ambari_agent_memory_swap_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) - max by (host) (ambari_agent_memory_swap_free_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})) / clamp_min(max by (host) (ambari_agent_memory_swap_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
-            "legend": "{{host}}"
+            "expr": "ambari_agent_memory_slab_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "B",
+            "expr": "ambari_agent_memory_sreclaimable_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "C",
+            "expr": "ambari_agent_memory_sunreclaim_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "D",
+            "expr": "ambari_agent_memory_vmalloc_used_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "E",
+            "expr": "ambari_agent_memory_vmalloc_chunk_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "F",
+            "expr": "ambari_agent_memory_kernel_stack_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "G",
+            "expr": "ambari_agent_memory_bounce_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "displayMode": "table",
+            "placement": "bottom",
+            "columns": [
+              "last"
+            ],
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
       },
       {
+        "id": "linux-host-direct-mapped-memory",
+        "name": "Direct mapped memory",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 12,
+          "x": 0,
+          "y": 40,
+          "i": "linux-host-direct-mapped-memory",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "ambari_agent_memory_direct_map_1g_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "B",
+            "expr": "ambari_agent_memory_direct_map_2m_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "C",
+            "expr": "ambari_agent_memory_direct_map_4k_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "description": "DirectMap values show how much memory is mapped with each page size and help assess TLB efficiency.",
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "displayMode": "table",
+            "placement": "bottom",
+            "columns": [
+              "last"
+            ],
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-dirty-pages",
+        "name": "Dirty pages",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 12,
+          "x": 12,
+          "y": 40,
+          "i": "linux-host-dirty-pages",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "ambari_agent_memory_nfs_unstable_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "B",
+            "expr": "ambari_agent_memory_writeback_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "C",
+            "expr": "ambari_agent_memory_dirty_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "displayMode": "table",
+            "placement": "bottom",
+            "columns": [
+              "last"
+            ],
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-disk-details",
+        "name": "Disk details",
+        "titleKey": "monitoring.dashboard.sections.linuxHost.disk",
         "type": "row",
-        "id": "linux-host-storage-row",
-        "name": "Filesystems and disks",
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 47,
+          "i": "linux-host-disk-details",
+          "isResizable": false
+        },
+        "targets": [],
         "collapsed": false,
-        "layout": { "h": 1, "w": 24, "x": 0, "y": 17, "i": "linux-host-storage-row", "isResizable": false },
         "panels": []
       },
       {
-        "type": "barGauge",
-        "id": "linux-host-filesystem-used",
-        "name": "Filesystem utilization ratio",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 18, "i": "linux-host-filesystem-used", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
-          {
-            "refId": "A",
-            "expr": "1 - max by (host, device, mountpoint) (ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}) / clamp_min(max by (host, device, mountpoint) (ambari_agent_filesystem_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}), 1)",
-            "legend": "{{host}} {{mountpoint}}"
-          }
-        ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
-      },
-      {
-        "type": "barchart",
-        "id": "linux-host-filesystem-available",
-        "name": "Filesystem available capacity",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 18, "i": "linux-host-filesystem-available", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
-          {
-            "refId": "A",
-            "expr": "max by (host, device, mountpoint) (ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"})",
-            "legend": "{{host}} {{mountpoint}}"
-          }
-        ],
-        "options": { "standardOptions": { "util": "bytesIEC", "min": 0 } }
-      },
-      {
-        "type": "barGauge",
-        "id": "linux-host-inodes",
-        "name": "Filesystem inode utilization ratio",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 24, "i": "linux-host-inodes", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
-          {
-            "refId": "A",
-            "expr": "1 - max by (host, device, mountpoint) (ambari_agent_filesystem_files_free{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}) / clamp_min(max by (host, device, mountpoint) (ambari_agent_filesystem_files{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}), 1)",
-            "legend": "{{host}} {{mountpoint}}"
-          }
-        ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
-      },
-      {
+        "id": "linux-host-average-i-o-request-latency",
+        "name": "Average I/O request latency",
         "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 0,
+          "y": 48,
+          "i": "linux-host-average-i-o-request-latency",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "rate(ambari_agent_disk_read_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) / rate(ambari_agent_disk_reads_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])\n+\nrate(ambari_agent_disk_write_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) / rate(ambari_agent_disk_writes_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "seconds",
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
         "id": "linux-host-disk-throughput",
         "name": "Disk throughput",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 24, "i": "linux-host-disk-throughput", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 6,
+          "y": 48,
+          "i": "linux-host-disk-throughput",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "sum by (host, device) (rate(ambari_agent_disk_read_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} read"
+            "expr": "rate(ambari_agent_disk_read_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}}-Read",
+            "maxDataPoints": 480
           },
           {
             "refId": "B",
-            "expr": "sum by (host, device) (rate(ambari_agent_disk_written_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} write"
+            "expr": "rate(ambari_agent_disk_written_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}}-Write",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "bytesSecIEC", "min": 0 } }
-      },
-      {
-        "type": "timeseries",
-        "id": "linux-host-disk-operations",
-        "name": "Disk operation rate",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 30, "i": "linux-host-disk-operations", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesSecIEC",
+            "decimals": 1
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-disk-operations-and-merges",
+        "name": "Disk operations and merges",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 12,
+          "y": 48,
+          "i": "linux-host-disk-operations-and-merges",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "sum by (host, device) (rate(ambari_agent_disk_reads_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} reads"
+            "expr": "rate(ambari_agent_disk_reads_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - Reads",
+            "maxDataPoints": 480
           },
           {
             "refId": "B",
-            "expr": "sum by (host, device) (rate(ambari_agent_disk_writes_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} writes"
-          }
-        ],
-        "options": { "standardOptions": { "util": "reqps", "min": 0 } }
-      },
-      {
-        "type": "timeseries",
-        "id": "linux-host-disk-latency",
-        "name": "Average disk operation duration",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 30, "i": "linux-host-disk-latency", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
-          {
-            "refId": "A",
-            "expr": "sum by (host, device) (rate(ambari_agent_disk_read_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])) / clamp_min(sum by (host, device) (rate(ambari_agent_disk_reads_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])), 0.001)",
-            "legend": "{{host}} {{device}} read"
+            "expr": "rate(ambari_agent_disk_writes_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - Writes",
+            "maxDataPoints": 480
           },
           {
-            "refId": "B",
-            "expr": "sum by (host, device) (rate(ambari_agent_disk_write_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])) / clamp_min(sum by (host, device) (rate(ambari_agent_disk_writes_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])), 0.001)",
-            "legend": "{{host}} {{device}} write"
+            "refId": "C",
+            "expr": "rate(ambari_agent_disk_reads_merged_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - Read merged",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "D",
+            "expr": "rate(ambari_agent_disk_writes_merged_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - Write merged",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "seconds", "min": 0 } }
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "iops",
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
       },
       {
+        "id": "linux-host-read-only-filesystems",
+        "name": "Read-only filesystems",
         "type": "timeseries",
-        "id": "linux-host-disk-queue",
-        "name": "Disk operations in progress",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 36, "i": "linux-host-disk-queue", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 18,
+          "y": 48,
+          "i": "linux-host-read-only-filesystems",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "max by (host, device) (ambari_agent_disk_io_in_progress{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} {{device}}"
+            "expr": "ambari_agent_filesystem_readonly{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs\",device!~\"tmpfs\",mountpoint!~\"/var/lib.*\"}",
+            "legend": "{{host}} {{mountpoint}} - ReadOnly",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
-      },
-      {
-        "type": "gauge",
-        "id": "linux-host-disk-busy",
-        "name": "Disk busy ratio",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 36, "i": "linux-host-disk-busy", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-average-i-o-request-size",
+        "name": "Average I/O request size",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 12,
+          "x": 0,
+          "y": 54,
+          "i": "linux-host-average-i-o-request-size",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "max by (host, device) (rate(ambari_agent_disk_io_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}}"
+            "expr": "(rate(ambari_agent_disk_read_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) + rate(ambari_agent_disk_written_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))\n/\n(rate(ambari_agent_disk_reads_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) + rate(ambari_agent_disk_writes_completed_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
       },
       {
+        "id": "linux-host-average-i-o-queue-size",
+        "name": "Average I/O queue size",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 12,
+          "y": 54,
+          "i": "linux-host-average-i-o-queue-size",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "rate(ambari_agent_disk_io_weighted_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval])\n",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-filesystem-device-error-detail",
+        "name": "Filesystem device error detail",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 18,
+          "y": 54,
+          "i": "linux-host-filesystem-device-error-detail",
+          "isResizable": true
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "ambari_agent_filesystem_device_error{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device!~\"rootfs\",device!~\"tmpfs\",mountpoint!~\"/var/lib.*\"}",
+            "legend": "{{host}} {{mountpoint}} - Device error",
+            "maxDataPoints": 480
+          }
+        ],
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-network-details",
+        "name": "Network details",
+        "titleKey": "monitoring.dashboard.sections.linuxHost.network",
         "type": "row",
-        "id": "linux-host-network-row",
-        "name": "Network",
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 60,
+          "i": "linux-host-network-details",
+          "isResizable": false
+        },
+        "targets": [],
         "collapsed": false,
-        "layout": { "h": 1, "w": 24, "x": 0, "y": 42, "i": "linux-host-network-row", "isResizable": false },
         "panels": []
       },
       {
-        "type": "timeseries",
         "id": "linux-host-network-throughput",
         "name": "Network throughput",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 43, "i": "linux-host-network-throughput", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 0,
+          "y": 61,
+          "i": "linux-host-network-throughput",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "sum by (host, device) (rate(ambari_agent_network_receive_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} receive"
+            "expr": "rate(ambari_agent_network_receive_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device=~\"e.*\"}[$__rate_interval])*8",
+            "legend": "{{host}} {{device}} - in",
+            "maxDataPoints": 480
           },
           {
             "refId": "B",
-            "expr": "sum by (host, device) (rate(ambari_agent_network_transmit_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} transmit"
+            "expr": "rate(ambari_agent_network_transmit_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device=~\"e.*\"}[$__rate_interval])*8",
+            "legend": "{{host}} {{device}} - out",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "bytesSecIEC", "min": 0 } }
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bitsSecSI",
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
       },
       {
-        "type": "timeseries",
         "id": "linux-host-network-packets",
-        "name": "Network packet rate",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 43, "i": "linux-host-network-packets", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
-          {
-            "refId": "A",
-            "expr": "sum by (host, device) (rate(ambari_agent_network_receive_packets_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} receive"
-          },
-          {
-            "refId": "B",
-            "expr": "sum by (host, device) (rate(ambari_agent_network_transmit_packets_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} transmit"
-          }
-        ],
-        "options": { "standardOptions": { "util": "reqps", "min": 0 } }
-      },
-      {
+        "name": "Network packets",
         "type": "timeseries",
-        "id": "linux-host-network-failures",
-        "name": "Network failure rate",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 49, "i": "linux-host-network-failures", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 6,
+          "y": 61,
+          "i": "linux-host-network-packets",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "sum by (host, device) (rate(ambari_agent_network_receive_errors_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) + rate(ambari_agent_network_receive_dropped_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} receive"
+            "expr": "rate(ambari_agent_network_receive_packets_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device=~\"e.*\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - in",
+            "maxDataPoints": 480
           },
           {
             "refId": "B",
-            "expr": "sum by (host, device) (rate(ambari_agent_network_transmit_errors_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]) + rate(ambari_agent_network_transmit_dropped_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} {{device}} transmit"
+            "expr": "rate(ambari_agent_network_transmit_packets_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device=~\"e.*\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - out",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "reqps", "min": 0 } }
-      },
-      {
-        "type": "barchart",
-        "id": "linux-host-tcp",
-        "name": "TCP connections by state",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 49, "i": "linux-host-tcp", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
-          {
-            "refId": "A",
-            "expr": "max by (host, state) (ambari_agent_tcp_connections{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} {{state}}"
-          }
-        ],
-        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
-      },
-      {
-        "type": "row",
-        "id": "linux-host-process-row",
-        "name": "Processes and kernel",
-        "collapsed": false,
-        "layout": { "h": 1, "w": 24, "x": 0, "y": 55, "i": "linux-host-process-row", "isResizable": false },
-        "panels": []
-      },
-      {
-        "type": "barchart",
-        "id": "linux-host-processes",
-        "name": "Process and thread counts",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 56, "i": "linux-host-processes", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
-          {
-            "refId": "A",
-            "expr": "max by (host, state) (ambari_agent_processes{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} processes {{state}}"
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
           },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "packetsSec",
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
           {
-            "refId": "B",
-            "expr": "max by (host) (ambari_agent_process_threads{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}} threads"
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
           }
         ],
-        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
       },
       {
+        "id": "linux-host-network-errors",
+        "name": "Network errors",
         "type": "timeseries",
-        "id": "linux-host-process-forks",
-        "name": "Process fork rate",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 56, "i": "linux-host-process-forks", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 12,
+          "y": 61,
+          "i": "linux-host-network-errors",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "sum by (host) (rate(ambari_agent_system_processes_forked_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}}"
-          }
-        ],
-        "options": { "standardOptions": { "util": "cps", "min": 0 } }
-      },
-      {
-        "type": "timeseries",
-        "id": "linux-host-kernel-events",
-        "name": "Kernel event rate",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 62, "i": "linux-host-kernel-events", "isResizable": true },
-        "version": "3.0.0",
-        "datasourceCate": "prometheus",
-        "datasourceValue": 1,
-        "targets": [
-          {
-            "refId": "A",
-            "expr": "sum by (host) (rate(ambari_agent_system_context_switches_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} context switches"
+            "expr": "rate(ambari_agent_network_receive_errors_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device=~\"e.*\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - in",
+            "maxDataPoints": 480
           },
           {
             "refId": "B",
-            "expr": "sum by (host) (rate(ambari_agent_system_interrupts_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}} interrupts"
+            "expr": "rate(ambari_agent_network_transmit_errors_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device=~\"e.*\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - out",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "cps", "min": 0 } }
-      },
-      {
-        "type": "gauge",
-        "id": "linux-host-file-descriptors",
-        "name": "File descriptor utilization ratio",
-        "layout": { "h": 6, "w": 12, "x": 12, "y": 62, "i": "linux-host-file-descriptors", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "packetsSec",
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-network-drops",
+        "name": "Network drops",
+        "type": "timeseries",
+        "layout": {
+          "h": 6,
+          "w": 6,
+          "x": 18,
+          "y": 61,
+          "i": "linux-host-network-drops",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "max by (host) (ambari_agent_file_descriptors_allocated{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) / clamp_min(max by (host) (ambari_agent_file_descriptors_maximum{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
-            "legend": "{{host}}"
+            "expr": "rate(ambari_agent_network_receive_dropped_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device=~\"e.*\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - in",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "B",
+            "expr": "rate(ambari_agent_network_transmit_dropped_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",device=~\"e.*\"}[$__rate_interval])",
+            "legend": "{{host}} {{device}} - out",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
-      },
-      {
-        "type": "gauge",
-        "id": "linux-host-conntrack",
-        "name": "Conntrack utilization ratio",
-        "layout": { "h": 6, "w": 12, "x": 0, "y": 68, "i": "linux-host-conntrack", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "packetsSec",
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-conntrack-utilization",
+        "name": "Conntrack utilization",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 8,
+          "x": 0,
+          "y": 67,
+          "i": "linux-host-conntrack-utilization",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "max by (host) (ambari_agent_conntrack_entries{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}) / clamp_min(max by (host) (ambari_agent_conntrack_entries_limit{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}), 1)",
-            "legend": "{{host}}"
+            "expr": "100 * ambari_agent_conntrack_entries{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"} / ambari_agent_conntrack_entries_limit{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
-      },
-      {
-        "type": "gauge",
-        "id": "linux-host-entropy",
-        "name": "Kernel entropy available",
-        "layout": { "h": 6, "w": 6, "x": 12, "y": 68, "i": "linux-host-entropy", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percent",
+            "decimals": 2
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-tcp-socket-statistics",
+        "name": "TCP socket statistics",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 8,
+          "x": 8,
+          "y": 67,
+          "i": "linux-host-tcp-socket-statistics",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "max by (host) (ambari_agent_entropy_available_bits{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"})",
-            "legend": "{{host}}"
+            "expr": "ambari_agent_socket_tcp_allocated{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "B",
+            "expr": "ambari_agent_socket_tcp_in_use{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "C",
+            "expr": "ambari_agent_socket_tcp_orphaned{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "D",
+            "expr": "ambari_agent_socket_tcp_time_wait{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
+          },
+          {
+            "refId": "E",
+            "expr": "ambari_agent_tcp_connections{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\",state=\"established\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
-      },
-      {
-        "type": "stat",
-        "id": "linux-host-oom-kills",
-        "name": "OOM kills in interval",
-        "layout": { "h": 6, "w": 6, "x": 18, "y": 68, "i": "linux-host-oom-kills", "isResizable": true },
         "version": "3.0.0",
         "datasourceCate": "prometheus",
-        "datasourceValue": 1,
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.04,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
+      },
+      {
+        "id": "linux-host-sockets-used",
+        "name": "Sockets used",
+        "type": "timeseries",
+        "layout": {
+          "h": 7,
+          "w": 8,
+          "x": 16,
+          "y": 67,
+          "i": "linux-host-sockets-used",
+          "isResizable": true
+        },
         "targets": [
           {
             "refId": "A",
-            "expr": "sum by (host) (increase(ambari_agent_oom_kills_total{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}[$__rate_interval]))",
-            "legend": "{{host}}",
-            "instant": true
+            "expr": "ambari_agent_sockets_used{cluster=\"${cluster}\",ambari_target=\"host\",host=~\"${host}\"}",
+            "legend": "{{host}} {{__name__}}",
+            "maxDataPoints": 480
           }
         ],
-        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": "${prom}",
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.3,
+          "gradientMode": "opacity",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "hidden",
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(44, 157, 61)",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "thresholdsStyle": {
+            "mode": "dashed"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ],
+        "maxPerRow": 4,
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ]
       }
     ],
-    "version": "3.0.0",
-    "graphTooltip": "default",
-    "graphZoom": "default"
+    "graphTooltip": "shared"
   }
 }
