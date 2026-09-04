@@ -36,19 +36,6 @@ import {
 } from "../Utils/hosts";
 import VersionsApi from "../api/versionsApi";
 
-// cloneDeep strips class prototypes; rebuild instances so model methods survive.
-const cloneHostModels = (hosts: Host[]): Host[] =>
-  cloneDeep(hosts).map((host: Host) => {
-    const model = new Host(host as IHost);
-    model.hostComponents = get(host, "hostComponents", []).map(
-      (hc: IHostComponent) => new HostComponent(hc)
-    );
-    model.stackVersions = get(host, "stackVersions", []).map(
-      (sv: IHostStackVersion) => new HostStackVersion(sv)
-    );
-    return model;
-  });
-
 export const useHostConfigUpdater = (
   hostApiQueryParams: any,
   allHostModels: Host[],
