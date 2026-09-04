@@ -42,7 +42,8 @@
   },
   "scripts": {
     "start": "brunch watch --server",
-    "test": "karma start"
+    "test": "karma start",
+    "build": "brunch build"
   },
   "engines": {
     "node": "^4.0.0"

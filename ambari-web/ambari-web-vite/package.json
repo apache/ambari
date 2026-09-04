@@ -1,0 +1,18 @@
+{
+  "name": "ambari-web-vite",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "prepare": "node scripts/prepare.js",
+    "dev": "sh ./prepare-vite.sh && vite",
+    "build": "sh ./prepare-vite.sh && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.5"
+  },
+  "dependencies": {
+    "@vitejs/plugin-legacy": "^6.0.0"
+  }
+}
