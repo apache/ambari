@@ -55,11 +55,11 @@ class TestServiceAdvisor(TestCase):
     "stacks/BIGTOP/3.2.0/services/VICTORIAMETRICS/service_advisor.py",
   )
   with open(victoria_metrics_advisor_path, "rb") as fp:
-    victoria_metrics_advisor_impl = imp.load_module(
+    victoria_metrics_advisor_impl = import_utils.load_module(
       "victoria_metrics_service_advisor",
       fp,
       victoria_metrics_advisor_path,
-      (".py", "rb", imp.PY_SOURCE),
+      (".py", "rb", import_utils.PY_SOURCE),
     )
 
   def setUp(self):
