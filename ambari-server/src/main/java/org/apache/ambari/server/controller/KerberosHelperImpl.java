@@ -2320,18 +2320,12 @@ public class KerberosHelperImpl implements KerberosHelper {
     // such as which principals and keytabs files to create as well as what configurations need
     // to be update are stored in data files in this directory. Any keytab files are stored in
     // this directory until they are distributed to their appropriate hosts.
-    File dataDirectory = null;
+    File dataDirectory = createTemporaryDirectory();
 
     // If there are ServiceComponentHosts to process...
     if (!schToProcess.isEmpty()) {
 
       validateKDCCredentials(kerberosDetails, cluster);
-
-      // Create a temporary directory to store metadata needed to complete this task.  Information
-      // such as which principals and keytabs files to create as well as what configurations need
-      // to be update are stored in data files in this directory. Any keytab files are stored in
-      // this directory until they are distributed to their appropriate hosts.
-      dataDirectory = createTemporaryDirectory();
 
       hostsWithValidKerberosClient = getHostsWithValidKerberosClient(cluster);
 
