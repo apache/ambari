@@ -19,12 +19,11 @@ limitations under the License.
 """
 
 import copy
+import json
 import logging
 import os
 import tempfile
 import threading
-
-import ambari_simplejson as json
 
 from ambari_agent.metrics.telemetry import (
   profile_digest,
