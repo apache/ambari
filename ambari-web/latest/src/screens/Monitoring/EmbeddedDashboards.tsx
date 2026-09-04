@@ -21,7 +21,7 @@ import { Alert, Form, Spinner } from "react-bootstrap";
 import MetricsApi from "../../api/metricsApi";
 import { AppContext } from "../../store/context";
 import { Dashboard } from "./types";
-import DashboardDetail from "./DashboardDetail";
+import DashboardPage from "./Dashboard/DashboardPage";
 import { dashboardAppearsAt } from "./utils";
 
 interface EmbeddedDashboardsProps {
@@ -64,7 +64,7 @@ export default function EmbeddedDashboards({
   return (
     <div className="monitoring-content p-0">
       {dashboards.length > 1 && <div className="d-flex justify-content-end mb-3"><Form.Select className="w-auto" size="sm" aria-label="Monitoring dashboard" value={selectedId} onChange={(event) => setSelectedId(Number(event.target.value))}>{dashboards.map((dashboard) => <option key={dashboard.id} value={dashboard.id}>{dashboard.name}</option>)}</Form.Select></div>}
-      <DashboardDetail key={selectedId} dashboardId={String(selectedId)} embedded />
+      <DashboardPage key={selectedId} dashboardId={String(selectedId)} embedded />
     </div>
   );
 }

@@ -50,9 +50,11 @@ const seriesName = (result: DisplayResult, index: number) => {
 export default function PrometheusChart({
   results,
   unit = "",
+  height,
 }: {
   results: DisplayResult[];
   unit?: string;
+  height?: number;
 }) {
   const timestampSet = new Set<number>();
   results.forEach((result) => {
@@ -65,7 +67,10 @@ export default function PrometheusChart({
     ));
     return {
       label: seriesName(result, index),
-      data: timestamps.map((timestamp) => points.get(timestamp) ?? null),
+      data: timestamps.map((timestamp) => ({
+        x: timestamp * 1000,
+        y: points.get(timestamp) ?? null,
+      })),
       borderColor: COLORS[index % COLORS.length],
       backgroundColor: COLORS[index % COLORS.length],
       borderWidth: 1.5,
@@ -75,11 +80,18 @@ export default function PrometheusChart({
     };
   });
 
+  const range = timestamps.length > 1 ? timestamps[timestamps.length - 1] - timestamps[0] : 0;
+  const formatTimestamp = (timestamp: number) => new Date(timestamp).toLocaleString([], {
+    month: range > 2 * 24 * 60 * 60 ? "short" : undefined,
+    day: range > 2 * 24 * 60 * 60 ? "2-digit" : undefined,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
-    <div style={{ minHeight: 320, height: 420 }}>
+    <div className="dashboard-chart-wrap" style={{ height: Math.max(180, height || 300) }}>
       <Line
         data={{
-          labels: timestamps.map((timestamp) => new Date(timestamp * 1000).toLocaleString()),
           datasets,
         }}
         options={{
@@ -90,6 +102,7 @@ export default function PrometheusChart({
             legend: { position: "bottom", labels: { boxWidth: 12 } },
             tooltip: {
               callbacks: {
+                title: (items) => items.length ? formatTimestamp(Number(items[0].parsed.x)) : "",
                 label: (context) => {
                   const label = context.dataset.label ? `${context.dataset.label}: ` : "";
                   return `${label}${formatMetricValue(context.parsed.y, unit)}`;
@@ -98,7 +111,13 @@ export default function PrometheusChart({
             },
           },
           scales: {
-            x: { ticks: { maxTicksLimit: 8 } },
+            x: {
+              type: "linear",
+              ticks: {
+                maxTicksLimit: 8,
+                callback: (value) => formatTimestamp(Number(value)),
+              },
+            },
             y: {
               ticks: {
                 callback: (value) => formatMetricValue(value, unit),

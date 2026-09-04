@@ -22,7 +22,9 @@ import { useParams } from "react-router-dom";
 import MetricsApi from "../../api/metricsApi";
 import { AppContext } from "../../store/context";
 import { ChartShare, DashboardPanel as Panel, Datasource } from "./types";
-import DashboardPanel from "./DashboardPanel";
+import DashboardLayout from "./Dashboard/DashboardLayout";
+import DashboardPanel from "./Dashboard/DashboardPanel";
+import { dashboardPanelHeight } from "./Dashboard/layout/dashboardLayout";
 import { panelFromShare } from "./utils";
 
 const toLocalInput = (date: Date) => {
@@ -71,7 +73,7 @@ export default function SharedCharts() {
           <Form.Control size="sm" type="datetime-local" aria-label="End" value={end} onChange={(event) => setEnd(event.target.value)} />
         </div>
       </div>
-      {panels.length === 0 ? <div className="monitoring-panel monitoring-empty">This link contains no readable chart data.</div> : <div className="dashboard-grid">{panels.map((panel, index) => <div key={panel.id || shares[index]?.id || index} style={{ gridColumn: "span 24" }}><DashboardPanel panel={panel} start={startSeconds} end={endSeconds} refreshKey={0} variables={{}} datasources={datasources} allowShare={false} /></div>)}</div>}
+      {panels.length === 0 ? <div className="monitoring-panel monitoring-empty">This link contains no readable chart data.</div> : <DashboardLayout panels={panels} renderPanel={(panel, layout) => <DashboardPanel panel={panel} panelHeight={dashboardPanelHeight(layout)} start={startSeconds} end={endSeconds} refreshKey={0} variables={{}} datasources={datasources} allowShare={false} />} />}
     </section>
   );
 }

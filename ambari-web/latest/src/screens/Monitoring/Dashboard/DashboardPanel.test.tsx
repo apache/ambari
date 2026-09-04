@@ -19,20 +19,20 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AppContext } from "../../store/context";
-import type { Datasource } from "./types";
+import { AppContext } from "../../../store/context";
+import type { Datasource, DashboardPanel as DashboardPanelConfig } from "../types";
 
 const mocks = vi.hoisted(() => ({
   createChartShares: vi.fn(),
-  query: vi.fn(),
-  queryRange: vi.fn(),
+  queryInstantBatch: vi.fn(),
+  queryRangeBatch: vi.fn(),
 }));
 
-vi.mock("../../api/metricsApi", () => ({
+vi.mock("../../../api/metricsApi", () => ({
   default: mocks,
 }));
 
-vi.mock("./PrometheusChart", () => ({
+vi.mock("../PrometheusChart", () => ({
   default: () => <div>Prometheus chart</div>,
 }));
 
@@ -47,13 +47,15 @@ const datasource = {
   is_default: true,
 } as Datasource;
 
-const panel = {
+const panel: DashboardPanelConfig = {
   id: "requests",
   name: "Requests",
   type: "timeseries",
   datasourceCate: "prometheus",
   datasourceValue: 7,
+  layout: { h: 4, w: 12, x: 0, y: 0, i: "requests", isResizable: true },
   targets: [{
+    refId: "A",
     expr: 'rate(requests_total{cluster="${cluster}"}[$__rate_interval])',
   }],
 };
@@ -65,10 +67,7 @@ const contextValue = (clusterName: string) => ({ clusterName }) as unknown as Co
 describe("DashboardPanel cluster isolation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.queryRange.mockResolvedValue({
-      status: "success",
-      data: { resultType: "matrix", result: [] },
-    });
+    mocks.queryRangeBatch.mockResolvedValue({ data: [{ status: "success", result: [] }] });
     mocks.createChartShares.mockResolvedValue([19]);
     vi.spyOn(window, "open").mockImplementation(() => null);
   });
@@ -93,12 +92,16 @@ describe("DashboardPanel cluster isolation", () => {
       </AppContext.Provider>,
     );
 
-    await waitFor(() => expect(mocks.queryRange).toHaveBeenCalledWith(
+    await waitFor(() => expect(mocks.queryRangeBatch).toHaveBeenCalledWith(
       7,
-      'rate(requests_total{cluster="cluster-a"}[120s])',
-      0,
-      7200,
-      30,
+      [{
+        refId: "A",
+        query: 'rate(requests_total{cluster="cluster-a"}[120s])',
+        start: 0,
+        end: 7200,
+        step: 30,
+      }],
+      expect.any(AbortSignal),
     ));
 
     view.rerender(
@@ -114,12 +117,16 @@ describe("DashboardPanel cluster isolation", () => {
       </AppContext.Provider>,
     );
 
-    await waitFor(() => expect(mocks.queryRange).toHaveBeenLastCalledWith(
+    await waitFor(() => expect(mocks.queryRangeBatch).toHaveBeenLastCalledWith(
       7,
-      'rate(requests_total{cluster="cluster-b"}[120s])',
-      0,
-      7200,
-      30,
+      [{
+        refId: "A",
+        query: 'rate(requests_total{cluster="cluster-b"}[120s])',
+        start: 0,
+        end: 7200,
+        step: 30,
+      }],
+      expect.any(AbortSignal),
     ));
 
     fireEvent.click(screen.getByTitle("Share chart"));
@@ -128,24 +135,19 @@ describe("DashboardPanel cluster isolation", () => {
     const saved = JSON.parse(shares[0].configs);
 
     expect(shareCluster).toBe("cluster-b");
-    expect(saved.dataProps.targets[0].expr).toBe(
+    expect(saved.version).toBe("3.0.0");
+    expect(saved.panel.targets[0].expr).toBe(
       'rate(requests_total{cluster="cluster-b"}[120s])',
     );
   });
 
   it("keeps target legends for a multi-target stat panel", async () => {
-    mocks.query
-      .mockResolvedValueOnce({
-        status: "success",
-        data: { resultType: "vector", result: [{ metric: {}, value: [7200, "3"] }] },
-      })
-      .mockResolvedValueOnce({
-        status: "success",
-        data: {
-          resultType: "vector",
-          result: [{ metric: { host: "worker-1" }, value: [7200, "2"] }],
-        },
-      });
+    mocks.queryInstantBatch.mockResolvedValueOnce({
+      data: [
+        { status: "success", result: [{ metric: {}, value: [7200, "3"] }] },
+        { status: "success", result: [{ metric: { host: "worker-1" }, value: [7200, "2"] }] },
+      ],
+    });
 
     render(
       <AppContext.Provider value={contextValue("cluster-a")}>
@@ -174,7 +176,10 @@ describe("DashboardPanel cluster isolation", () => {
     });
     expect(screen.getByText("3 cps")).toBeTruthy();
     expect(screen.getByText("2 cps")).toBeTruthy();
-    expect(mocks.query).toHaveBeenNthCalledWith(1, 7, "active", 7200);
-    expect(mocks.query).toHaveBeenNthCalledWith(2, 7, "lost", 7200);
+    expect(mocks.queryInstantBatch).toHaveBeenCalledWith(
+      7,
+      [{ refId: "A", query: "active", time: 7200 }, { refId: "B", query: "lost", time: 7200 }],
+      expect.any(AbortSignal),
+    );
   });
 });

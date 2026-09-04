@@ -158,7 +158,7 @@ const getSideItemList = (
     if (canViewClusterMetrics) {
       monitoringChildren.push(
         { id: "monitoring_dashboards", icon: <></>, name: "Dashboards", path: "/main/monitoring/dashboards", children: [], style: {} },
-        { id: "monitoring_explore", icon: <></>, name: "Explore", path: "/main/monitoring/query", children: [], style: {} },
+        { id: "monitoring_explore", icon: <></>, name: "Explore", path: "/main/monitoring/explorer", children: [], style: {} },
       );
     }
     if (canViewHostMetrics) {
@@ -168,7 +168,7 @@ const getSideItemList = (
     }
     if (canViewClusterMetrics) {
       monitoringChildren.push(
-        { id: "monitoring_datasources", icon: <></>, name: "Datasources", path: "/main/monitoring/datasources", children: [], style: {} },
+        { id: "monitoring_datasources", icon: <></>, name: "Data sources", path: "/main/monitoring/data-sources", children: [], style: {} },
       );
     }
 
@@ -259,9 +259,9 @@ const SideItemList: SideItem[] = [
     sideItems: true,
     children: [
       { id: "monitoring_dashboards", icon: <></>, name: "Dashboards", path: "/main/monitoring/dashboards", children: [], style: {} },
-      { id: "monitoring_explore", icon: <></>, name: "Explore", path: "/main/monitoring/query", children: [], style: {} },
+      { id: "monitoring_explore", icon: <></>, name: "Explore", path: "/main/monitoring/explorer", children: [], style: {} },
       { id: "monitoring_targets", icon: <></>, name: "Targets", path: "/main/monitoring/targets", children: [], style: {} },
-      { id: "monitoring_datasources", icon: <></>, name: "Datasources", path: "/main/monitoring/datasources", children: [], style: {} },
+      { id: "monitoring_datasources", icon: <></>, name: "Data sources", path: "/main/monitoring/data-sources", children: [], style: {} },
     ],
     style: {},
   },

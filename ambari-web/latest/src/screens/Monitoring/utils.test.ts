@@ -17,7 +17,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { ChartShare, Dashboard, DashboardPanel, Datasource } from "./types";
+import { ChartShare, Dashboard, DashboardPanel, Datasource, DASHBOARD_SCHEMA_VERSION } from "./types";
 import {
   dashboardAppearsAt,
   escapePrometheusLabelValue,
@@ -50,7 +50,9 @@ const datasource = (id: number, overrides: Partial<Datasource> = {}): Datasource
   ...overrides,
 });
 
-describe("monitoring dashboard compatibility helpers", () => {
+const layout = { h: 4, w: 12, x: 0, y: 0, i: "panel", isResizable: true };
+
+describe("monitoring dashboard helpers", () => {
   it("replaces braced and bare variables without replacing longer names", () => {
     expect(replaceDashboardVariables(
       'up{service="$service",instance=~"${hosts}",other="$service_name"}',
@@ -87,8 +89,11 @@ describe("monitoring dashboard compatibility helpers", () => {
     )).toBe('up{cluster="east\\\\zone\\"one\\nline\\rreturn"}');
   });
 
-  it("falls back from a historical datasource ID to the enabled default in the same category", () => {
-    const panel: DashboardPanel = { datasourceCate: "prometheus", datasourceValue: 1 };
+  it("resolves the enabled default datasource in the requested category", () => {
+    const panel: DashboardPanel = {
+      id: "panel", name: "Panel", type: "timeseries", layout, targets: [],
+      datasourceCate: "prometheus", datasourceValue: 1,
+    };
     expect(resolvePanelDatasourceId(panel, {}, [
       datasource(8),
       datasource(9, { is_default: true }),
@@ -102,17 +107,19 @@ describe("monitoring dashboard compatibility helpers", () => {
     expect(dashboardAppearsAt(dashboard, "HBASE")).toBe(false);
   });
 
-  it("preserves unknown shared panel fields", () => {
+  it("reads the versioned Ambari chart-share contract", () => {
     const share: ChartShare = {
       id: 4,
       cluster: "west",
       datasource_id: 9,
       configs: JSON.stringify({
-        future_share_option: true,
-        dataProps: {
+        version: DASHBOARD_SCHEMA_VERSION,
+        panel: {
+          id: "shared-panel",
+          name: "Shared panel",
           type: "timeseries",
-          datasourceValue: 1,
-          customPluginState: { mode: "future" },
+          layout,
+          targets: [{ refId: "A", expr: "up" }],
         },
       }),
       create_at: 0,
@@ -122,28 +129,24 @@ describe("monitoring dashboard compatibility helpers", () => {
     const panel = panelFromShare(share);
 
     expect(panel?.datasourceValue).toBe(9);
-    expect(panel?.customPluginState).toEqual({ mode: "future" });
+    expect(panel?.id).toBe("shared-panel");
   });
 
-  it("normalizes malformed dashboard collections without dropping unknown fields", () => {
-    const payload = normalizeDashboardPayload({
-      future_option: { mode: "future" },
-      var: { name: "invalid" },
-      panels: [
-        null,
-        "invalid",
-        { name: "Valid panel", targets: { expr: "up" }, future_panel_option: true },
-      ],
-    });
-
-    expect(payload.var).toEqual([]);
-    expect(payload.panels).toEqual([{
-      name: "Valid panel",
-      targets: [],
-      future_panel_option: true,
-    }]);
-    expect(payload.future_option).toEqual({ mode: "future" });
-    expect(normalizeDashboardPayload(null)).toEqual({ var: [], panels: [] });
+  it("rejects unversioned and unknown dashboard fields", () => {
+    expect(() => normalizeDashboardPayload({ var: [], panels: [] })).toThrow("$.version");
+    expect(() => normalizeDashboardPayload({
+      version: DASHBOARD_SCHEMA_VERSION,
+      var: [],
+      panels: [],
+      future_option: true,
+    })).toThrow("future_option");
+    expect(() => normalizeDashboardPayload({
+      version: DASHBOARD_SCHEMA_VERSION,
+      var: [],
+      panels: [{
+        id: "invalid", name: "Invalid", type: "legacy-renderer", layout, targets: [],
+      }],
+    })).toThrow("unsupported panel type");
   });
 
   it("normalizes malformed Prometheus result collections", () => {

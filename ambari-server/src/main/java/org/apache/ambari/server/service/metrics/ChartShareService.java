@@ -49,6 +49,8 @@ public class ChartShareService {
   private static final int MAX_CONFIG_LENGTH = 1024 * 1024;
   private static final Set<RoleAuthorization> READ_AUTHORIZATIONS =
       Set.of(RoleAuthorization.CLUSTER_VIEW_METRICS);
+  private static final String SHARE_SCHEMA_VERSION = "3.0.0";
+  private static final Set<String> SHARE_FIELDS = Set.of("version", "panel", "range");
 
   private final ChartShareDAO chartShareDAO;
   private final DatasourceService datasourceService;
@@ -72,11 +74,6 @@ public class ChartShareService {
     Map<Long, ChartShareEntity> accessible = new LinkedHashMap<>();
     for (ChartShareEntity entity : chartShareDAO.findByCluster(clusterName)) {
       accessible.put(entity.getId(), entity);
-    }
-    // Existing 3.0_metrics rows used an empty cluster. Keep them readable after
-    // the caller has passed authorization for a real Ambari cluster.
-    for (ChartShareEntity entity : chartShareDAO.findByCluster("")) {
-      accessible.putIfAbsent(entity.getId(), entity);
     }
     List<ChartShareResponse> result = new ArrayList<>();
     for (Long id : ids) {
@@ -123,8 +120,7 @@ public class ChartShareService {
     }
     try {
       JsonNode root = objectMapper.readTree(request.getConfigs());
-      JsonNode dataProps = root.path("dataProps");
-      JsonNode value = dataProps.path("datasourceValue");
+      JsonNode value = root.path("panel").path("datasourceValue");
       return value.canConvertToLong() ? value.asLong() : 0L;
     } catch (JsonProcessingException e) {
       return 0L;
@@ -139,9 +135,17 @@ public class ChartShareService {
       throw new IllegalArgumentException("Chart share configs exceed the 1 MiB limit");
     }
     try {
-      if (objectMapper.readTree(configs) == null) {
-        throw new IllegalArgumentException("Chart share configs must be valid JSON");
+      JsonNode root = objectMapper.readTree(configs);
+      if (root == null || !root.isObject()) {
+        throw new IllegalArgumentException("Chart share configs must be an object");
       }
+      root.fieldNames().forEachRemaining(field -> {
+        if (!SHARE_FIELDS.contains(field)) throw new IllegalArgumentException("Unsupported chart share field: " + field);
+      });
+      if (!root.path("version").isTextual() || !SHARE_SCHEMA_VERSION.equals(root.path("version").asText())) {
+        throw new IllegalArgumentException("Chart share configs version must be " + SHARE_SCHEMA_VERSION);
+      }
+      if (!root.path("panel").isObject()) throw new IllegalArgumentException("Chart share panel is required");
     } catch (JsonProcessingException e) {
       throw new IllegalArgumentException("Chart share configs must be valid JSON", e);
     }

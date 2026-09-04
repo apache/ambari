@@ -22,12 +22,12 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../store/context";
 import type { Datasource } from "./types";
+import { DASHBOARD_SCHEMA_VERSION } from "./types";
 
 const mocks = vi.hoisted(() => ({
   getChartShares: vi.fn(),
   listDatasources: vi.fn(),
-  query: vi.fn(),
-  queryRange: vi.fn(),
+  queryRangeBatch: vi.fn(),
 }));
 
 vi.mock("../../api/metricsApi", () => ({
@@ -57,11 +57,15 @@ describe("SharedCharts cluster isolation", () => {
       cluster: "source-cluster",
       datasource_id: 7,
       configs: JSON.stringify({
-        dataProps: {
+        version: DASHBOARD_SCHEMA_VERSION,
+        panel: {
+          id: "shared-requests",
           name: "Shared requests",
           type: "timeseries",
           datasourceCate: "prometheus",
+          layout: { h: 4, w: 12, x: 0, y: 0, i: "shared-requests", isResizable: true },
           targets: [{
+            refId: "A",
             expr: 'rate(requests_total{cluster="${cluster}"}[$__rate_interval])',
           }],
         },
@@ -70,10 +74,7 @@ describe("SharedCharts cluster isolation", () => {
       create_by: "operator",
     }]);
     mocks.listDatasources.mockResolvedValue([datasource]);
-    mocks.queryRange.mockResolvedValue({
-      status: "success",
-      data: { resultType: "matrix", result: [] },
-    });
+    mocks.queryRangeBatch.mockResolvedValue({ data: [{ status: "success", result: [] }] });
   });
 
   afterEach(cleanup);
@@ -84,17 +85,17 @@ describe("SharedCharts cluster isolation", () => {
     >["value"];
     render(
       <AppContext.Provider value={context}>
-        <MemoryRouter initialEntries={["/main/monitoring/charts/5"]}>
+        <MemoryRouter initialEntries={["/main/monitoring/shared-charts/5"]}>
           <Routes>
-            <Route path="/main/monitoring/charts/:shareIds" element={<SharedCharts />} />
+            <Route path="/main/monitoring/shared-charts/:shareIds" element={<SharedCharts />} />
           </Routes>
         </MemoryRouter>
       </AppContext.Provider>,
     );
 
     expect(await screen.findByText("Shared requests")).toBeTruthy();
-    await waitFor(() => expect(mocks.queryRange).toHaveBeenCalled());
-    expect(mocks.queryRange.mock.calls[0][1]).toBe(
+    await waitFor(() => expect(mocks.queryRangeBatch).toHaveBeenCalled());
+    expect(mocks.queryRangeBatch.mock.calls[0][1][0].query).toBe(
       'rate(requests_total{cluster="view-cluster"}[120s])',
     );
     expect(screen.queryByTitle("Share chart")).toBeNull();

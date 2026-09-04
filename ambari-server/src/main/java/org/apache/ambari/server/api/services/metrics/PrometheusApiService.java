@@ -169,24 +169,38 @@ public class PrometheusApiService {
       long datasourceId = request.path("datasource_id").asLong();
       ArrayNode results = OBJECT_MAPPER.createArrayNode();
       for (JsonNode item : queries) {
-        String query = requiredText(item, "query");
-        JsonNode response;
-        if (range) {
-          String start = requiredScalar(item, "start");
-          String end = requiredScalar(item, "end");
-          String step = requiredScalar(item, "step");
-          validateRange(query, start, end, step);
-          response = prometheusClient.get(datasourceId, "api/v1/query_range",
-              PrometheusQueryClient.parameters("query", query, "start", start, "end", end, "step", step));
-        } else {
-          String time = item.hasNonNull("time") ? item.get("time").asText() : null;
-          validateQuery(query);
-          response = prometheusClient.get(datasourceId, "api/v1/query",
-              PrometheusQueryClient.parameters("query", query, "time", time));
+        ObjectNode itemResult = OBJECT_MAPPER.createObjectNode();
+        if (item != null && item.hasNonNull("refId")) {
+          itemResult.put("refId", item.path("refId").asText());
         }
-        results.add(prometheusResult(response));
+        try {
+          String query = requiredText(item, "query");
+          JsonNode response;
+          if (range) {
+            String start = requiredScalar(item, "start");
+            String end = requiredScalar(item, "end");
+            String step = requiredScalar(item, "step");
+            validateRange(query, start, end, step);
+            response = prometheusClient.get(datasourceId, "api/v1/query_range",
+                PrometheusQueryClient.parameters("query", query, "start", start, "end", end, "step", step));
+          } else {
+            String time = item.hasNonNull("time") ? item.get("time").asText() : null;
+            validateQuery(query);
+            response = prometheusClient.get(datasourceId, "api/v1/query",
+                PrometheusQueryClient.parameters("query", query, "time", time));
+          }
+          itemResult.put("status", "success");
+          itemResult.set("result", prometheusResult(response));
+        } catch (Exception itemException) {
+          itemResult.put("status", "error");
+          itemResult.put("errorType", itemException.getClass().getSimpleName());
+          itemResult.put("error", itemException.getMessage() == null
+              ? "Prometheus query failed" : itemException.getMessage());
+        }
+        results.add(itemResult);
       }
       ObjectNode body = OBJECT_MAPPER.createObjectNode();
+      body.put("status", "success");
       body.set("data", results);
       body.put("error", "");
       return json(Response.ok(), body);

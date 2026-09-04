@@ -40,7 +40,7 @@ import com.google.inject.Provider;
 public class DashboardServiceTest {
   @Test
   @SuppressWarnings("unchecked")
-  public void testUpdateConfigsPersistsRawJsonUnchanged() throws Exception {
+  public void testUpdateConfigsPersistsCanonicalJsonUnchanged() throws Exception {
     BoardDAO boardDAO = mock(BoardDAO.class);
     BoardPayloadDAO payloadDAO = mock(BoardPayloadDAO.class);
     BuiltinDashboardProvisioner provisioner = mock(BuiltinDashboardProvisioner.class);
@@ -60,7 +60,7 @@ public class DashboardServiceTest {
     when(boardDAO.findByIdAndCluster(42L, "west")).thenReturn(board);
     when(boardDAO.merge(board)).thenReturn(board);
     when(payloadDAO.findByPK(42L)).thenReturn(payload);
-    String raw = "{ \"future_plugin\" : { \"keep_order\" : [3, 1, 2] }, \"title\" : \"original\" }";
+    String raw = "{\"version\":\"3.0.0\",\"var\":[],\"panels\":[]}";
     DashboardService service = new DashboardService(boardDAO, payloadDAO, provisioner, clustersProvider);
 
     try (MockedStatic<AuthorizationHelper> authorization = org.mockito.Mockito.mockStatic(AuthorizationHelper.class)) {
@@ -93,7 +93,7 @@ public class DashboardServiceTest {
 
     try (MockedStatic<AuthorizationHelper> ignored = org.mockito.Mockito.mockStatic(AuthorizationHelper.class)) {
       try {
-        service.updateConfigs("west", "42", "{}");
+        service.updateConfigs("west", "42", "{\"version\":\"3.0.0\",\"var\":[],\"panels\":[]}");
         Assert.fail("Expected cross-cluster dashboard update to be rejected");
       } catch (IllegalArgumentException expected) {
         Assert.assertEquals("Dashboard not found", expected.getMessage());

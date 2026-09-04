@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -56,6 +57,17 @@ public class DashboardService {
       Set.of(RoleAuthorization.CLUSTER_VIEW_METRICS);
   private static final Set<RoleAuthorization> MANAGE_AUTHORIZATIONS =
       Set.of(RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA);
+  private static final String DASHBOARD_SCHEMA_VERSION = "3.0.0";
+  private static final Set<String> DASHBOARD_FIELDS = Set.of("version", "var", "panels", "graphTooltip", "graphZoom");
+  private static final Set<String> VARIABLE_FIELDS = Set.of("name", "label", "type", "definition", "value");
+  private static final Set<String> PANEL_FIELDS = Set.of("id", "name", "description", "type",
+      "datasourceCate", "datasourceValue", "targets", "layout", "version", "collapsed", "custom",
+      "options", "overrides", "links", "maxPerRow", "transformations", "panels");
+  private static final Set<String> TARGET_FIELDS = Set.of("refId", "expr", "legend", "instant", "hide",
+      "maxDataPoints", "time", "variables", "__mode__");
+  private static final Set<String> LAYOUT_FIELDS = Set.of("h", "w", "x", "y", "i", "isResizable");
+  private static final Set<String> PANEL_TYPES = Set.of("row", "timeseries", "stat", "gauge", "barGauge",
+      "table", "pie", "barchart", "heatmap", "text", "iframe");
 
   private final BoardDAO boardDAO;
   private final BoardPayloadDAO payloadDAO;
@@ -273,12 +285,115 @@ public class DashboardService {
       throw new IllegalArgumentException("Dashboard payload exceeds the 16 MiB limit");
     }
     try {
-      if (objectMapper.readTree(payload) == null) {
-        throw new IllegalArgumentException("Dashboard payload must be valid JSON");
-      }
+      JsonNode document = objectMapper.readTree(payload);
+      validateDashboardDocument(document);
     } catch (JsonProcessingException e) {
       throw new IllegalArgumentException("Dashboard payload must be valid JSON", e);
     }
+  }
+
+  private void validateDashboardDocument(JsonNode document) {
+    requireObject(document, "Dashboard payload");
+    rejectUnknownFields(document, DASHBOARD_FIELDS, "Dashboard payload");
+    if (!document.path("version").isTextual()
+        || !DASHBOARD_SCHEMA_VERSION.equals(document.path("version").asText())) {
+      throw new IllegalArgumentException("Dashboard payload version must be " + DASHBOARD_SCHEMA_VERSION);
+    }
+    if (!document.path("var").isArray() || !document.path("panels").isArray()) {
+      throw new IllegalArgumentException("Dashboard payload must contain var and panels arrays");
+    }
+    if (document.has("graphTooltip") && !document.path("graphTooltip").isTextual()) {
+      throw new IllegalArgumentException("Dashboard payload graphTooltip must be a string");
+    }
+    if (document.has("graphZoom") && !document.path("graphZoom").isTextual()) {
+      throw new IllegalArgumentException("Dashboard payload graphZoom must be a string");
+    }
+    int variableIndex = 0;
+    for (JsonNode variable : document.path("var")) {
+      String path = "var[" + variableIndex++ + "]";
+      requireObject(variable, path);
+      rejectUnknownFields(variable, VARIABLE_FIELDS, path);
+      requireText(variable, "name", path);
+      String type = requireText(variable, "type", path);
+      if (!"textbox".equals(type) && !"datasource".equals(type)) {
+        throw new IllegalArgumentException(path + ".type must be textbox or datasource");
+      }
+    }
+    int panelIndex = 0;
+    for (JsonNode panel : document.path("panels")) {
+      validatePanel(panel, "panels[" + panelIndex++ + "]");
+    }
+  }
+
+  private void validatePanel(JsonNode panel, String path) {
+    requireObject(panel, path);
+    rejectUnknownFields(panel, PANEL_FIELDS, path);
+    requireText(panel, "id", path);
+    requireText(panel, "name", path);
+    String type = requireText(panel, "type", path);
+    if (!PANEL_TYPES.contains(type)) {
+      throw new IllegalArgumentException(path + ".type is not supported: " + type);
+    }
+    JsonNode layout = panel.path("layout");
+    requireObject(layout, path + ".layout");
+    rejectUnknownFields(layout, LAYOUT_FIELDS, path + ".layout");
+    for (String field : List.of("h", "w", "x", "y")) {
+      if (!layout.path(field).canConvertToInt() || layout.path(field).asInt() < 0) {
+        throw new IllegalArgumentException(path + ".layout." + field + " must be a non-negative integer");
+      }
+    }
+    if (layout.path("w").asInt() == 0 || layout.path("h").asInt() == 0
+        || layout.path("w").asInt() > 24 || layout.path("x").asInt() + layout.path("w").asInt() > 24) {
+      throw new IllegalArgumentException(path + ".layout does not fit the 24-column grid");
+    }
+    if ("row".equals(type) && layout.path("w").asInt() != 24) {
+      throw new IllegalArgumentException(path + ".layout.w must be 24 for row panels");
+    }
+    requireText(layout, "i", path + ".layout");
+    if (!layout.path("isResizable").isBoolean()) {
+      throw new IllegalArgumentException(path + ".layout.isResizable must be boolean");
+    }
+    JsonNode targets = panel.path("targets");
+    if (!targets.isArray()) {
+      if (!Set.of("row", "text", "iframe").contains(type)) {
+        throw new IllegalArgumentException(path + ".targets must be an array");
+      }
+    } else {
+      int targetIndex = 0;
+      for (JsonNode target : targets) {
+        String targetPath = path + ".targets[" + targetIndex++ + "]";
+        requireObject(target, targetPath);
+        rejectUnknownFields(target, TARGET_FIELDS, targetPath);
+        requireText(target, "refId", targetPath);
+        requireText(target, "expr", targetPath);
+      }
+      if (!Set.of("row", "text", "iframe").contains(type) && targets.isEmpty()) {
+        throw new IllegalArgumentException(path + ".targets must not be empty");
+      }
+    }
+    if (panel.has("panels")) {
+      if (!panel.path("panels").isArray()) throw new IllegalArgumentException(path + ".panels must be an array");
+      int childIndex = 0;
+      for (JsonNode child : panel.path("panels")) validatePanel(child, path + ".panels[" + childIndex++ + "]");
+    }
+  }
+
+  private void rejectUnknownFields(JsonNode object, Set<String> allowed, String path) {
+    object.fieldNames().forEachRemaining(field -> {
+      if (!allowed.contains(field)) throw new IllegalArgumentException(path + "." + field + " is not supported");
+    });
+  }
+
+  private void requireObject(JsonNode node, String path) {
+    if (node == null || !node.isObject()) throw new IllegalArgumentException(path + " must be an object");
+  }
+
+  private String requireText(JsonNode object, String field, String path) {
+    JsonNode value = object.path(field);
+    if (!value.isTextual() || value.asText().isBlank()) {
+      throw new IllegalArgumentException(path + "." + field + " is required");
+    }
+    return value.asText();
   }
 
   private void createPayload(long boardId, String rawPayload) {

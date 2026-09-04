@@ -26,7 +26,8 @@ import { Link } from "react-router-dom";
 import MetricsApi from "../../api/metricsApi";
 import { AppContext } from "../../store/context";
 import { useAuth } from "../../hooks/useAuth";
-import { Dashboard, DashboardInput } from "./types";
+import { DASHBOARD_SCHEMA_VERSION, Dashboard, DashboardInput } from "./types";
+import { normalizeDashboardPayload, parseDashboardPayload } from "./utils";
 
 const emptyPayload = JSON.stringify({ version: "3.0.0", var: [], panels: [] });
 
@@ -116,7 +117,10 @@ export default function Dashboards() {
     try {
       const parsed = JSON.parse(await file.text()) as DashboardInput & { configs?: unknown };
       if (!parsed.name) throw new Error("Imported dashboard is missing a name");
-      const configs = typeof parsed.configs === "string" ? parsed.configs : JSON.stringify(parsed.configs || {});
+      const configValue = parsed.configs;
+      const configs = typeof configValue === "string"
+        ? JSON.stringify(parseDashboardPayload(configValue))
+        : JSON.stringify(normalizeDashboardPayload(configValue));
       await MetricsApi.createDashboard(clusterName, {
         name: parsed.name,
         ident: "",
@@ -134,7 +138,7 @@ export default function Dashboards() {
   return (
     <section>
       <div className="monitoring-toolbar">
-        <div><h2 className="h4 mb-1">Dashboards</h2><div className="text-muted small">Existing 3.0 dashboard IDs and payloads remain authoritative.</div></div>
+        <div><h2 className="h4 mb-1">Dashboards</h2><div className="text-muted small">Ambari Monitoring dashboard schema {DASHBOARD_SCHEMA_VERSION}</div></div>
         {canManage && <div className="d-flex gap-2"><input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={(event) => void importDashboard(event)} /><Button variant="outline-secondary" size="sm" onClick={() => fileInput.current?.click()}><FontAwesomeIcon icon={faUpload} className="me-2" />Import</Button><Button variant="success" size="sm" onClick={() => setShowCreate(true)}><FontAwesomeIcon icon={faPlus} className="me-2" />New dashboard</Button></div>}
       </div>
       <Form onSubmit={(event) => { event.preventDefault(); void load(query); }} className="mb-3"><InputGroup><InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text><Form.Control placeholder="Search names and tags; prefix a term with - to exclude it" value={query} onChange={(event) => setQuery(event.target.value)} /><Button type="submit" variant="outline-secondary">Search</Button></InputGroup></Form>

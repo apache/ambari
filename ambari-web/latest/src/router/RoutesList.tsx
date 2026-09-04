@@ -58,7 +58,7 @@ import MonitoringLayout, {
   MonitoringIndexRedirect,
 } from "../screens/Monitoring/MonitoringLayout";
 import Dashboards from "../screens/Monitoring/Dashboards";
-import DashboardDetail from "../screens/Monitoring/DashboardDetail";
+import DashboardPage from "../screens/Monitoring/Dashboard/DashboardPage";
 import Datasources from "../screens/Monitoring/Datasources";
 import Explorer from "../screens/Monitoring/Explorer";
 import Targets from "../screens/Monitoring/Targets";
@@ -195,12 +195,10 @@ const RoutesList: RouteObject[] = [
                     ),
                     children: [
                       { path: "dashboards", element: <Dashboards /> },
-                      { path: "dashboards/:dashboardId", element: <DashboardDetail /> },
-                      { path: "datasources", element: <Datasources /> },
-                      { path: "query", element: <Explorer /> },
-                      { path: "explore", element: <Navigate to="/main/monitoring/query" replace /> },
-                      { path: "charts/:shareIds", element: <SharedCharts /> },
-                      { path: "chart/:shareIds", element: <SharedCharts /> },
+                      { path: "dashboards/:dashboardId", element: <DashboardPage /> },
+                      { path: "data-sources", element: <Datasources /> },
+                      { path: "explorer", element: <Explorer /> },
+                      { path: "shared-charts/:shareIds", element: <SharedCharts /> },
                     ],
                   },
                   {

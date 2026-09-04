@@ -18,6 +18,24 @@
 
 export type JsonObject = Record<string, unknown>;
 
+export const DASHBOARD_SCHEMA_VERSION = "3.0.0" as const;
+
+export const DASHBOARD_PANEL_TYPES = [
+  "row",
+  "timeseries",
+  "stat",
+  "gauge",
+  "barGauge",
+  "table",
+  "pie",
+  "barchart",
+  "heatmap",
+  "text",
+  "iframe",
+] as const;
+
+export type DashboardPanelType = typeof DASHBOARD_PANEL_TYPES[number];
+
 export type DatasourceStatus = "enabled" | "disabled";
 
 export interface Datasource {
@@ -87,37 +105,61 @@ export interface DashboardInput {
   configs?: string;
 }
 
-export interface DashboardTarget extends JsonObject {
-  refId?: string;
-  expr?: string;
+export interface DashboardTarget {
+  refId: string;
+  expr: string;
   legend?: string;
   instant?: boolean;
   hide?: boolean;
+  maxDataPoints?: number;
+  time?: JsonObject;
+  variables?: JsonObject;
+  __mode__?: string;
 }
 
-export interface DashboardPanel extends JsonObject {
-  id?: string;
-  name?: string;
+export interface DashboardLayout {
+  h: number;
+  w: number;
+  x: number;
+  y: number;
+  i: string;
+  isResizable: boolean;
+}
+
+export interface DashboardPanel {
+  id: string;
+  name: string;
   description?: string;
-  type?: string;
+  type: DashboardPanelType;
   datasourceCate?: string;
   datasourceValue?: number | string;
-  targets?: DashboardTarget[];
-  layout?: {
-    h?: number;
-    w?: number;
-    x?: number;
-    y?: number;
-    i?: string;
-    [key: string]: unknown;
-  };
+  targets: DashboardTarget[];
+  layout: DashboardLayout;
+  version?: string;
+  collapsed?: boolean;
+  custom?: JsonObject;
+  options?: JsonObject;
+  overrides?: unknown[];
+  links?: unknown[];
+  maxPerRow?: number;
+  transformations?: unknown[];
   panels?: DashboardPanel[];
 }
 
-export interface DashboardPayload extends JsonObject {
-  version?: string;
-  var?: JsonObject[];
-  panels?: DashboardPanel[];
+export interface DashboardVariable {
+  name: string;
+  label?: string;
+  type: "textbox" | "datasource";
+  definition?: string;
+  value?: string;
+}
+
+export interface DashboardPayload {
+  version: typeof DASHBOARD_SCHEMA_VERSION;
+  var: DashboardVariable[];
+  panels: DashboardPanel[];
+  graphTooltip?: string;
+  graphZoom?: string;
 }
 
 export interface PrometheusResult {

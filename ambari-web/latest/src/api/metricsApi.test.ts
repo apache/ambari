@@ -108,7 +108,30 @@ describe("monitoring API", () => {
     );
   });
 
-  it("uses cluster-scoped dashboard routes without rewriting payloads", async () => {
+  it("uses bounded Prometheus batch endpoints with cancellation", async () => {
+    const signal = new AbortController().signal;
+    mocks.suppressedPost
+      .mockResolvedValueOnce({ data: { status: "success", data: [{ status: "success", result: [] }, { status: "success", result: [] }], error: "" } })
+      .mockResolvedValueOnce({ data: { status: "success", data: [{ status: "success", result: [] }], error: "" } });
+
+    await MetricsApi.queryInstantBatch(4, [{ query: "up", time: 123 }, { query: "down", time: 123 }], signal);
+    await MetricsApi.queryRangeBatch(4, [{ query: "rate(x[5m])", start: 100, end: 200, step: 15 }], signal);
+
+    expect(mocks.suppressedPost).toHaveBeenNthCalledWith(
+      1,
+      "/metrics/query-instant-batch",
+      { datasource_id: 4, queries: [{ query: "up", time: 123 }, { query: "down", time: 123 }] },
+      { signal },
+    );
+    expect(mocks.suppressedPost).toHaveBeenNthCalledWith(
+      2,
+      "/metrics/query-range-batch",
+      { datasource_id: 4, queries: [{ query: "rate(x[5m])", start: 100, end: 200, step: 15 }] },
+      { signal },
+    );
+  });
+
+  it("uses cluster-scoped dashboard routes", async () => {
     const dashboard = { id: 9, name: "HDFS" };
     mocks.get.mockResolvedValueOnce(envelope([dashboard]));
     mocks.put.mockResolvedValueOnce(envelope(dashboard));
@@ -132,8 +155,8 @@ describe("monitoring API", () => {
     mocks.post.mockResolvedValueOnce(envelope([21, 22]));
     mocks.get.mockResolvedValueOnce(envelope([{ id: 21 }, { id: 22 }]));
     const shares = [
-      { datasource_id: 3, configs: "{\"dataProps\":{}}" },
-      { datasource_id: 4, configs: "{\"dataProps\":{}}" },
+      { datasource_id: 3, configs: "{\"version\":\"3.0.0\",\"panel\":{}}" },
+      { datasource_id: 4, configs: "{\"version\":\"3.0.0\",\"panel\":{}}" },
     ];
 
     await expect(MetricsApi.createChartShares("cluster-a", shares)).resolves.toEqual([

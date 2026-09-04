@@ -24,8 +24,32 @@ import {
   ChartShareInput,
   Datasource,
   DatasourceInput,
+  PrometheusResult,
   PrometheusResponse,
 } from "../screens/Monitoring/types";
+
+export interface PrometheusBatchQuery {
+  refId?: string;
+  query: string;
+  time?: number;
+  start?: number;
+  end?: number;
+  step?: number;
+}
+
+export interface PrometheusBatchItem {
+  refId?: string;
+  status: "success" | "error";
+  result?: PrometheusResult[];
+  errorType?: string;
+  error?: string;
+}
+
+export interface PrometheusBatchResponse {
+  status?: "success" | "error";
+  data?: PrometheusBatchItem[];
+  error?: string;
+}
 
 interface MetricsEnvelope<T> {
   data: T;
@@ -103,6 +127,26 @@ export const MetricsApi = {
   ) => (await supressErrorAmbariApi.get<PrometheusResponse>(
     `/metrics/${datasourceId}/api/v1/query_range`,
     { params: { query, start, end, step } },
+  )).data,
+
+  queryInstantBatch: async (
+    datasourceId: number,
+    queries: PrometheusBatchQuery[],
+    signal?: AbortSignal,
+  ) => (await supressErrorAmbariApi.post<PrometheusBatchResponse>(
+    "/metrics/query-instant-batch",
+    { datasource_id: datasourceId, queries },
+    { signal },
+  )).data,
+
+  queryRangeBatch: async (
+    datasourceId: number,
+    queries: PrometheusBatchQuery[],
+    signal?: AbortSignal,
+  ) => (await supressErrorAmbariApi.post<PrometheusBatchResponse>(
+    "/metrics/query-range-batch",
+    { datasource_id: datasourceId, queries },
+    { signal },
   )).data,
 
   labels: async (datasourceId: number) => (await supressErrorAmbariApi.get<{

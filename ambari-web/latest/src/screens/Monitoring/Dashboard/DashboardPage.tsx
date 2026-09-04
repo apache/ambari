@@ -22,33 +22,35 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faCode, faRotate } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
 import { Link, useParams } from "react-router-dom";
-import MetricsApi from "../../api/metricsApi";
-import { AppContext } from "../../store/context";
-import { useAuth } from "../../hooks/useAuth";
-import { Dashboard, DashboardPanel as Panel, DashboardPayload, Datasource, JsonObject } from "./types";
+import MetricsApi from "../../../api/metricsApi";
+import { AppContext } from "../../../store/context";
+import { useAuth } from "../../../hooks/useAuth";
+import { DASHBOARD_SCHEMA_VERSION, type Dashboard, type DashboardPayload, type Datasource } from "../types";
 import DashboardPanel from "./DashboardPanel";
-import { parseDashboardPayload, RESERVED_DASHBOARD_VARIABLES } from "./utils";
+import DashboardLayout from "./DashboardLayout";
+import { dashboardPanelHeight } from "./layout/dashboardLayout";
+import { parseDashboardPayload, RESERVED_DASHBOARD_VARIABLES } from "../utils";
 
 const toLocalInput = (date: Date) => {
   const offset = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 };
 
-const variableName = (variable: JsonObject) => typeof variable.name === "string" ? variable.name : "";
+const variableName = (variable: { name: string }) => variable.name;
 
-interface DashboardDetailProps {
+export interface DashboardPageProps {
   dashboardId?: string;
   embedded?: boolean;
 }
 
-export default function DashboardDetail({ dashboardId: dashboardIdProp, embedded = false }: DashboardDetailProps) {
+export default function DashboardPage({ dashboardId: dashboardIdProp, embedded = false }: DashboardPageProps) {
   const { dashboardId: routeDashboardId = "" } = useParams<{ dashboardId: string }>();
   const dashboardId = dashboardIdProp || routeDashboardId;
   const { clusterName } = useContext(AppContext);
   const { hasAuthorization } = useAuth();
   const canManage = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
-  const [payload, setPayload] = useState<DashboardPayload>({ panels: [], var: [] });
+  const [payload, setPayload] = useState<DashboardPayload>({ version: DASHBOARD_SCHEMA_VERSION, panels: [], var: [] });
   const [rawPayload, setRawPayload] = useState("");
   const [datasources, setDatasources] = useState<Datasource[]>([]);
   const [variables, setVariables] = useState<Record<string, string | number | string[]>>({});
@@ -69,16 +71,16 @@ export default function DashboardDetail({ dashboardId: dashboardIdProp, embedded
         MetricsApi.getDashboard(clusterName, dashboardId),
         MetricsApi.listDatasources(clusterName),
       ]);
-      const raw = detail.configs || "{}";
+      const raw = detail.configs || "";
       const parsed = parseDashboardPayload(raw);
       setDashboard(detail);
-      setRawPayload(raw);
+      setRawPayload(JSON.stringify(parsed, null, 2));
       setPayload(parsed);
       setDatasources(sourceItems);
       const initialVariables: Record<string, string | number | string[]> = {};
       (parsed.var || []).forEach((variable) => {
         const name = variableName(variable);
-        if (!name || RESERVED_DASHBOARD_VARIABLES.has(name)) return;
+        if (RESERVED_DASHBOARD_VARIABLES.has(name)) return;
         if (variable.type === "datasource") {
           const category = typeof variable.definition === "string" ? variable.definition : "prometheus";
           const options = sourceItems.filter((item) => item.status === "enabled"
@@ -105,8 +107,10 @@ export default function DashboardDetail({ dashboardId: dashboardIdProp, embedded
     setSaving(true);
     try {
       const parsed = parseDashboardPayload(rawPayload);
-      await MetricsApi.updateDashboardConfigs(clusterName, dashboard.id, rawPayload);
+      const canonicalPayload = JSON.stringify(parsed);
+      await MetricsApi.updateDashboardConfigs(clusterName, dashboard.id, canonicalPayload);
       setPayload(parsed);
+      setRawPayload(JSON.stringify(parsed, null, 2));
       setShowJson(false);
       toast.success("Dashboard payload saved");
       setRefreshKey((value) => value + 1);
@@ -120,22 +124,30 @@ export default function DashboardDetail({ dashboardId: dashboardIdProp, embedded
   if (loading) return <div className="monitoring-empty"><Spinner size="sm" className="me-2" />Loading dashboard</div>;
   if (error || !dashboard) return <Alert variant="danger">{error || "Dashboard not found"}</Alert>;
 
-  const panels = [...(payload.panels || [])].sort((left, right) => {
-    const y = (left.layout?.y || 0) - (right.layout?.y || 0);
-    return y || (left.layout?.x || 0) - (right.layout?.x || 0);
-  });
+  const panels = payload.panels || [];
   const startSeconds = Math.floor(new Date(start).getTime() / 1000);
   const endSeconds = Math.floor(new Date(end).getTime() / 1000);
 
   return (
     <section className="dashboard-detail">
       <div className="monitoring-toolbar">
-        <div className="d-flex align-items-start gap-3">{!embedded && <Link className="btn btn-sm btn-outline-secondary" title="Back to dashboards" to="/main/monitoring/dashboards"><FontAwesomeIcon icon={faArrowLeft} /></Link>}<div><h2 className="h4 mb-1">{dashboard.name}</h2><div className="text-muted small">ID {dashboard.id}{dashboard.ident ? ` / ${dashboard.ident}` : ""} · updated {new Date(dashboard.update_at * 1000).toLocaleString()}</div></div></div>
-        <div className="d-flex flex-wrap gap-2 align-items-end"><Form.Group><Form.Label className="small mb-1">Start</Form.Label><Form.Control size="sm" type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} /></Form.Group><Form.Group><Form.Label className="small mb-1">End</Form.Label><Form.Control size="sm" type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} /></Form.Group><Button size="sm" variant="outline-secondary" title="Refresh panels" onClick={() => setRefreshKey((value) => value + 1)}><FontAwesomeIcon icon={faRotate} /></Button>{canManage && <Button size="sm" variant="outline-secondary" onClick={() => setShowJson(true)}><FontAwesomeIcon icon={faCode} className="me-2" />Edit JSON</Button>}</div>
+        <div className="d-flex align-items-start gap-3">
+          {!embedded && <Link className="btn btn-sm btn-outline-secondary" title="Back to dashboards" to="/main/monitoring/dashboards"><FontAwesomeIcon icon={faArrowLeft} /></Link>}
+          <div>
+            <h2 className="h4 mb-1">{dashboard.name}</h2>
+            <div className="text-muted small">ID {dashboard.id}{dashboard.ident ? ` / ${dashboard.ident}` : ""} · updated {new Date(dashboard.update_at * 1000).toLocaleString()}</div>
+          </div>
+        </div>
+        <div className="d-flex flex-wrap gap-2 align-items-end">
+          <Form.Group><Form.Label className="small mb-1">Start</Form.Label><Form.Control size="sm" type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} /></Form.Group>
+          <Form.Group><Form.Label className="small mb-1">End</Form.Label><Form.Control size="sm" type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} /></Form.Group>
+          <Button size="sm" variant="outline-secondary" title="Refresh panels" onClick={() => setRefreshKey((value) => value + 1)}><FontAwesomeIcon icon={faRotate} /></Button>
+          {canManage && <Button size="sm" variant="outline-secondary" onClick={() => setShowJson(true)}><FontAwesomeIcon icon={faCode} className="me-2" />Edit JSON</Button>}
+        </div>
       </div>
       {(payload.var || []).length > 0 && <div className="monitoring-panel p-3 mb-3 d-flex gap-3 flex-wrap">{(payload.var || []).map((variable, index) => {
         const name = variableName(variable);
-        if (!name || RESERVED_DASHBOARD_VARIABLES.has(name)) return null;
+        if (RESERVED_DASHBOARD_VARIABLES.has(name)) return null;
         if (variable.type === "datasource") {
           const category = typeof variable.definition === "string" ? variable.definition : "prometheus";
           const options = datasources.filter((item) => item.status === "enabled" && (item.category === category || item.plugin_type === category));
@@ -143,8 +155,12 @@ export default function DashboardDetail({ dashboardId: dashboardIdProp, embedded
         }
         return <Form.Group key={`${name}-${index}`}><Form.Label className="small mb-1">{String(variable.label || name)}</Form.Label><Form.Control size="sm" placeholder={String(variable.definition || "Value")} value={String(variables[name] ?? "")} onChange={(event) => setVariables({ ...variables, [name]: event.target.value })} /></Form.Group>;
       })}</div>}
-      {panels.length === 0 ? <div className="monitoring-panel monitoring-empty">This dashboard has no panels yet.</div> : <div className="dashboard-grid">{panels.map((panel: Panel, index) => <div key={panel.id || index} className={panel.type === "row" ? "dashboard-grid-row" : ""} style={{ gridColumn: `span ${Math.max(1, Math.min(24, panel.layout?.w || 8))}` }}><DashboardPanel panel={panel} start={startSeconds} end={endSeconds} refreshKey={refreshKey} variables={{ ...variables, cluster: clusterName }} datasources={datasources} /></div>)}</div>}
-      <Modal show={showJson} onHide={() => setShowJson(false)} size="xl" centered><Modal.Header closeButton><Modal.Title>Dashboard payload</Modal.Title></Modal.Header><Modal.Body><Alert variant="info" className="small">Saving replaces only the raw board payload. Unknown panel, variable, transform, override, and datasource fields are retained unless removed here.</Alert><Form.Control className="monitoring-code" as="textarea" rows={28} value={rawPayload} onChange={(event) => setRawPayload(event.target.value)} /></Modal.Body><Modal.Footer><Button variant="outline-secondary" onClick={() => setShowJson(false)}>Cancel</Button><Button variant="success" disabled={saving} onClick={() => void saveJson()}>{saving && <Spinner size="sm" className="me-2" />}Save payload</Button></Modal.Footer></Modal>
+      {panels.length === 0 ? <div className="monitoring-panel monitoring-empty">This dashboard has no panels yet.</div> : <DashboardLayout panels={panels} renderPanel={(panel, layout) => <DashboardPanel panel={panel} panelHeight={dashboardPanelHeight(layout)} start={startSeconds} end={endSeconds} refreshKey={refreshKey} variables={{ ...variables, cluster: clusterName }} datasources={datasources} />} />}
+      <Modal show={showJson} onHide={() => setShowJson(false)} size="xl" centered>
+        <Modal.Header closeButton><Modal.Title>Dashboard payload</Modal.Title></Modal.Header>
+        <Modal.Body><Alert variant="info" className="small">The editor accepts the Ambari Monitoring {DASHBOARD_SCHEMA_VERSION} schema. Unsupported fields and panel types are rejected.</Alert><Form.Control className="monitoring-code" as="textarea" rows={28} value={rawPayload} onChange={(event) => setRawPayload(event.target.value)} /></Modal.Body>
+        <Modal.Footer><Button variant="outline-secondary" onClick={() => setShowJson(false)}>Cancel</Button><Button variant="success" disabled={saving} onClick={() => void saveJson()}>{saving && <Spinner size="sm" className="me-2" />}Save payload</Button></Modal.Footer>
+      </Modal>
     </section>
   );
 }

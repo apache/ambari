@@ -54,7 +54,7 @@ describe("Monitoring navigation permissions", () => {
 
     expect(screen.getByRole("link", { name: "Dashboards" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Explore" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Datasources" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Data sources" })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Targets" })).toBeNull();
   });
 
@@ -68,6 +68,6 @@ describe("Monitoring navigation permissions", () => {
     expect(screen.getByRole("link", { name: "Targets" })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Dashboards" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Explore" })).toBeNull();
-    expect(screen.queryByRole("link", { name: "Datasources" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Data sources" })).toBeNull();
   });
 });

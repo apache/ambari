@@ -1,0 +1,97 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import type { DashboardPanel, JsonObject, PrometheusResult } from "../types";
+
+export interface DashboardPanelResult extends PrometheusResult {
+  displayName: string;
+  seriesKey: string;
+}
+
+export interface DashboardThreshold {
+  value: number | null;
+  color: string;
+}
+
+const asRecord = (value: unknown): JsonObject => (
+  value && typeof value === "object" && !Array.isArray(value)
+    ? value as JsonObject
+    : {}
+);
+
+const namedColors: Record<string, string> = {
+  green: "#278541",
+  red: "#b33a3a",
+  orange: "#bd6418",
+  yellow: "#c58a00",
+  blue: "#1769aa",
+  purple: "#8a4f9d",
+  gray: "#6c757d",
+};
+
+const resolveColor = (value: unknown, fallback: string) => {
+  if (typeof value !== "string") return fallback;
+  return namedColors[value] || value || fallback;
+};
+
+export function latestPanelValue(result: DashboardPanelResult) {
+  const point = result.values?.at(-1) || result.value;
+  if (!point) return null;
+  const numeric = Number(point[1]);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+export function panelThresholds(panel: DashboardPanel): DashboardThreshold[] {
+  const options = asRecord(panel.options);
+  const raw = asRecord(options.thresholds);
+  const steps = Array.isArray(raw.steps) ? raw.steps : [];
+  return steps
+    .map((step) => {
+      const item = asRecord(step);
+      const rawValue = item.value;
+      const value = rawValue === null || rawValue === undefined ? null : Number(rawValue);
+      return {
+        value: value === null || Number.isFinite(value) ? value : null,
+        color: resolveColor(item.color, "#6c757d"),
+      };
+    })
+    .filter((step) => step.value === null || Number.isFinite(step.value))
+    .sort((left, right) => (left.value ?? Number.NEGATIVE_INFINITY) - (right.value ?? Number.NEGATIVE_INFINITY));
+}
+
+export function panelValueColor(panel: DashboardPanel, value: number | null) {
+  const thresholds = panelThresholds(panel);
+  if (value === null || thresholds.length === 0) return undefined;
+  let color: string | undefined;
+  thresholds.forEach((threshold) => {
+    if (threshold.value === null || value >= threshold.value) color = threshold.color;
+  });
+  return color;
+}
+
+export function panelStandardOptions(panel: DashboardPanel): JsonObject {
+  const options = asRecord(panel.options);
+  return asRecord(options.standardOptions);
+}
+
+export function panelNumericBounds(panel: DashboardPanel): { min?: number; max?: number } {
+  const standard = panelStandardOptions(panel);
+  const min = typeof standard.min === "number" && Number.isFinite(standard.min) ? standard.min : undefined;
+  const max = typeof standard.max === "number" && Number.isFinite(standard.max) ? standard.max : undefined;
+  return { min, max };
+}

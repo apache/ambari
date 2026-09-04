@@ -23,9 +23,9 @@ import "./monitoring.scss";
 
 const links = [
   ["Dashboards", "/main/monitoring/dashboards", "CLUSTER.VIEW_METRICS"],
-  ["Explore", "/main/monitoring/query", "CLUSTER.VIEW_METRICS"],
+  ["Explore", "/main/monitoring/explorer", "CLUSTER.VIEW_METRICS"],
   ["Targets", "/main/monitoring/targets", "HOST.VIEW_METRICS"],
-  ["Datasources", "/main/monitoring/datasources", "CLUSTER.VIEW_METRICS"],
+  ["Data sources", "/main/monitoring/data-sources", "CLUSTER.VIEW_METRICS"],
 ];
 
 export function MonitoringIndexRedirect() {
