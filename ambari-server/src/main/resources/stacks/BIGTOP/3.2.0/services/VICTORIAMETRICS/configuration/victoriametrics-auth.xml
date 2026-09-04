@@ -22,6 +22,7 @@
     <value>8427</value>
     <display-name>VMAUTH HTTP Port</display-name>
     <description>Stable Prometheus-compatible query and ingestion entry port.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>require_authentication</name>
@@ -31,12 +32,14 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>api_username</name>
     <value></value>
     <display-name>API User</display-name>
     <description>Basic authentication user for the unified query and ingestion endpoint.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>api_password</name>
@@ -48,5 +51,6 @@
       <hidden>CONFIG_DOWNLOAD</hidden>
     </value-attributes>
     <description>Basic authentication password. Generated VMAUTH configuration is restricted to mode 0600.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

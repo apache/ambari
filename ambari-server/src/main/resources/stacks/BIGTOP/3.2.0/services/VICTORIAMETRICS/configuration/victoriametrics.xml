@@ -36,12 +36,14 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>retention_period</name>
     <value>12</value>
     <display-name>Retention Period</display-name>
     <description>Data retention period accepted by VictoriaMetrics, for example 12 for months or 30d for days.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>replication_factor</name>
@@ -52,71 +54,83 @@
       <type>int</type>
       <minimum>1</minimum>
     </value-attributes>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>dedup_min_scrape_interval</name>
     <value>1ms</value>
     <display-name>Deduplication Interval</display-name>
     <description>Deduplication interval for storage replication. Replicated VMAGENT scrapes instead use the managed scrape interval.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>tenant_id</name>
     <value>0</value>
     <display-name>Tenant ID</display-name>
     <description>VictoriaMetrics cluster tenant in accountID or accountID:projectID form.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>server_http_port</name>
     <value>8428</value>
     <display-name>Single-node HTTP Port</display-name>
     <description>HTTP listen port for VICTORIAMETRICS_SERVER.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>server_data_dir</name>
     <value>/var/lib/ambari-metrics/victoriametrics/server-data</value>
     <display-name>Single-node Data Directory</display-name>
     <description>Storage path for VICTORIAMETRICS_SERVER.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vmstorage_http_port</name>
     <value>8482</value>
     <display-name>VMSTORAGE HTTP Port</display-name>
     <description>HTTP listen port for health, status, and metrics endpoints.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vmstorage_vminsert_port</name>
     <value>8400</value>
     <display-name>VMSTORAGE Insert Port</display-name>
     <description>TCP port used by VMINSERT to send data to VMSTORAGE.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vmstorage_vmselect_port</name>
     <value>8401</value>
     <display-name>VMSTORAGE Select Port</display-name>
     <description>TCP port used by VMSELECT to read data from VMSTORAGE.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>vmstorage_data_dir</name>
     <value>/var/lib/ambari-metrics/victoriametrics/storage-data</value>
     <display-name>VMSTORAGE Data Directory</display-name>
     <description>Persistent data path local to each VMSTORAGE host.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vminsert_http_port</name>
     <value>8480</value>
     <display-name>VMINSERT HTTP Port</display-name>
     <description>HTTP listen port for distributed ingestion.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vmselect_http_port</name>
     <value>8481</value>
     <display-name>VMSELECT HTTP Port</display-name>
     <description>HTTP listen port for distributed queries.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>vmselect_cache_dir</name>
     <value>/var/lib/ambari-metrics/victoriametrics/select-cache</value>
     <display-name>VMSELECT Cache Directory</display-name>
     <description>Persistent cache path local to each VMSELECT host.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

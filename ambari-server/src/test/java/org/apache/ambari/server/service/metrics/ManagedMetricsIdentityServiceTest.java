@@ -214,6 +214,7 @@ public class ManagedMetricsIdentityServiceTest {
     private UserEntity user() {
       UserEntity user = mock(UserEntity.class);
       PrincipalEntity principal = new PrincipalEntity();
+      principal.setId(99L);
       PermissionEntity permission = mock(PermissionEntity.class);
       ResourceEntity resource = mock(ResourceEntity.class);
       when(user.getPrincipal()).thenReturn(principal);

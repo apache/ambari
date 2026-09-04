@@ -22,71 +22,83 @@
     <value>ambari-metrics</value>
     <display-name>Service User</display-name>
     <description>Operating system user for all VictoriaMetrics processes.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>victoriametrics_group</name>
     <value>ambari-metrics</value>
     <display-name>Service Group</display-name>
     <description>Operating system group for all VictoriaMetrics processes.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>victoriametrics_binary_dir</name>
     <value>/usr/lib/ambari-metrics/providers/victoriametrics/bin</value>
     <display-name>Binary Directory</display-name>
     <description>Directory containing official VictoriaMetrics production binaries.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>victoriametrics_pid_dir</name>
     <value>/var/run/ambari-metrics/victoriametrics</value>
     <display-name>PID Directory</display-name>
     <description>Directory for component PID files.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>victoriametrics_log_dir</name>
     <value>/var/log/ambari-metrics/victoriametrics</value>
     <display-name>Log Directory</display-name>
     <description>Directory for component logs.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property require-input="true">
     <name>victoriametrics_config_dir</name>
     <value>/etc/ambari-metrics/victoriametrics</value>
     <display-name>Configuration Directory</display-name>
     <description>Directory for generated scrape, authentication, and secret files.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>server_extra_args</name>
     <value></value>
     <display-name>Single-node Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VICTORIAMETRICS_SERVER.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vmstorage_extra_args</name>
     <value></value>
     <display-name>VMSTORAGE Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMSTORAGE.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vminsert_extra_args</name>
     <value></value>
     <display-name>VMINSERT Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMINSERT.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vmselect_extra_args</name>
     <value></value>
     <display-name>VMSELECT Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMSELECT.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vmagent_extra_args</name>
     <value></value>
     <display-name>VMAGENT Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMAGENT.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>vmauth_extra_args</name>
     <value></value>
     <display-name>VMAUTH Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMAUTH.</description>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

@@ -161,13 +161,13 @@ public class StackArtifactResourceProviderTest {
     Assert.assertEquals(2, ((ArrayList) descriptor.get("Component")).size());
     MetricDefinition md = (MetricDefinition) ((ArrayList) descriptor.get("Component")).iterator().next();
 
-    Assert.assertEquals("rpcdetailed.rpcdetailed.client.BlockReceivedAndDeletedAvgTime",
+    Assert.assertEquals("rpcdetailed.rpcdetailed,tag=client.BlockReceivedAndDeletedAvgTime",
       md.getMetrics().get("metrics/rpcdetailed/client/blockReceived_avg_time").getName());
 
-    Assert.assertEquals("rpc.rpc.healthcheck.CallQueueLength",
+    Assert.assertEquals("rpc.rpc,tag=healthcheck.CallQueueLength",
       md.getMetrics().get("metrics/rpc/healthcheck/callQueueLen").getName());
 
-    Assert.assertEquals("rpcdetailed.rpcdetailed.datanode.DeleteNumOps",
+    Assert.assertEquals("rpcdetailed.rpcdetailed,tag=datanode.DeleteNumOps",
       md.getMetrics().get("metrics/rpcdetailed/datanode/delete_num_ops").getName());
 
     verify(managementController);

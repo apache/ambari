@@ -216,17 +216,19 @@ public class PrometheusQueryClient {
 
   private String encodeParameters(Map<String, List<String>> parameters) {
     List<String> encoded = new ArrayList<>();
-    parameters.forEach((name, values) -> {
-      if (name == null || values == null) {
-        return;
-      }
-      for (String value : values) {
-        if (value != null) {
-          encoded.add(URLEncoder.encode(name, StandardCharsets.UTF_8)
-              + "=" + URLEncoder.encode(value, StandardCharsets.UTF_8));
-        }
-      }
-    });
+    parameters.entrySet().stream()
+        .filter(entry -> entry.getKey() != null && entry.getValue() != null)
+        .sorted(Map.Entry.comparingByKey())
+        .forEach(entry -> {
+          String name = entry.getKey();
+          List<String> values = entry.getValue();
+          for (String value : values) {
+            if (value != null) {
+              encoded.add(URLEncoder.encode(name, StandardCharsets.UTF_8)
+                  + "=" + URLEncoder.encode(value, StandardCharsets.UTF_8));
+            }
+          }
+        });
     return String.join("&", encoded);
   }
 
