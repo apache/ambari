@@ -1,0 +1,53 @@
+{
+  "LOGSEARCH_LOGFEEDER": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/filter/error/grok": {
+              "metric": "filter.error.grok",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/filter/error/truncate": {
+              "metric": "filter.error.truncate",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/input/files/read_lines": {
+              "metric": "input.files.read_lines",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/input/files/read_bytes": {
+              "metric": "input.files.read_bytes",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/output/kafka/write_logs": {
+              "metric": "output.kafka.write_logs",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/output/kafka/write_bytes": {
+              "metric": "output.kafka.write_bytes",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/output/solr/write_logs": {
+              "metric": "output.solr.write_logs",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/output/solr/write_bytes": {
+              "metric": "output.solr.write_bytes",
+              "pointInTime": false,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

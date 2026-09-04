@@ -1,0 +1,47 @@
+#!/bin/bash
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -e
+
+export LOGFEEDER_PATH={{logfeeder_dir}}
+
+export LOGFEEDER_CONF_DIR={{logsearch_logfeeder_conf}}
+
+#Logfile e.g. /var/log/logfeeder.log
+export LOG_PATH={{logfeeder_log_dir}}
+export LOG_FILE={{logfeeder_log}}
+
+#pid file e.g. /var/run/logfeeder.pid
+export LOGFEEDER_PID_FILE={{logfeeder_pid_file}}
+
+export JAVA_HOME={{java64_home}}
+
+if [ "$LOGFEEDER_JAVA_MEM" = "" ]; then
+  export LOGFEEDER_JAVA_MEM=-Xmx{{logfeeder_max_mem}}
+fi
+
+{% if logfeeder_use_ssl %}
+export LOGFEEDER_SSL="true"
+export LOGFEEDER_KEYSTORE_LOCATION={{logfeeder_keystore_location}}
+export LOGFEEDER_KEYSTORE_TYPE={{logfeeder_keystore_type}}
+export LOGFEEDER_TRUSTSTORE_LOCATION={{logfeeder_truststore_location}}
+export LOGFEEDER_TRUSTSTORE_TYPE={{logfeeder_truststore_type}}
+{% endif %}
+
+{% if security_enabled -%}
+LOGFEEDER_KERBEROS_OPTS="-Djava.security.auth.login.config=/usr/lib/ambari-logsearch-logfeeder/conf/logfeeder_jaas.conf -Dsolr.httpclient.builder.factory=org.apache.solr.client.solrj.impl.Krb5HttpClientBuilder"
+export LOGFEEDER_JAVA_OPTS="{{zk_security_opts}} $LOGFEEDER_KERBEROS_OPTS"
+{% endif %}

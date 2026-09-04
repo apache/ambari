@@ -1,0 +1,35 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol": {
+      "type":"https",
+      "checks":[
+        {
+          "property":"logsearch.protocol",
+          "desired":"https",
+          "site":"logsearch-properties"
+        }
+      ]
+    },
+    "links": [
+      {
+        "name": "logsearch_ui",
+        "label": "Log Search UI",
+        "component_name": "LOGSEARCH_SERVER",
+        "url": "%@://%@:%@",
+        "requires_user_name": "false",
+        "attributes": ["authenticated", "sso"],
+        "port": {
+          "http_property": "logsearch.http.port",
+          "http_default_port": "8888",
+          "https_property": "logsearch.https.port",
+          "https_default_port": "8888",
+          "regex": "^(\\d+)$",
+          "site": "logsearch-properties"
+        }
+      }
+    ]
+  }
+}
+
