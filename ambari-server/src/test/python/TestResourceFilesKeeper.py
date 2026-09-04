@@ -99,7 +99,7 @@ class TestResourceFilesKeeper(TestCase):
   )
 
   DUMMY_UNCHANGEABLE_PACKAGE_HASH = (
-    "6f5e6f055d72918494e7fd0b94d6acec8d476ee8281b560f4e3ca44c77bb00c0"
+    "2286a803ad2b71e87ba4360faa6ae2cbe026d96ab7d76e1a3a494d9daeec2f97"
   )
   DUMMY_HASH = "dummy_hash"
   YA_HASH = "yet_another_hash"

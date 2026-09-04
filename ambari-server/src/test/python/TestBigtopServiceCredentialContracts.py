@@ -25,8 +25,6 @@ import xml.etree.ElementTree as ET
 RESOURCES = Path(__file__).resolve().parents[2] / "main/resources"
 
 PUBLIC_TRUSTSTORE_DEFAULTS = {
-  "common-services/AMBARI_METRICS/3.0.0/configuration/ams-ssl-client.xml",
-  "common-services/AMBARI_METRICS/3.0.0/configuration/ams-ssl-server.xml",
   "stacks/BIGTOP/3.2.0/services/HBASE/configuration/"
   "ranger-hbase-policymgr-ssl.xml",
   "stacks/BIGTOP/3.2.0/services/HDFS/configuration/"
@@ -76,7 +74,7 @@ class TestBigtopServiceCredentialContracts(unittest.TestCase):
           found[str(path.relative_to(RESOURCES))] = value
 
     self.assertEqual(PUBLIC_TRUSTSTORE_DEFAULTS, set(found))
-    self.assertEqual({"bigdata", "changeit"}, set(found.values()))
+    self.assertEqual({"changeit"}, set(found.values()))
 
   def test_https_keystore_alias_defaults_are_identifiers_not_secrets(self):
     property_name = "ranger.service.https.attrib.keystore.credential.alias"

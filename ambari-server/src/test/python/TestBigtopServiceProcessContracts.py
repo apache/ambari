@@ -29,7 +29,6 @@ SERVICE_ROOTS = (
   RESOURCES / "stacks/BIGTOP/3.3.0/services/RANGER",
   RESOURCES / "stacks/BIGTOP/3.3.0/services/RANGER_KMS",
   RESOURCES / "common-services/AMBARI_INFRA_SOLR/3.0.0",
-  RESOURCES / "common-services/AMBARI_METRICS/3.0.0",
 )
 DIRECT_PROCESS_APIS = re.compile(
   r"\b(?:subprocess\.(?:Popen|run|call|check_call|check_output)|"
