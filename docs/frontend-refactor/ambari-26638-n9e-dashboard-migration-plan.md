@@ -15,26 +15,109 @@
    limitations under the License.
 --->
 
-# AMBARI-26638: n9e-Inspired Dashboard Migration Plan
+# AMBARI-26638: Nightingale Linux Dashboard Adaptation
 
 ## Status
 
-This document defines the dashboard-specific implementation plan for
-`AMBARI-26638`. It refines the general Prometheus migration plan by allowing
-source-level migration of reusable n9e dashboard modules, followed by an
-explicit Ambari adaptation. It does not authorize copying the n9e application
-shell or its unrelated product features.
+This document defines the dashboard-specific design and implementation record
+for `AMBARI-26638`. It covers source-level migration of reusable Nightingale
+dashboard behavior and the Linux Host Detail definition, followed by an
+explicit Ambari adaptation. It does not copy the Nightingale application shell
+or its unrelated product features.
 
 Reference repositories:
 
-- Ambari worktree: `AMBARI-26638`, commit `02524c76b2` at the time of this
-  analysis.
+- Ambari target: `trunk` at `772caed7734f1b4763036809dbbfdda569d9ad0f`.
+- Ambari implementation branch: `AMBARI-26638`, starting this increment at
+  `ed31a54de64920f815df1259816c5c31c2e2f092`.
 - n9e frontend: `git@github.com:n9e/fe.git`, `main`, commit `b69c99abb` at the
   time of this analysis.
+- Nightingale dashboard repository: `git@github.com:ccfos/nightingale.git`,
+  `main`, commit `6c88f5096a21699540097ea7612f7fe08231b69c`.
+- Frozen dashboard source:
+  `integrations/Linux/dashboards/exporter-detail.json` at that Nightingale
+  commit.
 
 The implementation target remains the native React application under
 `ambari-web/latest`. No second React root, microfrontend, or dashboard iframe
 is part of this plan.
+
+### Implementation snapshot
+
+The Linux Host Detail dashboard now preserves the frozen source dashboard's
+24-column geometry and presentation structure: 41 panels comprising 6 rows,
+3 stats, 2 hex tiles, and 30 time-series panels. Its 77 query targets use 80
+distinct `ambari_agent_*` metrics. Every query is scoped by Ambari cluster,
+host target, and selected host.
+
+The adaptation is deliberately not a wire-compatible Node Exporter or Categraf
+layer. Source metric names and selectors were rewritten to the native Ambari
+Agent contract; `$node`, `instance`, source UUIDs, source routes, and source
+labels were replaced with Ambari host semantics, IDs, and `${cluster}` /
+`${host}` variables. No compatibility aliases or runtime payload converter are
+introduced.
+
+The Agent collector adds 38 metrics required by the dashboard: detailed
+`/proc/meminfo` fields, merged disk-operation counters, filesystem read-only
+and device-error state, Linux socket gauges, and kernel time-discipline offset.
+Collection continues to use bounded `/proc` reads, `statvfs`, and the standard
+library `ctypes` binding for `adjtimex(2)`. `psutil` is not added because it
+does not cover the full contract and would add native wheel and offline
+packaging work across Python and CPU architectures.
+
+Built-in provisioning refreshes packaged metadata and JSON only for records
+resolved through the built-in identity query under `__ambari_builtin__`.
+User-created dashboards and clones are not modified. The React workspace adds
+query variables, row collapse, table pivot and drill-down behavior, hex-tile
+threshold colors, the three additional units, threshold lines, range value
+mappings, and editing controls for those options.
+
+The increment was verified without a local or full Ambari build. Focused Agent
+and Server tests ran in the 6 GB project builder container, and the React tests
+and production build ran in a 6 GB Node 20 container. The resulting Agent,
+Server, dashboard, and frontend artifacts were then installed in the running
+three-node deployment.
+
+### Verification snapshot
+
+- `TestPrometheusMetrics.py`: 20 tests passed in the project builder
+  container.
+- `BuiltinDashboardContractTest`, `BuiltinDashboardProvisionerTest`, and
+  `DashboardServiceTest`: 5 tests passed with JDK 17 in the project builder
+  container.
+- The five focused Monitoring Vitest files: 27 tests passed in the Node 20
+  container.
+- `npm run build`: TypeScript and the Vite production build completed in the
+  Node 20 container. Existing Sass deprecation and bundle-size warnings remain.
+- All three deployed Agents expose 96 `ambari_agent_*` metric names on port
+  `9101`, including the added CPU, memory, filesystem, network, socket, disk,
+  and time-discipline families.
+- VictoriaMetrics returned the three expected host series for the hugepage
+  count-to-byte join used by the dashboard.
+- Built-in provisioning refreshed `LINUX_HOST_DETAIL` to 41 panels and 77
+  queries. The Ambari API returned the same payload with `prom` and `host`
+  variables.
+- The deployed API successfully cloned the built-in dashboard, saved an
+  edited canonical payload, read the edit back, and deleted the test clone.
+- The deployed `/latest/` entry point serves the new production asset hashes.
+
+No full Ambari build or Playwright visual-regression baseline was run for this
+increment.
+
+### Concrete Linux dashboard source map
+
+| Frozen source | Ambari destination | Adaptation |
+| --- | --- | --- |
+| `ccfos/nightingale:integrations/Linux/dashboards/exporter-detail.json` at `6c88f5096a21699540097ea7612f7fe08231b69c` | `ambari-server/src/main/resources/metrics/integrations/Linux/dashboards/Linux_Host_Detail.json` | Retain 41-panel geometry, panel types, thresholds, units, reducers, and presentation options; replace all identifiers, English labels, variables, selectors, and queries with the Ambari contract |
+| Node Exporter selectors in the frozen JSON | `ambari_agent_*` selectors plus `ambari-agent/.../metrics/linux.py` | Map to 80 native dashboard metrics and add the 38 missing collector families without Node Exporter aliases |
+| Source datasource and node variables | Ambari `prom` datasource and `host` query variables | Resolve enabled cluster datasources and host labels through Ambari APIs; use `${cluster}`, `${host}`, and `ambari_target="host"` in every target |
+| Source renderer option behavior under `n9e/fe` | `ambari-web/latest/src/screens/Monitoring/Dashboard/` | Reimplement the needed layout, row, query-variable, table, hex-tile, time-series, unit, threshold, mapping, and editor behavior with Ambari React components and names |
+
+Nightingale panel UUIDs, `$node`, `instance`, Chinese display text, source route
+templates, and product-specific names are intentionally absent from the Ambari
+artifact. Source rows defaulted to collapsed; the Ambari built-in defaults to
+expanded so the operational dashboard is visible on first load while retaining
+interactive collapse state.
 
 ## Executive Summary
 
@@ -58,7 +141,7 @@ with Ambari equivalents. The result should look and behave like a dense
 operations dashboard while remaining an Ambari feature with Ambari APIs,
 authorization, routing, localization, and cluster isolation.
 
-## Current Ambari Baseline
+## Initial Ambari Baseline
 
 The following issues are confirmed in the current `AMBARI-26638` worktree:
 
@@ -98,8 +181,8 @@ metadata, series, and targets proxy endpoints are also available.
   and query lifecycle behavior into Ambari.
 - Support all n9e dashboard renderer types that have a meaningful Prometheus
   representation in Ambari.
-- Make existing Ambari dashboard payloads render correctly without requiring a
-  PromQL rewrite as part of the first visual migration.
+- Keep the canonical Ambari `3.0.0` schema strict. Source-format aliases,
+  compatibility routes, and runtime conversion are not supported.
 - Provide compact, readable, responsive dashboards with no avoidable blank
   space or overlapping labels.
 - Preserve Ambari authentication, cluster isolation, metric-view permissions,
@@ -171,7 +254,7 @@ provide a retry action.
 | `Renderer/Pie` | `screens/Monitoring/Dashboard/renderers/PieRenderer.tsx` | Migrate vector-to-sector transformation and tooltip behavior |
 | `Renderer/BarChart` | `screens/Monitoring/Dashboard/renderers/BarChartRenderer.tsx` | Migrate categorical and stacked bar transformations |
 | `Renderer/Heatmap` | `screens/Monitoring/Dashboard/renderers/HeatmapRenderer.tsx` | Migrate bucket/matrix transformation and rendering |
-| `Renderer/Hexbin` | `screens/Monitoring/Dashboard/renderers/HexbinRenderer.tsx` | Migrate only after a concrete Ambari data contract exists |
+| `Renderer/Hexbin` | `screens/Monitoring/Dashboard/renderers/HexbinRenderer.tsx` | Adapt to one tile per Ambari Prometheus result series with reducer, mapping, threshold, and optional Ambari route behavior |
 | `Renderer/Text` and `Iframe` | `screens/Monitoring/Dashboard/renderers/TextRenderer.tsx` and `IframeRenderer.tsx` | Migrate with Markdown sanitization and iframe security controls |
 | `Renderer/utils/*` | `screens/Monitoring/Dashboard/data/` and `utils/` | Migrate pure calculation, format, mapping, legend, and override helpers |
 | `Renderer/datasource/useQuery.tsx` | `datasource/useDashboardQuery.ts` | Migrate request state and cancellation; replace service layer |
@@ -233,9 +316,13 @@ screens/Monitoring/Dashboard/
 ### Internal types versus persisted JSON
 
 Persisted fields are the Ambari `3.0.0` contract: `version`, `var`, `panels`,
-the explicit panel type set, and complete `layout` geometry. Internal
-TypeScript names use Ambari semantics and map directly to this contract; no
-source-format aliases or unknown-field passthrough are allowed.
+the explicit panel type set, complete `layout` geometry, and an optional
+`titleKey` for packaged labels. A packaged panel keeps an English `name` as
+the portable fallback and resolves `titleKey` through Ambari's active i18n
+language. Editing the name removes the key so user-defined text is never
+overridden by a system translation. Internal TypeScript names use Ambari
+semantics and map directly to this contract; no source-format aliases or
+unknown-field passthrough are allowed.
 
 ### API, state, and CSS ownership
 
@@ -322,10 +409,10 @@ tooltips should follow n9e's payload options.
 
 ### Heatmap and hexbin
 
-Heatmaps require an explicit matrix contract. The first supported form should
-be Prometheus histogram buckets identified by `le`, with time on the x-axis
-and bucket ranges on the y-axis. Hexbin should remain a later feature unless a
-real Ambari dashboard needs coordinate or high-dimensional distribution data.
+Heatmaps use an explicit time/value matrix contract. Hex tiles use the Linux
+dashboard's concrete Prometheus vector contract: one tile per result series,
+with its configured reducer, range mappings, threshold colors, and Ambari-only
+detail links. They are not treated as geographic or arbitrary coordinate data.
 
 ### Text and iframe
 
@@ -510,8 +597,8 @@ remain outside the dashboard workspace.
 | Umi Request | Existing authenticated `ambariApi` and `MetricsApi` |
 | Tailwind and source Less | Ambari monitoring Sass/SCSS variables and components |
 | `CommonStateContext` | `AppContext`, `UserContext`, `useAuth`, and feature context |
-| `react-grid-layout` | Candidate for edit mode after React 19 verification |
-| `uplot` | Candidate for TimeSeriesNG after bundle/license verification |
+| `react-grid-layout` | Used only for persisted drag/resize behavior in edit mode; read-only layout remains an Ambari CSS grid |
+| `uplot` | Not added in this increment; the existing Chart.js path implements the required Linux dashboard behavior |
 | D3 | Candidate for gauge/stat geometry where it removes complexity |
 | G2 and related chart packages | Add only for renderer types that need them |
 
@@ -520,6 +607,10 @@ router assumptions, or application-level CSS. New dependencies require a
 license inventory, bundle-size review, and focused React 19 test.
 
 ## Implementation Phases
+
+The phases below are the broader subsystem plan. The current increment is
+limited to the frozen Linux Host Detail dashboard, the metrics it requires,
+and the shared renderer/editor behavior exercised by that dashboard.
 
 ### Phase 0: Source inventory and contracts
 
@@ -680,7 +771,7 @@ practical.
 | Heatmap/hexbin payloads lack a stable query shape | Incorrect charts | Document supported matrix contracts and preserve unsupported payloads |
 | Dashboard refresh causes request storms | Prometheus overload | Batch by datasource, use viewport loading, debounce, and bounded steps |
 | Schema evolves without an explicit migration | User configuration cannot be loaded | Reject the document with a field-level error and add a versioned migration before changing the contract |
-| Direct source reuse creates license omissions | Release compliance issue | Keep a source map, retain headers, and complete NOTICE/dependency review |
+| Direct source reuse creates license omissions | Release compliance issue | Record the frozen source and semantic changes here, retain Apache headers, and complete the license review; the source repository has Apache-2.0 `LICENSE` and no `NOTICE` attribution file |
 
 ## Acceptance Criteria
 
@@ -706,8 +797,10 @@ The migration is ready for merge when all of the following are true:
 
 ## Decision Record
 
-The selected direction is **source-level migration of the n9e dashboard
-subsystem with Ambari-native adaptation**. This is broader than using n9e as a
-visual reference, but narrower than copying the n9e application. The first
-implementation priority is layout and renderer correctness; advanced chart
-types follow once the common data-frame and query contracts are stable.
+The selected direction is **source-level migration of selected Nightingale
+dashboard behavior and the frozen Linux Host Detail panel definition with
+Ambari-native adaptation**. This is broader than using Nightingale only as a
+visual reference, but narrower than copying its application. The persisted
+schema, routes, IDs, variables, metrics, authorization, APIs, components, and
+styles are owned by Ambari and intentionally do not provide source-product
+compatibility.
