@@ -21,6 +21,7 @@ import json
 
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.script.script import Script
 
 
@@ -44,6 +45,8 @@ class VictoriaMetricsServiceCheck(Script):
       user=params.victoriametrics_user,
       env=environment,
       quiet=True,
+      timeout=35,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     if result != 0:
       raise Fail("VictoriaMetrics query service check failed")

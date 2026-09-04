@@ -22,6 +22,7 @@ import shlex
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import Template
 from resource_management.libraries.functions.check_process_status import (
   check_process_status,
@@ -99,6 +100,8 @@ class VictoriaMetrics(Script):
     Execute(
       shell.string_cmd_from_args_list(["test", "-x", params.binary_path]),
       user=params.victoriametrics_user,
+      timeout=30,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     process_command = shell.string_cmd_from_args_list(
       [params.binary_path] + arguments
@@ -112,6 +115,8 @@ class VictoriaMetrics(Script):
       start_command,
       user=params.victoriametrics_user,
       not_if=self._process_exists_command(params.pid_file),
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
   def stop(self, env):
@@ -123,6 +128,8 @@ class VictoriaMetrics(Script):
       "kill $(cat {0})".format(shell.quote_bash_args(params.pid_file)),
       user=params.victoriametrics_user,
       only_if=process_exists,
+      timeout=30,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     Execute(
       "kill -9 $(cat {0})".format(shell.quote_bash_args(params.pid_file)),
@@ -130,12 +137,16 @@ class VictoriaMetrics(Script):
       only_if=process_exists,
       not_if="sleep 5; ! ({0})".format(process_exists),
       ignore_failures=True,
+      timeout=30,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     Execute(
       "! ({0})".format(process_exists),
       user=params.victoriametrics_user,
       tries=20,
       try_sleep=3,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     File(params.pid_file, action="delete")
 
