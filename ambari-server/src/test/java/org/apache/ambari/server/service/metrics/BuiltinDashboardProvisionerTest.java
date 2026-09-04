@@ -26,6 +26,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.orm.dao.BoardDAO;
@@ -71,19 +73,36 @@ public class BuiltinDashboardProvisionerTest {
   }
 
   @Test
-  public void testDoesNotOverwriteExistingDashboardDefinitions() {
+  public void testRefreshesExistingBuiltinDashboardDefinitions() {
     BoardDAO boardDAO = mock(BoardDAO.class);
     BoardPayloadDAO payloadDAO = mock(BoardPayloadDAO.class);
-    BoardEntity existing = new BoardEntity();
-    existing.setId(101L);
-    existing.setIdent("existing");
-    when(boardDAO.findBuiltinByIdent(anyString())).thenReturn(existing);
+    AtomicLong sequence = new AtomicLong(100L);
+    Map<Long, BoardPayloadEntity> payloads = new HashMap<>();
+    when(boardDAO.findBuiltinByIdent(anyString())).thenAnswer(invocation -> {
+      BoardEntity board = new BoardEntity();
+      board.setId(sequence.incrementAndGet());
+      board.setIdent(invocation.getArgument(0));
+      board.setName("Stale dashboard");
+      BoardPayloadEntity payload = new BoardPayloadEntity();
+      payload.setId(board.getId());
+      payload.setPayload("{}");
+      payloads.put(board.getId(), payload);
+      return board;
+    });
+    when(payloadDAO.findByPK(any(Long.class))).thenAnswer(invocation -> payloads.get(invocation.getArgument(0)));
     BuiltinDashboardProvisioner provisioner = new BuiltinDashboardProvisioner(boardDAO, payloadDAO);
 
     provisioner.provision();
 
     verify(boardDAO, never()).create(any(BoardEntity.class));
     verify(payloadDAO, never()).create(any(BoardPayloadEntity.class));
+    verify(boardDAO, times(11)).merge(any(BoardEntity.class));
+    ArgumentCaptor<BoardPayloadEntity> updatedPayloads = ArgumentCaptor.forClass(BoardPayloadEntity.class);
+    verify(payloadDAO, times(11)).merge(updatedPayloads.capture());
+    Assert.assertEquals(11, updatedPayloads.getAllValues().stream().map(BoardPayloadEntity::getId).distinct().count());
+    for (BoardPayloadEntity payload : updatedPayloads.getAllValues()) {
+      Assert.assertTrue(payload.getPayload().contains("\"version\":\"3.0.0\""));
+    }
   }
 
   private BoardEntity boardByIdent(ArgumentCaptor<BoardEntity> boards, String ident) {

@@ -59,15 +59,16 @@ public class DashboardService {
       Set.of(RoleAuthorization.CLUSTER_MANAGE_USER_PERSISTED_DATA);
   private static final String DASHBOARD_SCHEMA_VERSION = "3.0.0";
   private static final Set<String> DASHBOARD_FIELDS = Set.of("version", "var", "panels", "graphTooltip", "graphZoom");
-  private static final Set<String> VARIABLE_FIELDS = Set.of("name", "label", "type", "definition", "value");
-  private static final Set<String> PANEL_FIELDS = Set.of("id", "name", "description", "type",
+  private static final Set<String> VARIABLE_FIELDS = Set.of("name", "label", "type", "definition", "value",
+      "multi", "includeAll");
+  private static final Set<String> PANEL_FIELDS = Set.of("id", "name", "titleKey", "description", "type",
       "datasourceCate", "datasourceValue", "targets", "layout", "version", "collapsed", "custom",
       "options", "overrides", "links", "maxPerRow", "transformations", "panels");
   private static final Set<String> TARGET_FIELDS = Set.of("refId", "expr", "legend", "instant", "hide",
       "maxDataPoints", "time", "variables", "__mode__");
   private static final Set<String> LAYOUT_FIELDS = Set.of("h", "w", "x", "y", "i", "isResizable");
   private static final Set<String> PANEL_TYPES = Set.of("row", "timeseries", "stat", "gauge", "barGauge",
-      "table", "pie", "barchart", "heatmap", "text", "iframe");
+      "table", "tableNG", "pie", "barchart", "heatmap", "hexbin", "text", "iframe");
 
   private final BoardDAO boardDAO;
   private final BoardPayloadDAO payloadDAO;
@@ -181,7 +182,7 @@ public class DashboardService {
     BoardEntity clone = new BoardEntity();
     clone.setClusterName(clusterName);
     clone.setGroupId(source.getGroupId());
-    clone.setName(source.getName() + " Copy");
+    clone.setName(copyName(clusterName, source.getGroupId(), source.getName()));
     clone.setIdent(copyIdent(source.getIdent()));
     clone.setTags(source.getTags());
     clone.setPublicFlag(source.getPublicFlag());
@@ -315,8 +316,18 @@ public class DashboardService {
       rejectUnknownFields(variable, VARIABLE_FIELDS, path);
       requireText(variable, "name", path);
       String type = requireText(variable, "type", path);
-      if (!"textbox".equals(type) && !"datasource".equals(type)) {
-        throw new IllegalArgumentException(path + ".type must be textbox or datasource");
+      if (!Set.of("textbox", "datasource", "query").contains(type)) {
+        throw new IllegalArgumentException(path + ".type must be textbox, datasource, or query");
+      }
+      if ("query".equals(type)) {
+        requireText(variable, "definition", path);
+        for (String field : List.of("multi", "includeAll")) {
+          if (variable.has(field) && !variable.path(field).isBoolean()) {
+            throw new IllegalArgumentException(path + "." + field + " must be boolean");
+          }
+        }
+      } else if (variable.has("multi") || variable.has("includeAll")) {
+        throw new IllegalArgumentException(path + ".multi and .includeAll require type query");
       }
     }
     int panelIndex = 0;
@@ -330,6 +341,9 @@ public class DashboardService {
     rejectUnknownFields(panel, PANEL_FIELDS, path);
     requireText(panel, "id", path);
     requireText(panel, "name", path);
+    if (panel.has("titleKey")) {
+      requireText(panel, "titleKey", path);
+    }
     String type = requireText(panel, "type", path);
     if (!PANEL_TYPES.contains(type)) {
       throw new IllegalArgumentException(path + ".type is not supported: " + type);
@@ -410,6 +424,17 @@ public class DashboardService {
     }
     String suffix = "-copy-" + UUID.randomUUID().toString().substring(0, 8);
     return ident.substring(0, Math.min(ident.length(), 200 - suffix.length())) + suffix;
+  }
+
+  private String copyName(String clusterName, long groupId, String sourceName) {
+    for (int copyNumber = 1; ; copyNumber++) {
+      String suffix = copyNumber == 1 ? " Copy" : " Copy " + copyNumber;
+      String baseName = sourceName.substring(0, Math.min(sourceName.length(), 191 - suffix.length())).stripTrailing();
+      String candidate = baseName + suffix;
+      if (boardDAO.findByClusterGroupAndName(clusterName, groupId, candidate) == null) {
+        return candidate;
+      }
+    }
   }
 
   private boolean matches(BoardEntity board, String query) {

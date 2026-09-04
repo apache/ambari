@@ -50,6 +50,9 @@ import jakarta.persistence.TableGenerator;
         query = "SELECT board FROM BoardEntity board WHERE board.id = :id AND board.clusterName = :clusterName"),
     @NamedQuery(name = "BoardEntity.findByIdentAndCluster",
         query = "SELECT board FROM BoardEntity board WHERE board.ident = :ident AND board.clusterName = :clusterName"),
+    @NamedQuery(name = "BoardEntity.findByClusterGroupAndName",
+        query = "SELECT board FROM BoardEntity board WHERE board.clusterName = :clusterName "
+            + "AND board.groupId = :groupId AND board.name = :name"),
     @NamedQuery(name = "BoardEntity.findBuiltinByIdent",
         query = "SELECT board FROM BoardEntity board WHERE board.ident = :ident "
             + "AND board.clusterName = '__ambari_builtin__' AND board.builtIn = 1")

@@ -33,6 +33,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import com.google.inject.Provider;
@@ -60,7 +61,12 @@ public class DashboardServiceTest {
     when(boardDAO.findByIdAndCluster(42L, "west")).thenReturn(board);
     when(boardDAO.merge(board)).thenReturn(board);
     when(payloadDAO.findByPK(42L)).thenReturn(payload);
-    String raw = "{\"version\":\"3.0.0\",\"var\":[],\"panels\":[]}";
+    String raw = "{\"version\":\"3.0.0\",\"var\":[{\"name\":\"host\",\"type\":\"query\","
+        + "\"definition\":\"ambari_agent_host_info\",\"value\":\".*\",\"multi\":true,\"includeAll\":true}],"
+        + "\"panels\":[{\"id\":\"hosts\",\"name\":\"Hosts\","
+        + "\"titleKey\":\"monitoring.dashboard.sections.hosts\",\"type\":\"hexbin\","
+        + "\"targets\":[{\"refId\":\"A\",\"expr\":\"ambari_agent_host_info\"}],"
+        + "\"layout\":{\"h\":5,\"w\":8,\"x\":0,\"y\":0,\"i\":\"hosts\",\"isResizable\":true}}]}";
     DashboardService service = new DashboardService(boardDAO, payloadDAO, provisioner, clustersProvider);
 
     try (MockedStatic<AuthorizationHelper> authorization = org.mockito.Mockito.mockStatic(AuthorizationHelper.class)) {
@@ -103,5 +109,41 @@ public class DashboardServiceTest {
     verify(boardDAO).findByIdAndCluster(42L, "west");
     verify(boardDAO, never()).findByPK(42L);
     verifyNoInteractions(payloadDAO);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testCloneUsesNextAvailableCopyName() throws Exception {
+    BoardDAO boardDAO = mock(BoardDAO.class);
+    BoardPayloadDAO payloadDAO = mock(BoardPayloadDAO.class);
+    BuiltinDashboardProvisioner provisioner = mock(BuiltinDashboardProvisioner.class);
+    Provider<Clusters> clustersProvider = mock(Provider.class);
+    Clusters clusters = mock(Clusters.class);
+    Cluster cluster = mock(Cluster.class);
+    BoardEntity source = new BoardEntity();
+    source.setId(42L);
+    source.setClusterName(BoardEntity.BUILTIN_CLUSTER);
+    source.setGroupId(7L);
+    source.setName("Linux Fleet Overview");
+    source.setIdent("LINUX_FLEET_OVERVIEW");
+    source.setBuiltIn(1);
+    BoardEntity firstCopy = new BoardEntity();
+    when(clustersProvider.get()).thenReturn(clusters);
+    when(clusters.getCluster("west")).thenReturn(cluster);
+    when(cluster.getResourceId()).thenReturn(91L);
+    when(boardDAO.findByIdAndCluster(42L, "west")).thenReturn(null);
+    when(boardDAO.findByPK(42L)).thenReturn(source);
+    when(boardDAO.findByClusterGroupAndName("west", 7L, "Linux Fleet Overview Copy")).thenReturn(firstCopy);
+    DashboardService service = new DashboardService(boardDAO, payloadDAO, provisioner, clustersProvider);
+
+    try (MockedStatic<AuthorizationHelper> authorization = org.mockito.Mockito.mockStatic(AuthorizationHelper.class)) {
+      authorization.when(() -> AuthorizationHelper.getAuthenticatedName("")).thenReturn("operator");
+      BoardResponse response = service.clone("west", 42L);
+
+      Assert.assertEquals("Linux Fleet Overview Copy 2", response.getName());
+      ArgumentCaptor<BoardEntity> clone = ArgumentCaptor.forClass(BoardEntity.class);
+      verify(boardDAO).create(clone.capture());
+      Assert.assertEquals("Linux Fleet Overview Copy 2", clone.getValue().getName());
+    }
   }
 }

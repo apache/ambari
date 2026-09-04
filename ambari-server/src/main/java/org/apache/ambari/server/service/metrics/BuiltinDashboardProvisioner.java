@@ -20,6 +20,7 @@ package org.apache.ambari.server.service.metrics;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.ambari.server.orm.dao.BoardDAO;
 import org.apache.ambari.server.orm.dao.BoardPayloadDAO;
@@ -32,7 +33,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
-/** Adds packaged service dashboards without changing dashboards already present in the database. */
+/** Creates packaged dashboards and refreshes immutable built-ins when their definitions change. */
 @Singleton
 public class BuiltinDashboardProvisioner {
   private static final String RESOURCE_ROOT = "/metrics/integrations/Linux/dashboards/";
@@ -70,35 +71,67 @@ public class BuiltinDashboardProvisioner {
     for (DashboardResource resource : RESOURCES) {
       JsonNode definition = readDefinition(resource.fileName());
       String ident = requiredText(definition, "ident", resource.fileName());
-      if (boardDAO.findBuiltinByIdent(ident) != null) {
-        continue;
-      }
-
-      BoardEntity board = new BoardEntity();
-      board.setClusterName(BoardEntity.BUILTIN_CLUSTER);
-      board.setGroupId(definition.path("group_id").asLong(0));
-      board.setName(requiredText(definition, "name", resource.fileName()));
-      board.setIdent(ident);
-      board.setTags(definition.path("tags").asText(""));
-      board.setPublicFlag(1);
-      board.setBuiltIn(1);
-      board.setHidden(definition.path("hide").asInt(0));
-      board.setPublicCategory(definition.path("public_cate").asLong(0));
-      board.setDisplayLocations(resource.displayLocation());
-      board.setCreateBy("system");
-      board.setUpdateBy("system");
-      boardDAO.create(board);
-
       JsonNode configs = definition.get("configs");
       if (configs == null || !configs.isObject()) {
         throw new IllegalStateException("Built-in dashboard configs are missing: " + resource.fileName());
       }
-      BoardPayloadEntity payload = new BoardPayloadEntity();
-      payload.setId(board.getId());
-      payload.setPayload(configs.toString());
-      payloadDAO.create(payload);
+      String packagedPayload = configs.toString();
+      BoardEntity board = boardDAO.findBuiltinByIdent(ident);
+      if (board == null) {
+        board = new BoardEntity();
+        board.setClusterName(BoardEntity.BUILTIN_CLUSTER);
+        applyMetadata(board, definition, resource, ident);
+        board.setCreateBy("system");
+        board.setUpdateBy("system");
+        boardDAO.create(board);
+
+        BoardPayloadEntity payload = new BoardPayloadEntity();
+        payload.setId(board.getId());
+        payload.setPayload(packagedPayload);
+        payloadDAO.create(payload);
+        continue;
+      }
+
+      if (metadataChanged(board, definition, resource)) {
+        applyMetadata(board, definition, resource, ident);
+        board.setUpdateBy("system");
+        boardDAO.merge(board);
+      }
+      BoardPayloadEntity payload = payloadDAO.findByPK(board.getId());
+      if (payload == null) {
+        payload = new BoardPayloadEntity();
+        payload.setId(board.getId());
+        payload.setPayload(packagedPayload);
+        payloadDAO.create(payload);
+      } else if (!Objects.equals(payload.getPayload(), packagedPayload)) {
+        payload.setPayload(packagedPayload);
+        payloadDAO.merge(payload);
+      }
     }
     provisioned = true;
+  }
+
+  private void applyMetadata(BoardEntity board, JsonNode definition, DashboardResource resource, String ident) {
+    board.setGroupId(definition.path("group_id").asLong(0));
+    board.setName(requiredText(definition, "name", resource.fileName()));
+    board.setIdent(ident);
+    board.setTags(definition.path("tags").asText(""));
+    board.setPublicFlag(1);
+    board.setBuiltIn(1);
+    board.setHidden(definition.path("hide").asInt(0));
+    board.setPublicCategory(definition.path("public_cate").asLong(0));
+    board.setDisplayLocations(resource.displayLocation());
+  }
+
+  private boolean metadataChanged(BoardEntity board, JsonNode definition, DashboardResource resource) {
+    return !Objects.equals(board.getGroupId(), definition.path("group_id").asLong(0))
+        || !Objects.equals(board.getName(), requiredText(definition, "name", resource.fileName()))
+        || !Objects.equals(board.getTags(), definition.path("tags").asText(""))
+        || !Objects.equals(board.getPublicFlag(), 1)
+        || !Objects.equals(board.getBuiltIn(), 1)
+        || !Objects.equals(board.getHidden(), definition.path("hide").asInt(0))
+        || !Objects.equals(board.getPublicCategory(), definition.path("public_cate").asLong(0))
+        || !Objects.equals(board.getDisplayLocations(), resource.displayLocation());
   }
 
   private JsonNode readDefinition(String fileName) {

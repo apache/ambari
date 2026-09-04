@@ -68,6 +68,16 @@ public class BoardDAO extends CrudDAO<BoardEntity, Long> {
   }
 
   @RequiresSession
+  public BoardEntity findByClusterGroupAndName(String clusterName, long groupId, String name) {
+    TypedQuery<BoardEntity> query = entityManagerProvider.get()
+        .createNamedQuery("BoardEntity.findByClusterGroupAndName", BoardEntity.class);
+    query.setParameter("clusterName", clusterName);
+    query.setParameter("groupId", groupId);
+    query.setParameter("name", name);
+    return daoUtils.selectOne(query);
+  }
+
+  @RequiresSession
   public BoardEntity findBuiltinByIdent(String ident) {
     TypedQuery<BoardEntity> query = entityManagerProvider.get()
         .createNamedQuery("BoardEntity.findBuiltinByIdent", BoardEntity.class);
