@@ -180,6 +180,10 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   }, [autoRefresh, refresh]);
 
   const beginEditing = () => {
+    if (embedded && dashboard) {
+      navigate(`/main/monitoring/dashboards/${dashboard.ident || dashboard.id}?edit=1`);
+      return;
+    }
     setIsEditing(true);
     setSearchParams({ edit: "1" }, { replace: true });
   };
@@ -302,9 +306,9 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
             <div className="dashboard-workspace-meta">{dashboard.tags || "No tags"}<span />Updated {new Date(dashboard.update_at * 1000).toLocaleString()}</div>
           </div>
         </div>
-        {!embedded && canManage && <div className="dashboard-workspace-actions">
+        {canManage && <div className="dashboard-workspace-actions">
           {dashboard.built_in
-            ? <Button size="sm" variant="success" disabled={cloning} onClick={() => void cloneAndEdit()}>{cloning ? <Spinner size="sm" className="me-2" /> : <FontAwesomeIcon icon={faClone} className="me-2" />}Clone and edit</Button>
+            ? <Button size="sm" variant="success" disabled={cloning} onClick={() => void cloneAndEdit()}>{cloning ? <Spinner size="sm" className="me-2" /> : <FontAwesomeIcon icon={faClone} className="me-2" />}Customize charts</Button>
             : isEditing ? <>
               <Dropdown>
                 <Dropdown.Toggle size="sm" variant="outline-secondary"><FontAwesomeIcon icon={faPlus} className="me-2" />Panel</Dropdown.Toggle>
@@ -317,7 +321,7 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
               <Button size="sm" variant="outline-secondary" title="Edit dashboard JSON" onClick={() => { setRawPayload(JSON.stringify(payload, null, 2)); setShowJson(true); }}><FontAwesomeIcon icon={faCode} /></Button>
               <Button size="sm" variant="outline-secondary" title="Discard changes" onClick={discardChanges}><FontAwesomeIcon icon={faXmark} /></Button>
               <Button size="sm" variant="success" disabled={saving || !dirty} onClick={() => void save()}>{saving ? <Spinner size="sm" className="me-2" /> : <FontAwesomeIcon icon={faFloppyDisk} className="me-2" />}Save</Button>
-            </> : <Button size="sm" variant="success" onClick={beginEditing}><FontAwesomeIcon icon={faPen} className="me-2" />Edit dashboard</Button>}
+            </> : <Button size="sm" variant="success" onClick={beginEditing}><FontAwesomeIcon icon={faPen} className="me-2" />Edit charts</Button>}
         </div>}
       </div>
 
