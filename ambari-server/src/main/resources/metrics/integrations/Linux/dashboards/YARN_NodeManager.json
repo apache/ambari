@@ -33,7 +33,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "884e6670-1972-48c7-b96f-4ef249d3ff87",
         "layout": {
           "h": 5,
@@ -113,7 +113,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "4f2b0a63-f281-44e2-98ca-789d41ee6f6c",
         "layout": {
           "h": 5,
@@ -193,7 +193,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "08855d86-61cb-49b6-96ea-200bcecdae5e",
         "layout": {
           "h": 5,
@@ -271,7 +271,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "f5de8054-2202-430c-b764-b5cab8e4ca8b",
         "layout": {
           "h": 5,
@@ -349,7 +349,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "fdc25784-eb05-41b9-8886-cc7de0248429",
         "layout": {
           "h": 5,
@@ -427,7 +427,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "09f45b67-b456-4f41-abea-27012f30873b",
         "layout": {
           "h": 5,
@@ -610,7 +610,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "c4d962a4-5b4d-4122-8560-7864e46f09e3",
         "layout": {
           "h": 5,
@@ -698,7 +698,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "8c846c8c-8e83-46f7-8865-6f28670551e3",
         "layout": {
           "h": 5,
@@ -1160,7 +1160,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "3cc11ba4-6f40-4ecb-ba6f-4ae44b48db03",
         "layout": {
           "h": 5,
@@ -1247,7 +1247,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "5a5ddac3-ff29-4ad3-ad36-26d8b02a26a7",
         "layout": {
           "h": 5,
@@ -1334,7 +1334,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "8d525c7b-ff17-49ba-94d4-7f63c8d49084",
         "layout": {
           "h": 5,
@@ -1423,7 +1423,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "6242bcab-ea9c-4f45-930a-dca68b9ee1cc",
         "layout": {
           "h": 5,
@@ -1526,7 +1526,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "67d11450-1667-43d1-9dbe-22adb5eeac09",
         "layout": {
           "h": 5,

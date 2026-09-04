@@ -220,7 +220,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "linux-host-filesystem-used",
         "name": "Filesystem utilization ratio",
         "layout": { "h": 6, "w": 12, "x": 0, "y": 18, "i": "linux-host-filesystem-used", "isResizable": true },
@@ -237,7 +237,7 @@
         "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
       },
       {
-        "type": "timeseries",
+        "type": "barchart",
         "id": "linux-host-filesystem-available",
         "name": "Filesystem available capacity",
         "layout": { "h": 6, "w": 12, "x": 12, "y": 18, "i": "linux-host-filesystem-available", "isResizable": true },
@@ -254,7 +254,7 @@
         "options": { "standardOptions": { "util": "bytesIEC", "min": 0 } }
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "linux-host-inodes",
         "name": "Filesystem inode utilization ratio",
         "layout": { "h": 6, "w": 12, "x": 0, "y": 24, "i": "linux-host-inodes", "isResizable": true },
@@ -354,7 +354,7 @@
         "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "linux-host-disk-busy",
         "name": "Disk busy ratio",
         "layout": { "h": 6, "w": 12, "x": 12, "y": 36, "i": "linux-host-disk-busy", "isResizable": true },
@@ -445,7 +445,7 @@
         "options": { "standardOptions": { "util": "reqps", "min": 0 } }
       },
       {
-        "type": "timeseries",
+        "type": "barchart",
         "id": "linux-host-tcp",
         "name": "TCP connections by state",
         "layout": { "h": 6, "w": 12, "x": 12, "y": 49, "i": "linux-host-tcp", "isResizable": true },
@@ -470,7 +470,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "barchart",
         "id": "linux-host-processes",
         "name": "Process and thread counts",
         "layout": { "h": 6, "w": 12, "x": 0, "y": 56, "i": "linux-host-processes", "isResizable": true },
@@ -531,7 +531,7 @@
         "options": { "standardOptions": { "util": "cps", "min": 0 } }
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "linux-host-file-descriptors",
         "name": "File descriptor utilization ratio",
         "layout": { "h": 6, "w": 12, "x": 12, "y": 62, "i": "linux-host-file-descriptors", "isResizable": true },
@@ -548,7 +548,7 @@
         "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "linux-host-conntrack",
         "name": "Conntrack utilization ratio",
         "layout": { "h": 6, "w": 12, "x": 0, "y": 68, "i": "linux-host-conntrack", "isResizable": true },
@@ -565,7 +565,7 @@
         "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "linux-host-entropy",
         "name": "Kernel entropy available",
         "layout": { "h": 6, "w": 6, "x": 12, "y": 68, "i": "linux-host-entropy", "isResizable": true },

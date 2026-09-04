@@ -32,7 +32,7 @@
         }
       },
       {
-        "type": "table",
+        "type": "tableNG",
         "id": "8a9d0086-9141-4b5b-ad1f-e2291ee94e0b",
         "layout": {
           "h": 5,
@@ -85,7 +85,7 @@
         ]
       },
       {
-        "type": "table",
+        "type": "tableNG",
         "id": "1dca94bb-cb3a-4374-9dd2-dffa62433dd3",
         "layout": {
           "h": 5,
@@ -140,7 +140,7 @@
         ]
       },
       {
-        "type": "table",
+        "type": "tableNG",
         "id": "8a3a0624-c1e7-4cf9-9b1b-4d72200ec8ee",
         "layout": {
           "h": 5,
@@ -195,7 +195,7 @@
         ]
       },
       {
-        "type": "table",
+        "type": "tableNG",
         "id": "41e3c22e-9d93-42d8-a04b-4c697c65ceca",
         "layout": {
           "h": 5,
@@ -422,7 +422,7 @@
         }
       },
       {
-        "type": "table",
+        "type": "tableNG",
         "id": "7ccec8cb-6232-4c9b-9b25-164d63ffa897",
         "layout": {
           "h": 5,
@@ -486,7 +486,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "7471d4ab-9ea3-4f60-b0be-de0e529df725",
         "layout": {
           "h": 5,
@@ -566,7 +566,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "d4e3f059-903c-45cb-b277-6847b2036294",
         "layout": {
           "h": 5,
@@ -646,7 +646,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "475594bd-6120-49e8-bacc-9498e8b0068d",
         "layout": {
           "h": 5,

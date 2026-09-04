@@ -111,7 +111,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "327b1058-4d54-41ee-8c65-d9bf74aee5e2",
         "layout": {
           "h": 5,
@@ -189,7 +189,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "e64f10fd-749c-4a57-86ae-ff6a5207716c",
         "layout": {
           "h": 5,
@@ -267,7 +267,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "755afaeb-73c1-4673-8f46-db843957b44c",
         "layout": {
           "h": 5,
@@ -359,7 +359,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "5019b821-7a17-4295-a3a8-9e3fcb6416f6",
         "layout": {
           "h": 5,
@@ -599,7 +599,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "540dca83-042f-49fd-a514-71c18d380ab7",
         "layout": {
           "h": 5,
@@ -677,7 +677,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "a3dda637-bd35-4021-879c-561b2b15d829",
         "layout": {
           "h": 5,
@@ -1243,7 +1243,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "883d61b1-ff15-48a8-a52d-3d00c4b87344",
         "layout": {
           "h": 5,
@@ -1321,7 +1321,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "3055732d-bc98-46bb-86ea-0f1e28908d2d",
         "layout": {
           "h": 5,

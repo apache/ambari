@@ -34,7 +34,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "hive-sessions",
         "name": "Sessions",
         "description": "Open and active HiveServer2 sessions by host.",
@@ -68,7 +68,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "hive-connections",
         "name": "Open connections",
         "description": "Current open HiveServer2 connections by host.",
@@ -96,7 +96,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "hive-connection-rate",
         "name": "Accepted connection rate",
         "description": "HiveServer2 connections accepted per second by host.",
@@ -183,7 +183,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "hive-async",
         "name": "Async executor",
         "description": "Current HiveServer2 async executor queue and pool sizes.",
@@ -232,7 +232,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "hive-heap",
         "name": "JVM heap",
         "description": "Current used and maximum JVM heap in bytes.",
@@ -268,7 +268,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "barchart",
         "id": "hive-threads",
         "name": "JVM threads",
         "description": "Current HiveServer2 JVM thread count.",
@@ -296,7 +296,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "hive-query-cache",
         "name": "Query cache",
         "description": "Current and configured maximum HiveServer2 query cache size.",

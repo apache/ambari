@@ -117,7 +117,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "d5ee2d71-7beb-4698-ba28-27820933a591",
         "layout": {
           "h": 6,
@@ -204,7 +204,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "305ed192-e4b2-4db8-a5e3-5be335c139ee",
         "layout": {
           "h": 6,
@@ -284,7 +284,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "0f1f1fd3-74e3-43c6-9521-7cf215c62521",
         "layout": {
           "h": 6,
@@ -459,7 +459,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "barchart",
         "id": "9f42f6d9-8c95-495d-96a9-48669be28346",
         "layout": {
           "h": 5,
@@ -537,7 +537,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "06ac2903-3008-4c9c-99f4-e2c308ceaf56",
         "layout": {
           "h": 5,
@@ -707,7 +707,7 @@
         }
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "c9791a7f-7b71-45b2-bc7c-6dd1834ab54a",
         "layout": {
           "h": 4,
@@ -1293,7 +1293,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "115b5dec-6470-45be-9bc6-a44ab0f9cbc9",
         "layout": {
           "h": 5,

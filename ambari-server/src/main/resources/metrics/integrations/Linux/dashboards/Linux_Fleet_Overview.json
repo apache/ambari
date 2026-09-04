@@ -39,7 +39,11 @@
             "instant": true
           }
         ],
-        "options": { "standardOptions": { "util": "", "decimals": 0 } }
+        "custom": { "textMode": "valueAndName", "colorMode": "background", "calc": "lastNotNull", "graphMode": "none" },
+        "options": {
+          "standardOptions": { "util": "", "decimals": 0 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "blue" }] }
+        }
       },
       {
         "type": "stat",
@@ -57,7 +61,55 @@
             "instant": true
           }
         ],
-        "options": { "standardOptions": { "util": "", "decimals": 0 } }
+        "custom": { "textMode": "valueAndName", "colorMode": "background", "calc": "lastNotNull", "graphMode": "none" },
+        "options": {
+          "standardOptions": { "util": "", "decimals": 0 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 1, "color": "red" }] }
+        }
+      },
+      {
+        "type": "stat",
+        "id": "linux-fleet-average-cpu",
+        "name": "Average CPU busy",
+        "layout": { "h": 4, "w": 6, "x": 12, "y": 1, "i": "linux-fleet-average-cpu", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "1 - avg(rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",cpu!=\"total\",mode=\"idle\"}[$__rate_interval]))",
+            "legend": "CPU busy",
+            "instant": true
+          }
+        ],
+        "custom": { "textMode": "valueAndName", "colorMode": "background", "calc": "lastNotNull", "graphMode": "area" },
+        "options": {
+          "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 1 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.7, "color": "orange" }, { "value": 0.9, "color": "red" }] }
+        }
+      },
+      {
+        "type": "stat",
+        "id": "linux-fleet-average-memory",
+        "name": "Average memory used",
+        "layout": { "h": 4, "w": 6, "x": 18, "y": 1, "i": "linux-fleet-average-memory", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "1 - avg(ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}) / clamp_min(avg(ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}), 1)",
+            "legend": "Memory used",
+            "instant": true
+          }
+        ],
+        "custom": { "textMode": "valueAndName", "colorMode": "background", "calc": "lastNotNull", "graphMode": "area" },
+        "options": {
+          "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 1 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.75, "color": "orange" }, { "value": 0.9, "color": "red" }] }
+        }
       },
       {
         "type": "timeseries",
@@ -111,7 +163,7 @@
         "options": { "standardOptions": { "util": "", "min": 0, "decimals": 2 } }
       },
       {
-        "type": "timeseries",
+        "type": "barchart",
         "id": "linux-fleet-process-pressure",
         "name": "Runnable and blocked processes",
         "layout": { "h": 6, "w": 12, "x": 12, "y": 11, "i": "linux-fleet-process-pressure", "isResizable": true },
@@ -122,14 +174,17 @@
           {
             "refId": "A",
             "expr": "topk(10, max by (host) (ambari_agent_system_processes_running{cluster=\"${cluster}\",ambari_target=\"host\"}))",
-            "legend": "{{host}} running"
+            "legend": "{{host}} running",
+            "instant": true
           },
           {
             "refId": "B",
             "expr": "topk(10, max by (host) (ambari_agent_system_processes_blocked{cluster=\"${cluster}\",ambari_target=\"host\"}))",
-            "legend": "{{host}} blocked"
+            "legend": "{{host}} blocked",
+            "instant": true
           }
         ],
+        "custom": { "calc": "lastNotNull", "orientation": "horizontal", "sortOrder": "desc" },
         "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
       },
       {
@@ -141,7 +196,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "linux-fleet-filesystem-used",
         "name": "Filesystem utilization ratio",
         "layout": { "h": 6, "w": 12, "x": 0, "y": 18, "i": "linux-fleet-filesystem-used", "isResizable": true },
@@ -152,13 +207,18 @@
           {
             "refId": "A",
             "expr": "topk(10, 1 - max by (host, device, mountpoint) (ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}) / clamp_min(max by (host, device, mountpoint) (ambari_agent_filesystem_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}), 1))",
-            "legend": "{{host}} {{mountpoint}}"
+            "legend": "{{host}} {{mountpoint}}",
+            "instant": true
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+        "custom": { "displayMode": "basic", "calc": "lastNotNull", "sortOrder": "desc", "valueMode": "color" },
+        "options": {
+          "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 1 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.8, "color": "orange" }, { "value": 0.9, "color": "red" }] }
+        }
       },
       {
-        "type": "timeseries",
+        "type": "barchart",
         "id": "linux-fleet-filesystem-available",
         "name": "Lowest filesystem available capacity",
         "layout": { "h": 6, "w": 12, "x": 12, "y": 18, "i": "linux-fleet-filesystem-available", "isResizable": true },
@@ -169,9 +229,11 @@
           {
             "refId": "A",
             "expr": "bottomk(10, max by (host, device, mountpoint) (ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}))",
-            "legend": "{{host}} {{mountpoint}}"
+            "legend": "{{host}} {{mountpoint}}",
+            "instant": true
           }
         ],
+        "custom": { "calc": "lastNotNull", "orientation": "horizontal", "sortOrder": "asc" },
         "options": { "standardOptions": { "util": "bytesIEC", "min": 0 } }
       },
       {
@@ -219,7 +281,7 @@
         "options": { "standardOptions": { "util": "reqps", "min": 0 } }
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "linux-fleet-disk-busy",
         "name": "Disk busy ratio",
         "layout": { "h": 6, "w": 24, "x": 0, "y": 30, "i": "linux-fleet-disk-busy", "isResizable": true },
@@ -230,10 +292,15 @@
           {
             "refId": "A",
             "expr": "topk(10, max by (host, device) (rate(ambari_agent_disk_io_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
-            "legend": "{{host}} {{device}}"
+            "legend": "{{host}} {{device}}",
+            "instant": true
           }
         ],
-        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+        "custom": { "textMode": "valueAndName", "calc": "lastNotNull" },
+        "options": {
+          "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 1 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.7, "color": "orange" }, { "value": 0.9, "color": "red" }] }
+        }
       },
       {
         "type": "row",

@@ -33,7 +33,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "gauge",
         "id": "5cd63f26-9db5-44e8-acd5-047e1468e8ef",
         "layout": {
           "h": 5,
@@ -113,7 +113,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "d3feefbc-d9d5-4b18-99b5-f1aba9b3c159",
         "layout": {
           "h": 5,
@@ -191,7 +191,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "2c203d03-b76d-419e-b9b4-a2f26d26daaa",
         "layout": {
           "h": 5,
@@ -269,7 +269,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "stat",
         "id": "d2af8ab8-a576-4e0a-a4d2-46f84d09c128",
         "layout": {
           "h": 5,
@@ -349,7 +349,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "d1a773bc-d153-48e3-8f75-3e5c785bdbca",
         "layout": {
           "h": 5,
@@ -618,7 +618,7 @@
         "panels": []
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "2703d90c-a2a7-42d0-ba55-16daf38bb812",
         "layout": {
           "h": 5,
@@ -698,7 +698,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "9bbf200e-27af-43e5-a1c2-2f5d16531136",
         "layout": {
           "h": 5,
@@ -936,7 +936,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barchart",
         "id": "b34ae2fc-db36-4307-9c8a-3d01fe0f8cbb",
         "layout": {
           "h": 5,
@@ -1267,7 +1267,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "hexbin",
         "id": "108caef7-0ec3-4137-9f2f-7db307a0cc61",
         "layout": {
           "h": 5,
@@ -2410,7 +2410,7 @@
         ]
       },
       {
-        "type": "timeseries",
+        "type": "barGauge",
         "id": "e8a288b8-ef54-481f-b2f9-f26080254e7c",
         "layout": {
           "h": 4,
