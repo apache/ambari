@@ -51,6 +51,7 @@ import org.apache.ambari.server.state.StackId;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Provider;
 
@@ -101,6 +102,8 @@ public class ManagedMetricsIdentityServiceTest {
     when(harness.users.getUserEntity(USERNAME)).thenReturn(user);
     when(harness.users.getUserAuthenticationEntities(user, UserAuthenticationType.LOCAL))
         .thenReturn(Set.of(authentication));
+    when(authentication.getAuthenticationKey()).thenReturn("matching-password-hash");
+    when(harness.passwordEncoder.matches(PASSWORD, "matching-password-hash")).thenReturn(true);
     when(harness.privilegeDAO.exists(any(PrivilegeEntity.class))).thenReturn(true);
 
     harness.service.provision(CLUSTER_ID);
@@ -110,6 +113,29 @@ public class ManagedMetricsIdentityServiceTest {
     verifyNoInteractions(harness.configFactory);
     verify(harness.privilegeDAO, never()).create(any(PrivilegeEntity.class));
     verify(harness.cluster, never()).addConfig(any(Config.class));
+  }
+
+  @Test
+  public void testManagedModeRepairsDriftedLocalPassword() throws Exception {
+    Harness harness = new Harness(Map.of(
+        ManagedMetricsIdentityService.MANAGED_PROPERTY, "true",
+        ManagedMetricsIdentityService.USERNAME_PROPERTY, USERNAME,
+        ManagedMetricsIdentityService.PASSWORD_PROPERTY, PASSWORD));
+    UserEntity user = harness.user();
+    UserAuthenticationEntity authentication = mock(UserAuthenticationEntity.class);
+    when(harness.users.getUserEntity(USERNAME)).thenReturn(user);
+    when(harness.users.getUserAuthenticationEntities(user, UserAuthenticationType.LOCAL))
+        .thenReturn(Set.of(authentication));
+    when(authentication.getUserAuthenticationId()).thenReturn(17L);
+    when(authentication.getAuthenticationKey()).thenReturn("stale-password-hash");
+    when(harness.passwordEncoder.matches(PASSWORD, "stale-password-hash")).thenReturn(false);
+    when(harness.privilegeDAO.exists(any(PrivilegeEntity.class))).thenReturn(true);
+
+    harness.service.provision(CLUSTER_ID);
+
+    verify(harness.users).removeAuthentication(USERNAME, 17L);
+    verify(harness.users).addLocalAuthentication(user, PASSWORD);
+    verifyNoInteractions(harness.configFactory);
   }
 
   @Test
@@ -162,6 +188,7 @@ public class ManagedMetricsIdentityServiceTest {
     private final ConfigFactory configFactory = mock(ConfigFactory.class);
     private final Users users = mock(Users.class);
     private final SecurePasswordHelper passwordHelper = mock(SecurePasswordHelper.class);
+    private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
     private final PermissionDAO permissionDAO = mock(PermissionDAO.class);
     private final PrivilegeDAO privilegeDAO = mock(PrivilegeDAO.class);
     private final ResourceDAO resourceDAO = mock(ResourceDAO.class);
@@ -181,7 +208,7 @@ public class ManagedMetricsIdentityServiceTest {
       when(currentConfig.getPropertiesAttributes()).thenReturn(Map.of());
       when(currentConfig.getStackId()).thenReturn(stackId);
       service = new ManagedMetricsIdentityService(clustersProvider, configFactory, users,
-          passwordHelper, permissionDAO, privilegeDAO, resourceDAO, principalDAO);
+          passwordHelper, passwordEncoder, permissionDAO, privilegeDAO, resourceDAO, principalDAO);
     }
 
     private UserEntity user() {

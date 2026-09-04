@@ -41,6 +41,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -64,6 +65,7 @@ public class ManagedMetricsIdentityService {
   private final ConfigFactory configFactory;
   private final Users users;
   private final SecurePasswordHelper securePasswordHelper;
+  private final PasswordEncoder passwordEncoder;
   private final PermissionDAO permissionDAO;
   private final PrivilegeDAO privilegeDAO;
   private final ResourceDAO resourceDAO;
@@ -71,12 +73,14 @@ public class ManagedMetricsIdentityService {
 
   @Inject
   public ManagedMetricsIdentityService(Provider<Clusters> clusters, ConfigFactory configFactory,
-      Users users, SecurePasswordHelper securePasswordHelper, PermissionDAO permissionDAO,
-      PrivilegeDAO privilegeDAO, ResourceDAO resourceDAO, PrincipalDAO principalDAO) {
+      Users users, SecurePasswordHelper securePasswordHelper, PasswordEncoder passwordEncoder,
+      PermissionDAO permissionDAO, PrivilegeDAO privilegeDAO, ResourceDAO resourceDAO,
+      PrincipalDAO principalDAO) {
     this.clusters = clusters;
     this.configFactory = configFactory;
     this.users = users;
     this.securePasswordHelper = securePasswordHelper;
+    this.passwordEncoder = passwordEncoder;
     this.permissionDAO = permissionDAO;
     this.privilegeDAO = privilegeDAO;
     this.resourceDAO = resourceDAO;
@@ -184,13 +188,13 @@ public class ManagedMetricsIdentityService {
     users.setUserActive(user, true);
     ArrayList<UserAuthenticationEntity> localAuthentications = new ArrayList<>(
         users.getUserAuthenticationEntities(user, UserAuthenticationType.LOCAL));
-    if (rotatePassword) {
+    boolean passwordMatches = localAuthentications.stream().anyMatch(
+        authentication -> passwordEncoder.matches(password, authentication.getAuthenticationKey()));
+    if (rotatePassword || !passwordMatches) {
       for (UserAuthenticationEntity authentication : localAuthentications) {
         users.removeAuthentication(username, authentication.getUserAuthenticationId());
       }
       user = users.getUserEntity(username);
-      users.addLocalAuthentication(user, password);
-    } else if (localAuthentications.isEmpty()) {
       users.addLocalAuthentication(user, password);
     }
   }
