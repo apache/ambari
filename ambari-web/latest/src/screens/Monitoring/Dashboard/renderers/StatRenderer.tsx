@@ -17,9 +17,10 @@
  */
 
 import type { DashboardPanel } from "../../types";
-import { formatMetricValue, getPanelUnit } from "../../valueFormatter";
+import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
 import {
-  latestPanelValue,
+  calculatePanelValue,
+  panelCustomOptions,
   panelValueColor,
   type DashboardPanelResult,
 } from "../data/panelData";
@@ -31,15 +32,32 @@ interface StatRendererProps {
 
 export default function StatRenderer({ panel, results }: StatRendererProps) {
   const unit = getPanelUnit(panel.options);
+  const decimals = getPanelDecimals(panel.options);
+  const custom = panelCustomOptions(panel);
+  const calculation = String(custom.calc || "lastNotNull");
+  const textMode = String(custom.textMode || "valueAndName");
+  const colorMode = String(custom.colorMode || "value");
+  const orientation = String(custom.orientation || "auto");
+  const graphMode = String(custom.graphMode || "none");
+  const textSize = custom.textSize && typeof custom.textSize === "object" ? custom.textSize as Record<string, unknown> : {};
   return (
-    <div className="dashboard-stat-grid dashboard-stat-grid-ambari">
+    <div className={`dashboard-stat-grid dashboard-stat-grid-ambari dashboard-stat-${orientation}`}>
       {results.map((result) => {
-        const value = latestPanelValue(result);
+        const value = calculatePanelValue(result, calculation);
         const color = panelValueColor(panel, value);
+        const points = (result.values || []).map(([, item]) => Number(item)).filter(Number.isFinite);
+        const minimum = points.length ? Math.min(...points) : 0;
+        const maximum = points.length ? Math.max(...points) : 1;
+        const polyline = points.map((point, index) => {
+          const x = points.length <= 1 ? 0 : index * 100 / (points.length - 1);
+          const y = maximum === minimum ? 50 : 92 - (point - minimum) * 84 / (maximum - minimum);
+          return `${x},${y}`;
+        }).join(" ");
         return (
-          <div className="dashboard-stat-item" key={result.seriesKey}>
-            <strong style={color ? { color } : undefined}>{formatMetricValue(value, unit)}</strong>
-            <span title={result.displayName}>{result.displayName}</span>
+          <div className={`dashboard-stat-item ${colorMode === "background" ? "dashboard-stat-background" : ""}`} key={result.seriesKey} style={colorMode === "background" && color ? { backgroundColor: color } : undefined}>
+            {graphMode === "area" && points.length > 1 && <svg className="dashboard-stat-sparkline" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points={polyline} /></svg>}
+            {textMode !== "name" && <strong style={{ color: colorMode === "value" ? color : undefined, fontSize: typeof textSize.value === "number" ? textSize.value : undefined }}>{formatMetricValue(value, unit, decimals)}</strong>}
+            {textMode !== "value" && <span title={result.displayName} style={{ fontSize: typeof textSize.title === "number" ? textSize.title : undefined }}>{result.displayName}</span>}
           </div>
         );
       })}

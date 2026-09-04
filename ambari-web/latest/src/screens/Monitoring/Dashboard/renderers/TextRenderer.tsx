@@ -21,5 +21,17 @@ import type { DashboardPanel } from "../../types";
 export default function TextRenderer({ panel }: { panel: DashboardPanel }) {
   const custom = panel.custom && typeof panel.custom === "object" ? panel.custom as Record<string, unknown> : {};
   const content = String(custom.content || panel.description || "");
-  return <div className="dashboard-text-content">{content}</div>;
+  const align = (value: unknown, fallback: "flex-start" | "stretch"): "flex-start" | "flex-end" | "center" | "stretch" => ({
+    flexStart: "flex-start",
+    flexEnd: "flex-end",
+    center: "center",
+    unset: fallback,
+  }[String(value)] as "flex-start" | "flex-end" | "center" | "stretch" | undefined) || fallback;
+  return <div className="dashboard-text-content" style={{
+    color: typeof custom.textColor === "string" ? custom.textColor : undefined,
+    backgroundColor: typeof custom.bgColor === "string" ? custom.bgColor : undefined,
+    fontSize: typeof custom.textSize === "number" ? custom.textSize : undefined,
+    justifyContent: align(custom.justifyContent, "flex-start"),
+    alignItems: align(custom.alignItems, "stretch"),
+  }}>{content}</div>;
 }

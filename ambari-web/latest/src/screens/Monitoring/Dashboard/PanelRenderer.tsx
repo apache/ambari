@@ -24,6 +24,7 @@ import BarChartRenderer from "./renderers/BarChartRenderer";
 import BarGaugeRenderer from "./renderers/BarGaugeRenderer";
 import GaugeRenderer from "./renderers/GaugeRenderer";
 import HeatmapRenderer from "./renderers/HeatmapRenderer";
+import HexbinRenderer from "./renderers/HexbinRenderer";
 import IframeRenderer from "./renderers/IframeRenderer";
 import PieRenderer from "./renderers/PieRenderer";
 import StatRenderer from "./renderers/StatRenderer";
@@ -35,6 +36,7 @@ interface RendererProps {
   panel: DashboardPanel;
   results: DashboardPanelResult[];
   height?: number;
+  graphTooltip?: string;
 }
 
 type Renderer = ComponentType<RendererProps>;
@@ -45,20 +47,22 @@ const rendererRegistry: Record<string, Renderer> = {
   gauge: GaugeRenderer,
   barGauge: BarGaugeRenderer,
   table: TableRenderer,
+  tableNG: TableRenderer,
   pie: PieRenderer,
   barchart: BarChartRenderer,
   heatmap: HeatmapRenderer,
+  hexbin: HexbinRenderer,
   text: TextRenderer,
   iframe: IframeRenderer,
 };
 
-export default function PanelRenderer({ panel, results, height }: RendererProps) {
+export default function PanelRenderer({ panel, results, height, graphTooltip }: RendererProps) {
   if (panel.type === "row") return <DashboardRow panel={panel} />;
   const Renderer = rendererRegistry[panel.type];
   if (!Renderer) {
     return <div className="monitoring-empty">Unsupported panel type: {panel.type}</div>;
   }
-  return <Renderer panel={panel} results={results} height={height} />;
+  return <Renderer panel={panel} results={results} height={height} graphTooltip={graphTooltip} />;
 }
 
 export { rendererRegistry };

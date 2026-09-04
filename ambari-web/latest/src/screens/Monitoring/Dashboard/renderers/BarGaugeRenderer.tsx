@@ -17,9 +17,10 @@
  */
 
 import type { DashboardPanel } from "../../types";
-import { formatMetricValue, getPanelUnit } from "../../valueFormatter";
+import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
 import {
-  latestPanelValue,
+  calculatePanelValue,
+  panelCustomOptions,
   panelNumericBounds,
   panelValueColor,
   type DashboardPanelResult,
@@ -34,24 +35,38 @@ const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 export default function BarGaugeRenderer({ panel, results }: BarGaugeRendererProps) {
   const unit = getPanelUnit(panel.options);
-  const { min = 0, max = 1 } = panelNumericBounds(panel);
+  const decimals = getPanelDecimals(panel.options);
+  const custom = panelCustomOptions(panel);
+  const calculation = String(custom.calc || "lastNotNull");
+  const displayMode = String(custom.displayMode || "basic");
+  const valueMode = String(custom.valueMode || "color");
+  const sortOrder = String(custom.sortOrder || "none");
+  const items = results.map((result) => ({ result, value: calculatePanelValue(result, calculation) })).sort((left, right) => {
+    if (sortOrder === "none") return 0;
+    const comparison = (left.value ?? Number.NEGATIVE_INFINITY) - (right.value ?? Number.NEGATIVE_INFINITY);
+    return sortOrder === "asc" ? comparison : -comparison;
+  });
+  const bounds = panelNumericBounds(panel);
+  const min = bounds.min ?? 0;
+  const max = bounds.max ?? Math.max(1, ...items.map((item) => item.value ?? 0));
   const range = max > min ? max - min : 1;
 
   return (
     <div className="dashboard-bar-gauge-list">
-      {results.map((result) => {
-        const value = latestPanelValue(result);
+      {items.map(({ result, value }) => {
         const ratio = value === null ? 0 : clamp((value - min) / range);
         const color = panelValueColor(panel, value) || "#1769aa";
         return (
           <div className="dashboard-bar-gauge-item" key={result.seriesKey}>
             <div className="dashboard-bar-gauge-label">
               <span title={result.displayName}>{result.displayName}</span>
-              <strong style={{ color }}>{formatMetricValue(value, unit)}</strong>
+              {valueMode !== "hidden" && <strong style={valueMode === "color" ? { color } : undefined}>{formatMetricValue(value, unit, decimals)}</strong>}
             </div>
-            <div className="dashboard-bar-gauge-track" role="meter" aria-label={result.displayName}
+            <div className={`dashboard-bar-gauge-track ${displayMode === "lcd" ? "dashboard-bar-gauge-lcd" : ""}`} role="meter" aria-label={result.displayName}
               aria-valuemin={min} aria-valuemax={max} aria-valuenow={value ?? undefined}>
-              <span style={{ width: `${ratio * 100}%`, backgroundColor: color }} />
+              {displayMode === "lcd"
+                ? Array.from({ length: 20 }, (_item, index) => <i key={index} style={index / 20 < ratio ? { backgroundColor: color } : undefined} />)
+                : <span style={{ width: `${ratio * 100}%`, backgroundColor: color }} />}
             </div>
           </div>
         );

@@ -22,8 +22,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { saveAs } from "file-saver";
 import type { DashboardPanel } from "../../types";
-import { formatMetricValue, getPanelUnit } from "../../valueFormatter";
-import { latestPanelValue, type DashboardPanelResult } from "../data/panelData";
+import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
+import {
+  calculatePanelValue,
+  panelCustomOptions,
+  panelNumericBounds,
+  panelValueColor,
+  type DashboardPanelResult,
+} from "../data/panelData";
 
 interface TableRendererProps {
   panel: DashboardPanel;
@@ -38,9 +44,20 @@ export default function TableRenderer({ panel, results }: TableRendererProps) {
     .filter((key) => key !== "__name__")
     .sort();
   const unit = getPanelUnit(panel.options);
+  const decimals = getPanelDecimals(panel.options);
+  const custom = panelCustomOptions(panel);
+  const calculation = String(custom.calc || "lastNotNull");
+  const showHeader = custom.showHeader !== false;
+  const filterable = custom.filterable !== false;
+  const cellOptions = custom.cellOptions && typeof custom.cellOptions === "object"
+    ? custom.cellOptions as Record<string, unknown>
+    : {};
+  const cellType = String(cellOptions.type || (panel.type === "tableNG" ? "gauge" : "none"));
+  const wrapText = cellOptions.wrapText === true;
+  const bounds = panelNumericBounds(panel);
   const rows = useMemo(() => results.map((result) => ({
     result,
-    value: latestPanelValue(result),
+    value: calculatePanelValue(result, calculation),
   })).filter(({ result, value }) => {
     const searchText = [result.displayName, ...Object.values(result.metric), value == null ? "" : String(value)]
       .join(" ").toLowerCase();
@@ -54,7 +71,12 @@ export default function TableRenderer({ panel, results }: TableRendererProps) {
       ? leftNumber - rightNumber
       : String(leftValue).localeCompare(String(rightValue));
     return descending ? -comparison : comparison;
-  }), [filter, results, sortKey, descending]);
+  }), [calculation, filter, results, sortKey, descending]);
+
+  const numericValues = rows.map(({ value }) => value).filter((value): value is number => value !== null);
+  const min = bounds.min ?? Math.min(0, ...numericValues);
+  const max = bounds.max ?? Math.max(1, ...numericValues);
+  const gaugeRange = Math.max(max - min, Number.EPSILON);
 
   const exportCsv = () => {
     const header = ["Series", ...labelKeys, "Value"];
@@ -70,7 +92,7 @@ export default function TableRenderer({ panel, results }: TableRendererProps) {
   return (
     <div className="dashboard-table-wrap">
       <div className="dashboard-table-toolbar">
-        <Form.Control size="sm" aria-label="Filter table" placeholder="Filter rows" value={filter} onChange={(event) => setFilter(event.target.value)} />
+        {filterable && <Form.Control size="sm" aria-label="Filter table" placeholder="Filter rows" value={filter} onChange={(event) => setFilter(event.target.value)} />}
         <Form.Select size="sm" aria-label="Sort table" value={sortKey} onChange={(event) => setSortKey(event.target.value)}>
           <option value="value">Value</option>
           {labelKeys.map((key) => <option key={key} value={key}>{key}</option>)}
@@ -79,19 +101,22 @@ export default function TableRenderer({ panel, results }: TableRendererProps) {
         <Button variant="outline-secondary" size="sm" title="Export table" onClick={exportCsv}><FontAwesomeIcon icon={faDownload} /></Button>
       </div>
       <Table responsive hover size="sm" className="mb-0 align-middle dashboard-data-table">
-        <thead>
+        {showHeader && <thead>
           <tr>
             <th><button type="button" className="dashboard-table-sort" onClick={() => { setSortKey("value"); setDescending((value) => sortKey === "value" ? !value : true); }}>Series</button></th>
             {labelKeys.map((key) => <th key={key}><button type="button" className="dashboard-table-sort" onClick={() => { setSortKey(key); setDescending((value) => sortKey === key ? !value : false); }}>{key}</button></th>)}
             <th className="text-end"><button type="button" className="dashboard-table-sort" onClick={() => { setSortKey("value"); setDescending((value) => sortKey === "value" ? !value : true); }}>Value</button></th>
           </tr>
-        </thead>
+        </thead>}
         <tbody>
           {rows.map(({ result, value }) => (
             <tr key={result.seriesKey}>
-              <td className="monitoring-code">{result.displayName}</td>
-              {labelKeys.map((key) => <td key={key}>{result.metric[key] || "-"}</td>)}
-              <td className="text-end">{formatMetricValue(value, unit)}</td>
+              <td className={`monitoring-code ${wrapText ? "dashboard-table-wrap-text" : ""}`}>{result.displayName}</td>
+              {labelKeys.map((key) => <td className={wrapText ? "dashboard-table-wrap-text" : ""} key={key}>{result.metric[key] || "-"}</td>)}
+              <td className={`text-end dashboard-table-value dashboard-table-value-${cellType}`} style={cellType === "color-background" ? { backgroundColor: panelValueColor(panel, value) } : cellType === "color-text" ? { color: panelValueColor(panel, value) } : undefined}>
+                {cellType === "gauge" && <span className="dashboard-table-gauge"><i style={{ width: `${value === null ? 0 : Math.min(100, Math.max(0, (value - min) * 100 / gaugeRange))}%`, backgroundColor: panelValueColor(panel, value) || "#278541" }} /></span>}
+                <span>{formatMetricValue(value, unit, decimals)}</span>
+              </td>
             </tr>
           ))}
         </tbody>

@@ -27,9 +27,11 @@ export const DASHBOARD_PANEL_TYPES = [
   "gauge",
   "barGauge",
   "table",
+  "tableNG",
   "pie",
   "barchart",
   "heatmap",
+  "hexbin",
   "text",
   "iframe",
 ] as const;

@@ -17,21 +17,32 @@
  */
 
 import type { DashboardPanel } from "../../types";
-import { formatMetricValue, getPanelUnit } from "../../valueFormatter";
-import { type DashboardPanelResult } from "../data/panelData";
+import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
+import { panelCustomOptions, type DashboardPanelResult } from "../data/panelData";
 
 interface HeatmapRendererProps {
   panel: DashboardPanel;
   results: DashboardPanelResult[];
 }
 
-const heatColor = (value: number, minimum: number, maximum: number) => {
+const SCHEMES: Record<string, [number, number, number]> = {
+  blueGreen: [14, 116, 144],
+  green: [39, 133, 65],
+  orange: [213, 104, 39],
+  red: [179, 58, 58],
+  violet: [126, 87, 194],
+};
+
+const heatColor = (value: number, minimum: number, maximum: number, channels: [number, number, number]) => {
   const ratio = maximum > minimum ? (value - minimum) / (maximum - minimum) : 0.5;
-  return `rgba(39, 133, 65, ${0.12 + Math.min(1, Math.max(0, ratio)) * 0.78})`;
+  return `rgba(${channels.join(", ")}, ${0.12 + Math.min(1, Math.max(0, ratio)) * 0.78})`;
 };
 
 export default function HeatmapRenderer({ panel, results }: HeatmapRendererProps) {
   const unit = getPanelUnit(panel.options);
+  const decimals = getPanelDecimals(panel.options);
+  const custom = panelCustomOptions(panel);
+  const channels = SCHEMES[String(custom.scheme || "blueGreen")] || SCHEMES.blueGreen;
   const timestamps = Array.from(new Set(results.flatMap((result) => (
     result.values || (result.value ? [result.value] : [])
   ).map(([timestamp]) => timestamp)))).sort((left, right) => left - right);
@@ -53,7 +64,7 @@ export default function HeatmapRenderer({ panel, results }: HeatmapRendererProps
               <span className="dashboard-heatmap-label" title={result.displayName}>{result.displayName}</span>
               {timestamps.map((timestamp) => {
                 const value = points.get(timestamp);
-                return <span className="dashboard-heatmap-cell" key={`${result.seriesKey}-${timestamp}`} style={{ backgroundColor: value === undefined ? undefined : heatColor(value, minimum, maximum) }} title={value === undefined ? "No data" : formatMetricValue(value, unit)} />;
+                return <span className="dashboard-heatmap-cell" key={`${result.seriesKey}-${timestamp}`} style={{ backgroundColor: value === undefined ? undefined : heatColor(value, minimum, maximum, channels) }} title={value === undefined ? "No data" : formatMetricValue(value, unit, decimals)} />;
               })}
             </div>
           );

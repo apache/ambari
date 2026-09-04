@@ -48,10 +48,11 @@ interface DashboardPanelProps {
   datasources: Datasource[];
   allowShare?: boolean;
   panelHeight?: number;
+  graphTooltip?: string;
 }
 
 const QUERY_BATCH_LIMIT = 64;
-const INSTANT_PANEL_TYPES = new Set(["stat", "gauge", "barGauge"]);
+const INSTANT_PANEL_TYPES = new Set(["stat", "gauge", "barGauge", "pie", "barchart", "tableNG", "hexbin"]);
 
 const defaultLabel = (result: PrometheusResult, fallback: string) => {
   const entries = Object.entries(result.metric).filter(([name]) => name !== "__name__");
@@ -92,6 +93,7 @@ export default function DashboardPanel({
   datasources,
   allowShare = true,
   panelHeight,
+  graphTooltip,
 }: DashboardPanelProps) {
   const { clusterName } = useContext(AppContext);
   const [results, setResults] = useState<DashboardPanelResult[]>([]);
@@ -252,20 +254,20 @@ export default function DashboardPanel({
 
   if (isStatic) {
     return (
-      <article className={`dashboard-panel ${type === "text" ? "dashboard-panel-text" : ""}`}>
+      <article className={`dashboard-panel dashboard-panel-${type} ${type === "text" ? "dashboard-panel-text" : ""}`}>
         <header><h3>{panel.name || (type === "text" ? "Text" : "Embedded content")}</h3></header>
-        <PanelRenderer panel={panel} results={[]} height={panelHeight} />
+        <PanelRenderer panel={panel} results={[]} height={panelHeight} graphTooltip={graphTooltip} />
       </article>
     );
   }
 
   return (
-    <article ref={panelRef} className="dashboard-panel">
+    <article ref={panelRef} className={`dashboard-panel dashboard-panel-${type}`}>
       <header><div><h3>{panel.name || "Untitled panel"}</h3>{panel.description && <span title={panel.description}>Info</span>}</div><div className="d-flex align-items-center gap-2"><small>{type}</small>{allowShare && selectedDatasourceId > 0 && <Button variant="link" size="sm" disabled={sharing} title="Share chart" onClick={() => void share()}><FontAwesomeIcon icon={faShareNodes} /></Button>}</div></header>
       {loading && <div className="dashboard-panel-loading"><Spinner size="sm" /></div>}
       {error && <Alert variant="warning" className="m-2 py-1 small d-flex justify-content-between align-items-center"><span>{error}</span><Button variant="link" size="sm" className="p-0" onClick={() => setRetryKey((value) => value + 1)}>Retry</Button></Alert>}
       {!loading && results.length === 0 && !error && inViewport && <div className="monitoring-empty">No data</div>}
-      {results.length > 0 && <PanelRenderer panel={panel} results={results} height={panelHeight} />}
+      {results.length > 0 && <PanelRenderer panel={panel} results={results} height={panelHeight} graphTooltip={graphTooltip} />}
     </article>
   );
 }

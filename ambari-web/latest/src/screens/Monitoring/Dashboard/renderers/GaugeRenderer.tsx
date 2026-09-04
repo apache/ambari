@@ -17,9 +17,10 @@
  */
 
 import type { DashboardPanel } from "../../types";
-import { formatMetricValue, getPanelUnit } from "../../valueFormatter";
+import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
 import {
-  latestPanelValue,
+  calculatePanelValue,
+  panelCustomOptions,
   panelNumericBounds,
   panelValueColor,
   type DashboardPanelResult,
@@ -34,13 +35,20 @@ const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 export default function GaugeRenderer({ panel, results }: GaugeRendererProps) {
   const unit = getPanelUnit(panel.options);
-  const { min = 0, max = 1 } = panelNumericBounds(panel);
+  const decimals = getPanelDecimals(panel.options);
+  const custom = panelCustomOptions(panel);
+  const calculation = String(custom.calc || "lastNotNull");
+  const textMode = String(custom.textMode || "valueAndName");
+  const values = results.map((result) => calculatePanelValue(result, calculation));
+  const bounds = panelNumericBounds(panel);
+  const min = bounds.min ?? 0;
+  const max = bounds.max ?? Math.max(1, ...values.map((value) => value ?? 0));
   const range = max > min ? max - min : 1;
 
   return (
     <div className="dashboard-gauge-grid">
-      {results.map((result) => {
-        const value = latestPanelValue(result);
+      {results.map((result, index) => {
+        const value = values[index];
         const ratio = value === null ? 0 : clamp((value - min) / range);
         const color = panelValueColor(panel, value) || "#278541";
         const dash = `${ratio * 301.6} 301.6`;
@@ -52,8 +60,8 @@ export default function GaugeRenderer({ panel, results }: GaugeRendererProps) {
               <circle className="dashboard-gauge-value" cx="60" cy="60" r="48"
                 stroke={color} strokeDasharray={dash} />
             </svg>
-            <strong style={{ color }}>{formatMetricValue(value, unit)}</strong>
-            <span title={result.displayName}>{result.displayName}</span>
+            {textMode !== "name" && <strong style={{ color }}>{formatMetricValue(value, unit, decimals)}</strong>}
+            {textMode !== "value" && <span title={result.displayName}>{result.displayName}</span>}
           </div>
         );
       })}

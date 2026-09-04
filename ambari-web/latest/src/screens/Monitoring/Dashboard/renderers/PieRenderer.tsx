@@ -17,10 +17,10 @@
  */
 
 import { ArcElement, Chart as ChartJs, Legend, Tooltip } from "chart.js";
-import { Pie } from "react-chartjs-2";
+import { Doughnut, Pie } from "react-chartjs-2";
 import type { DashboardPanel } from "../../types";
-import { formatMetricValue, getPanelUnit } from "../../valueFormatter";
-import { latestPanelValue, type DashboardPanelResult } from "../data/panelData";
+import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
+import { calculatePanelValue, panelCustomOptions, type DashboardPanelResult } from "../data/panelData";
 
 ChartJs.register(ArcElement, Legend, Tooltip);
 
@@ -34,30 +34,37 @@ interface PieRendererProps {
 
 export default function PieRenderer({ panel, results, height }: PieRendererProps) {
   const unit = getPanelUnit(panel.options);
+  const decimals = getPanelDecimals(panel.options);
+  const custom = panelCustomOptions(panel);
+  const calculation = String(custom.calc || "lastNotNull");
+  const displayMode = String(custom.displayMode || "pie");
+  const position = String(custom.legendPosition || "right");
+  const legendPosition = ["top", "left", "right", "bottom"].includes(position)
+    ? position as "top" | "left" | "right" | "bottom"
+    : "right";
+  const data = {
+    labels: results.map((result) => result.displayName),
+    datasets: [{
+      data: results.map((result) => calculatePanelValue(result, calculation) ?? 0),
+      backgroundColor: results.map((_result, index) => COLORS[index % COLORS.length]),
+      borderWidth: 1,
+    }],
+  };
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: legendPosition },
+      tooltip: {
+        callbacks: {
+          label: (context: { label?: string; parsed: number }) => `${context.label || "Series"}: ${formatMetricValue(context.parsed, unit, decimals)}`,
+        },
+      },
+    },
+  };
   return (
     <div className="dashboard-chart-wrap" style={{ height: Math.max(180, height || 280) }}>
-      <Pie
-        data={{
-          labels: results.map((result) => result.displayName),
-          datasets: [{
-            data: results.map((result) => latestPanelValue(result) ?? 0),
-            backgroundColor: results.map((_result, index) => COLORS[index % COLORS.length]),
-            borderWidth: 1,
-          }],
-        }}
-        options={{
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: "right" },
-            tooltip: {
-              callbacks: {
-                label: (context) => `${context.label || "Series"}: ${formatMetricValue(context.parsed, unit)}`,
-              },
-            },
-          },
-        }}
-      />
+      {displayMode === "donut" ? <Doughnut data={data} options={options} /> : <Pie data={data} options={options} />}
     </div>
   );
 }

@@ -26,8 +26,8 @@ import {
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import type { DashboardPanel } from "../../types";
-import { formatMetricValue, getPanelUnit } from "../../valueFormatter";
-import { latestPanelValue, type DashboardPanelResult } from "../data/panelData";
+import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
+import { calculatePanelValue, panelCustomOptions, panelNumericBounds, type DashboardPanelResult } from "../data/panelData";
 
 ChartJs.register(BarElement, CategoryScale, LinearScale, Legend, Tooltip);
 
@@ -41,32 +41,43 @@ interface BarChartRendererProps {
 
 export default function BarChartRenderer({ panel, results, height }: BarChartRendererProps) {
   const unit = getPanelUnit(panel.options);
+  const decimals = getPanelDecimals(panel.options);
+  const { min, max } = panelNumericBounds(panel);
+  const custom = panelCustomOptions(panel);
+  const calculation = String(custom.calc || "lastNotNull");
+  const horizontal = custom.orientation === "horizontal";
+  const sortOrder = String(custom.sortOrder || "none");
+  const items = results.map((result) => ({ result, value: calculatePanelValue(result, calculation) ?? 0 })).sort((left, right) => {
+    if (sortOrder === "none") return 0;
+    return sortOrder === "asc" ? left.value - right.value : right.value - left.value;
+  });
   return (
     <div className="dashboard-chart-wrap" style={{ height: Math.max(180, height || 280) }}>
       <Bar
         data={{
-          labels: results.map((result) => result.displayName),
+          labels: items.map(({ result }) => result.displayName),
           datasets: [{
             label: panel.name || "Value",
-            data: results.map((result) => latestPanelValue(result) ?? 0),
-            backgroundColor: results.map((_result, index) => COLORS[index % COLORS.length]),
+            data: items.map(({ value }) => value),
+            backgroundColor: items.map((_result, index) => COLORS[index % COLORS.length]),
             borderWidth: 0,
           }],
         }}
         options={{
           responsive: true,
           maintainAspectRatio: false,
+          indexAxis: horizontal ? "y" : "x",
           plugins: {
             legend: { display: false },
             tooltip: {
               callbacks: {
-                label: (context) => formatMetricValue(context.parsed.y, unit),
+                label: (context) => formatMetricValue(horizontal ? context.parsed.x : context.parsed.y, unit, decimals),
               },
             },
           },
           scales: {
-            x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
-            y: { ticks: { callback: (value) => formatMetricValue(value, unit) } },
+            x: horizontal ? { min, max, ticks: { callback: (value) => formatMetricValue(value, unit, decimals) } } : { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+            y: horizontal ? { ticks: { autoSkip: true, maxTicksLimit: 12 } } : { min, max, ticks: { callback: (value) => formatMetricValue(value, unit, decimals) } },
           },
         }}
       />

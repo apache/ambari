@@ -18,20 +18,46 @@
 
 import type { DashboardPanel } from "../../types";
 import PrometheusChart from "../../PrometheusChart";
-import { getPanelUnit } from "../../valueFormatter";
-import type { DashboardPanelResult } from "../data/panelData";
+import { getPanelDecimals, getPanelUnit } from "../../valueFormatter";
+import { panelCustomOptions, panelNumericBounds, type DashboardPanelResult } from "../data/panelData";
 
 interface TimeSeriesRendererProps {
   panel: DashboardPanel;
   results: DashboardPanelResult[];
   height?: number;
+  graphTooltip?: string;
 }
 
-export default function TimeSeriesRenderer({ panel, results, height }: TimeSeriesRendererProps) {
+export default function TimeSeriesRenderer({ panel, results, height, graphTooltip }: TimeSeriesRendererProps) {
+  const { min, max } = panelNumericBounds(panel);
+  const custom = panelCustomOptions(panel);
+  const scaleDistribution = custom.scaleDistribution && typeof custom.scaleDistribution === "object"
+    ? custom.scaleDistribution as Record<string, unknown>
+    : {};
+  const options = panel.options || {};
+  const legend = options.legend && typeof options.legend === "object" ? options.legend as Record<string, unknown> : {};
+  const tooltip = options.tooltip && typeof options.tooltip === "object" ? options.tooltip as Record<string, unknown> : {};
   return (
     <PrometheusChart
       results={results}
       unit={getPanelUnit(panel.options)}
+      decimals={getPanelDecimals(panel.options)}
+      minimum={min}
+      maximum={max}
+      tooltipMode={String(tooltip.mode || graphTooltip || "all") === "single" ? "single" : "shared"}
+      tooltipSort={String(tooltip.sort || "none")}
+      drawStyle={String(custom.drawStyle || "lines")}
+      lineInterpolation={String(custom.lineInterpolation || "smooth")}
+      lineWidth={typeof custom.lineWidth === "number" ? custom.lineWidth : 2}
+      fillOpacity={typeof custom.fillOpacity === "number" ? custom.fillOpacity : 0}
+      stack={custom.stack === "normal"}
+      scaleType={String(scaleDistribution.type || "linear")}
+      showPoints={custom.showPoints === "always"}
+      pointSize={typeof custom.pointSize === "number" ? custom.pointSize : 4}
+      spanNulls={custom.spanNulls !== false}
+      legendDisplay={legend.displayMode !== "hidden"}
+      legendPlacement={String(legend.placement || "bottom") as "top" | "left" | "right" | "bottom"}
+      barWidthFactor={typeof custom.barWidthFactor === "number" ? custom.barWidthFactor : 0.6}
       height={height}
     />
   );
