@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import type { DashboardPanel, JsonObject, PrometheusResult } from "../types";
+import type { DashboardPanel, JsonObject, PrometheusResult } from "../../types";
 
 export interface DashboardPanelResult extends PrometheusResult {
   displayName: string;

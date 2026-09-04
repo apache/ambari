@@ -17,7 +17,7 @@
  */
 
 import type { CSSProperties } from "react";
-import type { DashboardPanel } from "../types";
+import type { DashboardPanel } from "../../types";
 
 export const DASHBOARD_GRID_COLUMNS = 24;
 export const DASHBOARD_GRID_ROW_HEIGHT = 56;
