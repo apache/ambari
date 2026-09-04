@@ -25,7 +25,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Alert, Button, Card, Form, ProgressBar } from "react-bootstrap";
 import { cloneDeep, get, isEmpty, startCase } from "lodash";
 import DefaultButton from "../../components/DefaultButton";
@@ -58,6 +58,7 @@ import {
 import { AppContext } from "../../store/context";
 import useStackVersion from "../../hooks/useStackVersion";
 import { ServiceContext } from "../../store/ServiceContext";
+import { useHostsListState } from "../../store/HostsListStateContext";
 import { IHostComponent } from "../../models/hostComponent";
 import { IHostStackVersion } from "../../models/hostStackVersion";
 import Host, { IHost } from "../../models/host";
@@ -92,17 +93,47 @@ export default function HostsList() {
     versionName?: string;
     versionStatus?: string;
   }>();
+  const navigate = useNavigate();
   const { clusterName, serviceComponentInfo } = useContext(AppContext);
   const { allServiceModels: serviceModels, polledHostComponentsData } = useContext(ServiceContext);
   const [loading, setLoading] = useState(true);
   const [paginationLoading, setPaginationLoading] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [currentHostModels, setCurrentHostModels] = useState<Host[]>([]);
   const [allHostCount, setAllHostCount] = useState(0);
-  const [selectedHosts, setSelectedHosts] = useState<string[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState<any>([]);
-  const [filterString, setFilterString] = useState<string>("");
+  const {
+    selectedFilters,
+    setSelectedFilters,
+    selectedHosts,
+    setSelectedHosts,
+  } = useHostsListState();
+  // Open the filter bar when filters are already applied, so restored filters
+  // stay visible instead of being hidden behind a collapsed bar.
+  const [showFilters, setShowFilters] = useState(
+    () => selectedFilters.length > 0
+  );
+  // Derive from the restored filters up front: the query effect runs on mount, so
+  // starting empty would fire an unfiltered request and show unfiltered hosts even
+  // though the filters are shown as applied.
+  const [filterString, setFilterString] = useState<string>(() =>
+    selectedFilters.length > 0
+      ? computeParameters(getQueryParameters(selectedFilters))
+      : ""
+  );
+  // A component/version deep link seeds the filters from the URL, so clearing the
+  // filters has to drop those params too or the effect just re-applies them.
+  const clearFilters = useCallback(() => {
+    setSelectedFilters([]);
+    if (params.componentName || params.versionName || params.versionStatus) {
+      navigate("/main/hosts", { replace: true });
+    }
+  }, [
+    navigate,
+    params.componentName,
+    params.versionName,
+    params.versionStatus,
+    setSelectedFilters,
+  ]);
   const [hostApiQueryParams, setHostApiQueryParams] = useState<any>({
     pageSize: 10,
     startFrom: 0,
@@ -154,6 +185,14 @@ export default function HostsList() {
     order: "asc",
   });
 
+  // Filters can also arrive after mount (for example from a component or version
+  // deep link), so reveal the bar whenever any filter becomes active.
+  useEffect(() => {
+    if (selectedFilters.length > 0) {
+      setShowFilters(true);
+    }
+  }, [selectedFilters.length]);
+
   // Reuse centralized polled data from CachedServiceApi instead of making a separate API call
   // This eliminates the duplicate /components/ call that was previously polled independently
   useEffect(() => {
@@ -172,6 +211,12 @@ export default function HostsList() {
 
   useEffect(() => {
     if (params.componentName && !isEmpty(clusterComponents)) {
+      // clusterComponents comes from a poll, so this effect re-runs regularly.
+      // Seed only while no filter is set: that still applies the component from
+      // the URL on landing, but a later re-run leaves the user's filters alone.
+      if (selectedFilters.length > 0) {
+        return;
+      }
       const component = get(clusterComponents, "items", []).find(
         (component: any) =>
           get(component, "ServiceComponentInfo.component_name", "") ===
@@ -198,7 +243,7 @@ export default function HostsList() {
         setSelectedFilters(newFilter);
       }
     }
-  }, [params.componentName, clusterComponents]);
+  }, [params.componentName, clusterComponents, selectedFilters.length]);
 
   useEffect(() => {
     if (
@@ -206,6 +251,11 @@ export default function HostsList() {
       params.versionStatus &&
       !isEmpty(stackVersionList)
     ) {
+      // Seed only while no filter is set, so a refreshed stackVersionList does
+      // not discard filters the user added on top of the ones from the URL.
+      if (selectedFilters.length > 0) {
+        return;
+      }
       const versionExists = stackVersionList.some(
         (version: any) =>
           version.displayName === params.versionName &&
@@ -243,7 +293,12 @@ export default function HostsList() {
         setSelectedFilters(newFilter);
       }
     }
-  }, [params.versionName, params.versionStatus, stackVersionList]);
+  }, [
+    params.versionName,
+    params.versionStatus,
+    stackVersionList,
+    selectedFilters.length,
+  ]);
 
   useEffect(() => {
     if (
@@ -1380,6 +1435,7 @@ export default function HostsList() {
                 searchCallback={setSelectedFilters}
                 selectedFilters={selectedFilters}
                 setSelectedFilters={setSelectedFilters}
+                onResetFilters={clearFilters}
               />
               {paginationLoading ? (
                 <Spinner />

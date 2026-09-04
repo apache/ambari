@@ -50,6 +50,7 @@ type HostComboSearchProps = {
   setSelectedFilters: (
     filters: SelectedFilters | ((prev: SelectedFilters) => SelectedFilters)
   ) => void;
+  onResetFilters?: () => void;
 };
 
 function HostComboSearch({
@@ -59,6 +60,7 @@ function HostComboSearch({
   searchCallback,
   selectedFilters,
   setSelectedFilters,
+  onResetFilters,
 }: HostComboSearchProps) {
   const { clusterName } = useContext(AppContext);
   const [selectedField, setSelectedField] = useState<FilterField | null>(null);
@@ -404,7 +406,11 @@ function HostComboSearch({
   function resetFilters() {
     setSelectedField(null as any);
     setSelectedValue(null as any);
-    setSelectedFilters([]);
+    if (onResetFilters) {
+      onResetFilters();
+    } else {
+      setSelectedFilters([]);
+    }
   }
 
   return (

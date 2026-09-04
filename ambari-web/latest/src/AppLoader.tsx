@@ -21,6 +21,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Alert, Button, ProgressBar } from "react-bootstrap";
 import { AppContext, AppProvider } from "./store/context";
 import { AlertsProvider } from "./store/AlertsContext";
+import { HostsListStateProvider } from "./store/HostsListStateContext";
 import { ModalProvider } from "./store/ModalContext";
 import { useAuth } from "./hooks/useAuth";
 import useAuthorizationPolicy from "./hooks/useAuthorizationPolicy";
@@ -109,9 +110,11 @@ export function AuthenticatedApplication() {
   return (
     <AppProvider>
       <AlertsProvider>
-        <ModalProvider>
-          <ApplicationLoader />
-        </ModalProvider>
+        <HostsListStateProvider>
+          <ModalProvider>
+            <ApplicationLoader />
+          </ModalProvider>
+        </HostsListStateProvider>
       </AlertsProvider>
     </AppProvider>
   );
