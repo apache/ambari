@@ -59,7 +59,8 @@ const Paginator = ({
       items.push(<Pagination.Ellipsis key={`ellipsis-${number}`}/>);
     }
   }
-  const firstItemIndex = (currentPage - 1) * itemsPerPage + 1;
+  const firstItemIndex =
+    totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const lastItemIndex = Math.min(currentPage * itemsPerPage, totalItems);
   return (
       <div className="mt-4 p-3 py-0" data-testid="pagination">
