@@ -57,7 +57,6 @@ function HostComboSearch({
   showFilters,
   allHostModels,
   clusterComponents,
-  searchCallback,
   selectedFilters,
   setSelectedFilters,
   onResetFilters,
@@ -81,7 +80,9 @@ function HostComboSearch({
   }, [selectedValue]);
 
   useEffect(() => {
-    searchCallback(selectedFilters);
+    // Deliberately does not echo selectedFilters back through searchCallback: that
+    // stale write wiped filters seeded by another page. The add/remove/reset
+    // handlers already call setSelectedFilters.
     updateGroupedFieldOptions();
   }, [selectedFilters.length]);
 

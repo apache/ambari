@@ -38,6 +38,7 @@ import { pluralize } from "../../Utils/Utility";
 import modalManager from "../../store/ModalManager";
 import { AlertsModal } from "./ServiceAlerts";
 import { useNavigate } from "react-router-dom";
+import { useHostsFilterNavigation } from "../Hosts/hostsFilterNavigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Tooltip from "../../components/Tooltip";
 import { getComponentAlerts } from "./alertUtils";
@@ -99,6 +100,7 @@ function HDFSSummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["hdfs"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["hdfs"]) {
@@ -389,9 +391,7 @@ function HDFSSummary({ alerts }: { alerts: any }) {
                   <div
                     className="custom-link text-uppercase fs-12 mt-2"
                     onClick={() => {
-                      navigate(
-                        `/main/hosts/component/${slaveComponent.componentName}`
-                      );
+                      goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                     }}
                   >
                     {pluralize(
@@ -493,6 +493,7 @@ function HBASESummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["hbase"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["hbase"]) {
@@ -653,9 +654,7 @@ function HBASESummary({ alerts }: { alerts: any }) {
                   <div
                     className="custom-link text-uppercase fs-12 mt-2"
                     onClick={() => {
-                      navigate(
-                        `/main/hosts/component/${slaveComponent.componentName}`
-                      );
+                      goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                     }}
                   >
                     {pluralize(
@@ -727,6 +726,7 @@ function RANGERSummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["ranger"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["ranger"]) {
@@ -957,9 +957,7 @@ function RANGERSummary({ alerts }: { alerts: any }) {
                   <div
                     className="custom-link text-uppercase fs-12 mt-2"
                     onClick={() => {
-                      navigate(
-                        `/main/hosts/component/${slaveComponent.componentName}`
-                      );
+                      goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                     }}
                   >
                     {pluralize(
@@ -986,6 +984,7 @@ function ZOOKEEPERSummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["zk"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["zk"]) {
@@ -1121,11 +1120,12 @@ function ZOOKEEPERSummary({ alerts }: { alerts: any }) {
                             <div
                               className="custom-link text-uppercase fs-12"
                               onClick={() =>
-                                navigate(
-                                  `/main/hosts/component/${component.display_name
+                                goToHostsFilteredByComponent(
+                                  component.display_name
                                     .split(" ")
                                     .join("_")
-                                    .slice(0, -1)}`
+                                    .slice(0, -1),
+                                  component.display_name
                                 )
                               }
                             >
@@ -1154,6 +1154,7 @@ function KYUUBISummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["kyuubi"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["kyuubi"]) {
@@ -1292,11 +1293,12 @@ function KYUUBISummary({ alerts }: { alerts: any }) {
                             <div
                               className="custom-link text-uppercase fs-12"
                               onClick={() =>
-                                navigate(
-                                  `/main/hosts/component/${component.display_name
+                                goToHostsFilteredByComponent(
+                                  component.display_name
                                     .split(" ")
                                     .join("_")
-                                    .slice(0, -1)}`
+                                    .slice(0, -1),
+                                  component.display_name
                                 )
                               }
                             >
@@ -1325,6 +1327,7 @@ function TRINOGATEWAYSummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["trino_gateway"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["trino_gateway"]) {
@@ -1466,11 +1469,12 @@ function TRINOGATEWAYSummary({ alerts }: { alerts: any }) {
                             <div
                               className="custom-link text-uppercase fs-12"
                               onClick={() =>
-                                navigate(
-                                  `/main/hosts/component/${component.display_name
+                                goToHostsFilteredByComponent(
+                                  component.display_name
                                     .split(" ")
                                     .join("_")
-                                    .slice(0, -1)}`
+                                    .slice(0, -1),
+                                  component.display_name
                                 )
                               }
                             >
@@ -1501,6 +1505,7 @@ function MAPREDUCE2Summary({ alerts }: { alerts: any }) {
   );
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["mapreduce2"]) {
@@ -1636,11 +1641,12 @@ function MAPREDUCE2Summary({ alerts }: { alerts: any }) {
                             <div
                               className="custom-link text-uppercase fs-12"
                               onClick={() =>
-                                navigate(
-                                  `/main/hosts/component/${component.display_name
+                                goToHostsFilteredByComponent(
+                                  component.display_name
                                     .split(" ")
                                     .join("_")
-                                    .slice(0, -1)}`
+                                    .slice(0, -1),
+                                  component.display_name
                                 )
                               }
                             >
@@ -1668,7 +1674,7 @@ function TEZSummary() {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["tez"] || {});
 
-  const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["tez"]) {
@@ -1741,11 +1747,12 @@ function TEZSummary() {
                               className="custom-link text-uppercase fs-12"
                               onClick={() =>
                                 metricValue > 0 ?
-                                navigate(
-                                  `/main/hosts/component/${component.display_name
+                                goToHostsFilteredByComponent(
+                                  component.display_name
                                     .split(" ")
                                     .join("_")
-                                    .slice(0, -1)}`
+                                    .slice(0, -1),
+                                  component.display_name
                                 ) : ""
                               }
                             >
@@ -1773,7 +1780,7 @@ function KERBEROSSummary() {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["kerberos"] || {});
 
-  const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["kerberos"]) {
@@ -1812,9 +1819,7 @@ function KERBEROSSummary() {
                 <div
                   className="custom-link text-uppercase fs-12 mt-2"
                   onClick={() => {
-                    navigate(
-                      `/main/hosts/component/${clientComponent.componentName}`
-                    );
+                    goToHostsFilteredByComponent(clientComponent.componentName, clientComponent.displayName as string)
                   }}
                 >
                   {pluralize(
@@ -1841,6 +1846,7 @@ function SPARK3Summary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["spark3"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["spark3"]) {
@@ -1954,9 +1960,7 @@ function SPARK3Summary({ alerts }: { alerts: any }) {
                 <div
                   className="custom-link text-uppercase fs-12 mt-2"
                   onClick={() => {
-                    navigate(
-                      `/main/hosts/component/${slaveComponent.componentName}`
-                    );
+                    goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                   }}
                 >
                   {pluralize(
@@ -1999,12 +2003,13 @@ function SPARK3Summary({ alerts }: { alerts: any }) {
                           <div
                             className="custom-link text-uppercase fs-12"
                             onClick={() =>
-                              navigate(
-                                `/main/hosts/component/${component.display_name
-                                  .split(" ")
-                                  .join("_")
-                                  .slice(0, -1)}`
-                              )
+                              goToHostsFilteredByComponent(
+                                  component.display_name
+                                    .split(" ")
+                                    .join("_")
+                                    .slice(0, -1),
+                                  component.display_name
+                                )
                             }
                           >
                             {component.display_name}
@@ -2033,6 +2038,7 @@ function AMBARIMETRICSSummary({ alerts }: { alerts: any }) {
   );
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["ambari_metrics"]) {
@@ -2213,9 +2219,7 @@ function AMBARIMETRICSSummary({ alerts }: { alerts: any }) {
                 <div
                   className="custom-link text-uppercase fs-12 mt-2"
                   onClick={() => {
-                    navigate(
-                      `/main/hosts/component/${slaveComponent.componentName}`
-                    );
+                    goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                   }}
                 >
                   {pluralize(
@@ -2441,6 +2445,7 @@ function TRINOSummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["trino"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["trino"]) {
@@ -2640,9 +2645,7 @@ function TRINOSummary({ alerts }: { alerts: any }) {
                 <div
                   className="custom-link text-uppercase fs-12 mt-2"
                   onClick={() => {
-                    navigate(
-                      `/main/hosts/component/${slaveComponent.componentName}`
-                    );
+                    goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                   }}
                 >
                   {slaveComponent.displayName}
@@ -2659,9 +2662,7 @@ function TRINOSummary({ alerts }: { alerts: any }) {
                 <div
                   className="custom-link text-uppercase fs-12 mt-2"
                   onClick={() => {
-                    navigate(
-                      `/main/hosts/component/${clientComponent.componentName}`
-                    );
+                    goToHostsFilteredByComponent(clientComponent.componentName, clientComponent.displayName as string)
                   }}
                 >
                   {pluralize(
@@ -2688,6 +2689,7 @@ function SSMSummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["ssm"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["ssm"]) {
@@ -2815,9 +2817,7 @@ function SSMSummary({ alerts }: { alerts: any }) {
                   <div
                     className="custom-link text-uppercase fs-12 mt-2"
                     onClick={() => {
-                      navigate(
-                        `/main/hosts/component/${slaveComponent.componentName}`
-                      );
+                      goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                     }}
                   >
                     {pluralize(
@@ -2844,6 +2844,7 @@ function YARNSummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["yarn"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["yarn"]) {
@@ -3127,9 +3128,7 @@ function YARNSummary({ alerts }: { alerts: any }) {
                     <div
                       className="custom-link text-uppercase fs-12 mt-2"
                       onClick={() => {
-                        navigate(
-                          `/main/hosts/component/${slaveComponent.componentName}`
-                        );
+                        goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                       }}
                     >
                       {pluralize(
@@ -3173,12 +3172,13 @@ function YARNSummary({ alerts }: { alerts: any }) {
                               <div
                                 className="custom-link text-uppercase fs-12"
                                 onClick={() =>
-                                  navigate(
-                                    `/main/hosts/component/${component.display_name
-                                      .split(" ")
-                                      .join("_")
-                                      .slice(0, -1)}`
-                                  )
+                                  goToHostsFilteredByComponent(
+                                  component.display_name
+                                    .split(" ")
+                                    .join("_")
+                                    .slice(0, -1),
+                                  component.display_name
+                                )
                                 }
                               >
                                 {component.display_name}
@@ -3319,6 +3319,7 @@ function HIVESummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["hive"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["hive"]) {
@@ -3537,11 +3538,12 @@ function HIVESummary({ alerts }: { alerts: any }) {
                             <div
                               className="custom-link text-uppercase fs-12"
                               onClick={() =>
-                                navigate(
-                                  `/main/hosts/component/${component.display_name
+                                goToHostsFilteredByComponent(
+                                  component.display_name
                                     .split(" ")
                                     .join("_")
-                                    .slice(0, -1)}`
+                                    .slice(0, -1),
+                                  component.display_name
                                 )
                               }
                             >
@@ -3569,7 +3571,7 @@ function SQOOPSummary() {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["sqoop"] || {});
 
-  const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["sqoop"]) {
@@ -3631,11 +3633,12 @@ function SQOOPSummary() {
                               className="custom-link text-uppercase fs-12"
                               onClick={() =>
                                 metricValue > 0 ? 
-                                navigate(
-                                  `/main/hosts/component/${component.display_name
+                                goToHostsFilteredByComponent(
+                                  component.display_name
                                     .split(" ")
                                     .join("_")
-                                    .slice(0, -1)}`
+                                    .slice(0, -1),
+                                  component.display_name
                                 ) : ""
                               }
                             >
@@ -3664,6 +3667,7 @@ function PINOTSummary({ alerts }: { alerts: any }) {
   const stringifiedModel = JSON.stringify(allServiceModels?.["pinot"] || {});
 
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
     if (allServiceModels["pinot"]) {
@@ -3797,9 +3801,7 @@ function PINOTSummary({ alerts }: { alerts: any }) {
                   <div
                     className="custom-link text-uppercase fs-12 mt-2"
                     onClick={() => {
-                      navigate(
-                        `/main/hosts/component/${slaveComponent.componentName}`
-                      );
+                      goToHostsFilteredByComponent(slaveComponent.componentName, slaveComponent.displayName as string)
                     }}
                   >
                     {slaveComponent.displayName}

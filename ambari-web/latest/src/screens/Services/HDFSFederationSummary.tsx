@@ -18,8 +18,9 @@
 
 import { Badge, Col, Row, Stack } from "react-bootstrap";
 import { filter, find, lowerCase, startCase } from "lodash";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useHostsFilterNavigation } from "../Hosts/hostsFilterNavigation";
 import { statusIconMap } from "./constants";
 import modalManager from "../../store/ModalManager";
 import { AlertsModal } from "./ServiceAlerts";
@@ -36,6 +37,7 @@ function HDFSFederationSummary({
   alerts,
 }: HDFSFederationSummaryProps) {
   const navigate = useNavigate();
+  const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   function getComponentAlerts(componentName: string) {
     const criticalAlerts = filter(alerts, ["highestStatus", "CRITICAL"]);
@@ -782,7 +784,7 @@ function HDFSFederationSummary({
             </h3>
             <div
               className="custom-link text-uppercase fs-12 mt-2"
-              onClick={() => navigate("/main/hosts/component/DATANODE")}
+              onClick={() => goToHostsFilteredByComponent("DATANODE", "DataNode")}
             >
               DATANODES
             </div>
@@ -796,7 +798,7 @@ function HDFSFederationSummary({
             </h3>
             <div
               className="custom-link text-uppercase fs-12 mt-2"
-              onClick={() => navigate("/main/hosts/component/HDFS_ROUTER")}
+              onClick={() => goToHostsFilteredByComponent("HDFS_ROUTER", "Router")}
             >
               ROUTERS
             </div>
@@ -810,7 +812,7 @@ function HDFSFederationSummary({
             </h3>
             <div
               className="custom-link text-uppercase fs-12 mt-2"
-              onClick={() => navigate("/main/hosts/component/JOURNALNODE")}
+              onClick={() => goToHostsFilteredByComponent("JOURNALNODE", "JournalNode")}
             >
               JOURNALNODES
             </div>
@@ -824,7 +826,7 @@ function HDFSFederationSummary({
             </h3>
             <div
               className="custom-link text-uppercase fs-12 mt-2"
-              onClick={() => navigate("/main/hosts/component/NFS_GATEWAY")}
+              onClick={() => goToHostsFilteredByComponent("NFS_GATEWAY", "NFS Gateway")}
             >
               NFSGATEWAYS
             </div>

@@ -64,7 +64,7 @@ describe("useHostConfigUpdater realtime initialization", () => {
     const setAllHostModels = vi.fn();
 
     renderHook(
-      () => useHostConfigUpdater({}, [], setAllHostModels),
+      () => useHostConfigUpdater({}, setAllHostModels),
       {
         wrapper: wrapperWithMessage({
           destination: "/events/hosts",
@@ -74,7 +74,10 @@ describe("useHostConfigUpdater realtime initialization", () => {
       },
     );
 
-    expect(setAllHostModels).not.toHaveBeenCalled();
+    expect(setAllHostModels).toHaveBeenCalled();
+    // The functional update bails out (returns prevModels unchanged) when
+    // there are no models loaded yet.
+    expect(setAllHostModels.mock.calls[0][0]([])).toEqual([]);
   });
 
   it("applies host events after the initial REST models are available", async () => {
@@ -84,7 +87,7 @@ describe("useHostConfigUpdater realtime initialization", () => {
     const setAllHostModels = vi.fn();
 
     renderHook(
-      () => useHostConfigUpdater({}, [host], setAllHostModels),
+      () => useHostConfigUpdater({}, setAllHostModels),
       {
         wrapper: wrapperWithMessage({
           destination: "/events/hosts",
@@ -95,7 +98,8 @@ describe("useHostConfigUpdater realtime initialization", () => {
     );
 
     await waitFor(() => expect(setAllHostModels).toHaveBeenCalled());
-    expect(setAllHostModels.mock.calls[0][0][0].state).toBe("HEARTBEAT_LOST");
+    const updateFn = setAllHostModels.mock.calls[0][0];
+    expect(updateFn([host])[0].state).toBe("HEARTBEAT_LOST");
   });
 
   it("does not report a loaded host as an empty REST result", async () => {
@@ -114,7 +118,6 @@ describe("useHostConfigUpdater realtime initialization", () => {
     const { result } = renderHook(
       () => useHostConfigUpdater(
         queryParams,
-        [],
         setAllHostModels,
       ),
       {
