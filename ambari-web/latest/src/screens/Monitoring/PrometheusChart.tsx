@@ -18,22 +18,32 @@
 
 import {
   CategoryScale,
+  BarElement,
   Chart as ChartJs,
+  Filler,
   Legend,
   LineElement,
   LinearScale,
+  LogarithmicScale,
   PointElement,
   TimeScale,
   Title,
   Tooltip,
 } from "chart.js";
-import { Line } from "react-chartjs-2";
+import { Bar, Line } from "react-chartjs-2";
 import { PrometheusResult } from "./types";
 import { formatMetricValue } from "./valueFormatter";
 
-ChartJs.register(CategoryScale, LinearScale, PointElement, LineElement, TimeScale, Title, Tooltip, Legend);
+ChartJs.register(CategoryScale, LinearScale, LogarithmicScale, PointElement, LineElement, BarElement, Filler, TimeScale, Title, Tooltip, Legend);
 
 const COLORS = ["#278541", "#1769aa", "#bd6418", "#8a4f9d", "#b33a3a", "#477178"];
+
+const colorWithOpacity = (color: string, opacity: number) => {
+  const match = color.match(/^#([0-9a-f]{6})$/i);
+  if (!match) return color;
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(match[1].slice(offset, offset + 2), 16));
+  return `rgba(${channels.join(", ")}, ${Math.min(1, Math.max(0, opacity))})`;
+};
 
 type DisplayResult = PrometheusResult & { displayName?: string };
 
@@ -50,10 +60,44 @@ const seriesName = (result: DisplayResult, index: number) => {
 export default function PrometheusChart({
   results,
   unit = "",
+  decimals,
+  minimum,
+  maximum,
+  tooltipMode = "shared",
+  tooltipSort = "none",
+  drawStyle = "lines",
+  lineInterpolation = "smooth",
+  lineWidth = 2,
+  fillOpacity = 0,
+  stack = false,
+  scaleType = "linear",
+  showPoints = false,
+  pointSize = 4,
+  spanNulls = true,
+  legendDisplay = true,
+  legendPlacement = "bottom",
+  barWidthFactor = 0.6,
   height,
 }: {
   results: DisplayResult[];
   unit?: string;
+  decimals?: number;
+  minimum?: number;
+  maximum?: number;
+  tooltipMode?: string;
+  tooltipSort?: string;
+  drawStyle?: string;
+  lineInterpolation?: string;
+  lineWidth?: number;
+  fillOpacity?: number;
+  stack?: boolean;
+  scaleType?: string;
+  showPoints?: boolean;
+  pointSize?: number;
+  spanNulls?: boolean;
+  legendDisplay?: boolean;
+  legendPlacement?: "top" | "left" | "right" | "bottom";
+  barWidthFactor?: number;
   height?: number;
 }) {
   const timestampSet = new Set<number>();
@@ -72,11 +116,14 @@ export default function PrometheusChart({
         y: points.get(timestamp) ?? null,
       })),
       borderColor: COLORS[index % COLORS.length],
-      backgroundColor: COLORS[index % COLORS.length],
-      borderWidth: 1.5,
-      pointRadius: timestamps.length > 1 ? 0 : 3,
-      tension: 0.15,
-      spanGaps: true,
+      backgroundColor: colorWithOpacity(COLORS[index % COLORS.length], fillOpacity),
+      pointRadius: showPoints || timestamps.length <= 1 ? pointSize : 0,
+      pointHoverRadius: Math.max(pointSize, 4),
+      tension: lineInterpolation === "smooth" ? 0.28 : 0,
+      borderWidth: lineWidth,
+      fill: fillOpacity > 0,
+      spanGaps: spanNulls,
+      stack: stack ? "dashboard" : undefined,
     };
   });
 
@@ -88,6 +135,57 @@ export default function PrometheusChart({
     minute: "2-digit",
   });
 
+  const legendPosition = ["top", "left", "right", "bottom"].includes(legendPlacement)
+    ? legendPlacement
+    : "bottom";
+  const tooltipValue = (item: unknown) => Number((item as { parsed?: { y?: number } }).parsed?.y || 0);
+  const itemSort = tooltipSort === "asc"
+    ? (left: unknown, right: unknown) => tooltipValue(left) - tooltipValue(right)
+    : tooltipSort === "desc"
+      ? (left: unknown, right: unknown) => tooltipValue(right) - tooltipValue(left)
+      : undefined;
+
+  if (drawStyle === "bars") {
+    return (
+      <div className="dashboard-chart-wrap" style={{ height: Math.max(180, height || 300) }}>
+        <Bar
+          data={{
+            labels: timestamps.map((timestamp) => formatTimestamp(timestamp * 1000)),
+            datasets: results.map((result, index) => {
+              const points = new Map((result.values || (result.value ? [result.value] : [])).map(
+                ([timestamp, value]) => [timestamp, Number(value)],
+              ));
+              return {
+                label: seriesName(result, index),
+                data: timestamps.map((timestamp) => points.get(timestamp) ?? null),
+                backgroundColor: COLORS[index % COLORS.length],
+                borderWidth: 0,
+                barPercentage: barWidthFactor,
+                stack: stack ? "dashboard" : undefined,
+              };
+            }),
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: tooltipMode === "single" ? "nearest" : "index", intersect: false },
+            plugins: {
+              legend: { display: legendDisplay, position: legendPosition, labels: { boxWidth: 12 } },
+              tooltip: {
+                itemSort,
+                callbacks: { label: (context) => `${context.dataset.label || "Series"}: ${formatMetricValue(context.parsed.y, unit, decimals)}` },
+              },
+            },
+            scales: {
+              x: { stacked: stack, ticks: { maxTicksLimit: 8, maxRotation: 0 } },
+              y: { type: scaleType === "log" ? "logarithmic" : "linear", stacked: stack, min: minimum, max: maximum, ticks: { callback: (value) => formatMetricValue(value, unit, decimals) } },
+            },
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-chart-wrap" style={{ height: Math.max(180, height || 300) }}>
       <Line
@@ -97,15 +195,16 @@ export default function PrometheusChart({
         options={{
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
+          interaction: { mode: tooltipMode === "single" ? "nearest" : "index", intersect: false },
           plugins: {
-            legend: { position: "bottom", labels: { boxWidth: 12 } },
+            legend: { display: legendDisplay, position: legendPosition, labels: { boxWidth: 12 } },
             tooltip: {
+              itemSort,
               callbacks: {
                 title: (items) => items.length ? formatTimestamp(Number(items[0].parsed.x)) : "",
                 label: (context) => {
                   const label = context.dataset.label ? `${context.dataset.label}: ` : "";
-                  return `${label}${formatMetricValue(context.parsed.y, unit)}`;
+                  return `${label}${formatMetricValue(context.parsed.y, unit, decimals)}`;
                 },
               },
             },
@@ -119,8 +218,12 @@ export default function PrometheusChart({
               },
             },
             y: {
+              type: scaleType === "log" ? "logarithmic" : "linear",
+              stacked: stack,
+              min: minimum,
+              max: maximum,
               ticks: {
-                callback: (value) => formatMetricValue(value, unit),
+                callback: (value) => formatMetricValue(value, unit, decimals),
               },
             },
           },

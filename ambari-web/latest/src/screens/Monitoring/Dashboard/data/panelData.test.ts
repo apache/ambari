@@ -19,6 +19,7 @@
 import { describe, expect, it } from "vitest";
 import type { DashboardPanel } from "../../types";
 import {
+  calculatePanelValue,
   latestPanelValue,
   panelNumericBounds,
   panelThresholds,
@@ -46,6 +47,15 @@ describe("dashboard panel data", () => {
   it("returns the most recent numeric sample", () => {
     expect(latestPanelValue(result)).toBe(4.5);
     expect(latestPanelValue({ ...result, values: [[1, "NaN"]] })).toBeNull();
+  });
+
+  it("calculates summary values for aggregate visualizations", () => {
+    expect(calculatePanelValue(result, "firstNotNull")).toBe(2);
+    expect(calculatePanelValue(result, "min")).toBe(2);
+    expect(calculatePanelValue(result, "max")).toBe(4.5);
+    expect(calculatePanelValue(result, "avg")).toBe(3.25);
+    expect(calculatePanelValue(result, "sum")).toBe(6.5);
+    expect(calculatePanelValue(result, "count")).toBe(2);
   });
 
   it("sorts threshold steps and resolves their colors", () => {

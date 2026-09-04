@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 
-const numberFormatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 2,
-});
+const formatNumber = (value: number, decimals?: number) => new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: decimals,
+  maximumFractionDigits: decimals ?? 2,
+}).format(value);
 
-const formatNumber = (value: number) => numberFormatter.format(value);
-
-const formatBytes = (value: number) => {
+const formatBytes = (value: number, decimals?: number) => {
   if (value === 0) return "0 B";
   const units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB"];
   const unitIndex = Math.min(
@@ -30,7 +29,7 @@ const formatBytes = (value: number) => {
     units.length - 1,
   );
   const safeUnitIndex = Math.max(unitIndex, 0);
-  return `${formatNumber(value / 1024 ** safeUnitIndex)} ${units[safeUnitIndex]}`;
+  return `${formatNumber(value / 1024 ** safeUnitIndex, decimals)} ${units[safeUnitIndex]}`;
 };
 
 export const getPanelUnit = (options: unknown): string => {
@@ -45,33 +44,46 @@ export const getPanelUnit = (options: unknown): string => {
   return typeof unit === "string" ? unit : "";
 };
 
+export const getPanelDecimals = (options: unknown): number | undefined => {
+  if (!options || typeof options !== "object" || Array.isArray(options)) return undefined;
+  const standardOptions = (options as Record<string, unknown>).standardOptions;
+  if (!standardOptions || typeof standardOptions !== "object" || Array.isArray(standardOptions)) return undefined;
+  const decimals = (standardOptions as Record<string, unknown>).decimals;
+  return typeof decimals === "number" && Number.isInteger(decimals) && decimals >= 0 && decimals <= 8
+    ? decimals
+    : undefined;
+};
+
 export const formatMetricValue = (
   value: string | number | null | undefined,
   unit = "",
+  decimals?: number,
 ): string => {
   if (value === null || value === undefined) return "-";
   const rawValue = String(value);
-  if (!unit) return rawValue;
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) return rawValue;
+  if (!unit || unit === "none") return decimals === undefined ? rawValue : formatNumber(numericValue, decimals);
 
   switch (unit) {
     case "bytesIEC":
-      return formatBytes(numericValue);
+      return formatBytes(numericValue, decimals);
     case "bytesSecIEC":
     case "Bps":
-      return `${formatBytes(numericValue)}/s`;
+      return `${formatBytes(numericValue, decimals)}/s`;
     case "percentUnit":
-      return `${formatNumber(numericValue * 100)}%`;
+      return `${formatNumber(numericValue * 100, decimals)}%`;
     case "percent":
-      return `${formatNumber(numericValue)}%`;
+      return `${formatNumber(numericValue, decimals)}%`;
     case "seconds":
-      return `${formatNumber(numericValue)} s`;
+      return `${formatNumber(numericValue, decimals)} s`;
+    case "milliseconds":
+      return `${formatNumber(numericValue, decimals)} ms`;
     case "cps":
-      return `${formatNumber(numericValue)} cps`;
+      return `${formatNumber(numericValue, decimals)} cps`;
     case "reqps":
-      return `${formatNumber(numericValue)} req/s`;
+      return `${formatNumber(numericValue, decimals)} req/s`;
     default:
-      return rawValue;
+      return decimals === undefined ? rawValue : formatNumber(numericValue, decimals);
   }
 };

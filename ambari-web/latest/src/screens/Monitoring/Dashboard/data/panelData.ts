@@ -56,6 +56,28 @@ export function latestPanelValue(result: DashboardPanelResult) {
   return Number.isFinite(numeric) ? numeric : null;
 }
 
+export function calculatePanelValue(result: DashboardPanelResult, calculation = "lastNotNull") {
+  const points = result.values || (result.value ? [result.value] : []);
+  const values = points.map(([, value]) => Number(value)).filter(Number.isFinite);
+  if (!values.length) return null;
+  switch (calculation) {
+    case "last":
+    case "lastNotNull": return values.at(-1) ?? null;
+    case "first":
+    case "firstNotNull": return values[0] ?? null;
+    case "min": return Math.min(...values);
+    case "max": return Math.max(...values);
+    case "avg": return values.reduce((sum, value) => sum + value, 0) / values.length;
+    case "sum": return values.reduce((sum, value) => sum + value, 0);
+    case "count": return values.length;
+    default: return values.at(-1) ?? null;
+  }
+}
+
+export function panelCustomOptions(panel: DashboardPanel): JsonObject {
+  return asRecord(panel.custom);
+}
+
 export function panelThresholds(panel: DashboardPanel): DashboardThreshold[] {
   const options = asRecord(panel.options);
   const raw = asRecord(options.thresholds);

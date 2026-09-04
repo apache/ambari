@@ -17,7 +17,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { formatMetricValue, getPanelUnit } from "./valueFormatter";
+import { formatMetricValue, getPanelDecimals, getPanelUnit } from "./valueFormatter";
 
 describe("monitoring value formatter", () => {
   it("formats Nightingale byte and rate units", () => {
@@ -47,5 +47,12 @@ describe("monitoring value formatter", () => {
     expect(getPanelUnit({ standardOptions: { util: "bytesIEC" } })).toBe("bytesIEC");
     expect(getPanelUnit({ standardOptions: {}, overrides: [{ util: "percent" }] })).toBe("");
     expect(getPanelUnit(null)).toBe("");
+  });
+
+  it("applies configured decimals without changing legacy raw values", () => {
+    expect(formatMetricValue(12.3456, "none", 3)).toBe("12.346");
+    expect(formatMetricValue(0.4251, "percentUnit", 1)).toBe("42.5%");
+    expect(getPanelDecimals({ standardOptions: { decimals: 4 } })).toBe(4);
+    expect(getPanelDecimals({ standardOptions: { decimals: 12 } })).toBeUndefined();
   });
 });
