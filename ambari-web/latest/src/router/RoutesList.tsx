@@ -287,8 +287,6 @@ const RoutesList: RouteObject[] = [
                 ),
               },
               { path: "hosts", element: <HostsList /> },
-              { path: "hosts/component/:componentName", element: <HostsList /> },
-              { path: "hosts/version/:versionName/:versionStatus", element: <HostsList /> },
               { path: "hosts/:hostname/:tab", element: <Hosts /> },
               {
                 path: "host/add/:stepNumber",

@@ -310,7 +310,9 @@ export default function HostsSummary({
   }, [allHostModels]);
 
   useEffect(() => {
-    if (!isEmpty(clusterComponents) && summary.Hostname) {
+    // Gate on this host's own data; the cluster-wide poll can lag on a large
+    // cluster and leave the page spinning after this host has loaded.
+    if (summary.Hostname) {
       setLoading(false);
     }
   }, [clusterComponents, summary]);

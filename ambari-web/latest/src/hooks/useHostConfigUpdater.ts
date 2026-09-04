@@ -52,7 +52,6 @@ const cloneHostModels = (hosts: Host[]): Host[] =>
 
 export const useHostConfigUpdater = (
   hostApiQueryParams: any,
-  allHostModels: Host[],
   setAllHostModels: Function,
   setTotalItems?: Function,
   setPaginationLoading?: Function
@@ -62,7 +61,6 @@ export const useHostConfigUpdater = (
   const [isEmptyResult, setIsEmptyResult] = useState<boolean | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const queryData = useRef({});
-  const allHostModelsRef = useRef<Host[]>(allHostModels);
 
   const {
     cluster,
@@ -73,41 +71,29 @@ export const useHostConfigUpdater = (
   } =
     useContext(AppContext);
 
-  // Keep the ref updated with the latest allHostModels
   useEffect(() => {
-    allHostModelsRef.current = allHostModels;
-  }, [allHostModels]);
-
-  useEffect(() => {
-    // Ember ignores realtime updates for records that are not loaded yet. An
-    // empty update here can otherwise overwrite the initial REST response and
-    // make a valid Host Details route look like a missing host.
-    if (parsedSocketMessages.length && allHostModelsRef.current.length) {
+    if (!parsedSocketMessages.length) return;
+    // Merge into committed models via a functional update; a snapshot taken
+    // outside setAllHostModels would write back stale data.
+    setAllHostModels((prevModels: Host[]) => {
+      // Ember ignores realtime updates for records that are not loaded yet. An
+      // empty update here can otherwise overwrite the initial REST response and
+      // make a valid Host Details route look like a missing host.
+      if (!prevModels.length) return prevModels;
       switch (get(parsedSocketMessages[0], "destination", "")) {
         case "/events/hostcomponents":
-          setAllHostModels(
-            applyHostComponentEvent(
-              allHostModelsRef.current,
-              parsedSocketMessages[0],
-            ),
-          );
-          break;
+          return applyHostComponentEvent(prevModels, parsedSocketMessages[0]);
         case "/events/hosts":
-          setAllHostModels(
-            applyHostEvent(allHostModelsRef.current, parsedSocketMessages[0]),
-          );
-          break;
+          return applyHostEvent(prevModels, parsedSocketMessages[0]);
         case "/events/requests":
-          setAllHostModels(
-            applyCompletedDecommissionRequest(
-              allHostModelsRef.current,
-              parsedSocketMessages[0],
-            ),
+          return applyCompletedDecommissionRequest(
+            prevModels,
+            parsedSocketMessages[0],
           );
-          break;
         default:
+          return prevModels;
       }
-    }
+    });
   }, [parsedSocketMessages]);
 
   useEffect(() => {
@@ -166,28 +152,30 @@ export const useHostConfigUpdater = (
     );
 
     if (get(response, "items", []).length) {
-      // Use the ref to get the latest allHostModels value, avoiding stale closure
-      const allHostModelsCopy = cloneHostModels(allHostModelsRef.current);
-      get(response, "items", []).forEach((host: any) => {
-        const hostName = get(host, "Hosts.host_name", "");
-        const hostModel = allHostModelsCopy.find(
-          (h: Host) => h.hostName === hostName
-        );
-        if (hostModel) {
-          (
-            Object.keys(hostMapper.hostConfig) as Array<
-              keyof typeof hostMapper.hostConfig
-            >
-          ).forEach((key) => {
-            set(
-              hostModel,
-              key,
-              get(host, hostMapper.hostConfig[key], get(hostModel, key))
-            );
-          });
-        }
+      // Merge into committed models; a snapshot would write back stale data.
+      setAllHostModels((prevModels: Host[]) => {
+        const allHostModelsCopy = cloneHostModels(prevModels);
+        get(response, "items", []).forEach((host: any) => {
+          const hostName = get(host, "Hosts.host_name", "");
+          const hostModel = allHostModelsCopy.find(
+            (h: Host) => h.hostName === hostName
+          );
+          if (hostModel) {
+            (
+              Object.keys(hostMapper.hostConfig) as Array<
+                keyof typeof hostMapper.hostConfig
+              >
+            ).forEach((key) => {
+              set(
+                hostModel,
+                key,
+                get(host, hostMapper.hostConfig[key], get(hostModel, key))
+              );
+            });
+          }
+        });
+        return allHostModelsCopy;
       });
-      setAllHostModels(allHostModelsCopy);
     }
   };
 
