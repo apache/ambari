@@ -17,6 +17,6 @@ build==1.4.4
 importlib-metadata==8.7.0; python_full_version < "3.10.2"
 packaging==25.0
 pyproject-hooks==1.2.0
-setuptools==82.0.1
+setuptools==83.0.0
 tomli==2.2.1; python_version < "3.11"
 zipp==3.23.0; python_full_version < "3.10.2"
