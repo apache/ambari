@@ -67,6 +67,7 @@ const contextValue = (clusterName: string) => ({ clusterName }) as unknown as Co
 describe("DashboardPanel cluster isolation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(Element.prototype, "clientWidth", "get").mockReturnValue(960);
     mocks.queryRangeBatch.mockResolvedValue({ data: [{ status: "success", result: [] }] });
     mocks.createChartShares.mockResolvedValue([19]);
     vi.spyOn(window, "open").mockImplementation(() => null);

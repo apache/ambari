@@ -179,7 +179,7 @@ describe("monitoring route contracts", () => {
     expect(clusterGuard.props.requireAuthorization).toBe("CLUSTER.VIEW_METRICS");
     expect(clusterGuard.props.children.type).toBeDefined();
     expect(child(clusterGroup as RouteObject, "dashboards")).toBeDefined();
-    expect(child(clusterGroup as RouteObject, "query")).toBeDefined();
+    expect(child(clusterGroup as RouteObject, "explorer")).toBeDefined();
 
     const targetsGuard = element(child(monitoring, "targets"));
     expect(targetsGuard.type).toBe(ProtectedRoute);
