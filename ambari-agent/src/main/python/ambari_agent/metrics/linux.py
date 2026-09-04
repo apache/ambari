@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ctypes
 import logging
 import os
 import socket
@@ -38,16 +39,44 @@ CPU_MODES = (
   "steal",
 )
 MEMORY_FIELDS = {
-  "MemTotal": "memory_total_bytes",
-  "MemFree": "memory_free_bytes",
-  "MemAvailable": "memory_available_bytes",
-  "Buffers": "memory_buffers_bytes",
-  "Cached": "memory_cached_bytes",
-  "Active": "memory_active_bytes",
-  "Inactive": "memory_inactive_bytes",
-  "Slab": "memory_slab_bytes",
-  "SwapTotal": "memory_swap_total_bytes",
-  "SwapFree": "memory_swap_free_bytes",
+  "MemTotal": ("memory_total_bytes", "bytes"),
+  "MemFree": ("memory_free_bytes", "bytes"),
+  "MemAvailable": ("memory_available_bytes", "bytes"),
+  "Buffers": ("memory_buffers_bytes", "bytes"),
+  "Cached": ("memory_cached_bytes", "bytes"),
+  "SwapCached": ("memory_swap_cached_bytes", "bytes"),
+  "Active": ("memory_active_bytes", "bytes"),
+  "Active(anon)": ("memory_active_anon_bytes", "bytes"),
+  "Active(file)": ("memory_active_file_bytes", "bytes"),
+  "Inactive": ("memory_inactive_bytes", "bytes"),
+  "Inactive(anon)": ("memory_inactive_anon_bytes", "bytes"),
+  "Inactive(file)": ("memory_inactive_file_bytes", "bytes"),
+  "Unevictable": ("memory_unevictable_bytes", "bytes"),
+  "Mlocked": ("memory_mlocked_bytes", "bytes"),
+  "SwapTotal": ("memory_swap_total_bytes", "bytes"),
+  "SwapFree": ("memory_swap_free_bytes", "bytes"),
+  "Dirty": ("memory_dirty_bytes", "bytes"),
+  "Writeback": ("memory_writeback_bytes", "bytes"),
+  "AnonPages": ("memory_anon_pages_bytes", "bytes"),
+  "Mapped": ("memory_mapped_bytes", "bytes"),
+  "Shmem": ("memory_shmem_bytes", "bytes"),
+  "Slab": ("memory_slab_bytes", "bytes"),
+  "SReclaimable": ("memory_sreclaimable_bytes", "bytes"),
+  "SUnreclaim": ("memory_sunreclaim_bytes", "bytes"),
+  "KernelStack": ("memory_kernel_stack_bytes", "bytes"),
+  "NFS_Unstable": ("memory_nfs_unstable_bytes", "bytes"),
+  "Bounce": ("memory_bounce_bytes", "bytes"),
+  "VmallocUsed": ("memory_vmalloc_used_bytes", "bytes"),
+  "VmallocChunk": ("memory_vmalloc_chunk_bytes", "bytes"),
+  "AnonHugePages": ("memory_anon_huge_pages_bytes", "bytes"),
+  "HugePages_Total": ("memory_hugepages_total", "pages"),
+  "HugePages_Free": ("memory_hugepages_free", "pages"),
+  "HugePages_Rsvd": ("memory_hugepages_reserved", "pages"),
+  "HugePages_Surp": ("memory_hugepages_surplus", "pages"),
+  "Hugepagesize": ("memory_hugepages_size_bytes", "bytes"),
+  "DirectMap4k": ("memory_direct_map_4k_bytes", "bytes"),
+  "DirectMap2M": ("memory_direct_map_2m_bytes", "bytes"),
+  "DirectMap1G": ("memory_direct_map_1g_bytes", "bytes"),
 }
 TCP_STATES = {
   "01": "established",
@@ -143,12 +172,12 @@ class MemoryCollector(LinuxCollector):
       values[key] = int(fields[0]) * multiplier
 
     families = []
-    for source_name, metric_name in MEMORY_FIELDS.items():
+    for source_name, (metric_name, unit) in MEMORY_FIELDS.items():
       if source_name not in values:
         continue
       family = MetricFamily(
         f"{NAMESPACE}_{metric_name}",
-        f"Linux {source_name} memory value in bytes.",
+        f"Linux {source_name} memory value in {unit}.",
         "gauge",
       )
       family.add_sample(values[source_name])
@@ -351,6 +380,12 @@ class FilesystemCollector(LinuxCollector):
     )
     files = _filesystem_family("files", "Filesystem total file nodes.")
     files_free = _filesystem_family("files_free", "Filesystem free file nodes.")
+    readonly = _filesystem_family(
+      "readonly", "Whether the filesystem is mounted read-only."
+    )
+    device_error = _filesystem_family(
+      "device_error", "Whether an error occurred while reading filesystem statistics."
+    )
 
     for line in self._read("self/mounts").splitlines():
       fields = line.split()
@@ -360,23 +395,26 @@ class FilesystemCollector(LinuxCollector):
       device = _decode_mount_field(fields[0])
       mountpoint = _decode_mount_field(fields[1])
       filesystem_type = fields[2]
-      try:
-        stats = self.statvfs(mountpoint)
-      except OSError:
-        logger.warning('Unable to read filesystem metrics for "%s"', mountpoint)
-        continue
       labels = {
         "device": device,
         "fstype": filesystem_type,
         "mountpoint": mountpoint,
       }
+      try:
+        stats = self.statvfs(mountpoint)
+      except OSError:
+        logger.warning('Unable to read filesystem metrics for "%s"', mountpoint)
+        device_error.add_sample(1, labels)
+        continue
+      device_error.add_sample(0, labels)
       size.add_sample(stats.f_blocks * stats.f_frsize, labels)
       free.add_sample(stats.f_bfree * stats.f_frsize, labels)
       available.add_sample(stats.f_bavail * stats.f_frsize, labels)
       files.add_sample(stats.f_files, labels)
       files_free.add_sample(stats.f_ffree, labels)
+      readonly.add_sample(1 if getattr(stats, "f_flag", 0) & os.ST_RDONLY else 0, labels)
 
-    return [size, free, available, files, files_free]
+    return [size, free, available, files, files_free, readonly, device_error]
 
 
 class DiskIoCollector(LinuxCollector):
@@ -385,9 +423,11 @@ class DiskIoCollector(LinuxCollector):
   def collect(self):
     definitions = (
       ("disk_reads_completed_total", "Completed disk read operations.", "counter"),
+      ("disk_reads_merged_total", "Merged disk read operations.", "counter"),
       ("disk_read_bytes_total", "Bytes read from disk.", "counter"),
       ("disk_read_time_seconds_total", "Seconds spent reading from disk.", "counter"),
       ("disk_writes_completed_total", "Completed disk write operations.", "counter"),
+      ("disk_writes_merged_total", "Merged disk write operations.", "counter"),
       ("disk_written_bytes_total", "Bytes written to disk.", "counter"),
       ("disk_write_time_seconds_total", "Seconds spent writing to disk.", "counter"),
       ("disk_io_in_progress", "Disk I/O operations currently in progress.", "gauge"),
@@ -410,9 +450,11 @@ class DiskIoCollector(LinuxCollector):
       labels = {"device": fields[2]}
       values = (
         int(fields[3]),
+        int(fields[4]),
         int(fields[5]) * 512,
         int(fields[6]) / 1000.0,
         int(fields[7]),
+        int(fields[8]),
         int(fields[9]) * 512,
         int(fields[10]) / 1000.0,
         int(fields[11]),
@@ -459,6 +501,105 @@ class NetworkCollector(LinuxCollector):
         family.add_sample(value, {"device": device})
 
     return families
+
+
+class SocketCollector(LinuxCollector):
+  name = "sockets"
+
+  def collect(self):
+    values = {}
+    for source in ("net/sockstat", "net/sockstat6"):
+      content = self._read_optional(source)
+      if content is None:
+        continue
+      for line in content.splitlines():
+        if ":" not in line:
+          continue
+        protocol, raw_values = line.split(":", 1)
+        fields = raw_values.split()
+        for index in range(0, len(fields) - 1, 2):
+          try:
+            value = int(fields[index + 1])
+          except ValueError:
+            continue
+          key = (protocol, fields[index])
+          values[key] = values.get(key, 0) + value
+
+    definitions = (
+      ("socket_tcp_allocated", "TCP", "alloc", "Allocated TCP sockets."),
+      ("socket_tcp_in_use", "TCP", "inuse", "TCP sockets currently in use."),
+      ("socket_tcp_orphaned", "TCP", "orphan", "Orphaned TCP sockets."),
+      ("socket_tcp_time_wait", "TCP", "tw", "TCP sockets in the TIME_WAIT state."),
+      ("sockets_used", "sockets", "used", "Sockets currently in use."),
+    )
+    families = []
+    for metric_name, protocol, field, help_text in definitions:
+      value = values.get((protocol, field))
+      if value is None:
+        continue
+      family = MetricFamily(f"{NAMESPACE}_{metric_name}", help_text, "gauge")
+      family.add_sample(value)
+      families.append(family)
+    return families
+
+
+class _Timeval(ctypes.Structure):
+  _fields_ = [("tv_sec", ctypes.c_long), ("tv_usec", ctypes.c_long)]
+
+
+class _Timex(ctypes.Structure):
+  _fields_ = [
+    ("modes", ctypes.c_uint),
+    ("offset", ctypes.c_long),
+    ("freq", ctypes.c_long),
+    ("maxerror", ctypes.c_long),
+    ("esterror", ctypes.c_long),
+    ("status", ctypes.c_int),
+    ("constant", ctypes.c_long),
+    ("precision", ctypes.c_long),
+    ("tolerance", ctypes.c_long),
+    ("time", _Timeval),
+    ("tick", ctypes.c_long),
+    ("ppsfreq", ctypes.c_long),
+    ("jitter", ctypes.c_long),
+    ("shift", ctypes.c_int),
+    ("stabil", ctypes.c_long),
+    ("jitcnt", ctypes.c_long),
+    ("calcnt", ctypes.c_long),
+    ("errcnt", ctypes.c_long),
+    ("stbcnt", ctypes.c_long),
+    ("tai", ctypes.c_int),
+    ("reserved", ctypes.c_int * 11),
+  ]
+
+
+class TimexCollector:
+  name = "timex"
+  STA_NANO = 0x2000
+
+  def __init__(self, read_timex=None):
+    self.read_timex = read_timex or self._read_timex
+
+  def collect(self):
+    family = MetricFamily(
+      f"{NAMESPACE}_timex_offset_seconds",
+      "Time offset between the system clock and the kernel clock discipline source.",
+      "gauge",
+    )
+    family.add_sample(self.read_timex())
+    return [family]
+
+  def _read_timex(self):
+    libc = ctypes.CDLL(None, use_errno=True)
+    adjtimex = libc.adjtimex
+    adjtimex.argtypes = [ctypes.POINTER(_Timex)]
+    adjtimex.restype = ctypes.c_int
+    value = _Timex()
+    if adjtimex(ctypes.byref(value)) < 0:
+      error = ctypes.get_errno()
+      raise OSError(error, os.strerror(error))
+    scale = 1e-9 if value.status & self.STA_NANO else 1e-6
+    return value.offset * scale
 
 
 class ProcessCollector(LinuxCollector):
@@ -534,7 +675,9 @@ def default_collectors(proc_root="/proc"):
     FilesystemCollector(proc_root),
     DiskIoCollector(proc_root),
     NetworkCollector(proc_root),
+    SocketCollector(proc_root),
     ProcessCollector(proc_root),
+    TimexCollector(),
   ]
 
 

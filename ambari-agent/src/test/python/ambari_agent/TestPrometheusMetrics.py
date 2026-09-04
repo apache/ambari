@@ -36,7 +36,9 @@ from ambari_agent.metrics.linux import (
   MemoryCollector,
   NetworkCollector,
   ProcessCollector,
+  SocketCollector,
   SystemCollector,
+  TimexCollector,
   _decode_mount_field,
   default_collectors,
 )
@@ -137,7 +139,16 @@ class TestLinuxCollectors(unittest.TestCase):
       "Inactive:        200 kB\n"
       "Slab:             50 kB\n"
       "SwapTotal:       500 kB\n"
-      "SwapFree:        450 kB\n",
+      "SwapFree:        450 kB\n"
+      "Active(anon):    250 kB\n"
+      "Active(file):    150 kB\n"
+      "Inactive(anon):  125 kB\n"
+      "Inactive(file):   75 kB\n"
+      "HugePages_Total:       8\n"
+      "HugePages_Free:        3\n"
+      "Hugepagesize:       2048 kB\n"
+      "Dirty:              12 kB\n"
+      "DirectMap2M:       512 kB\n",
     )
     self._write("loadavg", "1.25 0.75 0.50 2/100 123\n")
     self._write("uptime", "3600.50 7200.00\n")
@@ -173,6 +184,12 @@ class TestLinuxCollectors(unittest.TestCase):
       "  lo: 1 2 3 4 0 0 0 0 5 6 7 8 0 0 0 0\n"
       "eth0: 100 20 3 4 0 0 0 0 200 30 5 6 0 0 0 0\n",
     )
+    self._write(
+      "net/sockstat",
+      "sockets: used 42\n"
+      "TCP: inuse 5 orphan 2 tw 7 alloc 11 mem 3\n",
+    )
+    self._write("net/sockstat6", "TCP6: inuse 4\n")
     self._write(
       "self/mounts",
       "proc /proc proc rw 0 0\n"
@@ -223,6 +240,17 @@ class TestLinuxCollectors(unittest.TestCase):
     self.assertEqual(
       600 * 1024,
       families["ambari_agent_memory_available_bytes"].samples[0].value,
+    )
+    self.assertEqual(
+      250 * 1024,
+      families["ambari_agent_memory_active_anon_bytes"].samples[0].value,
+    )
+    self.assertEqual(
+      8, families["ambari_agent_memory_hugepages_total"].samples[0].value
+    )
+    self.assertEqual(
+      2048 * 1024,
+      families["ambari_agent_memory_hugepages_size_bytes"].samples[0].value,
     )
 
   def test_system_collector_exports_load_process_and_host_metrics(self):
@@ -322,6 +350,15 @@ class TestLinuxCollectors(unittest.TestCase):
     self.assertEqual(409600, sample.value)
     self.assertEqual("/data disk", sample.labels["mountpoint"])
     self.assertEqual(1, len(families["ambari_agent_filesystem_size_bytes"].samples))
+    errors = {
+      sample.labels["mountpoint"]: sample.value
+      for sample in families["ambari_agent_filesystem_device_error"].samples
+    }
+    self.assertEqual(0, errors["/data disk"])
+    self.assertEqual(1, errors["/missing"])
+    self.assertEqual(
+      0, families["ambari_agent_filesystem_readonly"].samples[0].value
+    )
 
   def test_disk_io_collector_exports_kernel_counters(self):
     families = self._families_by_name(DiskIoCollector(self.proc_root))
@@ -331,6 +368,12 @@ class TestLinuxCollectors(unittest.TestCase):
     )
     self.assertEqual(
       20 * 512, families["ambari_agent_disk_read_bytes_total"].samples[0].value
+    )
+    self.assertEqual(
+      1, families["ambari_agent_disk_reads_merged_total"].samples[0].value
+    )
+    self.assertEqual(
+      2, families["ambari_agent_disk_writes_merged_total"].samples[0].value
     )
     self.assertEqual(
       0.6,
@@ -359,9 +402,30 @@ class TestLinuxCollectors(unittest.TestCase):
     self.assertEqual(0, samples["unknown"])
     self.assertEqual(8, thread_family.samples[0].value)
 
+  def test_socket_collector_exports_sockstat_values(self):
+    families = self._families_by_name(SocketCollector(self.proc_root))
+
+    self.assertEqual(42, families["ambari_agent_sockets_used"].samples[0].value)
+    self.assertEqual(
+      11, families["ambari_agent_socket_tcp_allocated"].samples[0].value
+    )
+    self.assertEqual(
+      5, families["ambari_agent_socket_tcp_in_use"].samples[0].value
+    )
+    self.assertEqual(
+      7, families["ambari_agent_socket_tcp_time_wait"].samples[0].value
+    )
+
+  def test_timex_collector_exports_offset_in_seconds(self):
+    families = self._families_by_name(TimexCollector(read_timex=lambda: -0.00025))
+
+    self.assertEqual(
+      -0.00025, families["ambari_agent_timex_offset_seconds"].samples[0].value
+    )
+
   def test_default_collectors_require_proc(self):
     self.assertEqual([], default_collectors(os.path.join(self.proc_root, "missing")))
-    self.assertEqual(7, len(default_collectors(self.proc_root)))
+    self.assertEqual(9, len(default_collectors(self.proc_root)))
 
   def test_mount_field_decoding(self):
     self.assertEqual("a b\tc\nd\\e", _decode_mount_field("a\\040b\\011c\\012d\\134e"))
