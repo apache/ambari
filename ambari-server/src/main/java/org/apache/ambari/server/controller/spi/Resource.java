@@ -150,9 +150,6 @@ public interface Resource {
     Stage,
     StackArtifact,
     Artifact,
-    Widget,
-    WidgetLayout,
-    ActiveWidgetLayout,
     Theme,
     QuickLink,
     HostKerberosIdentity,
@@ -277,9 +274,6 @@ public interface Resource {
     public static final Type Artifact = InternalType.Artifact.getType();
     public static final Type Theme = InternalType.Theme.getType();
     public static final Type QuickLink = InternalType.QuickLink.getType();
-    public static final Type Widget = InternalType.Widget.getType();
-    public static final Type WidgetLayout = InternalType.WidgetLayout.getType();
-    public static final Type ActiveWidgetLayout = InternalType.ActiveWidgetLayout.getType();
     public static final Type HostKerberosIdentity = InternalType.HostKerberosIdentity.getType();
     public static final Type Credential = InternalType.Credential.getType();
     public static final Type KerberosDescriptor = InternalType.KerberosDescriptor.getType();

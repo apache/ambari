@@ -164,13 +164,6 @@ Get information for the cluster "cluster001".
 		],
 	"services" : [
 	{
-		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/GANGLIA",
-		"ServiceInfo" : {
-		"cluster_name" : "cluster001",
-		"service_name" : "GANGLIA"
-		}
-	},
-	{
 		"href" : "http://your.ambari.server/api/v1/clusters/cluster001/services/HDFS",
 		"ServiceInfo" : {
 		"cluster_name" : "cluster001",

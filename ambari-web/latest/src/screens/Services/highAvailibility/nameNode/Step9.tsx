@@ -227,15 +227,6 @@ function Step9() {
         },
       });
     }
-    if (selectedServices.includes("AMBARI_METRICS")) {
-      operations.push({
-        id: 6,
-        label: "Reconfigure AMS for NameNode HA",
-        skippable: false,
-        callback: async () =>
-          await saveReconfiguredConfigs(["ams-hbase-site"]),
-      });
-    }
     if (selectedServices.includes("ACCUMULO")) {
       operations.push({
         id: 7,

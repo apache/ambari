@@ -81,6 +81,11 @@ log_max_symbols_size=900000
 iddle_interval_min=1
 iddle_interval_max=10
 
+[prometheus]
+enabled=true
+bind_address=0.0.0.0
+port=9101
+
 
 [logging]
 log_command_executes = 0
@@ -216,6 +221,38 @@ class AmbariConfig:
   @property
   def host_status_report_interval(self):
     return int(self.get("heartbeat", "state_interval_seconds", "60"))
+
+  @property
+  def prometheus_metrics_enabled(self):
+    return self.get("prometheus", "enabled", "true").lower() in (
+      "1",
+      "true",
+      "yes",
+      "on",
+    )
+
+  @property
+  def prometheus_metrics_bind_address(self):
+    return self.get("prometheus", "bind_address", "0.0.0.0")
+
+  @property
+  def prometheus_metrics_port(self):
+    configured = self.get("prometheus", "port", "9101")
+    try:
+      port = int(configured)
+    except (TypeError, ValueError):
+      logger.warning(
+        "Invalid Prometheus metrics port %r; using the default port 9101",
+        configured,
+      )
+      return 9101
+    if not 1 <= port <= 65535:
+      logger.warning(
+        "Prometheus metrics port %r is out of range; using the default port 9101",
+        configured,
+      )
+      return 9101
+    return port
 
   @property
   def log_max_symbols_size(self):

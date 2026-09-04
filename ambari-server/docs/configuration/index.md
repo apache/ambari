@@ -69,7 +69,6 @@ The following are the properties which can be used to configure Ambari.
 | ambari.post.user.creation.hook | The location of the post user creation hook on the ambari server hosting machine. |`/var/lib/ambari-server/resources/scripts/post-user-creation-hook.sh` | 
 | ambari.post.user.creation.hook.enabled | Indicates whether the post user creation is enabled or not. By default is false. |`false` | 
 | ambari.python.wrap | The name of the shell script used to wrap all invocations of Python by Ambari.  |`ambari-python-wrap` | 
-| ambariserver.metrics.disable | Global disable flag for AmbariServer Metrics. |`false` | 
 | anonymous.audit.name | The name of the user given to requests which are executed without any credentials. |`_anonymous` | 
 | api.authenticated.user | The username of the default user assumed to be executing API calls. When set, authentication is not required in order to login to Ambari or use the REST APIs.   | | 
 | api.csrfPrevention.enabled | Determines whether Cross-Site Request Forgery attacks are prevented by looking for the `X-Requested-By` header. |`true` | 
@@ -252,16 +251,6 @@ The following are the properties which can be used to configure Ambari.
 | server.stages.parallel | Determines whether operations in different execution requests can be run concurrently. |`true` | 
 | server.startup.web.timeout | The time, in seconds, that the ambari-server Python script will wait for Jetty to startup before returning an error code. |`50` | 
 | server.task.timeout | The time, in seconds, before a server-side operation is terminated. |`1200` | 
-| server.timeline.metrics.cache.catchup.interval | The time, in milliseconds, that Ambari Metrics intervals should use when extending the boundaries of the original request.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`300000` | 
-| server.timeline.metrics.cache.connect.timeout.millis | The time, in milliseconds, to wait while attempting to connect to Ambari Metrics.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`5000` | 
-| server.timeline.metrics.cache.disabled | Determines whether Ambari Metric data is cached. |`false` | 
-| server.timeline.metrics.cache.entry.idle.seconds | The time, in seconds, that Ambari Metric data can remain in the cache without being accessed.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`1800` | 
-| server.timeline.metrics.cache.entry.ttl.seconds | The time, in seconds, that Ambari Metric timeline data is cached by Ambari Server.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`3600` | 
-| server.timeline.metrics.cache.heap.percent | The amount of heap on the Ambari Server dedicated to the caching values from Ambari Metrics. Measured as part of the total heap of Ambari Server.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`15%` | 
-| server.timeline.metrics.cache.interval.read.timeout.millis | The time, in milliseconds, that requests to update stale metric data will wait while reading from Ambari Metrics. This allows for greater control by allowing stale values to be returned instead of waiting for Ambari Metrics to always populate responses with the latest data.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`10000` | 
-| server.timeline.metrics.cache.read.timeout.millis | The time, in milliseconds, that initial requests to populate metric data will wait while reading from Ambari Metrics.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`10000` | 
-| server.timeline.metrics.cache.use.custom.sizing.engine | Determines if a custom engine should be used to increase performance of calculating the current size of the cache for Ambari Metric data.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`true` | 
-| server.timeline.metrics.https.enabled | Determines whether to use to SSL to connect to Ambari Metrics when retrieving metric data. |`false` | 
 | server.tmp.dir | The location on the Ambari Server where temporary artifacts can be created. |`/var/lib/ambari-server/tmp` | 
 | server.version.file | The full path to the file which contains the Ambari Server version. This is used to ensure that there is not a version mismatch between Ambari Agents and Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/version`</ul> | | 
 | server.version_definition.allow_from_filesystem | Controls whether VDF can be read from the filesystem. |`false` | 

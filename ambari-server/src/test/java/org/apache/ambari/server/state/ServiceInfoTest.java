@@ -89,7 +89,7 @@ public class ServiceInfoTest {
   }
 
   @Test
-  public void testCustomMetricsWidgetsFiles() throws Exception {
+  public void testCustomMetricsFiles() throws Exception {
 
     String serviceInfoXml = "<metainfo>\n" +
         "  <schemaVersion>2.0</schemaVersion>\n" +
@@ -98,7 +98,6 @@ public class ServiceInfoTest {
         "      <name>CUSTOM</name>\n" +
         "      <displayName>CUSTOM</displayName>\n" +
         "      <metricsFileName>CUSTOM_metrics.json</metricsFileName>\n" +
-        "      <widgetsFileName>CUSTOM_widgets.json</widgetsFileName>\n" +
         "    </service>\n" +
         "    <service>\n" +
         "      <name>DEFAULT</name>\n" +
@@ -112,9 +111,7 @@ public class ServiceInfoTest {
     Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
 
     assertEquals("CUSTOM_metrics.json", serviceInfoMap.get("CUSTOM").getMetricsFileName());
-    assertEquals("CUSTOM_widgets.json", serviceInfoMap.get("CUSTOM").getWidgetsFileName());
     assertEquals("metrics.json", serviceInfoMap.get("DEFAULT").getMetricsFileName());
-    assertEquals("widgets.json", serviceInfoMap.get("DEFAULT").getWidgetsFileName());
   }
 
   @Test
@@ -205,12 +202,12 @@ public class ServiceInfoTest {
         "  <schemaVersion>2.0</schemaVersion>\n" +
         "  <services>\n" +
         "    <service>\n" +
-        "      <name>AMBARI_METRICS</name>\n" +
+        "      <name>AUXILIARY</name>\n" +
         "    </service>\n" +
         "  </services>\n" +
         "</metainfo>\n";
     serviceInfoMap = getServiceInfo(serviceInfoXml);
-    service = serviceInfoMap.get("AMBARI_METRICS");
+    service = serviceInfoMap.get("AUXILIARY");
     assertFalse(service.isCredentialStoreSupported());
     assertFalse(service.isCredentialStoreEnabled());
 
@@ -991,5 +988,3 @@ public class ServiceInfoTest {
     return serviceInfoMap;
   }
 }
-
-

@@ -19,7 +19,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
-import { ambari_metrics_properties } from "../../data/configs/services/ambari_metrics_properties";
 import { hbase_properties } from "../../data/configs/services/hbase_properties";
 import { hdfs_properties } from "../../data/configs/services/hdfs_properties";
 import { hive_properties } from "../../data/configs/services/hive_properties";
@@ -105,7 +104,6 @@ export default function Hostconfigs() {
     MAPREDUCE2: mapreduce2_properties,
     TEZ: tez_properties,
     ZOOKEEPER: zookeeper_properties,
-    AMBARI_METRICS: ambari_metrics_properties,
     KERBEROS: kerberos_properties,
   };
 

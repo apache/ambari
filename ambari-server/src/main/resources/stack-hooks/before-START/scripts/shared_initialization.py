@@ -127,14 +127,6 @@ def setup_hadoop():
           group=params.user_group,
           content=InlineTemplate(params.hadoop_metrics2_properties_content),
         )
-      else:
-        File(
-          os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-          owner=params.hdfs_user,
-          group=params.user_group,
-          content=Template("hadoop-metrics2.properties.j2"),
-        )
-
     if (
       params.dfs_type == "HCFS"
       and params.has_core_site

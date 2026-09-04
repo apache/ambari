@@ -415,14 +415,6 @@ export const HostsApi = {
     });
     return response.data;
   },
-  updateServiceMetric: async function (clusterName: string, urlParams: string) {
-    const url = `/clusters/${clusterName}/${urlParams}`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-  },
   commonCreateComponent: async function (
     clusterName: string,
     serviceName: string,
@@ -530,7 +522,7 @@ export const HostsApi = {
     clusterName: string,
     hostNames: string
   ) {
-    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in(${hostNames})&fields=metrics/dfs/namenode`;
+    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in(${hostNames})&fields=metrics/dfs/namenode/LiveNodes`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",

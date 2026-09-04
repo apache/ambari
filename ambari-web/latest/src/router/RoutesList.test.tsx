@@ -17,7 +17,7 @@
  */
 
 import { isValidElement, ReactElement } from "react";
-import { RouteObject } from "react-router-dom";
+import { Navigate, RouteObject } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { ProtectedRoute } from "../components/AuthGuard";
 import FeatureRouteGuard from "../components/FeatureRouteGuard";
@@ -35,6 +35,9 @@ type GuardProps = {
   children: ReactElement<GuardProps>;
   feature?: string;
   requireAuthorization?: string;
+  redirectTo?: string;
+  replace?: boolean;
+  to?: string;
 };
 
 function element(route: RouteObject): ReactElement<GuardProps> {
@@ -142,6 +145,45 @@ describe("service routes", () => {
 
     expect(indexRoute).toBeDefined();
     expect(element(indexRoute as RouteObject).type).toBe(ServiceIndexRedirect);
+  });
+});
+
+describe("monitoring route contracts", () => {
+  const root = RoutesList[0];
+  const authenticated = child(root);
+  const main = child(authenticated, "main");
+  const dashboard = child(main, "dashboard");
+  const monitoring = child(main, "monitoring");
+
+  it("protects dashboard metrics and migrates removed dashboard tabs", () => {
+    const metrics = element(child(dashboard, "metrics"));
+    expect(metrics.type).toBe(ProtectedRoute);
+    expect(metrics.props.requireAuthorization).toBe("CLUSTER.VIEW_METRICS");
+    expect(metrics.props.redirectTo).toBe("/main/dashboard/confighistory");
+
+    for (const path of ["heatmaps", "*"]) {
+      const redirect = element(child(dashboard, path));
+      expect(redirect.type).toBe(Navigate);
+      expect(redirect.props.to).toBe("/main/dashboard/metrics");
+      expect(redirect.props.replace).toBe(true);
+    }
+  });
+
+  it("uses separate cluster and host metric permissions", () => {
+    const clusterGroup = monitoring.children?.find(
+      (route) => !route.index && !route.path,
+    );
+    expect(clusterGroup).toBeDefined();
+    const clusterGuard = element(clusterGroup as RouteObject);
+    expect(clusterGuard.type).toBe(ProtectedRoute);
+    expect(clusterGuard.props.requireAuthorization).toBe("CLUSTER.VIEW_METRICS");
+    expect(clusterGuard.props.children.type).toBeDefined();
+    expect(child(clusterGroup as RouteObject, "dashboards")).toBeDefined();
+    expect(child(clusterGroup as RouteObject, "explorer")).toBeDefined();
+
+    const targetsGuard = element(child(monitoring, "targets"));
+    expect(targetsGuard.type).toBe(ProtectedRoute);
+    expect(targetsGuard.props.requireAuthorization).toBe("HOST.VIEW_METRICS");
   });
 });
 

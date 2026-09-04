@@ -46,7 +46,6 @@ public class UserResourceDefinitionTest {
     Set<Resource.Type> expectedSubResourceDefinitionTypes = new HashSet<>();
     expectedSubResourceDefinitionTypes.add(Resource.Type.UserAuthenticationSource);
     expectedSubResourceDefinitionTypes.add(Resource.Type.UserPrivilege);
-    expectedSubResourceDefinitionTypes.add(Resource.Type.ActiveWidgetLayout);
 
     final UserResourceDefinition userResourceDefinition = new UserResourceDefinition();
     Set<SubResourceDefinition> subResourceDefinitions = userResourceDefinition.getSubResourceDefinitions();

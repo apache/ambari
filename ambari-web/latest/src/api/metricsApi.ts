@@ -17,424 +17,204 @@
  */
 
 import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
+import {
+  Dashboard,
+  DashboardInput,
+  ChartShare,
+  ChartShareInput,
+  Datasource,
+  DatasourceInput,
+  PrometheusResult,
+  PrometheusResponse,
+} from "../screens/Monitoring/types";
 
-const metricsApi = {
-  getWidgets: async function (userName: string, urlParams: string ) {
-    const url = `/users/${userName}/activeWidgetLayouts?${urlParams}`;
+export interface PrometheusBatchQuery {
+  refId?: string;
+  query: string;
+  time?: number;
+  start?: number;
+  end?: number;
+  step?: number;
+}
 
-    try {
-      const response = await ambariApi.request({
-        url: url,
-        method: "GET",
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error fetching active widgets from API:", error);
-      throw error; // Let the caller handle the fallback logic
-    }
-  },
+export interface PrometheusBatchItem {
+  refId?: string;
+  status: "success" | "error";
+  result?: PrometheusResult[];
+  errorType?: string;
+  error?: string;
+}
 
-  getDefaultWidgetLayoutByName: async function (layoutName: string) {
-    try {
-      const urlParams = `WidgetLayoutInfo/layout_name=${layoutName}`;
-      const url = `/widget_layouts?${urlParams}`;
-      const response = await supressErrorAmbariApi.request({
-        url: url,
-        method: "GET",
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error fetching default widget layout:", error);
-      throw error;
-    }
-  },
+export interface PrometheusBatchResponse {
+  status?: "success" | "error";
+  data?: PrometheusBatchItem[];
+  error?: string;
+}
 
-  createUserWidgetLayout: async function (clusterName: string, widgetLayoutData: any) {
-    try {
-      const url = `/clusters/${clusterName}/widget_layouts`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "POST",
-        data: widgetLayoutData,
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error creating user widget layout:", error);
-      throw error;
-    }
-  },
+interface MetricsEnvelope<T> {
+  data: T;
+  error: string;
+}
 
-  getAllActiveWidgetLayouts: async function (userName: string) {
-    try {
-      const url = `/users/${userName}/activeWidgetLayouts`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "GET",
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error fetching all active widget layouts:", error);
-      throw error;
-    }
-  },
-
-  saveActiveWidgetLayouts: async function (userName: string, activeWidgetLayouts: any) {
-    try {
-      const url = `/users/${userName}/activeWidgetLayouts`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "PUT",
-        data: activeWidgetLayouts,
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error saving active widget layouts:", error);
-      throw error;
-    }
-  },
-
-  getWidgetsByService: async function (clusterName: string, serviceName: string) {
-    try {
-      // Get widgets for the specific service
-      const urlParams = `WidgetInfo/widget_type.in(GRAPH,NUMBER,GAUGE)&WidgetInfo/scope=CLUSTER&WidgetInfo/metrics.matches(.*"service_name":"${serviceName}".*)&fields=*`;
-      const url = `/clusters/${clusterName}/widgets?${urlParams}`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "GET",
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error fetching widgets by service:", error);
-      throw error;
-    }
-  },
-  getAllSharedWidgets: async function (clusterName: string) {
-    try {
-      // /clusters/{clusterName}/widgets?WidgetInfo/scope=CLUSTER&fields=*
-      const url = `/clusters/${clusterName}/widgets?WidgetInfo/scope=CLUSTER&fields=*`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "GET",
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error fetching shared widgets from API, using fallback data:", error);
-      // Return a fallback structure that matches the expected format
-      return {
-        items: [
-          {
-            WidgetInfo: {
-              id: "fallback-graph",
-              widget_name: "Sample Graph Widget",
-              widget_type: "GRAPH",
-              metrics: JSON.stringify([
-                {
-                  name: "sample_metric_graph",
-                  service_name: "HDFS",
-                  component_name: "NAMENODE",
-                  metric_path: "metrics/dfs/namenode/ClusterId",
-                }
-              ]),
-              values: JSON.stringify([]),
-              properties: JSON.stringify({}),
-              scope: "CLUSTER",
-              description: "Sample graph widget (fallback)"
-            }
-          },
-          {
-            WidgetInfo: {
-              id: "fallback-gauge",
-              widget_name: "Sample Gauge Widget",
-              widget_type: "GAUGE",
-              metrics: JSON.stringify([
-                {
-                  name: "sample_metric_gauge",
-                  service_name: "HDFS",
-                  component_name: "NAMENODE",
-                  metric_path: "metrics/dfs/namenode/ClusterId",
-                }
-              ]),
-              values: JSON.stringify([]),
-              properties: JSON.stringify({}),
-              scope: "CLUSTER",
-              description: "Sample gauge widget (fallback)"
-            }
-          },
-          {
-            WidgetInfo: {
-              id: "fallback-number",
-              widget_name: "Sample Number Widget",
-              widget_type: "NUMBER",
-              metrics: JSON.stringify([
-                {
-                  name: "sample_metric_number",
-                  service_name: "HDFS",
-                  component_name: "NAMENODE",
-                  metric_path: "metrics/dfs/namenode/ClusterId",
-                }
-              ]),
-              values: JSON.stringify([]),
-              properties: JSON.stringify({}),
-              scope: "CLUSTER",
-              description: "Sample number widget (fallback)"
-            }
-          }
-        ]
-      };
-    }
-  },
-  getMineWidgets: async function (loginName: string, clusterName: string) {
-    try {
-      // /clusters/{clusterName}/widgets?WidgetInfo/scope=USER&WidgetInfo/author={loginName}&fields=*
-      const url = `/clusters/${clusterName}/widgets?WidgetInfo/scope=USER&WidgetInfo/author=${loginName}&fields=*`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "GET",
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error fetching user widgets from API, using fallback data:", error);
-      // Return a fallback structure that matches the expected format
-      return {
-        items: [
-          {
-            WidgetInfo: {
-              id: "fallback-user-graph",
-              widget_name: "My Graph Widget",
-              widget_type: "GRAPH",
-              metrics: JSON.stringify([
-                {
-                  name: "user_metric_graph",
-                  service_name: "HDFS",
-                  component_name: "NAMENODE",
-                  metric_path: "metrics/dfs/namenode/ClusterId",
-                }
-              ]),
-              values: JSON.stringify([]),
-              properties: JSON.stringify({}),
-              scope: "USER",
-              author: loginName,
-              description: "User graph widget (fallback)"
-            }
-          }
-        ]
-      };
-    }
-  },
-  shareWidget: async function (clusterName: string, widgetId: string) {
-    try {
-      // /clusters/{clusterName}/widgets/{widgetId} PUT { WidgetInfo: { scope: "CLUSTER" } }
-      const url = `/clusters/${clusterName}/widgets/${widgetId}`;
-      const data = {
-        WidgetInfo: {
-          scope: "CLUSTER"
-        }
-      };
-      const response = await ambariApi.request({
-        url: url,
-        method: "PUT",
-        data: data,
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error sharing widget, returning success response:", error);
-      // Return a success response to prevent UI errors
-      return {
-        status: 200,
-        message: "Widget shared successfully (fallback response)"
-      };
-    }
-  },
-  deleteWidget: async function (clusterName: string, widgetId: string) {
-    try {
-      // /clusters/{clusterName}/widgets/{widgetId} DELETE
-      const url = `/clusters/${clusterName}/widgets/${widgetId}`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "DELETE",
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error deleting widget, returning success response:", error);
-      // Return a success response to prevent UI errors
-      return {
-        status: 200,
-        message: "Widget deleted successfully (fallback response)"
-      };
-    }
-  },
-  createWidget: async function (clusterName: string, widgetData: any) {
-    try {
-      // /clusters/{clusterName}/widgets/ POST
-      const url = `/clusters/${clusterName}/widgets/`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "POST",
-        data: widgetData,
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error creating widget, returning fallback response:", error);
-      // Return a fallback response with a generated widget ID
-      const fallbackWidgetId = "fallback-" + Date.now();
-      return {
-        resources: [
-          {
-            WidgetInfo: {
-              id: fallbackWidgetId,
-              widget_name: widgetData.WidgetInfo.widget_name,
-              widget_type: widgetData.WidgetInfo.widget_type,
-              scope: widgetData.WidgetInfo.scope,
-              author: widgetData.WidgetInfo.author || "admin",
-              description: widgetData.WidgetInfo.description || "Fallback widget"
-            }
-          }
-        ],
-        status: 200,
-        message: "Widget created successfully (fallback response)"
-      };
-    }
-  },
-  updateWidgetLayout: async function (clusterName: string, widgetData: any, widgetLayoutId: string) {
-    try {
-      // /clusters/{clusterName}/widget_layouts/{widgetLayoutId} PUT
-      const url = `/clusters/${clusterName}/widget_layouts/${widgetLayoutId}`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "PUT",
-        data: widgetData,
-      });
-      return response.data;
-    } catch (error) {
-      console.warn("Error updating widget layout, returning success response:", error);
-      // Return a success response to prevent UI errors
-      return {
-        status: 200,
-        message: "Widget layout updated successfully (fallback response)"
-      };
-    }
-  },
-  getHostComponentMetrics: async function (
-    clusterName: string,
-    componentName: string,
-    hostComponentCriteria: string,
-    metricsPath: string
-  ) {
-    // Don't encode the metrics path - let axios handle it properly
-    // encodeURIComponent breaks comma-separated field lists
-    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=${componentName}&${hostComponentCriteria}&fields=${metricsPath}&format=null_padding`;
-
-    try {
-      const response = await ambariApi.request({
-        url: url,
-        method: "GET",
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching host component metrics:", error);
-      // Return empty structure to avoid displaying incorrect data
-      return {
-        items: []
-      };
-    }
-  },
-  getServiceComponentMetrics: async function (
-    clusterName: string,
-    componentName: string,
-    serviceName: string,
-    metricsPath: string
-  ) {
-    // Don't encode the metrics path - let axios handle it properly
-    // encodeURIComponent breaks comma-separated field lists
-    const url = `/clusters/${clusterName}/services/${serviceName}/components/${componentName}?fields=${metricsPath}&format=null_padding`;
-
-    try {
-      const response = await ambariApi.request({
-        url: url,
-        method: "GET",
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching service component metrics:", error);
-      // Return empty structure to avoid displaying incorrect data
-      return {
-        ServiceComponentInfo: {
-          component_name: componentName,
-          service_name: serviceName
-        },
-        metrics: {}
-      };
-    }
-  },
-  getNameNodeCpuWio: async function (clusterName: string, nnHost: string) {
-    const url = `/clusters/${clusterName}/hosts/${nnHost}?fields=metrics/cpu`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-  },
-  getHeatmapWidgets: async function (clusterName: string, serviceName: string) {
-    // Fixed URL encoding to match Ember.js exactly
-    const url = `/clusters/${clusterName}/widgets?WidgetInfo/widget_type=HEATMAP&WidgetInfo/scope=CLUSTER&WidgetInfo/metrics.matches(.*"service_name":"${serviceName}".*)&fields=WidgetInfo/metrics,WidgetInfo/properties,WidgetInfo/values`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-  },
-  getAllHeatmapWidgets: async function (clusterName: string) {
-    // Get all heatmap widgets for dashboard-level view
-    const url = `/clusters/${clusterName}/widgets?WidgetInfo/widget_type=HEATMAP&WidgetInfo/scope=CLUSTER&fields=WidgetInfo/metrics,WidgetInfo/properties,WidgetInfo/values`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-  },
-  getMetricValue: async function (
-    clusterName: string,
-    serviceName: string,
-    componentName: string,
-    metricPaths: string
-  ) {
-    const url = `/clusters/${clusterName}/services/${serviceName}/components/${componentName}?fields=host_components/${metricPaths}&format=null_padding`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-  },
-  getHostsForHeatmaps: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}/hosts?fields=Hosts/rack_info,Hosts/host_name,Hosts/public_host_name,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free&minimal_response=true`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-  },
-  getHostComponentsMetrics: async function (
-    clusterName: string,
-    serviceName: string,
-    componentName: string,
-    metricPaths: string[]
-  ) {
-    const metricPathsWithPrefix = metricPaths.map(path => `host_components/${path}`);
-    const url = `/clusters/${clusterName}/services/${serviceName}/components/${componentName}?fields=${metricPathsWithPrefix.join(',')}&format=null_padding`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-  },
-  getHostsMetrics: async function (clusterName: string, metricPaths: string[]) {
-    const url = `/clusters/${clusterName}/hosts?fields=${metricPaths.join(',')}&minimal_response=true`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
-  },
+const data = <T>(response: { data?: MetricsEnvelope<T> }): T => {
+  if (!response.data || !("data" in response.data)) {
+    throw new Error("Metrics API returned an invalid response");
+  }
+  return response.data.data;
 };
 
-export default metricsApi;
+const listData = <T>(response: { data?: MetricsEnvelope<unknown> }): T[] => {
+  const value = data<unknown>(response);
+  return Array.isArray(value) ? value as T[] : [];
+};
+
+export const MetricsApi = {
+  listDatasources: async (clusterName: string) => listData<Datasource>(await ambariApi.post(
+    "/metrics/datasource/list",
+    { cluster_name: clusterName },
+  )),
+
+  listDatasourcePlugins: async (clusterName: string) => listData<{ type: string; name: string }>(
+    await ambariApi.post("/metrics/datasource/plugin/list", { cluster_name: clusterName }),
+  ),
+
+  getDatasource: async (clusterName: string, id: number) => data<Datasource>(await ambariApi.post(
+    "/metrics/datasource/desc",
+    { id, cluster_name: clusterName },
+  )),
+
+  testDatasource: async (clusterName: string, id: number) => data<{ status: string }>(
+    await ambariApi.post(`/metrics/datasource/${id}/test`, undefined, {
+      params: { cluster_name: clusterName },
+    }),
+  ),
+
+  saveDatasource: async (input: DatasourceInput) => data<Datasource>(await ambariApi.post(
+    "/metrics/datasource/upsert",
+    input,
+  )),
+
+  updateDatasourceStatus: async (
+    clusterName: string,
+    id: number,
+    status: "enabled" | "disabled",
+  ) => data<Datasource>(await ambariApi.post("/metrics/datasource/status/update", {
+    id,
+    status,
+    cluster_name: clusterName,
+  })),
+
+  deleteDatasource: async (clusterName: string, id: number) => data<boolean>(await ambariApi.delete(
+    `/metrics/datasource/${id}`,
+    { params: { cluster_name: clusterName } },
+  )),
+
+  query: async (
+    datasourceId: number,
+    query: string,
+    time?: number,
+  ) => (await supressErrorAmbariApi.get<PrometheusResponse>(
+    `/metrics/${datasourceId}/api/v1/query`,
+    { params: { query, time } },
+  )).data,
+
+  queryRange: async (
+    datasourceId: number,
+    query: string,
+    start: number,
+    end: number,
+    step: number,
+  ) => (await supressErrorAmbariApi.get<PrometheusResponse>(
+    `/metrics/${datasourceId}/api/v1/query_range`,
+    { params: { query, start, end, step } },
+  )).data,
+
+  queryInstantBatch: async (
+    datasourceId: number,
+    queries: PrometheusBatchQuery[],
+    signal?: AbortSignal,
+  ) => (await supressErrorAmbariApi.post<PrometheusBatchResponse>(
+    "/metrics/query-instant-batch",
+    { datasource_id: datasourceId, queries },
+    { signal },
+  )).data,
+
+  queryRangeBatch: async (
+    datasourceId: number,
+    queries: PrometheusBatchQuery[],
+    signal?: AbortSignal,
+  ) => (await supressErrorAmbariApi.post<PrometheusBatchResponse>(
+    "/metrics/query-range-batch",
+    { datasource_id: datasourceId, queries },
+    { signal },
+  )).data,
+
+  labels: async (datasourceId: number) => (await supressErrorAmbariApi.get<{
+    status: string;
+    data: string[];
+  }>(`/metrics/${datasourceId}/api/v1/labels`)).data,
+
+  labelValues: async (datasourceId: number, label: string) => (await supressErrorAmbariApi.get<{
+    status: string;
+    data: string[];
+  }>(`/metrics/${datasourceId}/api/v1/label/${encodeURIComponent(label)}/values`)).data,
+
+  targets: async (datasourceId: number) => (await supressErrorAmbariApi.get<{
+    status: string;
+    data: { activeTargets?: unknown[]; droppedTargets?: unknown[] };
+  }>(`/metrics/${datasourceId}/api/v1/targets`)).data,
+
+  proxyDatasourceGet: async <T>(datasourceId: number, path: string, params?: Record<string, unknown>) => (
+    await supressErrorAmbariApi.get<T>(`/metrics/proxy/${datasourceId}/${path.replace(/^\/+/, "")}`, { params })
+  ).data,
+
+  proxyDatasourcePost: async <T>(datasourceId: number, path: string, body: unknown) => (
+    await supressErrorAmbariApi.post<T>(`/metrics/proxy/${datasourceId}/${path.replace(/^\/+/, "")}`, body)
+  ).data,
+
+  listDashboards: async (clusterName: string, query = "") => listData<Dashboard>(await ambariApi.get(
+    "/metrics/boards",
+    { params: { cluster_name: clusterName, query } },
+  )),
+
+  getDashboard: async (clusterName: string, id: string | number, pure = false) => data<Dashboard>(
+    await ambariApi.get(`/metrics/board/${id}${pure ? "/pure" : ""}`, {
+      params: { cluster_name: clusterName },
+    }),
+  ),
+
+  createDashboard: async (clusterName: string, input: DashboardInput) => data<Dashboard>(
+    await ambariApi.post("/metrics/boards", input, { params: { cluster_name: clusterName } }),
+  ),
+
+  updateDashboard: async (clusterName: string, id: number, input: Partial<DashboardInput>) => data<Dashboard>(
+    await ambariApi.put(`/metrics/board/${id}`, input, { params: { cluster_name: clusterName } }),
+  ),
+
+  updateDashboardConfigs: async (clusterName: string, id: number, configs: string) => data<Dashboard>(
+    await ambariApi.put(`/metrics/board/${id}/configs`, { configs }, {
+      params: { cluster_name: clusterName },
+    }),
+  ),
+
+  cloneDashboard: async (clusterName: string, id: number) => data<Dashboard>(await ambariApi.post(
+    `/metrics/board/${id}/clone`,
+    undefined,
+    { params: { cluster_name: clusterName } },
+  )),
+
+  deleteDashboard: async (clusterName: string, id: number) => data<Record<string, never>>(
+    await ambariApi.delete(`/metrics/board/${id}`, { params: { cluster_name: clusterName } }),
+  ),
+
+  getChartShares: async (clusterName: string, ids: string) => listData<ChartShare>(await ambariApi.get(
+    "/metrics/share-charts",
+    { params: { cluster_name: clusterName, ids } },
+  )),
+
+  createChartShares: async (clusterName: string, shares: ChartShareInput[]) => data<number[]>(
+    await ambariApi.post("/metrics/share-charts", shares, { params: { cluster_name: clusterName } }),
+  ),
+};
+
+export default MetricsApi;

@@ -119,7 +119,6 @@ import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICA
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_AUTHENTICATION_ID_COLUMN;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_AUTHENTICATION_USERS_FOREIGN_KEY;
 import static org.apache.ambari.server.upgrade.UpgradeCatalog270.USER_AUTHENTICATION_USER_ID_COLUMN;
-import static org.apache.ambari.server.upgrade.UpgradeCatalog270.WIDGET_TABLE;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -228,7 +227,6 @@ import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
@@ -328,7 +326,6 @@ public class UpgradeCatalog270Test {
     Method renameAmbariInfra = UpgradeCatalog270.class.getDeclaredMethod("renameAmbariInfra");
     Method updateKerberosDescriptorArtifacts = UpgradeCatalog270.class.getSuperclass().getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateSolrConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateSolrConfigurations");
-    Method updateAmsConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateAmsConfigs");
     Method updateStormConfigurations = UpgradeCatalog270.class.getDeclaredMethod("updateStormConfigs");
     Method clearHadoopMetrics2Content = UpgradeCatalog270.class.getDeclaredMethod("clearHadoopMetrics2Content");
 
@@ -344,7 +341,6 @@ public class UpgradeCatalog270Test {
         .addMockedMethod(renameAmbariInfra)
         .addMockedMethod(updateKerberosDescriptorArtifacts)
         .addMockedMethod(updateSolrConfigurations)
-        .addMockedMethod(updateAmsConfigurations)
         .addMockedMethod(updateStormConfigurations)
         .addMockedMethod(clearHadoopMetrics2Content)
         .createMock();
@@ -382,8 +378,6 @@ public class UpgradeCatalog270Test {
     upgradeCatalog270.updateSolrConfigurations();
     expectLastCall().once();
 
-    upgradeCatalog270.updateAmsConfigs();
-    expectLastCall().once();
 
     upgradeCatalog270.updateStormConfigs();
     expectLastCall().once();
@@ -420,11 +414,6 @@ public class UpgradeCatalog270Test {
     // updateRequestTable
     Capture<DBAccessor.DBColumnInfo> updateRequestTableCapture = newCapture(CaptureType.ALL);
     dbAccessor.addColumn(eq(REQUEST_TABLE), capture(updateRequestTableCapture));
-    expectLastCall().once();
-
-    // updateWidgetTable
-    Capture<DBAccessor.DBColumnInfo> updateWidgetTableCapture = newCapture(CaptureType.ALL);
-    dbAccessor.addColumn(eq(WIDGET_TABLE), capture(updateWidgetTableCapture));
     expectLastCall().once();
 
     // addOpsDisplayNameColumnToHostRoleCommand
@@ -1405,148 +1394,6 @@ public class UpgradeCatalog270Test {
 
     assertThat(updated, is(""));
     verify(upgradeCatalog270);
-  }
-
-  @Test
-  public void testUpdateAmsConfigs() throws Exception {
-
-    Map<String, String> oldProperties = new HashMap<String, String>() {
-      {
-        put("timeline.metrics.service.default.result.limit", "15840");
-        put("timeline.container-metrics.ttl", "2592000");
-        put("timeline.metrics.cluster.aggregate.splitpoints", "cpu_user,mem_free");
-        put("timeline.metrics.host.aggregate.splitpoints", "kafka.metric,nimbus.metric");
-        put("timeline.metrics.downsampler.topn.metric.patterns", "dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%," +
-          "dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%");
-      }
-    };
-    Map<String, String> newProperties = new HashMap<String, String>() {
-      {
-        put("timeline.metrics.service.default.result.limit", "5760");
-        put("timeline.container-metrics.ttl", "1209600");
-        put("timeline.metrics.downsampler.topn.metric.patterns", StringUtils.EMPTY);
-      }
-    };
-
-    Map<String, String> oldAmsHBaseSiteProperties = new HashMap<String, String>() {
-      {
-        put("hbase.snapshot.enabled", "false");
-      }
-    };
-
-    Map<String, String> newAmsHBaseSiteProperties = new HashMap<String, String>() {
-      {
-        put("hbase.snapshot.enabled", "true");
-      }
-    };
-
-    EasyMockSupport easyMockSupport = new EasyMockSupport();
-
-    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
-    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
-    Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
-
-    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-      put("normal", cluster);
-    }}).once();
-    expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
-    expect(mockAmsSite.getProperties()).andReturn(oldProperties).anyTimes();
-
-    Config mockAmsHbaseSite = easyMockSupport.createNiceMock(Config.class);
-    expect(cluster.getDesiredConfigByType("ams-hbase-site")).andReturn(mockAmsHbaseSite).atLeastOnce();
-    expect(mockAmsHbaseSite.getProperties()).andReturn(oldAmsHBaseSiteProperties).anyTimes();
-
-    Injector injector = easyMockSupport.createNiceMock(Injector.class);
-    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
-
-    replay(injector, clusters, mockAmsSite, mockAmsHbaseSite, cluster);
-
-    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-      .addMockedMethod("createConfiguration", ConfigurationRequest.class)
-      .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
-          String.class, Map.class)
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
-      .createNiceMock();
-
-    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture(CaptureType.ALL);
-
-    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
-    expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).times(2);
-
-    replay(controller, injector2);
-    new UpgradeCatalog270(injector2).updateAmsConfigs();
-    easyMockSupport.verifyAll();
-
-    assertEquals(propertiesCapture.getValues().size(), 2);
-
-    Map<String, String> updatedProperties = propertiesCapture.getValues().get(0);
-    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
-
-    updatedProperties = propertiesCapture.getValues().get(1);
-    assertTrue(Maps.difference(newAmsHBaseSiteProperties, updatedProperties).areEqual());
-
-  }
-
-  @Test
-  public void testUpdateAmsConfigsWithNoContainerMetrics() throws Exception {
-
-    Map<String, String> oldProperties = new HashMap<String, String>() {
-      {
-        put("timeline.metrics.service.default.result.limit", "15840");
-        put("timeline.metrics.host.aggregate.splitpoints", "kafka.metric,nimbus.metric");
-      }
-    };
-    Map<String, String> newProperties = new HashMap<String, String>() {
-      {
-        put("timeline.metrics.service.default.result.limit", "5760");
-      }
-    };
-
-    EasyMockSupport easyMockSupport = new EasyMockSupport();
-
-    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
-    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
-    Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
-
-    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-      put("normal", cluster);
-    }}).once();
-    expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
-    expect(mockAmsSite.getProperties()).andReturn(oldProperties).anyTimes();
-
-    Injector injector = easyMockSupport.createNiceMock(Injector.class);
-    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
-    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
-
-    replay(injector, clusters, mockAmsSite, cluster);
-
-    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
-      .addMockedMethod("createConfiguration", ConfigurationRequest.class)
-      .addMockedMethod("getClusters", new Class[] { })
-      .addMockedMethod("createConfig", Cluster.class, StackId.class, String.class, Map.class,
-          String.class, Map.class)
-      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
-      .createNiceMock();
-
-    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<Map> propertiesCapture = EasyMock.newCapture();
-
-    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
-    expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfig(anyObject(Cluster.class), anyObject(StackId.class), anyString(), capture(propertiesCapture), anyString(),
-      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
-
-    replay(controller, injector2);
-    new UpgradeCatalog270(injector2).updateAmsConfigs();
-    easyMockSupport.verifyAll();
-
-    Map<String, String> updatedProperties = propertiesCapture.getValue();
-    assertTrue(Maps.difference(newProperties, updatedProperties).areEqual());
   }
 
   @Test

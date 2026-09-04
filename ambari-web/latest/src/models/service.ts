@@ -223,7 +223,6 @@ type Component = {
   
     get serviceTypes(): string[] {
       const typeServiceMap = {
-        GANGLIA: ['MONITORING'],
         HDFS: ['HA_MODE', 'FEDERATION', 'DFSRouter'],
         YARN: ['HA_MODE'],
         RANGER: ['HA_MODE'],

@@ -135,7 +135,7 @@ angular.module('ambariAdminConsole')
             var services = [];
             angular.forEach(version.VersionDefinition.stack_services, function (service) {
               // services that should not be shown on UI
-              var servicesToExclude = ['GANGLIA', 'KERBEROS', 'MAPREDUCE2'];
+              var servicesToExclude = ['KERBEROS', 'MAPREDUCE2'];
               if (servicesToExclude.indexOf(service.name) === -1) {
                 services.push({
                   name: service.name,
@@ -288,7 +288,7 @@ angular.module('ambariAdminConsole')
         };
         var services = [];
         angular.forEach(data.repository_versions[0].RepositoryVersions.stack_services, function (service) {
-          var servicesToExclude = ['GANGLIA', 'KERBEROS', 'MAPREDUCE2'];
+          var servicesToExclude = ['KERBEROS', 'MAPREDUCE2'];
           if (servicesToExclude.indexOf(service.name) === -1) {
             services.push({
               name: service.name,
@@ -442,7 +442,7 @@ angular.module('ambariAdminConsole')
         return s.name;
       });
       return response.services.filter(function (service) {
-        var skipServices = ['MAPREDUCE2', 'GANGLIA', 'KERBEROS'];
+        var skipServices = ['MAPREDUCE2', 'KERBEROS'];
         return skipServices.indexOf(service.name) === -1 && availableServices.indexOf(service.name) !== -1;
       }) || [];
     }

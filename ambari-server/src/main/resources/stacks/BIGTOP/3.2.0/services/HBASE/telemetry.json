@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "components": {
+    "HBASE_MASTER": {
+      "format": "jmx_json",
+      "path": "/jmx",
+      "profile": "telemetry-profiles/hbase-master-2.4.json",
+      "endpoint": {
+        "http": {
+          "configType": "hbase-site",
+          "property": "hbase.master.info.port",
+          "defaultPort": 16010
+        }
+      },
+      "auth": {
+        "principal": {
+          "configType": "hbase-site",
+          "property": "hbase.security.authentication.spnego.kerberos.principal"
+        },
+        "keytab": {
+          "configType": "hbase-site",
+          "property": "hbase.security.authentication.spnego.kerberos.keytab"
+        }
+      }
+    },
+    "HBASE_REGIONSERVER": {
+      "format": "jmx_json",
+      "path": "/jmx",
+      "profile": "telemetry-profiles/hbase-regionserver-2.4.json",
+      "endpoint": {
+        "http": {
+          "configType": "hbase-site",
+          "property": "hbase.regionserver.info.port",
+          "defaultPort": 16030
+        }
+      },
+      "auth": {
+        "principal": {
+          "configType": "hbase-site",
+          "property": "hbase.security.authentication.spnego.kerberos.principal"
+        },
+        "keytab": {
+          "configType": "hbase-site",
+          "property": "hbase.security.authentication.spnego.kerberos.keytab"
+        }
+      }
+    }
+  }
+}

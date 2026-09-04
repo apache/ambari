@@ -27,7 +27,6 @@ import {
   useState,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { HostsApi } from "../../api/hostsApi";
 import { Alert, Button, Card, Dropdown } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -48,14 +47,10 @@ import Table from "../../components/Table";
 import { ComponentStatus, ComponentType } from "./enums";
 import Tooltip from "../../components/Tooltip";
 import { getCmponentsToBeRestarted } from "./HostsList";
-import SelectTimeRangeModal from "../../components/SelectTimeRangeModal";
 import {
-  formatDate,
-  getCurrTimeInSec,
   translate,
   translateWithVariables,
 } from "../../Utils/Utility";
-import { durationMap } from "../../components/constants";
 import { Link } from "react-router-dom";
 import {
   apiDataToHostComponentModel,
@@ -117,9 +112,6 @@ import {
   decommissionableComponents,
 } from "../../hooks/useDecommissionable";
 import { ServiceContext } from "../../store/ServiceContext";
-import { HostMetrics } from "./HostMetrics";
-import { hostMetricsOption } from "./constants";
-import usePolling from "../../hooks/usePolling";
 import classNames from "classnames";
 import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import HostLogMetrics from "./HostLogMetrics";
@@ -147,8 +139,6 @@ export default function HostsSummary({
   const params = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [metricsData, setMetricsData] = useState({});
-  const [showSelectTimeModal, setShowSelectTimeModal] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
@@ -183,17 +173,11 @@ export default function HostsSummary({
     Rack: "",
     OS: "",
     "Cores (CPU)": "",
-    Disk: "",
     Memory: "",
-    "Load Avg": "",
     Heartbeat: "",
     "Current Version": "",
     "JCE Unlimited": "",
   });
-  const [selectedMetricsOption, setSelectedMetricsOption] = useState(
-    hostMetricsOption[0]
-  );
-
   const selectedActionData = useRef({
     component: {},
     action: "",
@@ -203,26 +187,6 @@ export default function HostsSummary({
       return -1;
     },
   });
-
-  const populateHostMetricesData = () => {
-    if (!selectedMetricsOption.toUpperCase().startsWith("CUSTOM")) {
-      const duration = selectedMetricsOption.split(" ").slice(1).join(" ");
-      const currTime = getCurrTimeInSec();
-      const startTime = currTime - durationMap[duration];
-      getHostMetrics(startTime, currTime);
-    }
-  };
-
-  const { pausePolling, resumePolling } = usePolling(
-    populateHostMetricesData,
-    15000
-  );
-  useEffect(() => {
-    if (!selectedMetricsOption.toUpperCase().startsWith("CUSTOM")) {
-      populateHostMetricesData();
-      resumePolling();
-    }
-  }, [selectedMetricsOption]);
 
   useEffect(() => {
     if (!isEmpty(serviceComponentInfo)) {
@@ -295,9 +259,7 @@ export default function HostsSummary({
       tempSummary.OS =
         get(host, "osType", "") + "(" + get(host, "osArch", "") + ")";
       tempSummary["Cores (CPU)"] = host.coresFormatted();
-      tempSummary.Disk = get(host, "diskFree", "Data Unavailable");
       tempSummary.Memory = host.memoryFormatted();
-      tempSummary["Load Avg"] = get(host, "loadOne", "");
       tempSummary.Heartbeat = get(host, "lastHeartBeatTime", "")
         ? "less than a minute ago"
         : "";
@@ -354,16 +316,6 @@ export default function HostsSummary({
     canToggleComponentMaintenance ||
     canMoveComponents;
 
-  const getHostMetrics = async (startTime: number, endTime: number) => {
-    // Use a unique cache-busting parameter that includes the time range
-    const cacheBuster = `${startTime}_${endTime}_${getCurrTimeInSec()}`;
-    const response = await HostsApi.getHostData(
-      clusterName,
-      get(params, "hostname", ""),
-      `metrics/cpu/cpu_user[${startTime},${endTime},15],metrics/cpu/cpu_wio[${startTime},${endTime},15],metrics/cpu/cpu_nice[${startTime},${endTime},15],metrics/cpu/cpu_aidle[${startTime},${endTime},15],metrics/cpu/cpu_system[${startTime},${endTime},15],metrics/cpu/cpu_idle[${startTime},${endTime},15],metrics/disk/disk_total[${startTime},${endTime},15],metrics/disk/disk_free[${startTime},${endTime},15],metrics/load/load_fifteen[${startTime},${endTime},15],metrics/load/load_one[${startTime},${endTime},15],metrics/load/load_five[${startTime},${endTime},15],metrics/memory/swap_free[${startTime},${endTime},15],metrics/memory/mem_shared[${startTime},${endTime},15],metrics/memory/mem_free[${startTime},${endTime},15],metrics/memory/mem_cached[${startTime},${endTime},15],metrics/memory/mem_buffers[${startTime},${endTime},15],metrics/network/bytes_in[${startTime},${endTime},15],metrics/network/bytes_out[${startTime},${endTime},15],metrics/network/pkts_in[${startTime},${endTime},15],metrics/network/pkts_out[${startTime},${endTime},15],metrics/process/proc_total[${startTime},${endTime},15],metrics/process/proc_run[${startTime},${endTime},15]&_=${cacheBuster}`
-    );
-    setMetricsData(response);
-  };
   //@ts-ignore
   const getClusterHosts = () => {
     let hosts: string[] = [];
@@ -1257,23 +1209,6 @@ export default function HostsSummary({
           }}
         />
       ) : null}
-      {showSelectTimeModal ? (
-        <SelectTimeRangeModal
-          isOpen={showSelectTimeModal}
-          onClose={() => setShowSelectTimeModal(false)}
-          successCallback={(data) => {
-            pausePolling();
-            setSelectedMetricsOption(
-              "CUSTOM: " +
-                formatDate(new Date(data.startTime * 1000))
-                  .split("T")
-                  .join(" ")
-            );
-            getHostMetrics(data.startTime, data.endTime);
-            setShowSelectTimeModal(false);
-          }}
-        />
-      ) : null}
       <div className="d-flex w-100 justify-content-center">
         <div className="w-100 mx-5">
           {getCmponentsToBeRestarted(get(allHostModels, "[0]", {} as IHost))
@@ -1339,7 +1274,7 @@ export default function HostsSummary({
             </div>
           ) : null}
           <div className="d-flex w-100 mb-4">
-            <Card className="w-50 rounded-0 me-4">
+            <Card className="w-100 rounded-0">
               <div className="d-flex justify-content-between px-3 pt-3">
                 <h3 className="mt-2">{translate("common.components")}</h3>
                 {/* Add Component Dropdown - Requires SERVICE.ADD_DELETE_SERVICES authorization */}
@@ -1396,13 +1331,6 @@ export default function HostsSummary({
                 scrollable={false}
               />
             </Card>
-            <HostMetrics
-              metricsData={metricsData}
-              allHostModels={allHostModels}
-              selectedMetricsOption={selectedMetricsOption}
-              setSelectedMetricsOption={setSelectedMetricsOption}
-              setShowSelectTimeModal={setShowSelectTimeModal}
-            />
           </div>
           <div className="d-flex w-100 mb-4">
             <Card className="w-50 rounded-0 me-4">

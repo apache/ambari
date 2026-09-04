@@ -68,7 +68,6 @@ export const useConfigSaver = (
     "accumulo_other_heapsize",
     "hbase_master_heapsize",
     "hbase_regionserver_heapsize",
-    "metrics_collector_heapsize",
     "hive_heapsize",
   ];
 

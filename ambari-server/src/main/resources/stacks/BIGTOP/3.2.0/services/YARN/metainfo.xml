@@ -312,15 +312,12 @@
         <config-type>viewfs-mount-table</config-type>
         <config-type>mapred-site</config-type>
         <config-type>yarn-log4j</config-type>
-        <config-type>ams-ssl-client</config-type>
         <config-type>ranger-yarn-plugin-properties</config-type>
         <config-type>ranger-yarn-audit</config-type>
         <config-type>ranger-yarn-policymgr-ssl</config-type>
         <config-type>ranger-yarn-security</config-type>
       </configuration-dependencies>
 
-      <widgetsFileName>YARN_widgets.json</widgetsFileName>
-      <metricsFileName>YARN_metrics.json</metricsFileName>
       <themes>
         <theme>
           <fileName>theme.json</fileName>
@@ -451,12 +448,9 @@
         <config-type>mapred-env</config-type>
         <config-type>ssl-client</config-type>
         <config-type>ssl-server</config-type>
-        <config-type>ams-ssl-client</config-type>
         <config-type>yarn-site</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
-      <widgetsFileName>MAPREDUCE2_widgets.json</widgetsFileName>
-      <metricsFileName>MAPREDUCE2_metrics.json</metricsFileName>
 
       <themes-dir>themes-mapred</themes-dir>
       <themes>

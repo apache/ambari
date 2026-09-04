@@ -149,13 +149,6 @@ def setup_hiveserver2():
     content=Template(format("{start_hiveserver2_script}")),
   )
 
-  File(
-    os.path.join(params.hive_conf_dir, "hadoop-metrics2-hiveserver2.properties"),
-    owner="root",
-    group=params.user_group,
-    content=Template("hadoop-metrics2-hiveserver2.properties.j2"),
-    mode=0o640,
-  )
   XmlConfig(
     "hiveserver2-site.xml",
     conf_dir=params.hive_conf_dir,
@@ -445,14 +438,6 @@ def setup_metastore():
         group=params.user_group,
         mode=0o640,
       )
-  File(
-    os.path.join(params.hive_conf_dir, "hadoop-metrics2-hivemetastore.properties"),
-    owner="root",
-    group=params.user_group,
-    content=Template("hadoop-metrics2-hivemetastore.properties.j2"),
-    mode=0o640,
-  )
-
   File(
     params.start_metastore_path,
     owner="root",

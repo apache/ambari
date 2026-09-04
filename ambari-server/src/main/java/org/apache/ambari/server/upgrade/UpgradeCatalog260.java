@@ -19,7 +19,6 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -136,8 +135,6 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
   public static final String HOST_COMPONENT_STATE = "hostcomponentstate";
 
   private static final String CORE_SITE = "core-site";
-  public static final String AMS_SSL_CLIENT = "ams-ssl-client";
-  public static final String METRIC_TRUSTSTORE_ALIAS = "ssl.client.truststore.alias";
 
   private static final String HIVE_INTERACTIVE_SITE = "hive-interactive-site";
   public static final String HIVE_LLAP_DAEMON_KEYTAB_FILE = "hive.llap.daemon.keytab.file";
@@ -515,9 +512,7 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
     setUnmappedForOrphanedConfigs();
     ensureZeppelinProxyUserConfigs();
     updateKerberosDescriptorArtifacts();
-    updateAmsConfigs();
     updateHiveConfigs();
-    updateHDFSWidgetDefinition();
     updateExistingRepositoriesToBeResolved();
   }
 
@@ -810,44 +805,6 @@ public class UpgradeCatalog260 extends AbstractUpgradeCatalog {
         }
       }
     }
-  }
-
-  protected void updateAmsConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-
-
-          Config amsSslClient = cluster.getDesiredConfigByType(AMS_SSL_CLIENT);
-          if (amsSslClient != null) {
-            Map<String, String> amsSslClientProperties = amsSslClient.getProperties();
-
-            if (amsSslClientProperties.containsKey(METRIC_TRUSTSTORE_ALIAS)) {
-              LOG.info("Removing " + METRIC_TRUSTSTORE_ALIAS + " from " + AMS_SSL_CLIENT);
-              removeConfigurationPropertiesFromCluster(cluster, AMS_SSL_CLIENT, Collections.singleton(METRIC_TRUSTSTORE_ALIAS));
-            }
-
-          }
-        }
-      }
-    }
-  }
-
-  protected void updateHDFSWidgetDefinition() throws AmbariException {
-    LOG.info("Updating HDFS widget definition.");
-
-    Map<String, List<String>> widgetMap = new HashMap<>();
-    Map<String, String> sectionLayoutMap = new HashMap<>();
-
-    List<String> hdfsHeatmapWidgets = new ArrayList<>(Arrays.asList("HDFS Bytes Read", "HDFS Bytes Written",
-      "DataNode Process Disk I/O Utilization", "DataNode Process Network I/O Utilization"));
-    widgetMap.put("HDFS_HEATMAPS", hdfsHeatmapWidgets);
-    sectionLayoutMap.put("HDFS_HEATMAPS", "default_hdfs_heatmap");
-
-    updateWidgetDefinitionsForService("HDFS", widgetMap, sectionLayoutMap);
   }
 
   /**

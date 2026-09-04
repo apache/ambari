@@ -85,9 +85,6 @@ import org.apache.ambari.server.events.AmbariPropertiesChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.LdapModule;
 import org.apache.ambari.server.listeners.WebSocketInitializerListener;
-import org.apache.ambari.server.metrics.system.MetricsService;
-import org.apache.ambari.server.metrics.system.impl.MetricsConfiguration;
-import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -170,7 +167,6 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
-import org.springframework.web.socket.config.WebSocketMessageBrokerStats;
 
 import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ServiceManager;
@@ -571,9 +567,6 @@ public class AmbariServer {
       ExecutionScheduleManager executionScheduleManager = injector
           .getInstance(ExecutionScheduleManager.class);
 
-      MetricsService metricsService = injector.getInstance(
-        MetricsService.class);
-
       clusterController = controller;
 
       StateRecoveryManager recoveryManager = injector.getInstance(
@@ -605,18 +598,6 @@ public class AmbariServer {
 
       serviceManager.startAsync();
       LOG.info("********* Started Services **********");
-
-      if (!configs.isMetricsServiceDisabled()) {
-        if (MetricsConfiguration.isStompStatMetricsConfigured() && metricsService instanceof MetricsServiceImpl) {
-          WebSocketMessageBrokerStats apiStompStats = apiDispatcherContext.getBean(WebSocketMessageBrokerStats.class);
-          ((MetricsServiceImpl) metricsService).setApiStompStats(apiStompStats);
-          WebSocketMessageBrokerStats agentStompStats = agentDispatcherContext.getBean(WebSocketMessageBrokerStats.class);
-          ((MetricsServiceImpl) metricsService).setAgentStompStats(agentStompStats);
-        }
-        metricsService.start();
-      } else {
-        LOG.info("AmbariServer Metrics disabled.");
-      }
 
       server.join();
       LOG.info("Joined the Server");

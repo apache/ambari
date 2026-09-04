@@ -44,6 +44,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   private Map<String, File> metricsFileMap = new HashMap<>();
 
   /**
+   * Prometheus telemetry descriptor files.
+   */
+  private Map<String, File> telemetryFileMap = new HashMap<>();
+
+  /**
    * advisor file
    */
   private File advisorFile;
@@ -72,11 +77,6 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    * role command order
    */
   private StackRoleCommandOrder roleCommandOrder;
-
-  /**
-   * widgets descriptor file
-   */
-  private Map<String, File> widgetsDescriptorFileMap = new HashMap<>();
 
   /**
    * package directory path
@@ -201,6 +201,15 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   }
 
   /**
+   * Obtain the Prometheus telemetry descriptor file.
+   *
+   * @return telemetry descriptor file, or {@code null} when none is defined
+   */
+  public File getTelemetryFile(String serviceName) {
+    return telemetryFileMap.get(serviceName);
+  }
+
+  /**
    * Obtain the advisor file.
    *
    * @return advisor file
@@ -240,15 +249,6 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   public File getKerberosDescriptorFile() {
     return kerberosDescriptorFile;
-  }
-
-  /**
-   * Obtain the Widgets Descriptor file.
-   *
-   * @return Widgets Descriptor file
-   */
-  public File getWidgetsDescriptorFile(String serviceName) {
-    return widgetsDescriptorFileMap.get(serviceName);
   }
 
   /**
@@ -294,8 +294,8 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
         File mf = new File(directory, serviceInfo.getMetricsFileName());
         metricsFileMap.put(serviceInfo.getName(), mf.exists() ? mf : null);
 
-        File wdf = new File(directory, serviceInfo.getWidgetsFileName());
-        widgetsDescriptorFileMap.put(serviceInfo.getName(), wdf.exists() ? wdf : null);
+        File tf = new File(directory, StackDirectory.SERVICE_TELEMETRY_FILE_NAME);
+        telemetryFileMap.put(serviceInfo.getName(), tf.exists() ? tf : null);
       }
     }
 

@@ -23,7 +23,8 @@ import {
   faBriefcase,
   faTasksAlt,
   faBell,
-  faWrench 
+  faWrench,
+  faChartLine,
 } from "@fortawesome/free-solid-svg-icons";
 import AmbariLogo from "../../assets/img/ambari-logo.png"
 
@@ -33,6 +34,7 @@ enum SideItemLabels {
   SERVICES = "services",
   HOSTS = "hosts",
   ALERTS = "alerts",
+  MONITORING = "monitoring",
   CLUSTER_ADMIN = "cluster_admin",
   STACK_AND_VERSIONS = "Stack and Versions",
   SERVICE_ACCOUNTS = "Service Accounts",
@@ -146,8 +148,40 @@ const getSideItemList = (
       path: "/main/alerts",
       children: [],
       style: {}
-    }
+    },
   ];
+
+  const canViewClusterMetrics = havePermissions("CLUSTER.VIEW_METRICS");
+  const canViewHostMetrics = havePermissions("HOST.VIEW_METRICS");
+  if (canViewClusterMetrics || canViewHostMetrics) {
+    const monitoringChildren: SideItem[] = [];
+    if (canViewClusterMetrics) {
+      monitoringChildren.push(
+        { id: "monitoring_dashboards", icon: <></>, name: "Dashboards", path: "/main/monitoring/dashboards", children: [], style: {} },
+        { id: "monitoring_explore", icon: <></>, name: "Explore", path: "/main/monitoring/explorer", children: [], style: {} },
+      );
+    }
+    if (canViewHostMetrics) {
+      monitoringChildren.push(
+        { id: "monitoring_targets", icon: <></>, name: "Targets", path: "/main/monitoring/targets", children: [], style: {} },
+      );
+    }
+    if (canViewClusterMetrics) {
+      monitoringChildren.push(
+        { id: "monitoring_datasources", icon: <></>, name: "Data sources", path: "/main/monitoring/data-sources", children: [], style: {} },
+      );
+    }
+
+    baseItems.splice(2, 0, {
+      id: SideItemLabels.MONITORING,
+      icon: <FontAwesomeIcon icon={faChartLine} height={15} width={15} />,
+      name: "Monitoring",
+      path: "/main/monitoring",
+      sideItems: true,
+      children: monitoringChildren,
+      style: {},
+    });
+  }
 
   // Only add Cluster Admin if user has any admin permissions
   // This matches Ember.js ui/app/views/main/menu.js logic
@@ -216,6 +250,20 @@ const SideItemList: SideItem[] = [
     path: "/main/alerts",
     children: [],
     style: {}
+  },
+  {
+    id: SideItemLabels.MONITORING,
+    icon: <FontAwesomeIcon icon={faChartLine} height={15} width={15} />,
+    name: "Monitoring",
+    path: "/main/monitoring",
+    sideItems: true,
+    children: [
+      { id: "monitoring_dashboards", icon: <></>, name: "Dashboards", path: "/main/monitoring/dashboards", children: [], style: {} },
+      { id: "monitoring_explore", icon: <></>, name: "Explore", path: "/main/monitoring/explorer", children: [], style: {} },
+      { id: "monitoring_targets", icon: <></>, name: "Targets", path: "/main/monitoring/targets", children: [], style: {} },
+      { id: "monitoring_datasources", icon: <></>, name: "Data sources", path: "/main/monitoring/data-sources", children: [], style: {} },
+    ],
+    style: {},
   },
   {
     id: SideItemLabels.CLUSTER_ADMIN,

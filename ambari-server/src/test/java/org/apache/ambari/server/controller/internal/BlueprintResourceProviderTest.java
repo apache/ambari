@@ -1191,7 +1191,7 @@ public class BlueprintResourceProviderTest {
     // Service component exceptions setting
     BlueprintSettingEntity settingEntity3 = new BlueprintSettingEntity();
     settingEntity3.setSettingName("component_settings");
-    settingEntity3.setSettingData("[{\"name\":\"METRICS_MONITOR\", \"recovery_enabled\":\"false\"}," +
+    settingEntity3.setSettingData("[{\"name\":\"ZOOKEEPER_SERVER\", \"recovery_enabled\":\"false\"}," +
             "{\"name\":\"KAFKA_CLIENT\", \"recovery_enabled\":\"false\"}]");
     settingEntity3.setBlueprintEntity(entity);
 
@@ -1243,9 +1243,9 @@ public class BlueprintResourceProviderTest {
     List<Map<String, String>> setting3value = (List<Map<String, String>>) setting3.get("component_settings");
     assertNotNull(setting3value);
     assertEquals(2, setting3value.size());
-    // first service component exception is METRICS_MONITOR
+    // first service component exception is ZOOKEEPER_SERVER
     assertTrue(setting3value.get(0).containsKey("name"));
-    assertEquals(setting3value.get(0).get("name"), "METRICS_MONITOR");
+    assertEquals(setting3value.get(0).get("name"), "ZOOKEEPER_SERVER");
     assertTrue(setting3value.get(0).containsKey("recovery_enabled"));
     assertEquals(setting3value.get(0).get("recovery_enabled"), "false");
     // second service component exception is KAFKA_CLIENT
@@ -1255,4 +1255,3 @@ public class BlueprintResourceProviderTest {
     assertEquals(setting3value.get(1).get("recovery_enabled"), "false");
   }
 }
-

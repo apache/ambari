@@ -122,7 +122,7 @@ angular.module('ambariAdminConsole')
               };
               var services = [];
               angular.forEach(repo.VersionDefinition.stack_services, function (service) {
-                var servicesToExclude = ['GANGLIA', 'KERBEROS', 'MAPREDUCE2'];
+                var servicesToExclude = ['KERBEROS', 'MAPREDUCE2'];
                 if (servicesToExclude.indexOf(service.name) === -1) {
                   services.push({
                     name: service.name,

@@ -38,9 +38,7 @@
     "OOZIE_CLIENT-UPGRADE" : ["OOZIE_SERVER-UPGRADE"],
     "WEBHCAT_SERVER-UPGRADE" : ["OOZIE_CLIENT-UPGRADE"],
     "PIG-UPGRADE" : ["WEBHCAT_SERVER-UPGRADE"],
-    "SQOOP-UPGRADE" : ["PIG-UPGRADE"],
-    "GANGLIA_SERVER-UPGRADE" : ["SQOOP-UPGRADE"],
-    "GANGLIA_MONITOR-UPGRADE" : ["GANGLIA_SERVER-UPGRADE"]
+    "SQOOP-UPGRADE" : ["PIG-UPGRADE"]
   },
   "_comment" : "Dependencies that are used when GLUSTERFS is not present in cluster",
   "optional_no_glusterfs": {
@@ -76,4 +74,3 @@
     "HDFS_SERVICE_CHECK-SERVICE_CHECK": ["ZKFC-START"]
   }
 }
-

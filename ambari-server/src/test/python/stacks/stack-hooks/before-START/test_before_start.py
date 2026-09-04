@@ -105,15 +105,6 @@ class TestHookBeforeStart(RMFTestCase):
     )
     self.assertResourceCalled(
       "File",
-      "/etc/hadoop/conf/hadoop-metrics2.properties",
-      content=InlineTemplate(
-        self.getConfig()["configurations"]["hadoop-metrics2.properties"]["content"]
-      ),
-      group="hadoop",
-      owner="hdfs",
-    )
-    self.assertResourceCalled(
-      "File",
       "/etc/hadoop/conf/task-log4j.properties",
       content=StaticFile("task-log4j.properties"),
       mode=0o755,
@@ -218,15 +209,6 @@ class TestHookBeforeStart(RMFTestCase):
       "/var/lib/ambari-agent/lib/fast-hdfs-resource.jar",
       content=StaticFile("fast-hdfs-resource.jar"),
       mode=0o644,
-    )
-    self.assertResourceCalled(
-      "File",
-      "/etc/hadoop/conf/hadoop-metrics2.properties",
-      content=InlineTemplate(
-        self.getConfig()["configurations"]["hadoop-metrics2.properties"]["content"]
-      ),
-      group="hadoop",
-      owner="hdfs",
     )
     self.assertResourceCalled(
       "File",
@@ -339,15 +321,6 @@ class TestHookBeforeStart(RMFTestCase):
       "/var/lib/ambari-agent/lib/fast-hdfs-resource.jar",
       content=StaticFile("fast-hdfs-resource.jar"),
       mode=0o644,
-    )
-    self.assertResourceCalled(
-      "File",
-      "/etc/hadoop/conf/hadoop-metrics2.properties",
-      content=InlineTemplate(
-        self.getConfig()["configurations"]["hadoop-metrics2.properties"]["content"]
-      ),
-      group="hadoop",
-      owner="hdfs",
     )
     self.assertResourceCalled(
       "File",
@@ -464,15 +437,6 @@ class TestHookBeforeStart(RMFTestCase):
       "/var/lib/ambari-agent/lib/fast-hdfs-resource.jar",
       content=StaticFile("fast-hdfs-resource.jar"),
       mode=0o644,
-    )
-    self.assertResourceCalled(
-      "File",
-      "/etc/hadoop/conf/hadoop-metrics2.properties",
-      content=InlineTemplate(
-        self.getConfig()["configurations"]["hadoop-metrics2.properties"]["content"]
-      ),
-      group="hadoop",
-      owner="hdfs",
     )
     self.assertResourceCalled(
       "File",

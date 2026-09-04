@@ -355,8 +355,8 @@ public class TestStagePlanner {
     Service webhcatService = mock(Service.class);
     when(webhcatService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
-    Service gangliaService = mock(Service.class);
-    when(gangliaService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
+    Service hiveService = mock(Service.class);
+    when(hiveService.getDesiredStackId()).thenReturn(new StackId("HDP-2.0.6"));
 
     when(cluster.getServices()).thenReturn(ImmutableMap.<String, Service>builder()
         .put("HDFS", hdfsService)
@@ -365,7 +365,7 @@ public class TestStagePlanner {
         .put("MAPREDUCE", mrService)
         .put("OOZIE", oozieService)
         .put("WEBHCAT", webhcatService)
-        .put("GANGLIA", gangliaService)
+        .put("HIVE", hiveService)
         .build());
 
 
@@ -400,12 +400,12 @@ public class TestStagePlanner {
     stage.addHostRoleExecutionCommand("host7", Role.WEBHCAT_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("WEBHCAT_SERVER",
         "host7", now), "cluster1", "WEBHCAT", false, false);
-    stage.addHostRoleExecutionCommand("host4", Role.GANGLIA_MONITOR,
-      RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_MONITOR",
-        "host4", now), "cluster1", "GANGLIA", false, false);
-    stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
-      RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
-        "host9", now), "cluster1", "GANGLIA", false, false);
+    stage.addHostRoleExecutionCommand("host4", Role.HIVE_METASTORE,
+      RoleCommand.START, new ServiceComponentHostStartEvent("HIVE_METASTORE",
+        "host4", now), "cluster1", "HIVE", false, false);
+    stage.addHostRoleExecutionCommand("host9", Role.HIVE_SERVER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("HIVE_SERVER",
+        "host9", now), "cluster1", "HIVE", false, false);
 
     log.info(stage.toString());
     rg.build(stage);
@@ -414,7 +414,7 @@ public class TestStagePlanner {
     for (Stage s : outStages) {
       log.info(s.toString());
     }
-    assertEquals(4, outStages.size());
+    assertEquals(5, outStages.size());
   }
 
   @Test
@@ -453,12 +453,12 @@ public class TestStagePlanner {
     stage.addHostRoleExecutionCommand("host7", Role.WEBHCAT_SERVER,
       RoleCommand.START, new ServiceComponentHostStartEvent("WEBHCAT_SERVER",
         "host7", now), "cluster1", "WEBHCAT", false, false);
-    stage.addHostRoleExecutionCommand("host4", Role.GANGLIA_MONITOR,
-      RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_MONITOR",
-        "host4", now), "cluster1", "GANGLIA", false, false);
-    stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
-      RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
-        "host9", now), "cluster1", "GANGLIA", false, false);
+    stage.addHostRoleExecutionCommand("host4", Role.HIVE_METASTORE,
+      RoleCommand.START, new ServiceComponentHostStartEvent("HIVE_METASTORE",
+        "host4", now), "cluster1", "HIVE", false, false);
+    stage.addHostRoleExecutionCommand("host9", Role.HIVE_SERVER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("HIVE_SERVER",
+        "host9", now), "cluster1", "HIVE", false, false);
     log.info(stage.toString());
     rg.build(stage);
     log.info(rg.stringifyGraph());

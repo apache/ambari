@@ -2438,19 +2438,11 @@ public class AmbariManagementControllerImplTest {
 
     StackId stackId = new StackId("HDP-2.1");
 
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    expect(service.getDesiredStackId()).andReturn(stackId).atLeastOnce();
-
-    expect(clusters.getCluster("c1")).andReturn(cluster).atLeastOnce();
-
-
     StackInfo stackInfo = createNiceMock(StackInfo.class);
 
     expect(ambariMetaInfo.getStack("HDP", "2.1")).andReturn(stackInfo).atLeastOnce();
-    expect(ambariMetaInfo.getCommonWidgetsDescriptorFile()).andReturn(null).once();
 
-    replay(injector, clusters, ambariMetaInfo, stackInfo, cluster, service, repoVersionDAO, repoVersion);
+    replay(injector, clusters, ambariMetaInfo, stackInfo, repoVersionDAO, repoVersion);
 
     AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
     setAmbariMetaInfo(ambariMetaInfo, controller);
@@ -2471,7 +2463,7 @@ public class AmbariManagementControllerImplTest {
     controller.createCluster(cr);
 
     // verification
-    verify(injector, clusters, ambariMetaInfo, stackInfo, cluster, repoVersionDAO, repoVersion);
+    verify(injector, clusters, ambariMetaInfo, stackInfo, repoVersionDAO, repoVersion);
   }
 
   @Test

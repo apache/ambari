@@ -54,4 +54,13 @@ describe("Hosts API", () => {
       }),
     });
   });
+
+  it("requests only NameNode live-node data for DataNode decommission status", async () => {
+    await HostsApi.getDecommissionStatusForDataNode("c1", "nn1,nn2");
+
+    expect(mocks.request).toHaveBeenCalledWith({
+      url: "/clusters/c1/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in(nn1,nn2)&fields=metrics/dfs/namenode/LiveNodes",
+      method: "GET",
+    });
+  });
 });

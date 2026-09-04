@@ -273,22 +273,18 @@ public class HostVersionOutOfSyncListenerTest {
 
     RepositoryVersionEntity repositoryVersion = createClusterAndHosts(INSTALLED_VERSION, stackId);
 
-    //Add Ganglia service
+    // Add HDFS with only components that do not advertise versions.
     List<String> hostList = new ArrayList<>();
     hostList.add("h1");
     hostList.add("h2");
     hostList.add("h3");
     Map<String, List<Integer>> hdfsTopology = new HashMap<>();
-    hdfsTopology.put("GANGLIA_SERVER", Collections.singletonList(0));
-    List<Integer> monitorHosts = Arrays.asList(0, 1);
-    hdfsTopology.put("GANGLIA_MONITOR", new ArrayList<>(monitorHosts));
-    addService(c1, hostList, hdfsTopology, "GANGLIA", repositoryVersion);
+    hdfsTopology.put("SECONDARY_NAMENODE", Collections.singletonList(0));
+    List<Integer> zkfcHosts = Arrays.asList(0, 1);
+    hdfsTopology.put("ZKFC", new ArrayList<>(zkfcHosts));
+    addService(c1, hostList, hdfsTopology, "HDFS", repositoryVersion);
 
     // Check result
-    Set<String> changedHosts = new HashSet<>();
-    changedHosts.add("h1");
-    changedHosts.add("h2");
-
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
 
     // Host version should not transition to OUT_OF_SYNC state
@@ -475,14 +471,10 @@ public class HostVersionOutOfSyncListenerTest {
     Map<String, List<Integer>> topology = new ImmutableMap.Builder<String, List<Integer>>()
         .put("NAMENODE", Lists.newArrayList(0))
         .put("DATANODE", Lists.newArrayList(1))
+        .put("SECONDARY_NAMENODE", Lists.newArrayList(0))
+        .put("ZKFC", Lists.newArrayList(2))
         .build();
     addService(c1, allHosts, topology, "HDFS", repo);
-
-    topology = new ImmutableMap.Builder<String, List<Integer>>()
-        .put("GANGLIA_SERVER", Lists.newArrayList(0))
-        .put("GANGLIA_MONITOR", Lists.newArrayList(2))
-        .build();
-    addService(c1, allHosts, topology, "GANGLIA", repo);
 
     List<HostVersionEntity> hostVersions = hostVersionDAO.findAll();
     assertEquals(3, hostVersions.size());

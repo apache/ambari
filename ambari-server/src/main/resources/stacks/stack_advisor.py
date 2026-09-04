@@ -875,23 +875,6 @@ class DefaultStackAdvisor(StackAdvisor):
           "default": "1024m",
         }
       ],
-      "METRICS_COLLECTOR": [
-        {
-          "config-name": "ams-hbase-env",
-          "property": "hbase_master_heapsize",
-          "default": "1024m",
-        },
-        {
-          "config-name": "ams-hbase-env",
-          "property": "hbase_regionserver_heapsize",
-          "default": "1024m",
-        },
-        {
-          "config-name": "ams-env",
-          "property": "metrics_collector_heapsize",
-          "default": "512m",
-        },
-      ],
       "ATLAS_SERVER": [
         {"config-name": "atlas-env", "property": "atlas_server_xmx", "default": "2048m"}
       ],
@@ -3878,43 +3861,6 @@ class DefaultStackAdvisor(StackAdvisor):
         f"It is not recommended to use root partition for {propertyName}"
       )
 
-    return None
-
-  def validatorEnoughDiskSpace(
-    self, properties, propertyName, hostInfo, reqiuredDiskSpace
-  ):
-    if not propertyName in properties:
-      return self.getErrorItem("Value should be set")
-    dir = properties[propertyName]
-    if not dir.startswith("file://"):
-      return None
-
-    dir = re.sub("^file://", "", dir, count=1)
-
-    if not dir:
-      return self.getErrorItem("Value has wrong format")
-
-    mountPoints = {}
-    for mountPoint in hostInfo["disk_info"]:
-      mountPoints[mountPoint["mountpoint"]] = self.to_number(mountPoint["available"])
-    mountPoint = DefaultStackAdvisor.getMountPointForDir(dir, list(mountPoints.keys()))
-
-    if not mountPoints:
-      return self.getErrorItem(f"No disk info found on host {hostInfo['host_name']}")
-
-    if mountPoint is None:
-      return self.getErrorItem(
-        f"No mount point in directory {dir}. Mount points: {', '.join(list(mountPoints.keys()))}"
-      )
-
-    if mountPoints[mountPoint] < reqiuredDiskSpace:
-      msg = (
-        "Ambari Metrics disk space requirements not met. \n"
-        "Recommended disk space for partition {0} is {1}G"
-      )
-      return self.getWarnItem(
-        msg.format(mountPoint, reqiuredDiskSpace // 1048576)
-      )  # in Gb
     return None
 
   @classmethod

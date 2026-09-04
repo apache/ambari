@@ -96,30 +96,6 @@ class TestStackAdvisorInitialization(TestCase):
       "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
       "services": [
         {
-          "StackServices": {
-            "service_name": "GANGLIA",
-            "service_version": "3.5.0",
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "cardinality": "ALL",
-                "component_name": "GANGLIA_MONITOR",
-                "is_master": False,
-                "hostnames": [],
-              }
-            },
-            {
-              "StackServiceComponents": {
-                "cardinality": "1",
-                "component_name": "GANGLIA_SERVER",
-                "is_master": True,
-                "hostnames": [],
-              }
-            },
-          ],
-        },
-        {
           "StackServices": {"service_name": "HBASE", "service_version": "0.98.0.2.1"},
           "components": [
             {
@@ -293,7 +269,7 @@ class TestStackAdvisorInitialization(TestCase):
     expectedRecommendConfigResponse = {
       "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
       "hosts": ["host1", "host2"],
-      "services": ["GANGLIA", "HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
+      "services": ["HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
       "recommendations": {
         "blueprint": {"configurations": {}, "host_groups": []},
         "blueprint_cluster_binding": {"host_groups": []},
@@ -306,7 +282,7 @@ class TestStackAdvisorInitialization(TestCase):
     expectedRecommendLayoutResponse = {
       "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
       "hosts": ["host1", "host2"],
-      "services": ["GANGLIA", "HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
+      "services": ["HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
       "recommendations": {
         "blueprint": {
           "host_groups": [
@@ -314,7 +290,6 @@ class TestStackAdvisorInitialization(TestCase):
             {
               "name": "host-group-1",
               "components": [
-                {"name": "GANGLIA_SERVER"},
                 {"name": "HBASE_MASTER"},
                 {"name": "NAMENODE"},
                 {"name": "SECONDARY_NAMENODE"},
@@ -346,14 +321,13 @@ class TestStackAdvisorInitialization(TestCase):
       services, hosts
     )
     expectedRecommendLayoutResponse = {
-      "services": ["GANGLIA", "HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
+      "services": ["HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
       "recommendations": {
         "blueprint": {
           "host_groups": [
             {
               "name": "host-group-1",
               "components": [
-                {"name": "GANGLIA_SERVER"},
                 {"name": "HBASE_MASTER"},
                 {"name": "NAMENODE"},
                 {"name": "SECONDARY_NAMENODE"},
@@ -403,7 +377,7 @@ class TestStackAdvisorInitialization(TestCase):
     expectedRecommendLayoutResponse = {
       "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
       "hosts": [],
-      "services": ["GANGLIA", "HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
+      "services": ["HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
       "recommendations": {
         "blueprint": {"host_groups": []},
         "blueprint_cluster_binding": {"host_groups": []},
@@ -421,7 +395,7 @@ class TestStackAdvisorInitialization(TestCase):
     expectedConfigGroupRecommendConfigResponse = {
       "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
       "hosts": ["host1", "host2"],
-      "services": ["GANGLIA", "HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
+      "services": ["HBASE", "HDFS", "PIG", "TEZ", "ZOOKEEPER"],
       "recommendations": {
         "config-groups": [
           {"configurations": {}, "dependent_configurations": {}, "hosts": ["host2"]}

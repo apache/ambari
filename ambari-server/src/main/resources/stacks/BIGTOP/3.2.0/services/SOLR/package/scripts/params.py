@@ -24,18 +24,11 @@ from resource_management.core.shell import quote_bash_args
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.version import format_stack_version
 
 import status_params
 import solr_utils
-
-
-def get_port_from_url(address):
-  if not is_empty(address):
-    return address.split(":")[-1]
-  return address
 
 
 # config object that holds the configurations declared in the -site.xml file
@@ -423,21 +416,3 @@ if ranger_admin_kerberos_service_user:
   reserved_security_users.add(ranger_admin_kerberos_service_user)
 if reserved_security_users.intersection(solr_ranger_audit_service_users):
   raise Fail("Ranger audit users must not duplicate Solr or Ranger Admin")
-
-ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
-metrics_enabled = ams_collector_hosts != ""
-if metrics_enabled:
-  metrics_http_policy = config["configurations"]["ams-site"][
-    "timeline.metrics.service.http.policy"
-  ]
-  ams_collector_protocol = "http"
-  if metrics_http_policy == "HTTPS_ONLY":
-    ams_collector_protocol = "https"
-  ams_collector_port = str(
-    get_port_from_url(
-      config["configurations"]["ams-site"]["timeline.metrics.service.webapp.address"]
-    )
-  )
-else:
-  ams_collector_port = ""
-  ams_collector_protocol = ""

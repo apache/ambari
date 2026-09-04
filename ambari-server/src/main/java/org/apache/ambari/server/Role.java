@@ -56,8 +56,6 @@ public class Role {
   public static final Role DATANODE = valueOf("DATANODE");
   public static final Role FLUME_HANDLER = valueOf("FLUME_HANDLER");
   public static final Role FLUME_SERVICE_CHECK = valueOf("FLUME_SERVICE_CHECK");
-  public static final Role GANGLIA_MONITOR = valueOf("GANGLIA_MONITOR");
-  public static final Role GANGLIA_SERVER = valueOf("GANGLIA_SERVER");
   public static final Role HBASE_CLIENT = valueOf("HBASE_CLIENT");
   public static final Role HBASE_MASTER = valueOf("HBASE_MASTER");
   public static final Role HBASE_REGIONSERVER = valueOf("HBASE_REGIONSERVER");
@@ -109,9 +107,6 @@ public class Role {
   public static final Role KDC_SERVER = valueOf("KDC_SERVER");
   public static final Role KERBEROS_CLIENT = valueOf("KERBEROS_CLIENT");
   public static final Role KERBEROS_SERVICE_CHECK = valueOf("KERBEROS_SERVICE_CHECK");
-  public static final Role METRICS_COLLECTOR = valueOf("METRICS_COLLECTOR");
-  public static final Role METRICS_MONITOR = valueOf("METRICS_MONITOR");
-  public static final Role AMS_SERVICE_CHECK = valueOf("AMBARI_METRICS_SERVICE_CHECK");
   public static final Role ACCUMULO_CLIENT = valueOf("ACCUMULO_CLIENT");
   public static final Role RANGER_ADMIN  = valueOf("RANGER_ADMIN");
   public static final Role RANGER_USERSYNC = valueOf("RANGER_USERSYNC");

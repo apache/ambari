@@ -206,7 +206,6 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
           "HBASE_MASTER",
           "HIVE_SERVER",
           "OOZIE_SERVER",
-          "GANGLIA_SERVER",
         ].includes(component.component)
       ) {
         loadMasterComponent(component, clusterInfoCopy);

@@ -77,7 +77,7 @@
             {
               "keytab": {
                 "configuration": "ranger-hbase-audit/xasecure.audit.jaas.Client.option.keyTab",
-                "file": "${keytab_dir}/ams-hbase.master.keytab"
+                "file": "${keytab_dir}/hbase.service.keytab"
               },
               "name": "/HBASE/HBASE_MASTER/hbase_master_hbase",
               "principal": {

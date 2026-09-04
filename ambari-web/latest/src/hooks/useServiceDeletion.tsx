@@ -1612,7 +1612,6 @@ export function useServiceDeletion(
       "FALCON",
       "FLUME",
       "ACCUMULO",
-      "AMBARI_METRICS",
       "RANGER",
       "RANGER_KMS",
       "KAFKA",
@@ -1769,7 +1768,7 @@ export function useServiceDeletion(
       }
 
       //@ts-ignore
-      const configType = property.filename; // This should be the config type like "ams-env"
+      const configType = property.filename;
 
       // If this is a property to be removed
       if (property.recommendedValue === "Property removed") {

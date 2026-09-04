@@ -223,12 +223,6 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new ThemeArtifactResourceProvider(managementController);
       case QuickLink:
         return new QuickLinkArtifactResourceProvider(managementController);
-      case ActiveWidgetLayout:
-        return new ActiveWidgetLayoutResourceProvider(managementController);
-      case WidgetLayout:
-        return new WidgetLayoutResourceProvider(managementController);
-      case Widget:
-        return new WidgetResourceProvider(managementController);
       case HostKerberosIdentity:
         return resourceProviderFactory.getHostKerberosIdentityResourceProvider(managementController);
       case Credential:

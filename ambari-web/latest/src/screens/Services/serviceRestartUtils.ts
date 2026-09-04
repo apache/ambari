@@ -84,7 +84,6 @@ type ServiceRestartModelLike = {
   standbyNameNodes?: HostComponentLike[];
   activeNameNodes?: HostComponentLike[];
   isNameNodeHaEnabled?: boolean;
-  isNnHaEnabled?: boolean;
 };
 
 const ACTIVE_REQUEST_STATUSES = new Set([
@@ -182,7 +181,6 @@ function orderHdfsMasters(
   const activeHosts = modelHostNames(serviceModel?.activeNameNodes);
   const isHaEnabled = Boolean(
     serviceModel?.isNameNodeHaEnabled
-      || serviceModel?.isNnHaEnabled
       || standbyHosts.size
       || activeHosts.size
       || (nameNodes.length > 1 && secondaryNameNodes.length === 0),

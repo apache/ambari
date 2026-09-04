@@ -46,7 +46,6 @@ public class UserResourceDefinition extends BaseResourceDefinition {
     final Set<SubResourceDefinition> subResourceDefinitions = new HashSet<>();
     subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.UserAuthenticationSource));
     subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.UserPrivilege));
-    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.ActiveWidgetLayout));
     return subResourceDefinitions;
   }
 

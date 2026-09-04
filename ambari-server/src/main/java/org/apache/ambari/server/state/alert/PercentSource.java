@@ -94,9 +94,6 @@ public class PercentSource extends Source {
     @SerializedName("jmx")
     private String m_jmxInfo = null;
 
-    @SerializedName("ganglia")
-    private String m_gangliaInfo = null;
-
     /**
      * @return the jmx info, if this metric is jmx-based
      */
@@ -105,17 +102,9 @@ public class PercentSource extends Source {
       return m_jmxInfo;
     }
 
-    /**
-     * @return the ganglia info, if this metric is ganglia-based
-     */
-    @JsonProperty("ganglia")
-    public String getGangliaInfo() {
-      return m_gangliaInfo;
-    }
-
     @Override
     public int hashCode() {
-      return Objects.hash(m_gangliaInfo, m_jmxInfo);
+      return Objects.hash(m_jmxInfo);
     }
 
     @Override
@@ -129,8 +118,7 @@ public class PercentSource extends Source {
       }
 
       MetricFractionPart other = (MetricFractionPart) obj;
-      return Objects.equals(m_gangliaInfo, other.m_gangliaInfo) &&
-        Objects.equals(m_jmxInfo, other.m_jmxInfo);
+      return Objects.equals(m_jmxInfo, other.m_jmxInfo);
     }
 
   }

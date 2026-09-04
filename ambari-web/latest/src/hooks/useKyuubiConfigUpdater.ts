@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -129,7 +129,7 @@ export const useKyuubiConfigUpdater = () => {
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.KYUUBI.masterComponents] =
+    currentConfig[ServiceComponentFields.KYUUBI.masterComponents] =
       masterComponents;
 
     if (!isEqual(allServiceModels[serviceNameForServiceModel], currentConfig)) {
@@ -168,9 +168,9 @@ export const useKyuubiConfigUpdater = () => {
       );
     }
     if (
-      (latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)) ||
-      maintenanceStates.includes(latestHostOperationMessage.maintenance_state)
+      latestHostOperationMessage &&
+      (componentFinishStates.includes(latestHostOperationMessage.state) ||
+        maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
     ) {
       await updateServiceMaintenanceState(
         latestHostOperationMessage.maintenance_state

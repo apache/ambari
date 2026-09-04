@@ -487,10 +487,6 @@ function WizardConfigInitializer(
       self.getSimpleComponentConfig("HISTORYSERVER"),
     "mapreduce.jobhistory.address":
       self.getSimpleComponentConfig("HISTORYSERVER"),
-    "kafka.ganglia.metrics.host": self.getSimpleComponentConfig(
-      "GANGLIA_SERVER",
-      false
-    ),
     hive_master_hosts: self.getComponentsHostsConfig([
       "HIVE_METASTORE",
       "HIVE_SERVER",

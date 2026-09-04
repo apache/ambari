@@ -23,10 +23,9 @@ import "./styles/services.scss";
 import ServiceConfigs from "../ServiceConfigs";
 import { Actions } from "./Actions";
 import { useContext, useEffect, useState } from "react";
-import Metrics from "../Metrics/ServiceMetrics";
+import EmbeddedDashboards from "../Monitoring/EmbeddedDashboards";
 import { AppContext } from "../../store/context";
 import { map } from "lodash";
-import Heatmaps from "../Heatmaps";
 import { useAuth } from "../../hooks/useAuth";
 import AuthGuard from "../../components/AuthGuard";
 import RestartWarning from "./RestartWarning";
@@ -34,24 +33,23 @@ import { resolveServiceNavigation } from "../../Utils/serviceNavigation";
 
 enum TabNames {
   SUMMARY = "summary",
-  HEATMAPS = "heatmaps",
   CONFIGS = "configs",
   METRICS = "metrics",
 }
 
 const serviceTabs: Record<string, string[]> = {
-  HDFS: ["summary", "heatmaps", "configs", "metrics"],
-  YARN: ["summary", "heatmaps", "configs", "metrics"],
-  HIVE: ["summary", "configs"],
+  HDFS: ["summary", "configs", "metrics"],
+  YARN: ["summary", "configs", "metrics"],
+  HIVE: ["summary", "configs", "metrics"],
   KAFKA: ["summary", "configs"],
   ZOOKEEPER: ["summary", "configs"],
-  HBASE: ["summary", "heatmaps", "configs", "metrics"],
+  HBASE: ["summary", "configs", "metrics"],
   ATLAS: ["summary", "configs"],
   RANGER: ["summary", "configs"],
   RANGER_KMS: ["summary", "configs"],
   SOLR: ["summary", "configs"],
   FLUME: ["summary", "configs"],
-  AMBARI_METRICS: ["summary", "configs", "metrics"],
+  VICTORIAMETRICS: ["summary", "configs"],
   AMBARI_INFRA_SOLR: ["summary", "configs"],
   LIVY: ["summary", "configs"],
   TEZ: ["summary", "configs"],
@@ -89,9 +87,10 @@ function ServiceDashboard({
   serviceName?: string;
 }) {
   // Authorization hooks - implementing Ember.js hasConfigTab logic
-  const { havePermissions } = useAuth();
+  const { hasAuthorization } = useAuth();
   // Check CLUSTER.VIEW_CONFIGS permission like in Ember.js ui/app/views/main/service/item.js
-  const hasConfigTab = havePermissions("CLUSTER.VIEW_CONFIGS");
+  const hasConfigTab = hasAuthorization("CLUSTER.VIEW_CONFIGS");
+  const canViewMetrics = hasAuthorization("SERVICE.VIEW_METRICS");
   const { serviceName: serviceNameParams } = useParams();
   const serviceName = serviceNameParams || serviceNameProps;
   const { tabName } = useParams();
@@ -110,6 +109,7 @@ function ServiceDashboard({
     const selection = resolveServiceNavigation({
       availableTabs: serviceTabs,
       canViewConfigs: hasConfigTab,
+      canViewMetrics,
       installedServices: selectedServices,
       requestedService: serviceName,
       requestedTab: tabName,
@@ -123,6 +123,7 @@ function ServiceDashboard({
     }
   }, [
     clusterName,
+    canViewMetrics,
     hasConfigTab,
     navigate,
     serviceName,
@@ -156,16 +157,6 @@ function ServiceDashboard({
                 selectedTab={selectedTab}
               />
             </Tab>
-            {serviceName &&
-              serviceTabs[serviceName.toUpperCase()]?.includes(
-                TabNames.HEATMAPS
-              ) && (
-                <Tab eventKey="heatmaps" title="Heatmaps">
-                  {selectedTab === TabNames.HEATMAPS ? (
-                    <Heatmaps serviceName={serviceName as string} />
-                  ) : null}
-                </Tab>
-              )}
             {/* Configs Tab - Requires CLUSTER.VIEW_CONFIGS permission like Ember.js ui/app/views/main/service/item.js */}
             {hasConfigTab && (
               <Tab eventKey={`configs`} title="configs">
@@ -178,11 +169,12 @@ function ServiceDashboard({
               </Tab>
             )}
             {serviceName &&
+              canViewMetrics &&
               serviceTabs[serviceName.toUpperCase()]?.includes(
                 TabNames.METRICS
               ) && (
                 <Tab eventKey="metrics" title="Metrics">
-                  <Metrics serviceName={serviceName as string} />
+                  {selectedTab === TabNames.METRICS ? <EmbeddedDashboards location={serviceName as string} /> : null}
                 </Tab>
               )}
           </Tabs>

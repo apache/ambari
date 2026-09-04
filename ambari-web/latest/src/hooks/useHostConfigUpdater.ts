@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { cloneDeep, forEach, get, isEmpty, set } from "lodash";
+import { forEach, get, isEmpty, set } from "lodash";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "../store/context";
 import { HostsApi } from "../api/hostsApi";
@@ -27,7 +27,6 @@ import HostStackVersion, {
   IHostStackVersion,
 } from "../models/hostStackVersion";
 import { sortBasedOnMasterSlave } from "../screens/Hosts/utils";
-import usePolling from "./usePolling";
 import {
   applyCompletedDecommissionRequest,
   applyHostComponentEvent,
@@ -36,19 +35,6 @@ import {
   shouldLoadCompatibleRepositoryVersions,
 } from "../Utils/hosts";
 import VersionsApi from "../api/versionsApi";
-
-// cloneDeep strips class prototypes; rebuild instances so model methods survive.
-const cloneHostModels = (hosts: Host[]): Host[] =>
-  cloneDeep(hosts).map((host: Host) => {
-    const model = new Host(host as IHost);
-    model.hostComponents = get(host, "hostComponents", []).map(
-      (hc: IHostComponent) => new HostComponent(hc)
-    );
-    model.stackVersions = get(host, "stackVersions", []).map(
-      (sv: IHostStackVersion) => new HostStackVersion(sv)
-    );
-    return model;
-  });
 
 export const useHostConfigUpdater = (
   hostApiQueryParams: any,
@@ -134,65 +120,6 @@ export const useHostConfigUpdater = (
     supports.displayOlderVersions,
   ]);
 
-  const getHostMetrics = async () => {
-    if (isEmpty(queryData.current)) return;
-    const newQueryString = get(queryData.current, "RequestInfo.query", "");
-    let url = "";
-    //For Hosts List Page
-    if (isGetHostsList()) {
-      const paginationString = `&page_size=${get(
-        hostApiQueryParams,
-        "pageSize",
-        10
-      )}&from=${get(hostApiQueryParams, "startFrom", 0)}`;
-      url = `metrics/disk/disk_free,metrics/disk/disk_total,metrics/load/load_one&minimal_response=true${
-        newQueryString ? "" : paginationString
-      }&sortBy=${get(hostApiQueryParams, "sortBy", "Hosts/host_name")}.${get(
-        hostApiQueryParams,
-        "sortOrder",
-        "asc"
-      )}`;
-    }
-    //For Hosts Summary Page
-    else {
-      url =
-        "metrics/disk/disk_free,metrics/disk/disk_total,metrics/load/load_one,host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/jvm/HeapMemoryMax,host_components/metrics/jvm/HeapMemoryUsed,host_components/metrics/dfs/FSNamesystem/CapacityUsed,host_components/metrics/dfs/FSNamesystem/CapacityTotal,host_components/metrics/dfs/FSNamesystem/CapacityRemaining,host_components/metrics/dfs/FSNamesystem/CapacityNonDFSUsed,host_components/metrics/rpc/client/RpcQueueTime_avg_time,host_components/metrics/runtime/StartTime&minimal_response=true";
-    }
-
-    const response = await HostsApi.getHostsList(
-      clusterName,
-      url,
-      queryData.current
-    );
-
-    if (get(response, "items", []).length) {
-      // Use the ref to get the latest allHostModels value, avoiding stale closure
-      const allHostModelsCopy = cloneHostModels(allHostModelsRef.current);
-      get(response, "items", []).forEach((host: any) => {
-        const hostName = get(host, "Hosts.host_name", "");
-        const hostModel = allHostModelsCopy.find(
-          (h: Host) => h.hostName === hostName
-        );
-        if (hostModel) {
-          (
-            Object.keys(hostMapper.hostConfig) as Array<
-              keyof typeof hostMapper.hostConfig
-            >
-          ).forEach((key) => {
-            set(
-              hostModel,
-              key,
-              get(host, hostMapper.hostConfig[key], get(hostModel, key))
-            );
-          });
-        }
-      });
-      setAllHostModels(allHostModelsCopy);
-    }
-  };
-
-  usePolling(getHostMetrics, 15000);
-
   const getHostNamesForCurrentFilters = async (url: string) => {
     const response = await HostsApi.getHostComponentsDetails(clusterName, url);
     const hostNames = get(response, "items", []).map((host: any) =>
@@ -245,7 +172,7 @@ export const useHostConfigUpdater = (
         "pageSize",
         10
       )}&from=${get(hostApiQueryParams, "startFrom", 0)}`;
-      url = `Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/last_agent_env,alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,metrics/disk,metrics/load/load_one,Hosts/total_mem,Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free,stack_versions/HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,stack_versions/repository_versions/RepositoryVersions/display_name&minimal_response=true,host_components/logging${
+      url = `Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/last_agent_env,alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,host_components/metrics/dfs/FSNamesystem/HAState,Hosts/total_mem,Hosts/os_arch,Hosts/os_type,stack_versions/HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,stack_versions/repository_versions/RepositoryVersions/display_name&minimal_response=true,host_components/logging${
         newQueryString ? "" : paginationString
       }&sortBy=${get(hostApiQueryParams, "sortBy", "Hosts/host_name")}.${get(
         hostApiQueryParams,
@@ -256,7 +183,7 @@ export const useHostConfigUpdater = (
     //For Hosts Summary Page
     else {
       url =
-        "Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/last_agent_env,alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,host_components/metrics/dfs/namenode/ClusterId,host_components/metrics/dfs/FSNamesystem/HAState,metrics/disk,metrics/load/load_one,Hosts/total_mem,Hosts/os_arch,Hosts/os_type,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free,stack_versions/HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,stack_versions/repository_versions/RepositoryVersions/display_name&minimal_response=true,host_components/logging&sortBy=Hosts/host_name.asc";
+        "Hosts/rack_info,Hosts/host_name,Hosts/maintenance_state,Hosts/public_host_name,Hosts/cpu_count,Hosts/ph_cpu_count,Hosts/last_agent_env,alerts_summary,Hosts/host_status,Hosts/host_state,Hosts/last_heartbeat_time,Hosts/ip,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/service_name,host_components/HostRoles/display_name,host_components/HostRoles/desired_admin_state,host_components/metrics/dfs/FSNamesystem/HAState,Hosts/total_mem,Hosts/os_arch,Hosts/os_type,stack_versions/HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version,stack_versions/repository_versions/RepositoryVersions/id,stack_versions/repository_versions/RepositoryVersions/display_name&minimal_response=true,host_components/logging&sortBy=Hosts/host_name.asc";
     }
 
     const response = await HostsApi.getHostsList(clusterName, url, data);

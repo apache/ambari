@@ -559,9 +559,6 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                  " credential store enabled status is = {}",
                  s.getName(), serviceInfo.isCredentialStoreEnabled(), enableCredStore);
       }
-
-      // Initialize service widgets
-      getManagementController().initializeWidgetsAndLayouts(cluster, s);
     }
   }
 

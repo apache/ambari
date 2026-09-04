@@ -66,12 +66,7 @@
         "type": "TEMPLATE",
         "dest_file": "core-site.xml",
         "src_file": {{yarn_hbase_core_site_source_json}}
-      }{% if has_metric_collector %},
-      {
-        "type": "TEMPLATE",
-        "dest_file": "hadoop-metrics2-hbase.properties",
-        "src_file": {{yarn_hbase_metrics_source_json}}
-      }{% endif %}
+      }
     ]
   },
   "components": [

@@ -2373,20 +2373,6 @@ const siteProperties=
       "category": "Advanced zookeeper-env",
       "index": 1
     },
-  /**********************************************GANGLIA***************************************/
-    {
-      "name": "ganglia_conf_dir",
-      "displayName": "Ganglia conf directory",
-      "description": "",
-      "recommendedValue": "/etc/ganglia/hdp",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "isRequiredByAgent": false,
-      "serviceName": "GANGLIA",
-      "filename": "ganglia-env.xml",
-      "category": "Advanced ganglia-env"
-    },
   /**********************************************FALCON***************************************/
     {
       "name": "falcon_port",
@@ -2553,19 +2539,6 @@ const siteProperties=
       "category": "Users and Groups",
       "belongsToService": ["HIVE", "OOZIE", "FALCON"],
       "index": 18
-    },
-    {
-      "name": "ganglia_runtime_dir",
-      "displayName": "Ganglia runtime directory",
-      "description": "",
-      "recommendedValue": "/var/run/ganglia/hdp",
-      "isReconfigurable": false,
-      "displayType": "directory",
-      "isVisible": false,
-      "serviceName": "MISC",
-      "filename": "ganglia-env.xml",
-      "category": "General",
-      "belongsToService": []
     },
     {
       "name": "hdfs_user",
@@ -2748,35 +2721,6 @@ const siteProperties=
       "index": 12
     },
     {
-      "name": "gmetad_user",
-      "displayName": "Ganglia User",
-      "description": "The user used to run Ganglia",
-      "recommendedValue": "nobody",
-      "isReconfigurable": false,
-      "displayType": "user",
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "MISC",
-      "filename": "ganglia-env.xml",
-      "category": "Users and Groups",
-      "belongsToService": ["GANGLIA"],
-      "index": 13
-    },
-    {
-      "name": "gmond_user",
-      "displayName": "Gmond User",
-      "description": "The user used to run gmond for Ganglia",
-      "recommendedValue": "nobody",
-      "isReconfigurable": false,
-      "displayType": "advanced",
-      "isOverridable": false,
-      "isVisible": false,
-      "serviceName": "MISC",
-      "filename": "ganglia-env.xml",
-      "category": "Users and Groups",
-      "belongsToService": []
-    },
-    {
       "name": "tez_user",
       "displayName": "Tez User",
       "description": "User to run Tez as",
@@ -2803,20 +2747,6 @@ const siteProperties=
       "category": "Users and Groups",
       "belongsToService": ["SQOOP"],
       "index": 17
-    },
-    {
-      "name": "rrdcached_base_dir",
-      "displayName": "Ganglia rrdcached base directory",
-      "description": "Default directory for saving the rrd files on ganglia server",
-      "recommendedValue": "/var/lib/ganglia/rrds",
-      "displayType": "directory",
-      "isReconfigurable": true,
-      "isOverridable": false,
-      "isVisible": true,
-      "serviceName": "GANGLIA",
-      "filename": "ganglia-env.xml",
-      "category": "General",
-      "belongsToService": ["GANGLIA"]
     },
     {
       "name": "ignore_groupsusers_create",

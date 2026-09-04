@@ -42,6 +42,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Tooltip from "../../components/Tooltip";
 import { getComponentAlerts } from "./alertUtils";
 import FlumeSummary from "./FlumeSummary";
+import HDFSFederationTopology from "./HDFSFederationTopology";
 
 // Helper function to get component display name for alert modal titles
 const getComponentDisplayName = (componentName: string): string => {
@@ -56,8 +57,6 @@ const getComponentDisplayName = (componentName: string): string => {
     'ZOOKEEPER_SERVER': 'ZooKeeper Server',
     'HISTORYSERVER': 'History Server',
     'SPARK3_JOBHISTORYSERVER': 'Spark3 History Server',
-    'METRICS_COLLECTOR': 'Metrics Collector',
-    'METRICS_GRAFANA': 'Grafana',
     'RANGER_KMS_SERVER': 'Ranger KMS Server',
     'TRINO_COORDINATOR': 'Trino Coordinator',
     'TRINO_GATEWAY': 'Trino Gateway',
@@ -73,20 +72,7 @@ const getComponentDisplayName = (componentName: string): string => {
   return componentDisplayNames[componentName] || componentName;
 };
 
-// Tooltip messages extracted from ui/app/messages.js
 const TOOLTIP_MESSAGES = {
-  HDFS: {
-    DATANODE_LIVE: 'This is the number of DataNodes that are live as reported from the NameNode. Even if a DataNode process is up, NameNode might see the status as dead if the DataNode is not communicating with the NameNode as expected. This can be due situations such as a network issue or a hanging DataNode process due to excessive garbage collection.',
-    DATANODE_DEAD: 'This is the number of DataNodes that are dead as reported from the NameNode. Even if a DataNode process is up, NameNode might see the status as dead if the DataNode is not communicating with the NameNode as expected. This can be due situations such as a network issue or a hanging DataNode process due to excessive garbage collection.',
-    DATANODE_DECOMMISSION: 'This is the number of DataNodes that are currently Decommissioning as reported from the NameNode. If there are not enough other DataNodes in the cluster to create the configured number of block replicas based on the dfs.replication property (typically 3), a DataNode can get stuck in decommissioning state until more DataNodes become available to the NameNode.',
-  },
-  YARN: {
-    NODEMANAGER_ACTIVE: 'This is the number of NodeManagers that are active as reported from the ResourceManager',
-    NODEMANAGER_LOST: 'This is the number of NodeManagers that are lost as reported from the ResourceManager. Even if a NodeManager process is up, the ResourceManager might see the status as lost if the NodeManager is not communicating with the ResourceManager as expected. This can be due to situations such as a network issue or a hanging NodeManager process due to excessive garbage collection.',
-    NODEMANAGER_UNHEALTHY: 'This is the number of NodeManagers that are unhealthy as reported from the ResourceManager.',
-    NODEMANAGER_REBOOTED: 'This is the number of NodeManagers that are in the rebooted state as reported from the ResourceManager.',
-    NODEMANAGER_DECOMMISSIONED: 'This is the number of NodeManagers that are decommissioned as reported from the ResourceManager.',
-  },
   GENERAL: {
     MAINTENANCE_MODE: 'Service is in maintenance mode',
     COMPONENT_HEALTH: 'Component health status',
@@ -110,27 +96,22 @@ function HDFSSummary({ alerts }: { alerts: any }) {
     const hdfsModel = allServiceModels["hdfs"];
     const masterComponents = allServiceModels?.["hdfs"]?.masterComponents || [];
     const slaveComponents = allServiceModels?.["hdfs"]?.slaveComponents || [];
+    const federationNamespaces = hdfsModel?.federationNamespaces || [];
+    const isFederated = federationNamespaces.length > 1;
     if (!hdfsModel) {
       return <Spinner />;
     }
-    const hdfsComponents = ServiceComponentsMap["hdfs"];
-    const groupsWithComponents = cloneDeep(componentCategories["hdfs"]);
-    for (const groupCategory of groupsWithComponents) {
-      for (const group of groupCategory.groups) {
-        const matchingServiceComponents = hdfsComponents.filter(
-          (component) =>
-            component.group_id == group.id &&
-            component.category === groupCategory.name
-        );
-        group.components = matchingServiceComponents;
-      }
-    }
-
-
     return (
       <>
+        {isFederated && (
+          <HDFSFederationTopology
+            namespaces={federationNamespaces}
+            masterComponents={masterComponents}
+            slaveComponents={slaveComponents}
+          />
+        )}
         <Row>
-          {find(masterComponents, [
+          {!isFederated && find(masterComponents, [
             "componentName",
             "NAMENODE",
           ])?.hostComponents?.map((hostComponent: any) => {
@@ -204,7 +185,7 @@ function HDFSSummary({ alerts }: { alerts: any }) {
               </Col>
             );
           })}
-          {find(masterComponents, [
+          {!isFederated && find(masterComponents, [
             "componentName",
             "SECONDARY_NAMENODE",
           ])?.hostComponents?.map((hostComponent: any) => {
@@ -278,7 +259,7 @@ function HDFSSummary({ alerts }: { alerts: any }) {
               </Col>
             );
           })}
-          {find(slaveComponents, [
+          {!isFederated && find(slaveComponents, [
             "componentName",
             "ZKFC",
           ])?.hostComponents?.map((hostComponent: any) => {
@@ -333,47 +314,6 @@ function HDFSSummary({ alerts }: { alerts: any }) {
             );
           })}
         </Row>
-        <Row className="mt-4">
-          {find(groupsWithComponents, ["name", "MASTER"])?.groups.map(
-            (group) => {
-              return (
-                <>
-                  <h3 className="text-uppercase summary-metrics-group-name fs-12 text-light mb-0">
-                    {group.display_name}
-                  </h3>
-                  <Row key={group.id} className="w-100 mb-4">
-                    {group?.components?.map((component) => {
-                      const metricValue = hdfsModel[component.modelKey];
-                      return (
-                        <Col md={2} key={component.display_name}>
-                          <Stack>
-                            <h3 className="text-dark mb-0">
-                              {isObject(metricValue)
-                                ? isEmpty(metricValue)
-                                  ? "n/a"
-                                  : JSON.stringify(metricValue)
-                                : metricValue}
-                            </h3>
-                            <div className="fs-12 text-light">
-                              {component.descriptionKey
-                                ? hdfsModel[component.descriptionKey as any]
-                                  ? hdfsModel[component.descriptionKey as any]
-                                  : component.description
-                                : component.description}
-                            </div>
-                            <div className="text-uppercase fs-12 text-light">
-                              {component.display_name}
-                            </div>
-                          </Stack>
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                </>
-              );
-            }
-          )}
-        </Row>
         <Row>
           {slaveComponents.map((slaveComponent: any) => {
             if (slaveComponent.componentName === "ZKFC") {
@@ -406,81 +346,6 @@ function HDFSSummary({ alerts }: { alerts: any }) {
             );
           })}
         </Row>
-        <Row className="mt-4">
-          {find(groupsWithComponents, ["name", "SLAVE"])?.groups.map(
-            (group) => {
-              return (
-                <>
-                  <h3 className="text-uppercase summary-metrics-group-name fs-12 text-light mb-0">
-                    {group.display_name}
-                  </h3>
-                  <Row key={group.id} className="w-100 mb-4">
-                    {group?.components?.map((component) => {
-                      const metricValue = hdfsModel[component.modelKey];
-                      
-                      // Map specific HDFS DataNode metrics to their tooltip messages based on component.description
-                      let tooltipMessage = component.description; // default
-                      let tooltipHeading = "DataNodes";
-                      
-                      if (component.description === "Live") {
-                        tooltipMessage = TOOLTIP_MESSAGES.HDFS.DATANODE_LIVE;
-                        tooltipHeading = "Live DataNodes";
-                      } else if (component.description === "Dead") {
-                        tooltipMessage = TOOLTIP_MESSAGES.HDFS.DATANODE_DEAD;
-                        tooltipHeading = "Dead DataNodes";
-                      } else if (component.description === "Decommissioning") {
-                        tooltipMessage = TOOLTIP_MESSAGES.HDFS.DATANODE_DECOMMISSION;
-                        tooltipHeading = "Decommissioning DataNodes";
-                      } else {
-                        // Fallback to component description for other cases
-                        tooltipMessage = component.descriptionKey
-                          ? hdfsModel[component.descriptionKey as any]
-                            ? hdfsModel[component.descriptionKey as any]
-                            : component.description
-                          : component.description;
-                        tooltipHeading = component.description;
-                      }
-
-                      return (
-                        <Col
-                          md={2}
-                          key={component.display_name}
-                          className="mt-2"
-                        >
-                          <Stack>
-                            <Tooltip
-                              message={tooltipMessage}
-                              heading={tooltipHeading}
-                              placement="top"
-                            >
-                              <h3 className="text-dark mb-0">
-                                {isObject(metricValue)
-                                  ? isEmpty(metricValue)
-                                    ? "n/a"
-                                    : JSON.stringify(metricValue)
-                                  : metricValue}
-                              </h3>
-                            </Tooltip>
-                            <div className="fs-12 text-light mt-2">
-                              {component.descriptionKey
-                                ? hdfsModel[component.descriptionKey as any]
-                                  ? hdfsModel[component.descriptionKey as any]
-                                  : component.description
-                                : component.description}
-                            </div>
-                            <div className="text-uppercase fs-12 text-light">
-                              {component.display_name}
-                            </div>
-                          </Stack>
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                </>
-              );
-            }
-          )}
-        </Row>
       </>
     );
   }
@@ -508,19 +373,6 @@ function HBASESummary({ alerts }: { alerts: any }) {
     if (!hbaseModel) {
       return <Spinner />;
     }
-    const hbaseComponents = ServiceComponentsMap["hbase"];
-    const groupsWithComponents = cloneDeep(componentCategories["hbase"]);
-    for (const groupCategory of groupsWithComponents) {
-      for (const group of groupCategory.groups) {
-        const matchingServiceComponents = hbaseComponents.filter(
-          (component) =>
-            component.group_id == group.id &&
-            component.category === groupCategory.name
-        );
-        group.components = matchingServiceComponents;
-      }
-    }
-
     return (
       <>
         <Row>
@@ -600,47 +452,6 @@ function HBASESummary({ alerts }: { alerts: any }) {
             );
           })}
         </Row>
-        <Row className="mt-4">
-          {find(groupsWithComponents, ["name", "MASTER"])?.groups.map(
-            (group) => {
-              return (
-                <>
-                  <h3 className="text-uppercase summary-metrics-group-name fs-12 text-light mb-0">
-                    {group.display_name}
-                  </h3>
-                  <Row key={group.id} className="w-100 mb-4">
-                    {group?.components?.map((component) => {
-                      const metricValue = hbaseModel[component.modelKey];
-                      return (
-                        <Col md={2} key={component.display_name}>
-                          <Stack>
-                            <h3 className="text-dark mb-0">
-                              {isObject(metricValue)
-                                ? isEmpty(metricValue)
-                                  ? "n/a"
-                                  : JSON.stringify(metricValue)
-                                : metricValue}
-                            </h3>
-                            <div className="fs-12 text-light">
-                              {component.descriptionKey
-                                ? hbaseModel[component.descriptionKey as any]
-                                  ? hbaseModel[component.descriptionKey as any]
-                                  : component.description
-                                : component.description}
-                            </div>
-                            <div className="text-uppercase fs-12 text-light">
-                              {component.display_name}
-                            </div>
-                          </Stack>
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                </>
-              );
-            }
-          )}
-        </Row>
         <Row>
           {slaveComponents.map((slaveComponent: any) => {
             return (
@@ -669,51 +480,6 @@ function HBASESummary({ alerts }: { alerts: any }) {
               </Col>
             );
           })}
-        </Row>
-        <Row className="mt-4">
-          {find(groupsWithComponents, ["name", "SLAVE"])?.groups.map(
-            (group) => {
-              return (
-                <>
-                  <h3 className="text-uppercase summary-metrics-group-name fs-12 text-light mb-0">
-                    {group.display_name}
-                  </h3>
-                  <Row key={group.id} className="w-100 mb-4">
-                    {group?.components?.map((component) => {
-                      const metricValue = hbaseModel[component.modelKey];
-                      return (
-                        <Col
-                          md={2}
-                          key={component.display_name}
-                          className="mt-2"
-                        >
-                          <Stack>
-                            <h3 className="text-dark mb-0">
-                              {isObject(metricValue)
-                                ? isEmpty(metricValue)
-                                  ? "n/a"
-                                  : JSON.stringify(metricValue)
-                                : metricValue}
-                            </h3>
-                            <div className="fs-12 text-light mt-2">
-                              {component.descriptionKey
-                                ? hbaseModel[component.descriptionKey as any]
-                                  ? hbaseModel[component.descriptionKey as any]
-                                  : component.description
-                                : component.description}
-                            </div>
-                            <div className="text-uppercase fs-12 text-light">
-                              {component.display_name}
-                            </div>
-                          </Stack>
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                </>
-              );
-            }
-          )}
         </Row>
       </>
     );
@@ -2025,258 +1791,6 @@ function SPARK3Summary({ alerts }: { alerts: any }) {
   return <>{renderComponents()}</>;
 }
 
-function AMBARIMETRICSSummary({ alerts }: { alerts: any }) {
-  const { allServiceModels } = useContext(ServiceContext);
-
-  const stringifiedModel = JSON.stringify(
-    allServiceModels?.["ambari_metrics"] || {}
-  );
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (allServiceModels["ambari_metrics"]) {
-      renderComponents();
-    }
-  }, [stringifiedModel]);
-
-  function renderComponents() {
-    const ambariMetricsModel = allServiceModels["ambari_metrics"];
-    const masterComponents =
-      allServiceModels?.["ambari_metrics"]?.masterComponents || [];
-    const slaveComponents =
-      allServiceModels?.["ambari_metrics"]?.slaveComponents || [];
-    if (!ambariMetricsModel) {
-      return <Spinner />;
-    }
-    const ambariMetricsComponents = ServiceComponentsMap["ambari_metrics"];
-    const groupsWithComponents = cloneDeep(
-      componentCategories["ambari_metrics"]
-    );
-    for (const groupCategory of groupsWithComponents) {
-      for (const group of groupCategory.groups) {
-        const matchingServiceComponents = ambariMetricsComponents?.filter(
-          (component) =>
-            component.group_id == group.id &&
-            component.category === groupCategory.name
-        );
-        group.components = matchingServiceComponents;
-      }
-    }
-
-    return (
-      <>
-        <Row>
-          {find(masterComponents, [
-            "componentName",
-            "METRICS_COLLECTOR",
-          ])?.hostComponents?.map((hostComponent: any) => {
-            const component = hostComponent.HostRoles.component_name;
-            const icon =
-              hostComponent.passiveState == "OFF"
-                ? statusIconMap[lowerCase(hostComponent?.state)]
-                : hostComponent?.passiveState
-                ? statusIconMap["Maintenance"]
-                : null;
-            return (
-              <Col md={2}>
-                <Stack>
-                  <Stack direction="horizontal" className="align-items-center">
-                    <Tooltip
-                      message={hostComponent?.passiveState ? TOOLTIP_MESSAGES.GENERAL.MAINTENANCE_MODE : TOOLTIP_MESSAGES.GENERAL.COMPONENT_HEALTH}
-                      heading="Component Status"
-                      placement="top"
-                    >
-                      <FontAwesomeIcon
-                        icon={icon?.icon}
-                        className={`me-1 fw-bold fs-12 text-${icon?.color}`}
-                      />
-                    </Tooltip>
-                    <h3 className="text-dark mb-0">
-                      {startCase(hostComponent?.state?.toLowerCase()) ===
-                      "Installed"
-                        ? "Stopped"
-                        : startCase(hostComponent?.state?.toLowerCase())}
-                    </h3>
-                    {getComponentAlerts(alerts, component, hostComponent?.passiveState)?.count > 0 ? (
-                      <Badge
-                        className="rounded-5 bg-danger cursor-pointer ms-2 fs-10"
-                        onClick={() => {
-                          modalManager.show(
-                            <AlertsModal
-                              alerts={filter(alerts, [
-                                "component_name",
-                                component,
-                              ])}
-                              navigate={navigate}
-                              serviceName={
-                                getComponentAlerts(alerts, component, hostComponent?.passiveState)?.alerts?.[0]?.service_name
-                              }
-                              displayName={getComponentDisplayName(component)}
-                            />
-                          );
-                        }}
-                      >
-                        {getComponentAlerts(alerts, component, hostComponent?.passiveState).count}
-                      </Badge>
-                    ) : null}
-                  </Stack>
-                  <Tooltip
-                    message={hostComponent.HostRoles.host_name}
-                    placement="top"
-                  >
-                    <div
-                      className="custom-link text-uppercase fs-12 mt-2"
-                      onClick={() => {
-                        navigate(
-                          `/main/hosts/${hostComponent.HostRoles.host_name}/summary`
-                        );
-                      }}
-                    >
-                      {"Metrics Collector"}
-                    </div>
-                  </Tooltip>
-                </Stack>
-              </Col>
-            );
-          })}
-          {find(masterComponents, [
-            "componentName",
-            "METRICS_GRAFANA",
-          ])?.hostComponents?.map((hostComponent: any) => {
-            const component = hostComponent.HostRoles.component_name;
-            const icon =
-              hostComponent.passiveState == "OFF"
-                ? statusIconMap[lowerCase(hostComponent?.state)]
-                : hostComponent?.passiveState
-                ? statusIconMap["Maintenance"]
-                : null;
-            return (
-              <Col md={2}>
-                <Stack>
-                  <Stack direction="horizontal" className="align-items-center">
-                    {
-                      <FontAwesomeIcon
-                        icon={icon?.icon}
-                        className={`me-1 fw-bold fs-12 text-${icon?.color}`}
-                      ></FontAwesomeIcon>
-                    }
-                    <h3 className="text-dark mb-0">
-                      {startCase(hostComponent?.state?.toLowerCase()) ===
-                      "Installed"
-                        ? "Stopped"
-                        : startCase(hostComponent?.state?.toLowerCase())}
-                    </h3>
-                    {getComponentAlerts(alerts, component, hostComponent?.passiveState)?.count > 0 ? (
-                      <Badge
-                        className="rounded-5 bg-danger cursor-pointer ms-2 fs-10"
-                        onClick={() => {
-                          modalManager.show(
-                            <AlertsModal
-                              alerts={getComponentAlerts(alerts, component, hostComponent?.passiveState).alerts}
-                              navigate={navigate}
-                              serviceName={
-                                getComponentAlerts(alerts, component, hostComponent?.passiveState)?.alerts?.[0]?.service_name
-                              }
-                              displayName={getComponentDisplayName(component)}
-                            />
-                          );
-                        }}
-                      >
-                        {getComponentAlerts(alerts, component, hostComponent?.passiveState).count}
-                      </Badge>
-                    ) : null}
-                  </Stack>
-                  <div
-                    className="custom-link text-uppercase fs-12 mt-2"
-                    onClick={() => {
-                      navigate(
-                        `/main/hosts/${hostComponent.HostRoles.host_name}/summary`
-                      );
-                    }}
-                  >
-                    {"Grafana"}
-                  </div>
-                </Stack>
-              </Col>
-            );
-          })}
-        </Row>
-        <Row className="mt-4">
-          {slaveComponents.map((slaveComponent: any) => (
-            <Col md={2} key={slaveComponent.componentName}>
-              <Stack>
-                <h3 className="text-dark mb-0">
-                  {slaveComponent.startedCount}/{slaveComponent.totalCount}{" "}
-                  Started
-                </h3>
-                <div
-                  className="custom-link text-uppercase fs-12 mt-2"
-                  onClick={() => {
-                    navigate(
-                      `/main/hosts/component/${slaveComponent.componentName}`
-                    );
-                  }}
-                >
-                  {pluralize(
-                    2,
-                    slaveComponent.displayName as string,
-                    "s",
-                    false
-                  )}
-                </div>
-              </Stack>
-            </Col>
-          ))}
-
-          {find(groupsWithComponents, ["name", "MASTER"])?.groups.map(
-            (group) => (
-              <Col key={group.id} md={12} className="mt-4">
-                <h3 className="text-uppercase summary-metrics-group-name fs-12 text-light mb-0">
-                  {group.display_name}
-                </h3>
-                <Row className="w-100 mb-4">
-                  {group?.components?.map((component) => {
-                    const metricValue = ambariMetricsModel[component.modelKey];
-                    return (
-                      <Col md={2} key={component.display_name}>
-                        <Stack>
-                          <h3 className="text-dark mb-0">
-                            {isObject(metricValue)
-                              ? isEmpty(metricValue)
-                                ? "n/a"
-                                : JSON.stringify(metricValue)
-                              : metricValue}
-                          </h3>
-                          <div className="fs-12 text-light">
-                            {component.descriptionKey
-                              ? ambariMetricsModel[
-                                  component.descriptionKey as any
-                                ]
-                                ? ambariMetricsModel[
-                                    component.descriptionKey as any
-                                  ]
-                                : component.description
-                              : component.description}
-                          </div>
-                          <div className="text-uppercase fs-12 text-light">
-                            {component.display_name}
-                          </div>
-                        </Stack>
-                      </Col>
-                    );
-                  })}
-                </Row>
-              </Col>
-            )
-          )}
-        </Row>
-      </>
-    );
-  }
-  return <>{renderComponents()}</>;
-}
-
 function RANGER_KMSSummary({ alerts }: { alerts: any }) {
   const { allServiceModels } = useContext(ServiceContext);
 
@@ -2482,79 +1996,6 @@ function TRINOSummary({ alerts }: { alerts: any }) {
     return (
       <>
         <Row>
-          {find(masterComponents, [
-            "componentName",
-            "METRICS_GRAFANA",
-          ])?.hostComponents?.map((hostComponent: any) => {
-            const component = hostComponent.HostRoles.component_name;
-            const icon =
-              hostComponent.passiveState == "OFF"
-                ? statusIconMap[lowerCase(hostComponent?.state)]
-                : hostComponent?.passiveState
-                ? statusIconMap["Maintenance"]
-                : null;
-            return (
-              <Col md={2}>
-                <Stack>
-                  <Stack direction="horizontal" className="align-items-center">
-                    <Tooltip
-                      message={hostComponent?.passiveState ? TOOLTIP_MESSAGES.GENERAL.MAINTENANCE_MODE : TOOLTIP_MESSAGES.GENERAL.COMPONENT_HEALTH}
-                      heading="Component Status"
-                      placement="top"
-                    >
-                      <FontAwesomeIcon
-                        icon={icon?.icon}
-                        className={`me-1 fw-bold fs-12 text-${icon?.color}`}
-                      />
-                    </Tooltip>
-                    <h3 className="text-dark mb-0">
-                      {startCase(hostComponent?.state?.toLowerCase()) ===
-                      "Installed"
-                        ? "Stopped"
-                        : startCase(hostComponent?.state?.toLowerCase())}
-                    </h3>
-                    {getComponentAlerts(component)?.length ? (
-                      <Badge
-                        className="rounded-5 bg-danger cursor-pointer ms-2 fs-10"
-                        onClick={() => {
-                          modalManager.show(
-                            <AlertsModal
-                              alerts={filter(alerts, [
-                                "component_name",
-                                component,
-                              ])}
-                              navigate={navigate}
-                              serviceName={
-                                getComponentAlerts(component)?.[0]?.service_name
-                              }
-                              displayName={getComponentDisplayName(component)}
-                            />
-                          );
-                        }}
-                      >
-                        {getComponentAlerts(component).length}
-                      </Badge>
-                    ) : null}
-                  </Stack>
-                  <Tooltip
-                    message={hostComponent.HostRoles.host_name}
-                    placement="top"
-                  >
-                    <div
-                      className="custom-link text-uppercase fs-12 mt-2"
-                      onClick={() => {
-                        navigate(
-                          `/main/hosts/${hostComponent.HostRoles.host_name}/summary`
-                        );
-                      }}
-                    >
-                      {"Grafana"}
-                    </div>
-                  </Tooltip>
-                </Stack>
-              </Col>
-            );
-          })}
           {find(masterComponents, [
             "componentName",
             "TRINO_COORDINATOR",
@@ -3194,119 +2635,6 @@ function YARNSummary({ alerts }: { alerts: any }) {
             )}
           </Stack>
         </Row>
-        <Row className="mt-4">
-          {find(groupsWithComponents, ["name", "MASTER"])?.groups.map(
-            (group) => {
-              return (
-                <>
-                  <h3 className="text-uppercase summary-metrics-group-name fs-12 text-light mb-0">
-                    {group.display_name}
-                  </h3>
-                  <Row key={group.id} className="w-100 mb-4">
-                    {group?.components?.map((component) => {
-                      const metricValue = yarnModel[component.modelKey];
-                      return (
-                        <Col md={2} key={component.display_name}>
-                          <Stack>
-                            <h3 className="text-dark mb-0">
-                              {isObject(metricValue)
-                                ? isEmpty(metricValue)
-                                  ? "n/a"
-                                  : JSON.stringify(metricValue)
-                                : metricValue}
-                            </h3>
-                            <div className="fs-12 text-light">
-                              {component.descriptionKey
-                                ? yarnModel[component.descriptionKey as any]
-                                  ? yarnModel[component.descriptionKey as any]
-                                  : component.description
-                                : component.description}
-                            </div>
-                            <div className="text-uppercase fs-12 text-light">
-                              {component.display_name}
-                            </div>
-                          </Stack>
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                </>
-              );
-            }
-          )}
-        </Row>
-        <Row className="mt-4">
-          {find(groupsWithComponents, ["name", "SLAVE"])?.groups.map(
-            (group) => {
-              return (
-                <>
-                  <h3 className="text-uppercase summary-metrics-group-name fs-12 text-light mb-0">
-                    {group.display_name}
-                  </h3>
-                  <Row key={group.id} className="w-100 mb-4">
-                    {group?.components?.map((component) => {
-                      const metricValue = yarnModel[component.modelKey];
-                      
-                      // Map specific YARN metrics to their tooltip messages based on component.description
-                      let tooltipMessage = TOOLTIP_MESSAGES.YARN.NODEMANAGER_ACTIVE; // default
-                      let tooltipHeading = "NodeManagers";
-                      
-                      if (component.description === "Active") {
-                        tooltipMessage = TOOLTIP_MESSAGES.YARN.NODEMANAGER_ACTIVE;
-                        tooltipHeading = "Active NodeManagers";
-                      } else if (component.description === "Lost") {
-                        tooltipMessage = TOOLTIP_MESSAGES.YARN.NODEMANAGER_LOST;
-                        tooltipHeading = "Lost NodeManagers";
-                      } else if (component.description === "Unhealthy") {
-                        tooltipMessage = TOOLTIP_MESSAGES.YARN.NODEMANAGER_UNHEALTHY;
-                        tooltipHeading = "Unhealthy NodeManagers";
-                      } else if (component.description === "Rebooted") {
-                        tooltipMessage = TOOLTIP_MESSAGES.YARN.NODEMANAGER_REBOOTED;
-                        tooltipHeading = "Rebooted NodeManagers";
-                      } else if (component.description === "Decommissioned") {
-                        tooltipMessage = TOOLTIP_MESSAGES.YARN.NODEMANAGER_DECOMMISSIONED;
-                        tooltipHeading = "Decommissioned NodeManagers";
-                      } else {
-                        // Fallback to component description for other cases
-                        tooltipMessage = component.descriptionKey
-                          ? yarnModel[component.descriptionKey as any]
-                            ? yarnModel[component.descriptionKey as any]
-                            : component.description
-                          : component.description;
-                        tooltipHeading = component.description;
-                      }
-
-                      return (
-                        <Col
-                          md={2}
-                          key={component.description || component.display_name}
-                          className="mt-2"
-                        >
-                          <Stack>
-                            <Tooltip
-                              message={tooltipMessage}
-                              heading={tooltipHeading}
-                              placement="top"
-                            >
-                              <h3 className="text-dark mb-0">
-                                {isObject(metricValue)
-                                  ? isEmpty(metricValue)
-                                    ? "n/a"
-                                    : JSON.stringify(metricValue)
-                                  : metricValue}
-                              </h3>
-                            </Tooltip>
-                            <div className="fs-12 text-light">{component.description}</div>
-                          </Stack>
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                </>
-              );
-            }
-          )}
-        </Row>
       </>
     );
   }
@@ -3840,8 +3168,6 @@ function ServiceComponents({
         return <KERBEROSSummary />;
       case "spark3":
         return <SPARK3Summary alerts={alerts} />;
-      case "ambari_metrics":
-        return <AMBARIMETRICSSummary alerts={alerts} />;
       case "ranger_kms":
         return <RANGER_KMSSummary alerts={alerts} />;
       case "trino":
@@ -3864,7 +3190,9 @@ function ServiceComponents({
         return <FlumeSummary />;
 
       default:
-        return <></>;
+        return (
+          <GenericServiceSummary serviceName={serviceName} alerts={alerts} />
+        );
     }
   }
   return (
@@ -3873,6 +3201,163 @@ function ServiceComponents({
         <h3 className="text-light">Components</h3>
       </Col>
       <Col>{renderComponents()}</Col>
+    </Row>
+  );
+}
+
+export function GenericServiceSummary({
+  serviceName,
+  alerts,
+}: {
+  serviceName: string;
+  alerts: any[];
+}) {
+  const { masterSlaveClientsData } = useContext(ServiceContext);
+  const navigate = useNavigate();
+  const components = Array.isArray(masterSlaveClientsData)
+    ? masterSlaveClientsData.filter(
+        (item: any) =>
+          item.ServiceComponentInfo?.service_name === serviceName.toUpperCase()
+      )
+    : [];
+
+  if (!components.length) {
+    return <div className="text-light">No components to display</div>;
+  }
+
+  const renderAlertBadge = (
+    componentName: string,
+    displayName: string,
+    maintenanceState = "OFF"
+  ) => {
+    const componentAlerts = getComponentAlerts(
+      alerts,
+      componentName,
+      maintenanceState
+    );
+    if (!componentAlerts.count) {
+      return null;
+    }
+
+    return (
+      <Badge
+        className="rounded-5 bg-danger cursor-pointer ms-2 fs-10"
+        onClick={() => {
+          modalManager.show(
+            <AlertsModal
+              alerts={componentAlerts.alerts}
+              navigate={navigate}
+              serviceName={serviceName.toUpperCase()}
+              displayName={displayName}
+            />
+          );
+        }}
+      >
+        {componentAlerts.count}
+      </Badge>
+    );
+  };
+
+  return (
+    <Row className="g-4">
+      {components.flatMap((component: any) => {
+        const info = component.ServiceComponentInfo || {};
+        const componentName = info.component_name || "";
+        const displayName = info.display_name || startCase(lowerCase(componentName));
+        const hostComponents = component.host_components || [];
+
+        if (info.category === "MASTER") {
+          return hostComponents.map((hostComponent: any) => {
+            const hostRoles = hostComponent.HostRoles || {};
+            const state = hostRoles.state || "UNKNOWN";
+            const maintenanceState = hostRoles.maintenance_state || "OFF";
+            const inMaintenance = maintenanceState !== "OFF";
+            const icon = inMaintenance
+              ? statusIconMap["Maintenance"]
+              : statusIconMap[lowerCase(state)];
+            const statusLabel =
+              startCase(state.toLowerCase()) === "Installed"
+                ? "Stopped"
+                : startCase(state.toLowerCase());
+
+            return (
+              <Col md={3} key={`${componentName}-${hostRoles.host_name}`}>
+                <Stack>
+                  <Stack direction="horizontal" className="align-items-center">
+                    {icon ? (
+                      <Tooltip
+                        message={
+                          inMaintenance
+                            ? TOOLTIP_MESSAGES.GENERAL.MAINTENANCE_MODE
+                            : TOOLTIP_MESSAGES.GENERAL.COMPONENT_HEALTH
+                        }
+                        heading="Component Status"
+                        placement="top"
+                      >
+                        <FontAwesomeIcon
+                          icon={icon.icon}
+                          className={`me-1 fw-bold fs-12 text-${
+                            icon.color || "secondary"
+                          }`}
+                        />
+                      </Tooltip>
+                    ) : null}
+                    <h3 className="text-dark mb-0">{statusLabel}</h3>
+                    {renderAlertBadge(
+                      componentName,
+                      displayName,
+                      maintenanceState
+                    )}
+                  </Stack>
+                  <Tooltip message={hostRoles.host_name} placement="top">
+                    <div
+                      className="custom-link text-uppercase fs-12 mt-2"
+                      onClick={() =>
+                        navigate(
+                          `/main/hosts/${encodeURIComponent(
+                            hostRoles.host_name
+                          )}/summary`
+                        )
+                      }
+                    >
+                      {displayName}
+                    </div>
+                  </Tooltip>
+                </Stack>
+              </Col>
+            );
+          });
+        }
+
+        const totalCount = Number(info.total_count) || hostComponents.length;
+        const isClient = info.category === "CLIENT";
+        const count = isClient
+          ? Number(info.installed_count) || 0
+          : Number(info.started_count) || 0;
+
+        return [
+          <Col md={3} key={componentName}>
+            <Stack>
+              <Stack direction="horizontal" className="align-items-center">
+                <h3 className="text-dark mb-0">
+                  {isClient ? `${count} Installed` : `${count}/${totalCount} Live`}
+                </h3>
+                {renderAlertBadge(componentName, displayName)}
+              </Stack>
+              <div
+                className="custom-link text-uppercase fs-12 mt-2"
+                onClick={() =>
+                  navigate(
+                    `/main/hosts/component/${encodeURIComponent(componentName)}`
+                  )
+                }
+              >
+                {pluralize(totalCount, displayName, "s", false)}
+              </div>
+            </Stack>
+          </Col>,
+        ];
+      })}
     </Row>
   );
 }

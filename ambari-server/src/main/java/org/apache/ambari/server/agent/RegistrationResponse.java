@@ -19,6 +19,7 @@
 package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -80,6 +81,9 @@ public class RegistrationResponse extends StompResponse {
   @JsonIgnore
   private List<StatusCommand> statusCommands = null;
 
+  @JsonProperty("serverCapabilities")
+  private List<String> serverCapabilities = Collections.emptyList();
+
   @JsonIgnore
   public RegistrationStatus getResponseStatus() {
     return response;
@@ -95,6 +99,14 @@ public class RegistrationResponse extends StompResponse {
 
   public void setStatusCommands(List<StatusCommand> statusCommands) {
     this.statusCommands = statusCommands;
+  }
+
+  public List<String> getServerCapabilities() {
+    return serverCapabilities;
+  }
+
+  public void setServerCapabilities(List<String> serverCapabilities) {
+    this.serverCapabilities = serverCapabilities;
   }
 
   /**

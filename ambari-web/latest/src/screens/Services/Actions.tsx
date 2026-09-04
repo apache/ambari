@@ -2336,7 +2336,6 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
           (serviceName === "HDFS" ||
             serviceName === "YARN" ||
             serviceName === "HIVE" ||
-            serviceName === "AMBARI_METRICS" ||
             serviceName === "SSM" ||
             serviceName === "HIVE" ||
             serviceName === "MAPREDUCE2") && (

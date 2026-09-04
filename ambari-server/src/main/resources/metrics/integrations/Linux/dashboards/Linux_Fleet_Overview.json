@@ -1,0 +1,404 @@
+{
+  "name": "Linux Fleet Overview",
+  "tags": "Linux host infrastructure",
+  "group_id": 0,
+  "ident": "LINUX_FLEET_OVERVIEW",
+  "id": 0,
+  "create_at": 0,
+  "create_by": "",
+  "update_at": 0,
+  "update_by": "",
+  "public": 0,
+  "public_cate": 0,
+  "built_in": 0,
+  "hide": 0,
+  "configs": {
+    "var": [],
+    "panels": [
+      {
+        "type": "row",
+        "id": "linux-fleet-health-row",
+        "name": "Fleet health",
+        "titleKey": "monitoring.dashboard.sections.linuxFleet.health",
+        "collapsed": false,
+        "layout": { "h": 1, "w": 24, "x": 0, "y": 0, "i": "linux-fleet-health-row", "isResizable": false },
+        "panels": []
+      },
+      {
+        "type": "stat",
+        "id": "linux-fleet-host-count",
+        "name": "Monitored hosts",
+        "layout": { "h": 4, "w": 6, "x": 0, "y": 1, "i": "linux-fleet-host-count", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count(max by (host) (ambari_agent_system_uptime_seconds{cluster=\"${cluster}\",ambari_target=\"host\"}))",
+            "legend": "Hosts",
+            "instant": true
+          }
+        ],
+        "custom": { "textMode": "valueAndName", "colorMode": "background", "calc": "lastNotNull", "graphMode": "none" },
+        "options": {
+          "standardOptions": { "util": "", "decimals": 0 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "blue" }] }
+        }
+      },
+      {
+        "type": "stat",
+        "id": "linux-fleet-oom-kills",
+        "name": "OOM kills in interval",
+        "layout": { "h": 4, "w": 6, "x": 6, "y": 1, "i": "linux-fleet-oom-kills", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum(increase(ambari_agent_oom_kills_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval]))",
+            "legend": "OOM kills",
+            "instant": true
+          }
+        ],
+        "custom": { "textMode": "valueAndName", "colorMode": "background", "calc": "lastNotNull", "graphMode": "none" },
+        "options": {
+          "standardOptions": { "util": "", "decimals": 0 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 1, "color": "red" }] }
+        }
+      },
+      {
+        "type": "stat",
+        "id": "linux-fleet-average-cpu",
+        "name": "Average CPU busy",
+        "layout": { "h": 4, "w": 6, "x": 12, "y": 1, "i": "linux-fleet-average-cpu", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "1 - avg(rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",cpu!=\"total\",mode=\"idle\"}[$__rate_interval]))",
+            "legend": "CPU busy",
+            "instant": true
+          }
+        ],
+        "custom": { "textMode": "valueAndName", "colorMode": "background", "calc": "lastNotNull", "graphMode": "area" },
+        "options": {
+          "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 1 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.7, "color": "orange" }, { "value": 0.9, "color": "red" }] }
+        }
+      },
+      {
+        "type": "stat",
+        "id": "linux-fleet-average-memory",
+        "name": "Average memory used",
+        "layout": { "h": 4, "w": 6, "x": 18, "y": 1, "i": "linux-fleet-average-memory", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "1 - avg(ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}) / clamp_min(avg(ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}), 1)",
+            "legend": "Memory used",
+            "instant": true
+          }
+        ],
+        "custom": { "textMode": "valueAndName", "colorMode": "background", "calc": "lastNotNull", "graphMode": "area" },
+        "options": {
+          "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 1 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.75, "color": "orange" }, { "value": 0.9, "color": "red" }] }
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-cpu-busy",
+        "name": "CPU busy ratio",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 5, "i": "linux-fleet-cpu-busy", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, 1 - avg by (host) (rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",cpu!=\"total\",mode=\"idle\"}[$__rate_interval])))",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-memory-used",
+        "name": "Memory used ratio",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 5, "i": "linux-fleet-memory-used", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, 1 - max by (host) (ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}) / clamp_min(max by (host) (ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}), 1))",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-load-per-cpu",
+        "name": "One-minute load per CPU",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 11, "i": "linux-fleet-load-per-cpu", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, max by (host) (ambari_agent_system_load1{cluster=\"${cluster}\",ambari_target=\"host\"}) / clamp_min(max by (host) (ambari_agent_system_cpu_count{cluster=\"${cluster}\",ambari_target=\"host\"}), 1))",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 2 } }
+      },
+      {
+        "type": "barchart",
+        "id": "linux-fleet-process-pressure",
+        "name": "Runnable and blocked processes",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 11, "i": "linux-fleet-process-pressure", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, max by (host) (ambari_agent_system_processes_running{cluster=\"${cluster}\",ambari_target=\"host\"}))",
+            "legend": "{{host}} running",
+            "instant": true
+          },
+          {
+            "refId": "B",
+            "expr": "topk(10, max by (host) (ambari_agent_system_processes_blocked{cluster=\"${cluster}\",ambari_target=\"host\"}))",
+            "legend": "{{host}} blocked",
+            "instant": true
+          }
+        ],
+        "custom": { "calc": "lastNotNull", "orientation": "horizontal", "sortOrder": "desc" },
+        "options": { "standardOptions": { "util": "", "min": 0, "decimals": 0 } }
+      },
+      {
+        "type": "row",
+        "id": "linux-fleet-storage-row",
+        "name": "Storage",
+        "titleKey": "monitoring.dashboard.sections.linuxFleet.storage",
+        "collapsed": false,
+        "layout": { "h": 1, "w": 24, "x": 0, "y": 17, "i": "linux-fleet-storage-row", "isResizable": false },
+        "panels": []
+      },
+      {
+        "type": "barGauge",
+        "id": "linux-fleet-filesystem-used",
+        "name": "Filesystem utilization ratio",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 18, "i": "linux-fleet-filesystem-used", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, 1 - max by (host, device, mountpoint) (ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}) / clamp_min(max by (host, device, mountpoint) (ambari_agent_filesystem_size_bytes{cluster=\"${cluster}\",ambari_target=\"host\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}), 1))",
+            "legend": "{{host}} {{mountpoint}}",
+            "instant": true
+          }
+        ],
+        "custom": { "displayMode": "basic", "calc": "lastNotNull", "sortOrder": "desc", "valueMode": "color" },
+        "options": {
+          "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 1 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.8, "color": "orange" }, { "value": 0.9, "color": "red" }] }
+        }
+      },
+      {
+        "type": "barchart",
+        "id": "linux-fleet-filesystem-available",
+        "name": "Lowest filesystem available capacity",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 18, "i": "linux-fleet-filesystem-available", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "bottomk(10, max by (host, device, mountpoint) (ambari_agent_filesystem_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\",device!~\"rootfs|overlay\",fstype!~\"tmpfs|devtmpfs|overlay|squashfs|ramfs|rootfs\"}))",
+            "legend": "{{host}} {{mountpoint}}",
+            "instant": true
+          }
+        ],
+        "custom": { "calc": "lastNotNull", "orientation": "horizontal", "sortOrder": "asc" },
+        "options": { "standardOptions": { "util": "bytesIEC", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-disk-throughput",
+        "name": "Top device disk throughput",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 24, "i": "linux-fleet-disk-throughput", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_disk_read_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}} read"
+          },
+          {
+            "refId": "B",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_disk_written_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}} write"
+          }
+        ],
+        "options": { "standardOptions": { "util": "bytesSecIEC", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-disk-iops",
+        "name": "Top device disk operation rate",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 24, "i": "linux-fleet-disk-iops", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_disk_reads_completed_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}} reads"
+          },
+          {
+            "refId": "B",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_disk_writes_completed_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}} writes"
+          }
+        ],
+        "options": { "standardOptions": { "util": "reqps", "min": 0 } }
+      },
+      {
+        "type": "gauge",
+        "id": "linux-fleet-disk-busy",
+        "name": "Disk busy ratio",
+        "layout": { "h": 6, "w": 24, "x": 0, "y": 30, "i": "linux-fleet-disk-busy", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_disk_io_time_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}}",
+            "instant": true
+          }
+        ],
+        "custom": { "textMode": "valueAndName", "calc": "lastNotNull" },
+        "options": {
+          "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 1 },
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 0.7, "color": "orange" }, { "value": 0.9, "color": "red" }] }
+        }
+      },
+      {
+        "type": "row",
+        "id": "linux-fleet-network-row",
+        "name": "Network and kernel",
+        "titleKey": "monitoring.dashboard.sections.linuxFleet.networkKernel",
+        "collapsed": false,
+        "layout": { "h": 1, "w": 24, "x": 0, "y": 36, "i": "linux-fleet-network-row", "isResizable": false },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-network-throughput",
+        "name": "Top interface network throughput",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 37, "i": "linux-fleet-network-throughput", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_network_receive_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}} receive"
+          },
+          {
+            "refId": "B",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_network_transmit_bytes_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}} transmit"
+          }
+        ],
+        "options": { "standardOptions": { "util": "bytesSecIEC", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-network-failures",
+        "name": "Top interface network failure rate",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 37, "i": "linux-fleet-network-failures", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_network_receive_errors_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval]) + rate(ambari_agent_network_receive_dropped_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}} receive"
+          },
+          {
+            "refId": "B",
+            "expr": "topk(10, max by (host, device) (rate(ambari_agent_network_transmit_errors_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval]) + rate(ambari_agent_network_transmit_dropped_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} {{device}} transmit"
+          }
+        ],
+        "options": { "standardOptions": { "util": "reqps", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-kernel-events",
+        "name": "Kernel event rate",
+        "layout": { "h": 6, "w": 12, "x": 0, "y": 43, "i": "linux-fleet-kernel-events", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, sum by (host) (rate(ambari_agent_system_context_switches_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} context switches"
+          },
+          {
+            "refId": "B",
+            "expr": "topk(10, sum by (host) (rate(ambari_agent_system_interrupts_total{cluster=\"${cluster}\",ambari_target=\"host\"}[$__rate_interval])))",
+            "legend": "{{host}} interrupts"
+          }
+        ],
+        "options": { "standardOptions": { "util": "cps", "min": 0 } }
+      },
+      {
+        "type": "timeseries",
+        "id": "linux-fleet-conntrack",
+        "name": "Conntrack utilization ratio",
+        "layout": { "h": 6, "w": 12, "x": 12, "y": 43, "i": "linux-fleet-conntrack", "isResizable": true },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(10, max by (host) (ambari_agent_conntrack_entries{cluster=\"${cluster}\",ambari_target=\"host\"}) / clamp_min(max by (host) (ambari_agent_conntrack_entries_limit{cluster=\"${cluster}\",ambari_target=\"host\"}), 1))",
+            "legend": "{{host}}"
+          }
+        ],
+        "options": { "standardOptions": { "util": "percentUnit", "min": 0, "max": 1, "decimals": 2 } }
+      }
+    ],
+    "version": "3.0.0",
+    "graphTooltip": "default",
+    "graphZoom": "default"
+  }
+}

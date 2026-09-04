@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "components": {
+    "HIVE_SERVER": {
+      "format": "jmx_json",
+      "path": "/jmx",
+      "profile": "telemetry-profiles/hiveserver2-3.1.json",
+      "endpoint": {
+        "policy": {
+          "configType": "hive-site",
+          "property": "hive.server2.webui.use.ssl",
+          "httpsValues": ["true"]
+        },
+        "http": {
+          "configType": "hive-site",
+          "property": "hive.server2.webui.port",
+          "defaultPort": 10002
+        },
+        "https": {
+          "configType": "hive-site",
+          "property": "hive.server2.webui.port",
+          "defaultPort": 10002
+        }
+      },
+      "auth": {
+        "principal": {
+          "configType": "hive-site",
+          "property": "hive.server2.authentication.spnego.principal"
+        },
+        "keytab": {
+          "configType": "hive-site",
+          "property": "hive.server2.authentication.spnego.keytab"
+        }
+      }
+    }
+  }
+}

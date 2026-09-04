@@ -121,8 +121,7 @@ const shippedThemeConditions = (): ShippedCondition[] => {
           visit(path);
         } else if (
           entry.name.endsWith(".json") &&
-          path.split("/").includes("themes") &&
-          !path.split("/").includes("AMBARI_METRICS")
+          path.split("/").includes("themes")
         ) {
           collectConditions(
             JSON.parse(readFileSync(path, "utf8")),

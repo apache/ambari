@@ -703,8 +703,6 @@
           "user_group": "hadoop",
           "repo_suse_rhel_template": "[{{repo_id}}]\nname={{repo_id}}\n{% if mirror_list %}mirrorlist={{mirror_list}}{% else %}baseurl={{base_url}}{% endif %}\n\npath=/\nenabled=1\ngpgcheck=0",
           "repo_ubuntu_template": "{{package_type}} {{base_url}} {{components}}",
-          "metrics_collector_external_hosts": "c6402.ambari.apache.org",
-          "metrics_collector_external_port": "6189",
           "override_uid" : "true",
           "fetch_nonlocal_groups": "true",
           "manage_dirs_on_root": "true",
@@ -721,16 +719,6 @@
             "hbase_log_dir": "/var/log/hbase",
             "hbase_java_io_tmpdir" : "/tmp",
             "hbase_regionserver_shutdown_timeout": "30"
-        },
-        "ganglia-env": {
-            "gmond_user": "nobody",
-            "ganglia_runtime_dir": "/var/run/ganglia",
-            "rrdcached_base_dir": "/var/lib/ganglia/rrds",
-            "rrdcached_flush_timeout": "7200",
-            "gmetad_user": "nobody",
-            "rrdcached_write_threads": "4",
-            "rrdcached_delay": "1800",
-            "rrdcached_timeout": "3600"
         },
         "zookeeper-env": {
           "zk_user": "zookeeper",
@@ -911,154 +899,9 @@
             "SSL_TRUSTSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-truststore.jks",
             "REPOSITORY_CONFIG_PASSWORD": "hadoop",
             "XAAUDIT.SOLR.MAX_QUEUE_SIZE": "1"
-        },
-        "ams-hbase-env": {
-            "hbase_pid_dir": "/var/run/ambari-metrics-collector/",
-            "regionserver_xmn_size": "256m",
-            "max_open_files_limit": "32768",
-            "hbase_master_maxperm_size": "128m",
-            "hbase_regionserver_xmn_ratio": "0.2",
-            "hbase_master_heapsize": "512m",
-            "hbase_regionserver_heapsize": "512m",
-            "hbase_log_dir": "/var/log/ambari-metrics-collector",
-            "hbase_master_xmn_size": "256m",
-            "content": "\n",
-            "hbase_regionserver_shutdown_timeout": "30"
-        },
-        "ams-log4j": {
-            "content": "\n"
-        },
-        "ams-hbase-site": {
-            "hbase.master.info.bindAddress": "0.0.0.0",
-            "hbase.zookeeper.property.dataDir": "${hbase.tmp.dir}/zookeeper",
-            "hbase.master.wait.on.regionservers.mintostart": "1",
-            "hbase.replication": "false",
-            "hbase.regionserver.global.memstore.lowerLimit": "0.3",
-            "hbase.hregion.memstore.block.multiplier": "4",
-            "hbase.hregion.memstore.flush.size": "134217728",
-            "hbase.rootdir": "hdfs://localhost:8020/apps/hbase/data",
-            "hbase.zookeeper.property.clientPort": "61181",
-            "phoenix.spool.directory": "${hbase.tmp.dir}/phoenix-spool",
-            "hbase.client.scanner.timeout.period": "900000",
-            "phoenix.groupby.maxCacheSize": "307200000",
-            "hbase.snapshot.enabled": "false",
-            "hbase.regionserver.global.memstore.upperLimit": "0.35",
-            "hbase_master_xmn_size": "128m",
-            "phoenix.query.spoolThresholdBytes": "12582912",
-            "zookeeper.session.timeout": "120000",
-            "hbase.tmp.dir": "/var/lib/ambari-metrics-collector/hbase-tmp",
-            "hfile.block.cache.size": "0.3",
-            "hbase.regionserver.port": "61320",
-            "hbase.regionserver.thread.compaction.small": "3",
-            "hbase.master.info.port": "61310",
-            "hbase.hregion.majorcompaction": "0",
-            "phoenix.query.maxGlobalMemoryPercentage": "15",
-            "hbase.zookeeper.quorum": "{{zookeeper_quorum_hosts}}",
-            "hbase.regionserver.info.port": "61330",
-            "hbase.hstore.blockingStoreFiles": "200",
-            "hbase.master.port": "61300",
-            "hbase.zookeeper.leaderport": "61388",
-            "hbase.regionserver.thread.compaction.large": "2",
-            "phoenix.query.timeoutMs": "1200000",
-            "hbase.local.dir": "${hbase.tmp.dir}/local",
-            "hbase.cluster.distributed": "true",
-            "zookeeper.session.timeout.localHBaseCluster": "20000",
-            "hbase.client.scanner.caching": "10000",
-            "phoenix.sequence.saltBuckets": "2",
-            "hbase.hstore.flusher.count": "2",
-            "hbase.zookeeper.peerport": "61288"
-        },
-        "ams-env": {
-            "ambari_metrics_user": "ams",
-            "metrics_monitor_log_dir": "/var/log/ambari-metrics-monitor",
-            "metrics_collector_log_dir": "/var/log/ambari-metrics-collector",
-            "metrics_monitor_pid_dir": "/var/run/ambari-metrics-monitor",
-            "content": "\n",
-            "metrics_collector_pid_dir": "/var/run/ambari-metrics-collector",
-            "metrics_collector_heapsize": "512m"
-        },
-        "ams-hbase-policy": {
-            "security.masterregion.protocol.acl": "*",
-            "security.admin.protocol.acl": "*",
-            "security.client.protocol.acl": "*"
-        },
-        "ams-hbase-log4j": {
-            "content": "\n"
-        },
-        "ams-site": {
-            "timeline.metrics.service.http.policy": "HTTPS_ONLY",
-            "timeline.metrics.host.aggregator.minute.ttl": "604800",
-            "timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier": "1",
-            "timeline.metrics.cluster.aggregator.daily.ttl": "63072000",
-            "timeline.metrics.cluster.aggregator.minute.timeslice.interval": "30",
-            "timeline.metrics.service.resultset.fetchSize": "2000",
-            "timeline.metrics.service.checkpointDelay": "60",
-            "timeline.metrics.host.aggregator.hourly.disabled": "false",
-            "timeline.metrics.cluster.aggregator.daily.interval": "86400",
-            "timeline.metrics.cluster.aggregator.hourly.ttl": "31536000",
-            "timeline.metrics.host.aggregator.daily.disabled": "false",
-            "timeline.metrics.hbase.compression.scheme": "SNAPPY",
-            "timeline.metrics.cluster.aggregator.hourly.interval": "3600",
-            "phoenix.spool.directory": "/tmp",
-            "timeline.metrics.host.aggregator.ttl": "86400",
-            "timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier": "2",
-            "timeline.metrics.service.cluster.aggregator.appIds": "datanode,nodemanager,hbase",
-            "timeline.metrics.service.webapp.address": "0.0.0.0:6188",
-            "timeline.metrics.cluster.aggregator.hourly.disabled": "false",
-            "timeline.metrics.aggregator.checkpoint.dir": "/var/lib/ambari-metrics-collector/checkpoint",
-            "timeline.metrics.hbase.data.block.encoding": "FAST_DIFF",
-            "timeline.metrics.cluster.aggregator.minute.ttl": "2592000",
-            "timeline.metrics.host.aggregator.minute.disabled": "false",
-            "phoenix.query.maxGlobalMemoryPercentage": "25",
-            "timeline.metrics.service.operation.mode": "distributed",
-            "timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier": "2",
-            "timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier": "2",
-            "timeline.metrics.host.aggregator.hourly.checkpointCutOffMultiplier": "2",
-            "timeline.metrics.cluster.aggregator.daily.disabled": "false",
-            "timeline.metrics.service.rpc.address": "0.0.0.0:60200",
-            "timeline.metrics.cluster.aggregator.minute.disabled": "false",
-            "timeline.metrics.host.aggregator.hourly.ttl": "2592000",
-            "timeline.metrics.host.aggregator.minute.interval": "120",
-            "timeline.metrics.service.default.result.limit": "5760",
-            "timeline.metrics.host.aggregator.daily.ttl": "31536000",
-            "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier": "1",
-            "timeline.metrics.daily.aggregator.minute.interval": "86400",
-            "timeline.metrics.cluster.aggregator.minute.interval": "120",
-            "timeline.metrics.host.aggregator.hourly.interval": "3600"
-        },
-        "ams-grafana-env": {
-            "metrics_grafana_log_dir": "/var/log/ambari-metrics-grafana",
-            "metrics_grafana_pid_dir": "/var/run/ambari-metrics-grafana",
-            "metrics_grafana_data_dir": "/var/lib/ambari-metrics-grafana",
-            "content": "\n",
-            "metrics_grafana_username" : "admin",
-            "metrics_grafana_password" : "admin"
-        },
-        "ams-ssl-server": {
-            "content": "\n"
-        },
-        "ams-ssl-client": {
-            "ssl.client.truststore.location": "/etc/security/clientKeys/all.jks",
-            "ssl.client.truststore.type": "jks",
-            "ssl.client.truststore.password": "bigdata"
-        },
-        "ams-grafana-ini": {
-            "content": "\n"
-        },
-        "hadoop-metrics2.properties": {
-            "content": "# Licensed to the Apache Software Foundation (ASF) under one or more\r\n# contributor license agreements. See the NOTICE file distributed with\r\n# this work for additional information regarding copyright ownership.\r\n# The ASF licenses this file to You under the Apache License, Version 2.0\r\n# (the \"License\"); you may not use this file except in compliance with\r\n# the License. You may obtain a copy of the License at\r\n#\r\n# http:\/\/www.apache.org\/licenses\/LICENSE-2.0\r\n#\r\n# Unless required by applicable law or agreed to in writing, software\r\n# distributed under the License is distributed on an \"AS IS\" BASIS,\r\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\r\n# See the License for the specific language governing permissions and\r\n# limitations under the License.\r\n\r\n# syntax: [prefix].[source|sink|jmx].[instance].[options]\r\n# See package.html for org.apache.hadoop.metrics2 for details\r\n\r\n{% if has_ganglia_server %}\r\n*.period=60\r\n\r\n*.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31\r\n*.sink.ganglia.period=10\r\n\r\n# default for supportsparse is false\r\n*.sink.ganglia.supportsparse=true\r\n\r\n.sink.ganglia.slope=jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both\r\n.sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40\r\n\r\n# Hook up to the server\r\nnamenode.sink.ganglia.servers={{ganglia_server_host}}:8661\r\ndatanode.sink.ganglia.servers={{ganglia_server_host}}:8659\r\njobtracker.sink.ganglia.servers={{ganglia_server_host}}:8662\r\ntasktracker.sink.ganglia.servers={{ganglia_server_host}}:8658\r\nmaptask.sink.ganglia.servers={{ganglia_server_host}}:8660\r\nreducetask.sink.ganglia.servers={{ganglia_server_host}}:8660\r\nresourcemanager.sink.ganglia.servers={{ganglia_server_host}}:8664\r\nnodemanager.sink.ganglia.servers={{ganglia_server_host}}:8657\r\nhistoryserver.sink.ganglia.servers={{ganglia_server_host}}:8666\r\njournalnode.sink.ganglia.servers={{ganglia_server_host}}:8654\r\nnimbus.sink.ganglia.servers={{ganglia_server_host}}:8649\r\nsupervisor.sink.ganglia.servers={{ganglia_server_host}}:8650\r\n\r\nresourcemanager.sink.ganglia.tagsForPrefix.yarn=Queue\r\n\r\n{% endif %}\r\n\r\n{% if has_metric_collector %}\r\n\r\n*.period={{metrics_collection_period}}\r\n*.sink.timeline.plugin.urls=file:\/\/\/usr\/lib\/ambari-metrics-hadoop-sink\/ambari-metrics-hadoop-sink.jar\r\n*.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink\r\n*.sink.timeline.period={{metrics_collection_period}}\r\n*.sink.timeline.sendInterval={{metrics_report_interval}}000\r\n*.sink.timeline.slave.host.name={{hostname}}\r\n*.sink.timeline.zookeeper.quorum={{zookeeper_quorum}}\r\n*.sink.timeline.protocol={{metric_collector_protocol}}\r\n*.sink.timeline.port={{metric_collector_port}}\r\n\r\n# HTTPS properties\r\n*.sink.timeline.truststore.path = {{metric_truststore_path}}\r\n*.sink.timeline.truststore.type = {{metric_truststore_type}}\r\n*.sink.timeline.truststore.password = {{metric_truststore_password}}\r\n\r\ndatanode.sink.timeline.collector={{metric_collector_hosts}}\r\nnamenode.sink.timeline.collector={{metric_collector_hosts}}\r\nresourcemanager.sink.timeline.collector={{metric_collector_hosts}}\r\nnodemanager.sink.timeline.collector={{metric_collector_hosts}}\r\njobhistoryserver.sink.timeline.collector={{metric_collector_hosts}}\r\njournalnode.sink.timeline.collector={{metric_collector_hosts}}\r\nmaptask.sink.timeline.collector={{metric_collector_hosts}}\r\nreducetask.sink.timeline.collector={{metric_collector_hosts}}\r\napplicationhistoryserver.sink.timeline.collector={{metric_collector_hosts}}\r\n\r\nresourcemanager.sink.timeline.tagsForPrefix.yarn=Queue\r\n\r\n{% if is_nn_client_port_configured %}\r\n# Namenode rpc ports customization\r\nnamenode.sink.timeline.metric.rpc.client.port={{nn_rpc_client_port}}\r\n{% endif %}\r\n{% if is_nn_dn_port_configured %}\r\nnamenode.sink.timeline.metric.rpc.datanode.port={{nn_rpc_dn_port}}\r\n{% endif %}\r\n{% if is_nn_healthcheck_port_configured %}\r\nnamenode.sink.timeline.metric.rpc.healthcheck.port={{nn_rpc_healthcheck_port}}\r\n{% endif %}\r\n\r\n{% endif %}"
         }
     },
     "configurationAttributes": {
-        "ams-hbase-env": {},
-        "ams-hbase-security-site": {},
-        "ams-log4j": {},
-        "ams-hbase-site": {},
-        "ams-hbase-policy": {},
-        "ams-hbase-log4j": {},
-        "ams-site": {},
-        "ams-ssl-server": {},
-        "ams-ssl-client": {},
         "sqoop-site": {},
         "yarn-site": {
         "final": {
@@ -1140,36 +983,6 @@
       }
     },
     "configurationTags": {
-        "ams-hbase-env": {
-            "tag": "version1"
-        },
-        "ams-hbase-security-site": {
-            "tag": "version1"
-        },
-        "ams-hbase-site": {
-            "tag": "version1"
-        },
-        "ams-env": {
-            "tag": "version1"
-        },
-        "ams-site": {
-            "tag": "version1"
-        },
-        "ams-ssl-server": {
-            "tag": "version1"
-        },
-        "ams-ssl-client": {
-            "tag": "version1"
-        },
-        "ams-hbase-policy": {
-            "tag": "version1"
-        },
-        "ams-log4j": {
-            "tag": "version1"
-        },
-        "ams-hbase-log4j": {
-            "tag": "version1"
-        },
         "capacity-scheduler": {
             "tag": "version1"
         },
@@ -1254,9 +1067,6 @@
         "slave_hosts": [
             "c6402.ambari.apache.org"
         ],
-        "ganglia_server_host": [
-            "c6401.ambari.apache.org"
-        ],
         "hive_server_hosts": [
             "c6402.ambari.apache.org"
         ],
@@ -1277,10 +1087,6 @@
             "c6402.ambari.apache.org"
         ],
         "supervisor_hosts": [
-            "c6401.ambari.apache.org",
-            "c6402.ambari.apache.org"
-        ],
-        "ganglia_monitor_hosts": [
             "c6401.ambari.apache.org",
             "c6402.ambari.apache.org"
         ],
@@ -1326,9 +1132,6 @@
         ],
         "falcon_server_hosts": [
             "c6402.ambari.apache.org"
-        ],
-        "metrics_collector_hosts": [
-            "c6401.ambari.apache.org"
         ]
     }
 }

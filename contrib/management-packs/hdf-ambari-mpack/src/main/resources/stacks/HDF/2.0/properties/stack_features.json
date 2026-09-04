@@ -93,11 +93,6 @@
       "min_version": "0.2.0.0"
     },
     {
-      "name": "storm_ams",
-      "description": "Storm AMS integration (AMBARI-10710)",
-      "min_version": "0.2.0.0"
-    },
-    {
       "name": "kafka_listeners",
       "description": "Kafka listeners (AMBARI-10984)",
       "min_version": "0.3.0.0"

@@ -20,7 +20,7 @@ import { useContext, useEffect, useState } from "react";
 import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -129,15 +129,15 @@ export const useHiveConfigUpdater = () => {
         masterComponents.push(masterComponentDataWithState);
       } else {
         const hiveClientsInstalled = componentData.installedCount;
-        currentConfig[ServiceComponentMetricsEnums.HIVE.hiveClients] =
+        currentConfig[ServiceComponentFields.HIVE.hiveClients] =
           hiveClientsInstalled;
         clientComponents.push(componentData);
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.HIVE.masterComponents] =
+    currentConfig[ServiceComponentFields.HIVE.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.HIVE.clientComponents] =
+    currentConfig[ServiceComponentFields.HIVE.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["hive"], currentConfig)) {
@@ -169,8 +169,8 @@ export const useHiveConfigUpdater = () => {
     }
     if (
         latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)
-        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
+        (componentFinishStates.includes(latestHostOperationMessage.state)
+        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state)))
     ) {
       await updateServiceMaintenanceState(latestHostOperationMessage.maintenance_state);
       await updateAlertsAndServiceStateData();
@@ -273,7 +273,7 @@ export const useHiveConfigUpdater = () => {
       }
 
       const currentConfig = cloneDeep(allServiceModels["hive"]);
-      currentConfig[ServiceComponentMetricsEnums.HIVE.hiveServer2JDBCURL] = hiveServer2JDBCURL;
+      currentConfig[ServiceComponentFields.HIVE.hiveServer2JDBCURL] = hiveServer2JDBCURL;
       setHiveJDBCURL(hiveServer2JDBCURL);
       
       if (!isEqual(allServiceModels["hive"], currentConfig)) {

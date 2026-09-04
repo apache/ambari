@@ -46,8 +46,6 @@ if stack_version_buildnum is not None:
 # params from nifi-ambari-config
 nifi_initial_mem = config['configurations']['nifi-ambari-config']['nifi.initial_mem']
 nifi_max_mem = config['configurations']['nifi-ambari-config']['nifi.max_mem']
-nifi_ambari_reporting_frequency = config['configurations']['nifi-ambari-config']['nifi.ambari_reporting_frequency']
-nifi_ambari_reporting_enabled = config['configurations']['nifi-ambari-config']['nifi.ambari_reporting_enabled']
 
 # note: nifi.node.port and nifi.node.ssl.port must be defined in same xml file for quicklinks to work
 nifi_node_port = config['configurations']['nifi-ambari-config']['nifi.node.port']
@@ -188,9 +186,6 @@ nifi_properties = config['configurations']['nifi-properties'].copy()
 nifi_kerberos_authentication_expiration = config['configurations']['nifi-properties']['nifi.kerberos.spnego.authentication.expiration']
 nifi_kerberos_realm = default("/configurations/kerberos-env/realm", None)
 
-# params from nifi-flow
-nifi_flow_content = config['configurations']['nifi-flow-env']['content']
-
 # params from nifi-state-management-env
 nifi_state_management_content = config['configurations']['nifi-state-management-env']['content']
 
@@ -208,15 +203,6 @@ nifi_boostrap_notification_content = config['configurations']['nifi-bootstrap-no
 
 #autodetect jdk home
 jdk64_home=config['hostLevelParams']['java_home']
-
-#autodetect ambari server for metrics
-if 'metrics_collector_hosts' in config['clusterHostInfo']:
-  metrics_collector_host = str(config['clusterHostInfo']['metrics_collector_hosts'][0])
-  metrics_collector_port = str(get_port_from_url(config['configurations']['ams-site']['timeline.metrics.service.webapp.address']))
-else:
-  metrics_collector_host = ''
-  metrics_collector_port = ''
-
 
 #detect zookeeper_quorum
 zookeeper_port=default('/configurations/zoo.cfg/clientPort', None)

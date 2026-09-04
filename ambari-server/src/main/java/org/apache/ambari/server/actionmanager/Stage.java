@@ -538,8 +538,7 @@ public class Stage {
   synchronized float getSuccessFactor(Role r) {
     Float f = successFactors.get(r);
     if (f == null) {
-      if (r.equals(Role.DATANODE) || r.equals(Role.TASKTRACKER) || r.equals(Role.GANGLIA_MONITOR) ||
-          r.equals(Role.HBASE_REGIONSERVER)) {
+      if (r.equals(Role.DATANODE) || r.equals(Role.TASKTRACKER) || r.equals(Role.HBASE_REGIONSERVER)) {
         return (float) 0.5;
       } else {
         return 1;

@@ -399,7 +399,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -440,7 +440,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -476,7 +476,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state,host_components/metrics/dfs/FSNamesystem/HAState&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -540,7 +540,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state,host_components/metrics/hbase/master/IsActiveMaster&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -611,7 +611,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state,host_components/HostRoles/ha_state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -677,7 +677,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -718,7 +718,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -759,7 +759,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -806,45 +806,6 @@ export const useLazyQuicklinks = (serviceName: string) => {
     return null;
   }, []);
 
-  // Get Ambari Metrics Grafana status information (following useAmbariMetricsConfigUpdater pattern)
-  const getAmbariMetricsGrafanaStatus = useCallback(async () => {
-    // Always try to get Grafana status regardless of current service (needed for cross-service quicklinks)
-
-    try {
-      const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
-      const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
-          clusterName,
-          fields
-        );
-
-      const grafana = find(
-        response.data.items,
-        (item) =>
-          get(item, "ServiceComponentInfo.service_name") === "AMBARI_METRICS" &&
-          get(item, "ServiceComponentInfo.component_name") === "METRICS_GRAFANA"
-      );
-
-      let grafanaServers: any[] = [];
-
-      if (grafana && grafana.host_components) {
-        grafana.host_components.forEach((hostComponent: any) => {
-          const hostComponentData = {
-            componentName: "METRICS_GRAFANA",
-            hostName: get(hostComponent, "HostRoles.host_name"),
-            state: get(hostComponent, "HostRoles.state"),
-          };
-
-          grafanaServers.push(hostComponentData);
-        });
-      }
-
-      return { grafanaServers };
-    } catch (error) {
-      return { grafanaServers: [] as any[] };
-    }
-  }, [serviceName, clusterName]);
-
   // Get Spark3 JobHistoryServer status information (following useSpark3ConfigUpdater pattern)
   const getSpark3JobHistoryServerStatus = useCallback(async () => {
     if (serviceName.toUpperCase() !== "SPARK3") {
@@ -854,7 +815,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -896,7 +857,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -939,7 +900,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
       // Get basic component info first
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -1021,7 +982,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -1062,7 +1023,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -1106,7 +1067,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
     try {
       const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
       const response =
-        await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+        await ServiceApi.getAllServiceComponents(
           clusterName,
           fields
         );
@@ -1154,7 +1115,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
       try {
         const componentFields = `ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,ServiceComponentInfo/total_count,host_components/HostRoles/host_name,host_components/HostRoles/state&minimal_response=true`;
         const componentResponse =
-          await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+          await ServiceApi.getAllServiceComponents(
             clusterName,
             componentFields
           );
@@ -1207,7 +1168,6 @@ export const useLazyQuicklinks = (serviceName: string) => {
       let mapReduce2Status = { jobHistoryServers: [] as any[] };
       let hiveStatus = { hiveServers: [] as any[] };
       let rangerStatus = { rangerAdmins: [] as any[] };
-      let ambariMetricsStatus = { grafanaServers: [] as any[] };
       let spark3Status = { spark3JobHistoryServers: [] as any[] };
       let trinoStatus = { trinoCoordinators: [] as any[] };
       let ssmStatus = { smartServers: [] as any[] };
@@ -1229,12 +1189,8 @@ export const useLazyQuicklinks = (serviceName: string) => {
         mapReduce2Status = await getMapReduce2JobHistoryServerStatus();
       } else if (serviceName.toUpperCase() === "HIVE") {
         hiveStatus = await getHiveServer2Status();
-        // Also load Ambari Metrics status for Hive Dashboard (Grafana) link
-        ambariMetricsStatus = await getAmbariMetricsGrafanaStatus();
       } else if (serviceName.toUpperCase() === "RANGER") {
         rangerStatus = await getRangerAdminStatus();
-      } else if (serviceName.toUpperCase() === "AMBARI_METRICS") {
-        ambariMetricsStatus = await getAmbariMetricsGrafanaStatus();
       } else if (serviceName.toUpperCase() === "SPARK3") {
         spark3Status = await getSpark3JobHistoryServerStatus();
       } else if (serviceName.toUpperCase() === "TRINO") {
@@ -1616,12 +1572,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
                 let hostForComponent = null;
 
                 // Check different service statuses based on component name
-                if (link.component_name === "METRICS_GRAFANA") {
-                  hostForComponent = ambariMetricsStatus.grafanaServers.find(
-                    (server: any) =>
-                      server.componentName === link.component_name
-                  );
-                } else if (link.component_name === "HIVE_SERVER") {
+                if (link.component_name === "HIVE_SERVER") {
                   hostForComponent = hiveStatus.hiveServers.find(
                     (server: any) =>
                       server.componentName === link.component_name
@@ -1649,12 +1600,7 @@ export const useLazyQuicklinks = (serviceName: string) => {
                 
                 // Get HA state from the host component
                 let haState = undefined;
-                if (link.component_name === "METRICS_GRAFANA") {
-                  const grafanaServer = ambariMetricsStatus.grafanaServers.find(
-                    (server: any) => server.componentName === link.component_name
-                  );
-                  haState = grafanaServer?.haState;
-                } else if (link.component_name === "HIVE_SERVER") {
+                if (link.component_name === "HIVE_SERVER") {
                   const hiveServer = hiveStatus.hiveServers.find(
                     (server: any) => server.componentName === link.component_name
                   );
@@ -1704,27 +1650,6 @@ export const useLazyQuicklinks = (serviceName: string) => {
                   componentName: link.component_name,
                 });
               }
-            });
-          });
-        } else if (serviceName.toUpperCase() === "AMBARI_METRICS") {
-          // Process Ambari Metrics Grafana (following useAmbariMetricsConfigUpdater pattern)
-
-          ambariMetricsStatus.grafanaServers.forEach((grafanaServer: any) => {
-            links.forEach((link: any) => {
-              if (link.removed || !link.visible) return;
-
-              const finalUrl = reconstructURL(
-                link,
-                configurations,
-                grafanaServer.hostName,
-                protocolConfig
-              );
-              processedLinks.push({
-                label: link.label,
-                url: finalUrl,
-                hostName: grafanaServer.hostName,
-                componentName: link.component_name,
-              });
             });
           });
         } else if (serviceName.toUpperCase() === "SPARK3") {
@@ -1976,7 +1901,6 @@ export const useLazyQuicklinks = (serviceName: string) => {
       getHiveServer2Status,
       getRangerAdminStatus,
       getRangerExternalUrl,
-      getAmbariMetricsGrafanaStatus,
       getSpark3JobHistoryServerStatus,
       getTrinoCoordinatorStatus,
       getSSMSmartServerStatus,

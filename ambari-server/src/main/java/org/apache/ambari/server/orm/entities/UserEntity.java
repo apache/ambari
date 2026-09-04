@@ -96,9 +96,6 @@ public class UserEntity {
   })
   private PrincipalEntity principal;
 
-  @Column(name = "active_widget_layouts")
-  private String activeWidgetLayouts;
-
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private List<UserAuthenticationEntity> authenticationEntities = new ArrayList<>();
 
@@ -277,14 +274,6 @@ public class UserEntity {
    */
   public void setPrincipal(PrincipalEntity principal) {
     this.principal = principal;
-  }
-
-  public String getActiveWidgetLayouts() {
-    return activeWidgetLayouts;
-  }
-
-  public void setActiveWidgetLayouts(String activeWidgetLayouts) {
-    this.activeWidgetLayouts = activeWidgetLayouts;
   }
 
   public List<UserAuthenticationEntity> getAuthenticationEntities() {

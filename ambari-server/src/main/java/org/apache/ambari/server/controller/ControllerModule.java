@@ -83,8 +83,6 @@ import org.apache.ambari.server.controller.internal.ViewInstanceResourceProvider
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
-import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheEntryFactory;
-import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
@@ -98,8 +96,6 @@ import org.apache.ambari.server.hooks.users.UserCreatedEvent;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
-import org.apache.ambari.server.metrics.system.MetricsService;
-import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
 import org.apache.ambari.server.mpack.MpackManagerFactory;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
@@ -411,16 +407,12 @@ public class ControllerModule extends AbstractModule {
     bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
     bind(DBAccessor.class).to(DBAccessorImpl.class);
     bind(ViewInstanceHandlerList.class).to(AmbariHandlerList.class);
-    bind(TimelineMetricCacheProvider.class);
-    bind(TimelineMetricCacheEntryFactory.class);
     bind(SecurityConfigurationFactory.class).in(Scopes.SINGLETON);
 
     bind(PersistedState.class).to(PersistedStateImpl.class);
 
     // factory to create LoggingRequestHelper instances for LogSearch integration
     bind(LoggingRequestHelperFactory.class).to(LoggingRequestHelperFactoryImpl.class);
-
-    bind(MetricsService.class).to(MetricsServiceImpl.class).in(Scopes.SINGLETON);
 
     requestStaticInjection(DatabaseConsistencyCheckHelper.class);
     requestStaticInjection(KerberosChecker.class);

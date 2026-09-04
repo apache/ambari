@@ -47,17 +47,6 @@ class TestExecutionCommand(TestCase):
     module_name = self.__execution_command.get_module_name()
     self.assertEqual(module_name, "HDFS")
 
-  # TODO : Check if this will be part of _hosts info in clusterHostInfo.
-  """
-    def test_get_oozie_server_hosts(self):
-        oozie_server = self.__execution_command.get_component_hosts('oozie_server')
-        self.assertEqual(oozie_server, 'host2')
-
-    def test_get_ganglia_server_hosts(self):
-        ganglia_server_hosts = self.__execution_command.get_component_hosts('ganglia_server')
-        self.assertEqual(ganglia_server_hosts, 'host1')
-    """
-
   def test_get_java_version(self):
     java_version = self.__execution_command.get_java_version()
     self.assertEqual(java_version, 8)

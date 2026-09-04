@@ -43,10 +43,8 @@ import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.jmx.JMXHostProvider;
 import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
-import org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -668,35 +666,9 @@ public class JMXPropertyProviderTest {
   }
 
   public static class TestMetricHostProvider implements MetricHostProvider {
-
-    @Override
-    public String getCollectorHostName(String clusterName, MetricsService service) throws SystemException {
-      return null;
-    }
-
     @Override
     public String getHostName(String clusterName, String componentName) {
       return null;
-    }
-
-    @Override
-    public String getCollectorPort(String clusterName, MetricsService service) throws SystemException {
-      return null;
-    }
-
-    @Override
-    public boolean isCollectorHostLive(String clusterName, MetricsService service) throws SystemException {
-      return false;
-    }
-
-    @Override
-    public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
-      return false;
-    }
-
-    @Override
-    public boolean isCollectorHostExternal(String clusterName) {
-      return false;
     }
   }
 }

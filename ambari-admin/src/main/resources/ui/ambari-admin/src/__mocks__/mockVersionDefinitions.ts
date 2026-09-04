@@ -109,14 +109,6 @@ export default {
                         ]
                     },
                     {
-                        "name": "AMBARI_METRICS",
-                        "display_name": "Ambari Metrics",
-                        "comment": "A system for metrics collection that provides storage and retrieval capability for metrics collected from the cluster\n      ",
-                        "versions": [
-                            "0.2.0"
-                        ]
-                    },
-                    {
                         "name": "ZOOKEEPER",
                         "display_name": "ZooKeeper",
                         "comment": "Centralized service which provides highly reliable distributed coordination",
@@ -809,14 +801,6 @@ export default {
                         "comment": "Tez is the next generation Hadoop Query Processing framework written on top of YARN.",
                         "versions": [
                             "0.10.2"
-                        ]
-                    },
-                    {
-                        "name": "AMBARI_METRICS",
-                        "display_name": "Ambari Metrics",
-                        "comment": "A system for metrics collection that provides storage and retrieval capability for metrics collected from the cluster\n      ",
-                        "versions": [
-                            "0.2.1"
                         ]
                     },
                     {
@@ -1554,5 +1538,4 @@ export default {
         }
     ]
 }
-
 

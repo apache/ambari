@@ -105,10 +105,6 @@
   export PID_DIR={{kafka_pid_dir_shell}}
   export LOG_DIR={{kafka_log_dir_shell}}
   export KAFKA_OPTS={{kafka_opts_shell}}
-  # Add kafka sink to classpath and related depenencies
-  if [ -e "/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar" ]; then
-    export CLASSPATH="$CLASSPATH:/usr/lib/ambari-metrics-kafka-sink/ambari-metrics-kafka-sink.jar:/usr/lib/ambari-metrics-kafka-sink/lib/*"
-  fi
   {% if stack_supports_kafka_env_include_ranger_script %}
   if [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then
   . /etc/kafka/conf/kafka-ranger-env.sh

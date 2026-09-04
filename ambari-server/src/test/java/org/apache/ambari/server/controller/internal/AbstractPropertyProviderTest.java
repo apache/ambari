@@ -37,14 +37,15 @@ public class AbstractPropertyProviderTest {
 
   @Test
   public void testGetComponentMetrics() {
-    Map<String, Map<String, PropertyInfo>> componentMetrics = PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent);
+    Map<String, Map<String, PropertyInfo>> componentMetrics = PropertyHelper.getJMXPropertyIds(Resource.Type.HostComponent);
     AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
     Assert.assertEquals(componentMetrics, provider.getComponentMetrics());
   }
 
   @Test
   public void testGetPropertyInfoMap() {
-    AbstractPropertyProvider provider = new TestPropertyProvider(PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent));
+    AbstractPropertyProvider provider = new TestPropertyProvider(
+      PropertyHelper.getSQLServerPropertyIds(Resource.Type.HostComponent));
 
     // specific property
     Map<String, PropertyInfo> propertyInfoMap = provider.getPropertyInfoMap("NAMENODE", "metrics/cpu/cpu_aidle");
@@ -112,18 +113,18 @@ public class AbstractPropertyProviderTest {
   @Test
   public void testUpdateComponentMetricMapHDP1() {
     Map<String, Map<String, PropertyInfo>> componentMetrics =
-      PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent);
+      PropertyHelper.getSQLServerPropertyIds(Resource.Type.HostComponent);
 
     AbstractPropertyProvider provider = new TestPropertyProvider(componentMetrics);
 
     Map<String, PropertyInfo> flumeMetrics = provider.getComponentMetrics().get(
-      "FLUME_HANDLER");
+      "FLUME_SERVER");
 
     int metricsBefore = flumeMetrics.size();
     String specificMetric = "metrics/flume/arg1/CHANNEL/arg2/ChannelCapacity";
     String specificPropertyInfoId = "arg1.CHANNEL.arg2.ChannelCapacity";
     Map<String, PropertyInfo> componentMetricMap =
-      provider.getComponentMetrics().get("FLUME_HANDLER");
+      provider.getComponentMetrics().get("FLUME_SERVER");
 
     Assert.assertNull(flumeMetrics.get(specificMetric));
 

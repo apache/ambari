@@ -22,11 +22,6 @@ package org.apache.ambari.server.state.alert;
  */
 public enum SourceType {
   /**
-   * Source is from ams metric data.
-   */
-  AMS,
-
-  /**
    * Source is from metric data.
    */
   METRIC,

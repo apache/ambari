@@ -177,7 +177,6 @@ public class StageUtils {
     put2componentToClusterInfoKeyMap("WEBHCAT_SERVER");
     put2componentToClusterInfoKeyMap("MYSQL_SERVER");
     put2componentToClusterInfoKeyMap("DASHBOARD");
-    put2componentToClusterInfoKeyMap("GANGLIA_SERVER");
     put2componentToClusterInfoKeyMap("DATANODE");
     put2componentToClusterInfoKeyMap("TASKTRACKER");
     put2componentToClusterInfoKeyMap("ACCUMULO_MASTER");

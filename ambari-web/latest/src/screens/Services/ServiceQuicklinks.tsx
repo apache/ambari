@@ -232,7 +232,6 @@ function ServiceQuicklinks({
     // Handle YARN HA mode
     // else if (
     //   serviceName.toLowerCase() === "yarn" &&
-    //   serviceModel.isRMHaEnabled
     // ) {
     //   // For YARN, the pattern is typically yarn.resourcemanager.webapp.address.rm1
     //   if (propertyToUpdate === "yarn.resourcemanager.webapp.address") {

@@ -1,0 +1,42 @@
+{
+  "beans": [
+    {
+      "name": "Hadoop:service=HBase,name=Master,sub=Server",
+      "averageLoad": 125.0,
+      "numRegionServers": 1,
+      "numDeadRegionServers": 0,
+      "numDrainingRegionServers": 0,
+      "tag.isActiveMaster": "true",
+      "clusterRequests": 777,
+      "masterStartTime": 1787882801033
+    },
+    {
+      "name": "Hadoop:service=HBase,name=Master,sub=AssignmentManager",
+      "ritCount": 0,
+      "ritCountOverThreshold": 0
+    },
+    {
+      "name": "Hadoop:service=HBase,name=JvmMetrics",
+      "MemHeapUsedM": 182.33856,
+      "MemHeapMaxM": 512.0,
+      "MemNonHeapUsedM": 116.296394,
+      "GcCount": 37,
+      "GcTimeMillis": 816,
+      "ThreadsRunnable": 33,
+      "ThreadsBlocked": 0,
+      "ThreadsWaiting": 103,
+      "ThreadsTimedWaiting": 44
+    },
+    {
+      "name": "Hadoop:service=HBase,name=Master,sub=IPC",
+      "queueSize": 0,
+      "numOpenConnections": 2,
+      "numActiveHandler": 0,
+      "numCallsInGeneralQueue": 0,
+      "numCallsInPriorityQueue": 0,
+      "numCallsInReplicationQueue": 0,
+      "ProcessCallTime_mean": 0,
+      "ProcessCallTime_99th_percentile": 1
+    }
+  ]
+}

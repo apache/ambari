@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constants";
@@ -136,9 +136,9 @@ export const useSSMConfigUpdater = () => {
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.SSM.masterComponents] =
+    currentConfig[ServiceComponentFields.SSM.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.SSM.slaveComponents] =
+    currentConfig[ServiceComponentFields.SSM.slaveComponents] =
       slaveComponents;
 
     if (!isEqual(allServiceModels["ssm"], currentConfig)) {
@@ -147,7 +147,6 @@ export const useSSMConfigUpdater = () => {
     }
   };
 
-  //check for updating metrics monitor
   //@ts-ignore
   const parseWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;
@@ -201,8 +200,8 @@ export const useSSMConfigUpdater = () => {
         }
       });
       currentConfig[
-        ServiceComponentMetricsEnums.SSM
-          .smartServers as keyof typeof ServiceComponentMetricsEnums.SSM
+        ServiceComponentFields.SSM
+          .smartServers as keyof typeof ServiceComponentFields.SSM
       ] = smartServers;
     }
     if (!isEqual(allServiceModels["ssm"], currentConfig)) {
@@ -236,8 +235,8 @@ export const useSSMConfigUpdater = () => {
     }
     if (
         latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)
-        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
+        (componentFinishStates.includes(latestHostOperationMessage.state)
+        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state)))
     ) {
       await updateServiceMaintenanceState(latestHostOperationMessage.maintenance_state);
       await updateAlertsAndServiceStateData();
@@ -255,7 +254,6 @@ export const useSSMConfigUpdater = () => {
   useEffect(() => {
     //pollServiceComponentInfoApi();
     findMasterSlaveComponents();
-    //updateAmbariMetricsHostComponentsData();
   }, []);
 
   useEffect(() => {

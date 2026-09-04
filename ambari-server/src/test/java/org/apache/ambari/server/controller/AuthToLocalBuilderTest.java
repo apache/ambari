@@ -538,8 +538,6 @@ public class AuthToLocalBuilderTest {
             "RULE:[1:$1@$0](.*@FOOBAR.COM)s/@.*//\n" +
             "RULE:[1:$1@$0](.*@HW.HDP)s/@.*//\n" +
             "RULE:[2:$1@$0](accumulo@EXAMPLE.COM)s/.*/accumulo/\n" +
-            "RULE:[2:$1@$0](amshbase@EXAMPLE.COM)s/.*/ams/\n" +
-            "RULE:[2:$1@$0](amszk@EXAMPLE.COM)s/.*/ams/\n" +
             "RULE:[2:$1@$0](dn@EXAMPLE.COM)s/.*/hdfs/\n" +
             "RULE:[2:$1@$0](falcon@EXAMPLE.COM)s/.*/falcon/\n" +
             "RULE:[2:$1@$0](hbase@EXAMPLE.COM)s/.*/hbase/\n" +
@@ -549,6 +547,8 @@ public class AuthToLocalBuilderTest {
             "RULE:[2:$1@$0](nn@EXAMPLE.COM)s/.*/hdfs/\n" +
             "RULE:[2:$1@$0](oozie@EXAMPLE.COM)s/.*/oozie/\n" +
             "RULE:[2:$1@$0](rm@EXAMPLE.COM)s/.*/yarn/\n" +
+            "RULE:[2:$1@$0](servicehbase@EXAMPLE.COM)s/.*/hbase/\n" +
+            "RULE:[2:$1@$0](servicezk@EXAMPLE.COM)s/.*/zookeeper/\n" +
             "RULE:[2:$1@$0](yarn@EXAMPLE.COM)s/.*/yarn/\n" +
             "DEFAULT";
 
