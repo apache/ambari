@@ -85,30 +85,30 @@
     <maven.version>3.9.0</maven.version>
     <apache-rat-plugin.version>0.18</apache-rat-plugin.version>
     <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
-    <buildnumber-maven-plugin-version>3.2.1</buildnumber-maven-plugin-version>
+    <buildnumber-maven-plugin-version>3.3.0</buildnumber-maven-plugin-version>
     <exec-maven-plugin.version>3.6.3</exec-maven-plugin.version>
     <flatten-maven-plugin.version>1.8.0</flatten-maven-plugin.version>
     <jdeb.version>1.14</jdeb.version>
-    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
-    <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
-    <maven-dependency-plugin.version>3.9.0</maven-dependency-plugin.version>
-    <maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
+    <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
+    <cyclonedx-maven-plugin.version>2.9.3</cyclonedx-maven-plugin.version>
+    <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
+    <maven-failsafe-plugin.version>3.5.6</maven-failsafe-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
-    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+    <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
     <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
     <maven-antrun-plugin.version>3.2.0</maven-antrun-plugin.version>
     <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
-    <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
-    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    <maven-clean-plugin.version>2.6.1</maven-clean-plugin.version>
+    <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
     <maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
-    <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-    <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
-    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
-    <maven-war-plugin.version>3.5.0</maven-war-plugin.version>
-    <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
+    <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
+    <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
+    <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+    <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
+    <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
+    <properties-maven-plugin.version>1.3.0</properties-maven-plugin.version>
     <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
     <deb.architecture>${ambari.deb.architecture}</deb.architecture>
@@ -127,8 +127,8 @@
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
     <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
     <assemblyPhase>package</assemblyPhase> <!-- use -DassemblyPhase=none to skip building tarball, useful when you want purely compile jar -->
-    <rpm-maven-plugin.version>2.1.4</rpm-maven-plugin.version>
-    <eclipselink.version>4.0.2</eclipselink.version>
+    <rpm-maven-plugin.version>2.3.0</rpm-maven-plugin.version>
+    <eclipselink.version>4.0.9</eclipselink.version>
   </properties>
   <repositories>
     <repository>
@@ -911,7 +911,7 @@ instead of a SNAPSHOT. -->
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
-            <version>3.1.0</version>
+            <version>3.6.3</version>
             <executions>
               <execution>
                 <id>ruff-format</id>
