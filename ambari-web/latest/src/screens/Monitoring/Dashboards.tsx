@@ -22,7 +22,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClone, faDownload, faPlus, faSearch, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { saveAs } from "file-saver";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MetricsApi from "../../api/metricsApi";
 import { AppContext } from "../../store/context";
 import { useAuth } from "../../hooks/useAuth";
@@ -32,6 +32,7 @@ import { normalizeDashboardPayload, parseDashboardPayload } from "./utils";
 const emptyPayload = JSON.stringify({ version: "3.0.0", var: [], panels: [] });
 
 export default function Dashboards() {
+  const navigate = useNavigate();
   const { clusterName } = useContext(AppContext);
   const { hasAuthorization } = useAuth();
   const canManage = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
@@ -65,13 +66,13 @@ export default function Dashboards() {
     event.preventDefault();
     setSaving(true);
     try {
-      await MetricsApi.createDashboard(clusterName, {
+      const created = await MetricsApi.createDashboard(clusterName, {
         name: name.trim(), ident: ident.trim(), tags, configs: emptyPayload,
       });
       setShowCreate(false);
       setName(""); setIdent(""); setTags("");
       toast.success("Dashboard created");
-      await load(query);
+      navigate(`/main/monitoring/dashboards/${created.ident || created.id}?edit=1`);
     } catch (caught: unknown) {
       toast.error(caught instanceof Error ? caught.message : "Unable to create dashboard");
     } finally {
@@ -81,9 +82,9 @@ export default function Dashboards() {
 
   const clone = async (dashboard: Dashboard) => {
     try {
-      await MetricsApi.cloneDashboard(clusterName, dashboard.id);
-      toast.success("Dashboard cloned");
-      await load(query);
+      const cloned = await MetricsApi.cloneDashboard(clusterName, dashboard.id);
+      toast.success("Editable dashboard copy created");
+      navigate(`/main/monitoring/dashboards/${cloned.ident || cloned.id}?edit=1`);
     } catch (caught: unknown) {
       toast.error(caught instanceof Error ? caught.message : "Unable to clone dashboard");
     }
@@ -143,8 +144,8 @@ export default function Dashboards() {
       </div>
       <Form onSubmit={(event) => { event.preventDefault(); void load(query); }} className="mb-3"><InputGroup><InputGroup.Text><FontAwesomeIcon icon={faSearch} /></InputGroup.Text><Form.Control placeholder="Search names and tags; prefix a term with - to exclude it" value={query} onChange={(event) => setQuery(event.target.value)} /><Button type="submit" variant="outline-secondary">Search</Button></InputGroup></Form>
       {error && <Alert variant="danger">{error}</Alert>}
-      <div className="monitoring-panel overflow-hidden">
-        {loading ? <div className="monitoring-empty"><Spinner size="sm" className="me-2" />Loading dashboards</div> : dashboards.length === 0 ? <div className="monitoring-empty">No dashboards match this filter.</div> : <Table responsive hover className="mb-0 align-middle"><thead><tr><th>Name</th><th>Tags</th><th>Visibility</th><th>Updated</th><th aria-label="Actions" /></tr></thead><tbody>{dashboards.map((dashboard) => <tr key={dashboard.id}><td><Link to={`/main/monitoring/dashboards/${dashboard.ident || dashboard.id}`}><strong>{dashboard.name}</strong></Link><div className="text-muted small">ID {dashboard.id}{dashboard.ident ? ` / ${dashboard.ident}` : ""}</div></td><td>{dashboard.tags || "-"}</td><td><Badge bg={dashboard.public ? "success" : "secondary"}>{dashboard.public ? "Public" : "Private"}</Badge>{dashboard.built_in ? <Badge bg="info" className="ms-1">Built in</Badge> : null}</td><td>{new Date(dashboard.update_at * 1000).toLocaleString()}</td><td className="text-end text-nowrap"><Button variant="link" size="sm" title="Export dashboard" onClick={() => void exportDashboard(dashboard)}><FontAwesomeIcon icon={faDownload} /></Button>{canManage && <><Button variant="link" size="sm" title="Clone dashboard" onClick={() => void clone(dashboard)}><FontAwesomeIcon icon={faClone} /></Button><Button variant="link" size="sm" className="text-danger" title="Delete dashboard" onClick={() => void remove(dashboard)}><FontAwesomeIcon icon={faTrash} /></Button></>}</td></tr>)}</tbody></Table>}
+      <div className="monitoring-panel dashboard-list overflow-hidden">
+        {loading ? <div className="monitoring-empty"><Spinner size="sm" className="me-2" />Loading dashboards</div> : dashboards.length === 0 ? <div className="monitoring-empty">No dashboards match this filter.</div> : <Table responsive hover className="mb-0 align-middle"><thead><tr><th>Name</th><th>Tags</th><th>Visibility</th><th>Updated</th><th aria-label="Actions" /></tr></thead><tbody>{dashboards.map((dashboard) => <tr key={dashboard.id}><td><Link to={`/main/monitoring/dashboards/${dashboard.ident || dashboard.id}`}><strong>{dashboard.name}</strong></Link><div className="text-muted small">ID {dashboard.id}{dashboard.ident ? ` / ${dashboard.ident}` : ""}</div></td><td>{dashboard.tags || "-"}</td><td><Badge bg={dashboard.public ? "success" : "secondary"}>{dashboard.public ? "Public" : "Private"}</Badge>{dashboard.built_in ? <Badge bg="info" className="ms-1">Built in</Badge> : null}</td><td>{new Date(dashboard.update_at * 1000).toLocaleString()}</td><td className="text-end text-nowrap"><Button variant="link" size="sm" title="Export dashboard" onClick={() => void exportDashboard(dashboard)}><FontAwesomeIcon icon={faDownload} /></Button>{canManage && <><Button variant="link" size="sm" title="Clone dashboard" onClick={() => void clone(dashboard)}><FontAwesomeIcon icon={faClone} /></Button>{!dashboard.built_in && <Button variant="link" size="sm" className="text-danger" title="Delete dashboard" onClick={() => void remove(dashboard)}><FontAwesomeIcon icon={faTrash} /></Button>}</>}</td></tr>)}</tbody></Table>}
       </div>
       <Modal show={showCreate} onHide={() => setShowCreate(false)} centered><Form onSubmit={create}><Modal.Header closeButton><Modal.Title>New dashboard</Modal.Title></Modal.Header><Modal.Body><Form.Group className="mb-3"><Form.Label>Name</Form.Label><Form.Control required maxLength={191} value={name} onChange={(event) => setName(event.target.value)} /></Form.Group><Form.Group className="mb-3"><Form.Label>Identifier</Form.Label><Form.Control maxLength={200} placeholder="Optional stable route identifier" value={ident} onChange={(event) => setIdent(event.target.value)} /></Form.Group><Form.Group><Form.Label>Tags</Form.Label><Form.Control value={tags} onChange={(event) => setTags(event.target.value)} /></Form.Group></Modal.Body><Modal.Footer><Button variant="outline-secondary" onClick={() => setShowCreate(false)}>Cancel</Button><Button variant="success" type="submit" disabled={saving}>{saving && <Spinner size="sm" className="me-2" />}Create</Button></Modal.Footer></Form></Modal>
     </section>

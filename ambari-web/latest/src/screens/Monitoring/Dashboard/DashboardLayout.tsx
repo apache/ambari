@@ -17,6 +17,9 @@
  */
 
 import type { ReactNode } from "react";
+import ReactGridLayout, { WidthProvider, type Layout } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 import type { DashboardPanel } from "../types";
 import {
   dashboardGridStyle,
@@ -28,10 +31,57 @@ import {
 interface DashboardLayoutProps {
   panels: DashboardPanel[];
   renderPanel: (panel: DashboardPanel, layout: DashboardGridLayout, index: number) => ReactNode;
+  editable?: boolean;
+  renderActions?: (panel: DashboardPanel) => ReactNode;
+  onLayoutChange?: (layout: Layout[]) => void;
 }
 
-export default function DashboardLayout({ panels, renderPanel }: DashboardLayoutProps) {
+const EditableGrid = WidthProvider(ReactGridLayout);
+
+export default function DashboardLayout({
+  panels,
+  renderPanel,
+  editable = false,
+  renderActions,
+  onLayoutChange,
+}: DashboardLayoutProps) {
   const positionedPanels = sortPositionedPanels(normalizeDashboardLayout(panels));
+
+  if (editable) {
+    const layout: Layout[] = positionedPanels.map(({ panel, layout: item }) => ({
+      ...item,
+      minW: panel.type === "row" ? 24 : 3,
+      maxW: panel.type === "row" ? 24 : 24,
+      minH: panel.type === "row" ? 1 : 2,
+      maxH: panel.type === "row" ? 1 : 16,
+      isDraggable: true,
+      isResizable: panel.type !== "row",
+    }));
+
+    return (
+      <EditableGrid
+        className="dashboard-layout-editor"
+        cols={24}
+        rowHeight={56}
+        margin={[12, 12]}
+        containerPadding={[0, 0]}
+        layout={layout}
+        compactType="vertical"
+        draggableHandle=".dashboard-panel-drag-handle"
+        draggableCancel=".dashboard-panel-actions, button, input, textarea, select, a"
+        onDragStop={(nextLayout) => onLayoutChange?.(nextLayout)}
+        onResizeStop={(nextLayout) => onLayoutChange?.(nextLayout)}
+      >
+        {positionedPanels.map(({ panel, layout: item }, index) => (
+          <div key={item.i} className={panel.type === "row" ? "dashboard-layout-item dashboard-layout-row" : "dashboard-layout-item"}>
+            <div className="dashboard-panel-drag-handle" title="Drag panel" />
+            {renderActions && <div className="dashboard-panel-actions">{renderActions(panel)}</div>}
+            {renderPanel(panel, item, index)}
+          </div>
+        ))}
+      </EditableGrid>
+    );
+  }
 
   return (
     <div className="dashboard-layout-grid">

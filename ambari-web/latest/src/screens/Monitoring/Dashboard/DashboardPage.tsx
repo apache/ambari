@@ -17,26 +17,74 @@
  */
 
 import { useCallback, useContext, useEffect, useState } from "react";
-import { Alert, Button, Form, Modal, Spinner } from "react-bootstrap";
+import { Alert, Badge, Button, Dropdown, Form, Modal, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faCode, faRotate } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowLeft,
+  faClone,
+  faCode,
+  faCopy,
+  faFloppyDisk,
+  faGear,
+  faPen,
+  faPlus,
+  faRotate,
+  faSliders,
+  faTrash,
+  faXmark,
+} from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import MetricsApi from "../../../api/metricsApi";
 import { AppContext } from "../../../store/context";
 import { useAuth } from "../../../hooks/useAuth";
-import { DASHBOARD_SCHEMA_VERSION, type Dashboard, type DashboardPayload, type Datasource } from "../types";
+import {
+  DASHBOARD_SCHEMA_VERSION,
+  type Dashboard,
+  type DashboardPanel as Panel,
+  type DashboardPayload,
+  type Datasource,
+} from "../types";
 import DashboardPanel from "./DashboardPanel";
 import DashboardLayout from "./DashboardLayout";
+import DashboardPanelEditor from "./DashboardPanelEditor";
+import { DashboardSettingsDialog, DashboardVariablesDialog } from "./DashboardWorkspaceDialogs";
 import { dashboardPanelHeight } from "./layout/dashboardLayout";
-import { parseDashboardPayload, RESERVED_DASHBOARD_VARIABLES } from "../utils";
+import { normalizeDashboardPayload, parseDashboardPayload, RESERVED_DASHBOARD_VARIABLES } from "../utils";
+import {
+  applyDashboardLayout,
+  cloneDashboardPayload,
+  createDashboardPanel,
+  duplicateDashboardPanel,
+  PANEL_TYPE_OPTIONS,
+} from "./dashboardWorkspace";
 
 const toLocalInput = (date: Date) => {
   const offset = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 };
 
-const variableName = (variable: { name: string }) => variable.name;
+const metadataSnapshot = (dashboard: Dashboard | null) => dashboard ? JSON.stringify({
+  name: dashboard.name,
+  tags: dashboard.tags || "",
+  public: dashboard.public,
+}) : "";
+
+const initialVariableValues = (payload: DashboardPayload, datasources: Datasource[]) => {
+  const values: Record<string, string | number | string[]> = {};
+  payload.var.forEach((variable) => {
+    if (RESERVED_DASHBOARD_VARIABLES.has(variable.name)) return;
+    if (variable.type === "datasource") {
+      const category = variable.definition || "prometheus";
+      const options = datasources.filter((item) => item.status === "enabled"
+        && (item.category === category || item.plugin_type === category));
+      values[variable.name] = (options.find((item) => item.is_default) || options[0])?.id || "";
+    } else {
+      values[variable.name] = variable.value || "";
+    }
+  });
+  return values;
+};
 
 export interface DashboardPageProps {
   dashboardId?: string;
@@ -46,21 +94,36 @@ export interface DashboardPageProps {
 export default function DashboardPage({ dashboardId: dashboardIdProp, embedded = false }: DashboardPageProps) {
   const { dashboardId: routeDashboardId = "" } = useParams<{ dashboardId: string }>();
   const dashboardId = dashboardIdProp || routeDashboardId;
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { clusterName } = useContext(AppContext);
   const { hasAuthorization } = useAuth();
   const canManage = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
+  const [savedDashboard, setSavedDashboard] = useState<Dashboard | null>(null);
   const [payload, setPayload] = useState<DashboardPayload>({ version: DASHBOARD_SCHEMA_VERSION, panels: [], var: [] });
+  const [savedPayload, setSavedPayload] = useState<DashboardPayload>({ version: DASHBOARD_SCHEMA_VERSION, panels: [], var: [] });
   const [rawPayload, setRawPayload] = useState("");
   const [datasources, setDatasources] = useState<Datasource[]>([]);
   const [variables, setVariables] = useState<Record<string, string | number | string[]>>({});
   const [start, setStart] = useState(toLocalInput(new Date(Date.now() - 60 * 60 * 1000)));
   const [end, setEnd] = useState(toLocalInput(new Date()));
+  const [rangeMinutes, setRangeMinutes] = useState(60);
+  const [autoRefresh, setAutoRefresh] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [showJson, setShowJson] = useState(false);
+  const [showVariables, setShowVariables] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [panelEditor, setPanelEditor] = useState<Panel | null>(null);
   const [saving, setSaving] = useState(false);
+  const [cloning, setCloning] = useState(false);
+
+  const payloadDirty = JSON.stringify(payload) !== JSON.stringify(savedPayload);
+  const metadataDirty = metadataSnapshot(dashboard) !== metadataSnapshot(savedDashboard);
+  const dirty = payloadDirty || metadataDirty;
 
   const load = useCallback(async () => {
     if (!clusterName || !dashboardId) return;
@@ -71,28 +134,15 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
         MetricsApi.getDashboard(clusterName, dashboardId),
         MetricsApi.listDatasources(clusterName),
       ]);
-      const raw = detail.configs || "";
-      const parsed = parseDashboardPayload(raw);
+      const parsed = parseDashboardPayload(detail.configs || "");
       setDashboard(detail);
-      setRawPayload(JSON.stringify(parsed, null, 2));
+      setSavedDashboard({ ...detail });
       setPayload(parsed);
+      setSavedPayload(cloneDashboardPayload(parsed));
+      setRawPayload(JSON.stringify(parsed, null, 2));
       setDatasources(sourceItems);
-      const initialVariables: Record<string, string | number | string[]> = {};
-      (parsed.var || []).forEach((variable) => {
-        const name = variableName(variable);
-        if (RESERVED_DASHBOARD_VARIABLES.has(name)) return;
-        if (variable.type === "datasource") {
-          const category = typeof variable.definition === "string" ? variable.definition : "prometheus";
-          const options = sourceItems.filter((item) => item.status === "enabled"
-            && (item.category === category || item.plugin_type === category));
-          initialVariables[name] = (options.find((item) => item.is_default) || options[0])?.id || "";
-        } else if (typeof variable.value === "string") {
-          initialVariables[name] = variable.value;
-        } else {
-          initialVariables[name] = "";
-        }
-      });
-      setVariables(initialVariables);
+      setVariables(initialVariableValues(parsed, sourceItems));
+      setIsEditing(false);
     } catch (caught: unknown) {
       setError(caught instanceof Error ? caught.message : "Unable to load dashboard");
     } finally {
@@ -102,23 +152,130 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
 
   useEffect(() => { void load(); }, [load]);
 
-  const saveJson = async () => {
-    if (!dashboard) return;
+  useEffect(() => {
+    if (!dashboard || embedded || !canManage || dashboard.built_in) return;
+    if (searchParams.get("edit") === "1") setIsEditing(true);
+  }, [canManage, dashboard, embedded, searchParams]);
+
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
+
+  const refresh = useCallback(() => {
+    if (rangeMinutes > 0) {
+      const now = new Date();
+      setEnd(toLocalInput(now));
+      setStart(toLocalInput(new Date(now.getTime() - rangeMinutes * 60_000)));
+    }
+    setRefreshKey((value) => value + 1);
+  }, [rangeMinutes]);
+
+  useEffect(() => {
+    if (!autoRefresh) return undefined;
+    const timer = window.setInterval(refresh, autoRefresh * 1000);
+    return () => window.clearInterval(timer);
+  }, [autoRefresh, refresh]);
+
+  const beginEditing = () => {
+    setIsEditing(true);
+    setSearchParams({ edit: "1" }, { replace: true });
+  };
+
+  const discardChanges = () => {
+    if (dirty && !window.confirm("Discard all unsaved dashboard changes?")) return;
+    if (savedDashboard) setDashboard({ ...savedDashboard });
+    setPayload(cloneDashboardPayload(savedPayload));
+    setRawPayload(JSON.stringify(savedPayload, null, 2));
+    setIsEditing(false);
+    setSearchParams({}, { replace: true });
+  };
+
+  const save = async () => {
+    if (!dashboard || dashboard.built_in) return;
     setSaving(true);
     try {
-      const parsed = parseDashboardPayload(rawPayload);
-      const canonicalPayload = JSON.stringify(parsed);
-      await MetricsApi.updateDashboardConfigs(clusterName, dashboard.id, canonicalPayload);
-      setPayload(parsed);
-      setRawPayload(JSON.stringify(parsed, null, 2));
-      setShowJson(false);
-      toast.success("Dashboard payload saved");
-      setRefreshKey((value) => value + 1);
+      const canonical = normalizeDashboardPayload(payload);
+      let updated = dashboard;
+      if (metadataDirty) {
+        updated = await MetricsApi.updateDashboard(clusterName, dashboard.id, {
+          name: dashboard.name,
+          tags: dashboard.tags || "",
+          public: dashboard.public,
+        });
+      }
+      if (payloadDirty) {
+        updated = await MetricsApi.updateDashboardConfigs(clusterName, dashboard.id, JSON.stringify(canonical));
+      }
+      const nextDashboard = { ...dashboard, ...updated };
+      setDashboard(nextDashboard);
+      setSavedDashboard({ ...nextDashboard });
+      setPayload(canonical);
+      setSavedPayload(cloneDashboardPayload(canonical));
+      setRawPayload(JSON.stringify(canonical, null, 2));
+      toast.success("Dashboard saved");
     } catch (caught: unknown) {
-      toast.error(caught instanceof Error ? caught.message : "Unable to save dashboard payload");
+      toast.error(caught instanceof Error ? caught.message : "Unable to save dashboard");
     } finally {
       setSaving(false);
     }
+  };
+
+  const cloneAndEdit = async () => {
+    if (!dashboard) return;
+    setCloning(true);
+    try {
+      const cloned = await MetricsApi.cloneDashboard(clusterName, dashboard.id);
+      toast.success("Editable dashboard copy created");
+      navigate(`/main/monitoring/dashboards/${cloned.ident || cloned.id}?edit=1`);
+    } catch (caught: unknown) {
+      toast.error(caught instanceof Error ? caught.message : "Unable to clone dashboard");
+    } finally {
+      setCloning(false);
+    }
+  };
+
+  const applyJson = () => {
+    try {
+      const parsed = parseDashboardPayload(rawPayload);
+      setPayload(parsed);
+      setVariables((current) => ({ ...initialVariableValues(parsed, datasources), ...current }));
+      setRawPayload(JSON.stringify(parsed, null, 2));
+      setShowJson(false);
+    } catch (caught: unknown) {
+      toast.error(caught instanceof Error ? caught.message : "Invalid dashboard payload");
+    }
+  };
+
+  const savePanel = (panel: Panel) => {
+    setPayload((current) => {
+      const exists = current.panels.some((item) => item.id === panel.id);
+      return {
+        ...current,
+        panels: exists
+          ? current.panels.map((item) => item.id === panel.id ? panel : item)
+          : [...current.panels, panel],
+      };
+    });
+    setPanelEditor(null);
+  };
+
+  const removePanel = (panel: Panel) => {
+    if (!window.confirm(`Delete panel "${panel.name}"?`)) return;
+    setPayload((current) => ({ ...current, panels: current.panels.filter((item) => item.id !== panel.id) }));
+  };
+
+  const duplicatePanel = (panel: Panel) => setPayload((current) => ({
+    ...current,
+    panels: [...current.panels, duplicateDashboardPanel(panel, current.panels)],
+  }));
+
+  const openNewPanel = (type: Panel["type"]) => {
+    const defaultDatasource = datasources.find((item) => item.status === "enabled" && item.is_default)
+      || datasources.find((item) => item.status === "enabled" && (item.category === "prometheus" || item.plugin_type === "prometheus"));
+    setPanelEditor(createDashboardPanel(type, payload.panels, defaultDatasource?.id));
   };
 
   if (loading) return <div className="monitoring-empty"><Spinner size="sm" className="me-2" />Loading dashboard</div>;
@@ -127,39 +284,105 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   const panels = payload.panels || [];
   const startSeconds = Math.floor(new Date(start).getTime() / 1000);
   const endSeconds = Math.floor(new Date(end).getTime() / 1000);
+  const runtimeVariables = { ...variables, cluster: clusterName };
 
   return (
-    <section className="dashboard-detail">
-      <div className="monitoring-toolbar">
-        <div className="d-flex align-items-start gap-3">
-          {!embedded && <Link className="btn btn-sm btn-outline-secondary" title="Back to dashboards" to="/main/monitoring/dashboards"><FontAwesomeIcon icon={faArrowLeft} /></Link>}
-          <div>
-            <h2 className="h4 mb-1">{dashboard.name}</h2>
-            <div className="text-muted small">ID {dashboard.id}{dashboard.ident ? ` / ${dashboard.ident}` : ""} · updated {new Date(dashboard.update_at * 1000).toLocaleString()}</div>
+    <section className={`dashboard-workspace ${isEditing ? "dashboard-workspace-editing" : ""}`}>
+      <div className="dashboard-workspace-header">
+        <div className="dashboard-workspace-identity">
+          {!embedded && <Link className="btn btn-sm btn-outline-secondary" title="Back to dashboards" to="/main/monitoring/dashboards" onClick={(event) => {
+            if (dirty && !window.confirm("Leave this dashboard and discard unsaved changes?")) event.preventDefault();
+          }}><FontAwesomeIcon icon={faArrowLeft} /></Link>}
+          <div className="dashboard-workspace-title">
+            <div className="d-flex align-items-center gap-2">
+              <h2>{dashboard.name}</h2>
+              {dashboard.built_in ? <Badge bg="info">Built in</Badge> : null}
+              {isEditing && <Badge bg={dirty ? "warning" : "secondary"} text={dirty ? "dark" : undefined}>{dirty ? "Unsaved" : "Editing"}</Badge>}
+            </div>
+            <div className="dashboard-workspace-meta">{dashboard.tags || "No tags"}<span />Updated {new Date(dashboard.update_at * 1000).toLocaleString()}</div>
           </div>
         </div>
-        <div className="d-flex flex-wrap gap-2 align-items-end">
-          <Form.Group><Form.Label className="small mb-1">Start</Form.Label><Form.Control size="sm" type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} /></Form.Group>
-          <Form.Group><Form.Label className="small mb-1">End</Form.Label><Form.Control size="sm" type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} /></Form.Group>
-          <Button size="sm" variant="outline-secondary" title="Refresh panels" onClick={() => setRefreshKey((value) => value + 1)}><FontAwesomeIcon icon={faRotate} /></Button>
-          {canManage && <Button size="sm" variant="outline-secondary" onClick={() => setShowJson(true)}><FontAwesomeIcon icon={faCode} className="me-2" />Edit JSON</Button>}
+        {!embedded && canManage && <div className="dashboard-workspace-actions">
+          {dashboard.built_in
+            ? <Button size="sm" variant="success" disabled={cloning} onClick={() => void cloneAndEdit()}>{cloning ? <Spinner size="sm" className="me-2" /> : <FontAwesomeIcon icon={faClone} className="me-2" />}Clone and edit</Button>
+            : isEditing ? <>
+              <Dropdown>
+                <Dropdown.Toggle size="sm" variant="outline-secondary"><FontAwesomeIcon icon={faPlus} className="me-2" />Panel</Dropdown.Toggle>
+                <Dropdown.Menu className="dashboard-add-panel-menu">
+                  {PANEL_TYPE_OPTIONS.map((option) => <Dropdown.Item key={option.value} onClick={() => openNewPanel(option.value)}>{option.label}</Dropdown.Item>)}
+                </Dropdown.Menu>
+              </Dropdown>
+              <Button size="sm" variant="outline-secondary" title="Dashboard variables" onClick={() => setShowVariables(true)}><FontAwesomeIcon icon={faSliders} /><span>Variables</span></Button>
+              <Button size="sm" variant="outline-secondary" title="Dashboard settings" onClick={() => setShowSettings(true)}><FontAwesomeIcon icon={faGear} /></Button>
+              <Button size="sm" variant="outline-secondary" title="Edit dashboard JSON" onClick={() => { setRawPayload(JSON.stringify(payload, null, 2)); setShowJson(true); }}><FontAwesomeIcon icon={faCode} /></Button>
+              <Button size="sm" variant="outline-secondary" title="Discard changes" onClick={discardChanges}><FontAwesomeIcon icon={faXmark} /></Button>
+              <Button size="sm" variant="success" disabled={saving || !dirty} onClick={() => void save()}>{saving ? <Spinner size="sm" className="me-2" /> : <FontAwesomeIcon icon={faFloppyDisk} className="me-2" />}Save</Button>
+            </> : <Button size="sm" variant="success" onClick={beginEditing}><FontAwesomeIcon icon={faPen} className="me-2" />Edit dashboard</Button>}
+        </div>}
+      </div>
+
+      <div className="dashboard-runtime-toolbar">
+        <div className="dashboard-variable-controls">
+          {payload.var.map((variable, index) => {
+            const name = variable.name;
+            if (RESERVED_DASHBOARD_VARIABLES.has(name)) return null;
+            if (variable.type === "datasource") {
+              const category = variable.definition || "prometheus";
+              const options = datasources.filter((item) => item.status === "enabled" && (item.category === category || item.plugin_type === category));
+              return <Form.Group key={`${name}-${index}`}><Form.Label>{variable.label || name}</Form.Label><Form.Select size="sm" value={String(variables[name] ?? "")} onChange={(event) => setVariables({ ...variables, [name]: Number(event.target.value) })}>{options.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Form.Select></Form.Group>;
+            }
+            return <Form.Group key={`${name}-${index}`}><Form.Label>{variable.label || name}</Form.Label><Form.Control size="sm" value={String(variables[name] ?? "")} onChange={(event) => setVariables({ ...variables, [name]: event.target.value })} /></Form.Group>;
+          })}
+        </div>
+        <div className="dashboard-time-controls">
+          <Form.Select aria-label="Time range" size="sm" value={rangeMinutes} onChange={(event) => {
+            const minutes = Number(event.target.value);
+            setRangeMinutes(minutes);
+            if (minutes > 0) {
+              const now = new Date();
+              setEnd(toLocalInput(now));
+              setStart(toLocalInput(new Date(now.getTime() - minutes * 60_000)));
+            }
+          }}>
+            <option value={15}>Last 15 minutes</option><option value={60}>Last hour</option><option value={360}>Last 6 hours</option><option value={1440}>Last 24 hours</option><option value={10080}>Last 7 days</option><option value={0}>Custom range</option>
+          </Form.Select>
+          {rangeMinutes === 0 && <><Form.Control aria-label="Start time" size="sm" type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} /><Form.Control aria-label="End time" size="sm" type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} /></>}
+          <Form.Select aria-label="Auto refresh" title="Auto refresh" size="sm" className="dashboard-auto-refresh" value={autoRefresh} onChange={(event) => setAutoRefresh(Number(event.target.value))}>
+            <option value={0}>Refresh off</option><option value={10}>Every 10s</option><option value={30}>Every 30s</option><option value={60}>Every 1m</option><option value={300}>Every 5m</option>
+          </Form.Select>
+          <Button size="sm" variant="outline-secondary" title="Refresh panels" onClick={refresh}><FontAwesomeIcon icon={faRotate} /></Button>
         </div>
       </div>
-      {(payload.var || []).length > 0 && <div className="monitoring-panel p-3 mb-3 d-flex gap-3 flex-wrap">{(payload.var || []).map((variable, index) => {
-        const name = variableName(variable);
-        if (RESERVED_DASHBOARD_VARIABLES.has(name)) return null;
-        if (variable.type === "datasource") {
-          const category = typeof variable.definition === "string" ? variable.definition : "prometheus";
-          const options = datasources.filter((item) => item.status === "enabled" && (item.category === category || item.plugin_type === category));
-          return <Form.Group key={`${name}-${index}`}><Form.Label className="small mb-1">{String(variable.label || name)}</Form.Label><Form.Select size="sm" value={String(variables[name] ?? "")} onChange={(event) => setVariables({ ...variables, [name]: Number(event.target.value) })}>{options.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Form.Select></Form.Group>;
-        }
-        return <Form.Group key={`${name}-${index}`}><Form.Label className="small mb-1">{String(variable.label || name)}</Form.Label><Form.Control size="sm" placeholder={String(variable.definition || "Value")} value={String(variables[name] ?? "")} onChange={(event) => setVariables({ ...variables, [name]: event.target.value })} /></Form.Group>;
-      })}</div>}
-      {panels.length === 0 ? <div className="monitoring-panel monitoring-empty">This dashboard has no panels yet.</div> : <DashboardLayout panels={panels} renderPanel={(panel, layout) => <DashboardPanel panel={panel} panelHeight={dashboardPanelHeight(layout)} start={startSeconds} end={endSeconds} refreshKey={refreshKey} variables={{ ...variables, cluster: clusterName }} datasources={datasources} />} />}
+
+      {panels.length === 0
+        ? <div className="dashboard-empty-canvas"><strong>No panels yet</strong>{isEditing ? <Button variant="success" size="sm" onClick={() => openNewPanel("timeseries")}><FontAwesomeIcon icon={faPlus} className="me-2" />Add first panel</Button> : <span>This dashboard does not contain any panels.</span>}</div>
+        : <DashboardLayout
+          panels={panels}
+          editable={isEditing}
+          onLayoutChange={(layout) => setPayload((current) => ({ ...current, panels: applyDashboardLayout(current.panels, layout) }))}
+          renderActions={isEditing ? (panel) => <>
+            <Button variant="light" size="sm" title="Edit panel" onClick={() => setPanelEditor(panel)}><FontAwesomeIcon icon={faPen} /></Button>
+            <Button variant="light" size="sm" title="Copy panel" onClick={() => duplicatePanel(panel)}><FontAwesomeIcon icon={faCopy} /></Button>
+            <Button variant="light" size="sm" className="text-danger" title="Delete panel" onClick={() => removePanel(panel)}><FontAwesomeIcon icon={faTrash} /></Button>
+          </> : undefined}
+          renderPanel={(panel, layout) => <DashboardPanel panel={panel} panelHeight={dashboardPanelHeight(layout)} start={startSeconds} end={endSeconds} refreshKey={refreshKey} variables={runtimeVariables} datasources={datasources} allowShare={!isEditing} graphTooltip={payload.graphTooltip} />}
+        />}
+
+      <DashboardPanelEditor show={Boolean(panelEditor)} panel={panelEditor} datasources={datasources} start={startSeconds} end={endSeconds} refreshKey={refreshKey} variables={runtimeVariables} onCancel={() => setPanelEditor(null)} onSave={savePanel} />
+      <DashboardVariablesDialog show={showVariables} variables={payload.var} onCancel={() => setShowVariables(false)} onApply={(nextVariables) => {
+        setPayload((current) => ({ ...current, var: nextVariables }));
+        setVariables((current) => ({ ...initialVariableValues({ ...payload, var: nextVariables }, datasources), ...current }));
+        setShowVariables(false);
+      }} />
+      <DashboardSettingsDialog show={showSettings} dashboard={dashboard} payload={payload} onCancel={() => setShowSettings(false)} onApply={(nextDashboard, nextPayload) => {
+        setDashboard(nextDashboard);
+        setPayload(nextPayload);
+        setShowSettings(false);
+      }} />
       <Modal show={showJson} onHide={() => setShowJson(false)} size="xl" centered>
-        <Modal.Header closeButton><Modal.Title>Dashboard payload</Modal.Title></Modal.Header>
-        <Modal.Body><Alert variant="info" className="small">The editor accepts the Ambari Monitoring {DASHBOARD_SCHEMA_VERSION} schema. Unsupported fields and panel types are rejected.</Alert><Form.Control className="monitoring-code" as="textarea" rows={28} value={rawPayload} onChange={(event) => setRawPayload(event.target.value)} /></Modal.Body>
-        <Modal.Footer><Button variant="outline-secondary" onClick={() => setShowJson(false)}>Cancel</Button><Button variant="success" disabled={saving} onClick={() => void saveJson()}>{saving && <Spinner size="sm" className="me-2" />}Save payload</Button></Modal.Footer>
+        <Modal.Header closeButton><Modal.Title>Dashboard JSON</Modal.Title></Modal.Header>
+        <Modal.Body><Alert variant="info" className="small">Advanced editor for the Ambari Monitoring {DASHBOARD_SCHEMA_VERSION} schema. Changes remain in the workspace until the dashboard is saved.</Alert><Form.Control className="monitoring-code" as="textarea" rows={28} value={rawPayload} onChange={(event) => setRawPayload(event.target.value)} /></Modal.Body>
+        <Modal.Footer><Button variant="outline-secondary" onClick={() => setShowJson(false)}>Cancel</Button><Button variant="success" onClick={applyJson}>Apply JSON</Button></Modal.Footer>
       </Modal>
     </section>
   );
