@@ -16,8 +16,14 @@
  * limitations under the License.
  */
 
+import { useTranslation } from "react-i18next";
 import type { DashboardPanel } from "../types";
 
 export default function DashboardRow({ panel }: { panel: DashboardPanel }) {
-  return <div className="dashboard-row-title">{panel.name || "Section"}</div>;
+  const { t } = useTranslation();
+  const title = panel.titleKey
+    ? t(panel.titleKey, { defaultValue: panel.name || "Section" })
+    : panel.name || "Section";
+
+  return <div className="dashboard-row-title">{title}</div>;
 }

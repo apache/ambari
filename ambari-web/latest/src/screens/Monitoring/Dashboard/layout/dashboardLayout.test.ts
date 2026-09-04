@@ -24,6 +24,7 @@ import {
   DASHBOARD_GRID_ROW_HEIGHT,
   dashboardGridStyle,
   dashboardPanelHeight,
+  collapseDashboardSections,
   normalizeDashboardLayout,
   sortPositionedPanels,
 } from "./dashboardLayout";
@@ -66,5 +67,20 @@ describe("dashboard layout", () => {
       gridRow: "3 / span 4",
     });
     expect(dashboardPanelHeight(positioned.layout)).toBe(4 * DASHBOARD_GRID_ROW_HEIGHT + 3 * DASHBOARD_GRID_GAP);
+  });
+
+  it("hides collapsed row contents and closes the following layout gap", () => {
+    const positioned = normalizeDashboardLayout([
+      panel("first-row", { h: 1, w: 24, x: 0, y: 0, i: "first-row", isResizable: false }, "row"),
+      panel("hidden", { h: 4, w: 12, x: 0, y: 1, i: "hidden", isResizable: true }),
+      panel("second-row", { h: 1, w: 24, x: 0, y: 5, i: "second-row", isResizable: false }, "row"),
+      panel("visible", { h: 3, w: 12, x: 0, y: 6, i: "visible", isResizable: true }),
+    ]);
+
+    const collapsed = collapseDashboardSections(positioned, new Set(["first-row"]));
+
+    expect(collapsed.map(({ panel: item }) => item.id)).toEqual(["first-row", "second-row", "visible"]);
+    expect(collapsed.map(({ layout: item }) => item.y)).toEqual([0, 1, 2]);
+    expect(collapsed[0].panel.collapsed).toBe(true);
   });
 });

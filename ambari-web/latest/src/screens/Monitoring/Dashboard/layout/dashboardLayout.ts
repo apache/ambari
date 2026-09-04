@@ -20,8 +20,8 @@ import type { CSSProperties } from "react";
 import type { DashboardPanel } from "../../types";
 
 export const DASHBOARD_GRID_COLUMNS = 24;
-export const DASHBOARD_GRID_ROW_HEIGHT = 56;
-export const DASHBOARD_GRID_GAP = 12;
+export const DASHBOARD_GRID_ROW_HEIGHT = 32;
+export const DASHBOARD_GRID_GAP = 8;
 
 export interface DashboardGridLayout {
   i: string;
@@ -52,6 +52,34 @@ export function sortPositionedPanels(items: PositionedDashboardPanel[]) {
   return [...items].sort((left, right) => (
     left.layout.y - right.layout.y || left.layout.x - right.layout.x
   ));
+}
+
+export function collapseDashboardSections(
+  items: PositionedDashboardPanel[],
+  collapsedRows: ReadonlySet<string>,
+) {
+  const sorted = sortPositionedPanels(items);
+  const sections: PositionedDashboardPanel[][] = [];
+  sorted.forEach((item) => {
+    if (item.panel.type === "row" || sections.length === 0) sections.push([]);
+    sections.at(-1)?.push(item);
+  });
+  let nextY = 0;
+  return sections.flatMap((section) => {
+    const row = section[0]?.panel.type === "row" ? section[0] : undefined;
+    const visible = row && collapsedRows.has(row.panel.id) ? [row] : section;
+    const sourceY = Math.min(...visible.map((item) => item.layout.y));
+    const positioned = visible.map((item) => ({
+      ...item,
+      panel: item.panel.type === "row"
+        ? { ...item.panel, collapsed: collapsedRows.has(item.panel.id) }
+        : item.panel,
+      layout: { ...item.layout, y: nextY + item.layout.y - sourceY },
+    }));
+    const height = Math.max(...positioned.map((item) => item.layout.y + item.layout.h)) - nextY;
+    nextY += height;
+    return positioned;
+  });
 }
 
 export function dashboardGridStyle(layout: DashboardGridLayout): CSSProperties {

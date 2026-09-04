@@ -23,6 +23,7 @@ import "react-resizable/css/styles.css";
 import type { DashboardPanel } from "../types";
 import {
   dashboardGridStyle,
+  collapseDashboardSections,
   normalizeDashboardLayout,
   sortPositionedPanels,
   type DashboardGridLayout,
@@ -34,6 +35,8 @@ interface DashboardLayoutProps {
   editable?: boolean;
   renderActions?: (panel: DashboardPanel) => ReactNode;
   onLayoutChange?: (layout: Layout[]) => void;
+  collapsedRows?: ReadonlySet<string>;
+  onToggleRow?: (panel: DashboardPanel) => void;
 }
 
 const EditableGrid = WidthProvider(ReactGridLayout);
@@ -44,8 +47,13 @@ export default function DashboardLayout({
   editable = false,
   renderActions,
   onLayoutChange,
+  collapsedRows = new Set(),
+  onToggleRow,
 }: DashboardLayoutProps) {
-  const positionedPanels = sortPositionedPanels(normalizeDashboardLayout(panels));
+  const normalizedPanels = sortPositionedPanels(normalizeDashboardLayout(panels));
+  const positionedPanels = editable
+    ? normalizedPanels
+    : collapseDashboardSections(normalizedPanels, collapsedRows);
 
   if (editable) {
     const layout: Layout[] = positionedPanels.map(({ panel, layout: item }) => ({
@@ -62,11 +70,12 @@ export default function DashboardLayout({
       <EditableGrid
         className="dashboard-layout-editor"
         cols={24}
-        rowHeight={56}
-        margin={[12, 12]}
+        rowHeight={32}
+        margin={[8, 8]}
         containerPadding={[0, 0]}
         layout={layout}
-        compactType="vertical"
+        compactType={null}
+        preventCollision
         draggableHandle=".dashboard-panel-drag-handle"
         draggableCancel=".dashboard-panel-actions, button, input, textarea, select, a"
         onDragStop={(nextLayout) => onLayoutChange?.(nextLayout)}
@@ -90,6 +99,16 @@ export default function DashboardLayout({
           key={layout.i}
           className={panel.type === "row" ? "dashboard-layout-item dashboard-layout-row" : "dashboard-layout-item"}
           style={dashboardGridStyle(layout)}
+          data-collapsed={panel.type === "row" ? panel.collapsed : undefined}
+          role={panel.type === "row" ? "button" : undefined}
+          tabIndex={panel.type === "row" ? 0 : undefined}
+          onClick={panel.type === "row" ? () => onToggleRow?.(panel) : undefined}
+          onKeyDown={panel.type === "row" ? (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onToggleRow?.(panel);
+            }
+          } : undefined}
         >
           {renderPanel(panel, layout, index)}
         </div>

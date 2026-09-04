@@ -102,18 +102,28 @@ export function DashboardVariablesDialog({ show, variables, onCancel, onApply }:
                 <Form.Label>Type</Form.Label>
                 <Form.Select size="sm" value={variable.type} onChange={(event) => update(index, {
                   type: event.target.value as DashboardVariable["type"],
-                  definition: event.target.value === "datasource" ? "prometheus" : "",
+                  definition: event.target.value === "datasource"
+                    ? "prometheus"
+                    : event.target.value === "query"
+                      ? `max by (${variable.name || "host"}) (ambari_agent_host_info{cluster="\${cluster}",ambari_target="host"})`
+                      : undefined,
+                  value: event.target.value === "query" ? ".*" : variable.value,
+                  includeAll: event.target.value === "query" ? true : undefined,
                 })}>
                   <option value="textbox">Text box</option>
                   <option value="datasource">Data source</option>
+                  <option value="query">Prometheus query</option>
                 </Form.Select>
               </Form.Group>
               <Form.Group>
-                <Form.Label>{variable.type === "datasource" ? "Category" : "Default value"}</Form.Label>
+                <Form.Label>{variable.type === "datasource" ? "Category" : variable.type === "query" ? "PromQL" : "Default value"}</Form.Label>
                 {variable.type === "datasource"
                   ? <Form.Select size="sm" value={variable.definition || "prometheus"} onChange={(event) => update(index, { definition: event.target.value })}><option value="prometheus">Prometheus</option></Form.Select>
+                  : variable.type === "query"
+                    ? <Form.Control className="monitoring-code" size="sm" value={variable.definition || ""} onChange={(event) => update(index, { definition: event.target.value })} />
                   : <Form.Control size="sm" value={variable.value || ""} onChange={(event) => update(index, { value: event.target.value })} />}
               </Form.Group>
+              {variable.type === "query" && <div className="dashboard-variable-query-options"><Form.Check type="switch" label="Multiple" checked={variable.multi === true} onChange={(event) => update(index, { multi: event.target.checked })} /><Form.Check type="switch" label="Include all" checked={variable.includeAll === true} onChange={(event) => update(index, { includeAll: event.target.checked })} /></div>}
               <Button variant="link" size="sm" className="text-danger dashboard-variable-delete" title="Delete variable" onClick={() => setDraft((items) => items.filter((_item, itemIndex) => itemIndex !== index))}><FontAwesomeIcon icon={faTrash} /></Button>
             </div>)}
           </div>

@@ -16,12 +16,11 @@
  * limitations under the License.
  */
 
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Alert, Badge, Button, Dropdown, Form, Modal, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
-  faClone,
   faCode,
   faCopy,
   faFloppyDisk,
@@ -48,9 +47,16 @@ import {
 import DashboardPanel from "./DashboardPanel";
 import DashboardLayout from "./DashboardLayout";
 import DashboardPanelEditor from "./DashboardPanelEditor";
+import DashboardQueryVariable from "./DashboardQueryVariable";
 import { DashboardSettingsDialog, DashboardVariablesDialog } from "./DashboardWorkspaceDialogs";
 import { dashboardPanelHeight } from "./layout/dashboardLayout";
-import { normalizeDashboardPayload, parseDashboardPayload, RESERVED_DASHBOARD_VARIABLES } from "../utils";
+import {
+  normalizeDashboardPayload,
+  parseDashboardPayload,
+  replaceDashboardVariables,
+  RESERVED_DASHBOARD_VARIABLES,
+  withDashboardBuiltIns,
+} from "../utils";
 import {
   applyDashboardLayout,
   cloneDashboardPayload,
@@ -79,6 +85,8 @@ const initialVariableValues = (payload: DashboardPayload, datasources: Datasourc
       const options = datasources.filter((item) => item.status === "enabled"
         && (item.category === category || item.plugin_type === category));
       values[variable.name] = (options.find((item) => item.is_default) || options[0])?.id || "";
+    } else if (variable.type === "query") {
+      values[variable.name] = variable.value || (variable.includeAll ? ".*" : "");
     } else {
       values[variable.name] = variable.value || "";
     }
@@ -106,6 +114,9 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   const [rawPayload, setRawPayload] = useState("");
   const [datasources, setDatasources] = useState<Datasource[]>([]);
   const [variables, setVariables] = useState<Record<string, string | number | string[]>>({});
+  const [variableOptions, setVariableOptions] = useState<Record<string, string[]>>({});
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
   const [start, setStart] = useState(toLocalInput(new Date(Date.now() - 60 * 60 * 1000)));
   const [end, setEnd] = useState(toLocalInput(new Date()));
   const [rangeMinutes, setRangeMinutes] = useState(60);
@@ -119,7 +130,7 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   const [showSettings, setShowSettings] = useState(false);
   const [panelEditor, setPanelEditor] = useState<Panel | null>(null);
   const [saving, setSaving] = useState(false);
-  const [cloning, setCloning] = useState(false);
+  const [collapsedRows, setCollapsedRows] = useState<Set<string>>(new Set());
 
   const payloadDirty = JSON.stringify(payload) !== JSON.stringify(savedPayload);
   const metadataDirty = metadataSnapshot(dashboard) !== metadataSnapshot(savedDashboard);
@@ -141,7 +152,13 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
       setSavedPayload(cloneDashboardPayload(parsed));
       setRawPayload(JSON.stringify(parsed, null, 2));
       setDatasources(sourceItems);
-      setVariables(initialVariableValues(parsed, sourceItems));
+      const initialValues = initialVariableValues(parsed, sourceItems);
+      parsed.var.forEach((variable) => {
+        const routeValue = searchParamsRef.current.get(variable.name);
+        if (routeValue !== null) initialValues[variable.name] = routeValue;
+      });
+      setVariables(initialValues);
+      setCollapsedRows(new Set(parsed.panels.filter((panel) => panel.type === "row" && panel.collapsed).map((panel) => panel.id)));
       setIsEditing(false);
     } catch (caught: unknown) {
       setError(caught instanceof Error ? caught.message : "Unable to load dashboard");
@@ -153,7 +170,46 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
-    if (!dashboard || embedded || !canManage || dashboard.built_in) return;
+    const queryVariables = payload.var.filter((variable) => variable.type === "query" && variable.definition);
+    const datasource = datasources.find((item) => item.status === "enabled" && item.is_default)
+      || datasources.find((item) => item.status === "enabled" && (item.category === "prometheus" || item.plugin_type === "prometheus"));
+    if (!clusterName || !datasource || queryVariables.length === 0) {
+      setVariableOptions({});
+      return undefined;
+    }
+    const controller = new AbortController();
+    const builtIns = withDashboardBuiltIns({}, clusterName, 60);
+    const queries = queryVariables.map((variable) => ({
+      refId: variable.name,
+      query: replaceDashboardVariables(variable.definition || "", builtIns),
+      time: Math.floor(Date.now() / 1000),
+    }));
+    void MetricsApi.queryInstantBatch(datasource.id, queries, controller.signal).then((response) => {
+      if (controller.signal.aborted) return;
+      const nextOptions: Record<string, string[]> = {};
+      queryVariables.forEach((variable, index) => {
+        const values = (response.data?.[index]?.result || [])
+          .map((result) => result.metric?.[variable.name])
+          .filter((value): value is string => typeof value === "string" && value.length > 0);
+        nextOptions[variable.name] = Array.from(new Set(values)).sort((left, right) => left.localeCompare(right));
+      });
+      setVariableOptions(nextOptions);
+      setVariables((current) => {
+        const next = { ...current };
+        queryVariables.forEach((variable) => {
+          if (next[variable.name] || variable.includeAll) return;
+          next[variable.name] = nextOptions[variable.name]?.[0] || "";
+        });
+        return next;
+      });
+    }).catch(() => {
+      if (!controller.signal.aborted) setVariableOptions({});
+    });
+    return () => controller.abort();
+  }, [clusterName, datasources, payload.var, refreshKey]);
+
+  useEffect(() => {
+    if (!dashboard || embedded || !canManage) return;
     if (searchParams.get("edit") === "1") setIsEditing(true);
   }, [canManage, dashboard, embedded, searchParams]);
 
@@ -198,46 +254,38 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   };
 
   const save = async () => {
-    if (!dashboard || dashboard.built_in) return;
+    if (!dashboard) return;
     setSaving(true);
     try {
       const canonical = normalizeDashboardPayload(payload);
-      let updated = dashboard;
+      const customizingBuiltIn = Boolean(dashboard.built_in);
+      let updated = customizingBuiltIn
+        ? await MetricsApi.cloneDashboard(clusterName, dashboard.id)
+        : dashboard;
       if (metadataDirty) {
-        updated = await MetricsApi.updateDashboard(clusterName, dashboard.id, {
+        updated = await MetricsApi.updateDashboard(clusterName, updated.id, {
           name: dashboard.name,
           tags: dashboard.tags || "",
           public: dashboard.public,
         });
       }
-      if (payloadDirty) {
-        updated = await MetricsApi.updateDashboardConfigs(clusterName, dashboard.id, JSON.stringify(canonical));
+      if (payloadDirty || customizingBuiltIn) {
+        updated = await MetricsApi.updateDashboardConfigs(clusterName, updated.id, JSON.stringify(canonical));
       }
-      const nextDashboard = { ...dashboard, ...updated };
+      const nextDashboard = customizingBuiltIn ? updated : { ...dashboard, ...updated };
       setDashboard(nextDashboard);
       setSavedDashboard({ ...nextDashboard });
       setPayload(canonical);
       setSavedPayload(cloneDashboardPayload(canonical));
       setRawPayload(JSON.stringify(canonical, null, 2));
-      toast.success("Dashboard saved");
+      toast.success(customizingBuiltIn ? "Customized dashboard copy saved" : "Dashboard saved");
+      if (customizingBuiltIn) {
+        navigate(`/main/monitoring/dashboards/${updated.ident || updated.id}?edit=1`, { replace: true });
+      }
     } catch (caught: unknown) {
       toast.error(caught instanceof Error ? caught.message : "Unable to save dashboard");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const cloneAndEdit = async () => {
-    if (!dashboard) return;
-    setCloning(true);
-    try {
-      const cloned = await MetricsApi.cloneDashboard(clusterName, dashboard.id);
-      toast.success("Editable dashboard copy created");
-      navigate(`/main/monitoring/dashboards/${cloned.ident || cloned.id}?edit=1`);
-    } catch (caught: unknown) {
-      toast.error(caught instanceof Error ? caught.message : "Unable to clone dashboard");
-    } finally {
-      setCloning(false);
     }
   };
 
@@ -307,9 +355,7 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
           </div>
         </div>
         {canManage && <div className="dashboard-workspace-actions">
-          {dashboard.built_in
-            ? <Button size="sm" variant="success" disabled={cloning} onClick={() => void cloneAndEdit()}>{cloning ? <Spinner size="sm" className="me-2" /> : <FontAwesomeIcon icon={faClone} className="me-2" />}Customize charts</Button>
-            : isEditing ? <>
+          {isEditing ? <>
               <Dropdown>
                 <Dropdown.Toggle size="sm" variant="outline-secondary"><FontAwesomeIcon icon={faPlus} className="me-2" />Panel</Dropdown.Toggle>
                 <Dropdown.Menu className="dashboard-add-panel-menu">
@@ -320,8 +366,8 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
               <Button size="sm" variant="outline-secondary" title="Dashboard settings" onClick={() => setShowSettings(true)}><FontAwesomeIcon icon={faGear} /></Button>
               <Button size="sm" variant="outline-secondary" title="Edit dashboard JSON" onClick={() => { setRawPayload(JSON.stringify(payload, null, 2)); setShowJson(true); }}><FontAwesomeIcon icon={faCode} /></Button>
               <Button size="sm" variant="outline-secondary" title="Discard changes" onClick={discardChanges}><FontAwesomeIcon icon={faXmark} /></Button>
-              <Button size="sm" variant="success" disabled={saving || !dirty} onClick={() => void save()}>{saving ? <Spinner size="sm" className="me-2" /> : <FontAwesomeIcon icon={faFloppyDisk} className="me-2" />}Save</Button>
-            </> : <Button size="sm" variant="success" onClick={beginEditing}><FontAwesomeIcon icon={faPen} className="me-2" />Edit charts</Button>}
+              <Button size="sm" variant="success" disabled={saving || !dirty} onClick={() => void save()}>{saving ? <Spinner size="sm" className="me-2" /> : <FontAwesomeIcon icon={faFloppyDisk} className="me-2" />}{dashboard.built_in ? "Save as copy" : "Save"}</Button>
+            </> : <Button size="sm" variant="success" onClick={beginEditing}><FontAwesomeIcon icon={faPen} className="me-2" />{dashboard.built_in ? "Customize charts" : "Edit charts"}</Button>}
         </div>}
       </div>
 
@@ -334,6 +380,10 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
               const category = variable.definition || "prometheus";
               const options = datasources.filter((item) => item.status === "enabled" && (item.category === category || item.plugin_type === category));
               return <Form.Group key={`${name}-${index}`}><Form.Label>{variable.label || name}</Form.Label><Form.Select size="sm" value={String(variables[name] ?? "")} onChange={(event) => setVariables({ ...variables, [name]: Number(event.target.value) })}>{options.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Form.Select></Form.Group>;
+            }
+            if (variable.type === "query") {
+              const options = variableOptions[name] || [];
+              return <DashboardQueryVariable key={`${name}-${index}`} variable={variable} options={options} value={variables[name]} onChange={(value) => setVariables({ ...variables, [name]: value })} />;
             }
             return <Form.Group key={`${name}-${index}`}><Form.Label>{variable.label || name}</Form.Label><Form.Control size="sm" value={String(variables[name] ?? "")} onChange={(event) => setVariables({ ...variables, [name]: event.target.value })} /></Form.Group>;
           })}
@@ -363,6 +413,13 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
         : <DashboardLayout
           panels={panels}
           editable={isEditing}
+          collapsedRows={collapsedRows}
+          onToggleRow={(panel) => setCollapsedRows((current) => {
+            const next = new Set(current);
+            if (next.has(panel.id)) next.delete(panel.id);
+            else next.add(panel.id);
+            return next;
+          })}
           onLayoutChange={(layout) => setPayload((current) => ({ ...current, panels: applyDashboardLayout(current.panels, layout) }))}
           renderActions={isEditing ? (panel) => <>
             <Button variant="light" size="sm" title="Edit panel" onClick={() => setPanelEditor(panel)}><FontAwesomeIcon icon={faPen} /></Button>
