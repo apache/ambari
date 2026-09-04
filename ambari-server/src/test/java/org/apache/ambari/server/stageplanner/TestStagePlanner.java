@@ -414,7 +414,7 @@ public class TestStagePlanner {
     for (Stage s : outStages) {
       log.info(s.toString());
     }
-    assertEquals(4, outStages.size());
+    assertEquals(5, outStages.size());
   }
 
   @Test

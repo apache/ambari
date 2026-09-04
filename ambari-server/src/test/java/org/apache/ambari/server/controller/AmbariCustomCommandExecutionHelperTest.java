@@ -284,11 +284,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     Request request = requestCapture.getValue();
     Assert.assertNotNull(request);
     Assert.assertNotNull(request.getStages());
-    Assert.assertEquals(1, request.getStages().size());
-    Stage stage = request.getStages().iterator().next();
-
-     // Check if was generated command, one for each host
-    Assert.assertEquals(2, stage.getHostRoleCommands().size());
+    Assert.assertEquals(2, request.getStages().size());
+    Assert.assertEquals(Set.of("c1-c6401", "c1-c6402"), getStageHosts(request));
   }
 
   @Test
@@ -319,11 +316,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     Request request = requestCapture.getValue();
     Assert.assertNotNull(request);
     Assert.assertNotNull(request.getStages());
-    Assert.assertEquals(1, request.getStages().size());
-    Stage stage = request.getStages().iterator().next();
-
-    // Check if was generated command for one health host
-    Assert.assertEquals(1, stage.getHostRoleCommands().size());
+    Assert.assertEquals(2, request.getStages().size());
+    Assert.assertEquals(Set.of("c1-c6401"), getStageHosts(request));
   }
 
   @Test
@@ -356,11 +350,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     Request request = requestCapture.getValue();
     Assert.assertNotNull(request);
     Assert.assertNotNull(request.getStages());
-    Assert.assertEquals(1, request.getStages().size());
-    Stage stage = request.getStages().iterator().next();
-
-    // Check if was generated command for one health host
-    Assert.assertEquals(1, stage.getHostRoleCommands().size());
+    Assert.assertEquals(2, request.getStages().size());
+    Assert.assertEquals(Set.of("c1-c6401"), getStageHosts(request));
   }
 
   /**
@@ -788,6 +779,15 @@ public class AmbariCustomCommandExecutionHelperTest {
     createServiceComponentHost(clusterName, "HBASE", "HBASE_REGIONSERVER", hostC6402, State.INIT);
     createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT);
   }
+
+  private Set<String> getStageHosts(Request request) {
+    Set<String> hosts = new HashSet<>();
+    for (Stage stage : request.getStages()) {
+      hosts.addAll(stage.getHosts());
+    }
+    return hosts;
+  }
+
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");

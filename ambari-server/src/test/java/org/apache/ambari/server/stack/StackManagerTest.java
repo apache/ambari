@@ -497,7 +497,7 @@ public class StackManagerTest {
   public void testMonitoringServicePropertyInheritance() throws Exception{
     StackInfo stack = stackManager.getStack("HDP", "2.0.8");
     Collection<ServiceInfo> allServices = stack.getServices();
-    assertEquals(15, allServices.size());
+    assertEquals(14, allServices.size());
 
     boolean monitoringServiceFound = false;
 
