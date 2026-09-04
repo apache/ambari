@@ -463,6 +463,42 @@ Migrate the panel menu actions while retaining Ambari authorization:
 - Edit, clone, copy, export, and delete when the user has the required
   persisted-data permission.
 
+## Dashboard Workspace and Visualization Mapping
+
+The Ambari implementation uses one `DashboardPage` workspace with explicit
+view and edit modes. Edits are held as a local dashboard draft. Drag, resize,
+panel changes, variables, metadata, and advanced JSON changes are written only
+when the user invokes the workspace Save action; Discard restores the last
+saved dashboard. Built-in dashboards are immutable and expose Clone and edit.
+New dashboards and clones open directly in edit mode.
+
+The full-screen panel editor follows the useful n9e workflow of live preview,
+queries, and visualization options, but its modules, controls, and persisted
+contract are Ambari-owned. It does not copy n9e routes, component names, Ant
+Design forms, request clients, global state, or CSS.
+
+| Visualization | Ambari renderer and effective settings |
+| --- | --- |
+| Time series | Lines or bars, smooth or linear interpolation, width, fill, stacking, null connection, points, linear or logarithmic scale, legend position, tooltip mode/order, unit, decimals, min/max |
+| Stat | Reducer, value/name mode, value or threshold-background color, orientation, text sizes, sparkline, unit, decimals, thresholds |
+| Gauge | Reducer, value/name mode, automatic or explicit bounds, units, decimals, threshold colors |
+| Bar gauge | Reducer, continuous or LCD display, sorting, value mode, automatic or explicit bounds, units, decimals, thresholds |
+| Pie | Pie or donut shape, reducer, legend position, units and decimals |
+| Bar chart | Vertical or horizontal layout, reducer, sorting, units, decimals and explicit bounds |
+| Table | Label columns, reducer, filter, sorting, CSV export, header and wrap controls, plain or threshold-colored values |
+| Advanced table | Table behavior plus threshold background and in-cell gauge modes |
+| Heatmap | Time/value matrix, selectable color schemes, units and decimals |
+| Hex tiles | One tile per Prometheus result series, reducer, text mode, continuous palettes and reverse order |
+| Text | Content, text/background colors, size, horizontal and vertical alignment |
+| Embedded page | Same-origin URL enforcement and sandboxed iframe rendering |
+
+The query editor is intentionally Prometheus-native: datasource, PromQL,
+legend templates, instant/range mode, hidden targets, and maximum data points.
+n9e query builders for Elasticsearch, Loki, ClickHouse, and log records are
+not copied because Ambari has no corresponding datasource contract. Likewise,
+n9e application-level user groups, alerting, annotations, and business groups
+remain outside the dashboard workspace.
+
 ## Dependency and Runtime Adaptation
 
 | n9e dependency or API | Ambari replacement or decision |
@@ -533,7 +569,8 @@ with options and units applied.
 ### Phase 4: Advanced renderers
 
 - Migrate pie, bar chart, heatmap, and text.
-- Add hexbin only when a supported Ambari query/data contract is documented.
+- Add hex tiles using the documented Prometheus vector contract: one tile per
+  result series, colored by its configured reducer value.
 - Add renderer-specific empty, loading, error, and export behavior.
 
 Exit criteria: each supported type has a dedicated renderer test and invalid
