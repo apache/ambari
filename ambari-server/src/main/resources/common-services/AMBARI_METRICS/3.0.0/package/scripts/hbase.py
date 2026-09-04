@@ -19,77 +19,13 @@ limitations under the License.
 """
 
 import os
-from ambari_commons import OSConst
-from resource_management.core.resources.system import Directory, Execute, File, Link
+from resource_management.core.resources.system import Directory, File, Link
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import Template, InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def hbase(name=None, action=None):
-  import params
-
-  Directory(params.hbase_conf_dir, owner=params.hadoop_user, create_parents=True)
-  Directory(params.hbase_tmp_dir, create_parents=True, owner=params.hadoop_user)
-
-  Directory(
-    os.path.join(params.local_dir, "jars"),
-    owner=params.hadoop_user,
-    create_parents=True,
-  )
-
-  XmlConfig(
-    "hbase-site.xml",
-    conf_dir=params.hbase_conf_dir,
-    configurations=params.config["configurations"]["ams-hbase-site"],
-    configuration_attributes=params.config["configurationAttributes"]["ams-hbase-site"],
-    owner=params.hadoop_user,
-  )
-
-  if "ams-hbase-policy" in params.config["configurations"]:
-    XmlConfig(
-      "hbase-policy.xml",
-      conf_dir=params.hbase_conf_dir,
-      configurations=params.config["configurations"]["ams-hbase-policy"],
-      configuration_attributes=params.config["configurationAttributes"][
-        "ams-hbase-policy"
-      ],
-      owner=params.hadoop_user,
-    )
-  # Manually overriding ownership of file installed by hadoop package
-  else:
-    File(
-      os.path.join(params.hbase_conf_dir, "hbase-policy.xml"), owner=params.hadoop_user
-    )
-
-  # Metrics properties
-  File(
-    os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
-    owner=params.hbase_user,
-    content=Template("hadoop-metrics2-hbase.properties.j2"),
-  )
-
-  hbase_TemplateConfig("regionservers", user=params.hadoop_user)
-
-  if params.security_enabled:
-    hbase_TemplateConfig(format("hbase_{name}_jaas.conf"), user=params.hadoop_user)
-
-  if name != "client":
-    Directory(params.hbase_log_dir, owner=params.hadoop_user, create_parents=True)
-
-  if params.hbase_log4j_props != None:
-    File(
-      os.path.join(params.hbase_conf_dir, "log4j.properties"),
-      owner=params.hadoop_user,
-      content=params.hbase_log4j_props,
-    )
-  elif os.path.exists(os.path.join(params.hbase_conf_dir, "log4j.properties")):
-    File(
-      os.path.join(params.hbase_conf_dir, "log4j.properties"), owner=params.hadoop_user
-    )
+from resource_management.core.exceptions import Fail
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -99,12 +35,17 @@ def hbase(
 ):
   import params
 
+  if name not in ("master", "regionserver", "client"):
+    raise Fail(f"Unsupported AMS HBase configuration role: {name}")
+  if action not in (None, "start", "stop", "configure"):
+    raise Fail(f"Unsupported AMS HBase configuration action: {action}")
+
   Directory(
     params.hbase_conf_dir,
     owner=params.hbase_user,
     group=params.user_group,
     create_parents=True,
-    recursive_ownership=True,
+    mode=0o750,
   )
 
   # Link /usr/lib/ams-hbase/conf -> /etc/ams-hbase/conf
@@ -118,17 +59,16 @@ def hbase(
   Directory(
     params.hbase_tmp_dir,
     owner=params.hbase_user,
-    cd_access="a",
+    group=params.user_group,
     create_parents=True,
-    recursive_ownership=True,
+    mode=0o750,
   )
 
   Directory(
     os.path.join(params.local_dir, "jars"),
     owner=params.hbase_user,
     group=params.user_group,
-    cd_access="a",
-    mode=0o775,
+    mode=0o750,
     create_parents=True,
   )
 
@@ -137,9 +77,8 @@ def hbase(
       params.hbase_wal_dir,
       owner=params.hbase_user,
       group=params.user_group,
-      cd_access="a",
       create_parents=True,
-      recursive_ownership=True,
+      mode=0o750,
     )
 
   merged_ams_hbase_site = {}
@@ -172,13 +111,10 @@ def hbase(
     Directory(
       params.phoenix_server_spool_dir,
       owner=params.ams_user,
-      mode=0o755,
+      mode=0o750,
       group=params.user_group,
-      cd_access="a",
       create_parents=True,
     )
-  pass
-
   if "ams-hbase-policy" in params.config["configurations"]:
     XmlConfig(
       "hbase-policy.xml",
@@ -209,35 +145,38 @@ def hbase(
     os.path.join(params.hbase_conf_dir, "hadoop-metrics2-hbase.properties"),
     owner=params.hbase_user,
     group=params.user_group,
+    mode=0o600,
     content=Template("hadoop-metrics2-hbase.properties.j2"),
   )
-
-  # hbase_TemplateConfig( params.metric_prop_file_name,
-  #   tag = 'GANGLIA-MASTER' if name == 'master' else 'GANGLIA-RS'
-  # )
 
   hbase_TemplateConfig("regionservers", user=params.hbase_user)
 
   if params.security_enabled:
-    hbase_TemplateConfig(format("hbase_{name}_jaas.conf"), user=params.hbase_user)
-    hbase_TemplateConfig(format("hbase_client_jaas.conf"), user=params.hbase_user)
-    hbase_TemplateConfig(format("ams_zookeeper_jaas.conf"), user=params.hbase_user)
+    hbase_TemplateConfig(
+      format("hbase_{name}_jaas.conf"), user=params.hbase_user, mode=0o600
+    )
+    hbase_TemplateConfig(
+      format("hbase_client_jaas.conf"), user=params.hbase_user, mode=0o600
+    )
+    hbase_TemplateConfig(
+      format("ams_zookeeper_jaas.conf"), user=params.hbase_user, mode=0o600
+    )
 
   if name != "client":
     Directory(
       params.hbase_pid_dir,
       owner=params.hbase_user,
+      group=params.user_group,
       create_parents=True,
-      cd_access="a",
-      mode=0o755,
+      mode=0o750,
     )
 
     Directory(
       params.hbase_log_dir,
       owner=params.hbase_user,
+      group=params.user_group,
       create_parents=True,
-      cd_access="a",
-      mode=0o755,
+      mode=0o750,
     )
 
   if name == "master":
@@ -264,36 +203,13 @@ def hbase(
 
         params.HdfsResource(None, action="execute")
 
-      if params.is_hbase_distributed:
-        # Workaround for status commands not aware of operating mode
-        File(
-          format("{params.hbase_pid_dir}/distributed_mode"),
-          action="create",
-          mode=0o644,
-          owner=params.hbase_user,
-        )
-
-      pass
-
     else:
-      local_root_dir = params.hbase_root_dir
-      # cut protocol name
-      if local_root_dir.startswith("file://"):
-        local_root_dir = local_root_dir[7:]
-        # otherwise assume dir name is provided as is
-
       Directory(
-        local_root_dir,
+        params.local_hbase_root_dir,
         owner=params.hbase_user,
-        cd_access="a",
+        group=params.user_group,
         create_parents=True,
-        recursive_ownership=True,
-      )
-
-      File(
-        format("{params.hbase_pid_dir}/distributed_mode"),
-        action="delete",
-        owner=params.hbase_user,
+        mode=0o750,
       )
 
   if params.hbase_log4j_props is not None:
@@ -313,9 +229,13 @@ def hbase(
     )
 
 
-def hbase_TemplateConfig(name, tag=None, user=None):
+def hbase_TemplateConfig(name, tag=None, user=None, mode=None):
   import params
 
   TemplateConfig(
-    os.path.join(params.hbase_conf_dir, name), owner=user, template_tag=tag
+    os.path.join(params.hbase_conf_dir, name),
+    owner=user,
+    group=params.user_group,
+    mode=mode,
+    template_tag=tag,
   )

@@ -18,16 +18,11 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.script import Script
-from resource_management.core.resources.system import Execute, File
-from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.resources.system import File
 from resource_management.libraries.functions.format import format
-from resource_management.core.logger import Logger
-from resource_management.core import shell
 from ranger_service import ranger_service
+from ranger_process import check_process
 from resource_management.libraries.functions.constants import Direction
 import upgrade
 import setup_ranger_xml
@@ -88,30 +83,19 @@ class RangerUsersync(Script):
 
     env.set_params(params)
 
-    Execute(
-      format("{params.usersync_stop}"),
-      environment={"JAVA_HOME": params.java_home},
-      user=params.unix_user,
-    )
-    if params.stack_supports_pid:
-      File(params.ranger_usersync_pid_file, action="delete")
+    ranger_service("ranger_usersync", action="stop")
 
   def status(self, env):
     import status_params
 
     env.set_params(status_params)
 
-    if status_params.stack_supports_pid:
-      check_process_status(status_params.ranger_usersync_pid_file)
-      return
-
-    cmd = "ps -ef | grep proc_rangerusersync | grep -v grep"
-    code, output = shell.call(cmd, timeout=20)
-
-    if code != 0:
-      Logger.debug("Ranger usersync process not running")
-      raise ComponentIsNotRunning()
-    pass
+    check_process(
+      "ranger_usersync",
+      status_params.ranger_usersync_pid_file,
+      status_params.unix_user,
+      status_params.unix_group,
+    )
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params

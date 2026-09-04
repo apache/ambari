@@ -25,21 +25,18 @@ __all__ = ["Script"]
 import re
 import os
 import sys
-import ssl
 import logging
-import distro as platform
 import inspect
 import tarfile
 import traceback
 import time
-from optparse import OptionParser
+import argparse
 import resource_management
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
-from ambari_commons.network import reconfigure_urllib2_opener
-from ambari_commons.inet_utils import resolve_address, ensure_ssl_using_protocol
+from ambari_commons.inet_utils import resolve_address, resolve_tls_client_protocol
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
@@ -79,19 +76,9 @@ from resource_management.libraries.functions.fcntl_based_process_lock import (
   FcntlBasedProcessLock,
 )
 
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 
-if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.install_windows_msi import (
-    install_windows_msi,
-  )
-  from resource_management.libraries.functions.reload_windows_env import (
-    reload_windows_env,
-  )
-  from resource_management.libraries.functions.zip_archive import archive_dir
-  from resource_management.libraries.resources import Msi
-else:
-  from resource_management.libraries.functions.tar_archive import archive_dir
+from resource_management.libraries.functions.tar_archive import archive_dir
 
 USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEVEL> <TMP_DIR> [PROTOCOL]
 
@@ -101,7 +88,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 <STROUTPUT> path to file with structured command output (file will be created). Ex:/tmp/my.txt
 <LOGGING_LEVEL> log level for stdout. Ex:DEBUG,INFO
 <TMP_DIR> temporary directory for executable scripts. Ex: /var/lib/ambari-agent/tmp
-[PROTOCOL] optional protocol to use during https connections. Ex: see python ssl.PROTOCOL_<PROTO> variables, default PROTOCOL_TLSv1_2
+[PROTOCOL] optional protocol to use during https connections. Supported values are PROTOCOL_TLS_CLIENT and legacy PROTOCOL_TLSv1_2; default PROTOCOL_TLS_CLIENT
 """
 
 _PASSWORD_MAP = {
@@ -159,9 +146,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-  force_https_protocol = (
-    "PROTOCOL_TLSv1_2" if hasattr(ssl, "PROTOCOL_TLSv1_2") else "PROTOCOL_TLSv1"
-  )
+  force_https_protocol = "PROTOCOL_TLS_CLIENT"
   ca_cert_file_path = None
 
   def load_structured_out(self):
@@ -217,7 +202,7 @@ class Script(object):
     )
 
     if check_stack_feature(StackFeature.CONFIG_VERSIONING, params.version):
-      # Even though hdp-select has not yet been called, write new configs to the new config directory.
+      # Write new configs before the stack selector switches the active version.
       config_path = os.path.join(
         params.stack_root, params.version, conf_select_name, "conf"
       )
@@ -299,7 +284,7 @@ class Script(object):
   def should_expose_component_version(self, command_name):
     """
     Analyzes config and given command to determine if stack version should be written
-    to structured out. Currently only HDP stack versions >= 2.2 are supported.
+    to structured out when the stack advertises rolling-upgrade support.
     :param command_name: command name
     :return: True or False
     """
@@ -326,15 +311,17 @@ class Script(object):
     Sets up logging;
     Parses command parameters and executes method relevant to command type
     """
-    parser = OptionParser()
-    parser.add_option(
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
       "-o",
       "--out-files-logging",
       dest="log_out_files",
       action="store_true",
       help="use this option to enable outputting *.out files of the service pre-start",
     )
-    (self.options, args) = parser.parse_args()
+    parser.add_argument("script_arguments", nargs="*")
+    self.options = parser.parse_args()
+    args = self.options.script_arguments
 
     self.log_out_files = self.options.log_out_files
 
@@ -359,23 +346,12 @@ class Script(object):
 
     Logger.initialize_logger(__name__, logging_level=self.logging_level)
 
-    # on windows we need to reload some of env variables manually because there is no default paths for configs(like
-    # /etc/something/conf on linux. When this env vars created by one of the Script execution, they can not be updated
-    # in agent, so other Script executions will not be able to access to new env variables
-    if OSCheck.is_windows_family():
-      reload_windows_env()
-
     # !!! status commands re-use structured output files; if the status command doesn't update the
     # the file (because it doesn't have to) then we must ensure that the file is reset to prevent
     # old, stale structured output from a prior status command from being used
     if self.command_name == "status":
       Script.structuredOut = {}
       self.put_structured_out({})
-
-    # make sure that script has forced https protocol and ca_certs file passed from agent
-    ensure_ssl_using_protocol(
-      Script.get_force_https_protocol_name(), Script.get_ca_cert_file_path()
-    )
 
     try:
       with open(self.command_data_file) as f:
@@ -385,7 +361,6 @@ class Script(object):
         Script.module_configs = Script.execution_command.get_module_configs()
         Script.cluster_settings = Script.execution_command.get_cluster_settings()
         Script.stack_settings = Script.execution_command.get_stack_settings()
-        # load passwords here(used on windows to impersonate different users)
         Script.passwords = {}
         for k, v in _PASSWORD_MAP.items():
           if get_path_from_configuration(
@@ -595,7 +570,7 @@ class Script(object):
 
     package_delimiter = "-" if OSCheck.is_ubuntu_family() else "_"
     package_regex = (
-      name.replace(STACK_VERSION_PLACEHOLDER, f"(\d|{package_delimiter})+") + "$"
+      name.replace(STACK_VERSION_PLACEHOLDER, rf"(\d|{package_delimiter})+") + "$"
     )
     repo = default("/repositoryFile", None)
     name_with_version = None
@@ -761,7 +736,7 @@ class Script(object):
     """
     Get forced https protocol name.
 
-    :return: protocol name, PROTOCOL_TLSv1_2 by default
+    :return: protocol name, PROTOCOL_TLS_CLIENT by default
     """
     return Script.force_https_protocol
 
@@ -772,7 +747,7 @@ class Script(object):
 
     :return: protocol value
     """
-    return getattr(ssl, Script.get_force_https_protocol_name())
+    return resolve_tls_client_protocol(Script.get_force_https_protocol_name())
 
   @staticmethod
   def get_ca_cert_file_path():
@@ -808,7 +783,7 @@ class Script(object):
 
     stack_name = default("/clusterLevelParams/stack_name", None)
     if stack_name is None:
-      stack_name = default("/configurations/cluster-env/stack_name", "HDP")
+      stack_name = default("/configurations/cluster-env/stack_name", "BIGTOP")
 
     return stack_name
 
@@ -992,33 +967,13 @@ class Script(object):
         for package in package_list:
           if self.check_package_condition(package):
             name = self.format_package_name(package["name"])
-            # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
-            # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
-            # <osFamily>any<osFamily> which would cause installation failure on Windows.
-            if OSCheck.is_windows_family():
-              if "ambari-metrics" in name:
-                Package(name)
-            else:
-              Package(
-                name,
-                retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
-                retry_count=agent_stack_retry_count,
-              )
+            Package(
+              name,
+              retry_on_repo_unavailability=agent_stack_retry_on_unavailability,
+              retry_count=agent_stack_retry_count,
+            )
     except KeyError:
       traceback.print_exc()
-
-    if OSCheck.is_windows_family():
-      # TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
-      hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
-      install_windows_msi(
-        config["ambariLevelParams"]["jdk_location"],
-        config["agentLevelParams"]["agentCacheDir"],
-        ["hdp-2.3.0.0.winpkg.msi", "hdp-2.3.0.0.cab", "hdp-2.3.0.0-01.cab"],
-        hadoop_user,
-        self.get_password(hadoop_user),
-        str(config["clusterLevelParams"]["stack_version"]),
-      )
-      reload_windows_env()
 
   def check_package_condition(self, package):
     condition = package["condition"]
@@ -1342,14 +1297,6 @@ class Script(object):
   @staticmethod
   def get_instance():
     if Script.instance is None:
-      from resource_management.libraries.functions.default import default
-
-      use_proxy = default(
-        "/agentLevelParams/agentConfigParams/agent/use_system_proxy_settings", True
-      )
-      if not use_proxy:
-        reconfigure_urllib2_opener(ignore_system_proxy=True)
-
       Script.instance = Script()
     return Script.instance
 

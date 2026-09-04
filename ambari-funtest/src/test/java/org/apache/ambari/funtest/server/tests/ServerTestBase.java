@@ -23,6 +23,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
@@ -115,8 +119,11 @@ public class ServerTestBase {
             properties.setProperty(Configuration.AGENT_USE_SSL.getKey(), "false");
             properties.setProperty(Configuration.CLIENT_API_PORT.getKey(), Integer.toString(serverPort));
             properties.setProperty(Configuration.SRVR_ONE_WAY_SSL_PORT.getKey(), Integer.toString(serverAgentPort));
-            String tmpDir = System.getProperty("java.io.tmpdir");
-            properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(), tmpDir);
+            Path keyStoreDirectory = Files.createTempDirectory(
+                Paths.get("/tmp"), "ambari-funtest-");
+            properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(),
+                keyStoreDirectory.toString());
+            prepareCertificateDirectory(keyStoreDirectory);
 
             ControllerModule testModule = new ControllerModule(properties);
 
@@ -132,6 +139,27 @@ public class ServerTestBase {
             waitForServer();
 
             isInitialized = true;
+        }
+    }
+
+    private static void prepareCertificateDirectory(Path keyStoreDirectory) throws IOException {
+        Path databaseDirectory = keyStoreDirectory.resolve("db");
+        Files.createDirectories(databaseDirectory.resolve("newcerts"));
+        Files.writeString(databaseDirectory.resolve("serial"), "01\n", StandardCharsets.UTF_8);
+        Path indexFile = databaseDirectory.resolve("index.txt");
+        if (Files.notExists(indexFile)) {
+            Files.createFile(indexFile);
+        }
+
+        try (InputStream caConfig = ServerTestBase.class.getClassLoader()
+                .getResourceAsStream("ca.config")) {
+            if (caConfig == null) {
+                throw new FileNotFoundException("ca.config not found in test classpath");
+            }
+            String content = new String(caConfig.readAllBytes(), StandardCharsets.UTF_8)
+                .replace("/var/lib/ambari-server/keys/db", databaseDirectory.toString());
+            Files.writeString(keyStoreDirectory.resolve("ca.config"), content,
+                StandardCharsets.UTF_8);
         }
     }
 

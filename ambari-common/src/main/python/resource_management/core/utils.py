@@ -100,10 +100,7 @@ class AttributeDictionary(object):
     return self._dict.__repr__()
 
   def __unicode__(self):
-    if isinstance(self._dict, str):
-      return self._dict.__unicode__()
-    else:
-      return str(self._dict)
+    return str(self._dict)
 
   def __str__(self):
     return self._dict.__str__()

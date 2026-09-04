@@ -70,12 +70,9 @@
 
       <configuration-dependencies>
         <config-type>core-site</config-type>
-        <config-type>spark-defaults</config-type>
-        <config-type>spark-env</config-type>
-        <config-type>spark-log4j-properties</config-type>
-        <config-type>spark-metrics-properties</config-type>
-        <config-type>spark-hive-site-override</config-type>
-        <config-type>spark-thrift-fairscheduler</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <config-type>yarn-site</config-type>
         <config-type>livy-client-conf</config-type>
         <config-type>livy-conf</config-type>
         <config-type>livy-env</config-type>
@@ -97,7 +94,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>spark_${stack_version}-core</name>
@@ -106,7 +103,21 @@
               <name>spark_${stack_version}-python</name>
             </package>
             <package>
-              <name>livy_${stack_version}</name>
+              <name>livy</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>spark-${stack_version}-core</name>
+            </package>
+            <package>
+              <name>spark-${stack_version}-python</name>
+            </package>
+            <package>
+              <name>livy</name>
             </package>
           </packages>
         </osSpecific>

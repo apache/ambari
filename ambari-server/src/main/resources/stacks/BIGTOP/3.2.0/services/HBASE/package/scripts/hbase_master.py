@@ -18,33 +18,22 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
-  cached_kinit_executor,
   get_params_from_filesystem,
   validate_security_config_properties,
   FILE_TYPE_XML,
 )
 from hbase import hbase
-from hbase_service import hbase_service
+from hbase_service import check_hbase_process_status, hbase_service
 from hbase_decommission import hbase_decommission
 import upgrade
 from setup_ranger_hbase import setup_ranger_hbase
-from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-import os
-from resource_management.libraries.functions.setup_atlas_hook import (
-  has_atlas_in_cluster,
-  setup_atlas_hook,
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
 )
-from ambari_commons.constants import SERVICE
-from resource_management.core.logger import Logger
 
 
 class HbaseMaster(Script):
@@ -59,33 +48,13 @@ class HbaseMaster(Script):
 
     env.set_params(params)
     self.install_packages(env)
+    upgrade.select_phoenix_packages(params)
 
   def decommission(self, env):
     import params
 
     env.set_params(params)
     hbase_decommission(env)
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HbaseMasterWindows(HbaseMaster):
-  def start(self, env):
-    import status_params
-
-    self.configure(env)
-    Service(status_params.hbase_master_win_service_name, action="start")
-
-  def stop(self, env):
-    import status_params
-
-    env.set_params(status_params)
-    Service(status_params.hbase_master_win_service_name, action="stop")
-
-  def status(self, env):
-    import status_params
-
-    env.set_params(status_params)
-    check_windows_service_status(status_params.hbase_master_win_service_name)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -102,20 +71,6 @@ class HbaseMasterDefault(HbaseMaster):
     env.set_params(params)
     self.configure(env)  # for security
     setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-master")
-    if params.enable_hbase_atlas_hook:
-      Logger.info("Hbase Atlas hook is enabled, configuring Atlas HBase Hook.")
-      hbase_atlas_hook_file_path = os.path.join(
-        params.hbase_conf_dir, params.atlas_hook_filename
-      )
-      setup_atlas_hook(
-        SERVICE.HBASE,
-        params.hbase_atlas_hook_properties,
-        hbase_atlas_hook_file_path,
-        params.hbase_user,
-        params.user_group,
-      )
-    else:
-      Logger.info("Hbase Atlas hook is disabled, skippking Atlas configurations.")
     hbase_service("master", action="start")
 
   def stop(self, env, upgrade_type=None):
@@ -129,7 +84,12 @@ class HbaseMasterDefault(HbaseMaster):
 
     env.set_params(status_params)
 
-    check_process_status(status_params.hbase_master_pid_file)
+    check_hbase_process_status(
+      status_params.hbase_master_pid_file,
+      status_params.hbase_user,
+      status_params.user_group,
+      "master",
+    )
 
   def security_status(self, env):
     import status_params
@@ -172,14 +132,19 @@ class HbaseMasterDefault(HbaseMaster):
             )
             return
 
-          cached_kinit_executor(
-            status_params.kinit_path_local,
+          keytab = security_params["hbase-site"]["hbase.master.keytab.file"]
+          principal = security_params["hbase-site"][
+            "hbase.master.kerberos.principal"
+          ].replace("_HOST", status_params.hostname.lower())
+          with PrivateKerberosCache(
             status_params.hbase_user,
-            security_params["hbase-site"]["hbase.master.keytab.file"],
-            security_params["hbase-site"]["hbase.master.kerberos.principal"],
-            status_params.hostname,
-            status_params.tmp_dir,
-          )
+            status_params.user_group,
+            temp_dir=status_params.tmp_dir,
+            prefix="ambari-hbase-master-status-",
+          ) as kerberos_cache:
+            kerberos_cache.kinit(
+              status_params.kinit_path_local, keytab, principal, timeout=30
+            )
           self.put_structured_out({"securityState": "SECURED_KERBEROS"})
         except Exception as e:
           self.put_structured_out({"securityState": "ERROR"})

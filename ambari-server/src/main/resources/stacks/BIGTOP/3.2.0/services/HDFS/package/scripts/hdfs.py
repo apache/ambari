@@ -22,6 +22,7 @@ Ambari Agent
 
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.system import Execute, Directory, File, Link
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.resources import Package
 from resource_management.core.source import Template
 from resource_management.core.resources.service import ServiceConfig
@@ -34,6 +35,7 @@ import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.libraries.functions.lzo_utils import install_lzo_if_needed
+from hdfs_kerberos import hdfs_kerberos_environment
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -59,12 +61,14 @@ def hdfs(name=None):
       os.path.join(params.hadoop_conf_dir, "hdfs_dn_jaas.conf"),
       owner=params.hdfs_user,
       group=params.user_group,
+      mode=0o640,
       content=Template("hdfs_dn_jaas.conf.j2"),
     )
     File(
       os.path.join(params.hadoop_conf_dir, "hdfs_nn_jaas.conf"),
       owner=params.hdfs_user,
       group=params.user_group,
+      mode=0o640,
       content=Template("hdfs_nn_jaas.conf.j2"),
     )
     if params.dfs_ha_enabled:
@@ -72,6 +76,7 @@ def hdfs(name=None):
         os.path.join(params.hadoop_conf_dir, "hdfs_jn_jaas.conf"),
         owner=params.hdfs_user,
         group=params.user_group,
+        mode=0o640,
         content=Template("hdfs_jn_jaas.conf.j2"),
       )
 
@@ -203,86 +208,66 @@ class ConfigStatusParser:
 def reconfig(componentName, componentAddress):
   import params
 
-  if params.security_enabled:
-    Execute(params.nn_kinit_cmd, user=params.hdfs_user)
+  if componentName not in {"namenode", "datanode", "router"}:
+    raise Fail(f"Unsupported HDFS reconfiguration component: {componentName!r}")
+  if (
+    not isinstance(componentAddress, str)
+    or componentAddress != componentAddress.strip()
+    or not componentAddress
+  ):
+    raise Fail(f"Invalid HDFS reconfiguration address: {componentAddress!r}")
 
-  nn_reconfig_cmd = format(
-    "hdfs --config {hadoop_conf_dir} dfsadmin -reconfig {componentName} {componentAddress} start"
-  )
+  with hdfs_kerberos_environment(
+    params,
+    "ambari-hdfs-reconfigure-",
+    keytab=params.nn_keytab if params.security_enabled else None,
+    principal=params.nn_principal_name if params.security_enabled else None,
+  ) as command_environment:
+    nn_reconfig_cmd = (
+      "hdfs",
+      "--config",
+      params.hadoop_conf_dir,
+      "dfsadmin",
+      "-reconfig",
+      componentName,
+      componentAddress,
+      "start",
+    )
 
-  Execute(
-    nn_reconfig_cmd, user=params.hdfs_user, logoutput=True, path=params.hadoop_bin_dir
-  )
+    Execute(
+      nn_reconfig_cmd,
+      user=params.hdfs_user,
+      logoutput=True,
+      path=[params.hadoop_bin_dir],
+      environment=command_environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
-  nn_reconfig_cmd = format(
-    "hdfs --config {hadoop_conf_dir} dfsadmin -reconfig {componentName} {componentAddress} status"
-  )
-  config_status_parser = ConfigStatusParser()
-  Execute(
-    nn_reconfig_cmd,
-    user=params.hdfs_user,
-    logoutput=False,
-    path=params.hadoop_bin_dir,
-    on_new_line=config_status_parser.handle_new_line,
-  )
+    nn_reconfig_cmd = (
+      "hdfs",
+      "--config",
+      params.hadoop_conf_dir,
+      "dfsadmin",
+      "-reconfig",
+      componentName,
+      componentAddress,
+      "status",
+    )
+    config_status_parser = ConfigStatusParser()
+    Execute(
+      nn_reconfig_cmd,
+      user=params.hdfs_user,
+      logoutput=False,
+      path=[params.hadoop_bin_dir],
+      on_new_line=config_status_parser.handle_new_line,
+      environment=command_environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
   if not config_status_parser.reconfig_successful:
     Logger.info("Reconfiguration failed")
     raise Fail("Reconfiguration failed!")
 
   Logger.info("Reconfiguration successfully completed.")
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def hdfs(component=None):
-  import params
-
-  if component == "namenode":
-    directories = params.dfs_name_dir.split(",")
-    Directory(
-      directories, owner=params.hdfs_user, mode="(OI)(CI)F", create_parents=True
-    )
-    File(
-      params.exclude_file_path,
-      content=Template("exclude_hosts_list.j2"),
-      owner=params.hdfs_user,
-      mode="f",
-    )
-
-    if params.hdfs_include_file:
-      File(
-        params.include_file_path,
-        content=Template("include_hosts_list.j2"),
-        owner=params.hdfs_user,
-        mode="f",
-      )
-      pass
-  if component in params.service_map:
-    service_name = params.service_map[component]
-    ServiceConfig(
-      service_name,
-      action="change_user",
-      username=params.hdfs_user,
-      password=Script.get_password(params.hdfs_user),
-    )
-
-  if "hadoop-policy" in params.config["configurations"]:
-    XmlConfig(
-      "hadoop-policy.xml",
-      conf_dir=params.hadoop_conf_dir,
-      configurations=params.config["configurations"]["hadoop-policy"],
-      owner=params.hdfs_user,
-      mode="f",
-      configuration_attributes=params.config["configurationAttributes"][
-        "hadoop-policy"
-      ],
-    )
-
-  XmlConfig(
-    "hdfs-site.xml",
-    conf_dir=params.hadoop_conf_dir,
-    configurations=params.config["configurations"]["hdfs-site"],
-    owner=params.hdfs_user,
-    mode="f",
-    configuration_attributes=params.config["configurationAttributes"]["hdfs-site"],
-  )

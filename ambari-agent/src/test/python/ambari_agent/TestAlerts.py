@@ -35,12 +35,12 @@ from ambari_agent.alerts.port_alert import PortAlert
 from ambari_agent.alerts.script_alert import ScriptAlert
 from ambari_agent.alerts.web_alert import WebAlert
 from ambari_agent.alerts.recovery_alert import RecoveryAlert
-from ambari_agent.apscheduler.scheduler import Scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from ambari_agent.ClusterConfigurationCache import ClusterConfigurationCache
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 
 from collections import namedtuple
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from unittest import TestCase
 
 from ambari_agent.AmbariConfig import AmbariConfig
@@ -54,12 +54,13 @@ class TestAlerts(TestCase):
     self.original_open = open
     self.original_osfdopen = os.fdopen
     self.config = AmbariConfig()
+    self.config.get_server_ssl_context = MagicMock()
 
   def tearDown(self):
     sys.stdout == sys.__stdout__
 
-  @patch.object(Scheduler, "add_interval_job")
-  @patch.object(Scheduler, "start")
+  @patch.object(BackgroundScheduler, "add_job")
+  @patch.object(BackgroundScheduler, "start")
   def test_start(self, aps_add_interval_job_mock, aps_start_mock):
     test_file_path = os.path.join("ambari_agent", "dummy_files")
     test_stack_path = os.path.join("ambari_agent", "dummy_files")
@@ -828,7 +829,7 @@ class TestAlerts(TestCase):
     ash.schedule_definition(pa)
 
     # verify enabled alert was scheduled
-    self.assertEqual(3, ash.get_job_count())
+    self.assertEqual(2, ash.get_job_count())
 
   def test_immediate_alert(self):
     test_file_path = os.path.join("ambari_agent", "dummy_files")
@@ -1603,19 +1604,19 @@ class TestAlerts(TestCase):
     osfdopen_mock.side_effect = self.osfdopen_side_effect
     cluster_configuration.rewrite_cluster_cache("0", {"configurations": configuration})
 
-  def open_side_effect(self, file, mode):
+  def open_side_effect(self, file, mode, *args, **kwargs):
     if mode == "w":
       file_mock = MagicMock()
       return file_mock
     else:
-      return self.original_open(file, mode)
+      return self.original_open(file, mode, *args, **kwargs)
 
-  def osfdopen_side_effect(self, fd, mode):
+  def osfdopen_side_effect(self, fd, mode, *args, **kwargs):
     if mode == "w":
       file_mock = MagicMock()
       return file_mock
     else:
-      return self.original_open(file, mode)
+      return self.original_osfdopen(fd, mode, *args, **kwargs)
 
   def _get_script_alert_definition(self):
     return {
@@ -1744,7 +1745,6 @@ class TestAlerts(TestCase):
 
   def _get_ams_alert_definition(self):
     return {
-      "definitionId": 1,
       "ignore_host": False,
       "name": "namenode_mean_heapsize_used",
       "componentName": "NAMENODE",

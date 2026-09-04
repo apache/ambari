@@ -62,7 +62,7 @@ CERTIFICATE_FOOTER = "-----END CERTIFICATE-----"
 
 REGEX_ANYTHING = ".*"
 REGEX_URL = (
-  "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+\S*$"
+  r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+\S*$"
 )
 
 WILDCARD_FOR_ALL_SERVICES = "*"

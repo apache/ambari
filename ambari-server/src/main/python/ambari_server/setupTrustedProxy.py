@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ambari_simplejson as json
+import json
 import http.client
 import os
 import re

@@ -34,7 +34,7 @@ def get_component_version_from_symlink(stack_name, component_name):
   Gets the version of the specified component by invoking the stack-select tool to query for the
   version which is referenced by the symlink.
 
-  :param stack_name: one of HDP, HDPWIN, BIGTOP, PHD, etc. usually retrieved from
+  :param stack_name: one of HDP, BIGTOP, PHD, etc. usually retrieved from
   the command-#.json file's ["clusterLevelParams"]["stack_name"]
   :param component_name: Component name as a string necessary to get the version
   :return: Returns a string if found, e.g., 2.2.1.0-2175, otherwise, returns None
@@ -151,6 +151,6 @@ def get_versions_from_stack_root(stack_root):
   installed_stack_versions = [
     f
     for f in os.listdir(stack_root)
-    if os.path.isdir(os.path.join(stack_root, f)) and re.match("([\d\.]+(-\d+)?)", f)
+    if os.path.isdir(os.path.join(stack_root, f)) and re.match(r"([\d\.]+(-\d+)?)", f)
   ]
   return installed_stack_versions

@@ -42,15 +42,15 @@
       # See the License for the specific language governing permissions and
       # limitations under the License.
 
-      JAVA_HOME={{java64_home}}
-      HCAT_PID_DIR={{hcat_pid_dir}}/
-      HCAT_LOG_DIR={{hcat_log_dir}}/
-      HCAT_CONF_DIR={{hcat_conf_dir}}
-      HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
+      export JAVA_HOME={{java64_home_shell}}
+      export HCAT_PID_DIR={{hcat_pid_dir_shell}}
+      export HCAT_LOG_DIR={{hcat_log_dir_shell}}
+      export HCAT_CONF_DIR={{hcat_conf_dir_shell}}
+      export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home_shell}}}
       #DBROOT is the path where the connector jars are downloaded
-      DBROOT={{hcat_dbroot}}
-      USER={{webhcat_user}}
-      METASTORE_PORT={{hive_metastore_port}}
+      export DBROOT={{hcat_dbroot_shell}}
+      export USER={{webhcat_user_shell}}
+      export METASTORE_PORT={{hive_metastore_port}}
     </value>
     <value-attributes>
       <type>content</type>

@@ -36,7 +36,6 @@ logger = logging.getLogger()
 
 class Hardware:
   SSH_KEY_PATTERN = "ssh.*key"
-  WINDOWS_GET_DRIVES_CMD = 'foreach ($drive in [System.IO.DriveInfo]::getdrives()){$available = $drive.TotalFreeSpace;$used = $drive.TotalSize-$drive.TotalFreeSpace;$percent = ($used*100)/$drive.TotalSize;$size = $drive.TotalSize;$type = $drive.DriveFormat;$mountpoint = $drive.RootDirectory.FullName;echo "$available $used $percent% $size $type $mountpoint"}'
   CHECK_REMOTE_MOUNTS_KEY = "agent.check.remote.mounts"
   CHECK_REMOTE_MOUNTS_TIMEOUT_KEY = "agent.check.mounts.timeout"
   CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT = "10"
@@ -236,31 +235,6 @@ class Hardware:
       except Fail:
         logger.exception(f"Exception happened while checking mount {mount_point}")
         return False
-
-  @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-  def osdisks(self):
-    mounts = []
-    runner = shellRunner()
-    command_result = runner.runPowershell(script_block=Hardware.WINDOWS_GET_DRIVES_CMD)
-    if command_result.exitCode != 0:
-      return mounts
-    else:
-      for drive in [
-        line for line in command_result.output.split(os.linesep) if line != ""
-      ]:
-        available, used, percent, size, fs_type, mountpoint = drive.split(" ")
-        mounts.append(
-          {
-            "available": available,
-            "used": used,
-            "percent": percent,
-            "size": size,
-            "type": fs_type,
-            "mountpoint": mountpoint,
-          }
-        )
-
-    return mounts
 
   def get(self, invalidate_cache=False):
     """

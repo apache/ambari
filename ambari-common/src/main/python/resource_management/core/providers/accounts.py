@@ -124,7 +124,7 @@ class UserProvider(Provider):
     if self.resource.fetch_nonlocal_groups:
       return [g.gr_name for g in grp.getgrall() if self.resource.username in g.gr_mem]
 
-    with open("/etc/group", "rb") as fp:
+    with open("/etc/group", "r", encoding="utf-8") as fp:
       content = fp.read()
 
     # Each line should have 4 parts, even with no members (trailing colon)
@@ -138,7 +138,7 @@ class UserProvider(Provider):
       if len(entries) >= 4:
         group_name = entries[0].strip()
         group_users = entries[3].split(",")
-        if self.user in group_users:
+        if self.resource.username in group_users:
           groups.append(group_name)
 
     return groups

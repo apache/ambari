@@ -165,10 +165,6 @@ class PortAlert(BaseAlert):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(self.critical_timeout)
 
-        if OSCheck.is_windows_family():
-          # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
-          host = resolve_address(host)
-
         start_time = time.time()
         s.connect((host, port))
         if self.socket_command is not None:

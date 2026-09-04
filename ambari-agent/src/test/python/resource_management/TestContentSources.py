@@ -18,22 +18,20 @@ limitations under the License.
 """
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 import os
 import importlib
 
-if get_platform() != PLATFORM_WINDOWS:
-  with patch.object(os, "geteuid", return_value=0):
-    from resource_management.core import sudo
+with patch.object(os, "geteuid", return_value=0):
+  from resource_management.core import sudo
 
-    importlib.reload(sudo)
+  importlib.reload(sudo)
 
 from ambari_commons.os_check import OSCheck
 
@@ -44,7 +42,7 @@ from resource_management.core.source import DownloadSource
 from resource_management.core.source import Template
 from resource_management.core.source import InlineTemplate
 
-from ambari_jinja2 import UndefinedError, TemplateNotFound
+from jinja2 import TemplateNotFound, UndefinedError
 import urllib.request, urllib.error, urllib.parse
 
 

@@ -233,7 +233,7 @@ public class ConfigurationTest {
         Configuration.KSTR_NAME.getKey()));
     Assert.assertEquals("PKCS12", conf.getConfigsMap().get(
         Configuration.KSTR_TYPE.getKey()));
-    Assert.assertEquals("keystore.p12", conf.getConfigsMap().get(
+    Assert.assertEquals("truststore.p12", conf.getConfigsMap().get(
         Configuration.TSTR_NAME.getKey()));
     Assert.assertEquals("PKCS12", conf.getConfigsMap().get(
         Configuration.TSTR_TYPE.getKey()));

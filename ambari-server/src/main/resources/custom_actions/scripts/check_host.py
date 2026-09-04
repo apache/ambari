@@ -39,7 +39,7 @@ from resource_management.core.exceptions import Fail
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core import shell
 from resource_management.core.logger import Logger
-from shlex import split
+from ambari_commons.db_connection_helper import verify_db_connection
 
 
 # WARNING. If you are adding a new host check that is used by cleanup, add it to BEFORE_CLEANUP_HOST_CHECKS
@@ -97,7 +97,7 @@ class CheckHost(Script):
     "^ambari.*$",
     "^.+-manager-server-db.*$",
     "^.+-manager-daemons.*$",
-    "^mahout[_\-]\d.*$",
+    r"^mahout[_\-]\d.*$",
     "^spark.*$",
     "^falcon.*$",
     "^hbase.*$",
@@ -111,7 +111,7 @@ class CheckHost(Script):
     "^ranger.*$",
     "^accumulo.*$",
     "^hive_.*$",
-    "^pig[_\-.].*$",  # there's a default 'pigz' package which we should avoid
+    r"^pig[_\-.].*$",  # there's a default 'pigz' package which we should avoid
   ]
 
   # ignore packages from repos whose names start with these strings
@@ -122,7 +122,6 @@ class CheckHost(Script):
     "epel-release",
     "ambari-server",
     "ambari-agent",
-    "nagios",
     # ganglia related:
     "ganglia",
     "libganglia",
@@ -292,7 +291,7 @@ class CheckHost(Script):
   def execute_transparent_huge_page_check(self, config):
     Logger.info("Transparent huge page check started.")
 
-    thp_regex = "\[(.+)\]"
+    thp_regex = r"\[(.+)\]"
     file_name = None
     if OSCheck.is_ubuntu_family():
       file_name = THP_FILE_UBUNTU
@@ -352,9 +351,6 @@ class CheckHost(Script):
         "expected_java_version": expected_java_version,
       }
     java_bin = "java"
-    if OSCheck.is_windows_family():
-      java_bin = "java.exe"
-
     java_executable = os.path.join(java_home, "bin", java_bin)
     if not os.path.isfile(java_executable):
       Logger.warning("Java home doesn't exist!")
@@ -536,10 +532,6 @@ class CheckHost(Script):
     )
 
     java_bin = "java"
-    if OSCheck.is_windows_family():
-      java_bin = "java.exe"
-      class_path_delimiter = ";"
-
     java_exec = os.path.join(java_home, "bin", java_bin)
 
     if (
@@ -630,11 +622,7 @@ class CheckHost(Script):
     # download jdbc driver from ambari-server resources
     try:
       download_file(jdbc_url, jdbc_path)
-      if db_name == DB_MSSQL and OSCheck.is_windows_family():
-        jdbc_auth_path = os.path.join(agent_cache_dir, JDBC_AUTH_SYMLINK_MSSQL)
-        jdbc_auth_url = CheckHost.build_url(jdk_location, JDBC_AUTH_SYMLINK_MSSQL)
-        download_file(jdbc_auth_url, jdbc_auth_path)
-      elif db_name == DB_SQLA:
+      if db_name == DB_SQLA:
         # unpack tar.gz jdbc which was donaloaded
         untar_sqla_type2_driver = ("tar", "-xvf", jdbc_path, "-C", agent_cache_dir)
         Execute(untar_sqla_type2_driver, sudo=True)
@@ -653,34 +641,41 @@ class CheckHost(Script):
     if db_name == DB_ORACLE and user_name.upper() == "SYS":
       user_name = "SYS AS SYSDBA"
 
-    # try to connect to db
-    db_connection_check_command = format(
-      "{java_exec} -cp {check_db_connection_path}{class_path_delimiter}"
-      '{jdbc_jar_path} -Djava.library.path={java_library_path} org.apache.ambari.server.DBConnectionVerification "{db_connection_url}" '
-      '"{user_name}" {user_passwd!p} {jdbc_driver_class}'
-    )
-
+    verification_environment = None
     if db_name == DB_SQLA:
-      db_connection_check_command = (
-        "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}{1} {2}".format(
-          agent_cache_dir, LIBS_PATH_IN_ARCHIVE_SQLA, db_connection_check_command
+      verification_environment = {
+        "LD_LIBRARY_PATH": os.pathsep.join(
+          filter(
+            None,
+            [
+              os.environ.get("LD_LIBRARY_PATH"),
+              agent_cache_dir + LIBS_PATH_IN_ARCHIVE_SQLA,
+            ],
+          )
         )
-      )
+      }
 
-    if isinstance(db_connection_check_command, str):
-      code, out = shell.call(
-        split(db_connection_check_command, comments=True), shell=False, quiet=True
+    try:
+      out = verify_db_connection(
+        java_exec,
+        check_db_connection_path + class_path_delimiter + jdbc_jar_path,
+        db_connection_url,
+        user_name,
+        user_passwd,
+        jdbc_driver_class,
+        environment=verification_environment,
+        java_options=[f"-Djava.library.path={java_library_path}"],
       )
+    except Fail as err:
+      db_connection_check_structured_output = {
+        "exit_code": 1,
+        "message": str(err),
+      }
     else:
-      code, out = shell.call(db_connection_check_command, shell=False)
-
-    if code == 0:
       db_connection_check_structured_output = {
         "exit_code": 0,
         "message": "DB connection check completed successfully!",
       }
-    else:
-      db_connection_check_structured_output = {"exit_code": 1, "message": out}
 
     Logger.info("DB connection check completed.")
     return db_connection_check_structured_output

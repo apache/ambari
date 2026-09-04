@@ -25,10 +25,10 @@ import os
 import shutil
 import tempfile
 from ambari_commons.exceptions import FatalException
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from unittest import TestCase
 from ambari_server.properties import Properties
-import distro
+from ambari_commons import os_check
 import platform
 
 from ambari_commons import os_utils
@@ -44,7 +44,7 @@ shutil.copyfile(
 )
 
 with patch.object(
-  distro,
+  os_check,
   "linux_distribution",
   return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
 ):
@@ -69,7 +69,7 @@ with patch.object(
 
 
 @patch.object(
-  distro, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
+  os_check, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
 )
 @patch("os.path.isdir", new=MagicMock(return_value=True))
 @patch("os.access", new=MagicMock(return_value=True))

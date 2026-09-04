@@ -41,7 +41,7 @@
             spark.yarn.archive
 
             # Don't allow users to override the RSC timeout.
-            livy.rsc.server.idle_timeout
+            livy.rsc.server.idle-timeout
         </value>
         <value-attributes>
             <type>content</type>

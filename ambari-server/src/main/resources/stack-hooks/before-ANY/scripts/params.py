@@ -23,7 +23,7 @@ import re
 import os
 import ast
 
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default
@@ -356,7 +356,8 @@ user_list = json.loads(config["clusterLevelParams"]["user_list"])
 group_list = json.loads(config["clusterLevelParams"]["group_list"])
 host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 
-tez_am_view_acls = config["configurations"]["tez-site"]["tez.am.view-acls"]
+# Tez is optional on BIGTOP stacks; an omitted ACL means no extra users/groups.
+tez_am_view_acls = default("/configurations/tez-site/tez.am.view-acls", "*")
 override_uid = str(default("/configurations/cluster-env/override_uid", "true")).lower()
 
 # if NN HA on secure clutser, access Zookeper securely

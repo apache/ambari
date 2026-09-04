@@ -26,22 +26,11 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.security_commons import (
-  build_expectations,
-  cached_kinit_executor,
-  get_params_from_filesystem,
-  validate_security_config_properties,
-  FILE_TYPE_XML,
-)
 from resource_management.core.logger import Logger
 from yarn import yarn
 from service import service
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+import yarn_process_utils
 
 
 class Nodemanager(Script):
@@ -66,12 +55,6 @@ class Nodemanager(Script):
 
     env.set_params(params)
     yarn(name="nodemanager")
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class NodemanagerWindows(Nodemanager):
-  def status(self, env):
-    service("nodemanager", action="status")
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -99,7 +82,13 @@ class NodemanagerDefault(Nodemanager):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.nodemanager_pid_file)
+    yarn_process_utils.check_component_status(
+      status_params.nodemanager_pid_file,
+      status_params.yarn_user,
+      "nodemanager",
+      status_params.yarn_user,
+      status_params.user_group,
+    )
 
   def get_log_folder(self):
     import params

@@ -23,11 +23,6 @@
       "path":"{{default('/configurations/hive-env/hive_log_dir', '/var/log/hive')}}/hiveserver2.log"
     },
     {
-      "type":"hive_server_interactive",
-      "rowtype":"service",
-      "path":"{{default('/configurations/hive-env/hive_log_dir', '/var/log/hive')}}/hiveserver2Interactive.log"
-    },
-    {
       "type":"hive_metastore",
       "rowtype":"service",
       "path":"{{default('/configurations/hive-env/hive_log_dir', '/var/log/hive')}}/hivemetastore.log"
@@ -40,7 +35,6 @@
         "fields":{
           "type":[
             "hive_server",
-            "hive_server_interactive",
             "hive_metastore"
           ]
         }

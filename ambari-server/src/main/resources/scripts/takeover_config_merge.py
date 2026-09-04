@@ -17,7 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import optparse
+import argparse
+import importlib
 import sys
 import os
 import logging
@@ -30,7 +31,13 @@ import xml
 import xml.etree.ElementTree as ET
 import io
 import configparser
-from optparse import OptionGroup
+
+server_root = os.environ.get("ROOT") or os.sep
+server_lib_dir = os.path.join(server_root, "usr", "lib", "ambari-server", "lib")
+if os.path.isdir(server_lib_dir):
+  sys.path.insert(0, server_lib_dir)
+
+yaml = importlib.import_module("yaml")
 
 logger = logging.getLogger("AmbariTakeoverConfigMerge")
 
@@ -77,23 +84,23 @@ class ShParser(Parser):
 
 class YamlParser(Parser):  # Used Yaml parser to read data into a map
   def read_data_to_map(self, path):
-    try:
-      import yaml
-    except ImportError:
-      logger.error(
-        'Module PyYAML not installed. Please try to execute "pip install pyyaml" for installing PyYAML module.'
-      )
-      sys.exit(1)
-
     configurations = {}
-    with open(path, "r") as file:
+    with open(path, "r", encoding="utf-8") as file:
       try:
-        for name, value in yaml.load(file).items():
-          if name != None:
-            configurations[name] = str(value)
-      except:
+        yaml_data = yaml.safe_load(file)
+      except yaml.YAMLError:
         logger.error(f"Couldn't parse {path} file. Skipping ...")
         return None, None
+
+    if yaml_data is None:
+      return configurations, None
+    if not isinstance(yaml_data, dict):
+      logger.error(f"Expected a mapping at the top level of {path}. Skipping ...")
+      return None, None
+
+    for name, value in yaml_data.items():
+      if name is not None:
+        configurations[name] = str(value)
     return configurations, None
 
 
@@ -127,7 +134,7 @@ class XmlParser(Parser):  # Used DOM parser to read data into a map
     properties_attributes = {}
     tree = ET.parse(path)
     root = tree.getroot()
-    for properties in root.getiterator("property"):
+    for properties in root.iter("property"):
       name = properties.find("name")
       value = properties.find("value")
       # TODO support all properties attributes
@@ -550,8 +557,8 @@ def main():
   tempDir = tempfile.gettempdir()
   outputDir = os.path.join(tempDir)
 
-  parser = optparse.OptionParser(usage="usage: %prog [options]")
-  parser.set_description(
+  parser = argparse.ArgumentParser(usage="usage: %(prog)s [options]")
+  parser.description = (
     "This python program is an Ambari thin client and "
     "supports Ambari cluster takeover by generating a "
     "configuration json that can be used with a "
@@ -563,7 +570,7 @@ def main():
     "and *.properties extensions of files."
   )
 
-  parser.add_option(
+  parser.add_argument(
     "-a",
     "--action",
     dest="action",
@@ -571,7 +578,7 @@ def main():
     help="Script action. (merge/diff) [default: merge]",
   )
 
-  parser.add_option(
+  parser.add_argument(
     "-v",
     "--verbose",
     dest="verbose",
@@ -579,7 +586,7 @@ def main():
     default=False,
     help="output verbosity.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-o",
     "--outputdir",
     dest="outputDir",
@@ -587,7 +594,7 @@ def main():
     metavar="FILE",
     help="Output directory. [default: /tmp]",
   )
-  parser.add_option(
+  parser.add_argument(
     "-u",
     "--unknown-files-mapping-file",
     dest="unknown_files_mapping_file",
@@ -596,24 +603,24 @@ def main():
     default="takeover_files_mapping.json",
   )
 
-  merge_options_group = OptionGroup(parser, "Required options for action 'merge'")
-  merge_options_group.add_option(
+  merge_options_group = parser.add_argument_group(
+    "Required options for action 'merge'"
+  )
+  merge_options_group.add_argument(
     "-i", "--inputdir", dest="inputDir", help="Input directory."
   )
 
-  parser.add_option_group(merge_options_group)
-
-  diff_options_group = OptionGroup(parser, "Required options for action 'diff'")
-  diff_options_group.add_option(
+  diff_options_group = parser.add_argument_group("Required options for action 'diff'")
+  diff_options_group.add_argument(
     "-l", "--leftInputDir", dest="leftInputDir", help="Left input directory."
   )
-  diff_options_group.add_option(
+  diff_options_group.add_argument(
     "-r", "--rightInputDir", dest="rightInputDir", help="Right input directory."
   )
 
-  parser.add_option_group(diff_options_group)
-
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
+  args = options.arguments
 
   # set verbose
   if options.verbose:

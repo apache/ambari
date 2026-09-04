@@ -18,7 +18,6 @@ limitations under the License.
 """
 
 import logging
-import ambari_stomp
 
 from ambari_agent.listeners import EventListener
 from ambari_agent import Constants

@@ -18,21 +18,21 @@ limitations under the License.
 
 """
 
-import glob
+from contextlib import nullcontext
+import hashlib
 import os
+import re
 
 from resource_management.core import shell, sudo
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import Template, InlineTemplate
 from resource_management.libraries import XmlConfig
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.generate_logfeeder_input_config import (
@@ -40,7 +40,65 @@ from resource_management.libraries.functions.generate_logfeeder_input_config imp
 )
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
 from resource_management.libraries.script.script import Script
+
+from zeppelin_process import (
+  read_or_discover_zeppelin_process,
+  start_zeppelin,
+  stop_zeppelin,
+)
+
+
+_LEGACY_LOCAL_USER_DIGESTS = frozenset(
+  (
+    "0051e9a0197704a027623c2376b1758a2519a3f5a0b67a507144d7cb10bbc961",
+    "e406380da87579e67e29e7d19a0c7aae1f73630774c5f4c0953bf709284e85a9",
+    "78f23667e87d9f7fe5e5da4e80411a81f4477f8bb9b5bfdb2536c0145181bbb0",
+    "7053e375d3d158c3899072fce62a53b7050f2052352957d3e691456d17edd12f",
+  )
+)
+
+
+def validate_shiro_ini_content(content):
+  if not isinstance(content, str) or not content.strip():
+    raise Fail("Zeppelin Shiro configuration must not be empty")
+  if "\x00" in content:
+    raise Fail("Zeppelin Shiro configuration contains a NUL character")
+
+  section = None
+  catch_all = None
+  for raw_line in content.splitlines():
+    line = raw_line.strip()
+    if not line or line.startswith(("#", ";")):
+      continue
+    if line.startswith("[") and line.endswith("]"):
+      section = line[1:-1].strip().lower()
+      continue
+    if section == "users" and "=" in line:
+      normalized = re.sub(r"\s+", "", line)
+      digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+      if digest in _LEGACY_LOCAL_USER_DIGESTS:
+        raise Fail(
+          "Remove the insecure packaged Zeppelin local accounts before startup"
+        )
+    if section == "urls" and "=" in line:
+      path, rule = line.split("=", 1)
+      if path.strip() == "/**":
+        catch_all = rule.strip()
+
+  if catch_all is None:
+    raise Fail("Zeppelin Shiro configuration must define a /** authentication rule")
+  filters = {
+    item.strip().split("[", 1)[0]
+    for item in catch_all.split(",")
+    if item.strip()
+  }
+  if "anon" in filters or "authc" not in filters:
+    raise Fail("Zeppelin Shiro /** rule must require authc and must not allow anon")
+  return content
 
 
 class ZeppelinServer(Script):
@@ -53,15 +111,7 @@ class ZeppelinServer(Script):
     self.create_zeppelin_log_dir(env)
 
     if params.spark_version:
-      Execute(
-        "echo spark_version:"
-        + str(params.spark_version)
-        + " detected for spark_home: "
-        + params.spark_home
-        + " >> "
-        + params.zeppelin_log_file,
-        user=params.zeppelin_user,
-      )
+      Logger.info(f"Detected Spark {params.spark_version} at {params.spark_home}")
 
   def create_zeppelin_dir(self, params):
     params.HdfsResource(
@@ -89,9 +139,6 @@ class ZeppelinServer(Script):
       recursive_chmod=True,
     )
 
-    spark_deps_full_path = self.get_zeppelin_spark_dependencies()[0]
-    spark_dep_file_name = os.path.basename(spark_deps_full_path)
-
     params.HdfsResource(None, action="execute")
 
   def create_zeppelin_log_dir(self, env):
@@ -104,7 +151,7 @@ class ZeppelinServer(Script):
       group=params.zeppelin_group,
       cd_access="a",
       create_parents=True,
-      mode=0o755,
+      mode=0o750,
     )
 
   def create_zeppelin_hdfs_conf_dir(self, env):
@@ -113,25 +160,11 @@ class ZeppelinServer(Script):
     env.set_params(params)
     Directory(
       [params.external_dependency_conf],
-      owner=params.zeppelin_user,
+      owner="root",
       group=params.zeppelin_group,
       cd_access="a",
       create_parents=True,
-      mode=0o755,
-    )
-
-  def chown_zeppelin_pid_dir(self, env):
-    import params
-
-    env.set_params(params)
-    Execute(
-      (
-        "chown",
-        "-R",
-        format("{zeppelin_user}") + ":" + format("{zeppelin_group}"),
-        params.zeppelin_pid_dir,
-      ),
-      sudo=True,
+      mode=0o750,
     )
 
   def configure(self, env):
@@ -142,49 +175,59 @@ class ZeppelinServer(Script):
     env.set_params(status_params)
     self.create_zeppelin_log_dir(env)
 
-    # create the pid and zeppelin dirs
+    # The package owns zeppelin_home; Ambari only owns runtime state.
     Directory(
-      [params.zeppelin_pid_dir, params.zeppelin_home],
+      params.zeppelin_pid_dir,
       owner=params.zeppelin_user,
       group=params.zeppelin_group,
       cd_access="a",
       create_parents=True,
-      recursive_ownership=True,
-      mode=0o755,
+      mode=0o750,
     )
-    self.chown_zeppelin_pid_dir(env)
+    Directory(
+      params.zeppelin_conf_dir,
+      owner="root",
+      group=params.zeppelin_group,
+      create_parents=True,
+      mode=0o750,
+    )
 
     XmlConfig(
       "zeppelin-site.xml",
       conf_dir=params.zeppelin_conf_dir,
       configurations=params.config["configurations"]["zeppelin-site"],
-      owner=params.zeppelin_user,
+      owner="root",
       group=params.zeppelin_group,
+      mode=0o640,
     )
     # write out zeppelin-env.sh
     env_content = InlineTemplate(params.zeppelin_env_content)
     File(
       format("{params.zeppelin_conf_dir}/zeppelin-env.sh"),
       content=env_content,
-      owner=params.zeppelin_user,
+      owner="root",
       group=params.zeppelin_group,
+      mode=0o640,
     )
 
     # write out shiro.ini
+    validate_shiro_ini_content(params.shiro_ini_content)
     shiro_ini_content = InlineTemplate(params.shiro_ini_content)
     File(
       format("{params.zeppelin_conf_dir}/shiro.ini"),
       content=shiro_ini_content,
-      owner=params.zeppelin_user,
+      owner="root",
       group=params.zeppelin_group,
+      mode=0o640,
     )
 
     # write out log4j.properties
     File(
       format("{params.zeppelin_conf_dir}/log4j.properties"),
       content=params.log4j_properties_content,
-      owner=params.zeppelin_user,
+      owner="root",
       group=params.zeppelin_group,
+      mode=0o644,
     )
 
     self.create_zeppelin_hdfs_conf_dir(env)
@@ -242,9 +285,9 @@ class ZeppelinServer(Script):
     else:
       notebook_directory = "/user/" + format("{zeppelin_user}") + "/" + notebook_dir
 
-    if not self.is_directory_exists_in_HDFS(notebook_directory, params.zeppelin_user):
+    if not self.is_hdfs_directory(notebook_directory, params.zeppelin_user):
       params.HdfsResource(
-        format("{notebook_directory}"),
+        notebook_directory,
         type="directory",
         action="create_on_execute",
         owner=params.zeppelin_user,
@@ -253,7 +296,7 @@ class ZeppelinServer(Script):
       )
 
       params.HdfsResource(
-        format("{notebook_directory}"),
+        notebook_directory,
         type="directory",
         action="create_on_execute",
         source=params.local_notebook_dir,
@@ -261,49 +304,29 @@ class ZeppelinServer(Script):
         recursive_chown=True,
         recursive_chmod=True,
       )
+      params.HdfsResource(None, action="execute")
 
   def stop(self, env, upgrade_type=None):
     import params
 
     self.create_zeppelin_log_dir(env)
-    self.chown_zeppelin_pid_dir(env)
-    Execute(
-      params.zeppelin_home
-      + "/bin/zeppelin-daemon.sh stop >> "
-      + params.zeppelin_log_file,
-      user=params.zeppelin_user,
+    stop_zeppelin(
+      params.zeppelin_pid_file,
+      params.zeppelin_user,
+      params.zeppelin_group,
     )
 
   def start(self, env, upgrade_type=None):
     import params
-    import status_params
-
     self.configure(env)
 
-    Execute(
-      (
-        "chown",
-        "-R",
-        format("{zeppelin_user}") + ":" + format("{zeppelin_group}"),
-        "/etc/zeppelin",
-      ),
-      sudo=True,
+    Directory(
+      params.local_notebook_dir,
+      owner=params.zeppelin_user,
+      group=params.zeppelin_group,
+      create_parents=True,
+      mode=0o750,
     )
-    Execute(
-      (
-        "chown",
-        "-R",
-        format("{zeppelin_user}") + ":" + format("{zeppelin_group}"),
-        format("{local_notebook_dir}"),
-      ),
-      sudo=True,
-    )
-
-    if params.security_enabled:
-      zeppelin_kinit_cmd = format(
-        "{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; "
-      )
-      Execute(zeppelin_kinit_cmd, user=params.zeppelin_user)
 
     if (
       "zeppelin.notebook.storage" in params.config["configurations"]["zeppelin-site"]
@@ -312,68 +335,52 @@ class ZeppelinServer(Script):
     ):
       self.check_and_copy_notebook_in_hdfs(params)
 
-    zeppelin_spark_dependencies = self.get_zeppelin_spark_dependencies()
-    if zeppelin_spark_dependencies and os.path.exists(zeppelin_spark_dependencies[0]):
-      self.create_zeppelin_dir(params)
+    self.create_zeppelin_dir(params)
 
     if params.conf_stored_in_hdfs:
-      if not self.is_directory_exists_in_HDFS(
-        self.get_zeppelin_conf_FS_directory(params), params.zeppelin_user
+      if not self.is_hdfs_directory(
+        self.get_zeppelin_conf_fs_directory(params), params.zeppelin_user
       ):
         # hdfs dfs -mkdir {zeppelin's conf directory}
         params.HdfsResource(
-          self.get_zeppelin_conf_FS_directory(params),
+          self.get_zeppelin_conf_fs_directory(params),
           type="directory",
           action="create_on_execute",
           owner=params.zeppelin_user,
           recursive_chown=True,
           recursive_chmod=True,
         )
+        params.HdfsResource(None, action="execute")
 
-    # if first_setup:
-    if not glob.glob(
-      params.zeppelin_conf_dir + "/interpreter.json"
-    ) and not os.path.exists(params.zeppelin_conf_dir + "/interpreter.json"):
+    if not os.path.exists(params.zeppelin_conf_dir + "/interpreter.json"):
       self.create_interpreter_json()
 
-    if params.zeppelin_interpreter_config_upgrade == True:
+    if params.zeppelin_interpreter_config_upgrade:
       self.reset_interpreter_settings(upgrade_type)
       self.update_zeppelin_interpreter()
 
-    Execute(
-      params.zeppelin_home
-      + "/bin/zeppelin-daemon.sh restart >> "
-      + params.zeppelin_log_file,
-      user=params.zeppelin_user,
+    identity = start_zeppelin(
+      params.zeppelin_daemon,
+      params.zeppelin_conf_dir,
+      params.zeppelin_pid_file,
+      params.zeppelin_user,
+      params.zeppelin_group,
+      params.java64_home,
     )
-    pid_files = glob.glob(
-      os.path.join(
-        status_params.zeppelin_pid_dir, "zeppelin-" + params.zeppelin_user + "*.pid"
-      )
-    )
-    if pid_files:
-      pidfile = pid_files[0]
-    else:
-      # Handle the case when no PID files are found
-      Logger.info("No Zeppelin PID files found in directory: %s" % status_params.zeppelin_pid_dir)
-      pidfile = None
-    Logger.info(format("Pid file is: {pidfile}"))
+    Logger.info(f"Zeppelin Server started with pid {identity.pid}")
 
   def status(self, env):
     import status_params
 
     env.set_params(status_params)
 
-    try:
-      pid_file = glob.glob(
-        status_params.zeppelin_pid_dir
-        + "/zeppelin-"
-        + status_params.zeppelin_user
-        + "*.pid"
-      )[0]
-    except IndexError:
-      pid_file = ""
-    check_process_status(pid_file)
+    identity = read_or_discover_zeppelin_process(
+      status_params.zeppelin_pid_file,
+      status_params.zeppelin_user,
+      status_params.zeppelin_group,
+    )
+    if identity is None:
+      raise ComponentIsNotRunning("Zeppelin Server is not running")
 
   def reset_interpreter_settings(self, upgrade_type):
     import json
@@ -386,7 +393,7 @@ class ZeppelinServer(Script):
     interpreter_settings = config_data["interpreterSettings"]
 
     if upgrade_type is not None:
-      current_interpreters_keys = interpreter_settings.keys()
+      current_interpreters_keys = list(interpreter_settings.keys())
       for key in current_interpreters_keys:
         interpreter_data = interpreter_settings[key]
         if interpreter_data["name"] == "sh" and interpreter_data["group"] == "sh":
@@ -440,7 +447,7 @@ class ZeppelinServer(Script):
     ):
       stack_select.select_packages(params.version)
 
-  def get_zeppelin_conf_FS_directory(self, params):
+  def get_zeppelin_conf_fs_directory(self, params):
     hdfs_interpreter_config = params.config["configurations"]["zeppelin-site"][
       "zeppelin.config.fs.dir"
     ]
@@ -455,103 +462,82 @@ class ZeppelinServer(Script):
 
     return hdfs_interpreter_config
 
-  def get_zeppelin_conf_FS(self, params):
-    return self.get_zeppelin_conf_FS_directory(params) + "/interpreter.json"
+  def get_zeppelin_conf_fs(self, params):
+    return self.get_zeppelin_conf_fs_directory(params) + "/interpreter.json"
 
-  def is_directory_exists_in_HDFS(self, path, as_user):
-    import params
-
-    kinit_path_local = get_kinit_path(
-      default("/configurations/kerberos-env/executable_search_paths", None)
-    )
+  def call_hdfs(self, params, arguments, as_user):
+    cache_context = nullcontext(None)
     if params.security_enabled:
-      kinit_if_needed = format(
-        "{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};"
+      if not all(
+        str(value or "").strip()
+        for value in (
+          params.kinit_path_local,
+          params.zeppelin_kerberos_keytab,
+          params.zeppelin_kerberos_principal,
+        )
+      ):
+        raise Fail(
+          "Secure Zeppelin HDFS operations require a service principal and keytab"
+        )
+      cache_context = PrivateKerberosCache(
+        as_user,
+        params.zeppelin_group,
+        prefix="ambari-zeppelin-hdfs-",
       )
-    else:
-      kinit_if_needed = ""
-    # -d: if the path is a directory, return 0.
-    path_exists = shell.call(
-      format(
-        "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -d {path};echo $?"
-      ),
-      user=as_user,
-    )[1]
 
-    # if there is no kerberos setup then the string will contain "-bash: kinit: command not found"
-    if "\n" in path_exists:
-      path_exists = path_exists.split("\n").pop()
-
-    # '1' means it does not exists
-    if path_exists == "0":
-      return True
-    else:
-      return False
-
-  def is_file_exists_in_HDFS(self, path, as_user):
-    import params
-
-    kinit_path_local = get_kinit_path(
-      default("/configurations/kerberos-env/executable_search_paths", None)
-    )
-    if params.security_enabled:
-      kinit_if_needed = format(
-        "{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};"
-      )
-    else:
-      kinit_if_needed = ""
-
-    # -f: if the path is a file, return 0.
-    path_exists = shell.call(
-      format(
-        "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -f {path};echo $?"
-      ),
-      user=as_user,
-    )[1]
-
-    # if there is no kerberos setup then the string will contain "-bash: kinit: command not found"
-    if "\n" in path_exists:
-      path_exists = path_exists.split("\n").pop()
-
-    # '1' means it does not exists
-    if path_exists == "0":
-      # -z: if the file is zero length, return 0.
-      path_exists = shell.call(
-        format(
-          "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -test -z {path};echo $?"
+    with cache_context as kerberos_cache:
+      environment = None
+      if kerberos_cache is not None:
+        kerberos_cache.kinit(
+          params.kinit_path_local,
+          params.zeppelin_kerberos_keytab,
+          params.zeppelin_kerberos_principal,
+          timeout=30,
+        )
+        environment = kerberos_cache.environment
+      return shell.call(
+        (
+          os.path.join(params.hadoop_bin_dir, "hdfs"),
+          "--config",
+          params.hadoop_conf_dir,
+          "dfs",
+          *arguments,
         ),
         user=as_user,
-      )[1]
+        env=environment,
+        timeout=30,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
 
-      if "\n" in path_exists:
-        path_exists = path_exists.split("\n").pop()
-      if path_exists != "0":
-        return True
+  def is_hdfs_directory(self, path, as_user):
+    import params
 
-    return False
+    return self.call_hdfs(params, ("-test", "-d", path), as_user)[0] == 0
 
-  def copy_interpreter_from_HDFS_to_FS(self, params):
+  def is_nonempty_hdfs_file(self, path, as_user):
+    import params
+
+    if self.call_hdfs(params, ("-test", "-f", path), as_user)[0] != 0:
+      return False
+    return self.call_hdfs(params, ("-test", "-z", path), as_user)[0] != 0
+
+  def load_interpreter_from_hdfs(self, params):
     if params.conf_stored_in_hdfs:
-      zeppelin_conf_fs = self.get_zeppelin_conf_FS(params)
+      zeppelin_conf_fs = self.get_zeppelin_conf_fs(params)
 
-      if self.is_file_exists_in_HDFS(zeppelin_conf_fs, params.zeppelin_user):
-        # copy from hdfs to /etc/zeppelin/conf/interpreter.json
-        kinit_path_local = get_kinit_path(
-          default("/configurations/kerberos-env/executable_search_paths", None)
+      if self.is_nonempty_hdfs_file(zeppelin_conf_fs, params.zeppelin_user):
+        return_code, content = self.call_hdfs(
+          params, ("-cat", zeppelin_conf_fs), params.zeppelin_user
         )
-        if params.security_enabled:
-          kinit_if_needed = format(
-            "{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal};"
-          )
-        else:
-          kinit_if_needed = ""
+        if return_code != 0:
+          raise Fail("Could not read Zeppelin interpreter configuration from HDFS")
         interpreter_config = os.path.join(params.zeppelin_conf_dir, "interpreter.json")
-        shell.call(
-          format(
-            "rm {interpreter_config};"
-            "{kinit_if_needed} hdfs --config {hadoop_conf_dir} dfs -get {zeppelin_conf_fs} {interpreter_config}"
-          ),
-          user=params.zeppelin_user,
+        File(
+          interpreter_config,
+          owner=params.zeppelin_user,
+          group=params.zeppelin_group,
+          mode=0o640,
+          content=content,
         )
         return True
     return False
@@ -560,7 +546,7 @@ class ZeppelinServer(Script):
     import params
     import json
 
-    self.copy_interpreter_from_HDFS_to_FS(params)
+    self.load_interpreter_from_hdfs(params)
     interpreter_config = os.path.join(params.zeppelin_conf_dir, "interpreter.json")
     config_content = sudo.read_file(interpreter_config)
     config_data = json.loads(config_content)
@@ -575,19 +561,19 @@ class ZeppelinServer(Script):
       interpreter_config,
       group=params.zeppelin_group,
       owner=params.zeppelin_user,
-      mode=0o644,
+      mode=0o640,
       content=json.dumps(config_data, indent=2),
     )
 
     if params.conf_stored_in_hdfs:
       # delete file from HDFS, as the `replace_existing_files` logic checks length of file which can remain same.
       params.HdfsResource(
-        self.get_zeppelin_conf_FS(params), type="file", action="delete_on_execute"
+        self.get_zeppelin_conf_fs(params), type="file", action="delete_on_execute"
       )
 
       # recreate file in HDFS from LocalFS
       params.HdfsResource(
-        self.get_zeppelin_conf_FS(params),
+        self.get_zeppelin_conf_fs(params),
         type="file",
         action="create_on_execute",
         source=interpreter_config,
@@ -596,6 +582,7 @@ class ZeppelinServer(Script):
         recursive_chmod=True,
         replace_existing_files=True,
       )
+      params.HdfsResource(None, action="execute")
 
   def update_kerberos_properties(self):
     import params
@@ -972,12 +959,12 @@ class ZeppelinServer(Script):
         and interpreter["name"] == "spark2"
         and "spark2" not in exclude_interpreter_autoconfig_list
       ):
-        if "spark2-env" in params.config["configurations"]:
+        if "spark-env" in params.config["configurations"]:
           self.storePropertyToInterpreter(
             interpreter, "master", "string", "yarn-client"
           )
           self.storePropertyToInterpreter(
-            interpreter, "SPARK_HOME", "string", "/usr/hdp/current/spark2-client/"
+            interpreter, "SPARK_HOME", "string", params.spark_home
           )
         else:
           del interpreter_settings[setting_key]
@@ -1007,19 +994,19 @@ class ZeppelinServer(Script):
     import interpreter_json_template
     import params
 
-    if not self.copy_interpreter_from_HDFS_to_FS(params):
+    if not self.load_interpreter_from_hdfs(params):
       interpreter_json = interpreter_json_template.template
       File(
         format("{params.zeppelin_conf_dir}/interpreter.json"),
         content=interpreter_json,
         owner=params.zeppelin_user,
         group=params.zeppelin_group,
-        mode=0o664,
+        mode=0o640,
       )
 
       if params.conf_stored_in_hdfs:
         params.HdfsResource(
-          self.get_zeppelin_conf_FS(params),
+          self.get_zeppelin_conf_fs(params),
           type="file",
           action="create_on_execute",
           source=format("{params.zeppelin_conf_dir}/interpreter.json"),
@@ -1028,13 +1015,7 @@ class ZeppelinServer(Script):
           recursive_chmod=True,
           replace_existing_files=True,
         )
-
-  def get_zeppelin_spark_dependencies(self):
-    import params
-
-    return glob.glob(
-      params.zeppelin_home + "/interpreter/spark/dep/zeppelin-spark-dependencies*.jar"
-    )
+        params.HdfsResource(None, action="execute")
 
 
 if __name__ == "__main__":

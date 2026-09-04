@@ -414,7 +414,10 @@ describe("Service Theme normalizer", () => {
 
     expect(theme.layoutNames).toEqual(["directories"]);
     expect(theme.tabs[0].sections).toHaveLength(3);
-    expect(theme.placements).toHaveLength(9);
+    expect(theme.placements).toHaveLength(8);
+    expect(theme.placements.map((placement) => placement.configPath)).not.toContain(
+      "tez-interactive-site/tez.lib.uris",
+    );
     expect(theme.tabs[0].sections.map((section) => section.displayName)).toEqual([
       "DATA DIRS",
       "LOG DIRS",
@@ -894,7 +897,7 @@ describe("Service Theme conditions", () => {
       (condition) => condition.resource?.toLowerCase() === "service",
     );
 
-    expect(configConditions.length).toBeGreaterThanOrEqual(53);
+    expect(configConditions.length).toBeGreaterThanOrEqual(50);
     expect(serviceConditions.length).toBeGreaterThanOrEqual(9);
     configConditions.forEach((condition) => {
       const result = evaluateConfigConditionResult(

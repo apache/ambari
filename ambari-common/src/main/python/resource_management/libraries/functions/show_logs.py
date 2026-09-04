@@ -36,7 +36,7 @@ def show_logs(log_dir, user, lines_count=LAST_LINES_DEFAULT_OUTPUT_COUNT, mask="
 
   Execute(
     format(
-      "find {log_dir} -maxdepth 1 -type f -name '{mask}' -exec echo '==> {{}} <==' \; -exec tail -n {lines_count} {{}} \;"
+      r"find {log_dir} -maxdepth 1 -type f -name '{mask}' -exec echo '==> {{}} <==' \; -exec tail -n {lines_count} {{}} \;"
     ),
     logoutput=True,
     ignore_failures=True,  # if this fails should not overwrite the actual exception

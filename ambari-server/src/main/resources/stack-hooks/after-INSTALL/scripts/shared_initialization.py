@@ -20,8 +20,7 @@ limitations under the License.
 
 import os
 
-import ambari_simplejson as json
-from ambari_jinja2 import Environment as JinjaEnvironment
+import json
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate, Template
@@ -40,7 +39,7 @@ def setup_stack_symlinks(struct_out_file):
   """
   Invokes <stack-selector-tool> set all against a calculated fully-qualified, "normalized" version based on a
   stack version, such as "2.3". This should always be called after a component has been
-  installed to ensure that all HDP pointers are correct. The stack upgrade logic does not
+  installed to ensure that all stack pointers are correct. The stack upgrade logic does not
   interact with this since it's done via a custom command and will not trigger this hook.
   :return:
   """
@@ -54,7 +53,7 @@ def setup_stack_symlinks(struct_out_file):
 
   if params.host_sys_prepped:
     Logger.warning(
-      "Skipping running stack-selector-tool because this is a sys_prepped host. This may cause symlink pointers not to be created for HDP components installed later on top of an already sys_prepped host"
+      "Skipping running stack-selector-tool because this is a sys_prepped host. This may cause symlink pointers not to be created for stack components installed later on top of an already sys_prepped host"
     )
     return
 
@@ -131,7 +130,9 @@ def setup_config():
   if params.logsearch_config_file_exists:
     File(
       format("{logsearch_logfeeder_conf}/" + params.logsearch_config_file_name),
-      content=Template(params.logsearch_config_file_path, extra_imports=[default]),
+      content=Template(
+        params.logsearch_config_file_path, extra_imports=[default, json]
+      ),
     )
   else:
     Logger.warning(

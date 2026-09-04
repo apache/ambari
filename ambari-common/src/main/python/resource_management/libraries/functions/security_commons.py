@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 from resource_management import Execute, File
 from tempfile import mkstemp
 import os
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 from resource_management.core.source import StaticFile
 
 FILE_TYPE_XML = "XML"
@@ -187,14 +187,14 @@ def get_params_from_filesystem(conf_dir, config_files):
 
     if file_type == FILE_TYPE_XML:
       configuration = ET.parse(config_filepath)
-      props = configuration.getroot().getchildren()
+      props = list(configuration.getroot())
       config_file_id = file_name if file_name else config_file
       result[config_file_id] = {}
       for prop in props:
         result[config_file_id].update({prop[0].text: prop[1].text})
 
     elif file_type == FILE_TYPE_PROPERTIES:
-      with open(config_filepath, "r") as f:
+      with open(config_filepath, "r", encoding="utf-8") as f:
         config_string = "[root]\n" + f.read()
       ini_fp = io.StringIO(re.sub(r"\\\s*\n", "\\\n ", config_string))
       config = configparser.RawConfigParser()
@@ -205,12 +205,12 @@ def get_params_from_filesystem(conf_dir, config_files):
         result[file_name].update({key: value})
 
     elif file_type == FILE_TYPE_JAAS_CONF:
-      section_header = re.compile("^(\w+)\s+\{\s*$")
-      section_data = re.compile('^\s*([^ \s\=\}\{]+)\s*=?\s*"?([^ ";]+)"?;?\s*$')
-      section_footer = re.compile("^\}\s*;?\s*$")
+      section_header = re.compile(r"^(\w+)\s+\{\s*$")
+      section_data = re.compile(r'^\s*([^ \s\=\}\{]+)\s*=?\s*"?([^ ";]+)"?;?\s*$')
+      section_footer = re.compile(r"^\}\s*;?\s*$")
       section_name = "root"
       result[file_name] = {}
-      with open(config_filepath, "r") as f:
+      with open(config_filepath, "r", encoding="utf-8") as f:
         for line in f:
           if line:
             line = line.strip()

@@ -505,6 +505,7 @@ public class ExecutionCommand extends AgentCommand {
     String SERVICE_REPO_INFO = "service_repo_info";
     String PACKAGE_LIST = "package_list";
     String JDK_LOCATION = "jdk_location";
+    String RESOURCE_ARCHIVE_DIGESTS = "resource_archive_digests";
     String JAVA_HOME = "java_home";
     String GPL_LICENSE_ACCEPTED = "gpl_license_accepted";
     String AMBARI_JAVA_HOME = "ambari_java_home";

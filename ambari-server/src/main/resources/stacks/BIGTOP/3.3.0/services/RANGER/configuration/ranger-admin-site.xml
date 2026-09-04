@@ -73,9 +73,9 @@
     <description>Alias for Ranger Admin key in keystore</description>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
+  <property require-input="true">
     <name>ranger.service.https.attrib.keystore.pass</name>
-    <value>xasecure</value>
+    <value/>
     <property-type>PASSWORD</property-type>
     <description>Password for keystore</description>
     <value-attributes>

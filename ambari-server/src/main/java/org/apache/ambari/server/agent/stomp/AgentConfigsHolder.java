@@ -177,4 +177,8 @@ public class AgentConfigsHolder extends AgentHostDataHolder<AgentConfigsUpdateEv
   protected AgentConfigsUpdateEvent getEmptyData() {
     return AgentConfigsUpdateEvent.emptyUpdate();
   }
+
+  public void onEncryptionCapabilitiesChanged(Long hostId) {
+    onHostRemoved(hostId);
+  }
 }

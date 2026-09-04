@@ -22,6 +22,7 @@ import time
 
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.default import default
 from resource_management.core.exceptions import Fail
 import utils
@@ -29,6 +30,7 @@ from resource_management.libraries.functions.jmx import get_value_from_jmx
 import namenode_ha_state
 from namenode_ha_state import NAMENODE_STATE, NamenodeHAState
 from utils import get_dfsadmin_base_command
+from hdfs_kerberos import hdfs_kerberos_environment
 
 
 def post_upgrade_check():
@@ -40,24 +42,24 @@ def post_upgrade_check():
 
   Logger.info("Ensuring Journalnode quorum is established")
 
-  if params.security_enabled:
-    # We establish HDFS identity instead of JN Kerberos identity
-    # since this is an administrative HDFS call that requires the HDFS administrator user to perform.
-    Execute(params.hdfs_kinit_cmd, user=params.hdfs_user)
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-journalnode-upgrade-"
+  ) as command_environment:
+    time.sleep(5)
+    hdfs_roll_edits(environment=command_environment)
+    time.sleep(5)
 
-  time.sleep(5)
-  hdfs_roll_edits()
-  time.sleep(5)
+    try:
+      namenode_ha = namenode_ha_state.NamenodeHAState(
+        environment=command_environment
+      )
+    except ValueError as err:
+      raise Fail("Could not retrieve Namenode HA addresses. Error: " + str(err))
 
   all_journal_node_hosts = default("/clusterHostInfo/journalnode_hosts", [])
 
   if len(all_journal_node_hosts) < 3:
     raise Fail("Need at least 3 Journalnodes to maintain a quorum")
-
-  try:
-    namenode_ha = namenode_ha_state.NamenodeHAState()
-  except ValueError as err:
-    raise Fail("Could not retrieve Namenode HA addresses. Error: " + str(err))
 
   Logger.info(str(namenode_ha))
   nn_address = namenode_ha.get_address(NAMENODE_STATE.ACTIVE)
@@ -86,7 +88,7 @@ def post_upgrade_check():
     )
 
 
-def hdfs_roll_edits():
+def hdfs_roll_edits(environment=None):
   """
   HDFS_CLIENT needs to be a dependency of JOURNALNODE
   Roll the logs so that Namenode will be able to connect to the Journalnode.
@@ -94,10 +96,16 @@ def hdfs_roll_edits():
   """
   import params
 
-  # TODO, this will need to be doc'ed since existing clusters will need HDFS_CLIENT on all JOURNALNODE hosts
   dfsadmin_base_command = get_dfsadmin_base_command("hdfs")
-  command = dfsadmin_base_command + " -rollEdits"
-  Execute(command, user=params.hdfs_user, tries=1)
+  command = dfsadmin_base_command + ("-rollEdits",)
+  Execute(
+    command,
+    user=params.hdfs_user,
+    tries=1,
+    environment=environment,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+  )
 
 
 def ensure_jns_have_new_txn(nodelist, last_txn_id):

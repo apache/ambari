@@ -21,8 +21,8 @@ com.sun.security.auth.module.Krb5LoginModule required
 useKeyTab=true
 storeKey=true
 useTicketCache=false
-keyTab="{{yarn_hbase_regionserver_keytab}}"
-principal="{{yarn_hbase_regionserver_principal_name}}";
+keyTab="{{yarn_hbase_regionserver_keytab_jaas}}"
+principal="{{yarn_hbase_regionserver_principal_name_jaas}}";
 };
 com.sun.security.jgss.krb5.initiate {
 com.sun.security.auth.module.Krb5LoginModule required
@@ -31,6 +31,6 @@ doNotPrompt=true
 useKeyTab=true
 storeKey=true
 useTicketCache=false
-keyTab="{{yarn_hbase_regionserver_keytab}}"
-principal="{{yarn_hbase_regionserver_principal_name}}";
+keyTab="{{yarn_hbase_regionserver_keytab_jaas}}"
+principal="{{yarn_hbase_regionserver_principal_name_jaas}}";
 };

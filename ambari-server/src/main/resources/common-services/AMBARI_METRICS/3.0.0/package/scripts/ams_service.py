@@ -18,109 +18,223 @@ limitations under the License.
 
 """
 
-from resource_management.core.resources.system import Directory, Execute, File
-from resource_management.core.resources.service import Service
-from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.libraries.functions.format import format
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from hbase_service import hbase_service
 import os
 
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.libraries.functions.show_logs import show_logs
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from hbase_service import hbase_service
+from metrics_process import (
+  hbase_pid_file,
+  read_or_discover_ams_process,
+  read_or_discover_hbase_process,
+  stop_ams_identity,
+  stop_ams_process,
+  stop_hbase_identity,
+  wait_for_ams_process,
+  wait_for_hbase_process,
+)
 
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def ams_service(name, action):
-  import params
 
+_AMS_START_TIMEOUTS = {"collector": 420, "monitor": 60}
+
+
+def _component_details(name, params):
   if name == "collector":
-    Service(params.ams_embedded_hbase_win_service_name, action=action)
-    Service(params.ams_collector_win_service_name, action=action)
-  elif name == "monitor":
-    Service(params.ams_monitor_win_service_name, action=action)
+    return (
+      params.ams_collector_script,
+      params.ams_collector_conf_dir,
+      os.path.join(params.ams_collector_pid_dir, "ambari-metrics-collector.pid"),
+      params.ams_collector_log_dir,
+    )
+  if name == "monitor":
+    return (
+      params.ams_monitor_script,
+      params.ams_monitor_conf_dir,
+      os.path.join(params.ams_monitor_pid_dir, "ambari-metrics-monitor.pid"),
+      params.ams_monitor_log_dir,
+    )
+  raise Fail(f"Unsupported Ambari Metrics component: {name}")
+
+
+def _stop_component(name, pid_file, params):
+  stopped = stop_ams_process(
+    pid_file, params.ams_user, params.user_group, name
+  )
+  if not stopped:
+    Logger.info(f"No running Ambari Metrics {name} process was found")
+  return stopped
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def ams_service(name, action):
   import params
 
-  if name == "collector":
-    cmd = format("{ams_collector_script} --config {ams_collector_conf_dir}")
-    pid_file = format("{ams_collector_pid_dir}/ambari-metrics-collector.pid")
-    # no_op_test should be much more complex to work with cumulative status of collector
-    # removing as startup script handle it also
-    # no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
+  if action not in ("start", "stop"):
+    raise Fail(f"Unsupported Ambari Metrics action: {action}")
 
-    if params.is_hbase_distributed:
-      if action == "stop":
-        hbase_service("regionserver", action=action)
-        hbase_service("master", action=action)
+  script, config_dir, pid_file, log_dir = _component_details(name, params)
+
+  if action == "stop":
+    _stop_component(name, pid_file, params)
+    if name == "collector":
+      hbase_service("regionserver", action="stop")
+      hbase_service("master", action="stop")
+      File(
+        os.path.join(
+          params.ams_collector_pid_dir, "ambari-metrics-collector.krb5cc"
+        ),
+        action="delete",
+      )
+    elif (
+      name == "monitor"
+      and params.security_enabled
+      and params.monitor_kinit_cmd
+    ):
+      File(params.monitor_credential_cache, action="delete")
+    return
+
+  existing_identity = read_or_discover_ams_process(
+    pid_file, params.ams_user, params.user_group, name
+  )
+  if existing_identity is not None:
+    Logger.info(
+      f"Ambari Metrics {name} is already running with pid {existing_identity.pid}"
+    )
+    return
+
+  command = [script, "--config", config_dir]
+  started_hbase_roles = []
+  started_identity = None
+  environment = {"JAVA_HOME": params.java64_home}
+  if name == "monitor":
+    environment["PYTHON"] = params.python_binary
+    if params.security_enabled and params.monitor_kinit_cmd:
+      environment["KRB5CCNAME"] = params.monitor_cache_name
+
+  command.append("start")
+  embedded_master_was_running = False
+  embedded_master_identity = None
+  master_pid_file = None
+  try:
+    if name == "monitor":
+      Execute(
+        (
+          params.python_binary,
+          "-c",
+          "import sys; raise SystemExit(0 if (3, 9, 2) <= sys.version_info < (3, 10) else 1)",
+        ),
+        user=params.ams_user,
+        timeout=15,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
+    if name == "collector":
+      if params.is_hbase_distributed:
+        for role in ("master", "regionserver"):
+          hbase_identity = hbase_service(role, action="start")
+          if hbase_identity is not False:
+            started_hbase_roles.append((role, hbase_identity))
+        command.insert(-1, "--distributed")
       else:
-        hbase_service("master", action=action)
-        hbase_service("regionserver", action=action)
-      cmd = format("{cmd} --distributed")
-    else:
-      # make sure no residual region server process is running in embedded mode
-      if action == "stop":
-        hbase_service("regionserver", action=action)
-
-    if action == "start":
-      Execute(format("{sudo} rm -rf {hbase_tmp_dir}/*.tmp"))
-
-      if not params.is_hbase_distributed:
-        File(
-          format("{ams_collector_conf_dir}/core-site.xml"),
-          action="delete",
-          owner=params.ams_user,
+        master_pid_file = hbase_pid_file(
+          params.hbase_pid_dir, params.hbase_user, "master"
         )
-
-        File(
-          format("{ams_collector_conf_dir}/hdfs-site.xml"),
-          action="delete",
-          owner=params.ams_user,
-        )
+        embedded_master_was_running = read_or_discover_hbase_process(
+          master_pid_file, params.hbase_user, params.user_group, "master"
+        ) is not None
+        hbase_service("regionserver", action="stop")
+        for config_file in ("core-site.xml", "hdfs-site.xml"):
+          File(os.path.join(config_dir, config_file), action="delete")
 
       if params.security_enabled:
-        kinit_cmd = format(
-          "{kinit_path_local} -kt {ams_collector_keytab_path} {ams_collector_jaas_princ};"
+        kerberos_cache = os.path.join(
+          params.ams_collector_pid_dir, "ambari-metrics-collector.krb5cc"
         )
-        daemon_cmd = format("{kinit_cmd} {cmd} start")
-      else:
-        daemon_cmd = format("{cmd} start")
+        File(kerberos_cache, action="delete")
+        Execute(
+          (
+            params.kinit_path_local,
+            "-c",
+            f"FILE:{kerberos_cache}",
+            "-kt",
+            params.ams_collector_keytab_path,
+            params.ams_collector_jaas_princ,
+          ),
+          user=params.ams_user,
+          timeout=30,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+        File(
+          kerberos_cache,
+          owner=params.ams_user,
+          group=params.user_group,
+          mode=0o600,
+        )
+        environment["KRB5CCNAME"] = f"FILE:{kerberos_cache}"
 
-      try:
-        Execute(daemon_cmd, user=params.ams_user)
-      except:
-        show_logs(params.ams_collector_log_dir, params.ams_user)
-        raise
-
-      pass
-    elif action == "stop":
-      daemon_cmd = format("{cmd} stop")
-      Execute(daemon_cmd, user=params.ams_user)
-
-      pass
-    pass
-  elif name == "monitor":
-    cmd = format("{ams_monitor_script} --config {ams_monitor_conf_dir}")
-    pid_file = format("{ams_monitor_pid_dir}/ambari-metrics-monitor.pid")
-    no_op_test = format(
-      "ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1"
+    Execute(
+      tuple(command),
+      user=params.ams_user,
+      environment=environment,
+      timeout=_AMS_START_TIMEOUTS[name],
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
-
-    if action == "start":
-      daemon_cmd = format("{cmd} start")
-
+    started_identity = wait_for_ams_process(
+      pid_file, params.ams_user, params.user_group, name
+    )
+    if name == "collector" and not params.is_hbase_distributed:
+      embedded_master_identity = wait_for_hbase_process(
+        master_pid_file,
+        params.hbase_user,
+        params.user_group,
+        "master",
+      )
+  except Exception:
+    if started_identity is not None:
       try:
-        Execute(daemon_cmd, user=params.ams_user)
-      except:
-        show_logs(params.ams_monitor_log_dir, params.ams_user)
-        raise
-
-      pass
-    elif action == "stop":
-      daemon_cmd = format("{cmd} stop")
-      Execute(daemon_cmd, user=params.ams_user)
-
-      pass
-    pass
-  pass
+        stop_ams_identity(
+          started_identity, pid_file, params.ams_user, name
+        )
+      except Exception as cleanup_error:
+        Logger.error(f"Failed to roll back Ambari Metrics {name}: {cleanup_error}")
+    if name == "collector":
+      rollback_roles = (
+        reversed(started_hbase_roles)
+        if params.is_hbase_distributed
+        else (
+          (("master", embedded_master_identity),)
+          if not embedded_master_was_running
+          and embedded_master_identity is not None
+          else ()
+        )
+      )
+      for role, identity in rollback_roles:
+        try:
+          stop_hbase_identity(
+            identity,
+            hbase_pid_file(params.hbase_pid_dir, params.hbase_user, role),
+            params.hbase_user,
+            role,
+            wait_attempts=max(
+              1, int(params.hbase_regionserver_shutdown_timeout)
+            ),
+          )
+        except Exception as cleanup_error:
+          Logger.error(f"Failed to roll back AMS HBase {role}: {cleanup_error}")
+      if params.security_enabled:
+        File(
+          os.path.join(
+            params.ams_collector_pid_dir, "ambari-metrics-collector.krb5cc"
+          ),
+          action="delete",
+        )
+    elif params.security_enabled and params.monitor_kinit_cmd:
+      File(params.monitor_credential_cache, action="delete")
+    try:
+      show_logs(log_dir, params.ams_user)
+    except Exception as log_error:
+      Logger.warning(f"Unable to show Ambari Metrics {name} logs: {log_error}")
+    raise

@@ -114,31 +114,8 @@ if not IS_FOREGROUND:
   SERVER_START_CMD += " &"
   SERVER_START_CMD_DEBUG += " &"
 
-SERVER_START_CMD_WINDOWS = (
-  "{0} "
-  "-server -XX:NewRatio=3 "
-  "-XX:+UseConcMarkSweepGC "
-  + "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 "
-  "-XX:+CMSClassUnloadingEnabled "
-  "{1} {2} "
-  "-cp {3} "
-  "org.apache.ambari.server.controller.AmbariServer"
-)
-SERVER_START_CMD_DEBUG_WINDOWS = (
-  "{0} "
-  "-server -XX:NewRatio=2 "
-  "-XX:+UseConcMarkSweepGC "
-  "{1} {2} "
-  "-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend={4} "
-  "-cp {3} "
-  "org.apache.ambari.server.controller.AmbariServer"
-)
-
 SERVER_START_TIMEOUT = 5  # seconds
 SERVER_START_RETRIES = 4
-
-SERVER_PING_TIMEOUT_WINDOWS = 5
-SERVER_PING_ATTEMPTS_WINDOWS = 4
 
 SERVER_SEARCH_PATTERN = "org.apache.ambari.server.controller.AmbariServer"
 
@@ -167,11 +144,6 @@ ULIMIT_OPEN_FILES_DEFAULT = 65536
 AMBARI_ENV_FILE = AmbariPath.get("/var/lib/ambari-server/ambari-env.sh")
 
 
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def ensure_server_security_is_configured():
-  pass
-
-
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def ensure_server_security_is_configured():
   if not is_root():
@@ -187,23 +159,6 @@ def get_ulimit_open_files(properties):
     else ULIMIT_OPEN_FILES_DEFAULT
   )
   return open_files
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def generate_child_process_param_list(
-  ambari_user, java_exe, class_path, debug_start, suspend_mode
-):
-  conf_dir = class_path
-  if class_path.find(" ") != -1:
-    conf_dir = '"' + class_path + '"'
-  command_base = (
-    SERVER_START_CMD_DEBUG_WINDOWS if debug_start else SERVER_START_CMD_WINDOWS
-  )
-  command = command_base.format(
-    java_exe, ambari_provider_module_option, jvm_args, conf_dir, suspend_mode
-  )
-  return command
-
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def generate_child_process_param_list(
@@ -249,18 +204,6 @@ def generate_child_process_param_list(
 
   param_list.append(cmd)
   return param_list
-
-
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def wait_for_server_start(pidFile, scmStatus):
-  # Wait for the HTTP port to be open
-  iter_start = 0
-  while iter_start < SERVER_PING_ATTEMPTS_WINDOWS and not get_fqdn(
-    SERVER_PING_TIMEOUT_WINDOWS
-  ):
-    if scmStatus is not None:
-      scmStatus.reportStartPending()
-    iter_start += 1
 
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)

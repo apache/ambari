@@ -30,8 +30,7 @@ def main(args):
   vb.add_manifest("HDFS-271", "HDFS", "2.7.1.2.4.0")
   vb.add_manifest("YARN-271", "HDFS", "2.7.1.2.4.0", version_id = "1", release_version = "2.4.1.0")
 
-  vb.add_repo("redhat6", "HDP-2.4", "HDP", "http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.4.2.0", "true")
-  vb.add_repo("redhat6", "HDP-UTILS-1.1.0.20", "HDP-UTILS", "http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6", "false")
+  vb.add_repo("redhat8", "BIGTOP-3.2", "BIGTOP", "https://example.com/bigtop/3.2/redhat8", "true")
 
   vb.persist()
   vb.finalize("../../ambari-server/src/main/resources/version_definition.xsd")

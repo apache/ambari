@@ -19,8 +19,13 @@ limitations under the License.
 """
 
 import hashlib
+import fcntl
+import json
+import stat
+import struct
 
 import os, sys
+import tempfile
 import zipfile
 import glob
 import pprint
@@ -49,6 +54,8 @@ class ResourceFilesKeeper:
 
   HASH_SUM_FILE = ".hash"
   ARCHIVE_NAME = "archive.zip"
+  ARCHIVE_DIGEST_MANIFEST = ".resource-archive-digests.json"
+  ARCHIVE_REFRESH_LOCK = ".resource-archive-refresh.lock"
 
   PYC_EXT = ".pyc"
   METAINFO_XML = "metainfo.xml"
@@ -71,7 +78,12 @@ class ResourceFilesKeeper:
     """
     Performs housekeeping operations on resource files
     """
-    self.update_directory_archives()
+    os.makedirs(self.resources_dir, exist_ok=True)
+    lock_path = os.path.join(self.resources_dir, self.ARCHIVE_REFRESH_LOCK)
+    with open(lock_path, "a", encoding="ascii") as lock_stream:
+      fcntl.flock(lock_stream.fileno(), fcntl.LOCK_EX)
+      self.update_directory_archives()
+      self.write_archive_digest_manifest()
     # probably, later we will need some additional operations
 
   def _iter_update_directory_archive(self, subdirs_list):
@@ -183,7 +195,7 @@ class ResourceFilesKeeper:
 
     if cur_hash != saved_hash:
       if not self.nozip:
-        self.zip_directory(directory, skip_empty_directory)
+        self.zip_directory(directory, skip_empty_directory, cur_hash)
       # Skip generation of .hash file is directory is empty
       if skip_empty_directory and (
         not os.path.exists(directory) or not os.listdir(directory)
@@ -195,7 +207,7 @@ class ResourceFilesKeeper:
         self.write_hash_sum(directory, cur_hash)
       pass
     elif not os.path.isfile(directory_archive_name):
-      self.zip_directory(directory, skip_empty_directory)
+      self.zip_directory(directory, skip_empty_directory, cur_hash)
 
   def count_hash_sum(self, directory):
     """
@@ -205,23 +217,40 @@ class ResourceFilesKeeper:
     previously calculated hashes. Compiled pyc files are also ignored
     """
     try:
-      sha1 = hashlib.sha1()
+      digest = hashlib.sha256()
       file_list = []
       for root, dirs, files in os.walk(directory):
         for f in files:
           if not self.is_ignored(f):
             full_path = os.path.abspath(os.path.join(root, f))
-            file_list.append(full_path)
+            relative_path = os.path.relpath(full_path, directory).replace(os.sep, "/")
+            file_list.append((relative_path, full_path))
       file_list.sort()
-      for path in file_list:
+      for relative_path, path in file_list:
         self.dbg_out(f"Counting hash of {path}")
+        path_bytes = relative_path.encode("utf-8")
+        initial_stat = os.stat(path)
+        digest.update(struct.pack(">Q", len(path_bytes)))
+        digest.update(path_bytes)
+        digest.update(struct.pack(">I", stat.S_IMODE(initial_stat.st_mode)))
+        digest.update(struct.pack(">Q", initial_stat.st_size))
+        bytes_read = 0
         with open(path, "rb") as fh:
           while True:
             data = fh.read(self.BUFFER)
             if not data:
               break
-            sha1.update(data)
-      return sha1.hexdigest()
+            bytes_read += len(data)
+            digest.update(data)
+        final_stat = os.stat(path)
+        if (
+          bytes_read != initial_stat.st_size
+          or final_stat.st_size != initial_stat.st_size
+          or final_stat.st_mtime_ns != initial_stat.st_mtime_ns
+          or stat.S_IMODE(final_stat.st_mode) != stat.S_IMODE(initial_stat.st_mode)
+        ):
+          raise KeeperException(f"Resource changed while hashing: {path}")
+      return digest.hexdigest()
     except Exception as err:
       raise KeeperException(f"Can not calculate directory hash: {str(err)}")
 
@@ -245,15 +274,18 @@ class ResourceFilesKeeper:
     Tries to read a hash sum from previously generated file. Returns string
     containing hash or None
     """
-    hash_file = os.path.join(directory, self.HASH_SUM_FILE)
     try:
-      with open(hash_file, "w") as fh:
-        fh.write(new_hash)
-      os.chmod(hash_file, 0o644)
+      self.atomic_write(
+        os.path.join(directory, self.HASH_SUM_FILE),
+        new_hash.encode("ascii"),
+        0o644,
+      )
     except Exception as err:
-      raise KeeperException(f"Can not write to file {hash_file} : {str(err)}")
+      raise KeeperException(
+        f"Can not write hash for directory {directory} : {str(err)}"
+      )
 
-  def zip_directory(self, directory, skip_if_empty=False):
+  def zip_directory(self, directory, skip_if_empty=False, expected_hash=None):
     """
     Packs entire directory into zip file. Hash file is also packaged
     into archive
@@ -266,30 +298,104 @@ class ResourceFilesKeeper:
           return
 
       zip_file_path = os.path.join(directory, self.ARCHIVE_NAME)
-      zf = zipfile.ZipFile(zip_file_path, "w")
+      temp_fd, temp_zip_path = tempfile.mkstemp(
+        prefix=f".{os.path.basename(directory)}-archive-",
+        suffix=".zip",
+        dir=os.path.dirname(directory),
+      )
+      os.close(temp_fd)
       abs_src = os.path.abspath(directory)
-      for root, dirs, files in os.walk(directory):
-        for filename in files:
-          # Avoid zipping previous archive and hash file and binary pyc files
-          if not self.is_ignored(filename):
-            absname = os.path.abspath(os.path.join(root, filename))
-            arcname = absname[len(abs_src) + 1 :]
-            self.dbg_out(f"zipping {os.path.join(root, filename)} as {arcname}")
-            zf.write(absname, arcname)
-      zf.close()
+      try:
+        with zipfile.ZipFile(temp_zip_path, "w") as zf:
+          for root, dirs, files in os.walk(directory):
+            for filename in files:
+              # Avoid zipping previous archive and hash file and binary pyc files
+              if not self.is_ignored(filename):
+                absname = os.path.abspath(os.path.join(root, filename))
+                arcname = absname[len(abs_src) + 1 :]
+                self.dbg_out(f"zipping {os.path.join(root, filename)} as {arcname}")
+                zf.write(absname, arcname)
+        with open(temp_zip_path, "rb") as archive_stream:
+          os.fsync(archive_stream.fileno())
+        if expected_hash is not None and self.count_hash_sum(directory) != expected_hash:
+          raise KeeperException(
+            f"Resource changed while creating archive: {directory}"
+          )
+        os.chmod(temp_zip_path, 0o755)
+        os.replace(temp_zip_path, zip_file_path)
+        temp_zip_path = None
+        self.fsync_directory(directory)
+      finally:
+        if temp_zip_path is not None and os.path.exists(temp_zip_path):
+          os.unlink(temp_zip_path)
       os.chmod(zip_file_path, 0o755)
     except Exception as err:
       raise KeeperException(
         f"Can not create zip archive of directory {directory} : {str(err)}"
       )
 
+  def write_archive_digest_manifest(self):
+    digests = {}
+    try:
+      for root, _dirs, files in os.walk(self.resources_dir):
+        if self.ARCHIVE_NAME not in files:
+          continue
+        archive_path = os.path.join(root, self.ARCHIVE_NAME)
+        digest = hashlib.sha256()
+        with open(archive_path, "rb") as archive_stream:
+          while True:
+            data = archive_stream.read(self.BUFFER)
+            if not data:
+              break
+            digest.update(data)
+        resource_directory = os.path.relpath(root, self.resources_dir).replace(
+          os.sep, "/"
+        )
+        digests[resource_directory] = digest.hexdigest()
+
+      manifest = json.dumps(digests, sort_keys=True, separators=(",", ":"))
+      self.atomic_write(
+        os.path.join(self.resources_dir, self.ARCHIVE_DIGEST_MANIFEST),
+        manifest.encode("ascii"),
+        0o644,
+      )
+    except Exception as err:
+      raise KeeperException(f"Can not publish resource archive digests: {str(err)}")
+
+  @staticmethod
+  def atomic_write(path, content, mode):
+    directory = os.path.dirname(path)
+    temp_fd, temp_path = tempfile.mkstemp(prefix=".resource-write-", dir=directory)
+    try:
+      with os.fdopen(temp_fd, "wb") as stream:
+        stream.write(content)
+        stream.flush()
+        os.fsync(stream.fileno())
+      os.chmod(temp_path, mode)
+      os.replace(temp_path, path)
+      ResourceFilesKeeper.fsync_directory(directory)
+    finally:
+      if os.path.exists(temp_path):
+        os.unlink(temp_path)
+
+  @staticmethod
+  def fsync_directory(directory):
+    directory_fd = os.open(directory, os.O_RDONLY)
+    try:
+      os.fsync(directory_fd)
+    finally:
+      os.close(directory_fd)
+
   def is_ignored(self, filename):
     """
     returns True if filename is ignored when calculating hashing or archiving
     """
-    return filename in [self.HASH_SUM_FILE, self.ARCHIVE_NAME] or filename.endswith(
-      self.PYC_EXT
-    )
+    return filename in [
+      self.HASH_SUM_FILE,
+      self.ARCHIVE_NAME,
+      self.ARCHIVE_DIGEST_MANIFEST,
+      self.ARCHIVE_REFRESH_LOCK,
+    ] or filename.endswith(self.PYC_EXT)
 
   def dbg_out(self, text):
     if self.DEBUG:

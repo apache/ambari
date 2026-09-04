@@ -21,7 +21,7 @@ limitations under the License.
 
 import json
 
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import conf_select
@@ -43,7 +43,7 @@ class TestHookAfterInstall(RMFTestCase):
     Script.config["configurations"]["cluster-env"]["stack_packages"] = (
       RMFTestCase.get_stack_packages()
     )
-    Script.config["clusterLevelParams"] = {"stack_name": "HDP"}
+    Script.config["clusterLevelParams"] = {"stack_name": "BIGTOP"}
 
   def test_hook_default(self):
     self.executeScript(
@@ -76,7 +76,7 @@ class TestHookAfterInstall(RMFTestCase):
 
   @patch("os.path.isdir", new=MagicMock(return_value=True))
   @patch(
-    "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    "shared_initialization.load_version", new=MagicMock(return_value="3.3.0-1")
   )
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -94,9 +94,9 @@ class TestHookAfterInstall(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
 
-    version = "2.3.0.0-1234"
+    version = "3.3.0-1"
     json_content["commandParams"]["version"] = version
-    json_content["clusterLevelParams"]["stack_version"] = "2.3"
+    json_content["clusterLevelParams"]["stack_version"] = "3.3.0"
 
     self.executeScript(
       "after-INSTALL/scripts/hook.py",
@@ -111,10 +111,21 @@ class TestHookAfterInstall(RMFTestCase):
       "Execute",
       (
         "ambari-python-wrap",
-        "/usr/bin/hdp-select",
+        "/usr/lib/bigtop-select/distro-select",
         "set",
         "hive-server2",
-        "2.3.0.0-1234",
+        "3.3.0-1",
+      ),
+      sudo=True,
+    )
+    self.assertResourceCalled(
+      "Execute",
+      (
+        "ambari-python-wrap",
+        "/usr/lib/bigtop-select/distro-select",
+        "set",
+        "hive-client",
+        "3.3.0-1",
       ),
       sudo=True,
     )
@@ -167,7 +178,7 @@ class TestHookAfterInstall(RMFTestCase):
 
   @patch("os.path.isdir", new=MagicMock(return_value=True))
   @patch(
-    "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    "shared_initialization.load_version", new=MagicMock(return_value="3.3.0-1")
   )
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -191,9 +202,9 @@ class TestHookAfterInstall(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
 
-    version = "2.3.0.0-1234"
+    version = "3.3.0-1"
     json_content["commandParams"]["version"] = version
-    json_content["clusterLevelParams"]["stack_version"] = "2.3"
+    json_content["clusterLevelParams"]["stack_version"] = "3.3.0"
 
     self.executeScript(
       "after-INSTALL/scripts/hook.py",
@@ -208,10 +219,21 @@ class TestHookAfterInstall(RMFTestCase):
       "Execute",
       (
         "ambari-python-wrap",
-        "/usr/bin/hdp-select",
+        "/usr/lib/bigtop-select/distro-select",
         "set",
         "hive-server2",
-        "2.3.0.0-1234",
+        "3.3.0-1",
+      ),
+      sudo=True,
+    )
+    self.assertResourceCalled(
+      "Execute",
+      (
+        "ambari-python-wrap",
+        "/usr/lib/bigtop-select/distro-select",
+        "set",
+        "hive-client",
+        "3.3.0-1",
       ),
       sudo=True,
     )
@@ -263,7 +285,7 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch(
-    "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    "shared_initialization.load_version", new=MagicMock(return_value="3.3.0-1")
   )
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -273,7 +295,7 @@ class TestHookAfterInstall(RMFTestCase):
     self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock
   ):
     """
-    Tests that <stack-selector-tool> set all on a specific version, not a 2.3* wildcard is used when
+    Tests that <stack-selector-tool> set all on a specific version, not a 3.3* wildcard is used when
     installing a component when the cluster version is already set.
 
     :param rmtree_mock:
@@ -292,9 +314,9 @@ class TestHookAfterInstall(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
 
-    version = "2.3.0.0-1234"
+    version = "3.3.0-1"
     json_content["commandParams"]["version"] = version
-    json_content["clusterLevelParams"]["stack_version"] = "2.3"
+    json_content["clusterLevelParams"]["stack_version"] = "3.3.0"
 
     self.executeScript(
       "after-INSTALL/scripts/hook.py",
@@ -309,17 +331,17 @@ class TestHookAfterInstall(RMFTestCase):
       "Execute",
       (
         "ambari-python-wrap",
-        "/usr/bin/hdp-select",
+        "/usr/lib/bigtop-select/distro-select",
         "set",
         "hive-server2",
-        "2.3.0.0-1234",
+        "3.3.0-1",
       ),
       sudo=True,
     )
 
   @patch("os.path.isdir", new=MagicMock(return_value=True))
   @patch(
-    "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    "shared_initialization.load_version", new=MagicMock(return_value="3.3.0-1")
   )
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -337,9 +359,9 @@ class TestHookAfterInstall(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
 
-    version = "2.3.0.0-1234"
+    version = "3.3.0-1"
     json_content["commandParams"]["version"] = version
-    json_content["clusterLevelParams"]["stack_version"] = "2.3"
+    json_content["clusterLevelParams"]["stack_version"] = "3.3.0"
     json_content["roleParams"]["upgrade_suspended"] = "true"
 
     self.executeScript(
@@ -351,7 +373,7 @@ class TestHookAfterInstall(RMFTestCase):
       config_overrides=self.CONFIG_OVERRIDES,
     )
 
-    # same assertions as test_hook_default_conf_select, but skip hdp-select set all
+    # same assertions as test_hook_default_conf_select, but skip distro-select set all
 
     self.assertResourceCalled(
       "XmlConfig",
@@ -401,7 +423,7 @@ class TestHookAfterInstall(RMFTestCase):
 
   @patch("resource_management.core.Logger.warning")
   @patch(
-    "shared_initialization.load_version", new=MagicMock(return_value="2.3.0.0-1234")
+    "shared_initialization.load_version", new=MagicMock(return_value="3.3.0-1")
   )
   @patch("resource_management.libraries.functions.conf_select.create")
   @patch("resource_management.libraries.functions.conf_select.select")
@@ -429,9 +451,9 @@ class TestHookAfterInstall(RMFTestCase):
     with open(config_file, "r") as f:
       json_content = json.load(f)
 
-    version = "2.3.0.0-1234"
+    version = "3.3.0-1"
     json_content["commandParams"]["version"] = version
-    json_content["clusterLevelParams"]["stack_version"] = "2.3"
+    json_content["clusterLevelParams"]["stack_version"] = "3.3.0"
     json_content["ambariLevelParams"]["host_sys_prepped"] = "true"
 
     self.executeScript(
@@ -444,5 +466,5 @@ class TestHookAfterInstall(RMFTestCase):
     )
 
     logger_warning_mock.assert_any_call(
-      "Skipping running stack-selector-tool because this is a sys_prepped host. This may cause symlink pointers not to be created for HDP components installed later on top of an already sys_prepped host"
+      "Skipping running stack-selector-tool because this is a sys_prepped host. This may cause symlink pointers not to be created for stack components installed later on top of an already sys_prepped host"
     )

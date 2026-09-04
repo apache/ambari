@@ -70,6 +70,7 @@
     <value>/var/run/flink</value>
     <value-attributes>
       <type>directory</type>
+      <overridable>false</overridable>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

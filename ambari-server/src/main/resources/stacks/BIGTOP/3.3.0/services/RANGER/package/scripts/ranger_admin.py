@@ -18,25 +18,21 @@ limitations under the License.
 
 """
 
-from resource_management.core.exceptions import Fail, ExecutionFailed
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute, File
-from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
-from resource_management.core import shell
 from ranger_service import ranger_service
+from ranger_process import check_process
 from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 import upgrade
 import os, errno
-import ambari_simplejson as json
 import setup_ranger_xml
 
 
@@ -58,9 +54,15 @@ class RangerAdmin(Script):
           format("{ranger_home}/install.properties"),
           format("{ranger_home}/install-backup.properties"),
         ),
-        not_if=format("ls {ranger_home}/install-backup.properties"),
-        only_if=format("ls {ranger_home}/install.properties"),
+        not_if=lambda: os.path.exists(
+          os.path.join(params.ranger_home, "install-backup.properties")
+        ),
+        only_if=lambda: os.path.exists(
+          os.path.join(params.ranger_home, "install.properties")
+        ),
         sudo=True,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
       File(
         ranger_admin_setup_marker,
@@ -68,19 +70,22 @@ class RangerAdmin(Script):
         group=params.unix_group,
         mode=0o640,
       )
+      File(
+        os.path.join(params.ranger_home, "install-backup.properties"),
+        owner=params.unix_user,
+        group=params.unix_group,
+        mode=0o600,
+        only_if=lambda: os.path.exists(
+          os.path.join(params.ranger_home, "install-backup.properties")
+        ),
+      )
 
   def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
 
-    Execute(
-      format("{params.ranger_stop}"),
-      environment={"JAVA_HOME": params.java_home},
-      user=params.unix_user,
-    )
-    if params.stack_supports_pid:
-      File(params.ranger_admin_pid_file, action="delete")
+    ranger_service("ranger_admin", action="stop")
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -119,25 +124,26 @@ class RangerAdmin(Script):
         and params.is_solrCloud_enabled
         and not params.is_external_solrCloud_enabled
       ):
-        add_field_json = json.dumps(params.add_zoneName_field)
-        add_field_cmd = format(
-          "curl -k -X POST -H 'Content-type:application/json' --data-binary '{add_field_json}' {infra_solr_protocol}://{infra_solr_host}:{infra_solr_port}/solr/{ranger_solr_collection_name}/schema"
+        solr_cloud_util.post_json_to_solr(
+          host=params.infra_solr_host,
+          port=params.infra_solr_port,
+          collection=params.ranger_solr_collection_name,
+          endpoint="schema",
+          payload=params.add_zoneName_field,
+          user=params.unix_user,
+          group=params.user_group,
+          use_ssl=params.infra_solr_ssl_enabled,
+          security_enabled=params.security_enabled,
+          kinit_path=(params.kinit_path_local if params.security_enabled else None),
+          keytab=(params.ranger_admin_keytab if params.security_enabled else None),
+          principal=(
+            params.ranger_admin_jaas_principal
+            if params.security_enabled
+            else None
+          ),
+          tries=3,
+          try_sleep=5,
         )
-        if params.security_enabled:
-          kinit_cmd = format(
-            "{kinit_path_local} -kt {ranger_admin_keytab} {ranger_admin_jaas_principal};"
-          )
-          add_field_cmd = format(
-            "{kinit_cmd} curl -k --negotiate -u : -X POST -H 'Content-type:application/json' --data-binary '{add_field_json}' {infra_solr_protocol}://{infra_solr_host}:{infra_solr_port}/solr/{ranger_solr_collection_name}/schema"
-          )
-        try:
-          Execute(
-            add_field_cmd, tries=3, try_sleep=5, user=params.unix_user, logoutput=True
-          )
-        except ExecutionFailed as execution_exception:
-          Logger.error(
-            f"Error adding field to Ranger Audits Solr Collection. Kindly check Infra Solr service to be up and running {execution_exception}"
-          )
 
   def start(self, env, upgrade_type=None):
     import params
@@ -159,7 +165,12 @@ class RangerAdmin(Script):
       and params.audit_solr_enabled
       and params.is_solrCloud_enabled
     ):
-      solr_cloud_util.setup_solr_client(params.config, custom_log4j=params.custom_log4j)
+      solr_cloud_util.setup_solr_client(
+        params.config,
+        custom_log4j=params.custom_log4j,
+        user=params.solr_user,
+        group=params.user_group,
+      )
       setup_ranger_xml.setup_ranger_audit_solr()
 
     setup_ranger_xml.update_password_configs()
@@ -170,22 +181,20 @@ class RangerAdmin(Script):
 
     env.set_params(status_params)
 
-    if status_params.stack_supports_pid:
-      check_process_status(status_params.ranger_admin_pid_file)
-      return
-
-    cmd = "ps -ef | grep proc_rangeradmin | grep -v grep"
-    code, output = shell.call(cmd, timeout=20)
-
-    if code != 0:
+    try:
+      check_process(
+        "ranger_admin",
+        status_params.ranger_admin_pid_file,
+        status_params.unix_user,
+        status_params.unix_group,
+      )
+    except ComponentIsNotRunning:
       if self.is_ru_rangeradmin_in_progress(status_params.upgrade_marker_file):
         Logger.info(
           "Ranger admin process not running - skipping as stack upgrade is in progress"
         )
-      else:
-        Logger.debug("Ranger admin process not running")
-        raise ComponentIsNotRunning()
-    pass
+        return
+      raise
 
   def configure(self, env, upgrade_type=None, setup_db=False):
     import params
@@ -204,40 +213,42 @@ class RangerAdmin(Script):
       if params.stack_supports_ranger_all_admin_change_default_password:
         setup_ranger_xml.setup_ranger_all_admin_password_change(
           params.admin_username,
-          params.default_admin_password,
+          params.upstream_bootstrap_admin_password,
           params.admin_password,
           params.rangerusersync_username,
-          params.default_rangerusersync_user_password,
+          params.upstream_bootstrap_rangerusersync_password,
           params.rangerusersync_user_password,
           params.rangertagsync_username,
-          params.default_rangertagsync_user_password,
+          params.upstream_bootstrap_rangertagsync_password,
           params.rangertagsync_user_password,
           params.keyadmin_username,
-          params.default_keyadmin_user_password,
+          params.upstream_bootstrap_keyadmin_password,
           params.keyadmin_user_password,
         )
       else:
         # Updating password for Ranger Admin user
         setup_ranger_xml.setup_ranger_admin_passwd_change(
-          params.admin_username, params.admin_password, params.default_admin_password
+          params.admin_username,
+          params.admin_password,
+          params.upstream_bootstrap_admin_password,
         )
         # Updating password for Ranger Usersync user
         setup_ranger_xml.setup_ranger_admin_passwd_change(
           params.rangerusersync_username,
           params.rangerusersync_user_password,
-          params.default_rangerusersync_user_password,
+          params.upstream_bootstrap_rangerusersync_password,
         )
         # Updating password for Ranger Tagsync user
         setup_ranger_xml.setup_ranger_admin_passwd_change(
           params.rangertagsync_username,
           params.rangertagsync_user_password,
-          params.default_rangertagsync_user_password,
+          params.upstream_bootstrap_rangertagsync_password,
         )
         # Updating password for Ranger Keyadmin user
         setup_ranger_xml.setup_ranger_admin_passwd_change(
           params.keyadmin_username,
           params.keyadmin_user_password,
-          params.default_keyadmin_user_password,
+          params.upstream_bootstrap_keyadmin_password,
         )
 
   def set_ru_rangeradmin_in_progress(self, upgrade_marker_file):

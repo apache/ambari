@@ -43,7 +43,7 @@ limitations under the License.
     <name>hive.server2.thrift.port</name>
     <value>10016</value>
     <description>
-      TCP port number to listen on, default 10015.
+      Dedicated binary transport port for the Spark Thrift Server.
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -63,14 +63,14 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>metastore.catalog.default</name>
-    <value>hive</value>
-    <description></description>
-    <on-ambari-upgrade add="false"/>
+    <name>hive.server2.thrift.http.path</name>
+    <value>cliservice</value>
+    <description>HTTP endpoint path for the Spark Thrift Server.</description>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>hive.load.data.owner</name>
-    <value>spark</value>
+    <name>metastore.catalog.default</name>
+    <value>hive</value>
     <description></description>
     <on-ambari-upgrade add="false"/>
   </property>

@@ -23,9 +23,9 @@ import subprocess
 import os
 import sys
 import AmbariConfig
-from mock.mock import MagicMock, patch, ANY
+from unittest.mock import MagicMock, patch, ANY
 
-with patch("distro.linux_distribution", return_value=("Suse", "11", "Final")):
+with patch("ambari_commons.os_check.linux_distribution", return_value=("Suse", "11", "Final")):
   from ambari_agent import AmbariAgent
 
 
@@ -40,18 +40,34 @@ class TestAmbariAgent(unittest.TestCase):
     facter1.returncode = 77
     facter2.returncode = 55
     os_path_isfile_mock.return_value = True
-    if not ("PYTHON" in os.environ):
-      os.environ["PYTHON"] = "test/python/path"
-    sys.argv[0] = "test data"
-    AmbariAgent.main()
+    with patch.dict(os.environ, {"PYTHON": "test/python/path"}, clear=True):
+      with patch.object(sys, "argv", ["test data", "--verbose"]):
+        AmbariAgent.main()
 
-    self.assertTrue(subprocess_popen_mock.called)
-    self.assertTrue(subprocess_popen_mock.call_count == 2)
-    self.assertTrue(facter1.communicate.called)
-    self.assertTrue(facter2.communicate.called)
-    self.assertTrue(os_path_isfile_mock.called)
-    self.assertTrue(os_path_isfile_mock.call_count == 2)
-    self.assertTrue(os_remove_mock.called)
+    self.assertEqual(2, subprocess_popen_mock.call_count)
+    subprocess_popen_mock.assert_called_with(
+      ["test/python/path", AmbariAgent.AGENT_SCRIPT, "--verbose"]
+    )
+    facter1.communicate.assert_called_once_with()
+    facter2.communicate.assert_called_once_with()
+    self.assertEqual(2, os_path_isfile_mock.call_count)
+    os_remove_mock.assert_called_once_with(AmbariAgent.AGENT_PID_FILE)
+
+  @patch.object(subprocess, "Popen")
+  def test_main_uses_current_interpreter_without_init_environment(
+    self, subprocess_popen_mock
+  ):
+    process = MagicMock(returncode=0)
+    subprocess_popen_mock.return_value = process
+
+    with patch.dict(os.environ, {}, clear=True):
+      with patch.object(sys, "argv", ["ambari-agent"]):
+        AmbariAgent.main()
+
+    subprocess_popen_mock.assert_called_once_with(
+      [sys.executable, AmbariAgent.AGENT_SCRIPT]
+    )
+    process.communicate.assert_called_once_with()
 
   #
   # Test AmbariConfig.getLogFile() for ambari-agent

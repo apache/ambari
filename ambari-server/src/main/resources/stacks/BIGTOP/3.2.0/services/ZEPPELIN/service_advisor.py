@@ -1,4 +1,4 @@
-#!/usr/bin/env ambari-python-wrap
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,93 +18,111 @@ limitations under the License.
 """
 
 # Python imports
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
+import hashlib
 import os
-import traceback
 import re
-import socket
-import fnmatch
-
-
-from resource_management.core.logger import Logger
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
 PARENT_FILE = os.path.join(STACKS_DIR, "service_advisor.py")
 
+if "BASE_SERVICE_ADVISOR" in os.environ:
+  PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
 try:
-  if "BASE_SERVICE_ADVISOR" in os.environ:
-    PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
   with open(PARENT_FILE, "rb") as fp:
-    service_advisor = imp.load_module(
-      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+    service_advisor = import_utils.load_module(
+      "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
     )
-except Exception as e:
-  traceback.print_exc()
-  print("Failed to load parent")
+except Exception as error:
+  raise RuntimeError(f"Failed to load parent service advisor {PARENT_FILE}") from error
+
+
+_USER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]*\$?", re.ASCII)
+_LEGACY_LOCAL_USER_DIGESTS = frozenset(
+  (
+    "0051e9a0197704a027623c2376b1758a2519a3f5a0b67a507144d7cb10bbc961",
+    "e406380da87579e67e29e7d19a0c7aae1f73630774c5f4c0953bf709284e85a9",
+    "78f23667e87d9f7fe5e5da4e80411a81f4477f8bb9b5bfdb2536c0145181bbb0",
+    "7053e375d3d158c3899072fce62a53b7050f2052352957d3e691456d17edd12f",
+  )
+)
+
+
+def _shiro_configuration_error(content):
+  if not isinstance(content, str) or not content.strip():
+    return "Zeppelin Shiro configuration must not be empty"
+  if "\x00" in content:
+    return "Zeppelin Shiro configuration contains a NUL character"
+
+  section = None
+  catch_all = None
+  for raw_line in content.splitlines():
+    line = raw_line.strip()
+    if not line or line.startswith(("#", ";")):
+      continue
+    if line.startswith("[") and line.endswith("]"):
+      section = line[1:-1].strip().lower()
+      continue
+    if section == "users" and "=" in line:
+      normalized = re.sub(r"\s+", "", line)
+      digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+      if digest in _LEGACY_LOCAL_USER_DIGESTS:
+        return "Remove the insecure packaged Zeppelin local accounts"
+    if section == "urls" and "=" in line:
+      path, rule = line.split("=", 1)
+      if path.strip() == "/**":
+        catch_all = rule.strip()
+
+  if catch_all is None:
+    return "Zeppelin Shiro configuration must define a /** authentication rule"
+  filters = {
+    item.strip().split("[", 1)[0]
+    for item in catch_all.split(",")
+    if item.strip()
+  }
+  if "anon" in filters or "authc" not in filters:
+    return "Zeppelin Shiro /** rule must require authc and must not allow anon"
+  return None
+
+
+def _integer(value):
+  if isinstance(value, bool):
+    return None
+  try:
+    return int(value)
+  except (TypeError, ValueError):
+    return None
+
+
+def _safe_directory(value):
+  return (
+    isinstance(value, str)
+    and os.path.isabs(value)
+    and value != "/"
+    and not value.startswith("//")
+    and os.path.normpath(value) == value
+    and not any(ord(character) < 32 for character in value)
+  )
+
+
+def _safe_store_path(value):
+  return (
+    isinstance(value, str)
+    and bool(value)
+    and not value.startswith("//")
+    and os.path.normpath(value) == value
+    and not value.startswith("../")
+    and not any(ord(character) < 32 for character in value)
+  )
 
 
 class ZeppelinServiceAdvisor(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
-    self.as_super = super(ZeppelinServiceAdvisor, self)
-    self.as_super.__init__(*args, **kwargs)
-
-    # Always call these methods
-    self.modifyMastersWithMultipleInstances()
-    self.modifyCardinalitiesDict()
-    self.modifyHeapSizeProperties()
-    self.modifyNotValuableComponents()
-    self.modifyComponentsNotPreferableOnServer()
-    self.modifyComponentLayoutSchemes()
-
-  def modifyMastersWithMultipleInstances(self):
-    """
-    Modify the set of masters with multiple instances.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
-  def modifyCardinalitiesDict(self):
-    """
-    Modify the dictionary of cardinalities.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
-  def modifyHeapSizeProperties(self):
-    """
-    Modify the dictionary of heap size properties.
-    Must be overriden in child class.
-    """
-    pass
-
-  def modifyNotValuableComponents(self):
-    """
-    Modify the set of components whose host assignment is based on other services.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
-  def modifyComponentsNotPreferableOnServer(self):
-    """
-    Modify the set of components that are not preferable on the server.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
-  def modifyComponentLayoutSchemes(self):
-    """
-    Modify layout scheme dictionaries for components.
-    The scheme dictionary basically maps the number of hosts to
-    host index where component should exist.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
+    super().__init__(*args, **kwargs)
+    self.initialize_logger("ZeppelinServiceAdvisor")
+    self.mastersWithMultipleInstances.add("ZEPPELIN_SERVER")
+    self.cardinalitiesDict["ZEPPELIN_SERVER"] = {"min": 1}
 
   def getServiceComponentLayoutValidations(self, services, hosts):
     """
@@ -125,10 +143,10 @@ class ZeppelinServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = ZeppelinRecommender()
-    recommender.recommendZeppelinConfigurationsFromHDP25(
+    recommender.recommendBigtopSecurityConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendZeppelinConfigurationsFromHDP30(
+    recommender.recommendBigtopRuntimeConfigurations(
       configurations, clusterData, services, hosts
     )
 
@@ -174,21 +192,25 @@ class ZeppelinServiceAdvisor(service_advisor.ServiceAdvisor):
       and "zeppelin.kerberos.enabled" in configurations["zeppelin-env"]["properties"]
     ):
       return (
-        configurations["zeppelin-env"]["properties"][
-          "zeppelin.kerberos.enabled"
-        ].lower()
+        str(
+          configurations["zeppelin-env"]["properties"][
+            "zeppelin.kerberos.enabled"
+          ]
+        ).strip().lower()
         == "true"
       )
     elif (
       services
-      and "zeppelin-env" in services["configurations"]
+      and "zeppelin-env" in services.get("configurations", {})
       and "zeppelin.kerberos.enabled"
       in services["configurations"]["zeppelin-env"]["properties"]
     ):
       return (
-        services["configurations"]["zeppelin-env"]["properties"][
-          "zeppelin.kerberos.enabled"
-        ].lower()
+        str(
+          services["configurations"]["zeppelin-env"]["properties"][
+            "zeppelin.kerberos.enabled"
+          ]
+        ).strip().lower()
         == "true"
       )
     else:
@@ -204,7 +226,7 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(ZeppelinRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendZeppelinConfigurationsFromHDP25(
+  def recommendBigtopSecurityConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     """
@@ -241,7 +263,7 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
           )
           putZeppelinShiroIniProperty("shiro_ini_content", str(shiro_ini_content))
 
-  def recommendZeppelinConfigurationsFromHDP30(
+  def recommendBigtopRuntimeConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     """
@@ -250,57 +272,39 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
     :type services dict
     :type hosts dict
     """
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
-    if (
-      "SPARK2" in servicesList
-      and "spark2-atlas-application-properties-override" in services["configurations"]
-      and "atlas.spark.enabled"
-      in services["configurations"]["spark2-atlas-application-properties-override"][
-        "properties"
-      ]
-    ):
-      sac_enabled = (
-        str(
-          services["configurations"]["spark2-atlas-application-properties-override"][
-            "properties"
-          ]["atlas.spark.enabled"]
-        ).upper()
-        == "TRUE"
-      )
-      zeppelin_env_properties = self.getServicesSiteProperties(services, "zeppelin-env")
+    service_names = {
+      service["StackServices"]["service_name"]
+      for service in services.get("services", [])
+    }
+    service_configurations = services.get("configurations", {})
+    spark_available = (
+      "SPARK" in service_names and "spark-env" in service_configurations
+    )
+    zeppelin_env_properties = self.getServicesSiteProperties(services, "zeppelin-env")
+    if not zeppelin_env_properties or "zeppelin_env_content" not in zeppelin_env_properties:
+      return
+
+    content = zeppelin_env_properties["zeppelin_env_content"]
+    if not spark_available and "spark-atlas-connector" not in content:
+      return
+
+    result_list = []
+    for line in content.splitlines():
+      if "ZEPPELIN_INTP_CLASSPATH_OVERRIDES" in line:
+        connector_paths = re.findall(
+          r"/usr/[^/]+/current/spark-atlas-connector/\*", line
+        )
+        for path in connector_paths:
+          line = line.replace(":" + path, "").replace(path + ":", "")
+          line = line.replace(path, "")
+      result_list.append(line)
+
+    updated_content = "\n".join(result_list)
+    if updated_content != content:
       putZeppelinEnvProperty = self.putProperty(
         configurations, "zeppelin-env", services
       )
-      content = zeppelin_env_properties["zeppelin_env_content"]
-      content_in_lines = content.splitlines()
-      result_list = []
-      for line in content_in_lines:
-        if "ZEPPELIN_INTP_CLASSPATH_OVERRIDES" in line:
-          if sac_enabled:
-            if line.lstrip().startswith("#"):
-              line = 'export ZEPPELIN_INTP_CLASSPATH_OVERRIDES="{{external_dependency_conf}}:/usr/hdp/current/spark-atlas-connector/*"'
-            elif "{{external_dependency_conf}}" in line:
-              line = line.replace(
-                "{{external_dependency_conf}}",
-                "{{external_dependency_conf}}:/usr/hdp/current/spark-atlas-connector/*",
-              )
-            else:
-              k = line.rfind('"')
-              line = (
-                line[:k] + ':/usr/hdp/current/spark-atlas-connector/*"' + line[k + 1 :]
-              )
-          else:
-            if ":/usr/hdp/current/spark-atlas-connector" in line:
-              line = line.replace(":/usr/hdp/current/spark-atlas-connector/*", "")
-            elif "/usr/hdp/current/spark-atlas-connector" in line:
-              line = line.replace("/usr/hdp/current/spark-atlas-connector/*", "")
-
-        result_list.append(line)
-
-      content = "\n".join(result_list)
-      putZeppelinEnvProperty("zeppelin_env_content", content)
+      putZeppelinEnvProperty("zeppelin_env_content", updated_content)
 
   def __recommendLivySuperUsers(self, configurations, services):
     """
@@ -320,7 +324,7 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
 
         if zeppelin_user:
           self.__conditionallyUpdateSuperUsers(
-            "livy2-conf", "livy.superusers", zeppelin_user, configurations, services
+            "livy-conf", "livy.superusers", zeppelin_user, configurations, services
           )
 
   def __conditionallyUpdateSuperUsers(
@@ -355,7 +359,125 @@ class ZeppelinValidator(service_advisor.ServiceAdvisor):
   """
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(ZeppelinValidator, self)
-    self.as_super.__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
+    self.validators = [
+      ("zeppelin-site", self.validate_site),
+      ("zeppelin-env", self.validate_environment),
+      ("zeppelin-shiro-ini", self.validate_shiro),
+    ]
 
-    self.validators = []
+  def validate_shiro(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    error = _shiro_configuration_error(properties.get("shiro_ini_content"))
+    items = []
+    if error is not None:
+      items.append(
+        {
+          "config-name": "shiro_ini_content",
+          "item": self.getErrorItem(error),
+        }
+      )
+    return self.toConfigurationValidationProblems(items, "zeppelin-shiro-ini")
+
+  def validate_site(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    items = []
+    for name in ("zeppelin.server.port", "zeppelin.server.ssl.port"):
+      port = _integer(properties.get(name))
+      if port is None or not 0 < port <= 65535:
+        items.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(f"{name} must be between 1 and 65535"),
+          }
+        )
+
+    boolean_names = (
+      "zeppelin.ssl",
+      "zeppelin.ssl.client.auth",
+      "zeppelin.notebook.homescreen.hide",
+      "zeppelin.anonymous.allowed",
+      "zeppelin.notebook.public",
+      "zeppelin.interpreter.config.upgrade",
+    )
+    for name in boolean_names:
+      if str(properties.get(name, "")).strip().lower() not in ("true", "false"):
+        items.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(f"{name} must be true or false"),
+          }
+        )
+
+    if str(properties.get("zeppelin.ssl", "false")).strip().lower() == "true":
+      for name in ("zeppelin.ssl.keystore.path", "zeppelin.ssl.truststore.path"):
+        if not _safe_store_path(properties.get(name)):
+          items.append(
+            {
+              "config-name": name,
+              "item": self.getErrorItem(f"{name} must be a safe path"),
+            }
+          )
+      for name in (
+        "zeppelin.ssl.keystore.password",
+        "zeppelin.ssl.key.manager.password",
+        "zeppelin.ssl.truststore.password",
+      ):
+        value = properties.get(name)
+        if not isinstance(value, str) or not value or any(
+          character in value for character in ("\x00", "\r", "\n")
+        ):
+          items.append(
+            {
+              "config-name": name,
+              "item": self.getErrorItem(
+                f"{name} is required when Zeppelin SSL is enabled"
+              ),
+            }
+          )
+
+    allowed_origins = str(
+      properties.get("zeppelin.server.allowed.origins", "")
+    ).strip()
+    if not allowed_origins or allowed_origins == "*":
+      items.append(
+        {
+          "config-name": "zeppelin.server.allowed.origins",
+          "item": self.getWarnItem(
+            "Zeppelin allowed origins must explicitly name trusted origins"
+          ),
+        }
+      )
+    return self.toConfigurationValidationProblems(items, "zeppelin-site")
+
+  def validate_environment(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    items = []
+    for name in ("zeppelin_user", "zeppelin_group"):
+      if _USER_PATTERN.fullmatch(str(properties.get(name, ""))) is None:
+        items.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(f"{name} is invalid"),
+          }
+        )
+
+    for name in (
+      "zeppelin_pid_dir",
+      "zeppelin_log_dir",
+      "zeppelin_war_tempdir",
+      "spark_home",
+      "hbase_home",
+      "hbase_conf_dir",
+    ):
+      if not _safe_directory(properties.get(name)):
+        items.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(f"{name} must be a safe absolute path"),
+          }
+        )
+    return self.toConfigurationValidationProblems(items, "zeppelin-env")

@@ -185,21 +185,6 @@ describe("HAWQ Standby capability boundary", () => {
     ).toBeTruthy();
   });
 
-  it("fails closed on the Classic Windows stack before loading HAWQ metadata", async () => {
-    render(
-      <WizardFixture
-        mode="add"
-        hostNames={["master", "standby"]}
-        components={[component("HAWQMASTER", "master")]}
-        stack="HDPWIN"
-      />,
-    );
-
-    expect(await screen.findByText(/not supported on the HDPWIN stack/i))
-      .toBeTruthy();
-    expect(mocks.getStackService).not.toHaveBeenCalled();
-  });
-
   it("fails closed and retries a failed stack capability request", async () => {
     mocks.getStackService
       .mockRejectedValueOnce(new Error("stack metadata unavailable"))

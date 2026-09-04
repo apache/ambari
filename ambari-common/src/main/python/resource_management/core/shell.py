@@ -350,8 +350,17 @@ def _call(
   # prepare command cmd
   if sudo:
     command = as_sudo(command, env=env)
+    # as_sudo() returns a shell command so that the generated environment and
+    # command arguments are interpreted by bash.  Keep that contract even when
+    # callers request shell=False for the original argument list.
+    shell = True
   elif user:
     command = as_user(command, user, env=env)
+    # as_user() necessarily contains the su -c shell fragment.  Executing the
+    # complete string as one argv element makes Popen look for a filename that
+    # contains spaces (and fails with ENOENT).  Run the already-escaped wrapper
+    # through the explicit bash path below; Popen itself remains shell=False.
+    shell = True
 
   if isinstance(command, str):
     subprocess_command = [command]
@@ -448,18 +457,19 @@ def _call(
             out_fd.close()
             continue
 
-          fd_to_string[out_fd] += line.decode()
-          all_output += line.decode()
+          decoded_line = line.decode("utf-8", errors="replace")
+          fd_to_string[out_fd] += decoded_line
+          all_output += decoded_line
 
           if on_new_line:
             try:
-              on_new_line(line, out_fd == proc.stderr)
+              on_new_line(decoded_line, out_fd == proc.stderr)
             except Exception:
-              err_msg = f"Caused by on_new_line function failed with exception for input argument '{line}':\n{traceback.format_exc()}"
+              err_msg = f"Caused by on_new_line function failed with exception for input argument '{decoded_line}':\n{traceback.format_exc()}"
               raise Fail(err_msg)
 
           if logoutput:
-            sys.stdout.write(line.decode())
+            sys.stdout.write(decoded_line)
             sys.stdout.flush()
 
     # Wait for process to terminate

@@ -19,27 +19,23 @@ limitations under the License.
 """
 
 # this is needed to avoid a circular dependency since utils.py calls this class
+import hdfs_process
 import utils
 from hdfs import hdfs
 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.logger import Logger
-from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory
-from resource_management.core.resources.service import Service
 from resource_management.core import shell
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
 from resource_management.core.resources.zkmigrator import ZkMigrator
-from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import Fail, ComponentIsNotRunning
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 
 
 class ZkfcSlave(Script):
@@ -59,7 +55,6 @@ class ZkfcSlave(Script):
     env.set_params(params)
     hdfs("zkfc_slave")
     utils.set_up_zkfc_security(params)
-    pass
 
   def format(self, env):
     import params
@@ -69,10 +64,12 @@ class ZkfcSlave(Script):
     utils.set_up_zkfc_security(params)
 
     Execute(
-      "hdfs zkfc -formatZK -nonInteractive",
+      ("hdfs", "zkfc", "-formatZK", "-nonInteractive"),
       returns=[0, 2],  # Returns 0 on success ; Returns 2 if zkfc is already formatted
       user=params.hdfs_user,
       logoutput=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
 
@@ -135,7 +132,13 @@ class ZkfcSlaveDefault(ZkfcSlave):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.zkfc_pid_file)
+    hdfs_process.check_component_status(
+      status_params.zkfc_pid_file,
+      status_params.hdfs_user,
+      "zkfc",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
+    )
 
   def disable_security(self, env):
     import params
@@ -186,11 +189,18 @@ class ZkfcSlaveDefault(ZkfcSlave):
 def initialize_ha_zookeeper(params):
   try:
     iterations = 10
-    formatZK_cmd = "hdfs zkfc -formatZK -nonInteractive"
+    formatZK_cmd = ("hdfs", "zkfc", "-formatZK", "-nonInteractive")
     Logger.info(f"Initialize HA state in ZooKeeper: {formatZK_cmd}")
     for i in range(iterations):
       Logger.info("Try %d out of %d" % (i + 1, iterations))
-      code, out = shell.call(formatZK_cmd, logoutput=False, user=params.hdfs_user)
+      code, out = shell.call(
+        formatZK_cmd,
+        logoutput=False,
+        user=params.hdfs_user,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        shell=False,
+      )
       if code == 0:
         Logger.info("HA state initialized in ZooKeeper successfully")
         return True
@@ -207,29 +217,6 @@ def initialize_ha_zookeeper(params):
       f"HA state initialization in ZooKeeper threw an exception. Reason {str(ex)}"
     )
   return False
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ZkfcSlaveWindows(ZkfcSlave):
-  def start(self, env):
-    import params
-
-    self.configure(env)
-    Service(params.zkfc_win_service_name, action="start")
-
-  def stop(self, env):
-    import params
-
-    Service(params.zkfc_win_service_name, action="stop")
-
-  def status(self, env):
-    import status_params
-    from resource_management.libraries.functions.windows_service_utils import (
-      check_windows_service_status,
-    )
-
-    env.set_params(status_params)
-    check_windows_service_status(status_params.zkfc_win_service_name)
 
 
 if __name__ == "__main__":

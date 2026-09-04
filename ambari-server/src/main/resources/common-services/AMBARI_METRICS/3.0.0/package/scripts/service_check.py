@@ -24,22 +24,20 @@ from resource_management import Script
 from resource_management import Template
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.parallel_processing import (
-  PrallelProcessResult,
   execute_in_parallel,
   SUCCESS,
 )
+from metrics_utils import url_host
 
 import http.client
 import ambari_commons.network as network
-import urllib.request, urllib.parse, urllib.error
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import urllib.parse
+import json
 import os
 import random
 import time
-import socket
 
 
 class AMSServiceCheck(Script):
@@ -49,30 +47,6 @@ class AMSServiceCheck(Script):
   AMS_CONNECT_TIMEOUT = 10
   AMS_READ_TRIES = 5
   AMS_READ_TIMEOUT = 10
-
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def service_check(self, env):
-    from resource_management.libraries.functions.windows_service_utils import (
-      check_windows_service_exists,
-    )
-    import params
-
-    env.set_params(params)
-
-    # Just check that the services were correctly installed
-    # Check the monitor on all hosts
-    Logger.info("Metrics Monitor service check was started.")
-    if not check_windows_service_exists(params.ams_monitor_win_service_name):
-      raise Fail(
-        "Metrics Monitor service was not properly installed. Check the logs and retry the installation."
-      )
-    # Check the collector only where installed
-    if params.ams_collector_home_dir and os.path.isdir(params.ams_collector_home_dir):
-      Logger.info("Metrics Collector service check was started.")
-      if not check_windows_service_exists(params.ams_collector_win_service_name):
-        raise Fail(
-          "Metrics Collector service was not properly installed. Check the logs and retry the installation."
-        )
 
   def service_check_for_single_host(self, metric_collector_host, params):
     random_value1 = random.random()
@@ -90,12 +64,9 @@ class AMSServiceCheck(Script):
         method = "POST"
         tmp_dir = Script.get_tmp_dir()
 
-        protocol = "http"
-        if not callable(params.metric_collector_https_enabled):
-          if params.metric_collector_https_enabled:
-            protocol = "https"
+        protocol = "https" if params.metric_collector_https_enabled else "http"
         port = str(params.metric_collector_port)
-        uri = f"{protocol}://{metric_collector_host}:{port}{self.AMS_METRICS_POST_URL}"
+        uri = f"{protocol}://{url_host(metric_collector_host)}:{port}{self.AMS_METRICS_POST_URL}"
 
         call_curl_krb_request(
           tmp_dir,
@@ -142,7 +113,7 @@ class AMSServiceCheck(Script):
         method = "GET"
         uri = "{0}://{1}:{2}{3}".format(
           protocol,
-          metric_collector_host,
+          url_host(metric_collector_host),
           port,
           self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters,
         )
@@ -170,58 +141,55 @@ class AMSServiceCheck(Script):
           )
         )
         for i in range(0, self.AMS_READ_TRIES):
-          conn = network.get_http_connection(
-            metric_collector_host,
-            int(params.metric_collector_port),
-            params.metric_collector_https_enabled,
-            ca_certs,
-            ssl_version=Script.get_force_https_protocol_value(),
-          )
-          conn.request("GET", self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
-          response = conn.getresponse()
-          Logger.info(
-            f"Http response for host {metric_collector_host} : {response.status} {response.reason}"
-          )
-
-          data = response.read()
-          Logger.info(f"Http data: {data}")
-          conn.close()
+          conn = None
+          try:
+            conn = network.get_http_connection(
+              metric_collector_host,
+              int(params.metric_collector_port),
+              params.metric_collector_https_enabled,
+              ca_certs,
+              ssl_version=Script.get_force_https_protocol_value(),
+            )
+            conn.timeout = self.AMS_CONNECT_TIMEOUT
+            conn.request(
+              "GET", self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters
+            )
+            response = conn.getresponse()
+            Logger.info(
+              f"Http response for host {metric_collector_host} : {response.status} {response.reason}"
+            )
+            data = response.read()
+          except (http.client.HTTPException, OSError) as error:
+            if i + 1 < self.AMS_READ_TRIES:
+              Logger.info(
+                f"Metrics read failed; retrying in {self.AMS_READ_TIMEOUT} seconds"
+              )
+              time.sleep(self.AMS_READ_TIMEOUT)
+              continue
+            raise Fail(f"Metrics read failed: {error}") from error
+          finally:
+            if conn is not None:
+              conn.close()
 
           if response.status == 200:
             Logger.info(f"Metrics were retrieved from host {metric_collector_host}")
           else:
             raise Fail(
-              "Metrics were not retrieved from host %s. GET request status: %s %s \n%s"
-              % (metric_collector_host, response.status, response.reason, data)
+              "Metrics were not retrieved from host %s. GET request status: %s %s"
+              % (metric_collector_host, response.status, response.reason)
             )
-          data_json = json.loads(data)
-
-          def floats_eq(f1, f2, delta):
-            return abs(f1 - f2) < delta
-
-          values_are_present = False
-          for metrics_data in data_json["metrics"]:
-            if (
-              str(current_time) in metrics_data["metrics"]
-              and str(current_time + 1000) in metrics_data["metrics"]
-              and floats_eq(
-                metrics_data["metrics"][str(current_time)], random_value1, 0.0000001
-              )
-              and floats_eq(
-                metrics_data["metrics"][str(current_time + 1000)], current_time, 1
-              )
-            ):
-              Logger.info(
-                f"Values {metric_collector_host} and {random_value1} were found in the response from host {current_time}."
-              )
-              values_are_present = True
-              break
-              pass
+          values_are_present = metrics_response_contains_values(
+            data, current_time, random_value1
+          )
+          if values_are_present:
+            Logger.info(
+              f"Smoke-test values were found in the response from {metric_collector_host}"
+            )
 
           if not values_are_present:
             if (
               i < self.AMS_READ_TRIES - 1
-            ):  # range/xrange returns items from start to end-1
+            ):
               Logger.info(
                 "Values weren't stored yet. Retrying in %s seconds."
                 % (self.AMS_READ_TIMEOUT)
@@ -233,14 +201,11 @@ class AMSServiceCheck(Script):
               )
           else:
             break
-            pass
-    except Fail as ex:
+    except Fail as error:
       Logger.warning(
-        f"Ambari Metrics service check failed on collector host {metric_collector_host}. Reason : {str(ex)}"
+        f"Ambari Metrics service check failed on collector host {metric_collector_host}: {error}"
       )
-      raise Fail(
-        f"Ambari Metrics service check failed on collector host {metric_collector_host}. Reason : {str(ex)}"
-      )
+      raise
 
   @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def service_check(self, env):
@@ -249,11 +214,14 @@ class AMSServiceCheck(Script):
     Logger.info("Ambari Metrics service check was started.")
     env.set_params(params)
 
+    collector_hosts = [
+      host.strip() for host in params.ams_collector_hosts.split(",") if host.strip()
+    ]
     results = execute_in_parallel(
-      self.service_check_for_single_host, params.ams_collector_hosts.split(","), params
+      self.service_check_for_single_host, collector_hosts, params
     )
 
-    for host in str(params.ams_collector_hosts).split(","):
+    for host in collector_hosts:
       if host in results:
         if results[host].status == SUCCESS:
           Logger.info("Ambari Metrics service check passed on host " + host)
@@ -273,9 +241,35 @@ def is_spnego_enabled(params):
     == "kerberos"
     and "hadoop.http.filter.initializers"
     in params.config["configurations"]["core-site"]
-    and params.config["configurations"]["core-site"]["hadoop.http.filter.initializers"]
-    == "org.apache.hadoop.security.AuthenticationFilterInitializer"
+    and "org.apache.hadoop.security.AuthenticationFilterInitializer"
+    in params.config["configurations"]["core-site"]["hadoop.http.filter.initializers"]
   )
+
+
+def metrics_response_contains_values(data, current_time, random_value):
+  try:
+    payload = json.loads(data)
+    metrics = payload["metrics"]
+    if not isinstance(metrics, list):
+      raise TypeError("metrics must be a list")
+    for metric in metrics:
+      values = metric["metrics"]
+      if not isinstance(values, dict):
+        raise TypeError("metric values must be an object")
+      first_value = values.get(str(current_time))
+      second_value = values.get(str(current_time + 1000))
+      if (
+        isinstance(first_value, (int, float))
+        and not isinstance(first_value, bool)
+        and isinstance(second_value, (int, float))
+        and not isinstance(second_value, bool)
+        and abs(first_value - random_value) < 0.0000001
+        and abs(second_value - current_time) < 1
+      ):
+        return True
+  except (KeyError, TypeError, ValueError) as error:
+    raise Fail("Metrics Collector returned an invalid metrics response") from error
+  return False
 
 
 def call_curl_krb_request(
@@ -293,17 +287,12 @@ def call_curl_krb_request(
   current_time=0,
   random_value=0,
 ):
-  if method == "POST":
-    Logger.info(f"Generated metrics for {uri}:\n{metric_json}")
-
   for i in range(0, tries):
     try:
       Logger.info(f"Connecting ({method}) to {uri}")
       response = None
       errmsg = None
-      time_millis = 0
-
-      response, errmsg, time_millis = curl_krb_request(
+      response, errmsg, _ = curl_krb_request(
         tmp_dir,
         user_keytab,
         user_princ,
@@ -320,7 +309,7 @@ def call_curl_krb_request(
         header=header,
       )
     except Exception as exception:
-      if i < tries - 1:  # range/xrange returns items from start to end-1
+      if i < tries - 1:
         time.sleep(connection_timeout)
         Logger.info(
           f"Connection failed for {uri}. Next retry in {connection_timeout} seconds."
@@ -328,43 +317,22 @@ def call_curl_krb_request(
         continue
       else:
         raise Fail(f"Unable to {method} metrics on: {uri}. Exception: {str(exception)}")
-    finally:
-      if not response:
-        Logger.error(f"Unable to {method} metrics on: {uri}.  Error: {errmsg}")
-      else:
-        Logger.info(f"{method} response from {uri}: {response}, errmsg: {errmsg}")
-        try:
-          response.close()
-        except:
-          Logger.debug(f"Unable to close {method} connection to {uri}")
+    if not response:
+      Logger.error(f"Unable to {method} metrics on: {uri}. Error: {errmsg}")
+      if i + 1 < tries:
+        time.sleep(connection_timeout)
+        continue
+      raise Fail(f"Unable to {method} metrics on: {uri}. Error: {errmsg}")
 
     if method == "GET":
-      data_json = json.loads(response)
-
-      def floats_eq(f1, f2, delta):
-        return abs(f1 - f2) < delta
-
-      values_are_present = False
-      for metrics_data in data_json["metrics"]:
-        if (
-          str(current_time) in metrics_data["metrics"]
-          and str(current_time + 1000) in metrics_data["metrics"]
-          and floats_eq(
-            metrics_data["metrics"][str(current_time)], random_value, 0.0000001
-          )
-          and floats_eq(
-            metrics_data["metrics"][str(current_time + 1000)], current_time, 1
-          )
-        ):
-          Logger.info(
-            f"Values {uri} and {random_value} were found in the response from {current_time}."
-          )
-          values_are_present = True
-          break
-          pass
+      values_are_present = metrics_response_contains_values(
+        response, current_time, random_value
+      )
+      if values_are_present:
+        Logger.info(f"Smoke-test values were found in the response from {uri}")
 
       if not values_are_present:
-        if i < tries - 1:  # range/xrange returns items from start to end-1
+        if i < tries - 1:
           Logger.info(f"Values weren't stored yet. Retrying in {tries} seconds.")
           time.sleep(connection_timeout)
         else:
@@ -373,7 +341,6 @@ def call_curl_krb_request(
           )
       else:
         break
-        pass
     else:
       break
 
@@ -390,11 +357,8 @@ def post_metrics_to_collector(
   connect_timeout=10,
 ):
   for i in range(0, tries):
+    conn = None
     try:
-      Logger.info(
-        f"Generated metrics for host {metric_collector_host} :\n{metric_json}"
-      )
-
       Logger.info(
         "Connecting (POST) to %s:%s%s"
         % (metric_collector_host, metric_collector_port, ams_metrics_post_url)
@@ -406,14 +370,16 @@ def post_metrics_to_collector(
         ca_certs,
         ssl_version=Script.get_force_https_protocol_value(),
       )
+      conn.timeout = connect_timeout
       conn.request("POST", ams_metrics_post_url, metric_json, headers)
 
       response = conn.getresponse()
       Logger.info(
         f"Http response for host {metric_collector_host}: {response.status} {response.reason}"
       )
-    except (http.client.HTTPException, socket.error) as ex:
-      if i < tries - 1:  # range/xrange returns items from start to end-1
+      response.read()
+    except (http.client.HTTPException, OSError) as ex:
+      if i < tries - 1:
         time.sleep(connect_timeout)
         Logger.info(
           "Connection failed for host %s. Next retry in %s seconds."
@@ -421,24 +387,23 @@ def post_metrics_to_collector(
         )
         continue
       else:
-        raise Fail("Metrics were not saved. Connection failed.")
-
-    data = response.read()
-    Logger.info(f"Http data: {data}")
-    conn.close()
+        raise Fail("Metrics were not saved. Connection failed.") from ex
+    finally:
+      if conn is not None:
+        conn.close()
 
     if response.status == 200:
       Logger.info("Metrics were saved.")
       break
     else:
       Logger.info("Metrics were not saved.")
-      if i < tries - 1:  # range/xrange returns items from start to end-1
-        time.sleep(tries)
-        Logger.info(f"Next retry in {tries} seconds.")
+      if i < tries - 1:
+        time.sleep(connect_timeout)
+        Logger.info(f"Next retry in {connect_timeout} seconds.")
       else:
         raise Fail(
-          "Metrics were not saved. POST request status: %s %s \n%s"
-          % (response.status, response.reason, data)
+          "Metrics were not saved. POST request status: %s %s"
+          % (response.status, response.reason)
         )
 
 

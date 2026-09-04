@@ -18,8 +18,6 @@ limitations under the License.
 
 """
 
-from ambari_commons.repo_manager import ManagerFactory
-from ambari_commons.shell import RepoCallContext
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.script.script import Script
 
@@ -53,16 +51,6 @@ class InfraSolrClient(Script):
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
-
-  def upgrade_solr_client(self, env):
-    pkg_provider = ManagerFactory.get()
-    context = RepoCallContext()
-    context.log_output = True
-    pkg_provider.remove_package(
-      "ambari-infra-solr-client", context, ignore_dependencies=True
-    )
-    pkg_provider.upgrade_package("ambari-infra-solr-client", context)
-
 
 if __name__ == "__main__":
   InfraSolrClient().execute()

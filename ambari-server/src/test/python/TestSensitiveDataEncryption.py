@@ -22,7 +22,7 @@ import importlib
 import sys
 
 from ambari_commons.exceptions import FatalException
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
@@ -30,17 +30,16 @@ with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   importlib.reload(sudo)
 
 import operator
-import distro
+from ambari_commons import os_check
+from only_for_platform import os_distro_value
 import io
 from unittest import TestCase
 
 os.environ["ROOT"] = ""
 
-from only_for_platform import get_platform, os_distro_value, PLATFORM_WINDOWS
 from ambari_commons import os_utils
 
-if get_platform() != PLATFORM_WINDOWS:
-  pass
+pass
 
 import shutil
 
@@ -66,7 +65,7 @@ def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
 
 os_utils.search_file = search_file_proxy
 with patch.object(
-  distro,
+  os_check,
   "linux_distribution",
   return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
 ):
@@ -77,7 +76,10 @@ with patch.object(
         "parse_log4j_file",
         return_value={"ambari.log.dir": "/var/log/ambari-server"},
       ):
-        with patch("distro.linux_distribution", return_value=os_distro_value):
+        with patch(
+          "ambari_commons.os_check.linux_distribution",
+          return_value=os_distro_value,
+        ):
           with patch("os.symlink"):
             with patch("glob.glob", return_value=["/etc/init.d/postgresql-9.3"]):
               _ambari_server_ = __import__("ambari-server")
@@ -103,7 +105,7 @@ with patch.object(
 
 
 @patch.object(
-  distro, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
+  os_check, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
 )
 @patch(
   "ambari_server.dbConfiguration_linux.get_postgre_hba_dir",

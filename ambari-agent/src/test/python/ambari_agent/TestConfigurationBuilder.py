@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from unittest import TestCase
 
 from ambari_agent.ConfigurationBuilder import ConfigurationBuilder

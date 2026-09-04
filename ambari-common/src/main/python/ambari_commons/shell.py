@@ -506,16 +506,16 @@ def process_executor(
    Option 1. Basic
      with process_executor(["ls", "-la]) as stdout:
        for line in stdout:
-         print line
+         print(line)
 
    Option 2. Extended
      def error_handler(command, error_log, exit_code):
-       print "Command '{}' failed".format(command)
-       print "Exit Code: {}   StdOut: {} \n".format(exit_code, "\n".join(error_log))
+       print("Command '{}' failed".format(command))
+       print("Exit Code: {}   StdOut: {} \n".format(exit_code, "\n".join(error_log)))
 
      with process_executor(["ls", "-la], timeout=10, error_callback=error_handler) as stdout:
        for line in stdout:
-         print line
+         print(line)
 
   """
 
@@ -832,57 +832,6 @@ def repository_manager_executor(
 class shellRunner(object):
   def run(self, script, user=None):
     pass
-
-  def runPowershell(self, f=None, script_block=None, args=set()):
-    raise NotImplementedError()
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class shellRunnerWindows(shellRunner):
-  # Run any command
-  def run(self, script, user=None):
-    global _logger
-    _logger.warning("user argument ignored on windows")
-    code = 0
-    if isinstance(script, list):
-      cmd = " ".join(script)
-    else:
-      cmd = script
-    p = subprocess.Popen(
-      cmd,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE,
-      shell=False,
-      universal_newlines=True,
-    )
-    out, err = p.communicate()
-    code = p.wait()
-    _logger.debug("Exitcode for %s is %d" % (cmd, code))
-    return SubprocessCallResult(out=out, error=err, code=code)
-
-  def runPowershell(self, f=None, script_block=None, args=set()):
-    global _logger
-    _logger.warning("user argument ignored on windows")
-
-    cmd = None
-    if f:
-      cmd = ["powershell", "-WindowStyle", "Hidden", "-File", f] + list(args)
-    elif script_block:
-      cmd = ["powershell", "-WindowStyle", "Hidden", "-Command", script_block] + list(
-        args
-      )
-
-    p = subprocess.Popen(
-      cmd,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.PIPE,
-      shell=False,
-      universal_newlines=True,
-    )
-    out, err = p.communicate()
-    code = p.wait()
-    _logger.debug("Exitcode for %s is %d" % (cmd, code))
-    return {"exitCode": code, "output": out, "error": err}
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

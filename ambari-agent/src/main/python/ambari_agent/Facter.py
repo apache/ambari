@@ -276,145 +276,16 @@ class Facter(object):
     return f"{round(float(size) // 1024.0, 2):0.2f} GB"
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class FacterWindows(Facter):
-  GET_SYSTEM_INFO_CMD = "systeminfo"
-  GET_MEMORY_CMD = '$mem =(Get-WMIObject Win32_OperatingSystem -ComputerName "LocalHost" ); echo "$($mem.FreePhysicalMemory) $($mem.TotalVisibleMemorySize)"'
-  GET_PAGE_FILE_INFO = '$pgo=(Get-WmiObject Win32_PageFileUsage); echo "$($pgo.AllocatedBaseSize) $($pgo.AllocatedBaseSize-$pgo.CurrentUsage)"'
-  GET_UPTIME_CMD = "echo $([int]((get-date)-[system.management.managementdatetimeconverter]::todatetime((get-wmiobject -class win32_operatingsystem).Lastbootuptime)).TotalSeconds)"
-
-  # Returns the FQDN of the host
-  def getFqdn(self):
-    return socket.getfqdn().lower()
-
-  # Return  netmask
-  def getNetmask(self):
-    # TODO return correct netmask
-    return "OS NOT SUPPORTED"
-
-  # Return interfaces
-  def getInterfaces(self):
-    # TODO return correct interfaces
-    return "OS NOT SUPPORTED"
-
-  # Return uptime seconds
-  def getUptimeSeconds(self):
-    try:
-      runner = shellRunner()
-      result = (
-        runner.runPowershell(script_block=FacterWindows.GET_UPTIME_CMD)
-        .output.replace("\n", "")
-        .replace("\r", "")
-      )
-      return int(result)
-    except:
-      log.warning("Can not get SwapFree")
-    return 0
-
-  # Return memoryfree
-  def getMemoryFree(self):
-    try:
-      runner = shellRunner()
-      result = (
-        runner.runPowershell(script_block=FacterWindows.GET_MEMORY_CMD)
-        .output.split(" ")[0]
-        .replace("\n", "")
-        .replace("\r", "")
-      )
-      return result
-    except:
-      log.warning("Can not get MemoryFree")
-    return 0
-
-  # Return memorytotal
-  def getMemoryTotal(self):
-    try:
-      runner = shellRunner()
-      result = (
-        runner.runPowershell(script_block=FacterWindows.GET_MEMORY_CMD)
-        .output.split(" ")[-1]
-        .replace("\n", "")
-        .replace("\r", "")
-      )
-      return result
-    except:
-      log.warning("Can not get MemoryTotal")
-    return 0
-
-  # Return swapfree
-  def getSwapFree(self):
-    try:
-      runner = shellRunner()
-      result = (
-        runner.runPowershell(script_block=FacterWindows.GET_PAGE_FILE_INFO)
-        .output.split(" ")[-1]
-        .replace("\n", "")
-        .replace("\r", "")
-      )
-      return result
-    except:
-      log.warning("Can not get SwapFree")
-    return 0
-
-  # Return swapsize
-  def getSwapSize(self):
-    try:
-      runner = shellRunner()
-      result = (
-        runner.runPowershell(script_block=FacterWindows.GET_PAGE_FILE_INFO)
-        .output.split(" ")[0]
-        .replace("\n", "")
-        .replace("\r", "")
-      )
-      return result
-    except:
-      log.warning("Can not get SwapFree")
-    return 0
-
-  # Return memorysize
-  def getMemorySize(self):
-    try:
-      runner = shellRunner()
-      result = (
-        runner.runPowershell(script_block=FacterWindows.GET_MEMORY_CMD)
-        .output.split(" ")[-1]
-        .replace("\n", "")
-        .replace("\r", "")
-      )
-      return result
-    except:
-      log.warning("Can not get MemorySize")
-    return 0
-
-  def facterInfo(self):
-    facterInfo = super(FacterWindows, self).facterInfo()
-    systemResourceOverrides = self.getSystemResourceOverrides()
-    facterInfo = self.replaceFacterInfoWithSystemResources(
-      systemResourceOverrides, facterInfo
-    )
-    facterInfo["swapsize"] = Facter.convertSizeMbToGb(
-      self.getSystemResourceIfExists(
-        systemResourceOverrides, "swapsize", self.getSwapSize()
-      )
-    )
-    facterInfo["swapfree"] = Facter.convertSizeMbToGb(
-      self.getSystemResourceIfExists(
-        systemResourceOverrides, "swapfree", self.getSwapFree()
-      )
-    )
-    return facterInfo
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FacterLinux(Facter):
   FIRST_WORDS_REGEXP = re.compile(r",$")
-  IFNAMES_REGEXP = re.compile("^\d")
+  IFNAMES_REGEXP = re.compile(r"^\d")
   SE_STATUS_REGEXP = re.compile("(enforcing|permissive|enabled)")
-  DIGITS_REGEXP = re.compile("\d+")
-  FREEMEM_REGEXP = re.compile("MemFree:.*?(\d+) .*")
-  TOTALMEM_REGEXP = re.compile("MemTotal:.*?(\d+) .*")
-  SWAPFREE_REGEXP = re.compile("SwapFree:.*?(\d+) .*")
-  SWAPTOTAL_REGEXP = re.compile("SwapTotal:.*?(\d+) .*")
+  DIGITS_REGEXP = re.compile(r"\d+")
+  FREEMEM_REGEXP = re.compile(r"MemFree:.*?(\d+) .*")
+  TOTALMEM_REGEXP = re.compile(r"MemTotal:.*?(\d+) .*")
+  SWAPFREE_REGEXP = re.compile(r"SwapFree:.*?(\d+) .*")
+  SWAPTOTAL_REGEXP = re.compile(r"SwapTotal:.*?(\d+) .*")
 
   # selinux command
   GET_SE_LINUX_ST_CMD = "/usr/sbin/sestatus"
@@ -523,13 +394,17 @@ class FacterLinux(Facter):
         )
         if ip_address_by_ifname is not None:
           if primary_ip == ip_address_by_ifname.strip():
-            return socket.inet_ntoa(
-              fcntl.ioctl(
-                socket.socket(socket.AF_INET, socket.SOCK_DGRAM),
-                35099,
-                struct.pack("256s", ifname.encode("utf-8")),
-              )[20:24]
-            )
+            netmask_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+              return socket.inet_ntoa(
+                fcntl.ioctl(
+                  netmask_socket,
+                  35099,
+                  struct.pack("256s", ifname.encode("utf-8")),
+                )[20:24]
+              )
+            finally:
+              netmask_socket.close()
 
     return None
 
@@ -550,6 +425,8 @@ class FacterLinux(Facter):
       )
     except Exception as err:
       log.warning(f"Can't get the IP address for {ifname}")
+    finally:
+      s.close()
 
     return ip_address_by_ifname
 

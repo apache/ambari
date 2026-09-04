@@ -26,7 +26,6 @@ import {
   faWrench 
 } from "@fortawesome/free-solid-svg-icons";
 import AmbariLogo from "../../assets/img/ambari-logo.png"
-import { isWindowsStack } from "../../Utils/stackMetadata";
 
 enum SideItemLabels {
   LOGO = "logo",
@@ -48,7 +47,6 @@ const getSideItemList = (
   havePermissions: (auth: string) => boolean,
   isAuthorized: (auth: string) => boolean,
   supports: Record<string, boolean>,
-  stackName = "",
 ): SideItem[] => {
   const adminChildren: SideItem[] = [];
   
@@ -78,8 +76,7 @@ const getSideItemList = (
   
   // Kerberos - Requires CLUSTER.TOGGLE_KERBEROS
   if (
-    !isWindowsStack(stackName)
-    && supports.enableToggleKerberos
+    supports.enableToggleKerberos
     && isAuthorized('CLUSTER.TOGGLE_KERBEROS')
   ) {
     adminChildren.push({

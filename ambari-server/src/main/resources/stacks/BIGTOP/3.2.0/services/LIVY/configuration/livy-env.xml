@@ -92,13 +92,15 @@
             # - LIVY_LOG_DIR    Where log files are stored.  (Default: ${LIVY_HOME}/logs)
             # - LIVY_PID_DIR    Where the pid file is stored. (Default: /tmp)
             # - LIVY_SERVER_JAVA_OPTS  Java Opts for running livy server (You can set jvm related setting here, like jvm memory/gc algorithm and etc.)
-            export SPARK_HOME=/usr/bigtop/current/spark-client
-            export SPARK_CONF_DIR=/etc/spark/conf
-            export JAVA_HOME={{java_home}}
-            export HADOOP_CONF_DIR=/etc/hadoop/conf
-            export LIVY_LOG_DIR={{livy_log_dir}}
-            export LIVY_PID_DIR={{livy_pid_dir}}
-            export LIVY_SERVER_JAVA_OPTS="-Xmx2g"
+            umask 0027
+            export SPARK_HOME={{spark_home_shell}}
+            export SPARK_CONF_DIR={{spark_conf_dir_shell}}
+            export JAVA_HOME={{java_home_shell}}
+            export HADOOP_CONF_DIR={{hadoop_conf_dir_shell}}
+            export LIVY_LOG_DIR={{livy_log_dir_shell}}
+            export LIVY_PID_DIR={{livy_pid_dir_shell}}
+            export LIVY_IDENT_STRING={{livy_user_shell}}
+            export LIVY_SERVER_JAVA_OPTS='-Xmx2g'
         </value>
         <value-attributes>
             <type>content</type>

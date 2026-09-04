@@ -20,7 +20,7 @@ limitations under the License.
 
 from ambari_agent.alerts.collector import AlertCollector
 
-from mock.mock import patch
+from unittest.mock import patch
 from unittest import TestCase
 
 

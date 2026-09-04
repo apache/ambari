@@ -61,12 +61,13 @@
   </property>
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
-    <value>hive</value>
+    <value></value>
     <display-name>Ranger repository config password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Used for repository creation on ranger admin</description>
     <value-attributes>
       <type>password</type>
+      <empty-value-valid>false</empty-value-valid>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>

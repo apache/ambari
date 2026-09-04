@@ -42,14 +42,6 @@ class Provider(object):
 
 
 PROVIDERS = dict(
-  winsrv=dict(
-    Service="resource_management.core.providers.windows.service.ServiceProvider",
-    ServiceConfig="resource_management.core.providers.windows.service.ServiceConfigProvider",
-    Execute="resource_management.core.providers.windows.system.ExecuteProvider",
-    File="resource_management.core.providers.windows.system.FileProvider",
-    Directory="resource_management.core.providers.windows.system.DirectoryProvider",
-    Package="resource_management.core.providers.package.choco.ChocoProvider",
-  ),
   default=dict(
     File="resource_management.core.providers.system.FileProvider",
     Directory="resource_management.core.providers.system.DirectoryProvider",

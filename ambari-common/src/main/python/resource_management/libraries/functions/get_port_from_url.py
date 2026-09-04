@@ -41,7 +41,7 @@ def get_port_from_url(address):
   if address is None or address.strip() == "":
     return ""
 
-  port = re.findall(":([\d]{1,5})(?=/|$)", address)
+  port = re.findall(r":([\d]{1,5})(?=/|$)", address)
   if port:
     return port[0]
   elif address.isdigit():

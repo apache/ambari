@@ -16,9 +16,7 @@
         "requires_user_name": "false",
         "port":{
           "http_property": "admin.serverPort",
-          "http_default_port": "8080",
-          "https_property": "admin.serverPort",
-          "https_default_port": "8443",
+          "http_default_port": "9393",
           "regex": "^(\\d+)$",
           "site": "zoo.cfg"
         }

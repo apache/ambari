@@ -23,7 +23,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.resources.repository import Repository
 from resource_management.libraries.functions.is_empty import is_empty
-import ambari_simplejson as json
+import json
 
 
 __all__ = ["RepositoryUtil", "CommandRepository"]
@@ -132,7 +132,7 @@ class CommandRepository(object):
 
   def __init__(self, repo_object):
     """
-    :type repo_object dict|basestring
+    :type repo_object dict|str
     """
 
     if isinstance(repo_object, dict):

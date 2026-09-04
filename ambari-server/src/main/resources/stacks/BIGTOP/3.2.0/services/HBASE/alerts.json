@@ -39,7 +39,7 @@
         "source": {
           "type": "PORT",
           "uri": "{{hbase-site/hbase.master.port}}",
-          "default_port": 60000,
+          "default_port": 16000,
           "reporting": {
             "ok": {
               "text": "TCP OK - {0:.3f}s response on port {1}"
@@ -66,7 +66,7 @@
           "type": "METRIC",
           "uri": {
             "http": "{{hbase-site/hbase.master.info.port}}",
-            "default_port": 60010,
+            "default_port": 16010,
             "connection_timeout": 5.0,
             "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
             "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}"
@@ -106,7 +106,34 @@
         "source": {
           "type": "PORT",
           "uri": "{{hbase-site/hbase.regionserver.info.port}}",
-          "default_port": 60030,
+          "default_port": 16030,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
+    "HBASE_THRIFT": [
+      {
+        "name": "hbase_thrift_process",
+        "label": "HBase Thrift Process",
+        "description": "This host-level alert checks that the HBase Thrift information port accepts connections.",
+        "interval": 1,
+        "scope": "HOST",
+        "source": {
+          "type": "PORT",
+          "uri": "{{hbase-thrift-site/hbase.thrift.info.port}}",
+          "default_port": 9095,
           "reporting": {
             "ok": {
               "text": "TCP OK - {0:.3f}s response on port {1}"

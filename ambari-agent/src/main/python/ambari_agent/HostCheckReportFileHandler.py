@@ -26,9 +26,9 @@ import traceback
 from ambari_agent.AmbariConfig import AmbariConfig
 import configparser
 
-HADOOP_ROOT_DIR = "/usr/hdp"
-HADOOP_PERM_REMOVE_LIST = ["current"]
-HADOOP_ITEMDIR_REGEXP = re.compile("(\d\.){3}\d-\d{4}")
+STACK_ROOT_DIR = "/usr/bigtop"
+STACK_PERM_REMOVE_LIST = ["current"]
+STACK_VERSION_DIR_REGEXP = re.compile(r"^\d+(?:\.\d+){2,3}(?:-\d+)?$")
 logger = logging.getLogger(__name__)
 
 
@@ -91,7 +91,7 @@ class HostCheckReportFileHandler:
         config.write(configfile)
     except Exception as err:
       logger.error(
-        f"Can't write host check file at {self.hostCheckCustomActionsFilePath} :{err.message} "
+        f"Can't write host check file at {self.hostCheckCustomActionsFilePath}: {err}"
       )
       traceback.print_exc()
 
@@ -101,27 +101,27 @@ class HostCheckReportFileHandler:
     :rtype list
     """
 
-    if not os.path.exists(HADOOP_ROOT_DIR):
+    if not os.path.exists(STACK_ROOT_DIR):
       return []
 
-    folder_content = os.listdir(HADOOP_ROOT_DIR)
+    folder_content = os.listdir(STACK_ROOT_DIR)
     remove_list = []
 
     remlist_items_count = 0
 
     for item in folder_content:
-      full_path = f"{HADOOP_ROOT_DIR}{os.path.sep}{item}"
-      if item in HADOOP_PERM_REMOVE_LIST:
+      full_path = f"{STACK_ROOT_DIR}{os.path.sep}{item}"
+      if item in STACK_PERM_REMOVE_LIST:
         remove_list.append(full_path)
         remlist_items_count += 1
 
-      if HADOOP_ITEMDIR_REGEXP.match(item) is not None:
+      if STACK_VERSION_DIR_REGEXP.fullmatch(item) is not None:
         remove_list.append(full_path)
         remlist_items_count += 1
 
     # if remove list have same length as target folder, assume that they are identical
     if remlist_items_count == len(folder_content):
-      remove_list.append(HADOOP_ROOT_DIR)
+      remove_list.append(STACK_ROOT_DIR)
 
     return remove_list
 
@@ -177,7 +177,7 @@ class HostCheckReportFileHandler:
         config.write(configfile)
     except Exception as err:
       logger.error(
-        f"Can't write host check file at {self.hostCheckFilePath} :{err.message} "
+        f"Can't write host check file at {self.hostCheckFilePath}: {err}"
       )
       traceback.print_exc()
 

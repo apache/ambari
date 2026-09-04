@@ -22,7 +22,6 @@ Ambari Agent
 
 import platform
 
-PLATFORM_WINDOWS = "Windows"
 PLATFORM_LINUX = "Linux"
 
 
@@ -55,9 +54,5 @@ def for_specific_platforms(systems):
 
 
 os_distro_value_linux = ("Suse", "11", "Final")
-os_distro_value_windows = ("win2012serverr2", "6.3", "WindowsServer")
 
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = os_distro_value_linux
-else:
-  os_distro_value = os_distro_value_windows
+os_distro_value = os_distro_value_linux

@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 # Python imports
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import os
 import traceback
 import re
@@ -36,8 +36,8 @@ try:
   if "BASE_SERVICE_ADVISOR" in os.environ:
     PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
   with open(PARENT_FILE, "rb") as fp:
-    service_advisor = imp.load_module(
-      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+    service_advisor = import_utils.load_module(
+      "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
     )
 except Exception as e:
   traceback.print_exc()
@@ -50,6 +50,28 @@ DB_TYPE_DEFAULT_PORT_MAP = {
   "MSSQL": "1433",
   "SQLA": "2638",
 }
+
+
+def _strict_bool(value, property_name):
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "true":
+      return True
+    if normalized == "false":
+      return False
+  raise ValueError(f"{property_name} must be true or false")
+
+
+def _strict_yes_no(value, property_name):
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "yes":
+      return True
+    if normalized == "no":
+      return False
+  raise ValueError(f"{property_name} must be Yes or No")
 
 
 class RangerServiceAdvisor(service_advisor.ServiceAdvisor):
@@ -136,25 +158,25 @@ class RangerServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = RangerRecommender()
-    recommender.recommendRangerConfigurationsFromHDP206(
+    recommender.recommendRangerCoreConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendRangerConfigurationsFromHDP22(
+    recommender.recommendRangerAuditConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendRangerConfigurationsFromHDP23(
+    recommender.recommendRangerDatabaseConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendRangerConfigurationsFromHDP25(
+    recommender.recommendRangerTagsyncConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendRangerConfigurationsFromHDP26(
+    recommender.recommendRangerUsersyncConfigurations(
       configurations, clusterData, services, hosts
     )
     recommender.recommendConfigurationsForSSO(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendConfigurationsForHDP30(
+    recommender.recommendModernRangerConfigurations(
       configurations, clusterData, services, hosts
     )
     recommender.recommendConfigurationsForLDAP(
@@ -241,7 +263,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(RangerRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendRangerConfigurationsFromHDP206(
+  def recommendRangerCoreConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     putRangerAdminProperty = self.putProperty(
@@ -253,23 +275,24 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     ranger_admin_host = "localhost"
     port = "6080"
 
-    # Check if http is disabled. For HDP-2.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
-    # For Ranger-0.4.0 this can be checked in ranger-site/http.enabled
+    # Ranger 2.6 uses ranger-admin-site; retain ranger-site as upgrade input.
     if (
       "ranger-site" in services["configurations"]
       and "http.enabled" in services["configurations"]["ranger-site"]["properties"]
-      and services["configurations"]["ranger-site"]["properties"][
-        "http.enabled"
-      ].lower()
-      == "false"
+      and not _strict_bool(
+        services["configurations"]["ranger-site"]["properties"]["http.enabled"],
+        "ranger-site/http.enabled",
+      )
     ) or (
       "ranger-admin-site" in services["configurations"]
       and "ranger.service.http.enabled"
       in services["configurations"]["ranger-admin-site"]["properties"]
-      and services["configurations"]["ranger-admin-site"]["properties"][
-        "ranger.service.http.enabled"
-      ].lower()
-      == "false"
+      and not _strict_bool(
+        services["configurations"]["ranger-admin-site"]["properties"][
+          "ranger.service.http.enabled"
+        ],
+        "ranger-admin-site/ranger.service.http.enabled",
+      )
     ):
       # HTTPS protocol is used
       protocol = "https"
@@ -429,7 +452,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
                   ][item["configname"]]
                 putRangerAuditProperty(item["target_configname"], rangerAuditProperty)
 
-  def recommendRangerConfigurationsFromHDP22(
+  def recommendRangerAuditConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     putRangerEnvProperty = self.putProperty(configurations, "ranger-env")
@@ -437,7 +460,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     security_enabled = (
       cluster_env is not None
       and "security_enabled" in cluster_env
-      and cluster_env["security_enabled"].lower() == "true"
+      and _strict_bool(cluster_env["security_enabled"], "cluster-env/security_enabled")
     )
     if "ranger-env" in configurations and not security_enabled:
       putRangerEnvProperty("ranger-storm-plugin-enabled", "No")
@@ -518,7 +541,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
         ):
           putRangerSecurityProperty(component_config_property, policymgr_external_url)
 
-  def recommendRangerConfigurationsFromHDP23(
+  def recommendRangerDatabaseConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     servicesList = [
@@ -659,9 +682,11 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
       and "is_solrCloud_enabled"
       in services["configurations"]["ranger-env"]["properties"]
     ):
-      isSolrCloudEnabled = (
-        services["configurations"]["ranger-env"]["properties"]["is_solrCloud_enabled"]
-        == "true"
+      isSolrCloudEnabled = _strict_bool(
+        services["configurations"]["ranger-env"]["properties"][
+          "is_solrCloud_enabled"
+        ],
+        "ranger-env/is_solrCloud_enabled",
       )
     else:
       isSolrCloudEnabled = False
@@ -778,7 +803,11 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
         "xasecure.audit.destination.db"
       ]
 
-    if audit_db_flag == "true" and audit_solr_flag == "false":
+    if _strict_bool(
+      audit_db_flag, "ranger-env/xasecure.audit.destination.db"
+    ) and not _strict_bool(
+      audit_solr_flag, "ranger-env/xasecure.audit.destination.solr"
+    ):
       ranger_audit_source_type = "db"
     putRangerAdminProperty("ranger.audit.source.type", ranger_audit_source_type)
 
@@ -815,7 +844,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     # recommendation for ranger url for ranger-supported plugins
     self.recommendRangerUrlConfigurations(configurations, services, required_services)
 
-  def recommendRangerConfigurationsFromHDP25(
+  def recommendRangerTagsyncConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     servicesList = [
@@ -852,7 +881,10 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
       if (
         application_properties
         and "atlas.enableTLS" in application_properties
-        and application_properties["atlas.enableTLS"].lower() == "true"
+        and _strict_bool(
+          application_properties["atlas.enableTLS"],
+          "application-properties/atlas.enableTLS",
+        )
       ):
         protocol = "https"
         if "atlas.server.https.port" in application_properties:
@@ -895,9 +927,11 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
       and "is_solrCloud_enabled"
       in services["configurations"]["ranger-env"]["properties"]
     ):
-      is_solr_cloud_enabled = (
-        services["configurations"]["ranger-env"]["properties"]["is_solrCloud_enabled"]
-        == "true"
+      is_solr_cloud_enabled = _strict_bool(
+        services["configurations"]["ranger-env"]["properties"][
+          "is_solrCloud_enabled"
+        ],
+        "ranger-env/is_solrCloud_enabled",
       )
 
     is_external_solr_cloud_enabled = False
@@ -906,11 +940,11 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
       and "is_external_solrCloud_enabled"
       in services["configurations"]["ranger-env"]["properties"]
     ):
-      is_external_solr_cloud_enabled = (
+      is_external_solr_cloud_enabled = _strict_bool(
         services["configurations"]["ranger-env"]["properties"][
           "is_external_solrCloud_enabled"
-        ]
-        == "true"
+        ],
+        "ranger-env/is_external_solrCloud_enabled",
       )
 
     ranger_audit_zk_port = ""
@@ -1135,7 +1169,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     # recommendation for ranger url for ranger-supported plugins
     self.recommendRangerUrlConfigurations(configurations, services, required_services)
 
-  def recommendRangerConfigurationsFromHDP26(
+  def recommendRangerUsersyncConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     putRangerUgsyncSite = self.putProperty(
@@ -1148,11 +1182,11 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
       and "ranger.usersync.ldap.deltasync"
       in services["configurations"]["ranger-ugsync-site"]["properties"]
     ):
-      delta_sync_enabled = (
+      delta_sync_enabled = _strict_bool(
         services["configurations"]["ranger-ugsync-site"]["properties"][
           "ranger.usersync.ldap.deltasync"
-        ]
-        == "true"
+        ],
+        "ranger-ugsync-site/ranger.usersync.ldap.deltasync",
       )
 
     if delta_sync_enabled:
@@ -1187,7 +1221,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
       elif ambari_sso_details.should_disable_sso("RANGER"):
         putRangerAdminSiteProperty("ranger.sso.enabled", "false")
 
-  def recommendConfigurationsForHDP30(
+  def recommendModernRangerConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     putRangerAdminProperty = self.putProperty(
@@ -1200,11 +1234,11 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
       and "ranger.usersync.ldap.starttls"
       in services["configurations"]["ranger-ugsync-site"]["properties"]
     ):
-      enable_usersync_ldap_starttls = (
+      enable_usersync_ldap_starttls = _strict_bool(
         services["configurations"]["ranger-ugsync-site"]["properties"][
           "ranger.usersync.ldap.starttls"
-        ]
-        == "true"
+        ],
+        "ranger-ugsync-site/ranger.usersync.ldap.starttls",
       )
 
     if enable_usersync_ldap_starttls:
@@ -1223,7 +1257,10 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     if (
       ldap_properties
       and "ambari.ldap.authentication.enabled" in ldap_properties
-      and ldap_properties["ambari.ldap.authentication.enabled"].lower() == "true"
+      and _strict_bool(
+        ldap_properties["ambari.ldap.authentication.enabled"],
+        "ldap-configuration/ambari.ldap.authentication.enabled",
+      )
     ):
       putRangerUgsyncSite = self.putProperty(
         configurations, "ranger-ugsync-site", services
@@ -1258,7 +1295,10 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
         ldap_protocol = "ldap://"
         if (
           "ambari.ldap.connectivity.use_ssl" in ldap_properties
-          and ldap_properties["ambari.ldap.connectivity.use_ssl"] == "true"
+          and _strict_bool(
+            ldap_properties["ambari.ldap.connectivity.use_ssl"],
+            "ldap-configuration/ambari.ldap.connectivity.use_ssl",
+          )
         ):
           ldap_protocol = "ldaps://"
         ldap_port = "389"
@@ -1294,15 +1334,16 @@ class RangerValidator(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
     self.validators = [
-      ("ranger-env", self.validateRangerConfigurationsEnvFromHDP22),
-      ("admin-properties", self.validateRangerAdminConfigurationsFromHDP23),
-      ("ranger-env", self.validateRangerConfigurationsEnvFromHDP23),
-      ("ranger-tagsync-site", self.validateRangerTagsyncConfigurationsFromHDP25),
-      ("ranger-ugsync-site", self.validateRangerUsersyncConfigurationsFromHDP26),
+      ("ranger-env", self.validateRangerAuditConfigurations),
+      ("admin-properties", self.validateRangerAdminDatabaseConfigurations),
+      ("ranger-env", self.validateRangerPluginConfigurations),
+      ("ranger-tagsync-site", self.validateRangerTagsyncConfigurations),
+      ("ranger-ugsync-site", self.validateRangerUsersyncConfigurations),
       ("ranger-env", self.validateRangerPasswordConfigurations),
+      ("ranger-admin-site", self.validateRangerRuntimeConfigurations),
     ]
 
-  def validateRangerConfigurationsEnvFromHDP22(
+  def validateRangerAuditConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     ranger_env_properties = properties
@@ -1312,7 +1353,10 @@ class RangerValidator(service_advisor.ServiceAdvisor):
     ]
     if (
       "ranger-storm-plugin-enabled" in ranger_env_properties
-      and ranger_env_properties["ranger-storm-plugin-enabled"].lower() == "yes"
+      and _strict_yes_no(
+        ranger_env_properties["ranger-storm-plugin-enabled"],
+        "ranger-env/ranger-storm-plugin-enabled",
+      )
       and not "KERBEROS" in servicesList
     ):
       validationItems.append(
@@ -1325,7 +1369,7 @@ class RangerValidator(service_advisor.ServiceAdvisor):
       )
     return self.toConfigurationValidationProblems(validationItems, "ranger-env")
 
-  def validateRangerAdminConfigurationsFromHDP23(
+  def validateRangerAdminDatabaseConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     ranger_site = properties
@@ -1346,7 +1390,41 @@ class RangerValidator(service_advisor.ServiceAdvisor):
         )
     return self.toConfigurationValidationProblems(validationItems, "admin-properties")
 
-  def validateRangerConfigurationsEnvFromHDP23(
+  def validateRangerRuntimeConfigurations(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    validationItems = []
+    ssl_property = "ranger.service.https.attrib.ssl.enabled"
+    try:
+      ssl_enabled = _strict_bool(properties.get(ssl_property), ssl_property)
+    except ValueError as error:
+      ssl_enabled = False
+      validationItems.append(
+        {
+          "config-name": ssl_property,
+          "item": self.getErrorItem(str(error)),
+        }
+      )
+
+    keystore_password_property = "ranger.service.https.attrib.keystore.pass"
+    keystore_password = properties.get(keystore_password_property)
+    if ssl_enabled and (
+      not isinstance(keystore_password, str) or not keystore_password.strip()
+    ):
+      validationItems.append(
+        {
+          "config-name": keystore_password_property,
+          "item": self.getErrorItem(
+            "Ranger Admin HTTPS keystore password must not be empty"
+          ),
+        }
+      )
+
+    return self.toConfigurationValidationProblems(
+      validationItems, "ranger-admin-site"
+    )
+
+  def validateRangerPluginConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     ranger_env_properties = properties
@@ -1355,7 +1433,10 @@ class RangerValidator(service_advisor.ServiceAdvisor):
 
     if (
       "ranger-kafka-plugin-enabled" in ranger_env_properties
-      and ranger_env_properties["ranger-kafka-plugin-enabled"].lower() == "yes"
+      and _strict_yes_no(
+        ranger_env_properties["ranger-kafka-plugin-enabled"],
+        "ranger-env/ranger-kafka-plugin-enabled",
+      )
       and not security_enabled
     ):
       validationItems.append(
@@ -1372,7 +1453,7 @@ class RangerValidator(service_advisor.ServiceAdvisor):
     )
     return validationProblems
 
-  def validateRangerTagsyncConfigurationsFromHDP25(
+  def validateRangerTagsyncConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     ranger_tagsync_properties = properties
@@ -1388,7 +1469,10 @@ class RangerValidator(service_advisor.ServiceAdvisor):
       if (
         has_atlas
         and "ranger.tagsync.source.atlas" in ranger_tagsync_properties
-        and ranger_tagsync_properties["ranger.tagsync.source.atlas"].lower() == "true"
+        and _strict_bool(
+          ranger_tagsync_properties["ranger.tagsync.source.atlas"],
+          "ranger-tagsync-site/ranger.tagsync.source.atlas",
+        )
       ):
         validationItems.append(
           {
@@ -1403,20 +1487,56 @@ class RangerValidator(service_advisor.ServiceAdvisor):
       validationItems, "ranger-tagsync-site"
     )
 
-  def validateRangerUsersyncConfigurationsFromHDP26(
+  def validateRangerUsersyncConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     ranger_usersync_properties = properties
     validationItems = []
 
+    ssl_property = "ranger.usersync.ssl"
+    try:
+      ssl_enabled = _strict_bool(
+        ranger_usersync_properties.get(ssl_property),
+        f"ranger-ugsync-site/{ssl_property}",
+      )
+    except ValueError as error:
+      ssl_enabled = False
+      validationItems.append(
+        {
+          "config-name": ssl_property,
+          "item": self.getErrorItem(str(error)),
+        }
+      )
+
+    keystore_password_property = "ranger.usersync.keystore.password"
+    keystore_password = ranger_usersync_properties.get(
+      keystore_password_property
+    )
+    if ssl_enabled and (
+      not isinstance(keystore_password, str) or not keystore_password.strip()
+    ):
+      validationItems.append(
+        {
+          "config-name": keystore_password_property,
+          "item": self.getErrorItem(
+            "Ranger Usersync keystore password must not be empty"
+          ),
+        }
+      )
+
     delta_sync_enabled = (
       "ranger.usersync.ldap.deltasync" in ranger_usersync_properties
-      and ranger_usersync_properties["ranger.usersync.ldap.deltasync"].lower() == "true"
+      and _strict_bool(
+        ranger_usersync_properties["ranger.usersync.ldap.deltasync"],
+        "ranger-ugsync-site/ranger.usersync.ldap.deltasync",
+      )
     )
     group_sync_enabled = (
       "ranger.usersync.group.searchenabled" in ranger_usersync_properties
-      and ranger_usersync_properties["ranger.usersync.group.searchenabled"].lower()
-      == "true"
+      and _strict_bool(
+        ranger_usersync_properties["ranger.usersync.group.searchenabled"],
+        "ranger-ugsync-site/ranger.usersync.group.searchenabled",
+      )
     )
     usersync_source_ldap_enabled = (
       "ranger.usersync.source.impl.class" in ranger_usersync_properties
@@ -1452,14 +1572,14 @@ class RangerValidator(service_advisor.ServiceAdvisor):
     for password_property in ranger_password_properties:
       if password_property in ranger_env_properties:
         password = ranger_env_properties[password_property]
-        if not bool(re.search(r"^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$", password)) or bool(
-          re.search("[\\\`\"']", password)
+        if not isinstance(password, str) or not bool(
+          re.search(r"^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$", password)
         ):
           validationItems.append(
             {
               "config-name": password_property,
               "item": self.getNotApplicableItem(
-                "Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are  \" ' \ `"
+                "Password should be minimum 8 characters with minimum one alphabet and one numeric."
               ),
             }
           )

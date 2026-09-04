@@ -21,12 +21,11 @@ from ambari_agent import main
 
 main.MEMORY_LEAK_DEBUG_FILEPATH = "/tmp/memory_leak_debug.out"
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from ambari_commons.os_check import OSCheck
@@ -36,14 +35,12 @@ from resource_management.core.system import System
 from resource_management.core import Environment, Fail
 from resource_management.core.resources import Directory
 
-if get_platform() != PLATFORM_WINDOWS:
-  import pwd
-  import grp
+import pwd
+import grp
 
 
 @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
 class TestDirectoryResource(TestCase):
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch("resource_management.core.sudo.path_exists")
   @patch("resource_management.core.sudo.makedirs")
   @patch("resource_management.core.sudo.path_isdir")

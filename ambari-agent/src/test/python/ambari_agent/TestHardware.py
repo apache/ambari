@@ -22,12 +22,11 @@ from ambari_agent import main
 
 main.MEMORY_LEAK_DEBUG_FILEPATH = "/tmp/memory_leak_debug.out"
 from unittest import TestCase
-from mock.mock import patch, MagicMock, Mock
+from unittest.mock import patch, MagicMock, Mock
 import unittest
-import distro
+from ambari_commons import os_check
 import socket
 import subprocess
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
 from ambari_agent.AmbariConfig import AmbariConfig
@@ -35,9 +34,8 @@ from ambari_agent.Facter import Facter, FacterLinux
 from ambari_commons import OSCheck
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 @patch.object(
-  distro, "linux_distribution", new=MagicMock(return_value=("Suse", "11", "Final"))
+  os_check, "linux_distribution", new=MagicMock(return_value=("Suse", "11", "Final"))
 )
 @patch.object(socket, "getfqdn", new=MagicMock(return_value="ambari.apache.org"))
 @patch.object(socket, "gethostbyname", new=MagicMock(return_value="192.168.1.1"))
@@ -399,6 +397,7 @@ SwapFree:        1598676 kB
     self.assertTrue(inet_ntoa_mock.called)
     self.assertTrue(get_ip_address_by_ifname_mock.called)
     self.assertTrue(getIpAddress_mock.called)
+    socket_socket_mock.return_value.close.assert_called_once_with()
     self.assertEqual(result["ipaddress"], "10.0.2.15")
     self.assertEqual(result["netmask"], "255.255.255.0")
     # self.assertEqual(result['interfaces'], "'eth0','eth1','eth2','lo'")
@@ -576,9 +575,8 @@ SwapFree:        1598676 kB
     self.assertEqual(expected_mounts_left, mounts_left)
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 @patch.object(
-  distro, "linux_distribution", new=MagicMock(return_value=("Suse", "11", "Final"))
+  os_check, "linux_distribution", new=MagicMock(return_value=("Suse", "11", "Final"))
 )
 @patch.object(socket, "getfqdn", new=MagicMock(return_value="ambari.apache.org"))
 @patch.object(socket, "gethostbyname", new=MagicMock(return_value="192.168.1.1"))

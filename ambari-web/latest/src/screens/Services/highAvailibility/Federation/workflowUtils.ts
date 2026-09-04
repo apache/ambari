@@ -205,12 +205,9 @@ export function validateJournalNodeDirectory(value: string): string {
   }
   const paths = value.split(",");
   const validPath = (path: string) =>
-    /^\/(?!homes?(?:\/|$))[^\s,]*$/.test(path) ||
-    /^[a-zA-Z]:[\\/][^,]*$/.test(path) ||
-    /^file:\/\/\/[a-zA-Z]:[\\/][^,]*$/.test(path) ||
-    /^file:\/\/\/[a-zA-Z]:$/.test(path);
+    /^\/(?!homes?(?:\/|$))[^\s,]*$/.test(path);
   if (!paths.every(validPath)) {
-    return "Use an absolute Unix path, Windows drive path, or file:/// Windows URL; /home and /homes are not allowed.";
+    return "Use an absolute Unix path; /home and /homes are not allowed.";
   }
   return "";
 }

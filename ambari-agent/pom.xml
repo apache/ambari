@@ -37,14 +37,11 @@
     <agent.install.dir>/usr/lib/ambari-agent/lib/ambari_agent</agent.install.dir>
     <ambari_commons.install.dir>/usr/lib/ambari-agent/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-agent/lib/resource_management</resource_management.install.dir>
-    <jinja.install.dir>/usr/lib/ambari-agent/lib/ambari_jinja2</jinja.install.dir>
-    <simplejson.install.dir>/usr/lib/ambari-agent/lib/ambari_simplejson</simplejson.install.dir>
-    <stomp.install.dir>/usr/lib/ambari-agent/lib/ambari_stomp</stomp.install.dir>
-    <ws4py.install.dir>/usr/lib/ambari-agent/lib/ambari_ws4py</ws4py.install.dir>
-    <pbkdf2.install.dir>/usr/lib/ambari-agent/lib/ambari_pbkdf2</pbkdf2.install.dir>
-    <pyaes.install.dir>/usr/lib/ambari-agent/lib/ambari_pyaes</pyaes.install.dir>
     <lib.dir>/usr/lib/ambari-agent/lib</lib.dir>
-    <deb.architecture>amd64</deb.architecture>
+    <python.dependencies.dir>${project.build.directory}/python-dependencies</python.dependencies.dir>
+    <python.build.dependencies.dir>${project.build.directory}/python-build-dependencies</python.build.dependencies.dir>
+    <deb.architecture>${ambari.deb.architecture}</deb.architecture>
+    <deb.package.dependencies>openssl, net-tools, ${python.deb.runtime.dependency}</deb.package.dependencies>
     <ambari.server.module>../ambari-server</ambari.server.module>
     <target.cache.dir>${project.build.directory}/cache/</target.cache.dir>
     <resource.keeper.script>${ambari.server.module}/src/main/python/ambari_server/resourceFilesKeeper.py</resource.keeper.script>
@@ -313,6 +310,169 @@
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
           <execution>
+            <id>clean-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-c</argument>
+                <argument>import shutil; shutil.rmtree(r"${python.dependencies.dir}", ignore_errors=True); shutil.rmtree(r"${python.build.dependencies.dir}", ignore_errors=True)</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bundle-python-build-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-m</argument>
+                <argument>pip</argument>
+                <argument>install</argument>
+                <argument>--disable-pip-version-check</argument>
+                <argument>--no-compile</argument>
+                <argument>--no-deps</argument>
+                <argument>--only-binary=:all:</argument>
+                <argument>--require-hashes</argument>
+                <argument>--upgrade</argument>
+                <argument>--target</argument>
+                <argument>${python.build.dependencies.dir}</argument>
+                <argument>--requirement</argument>
+                <argument>${maven.multiModuleProjectDirectory}/requirements-build.lock</argument>
+              </arguments>
+              <environmentVariables>
+                <PIP_NO_INDEX>${python.pip.no.index}</PIP_NO_INDEX>
+                <PIP_FIND_LINKS>${python.wheelhouse}</PIP_FIND_LINKS>
+              </environmentVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bundle-python-binary-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-m</argument>
+                <argument>pip</argument>
+                <argument>install</argument>
+                <argument>--disable-pip-version-check</argument>
+                <argument>--no-compile</argument>
+                <argument>--no-deps</argument>
+                <argument>--only-binary=:all:</argument>
+                <argument>--platform</argument>
+                <argument>${python.wheel.platform}</argument>
+                <argument>--python-version</argument>
+                <argument>${python.wheel.version}</argument>
+                <argument>--implementation</argument>
+                <argument>${python.wheel.implementation}</argument>
+                <argument>--abi</argument>
+                <argument>${python.wheel.abi}</argument>
+                <argument>--require-hashes</argument>
+                <argument>--upgrade</argument>
+                <argument>--target</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--requirement</argument>
+                <argument>${project.basedir}/src/main/python/requirements.lock</argument>
+              </arguments>
+              <environmentVariables>
+                <PIP_NO_INDEX>${python.pip.no.index}</PIP_NO_INDEX>
+                <PIP_FIND_LINKS>${python.wheelhouse}</PIP_FIND_LINKS>
+              </environmentVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bundle-python-sdist-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-m</argument>
+                <argument>pip</argument>
+                <argument>install</argument>
+                <argument>--disable-pip-version-check</argument>
+                <argument>--no-compile</argument>
+                <argument>--no-deps</argument>
+                <argument>--no-binary=:all:</argument>
+                <argument>--no-build-isolation</argument>
+                <argument>--use-pep517</argument>
+                <argument>--require-hashes</argument>
+                <argument>--upgrade</argument>
+                <argument>--target</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--requirement</argument>
+                <argument>${project.basedir}/src/main/python/requirements-sdist.lock</argument>
+              </arguments>
+              <environmentVariables>
+                <PIP_NO_INDEX>${python.pip.no.index}</PIP_NO_INDEX>
+                <PIP_FIND_LINKS>${python.wheelhouse}</PIP_FIND_LINKS>
+                <PYTHONNOUSERSITE>1</PYTHONNOUSERSITE>
+                <PYTHONPATH>${python.build.dependencies.dir}</PYTHONPATH>
+              </environmentVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>audit-python-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>${maven.multiModuleProjectDirectory}/dev-support/python_artifact_audit.py</argument>
+                <argument>--root</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--lock</argument>
+                <argument>${project.basedir}/src/main/python/requirements.lock</argument>
+                <argument>--lock</argument>
+                <argument>${project.basedir}/src/main/python/requirements-sdist.lock</argument>
+                <argument>--manifest</argument>
+                <argument>${project.basedir}/src/main/python/requirements.in</argument>
+                <argument>--manifest</argument>
+                <argument>${project.basedir}/src/main/python/requirements-sdist.in</argument>
+                <argument>--license</argument>
+                <argument>${maven.multiModuleProjectDirectory}/LICENSE.txt</argument>
+                <argument>--platform</argument>
+                <argument>${python.wheel.platform}</argument>
+                <argument>--python-version</argument>
+                <argument>${python.wheel.version}</argument>
+                <argument>--abi</argument>
+                <argument>${python.wheel.abi}</argument>
+                <argument>--project-version</argument>
+                <argument>${project.version}</argument>
+                <argument>--sbom</argument>
+                <argument>${project.build.directory}/python-dependencies.sbom.json</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>normalize-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>${maven.multiModuleProjectDirectory}/dev-support/normalize_python_dependencies.py</argument>
+                <argument>--root</argument>
+                <argument>${python.dependencies.dir}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
             <configuration>
               <executable>${executable.python}</executable>
               <workingDirectory>src/test/python</workingDirectory>
@@ -321,7 +481,8 @@
                 <argument>${python.test.mask}</argument>
               </arguments>
               <environmentVariables>
-                <PYTHONPATH>${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                <PYTHONPATH>${python.dependencies.dir}${pathsep}${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                <PYTHONDONTWRITEBYTECODE>1</PYTHONDONTWRITEBYTECODE>
               </environmentVariables>
               <skip>${skipPythonTests}</skip>
             </configuration>
@@ -386,6 +547,7 @@
           <description>Maven Recipe: RPM Package.</description>
           <defineStatements>
             <defineStatement>__python 3</defineStatement>
+            <defineStatement>__brp_mangle_shebangs %{nil}</defineStatement>
           </defineStatements>
           <requires>
             <require>${rpm.dependency.list}</require>
@@ -458,9 +620,7 @@
                   <includes>
                     <include>/cred/lib/*.jar</include>
                     <include>/tools/*.jar</include>
-                    <include>/cache/stacks/HDP/2.1.GlusterFS/services/STORM/package/files/wordCount.jar</include>
                     <include>/cache/stack-hooks/before-START/files/fast-hdfs-resource.jar</include>
-                    <include>/cache/common-services/STORM/0.9.1/package/files/wordCount.jar</include>
                   </includes>
                 </source>
               </sources>
@@ -482,6 +642,17 @@
               <sources>
                 <source>
                   <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/var/run/ambari-agent</location>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/usr/share/doc/ambari-agent</directory>
+              <filemode>644</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}/usr/share/doc/ambari-agent</location>
                 </source>
               </sources>
             </mapping>
@@ -727,18 +898,15 @@
         <configuration>
           <excludes>
             <exclude>conf/unix/logging.conf.sample</exclude>
-            <exclude>conf/windows/logging.conf.sample</exclude>
             <exclude>src/test/python/tmp_hostcheck.result</exclude>
             <exclude>src/examples/*</exclude>
             <exclude>src/test/python/dummy*.txt</exclude>
             <exclude>src/test/python/ambari_agent/dummy_files/*</exclude>
             <exclude>src/test/python/ambari_agent/dummy*.txt</exclude>
             <exclude>src/main/python/ambari_agent/imports.txt</exclude>
-            <exclude>src/main/python/ambari_agent/apscheduler/**</exclude>
             <exclude>**/*.erb</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
-            <exclude>src/main/package/choco/ambari-agent.nuspec</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -776,25 +944,6 @@
   </build>
   <profiles>
     <profile>
-     <id>windows</id>
-     <activation>
-      <os>
-        <family>win</family>
-      </os>
-     </activation>
-     <properties>
-      <envClassifier>win</envClassifier>
-      <dirsep>\</dirsep>
-      <pathsep>;</pathsep>
-      <stack.distribution>HDPWIN</stack.distribution>
-      <executable.python>python3</executable.python>
-      <executable.shell>cmd</executable.shell>
-      <fileextension.shell>cmd</fileextension.shell>
-      <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
-      <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_jinja2;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari_agent;${project.basedir}\src\main\python\resource_management;${project.basedir}\src\test\python;${project.basedir}\src\test\python\ambari_agent;${project.basedir}\src\test\python\resource_management;${project.basedir}\..\ambari-server\src\test\python;${project.basedir}\..\ambari-server\src\main\resources\common-services\HDFS\2.1.0.2.0\package\files</path.python.1>
-     </properties>
-    </profile>
-    <profile>
      <id>linux</id>
      <activation>
       <os>
@@ -805,83 +954,18 @@
       <envClassifier>linux</envClassifier>
       <dirsep>/</dirsep>
       <pathsep>:</pathsep>
-      <stack.distribution>HDP</stack.distribution>
       <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
       <executable.shell>sh</executable.shell>
       <fileextension.shell>sh</fileextension.shell>
       <fileextension.dot.shell-default></fileextension.dot.shell-default>
-      <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/../ambari-server/src/test/python:${project.basedir}/../ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files</path.python.1>
+      <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari_agent:${project.basedir}/src/main/python/resource_management:${project.basedir}/src/test/python:${project.basedir}/src/test/python/ambari_agent:${project.basedir}/src/test/python/resource_management:${project.basedir}/../ambari-server/src/test/python:${project.basedir}/../ambari-server/src/main/resources/common-services/HDFS/2.1.0.2.0/package/files</path.python.1>
      </properties>
     </profile>
     <profile>
-      <id>windows-distro</id>
-      <activation>
-        <os>
-          <family>Windows</family>
-        </os>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <configuration>
-              <tarLongFileMode>gnu</tarLongFileMode>
-              <descriptors>
-                <descriptor>src/packages/tarball/all.xml</descriptor>
-                <descriptor>src/packages/windows.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>build-windows-zip</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>build-choco-dir</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <attach>false</attach>
-                  <appendAssemblyId>true</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <descriptors>
-                    <descriptor>src/packages/windows-choco.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <!-- choco package creation -->
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-choco-package</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>choco.exe</executable>
-                  <arguments>
-                    <argument>pack</argument>
-                    <argument>--version=${project.version}</argument>
-                    <argument>${basedir}/target/ambari-agent-${project.version}-choco/ambari-agent.nuspec</argument>
-                  </arguments>
-                  <workingDirectory>target/ambari-agent-${project.version}-choco</workingDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-            <!-- end choco package creation -->
-        </plugins>
-      </build>
+      <id>suse11</id>
+      <properties>
+        <rpm.dependency.list>${rpm.dependency.list.suse}</rpm.dependency.list>
+      </properties>
     </profile>
     <profile>
       <id>pluggable-stack-definition</id>

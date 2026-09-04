@@ -19,27 +19,46 @@ limitations under the License.
 
 """
 
-from os import listdir, path
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 
+import solr_utils
+
 config = Script.get_config()
 
 component_directory = stack_select.get_package_name(default_package="solr-server")
 
-solr_port = default("configurations/solr-env/solr_port", "8983")
-solr_piddir = default("configurations/solr-env/solr_pid_dir", "/var/run/solr")
+solr_port = str(
+  solr_utils.bounded_int(
+    default("configurations/solr-env/solr_port", "8983"),
+    "Solr port",
+    1,
+    65535,
+  )
+)
+solr_piddir = solr_utils.validate_service_directory(
+  default("configurations/solr-env/solr_pid_dir", "/var/run/solr"),
+  "Solr PID directory",
+)
 solr_pidfile = format("{solr_piddir}/solr-{solr_port}.pid")
+solr_user = solr_utils.validate_user(
+  default("configurations/solr-env/solr_user", "solr"), "Solr user"
+)
+solr_datadir = solr_utils.validate_service_directory(
+  default("configurations/solr-env/solr_datadir", "/var/lib/solr/data"),
+  "Solr data directory",
+)
+user_group = solr_utils.validate_user(
+  default("configurations/cluster-env/user_group", "hadoop"), "Hadoop group"
+)
 
-prev_solr_pidfile = ""
-if path.isdir(solr_piddir):
-  for file in listdir(solr_piddir):
-    prev_solr_pidfile = solr_piddir + "/" + file
-
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+security_enabled = solr_utils.as_bool(
+  config["configurations"]["cluster-env"]["security_enabled"],
+  "Cluster security setting",
+)
 kinit_path_local = get_kinit_path(
   default("/configurations/kerberos-env/executable_search_paths", None)
 )

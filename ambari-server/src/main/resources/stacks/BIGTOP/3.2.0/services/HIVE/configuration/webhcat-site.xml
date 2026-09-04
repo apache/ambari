@@ -53,7 +53,7 @@ limitations under the License.
   </property>
   <property>
     <name>templeton.python</name>
-    <value>${env.PYTHON_CMD}</value>
+    <value>/usr/bin/python3</value>
     <description>The path to the Python executable.</description>
     <on-ambari-upgrade add="true"/>
   </property>

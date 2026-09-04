@@ -30,27 +30,23 @@ from hive import (
   hive,
   jdbc_connector,
 )
-from hive_service import hive_service
+from hive_service import check_hive_process_status, hive_service
 from setup_ranger_hive import setup_ranger_hive_metastore_service
 
 # Ambari Commons & Resource Management Imports
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, Directory
+from resource_management.core.resources.system import Execute
 from resource_management.core.resources.system import File
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.security_commons import (
-  cached_kinit_executor,
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
 )
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.script import Script
-
-
-# the legacy conf.server location in previous stack versions
-LEGACY_HIVE_SERVER_CONF = "/etc/hive/conf.server"
 
 
 class HiveMetastore(Script):
@@ -67,7 +63,7 @@ class HiveMetastore(Script):
     refresh_yarn()
     create_hive_hdfs_dirs()
 
-    # writing configurations on start required for securtity
+    # Write configuration immediately before starting the daemon.
     self.configure(env)
     if params.init_metastore_schema:
       create_metastore_schema()  # execute without config lock
@@ -76,7 +72,7 @@ class HiveMetastore(Script):
 
     hive_service("metastore", action="start", upgrade_type=upgrade_type)
 
-    # below function call is used for cluster depolyed in cloud env to create ranger hive service in ranger admin.
+    # Register the metastore in Ranger after a successful daemon start.
     setup_ranger_hive_metastore_service()
 
   def stop(self, env, upgrade_type=None):
@@ -93,12 +89,13 @@ class HiveMetastore(Script):
 
   def status(self, env):
     import status_params
-    from resource_management.libraries.functions import check_process_status
-
     env.set_params(status_params)
-
-    # Recursively check all existing gmetad pid files
-    check_process_status(status_params.hive_metastore_pid)
+    check_hive_process_status(
+      status_params.hive_metastore_pid,
+      status_params.hive_user,
+      status_params.user_group,
+      "metastore",
+    )
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Metastore Stack Upgrade pre-restart")
@@ -138,7 +135,6 @@ class HiveMetastore(Script):
     Should not be invoked for a DOWNGRADE; Metastore only supports schema upgrades.
     """
     Logger.info("Upgrading Hive Metastore Schema")
-    import status_params
     import params
 
     env.set_params(params)
@@ -147,74 +143,49 @@ class HiveMetastore(Script):
     # since the schematool needs configs and doesn't know how to use the hive conf override
     self.configure(env)
 
-    if params.security_enabled:
-      cached_kinit_executor(
-        status_params.kinit_path_local,
-        status_params.hive_user,
-        params.hive_metastore_keytab_path,
-        params.hive_metastore_principal,
-        status_params.hostname,
-        status_params.tmp_dir,
-      )
-
-    # ensure that the JDBC drive is present for the schema tool; if it's not
-    # present, then download it first
+    # Ensure that the JDBC driver is present for the schema tool.
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list:
-      target_directory = format("{stack_root}/{version}/usr/lib/hive/lib")
-
-      # download it if it does not exist
-      if not os.path.exists(params.source_jdbc_file):
+      if params.hive_jdbc_target and not os.path.exists(params.hive_jdbc_target):
         jdbc_connector(params.hive_jdbc_target, params.hive_previous_jdbc_jar)
-
-      target_directory_and_filename = os.path.join(
-        target_directory, os.path.basename(params.source_jdbc_file)
-      )
-
-      if params.sqla_db_used:
-        target_native_libs_directory = format("{target_directory}/native/lib64")
-
-        Execute(format("yes | {sudo} cp {jars_in_hive_lib} {target_directory}"))
-
-        Directory(target_native_libs_directory, create_parents=True)
-
-        Execute(
-          format("yes | {sudo} cp {libs_in_hive_lib} {target_native_libs_directory}")
-        )
-
-        Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib_dir}/*"))
-      else:
-        # copy the JDBC driver from the older metastore location to the new location only
-        # if it does not already exist
-        if not os.path.exists(target_directory_and_filename):
-          Execute(
-            ("cp", params.source_jdbc_file, target_directory),
-            path=["/bin", "/usr/bin/"],
-            sudo=True,
-          )
-
-      File(target_directory_and_filename, mode=0o644)
+      if params.hive_jdbc_target:
+        File(params.hive_jdbc_target, owner="root", group="root", mode=0o644)
 
     # build the schema tool command
     binary = format("{hive_bin_dir}/schematool")
 
-    # the conf.server directory changed locations between stack versions
-    # since the configurations have not been written out yet during an upgrade
-    # we need to choose the original legacy location
-    schematool_hive_server_conf_dir = params.hive_conf_dir
-
-    upgrade_from_version = upgrade_summary.get_source_version(
-      "HIVE", default_version=params.version_for_stack_feature_checks
-    )
-
-    if not (check_stack_feature(StackFeature.CONFIG_VERSIONING, upgrade_from_version)):
-      schematool_hive_server_conf_dir = LEGACY_HIVE_SERVER_CONF
-
-    env_dict = {"HIVE_CONF_DIR": schematool_hive_server_conf_dir}
-
-    command = format("{binary} -dbType {hive_metastore_db_type} -upgradeSchema")
-    Execute(
-      command, user=params.hive_user, tries=1, environment=env_dict, logoutput=True
-    )
+    command = (binary, "-dbType", params.hive_metastore_db_type, "-upgradeSchema")
+    environment = {"HIVE_CONF_DIR": params.hive_conf_dir}
+    if params.security_enabled:
+      with PrivateKerberosCache(
+        params.hive_user,
+        params.user_group,
+        params.tmp_dir,
+        "ambari-hive-schema-upgrade-",
+      ) as cache:
+        cache.kinit(
+          params.kinit_path_local,
+          params.hive_metastore_keytab_path,
+          params.hive_metastore_principal.replace("_HOST", params.hostname),
+        )
+        Execute(
+          command,
+          user=params.hive_user,
+          tries=1,
+          environment=cache.merge_environment(environment),
+          logoutput=True,
+          timeout=300,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+    else:
+      Execute(
+        command,
+        user=params.hive_user,
+        tries=1,
+        environment=environment,
+        logoutput=True,
+        timeout=300,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
 
   def get_log_folder(self):
     import params

@@ -22,14 +22,13 @@ __all__ = [
   "select",
   "create",
   "get_hadoop_conf_dir",
-  "get_hadoop_dir",
   "get_package_dirs",
 ]
 
 # Python Imports
 import os
 import subprocess
-import ambari_simplejson as json
+import json
 
 # Local Imports
 from resource_management.core import shell

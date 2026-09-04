@@ -69,20 +69,15 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>security.inter.tracker.protocol.acl</name>
+    <name>security.datanode.lifeline.protocol.acl</name>
     <value>*</value>
-    <description>ACL for InterTrackerProtocol, used by the tasktrackers to
-    communicate with the jobtracker.
-    The ACL is a comma-separated list of user and group names. The user and
-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
-    A special value of "*" means all users are allowed.</description>
+    <description>ACL for the DataNode lifeline protocol.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>security.job.client.protocol.acl</name>
     <value>*</value>
-    <description>ACL for JobSubmissionProtocol, used by job clients to
-    communciate with the jobtracker for job submission, querying job status etc.
+    <description>ACL for MapReduce job clients.
     The ACL is a comma-separated list of user and group names. The user and
     group list is separated by a blank. For e.g. "alice,bob users,wheel".
     A special value of "*" means all users are allowed.</description>
@@ -91,30 +86,22 @@
   <property>
     <name>security.job.task.protocol.acl</name>
     <value>*</value>
-    <description>ACL for TaskUmbilicalProtocol, used by the map and reduce
-    tasks to communicate with the parent tasktracker.
+    <description>ACL for the MapReduce task umbilical protocol.
     The ACL is a comma-separated list of user and group names. The user and
     group list is separated by a blank. For e.g. "alice,bob users,wheel".
     A special value of "*" means all users are allowed.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>security.admin.operations.protocol.acl</name>
-    <value>hadoop</value>
-    <description>ACL for AdminOperationsProtocol. Used for admin commands.
-    The ACL is a comma-separated list of user and group names. The user and
-    group list is separated by a blank. For e.g. "alice,bob users,wheel".
-    A special value of "*" means all users are allowed.</description>
+    <name>security.mrhs.client.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for the MapReduce history server client protocol.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>security.refresh.usertogroups.mappings.protocol.acl</name>
-    <value>hadoop</value>
-    <description>ACL for RefreshUserMappingsProtocol. Used to refresh
-    users mappings. The ACL is a comma-separated list of user and
-    group names. The user and group list is separated by a blank. For
-    e.g. "alice,bob users,wheel".  A special value of "*" means all
-    users are allowed.</description>
+    <name>security.mrhs.admin.refresh.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for the MapReduce history server refresh protocol.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -125,6 +112,60 @@
     The ACL is a comma-separated list of user and group names. The user and
     group list is separated by a blank. For e.g. "alice,bob users,wheel".
     A special value of "*" means all users are allowed.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.refresh.user.mappings.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for refreshing user-to-group mappings.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.get.user.mappings.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for querying user-to-group mappings.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.refresh.callqueue.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for refreshing the RPC call queue.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.refresh.generic.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for generic daemon refresh operations.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.reconfiguration.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for runtime daemon reconfiguration.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.ha.service.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for HDFS high-availability service operations.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.zkfc.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for the ZooKeeper failover controller protocol.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.qjournal.service.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for the JournalNode quorum journal protocol.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>security.interqjournal.service.protocol.acl</name>
+    <value>*</value>
+    <description>ACL for the inter-JournalNode protocol.</description>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

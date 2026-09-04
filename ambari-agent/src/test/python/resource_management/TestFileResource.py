@@ -18,12 +18,11 @@ limitations under the License.
 """
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock, ANY
+from unittest.mock import patch, MagicMock, ANY
 from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from ambari_commons.os_check import OSCheck
@@ -35,14 +34,9 @@ from resource_management.core.resources import File
 from resource_management.core.system import System
 import resource_management
 
-if get_platform() != PLATFORM_WINDOWS:
-  import resource_management.core.providers.system
-  import grp
-  import pwd
-else:
-  import resource_management.core.providers.windows.system
-
-
+import resource_management.core.providers.system
+import grp
+import pwd
 @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
 class TestFileResource(TestCase):
   @patch.object(os.path, "dirname")
@@ -106,10 +100,11 @@ class TestFileResource(TestCase):
     with Environment("/") as env:
       File("/directory/file", action="create", mode=0o777, content="file-content")
 
-    create_file_mock.assert_called_once(
+    create_file_mock.assert_called_once_with(
       "/directory/file", "file-content", encoding=None, on_file_created=ANY
     )
-    ensure_mock.assert_called()
+    create_file_mock.call_args.kwargs["on_file_created"]("/directory/file")
+    ensure_mock.assert_called_once()
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.read_file")
@@ -273,7 +268,7 @@ class TestFileResource(TestCase):
         replace=False,
       )
 
-    old_file.read.assert_called()
+    old_file.read.assert_not_called()
     self.assertEqual(new_file.__enter__().write.call_count, 0)
     ensure_mock.assert_called()
     self.assertEqual(open_mock.call_count, 0)

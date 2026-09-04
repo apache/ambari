@@ -21,29 +21,30 @@ from ambari_agent import main
 
 main.MEMORY_LEAK_DEBUG_FILEPATH = "/tmp/memory_leak_debug.out"
 from unittest import TestCase
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from ambari_commons.os_check import OSCheck
 
 from resource_management.core.system import System
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, ExecuteScript
 from resource_management.core.environment import Environment
+from resource_management.core.logger import Logger
+from resource_management.core import shell
 from resource_management.core.shell import quote_bash_args
 
 import subprocess
 import logging
 import os
+import sys
 from resource_management import Fail
 
-if get_platform() != PLATFORM_WINDOWS:
-  import grp
-  import pwd
+import grp
+import pwd
 
 import select
 
@@ -52,23 +53,104 @@ import select
 class TestExecuteResource(TestCase):
   @patch.object(os, "read")
   @patch.object(select, "select")
-  @patch.object(logging.Logger, "info")
   @patch.object(subprocess, "Popen")
-  def test_attribute_logoutput(self, popen_mock, info_mock, select_mock, os_read_mock):
+  def test_on_new_line_receives_decoded_stdout_and_stderr(
+    self, popen_mock, select_mock, os_read_mock
+  ):
+    process = MagicMock()
+    process.stdout = MagicMock()
+    process.stderr = MagicMock()
+    process.returncode = 0
+    popen_mock.return_value = process
+    select_mock.side_effect = [
+      ([process.stdout], [], []),
+      ([process.stderr], [], []),
+      ([process.stdout], [], []),
+      ([process.stderr], [], []),
+    ]
+    os_read_mock.side_effect = [
+      b"SUCCESS: Changed property\xff",
+      b"warning",
+      b"",
+      b"",
+    ]
+    received = []
+
+    result = shell.call(
+      ["ignored"],
+      shell=False,
+      stderr=subprocess.PIPE,
+      on_new_line=lambda line, is_stderr: received.append((line, is_stderr)),
+    )
+
+    self.assertEqual(
+      [
+        ("SUCCESS: Changed property\ufffd", False),
+        ("warning", True),
+      ],
+      received,
+    )
+    self.assertTrue(all(isinstance(line, str) for line, _ in received))
+    self.assertEqual((0, "SUCCESS: Changed property\ufffd", "warning"), result)
+
+  @patch("resource_management.core.providers.system._ensure_metadata")
+  @patch("resource_management.core.providers.system.shell.call")
+  def test_execute_script_writes_python3_text(self, shell_call_mock, metadata_mock):
+    captured = {}
+
+    def read_script(command, **_kwargs):
+      with open(command[1], "r", encoding="utf-8") as stream:
+        captured["content"] = stream.read()
+      return 0, ""
+
+    shell_call_mock.side_effect = read_script
+    with Environment("/"):
+      ExecuteScript("inline", code="echo 'Ambari'\n")
+
+    self.assertEqual("echo 'Ambari'\n", captured["content"])
+    metadata_mock.assert_called_once()
+    self.assertIsNone(shell_call_mock.call_args.kwargs["user"])
+
+  @patch("resource_management.core.providers.system._ensure_metadata")
+  @patch("resource_management.core.providers.system.shell.call")
+  def test_execute_script_delegates_user_switching(
+    self, shell_call_mock, metadata_mock
+  ):
+    with Environment("/"):
+      ExecuteScript("inline", code="echo 'Ambari'\n", user="ambari")
+
+    metadata_mock.assert_called_once()
+    self.assertEqual("ambari", shell_call_mock.call_args.kwargs["user"])
+
+  @patch.object(Logger, "isEnabledFor", return_value=True)
+  @patch.object(Logger.logger, "isEnabledFor", return_value=True)
+  @patch.object(os, "read")
+  @patch.object(select, "select")
+  @patch.object(sys.stdout, "write")
+  @patch.object(subprocess, "Popen")
+  def test_attribute_logoutput(
+    self,
+    popen_mock,
+    stdout_write_mock,
+    select_mock,
+    os_read_mock,
+    logger_enabled_mock,
+    facade_enabled_mock,
+  ):
     subproc_mock = MagicMock()
     subproc_mock.wait.return_value = MagicMock()
     subproc_mock.stdout = MagicMock()
     subproc_mock.returncode = 0
     popen_mock.return_value = subproc_mock
     select_mock.return_value = ([subproc_mock.stdout], None, None)
-    os_read_mock.return_value = None
+    os_read_mock.side_effect = [b"1", b"", b"2", b""]
 
     with Environment("/") as env:
       Execute('echo "1"', logoutput=True)
       Execute('echo "2"', logoutput=False)
 
-    info_mock.assert_called("1")
-    self.assertTrue("call('2')" not in str(info_mock.mock_calls))
+    stdout_write_mock.assert_any_call("1")
+    self.assertNotIn(call("2"), stdout_write_mock.mock_calls)
 
   @patch("subprocess.Popen.communicate")
   @patch.object(subprocess, "Popen")

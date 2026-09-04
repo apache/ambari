@@ -18,18 +18,31 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.default import default
 
+import flink_utils
+
 config = Script.get_config()
 
-flink_user = config["configurations"]["flink-env"]["flink_user"]
-flink_group = config["configurations"]["flink-env"]["flink_group"]
-user_group = config["configurations"]["cluster-env"]["user_group"]
-
-flink_pid_dir = config["configurations"]["flink-env"]["flink_pid_dir"]
-flink_history_server_pid_file = format(
-  "{flink_pid_dir}/flink-{flink_user}-historyserver.pid"
-)
 stack_name = default("/clusterLevelParams/stack_name", None)
+stack_version = config["clusterLevelParams"]["stack_version"]
+flink_utils.validate_bigtop_stack(stack_name, stack_version)
+
+flink_user = flink_utils.validate_user(
+  config["configurations"]["flink-env"]["flink_user"], "Flink user"
+)
+flink_group = flink_utils.validate_user(
+  config["configurations"]["flink-env"]["flink_group"], "Flink group"
+)
+user_group = flink_utils.validate_user(
+  config["configurations"]["cluster-env"]["user_group"], "cluster user group"
+)
+
+flink_pid_dir = flink_utils.validate_service_directory(
+  config["configurations"]["flink-env"]["flink_pid_dir"], "Flink PID directory"
+)
+flink_history_server_pid_file = f"{flink_pid_dir}/flink_history_server.pid"
+flink_config_dir = flink_utils.validate_absolute_path(
+  "/etc/flink/conf", "Flink configuration directory"
+)

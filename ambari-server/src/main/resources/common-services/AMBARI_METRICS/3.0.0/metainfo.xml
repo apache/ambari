@@ -105,6 +105,9 @@
           </logs>
           <configuration-dependencies>
             <config-type>ams-site</config-type>
+            <config-type>ams-log4j</config-type>
+            <config-type>ams-ssl-server</config-type>
+            <config-type>ams-ssl-client</config-type>
           </configuration-dependencies>
         </component>
 
@@ -123,6 +126,8 @@
           <configuration-dependencies>
             <config-type>ams-grafana-env</config-type>
             <config-type>ams-grafana-ini</config-type>
+            <config-type>ams-site</config-type>
+            <config-type>ams-ssl-client</config-type>
           </configuration-dependencies>
           <logs>
             <log>
@@ -139,11 +144,19 @@
           <fileName>theme.json</fileName>
           <default>true</default>
         </theme>
+        <theme>
+          <fileName>credentials.json</fileName>
+          <default>true</default>
+        </theme>
+        <theme>
+          <fileName>directories.json</fileName>
+          <default>true</default>
+        </theme>
       </themes>
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>ambari-metrics-collector</name>
@@ -163,55 +176,15 @@
               <skipUpgrade>true</skipUpgrade>
               <condition>should_install_ams_grafana</condition>
             </package>
-            <package>
-              <name>gcc</name>
-            </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,amazonlinux2</osFamily>
-          <packages>
-            <package>
-              <name>python-kerberos</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>ambari-metrics-assembly</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>gcc</name>
-            </package>
-            <package>
-              <name>libsnappy1*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>ubuntu16</osFamily>
-          <packages>
-            <package>
-              <name>ambari-metrics-assembly</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>gcc</name>
-            </package>
-            <package>
-              <name>libsnappy1v5*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>winsrv6</osFamily>
+          <osFamily>ubuntu22</osFamily>
           <packages>
             <package>
               <name>ambari-metrics-collector</name>
               <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_ams_collector</condition>
             </package>
             <package>
               <name>ambari-metrics-monitor</name>
@@ -220,6 +193,11 @@
             <package>
               <name>ambari-metrics-hadoop-sink</name>
               <skipUpgrade>true</skipUpgrade>
+            </package>
+            <package>
+              <name>ambari-metrics-grafana</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_ams_grafana</condition>
             </package>
           </packages>
         </osSpecific>
@@ -245,17 +223,6 @@
           <default>true</default>
         </quickLinksConfiguration>
       </quickLinksConfigurations>
-
-      <themes>
-        <theme>
-          <fileName>credentials.json</fileName>
-          <default>true</default>
-        </theme>
-        <theme>
-          <fileName>directories.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
 
     </service>
   </services>

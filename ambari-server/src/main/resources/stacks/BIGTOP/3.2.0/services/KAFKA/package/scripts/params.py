@@ -18,26 +18,36 @@ limitations under the License.
 
 """
 
+import functools
+import json
 import os
+import re
+
+import kafka_client
+from resource_management.core.exceptions import Fail
+from resource_management.core.shell import quote_bash_args
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.version import (
-  format_stack_version,
-  get_major_version,
-)
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import (
   get_stack_feature_version,
 )
 from resource_management.libraries.functions.default import default
-from utils import get_bare_principal
+from utils import (
+  as_bool,
+  as_yes_no,
+  get_bare_principal,
+  http_policy_scheme,
+  ranger_environment,
+  validate_config_segment,
+)
 from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.is_empty import is_empty
 import status_params
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import (
   get_not_managed_resources,
@@ -48,20 +58,67 @@ from resource_management.libraries.functions.setup_ranger_plugin_xml import (
   generate_ranger_service_config,
 )
 
+
+def positive_limit(value, name):
+  try:
+    result = int(value)
+  except (TypeError, ValueError) as error:
+    raise Fail(f"{name} must be a positive integer") from error
+  if result < 1:
+    raise Fail(f"{name} must be a positive integer")
+  return result
+
+
+def jaas_escape(value):
+  return json.dumps(str(value or ""), ensure_ascii=True)[1:-1]
+
+
+def safe_service_directory(value, name):
+  value = str(value or "")
+  if (
+    not os.path.isabs(value)
+    or os.path.normpath(value) != value
+    or value == os.path.sep
+  ):
+    raise Fail(f"{name} must be a safe absolute directory")
+  protected_trees = ("/boot", "/dev", "/etc", "/proc", "/sys", "/usr")
+  if any(value == root or value.startswith(root + os.path.sep) for root in protected_trees):
+    raise Fail(f"{name} must not be inside a protected system directory")
+  if value in (
+    "/bin",
+    "/data",
+    "/home",
+    "/lib",
+    "/lib64",
+    "/mnt",
+    "/opt",
+    "/run",
+    "/sbin",
+    "/srv",
+    "/tmp",
+    "/var",
+    "/var/lib",
+    "/var/log",
+    "/var/run",
+  ):
+    raise Fail(f"{name} must not use a protected system directory")
+  return value
+
+
 # server configurations
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
-stack_name = default("/clusterLevelParams/stack_name", None)
-retryAble = default("/commandParams/command_retry_enabled", False)
+retryAble = as_bool(
+  default("/commandParams/command_retry_enabled", False),
+  "commandParams/command_retry_enabled",
+)
 service_name = "kafka"
 # Version being upgraded/downgraded to
 version = default("/commandParams/version", None)
 
 stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-major_stack_version = get_major_version(stack_version_formatted)
-upgrade_direction = default("/commandParams/upgrade_direction", None)
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -79,65 +136,62 @@ stack_supports_kafka_env_include_ranger_script = check_stack_feature(
   StackFeature.KAFKA_ENV_INCLUDE_RANGER_SCRIPT, version_for_stack_feature_checks
 )
 
-# When downgrading the 'version' is pointing to the downgrade-target version
-# downgrade_from_version provides the source-version the downgrade is happening from
-downgrade_from_version = upgrade_summary.get_downgrade_from_version("KAFKA")
-
 hostname = config["agentLevelParams"]["hostname"]
 
 # default kafka parameters
-kafka_home = "/usr/lib/kafka"
+kafka_home = os.path.join(stack_root, "current", "kafka-broker")
 conf_dir = "/etc/kafka/conf"
 limits_conf_dir = "/etc/security/limits.d"
 
 # Used while upgrading the stack in a kerberized cluster and running kafka-acls.sh
 zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", None)
 
-kafka_user_nofile_limit = default(
-  "/configurations/kafka-env/kafka_user_nofile_limit", 128000
+kafka_user_nofile_limit = positive_limit(
+  default("/configurations/kafka-env/kafka_user_nofile_limit", 128000),
+  "kafka-env/kafka_user_nofile_limit",
 )
-kafka_user_nproc_limit = default(
-  "/configurations/kafka-env/kafka_user_nproc_limit", 65536
-)
-
-kafka_delete_topic_enable = default(
-  "/configurations/kafka-broker/delete.topic.enable", True
+kafka_user_nproc_limit = positive_limit(
+  default("/configurations/kafka-env/kafka_user_nproc_limit", 65536),
+  "kafka-env/kafka_user_nproc_limit",
 )
 
-# parameters for 2.2+
-if stack_version_formatted and check_stack_feature(
-  StackFeature.ROLLING_UPGRADE, stack_version_formatted
-):
-  kafka_home = os.path.join(stack_root, "current", "kafka-broker")
+kafka_delete_topic_enable = as_bool(
+  default("/configurations/kafka-broker/delete.topic.enable", True),
+  "kafka-broker/delete.topic.enable",
+)
 
-kafka_start_cmd = format(
-  "{kafka_home}/bin/kafka-server-start.sh {conf_dir}/server.properties"
-)
-kafka_stop_cmd = format(
-  "{kafka_home}/bin/kafka-server-stop.sh {conf_dir}/server.properties"
-)
+kafka_server_start = os.path.join(kafka_home, "bin", "kafka-server-start.sh")
+kafka_topics = os.path.join(kafka_home, "bin", "kafka-topics.sh")
+kafka_server_properties = os.path.join(conf_dir, "server.properties")
+kafka_client_properties = os.path.join(conf_dir, "kafka-client.properties")
+kafka_env_file = os.path.join(conf_dir, "kafka-env.sh")
+kafka_client_jaas_file = os.path.join(conf_dir, "kafka_client_jaas.conf")
 
 kafka_user = config["configurations"]["kafka-env"]["kafka_user"]
-kafka_log_dir = config["configurations"]["kafka-env"]["kafka_log_dir"]
-kafka_pid_dir = status_params.kafka_pid_dir
+if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.-]*\$?", kafka_user, re.ASCII):
+  raise Fail("kafka-env/kafka_user is not a valid service user")
+kafka_log_dir = safe_service_directory(
+  config["configurations"]["kafka-env"]["kafka_log_dir"],
+  "kafka-env/kafka_log_dir",
+)
+kafka_pid_dir = safe_service_directory(
+  status_params.kafka_pid_dir, "kafka-env/kafka_pid_dir"
+)
 kafka_pid_file = kafka_pid_dir + "/kafka.pid"
-kafka_err_file = kafka_log_dir + "/kafka.err"
-# This is hardcoded on the kafka bash process lifecycle on which we have no control over
-kafka_managed_pid_dir = "/var/run/kafka"
-kafka_managed_log_dir = "/var/log/kafka"
 user_group = config["configurations"]["cluster-env"]["user_group"]
 java64_home = config["ambariLevelParams"]["java_home"]
+ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
 kafka_env_sh_template = config["configurations"]["kafka-env"]["content"]
 kafka_jaas_conf_template = default("/configurations/kafka_jaas_conf/content", None)
 kafka_client_jaas_conf_template = default(
   "/configurations/kafka_client_jaas_conf/content", None
 )
-kafka_hosts = config["clusterHostInfo"]["kafka_broker_hosts"]
-kafka_hosts.sort()
+kafka_hosts = sorted(config["clusterHostInfo"]["kafka_broker_hosts"])
 
-zookeeper_hosts = config["clusterHostInfo"]["zookeeper_server_hosts"]
-zookeeper_hosts.sort()
-secure_acls = default("/configurations/kafka-broker/zookeeper.set.acl", False)
+secure_acls = as_bool(
+  default("/configurations/kafka-broker/zookeeper.set.acl", False),
+  "kafka-broker/zookeeper.set.acl",
+)
 kafka_security_migrator = os.path.join(
   kafka_home, "bin", "zookeeper-security-migration.sh"
 )
@@ -166,16 +220,6 @@ if ("kafka-log4j" in config["configurations"]) and (
 else:
   log4j_props = None
 
-if (
-  "ganglia_server_hosts" in config["clusterHostInfo"]
-  and len(config["clusterHostInfo"]["ganglia_server_hosts"]) > 0
-):
-  ganglia_installed = True
-  ganglia_server = config["clusterHostInfo"]["ganglia_server_hosts"][0]
-  ganglia_report_interval = 60
-else:
-  ganglia_installed = False
-
 metric_collector_port = ""
 metric_collector_protocol = ""
 metric_truststore_path = default(
@@ -188,9 +232,6 @@ metric_truststore_password = default(
   "/configurations/ams-ssl-client/ssl.client.truststore.password", ""
 )
 
-set_instanceId = "false"
-cluster_name = config["clusterName"]
-
 if (
   "cluster-env" in config["configurations"]
   and "metrics_collector_external_hosts" in config["configurations"]["cluster-env"]
@@ -198,7 +239,6 @@ if (
   ams_collector_hosts = config["configurations"]["cluster-env"][
     "metrics_collector_external_hosts"
   ]
-  set_instanceId = "true"
 else:
   ams_collector_hosts = ",".join(
     default("/clusterHostInfo/metrics_collector_hosts", [])
@@ -222,72 +262,47 @@ if has_metric_collector:
       metric_collector_port = metric_collector_web_address.split(":")[1]
     else:
       metric_collector_port = "6188"
-  if (
+  metric_collector_protocol = http_policy_scheme(
     default(
       "/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY"
-    )
-    == "HTTPS_ONLY"
-  ):
-    metric_collector_protocol = "https"
-  else:
-    metric_collector_protocol = "http"
-
-  # If AMS is part of Services, use the KafkaTimelineMetricsReporter for metric reporting. Default is ''.
-  metrics_reporters = (
-    "org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter"
+    ),
+    "ams-site/timeline.metrics.service.http.policy",
   )
-
-  host_in_memory_aggregation = str(
-    default("/configurations/ams-site/timeline.metrics.host.inmemory.aggregation", True)
-  ).lower()
-  host_in_memory_aggregation_port = default(
-    "/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.port", 61888
-  )
-  is_aggregation_https_enabled = False
-  if (
-    default(
-      "/configurations/ams-site/timeline.metrics.host.inmemory.aggregation.http.policy",
-      "HTTP_ONLY",
-    )
-    == "HTTPS_ONLY"
-  ):
-    host_in_memory_aggregation_protocol = "https"
-    is_aggregation_https_enabled = True
-  else:
-    host_in_memory_aggregation_protocol = "http"
-  pass
 
 # Security-related params
-kerberos_security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
-kafka_kerberos_merge_advertised_listeners = default(
-  "/configurations/kafka-env/kerberos_merge_advertised_listeners", True
+kerberos_security_enabled = as_bool(
+  config["configurations"]["cluster-env"]["security_enabled"],
+  "cluster-env/security_enabled",
+)
+kafka_kerberos_merge_advertised_listeners = as_bool(
+  default("/configurations/kafka-env/kerberos_merge_advertised_listeners", True),
+  "kafka-env/kerberos_merge_advertised_listeners",
 )
 
+kafka_broker_security = config["configurations"]["kafka-broker"]
+kafka_inter_broker_protocol = kafka_client.inter_broker_protocol(
+  kafka_broker_security
+)
+kafka_inter_broker_sasl_mechanism = str(
+  kafka_broker_security.get("sasl.mechanism.inter.broker.protocol", "GSSAPI")
+).upper()
+kafka_sasl_enabled = kafka_inter_broker_protocol.startswith("SASL_")
 kafka_kerberos_enabled = (
-  "security.inter.broker.protocol" in config["configurations"]["kafka-broker"]
-) and (
-  config["configurations"]["kafka-broker"]["security.inter.broker.protocol"]
-  in ("PLAINTEXTSASL", "SASL_PLAINTEXT", "SASL_SSL")
+  kafka_sasl_enabled and kafka_inter_broker_sasl_mechanism == "GSSAPI"
 )
 
 kafka_other_sasl_enabled = (
-  not kerberos_security_enabled
+  kafka_sasl_enabled
+  and not (kerberos_security_enabled and kafka_kerberos_enabled)
   and check_stack_feature(StackFeature.KAFKA_LISTENERS, stack_version_formatted)
   and check_stack_feature(
     StackFeature.KAFKA_EXTENDED_SASL_SUPPORT,
     format_stack_version(version_for_stack_feature_checks),
   )
-  and (
-    ("SASL_PLAINTEXT" in config["configurations"]["kafka-broker"]["listeners"])
-    or (
-      "PLAINTEXTSASL" in config["configurations"]["kafka-broker"]["listeners"]
-    )  # to support backward compability (we'll replace this anyway before we write it to server.properties)
-    or ("SASL_SSL" in config["configurations"]["kafka-broker"]["listeners"])
-  )
 )
 
 if (
-  kerberos_security_enabled
+  (kerberos_security_enabled or secure_acls)
   and stack_version_formatted != ""
   and "kafka_principal_name" in config["configurations"]["kafka-env"]
   and check_stack_feature(StackFeature.KAFKA_KERBEROS, stack_version_formatted)
@@ -304,10 +319,73 @@ elif kafka_other_sasl_enabled:
   kafka_kerberos_params = (
     "-Djava.security.auth.login.config=" + conf_dir + "/kafka_jaas.conf"
   )
+  kafka_jaas_principal = None
+  kafka_keytab_path = None
+  kafka_bare_jaas_principal = None
 else:
   kafka_kerberos_params = ""
   kafka_jaas_principal = None
   kafka_keytab_path = None
+  kafka_bare_jaas_principal = None
+
+kafka_kerberos_credentials_enabled = bool(
+  kafka_keytab_path and kafka_jaas_principal and kafka_bare_jaas_principal
+)
+kafka_jaas_enabled = (
+  kafka_kerberos_credentials_enabled
+  and (kafka_kerberos_enabled or secure_acls)
+) or kafka_other_sasl_enabled
+
+kafka_keytab_path_jaas = jaas_escape(kafka_keytab_path)
+kafka_jaas_principal_jaas = jaas_escape(kafka_jaas_principal)
+kafka_bare_jaas_principal_jaas = jaas_escape(kafka_bare_jaas_principal)
+java64_home_shell = quote_bash_args(str(java64_home))
+kafka_pid_dir_shell = quote_bash_args(str(kafka_pid_dir))
+kafka_log_dir_shell = quote_bash_args(str(kafka_log_dir))
+conf_dir_shell = quote_bash_args(conf_dir)
+kafka_opts = kafka_kerberos_params
+if (
+  kafka_kerberos_credentials_enabled
+  and (kafka_kerberos_enabled or secure_acls)
+) or kafka_other_sasl_enabled:
+  kafka_opts = "-Djavax.security.auth.useSubjectCredsOnly=false " + kafka_opts
+kafka_opts_shell = quote_bash_args(kafka_opts.strip())
+
+kafka_service_check_properties = dict(config["configurations"]["kafka-broker"])
+if kerberos_security_enabled and kafka_kerberos_enabled:
+  for property_name in ("listeners", "advertised.listeners"):
+    if property_name in kafka_service_check_properties:
+      kafka_service_check_properties[property_name] = kafka_client.sasl_listeners(
+        kafka_service_check_properties[property_name]
+      )
+  if "listener.security.protocol.map" in kafka_service_check_properties:
+    kafka_service_check_properties["listener.security.protocol.map"] = (
+      kafka_client.sasl_listener_protocol_map(
+        kafka_service_check_properties["listener.security.protocol.map"]
+      )
+    )
+  if "security.inter.broker.protocol" in kafka_service_check_properties:
+    kafka_service_check_properties["security.inter.broker.protocol"] = (
+      kafka_service_check_properties["security.inter.broker.protocol"].replace(
+        "PLAINTEXTSASL", "SASL_PLAINTEXT"
+      )
+    )
+
+kafka_bootstrap_servers = kafka_client.bootstrap_servers(
+  kafka_service_check_properties, kafka_hosts
+)
+_, kafka_service_check_protocol, _ = kafka_client.select_listener(
+  kafka_service_check_properties
+)
+kafka_service_check_sasl_mechanism = kafka_service_check_properties.get(
+  "sasl.mechanism.inter.broker.protocol", "GSSAPI"
+)
+kafka_service_check_uses_sasl = kafka_service_check_protocol.startswith("SASL_")
+kafka_service_check_uses_kerberos = (
+  kafka_service_check_uses_sasl
+  and kafka_service_check_sasl_mechanism.upper() == "GSSAPI"
+)
+kafka_service_check_timeout = 60
 
 # for curl command in ranger plugin to get db connector
 jdk_location = config["ambariLevelParams"]["jdk_location"]
@@ -327,7 +405,10 @@ xml_configurations_supported = check_stack_feature(
 enable_ranger_kafka = default(
   "configurations/ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled", "No"
 )
-enable_ranger_kafka = True if enable_ranger_kafka.lower() == "yes" else False
+enable_ranger_kafka = as_yes_no(
+  enable_ranger_kafka,
+  "ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled",
+)
 
 # ranger kafka-plugin supported flag, instead of dependending on is_supported_kafka_ranger/kafka-env.xml, using stack feature
 is_supported_kafka_ranger = check_stack_feature(
@@ -360,36 +441,18 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
     ]
 
   # ranger kafka service/repository name
-  repo_name = str(config["clusterName"]) + "_kafka"
+  repo_name = validate_config_segment(
+    str(config["clusterName"]) + "_kafka", "Ranger Kafka service name"
+  )
   repo_name_value = config["configurations"]["ranger-kafka-security"][
     "ranger.plugin.kafka.service.name"
   ]
   if not is_empty(repo_name_value) and repo_name_value != "{{repo_name}}":
-    repo_name = repo_name_value
+    repo_name = validate_config_segment(
+      repo_name_value, "ranger-kafka-security/ranger.plugin.kafka.service.name"
+    )
 
-  ranger_env = config["configurations"]["ranger-env"]
-
-  # create ranger-env config having external ranger credential properties
-  if not has_ranger_admin and enable_ranger_kafka:
-    external_admin_username = default(
-      "/configurations/ranger-kafka-plugin-properties/external_admin_username", "admin"
-    )
-    external_admin_password = default(
-      "/configurations/ranger-kafka-plugin-properties/external_admin_password", "admin"
-    )
-    external_ranger_admin_username = default(
-      "/configurations/ranger-kafka-plugin-properties/external_ranger_admin_username",
-      "amb_ranger_admin",
-    )
-    external_ranger_admin_password = default(
-      "/configurations/ranger-kafka-plugin-properties/external_ranger_admin_password",
-      "amb_ranger_admin",
-    )
-    ranger_env = {}
-    ranger_env["admin_username"] = external_admin_username
-    ranger_env["admin_password"] = external_admin_password
-    ranger_env["ranger_admin_username"] = external_ranger_admin_username
-    ranger_env["ranger_admin_password"] = external_ranger_admin_password
+  ranger_env = ranger_environment(config["configurations"], has_ranger_admin)
 
   ranger_plugin_properties = config["configurations"]["ranger-kafka-plugin-properties"]
   ranger_kafka_audit = config["configurations"]["ranger-kafka-audit"]
@@ -406,14 +469,20 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
   policy_user = config["configurations"]["ranger-kafka-plugin-properties"][
     "policy_user"
   ]
+  repo_config_password = config["configurations"]["ranger-kafka-plugin-properties"][
+    "REPOSITORY_CONFIG_PASSWORD"
+  ]
+  if not isinstance(repo_config_password, str) or not repo_config_password.strip():
+    raise Fail(
+      "ranger-kafka-plugin-properties/REPOSITORY_CONFIG_PASSWORD must not be "
+      "empty when the Ranger Kafka plugin is enabled"
+    )
 
   ranger_plugin_config = {
     "username": config["configurations"]["ranger-kafka-plugin-properties"][
       "REPOSITORY_CONFIG_USERNAME"
     ],
-    "password": config["configurations"]["ranger-kafka-plugin-properties"][
-      "REPOSITORY_CONFIG_PASSWORD"
-    ],
+    "password": repo_config_password,
     "zookeeper.connect": config["configurations"]["ranger-kafka-plugin-properties"][
       "zookeeper.connect"
     ],
@@ -430,10 +499,8 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
   has_hbase_master = not len(hbase_master_hosts) == 0
   ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
   has_ranger_tagsync = not len(ranger_tagsync_hosts) == 0
-  storm_nimbus_hosts = default("/clusterHostInfo/nimbus_hosts", [])
-  has_storm_nimbus = not len(storm_nimbus_hosts) == 0
   spark_jobhistoryserver_hosts = default(
-    "/clusterHostInfo/spark2_jobhistoryserver_hosts", []
+    "/clusterHostInfo/spark_jobhistoryserver_hosts", []
   )
   has_jobhistoryserver = not len(spark_jobhistoryserver_hosts) == 0
 
@@ -462,12 +529,6 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
         hook_policy_user.append(hive_user)
       if has_hbase_master:
         hook_policy_user.append(hbase_user)
-      if has_storm_nimbus and kerberos_security_enabled:
-        storm_principal_name = config["configurations"]["storm-env"][
-          "storm_principal_name"
-        ]
-        storm_bare_principal_name = get_bare_principal(storm_principal_name)
-        hook_policy_user.append(storm_bare_principal_name)
       if has_jobhistoryserver:
         hook_policy_user.append(spark_user)
       if len(hook_policy_user) > 0:
@@ -538,12 +599,18 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
 
   xa_audit_db_is_enabled = False
   if xml_configurations_supported and stack_supports_ranger_audit_db:
-    xa_audit_db_is_enabled = config["configurations"]["ranger-kafka-audit"][
-      "xasecure.audit.destination.db"
-    ]
+    xa_audit_db_is_enabled = as_bool(
+      config["configurations"]["ranger-kafka-audit"][
+        "xasecure.audit.destination.db"
+      ],
+      "ranger-kafka-audit/xasecure.audit.destination.db",
+    )
 
-  xa_audit_hdfs_is_enabled = default(
-    "/configurations/ranger-kafka-audit/xasecure.audit.destination.hdfs", False
+  xa_audit_hdfs_is_enabled = as_bool(
+    default(
+      "/configurations/ranger-kafka-audit/xasecure.audit.destination.hdfs", False
+    ),
+    "ranger-kafka-audit/xasecure.audit.destination.hdfs",
   )
   ssl_keystore_password = (
     config["configurations"]["ranger-kafka-policymgr-ssl"][
@@ -575,14 +642,11 @@ if enable_ranger_kafka and is_supported_kafka_ranger:
   ):
     xa_audit_db_is_enabled = False
 
-# need this to capture cluster name from where ranger kafka plugin is enabled
-cluster_name = config["clusterName"]
-
-# required when Ranger-KMS is SSL enabled
-ranger_kms_hosts = default("/clusterHostInfo/ranger_kms_server_hosts", [])
-has_ranger_kms = len(ranger_kms_hosts) > 0
-is_ranger_kms_ssl_enabled = default(
-  "configurations/ranger-kms-site/ranger.service.https.attrib.ssl.enabled", False
+is_ranger_kms_ssl_enabled = as_bool(
+  default(
+    "configurations/ranger-kms-site/ranger.service.https.attrib.ssl.enabled", False
+  ),
+  "ranger-kms-site/ranger.service.https.attrib.ssl.enabled",
 )
 
 # ranger kafka plugin section end
@@ -612,12 +676,6 @@ kinit_path_local = get_kinit_path(
 )
 dfs_type = default("/clusterLevelParams/dfs_type", "")
 ranger_kafka_plugin_impl_path = format("{kafka_home}/libs/ranger-kafka-plugin-impl")
-ranger_kafka_plugin_core_site_path = format(
-  "{ranger_kafka_plugin_impl_path}/core-site.xml"
-)
-ranger_kafka_plugin_hdfs_site_path = format(
-  "{ranger_kafka_plugin_impl_path}/hdfs-site.xml"
-)
 mount_table_xml_inclusion_file_full_path = None
 mount_table_content = None
 if "viewfs-mount-table" in config["configurations"]:
@@ -629,8 +687,6 @@ if "viewfs-mount-table" in config["configurations"]:
       conf_dir, xml_inclusion_file_name
     )
     mount_table_content = mount_table["content"]
-
-import functools
 
 # create partial functions with common arguments for every HdfsResource call
 # to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code

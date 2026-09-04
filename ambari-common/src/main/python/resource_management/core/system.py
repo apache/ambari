@@ -23,8 +23,7 @@ Ambari Agent
 __all__ = ["System"]
 
 import os
-import sys
-import distro
+import platform
 from resource_management.core import shell
 from resource_management.core.utils import lazy_property
 from resource_management.core.exceptions import Fail
@@ -40,8 +39,7 @@ class System(object):
 
     In case cannot detect raises 'unknown'
     """
-    platform = sys.distro
-    if platform.startswith("linux"):
+    if platform.system().lower() == "linux":
       return "linux"
     else:
       return "unknown"

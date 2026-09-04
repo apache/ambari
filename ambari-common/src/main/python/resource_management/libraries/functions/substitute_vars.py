@@ -32,7 +32,7 @@ def substitute_vars(raw, config):
   """
   result = raw
 
-  pattern = re.compile("\$\{[^\}\$\x0020]+\}")
+  pattern = re.compile("\\$\\{[^\\}\\$\x0020]+\\}")
 
   for depth in range(0, _MAX_SUBST - 1):
     match = pattern.search(result)

@@ -36,7 +36,7 @@ from ambari_agent.RecoveryManager import RecoveryManager
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.ConfigurationBuilder import ConfigurationBuilder
 from ambari_agent.StaleAlertsMonitor import StaleAlertsMonitor
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
 
 from ambari_agent import HeartbeatThread

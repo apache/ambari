@@ -76,9 +76,9 @@
     <on-ambari-upgrade add="false"/>
     <description/>
   </property>
-  <property>
+  <property require-input="true">
     <name>ranger.service.https.attrib.keystore.pass</name>
-    <value>rangerkms</value>
+    <value/>
     <property-type>PASSWORD</property-type>
     <value-attributes>
       <type>password</type>

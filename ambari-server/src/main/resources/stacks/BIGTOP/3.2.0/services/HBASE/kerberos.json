@@ -42,7 +42,6 @@
             "hbase.coprocessor.master.classes": "{{hbase_coprocessor_master_classes}}",
             "hbase.coprocessor.region.classes": "{{hbase_coprocessor_region_classes}}",
             "hbase.coprocessor.regionserver.classes": "{{hbase_coprocessor_regionserver_classes}}",
-            "hbase.bulkload.staging.dir": "/apps/hbase/staging",
             "hbase.master.ui.readonly": "true"
           }
         },
@@ -140,6 +139,42 @@
               },
               "keytab": {
                 "configuration": "hbase-site/hbase.security.authentication.spnego.kerberos.keytab"
+              }
+            }
+          ]
+        },
+        {
+          "name": "HBASE_THRIFT",
+          "identities": [
+            {
+              "name": "hbase_thrift_hbase",
+              "principal": {
+                "value": "hbase/_HOST@${realm}",
+                "type": "service",
+                "configuration": "hbase-site/hbase.thrift.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hbase.service.keytab",
+                "owner": {
+                  "name": "${hbase-env/hbase_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hbase-site/hbase.thrift.keytab.file"
+              }
+            },
+            {
+              "name": "hbase_hbase_thrift_spnego",
+              "reference": "/spnego",
+              "principal": {
+                "configuration": "hbase-site/hbase.thrift.spnego.principal"
+              },
+              "keytab": {
+                "configuration": "hbase-site/hbase.thrift.spnego.keytab.file"
               }
             }
           ]

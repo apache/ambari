@@ -23,7 +23,7 @@
       <displayName>HDFS</displayName>
       <serviceType>HDFS</serviceType> <!-- This tag is used only for main fileSystem service. It sets filesystem schema for ambari -->
       <comment>Apache Hadoop Distributed File System</comment>
-      <version>3.3.4-1</version>
+      <version>3.3.6-1</version>
 
       <components>
         <component>
@@ -330,7 +330,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}</name>
@@ -342,16 +342,28 @@
               <name>snappy</name>
             </package>
             <package>
-              <name>snappy-devel</name>
-            </package>
-            <package>
               <name>hadoop_${stack_version}-libhdfs</name>
             </package>
             <package>
-              <name>libtirpc-devel</name>
+              <name>ranger_${stack_version}-hdfs-plugin</name>
+              <condition>should_install_ranger_hdfs_plugin</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-${stack_version}</name>
             </package>
             <package>
-              <name>ranger_${stack_version}-hdfs-plugin</name>
+              <name>hadoop-${stack_version}-client</name>
+            </package>
+            <package>
+              <name>libhdfs0</name>
+            </package>
+            <package>
+              <name>ranger-${stack_version}-hdfs-plugin</name>
               <condition>should_install_ranger_hdfs_plugin</condition>
             </package>
           </packages>

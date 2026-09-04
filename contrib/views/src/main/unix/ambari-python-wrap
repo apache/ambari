@@ -17,22 +17,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# reset settings
-unset PYTHON
+python_is_supported() {
+  command -v "$1" >/dev/null 2>&1 \
+    && "$1" -c "import sys; sys.exit(sys.version_info < (3, 9, 2))" >/dev/null 2>&1
+}
 
-# checking for preferable python versions
-if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.7
+if [ -n "${PYTHON:-}" ] && ! python_is_supported "$PYTHON"; then
+  PYTHON=""
 fi
 
-if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.6
+if [ -z "${PYTHON:-}" ] && python_is_supported /usr/bin/python3.9; then
+  PYTHON=/usr/bin/python3.9
 fi
 
-# if no preferable python versions found, try to use system one
-if [[ -z "$PYTHON" ]]; then
-  PYTHON=/usr/bin/python
+if [ -z "${PYTHON:-}" ] && python_is_supported /usr/bin/python3; then
+  PYTHON=/usr/bin/python3
 fi
 
-# execute script
-$PYTHON "$@"
+if [ -z "${PYTHON:-}" ]; then
+  echo "Cannot detect Python 3.9.2 or newer for Ambari." >&2
+  exit 1
+fi
+
+exec "$PYTHON" "$@"

@@ -23,7 +23,7 @@ import os
 
 class TestStackAdvisorInitialization(TestCase):
   def setUp(self):
-    from ambari_commons import import_utils as imp
+    from ambari_commons import import_utils
 
     self.test_directory = os.path.dirname(os.path.abspath(__file__))
     resources_path = os.path.join(self.test_directory, "../../main/resources")
@@ -35,16 +35,16 @@ class TestStackAdvisorInitialization(TestCase):
       os.path.join(resources_path, "stacks/ambari_configuration.py")
     )
     with open(ambari_configuration_path, "rb") as fp:
-      imp.load_module(
+      import_utils.load_module(
         "ambari_configuration",
         fp,
         ambari_configuration_path,
-        (".py", "rb", imp.PY_SOURCE),
+        (".py", "rb", import_utils.PY_SOURCE),
       )
 
     with open(stack_advisor_path, "rb") as fp:
-      self.stack_advisor = imp.load_module(
-        "stack_advisor", fp, stack_advisor_path, (".py", "rb", imp.PY_SOURCE)
+      self.stack_advisor = import_utils.load_module(
+        "stack_advisor", fp, stack_advisor_path, (".py", "rb", import_utils.PY_SOURCE)
       )
 
   def test_stackAdvisorLoadedForNotHDPStack(self):

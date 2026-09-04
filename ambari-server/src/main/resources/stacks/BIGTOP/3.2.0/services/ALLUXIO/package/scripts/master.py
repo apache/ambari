@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,9 +19,21 @@ limitations under the License.
 """
 
 import os
-from resource_management import *
-from resource_management.core import sudo
-import time
+from contextlib import nullcontext
+
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.functions import safe_process
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
+from resource_management.libraries.script.script import Script
+
+from alluxio_utils import rollback_started_process
 
 
 class AlluxioMaster(Script):
@@ -37,11 +49,10 @@ class AlluxioMaster(Script):
       [
         params.alluxio_pid_dir,
         params.alluxio_master_metastore_dir,
-        params.alluxio_journal_dir,
       ],
       owner=params.alluxio_user,
       group=params.alluxio_group,
-      mode=0o775,
+      mode=0o770,
       create_parents=True,
     )
 
@@ -49,41 +60,49 @@ class AlluxioMaster(Script):
       [params.alluxio_log_dir, os.path.join(params.alluxio_log_dir, "user")],
       owner=params.alluxio_user,
       group=params.alluxio_group,
-      mode=0o777,
+      mode=0o770,
       create_parents=True,
     )
 
     # create alluxio-site.properties in alluxio install dir
     File(
       os.path.join(params.alluxio_conf_dir, "alluxio-site.properties"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       content=InlineTemplate(params.alluxio_site_properties),
-      mode=0o644,
+      mode=0o640,
     )
 
     # create alluxio-env.sh in alluxio install dir
     File(
       os.path.join(params.alluxio_conf_dir, "alluxio-env.sh"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       content=InlineTemplate(params.alluxio_env_sh),
-      mode=0o775,
+      mode=0o640,
     )
 
     # create log4j2.properties alluxio install dir
     File(
       os.path.join(params.alluxio_conf_dir, "log4j.properties"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       content=InlineTemplate(params.alluxio_log4j2_properties),
+      mode=0o644,
+    )
+
+    File(
+      os.path.join(params.alluxio_conf_dir, "metrics.properties"),
+      owner="root",
+      group=params.alluxio_group,
+      content=InlineTemplate(params.alluxio_metrics_properties),
       mode=0o644,
     )
 
     # masters
     File(
       format("{alluxio_conf_dir}/masters"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       mode=0o644,
       content=Template("masters.j2", conf_dir=params.alluxio_conf_dir),
@@ -92,7 +111,7 @@ class AlluxioMaster(Script):
     # workers
     File(
       format("{alluxio_conf_dir}/workers"),
-      owner=params.alluxio_user,
+      owner="root",
       group=params.alluxio_group,
       mode=0o644,
       content=Template("workers.j2", conf_dir=params.alluxio_conf_dir),
@@ -104,15 +123,16 @@ class AlluxioMaster(Script):
       type="directory",
       action="create_on_execute",
       owner=params.alluxio_user,
-      mode=0o775,
+      mode=0o755,
     )
     params.HdfsResource(
       params.underfs_hdfs_addr,
       type="directory",
       action="create_on_execute",
       owner=params.alluxio_user,
-      mode=0o775,
+      mode=0o755,
     )
+    params.HdfsResource(None, action="execute")
 
   def start(self, env, upgrade_type=None):
     import params
@@ -120,54 +140,166 @@ class AlluxioMaster(Script):
     env.set_params(params)
 
     self.configure(env)
-    if not params.alluxio_master_metastore_formatted:
-      Execute(
-        params.alluxio_master_format,
-        user=params.alluxio_user,
-        environment={"JAVA_HOME": params.java_home},
+
+    pid_in_file = safe_process.read_pid(params.alluxio_master_pid_file)
+    if pid_in_file is None:
+      identity = safe_process.discover_running_process(
+        params.alluxio_user, params.alluxio_master_process_class
+      )
+      if identity is not None:
+        safe_process.publish_pid_file_for_identity(
+          params.alluxio_master_pid_file,
+          identity,
+          params.alluxio_user,
+          params.alluxio_master_process_class,
+          params.alluxio_user,
+          params.alluxio_group,
+          mode=0o640,
+        )
+        return
+    else:
+      identity = safe_process.read_running_process(
+        params.alluxio_master_pid_file,
+        params.alluxio_user,
+        params.alluxio_master_process_class,
+      )
+      if identity is None:
+        raise Fail(
+          f"Alluxio master PID file refers to a stale process {pid_in_file}"
+        )
+      safe_process.publish_pid_file_for_identity(
+        params.alluxio_master_pid_file,
+        identity,
+        params.alluxio_user,
+        params.alluxio_master_process_class,
+        params.alluxio_user,
+        params.alluxio_group,
+        mode=0o640,
+      )
+      return
+
+    cache_context = nullcontext(None)
+    if params.security_enabled:
+      cache_context = PrivateKerberosCache(
+        params.alluxio_user,
+        params.alluxio_group,
+        prefix="ambari-alluxio-master-",
       )
 
-    # start
-    Execute(
-      params.alluxio_master_start_cmd,
-      user=params.alluxio_user,
-      environment={"JAVA_HOME": params.java_home},
-    )
+    started_identity = None
+    try:
+      with cache_context as kerberos_cache:
+        command_environment = {"JAVA_HOME": params.java_home}
+        if kerberos_cache is not None:
+          kerberos_cache.kinit(
+            params.kinit_path_local,
+            params.alluxio_service_kerberos_keytab,
+            params.kinit_principal,
+            timeout=30,
+          )
+          command_environment = kerberos_cache.merge_environment(
+            command_environment
+          )
 
-    # generate pid,multiple judyment
-    tryTimes = 5
-    while tryTimes > 0:
-      Execute(
-        params.alluxio_master_pid_cmd,
-        user=params.alluxio_user,
-        environment={"JAVA_HOME": params.java_home},
-      )
-      if sudo.read_file(params.alluxio_master_pid_file) != "":
-        break
-      else:
-        Logger.info("waiting from fe start...")
-        time.sleep(60)
-        tryTimes = tryTimes - 1
-    if tryTimes == 0:
-      Logger.error("start error,pls check logs.")
+        Execute(
+          params.alluxio_master_start_cmd,
+          user=params.alluxio_user,
+          environment=command_environment,
+          timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+
+        started_identity = safe_process.wait_for_discovered_process(
+          params.alluxio_user,
+          params.alluxio_master_process_class,
+          attempts=60,
+          sleep_seconds=1,
+        )
+        identity = started_identity
+        stored_identity = safe_process.publish_pid_file_for_identity(
+          params.alluxio_master_pid_file,
+          identity,
+          params.alluxio_user,
+          params.alluxio_master_process_class,
+          params.alluxio_user,
+          params.alluxio_group,
+          mode=0o640,
+        )
+        if not identity.matches(stored_identity):
+          raise Fail(
+            "Alluxio master process changed while its PID file was being stored"
+          )
+    except Exception:
+      if started_identity is not None:
+        try:
+          rollback_started_process(
+            params.alluxio_master_pid_file,
+            started_identity,
+            params.alluxio_user,
+            params.alluxio_master_process_class,
+          )
+        except Exception as cleanup_error:
+          Logger.warning(
+            f"Could not roll back failed Alluxio master start: {cleanup_error}"
+          )
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
-    self.configure(env)
 
-    Execute(
-      params.alluxio_master_stop_cmd,
-      user=params.alluxio_user,
-      environment={"JAVA_HOME": params.java_home},
+    pid_in_file = safe_process.read_pid(params.alluxio_master_pid_file)
+    if pid_in_file is None:
+      identity = safe_process.discover_running_process(
+        params.alluxio_user, params.alluxio_master_process_class
+      )
+    else:
+      identity = safe_process.read_running_process(
+        params.alluxio_master_pid_file,
+        params.alluxio_user,
+        params.alluxio_master_process_class,
+      )
+      if identity is None:
+        raise Fail(
+          f"Alluxio master PID file refers to a stale process {pid_in_file}"
+        )
+    if identity is None:
+      return
+
+    safe_process.terminate_process(
+      identity,
+      params.alluxio_user,
+      params.alluxio_master_process_class,
+    )
+    safe_process.remove_pid_file_if_stopped(
+      params.alluxio_master_pid_file,
+      identity.pid,
+      params.alluxio_user,
+      params.alluxio_master_process_class,
     )
 
   def status(self, env):
     import params
 
     env.set_params(params)
-    check_process_status(params.alluxio_master_pid_file)
+    pid_in_file = safe_process.read_pid(params.alluxio_master_pid_file)
+    if pid_in_file is None:
+      identity = safe_process.discover_running_process(
+        params.alluxio_user, params.alluxio_master_process_class
+      )
+    else:
+      identity = safe_process.read_running_process(
+        params.alluxio_master_pid_file,
+        params.alluxio_user,
+        params.alluxio_master_process_class,
+      )
+      if identity is None:
+        raise Fail(
+          f"Alluxio master PID file refers to a stale process {pid_in_file}"
+        )
+    if identity is None:
+      raise ComponentIsNotRunning("Alluxio master is not running")
 
   def get_user(self):
     import params

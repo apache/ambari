@@ -22,6 +22,8 @@ import os
 import re
 import time
 
+import javaproperties
+
 # Apache License Header
 ASF_LICENSE_HEADER = """
 # Copyright 2011 The Apache Software Foundation
@@ -44,59 +46,14 @@ ASF_LICENSE_HEADER = """
 """
 
 
-# A Python replacement for java.util.Properties
-# Based on http://code.activestate.com/recipes
-# /496795-a-python-replacement-for-javautilproperties/
+# Ambari compatibility facade around the official javaproperties package.
 class Properties(object):
   def __init__(self, props=None):
     self._props = {}
     self._origprops = {}
     self._keymap = {}
 
-    self.othercharre = re.compile(r"(?<!\\)(\s*\=)|(?<!\\)(\s*\:)")
-    self.othercharre2 = re.compile(r"(\s*\=)|(\s*\:)")
     self.bspacere = re.compile(r"\\(?!\s$)")
-
-  def __parse(self, lines):
-    lineno = 0
-    i = iter(lines)
-    for line in i:
-      lineno += 1
-      line = line.strip()
-      if not line:
-        continue
-      if line[0] == "#":
-        continue
-      escaped = False
-      sepidx = -1
-      flag = 0
-      m = self.othercharre.search(line)
-      if m:
-        first, last = m.span()
-        start, end = 0, first
-        flag = 1
-        wspacere = re.compile(r"(?<![\\\=\:])(\s)")
-      else:
-        if self.othercharre2.search(line):
-          wspacere = re.compile(r"(?<![\\])(\s)")
-        start, end = 0, len(line)
-      m2 = wspacere.search(line, start, end)
-      if m2:
-        first, last = m2.span()
-        sepidx = first
-      elif m:
-        first, last = m.span()
-        sepidx = last - 1
-      while line[-1] == "\\":
-        nextline = next(i)
-        nextline = nextline.strip()
-        lineno += 1
-        line = line[:-1] + nextline
-      if sepidx != -1:
-        key, value = line[:sepidx], line[sepidx + 1 :]
-      else:
-        key, value = line, ""
-      self.process_pair(key, value)
 
   def process_pair(self, key, value):
     """
@@ -117,6 +74,9 @@ class Properties(object):
       oldkey = oldkey.strip()
     oldvalue = self.unescape(oldvalue)
     value = self.unescape(value)
+    self._store_pair(key, value, oldkey, oldvalue)
+
+  def _store_pair(self, key, value, oldkey, oldvalue):
     self._props[key] = None if value is None else value.strip()
     if key in self._keymap:
       oldkey = self._keymap.get(key)
@@ -127,9 +87,9 @@ class Properties(object):
 
   def unescape(self, value):
     newvalue = value
-    if not value is None:
-      newvalue = value.replace("\:", ":")
-      newvalue = newvalue.replace("\=", "=")
+    if value is not None:
+      newvalue = value.replace(r"\:", ":")
+      newvalue = newvalue.replace(r"\=", "=")
     return newvalue
 
   def removeOldProp(self, key):
@@ -147,8 +107,8 @@ class Properties(object):
       raise ValueError("Stream should be opened in read-only mode!")
     try:
       self.fileName = os.path.abspath(stream.name)
-      lines = stream.readlines()
-      self.__parse(lines)
+      for key, value in javaproperties.load(stream, object_pairs_hook=list):
+        self._store_pair(key, value, key, value)
     except IOError:
       raise
 
@@ -203,10 +163,12 @@ class Properties(object):
       # Write timestamp
       tstamp = time.strftime("%a %b %d %H:%M:%S %Z %Y", time.localtime())
       out.write("".join(("#", tstamp, "\n")))
-      # Write properties from the pristine dictionary
-      for prop, val in self._origprops.items():
-        if val is not None:
-          out.write("".join((prop, "=", val, "\n")))
+      javaproperties.dump(
+        ((prop, val) for prop, val in self._origprops.items() if val is not None),
+        out,
+        timestamp=False,
+        ensure_ascii=False,
+      )
     except IOError:
       raise
     finally:
@@ -224,11 +186,15 @@ class Properties(object):
       # Write timestamp
       tstamp = time.strftime("%a %b %d %H:%M:%S %Z %Y", time.localtime())
       out.write("".join(("#", tstamp, "\n")))
-      # Write properties from the pristine dictionary
-      for key in sorted(self._origprops.keys()):
-        val = self._origprops[key]
-        if val is not None:
-          out.write("".join((key, "=", val, "\n")))
-      out.close()
+      javaproperties.dump(
+        ((prop, val) for prop, val in self._origprops.items() if val is not None),
+        out,
+        timestamp=False,
+        sort_keys=True,
+        ensure_ascii=False,
+      )
     except IOError:
       raise
+    finally:
+      if out:
+        out.close()

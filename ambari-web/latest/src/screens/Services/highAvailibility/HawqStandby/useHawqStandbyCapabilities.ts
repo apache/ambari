@@ -25,7 +25,6 @@ import {
   HawqCapabilities,
   HawqCapabilityInput,
 } from "../Federation/workflowUtils";
-import { isWindowsStack } from "../../../../Utils/stackMetadata";
 
 const emptyCapabilities: HawqCapabilities = {
   supported: false,
@@ -172,11 +171,6 @@ export default function useHawqStandbyCapabilities(enabled = true) {
       const topology = JSON.parse(componentRevision) as ComponentSnapshot[];
       if (!stack || !versionNum) {
         setError("Ambari has not loaded the active stack and version.");
-        setIsLoading(false);
-        return;
-      }
-      if (isWindowsStack(stack)) {
-        setError("HAWQ standby management is not supported on the HDPWIN stack.");
         setIsLoading(false);
         return;
       }

@@ -28,9 +28,9 @@
     <description>SSL enabled? (ranger admin -&gt; usersync communication)</description>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
+  <property require-input="true">
     <name>ranger.usersync.keystore.password</name>
-    <value>UnIx529p</value>
+    <value/>
     <property-type>PASSWORD</property-type>
     <description>Keystore password</description>
     <value-attributes>

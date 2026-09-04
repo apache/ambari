@@ -21,10 +21,10 @@ limitations under the License.
 import os
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import Direction
-from resource_management.libraries.functions.format import format
 
 
 def setup_ranger_hdfs(upgrade_type=None):
@@ -60,7 +60,7 @@ def setup_ranger_hdfs(upgrade_type=None):
         params.downloaded_custom_connector,
         params.driver_curl_source,
         params.driver_curl_target,
-        params.java_home,
+        params.ambari_java_home,
         params.repo_name,
         params.hdfs_ranger_plugin_repo,
         params.ranger_env,
@@ -163,7 +163,9 @@ def setup_ranger_hdfs(upgrade_type=None):
         Execute(
           ("mv", source_file, target_file),
           sudo=True,
-          only_if=format("test -f {source_file}"),
+          only_if=("test", "-f", source_file),
+          timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
   else:
     Logger.info("Ranger Hdfs plugin is not enabled")

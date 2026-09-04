@@ -18,16 +18,13 @@ limitations under the License.
 
 """
 
-import os
-
 from resource_management.core.exceptions import ClientComponentHasNoStatus
-from resource_management.core.logger import Logger
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
 
-from setup_flink import *
+from setup_flink import setup_flink
 
 
 class FlinkClient(Script):
@@ -35,13 +32,13 @@ class FlinkClient(Script):
     import params
 
     env.set_params(params)
-    setup_flink(env, "client", upgrade_type=upgrade_type, action="config")
+    setup_flink(env, "client", action="config")
 
   def install(self, env):
     import params
 
     self.install_packages(env)
-    self.configure(env, config_dir=params.flink_config_dir)
+    self.configure(env)
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

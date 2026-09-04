@@ -26,6 +26,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
@@ -88,27 +94,29 @@ public class CertGenerationTest {
     } catch (IOException e) {
       e.printStackTrace();
     }
-	  Properties properties = new Properties();
-	  properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(),
+    Properties properties = new Properties();
+    properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(),
       temp.getRoot().getAbsolutePath());
-    passLen = (int) Math.abs((new Random().nextFloat() * MAX_PASS_LEN));
+    passLen = 16 + (int) Math.abs((new Random().nextFloat() * (MAX_PASS_LEN - 16)));
 
     properties.setProperty(Configuration.SRVR_CRT_PASS_LEN.getKey(),
       String.valueOf(passLen));
 
     passFileName = RandomStringUtils.randomAlphabetic(PASS_FILE_NAME_LEN);
     properties.setProperty(Configuration.SRVR_CRT_PASS_FILE.getKey(), passFileName);
+    properties.setProperty(
+      Configuration.BOOTSTRAP_MASTER_HOSTNAME.getKey(), "ambari.example.test");
 
-	  return properties;
+    return properties;
   }
 
   protected static Constructor<Configuration> getConfigurationConstructor() {
     try {
       return Configuration.class.getConstructor(Properties.class);
-	} catch (NoSuchMethodException e) {
-	    throw new RuntimeException("Expected constructor not found in Configuration.java", e);
-	   }
-	}
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException("Expected constructor not found in Configuration.java", e);
+    }
+  }
 
   @BeforeClass
   public static void setUpBeforeClass() throws IOException {
@@ -120,9 +128,6 @@ public class CertGenerationTest {
     //Test using actual ca.config.
     try {
       File caConfig = new File("conf/unix/ca.config");
-      if (System.getProperty("os.name").contains("Windows")) {
-        caConfig = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParentFile().getParentFile(), "conf\\windows\\ca.config");
-      }
       File caConfigTest = new File(temp.getRoot().getAbsolutePath(), "ca.config");
       File newCertsDir = new File(temp.getRoot().getAbsolutePath(), "newcerts");
       newCertsDir.mkdirs();
@@ -130,12 +135,7 @@ public class CertGenerationTest {
       indexTxt.createNewFile();
 
       String content = IOUtils.toString(new FileInputStream(caConfig));
-      if (System.getProperty("os.name").contains("Windows")) {
-        content = content.replace("keystore\\\\db", temp.getRoot().getAbsolutePath().replace("\\", "\\\\"));
-      }
-      else {
-        content = content.replaceAll("/var/lib/ambari-server/keys/db", temp.getRoot().getAbsolutePath());
-      }
+      content = content.replaceAll("/var/lib/ambari-server/keys/db", temp.getRoot().getAbsolutePath());
       IOUtils.write(content, new FileOutputStream(caConfigTest));
     } catch (IOException e) {
       e.printStackTrace();
@@ -150,7 +150,6 @@ public class CertGenerationTest {
     temp.delete();
   }
 
-  @Ignore // randomly fails on BAO (e.g. https://builds.apache.org/job/Ambari-branch-2.2/155/console)
   @Test
   public void testServerCertGen() throws Exception {
     File serverCrt = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.SRVR_CRT_NAME.getDefaultValue());
@@ -163,11 +162,94 @@ public class CertGenerationTest {
     Assert.assertTrue(serverKey.exists());
   }
 
-  @Ignore // randomly fails on BAO (e.g. https://builds.apache.org/job/Ambari-branch-2.2/155/console)
   @Test
   public void testServerKeystoreGen() throws Exception {
     File serverKeyStrore = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.KSTR_NAME.getDefaultValue());
     Assert.assertTrue(serverKeyStrore.exists());
+  }
+
+  @Test
+  public void testServerKeystoreContainsServerIdentity() throws Exception {
+    Configuration configuration = injector.getInstance(Configuration.class);
+    File keystoreFile = new File(
+      temp.getRoot(), Configuration.KSTR_NAME.getDefaultValue());
+    KeyStore keystore = KeyStore.getInstance("PKCS12");
+    try (FileInputStream stream = new FileInputStream(keystoreFile)) {
+      keystore.load(stream, configuration.getConfigsMap()
+        .get(Configuration.SRVR_CRT_PASS.getKey()).toCharArray());
+    }
+
+    Assert.assertTrue(keystore.isKeyEntry("ambari-server"));
+  }
+
+  @Test
+  public void testTemporaryKeystorePasswordFileIsRemoved() throws Exception {
+    File[] temporaryPasswordFiles = temp.getRoot().listFiles(
+      (directory, name) -> name.startsWith(".ambari-keystore-pass-")
+        && name.endsWith(".tmp"));
+    Assert.assertNotNull(temporaryPasswordFiles);
+    Assert.assertEquals(0, temporaryPasswordFiles.length);
+  }
+
+  @Test
+  public void testServerTruststoreContainsAgentCertificateAuthority() throws Exception {
+    Configuration configuration = injector.getInstance(Configuration.class);
+    File truststoreFile = new File(
+      temp.getRoot(), Configuration.TSTR_NAME.getDefaultValue());
+    KeyStore truststore = KeyStore.getInstance("PKCS12");
+    try (FileInputStream stream = new FileInputStream(truststoreFile)) {
+      truststore.load(stream, configuration.getConfigsMap()
+        .get(Configuration.SRVR_CRT_PASS.getKey()).toCharArray());
+    }
+
+    Assert.assertTrue(truststore.isCertificateEntry("ambari-agent-ca"));
+  }
+
+  @Test
+  public void testServerIdentityCertificateContainsConfiguredHostname() throws Exception {
+    File serverIdentityCertificate = new File(
+      temp.getRoot(), CertificateManager.SERVER_IDENTITY_CERT_NAME);
+    Assert.assertTrue(serverIdentityCertificate.isFile());
+
+    X509Certificate certificate;
+    try (FileInputStream stream = new FileInputStream(serverIdentityCertificate)) {
+      certificate = (X509Certificate) CertificateFactory
+        .getInstance("X.509").generateCertificate(stream);
+    }
+    Collection<List<?>> names = certificate.getSubjectAlternativeNames();
+    Assert.assertNotNull(names);
+    Assert.assertTrue(names.stream().anyMatch(name ->
+      name.size() >= 2 && Integer.valueOf(2).equals(name.get(0))
+        && "ambari.example.test".equals(name.get(1))));
+  }
+
+  @Test
+  public void testSignedAgentCertificateCannotActAsCertificateAuthority()
+      throws Exception {
+    String hostname = "agent.example.test";
+    File key = new File(temp.getRoot(), hostname + ".key");
+    File request = new File(temp.getRoot(), hostname + ".csr");
+    int requestExitCode = certMan.runCommand(String.format(
+        "openssl req -new -newkey rsa:2048 -nodes -keyout %s -out %s "
+            + "-subj /CN=%s -addext basicConstraints=critical,CA:true",
+        key.getAbsolutePath(), request.getAbsolutePath(), hostname));
+    Assert.assertEquals(0, requestExitCode);
+
+    certMan.configs.getConfigsMap().put(
+        Configuration.PASSPHRASE.getKey(), "passphrase");
+    SignCertResponse response = certMan.signAgentCrt(hostname,
+        FileUtils.readFileToString(request, StandardCharsets.UTF_8), "passphrase");
+    Assert.assertEquals(SignCertResponse.OK_STATUS, response.getResult());
+
+    File certificateFile = new File(temp.getRoot(), hostname + ".crt");
+    X509Certificate certificate;
+    try (FileInputStream stream = new FileInputStream(certificateFile)) {
+      certificate = (X509Certificate) CertificateFactory
+          .getInstance("X.509").generateCertificate(stream);
+    }
+    Assert.assertEquals(-1, certificate.getBasicConstraints());
+    Assert.assertTrue(certificate.getExtendedKeyUsage()
+        .contains("1.3.6.1.5.5.7.3.2"));
   }
 
   @Ignore // randomly fails on BAO (e.g. https://builds.apache.org/job/Ambari-branch-2.2/155/console)

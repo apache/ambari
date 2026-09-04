@@ -18,7 +18,7 @@ limitations under the License.
 """
 import os
 import fnmatch
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import socket
 import sys
 import traceback
@@ -29,7 +29,7 @@ PARENT_FILE = os.path.join(STACKS_DIR, 'service_advisor.py')
 
 try:
   with open(PARENT_FILE, 'rb') as fp:
-    service_advisor = imp.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', imp.PY_SOURCE))
+    service_advisor = import_utils.load_module('service_advisor', fp, PARENT_FILE, ('.py', 'rb', import_utils.PY_SOURCE))
 except Exception as e:
   traceback.print_exc()
   print("Failed to load parent")

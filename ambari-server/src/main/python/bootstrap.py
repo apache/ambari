@@ -21,11 +21,7 @@ import sys
 
 sys.path.append(
   "/usr/lib/ambari-server/lib/"
-)  # this file can be run with python3 that why we need this
-
-# On Linux, the bootstrap process is supposed to run on hosts that may have installed Python 2.4 and above (CentOS 5).
-# Hence, the whole bootstrap code needs to comply with Python 2.4 instead of Python 2.6. Most notably, @-decorators and
-# {}-format() are to be avoided.
+)  # Bootstrap also runs directly through the configured Ambari Python runtime.
 
 import time
 import logging
@@ -35,14 +31,13 @@ import subprocess
 import threading
 import traceback
 import re
+import tempfile
 from datetime import datetime
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_server.serverConfiguration import get_ambari_properties, SECURITY_KEYS_DIR
 
-if OSCheck.is_windows_family():
-  from ambari_commons.os_utils import run_os_command, run_in_shell
-else:
-  from resource_management.core.shell import quote_bash_args
+from resource_management.core.shell import quote_bash_args
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
 HOST_BOOTSTRAP_TIMEOUT = 300
@@ -65,6 +60,8 @@ REMOTE_CREATE_PYTHON_WRAP_SCRIPT = os.path.join(
   DEFAULT_AGENT_TEMP_FOLDER, "create-python-wrap.sh"
 )
 AMBARI_SUDO = os.path.join(DEFAULT_AGENT_TEMP_FOLDER, "ambari-sudo.sh")
+SERVER_CERT_NAME_PROPERTY = "security.server.cert_name"
+SERVER_CERT_NAME_DEFAULT = "ca.crt"
 
 
 class HostLog:
@@ -211,51 +208,6 @@ class SSH:
     return {"exitstatus": sshstat.returncode, "log": log, "errormsg": errorMsg}
 
 
-class PSR:
-  """PowerShell Remoting implementation of this"""
-
-  def __init__(self, command, host, host_log, params=None, errorMessage=None):
-    self.command = command
-    self.host = host
-    self.host_log = host_log
-    self.params = params
-    self.errorMessage = errorMessage
-    pass
-
-  def run(self):
-    # os.environ['COMSPEC'] = 'c:\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
-    psrcommand = [
-      "powershell.exe",
-      "-NoProfile",
-      "-InputFormat",
-      "Text",
-      "-ExecutionPolicy",
-      "unrestricted",
-      "-Command",
-      self.command,
-    ]
-    if self.params:
-      psrcommand.extend([self.params])
-    if DEBUG:
-      self.host_log.write("Running PowerShell command " + " ".join(psrcommand))
-    self.host_log.write("==========================")
-    self.host_log.write(
-      "\nCommand start time " + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    )
-    retcode, stdout, stderr = run_os_command(psrcommand)
-    errorMsg = stderr
-    if self.errorMessage and retcode != 0:
-      errorMsg = self.errorMessage + "\n" + stderr
-    log = stdout + "\n" + errorMsg
-    self.host_log.write(log)
-    self.host_log.write("PowerShell command execution finished")
-    self.host_log.write("host=" + self.host + ", exitcode=" + str(retcode))
-    self.host_log.write(
-      "Command end time " + datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    )
-    return {"exitstatus": retcode, "log": log, "errormsg": errorMsg}
-
-
 class Bootstrap(threading.Thread):
   """Bootstrap the agent on a separate host"""
 
@@ -339,196 +291,14 @@ class Bootstrap(threading.Thread):
     self.createDoneFile(199)
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class BootstrapWindows(Bootstrap):
-  CREATE_REMOTING_DIR_SCRIPT_NAME = "Create-RemotingDir.ps1"
-  SEND_REMOTING_FILE_SCRIPT_NAME = "Send-RemotingFile.ps1"
-  UNZIP_REMOTING_SCRIPT_NAME = "Unzip-RemotingFile.ps1"
-  RUN_REMOTING_SCRIPT_NAME = "Run-RemotingScript.ps1"
-  CONFIGURE_CHOCOLATEY_SCRIPT_NAME = "Configure-Chocolatey.ps1"
-
-  BOOTSTRAP_ARCHIVE_NAME = "bootstrap.zip"
-  CHOCOLATEY_INSTALL_VAR_NAME = "ChocolateyInstall"
-  CHOCOLATEY_CONFIG_DIR = "config"
-  CHOCOLATEY_CONFIG_FILENAME = "chocolatey.config"
-  chocolateyConfigName = "chocolatey.config"
-
-  def getTempFolder(self):
-    installationDrive = os.path.splitdrive(self.shared_state.script_dir)[0]
-    return os.path.join(
-      installationDrive, os.sep, "var", "temp", "bootstrap", self.getAmbariVersion()
-    )
-
-  def createTargetDir(self):
-    # Creating target dir
-    self.host_log.write("==========================\n")
-    self.host_log.write("Creating target directory...")
-    command = os.path.join(
-      self.shared_state.script_dir, self.CREATE_REMOTING_DIR_SCRIPT_NAME
-    )
-    psr = PSR(
-      command, self.host, self.host_log, params=f"{self.host} {self.getTempFolder()}"
-    )
-    retcode = psr.run()
-    self.host_log.write("\n")
-    return retcode
-
-  def unzippingBootstrapArchive(self):
-    # Unzipping bootstrap archive
-    zipFile = os.path.join(self.getTempFolder(), self.BOOTSTRAP_ARCHIVE_NAME)
-    self.host_log.write("==========================\n")
-    self.host_log.write("Unzipping bootstrap archive...")
-    command = os.path.join(
-      self.shared_state.script_dir, self.UNZIP_REMOTING_SCRIPT_NAME
-    )
-    psr = PSR(
-      command,
-      self.host,
-      self.host_log,
-      params=f"{self.host} {zipFile} {self.getTempFolder()}",
-    )
-    result = psr.run()
-    self.host_log.write("\n")
-    return result
-
-  def copyBootstrapArchive(self):
-    # Copying the bootstrap archive file
-    fileToCopy = os.path.join(
-      self.shared_state.script_dir,
-      os.path.dirname(self.shared_state.script_dir),
-      self.shared_state.setup_agent_file,
-    )
-    target = os.path.join(self.getTempFolder(), self.BOOTSTRAP_ARCHIVE_NAME)
-    self.host_log.write("==========================\n")
-    self.host_log.write("Copying bootstrap archive...")
-    command = os.path.join(
-      self.shared_state.script_dir, self.SEND_REMOTING_FILE_SCRIPT_NAME
-    )
-    psr = PSR(
-      command, self.host, self.host_log, params=f"{self.host} {fileToCopy} {target}"
-    )
-    result = psr.run()
-    self.host_log.write("\n")
-    return result
-
-  def copyChocolateyConfig(self):
-    # Copying chocolatey.config file
-    fileToCopy = getConfigFile()
-    target = os.path.join(self.getTempFolder(), self.CHOCOLATEY_CONFIG_FILENAME)
-    self.host_log.write("==========================\n")
-    self.host_log.write("Copying chocolatey config file...")
-    command = os.path.join(
-      self.shared_state.script_dir, self.SEND_REMOTING_FILE_SCRIPT_NAME
-    )
-    psr = PSR(
-      command, self.host, self.host_log, params=f"{self.host} {fileToCopy} {target}"
-    )
-    result = psr.run()
-    self.host_log.write("\n")
-    return result
-
-  def configureChocolatey(self):
-    self.host_log.write("==========================\n")
-    self.host_log.write("Running configure chocolatey script...")
-    tmpConfig = os.path.join(self.getTempFolder(), self.CHOCOLATEY_CONFIG_FILENAME)
-    command = os.path.join(
-      self.shared_state.script_dir, self.CONFIGURE_CHOCOLATEY_SCRIPT_NAME
-    )
-    psr = PSR(command, self.host, self.host_log, params=f"{self.host} {tmpConfig}")
-    result = psr.run()
-    self.host_log.write("\n")
-    return result
-
-  def getRunSetupCommand(self, expected_hostname):
-    setupFile = os.path.join(self.getTempFolder(), self.SETUP_SCRIPT_FILENAME)
-    passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
-    user_run_as = self.shared_state.user_run_as
-    server = self.shared_state.ambari_server
-    version = self.getAmbariVersion()
-    return " ".join(
-      [
-        "python3",
-        setupFile,
-        expected_hostname,
-        passphrase,
-        server,
-        user_run_as,
-        version,
-      ]
-    )
-
-  def runSetupAgent(self):
-    self.host_log.write("==========================\n")
-    self.host_log.write("Running setup agent script...")
-    command = os.path.join(self.shared_state.script_dir, self.RUN_REMOTING_SCRIPT_NAME)
-    psr = PSR(
-      command,
-      self.host,
-      self.host_log,
-      params=f'{self.host} "{self.getRunSetupCommand(self.host)}"',
-    )
-    retcode = psr.run()
-    self.host_log.write("\n")
-    return retcode
-
-  def getConfigFile(self):
-    return os.path.join(
-      os.environ[self.CHOCOLATEY_INSTALL_VAR_NAME],
-      self.CHOCOLATEY_CONFIG_DIR,
-      self.CHOCOLATEY_CONFIG_FILENAME,
-    )
-
-  def run(self):
-    """Copy files and run commands on remote host"""
-    self.status["start_time"] = time.time()
-    # Population of action queue
-    action_queue = [
-      self.createTargetDir,
-      self.copyBootstrapArchive,
-      self.unzippingBootstrapArchive,
-      self.copyChocolateyConfig,
-      self.configureChocolatey,
-      self.runSetupAgent,
-    ]
-
-    last_retcode = 0
-
-    if os.path.exists(getConfigFile()):
-      # Checking execution result   # Execution of action queue
-      while action_queue and last_retcode == 0:
-        action = action_queue.pop(0)
-        ret = self.try_to_execute(action)
-        last_retcode = ret["exitstatus"]
-        err_msg = ret["errormsg"]
-        std_out = ret["log"]
-    else:
-      # If config file is not found, then assume that the hosts have
-      # already been provisioned. Attempt to run the setupAgent script alone.
-      ret = self.try_to_execute(self.runSetupAgent)
-      last_retcode = ret["exitstatus"]
-      err_msg = ret["errormsg"]
-      std_out = ret["log"]
-      pass
-    if last_retcode != 0:
-      message = (
-        "ERROR: Bootstrap of host {0} fails because previous action "
-        "finished with non-zero exit code ({1})\nERROR MESSAGE: {2}\nSTDOUT: {3}".format(
-          self.host, last_retcode, err_msg, std_out
-        )
-      )
-      self.host_log.write(message)
-      logging.error(message)
-
-    self.createDoneFile(last_retcode)
-    self.status["return_code"] = last_retcode
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class BootstrapDefault(Bootstrap):
   ambari_commons = "/usr/lib/ambari-server/lib/ambari_commons"
   TEMP_FOLDER = DEFAULT_AGENT_TEMP_FOLDER
   OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
   PASSWORD_FILENAME = "host_pass"
+  ENROLLMENT_PASSPHRASE_FILENAME = "agent_enrollment_passphrase"
+  SERVER_CA_FILENAME = "ambari-server-ca.crt"
 
   def getRemoteName(self, filename):
     full_name = os.path.join(self.TEMP_FOLDER, filename)
@@ -572,6 +342,25 @@ class BootstrapDefault(Bootstrap):
 
   def getPasswordFile(self):
     return self.getRemoteName(self.PASSWORD_FILENAME)
+
+  def getEnrollmentPassphraseFile(self):
+    return self.getRemoteName(self.ENROLLMENT_PASSPHRASE_FILENAME)
+
+  def getServerCaFile(self):
+    return self.getRemoteName(self.SERVER_CA_FILENAME)
+
+  def getServerCaCertificate(self):
+    properties = get_ambari_properties()
+    keys_dir = properties.get_property(SECURITY_KEYS_DIR)
+    cert_name = (
+      properties.get_property(SERVER_CERT_NAME_PROPERTY)
+      or SERVER_CERT_NAME_DEFAULT
+    )
+    if not keys_dir:
+      raise RuntimeError(
+        f"{SECURITY_KEYS_DIR} is not configured in ambari.properties"
+      )
+    return os.path.join(keys_dir, cert_name)
 
   def hasPassword(self):
     password_file = self.shared_state.password_file
@@ -797,7 +586,105 @@ class BootstrapDefault(Bootstrap):
     retcode3 = scp.run()
     self.host_log.write("\n")
 
-    return max(retcode, retcode3["exitstatus"])
+    self.host_log.write("==========================\n")
+    self.host_log.write("Copying Ambari Server CA certificate...")
+    ca_scp = SCP(
+      params.user,
+      params.sshPort,
+      params.sshkey_file,
+      self.host,
+      self.getServerCaCertificate(),
+      self.getServerCaFile(),
+      params.bootdir,
+      self.host_log,
+    )
+    ca_retcode = ca_scp.run()
+    self.host_log.write("\n")
+
+    return max(retcode, retcode3["exitstatus"], ca_retcode["exitstatus"])
+
+  def copyEnrollmentPassphrase(self):
+    params = self.shared_state
+    passphrase = os.environ.get(AMBARI_PASSPHRASE_VAR_NAME, "")
+    if not passphrase.strip():
+      return {
+        "exitstatus": 1,
+        "log": "",
+        "errormsg": "Ambari Agent enrollment passphrase is not configured",
+      }
+    enrollment_file = self.getEnrollmentPassphraseFile()
+    secure_target = SSH(
+      params.user,
+      params.sshPort,
+      params.sshkey_file,
+      self.host,
+      "umask 077 && : > {path} && chmod 600 {path}".format(
+        path=quote_bash_args(enrollment_file)
+      ),
+      params.bootdir,
+      self.host_log,
+    ).run()
+    if secure_target["exitstatus"] != 0:
+      return secure_target
+    copy_result = None
+    descriptor, local_path = tempfile.mkstemp(
+      prefix=".agent-enrollment-", dir=params.bootdir, text=True
+    )
+    try:
+      with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+        stream.write(passphrase)
+        stream.flush()
+        os.fsync(stream.fileno())
+      os.chmod(local_path, 0o600)
+      scp = SCP(
+        params.user,
+        params.sshPort,
+        params.sshkey_file,
+        self.host,
+        local_path,
+        enrollment_file,
+        params.bootdir,
+        self.host_log,
+      )
+      copy_result = scp.run()
+    finally:
+      try:
+        os.unlink(local_path)
+      except OSError:
+        pass
+
+    if copy_result is None:
+      return {
+        "exitstatus": 1,
+        "log": "",
+        "errormsg": "Enrollment passphrase copy returned no result",
+      }
+    if copy_result["exitstatus"] != 0:
+      return copy_result
+
+    chmod = SSH(
+      params.user,
+      params.sshPort,
+      params.sshkey_file,
+      self.host,
+      "chmod 600 " + quote_bash_args(enrollment_file),
+      params.bootdir,
+      self.host_log,
+    )
+    return chmod.run()
+
+  def deleteEnrollmentPassphrase(self):
+    params = self.shared_state
+    cleanup = SSH(
+      params.user,
+      params.sshPort,
+      params.sshkey_file,
+      self.host,
+      "rm -f " + quote_bash_args(self.getEnrollmentPassphraseFile()),
+      params.bootdir,
+      self.host_log,
+    )
+    return cleanup.run()
 
   def getAmbariPort(self):
     server_port = self.shared_state.server_port
@@ -808,53 +695,57 @@ class BootstrapDefault(Bootstrap):
 
   def getRunSetupWithPasswordCommand(self, expected_hostname):
     setupFile = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
-    passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
+    passphrase_file = "@" + self.getEnrollmentPassphraseFile()
     server = self.shared_state.ambari_server
     user_run_as = self.shared_state.user_run_as
     version = self.getAmbariVersion()
     port = self.getAmbariPort()
     passwordFile = self.getPasswordFile()
     return (
-      f"{AMBARI_SUDO} -S python3 "
-      + str(setupFile)
+      f"{AMBARI_SUDO} -S /usr/bin/ambari-python-wrap "
+      + quote_bash_args(str(setupFile))
       + " "
-      + str(expected_hostname)
+      + quote_bash_args(str(expected_hostname))
       + " "
-      + str(passphrase)
+      + quote_bash_args(passphrase_file)
       + " "
-      + str(server)
+      + quote_bash_args(str(server))
       + " "
       + quote_bash_args(str(user_run_as))
       + " "
-      + str(version)
+      + quote_bash_args(str(version))
       + " "
-      + str(port)
+      + quote_bash_args(str(port))
+      + " "
+      + quote_bash_args(self.getServerCaFile())
       + " < "
-      + str(passwordFile)
+      + quote_bash_args(str(passwordFile))
     )
 
   def getRunSetupWithoutPasswordCommand(self, expected_hostname):
     setupFile = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
-    passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
+    passphrase_file = "@" + self.getEnrollmentPassphraseFile()
     server = self.shared_state.ambari_server
     user_run_as = self.shared_state.user_run_as
     version = self.getAmbariVersion()
     port = self.getAmbariPort()
     return (
-      f"{AMBARI_SUDO} python3 "
-      + str(setupFile)
+      f"{AMBARI_SUDO} /usr/bin/ambari-python-wrap "
+      + quote_bash_args(str(setupFile))
       + " "
-      + str(expected_hostname)
+      + quote_bash_args(str(expected_hostname))
       + " "
-      + str(passphrase)
+      + quote_bash_args(passphrase_file)
       + " "
-      + str(server)
+      + quote_bash_args(str(server))
       + " "
       + quote_bash_args(str(user_run_as))
       + " "
-      + str(version)
+      + quote_bash_args(str(version))
       + " "
-      + str(port)
+      + quote_bash_args(str(port))
+      + " "
+      + quote_bash_args(self.getServerCaFile())
     )
 
   def runCreatePythonWrapScript(self):
@@ -910,9 +801,9 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("Checking 'sudo' package on remote host...")
     params = self.shared_state
     if OSCheck.is_ubuntu_family():
-      command = "dpkg --get-selections|grep -e '^sudo\s*install'"
+      command = "dpkg --get-selections|grep -e '^sudo\\s*install'"
     else:
-      command = "rpm -qa | grep -e '^sudo\-'"
+      command = "rpm -qa | grep -e '^sudo\\-'"
     command = '[ "$EUID" -eq 0 ] || ' + command
     ssh = SSH(
       params.user,
@@ -1070,6 +961,7 @@ class BootstrapDefault(Bootstrap):
     action_queue.extend(
       [
         self.copyNeededFiles,
+        self.copyEnrollmentPassphrase,
         self.runSetupAgent,
       ]
     )
@@ -1102,6 +994,13 @@ class BootstrapDefault(Bootstrap):
         )
         self.host_log.write(message)
         logging.warning(message)
+
+    cleanup_result = self.try_to_execute(self.deleteEnrollmentPassphrase)
+    if cleanup_result["exitstatus"] != 0:
+      logging.warning(
+        "Failed to delete the Agent enrollment passphrase file on host %s",
+        self.host,
+      )
 
     self.createDoneFile(last_retcode)
     self.status["return_code"] = last_retcode
@@ -1218,12 +1117,11 @@ def main(argv=None):
   user_run_as = onlyargs[10]
   passwordFile = onlyargs[11]
 
-  if not OSCheck.is_windows_family():
-    # ssh doesn't like open files
-    subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
+  # ssh doesn't like open files
+  subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
 
-    if passwordFile is not None and passwordFile != "null":
-      subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
+  if passwordFile is not None and passwordFile != "null":
+    subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
 
   logging.info(
     "BootStrapping hosts "

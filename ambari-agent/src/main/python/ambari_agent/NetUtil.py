@@ -18,27 +18,19 @@
 from urllib.parse import urlparse
 import logging
 import http.client
-import ssl
 from ssl import SSLError
-from ambari_agent.AmbariConfig import AmbariConfig
-from ambari_commons.inet_utils import ensure_ssl_using_protocol
 
 ERROR_SSL_WRONG_VERSION = (
   "SSLError: Failed to connect. Please check openssl library versions. \n"
   + "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details."
 )
-LOG_REQUEST_MESSAGE = "GET %s -> %s, body: %s"
+LOG_REQUEST_MESSAGE = "GET %s -> %s, bodyLength=%s"
 
 logger = logging.getLogger(__name__)
 
-ensure_ssl_using_protocol(
-  AmbariConfig.get_resolved_config().get_force_https_protocol_name(),
-  AmbariConfig.get_resolved_config().get_ca_cert_file_path(),
-)
-
-
 class NetUtil:
   DEFAULT_CONNECT_RETRY_DELAY_SEC = 10
+  DEFAULT_CONNECTION_TIMEOUT_SEC = 10
   HEARTBEAT_IDLE_INTERVAL_DEFAULT_MIN_SEC = 1
   HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC = 10
   MINIMUM_INTERVAL_BETWEEN_HEARTBEATS = 0.1
@@ -57,6 +49,11 @@ class NetUtil:
         "server", "connect_retry_delay", default=self.DEFAULT_CONNECT_RETRY_DELAY_SEC
       )
     )
+    self.connection_timeout = float(
+      config.get(
+        "server", "connection_timeout", default=self.DEFAULT_CONNECTION_TIMEOUT_SEC
+      )
+    )
 
   def checkURL(self, url):
     """Try to connect to a given url. Result is True if url returns HTTP code 200, in any other case
@@ -67,29 +64,29 @@ class NetUtil:
     logger.info("Connecting to " + url)
     responseBody = ""
 
-    ssl_verify_cert = self.config.get("security", "ssl_verify_cert", "0") != "0"
-
+    ca_connection = None
     try:
       parsedurl = urlparse(url)
+      ca_connection = http.client.HTTPSConnection(
+        parsedurl.hostname,
+        parsedurl.port,
+        context=self.config.get_server_ssl_context(),
+        timeout=self.connection_timeout,
+      )
 
-      # hasattr being true means that current python version has default cert verification enabled.
-      if hasattr(ssl, "_create_unverified_context") and not ssl_verify_cert:
-        ca_connection = http.client.HTTPSConnection(
-          parsedurl[1], context=ssl._create_unverified_context()
-        )
-      else:
-        ca_connection = http.client.HTTPSConnection(parsedurl[1])
-
-      ca_connection.request("GET", parsedurl[2])
+      request_path = parsedurl.path or "/"
+      if parsedurl.query:
+        request_path = f"{request_path}?{parsedurl.query}"
+      ca_connection.request("GET", request_path)
       response = ca_connection.getresponse()
       status = response.status
 
       if status == 200:
         responseBody = response.read()
-        logger.debug(LOG_REQUEST_MESSAGE, url, str(status), responseBody)
+        logger.debug(LOG_REQUEST_MESSAGE, url, str(status), len(responseBody))
         return True, responseBody
       else:
-        logger.warning(LOG_REQUEST_MESSAGE, url, str(status), responseBody)
+        logger.warning(LOG_REQUEST_MESSAGE, url, str(status), len(responseBody))
         return False, responseBody
     except SSLError as slerror:
       logger.error(str(slerror))
@@ -99,6 +96,9 @@ class NetUtil:
     except Exception as e:
       logger.warning("Failed to connect to " + str(url) + " due to " + str(e) + "  ")
       return False, responseBody
+    finally:
+      if ca_connection is not None:
+        ca_connection.close()
 
   def try_to_connect(self, server_url, max_retries, logger=None):
     """Try to connect to a given url, sleeping for connect_retry_delay seconds

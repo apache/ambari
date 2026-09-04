@@ -57,6 +57,7 @@ PYTHON_WRAP="$ROOT/usr/bin/ambari-python-wrap"
 AMBARI_ENV="$ROOT/var/lib/ambari-server/ambari-env.sh"
 AMBARI_PYTHON_EXECUTABLE="$ROOT/usr/sbin/ambari-server.py"
 AMBARI_EXECUTABLE="$ROOT/usr/sbin/ambari-server"
+AMBARI_SERVER_LIB_DIR="$ROOT/usr/lib/ambari-server/lib"
 
 current_user=`id -u -n`
 echo "" | sudo -S -l > /dev/null 2>&1
@@ -66,8 +67,14 @@ if [ "$?" != "0" ] && [ "$EUID" -ne 0 ] ; then
 fi
 
 if [ -z "${PYTHON:-}" ] ; then
-  export PYTHON=`readlink $PYTHON_WRAP`
+  if [ ! -x "$PYTHON_WRAP" ]; then
+    echo "Cannot execute Ambari Python wrapper $PYTHON_WRAP." >&2
+    exit 1
+  fi
+  export PYTHON="$PYTHON_WRAP"
 fi
+
+RESOLVED_AMBARI_PASSPHRASE=${AMBARI_PASSPHRASE:-}
 
 if [ -a "$AMBARI_ENV" ]; then
   set +u # temporary disable variables checking for env
@@ -75,25 +82,72 @@ if [ -a "$AMBARI_ENV" ]; then
   set -u
 fi
 
-if [ -z "${AMBARI_PASSPHRASE:-}" ]; then
-  AMBARI_PASSPHRASE="DEV"
+if [ -n "${RESOLVED_AMBARI_PASSPHRASE}" ]; then
+  AMBARI_PASSPHRASE=${RESOLVED_AMBARI_PASSPHRASE}
+fi
+
+if [ -z "${AMBARI_PASSPHRASE:-}" ] || [ "${AMBARI_PASSPHRASE}" = "DEV" ]; then
+  umask 077
+  if ! AMBARI_PASSPHRASE=$(openssl rand -hex 32) || [ -z "${AMBARI_PASSPHRASE}" ]; then
+    echo "Unable to generate Ambari enrollment passphrase." >&2
+    exit 1
+  fi
+  AMBARI_ENV_DIR=$(dirname "${AMBARI_ENV}")
+  if ! mkdir -p "${AMBARI_ENV_DIR}"; then
+    echo "Unable to create ${AMBARI_ENV_DIR}." >&2
+    exit 1
+  fi
+  AMBARI_ENV_TEMP=$(mktemp "${AMBARI_ENV_DIR}/.ambari-env.XXXXXX") || {
+    echo "Unable to create a temporary Ambari environment file." >&2
+    exit 1
+  }
+  if [ -f "${AMBARI_ENV}" ]; then
+    if ! sed '/^[[:space:]]*\(export[[:space:]][[:space:]]*\)\?AMBARI_PASSPHRASE=/d' "${AMBARI_ENV}" > "${AMBARI_ENV_TEMP}"; then
+      rm -f "${AMBARI_ENV_TEMP}"
+      echo "Unable to read ${AMBARI_ENV}." >&2
+      exit 1
+    fi
+  fi
+  if ! printf '\nAMBARI_PASSPHRASE=%s\n' "${AMBARI_PASSPHRASE}" >> "${AMBARI_ENV_TEMP}" || ! chmod 600 "${AMBARI_ENV_TEMP}" || ! mv -f "${AMBARI_ENV_TEMP}" "${AMBARI_ENV}"; then
+    rm -f "${AMBARI_ENV_TEMP}"
+    echo "Unable to persist Ambari enrollment passphrase in ${AMBARI_ENV}." >&2
+    exit 1
+  fi
+fi
+
+if [ -f "${AMBARI_ENV}" ] && ! chmod 600 "${AMBARI_ENV}"; then
+  echo "Unable to secure ${AMBARI_ENV}." >&2
+  exit 1
 fi
 
 if [ -n "${JAVA_HOME:-}" ]; then
   export JAVA_HOME=$JAVA_HOME
 fi
 
-export AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
+export AMBARI_PASSPHRASE="${AMBARI_PASSPHRASE}"
+
+required_python_version() {
+  local abi_versions
+  abi_versions=$(find "${AMBARI_SERVER_LIB_DIR}" -type f -name '*.cpython-*-*.so' -exec basename {} \; 2>/dev/null \
+    | sed -n 's/.*\.cpython-\([0-9][0-9]*\)-.*/\1/p' \
+    | sort -u)
+  if [ -z "${abi_versions}" ] || [ "$(printf '%s\n' "${abi_versions}" | wc -l)" -ne 1 ]; then
+    return 1
+  fi
+  printf '%s.%s\n' "$(printf '%s' "${abi_versions}" | cut -c1)" "$(printf '%s' "${abi_versions}" | cut -c2-)"
+}
 
 # check for version
-majversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f1`
-minversion=`$PYTHON -V 2>&1 | awk '{print $2}' | cut -d'.' -f2`
-numversion=$(( 10 * $majversion + $minversion))
-if (( $numversion < 26 )); then
-  echo "Need python version > 2.6"
+python_version=`"$PYTHON" -c 'import sys; print(".".join(map(str, sys.version_info[:3])))' 2>/dev/null` || python_version="unknown"
+if ! packaged_python_version=$(required_python_version); then
+  echo "Cannot determine one CPython ABI from ${AMBARI_SERVER_LIB_DIR}." >&2
   exit 1
 fi
-echo "Using python " $PYTHON
+if ! "$PYTHON" -c 'import sys; required = tuple(map(int, sys.argv[1].split("."))); sys.exit(sys.version_info < (3, 9, 2) or sys.version_info[:2] != required)' "${packaged_python_version}" >/dev/null 2>&1; then
+  echo "Found Python version ${python_version}. Ambari Server requires Python ${packaged_python_version} matching the packaged dependencies and version 3.9.2 or newer."
+  exit 1
+fi
+echo "Using Python $PYTHON"
 
 ret=0
 case "${1:-}" in

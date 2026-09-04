@@ -17,7 +17,9 @@
 #}
 
 Client {
-com.sun.security.auth.module.Krb5LoginModule required
-useKeyTab=false
-useTicketCache=true;
+  com.sun.security.auth.module.Krb5LoginModule required
+  useKeyTab=false
+  useTicketCache=true
+  doNotPrompt=true
+  renewTGT=true;
 };

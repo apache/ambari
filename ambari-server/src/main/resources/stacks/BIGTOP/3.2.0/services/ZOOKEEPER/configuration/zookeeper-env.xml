@@ -92,18 +92,14 @@
     <display-name>zookeeper-env template</display-name>
     <description>This is the jinja template for zookeeper-env.sh file</description>
     <value>
-export JAVA_HOME={{java64_home}}
-export ZOOKEEPER_HOME={{zk_home}}
-export ZOO_LOG_DIR={{zk_log_dir}}
-export ZOOPIDFILE={{zk_pid_file}}
-export SERVER_JVMFLAGS={{zk_server_heapsize}}
-export JAVA=$JAVA_HOME/bin/java
-export CLASSPATH=$CLASSPATH:/usr/share/zookeeper/*
-
-{% if security_enabled %}
-export SERVER_JVMFLAGS="$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_server_jaas_file}}"
-export CLIENT_JVMFLAGS="$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}} -Dzookeeper.sasl.client.username={{zk_principal_user}}"
-{% endif %}
+export JAVA_HOME={{java64_home_shell}}
+export ZOOKEEPER_HOME={{zk_home_shell}}
+export ZOO_LOG_DIR={{zk_log_dir_shell}}
+export ZOOPIDFILE={{zk_pid_file_shell}}
+export ZK_SERVER_HEAP={{zk_server_heap_mb_shell}}
+export SERVER_JVMFLAGS={{zk_server_jvmflags_shell}}
+export CLIENT_JVMFLAGS={{zk_client_jvmflags_shell}}
+export JAVA={{java_executable_shell}}
     </value>
     <value-attributes>
       <type>content</type>

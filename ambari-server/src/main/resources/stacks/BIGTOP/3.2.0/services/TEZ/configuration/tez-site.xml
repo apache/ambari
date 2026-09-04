@@ -18,27 +18,13 @@
 -->
 <configuration supports_final="true">
   <property>
-    <name>tez.lib.uris.classpath</name>
-    <display-name>TEZ Lib URIs Classpath</display-name>
-    <value>{{hadoop_conf_dir}},{{hadoop_home}}/*,{{hadoop_home}}/lib/*,{{hadoop_hdfs_home}}/*,{{hadoop_hdfs_home}}/lib/*,{{hadoop_yarn_home}}/*,{{hadoop_yarn_home}}/lib/*,{{tez_home}}/*,{{tez_home}}/lib/*,{{tez_conf_dir}}</value>
-    <description>Comma-delimited list of the location of the Tez libraries Classpath which will be localized for DAGs.
-    </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>tez.lib.uris</name>
     <display-name>TEZ Lib URIs</display-name>
     <value>{{tez_lib_uris}}</value>
     <description>Comma-delimited list of the location of the Tez libraries which will be localized for DAGs.
-      Specifying a single .tar.gz or .tgz assumes that a compressed version of the tez libs is being used. This is uncompressed into a tezlibs directory when running containers, and tezlibs/;tezlibs/lib/ are added to the classpath (after . and .*).
+      Specifying a single .tar.gz or .tgz assumes that a compressed version of the Tez libs is being used. This is uncompressed into a tezlib directory when running containers, and tezlib/* and tezlib/lib/* are added to the classpath.
       If multiple files are specified - files are localized as regular files, contents of directories are localized as regular files (non-recursive).
     </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>tez.cluster.additional.classpath.prefix</name>
-    <value>/etc/hadoop/conf/secure</value>
-    <description/>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -56,7 +42,7 @@
   <property>
     <name>tez.staging-dir</name>
     <display-name>TEZ Staging directory</display-name>
-    <value>/tmp/${user.name}/staging</value>
+    <value>/tmp/${user.name}/tez/staging</value>
     <description>The staging dir used while submitting DAGs</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -74,7 +60,7 @@
   </property>
   <property>
     <name>tez.am.launch.cmd-opts</name>
-    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB{{heap_dump_opts}}</value>
+    <value>-verbose:gc -Xlog:gc*,safepoint::time,uptime -XX:+UseNUMA -XX:+UseParallelGC{{heap_dump_opts}}</value>
     <description>Java options for the Tez AppMaster process. The Xmx value is derived based on tez.am.resource.memory.mb and is 80% of the value by default.
       Used only if the value is not specified explicitly by the DAG definition.
     </description>
@@ -82,7 +68,7 @@
   </property>
   <property>
     <name>tez.am.launch.cluster-default.cmd-opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true</value>
+    <value>-server -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>Cluster default Java options for the Tez AppMaster process. These will be prepended to the properties specified via tez.am.launch.cmd-opts</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -120,7 +106,7 @@
   </property>
   <property>
     <name>tez.task.launch.cmd-opts</name>
-    <value>-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseG1GC -XX:+ResizeTLAB{{heap_dump_opts}}</value>
+    <value>-verbose:gc -Xlog:gc*,safepoint::time,uptime -XX:+UseNUMA -XX:+UseParallelGC{{heap_dump_opts}}</value>
     <description>Java options for tasks. The Xmx value is derived based on tez.task.resource.memory.mb and is 80% of this value by default.
       Used only if the value is not specified explicitly by the DAG definition.
     </description>
@@ -128,7 +114,7 @@
   </property>
   <property>
     <name>tez.task.launch.cluster-default.cmd-opts</name>
-    <value>-server -Djava.net.preferIPv4Stack=true</value>
+    <value>-server -Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN</value>
     <description>Cluster default Java options for tasks. These will be prepended to the properties specified via tez.task.launch.cmd-opts</description>
     <on-ambari-upgrade add="false"/>
   </property>
@@ -387,20 +373,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>tez.am.tez-ui.history-url.template</name>
-    <value>__HISTORY_URL_BASE__?viewPath=%2F%23%2Ftez-app%2F__APPLICATION_ID__</value>
-    <description>Template to generate the History URL for a particular Tez Application.
-       Template replaces __APPLICATION_ID__ with the actual applicationId and
-       __HISTORY_URL_BASE__ with the value from the tez.tez-ui.history-url.base config property
-    </description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>tez.tez-ui.history-url.base</name>
-    <description/>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>tez.am.view-acls</name>
     <value>*</value>
     <description>AM view ACLs. This allows the specified users/groups to view the status of the AM and all DAGs that run within this AM.
@@ -523,12 +495,6 @@
     <name>tez.history.logging.timeline-cache-plugin.old-num-dags-per-group</name>
     <value>5</value>
     <description>DAGs per group</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>yarn.timeline-service.enabled</name>
-    <value>false</value>
-    <description>Timeline service version we&#x2019;re currently using.</description>
     <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

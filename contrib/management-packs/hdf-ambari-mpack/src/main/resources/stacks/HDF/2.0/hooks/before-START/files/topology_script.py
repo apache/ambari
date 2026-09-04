@@ -17,15 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import sys, os
-try:
-  # Python 2
-  from string import join
-  import ConfigParser
-except ImportError:
-  # Python 3
-  join = ' '.join
-  import configparser as ConfigParser
+import configparser
+import os
+import sys
 
 DEFAULT_RACK = "/default-rack"
 DATA_FILE_NAME =  os.path.dirname(os.path.abspath(__file__)) + "/topology_mappings.data"
@@ -36,17 +30,20 @@ class TopologyScript():
   def load_rack_map(self):
     try:
       #RACK_MAP contains both host name vs rack and ip vs rack mappings
-      mappings = ConfigParser.ConfigParser()
+      mappings = configparser.ConfigParser()
       mappings.read(DATA_FILE_NAME)
       return dict(mappings.items(SECTION_NAME))
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
       return {}
 
   def get_racks(self, rack_map, args):
     if len(args) == 1:
       return DEFAULT_RACK
     else:
-      return join([self.lookup_by_hostname_or_ip(input_argument, rack_map) for input_argument in args[1:]],)
+      return " ".join(
+        self.lookup_by_hostname_or_ip(input_argument, rack_map)
+        for input_argument in args[1:]
+      )
 
   def lookup_by_hostname_or_ip(self, hostname_or_ip, rack_map):
     #try looking up by hostname

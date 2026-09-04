@@ -28,5 +28,4 @@ from resource_management.libraries.resources.properties_file import *
 from resource_management.libraries.resources.repository import *
 from resource_management.libraries.resources.monitor_webserver import *
 from resource_management.libraries.resources.hdfs_resource import *
-from resource_management.libraries.resources.msi import *
 from resource_management.libraries.resources.modify_properties_file import *

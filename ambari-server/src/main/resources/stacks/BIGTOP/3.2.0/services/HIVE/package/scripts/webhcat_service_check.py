@@ -15,81 +15,81 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
-import urllib.request, urllib.error, urllib.parse
+from contextlib import nullcontext
 
-from resource_management.core.logger import Logger
+from resource_management.core import shell
 from resource_management.core.exceptions import Fail
-from resource_management.core.resources.system import Execute, File
-from resource_management.core.source import StaticFile, Template
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons import OSConst
-import time
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
 
 
 def webhcat_service_check():
   import params
 
-  File(
-    format("{tmp_dir}/templetonSmoke.sh"),
-    content=StaticFile("templetonSmoke.sh"),
-    mode=0o755,
-  )
+  if not params.webhcat_server_host:
+    raise Fail("WebHCat has no configured host")
+  host = params.webhcat_server_host[0]
+  base_url = f"http://{host}:{params.templeton_port}/templeton/v1"
 
+  cache_context = nullcontext(None)
   if params.security_enabled:
-    smokeuser_keytab = params.smoke_user_keytab
-    smoke_user_principal = params.smokeuser_principal
-  else:
-    smokeuser_keytab = "no_keytab"
-    smoke_user_principal = "no_principal"
+    cache_context = PrivateKerberosCache(
+      params.smokeuser,
+      params.user_group,
+      params.tmp_dir,
+      "ambari-hive-webhcat-check-",
+    )
 
-  unique_name = format("{smokeuser}.{timestamp}", timestamp=time.time())
-  templeton_test_script = format("idtest.{unique_name}.pig")
-  templeton_test_input = format("/tmp/idtest.{unique_name}.in")
-  templeton_test_output = format("/tmp/idtest.{unique_name}.out")
+  with cache_context as cache:
+    environment = {"no_proxy": host}
+    if cache is not None:
+      cache.kinit(
+        params.kinit_path_local,
+        params.smoke_user_keytab,
+        params.smokeuser_principal,
+      )
+      environment = cache.merge_environment(environment)
 
-  File(
-    format("{tmp_dir}/{templeton_test_script}"),
-    content=Template(
-      "templeton_smoke.pig.j2",
-      templeton_test_input=templeton_test_input,
-      templeton_test_output=templeton_test_output,
-    ),
-    owner=params.hdfs_user,
-  )
+    common = ["curl", "--fail", "--silent", "--show-error"]
+    if params.security_enabled:
+      common.extend(("--negotiate", "-u", ":"))
 
-  params.HdfsResource(
-    format("/tmp/{templeton_test_script}"),
-    action="create_on_execute",
-    type="file",
-    source=format("{tmp_dir}/{templeton_test_script}"),
-    owner=params.smokeuser,
-  )
-
-  params.HdfsResource(
-    templeton_test_input,
-    action="create_on_execute",
-    type="file",
-    source="/etc/passwd",
-    owner=params.smokeuser,
-  )
-
-  params.HdfsResource(None, action="execute")
-
-  cmd = format(
-    "{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {templeton_port} {templeton_test_script} {has_pig} {smokeuser_keytab}"
-    " {security_param} {kinit_path_local} {smoke_user_principal}"
-    " {tmp_dir}"
-  )
-
-  Execute(
-    cmd,
-    tries=3,
-    try_sleep=5,
-    path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
-    logoutput=True,
-  )
+    shell.checked_call(
+      tuple(
+        common
+        + [
+          f"{base_url}/status",
+          "--get",
+          "--data-urlencode",
+          f"user.name={params.smokeuser}",
+        ]
+      ),
+      user=params.smokeuser,
+      env=environment,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      tries=3,
+      try_sleep=5,
+    )
+    shell.checked_call(
+      tuple(
+        common
+        + [
+          f"{base_url}/ddl",
+          "--data-urlencode",
+          f"user.name={params.smokeuser}",
+          "--data-urlencode",
+          "exec=show databases",
+        ]
+      ),
+      user=params.smokeuser,
+      env=environment,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      tries=3,
+      try_sleep=5,
+    )

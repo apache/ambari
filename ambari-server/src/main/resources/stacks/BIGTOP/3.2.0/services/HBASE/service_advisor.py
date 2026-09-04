@@ -1,4 +1,4 @@
-#!/usr/bin/env ambari-python-wrap
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,32 +18,26 @@ limitations under the License.
 """
 
 # Python imports
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import math
 import os
-import traceback
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
 PARENT_FILE = os.path.join(STACKS_DIR, "service_advisor.py")
 
-try:
-  if "BASE_SERVICE_ADVISOR" in os.environ:
-    PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
-  with open(PARENT_FILE, "rb") as fp:
-    service_advisor = imp.load_module(
-      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
-    )
-except Exception as e:
-  traceback.print_exc()
-  print("Failed to load parent")
+if "BASE_SERVICE_ADVISOR" in os.environ:
+  PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
+with open(PARENT_FILE, "rb") as fp:
+  service_advisor = import_utils.load_module(
+    "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
+  )
 
 
 class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
   def __init__(self, *args, **kwargs):
-    self.as_super = super(HBASEServiceAdvisor, self)
-    self.as_super.__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
 
     # Always call these methods
     self.modifyMastersWithMultipleInstances()
@@ -94,16 +88,14 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
     Modify the set of components whose host assignment is based on other services.
     Must be overriden in child class.
     """
-    # Nothing to do
-    pass
+    return None
 
   def modifyComponentsNotPreferableOnServer(self):
     """
     Modify the set of components that are not preferable on the server.
     Must be overriden in child class.
     """
-    # Nothing to do
-    pass
+    return None
 
   def modifyComponentLayoutSchemes(self):
     """
@@ -133,22 +125,22 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = HBASERecommender()
-    recommender.recommendHbaseConfigurationsFromHDP206(
+    recommender.recommendBaseMemoryAndSuperuser(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendHBASEConfigurationsFromHDP22(
+    recommender.removeObsoleteAtlasHook(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendHBASEConfigurationsFromHDP23(
+    recommender.recommendMemorySecurityAndStorage(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendHBASEConfigurationsFromHDP26(
+    recommender.recommendOffheapAndPhoenix(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendHBASEConfigurationsFromHDP30(
+    recommender.recommendRangerRepository(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendHBASEConfigurationsFromHDP301(
+    recommender.recommendRuntimeTuning(
       configurations, clusterData, services, hosts
     )
     recommender.recommendHBASEConfigurationsForKerberos(
@@ -186,7 +178,7 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
     )
 
   def isComponentUsingCardinalityForLayout(self, componentName):
-    return componentName in ["PHOENIX_QUERY_SERVER", "HBASE_THRIFT"]
+    return componentName == "HBASE_THRIFT"
 
 
 class HBASERecommender(service_advisor.ServiceAdvisor):
@@ -195,10 +187,57 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
   """
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(HBASERecommender, self)
-    self.as_super.__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
 
-  def recommendHbaseConfigurationsFromHDP206(
+  def isPhoenixEnabled(self, configurations, services):
+    updated = configurations.get("hbase-env", {}).get("properties", {})
+    current = services.get("configurations", {}).get("hbase-env", {}).get(
+      "properties", {}
+    )
+    value = updated.get("phoenix_sql_enabled")
+    if value is None:
+      value = current.get("phoenix_sql_enabled", False)
+    return str(value).strip().lower() == "true"
+
+  def removeObsoleteAtlasHook(
+    self, configurations, clusterData, services, hosts
+  ):
+    property_name = "hbase.coprocessor.master.classes"
+    obsolete_class = "org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor"
+    updated_hbase_site = configurations.get("hbase-site", {}).get(
+      "properties", {}
+    )
+    current_hbase_site = services.get("configurations", {}).get(
+      "hbase-site", {}
+    ).get("properties", {})
+    configured_classes = updated_hbase_site.get(property_name)
+    if configured_classes is None:
+      configured_classes = current_hbase_site.get(property_name, "")
+    if isinstance(configured_classes, str):
+      classes = [
+        item.strip() for item in configured_classes.split(",") if item.strip()
+      ]
+      retained_classes = [item for item in classes if item != obsolete_class]
+      if retained_classes != classes:
+        putHbaseSiteProperty = self.putProperty(
+          configurations, "hbase-site", services
+        )
+        putHbaseSiteProperty(property_name, ",".join(retained_classes))
+
+    updated_hbase_env = configurations.get("hbase-env", {}).get("properties", {})
+    current_hbase_env = services.get("configurations", {}).get(
+      "hbase-env", {}
+    ).get("properties", {})
+    if (
+      "hbase.atlas.hook" in updated_hbase_env
+      or "hbase.atlas.hook" in current_hbase_env
+    ):
+      putHbaseEnvPropertyAttributes = self.putPropertyAttribute(
+        configurations, "hbase-env"
+      )
+      putHbaseEnvPropertyAttributes("hbase.atlas.hook", "delete", "true")
+
+  def recommendBaseMemoryAndSuperuser(
     self, configurations, clusterData, services, hosts
   ):
     # recommendations for HBase env config
@@ -225,24 +264,22 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     # recommendations for HBase site config
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
 
-    if (
-      "hbase-site" in services["configurations"]
-      and "hbase.superuser" in services["configurations"]["hbase-site"]["properties"]
-      and "hbase-env" in services["configurations"]
-      and "hbase_user" in services["configurations"]["hbase-env"]["properties"]
-      and services["configurations"]["hbase-env"]["properties"]["hbase_user"]
-      != services["configurations"]["hbase-site"]["properties"]["hbase.superuser"]
-    ):
-      putHbaseSiteProperty(
-        "hbase.superuser",
-        services["configurations"]["hbase-env"]["properties"]["hbase_user"],
-      )
+    hbase_env = services["configurations"].get("hbase-env", {}).get("properties", {})
+    hbase_site = services["configurations"].get("hbase-site", {}).get("properties", {})
+    hbase_user = hbase_env.get("hbase_user")
+    if hbase_user:
+      superusers = [
+        user.strip() for user in hbase_site.get("hbase.superuser", "").split(",")
+        if user.strip()
+      ]
+      if hbase_user not in superusers:
+        putHbaseSiteProperty("hbase.superuser", ",".join((*superusers, hbase_user)))
 
   def isHBaseKerberosEnabled(self, configurations, services):
     """
     Determine if Kerberos is enabled for HBase.
 
-    If hbase-site/hbase.security.authentication exists and is set to "true" or "yes", return True;
+    If hbase-site/hbase.security.authentication exists and is set to "kerberos", return True;
     otherwise return false.
 
     The value of this property is first tested in the updated configurations (configurations) then
@@ -281,7 +318,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     else:
       return False
 
-  def recommendHBASEConfigurationsFromHDP22(
+  def recommendMemorySecurityAndStorage(
     self, configurations, clusterData, services, hosts
   ):
     putHbaseEnvPropertyAttributes = self.putPropertyAttribute(
@@ -314,19 +351,11 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     )
     putHbaseSiteProperty("hbase.regionserver.global.memstore.size", "0.4")
 
-    if (
-      "hbase-env" in services["configurations"]
-      and "phoenix_sql_enabled" in services["configurations"]["hbase-env"]["properties"]
-      and "true"
-      == services["configurations"]["hbase-env"]["properties"][
-        "phoenix_sql_enabled"
-      ].lower()
-    ):
+    if self.isPhoenixEnabled(configurations, services):
       putHbaseSiteProperty(
         "hbase.regionserver.wal.codec",
         "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
       )
-      putHbaseSiteProperty("phoenix.functions.allowUserDefinedFunctions", "true")
     else:
       putHbaseSiteProperty(
         "hbase.regionserver.wal.codec",
@@ -379,85 +408,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
         ]
         putHbaseRangerPluginProperty("policy_user", smoke_user)
 
-    # Recommend configs for bucket cache
-    threshold = 23  # 2 Gb is reserved for other offheap memory
-    mb = 1024
-    if int(clusterData["hbaseRam"]) > threshold:
-      # To enable cache - calculate values
-      regionserver_total_ram = int(clusterData["hbaseRam"]) * mb
-      regionserver_heap_size = 20480
-      regionserver_max_direct_memory_size = (
-        regionserver_total_ram - regionserver_heap_size
-      )
-      hfile_block_cache_size = "0.4"
-      block_cache_heap = 8192  # int(regionserver_heap_size * hfile_block_cache_size)
-      hbase_regionserver_global_memstore_size = "0.4"
-      reserved_offheap_memory = 2048
-      bucketcache_offheap_memory = (
-        regionserver_max_direct_memory_size - reserved_offheap_memory
-      )
-      hbase_bucketcache_size = bucketcache_offheap_memory
-      hbase_bucketcache_percentage_in_combinedcache = (
-        float(bucketcache_offheap_memory) / hbase_bucketcache_size
-      )
-      hbase_bucketcache_percentage_in_combinedcache_str = f"{math.ceil(hbase_bucketcache_percentage_in_combinedcache * 10000) / 10000.0:.4f}"
-
-      # Set values in hbase-site
-      putHbaseSiteProperty("hfile.block.cache.size", hfile_block_cache_size)
-      putHbaseSiteProperty(
-        "hbase.regionserver.global.memstore.size",
-        hbase_regionserver_global_memstore_size,
-      )
-      putHbaseSiteProperty("hbase.bucketcache.ioengine", "offheap")
-      putHbaseSiteProperty("hbase.bucketcache.size", hbase_bucketcache_size)
-      putHbaseSiteProperty(
-        "hbase.bucketcache.percentage.in.combinedcache",
-        hbase_bucketcache_percentage_in_combinedcache_str,
-      )
-
-      # Enable in hbase-env
-      putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
-      putHbaseEnvProperty(
-        "hbase_max_direct_memory_size", regionserver_max_direct_memory_size
-      )
-      putHbaseEnvProperty("hbase_regionserver_heapsize", regionserver_heap_size)
-    else:
-      # Disable
-      if (
-        "hbase.bucketcache.ioengine" in configurations["hbase-site"]["properties"]
-      ) or (
-        "hbase-site" in services["configurations"]
-        and "hbase.bucketcache.ioengine"
-        in services["configurations"]["hbase-site"]["properties"]
-      ):
-        putHbaseSitePropertyAttributes("hbase.bucketcache.ioengine", "delete", "true")
-      if ("hbase.bucketcache.size" in configurations["hbase-site"]["properties"]) or (
-        "hbase-site" in services["configurations"]
-        and "hbase.bucketcache.size"
-        in services["configurations"]["hbase-site"]["properties"]
-      ):
-        putHbaseSitePropertyAttributes("hbase.bucketcache.size", "delete", "true")
-      if (
-        "hbase.bucketcache.percentage.in.combinedcache"
-        in configurations["hbase-site"]["properties"]
-      ) or (
-        "hbase-site" in services["configurations"]
-        and "hbase.bucketcache.percentage.in.combinedcache"
-        in services["configurations"]["hbase-site"]["properties"]
-      ):
-        putHbaseSitePropertyAttributes(
-          "hbase.bucketcache.percentage.in.combinedcache", "delete", "true"
-        )
-      if (
-        "hbase_max_direct_memory_size" in configurations["hbase-env"]["properties"]
-      ) or (
-        "hbase-env" in services["configurations"]
-        and "hbase_max_direct_memory_size"
-        in services["configurations"]["hbase-env"]["properties"]
-      ):
-        putHbaseEnvPropertyAttributes("hbase_max_direct_memory_size", "delete", "true")
-
-  def recommendHBASEConfigurationsFromHDP23(
+  def recommendOffheapAndPhoenix(
     self, configurations, clusterData, services, hosts
   ):
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
@@ -469,7 +420,6 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       configurations, "hbase-env"
     )
 
-    # bucket cache for 1.x is configured slightly differently, HBASE-11520
     threshold = 23  # 2 Gb is reserved for other offheap memory
     if int(clusterData["hbaseRam"]) > threshold:
       # To enable cache - calculate values
@@ -479,7 +429,6 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
         regionserver_total_ram - regionserver_heap_size
       )
       hfile_block_cache_size = "0.4"
-      block_cache_heap = 8192  # int(regionserver_heap_size * hfile_block_cache_size)
       hbase_regionserver_global_memstore_size = "0.4"
       reserved_offheap_memory = 2048
       bucketcache_offheap_memory = (
@@ -495,7 +444,6 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       )
       putHbaseSiteProperty("hbase.bucketcache.ioengine", "offheap")
       putHbaseSiteProperty("hbase.bucketcache.size", hbase_bucketcache_size)
-      # 2.2 stack method was called earlier, unset
       putHbaseSitePropertyAttributes(
         "hbase.bucketcache.percentage.in.combinedcache", "delete", "true"
       )
@@ -515,20 +463,19 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
       putHbaseEnvPropertyAttributes("hbase_max_direct_memory_size", "delete", "true")
 
-    if (
-      "hbase-env" in services["configurations"]
-      and "phoenix_sql_enabled" in services["configurations"]["hbase-env"]["properties"]
-      and "true"
-      == services["configurations"]["hbase-env"]["properties"][
-        "phoenix_sql_enabled"
-      ].lower()
-    ):
+    if self.isPhoenixEnabled(configurations, services):
+      updated_hbase_site = configurations.get("hbase-site", {}).get(
+        "properties", {}
+      )
+      current_hbase_site = services.get("configurations", {}).get(
+        "hbase-site", {}
+      ).get("properties", {})
+      controller_factory = updated_hbase_site.get(
+        "hbase.rpc.controllerfactory.class",
+        current_hbase_site.get("hbase.rpc.controllerfactory.class"),
+      )
       if (
-        "hbase.rpc.controllerfactory.class"
-        in services["configurations"]["hbase-site"]["properties"]
-        and services["configurations"]["hbase-site"]["properties"][
-          "hbase.rpc.controllerfactory.class"
-        ]
+        controller_factory
         == "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory"
       ):
         putHbaseSitePropertyAttributes(
@@ -544,7 +491,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
         "hbase.region.server.rpc.scheduler.factory.class", "delete", "true"
       )
 
-  def recommendHBASEConfigurationsFromHDP26(
+  def recommendRangerRepository(
     self, configurations, clusterData, services, hosts
   ):
     if (
@@ -571,103 +518,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     else:
       self.logger.info("Not setting Hbase Repo user for Ranger.")
 
-  def recommendHBASEConfigurationsFromHDP30(
-    self, configurations, clusterData, services, hosts
-  ):
-    # Hbase-hook configurations for Atlas
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
-    hbase_atlas_hook_property = "hbase.coprocessor.master.classes"
-    hbase_atlas_hook_impl_class = "org.apache.atlas.hbase.hook.HBaseAtlasCoprocessor"
-    if hbase_atlas_hook_property in configurations["hbase-site"]["properties"]:
-      hbase_master_coprocessor_value = configurations["hbase-site"]["properties"][
-        "hbase.coprocessor.master.classes"
-      ]
-    else:
-      hbase_master_coprocessor_value = ""
-
-    hbase_master_coprocessor_list = [
-      coprocessor_class.strip(" ")
-      for coprocessor_class in hbase_master_coprocessor_value.split(",")
-    ]
-    hbase_master_coprocessor_list = [
-      coprocessor_class
-      for coprocessor_class in hbase_master_coprocessor_list
-      if coprocessor_class != ""
-    ]
-
-    is_atlas_present_in_cluster = "ATLAS" in servicesList
-    putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
-    putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
-    putHBaseAtlasHookProperty = self.putProperty(
-      configurations, "hbase-atlas-application-properties", services
-    )
-    putHBaseAtlasHookPropertyAttribute = self.putPropertyAttribute(
-      configurations, "hbase-atlas-application-properties"
-    )
-    if (
-      "hbase-atlas-application-properties" in services["configurations"]
-      and "enable.external.atlas.for.hbase"
-      in services["configurations"]["hbase-atlas-application-properties"]["properties"]
-    ):
-      enable_external_hook_for_hbase = (
-        services["configurations"]["hbase-atlas-application-properties"]["properties"][
-          "enable.external.atlas.for.hbase"
-        ].lower()
-        == "true"
-      )
-    else:
-      enable_external_hook_for_hbase = False
-
-    if is_atlas_present_in_cluster:
-      putHbaseEnvProperty("hbase.atlas.hook", "true")
-    elif enable_external_hook_for_hbase:
-      putHbaseEnvProperty("hbase.atlas.hook", "true")
-    else:
-      putHbaseEnvProperty("hbase.atlas.hook", "false")
-
-    if (
-      "hbase-env" in configurations
-      and "hbase.atlas.hook" in configurations["hbase-env"]["properties"]
-    ):
-      enable_hbase_atlas_hook = (
-        configurations["hbase-env"]["properties"]["hbase.atlas.hook"] == "true"
-      )
-    elif (
-      "hbase-env" in services["configurations"]
-      and "hbase.atlas.hook" in services["configurations"]["hbase-env"]["properties"]
-    ):
-      enable_hbase_atlas_hook = (
-        services["configurations"]["hbase-env"]["properties"]["hbase.atlas.hook"]
-        == "true"
-      )
-    else:
-      enable_hbase_atlas_hook = False
-
-    if enable_hbase_atlas_hook:
-      is_hbase_atlas_hook_in_config = (
-        hbase_atlas_hook_impl_class in hbase_master_coprocessor_list
-      )
-      if not is_hbase_atlas_hook_in_config:
-        hbase_master_coprocessor_list.append(hbase_atlas_hook_impl_class)
-      else:
-        self.logger.info("hbase-atlas hook is already present in configuration.")
-    else:
-      hbase_master_coprocessor_list = [
-        hbase_master_coprocessor
-        for hbase_master_coprocessor in hbase_master_coprocessor_list
-        if hbase_master_coprocessor != hbase_atlas_hook_impl_class
-      ]
-
-    hbase_master_coprocessor_value = (
-      ""
-      if len(hbase_master_coprocessor_list) == 0
-      else ",".join(hbase_master_coprocessor_list)
-    )
-    putHbaseSiteProperty(hbase_atlas_hook_property, hbase_master_coprocessor_value)
-
-  def recommendHBASEConfigurationsFromHDP301(
+  def recommendRuntimeTuning(
     self, configurations, clusterData, services, hosts
   ):
     # Setters
@@ -684,7 +535,9 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
     # We want a maximum of 8 parallel GC threads by default, but do not
     # exceed the number of CPUs available.
-    parallelGCThreads = int(math.floor(cores / 2)) if cores > 8 else min(8, cores)
+    parallelGCThreads = max(
+      1, int(math.floor(cores / 2)) if cores > 8 else min(8, cores)
+    )
     putHbaseEnvProperty("hbase_parallel_gc_threads", parallelGCThreads)
 
     # Increase the number of small compaction threads by default
@@ -696,9 +549,12 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
   def setHandlerCounts(self, configurations, clusterData, services, hosts, cores):
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
+    putHbaseSitePropertyAttributes = self.putPropertyAttribute(
+      configurations, "hbase-site"
+    )
     # The amount of RAM that Ambari says HBase should use
     hbaseRamInMB = int(clusterData["hbaseRam"]) * 1024
-    self.logger.info("hbaseRam=%d, cores=%d" % (hbaseRamInMB, cores))
+    self.logger.info(f"hbaseRam={hbaseRamInMB}, cores={cores}")
     # A mapping of JVM max heap and number of cores to the number of handlers we should use
     # Logic should choose the first element in the list in which either mem_limit or cpu_limit
     # are not met.
@@ -719,14 +575,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     ]
 
     # Is Phoenix enabled?
-    phoenix_enabled = (
-      "hbase-env" in services["configurations"]
-      and "phoenix_sql_enabled" in services["configurations"]["hbase-env"]["properties"]
-      and "true"
-      == services["configurations"]["hbase-env"]["properties"][
-        "phoenix_sql_enabled"
-      ].lower()
-    )
+    phoenix_enabled = self.isPhoenixEnabled(configurations, services)
     recommendations = (
       phoenix_recommendations if phoenix_enabled else hbase_recommendations
     )
@@ -749,11 +598,15 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       if phoenix_enabled:
         index_handlers = level["index_handlers"]
 
-    self.logger.info("Setting HBase handlers to %d" % (handlers))
+    self.logger.info(f"Setting HBase handlers to {handlers}")
     putHbaseSiteProperty("hbase.regionserver.handler.count", handlers)
     if phoenix_enabled:
-      self.logger.info("Setting Phoenix index handlers to %d" % (index_handlers))
+      self.logger.info(f"Setting Phoenix index handlers to {index_handlers}")
       putHbaseSiteProperty("phoenix.rpc.index.handler.count", index_handlers)
+    else:
+      putHbaseSitePropertyAttributes(
+        "phoenix.rpc.index.handler.count", "delete", "true"
+      )
 
   def recommendHBASEConfigurationsForKerberos(
     self, configurations, clusterData, services, hosts
@@ -763,34 +616,12 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       configurations, "hbase-site"
     )
 
-    putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
-
     is_kerberos_enabled = self.isHBaseKerberosEnabled(configurations, services)
 
     if is_kerberos_enabled:
       # Set the master's UI to readonly
       putHbaseSiteProperty("hbase.master.ui.readonly", "true")
 
-      phoenix_query_server_hosts = self.getPhoenixQueryServerHosts(services, hosts)
-      self.logger.debug(
-        f"Calculated Phoenix Query Server hosts: {str(phoenix_query_server_hosts)}"
-      )
-      if phoenix_query_server_hosts:
-        self.logger.debug(
-          f"Attempting to update hadoop.proxyuser.HTTP.hosts with {str(phoenix_query_server_hosts)}"
-        )
-        # The PQS hosts we want to ensure are set
-        new_value = ",".join(phoenix_query_server_hosts)
-        # Update the proxyuser setting, deferring to out callback to merge results together
-        self.put_proxyuser_value(
-          "HTTP",
-          new_value,
-          services=services,
-          configurations=configurations,
-          put_function=putCoreSiteProperty,
-        )
-      else:
-        self.logger.debug("No phoenix query server hosts to update")
     else:
       putHbaseSiteProperty("hbase.master.ui.readonly", "false")
 
@@ -808,7 +639,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     )
 
     for key in hbaseCoProcessorConfigs:
-      putHbaseSiteProperty(key, ",".join(set(hbaseCoProcessorConfigs[key])))
+      putHbaseSiteProperty(key, ",".join(hbaseCoProcessorConfigs[key]))
 
     for key in hbaseCoProcessorConfigAttributes:
       for item in hbaseCoProcessorConfigAttributes[key]:
@@ -887,20 +718,12 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
             authRegionClasses[item]
           )
       else:
-        if (
+        access_controller = (
           "org.apache.hadoop.hbase.security.access.AccessController"
-          in hbaseCoProcessorConfigs["hbase.coprocessor.region.classes"]
-        ):
-          hbaseCoProcessorConfigs["hbase.coprocessor.region.classes"].remove(
-            "org.apache.hadoop.hbase.security.access.AccessController"
-          )
-        if (
-          "org.apache.hadoop.hbase.security.access.AccessController"
-          in hbaseCoProcessorConfigs["hbase.coprocessor.master.classes"]
-        ):
-          hbaseCoProcessorConfigs["hbase.coprocessor.master.classes"].remove(
-            "org.apache.hadoop.hbase.security.access.AccessController"
-          )
+        )
+        for coprocessor_classes in hbaseCoProcessorConfigs.values():
+          if access_controller in coprocessor_classes:
+            coprocessor_classes.remove(access_controller)
 
         hbaseCoProcessorConfigs["hbase.coprocessor.region.classes"].append(
           "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint"
@@ -952,37 +775,23 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
 
     # Remove duplicates
     for key in hbaseCoProcessorConfigs:
-      uniqueCoprocessorRegionClassList = []
-      [
-        uniqueCoprocessorRegionClassList.append(i)
-        for i in hbaseCoProcessorConfigs[key]
-        if not i in uniqueCoprocessorRegionClassList
-        and (
-          i.strip()
-          not in [
-            "{{hbase_coprocessor_region_classes}}",
-            "{{hbase_coprocessor_master_classes}}",
-            "{{hbase_coprocessor_regionserver_classes}}",
-          ]
-        )
-      ]
-      hbaseCoProcessorConfigs[key] = uniqueCoprocessorRegionClassList
+      unique_classes = []
+      template_values = {
+        "{{hbase_coprocessor_region_classes}}",
+        "{{hbase_coprocessor_master_classes}}",
+        "{{hbase_coprocessor_regionserver_classes}}",
+      }
+      for coprocessor_class in hbaseCoProcessorConfigs[key]:
+        coprocessor_class = coprocessor_class.strip()
+        if coprocessor_class and coprocessor_class not in template_values:
+          if coprocessor_class not in unique_classes:
+            unique_classes.append(coprocessor_class)
+      hbaseCoProcessorConfigs[key] = unique_classes
 
     # Add Ranger plugin-specific coprocessor
-    rangerServiceVersion = ""
-    if self.isServiceDeployed(services, "RANGER"):
-      rangerServiceVersion = [
-        service["StackServices"]["service_version"]
-        for service in services["services"]
-        if service["StackServices"]["service_name"] == "RANGER"
-      ][0]
-
-    if rangerServiceVersion and rangerServiceVersion == "0.4.0":
-      rangerClass = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
-    else:
-      rangerClass = (
-        "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
-      )
+    rangerClass = (
+      "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
+    )
 
     nonRangerClass = "org.apache.hadoop.hbase.security.access.AccessController"
 
@@ -991,27 +800,13 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       if ranger_hbase_plugin_enabled:
         if nonRangerClass in coprocessorClasses:
           coprocessorClasses.remove(nonRangerClass)
-        if not rangerClass in coprocessorClasses:
+        if rangerClass not in coprocessorClasses:
           coprocessorClasses.append(rangerClass)
       else:
         if rangerClass in coprocessorClasses:
           coprocessorClasses.remove(rangerClass)
-          if not nonRangerClass in coprocessorClasses and is_kerberos_enabled:
-            coprocessorClasses.append(nonRangerClass)
 
     return hbaseCoProcessorConfigs, hbaseCoProcessorConfigAttributes
-
-  def getPhoenixQueryServerHosts(self, services, hosts):
-    """
-    Returns the list of Phoenix Query Server host names, or None.
-    """
-    if len(hosts["items"]) > 0:
-      phoenix_query_server_hosts = self.getHostsWithComponent(
-        "HBASE", "PHOENIX_QUERY_SERVER", services, hosts
-      )
-      if phoenix_query_server_hosts is None:
-        return []
-      return [host["Hosts"]["host_name"] for host in phoenix_query_server_hosts]
 
   def isRangerPluginEnabled(self, configurations, services):
     if (
@@ -1022,8 +817,8 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       ranger_hbase_plugin_enabled = (
         configurations["ranger-hbase-plugin-properties"]["properties"][
           "ranger-hbase-plugin-enabled"
-        ].lower()
-        == "Yes".lower()
+        ].strip().lower()
+        in ("1", "true", "yes")
       )
     elif (
       "ranger-hbase-plugin-properties" in services["configurations"]
@@ -1033,8 +828,8 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       ranger_hbase_plugin_enabled = (
         services["configurations"]["ranger-hbase-plugin-properties"]["properties"][
           "ranger-hbase-plugin-enabled"
-        ].lower()
-        == "Yes".lower()
+        ].strip().lower()
+        in ("1", "true", "yes")
       )
     else:
       ranger_hbase_plugin_enabled = False
@@ -1049,21 +844,21 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
   """
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(HBASEValidator, self)
-    self.as_super.__init__(*args, **kwargs)
+    super().__init__(*args, **kwargs)
 
     self.validators = [
-      ("hbase-env", self.validateHbaseEnvConfigurationsFromHDP206),
-      ("hbase-site", self.validateHBASEConfigurationsFromHDP22),
-      ("hbase-env", self.validateHBASEEnvConfigurationsFromHDP22),
+      ("hbase-env", self.validateBaseEnvironment),
+      ("hbase-env", self.validatePhoenixEnablement),
+      ("hbase-site", self.validateMemoryAndSecurity),
+      ("hbase-env", self.validateOffheapEnvironment),
       (
         "ranger-hbase-plugin-properties",
-        self.validateHBASERangerPluginConfigurationsFromHDP22,
+        self.validateRangerPlugin,
       ),
-      ("hbase-site", self.validateHBASEConfigurationsFromHDP23),
+      ("hbase-site", self.validateRangerAuthorization),
     ]
 
-  def validateHbaseEnvConfigurationsFromHDP206(
+  def validateBaseEnvironment(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     hbase_site = self.getSiteProperties(configurations, "hbase-site")
@@ -1089,14 +884,35 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
     ]
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
+  def validatePhoenixEnablement(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    value = properties.get("phoenix_sql_enabled", False)
+    valid = isinstance(value, bool) or (
+      isinstance(value, str) and value.strip().lower() in ("true", "false")
+    )
+    validationItems = []
+    if not valid:
+      validationItems.append(
+        {
+          "config-name": "phoenix_sql_enabled",
+          "item": self.getErrorItem(
+            "hbase-env/phoenix_sql_enabled must be true or false"
+          ),
+        }
+      )
+    return self.toConfigurationValidationProblems(validationItems, "hbase-env")
+
   def is_number(self, s):
     try:
-      float(s)
-      return True
-    except ValueError:
-      pass
+      return math.isfinite(float(s))
+    except (TypeError, ValueError):
+      return False
 
-  def validateHBASEConfigurationsFromHDP22(
+  def is_enabled(self, value):
+    return str(value or "").strip().lower() in ("1", "true", "yes")
+
+  def validateMemoryAndSecurity(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     hbase_site = properties
@@ -1106,24 +922,46 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
     prop_name2 = "hfile.block.cache.size"
     props_max_sum = 0.8
 
-    if prop_name1 in hbase_site and not self.is_number(hbase_site[prop_name1]):
+    memstore_is_number = self.is_number(hbase_site.get(prop_name1))
+    block_cache_is_number = self.is_number(hbase_site.get(prop_name2))
+    if not memstore_is_number:
       validationItems.append(
         {
           "config-name": prop_name1,
           "item": self.getWarnItem(f"{prop_name1} should be float value"),
         }
       )
-    elif prop_name2 in hbase_site and not self.is_number(hbase_site[prop_name2]):
+    if not block_cache_is_number:
       validationItems.append(
         {
           "config-name": prop_name2,
           "item": self.getWarnItem(f"{prop_name2} should be float value"),
         }
       )
-    elif (
-      prop_name1 in hbase_site
-      and prop_name2 in hbase_site
-      and float(hbase_site[prop_name1]) + float(hbase_site[prop_name2]) > props_max_sum
+    if memstore_is_number and block_cache_is_number:
+      memstore_size = float(hbase_site[prop_name1])
+      block_cache_size = float(hbase_site[prop_name2])
+    else:
+      memstore_size = 0
+      block_cache_size = 0
+    if memstore_is_number and not 0 <= memstore_size <= 1:
+      validationItems.append(
+        {
+          "config-name": prop_name1,
+          "item": self.getWarnItem(f"{prop_name1} must be between 0 and 1"),
+        }
+      )
+    if block_cache_is_number and not 0 <= block_cache_size <= 1:
+      validationItems.append(
+        {
+          "config-name": prop_name2,
+          "item": self.getWarnItem(f"{prop_name2} must be between 0 and 1"),
+        }
+      )
+    if (
+      memstore_is_number
+      and block_cache_is_number
+      and memstore_size + block_cache_size > props_max_sum
     ):
       validationItems.append(
         {
@@ -1151,13 +989,10 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
 
     prop_name1 = "hbase.bucketcache.ioengine"
     prop_name2 = "hbase.bucketcache.size"
-    prop_name3 = "hbase.bucketcache.percentage.in.combinedcache"
-
     if (
       prop_name1 in hbase_site
-      and prop_name2 in hbase_site
       and hbase_site[prop_name1]
-      and not hbase_site[prop_name2]
+      and not hbase_site.get(prop_name2)
     ):
       validationItems.append(
         {
@@ -1167,21 +1002,6 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
           ),
         }
       )
-    if (
-      prop_name1 in hbase_site
-      and prop_name3 in hbase_site
-      and hbase_site[prop_name1]
-      and not hbase_site[prop_name3]
-    ):
-      validationItems.append(
-        {
-          "config-name": prop_name3,
-          "item": self.getWarnItem(
-            f"If bucketcache ioengine is enabled, {prop_name3} should be set"
-          ),
-        }
-      )
-
     # Validate hbase.security.authentication.
     # Kerberos works only when security enabled.
     if "hbase.security.authentication" in properties:
@@ -1192,8 +1012,11 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
       security_enabled = False
       if core_site_properties:
         security_enabled = (
-          core_site_properties["hadoop.security.authentication"] == "kerberos"
-          and core_site_properties["hadoop.security.authorization"] == "true"
+          str(core_site_properties.get("hadoop.security.authentication", "")).lower()
+          == "kerberos"
+          and self.is_enabled(
+            core_site_properties.get("hadoop.security.authorization")
+          )
         )
       if not security_enabled and hbase_security_kerberos:
         validationItems.append(
@@ -1207,34 +1030,20 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-site")
 
-  def validateHBASEEnvConfigurationsFromHDP22(
+  def validateOffheapEnvironment(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     hbase_env = properties
-    validationItems = [
-      {
-        "config-name": "hbase_regionserver_heapsize",
-        "item": self.validatorLessThenDefaultValue(
-          properties, recommendedDefaults, "hbase_regionserver_heapsize"
-        ),
-      },
-      {
-        "config-name": "hbase_master_heapsize",
-        "item": self.validatorLessThenDefaultValue(
-          properties, recommendedDefaults, "hbase_master_heapsize"
-        ),
-      },
-    ]
+    validationItems = []
     prop_name = "hbase_max_direct_memory_size"
     hbase_site_properties = self.getSiteProperties(configurations, "hbase-site")
     prop_name1 = "hbase.bucketcache.ioengine"
 
     if (
       prop_name1 in hbase_site_properties
-      and prop_name in hbase_env
       and hbase_site_properties[prop_name1]
       and hbase_site_properties[prop_name1] == "offheap"
-      and not hbase_env[prop_name]
+      and not hbase_env.get(prop_name)
     ):
       validationItems.append(
         {
@@ -1247,7 +1056,7 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
-  def validateHBASERangerPluginConfigurationsFromHDP22(
+  def validateRangerPlugin(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     validationItems = []
@@ -1257,18 +1066,29 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
     ranger_plugin_properties = self.getSiteProperties(
       configurations, "ranger-hbase-plugin-properties"
     )
-    ranger_plugin_enabled = (
-      ranger_plugin_properties["ranger-hbase-plugin-enabled"]
-      if ranger_plugin_properties
-      else "No"
+    ranger_plugin_enabled = (ranger_plugin_properties or {}).get(
+      "ranger-hbase-plugin-enabled", "No"
     )
-    if "RANGER" in servicesList and ranger_plugin_enabled.lower() == "yes":
-      # ranger-hdfs-plugin must be enabled in ranger-env
+    if self.is_enabled(ranger_plugin_enabled):
+      repository_password = (ranger_plugin_properties or {}).get(
+        "REPOSITORY_CONFIG_PASSWORD"
+      )
+      if not isinstance(repository_password, str) or not repository_password.strip():
+        validationItems.append(
+          {
+            "config-name": "REPOSITORY_CONFIG_PASSWORD",
+            "item": self.getErrorItem(
+              "Ranger HBase repository config password must not be empty when "
+              "the plugin is enabled"
+            ),
+          }
+        )
+    if "RANGER" in servicesList and self.is_enabled(ranger_plugin_enabled):
+      # The service-specific plugin flag must agree with ranger-env.
       ranger_env = self.getServicesSiteProperties(services, "ranger-env")
       if (
         not ranger_env
-        or not "ranger-hbase-plugin-enabled" in ranger_env
-        or ranger_env["ranger-hbase-plugin-enabled"].lower() != "yes"
+        or not self.is_enabled(ranger_env.get("ranger-hbase-plugin-enabled"))
       ):
         validationItems.append(
           {
@@ -1282,7 +1102,7 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
       validationItems, "ranger-hbase-plugin-properties"
     )
 
-  def validateHBASEConfigurationsFromHDP23(
+  def validateRangerAuthorization(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     hbase_site = properties
@@ -1292,61 +1112,47 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
     ranger_plugin_properties = self.getSiteProperties(
       configurations, "ranger-hbase-plugin-properties"
     )
-    ranger_plugin_enabled = (
-      ranger_plugin_properties["ranger-hbase-plugin-enabled"]
-      if ranger_plugin_properties
-      else "No"
+    ranger_plugin_enabled = (ranger_plugin_properties or {}).get(
+      "ranger-hbase-plugin-enabled", "No"
     )
     prop_name = "hbase.security.authorization"
     prop_val = "true"
     servicesList = [
       service["StackServices"]["service_name"] for service in services["services"]
     ]
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == "Yes".lower()):
-      if hbase_site[prop_name] != prop_val:
+    if "RANGER" in servicesList and self.is_enabled(ranger_plugin_enabled):
+      if hbase_site.get(prop_name) != prop_val:
         validationItems.append(
           {
             "config-name": prop_name,
             "item": self.getWarnItem(
-              "If Ranger HBase Plugin is enabled." "{0} needs to be set to {1}".format(
-                prop_name, prop_val
-              )
+              f"If Ranger HBase Plugin is enabled, {prop_name} needs to be set "
+              f"to {prop_val}"
             ),
           }
         )
-      prop_name = "hbase.coprocessor.master.classes"
       prop_val = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
       exclude_val = "org.apache.hadoop.hbase.security.access.AccessController"
-      if prop_val in hbase_site[prop_name] and exclude_val not in hbase_site[prop_name]:
-        pass
-      else:
-        validationItems.append(
-          {
-            "config-name": prop_name,
-            "item": self.getWarnItem(
-              "If Ranger HBase Plugin is enabled."
-              " {0} needs to contain {1} instead of {2}".format(
-                prop_name, prop_val, exclude_val
-              )
-            ),
-          }
-        )
-      prop_name = "hbase.coprocessor.region.classes"
-      prop_val = "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
-      if prop_val in hbase_site[prop_name] and exclude_val not in hbase_site[prop_name]:
-        pass
-      else:
-        validationItems.append(
-          {
-            "config-name": prop_name,
-            "item": self.getWarnItem(
-              "If Ranger HBase Plugin is enabled."
-              " {0} needs to contain {1} instead of {2}".format(
-                prop_name, prop_val, exclude_val
-              )
-            ),
-          }
-        )
+      for prop_name in (
+        "hbase.coprocessor.master.classes",
+        "hbase.coprocessor.region.classes",
+        "hbase.coprocessor.regionserver.classes",
+      ):
+        coprocessors = {
+          value.strip()
+          for value in hbase_site.get(prop_name, "").split(",")
+          if value.strip()
+        }
+        if prop_val not in coprocessors or exclude_val in coprocessors:
+          validationItems.append(
+            {
+              "config-name": prop_name,
+              "item": self.getWarnItem(
+                f"If Ranger HBase Plugin is enabled, {prop_name} needs to "
+                f"contain {prop_val} instead of {exclude_val}"
+              ),
+            }
+          )
 
     validationProblems = self.toConfigurationValidationProblems(
       validationItems, "hbase-site"

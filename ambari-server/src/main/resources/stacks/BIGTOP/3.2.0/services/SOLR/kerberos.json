@@ -20,7 +20,7 @@
         ],
         "components": [
           {
-            "name": "SOLR",
+            "name": "SOLR_SERVER",
             "identities": [
               {
                 "name": "solr",
@@ -43,9 +43,6 @@
                 }
               }
             ]
-          },
-          {
-            "name": "SOLR_CLIENT"
           }
         ]
       }

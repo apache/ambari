@@ -18,36 +18,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from queue import Queue
-
 from unittest import TestCase
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.ActionQueue import ActionQueue, hide_passwords
 from ambari_agent.AmbariConfig import AmbariConfig
-import os, errno, time, pprint, tempfile, threading
+import os, errno, pprint, tempfile, threading
 import sys
 from threading import Thread
 import copy
 import signal
 
 from ambari_agent.models.commands import CommandStatus, AgentCommand
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
-from ambari_agent.PythonExecutor import PythonExecutor
 from ambari_agent.ActualConfigHandler import ActualConfigHandler
 from ambari_agent.RecoveryManager import RecoveryManager
 from ambari_commons import OSCheck
 from only_for_platform import (
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
   PLATFORM_LINUX,
 )
 from ambari_agent.InitializerModule import InitializerModule
-
-from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
-
-default_run_command = CustomServiceOrchestrator.runCommand
 
 import logging
 
@@ -64,13 +56,21 @@ class TestActionQueue(TestCase):
 
   logger = logging.getLogger()
 
-  def create_mock_action_queue(self):
+  def create_action_queue(self, parallel_execution=0, max_parallel_actions=5):
     initializer_module = MagicMock()
-    initializer_module.config.get.return_value = "/tmp"
-    initializer_module.config.get_parallel_exec_option.return_value = 0
+    initializer_module.config = AmbariConfig()
+    initializer_module.config.set("agent", "parallel_execution", parallel_execution)
+    initializer_module.config.set(
+      "agent", "max_parallel_actions", max_parallel_actions
+    )
     initializer_module.stop_event = threading.Event()
     initializer_module.recovery_manager.enabled.return_value = False
-    return ActionQueue(initializer_module)
+    initializer_module.recovery_manager.has_active_command.return_value = False
+    return ActionQueue(initializer_module), initializer_module
+
+  def create_mock_action_queue(self):
+    action_queue, _initializer_module = self.create_action_queue()
+    return action_queue
 
   datanode_install_command = {
     "commandType": "EXECUTION_COMMAND",
@@ -122,10 +122,13 @@ class TestActionQueue(TestCase):
     server_command = copy.deepcopy(self.namenode_install_command)
 
     action_queue.put([recovery_command])
+    recovery_control = action_queue._control_for(recovery_command)
     action_queue.put([server_command])
 
     self.assertEqual(1, action_queue.commandQueue.qsize())
     self.assertEqual(server_command, action_queue.commandQueue.get_nowait())
+    self.assertEqual("FINISHED", recovery_control["state"])
+    self.assertNotIn(str(recovery_command["taskId"]), action_queue.task_registry)
 
   def test_server_command_cancels_active_recovery_commands(self):
     action_queue = self.create_mock_action_queue()
@@ -134,7 +137,7 @@ class TestActionQueue(TestCase):
     execution_started = threading.Event()
     allow_execution_to_finish = threading.Event()
 
-    def wait_for_preemption(command):
+    def wait_for_preemption(command, _control):
       execution_started.set()
       allow_execution_to_finish.wait(5)
 
@@ -144,19 +147,22 @@ class TestActionQueue(TestCase):
     )
     recovery_thread.start()
     self.assertTrue(execution_started.wait(5))
+    recovery_control = action_queue._control_for(recovery_command)
 
     action_queue.put([server_command])
 
     action_queue.customServiceOrchestrator.cancel_command.assert_called_once_with(
       recovery_command["taskId"], "Preempted by a server-issued command"
     )
-    self.assertIn(recovery_command["taskId"], action_queue.taskIdsToCancel)
+    self.assertTrue(recovery_control["cancel_event"].is_set())
+    self.assertEqual("CANCELLING", recovery_control["state"])
     self.assertEqual(server_command, action_queue.commandQueue.get_nowait())
 
     allow_execution_to_finish.set()
     recovery_thread.join(5)
     self.assertFalse(recovery_thread.is_alive())
-    self.assertNotIn(recovery_command["taskId"], action_queue.taskIdsToCancel)
+    self.assertEqual("FINISHED", recovery_control["state"])
+    self.assertNotIn(recovery_command["taskId"], action_queue.active_recovery_task_ids)
 
   def test_dequeued_recovery_command_yields_to_queued_server_command(self):
     action_queue = self.create_mock_action_queue()
@@ -173,16 +179,16 @@ class TestActionQueue(TestCase):
   def test_recovery_command_canceled_before_script_execution(self):
     action_queue = self.create_mock_action_queue()
     recovery_command = copy.deepcopy(self.datanode_auto_start_command)
-    action_queue.taskIdsToCancel.add(recovery_command["taskId"])
+    control = action_queue._register_command(recovery_command)
+    control["reason"] = "Preempted by a server-issued command"
+    control["state"] = "CANCELLING"
+    control["cancel_event"].set()
     action_queue.commandStatuses.generate_report_template.return_value = {}
-    action_queue.config.get.side_effect = (
-      lambda section, key: "0" if key == "log_command_executes" else "/tmp"
-    )
 
-    action_queue.execute_command(recovery_command)
+    action_queue.execute_command(recovery_command, control)
 
     action_queue.customServiceOrchestrator.runCommand.assert_not_called()
-    self.assertNotIn(recovery_command["taskId"], action_queue.taskIdsToCancel)
+    self.assertTrue(control["cancel_event"].is_set())
 
   def test_recovery_command_does_not_preempt_active_recovery(self):
     action_queue = self.create_mock_action_queue()
@@ -315,7 +321,6 @@ class TestActionQueue(TestCase):
     "configurations": {"global": {}},
     "configurationTags": {"global": {"tag": "v123"}},
     "hostLevelParams": {"custom_command": "START"},
-    "clusterId": CLUSTER_ID,
   }
 
   yarn_refresh_queues_custom_command = {
@@ -415,31 +420,42 @@ class TestActionQueue(TestCase):
 
   @patch.object(AmbariConfig, "get_parallel_exec_option")
   @patch.object(ActionQueue, "process_command")
-  @patch.object(Queue, "get")
   @patch.object(CustomServiceOrchestrator, "__init__")
   def test_ActionQueueStartStop(
     self,
     CustomServiceOrchestrator_mock,
-    get_mock,
     process_command_mock,
     get_parallel_exec_option_mock,
   ):
     CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    config = MagicMock()
     get_parallel_exec_option_mock.return_value = 0
-    config.get_parallel_exec_option = get_parallel_exec_option_mock
+    actionQueue, initializer_module = self.create_action_queue(parallel_execution=0)
+    commands_processed = threading.Event()
+    processed_count = 0
+    processed_count_lock = threading.Lock()
 
-    initializer_module = InitializerModule()
-    initializer_module.init()
+    def process_command(_command):
+      nonlocal processed_count
+      with processed_count_lock:
+        processed_count += 1
+        if processed_count >= 2:
+          commands_processed.set()
 
-    actionQueue = ActionQueue(initializer_module)
-    actionQueue.start()
-    time.sleep(0.1)
-    initializer_module.stop_event.set()
-    actionQueue.join()
+    process_command_mock.side_effect = process_command
+    actionQueue.put(
+      [copy.deepcopy(self.datanode_install_command), copy.deepcopy(self.hbase_install_command)]
+    )
+    try:
+      actionQueue.start()
+      self.assertTrue(
+        commands_processed.wait(2), "Action queue did not process commands"
+      )
+    finally:
+      initializer_module.stop_event.set()
+      actionQueue.interrupt()
+      actionQueue.join(3)
     self.assertEqual(actionQueue.is_alive(), False, "Action queue is not stopped.")
-    self.assertTrue(process_command_mock.call_count > 1)
+    self.assertEqual(2, process_command_mock.call_count)
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("logging.RootLogger.exception")
@@ -587,10 +603,7 @@ class TestActionQueue(TestCase):
       "exitCode": 0,
     }
     # Agent caches configurationTags if custom_command RESTART completed
-    mock_log_command_output.assert_not_called(
-      [call("out\n\nCommand completed successfully!\n", "9"), call("stderr", "9")],
-      any_order=True,
-    )
+    mock_log_command_output.assert_not_called()
     self.assertEqual(len(reports), 1)
     self.assertEqual(expected, reports[0])
 
@@ -610,17 +623,21 @@ class TestActionQueue(TestCase):
 
     with patch("builtins.open") as open_mock:
       # Make file read calls visible
-      def open_side_effect(file, mode):
+      def open_side_effect(file, mode, *args, **kwargs):
         if mode == "r":
           file_mock = MagicMock()
-          file_mock.read.return_value = "Read from " + str(file)
+          file_content = "Read from " + str(file)
+          file_mock.read.return_value = file_content
+          file_mock.__enter__.return_value.read.return_value = file_content
           return file_mock
         else:
-          return self.original_open(file, mode)
+          return self.original_open(file, mode, *args, **kwargs)
 
       open_mock.side_effect = open_side_effect
       actionQueue = ActionQueue(initializer_module)
       unfreeze_flag = threading.Event()
+      command_started = threading.Event()
+      command_finished = threading.Event()
       python_execution_result_dict = {
         "stdout": "out",
         "stderr": "stderr",
@@ -628,16 +645,26 @@ class TestActionQueue(TestCase):
       }
 
     def side_effect(
-      command, tmpoutfile, tmperrfile, override_output_files=True, retry=False
+      command,
+      tmpoutfile,
+      tmperrfile,
+      override_output_files=True,
+      retry=False,
+      cancel_event=None,
     ):
-      unfreeze_flag.wait()
+      command_started.set()
+      if not unfreeze_flag.wait(2):
+        raise RuntimeError("Timed out waiting to release auto execution command")
       return python_execution_result_dict
 
     def patched_aq_execute_command(command):
       # We have to perform patching for separate thread in the same thread
-      with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-        runCommand_mock.side_effect = side_effect
-        actionQueue.process_command(command)
+      try:
+        with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
+          runCommand_mock.side_effect = side_effect
+          actionQueue.process_command(command)
+      finally:
+        command_finished.set()
 
     python_execution_result_dict["status"] = "COMPLETE"
     python_execution_result_dict["exitcode"] = 0
@@ -647,33 +674,32 @@ class TestActionQueue(TestCase):
       target=patched_aq_execute_command, args=(self.datanode_auto_start_command,)
     )
     execution_thread.start()
-    #  check in progress report
-    # wait until ready
-    while True:
-      time.sleep(0.1)
-      if actionQueue.commandStatuses.current_state:
-        break
+    self.assertTrue(command_started.wait(2))
     # Continue command execution
     unfreeze_flag.set()
-    # wait until ready
-    check_queue = True
-    while check_queue:
-      reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-      if actionQueue.commandStatuses.current_state:
-        break
-      time.sleep(0.1)
+    self.assertTrue(command_finished.wait(2))
+    execution_thread.join(2)
+    self.assertFalse(execution_thread.is_alive())
+    reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
 
     self.assertEqual(len(reports), 0)
 
     # # Test failed execution
     python_execution_result_dict["status"] = "FAILED"
     python_execution_result_dict["exitcode"] = 13
+    unfreeze_flag = threading.Event()
+    command_started = threading.Event()
+    command_finished = threading.Event()
     # We call method in a separate thread
     execution_thread = Thread(
       target=patched_aq_execute_command, args=(self.datanode_auto_start_command,)
     )
     execution_thread.start()
+    self.assertTrue(command_started.wait(2))
     unfreeze_flag.set()
+    self.assertTrue(command_finished.wait(2))
+    execution_thread.join(2)
+    self.assertFalse(execution_thread.is_alive())
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   # @patch("__builtin__.open")
@@ -688,20 +714,26 @@ class TestActionQueue(TestCase):
     initializer_module.init()
     initializer_module.config = config
 
-    with patch("builtins.open") as open_mock:
+    with patch("builtins.open") as open_mock, patch(
+      "os.path.exists", return_value=True
+    ):
       # Make file read calls visible
-      def open_side_effect(file, mode):
+      def open_side_effect(file, mode, *args, **kwargs):
         if mode == "r":
           file_mock = MagicMock()
-          file_mock.read.return_value = "Read from " + str(file)
+          file_content = "Read from " + str(file)
+          file_mock.read.return_value = file_content
+          file_mock.__enter__.return_value.read.return_value = file_content
           return file_mock
         else:
-          return self.original_open(file, mode)
+          return self.original_open(file, mode, *args, **kwargs)
 
       open_mock.side_effect = open_side_effect
 
       actionQueue = ActionQueue(initializer_module)
       unfreeze_flag = threading.Event()
+      command_started = threading.Event()
+      command_finished = threading.Event()
       python_execution_result_dict = {
         "stdout": "out",
         "stderr": "stderr",
@@ -709,16 +741,26 @@ class TestActionQueue(TestCase):
       }
 
       def side_effect(
-        command, tmpoutfile, tmperrfile, override_output_files=True, retry=False
+        command,
+        tmpoutfile,
+        tmperrfile,
+        override_output_files=True,
+        retry=False,
+        cancel_event=None,
       ):
-        unfreeze_flag.wait()
+        command_started.set()
+        if not unfreeze_flag.wait(2):
+          raise RuntimeError("Timed out waiting to release execution command")
         return python_execution_result_dict
 
       def patched_aq_execute_command(command):
         # We have to perform patching for separate thread in the same thread
-        with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
-          runCommand_mock.side_effect = side_effect
-          actionQueue.execute_command(command)
+        try:
+          with patch.object(CustomServiceOrchestrator, "runCommand") as runCommand_mock:
+            runCommand_mock.side_effect = side_effect
+            actionQueue.execute_command(command)
+        finally:
+          command_finished.set()
 
       ### Test install/start/stop command ###
       # # Test successful execution with configuration tags
@@ -729,33 +771,30 @@ class TestActionQueue(TestCase):
         target=patched_aq_execute_command, args=(self.datanode_install_command,)
       )
       execution_thread.start()
-      #  check in progress report
-      # wait until ready
-      while True:
-        time.sleep(0.1)
+      self.assertTrue(command_started.wait(2))
+      try:
         reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-        if len(reports) != 0:
-          break
-      expected = {
-        "status": "IN_PROGRESS",
-        "stderr": f"Read from {os.path.join(tempdir, 'errors-3.txt')}",
-        "stdout": f"Read from {os.path.join(tempdir, 'output-3.txt')}",
-        "structuredOut": f"Read from {os.path.join(tempdir, 'structured-out-3.json')}",
-        "clusterId": CLUSTER_ID,
-        "roleCommand": "INSTALL",
-        "serviceName": "HDFS",
-        "role": "DATANODE",
-        "actionId": "1-1",
-        "taskId": 3,
-        "exitCode": 777,
-      }
+        expected = {
+          "status": "IN_PROGRESS",
+          "stderr": f"Read from {os.path.join(tempdir, 'errors-3.txt')}",
+          "stdout": f"Read from {os.path.join(tempdir, 'output-3.txt')}",
+          "structuredOut": f"Read from {os.path.join(tempdir, 'structured-out-3.json')}",
+          "clusterId": CLUSTER_ID,
+          "roleCommand": "INSTALL",
+          "serviceName": "HDFS",
+          "role": "DATANODE",
+          "actionId": "1-1",
+          "taskId": 3,
+          "exitCode": 777,
+        }
+        self.assertEqual([expected], reports)
+      finally:
+        unfreeze_flag.set()
+        command_finished.wait(2)
+        execution_thread.join(2)
 
-      # Continue command execution
-      unfreeze_flag.set()
-      # wait until ready
-      while reports[0]["status"] == "IN_PROGRESS":
-        time.sleep(0.1)
-        reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
+      self.assertFalse(execution_thread.is_alive())
+      reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
 
       # check report
       expected = {
@@ -782,21 +821,22 @@ class TestActionQueue(TestCase):
       # # Test failed execution
       python_execution_result_dict["status"] = "FAILED"
       python_execution_result_dict["exitcode"] = 13
+      unfreeze_flag = threading.Event()
+      command_started = threading.Event()
+      command_finished = threading.Event()
       # We call method in a separate thread
       execution_thread = Thread(
         target=patched_aq_execute_command, args=(self.datanode_install_command,)
       )
       execution_thread.start()
+      self.assertTrue(command_started.wait(2))
       unfreeze_flag.set()
-      #  check in progress report
-      # wait until ready
+      self.assertTrue(command_finished.wait(2))
+      execution_thread.join(2)
+      self.assertFalse(execution_thread.is_alive())
       reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-      while len(reports) == 0 or reports[0]["status"] == "IN_PROGRESS":
-        time.sleep(0.1)
-        reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-        actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
 
-        # check report
+      # check report
       expected = {
         "status": "FAILED",
         "stderr": "stderr",
@@ -821,17 +861,19 @@ class TestActionQueue(TestCase):
       ### Test upgrade command ###
       python_execution_result_dict["status"] = "COMPLETE"
       python_execution_result_dict["exitcode"] = 0
+      unfreeze_flag = threading.Event()
+      command_started = threading.Event()
+      command_finished = threading.Event()
       execution_thread = Thread(
         target=patched_aq_execute_command, args=(self.datanode_upgrade_command,)
       )
       execution_thread.start()
+      self.assertTrue(command_started.wait(2))
       unfreeze_flag.set()
-      # wait until ready
-      report = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-      while len(reports) == 0 or reports[0]["status"] == "IN_PROGRESS":
-        time.sleep(0.1)
-        reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
-        actionQueue.commandStatuses.clear_reported_reports({CLUSTER_ID: reports})
+      self.assertTrue(command_finished.wait(2))
+      execution_thread.join(2)
+      self.assertFalse(execution_thread.is_alive())
+      reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
       # check report
       expected = {
         "status": "COMPLETED",
@@ -1075,96 +1117,35 @@ class TestActionQueue(TestCase):
 
   @patch.object(AmbariConfig, "get_parallel_exec_option")
   @patch.object(ActionQueue, "process_command")
-  @patch.object(Queue, "get")
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_reset_queue(
-    self, CustomServiceOrchestrator_mock, get_mock, process_command_mock, gpeo_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-    dummy_controller = MagicMock()
-    dummy_controller.recovery_manager = RecoveryManager(MagicMock())
-    config = MagicMock()
-    gpeo_mock.return_value = 0
-    config.get_parallel_exec_option = gpeo_mock
-
-    initializer_module = InitializerModule()
-    initializer_module.init()
-
-    actionQueue = ActionQueue(initializer_module)
-    actionQueue.start()
-    actionQueue.put([self.datanode_install_command, self.hbase_install_command])
-    self.assertEqual(2, actionQueue.commandQueue.qsize())
-    self.assertTrue(actionQueue.tasks_in_progress_or_pending())
-    actionQueue.reset()
-    self.assertTrue(actionQueue.commandQueue.empty())
-    self.assertFalse(actionQueue.tasks_in_progress_or_pending())
-    time.sleep(0.1)
-    initializer_module.stop_event.set()
-    actionQueue.join()
-    self.assertEqual(actionQueue.is_alive(), False, "Action queue is not stopped.")
-
-  @patch.object(AmbariConfig, "get_parallel_exec_option")
-  @patch.object(ActionQueue, "process_command")
-  @patch.object(Queue, "get")
-  @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_cancel(
-    self, CustomServiceOrchestrator_mock, get_mock, process_command_mock, gpeo_mock
-  ):
-    CustomServiceOrchestrator_mock.return_value = None
-
-    initializer_module = InitializerModule()
-    initializer_module.init()
-
-    dummy_controller = MagicMock(initializer_module)
-    config = MagicMock()
-    gpeo_mock.return_value = 0
-    config.get_parallel_exec_option = gpeo_mock
-
-    initializer_module = InitializerModule()
-    initializer_module.init()
-
-    actionQueue = ActionQueue(initializer_module)
-    actionQueue.start()
-    actionQueue.put([self.datanode_install_command, self.hbase_install_command])
-    self.assertEqual(2, actionQueue.commandQueue.qsize())
-    actionQueue.reset()
-    self.assertTrue(actionQueue.commandQueue.empty())
-    time.sleep(0.1)
-    initializer_module.stop_event.set()
-    actionQueue.join()
-    self.assertEqual(actionQueue.is_alive(), False, "Action queue is not stopped.")
-
-  @patch.object(AmbariConfig, "get_parallel_exec_option")
-  @patch.object(ActionQueue, "process_command")
   @patch.object(CustomServiceOrchestrator, "__init__")
   def test_parallel_exec(
     self, CustomServiceOrchestrator_mock, process_command_mock, gpeo_mock
   ):
     CustomServiceOrchestrator_mock.return_value = None
 
-    initializer_module = InitializerModule()
-    initializer_module.init()
-
-    dummy_controller = MagicMock(initializer_module)
-    config = MagicMock()
     gpeo_mock.return_value = 1
-    config.get_parallel_exec_option = gpeo_mock
-    initializer_module = InitializerModule()
-    initializer_module.init()
-    actionQueue = ActionQueue(initializer_module)
+    actionQueue, initializer_module = self.create_action_queue(parallel_execution=1)
+    commands_processed = threading.Event()
+
+    def process_command(_command):
+      if process_command_mock.call_count >= 2:
+        commands_processed.set()
+
+    process_command_mock.side_effect = process_command
     actionQueue.put([self.datanode_install_command, self.hbase_install_command])
     self.assertEqual(2, actionQueue.commandQueue.qsize())
     actionQueue.start()
-    time.sleep(1)
+    self.assertTrue(commands_processed.wait(2))
     initializer_module.stop_event.set()
-    actionQueue.join()
+    actionQueue.interrupt()
+    actionQueue.join(3)
     self.assertEqual(actionQueue.is_alive(), False, "Action queue is not stopped.")
     self.assertEqual(2, process_command_mock.call_count)
-    process_command_mock.assert_any_calls(
-      [call(self.datanode_install_command), call(self.hbase_install_command)]
+    process_command_mock.assert_has_calls(
+      [call(self.datanode_install_command), call(self.hbase_install_command)],
+      any_order=True,
     )
 
-  @patch("threading.Thread")
   @patch.object(AmbariConfig, "get_parallel_exec_option")
   @patch.object(ActionQueue, "process_command")
   @patch.object(CustomServiceOrchestrator, "__init__")
@@ -1173,36 +1154,437 @@ class TestActionQueue(TestCase):
     CustomServiceOrchestrator_mock,
     process_command_mock,
     gpeo_mock,
-    threading_mock,
   ):
     CustomServiceOrchestrator_mock.return_value = None
-
-    initializer_module = InitializerModule()
-    initializer_module.init()
-
-    dummy_controller = MagicMock(initializer_module)
-    config = MagicMock()
     gpeo_mock.return_value = 1
-    config.get_parallel_exec_option = gpeo_mock
+    actionQueue, initializer_module = self.create_action_queue(parallel_execution=1)
+    commands_processed = threading.Event()
 
-    initializer_module = InitializerModule()
-    initializer_module.init()
+    def process_command(_command):
+      if process_command_mock.call_count >= 2:
+        commands_processed.set()
 
-    actionQueue = ActionQueue(initializer_module)
+    process_command_mock.side_effect = process_command
     actionQueue.put(
       [self.datanode_install_no_retry_command, self.snamenode_install_command]
     )
     self.assertEqual(2, actionQueue.commandQueue.qsize())
     actionQueue.start()
-    time.sleep(1)
+    self.assertTrue(commands_processed.wait(2))
     initializer_module.stop_event.set()
-    actionQueue.join()
+    actionQueue.interrupt()
+    actionQueue.join(3)
     self.assertEqual(actionQueue.is_alive(), False, "Action queue is not stopped.")
     self.assertEqual(2, process_command_mock.call_count)
-    self.assertEqual(0, threading_mock.call_count)
-    process_command_mock.assert_any_calls(
-      [call(self.datanode_install_command), call(self.hbase_install_command)]
+    self.assertFalse(actionQueue.worker_futures)
+    process_command_mock.assert_has_calls(
+      [
+        call(self.datanode_install_no_retry_command),
+        call(self.snamenode_install_command),
+      ]
     )
+
+  def test_parallel_executor_has_no_unbounded_submission_queue(self):
+    action_queue, initializer_module = self.create_action_queue(
+      parallel_execution=1, max_parallel_actions=2
+    )
+    release_workers = threading.Event()
+    two_workers_started = threading.Event()
+    all_commands_processed = threading.Event()
+    state_lock = threading.Lock()
+    state = {"active": 0, "completed": 0, "maximum": 0}
+
+    def process_command(command):
+      with state_lock:
+        state["active"] += 1
+        state["maximum"] = max(state["maximum"], state["active"])
+        if state["active"] == 2:
+          two_workers_started.set()
+      release_workers.wait(5)
+      with state_lock:
+        state["active"] -= 1
+        state["completed"] += 1
+        if state["completed"] == 5:
+          all_commands_processed.set()
+      action_queue._finish_control(command, action_queue._control_for(command))
+
+    commands = []
+    for task_id in range(5):
+      command = copy.deepcopy(self.datanode_install_command)
+      command["taskId"] = task_id
+      commands.append(command)
+
+    action_queue.process_command = MagicMock(side_effect=process_command)
+    action_queue.put(commands)
+    action_queue.start()
+    self.assertTrue(two_workers_started.wait(2))
+    self.assertEqual(action_queue.process_command.call_count, 2)
+    self.assertEqual(state["maximum"], 2)
+
+    release_workers.set()
+    self.assertTrue(all_commands_processed.wait(3))
+    initializer_module.stop_event.set()
+    action_queue.interrupt()
+    action_queue.join(3)
+
+    self.assertFalse(action_queue.is_alive())
+    self.assertEqual(action_queue.process_command.call_count, len(commands))
+    self.assertEqual(state["maximum"], 2)
+
+  def test_synchronous_action_count_is_released_on_success_and_failure(self):
+    action_queue, _initializer_module = self.create_action_queue(
+      parallel_execution=1, max_parallel_actions=2
+    )
+    command = copy.deepcopy(self.datanode_install_no_retry_command)
+    action_queue.process_command = MagicMock()
+
+    action_queue._run_synchronous_command(command)
+
+    self.assertEqual(0, action_queue.synchronous_action_count)
+
+    action_queue.process_command.side_effect = RuntimeError("command failed")
+    with self.assertRaisesRegex(RuntimeError, "command failed"):
+      action_queue._run_synchronous_command(command)
+
+    self.assertEqual(0, action_queue.synchronous_action_count)
+
+  def test_interrupt_cancels_running_synchronous_command_before_join(self):
+    action_queue, initializer_module = self.create_action_queue(parallel_execution=0)
+    command = copy.deepcopy(self.datanode_install_no_retry_command)
+    command_started = threading.Event()
+    allow_command_to_return = threading.Event()
+    cancel_all_called = threading.Event()
+
+    def process_command(running_command):
+      command_started.set()
+      allow_command_to_return.wait(5)
+      action_queue._finish_control(
+        running_command, action_queue._control_for(running_command)
+      )
+
+    initializer_module.customServiceOrchestrator.cancel_all_commands.side_effect = (
+      lambda _reason: cancel_all_called.set()
+    )
+    action_queue.process_command = MagicMock(side_effect=process_command)
+    action_queue.put([command])
+    control = action_queue._control_for(command)
+    action_queue.start()
+
+    try:
+      self.assertTrue(command_started.wait(2))
+      initializer_module.stop_event.set()
+      action_queue.interrupt()
+
+      self.assertTrue(control["cancel_event"].wait(1))
+      self.assertTrue(cancel_all_called.wait(1))
+      self.assertTrue(action_queue.is_alive())
+    finally:
+      allow_command_to_return.set()
+      action_queue.join(3)
+
+    self.assertFalse(action_queue.is_alive())
+    self.assertGreaterEqual(
+      initializer_module.customServiceOrchestrator.cancel_all_commands.call_count, 1
+    )
+
+  def test_cancel_does_not_cancel_later_generation(self):
+    action_queue, _initializer_module = self.create_action_queue()
+    old_command = copy.deepcopy(self.datanode_install_command)
+    new_command = copy.deepcopy(self.datanode_install_command)
+    new_command["commandId"] = "2-1"
+
+    action_queue.put([old_command])
+    old_control = action_queue._control_for(old_command)
+    action_queue.cancel(
+      [{"target_task_id": old_command["taskId"], "reason": "rescheduled"}]
+    )
+    action_queue.put([new_command])
+    new_control = action_queue._control_for(new_command)
+
+    self.assertTrue(old_control["cancel_event"].is_set())
+    self.assertFalse(new_control["cancel_event"].is_set())
+    action_queue.customServiceOrchestrator.cancel_command.assert_called_once_with(
+      old_command["taskId"], "rescheduled"
+    )
+
+  def test_queued_command_cancellation_reports_failure_without_starting_process(self):
+    action_queue, initializer_module = self.create_action_queue()
+    command = copy.deepcopy(self.datanode_install_no_retry_command)
+    initializer_module.commandStatuses.generate_report_template.side_effect = [{}, {}]
+    action_queue.put([command])
+    queued_command = action_queue.commandQueue.get_nowait()
+
+    action_queue.cancel(
+      [{"target_task_id": command["taskId"], "reason": "operator canceled"}]
+    )
+    action_queue.process_command(queued_command)
+
+    initializer_module.customServiceOrchestrator.runCommand.assert_not_called()
+    final_report = initializer_module.commandStatuses.put_command_status.call_args_list[
+      -1
+    ].args[1]
+    self.assertEqual(CommandStatus.failed, final_report["status"])
+    self.assertEqual(-signal.SIGTERM, final_report["exitCode"])
+    self.assertIn("operator canceled", final_report["stderr"])
+    self.assertFalse(action_queue.tasks_in_progress_or_pending())
+
+  def test_cancel_interrupts_only_target_retry_wait(self):
+    action_queue, initializer_module = self.create_action_queue()
+    canceled_command = copy.deepcopy(self.datanode_install_command)
+    canceled_command["commandParams"]["max_duration_for_retries"] = "60"
+    other_command = copy.deepcopy(self.datanode_install_command)
+    other_command["taskId"] = 4
+    action_queue.put([canceled_command, other_command])
+    queued_command = action_queue.commandQueue.get_nowait()
+    canceled_control = action_queue._control_for(canceled_command)
+    other_control = action_queue._control_for(other_command)
+    first_attempt_finished = threading.Event()
+
+    def fail_first_attempt(*_args, **_kwargs):
+      first_attempt_finished.set()
+      return {"stdout": "", "stderr": "first attempt failed", "exitcode": 1}
+
+    initializer_module.customServiceOrchestrator.runCommand.side_effect = (
+      fail_first_attempt
+    )
+    initializer_module.commandStatuses.generate_report_template.side_effect = [{}, {}]
+    action_queue.get_retry_delay = MagicMock(return_value=60)
+    worker = threading.Thread(target=action_queue.process_command, args=(queued_command,))
+    worker.start()
+    self.assertTrue(first_attempt_finished.wait(2))
+
+    action_queue.cancel(
+      [
+        {
+          "target_task_id": canceled_command["taskId"],
+          "reason": "operator canceled during retry wait",
+        }
+      ]
+    )
+    worker.join(2)
+
+    self.assertFalse(worker.is_alive())
+    self.assertTrue(canceled_control["cancel_event"].is_set())
+    self.assertFalse(other_control["cancel_event"].is_set())
+    initializer_module.customServiceOrchestrator.runCommand.assert_called_once()
+    final_report = initializer_module.commandStatuses.put_command_status.call_args_list[
+      -1
+    ].args[1]
+    self.assertEqual(CommandStatus.failed, final_report["status"])
+    self.assertIn("operator canceled during retry wait", final_report["stderr"])
+
+  def test_finished_newer_generation_still_suppresses_old_failure(self):
+    action_queue, _initializer_module = self.create_action_queue()
+    old_command = copy.deepcopy(self.datanode_install_command)
+    new_command = copy.deepcopy(self.datanode_install_command)
+    new_command["commandId"] = "2-1"
+
+    action_queue.put([old_command])
+    old_control = action_queue._control_for(old_command)
+    action_queue.cancel(
+      [{"target_task_id": old_command["taskId"], "reason": "rescheduled"}]
+    )
+    action_queue.put([new_command])
+    new_control = action_queue._control_for(new_command)
+
+    action_queue._finish_control(new_command, new_control)
+
+    self.assertTrue(
+      action_queue._has_newer_generation(old_command["taskId"], old_control)
+    )
+    action_queue._finish_control(old_command, old_control)
+    self.assertNotIn(str(old_command["taskId"]), action_queue.task_generations)
+
+  def test_cancel_arriving_during_successful_process_exit_reports_failure(self):
+    action_queue, initializer_module = self.create_action_queue()
+    command = copy.deepcopy(self.datanode_install_no_retry_command)
+    control = action_queue._register_command(command)
+    initializer_module.commandStatuses.generate_report_template.side_effect = [{}, {}]
+
+    def finish_after_cancel(*_args, **_kwargs):
+      control["reason"] = "operator canceled command"
+      control["cancel_event"].set()
+      return {"stdout": "partial output", "stderr": "", "exitcode": 0}
+
+    initializer_module.customServiceOrchestrator.runCommand.side_effect = (
+      finish_after_cancel
+    )
+
+    action_queue.execute_command(command, control)
+
+    final_report = initializer_module.commandStatuses.put_command_status.call_args_list[
+      -1
+    ].args[1]
+    self.assertEqual(CommandStatus.failed, final_report["status"])
+    self.assertEqual(-signal.SIGTERM, final_report["exitCode"])
+    self.assertIn("operator canceled command", final_report["stderr"])
+
+  def test_shutdown_reports_and_cleans_unstarted_background_command(self):
+    action_queue, initializer_module = self.create_action_queue()
+    command = copy.deepcopy(self.background_command)
+    initializer_module.commandStatuses.generate_report_template.side_effect = [
+      {},
+      {},
+    ]
+    action_queue.put([command])
+
+    action_queue._finish_queued_commands()
+
+    self.assertTrue(action_queue.backgroundCommandQueue.empty())
+    self.assertFalse(action_queue.tasks_in_progress_or_pending())
+    final_report = initializer_module.commandStatuses.put_command_status.call_args_list[
+      -1
+    ].args[1]
+    self.assertEqual(CommandStatus.failed, final_report["status"])
+    self.assertEqual(-signal.SIGTERM, final_report["exitCode"])
+    self.assertIn("Ambari Agent is stopping", final_report["stderr"])
+
+  def test_background_start_failure_cleans_handle_and_task_registration(self):
+    action_queue, initializer_module = self.create_action_queue()
+    command = copy.deepcopy(self.background_command)
+    initializer_module.commandStatuses.generate_report_template.side_effect = [
+      {},
+      {},
+    ]
+    initializer_module.customServiceOrchestrator.runCommand.return_value = {
+      "stdout": "",
+      "stderr": "thread start failed",
+      "structuredOut": {},
+      "exitcode": 1,
+    }
+    action_queue.put([command])
+    handle = command["__handle"]
+
+    action_queue.process_background_queue_safe_empty()
+
+    self.assertNotIn(handle, action_queue.background_handles)
+    self.assertFalse(action_queue.tasks_in_progress_or_pending())
+    self.assertNotIn(id(command), action_queue.command_controls)
+    final_report = initializer_module.commandStatuses.put_command_status.call_args_list[
+      -1
+    ].args[1]
+    self.assertEqual(CommandStatus.failed, final_report["status"])
+    self.assertEqual(1, final_report["exitCode"])
+    self.assertIn("thread start failed", final_report["stderr"])
+
+  def test_background_launch_race_reports_control_cancellation_reason(self):
+    action_queue, initializer_module = self.create_action_queue()
+    command = copy.deepcopy(self.background_command)
+    action_queue.put([command])
+    queued_command = action_queue.backgroundCommandQueue.get_nowait()
+    handle = queued_command["__handle"]
+    handle.exitCode = -signal.SIGTERM
+    control = handle.control
+    control["reason"] = "operator canceled during launch"
+    control["cancel_event"].set()
+    initializer_module.customServiceOrchestrator.command_canceled_reason.return_value = (
+      None
+    )
+    initializer_module.commandStatuses.generate_report_template.return_value = {}
+
+    action_queue.on_background_command_complete_callback(
+      {
+        "stdout": "",
+        "stderr": "",
+        "structuredOut": {},
+        "exitcode": -signal.SIGTERM,
+      },
+      handle,
+    )
+
+    report = initializer_module.commandStatuses.put_command_status.call_args.args[1]
+    self.assertEqual(CommandStatus.failed, report["status"])
+    self.assertIn("operator canceled during launch", report["stderr"])
+    self.assertFalse(action_queue.tasks_in_progress_or_pending())
+    self.assertNotIn(handle, action_queue.background_handles)
+
+  def test_stop_interrupts_worker_slot_wait_and_cleans_queued_commands(self):
+    action_queue, initializer_module = self.create_action_queue(
+      parallel_execution=1, max_parallel_actions=1
+    )
+    worker_started = threading.Event()
+    release_worker = threading.Event()
+
+    def process_command(command):
+      control = action_queue._control_for(command)
+      if control["cancel_event"].is_set():
+        action_queue._finish_control(command, control)
+        return
+      worker_started.set()
+      release_worker.wait(5)
+      action_queue._finish_control(command, control)
+
+    initializer_module.customServiceOrchestrator.cancel_all_commands.side_effect = (
+      lambda _reason: release_worker.set()
+    )
+    action_queue.process_command = MagicMock(side_effect=process_command)
+    commands = []
+    for task_id in range(3):
+      command = copy.deepcopy(self.datanode_install_command)
+      command["taskId"] = task_id
+      commands.append(command)
+    action_queue.put(commands)
+    action_queue.start()
+    self.assertTrue(worker_started.wait(2))
+
+    initializer_module.stop_event.set()
+    action_queue.interrupt()
+    action_queue.join(3)
+
+    self.assertFalse(action_queue.is_alive())
+    initializer_module.customServiceOrchestrator.cancel_all_commands.assert_called()
+    self.assertFalse(action_queue.tasks_in_progress_or_pending())
+
+  def test_background_commands_respect_the_configured_concurrency_limit(self):
+    action_queue, _initializer_module = self.create_action_queue(
+      parallel_execution=1, max_parallel_actions=2
+    )
+    commands = []
+    for task_id in range(3):
+      command = copy.deepcopy(self.background_command)
+      command["taskId"] = task_id
+      action_queue.put([command])
+      commands.append(command)
+
+    alive_thread = MagicMock()
+    alive_thread.is_alive.return_value = True
+
+    def start_background(command):
+      command["__handle"].thread = alive_thread
+
+    action_queue.process_command = MagicMock(side_effect=start_background)
+
+    action_queue.process_background_queue_safe_empty()
+
+    self.assertEqual(2, action_queue.process_command.call_count)
+    self.assertEqual(1, action_queue.backgroundCommandQueue.qsize())
+
+  def test_background_and_worker_commands_share_the_concurrency_limit(self):
+    action_queue, _initializer_module = self.create_action_queue(
+      parallel_execution=1, max_parallel_actions=2
+    )
+    worker = MagicMock()
+    worker.done.return_value = False
+    action_queue.worker_futures.add(worker)
+    commands = []
+    for task_id in range(2):
+      command = copy.deepcopy(self.background_command)
+      command["taskId"] = task_id
+      action_queue.put([command])
+      commands.append(command)
+
+    alive_thread = MagicMock()
+    alive_thread.is_alive.return_value = True
+
+    def start_background(command):
+      command["__handle"].thread = alive_thread
+
+    action_queue.process_command = MagicMock(side_effect=start_background)
+
+    action_queue.process_background_queue_safe_empty()
+
+    action_queue.process_command.assert_called_once_with(commands[0])
+    self.assertEqual(1, action_queue.backgroundCommandQueue.qsize())
 
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(CustomServiceOrchestrator, "runCommand")
@@ -1213,11 +1595,15 @@ class TestActionQueue(TestCase):
     runCommand_mock,
   ):
     CustomServiceOrchestrator_mock.return_value = None
-    CustomServiceOrchestrator.runCommand.return_value = {
-      "exitcode": 0,
-      "stdout": "out-11",
-      "stderr": "err-13",
-    }
+
+    background_thread = MagicMock()
+    background_thread.is_alive.return_value = True
+
+    def launch_background(command, *_args, **_kwargs):
+      command["__handle"].thread = background_thread
+      return {"exitcode": 777, "stdout": "", "stderr": ""}
+
+    runCommand_mock.side_effect = launch_background
 
     initializer_module = InitializerModule()
     initializer_module.init()
@@ -1240,75 +1626,9 @@ class TestActionQueue(TestCase):
     reports = actionQueue.commandStatuses.generate_report()[CLUSTER_ID]
     self.assertEqual(len(reports), 1)
 
-  @patch.object(CustomServiceOrchestrator, "get_py_executor")
-  @patch.object(CustomServiceOrchestrator, "resolve_script_path")
-  def __test_execute_python_executor(
-    self, resolve_script_path_mock, get_py_executor_mock
-  ):
-    dummy_controller = MagicMock()
-    cfg = AmbariConfig()
-    cfg.set("agent", "tolerate_download_failures", "true")
-    cfg.set("agent", "prefix", ".")
-    cfg.set("agent", "cache_dir", "background_tasks")
-
-    initializer_module = InitializerModule()
-    initializer_module.init()
-    initializer_module.config = cfg
-    initializer_module.metadata_cache.cache_update(
-      {CLUSTER_ID: {"clusterLevelParams": {}}}, "abc"
-    )
-    initializer_module.configurations_cache.cache_update({CLUSTER_ID: {}}, "abc")
-    initializer_module.host_level_params_cache.cache_update({CLUSTER_ID: {}}, "abc")
-    CustomServiceOrchestrator.runCommand = default_run_command
-
-    actionQueue = ActionQueue(initializer_module)
-    pyex = PythonExecutor(
-      actionQueue.customServiceOrchestrator.tmp_dir,
-      actionQueue.customServiceOrchestrator.config,
-    )
-    patch_output_file(pyex)
-    get_py_executor_mock.return_value = pyex
-    actionQueue.customServiceOrchestrator.dump_command_to_json = MagicMock()
-
-    result = {}
-    lock = threading.RLock()
-    complete_done = threading.Condition(lock)
-
-    def command_complete_w(process_condensed_result, handle):
-      with lock:
-        result["command_complete"] = {
-          "condensed_result": copy.copy(process_condensed_result),
-          "handle": copy.copy(handle),
-          "command_status": actionQueue.commandStatuses.get_command_status(
-            handle.command["taskId"]
-          ),
-        }
-        complete_done.notifyAll()
-
-    actionQueue.on_background_command_complete_callback = wraped(
-      actionQueue.on_background_command_complete_callback, None, command_complete_w
-    )
-    actionQueue.put([self.background_command])
-    actionQueue.process_background_queue_safe_empty()
-    with lock:
-      complete_done.wait(0.1)
-
-      finished_status = result["command_complete"]["command_status"]
-      self.assertEqual(finished_status["status"], ActionQueue.COMPLETED_STATUS)
-      self.assertEqual(finished_status["stdout"], "process_out")
-      self.assertEqual(finished_status["stderr"], "process_err")
-      self.assertEqual(finished_status["exitCode"], 0)
-
-    runningCommand = actionQueue.commandStatuses.current_state.get(
-      self.background_command["taskId"]
-    )
-    self.assertTrue(runningCommand is not None)
-
-    report = actionQueue.result()
-    self.assertEqual(len(reports), 1)
-    self.assertEqual(reports[0]["stdout"], "process_out")
-
-  #    self.assertEqual(reports[0]['structuredOut'],'{"a": "b."}')
+    handle = execute_command["__handle"]
+    actionQueue._finish_control(execute_command, handle.control)
+    actionQueue.background_handles.discard(handle)
 
   cancel_background_command = {
     "commandType": "CANCEL_COMMAND",
@@ -1360,37 +1680,13 @@ class TestActionQueue(TestCase):
       ),
       "u'metrics_grafana_username': u'admin', u'metrics_grafana_password': u'[PROTECTED]', some text, u'clientssl.keystore.password': u'[PROTECTED]', another text, ",
     )
-
-
-def patch_output_file(pythonExecutor):
-  def windows_py(command, tmpout, tmperr):
-    proc = MagicMock()
-    proc.pid = 33
-    proc.returncode = 0
-    with tmpout:
-      tmpout.write("process_out")
-    with tmperr:
-      tmperr.write("process_err")
-    return proc
-
-  def open_subprocess_files_win(fout, ferr, f):
-    return MagicMock(), MagicMock()
-
-  def read_result_from_files(out_path, err_path, structured_out_path):
-    return "process_out", "process_err", '{"a": "b."}'
-
-  pythonExecutor.launch_python_subprocess = windows_py
-  pythonExecutor.open_subprocess_files = open_subprocess_files_win
-  pythonExecutor.read_result_from_files = read_result_from_files
-
-
-def wraped(func, before=None, after=None):
-  def wrapper(*args, **kwargs):
-    if before is not None:
-      before(*args, **kwargs)
-    ret = func(*args, **kwargs)
-    if after is not None:
-      after(*args, **kwargs)
-    return ret
-
-  return wrapper
+    self.assertEqual(
+      hide_passwords(
+        '{"api_token": "abc-123", "client_secret": "secret-value"}'
+      ),
+      '{"api_token": "[PROTECTED]", "client_secret": "[PROTECTED]"}',
+    )
+    self.assertEqual(
+      hide_passwords("db.password=changeit --access-token bearer-value"),
+      "db.password=[PROTECTED] --access-token [PROTECTED]",
+    )

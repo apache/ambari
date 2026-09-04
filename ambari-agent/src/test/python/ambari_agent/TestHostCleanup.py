@@ -20,13 +20,13 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-from mock.mock import patch, Mock, MagicMock, call, create_autospec
+from unittest.mock import patch, Mock, MagicMock, call, create_autospec
 from ambari_agent import HostCleanup
 import io
 import sys
 import tempfile
 import os.path
-import optparse
+import argparse
 import logging
 from ambari_commons import OSCheck
 
@@ -73,12 +73,10 @@ created = 2013-07-02 20:39:22.162757"""
 from only_for_platform import (
   only_for_platform,
   not_for_platform,
-  PLATFORM_WINDOWS,
   PLATFORM_LINUX,
 )
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestHostCleanup(TestCase):
   def setUp(self):
     HostCleanup.logger = MagicMock()
@@ -90,6 +88,18 @@ class TestHostCleanup(TestCase):
   def tearDown(self):
     # enable stdout
     sys.stdout = sys.__stdout__
+
+  def test_run_check_hosts_uses_text_files_and_removes_them(self):
+    self.hostcleanup.run_os_command = MagicMock(return_value=(0, "", ""))
+
+    self.hostcleanup.run_check_hosts()
+
+    command = self.hostcleanup.run_os_command.call_args.args[0]
+    temporary_paths = [
+      argument for argument in command.split() if argument.startswith(tempfile.gettempdir())
+    ]
+    self.assertEqual(2, len(temporary_paths))
+    self.assertTrue(all(not os.path.exists(path) for path in temporary_paths))
 
   @patch("os.listdir", create=True, autospec=True)
   def test_read_host_check_file_with_content(self, os_listdir_mock):
@@ -136,7 +146,7 @@ class TestHostCleanup(TestCase):
   @patch.object(HostCleanup.HostCleanup, "read_host_check_file")
   @patch.object(logging, "basicConfig")
   @patch.object(logging, "FileHandler")
-  @patch.object(optparse.OptionParser, "parse_args")
+  @patch.object(argparse.ArgumentParser, "parse_args")
   def test_options(
     self,
     parser_mock,
@@ -151,16 +161,13 @@ class TestHostCleanup(TestCase):
   ):
     open("/tmp/someinputfile1", "a").close()
     open("/tmp/someinputfile2", "a").close()
-    parser_mock.return_value = (
-      TestHostCleanup.HostCleanupOptions(
+    parser_mock.return_value = TestHostCleanup.HostCleanupOptions(
         "/someoutputfile",
         "/tmp/someinputfile1,/tmp/someinputfile2",
         "",
         False,
         False,
         "java_home",
-      ),
-      [],
     )
     file_handler_mock.return_value = logging.FileHandler(
       ""
@@ -204,7 +211,7 @@ class TestHostCleanup(TestCase):
   @patch.object(HostCleanup.HostCleanup, "read_host_check_file")
   @patch.object(logging, "basicConfig")
   @patch.object(logging, "FileHandler")
-  @patch.object(optparse.OptionParser, "parse_args")
+  @patch.object(argparse.ArgumentParser, "parse_args")
   def test_options_silent(
     self,
     parser_mock,
@@ -219,16 +226,13 @@ class TestHostCleanup(TestCase):
   ):
     open("/tmp/someinputfile1", "a").close()
     open("/tmp/someinputfile2", "a").close()
-    parser_mock.return_value = (
-      TestHostCleanup.HostCleanupOptions(
+    parser_mock.return_value = TestHostCleanup.HostCleanupOptions(
         "/someoutputfile",
         "/tmp/someinputfile1,/tmp/someinputfile2",
         "",
         False,
         True,
         "java_home",
-      ),
-      [],
     )
     file_handler_mock.return_value = logging.FileHandler(
       ""
@@ -554,12 +558,11 @@ name=sd des derft 3.1
 
     self.hostcleanup.do_erase_alternatives(alt_map)
 
-    self.assertTrue(get_alternatives_desc_mock.called)
-    get_alternatives_desc_mock.called_once_with("alt1")
-    self.assertTrue(run_os_command_mock.called)
-    run_os_command_mock.called_once_with(ALT_ERASE_CMD.format("alt1", "somepath"))
-    self.assertTrue(do_erase_dir_silent_mock.called)
-    do_erase_dir_silent_mock.called_once_with(["dir1"])
+    get_alternatives_desc_mock.assert_called_once_with("alt1")
+    run_os_command_mock.assert_called_once_with(
+      ALT_ERASE_CMD.format("alt1", "somepath")
+    )
+    do_erase_dir_silent_mock.assert_called_once_with(["dir1"])
 
     sys.stdout = sys.__stdout__
 

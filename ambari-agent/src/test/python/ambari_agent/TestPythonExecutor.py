@@ -23,13 +23,16 @@ import pprint
 from unittest import TestCase
 import threading
 import tempfile
-import time
 from threading import Thread
 import os
+import signal
 
+from ambari_agent.BackgroundCommandExecutionHandle import (
+  BackgroundCommandExecutionHandle,
+)
 from ambari_agent.PythonExecutor import PythonExecutor
 from ambari_agent.AmbariConfig import AmbariConfig
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 
@@ -52,7 +55,7 @@ class TestPythonExecutor(TestCase):
     PYTHON_TIMEOUT_SECONDS = 0.1
     kill_process_with_children_mock.side_effect = lambda pid: subproc_mock.terminate()
 
-    def launch_python_subprocess_method(command, tmpout, tmperr):
+    def launch_python_subprocess_method(command, tmpout, tmperr, env=None):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
@@ -77,8 +80,10 @@ class TestPythonExecutor(TestCase):
       ),
     )
     thread.start()
-    time.sleep(0.1)
-    subproc_mock.finished_event.wait()
+    self.assertTrue(subproc_mock.started_event.wait(2))
+    self.assertTrue(subproc_mock.finished_event.wait(2))
+    thread.join(2)
+    self.assertFalse(thread.is_alive())
     self.assertEqual(
       subproc_mock.was_terminated,
       True,
@@ -98,7 +103,7 @@ class TestPythonExecutor(TestCase):
     _, tmpstrucout = tempfile.mkstemp()
     PYTHON_TIMEOUT_SECONDS = 5
 
-    def launch_python_subprocess_method(command, tmpout, tmperr):
+    def launch_python_subprocess_method(command, tmpout, tmperr, env=None):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
@@ -123,9 +128,11 @@ class TestPythonExecutor(TestCase):
       ),
     )
     thread.start()
-    time.sleep(0.1)
+    self.assertTrue(subproc_mock.started_event.wait(2))
     subproc_mock.should_finish_event.set()
-    subproc_mock.finished_event.wait()
+    self.assertTrue(subproc_mock.finished_event.wait(2))
+    thread.join(2)
+    self.assertFalse(thread.is_alive())
     self.assertEqual(
       subproc_mock.was_terminated,
       False,
@@ -149,7 +156,7 @@ class TestPythonExecutor(TestCase):
 
     PYTHON_TIMEOUT_SECONDS = 5
 
-    def launch_python_subprocess_method(command, tmpout, tmperr):
+    def launch_python_subprocess_method(command, tmpout, tmperr, env=None):
       subproc_mock.tmpout = tmpout
       subproc_mock.tmperr = tmperr
       return subproc_mock
@@ -197,6 +204,209 @@ class TestPythonExecutor(TestCase):
     self.assertEqual("script", command[1])
     self.assertEqual("script_param1", command[2])
 
+  @patch("ambari_agent.PythonExecutor.subprocess.Popen")
+  def test_subprocess_environment_excludes_enrollment_passphrase(
+    self, popen_mock
+  ):
+    executor = PythonExecutor("/tmp", AmbariConfig())
+
+    with patch.dict(
+      os.environ,
+      {"AMBARI_PASSPHRASE": "enrollment-secret", "PRESERVED": "value"},
+      clear=True,
+    ):
+      executor.launch_python_subprocess(
+        ["python3", "script.py"],
+        MagicMock(),
+        MagicMock(),
+        env={
+          "AGENT_ENCRYPTION_KEY": "command-key",
+          "AMBARI_PASSPHRASE": "injected-secret",
+        },
+      )
+
+    command_environment = popen_mock.call_args.kwargs["env"]
+    self.assertNotIn("AMBARI_PASSPHRASE", command_environment)
+    self.assertEqual(command_environment["AGENT_ENCRYPTION_KEY"], "command-key")
+    self.assertEqual(command_environment["PRESERVED"], "value")
+    self.assertTrue(popen_mock.call_args.kwargs["start_new_session"])
+    self.assertNotIn("preexec_fn", popen_mock.call_args.kwargs)
+
+  @patch("ambari_agent.PythonExecutor.subprocess.Popen")
+  def test_plain_command_does_not_inherit_process_encryption_key(self, popen_mock):
+    executor = PythonExecutor("/tmp", AmbariConfig())
+
+    with patch.dict(
+      os.environ,
+      {"AGENT_ENCRYPTION_KEY": "stale-process-key", "PRESERVED": "value"},
+      clear=True,
+    ):
+      executor.launch_python_subprocess(
+        ["python3", "script.py"], MagicMock(), MagicMock()
+      )
+
+    command_environment = popen_mock.call_args.kwargs["env"]
+    self.assertNotIn("AGENT_ENCRYPTION_KEY", command_environment)
+    self.assertEqual("value", command_environment["PRESERVED"])
+
+  @patch("ambari_agent.PythonExecutor.subprocess.Popen")
+  def test_subprocess_environment_honors_disabled_proxy_setting(self, popen_mock):
+    config = AmbariConfig()
+    config.set("network", "use_system_proxy_settings", "false")
+    executor = PythonExecutor("/tmp", config)
+
+    with patch.dict(
+      os.environ,
+      {"HTTPS_PROXY": "http://system-proxy", "PRESERVED": "value"},
+      clear=True,
+    ):
+      executor.launch_python_subprocess(
+        ["python3", "script.py"],
+        MagicMock(),
+        MagicMock(),
+        env={"http_proxy": "http://command-proxy"},
+      )
+
+    command_environment = popen_mock.call_args.kwargs["env"]
+    self.assertNotIn("HTTPS_PROXY", command_environment)
+    self.assertNotIn("http_proxy", command_environment)
+    self.assertEqual("value", command_environment["PRESERVED"])
+
+  @patch("ambari_agent.PythonExecutor.threading.Thread")
+  def test_background_thread_start_failure_clears_handle_thread(self, thread_mock):
+    executor = PythonExecutor("/tmp", AmbariConfig())
+    thread_mock.return_value.start.side_effect = RuntimeError("thread start failed")
+    handle = BackgroundCommandExecutionHandle(
+      {"taskId": 1}, 1, MagicMock(), MagicMock()
+    )
+
+    with self.assertRaisesRegex(RuntimeError, "thread start failed"):
+      executor.run_file(
+        "script.py",
+        [],
+        "/tmp/stdout",
+        "/tmp/stderr",
+        60,
+        "/tmp/structured-out.json",
+        MagicMock(),
+        1,
+        handle=handle,
+      )
+
+    self.assertIsNone(handle.thread)
+
+  def test_background_setup_failure_invokes_completion_callback(self):
+    executor = PythonExecutor("/tmp", AmbariConfig())
+    executor.open_subprocess_files = MagicMock(
+      side_effect=OSError("cannot open output files")
+    )
+    completed = threading.Event()
+    callback = MagicMock(side_effect=lambda *_args: completed.set())
+    handle = BackgroundCommandExecutionHandle({"taskId": 1}, 1, MagicMock(), callback)
+
+    result = executor.run_file(
+      "script.py",
+      [],
+      "/tmp/stdout",
+      "/tmp/stderr",
+      60,
+      "/tmp/structured-out.json",
+      MagicMock(),
+      1,
+      handle=handle,
+    )
+
+    self.assertEqual({"exitcode": 777}, result)
+    self.assertTrue(completed.wait(2))
+    handle.thread.join(2)
+    self.assertFalse(handle.thread.is_alive())
+    process_result = callback.call_args.args[0]
+    self.assertEqual(1, process_result["exitcode"])
+    self.assertIn("cannot open output files", process_result["stderr"])
+
+  @patch("ambari_commons.shell.kill_process_with_children")
+  def test_background_command_timeout_kills_process_and_completes_callback(
+    self, kill_process_mock
+  ):
+    executor = PythonExecutor("/tmp", AmbariConfig())
+    process = MagicMock(pid=1234, returncode=None)
+    process_finished = threading.Event()
+
+    def communicate():
+      if not process_finished.wait(2):
+        raise AssertionError("background watchdog did not terminate the process")
+
+    def terminate(_pid):
+      process.returncode = -signal.SIGTERM
+      process_finished.set()
+
+    process.communicate.side_effect = communicate
+    kill_process_mock.side_effect = terminate
+    executor.launch_python_subprocess = MagicMock(return_value=process)
+    completed = threading.Event()
+    callback = MagicMock(side_effect=lambda *_args: completed.set())
+    handle = BackgroundCommandExecutionHandle({"taskId": 1}, 1, MagicMock(), callback)
+
+    with tempfile.NamedTemporaryFile() as tmpout:
+      with tempfile.NamedTemporaryFile() as tmperr:
+        with tempfile.NamedTemporaryFile() as structured_out:
+          result = executor.run_file(
+            "script.py",
+            [],
+            tmpout.name,
+            tmperr.name,
+            0.01,
+            structured_out.name,
+            MagicMock(),
+            1,
+            handle=handle,
+          )
+
+          self.assertEqual({"exitcode": 777}, result)
+          self.assertTrue(completed.wait(2))
+          handle.thread.join(2)
+
+    self.assertFalse(handle.thread.is_alive())
+    kill_process_mock.assert_called_once_with(1234)
+    process_result = callback.call_args.args[0]
+    self.assertEqual(999, process_result["exitcode"])
+    self.assertIn("killed due to timeout", process_result["stderr"])
+
+  @patch("ambari_commons.shell.kill_process_with_children")
+  def test_cancellation_during_process_launch_kills_registered_process(
+    self, kill_process_mock
+  ):
+    executor = PythonExecutor("/tmp", AmbariConfig())
+    process = MagicMock(pid=1234, returncode=-signal.SIGTERM)
+    executor.launch_python_subprocess = MagicMock(return_value=process)
+    executor.prepare_process_result = MagicMock(
+      return_value={
+        "exitcode": -signal.SIGTERM,
+        "stdout": "",
+        "stderr": "",
+        "structuredOut": {},
+      }
+    )
+    cancel_event = threading.Event()
+
+    def cancel_as_pid_is_registered(_task_id, _pid):
+      cancel_event.set()
+
+    result = executor.run_file(
+      "script.py",
+      [],
+      "/tmp/stdout",
+      "/tmp/stderr",
+      60,
+      "/tmp/structured-out.json",
+      cancel_as_pid_is_registered,
+      1,
+      cancel_event=cancel_event,
+    )
+
+    kill_process_mock.assert_called_once_with(1234)
+    self.assertEqual(-signal.SIGTERM, result["exitcode"])
+
   @patch.object(os.path, "isfile")
   @patch.object(os, "rename")
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
@@ -233,18 +443,20 @@ class TestPythonExecutor(TestCase):
 
     returncode = 0
 
-    started_event = threading.Event()
-    should_finish_event = threading.Event()
-    finished_event = threading.Event()
-    was_terminated = False
-    tmpout = None
-    tmperr = None
-    pid = -1
+    def __init__(self):
+      self.started_event = threading.Event()
+      self.should_finish_event = threading.Event()
+      self.finished_event = threading.Event()
+      self.was_terminated = False
+      self.tmpout = None
+      self.tmperr = None
+      self.pid = -1
 
     def communicate(self):
       self.started_event.set()
 
-      self.should_finish_event.wait()
+      if not self.should_finish_event.wait(5):
+        raise RuntimeError("Timed out waiting to finish mocked subprocess")
       self.finished_event.set()
       pass
 

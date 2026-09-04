@@ -15,29 +15,51 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
-from os import listdir, path
+import os
+
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 
+import infra_solr_utils
+
+
 config = Script.get_config()
-
-infra_solr_port = default("configurations/infra-solr-env/infra_solr_port", "8886")
-infra_solr_piddir = default(
-  "configurations/infra-solr-env/infra_solr_pid_dir", "/var/run/ambari-infra-solr"
+infra_solr_port = infra_solr_utils.bounded_int(
+  default("/configurations/infra-solr-env/infra_solr_port", 8886),
+  "Infra Solr port",
+  1,
+  65535,
 )
-infra_solr_pidfile = format("{infra_solr_piddir}/solr-{infra_solr_port}.pid")
-
-prev_infra_solr_pidfile = ""
-if path.isdir(infra_solr_piddir):
-  for file in listdir(infra_solr_piddir):
-    prev_infra_solr_pidfile = infra_solr_piddir + "/" + file
-
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+infra_solr_piddir = infra_solr_utils.validate_service_directory(
+  default(
+    "/configurations/infra-solr-env/infra_solr_pid_dir",
+    "/var/run/ambari-infra-solr",
+  ),
+  "Infra Solr PID directory",
+)
+infra_solr_pidfile = os.path.join(infra_solr_piddir, f"solr-{infra_solr_port}.pid")
+infra_solr_datadir = infra_solr_utils.validate_service_directory(
+  default(
+    "/configurations/infra-solr-env/infra_solr_datadir",
+    "/var/lib/ambari-infra-solr/data",
+  ),
+  "Infra Solr data directory",
+)
+infra_solr_user = infra_solr_utils.validate_user(
+  default("/configurations/infra-solr-env/infra_solr_user", "infra-solr"),
+  "Infra Solr user",
+)
+user_group = infra_solr_utils.validate_user(
+  config["configurations"]["cluster-env"]["user_group"],
+  "Infra Solr group",
+)
+security_enabled = infra_solr_utils.as_bool(
+  config["configurations"]["cluster-env"]["security_enabled"],
+  "Cluster security setting",
+)
 kinit_path_local = get_kinit_path(
   default("/configurations/kerberos-env/executable_search_paths", None)
 )

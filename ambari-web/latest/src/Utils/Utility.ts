@@ -373,9 +373,6 @@ export function commandDetail(
   }
 
   // Special case handling for various operations
-  if (result === ' Nagios Update Ignore Actionexecute') {
-    result = translate('common.maintenance.task') as string;
-  }
   if (result.indexOf('Install Packages Actionexecute') !== -1) {
     result = translate('common.installRepo.task') as string;
   }

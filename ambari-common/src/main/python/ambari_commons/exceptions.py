@@ -38,4 +38,4 @@ class NonFatalException(Exception):
 
 class TimeoutError(Exception):
   def __str__(self):
-    return repr(f"Timeout error: {self.message}")
+    return repr(f"Timeout error: {super().__str__()}")

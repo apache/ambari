@@ -18,13 +18,14 @@ limitations under the License.
 
 """
 
+import ast
 import re
 
 # [a,b,c]
-REGEX_LIST = "^\w*\[.+\]\w*$"
+REGEX_LIST = r"^\w*\[.+\]\w*$"
 
 # {a: v, b: v2, c: v3}
-REGEX_DICTIONARY = "^\w*\{.+\}\w*$"
+REGEX_DICTIONARY = r"^\w*\{.+\}\w*$"
 
 """
 storm-cluster:
@@ -33,14 +34,14 @@ storm-cluster:
   groups:
     [hadoop, hadoop-secure]
 
-^\s* - allow any whitespace or newlines to start
-\S+ - at least 1 word character (including dashes)
+^\\s* - allow any whitespace or newlines to start
+\\S+ - at least 1 word character (including dashes)
 [ ]*:[ ]* - followed by a colon (allowing spaces around the colon)
 [\r\n\f]+ - at least 1 newline
 
-\s*\S+[ ]*:[ ]*[\r\n\f] - follow with the same basically to ensure a map of maps
+\\s*\\S+[ ]*:[ ]*[\r\n\f] - follow with the same basically to ensure a map of maps
 """
-REGEX_NESTED_MAPS = "^\s*\S+[ ]*:[ ]*[\r\n\f]+\s*\S+[ ]*:[ ]*[\r\n\f]"
+REGEX_NESTED_MAPS = r"^\s*\S+[ ]*:[ ]*[\r\n\f]+\s*\S+[ ]*:[ ]*[\r\n\f]"
 
 
 def escape_yaml_property(value):
@@ -113,8 +114,13 @@ def get_values_from_yaml_array(yaml_array):
   if yaml_array is None:
     return None
 
-  matches = re.findall(r"[\'|\"](.+?)[\'|\"]", yaml_array)
-  if matches is None or len(matches) == 0:
+  try:
+    values = ast.literal_eval(yaml_array)
+  except (SyntaxError, ValueError, TypeError):
     return None
 
-  return matches
+  if not isinstance(values, list) or not values:
+    return None
+  if any(not isinstance(value, str) for value in values):
+    return None
+  return values

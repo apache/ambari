@@ -18,47 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 import re
 import os
 import sys
-import platform
 import distro
-
-
-def _get_windows_version():
-  """
-  Get's the OS major and minor versions.  Returns a tuple of
-  (OS_MAJOR, OS_MINOR).
-  """
-  import ctypes
-
-  class _OSVERSIONINFOEXW(ctypes.Structure):
-    _fields_ = [
-      ("dwOSVersionInfoSize", ctypes.c_ulong),
-      ("dwMajorVersion", ctypes.c_ulong),
-      ("dwMinorVersion", ctypes.c_ulong),
-      ("dwBuildNumber", ctypes.c_ulong),
-      ("dwPlatformId", ctypes.c_ulong),
-      ("szCSDVersion", ctypes.c_wchar * 128),
-      ("wServicePackMajor", ctypes.c_ushort),
-      ("wServicePackMinor", ctypes.c_ushort),
-      ("wSuiteMask", ctypes.c_ushort),
-      ("wProductType", ctypes.c_byte),
-      ("wReserved", ctypes.c_byte),
-    ]
-
-  os_version = _OSVERSIONINFOEXW()
-  os_version.dwOSVersionInfoSize = ctypes.sizeof(os_version)
-  retcode = ctypes.windll.Ntdll.RtlGetVersion(ctypes.byref(os_version))
-  if retcode != 0:
-    raise Exception("Failed to get OS version")
-
-  return (
-    os_version.dwMajorVersion,
-    os_version.dwMinorVersion,
-    os_version.dwBuildNumber,
-    os_version.wProductType,
-  )
 
 
 # path to resources dir
@@ -72,23 +36,37 @@ JSON_OS_TYPE = "distro"
 JSON_OS_VERSION = "versions"
 JSON_EXTENDS = "extends"
 
-# windows family constants
-SYSTEM_WINDOWS = "Windows"
-REL_2008 = "win2008server"
-REL_2008R2 = "win2008serverr2"
-REL_2012 = "win2012server"
-REL_2012R2 = "win2012serverr2"
-
-# windows machine types
-VER_NT_WORKSTATION = 1
-VER_NT_DOMAIN_CONTROLLER = 2
-VER_NT_SERVER = 3
-
 # Linux specific releases, caching them since they are execution invariants
 _IS_ORACLE_LINUX = os.path.exists("/etc/oracle-release")
 _IS_REDHAT_LINUX = os.path.exists("/etc/redhat-release")
 
 OS_RELEASE_FILE = "/etc/os-release"
+
+
+def _load_os_family_data(resource_path):
+  with open(resource_path, encoding="utf-8") as stream:
+    data = json.load(stream)
+
+  if not isinstance(data, dict):
+    raise ValueError("OS family resource must contain a JSON object")
+
+  mapping = data.get(JSON_OS_MAPPING)
+  if not isinstance(mapping, dict):
+    raise ValueError(f"'{JSON_OS_MAPPING}' must contain a JSON object")
+
+  aliases = data.get(JSON_OS_ALIASES, {})
+  if not isinstance(aliases, dict):
+    raise ValueError(f"'{JSON_OS_ALIASES}' must contain a JSON object")
+
+  for family, family_data in mapping.items():
+    if not isinstance(family, str) or not isinstance(family_data, dict):
+      raise ValueError("OS family entries must map names to JSON objects")
+    if not isinstance(family_data.get(JSON_OS_TYPE), list):
+      raise ValueError(
+        f"OS family '{family}' must define '{JSON_OS_TYPE}' as a JSON array"
+      )
+
+  return data
 
 
 def _is_oracle_linux():
@@ -99,10 +77,15 @@ def _is_redhat_linux():
   return _IS_REDHAT_LINUX
 
 
+def linux_distribution():
+  """Return the Linux identity through distro's supported public API."""
+  return distro.id(), distro.version(), distro.codename()
+
+
 def advanced_check(distribution):
   distribution = list(distribution)
   if os.path.exists(OS_RELEASE_FILE):
-    with open(OS_RELEASE_FILE, "rb") as fp:
+    with open(OS_RELEASE_FILE, encoding="utf-8") as fp:
       file_content = fp.read()
 
     search_groups = re.search('NAME="(.+)"', file_content)
@@ -110,7 +93,7 @@ def advanced_check(distribution):
 
     if "amazon" in name.lower():
       distribution[0] = "amazonlinux"
-      search_groups = re.search('VERSION_ID="(\d+)"', file_content)
+      search_groups = re.search(r'VERSION_ID="(\d+)"', file_content)
 
       if search_groups:
         distribution[1] = search_groups.group(1)
@@ -130,14 +113,11 @@ class OS_CONST_TYPE(type):
     Initialize internal data structures from file
     """
     try:
-      f = open(os.path.join(RESOURCES_DIR, OSFAMILY_JSON_RESOURCE))
-      json_data = eval(f.read())
-      f.close()
-
-      if JSON_OS_MAPPING not in json_data:
-        raise Exception(f"Invalid {OSFAMILY_JSON_RESOURCE}")
-
+      json_data = _load_os_family_data(
+        os.path.join(RESOURCES_DIR, OSFAMILY_JSON_RESOURCE)
+      )
       json_mapping_data = json_data[JSON_OS_MAPPING]
+      cls.OS_TYPE_ALIASES = json_data.get(JSON_OS_ALIASES, {})
 
       for family in json_mapping_data:
         cls.FAMILY_COLLECTION += [family]
@@ -151,11 +131,8 @@ class OS_CONST_TYPE(type):
             JSON_EXTENDS
           ]
 
-        cls.OS_TYPE_ALIASES = (
-          json_data[JSON_OS_ALIASES] if JSON_OS_ALIASES in json_data else {}
-        )
-    except:
-      raise Exception(f"Couldn't load '{OSFAMILY_JSON_RESOURCE}' file")
+    except (OSError, UnicodeError, ValueError, TypeError, KeyError) as error:
+      raise Exception(f"Couldn't load '{OSFAMILY_JSON_RESOURCE}' file") from error
 
   def __init__(cls, name, bases, dct):
     cls.initialize_data()
@@ -183,35 +160,10 @@ class OSConst(metaclass=OS_CONST_TYPE):
 class OSCheck:
   @staticmethod
   def os_distribution():
-    if platform.system() == SYSTEM_WINDOWS:
-      # windows distribution
-      major, minor, build, code = _get_windows_version()
-      if code in (VER_NT_DOMAIN_CONTROLLER, VER_NT_SERVER):
-        # we are on server os
-        release = None
-        if major == 6:
-          if minor == 0:
-            release = REL_2008
-          elif minor == 1:
-            release = REL_2008R2
-          elif minor == 2:
-            release = REL_2012
-          elif minor == 3:
-            release = REL_2012R2
-        distribution = (release, f"{major}.{minor}", "WindowsServer")
-      else:
-        # we are on unsupported desktop os
-        distribution = ("", "", "")
-    else:
-      # linux distribution
-      distribution = distro.linux_distribution(full_distribution_name=False)
+    distribution = linux_distribution()
 
     if distribution[0] == "":
       distribution = advanced_check(distribution)
-
-      if platform.system().lower() == "darwin":
-        # mac - used for unit tests
-        distribution = ("Darwin", "TestOnly", "1.1.1", "1.1.1", "1.1")
 
     return distribution
 
@@ -222,7 +174,7 @@ class OSCheck:
 
     if full_os_and_major_version in OSConst.OS_TYPE_ALIASES:
       alias = OSConst.OS_TYPE_ALIASES[full_os_and_major_version]
-      re_groups = re.search("(\D+)(\d+)$", alias).groups()
+      re_groups = re.search(r"(\D+)(\d+)$", alias).groups()
       os_type = re_groups[0]
       os_major_version = re_groups[1]
 
@@ -375,19 +327,6 @@ class OSCheck:
         and OSCheck.is_in_family(OSCheck.get_os_family_parent(current_family), family)
       ):
         return True
-    except Exception:
-      pass
-    return False
-
-  @staticmethod
-  def is_windows_family():
-    """
-    Return true if it is so or false if not
-
-    This is safe check for winsrv , doesn't generate exception
-    """
-    try:
-      return OSCheck.get_os_family() == OSConst.WINSRV_FAMILY
     except Exception:
       pass
     return False

@@ -18,15 +18,10 @@ limitations under the License.
 """
 
 # Python imports
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import os
 import traceback
 import re
-import socket
-import fnmatch
-
-
-from resource_management.core.logger import Logger
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
@@ -36,8 +31,8 @@ try:
   if "BASE_SERVICE_ADVISOR" in os.environ:
     PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
   with open(PARENT_FILE, "rb") as fp:
-    service_advisor = imp.load_module(
-      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+    service_advisor = import_utils.load_module(
+      "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
     )
 except Exception as e:
   traceback.print_exc()
@@ -50,6 +45,52 @@ DB_TYPE_DEFAULT_PORT_MAP = {
   "MSSQL": "1433",
   "SQLA": "2638",
 }
+
+_IDENTITY_PATTERN = re.compile(r"^[a-z_][a-z0-9_.-]{0,31}$")
+
+
+def _strict_bool(value, property_name):
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "true":
+      return True
+    if normalized == "false":
+      return False
+  raise ValueError(f"{property_name} must be true or false")
+
+
+def _valid_port(value):
+  try:
+    port = int(value)
+  except (TypeError, ValueError):
+    return False
+  return str(value).strip().isdigit() and 1 <= port <= 65535
+
+
+def _valid_identity(value):
+  return (
+    isinstance(value, str)
+    and value != "root"
+    and _IDENTITY_PATTERN.fullmatch(value) is not None
+  )
+
+
+def _safe_absolute_directory(value):
+  return (
+    isinstance(value, str)
+    and value.startswith("/")
+    and value != "/"
+    and os.path.normpath(value) == value
+    and not any(character in value for character in ("\x00", "\n", "\r"))
+  )
+
+
+def _safe_pid_directory(value):
+  return _safe_absolute_directory(value) and (
+    value.startswith("/run/") or value.startswith("/var/run/")
+  )
 
 
 class Ranger_KMSServiceAdvisor(service_advisor.ServiceAdvisor):
@@ -135,16 +176,16 @@ class Ranger_KMSServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = RangerKMSRecommender()
-    recommender.recommendRangerKMSConfigurationsFromHDP23(
+    recommender.recommendRangerKMSCoreConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendRangerKMSConfigurationsFromHDP25(
+    recommender.recommendRangerKMSDatabaseConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendRangerKMSConfigurationsFromHDP26(
+    recommender.recommendRangerKMSTlsConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendRangerKMSConfigurationsFromHDP30(
+    recommender.recommendModernRangerKMSConfigurations(
       configurations, clusterData, services, hosts
     )
 
@@ -216,7 +257,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(RangerKMSRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendRangerKMSConfigurationsFromHDP23(
+  def recommendRangerKMSCoreConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     servicesList = [
@@ -346,7 +387,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
         "proxy-category": ["hosts", "users", "groups"],
       },
       {
-        "service": "SPARK",
+        "service": "LIVY",
         "config-type": "livy-env",
         "property-name": "livy_user",
         "proxy-category": ["hosts", "users", "groups"],
@@ -358,12 +399,6 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
         "service": "HIVE",
         "config-type": "hive-env",
         "property-name": "hive_user",
-        "proxy-category": ["hosts", "users"],
-      },
-      {
-        "service": "OOZIE",
-        "config-type": "oozie-env",
-        "property-name": "oozie_user",
         "proxy-category": ["hosts", "users"],
       },
     ]
@@ -401,7 +436,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
         "hadoop.kms.proxyuser.HTTP.users", "delete", "true"
       )
 
-  def recommendRangerKMSConfigurationsFromHDP25(
+  def recommendRangerKMSDatabaseConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     security_enabled = Ranger_KMSServiceAdvisor.isKerberosEnabled(
@@ -415,9 +450,9 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
         "proxy-category": ["hosts", "users", "groups"],
       },
       {
-        "service": "SPARK2",
-        "config-type": "livy2-env",
-        "property-name": "livy2_user",
+        "service": "LIVY",
+        "config-type": "livy-env",
+        "property-name": "livy_user",
         "proxy-category": ["hosts", "users", "groups"],
       },
     ]
@@ -428,7 +463,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
     else:
       self.deleteKMSProxyUsers(configurations, services, hosts, required_services)
 
-  def recommendRangerKMSConfigurationsFromHDP26(
+  def recommendRangerKMSTlsConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     putRangerKmsEnvProperty = self.putProperty(configurations, "kms-env", services)
@@ -440,11 +475,11 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
       and "ranger.service.https.attrib.ssl.enabled"
       in services["configurations"]["ranger-kms-site"]["properties"]
     ):
-      ranger_kms_ssl_enabled = (
+      ranger_kms_ssl_enabled = _strict_bool(
         services["configurations"]["ranger-kms-site"]["properties"][
           "ranger.service.https.attrib.ssl.enabled"
-        ].lower()
-        == "true"
+        ],
+        "ranger-kms-site/ranger.service.https.attrib.ssl.enabled",
       )
 
     if (
@@ -461,7 +496,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
     else:
       putRangerKmsEnvProperty("kms_port", "9292")
 
-  def recommendRangerKMSConfigurationsFromHDP30(
+  def recommendModernRangerKMSConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     putRangerKmsEnvProperty = self.putProperty(configurations, "kms-env", services)
@@ -674,4 +709,135 @@ class RangerKMSValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(RangerKMSValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = []
+    self.validators = [
+      ("kms-env", self.validateEnvironment),
+      ("ranger-kms-site", self.validateRuntimeSite),
+      ("kms-properties", self.validateRepositoryCredentials),
+    ]
+
+  def validateEnvironment(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    validation_items = []
+    for name in ("kms_user", "kms_group"):
+      value = properties.get(name)
+      if not _valid_identity(value):
+        validation_items.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(f"{name} is invalid"),
+          }
+        )
+
+    for name, validator in (
+      ("kms_log_dir", _safe_absolute_directory),
+      ("ranger_kms_pid_dir", _safe_pid_directory),
+    ):
+      if not validator(properties.get(name)):
+        validation_items.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(f"{name} is not a safe absolute directory"),
+          }
+        )
+
+    if not _valid_port(properties.get("kms_port")):
+      validation_items.append(
+        {
+          "config-name": "kms_port",
+          "item": self.getErrorItem("kms_port must be between 1 and 65535"),
+        }
+      )
+
+    try:
+      _strict_bool(properties.get("create_db_user"), "kms-env/create_db_user")
+    except ValueError as error:
+      validation_items.append(
+        {
+          "config-name": "create_db_user",
+          "item": self.getErrorItem(str(error)),
+        }
+      )
+    return self.toConfigurationValidationProblems(validation_items, "kms-env")
+
+  def validateRuntimeSite(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    validation_items = []
+    for name in (
+      "ranger.service.http.port",
+      "ranger.service.https.port",
+      "ranger.service.shutdown.port",
+    ):
+      if not _valid_port(properties.get(name)):
+        validation_items.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(f"{name} must be between 1 and 65535"),
+          }
+        )
+
+    ssl_property = "ranger.service.https.attrib.ssl.enabled"
+    try:
+      ssl_enabled = _strict_bool(properties.get(ssl_property), ssl_property)
+    except ValueError as error:
+      ssl_enabled = False
+      validation_items.append(
+        {
+          "config-name": ssl_property,
+          "item": self.getErrorItem(str(error)),
+        }
+      )
+    if ssl_enabled and not _safe_absolute_directory(
+      properties.get("ranger.service.https.attrib.keystore.file")
+    ):
+      validation_items.append(
+        {
+          "config-name": "ranger.service.https.attrib.keystore.file",
+          "item": self.getErrorItem("Ranger KMS keystore must be a safe absolute path"),
+        }
+      )
+    keystore_password_property = "ranger.service.https.attrib.keystore.pass"
+    keystore_password = properties.get(keystore_password_property)
+    if ssl_enabled and (
+      not isinstance(keystore_password, str) or not keystore_password.strip()
+    ):
+      validation_items.append(
+        {
+          "config-name": keystore_password_property,
+          "item": self.getErrorItem(
+            "Ranger KMS HTTPS keystore password must not be empty"
+          ),
+        }
+      )
+    return self.toConfigurationValidationProblems(
+      validation_items, "ranger-kms-site"
+    )
+
+  def validateRepositoryCredentials(
+    self, properties, recommendedDefaults, configurations, services, hosts
+  ):
+    validation_items = []
+    service_names = {
+      service["StackServices"]["service_name"]
+      for service in services.get("services", [])
+    }
+    if "RANGER" not in service_names:
+      return self.toConfigurationValidationProblems(
+        validation_items, "kms-properties"
+      )
+
+    password_property = "REPOSITORY_CONFIG_PASSWORD"
+    password = properties.get(password_property)
+    if not isinstance(password, str) or not password.strip():
+      validation_items.append(
+        {
+          "config-name": password_property,
+          "item": self.getErrorItem(
+            "Ranger KMS repository config password must not be empty"
+          ),
+        }
+      )
+    return self.toConfigurationValidationProblems(
+      validation_items, "kms-properties"
+    )

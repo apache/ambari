@@ -15,22 +15,15 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
 
-import sys
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions.constants import StackFeature
-from resource_management.libraries.functions.version import format_stack_version
-from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.core.logger import Logger
+from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.exceptions import ClientComponentHasNoStatus
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions import StackFeature, stack_select
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
+from resource_management.libraries.script.script import Script
 
 from zookeeper import zookeeper
 
@@ -41,20 +34,6 @@ class ZookeeperClient(Script):
 
     env.set_params(params)
     zookeeper(type="client")
-    pass
-
-  def start(self, env, upgrade_type=None):
-    import params
-
-    env.set_params(params)
-    self.configure(env)
-    pass
-
-  def stop(self, env, upgrade_type=None):
-    import params
-
-    env.set_params(params)
-    pass
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
@@ -67,24 +46,14 @@ class ZookeeperClientLinux(ZookeeperClient):
     self.configure(env)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
-    Logger.info("Executing Stack Upgrade pre-restart")
     import params
 
     env.set_params(params)
-
+    Logger.info("Executing ZooKeeper client stack upgrade pre-restart")
     if params.version and check_stack_feature(
       StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)
     ):
       stack_select.select_packages(params.version)
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ZookeeperClientWindows(ZookeeperClient):
-  def install(self, env):
-    # client checks env var to determine if it is installed
-    if "ZOOKEEPER_HOME" not in os.environ:
-      self.install_packages(env)
-    self.configure(env)
 
 
 if __name__ == "__main__":

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { Alert, Button, Card, Form } from "react-bootstrap";
+import { Button, Card, Form } from "react-bootstrap";
 import DefaultButton from "../../components/DefaultButton";
 import { useContext, useEffect, useRef, useState } from "react";
 import Tooltip from "../../components/Tooltip";
@@ -46,14 +46,12 @@ interface Step2Props {
   wizardName?: string;
   installedHosts?: string[];
   customizeAgentUserAccount?: boolean;
-  isWindowsStack?: boolean;
 }
 
 export default function Step2({
   wizardName = "clusterCreation",
   installedHosts = [],
   customizeAgentUserAccount: customizeAgentUserAccountProp,
-  isWindowsStack: isWindowsStackProp,
 }: Step2Props) {
   const [showManualRegistrationWarning, setShowManualRegistrationWarning] =
     useState(false);
@@ -97,20 +95,12 @@ export default function Step2({
   const [showBeforeProceedModal, setShowBeforeProceedModal] = useState(false);
   const [showSkipHostChecksWarning, setShowSkipHostChecksWarning] =
     useState(false);
-  const isSshRegistration = watch("isSshRegistration", true);
+  const isSshRegistration = Boolean(watch("isSshRegistration", true));
   const skipHostChecks = watch("skipHostChecks", false);
   const { state, dispatch, flushStateToDb }: any = useContext(Context);
   const { supports } = useContext(AppContext);
-  const selectedStackName = getStepData(
-    state,
-    "VERSION",
-    "selectedStack.stack_name",
-    `${wizardName}Steps`,
-  );
   const customizeAgentUserAccount = customizeAgentUserAccountProp
     ?? Boolean(supports.customizeAgentUserAccount);
-  const isWindowsStack = isWindowsStackProp
-    ?? selectedStackName === "HDPWIN";
 
   const enableNext = () => {
     setNextEnabled(true);
@@ -180,13 +170,10 @@ export default function Step2({
     const prepared = prepareHostInput(data.targetHosts, installedHosts);
     const submission = {
       ...data,
+      isSshRegistration,
       agentUserAccount: customizeAgentUserAccount
         ? data.agentUserAccount
         : "root",
-      isSshRegistration: isWindowsStack || data.isSshRegistration,
-      sshKey: isWindowsStack ? "" : data.sshKey,
-      sshUserAccount: isWindowsStack ? "" : data.sshUserAccount,
-      sshPortNumber: isWindowsStack ? 0 : data.sshPortNumber,
     };
     clearErrors("targetHosts");
     setFormData(submission);
@@ -226,7 +213,7 @@ export default function Step2({
           ...submission,
           targetHosts: hosts,
           installedHosts: installedHosts,
-          useSsh: !isWindowsStack && submission.isSshRegistration,
+          useSsh: submission.isSshRegistration,
           customizeAgentUserAccount,
         },
       },
@@ -402,7 +389,7 @@ export default function Step2({
             </div>
             <div>
               <h2 className="mb-3">Host Registration Information</h2>
-              {!isWindowsStack && <div className="d-flex justify-content-between w-75 mb-3">
+              <div className="d-flex justify-content-between w-75 mb-3">
                 <div className="d-flex make-all-grey">
                   <Form.Check
                     type="radio"
@@ -448,12 +435,7 @@ export default function Step2({
                     on hosts and do not use SSH
                   </Form.Label>
                 </div>
-              </div>}
-              {isWindowsStack && (
-                <Alert variant="info">
-                  Windows hosts use PowerShell Remoting; SSH settings are not required.
-                </Alert>
-              )}
+              </div>
               {wizardName === "addHost" && (
                 <Form.Check
                   className="mb-3"
@@ -470,7 +452,7 @@ export default function Step2({
                   }}
                 />
               )}
-              {!isWindowsStack && <><div className="d-flex mb-2">
+              <div className="d-flex mb-2">
                 <DefaultButton
                   onClick={handleChooseFileClick}
                   disabled={!isSshRegistration}
@@ -592,7 +574,7 @@ export default function Step2({
                     </div>
                   )}
                 </div>
-              )}</>}
+              )}
             </div>
             <div className="mt-4">
               <Button

@@ -30,7 +30,7 @@ AlertUri = namedtuple("AlertUri", "uri is_ssl_enabled")
 
 
 class BaseAlert(object):
-  CONFIG_KEY_REGEXP = re.compile("{{(\S+?)}}")
+  CONFIG_KEY_REGEXP = re.compile(r"{{(\S+?)}}")
   # will force a kinit even if klist says there are valid tickets (4 hour default)
   _DEFAULT_KINIT_TIMEOUT = 14400000
 

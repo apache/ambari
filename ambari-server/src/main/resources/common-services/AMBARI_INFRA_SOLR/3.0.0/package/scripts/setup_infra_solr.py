@@ -23,14 +23,22 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate, Template
 from resource_management.libraries.functions import solr_cloud_util
-from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
+
+import infra_solr_utils
 
 
 def setup_infra_solr(name=None):
   import params
 
   if name == "server":
+    if params.infra_solr_ssl_enabled:
+      infra_solr_utils.validate_regular_file(
+        params.infra_solr_keystore_location, "Infra Solr key store"
+      )
+      infra_solr_utils.validate_regular_file(
+        params.infra_solr_truststore_location, "Infra Solr trust store"
+      )
     Directory(
       [
         params.infra_solr_log_dir,
@@ -38,35 +46,24 @@ def setup_infra_solr(name=None):
         params.infra_solr_datadir,
         params.infra_solr_data_resources_dir,
       ],
-      mode=0o755,
-      cd_access="a",
+      mode=0o750,
       create_parents=True,
       owner=params.infra_solr_user,
       group=params.user_group,
     )
 
     Directory(
-      [params.solr_dir, params.infra_solr_conf],
-      mode=0o755,
-      cd_access="a",
-      owner=params.infra_solr_user,
+      params.infra_solr_conf,
+      mode=0o750,
+      owner="root",
       group=params.user_group,
       create_parents=True,
-      recursive_ownership=True,
     )
 
     File(
-      params.infra_solr_log,
-      mode=0o644,
-      owner=params.infra_solr_user,
-      group=params.user_group,
-      content="",
-    )
-
-    File(
-      format("{infra_solr_conf}/infra-solr-env.sh"),
+      params.infra_solr_include,
       content=InlineTemplate(params.solr_env_content),
-      mode=0o755,
+      mode=0o600,
       owner=params.infra_solr_user,
       group=params.user_group,
     )
@@ -76,38 +73,51 @@ def setup_infra_solr(name=None):
       content=InlineTemplate(params.solr_xml_content),
       owner=params.infra_solr_user,
       group=params.user_group,
+      mode=0o600,
     )
 
     File(
       format("{infra_solr_conf}/log4j2.xml"),
       content=InlineTemplate(params.solr_log4j_content),
-      owner=params.infra_solr_user,
+      owner="root",
       group=params.user_group,
+      mode=0o644,
     )
 
     custom_security_json_location = format("{infra_solr_conf}/custom-security.json")
     File(
       custom_security_json_location,
       content=InlineTemplate(params.infra_solr_security_json_content),
-      owner=params.infra_solr_user,
-      group=params.user_group,
-      mode=0o640,
+      owner="root",
+      group="root",
+      mode=0o600,
     )
 
     if params.security_enabled:
+      infra_solr_utils.validate_keytab(
+        params.infra_solr_kerberos_keytab, "Infra Solr keytab"
+      )
+      infra_solr_utils.validate_keytab(
+        params.infra_solr_web_kerberos_keytab, "Infra Solr HTTP keytab"
+      )
       File(
-        format("{infra_solr_jaas_file}"),
+        params.infra_solr_jaas_file,
         content=Template("infra_solr_jaas.conf.j2"),
         owner=params.infra_solr_user,
+        group=params.user_group,
+        mode=0o400,
       )
 
       File(
         format("{infra_solr_conf}/security.json"),
         content=Template("infra-solr-security.json.j2"),
-        owner=params.infra_solr_user,
-        group=params.user_group,
-        mode=0o640,
+        owner="root",
+        group="root",
+        mode=0o600,
       )
+    else:
+      File(params.infra_solr_jaas_file, action="delete")
+      File(format("{infra_solr_conf}/security.json"), action="delete")
     if os.path.exists(params.limits_conf_dir):
       File(
         os.path.join(params.limits_conf_dir, "infra-solr.conf"),
@@ -118,17 +128,23 @@ def setup_infra_solr(name=None):
       )
 
   elif name == "client":
-    solr_cloud_util.setup_solr_client(params.config)
+    solr_cloud_util.setup_solr_client(
+      params.config,
+      user=params.infra_solr_user,
+      group=params.user_group,
+    )
 
   else:
-    raise Fail("Nor client or server were selected to install.")
+    raise Fail("Neither client nor server was selected to install")
 
 
 def setup_solr_znode_env():
-  """
-  Setup SSL, ACL and authentication / authorization related Zookeeper settings for Solr (checkout: /clustersprops.json and /security.json)
-  """
+  """Configure Infra Solr Cloud properties, authentication, and ACLs."""
   import params
+
+  infra_solr_utils.validate_executable(
+    params.ambari_java_exec, "Ambari Java executable"
+  )
 
   custom_security_json_location = format("{infra_solr_conf}/custom-security.json")
   jaas_file = params.infra_solr_jaas_file if params.security_enabled else None
@@ -175,7 +191,6 @@ def setup_solr_znode_env():
     )
 
 
-@retry(times=30, sleep_time=5, err_class=Fail)
 def create_ambari_solr_znode(java_opts, jaas_file):
   import params
 

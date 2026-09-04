@@ -22,16 +22,11 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import upgrade_summary
 from resource_management.libraries.functions.constants import Direction
-from resource_management.core.resources.system import Execute, File
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
-from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.resources.system import File
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
-from resource_management.core import shell
 from ranger_service import ranger_service
-from resource_management.core.exceptions import Fail
+from ranger_process import check_process
 import setup_ranger_xml
 import upgrade
 import os
@@ -61,7 +56,7 @@ class RangerTagsync(Script):
         params.tagsync_jceks_path,
         owner=params.unix_user,
         group=params.unix_group,
-        only_if=format("test -e {tagsync_jceks_path}"),
+        only_if=lambda: os.path.exists(params.tagsync_jceks_path),
         mode=0o640,
       )
 
@@ -106,19 +101,19 @@ class RangerTagsync(Script):
 
     env.set_params(params)
 
-    Execute(
-      format("{tagsync_services_file} stop"),
-      environment={"JAVA_HOME": params.java_home},
-      user=params.unix_user,
-    )
-    File(params.tagsync_pid_file, action="delete")
+    ranger_service("ranger_tagsync", action="stop")
 
   def status(self, env):
     import status_params
 
     env.set_params(status_params)
 
-    check_process_status(status_params.tagsync_pid_file)
+    check_process(
+      "ranger_tagsync",
+      status_params.tagsync_pid_file,
+      status_params.unix_user,
+      status_params.unix_group,
+    )
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -173,7 +168,7 @@ class RangerTagsync(Script):
       params.atlas_tagsync_jceks_path,
       owner=params.unix_user,
       group=params.unix_group,
-      only_if=format("test -e {atlas_tagsync_jceks_path}"),
+      only_if=lambda: os.path.exists(params.atlas_tagsync_jceks_path),
       mode=0o640,
     )
 

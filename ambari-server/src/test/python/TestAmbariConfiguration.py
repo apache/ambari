@@ -24,7 +24,7 @@ from unittest import TestCase
 
 class TestAmbariConfiguration(TestCase):
   def setUp(self):
-    from ambari_commons import import_utils as imp
+    from ambari_commons import import_utils
 
     self.test_directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -35,11 +35,11 @@ class TestAmbariConfiguration(TestCase):
     class_name = "AmbariConfiguration"
 
     with open(ambari_configuration_path, "rb") as fp:
-      ambari_configuration_impl = imp.load_module(
+      ambari_configuration_impl = import_utils.load_module(
         "ambari_configuration",
         fp,
         ambari_configuration_path,
-        (".py", "rb", imp.PY_SOURCE),
+        (".py", "rb", import_utils.PY_SOURCE),
       )
 
     self.ambari_configuration_class = getattr(ambari_configuration_impl, class_name)

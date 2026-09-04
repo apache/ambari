@@ -114,35 +114,26 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>min_user_id</name>
-    <value>1000</value>
-    <display-name>Minimum user ID for submitting job</display-name>
-    <description>Set to 0 to disallow root from submitting jobs. Set to 1000 to disallow all superusers from submitting jobs</description>
-    <value-attributes>
-      <type>int</type>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>is_supported_yarn_ranger</name>
-    <value>false</value>
-    <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>yarn_user_nofile_limit</name>
     <value>32768</value>
     <description>Max open files limit setting for YARN user.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn_user_nproc_limit</name>
     <value>65536</value>
     <description>Max number of processes limit setting for YARN user.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+    </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- These properties were inherited from HDP 2.1 -->
   <property>
     <name>apptimelineserver_heapsize</name>
     <value>1024</value>
@@ -156,7 +147,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- These properties were inherited from HDP 2.2 -->
   <property>
     <name>yarn_cgroups_enabled</name>
     <value>false</value>
@@ -192,6 +182,11 @@
     <description>
       The port number for the DNS listener. The default port is 53.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>65535</maximum>
+    </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
 
@@ -201,15 +196,16 @@
     <display-name>yarn-env template</display-name>
     <description>This is the jinja template for yarn-env.sh file</description>
     <value>
-      export HADOOP_YARN_HOME={{hadoop_yarn_home}}
+      export HADOOP_YARN_HOME={{hadoop_yarn_home_shell}}
       USER="$(whoami)"
-      export HADOOP_LOG_DIR={{yarn_log_dir_prefix}}/$USER
-      export HADOOP_PID_DIR={{yarn_pid_dir_prefix}}/$USER
-      export HADOOP_SECURE_LOG_DIR={{yarn_log_dir_prefix}}/$USER
-      export HADOOP_SECURE_PID_DIR={{yarn_pid_dir_prefix}}/$USER
-      export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
-      export JAVA_HOME={{java64_home}}
-      export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH}:{{hadoop_java_io_tmpdir}}"
+      export HADOOP_LOG_DIR={{yarn_log_dir_prefix_shell}}/$USER
+      export HADOOP_PID_DIR={{yarn_pid_dir_prefix_shell}}/$USER
+      export HADOOP_SECURE_LOG_DIR={{yarn_log_dir_prefix_shell}}/$USER
+      export HADOOP_SECURE_PID_DIR={{yarn_pid_dir_prefix_shell}}/$USER
+      export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir_shell}}
+      export JAVA_HOME={{java64_home_shell}}
+      HADOOP_JAVA_IO_TMPDIR={{hadoop_java_io_tmpdir_shell}}
+      export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH}:${HADOOP_JAVA_IO_TMPDIR}"
 
       # We need to add the EWMA and RFA appender for the yarn daemons only;
       # however, HADOOP_ROOT_LOGGER is shared by the yarn client and the
@@ -239,7 +235,7 @@
 
       # For setting YARN specific HEAP sizes please use this
       # Parameter and set appropriately
-      YARN_HEAPSIZE={{yarn_heapsize}}
+      YARN_HEAPSIZE={{yarn_heapsize_shell}}
 
       # check envvars which might override default args
       if [ "$YARN_HEAPSIZE" != "" ]; then
@@ -255,13 +251,13 @@
       # and/or YARN_RESOURCEMANAGER_OPTS.
       # If not specified, the default value will be picked from either YARN_HEAPMAX
       # or JAVA_HEAP_MAX with YARN_HEAPMAX as the preferred option of the two.
-      export YARN_RESOURCEMANAGER_HEAPSIZE={{resourcemanager_heapsize}}
+      export YARN_RESOURCEMANAGER_HEAPSIZE={{resourcemanager_heapsize_shell}}
 
       # Specify the JVM options to be used when starting the ResourceManager.
       # These options will be appended to the options specified as HADOOP_OPTS
       # and therefore may override any similar flags set in HADOOP_OPTS
       {% if security_enabled %}
-      export YARN_RESOURCEMANAGER_OPTS="-Djava.security.auth.login.config={{yarn_jaas_file}}"
+      export YARN_RESOURCEMANAGER_OPTS={{yarn_jaas_option_shell}}
       {% endif %}
 
       # Node Manager specific parameters
@@ -273,7 +269,7 @@
       # and/or YARN_NODEMANAGER_OPTS.
       # If not specified, the default value will be picked from either YARN_HEAPMAX
       # or JAVA_HEAP_MAX with YARN_HEAPMAX as the preferred option of the two.
-      export YARN_NODEMANAGER_HEAPSIZE={{nodemanager_heapsize}}
+      export YARN_NODEMANAGER_HEAPSIZE={{nodemanager_heapsize_shell}}
 
       # Specify the max Heapsize for the timeline server using a numerical value
       # in the scale of MB. For example, to specify an jvm option of -Xmx1000m, set
@@ -282,25 +278,25 @@
       # and/or YARN_TIMELINESERVER_OPTS.
       # If not specified, the default value will be picked from either YARN_HEAPMAX
       # or JAVA_HEAP_MAX with YARN_HEAPMAX as the preferred option of the two.
-      export YARN_TIMELINESERVER_HEAPSIZE={{apptimelineserver_heapsize}}
+      export YARN_TIMELINESERVER_HEAPSIZE={{apptimelineserver_heapsize_shell}}
 
-      {% if security_enabled %}
-      export YARN_TIMELINESERVER_OPTS="-Djava.security.auth.login.config={{yarn_ats_jaas_file}}"
+      {% if security_enabled and (has_ats or has_atsv2) %}
+      export YARN_TIMELINESERVER_OPTS={{yarn_ats_jaas_option_shell}}
       {% endif %}
 
-      {% if security_enabled %}
-      export YARN_TIMELINEREADER_OPTS="-Djava.security.auth.login.config={{yarn_ats_jaas_file}}"
+      {% if security_enabled and (has_ats or has_atsv2) %}
+      export YARN_TIMELINEREADER_OPTS={{yarn_ats_jaas_option_shell}}
       {% endif %}
 
-      {% if security_enabled %}
-      export YARN_REGISTRYDNS_OPTS="-Djava.security.auth.login.config={{yarn_registry_dns_jaas_file}}"
+      {% if security_enabled and has_registry_dns %}
+      export YARN_REGISTRYDNS_OPTS={{yarn_registry_dns_jaas_option_shell}}
       {% endif %}
 
       # Specify the JVM options to be used when starting the NodeManager.
       # These options will be appended to the options specified as HADOOP_OPTS
       # and therefore may override any similar flags set in HADOOP_OPTS
-      {% if security_enabled %}
-      export YARN_NODEMANAGER_OPTS="-Djava.security.auth.login.config={{yarn_nm_jaas_file}} -Dsun.security.krb5.rcache=none"
+      {% if security_enabled and yarn_nm_jaas_option_shell is defined %}
+      export YARN_NODEMANAGER_OPTS={{yarn_nm_jaas_option_shell}}
       {% endif %}
 
       # so that filenames w/ spaces are handled correctly in loops below
@@ -340,14 +336,15 @@
       HADOOP_OPTS="$HADOOP_OPTS -Djava.library.path=$JAVA_LIBRARY_PATH"
       fi
       HADOOP_OPTS="$HADOOP_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
-      HADOOP_OPTS="$HADOOP_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
+      HADOOP_OPTS="$HADOOP_OPTS -Djava.io.tmpdir=$HADOOP_JAVA_IO_TMPDIR"
 
       {% if security_enabled %}
       HADOOP_OPTS="$HADOOP_OPTS -Djavax.security.auth.useSubjectCredsOnly=false"
       {% endif %}
 
       {% if rm_security_opts is defined %}
-      YARN_RESOURCEMANAGER_OPTS="{{rm_security_opts}} $YARN_RESOURCEMANAGER_OPTS"
+      YARN_RM_SECURITY_OPTS={{rm_security_opts_shell}}
+      YARN_RESOURCEMANAGER_OPTS="$YARN_RM_SECURITY_OPTS $YARN_RESOURCEMANAGER_OPTS"
       {% endif %}
 
       export YARN_NODEMANAGER_OPTS="$YARN_NODEMANAGER_OPTS -Dnm.audit.logger=INFO,NMAUDIT"
@@ -357,7 +354,7 @@
       # If the DNS server is configured to use the standard privileged port 53,
       # the environment variables YARN_REGISTRYDNS_SECURE_USER and
       # YARN_REGISTRYDNS_SECURE_EXTRA_OPTS must be set.
-      export YARN_REGISTRYDNS_SECURE_USER={{yarn_user}}
+      export YARN_REGISTRYDNS_SECURE_USER={{yarn_user_shell}}
       export YARN_REGISTRYDNS_SECURE_EXTRA_OPTS="-jvm server"
       {% endif %}
     </value>

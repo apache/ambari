@@ -1,4 +1,4 @@
-#!/usr/bin/env ambari-python-wrap
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,91 +18,77 @@ limitations under the License.
 """
 
 # Python imports
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import os
-import traceback
 import re
-
-from resource_management.core.logger import Logger
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, "../../../../../stacks/")
 PARENT_FILE = os.path.join(STACKS_DIR, "service_advisor.py")
 
-try:
-  if "BASE_SERVICE_ADVISOR" in os.environ:
-    PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
-  with open(PARENT_FILE, "rb") as fp:
-    service_advisor = imp.load_module(
-      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+if "BASE_SERVICE_ADVISOR" in os.environ:
+  PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
+with open(PARENT_FILE, "rb") as fp:
+  service_advisor = import_utils.load_module(
+    "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
+  )
+
+
+def _service_names(services):
+  return {
+    service.get("StackServices", {}).get("service_name")
+    for service in (services or {}).get("services", [])
+  }
+
+
+def _kafka_broker_count(services):
+  for service in (services or {}).get("services", []):
+    if service.get("StackServices", {}).get("service_name") != "KAFKA":
+      continue
+    for component in service.get("components", []):
+      component_info = component.get("StackServiceComponents", {})
+      if component_info.get("component_name") == "KAFKA_BROKER":
+        return len(component_info.get("hostnames") or [])
+  return 0
+
+
+def _normalize_security_protocol(value):
+  return str(value or "").upper().replace("PLAINTEXTSASL", "SASL_PLAINTEXT")
+
+
+def _listener_protocols(properties):
+  protocol_map = {}
+  for mapping in properties.get("listener.security.protocol.map", "").split(","):
+    name, separator, protocol = mapping.partition(":")
+    if separator:
+      protocol_map[name.strip().upper()] = _normalize_security_protocol(protocol)
+
+  protocols = set()
+  for listener in properties.get("listeners", "").split(","):
+    name, separator, _ = listener.strip().partition("://")
+    if separator:
+      name = name.upper()
+      protocols.add(protocol_map.get(name, _normalize_security_protocol(name)))
+  return protocols
+
+
+def _inter_broker_protocol(properties):
+  listener_name = str(properties.get("inter.broker.listener.name", "")).upper()
+  if listener_name:
+    protocol_map = {}
+    for mapping in properties.get("listener.security.protocol.map", "").split(","):
+      name, separator, protocol = mapping.partition(":")
+      if separator:
+        protocol_map[name.strip().upper()] = _normalize_security_protocol(protocol)
+    return protocol_map.get(
+      listener_name, _normalize_security_protocol(listener_name)
     )
-except Exception as e:
-  traceback.print_exc()
-  print("Failed to load parent")
+  return _normalize_security_protocol(
+    properties.get("security.inter.broker.protocol", "PLAINTEXT")
+  )
 
 
 class KafkaServiceAdvisor(service_advisor.ServiceAdvisor):
-  def __init__(self, *args, **kwargs):
-    self.as_super = super(KafkaServiceAdvisor, self)
-    self.as_super.__init__(*args, **kwargs)
-
-    # Always call these methods
-    self.modifyMastersWithMultipleInstances()
-    self.modifyCardinalitiesDict()
-    self.modifyHeapSizeProperties()
-    self.modifyNotValuableComponents()
-    self.modifyComponentsNotPreferableOnServer()
-    self.modifyComponentLayoutSchemes()
-
-  def modifyMastersWithMultipleInstances(self):
-    """
-    Modify the set of masters with multiple instances.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
-  def modifyCardinalitiesDict(self):
-    """
-    Modify the dictionary of cardinalities.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
-  def modifyHeapSizeProperties(self):
-    """
-    Modify the dictionary of heap size properties.
-    Must be overriden in child class.
-    """
-    pass
-
-  def modifyNotValuableComponents(self):
-    """
-    Modify the set of components whose host assignment is based on other services.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
-  def modifyComponentsNotPreferableOnServer(self):
-    """
-    Modify the set of components that are not preferable on the server.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
-  def modifyComponentLayoutSchemes(self):
-    """
-    Modify layout scheme dictionaries for components.
-    The scheme dictionary basically maps the number of hosts to
-    host index where component should exist.
-    Must be overriden in child class.
-    """
-    # Nothing to do
-    pass
-
   def getServiceComponentLayoutValidations(self, services, hosts):
     """
     Get a list of errors.
@@ -122,16 +108,16 @@ class KafkaServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = KafkaRecommender()
-    recommender.recommendKafkaConfigurationsFromHDP22(
+    recommender.recommendKafkaStorage(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendKAFKAConfigurationsFromHDP23(
+    recommender.recommendKafkaSecurity(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendKAFKAConfigurationsFromHDP26(
+    recommender.recommendRangerRepositoryUser(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendKAFKAConfigurationsFromHDP30(
+    recommender.recommendReplicationFactor(
       configurations, clusterData, services, hosts
     )
 
@@ -158,8 +144,7 @@ class KafkaServiceAdvisor(service_advisor.ServiceAdvisor):
     """
     Determine if Kerberos is enabled for Kafka.
 
-    If kafka-broker/security.inter.broker.protocol exists and is set to "SASL_PLAINTEXT", return True;
-    otherwise return false.
+    Kafka uses Kerberos when its inter-broker protocol is SASL-based.
 
     The value of this property is first tested in the updated configurations (configurations) then
     tested in the current configuration set (services)
@@ -172,30 +157,29 @@ class KafkaServiceAdvisor(service_advisor.ServiceAdvisor):
     :return: True or False
     """
 
-    if (
-      configurations
-      and "kafka-broker" in configurations
-      and "security.inter.broker.protocol"
-      in configurations["kafka-broker"]["properties"]
-    ):
-      return (
-        configurations["kafka-broker"]["properties"]["security.inter.broker.protocol"]
-        == "SASL_PLAINTEXT"
+    current = (
+      services.get("configurations", {})
+      .get("kafka-broker", {})
+      .get("properties", {})
+      if services
+      else {}
+    )
+    updated = (
+      configurations.get("kafka-broker", {}).get("properties", {})
+      if configurations
+      else {}
+    )
+    effective = dict(current)
+    effective.update(updated)
+    protocol = _inter_broker_protocol(effective)
+    mechanism = str(
+      updated.get(
+        "sasl.mechanism.inter.broker.protocol",
+        current.get("sasl.mechanism.inter.broker.protocol", "GSSAPI"),
       )
-    elif (
-      services
-      and "kafka-broker" in services["configurations"]
-      and "security.inter.broker.protocol"
-      in services["configurations"]["kafka-broker"]["properties"]
-    ):
-      return (
-        services["configurations"]["kafka-broker"]["properties"][
-          "security.inter.broker.protocol"
-        ]
-        == "SASL_PLAINTEXT"
-      )
-    else:
-      return False
+      or ""
+    ).upper()
+    return protocol in ("SASL_PLAINTEXT", "SASL_SSL") and mechanism == "GSSAPI"
 
 
 class KafkaRecommender(service_advisor.ServiceAdvisor):
@@ -207,7 +191,7 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(KafkaRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendKafkaConfigurationsFromHDP22(
+  def recommendKafkaStorage(
     self, configurations, clusterData, services, hosts
   ):
     kafka_mounts = [("log.dirs", "KAFKA_BROKER", "/kafka-logs", "multi")]
@@ -216,12 +200,9 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
       "kafka-broker", kafka_mounts, configurations, services, hosts
     )
 
-  def recommendKAFKAConfigurationsFromHDP23(
+  def recommendKafkaSecurity(
     self, configurations, clusterData, services, hosts
   ):
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
     kafka_broker = self.getServicesSiteProperties(services, "kafka-broker")
     kafka_env = self.getServicesSiteProperties(services, "kafka-env")
 
@@ -235,7 +216,9 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
     putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
 
     if security_enabled:
-      self.update_listeners_to_sasl(services, putKafkaBrokerProperty)
+      self.update_listeners_to_sasl(
+        services, configurations, putKafkaBrokerProperty
+      )
 
       kafka_user = kafka_env.get("kafka_user")
 
@@ -249,9 +232,10 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
           # Parse kafka_super_users to get a set of unique user names and rebuild the property value
           user_names = set()
           user_names.add(kafka_user)
-          for match in re.findall("User:([^;]*)", kafka_super_users):
-            user_names.add(match)
-          kafka_super_users = "User:" + ";User:".join(user_names)
+          for match in re.findall(r"(?i)User:([^;]*)", kafka_super_users):
+            if match:
+              user_names.add(match)
+          kafka_super_users = "User:" + ";User:".join(sorted(user_names))
         else:
           kafka_super_users = "User:" + kafka_user
 
@@ -285,34 +269,28 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
       )
 
     ranger_plugin_enabled = False
-    # Only if the RANGER service is installed....
-    if "RANGER" in servicesList:
-      # If ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled,
-      # determine if the Ranger/Kafka plug-in enabled enabled or not
-      if (
-        "ranger-kafka-plugin-properties" in configurations
-        and "ranger-kafka-plugin-enabled"
-        in configurations["ranger-kafka-plugin-properties"]["properties"]
-      ):
-        ranger_plugin_enabled = (
-          configurations["ranger-kafka-plugin-properties"]["properties"][
-            "ranger-kafka-plugin-enabled"
-          ].lower()
-          == "yes"
-        )
-      # If ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled was not changed,
-      # determine if the Ranger/Kafka plug-in enabled enabled or not
-      elif (
-        "ranger-kafka-plugin-properties" in services["configurations"]
-        and "ranger-kafka-plugin-enabled"
-        in services["configurations"]["ranger-kafka-plugin-properties"]["properties"]
-      ):
-        ranger_plugin_enabled = (
-          services["configurations"]["ranger-kafka-plugin-properties"]["properties"][
-            "ranger-kafka-plugin-enabled"
-          ].lower()
-          == "yes"
-        )
+    if (
+      "ranger-kafka-plugin-properties" in configurations
+      and "ranger-kafka-plugin-enabled"
+      in configurations["ranger-kafka-plugin-properties"]["properties"]
+    ):
+      ranger_plugin_enabled = (
+        configurations["ranger-kafka-plugin-properties"]["properties"][
+          "ranger-kafka-plugin-enabled"
+        ].lower()
+        == "yes"
+      )
+    elif (
+      "ranger-kafka-plugin-properties" in services["configurations"]
+      and "ranger-kafka-plugin-enabled"
+      in services["configurations"]["ranger-kafka-plugin-properties"]["properties"]
+    ):
+      ranger_plugin_enabled = (
+        services["configurations"]["ranger-kafka-plugin-properties"]["properties"][
+          "ranger-kafka-plugin-enabled"
+        ].lower()
+        == "yes"
+      )
 
     # Determine the value for kafka-broker/authorizer.class.name
     if ranger_plugin_enabled:
@@ -325,7 +303,7 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
       )
     elif security_enabled:
       putKafkaBrokerProperty(
-        "authorizer.class.name", "kafka.security.auth.SimpleAclAuthorizer"
+        "authorizer.class.name", "kafka.security.authorizer.AclAuthorizer"
       )
     else:
       putKafkaBrokerAttributes("authorizer.class.name", "delete", "true")
@@ -380,20 +358,48 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
         )
         putRangerKafkaPluginProperty("zookeeper.connect", zookeeper_host_port)
 
-  def update_listeners_to_sasl(self, services, putKafkaBrokerProperty):
-    try:
-      listeners = services["configurations"]["kafka-broker"]["properties"]["listeners"]
-      if listeners and "SASL" not in listeners:
-        listeners = re.sub(r"(^|\b)PLAINTEXT://", "SASL_PLAINTEXT://", listeners)
-        listeners = re.sub(r"(^|\b)PLAINTEXTSASL://", "SASL_PLAINTEXT://", listeners)
-        listeners = re.sub(r"(^|\b)SSL://", "SASL_SSL://", listeners)
-        putKafkaBrokerProperty("listeners", listeners)
-    except KeyError as e:
-      self.logger.info(
-        f"Cannot replace PLAINTEXT to SASL_PLAINTEXT in listeners. KeyError: {e}"
+  def update_listeners_to_sasl(
+    self, services, configurations, putKafkaBrokerProperty
+  ):
+    current = (
+      services.get("configurations", {})
+      .get("kafka-broker", {})
+      .get("properties", {})
+    )
+    updated = configurations.get("kafka-broker", {}).get("properties", {})
+    listeners = updated.get(
+      "listeners", current.get("listeners")
+    )
+    if not listeners:
+      raise ValueError("kafka-broker/listeners must be configured")
+    listeners = re.sub(r"(^|\b)PLAINTEXT://", "SASL_PLAINTEXT://", listeners)
+    listeners = re.sub(
+      r"(^|\b)PLAINTEXTSASL://", "SASL_PLAINTEXT://", listeners
+    )
+    listeners = re.sub(r"(^|\b)SSL://", "SASL_SSL://", listeners)
+    putKafkaBrokerProperty("listeners", listeners)
+
+    listener_map = updated.get(
+      "listener.security.protocol.map",
+      current.get("listener.security.protocol.map", ""),
+    )
+    if listener_map:
+      updated_mappings = []
+      for mapping in listener_map.split(","):
+        name, separator, protocol = mapping.partition(":")
+        normalized = _normalize_security_protocol(protocol)
+        if normalized == "PLAINTEXT":
+          normalized = "SASL_PLAINTEXT"
+        elif normalized == "SSL":
+          normalized = "SASL_SSL"
+        updated_mappings.append(
+          f"{name.strip()}:{normalized}" if separator else mapping
+        )
+      putKafkaBrokerProperty(
+        "listener.security.protocol.map", ",".join(updated_mappings)
       )
 
-  def recommendKAFKAConfigurationsFromHDP26(
+  def recommendRangerRepositoryUser(
     self, configurations, clusterData, services, hosts
   ):
     if (
@@ -443,35 +449,17 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
     else:
       self.logger.info("Not setting Kafka Repo user for Ranger.")
 
-  def recommendKAFKAConfigurationsFromHDP30(
+  def recommendReplicationFactor(
     self, configurations, clusterData, services, hosts
   ):
-    number_services = len(services["services"])
-    for each_service in range(0, number_services):
-      if (
-        services["services"][each_service]["components"][0]["StackServiceComponents"][
-          "service_name"
-        ]
-        == "KAFKA"
-      ):
-        num_kakfa_brokers = len(
-          services["services"][each_service]["components"][0]["StackServiceComponents"][
-            "hostnames"
-          ]
-        )
-        putKafkaBrokerProperty = self.putProperty(
-          configurations, "kafka-broker", services
-        )
-        putKafkaBrokerProperty(
-          "offsets.topic.replication.factor", str(min(3, num_kakfa_brokers))
-        )
-      if (
-        services["services"][each_service]["components"][0]["StackServiceComponents"][
-          "service_name"
-        ]
-        == "STREAMSMSGMGR"
-      ):
-        putKafkaBrokerProperty("producer.metrics.enable", "true")
+    num_kafka_brokers = _kafka_broker_count(services)
+    if num_kafka_brokers:
+      putKafkaBrokerProperty = self.putProperty(
+        configurations, "kafka-broker", services
+      )
+      putKafkaBrokerProperty(
+        "offsets.topic.replication.factor", str(min(3, num_kafka_brokers))
+      )
 
 
 class KafkaValidator(service_advisor.ServiceAdvisor):
@@ -487,13 +475,12 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
     self.validators = [
       (
         "ranger-kafka-plugin-properties",
-        self.validateKafkaRangerPluginConfigurationsFromHDP22,
+        self.validateRangerPlugin,
       ),
-      ("kafka-broker", self.validateKAFKAConfigurationsFromHDP23),
-      ("kafka-broker", self.validateKAFKAConfigurationsFromHDP30),
+      ("kafka-broker", self.validateKafka),
     ]
 
-  def validateKafkaRangerPluginConfigurationsFromHDP22(
+  def validateRangerPlugin(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     validationItems = []
@@ -505,10 +492,22 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
       if ranger_plugin_properties
       else "No"
     )
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
+    servicesList = _service_names(services)
     security_enabled = KafkaServiceAdvisor.isKerberosEnabled(services, configurations)
+    if ranger_plugin_enabled.lower() == "yes":
+      repository_password = ranger_plugin_properties.get(
+        "REPOSITORY_CONFIG_PASSWORD"
+      )
+      if not isinstance(repository_password, str) or not repository_password.strip():
+        validationItems.append(
+          {
+            "config-name": "REPOSITORY_CONFIG_PASSWORD",
+            "item": self.getErrorItem(
+              "Ranger Kafka repository config password must not be empty when "
+              "the plugin is enabled"
+            ),
+          }
+        )
     if "RANGER" in servicesList and ranger_plugin_enabled.lower() == "yes":
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = self.getServicesSiteProperties(services, "ranger-env")
@@ -526,11 +525,7 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
           }
         )
 
-    if (
-      ("RANGER" in servicesList)
-      and (ranger_plugin_enabled.lower() == "yes")
-      and not security_enabled
-    ):
+    if ranger_plugin_enabled.lower() == "yes" and not security_enabled:
       validationItems.append(
         {
           "config-name": "ranger-kafka-plugin-enabled",
@@ -543,14 +538,12 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
       validationItems, "ranger-kafka-plugin-properties"
     )
 
-  def validateKAFKAConfigurationsFromHDP23(
+  def validateKafka(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     kafka_broker = properties
     validationItems = []
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
+    servicesList = _service_names(services)
 
     # Adding Ranger Plugin logic here
     ranger_plugin_properties = self.getSiteProperties(
@@ -563,8 +556,8 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
     )
     prop_name = "authorizer.class.name"
     prop_val = "org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer"
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == "Yes".lower()):
-      if kafka_broker[prop_name] != prop_val:
+    if ranger_plugin_enabled.lower() == "yes":
+      if not kafka_broker or kafka_broker.get(prop_name) != prop_val:
         validationItems.append(
           {
             "config-name": prop_name,
@@ -576,43 +569,44 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
           }
         )
 
-    kafka_broker_properties = self.getSiteProperties(configurations, "kafka-broker")
-    # Find number of services installed, get them all and find kafka service json obj in them.
-    number_services = len(services["services"])
-    for each_service in range(0, number_services):
-      if (
-        services["services"][each_service]["components"][0]["StackServiceComponents"][
-          "service_name"
-        ]
-        == "KAFKA"
-      ):
-        num_kakfa_brokers = len(
-          services["services"][each_service]["components"][0]["StackServiceComponents"][
-            "hostnames"
-          ]
+    kafka_broker_properties = (
+      self.getSiteProperties(configurations, "kafka-broker") or {}
+    )
+    num_kafka_brokers = _kafka_broker_count(services)
+    if num_kafka_brokers:
+      replication_factor = kafka_broker_properties.get(
+        "offsets.topic.replication.factor"
+      )
+      try:
+        replication_factor_value = int(replication_factor)
+      except (TypeError, ValueError):
+        validationItems.append(
+          {
+            "config-name": "offsets.topic.replication.factor",
+            "item": self.getErrorItem(
+              "offsets.topic.replication.factor must be a positive integer."
+            ),
+          }
         )
-        if (
-          int(kafka_broker_properties["offsets.topic.replication.factor"])
-          > num_kakfa_brokers
-        ):
+      else:
+        if replication_factor_value < 1 or replication_factor_value > num_kafka_brokers:
           validationItems.append(
             {
               "config-name": "offsets.topic.replication.factor",
               "item": self.getErrorItem(
-                "offsets.topic.replication.factor={0} is greater than the number of kafka brokers={1}. "
-                "It must be less or same as number of kafka brokers.".format(
-                  kafka_broker_properties["offsets.topic.replication.factor"],
-                  num_kakfa_brokers,
+                "offsets.topic.replication.factor={0} must be between 1 and "
+                "the number of Kafka brokers={1}.".format(
+                  replication_factor,
+                  num_kafka_brokers,
                 )
               ),
             }
           )
 
-    if "KERBEROS" in servicesList and "security.inter.broker.protocol" in properties:
-      interBrokerValue = properties["security.inter.broker.protocol"]
+    if "KERBEROS" in servicesList:
+      interBrokerValue = _inter_broker_protocol(properties)
       prop_name = "listeners"
-      prop_value = properties[prop_name]
-      if interBrokerValue and interBrokerValue not in prop_value:
+      if interBrokerValue and interBrokerValue not in _listener_protocols(properties):
         validationItems.append(
           {
             "config-name": "listeners",
@@ -620,48 +614,6 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
               "If kerberos is enabled "
               "{0}  need to contain {1} as one of "
               "the protocol".format(prop_name, interBrokerValue)
-            ),
-          }
-        )
-
-    return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
-
-  def validateKAFKAConfigurationsFromHDP30(
-    self, properties, recommendedDefaults, configurations, services, hosts
-  ):
-    kafka_broker = properties
-    validationItems = []
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
-    kafka_broker_properties = self.getSiteProperties(configurations, "kafka-broker")
-    if "STREAMSMSGMGR" in servicesList:
-      prop_name = "producer.metrics.enable"
-      prop_val = "true"
-      try:
-        kafka_broker_producer_metrics_enable = kafka_broker_properties[prop_name]
-        if kafka_broker_producer_metrics_enable.lower() == "false":
-          validationItems.append(
-            {
-              "config-name": prop_name,
-              "item": self.getWarnItem(
-                "Setting {0} to {1} will prevent collection of metrics related to producer message "
-                "count by Kafka brokers.".format(
-                  prop_name, kafka_broker_producer_metrics_enable
-                )
-              ),
-            }
-          )
-      except KeyError as e:
-        self.logger.info("Unable to find producer.metrics.enable.")
-        validationItems.append(
-          {
-            "config-name": prop_name,
-            "item": self.getWarnItem(
-              "After Installing Streams Messaging Manager, {0} with be set to {1}."
-              "Please restart kafka for changes to take place.".format(
-                prop_name, prop_val
-              )
             ),
           }
         )

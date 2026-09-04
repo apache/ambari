@@ -22,18 +22,23 @@ set -e -u
 cd "$(dirname "$0")"
 
 # OS to build on
-: ${BUILD_OS:=centos7}
+BUILD_OS=${BUILD_OS:-rocky8}
 
 # Directory with Ambari source
-: ${AMBARI_DIR:=$(pwd -P)}
+AMBARI_DIR=${AMBARI_DIR:-$(pwd -P)}
 
 # Maven version
-: ${MAVEN_VERSION:=3.6.0}
+MAVEN_VERSION=${MAVEN_VERSION:-3.9.11}
+
+if [ ! -f "dev-support/docker/${BUILD_OS}/Dockerfile" ]; then
+  echo "Unsupported build OS: ${BUILD_OS}" >&2
+  exit 1
+fi
 
 docker build -t ambari-build-base:${BUILD_OS} dev-support/docker/${BUILD_OS}
 docker build -t ambari-build:${BUILD_OS} --build-arg BUILD_OS="${BUILD_OS}" --build-arg MAVEN_VERSION="${MAVEN_VERSION}" dev-support/docker/common
 
-USER_NAME=${SUDO_USER:=$USER}
+USER_NAME=${SUDO_USER:-$USER}
 USER_ID=$(id -u "${USER_NAME}")
 GROUP_ID=$(id -g "${USER_NAME}")
 USER_TAG="ambari-build-${USER_NAME}-${USER_ID}:${BUILD_OS}"

@@ -18,12 +18,11 @@ limitations under the License.
 
 """
 
+import hdfs_process
+
 from utils import service
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import Template
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from ambari_commons import OSConst
 
@@ -55,7 +54,6 @@ def snamenode(action=None, format=False):
         owner=params.hdfs_user,
         group=params.user_group,
       )
-      pass
   elif action == "start" or action == "stop":
     import params
 
@@ -69,18 +67,10 @@ def snamenode(action=None, format=False):
   elif action == "status":
     import status_params
 
-    check_process_status(status_params.snamenode_pid_file)
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def snamenode(action=None, format=False):
-  if action == "configure":
-    pass
-  elif action == "start" or action == "stop":
-    import params
-
-    Service(params.snamenode_win_service_name, action=action)
-  elif action == "status":
-    import status_params
-
-    check_windows_service_status(status_params.snamenode_win_service_name)
+    hdfs_process.check_component_status(
+      status_params.snamenode_pid_file,
+      status_params.hdfs_user,
+      "secondarynamenode",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
+    )

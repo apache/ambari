@@ -24,14 +24,12 @@ import shutil
 import multiprocessing
 from unittest import TestCase
 
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from resource_management.libraries.functions.fcntl_based_process_lock import (
   FcntlBasedProcessLock,
 )
 
 
 class TestFcntlBasedProcessLock(TestCase):
-  @not_for_platform(PLATFORM_WINDOWS)
   def test_fcntl_based_lock(self):
     """
     Test blocking_lock using multiprocessing.Lock

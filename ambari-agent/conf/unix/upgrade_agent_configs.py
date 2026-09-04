@@ -23,37 +23,50 @@ import configparser
 PROPERTIES_TO_REWRITE = [("heartbeat", "dirs"), ("heartbeat", "state_interval")]
 SECTIONS_TO_REMOVE = ["stack", "puppet", "command", "python"]
 
-CONFIG_FILE_BACKUP = "/etc/ambari-agent/conf/ambari-agent.ini.old"
-CONFIG_FILE = "/etc/ambari-agent/conf/ambari-agent.ini"
+def _rooted_path(path):
+  root = os.environ.get("RPM_INSTALL_PREFIX", "").rstrip("/")
+  return root + path
 
-if os.path.isfile(CONFIG_FILE_BACKUP):
-  if os.path.isfile(CONFIG_FILE):
-    print(f"Upgrading configs in {CONFIG_FILE}")
-    print(
-      f"Values will be updated from {CONFIG_FILE_BACKUP} except the following list: {PROPERTIES_TO_REWRITE}, {SECTIONS_TO_REMOVE}"
-    )
 
-    agent_config_backup = configparser.ConfigParser()
-    agent_config_backup.read(CONFIG_FILE_BACKUP)
+def upgrade_configs():
+  config_file_backup = _rooted_path(
+    "/etc/ambari-agent/conf/ambari-agent.ini.old"
+  )
+  config_file = _rooted_path("/etc/ambari-agent/conf/ambari-agent.ini")
 
-    agent_config = configparser.ConfigParser()
-    agent_config.read(CONFIG_FILE)
+  if not os.path.isfile(config_file_backup):
+    print(f"Values are not updated, backup {config_file_backup} is not found")
+    return
+  if not os.path.isfile(config_file):
+    print(f"Values are not updated, configs {config_file} is not found")
+    return
 
-    for section in agent_config_backup.sections():
-      for property_name, property_val in agent_config_backup.items(section):
-        if (
-          section not in SECTIONS_TO_REMOVE
-          and (section, property_name) not in PROPERTIES_TO_REWRITE
-        ):
-          try:
-            agent_config.set(section, property_name, property_val)
-          except configparser.NoSectionError:
-            agent_config.add_section(section)
-            agent_config.set(section, property_name, property_val)
+  print(f"Upgrading configs in {config_file}")
+  print(
+    f"Values will be updated from {config_file_backup} except the following list: {PROPERTIES_TO_REWRITE}, {SECTIONS_TO_REMOVE}"
+  )
 
-    with open(CONFIG_FILE, "w") as new_agent_config:
-      agent_config.write(new_agent_config)
-  else:
-    print(f"Values are not updated, configs {CONFIG_FILE} is not found")
-else:
-  print(f"Values are not updated, backup {CONFIG_FILE_BACKUP} is not found")
+  agent_config_backup = configparser.ConfigParser()
+  agent_config_backup.read(config_file_backup)
+
+  agent_config = configparser.ConfigParser()
+  agent_config.read(config_file)
+
+  for section in agent_config_backup.sections():
+    for property_name, property_val in agent_config_backup.items(section):
+      if (
+        section not in SECTIONS_TO_REMOVE
+        and (section, property_name) not in PROPERTIES_TO_REWRITE
+      ):
+        try:
+          agent_config.set(section, property_name, property_val)
+        except configparser.NoSectionError:
+          agent_config.add_section(section)
+          agent_config.set(section, property_name, property_val)
+
+  with open(config_file, "w", encoding="utf-8") as new_agent_config:
+    agent_config.write(new_agent_config)
+
+
+if __name__ == "__main__":
+  upgrade_configs()

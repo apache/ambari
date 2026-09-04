@@ -19,12 +19,13 @@ limitations under the License.
 
 import logging
 import threading
+import copy
 
 from ambari_agent import Constants
 from ambari_agent.HostInfo import HostInfo
 from ambari_agent.Utils import Utils
 from ambari_agent.Hardware import Hardware
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +55,21 @@ class HostStatusReporter(threading.Thread):
           if self.initializer_module.is_registered and not Utils.are_dicts_equal(
             report, self.last_report, keys_to_skip=["agentTimeStampAtReporting"]
           ):
-            correlation_id = self.initializer_module.connection.send(
-              message=report, destination=Constants.HOST_STATUS_REPORTS_ENDPOINT
+            report_snapshot = copy.deepcopy(report)
+
+            def register_callback(correlation_id, snapshot=report_snapshot):
+              return self.server_responses_listener.register_response_callback(
+                correlation_id,
+                on_success=lambda headers, message: self.save_last_report(
+                  snapshot
+                ),
+              )
+
+            self.initializer_module.connection.send(
+              message=report_snapshot,
+              destination=Constants.HOST_STATUS_REPORTS_ENDPOINT,
+              presend_hook=register_callback,
             )
-            self.server_responses_listener.listener_functions_on_success[
-              correlation_id
-            ] = lambda headers, message: self.save_last_report(report)
 
       except (
         ConnectionIsAlreadyClosed

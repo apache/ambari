@@ -29,9 +29,9 @@ import socket
 import tempfile
 import shutil
 import os, pprint, json, stat
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from ambari_commons import OSCheck
-from only_for_platform import not_for_platform, os_distro_value, PLATFORM_WINDOWS
+from only_for_platform import os_distro_value
 
 
 class TestHostname(TestCase):
@@ -76,7 +76,6 @@ class TestHostname(TestCase):
     config.set("server", "hostname", default_server_hostname)
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
   def test_server_hostnames_override(self):
     hostname.cached_server_hostnames = []
     fd = tempfile.mkstemp(text=True)
@@ -103,7 +102,6 @@ class TestHostname(TestCase):
       config.remove_option("server", "hostname_script")
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
   def test_server_hostnames_multiple_override(self):
     hostname.cached_server_hostnames = []
     fd = tempfile.mkstemp(text=True)
@@ -137,7 +135,6 @@ class TestHostname(TestCase):
       config.remove_option("server", "hostname_script")
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
   def test_hostname_override(self):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None
@@ -164,7 +161,6 @@ class TestHostname(TestCase):
       config.remove_option("agent", "hostname_script")
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
   def test_public_hostname_override(self):
     hostname.cached_hostname = None
     hostname.cached_public_hostname = None

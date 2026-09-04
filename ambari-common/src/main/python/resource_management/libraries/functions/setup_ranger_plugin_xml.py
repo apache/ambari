@@ -18,11 +18,21 @@ limitations under the License.
 
 """
 
-__all__ = ["setup_ranger_plugin", "get_audit_configs", "generate_ranger_service_config"]
+__all__ = [
+  "setup_ranger_plugin",
+  "setup_ranger_plugin_keystore",
+  "get_audit_configs",
+  "generate_ranger_service_config",
+  "require_external_ranger_credentials",
+]
 
 import os
-import ambari_simplejson as json
+import json
+import re
 from datetime import datetime
+from ambari_commons.credential_store_helper import (
+  create_password_in_credential_store,
+)
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.resources import File, Directory, Execute
 from resource_management.libraries.resources.xml_config import XmlConfig
@@ -31,10 +41,67 @@ from resource_management.libraries.functions.get_stack_version import get_stack_
 from resource_management.core.logger import Logger
 from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
-from resource_management.core.utils import PasswordString
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
+
+
+_SAFE_SEGMENT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,254}", re.ASCII)
+
+
+def _require_safe_segment(value, label):
+  if not isinstance(value, str) or _SAFE_SEGMENT.fullmatch(value) is None:
+    raise Fail(f"{label} must be a single filesystem-safe segment")
+  return value
+
+
+def _require_path_within(path, root, label):
+  if not isinstance(path, str) or not os.path.isabs(path):
+    raise Fail(f"{label} must be an absolute path")
+  normalized = os.path.normpath(path)
+  if normalized != path or os.path.commonpath((normalized, root)) != root:
+    raise Fail(f"{label} must remain within {root}")
+  return normalized
+
+
+def _require_safe_jar_path(path, label):
+  if not isinstance(path, str) or not os.path.isabs(path):
+    raise Fail(f"{label} must be an absolute path")
+  normalized = os.path.normpath(path)
+  file_name = os.path.basename(normalized)
+  if (
+    normalized != path
+    or _SAFE_SEGMENT.fullmatch(file_name) is None
+    or not file_name.lower().endswith(".jar")
+  ):
+    raise Fail(f"{label} must end in a filesystem-safe JAR file name")
+  return normalized
+
+
+def require_external_ranger_credentials(properties):
+  if not isinstance(properties, dict):
+    raise Fail("External Ranger integration properties must be a mapping")
+  required_properties = (
+    "external_admin_username",
+    "external_admin_password",
+    "external_ranger_admin_username",
+    "external_ranger_admin_password",
+  )
+  missing_properties = [
+    property_name
+    for property_name in required_properties
+    if not isinstance(properties.get(property_name), str)
+    or not properties[property_name].strip()
+  ]
+  if missing_properties:
+    raise Fail(
+      "External Ranger integration requires non-empty properties: "
+      + ", ".join(missing_properties)
+    )
+  return {
+    property_name: properties[property_name]
+    for property_name in required_properties
+  }
 
 
 def setup_ranger_plugin(
@@ -44,7 +111,7 @@ def setup_ranger_plugin(
   component_downloaded_custom_connector,
   component_driver_curl_source,
   component_driver_curl_target,
-  java_home,
+  ambari_java_home,
   repo_name,
   plugin_repo_dict,
   ranger_env_properties,
@@ -76,9 +143,16 @@ def setup_ranger_plugin(
   component_user_principal=None,
   component_user_keytab=None,
   cred_lib_path_override=None,
-  cred_setup_prefix_override=None,
   plugin_home=None,
 ):
+  repo_name = _require_safe_segment(repo_name, "Ranger repository name")
+  ranger_repo_dir = os.path.join("/etc", "ranger", repo_name)
+  credential_file = _require_path_within(
+    credential_file, ranger_repo_dir, "Ranger credential file"
+  )
+  if credential_file != os.path.join(ranger_repo_dir, "cred.jceks"):
+    raise Fail("Ranger credential file must be the repository cred.jceks file")
+
   if stack_version_override is None:
     stack_version = get_stack_version(component_select_name)
   else:
@@ -94,6 +168,21 @@ def setup_ranger_plugin(
     and component_driver_curl_source is not None
     and not component_driver_curl_source.endswith("/None")
   ):
+    component_downloaded_custom_connector = _require_safe_jar_path(
+      component_downloaded_custom_connector, "Downloaded Ranger JDBC connector"
+    )
+    component_driver_curl_target = _require_safe_jar_path(
+      component_driver_curl_target, "Installed Ranger JDBC connector"
+    )
+    target_root = os.path.dirname(component_driver_curl_target)
+    if previous_jdbc_jar:
+      previous_jdbc_jar = _require_safe_jar_path(
+        previous_jdbc_jar, "Previous Ranger JDBC connector"
+      )
+      if os.path.dirname(previous_jdbc_jar) != target_root:
+        raise Fail(
+          "Previous Ranger JDBC connector must use the installed connector directory"
+        )
     if previous_jdbc_jar and os.path.isfile(previous_jdbc_jar):
       File(previous_jdbc_jar, action="delete")
 
@@ -175,8 +264,8 @@ def setup_ranger_plugin(
 
     Directory(
       [
-        os.path.join("/etc", "ranger", repo_name),
-        os.path.join("/etc", "ranger", repo_name, "policycache"),
+        ranger_repo_dir,
+        os.path.join(ranger_repo_dir, "policycache"),
       ],
       owner=component_user,
       group=component_group,
@@ -188,9 +277,7 @@ def setup_ranger_plugin(
     for cache_service in cache_service_list:
       File(
         os.path.join(
-          "/etc",
-          "ranger",
-          repo_name,
+          ranger_repo_dir,
           "policycache",
           format("{cache_service}_{repo_name}.json"),
         ),
@@ -261,18 +348,15 @@ def setup_ranger_plugin(
       )
 
     setup_ranger_plugin_keystore(
-      service_name,
       audit_db_is_enabled,
-      stack_version,
       credential_file,
       xa_audit_db_password,
       ssl_truststore_password,
       ssl_keystore_password,
       component_user,
       component_group,
-      java_home,
+      ambari_java_home,
       cred_lib_path_override,
-      cred_setup_prefix_override,
       plugin_home,
     )
 
@@ -306,18 +390,15 @@ def setup_ranger_plugin_jar_symblink(stack_version, service_name, component_list
 
 
 def setup_ranger_plugin_keystore(
-  service_name,
   audit_db_is_enabled,
-  stack_version,
   credential_file,
   xa_audit_db_password,
   ssl_truststore_password,
   ssl_keystore_password,
   component_user,
   component_group,
-  java_home,
+  ambari_java_home,
   cred_lib_path_override=None,
-  cred_setup_prefix_override=None,
   plugin_home=None,
 ):
   if cred_lib_path_override is not None:
@@ -325,51 +406,35 @@ def setup_ranger_plugin_keystore(
   else:
     cred_lib_path = format("{plugin_home}/install/lib/*")
 
-  if cred_setup_prefix_override is not None:
-    cred_setup_prefix = cred_setup_prefix_override
-  else:
-    cred_setup_prefix = (
-      format("{plugin_home}/ranger_credential_helper.py"),
-      "-l",
-      cred_lib_path,
-    )
+  provider_path = f"jceks://file{credential_file}"
 
   if audit_db_is_enabled:
-    cred_setup = cred_setup_prefix + (
-      "-f",
-      credential_file,
-      "-k",
+    create_password_in_credential_store(
       "auditDBCred",
-      "-v",
-      PasswordString(xa_audit_db_password),
-      "-c",
-      "1",
+      provider_path,
+      cred_lib_path,
+      ambari_java_home,
+      None,
+      xa_audit_db_password,
     )
-    Execute(cred_setup, environment={"JAVA_HOME": java_home}, logoutput=True, sudo=True)
 
-  cred_setup = cred_setup_prefix + (
-    "-f",
-    credential_file,
-    "-k",
+  create_password_in_credential_store(
     "sslKeyStore",
-    "-v",
-    PasswordString(ssl_keystore_password),
-    "-c",
-    "1",
+    provider_path,
+    cred_lib_path,
+    ambari_java_home,
+    None,
+    ssl_keystore_password,
   )
-  Execute(cred_setup, environment={"JAVA_HOME": java_home}, logoutput=True, sudo=True)
 
-  cred_setup = cred_setup_prefix + (
-    "-f",
-    credential_file,
-    "-k",
+  create_password_in_credential_store(
     "sslTrustStore",
-    "-v",
-    PasswordString(ssl_truststore_password),
-    "-c",
-    "1",
+    provider_path,
+    cred_lib_path,
+    ambari_java_home,
+    None,
+    ssl_truststore_password,
   )
-  Execute(cred_setup, environment={"JAVA_HOME": java_home}, logoutput=True, sudo=True)
 
   File(credential_file, owner=component_user, group=component_group, mode=0o640)
 

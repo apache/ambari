@@ -18,13 +18,12 @@ limitations under the License.
 """
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock, PropertyMock
 
 from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from ambari_commons.os_check import OSCheck
@@ -37,9 +36,8 @@ import subprocess
 import os
 import select
 
-if get_platform() != PLATFORM_WINDOWS:
-  import pwd
-  import pty
+import pwd
+import pty
 
 
 subproc_stdout = MagicMock()
@@ -409,7 +407,9 @@ class TestUserResource(TestCase):
       def __enter__(self):
         return self
 
-    pwd_mock.return_value = "user1"
+    user_entity = _get_user_entity()
+    user_entity.pw_name = "user1"
+    pwd_mock.return_value = user_entity
     open_mock.return_value = MagicFile()
 
     from resource_management.core.providers.accounts import UserProvider
@@ -422,6 +422,7 @@ class TestUserResource(TestCase):
 
     self.assertEqual(1, len(groups))
     self.assertTrue("group2" in groups)
+    open_mock.assert_called_once_with("/etc/group", "r", encoding="utf-8")
 
 
 def _get_user_entity():

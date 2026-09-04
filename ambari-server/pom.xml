@@ -22,18 +22,14 @@
   <description>Ambari Server</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <python.ver>python &gt;= 2.6</python.ver>
-    <deb.architecture>amd64</deb.architecture>
+    <python.ver>python &gt;= 3.9.2</python.ver>
+    <deb.architecture>${ambari.deb.architecture}</deb.architecture>
     <custom.tests>false</custom.tests>
     <python.test.mask>[Tt]est*.py</python.test.mask>
-    <hdpUrlForCentos6>https://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.1.0</hdpUrlForCentos6>
-    <hdpLatestUrl>https://public-repo-1.hortonworks.com/HDP/hdp_urlinfo.json</hdpLatestUrl>
     <ambari_commons.install.dir>/usr/lib/ambari-server/lib/ambari_commons</ambari_commons.install.dir>
     <resource_management.install.dir>/usr/lib/ambari-server/lib/resource_management</resource_management.install.dir>
-    <jinja.install.dir>/usr/lib/ambari-server/lib/ambari_jinja2</jinja.install.dir>
-    <simplejson.install.dir>/usr/lib/ambari-server/lib/ambari_simplejson</simplejson.install.dir>
-    <pbkdf2.install.dir>/usr/lib/ambari-server/lib/ambari_pbkdf2</pbkdf2.install.dir>
-    <pyaes.install.dir>/usr/lib/ambari-server/lib/ambari_pyaes</pyaes.install.dir>
+    <python.dependencies.dir>${project.build.directory}/python-dependencies</python.dependencies.dir>
+    <deb.package.dependencies>openssl, postgresql (&gt;= 8.1), curl, ${python.deb.runtime.dependency}</deb.package.dependencies>
     <swagger.spec.dir>${basedir}/docs/api/generated/</swagger.spec.dir>
     <swagger.generated.resources.dir>${project.build.directory}/generated-sources/swagger/</swagger.generated.resources.dir>
     <ambari-web-dir>${basedir}/../ambari-web/target/classes</ambari-web-dir>
@@ -409,20 +405,13 @@
             <exclude>src/main/resources/hive-schema-0.12.0.oracle.sql</exclude>
             <exclude>src/main/resources/db/serial</exclude>
             <exclude>src/main/resources/db/index.txt</exclude>
-            <exclude>src/main/resources/stacks/HDP/2.1.GlusterFS/services/YARN/package/templates/exclude_hosts_list.j2</exclude>
-            <exclude>src/main/windows/ambari-server.cmd</exclude>
-            <exclude>src/main/windows/ambari-server.ps1</exclude>
-            <exclude>src/main/package/choco/ambari-server.nuspec</exclude>
             <exclude>**/smoketest_metrics.json.j2</exclude>
             <exclude>**/service-metrics/*.txt</exclude>
             <exclude>**/balancer.log</exclude>
             <exclude>**/balancer-err.log</exclude>
             <exclude>${swagger.spec.dir}/**</exclude>
-            <exclude>**/SMARTSENSE/**</exclude>
             <exclude>conf/unix/ca.config</exclude>
             <exclude>conf/unix/krb5JAASLogin.conf</exclude>
-            <exclude>conf/windows/ca.config</exclude>
-            <exclude>conf/windows/krb5JAASLogin.conf</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.sql</exclude>
             <exclude>**/repo_suse_rhel.j2</exclude>
@@ -435,8 +424,6 @@
             <exclude>src/main/resources/db/newcerts/**</exclude>
 
             <!-- Stack definitions -->
-            <exclude>src/main/resources/stacks/HDP/2.0._/services/HBASE/package/templates/regionservers.j2</exclude>
-            <exclude>src/main/resources/stacks/HDPWIN/2.1/services/*/configuration*/*</exclude>
 
             <!--test samples -->
             <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
@@ -663,6 +650,17 @@
                 </source>
               </sources>
             </mapping>
+            <mapping>
+              <directory>/usr/share/doc/ambari-server</directory>
+              <filemode>644</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <sources>
+                <source>
+                  <location>${project.build.directory}${dirsep}${project.artifactId}-${project.version}-dist/usr/share/doc/ambari-server</location>
+                </source>
+              </sources>
+            </mapping>
           </mappings>
         </configuration>
       </plugin>
@@ -821,6 +819,103 @@
         <artifactId>exec-maven-plugin</artifactId>
         <executions>
           <execution>
+            <id>clean-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-c</argument>
+                <argument>import shutil; shutil.rmtree(r"${python.dependencies.dir}", ignore_errors=True)</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>bundle-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>-m</argument>
+                <argument>pip</argument>
+                <argument>install</argument>
+                <argument>--disable-pip-version-check</argument>
+                <argument>--no-compile</argument>
+                <argument>--no-deps</argument>
+                <argument>--only-binary=:all:</argument>
+                <argument>--platform</argument>
+                <argument>${python.wheel.platform}</argument>
+                <argument>--python-version</argument>
+                <argument>${python.wheel.version}</argument>
+                <argument>--implementation</argument>
+                <argument>${python.wheel.implementation}</argument>
+                <argument>--abi</argument>
+                <argument>${python.wheel.abi}</argument>
+                <argument>--require-hashes</argument>
+                <argument>--upgrade</argument>
+                <argument>--target</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--requirement</argument>
+                <argument>${project.basedir}/src/main/python/requirements.lock</argument>
+              </arguments>
+              <environmentVariables>
+                <PIP_NO_INDEX>${python.pip.no.index}</PIP_NO_INDEX>
+                <PIP_FIND_LINKS>${python.wheelhouse}</PIP_FIND_LINKS>
+              </environmentVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>audit-python-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>${maven.multiModuleProjectDirectory}/dev-support/python_artifact_audit.py</argument>
+                <argument>--root</argument>
+                <argument>${python.dependencies.dir}</argument>
+                <argument>--lock</argument>
+                <argument>${project.basedir}/src/main/python/requirements.lock</argument>
+                <argument>--manifest</argument>
+                <argument>${project.basedir}/src/main/python/requirements.in</argument>
+                <argument>--license</argument>
+                <argument>${maven.multiModuleProjectDirectory}/LICENSE.txt</argument>
+                <argument>--platform</argument>
+                <argument>${python.wheel.platform}</argument>
+                <argument>--python-version</argument>
+                <argument>${python.wheel.version}</argument>
+                <argument>--abi</argument>
+                <argument>${python.wheel.abi}</argument>
+                <argument>--project-version</argument>
+                <argument>${project.version}</argument>
+                <argument>--sbom</argument>
+                <argument>${project.build.directory}/python-dependencies.sbom.json</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>normalize-python-dependencies</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.python}</executable>
+              <arguments>
+                <argument>${maven.multiModuleProjectDirectory}/dev-support/normalize_python_dependencies.py</argument>
+                <argument>--root</argument>
+                <argument>${python.dependencies.dir}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
             <configuration>
               <executable>${executable.python}</executable>
               <workingDirectory>src/test/python</workingDirectory>
@@ -830,7 +925,8 @@
                 <argument>${python.test.mask}</argument>
               </arguments>
               <environmentVariables>
-                  <PYTHONPATH>${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                <PYTHONPATH>${python.dependencies.dir}${pathsep}${path.python.1}${pathsep}${env.PYTHONPATH}</PYTHONPATH>
+                <PYTHONDONTWRITEBYTECODE>1</PYTHONDONTWRITEBYTECODE>
               </environmentVariables>
               <skip>${skipPythonTests}</skip>
             </configuration>
@@ -914,37 +1010,6 @@
   </build>
   <profiles>
     <profile>
-      <id>replaceurl</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>set-hdp-url-classes</id>
-                <phase>process-classes</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <target name="ambari-server-compile">
-                    <exec dir="${basedir}" executable="bash"
-                      failonerror="true">
-                      <arg value="${basedir}/set-hdp-repo-url.sh" />
-                      <arg value="${hdpUrlForCentos6}" />
-                      <arg value="${hdpLatestUrl}" />
-                      <arg value="${basedir}" />
-                    </exec>
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
       <id>copy-swagger-generated-resources</id>
       <activation>
         <property><name>generate.swagger.resources</name></property>
@@ -979,113 +1044,6 @@
       </build>
     </profile>
     <profile>
-      <id>windows</id>
-      <activation>
-        <os>
-          <family>win</family>
-        </os>
-      </activation>
-      <properties>
-        <envClassifier>win</envClassifier>
-        <dirsep>\</dirsep>
-        <pathsep>;</pathsep>
-        <executable.python>python3</executable.python>
-        <executable.shell>cmd</executable.shell>
-        <fileextension.shell>cmd</fileextension.shell>
-        <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
-        <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_jinja2;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari-server-state;${project.basedir}\src\main\resources\custom_actions\scripts;${project.basedir}\src\main\resources\scripts;${project.basedir}\src\test\python</path.python.1>
-        <assemblydescriptor>src/main/assemblies/server-windows.xml</assemblydescriptor>
-        <assemblybootstrap>src/main/assemblies/bootstrap-windows.xml</assemblybootstrap>
-        <assemblychocodescriptor>src/main/assemblies/server-windows-choco.xml</assemblychocodescriptor>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <configuration>
-              <descriptors>
-                <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
-              </descriptors>
-            </configuration>
-            <executions>
-              <execution>
-                <id>make-assembly</id>
-                <phase>none</phase>
-              </execution>
-              <execution>
-                <id>bootstrap-zip</id>
-                <phase>prepare-package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <attach>false</attach>
-                  <finalName>bootstrap</finalName>
-                  <appendAssemblyId>false</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <descriptors>
-                    <descriptor>${assemblybootstrap}</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-              <execution>
-                <id>build-tarball</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <attach>false</attach>
-                  <appendAssemblyId>true</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <descriptors>
-                    <descriptor>${assemblydescriptor}</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-              <execution>
-                <id>build-choco-dir</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <attach>false</attach>
-                  <appendAssemblyId>true</appendAssemblyId>
-                  <tarLongFileMode>gnu</tarLongFileMode>
-                  <descriptors>
-                    <descriptor>${assemblychocodescriptor}</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-choco-package</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>choco.exe</executable>
-                  <arguments>
-                    <argument>pack</argument>
-                    <argument>--version=${project.version}</argument>
-                    <argument>${basedir}/target/ambari-server-${project.version}-choco/ambari-server.nuspec</argument>
-                  </arguments>
-                  <workingDirectory>target/ambari-server-${project.version}-choco</workingDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
       <id>linux</id>
       <activation>
         <os>
@@ -1100,7 +1058,7 @@
         <executable.shell>sh</executable.shell>
         <fileextension.shell>sh</fileextension.shell>
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
-        <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_jinja2:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/main/resources/custom_actions:${project.basedir}/src/main/resources/scripts:${project.basedir}/src/test/python</path.python.1>
+        <path.python.1>${project.basedir}/../ambari-common/src/main/python:${project.basedir}/../ambari-agent/src/main/python:${project.basedir}/../ambari-common/src/main/python/ambari_commons:${project.basedir}/../ambari-common/src/test/python:${project.basedir}/src/main/python:${project.basedir}/src/main/python/ambari-server-state:${project.basedir}/src/main/resources/custom_actions:${project.basedir}/src/main/resources/scripts:${project.basedir}/src/test/python</path.python.1>
         <assemblydescriptor>src/main/assemblies/server.xml</assemblydescriptor>
       </properties>
     </profile>

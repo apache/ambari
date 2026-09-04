@@ -24,28 +24,28 @@ __all__ = [
   "should_install_phoenix",
   "should_install_ams_collector",
   "should_install_ams_grafana",
+  "should_install_infra_solr",
+  "should_install_infra_solr_client",
   "should_install_mysql",
   "should_install_ranger_hbase_plugin",
   "should_install_ranger_hdfs_plugin",
   "should_install_ranger_hive_plugin",
+  "should_install_ranger_kafka_plugin",
   "should_install_ranger_yarn_plugin",
   "should_install_ranger_tagsync",
+  "should_install_yarn_ats_hbase",
 ]
 
-import os
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.version import format_stack_version
 
 
 def _has_local_components(config, components, indicator_function=any):
   if "role" not in config:
     return False
   if config["role"] == "install_packages":
-    # When installing new stack version for upgrade, all packages on a host are installed by install_packages.
-    # Check if
+    # Stack upgrades install every package on hosts running install_packages.
     if "localComponents" not in config:
       return False
     return indicator_function(
@@ -59,11 +59,35 @@ def _has_applicable_local_component(config, components):
   return _has_local_components(config, components, any)
 
 
+def _strict_configuration_boolean(config, config_type, property_name):
+  try:
+    value = config["configurations"][config_type][property_name]
+  except KeyError as error:
+    raise Fail(f"Missing {config_type}/{property_name} package condition") from error
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "true":
+      return True
+    if normalized == "false":
+      return False
+  raise Fail(f"{config_type}/{property_name} must be true or false")
+
+
 def should_install_phoenix():
-  phoenix_hosts = default("/clusterHostInfo/phoenix_query_server_hosts", [])
-  phoenix_enabled = default("/configurations/hbase-env/phoenix_sql_enabled", False)
-  has_phoenix = len(phoenix_hosts) > 0
-  return phoenix_enabled or has_phoenix
+  config = Script.get_config()
+  configurations = config.get("configurations", {})
+  if not isinstance(configurations, dict):
+    raise Fail("Phoenix package condition requires a configurations map")
+  hbase_env = configurations.get("hbase-env")
+  if hbase_env is None:
+    return False
+  if not isinstance(hbase_env, dict):
+    raise Fail("hbase-env package condition must be a configuration map")
+  if "phoenix_sql_enabled" not in hbase_env:
+    return False
+  return _strict_configuration_boolean(config, "hbase-env", "phoenix_sql_enabled")
 
 
 def should_install_ams_collector():
@@ -76,6 +100,31 @@ def should_install_ams_grafana():
   return _has_applicable_local_component(config, ["METRICS_GRAFANA"])
 
 
+def should_install_yarn_ats_hbase():
+  config = Script.get_config()
+  config_type = "yarn-hbase-env"
+  backend_config = config.get("configurations", {}).get(config_type)
+  if backend_config is None:
+    return _has_applicable_local_component(
+      config, ["RESOURCEMANAGER", "TIMELINE_READER"]
+    )
+  if not isinstance(backend_config, dict):
+    raise Fail(f"{config_type} package condition must be a configuration map")
+  system_service = _strict_configuration_boolean(
+    config, config_type, "is_hbase_system_service_launch"
+  )
+  use_external_hbase = _strict_configuration_boolean(
+    config, config_type, "use_external_hbase"
+  )
+  hbase_within_cluster = _strict_configuration_boolean(
+    config, config_type, "hbase_within_cluster"
+  )
+  if use_external_hbase or hbase_within_cluster:
+    return False
+  components = ["RESOURCEMANAGER"] if system_service else ["TIMELINE_READER"]
+  return _has_applicable_local_component(config, components)
+
+
 def should_install_infra_solr():
   config = Script.get_config()
   return _has_applicable_local_component(config, ["INFRA_SOLR"])
@@ -84,13 +133,8 @@ def should_install_infra_solr():
 def should_install_infra_solr_client():
   config = Script.get_config()
   return _has_applicable_local_component(
-    config, ["INFRA_SOLR_CLIENT", "ATLAS_SERVER", "RANGER_ADMIN", "LOGSEARCH_SERVER"]
+    config, ["INFRA_SOLR_CLIENT", "RANGER_ADMIN"]
   )
-
-
-def should_install_logsearch_portal():
-  config = Script.get_config()
-  return _has_applicable_local_component(config, ["LOGSEARCH_SERVER"])
 
 
 def should_install_mysql():
@@ -117,7 +161,15 @@ def should_install_mysql_connector():
 
 def _is_configuration_enabled(config_type, property_name):
   value = default(f"/configurations/{config_type}/{property_name}", "No")
-  return str(value).lower() == "yes"
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "yes":
+      return True
+    if normalized == "no":
+      return False
+  raise Fail(f"{config_type}/{property_name} must be Yes or No")
 
 
 def should_install_ranger_hdfs_plugin():
@@ -144,21 +196,10 @@ def should_install_ranger_hbase_plugin():
   )
 
 
-def should_install_hive_atlas():
-  atlas_hosts = default("/clusterHostInfo/atlas_server_hosts", [])
-  has_atlas = len(atlas_hosts) > 0
-  return has_atlas
-
-
-def should_install_falcon_atlas_hook():
-  config = Script.get_config()
-  stack_version_unformatted = config["clusterLevelParams"]["stack_version"]
-  stack_version_formatted = format_stack_version(stack_version_unformatted)
-  if check_stack_feature(
-    StackFeature.FALCON_ATLAS_SUPPORT_2_3, stack_version_formatted
-  ) or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted):
-    return _has_applicable_local_component(config, ["FALCON_SERVER"])
-  return False
+def should_install_ranger_kafka_plugin():
+  return _is_configuration_enabled(
+    "ranger-kafka-plugin-properties", "ranger-kafka-plugin-enabled"
+  )
 
 
 def should_install_ranger_tagsync():

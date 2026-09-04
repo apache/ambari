@@ -20,7 +20,7 @@
  */
 -->
 <configuration>
-  <!-- These configs were inherited from HDP 2.3 -->
+  <!-- Ranger HDFS configuration -->
   <property>
     <name>xasecure.audit.is.enabled</name>
     <value>true</value>

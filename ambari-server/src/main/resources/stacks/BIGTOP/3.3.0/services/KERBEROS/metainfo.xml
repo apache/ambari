@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>KERBEROS</name>
-      <version>1.10.3-30</version>
+      <version>1.0.0</version>
     </service>
   </services>
 </metainfo>

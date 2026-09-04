@@ -54,6 +54,15 @@
     <on-ambari-upgrade add="true" />
   </property>
   <property>
+    <name>spark.ssl.historyServer.enabled</name>
+    <value>false</value>
+    <description>Enable TLS for the Spark History Server web interface.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
     <name>spark.history.fs.logDirectory</name>
     <display-name>Spark History FS Log directory</display-name>
     <value>hdfs:///spark-history/</value>
@@ -77,6 +86,19 @@
     <description>
       Location of the kerberos keytab file for the Spark History Server.
     </description>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.kerberos.principal</name>
+    <value>none</value>
+    <description>Kerberos principal used by long-running Spark applications such as the Thrift Server.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true" />
+  </property>
+  <property>
+    <name>spark.kerberos.keytab</name>
+    <value>none</value>
+    <description>Kerberos keytab used by long-running Spark applications such as the Thrift Server.</description>
     <on-ambari-upgrade add="true" />
   </property>
   <property>
@@ -128,7 +150,7 @@
   </property>
   
   <property>
-    <name>spark.yarn.executor.failuresValidityInterval</name>
+    <name>spark.executor.failuresValidityInterval</name>
     <value>2h</value>
     <description>
       Defines the validity interval for executor failure tracking.
@@ -216,12 +238,6 @@
     <name>spark.master</name>
     <value>yarn</value>
     <description>The deploying mode of spark application.</description>
-    <on-ambari-upgrade add="false" />
-  </property>
-  <property>
-    <name>spark.executor.extraJavaOptions</name>
-    <value>-XX:+UseNUMA</value>
-    <description></description>
     <on-ambari-upgrade add="false" />
   </property>
   <property>

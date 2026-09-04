@@ -39,7 +39,6 @@ import {
 import { displayOrder } from "../../screens/ClusterWizard/constants";
 import { isEmpty } from "lodash";
 import { useLocation } from "react-router-dom";
-import { getClusterStackName } from "../../Utils/stackMetadata";
 type SideBarProps = {
   isRoot?: boolean;
   isSidebarCollapsed: boolean;
@@ -53,7 +52,6 @@ const SideBar = ({
 }: SideBarProps) => {
   const {
     clusterName,
-    cluster,
     services: contextServices,
     supports,
   } = useContext(AppContext);
@@ -70,7 +68,6 @@ const SideBar = ({
     havePermissions,
     isAuthorized,
     supports,
-    getClusterStackName(cluster),
   );
   const [services, setServices] = useState<
     {

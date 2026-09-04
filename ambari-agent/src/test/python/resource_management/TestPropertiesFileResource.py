@@ -24,12 +24,11 @@ Ambari Agent
 import os
 import time
 from unittest import TestCase
-from mock.mock import patch, MagicMock, ANY
+from unittest.mock import patch, MagicMock, ANY
 from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from ambari_commons.os_check import OSCheck
@@ -79,7 +78,10 @@ class TestPropertiesFIleResource(TestCase):
       encoding="UTF-8",
       on_file_created=ANY,
     )
-    ensure_mock.assert_called()
+    create_file_mock.call_args.kwargs["on_file_created"](
+      "/somewhere_in_system/one_file.properties"
+    )
+    ensure_mock.assert_called_once()
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.create_file")
@@ -116,7 +118,8 @@ class TestPropertiesFIleResource(TestCase):
       encoding="UTF-8",
       on_file_created=ANY,
     )
-    ensure_mock.assert_called()
+    create_file_mock.call_args.kwargs["on_file_created"]("/dir/and/dir/file.txt")
+    ensure_mock.assert_called_once()
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.create_file")
@@ -153,7 +156,8 @@ class TestPropertiesFIleResource(TestCase):
       encoding="UTF-8",
       on_file_created=ANY,
     )
-    ensure_mock.assert_called()
+    create_file_mock.call_args.kwargs["on_file_created"]("/dir/new_file")
+    ensure_mock.assert_called_once()
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.create_file")
@@ -196,7 +200,8 @@ class TestPropertiesFIleResource(TestCase):
       encoding="UTF-8",
       on_file_created=ANY,
     )
-    ensure_mock.assert_called()
+    create_file_mock.call_args.kwargs["on_file_created"]("/dir/new_file")
+    ensure_mock.assert_called_once()
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.sudo.read_file")
@@ -238,4 +243,5 @@ class TestPropertiesFIleResource(TestCase):
       encoding="UTF-8",
       on_file_created=ANY,
     )
-    ensure_mock.assert_called()
+    create_file_mock.call_args.kwargs["on_file_created"]("/dir1/new_file")
+    ensure_mock.assert_called_once()

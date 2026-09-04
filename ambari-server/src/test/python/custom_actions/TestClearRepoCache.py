@@ -22,8 +22,8 @@ Ambari Agent
 
 import os, sys
 
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 from unittest import TestCase
 
 from resource_management import *

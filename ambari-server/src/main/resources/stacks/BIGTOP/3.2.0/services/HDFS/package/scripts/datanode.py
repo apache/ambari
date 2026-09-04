@@ -28,21 +28,21 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions import format
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
-  cached_kinit_executor,
   get_params_from_filesystem,
   validate_security_config_properties,
   FILE_TYPE_XML,
 )
 from resource_management.core.logger import Logger
+from resource_management.core.signal_utils import TerminateStrategy
 from hdfs import hdfs, reconfig
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 from utils import get_hdfs_binary
 from utils import get_dfsadmin_base_command
+from hdfs_kerberos import hdfs_kerberos_environment
 
 
 class DataNode(Script):
@@ -129,20 +129,44 @@ class DataNode(Script):
     # override stock retry timeouts since after 30 seconds, the datanode is
     # marked as dead and can affect HBase during RU
     dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
-    command = format(
-      "{dfsadmin_base_command} -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo {dfs_dn_ipc_address}"
+    command = dfsadmin_base_command + (
+      "-D",
+      "ipc.client.connect.max.retries=5",
+      "-D",
+      "ipc.client.connect.retry.interval=1000",
+      "-getDatanodeInfo",
+      params.dfs_dn_ipc_address,
     )
 
-    is_datanode_deregistered = False
-    try:
-      shell.checked_call(command, user=params.hdfs_user, tries=1)
-    except:
-      is_datanode_deregistered = True
+    with hdfs_kerberos_environment(
+      params,
+      "ambari-hdfs-datanode-shutdown-check-",
+      keytab=params.dn_keytab if params.security_enabled else None,
+      principal=params.dn_principal_name if params.security_enabled else None,
+    ) as command_environment:
+      try:
+        return_code, output = shell.call(
+          command,
+          user=params.hdfs_user,
+          tries=1,
+          env=command_environment,
+          timeout=30,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          shell=False,
+        )
+      except Exception as error:
+        Logger.warning(
+          "Unable to determine whether the DataNode deregistered: %s" % error
+        )
+        raise Fail("Unable to determine DataNode shutdown state") from error
 
-    if not is_datanode_deregistered:
+    # getDatanodeInfo returns a non-zero status when the DataNode is no longer
+    # registered.  A successful command means it is still serving requests.
+    if return_code == 0:
       Logger.info("DataNode has not yet deregistered from the NameNode...")
       raise Fail("DataNode has not yet deregistered from the NameNode...")
 
+    Logger.info("DataNode shutdown check returned %s: %s" % (return_code, output))
     Logger.info("DataNode has successfully shutdown.")
     return True
 
@@ -182,14 +206,6 @@ class DataNodeDefault(DataNode):
     import status_params
 
     return [status_params.datanode_pid_file]
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class DataNodeWindows(DataNode):
-  def install(self, env):
-    import install_params
-
-    self.install_packages(env)
 
 
 if __name__ == "__main__":

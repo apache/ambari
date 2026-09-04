@@ -83,6 +83,7 @@ LOGFILE=${AMBARI_AGENT_LOG_DIR}/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/ambari-agent/lib/ambari_agent/main.py
 AGENT_TMP_DIR=/var/lib/ambari-agent/tmp
 AGENT_WORKING_DIR=/var/lib/ambari-agent
+AMBARI_AGENT_LIB_DIR=/usr/lib/ambari-agent/lib
 AMBARI_AGENT_PY_SCRIPT=/usr/lib/ambari-agent/lib/ambari_agent/AmbariAgent.py
 COMMON_DIR=/usr/lib/ambari-agent/lib/ambari_commons
 COMMON_DIR_AGENT=/usr/lib/ambari-agent/lib/ambari_commons
@@ -137,58 +138,80 @@ change_files_permissions() {
 
 
 if [ -z "${PYTHON:-}" ] ; then
-  export PYTHON=`readlink ${PYTHON_WRAP}`
+  if [ ! -x "${PYTHON_WRAP}" ]; then
+    echo "Cannot execute Ambari Python wrapper ${PYTHON_WRAP}." >&2
+    exit 1
+  fi
+  export PYTHON="${PYTHON_WRAP}"
 fi
 
 # Trying to read the passphrase from an environment
-if [ ! -z ${AMBARI_PASSPHRASE:-} ]; then
+if [ -n "${AMBARI_PASSPHRASE:-}" ]; then
   RESOLVED_AMBARI_PASSPHRASE=${AMBARI_PASSPHRASE}
 fi
 
 # Reading the environment file
 if [ -a /var/lib/ambari-agent/ambari-env.sh ]; then
   /var/lib/ambari-agent/ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/ambari-env.sh"
+  /var/lib/ambari-agent/ambari-sudo.sh chmod 600 "/var/lib/ambari-agent/ambari-env.sh"
   . /var/lib/ambari-agent/ambari-env.sh
 fi
 
-if [ ! -z ${AMBARI_AGENT_LOG_DIR} ]; then
+if [ -n "${AMBARI_AGENT_LOG_DIR}" ]; then
   LOGFILE=${AMBARI_AGENT_LOG_DIR}/ambari-agent.log
 fi
 
-if [ ! -z ${AMBARI_AGENT_OUT_DIR:-} ]; then
+if [ -n "${AMBARI_AGENT_OUT_DIR:-}" ]; then
   OUTFILE=$AMBARI_AGENT_OUT_DIR/ambari-agent.out
 fi
 
-if [ -z ${RESOLVED_AMBARI_PASSPHRASE:-} ] &&  [ ! -z ${AMBARI_PASSPHRASE:-} ]; then
+if [ -z "${RESOLVED_AMBARI_PASSPHRASE:-}" ] && [ -n "${AMBARI_PASSPHRASE:-}" ]; then
   RESOLVED_AMBARI_PASSPHRASE=${AMBARI_PASSPHRASE:-}
   # If the passphrase is not defined yet, use the value from the env file
-elif [ -z ${RESOLVED_AMBARI_PASSPHRASE:-} ]; then
-  # Passphrase is not defined anywhere, set the default value
-  RESOLVED_AMBARI_PASSPHRASE="DEV"
+elif [ -z "${RESOLVED_AMBARI_PASSPHRASE:-}" ]; then
+  echo "No enrollment passphrase is configured; an existing Agent certificate is required if two-way SSL is enabled."
 fi
 
-export AMBARI_PASSPHRASE=${RESOLVED_AMBARI_PASSPHRASE}
+if [ -n "${RESOLVED_AMBARI_PASSPHRASE:-}" ]; then
+  export AMBARI_PASSPHRASE=${RESOLVED_AMBARI_PASSPHRASE}
+else
+  unset AMBARI_PASSPHRASE
+fi
 
 
 get_python_version(){
- python - <<EOF
+ "${PYTHON}" - <<EOF
 import sys
-ver = tuple(sys.version_info)
-print("{}{}".format(ver[0], ver[1]))
+print("{}.{}".format(sys.version_info[0], sys.version_info[1]))
 EOF
+}
+
+required_python_version(){
+ local abi_versions
+ abi_versions=$(find "${AMBARI_AGENT_LIB_DIR}" -type f -name '*.cpython-*-*.so' -exec basename {} \; 2>/dev/null \
+   | sed -n 's/.*\.cpython-\([0-9][0-9]*\)-.*/\1/p' \
+   | sort -u)
+ if [ -z "${abi_versions}" ] || [ "$(printf '%s\n' "${abi_versions}" | wc -l)" -ne 1 ]; then
+   return 1
+ fi
+ printf '%s.%s\n' "$(printf '%s' "${abi_versions}" | cut -c1)" "$(printf '%s' "${abi_versions}" | cut -c2-)"
 }
 
 check_python_version ()
 {
   echo "Verifying Python version compatibility..."
-  local min_py_ver=27
-  local curr_py_ver=$(get_python_version)
+  local curr_py_ver required_py_ver
+  curr_py_ver=$(get_python_version)
 
-  if [ ${curr_py_ver} -lt ${min_py_ver} ]; then
-    print_error "Found Python version ${curr_py_ver:0:1}.${curr_py_ver:1:1}. Ambari Agent requires Python version > ${min_py_ver:0:1}.${min_py_ver:1:1}"
+  if ! required_py_ver=$(required_python_version); then
+    print_error "Cannot determine one CPython ABI from ${AMBARI_AGENT_LIB_DIR}."
     return ${NOTOK}
   fi
-  echo "Using python " ${PYTHON}
+  if ! "${PYTHON}" -c 'import sys; required = tuple(map(int, sys.argv[1].split("."))); sys.exit(sys.version_info < (3, 9, 2) or sys.version_info[:2] != required)' "${required_py_ver}"; then
+    print_error "Found Python version ${curr_py_ver}. Ambari Agent requires Python ${required_py_ver} matching the packaged dependencies and version 3.9.2 or newer."
+    return ${NOTOK}
+  fi
+  echo "Using Python ${PYTHON}"
   return ${OK}
 }
 

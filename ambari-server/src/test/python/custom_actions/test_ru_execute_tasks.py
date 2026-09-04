@@ -22,8 +22,8 @@ import os
 import json
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 
 # Module imports
 from stacks.utils.RMFTestCase import *
@@ -31,7 +31,6 @@ from only_for_platform import (
   not_for_platform,
   only_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
 from resource_management import Script, ConfigDictionary
@@ -71,31 +70,6 @@ class TestRUExecuteTasks(RMFTestCase):
     self.AGENT_INI_FILE_PATH = os.path.normpath(
       os.path.join(
         self.get_src_folder(), "../../ambari-agent/conf/unix/ambari-agent.ini"
-      )
-    )
-
-    self.osIndependentSetUp()
-
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  @patch.object(Logger, "info")
-  @patch.object(Logger, "error")
-  @patch.object(OSCheck, "get_os_type")
-  def setUp(self, os_type_mock, error_mock, info_mock):
-    # Must patch the logger and get_os_type function.
-    os_type_mock.return_value = "Windows"
-
-    self.CACHE_MOCK_DIR = (
-      "/var/lib/ambari-agent/cache/common-services/HDFS/2.1.0.2.0/package"
-    )
-    self.AGENT_INI_FILE_PATH = os.path.normpath(
-      os.path.join(
-        self.get_src_folder(),
-        "..",
-        "..",
-        "ambari-agent",
-        "conf",
-        "windows",
-        "ambari-agent.ini",
       )
     )
 

@@ -23,7 +23,7 @@ import os
 # Ambari Commons & Resource Management Imports
 from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions.format import format
+from resource_management.core.signal_utils import TerminateStrategy
 
 
 def get_daemon_name():
@@ -39,31 +39,28 @@ def get_daemon_name():
 
 
 def mysql_service(action="start"):
+  if action not in ("start", "stop", "status"):
+    raise Fail(f"Unsupported MySQL action: {action}")
   daemon_name = get_daemon_name()
 
-  status_cmd = format("pgrep -l '^{process_name}$'")
   cmd = ("service", daemon_name, action)
 
   if action == "status":
     try:
-      Execute(status_cmd)
+      Execute(
+        cmd,
+        sudo=True,
+        logoutput=False,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
     except Fail:
       raise ComponentIsNotRunning()
-  elif action == "stop":
-    import params
-
+  elif action in ("start", "stop"):
     Execute(
       cmd,
       logoutput=True,
-      only_if=status_cmd,
       sudo=True,
-    )
-  elif action == "start":
-    import params
-
-    Execute(
-      cmd,
-      logoutput=True,
-      not_if=status_cmd,
-      sudo=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )

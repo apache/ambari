@@ -19,11 +19,18 @@ limitations under the License.
 """
 
 from resource_management import Script, Execute
-from resource_management.libraries.functions import format
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.libraries.functions.show_logs import show_logs
 from status import check_service_status
 from ams import ams
-from resource_management.core.logger import Logger
-from resource_management.core import sudo
+from metrics_process import (
+  read_or_discover_ams_process,
+  stop_ams_identity,
+  stop_ams_process,
+  wait_for_ams_process,
+)
 
 
 class AmsGrafana(Script):
@@ -44,44 +51,69 @@ class AmsGrafana(Script):
     import params
 
     env.set_params(params)
+    if (
+      not params.ams_grafana_host
+      or not isinstance(params.ams_grafana_admin_pwd, str)
+      or len(params.ams_grafana_admin_pwd) < 4
+      or any(character in params.ams_grafana_admin_pwd for character in "\r\n\x00")
+    ):
+      raise Fail(
+        "Grafana requires a host and an administrator password of at least 4 characters"
+      )
     self.configure(env, action="start")
 
-    start_cmd = format("{ams_grafana_script} start")
-    Execute(
-      start_cmd,
-      user=params.ams_user,
-      not_if=params.grafana_process_exists_cmd,
+    pid_file = params.grafana_pid_file
+    existing_identity = read_or_discover_ams_process(
+      pid_file, params.ams_user, params.user_group, "grafana"
     )
-    pidfile = format("{ams_grafana_pid_dir}/grafana-server.pid")
-    if not sudo.path_exists(pidfile):
-      Logger.warning("Pid file doesn't exist after starting of the component.")
-    else:
-      Logger.info(
-        f"Grafana Server has started with pid: {sudo.read_file(pidfile).strip()}"
+    started_identity = None
+
+    try:
+      if existing_identity is None:
+        Execute(
+          (params.ams_grafana_script, "start"),
+          user=params.ams_user,
+          environment={"JAVA_HOME": params.java64_home},
+          timeout=150,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+        started_identity = wait_for_ams_process(
+          pid_file, params.ams_user, params.user_group, "grafana"
+        )
+
+      from metrics_grafana_util import (
+        create_ams_datasource,
+        create_ams_dashboards,
+        create_grafana_admin_pwd,
       )
 
-    from metrics_grafana_util import (
-      create_ams_datasource,
-      create_ams_dashboards,
-      create_grafana_admin_pwd,
-    )
-
-    # Set Grafana admin pwd
-    create_grafana_admin_pwd()
-    # Create datasource
-    create_ams_datasource()
-    # Create pre-built dashboards
-    create_ams_dashboards()
+      create_grafana_admin_pwd()
+      create_ams_datasource()
+      create_ams_dashboards()
+    except Exception:
+      if started_identity is not None:
+        try:
+          stop_ams_identity(
+            started_identity, pid_file, params.ams_user, "grafana"
+          )
+        except Exception as cleanup_error:
+          Logger.error(f"Failed to roll back Ambari Metrics Grafana: {cleanup_error}")
+      try:
+        show_logs(params.ams_grafana_log_dir, params.ams_user)
+      except Exception as log_error:
+        Logger.warning(f"Unable to show Ambari Metrics Grafana logs: {log_error}")
+      raise
 
   def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
     self.configure(env, action="stop")
-    Execute(
-      (format("{ams_grafana_script}"), "stop"),
-      sudo=True,
-      only_if=params.grafana_process_exists_cmd,
+    stop_ams_process(
+      params.grafana_pid_file,
+      params.ams_user,
+      params.user_group,
+      "grafana",
     )
 
   def status(self, env):

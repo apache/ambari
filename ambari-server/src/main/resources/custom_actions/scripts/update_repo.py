@@ -23,7 +23,7 @@ Ambari Agent
 from resource_management import *
 from resource_management import Script, Repository, format
 from ambari_commons.os_check import OSCheck
-import ambari_simplejson as json
+import json
 from resource_management.core.logger import Logger
 
 

@@ -15,21 +15,22 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
 
+from contextlib import nullcontext
+
+from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.format import format
-from resource_management.core.resources.system import Execute, File
-from resource_management.core.source import StaticFile
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
+import zookeeper_cli
+import zookeeper_utils
 
 
 class ZookeeperServiceCheck(Script):
-  pass
+  """BIGTOP ZooKeeper service-check entry point."""
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -38,55 +39,43 @@ class ZookeeperServiceCheckLinux(ZookeeperServiceCheck):
     import params
 
     env.set_params(params)
-
-    File(
-      format("{zk_log_dir}/zookeeper.log"),
-      mode=0o664,
-      owner=params.zk_user,
-      group=params.user_group,
-    )
-
-    File(params.zk_smoke_out, action="delete")
-
-    File(format("{tmp_dir}/zkSmoke.sh"), mode=0o755, content=StaticFile("zkSmoke.sh"))
-
+    cache_context = nullcontext(None)
     if params.security_enabled:
-      smokeUserKeytab = params.smoke_user_keytab
-      smokeUserPrincipal = params.smokeuser_principal
-    else:
-      smokeUserKeytab = "no_keytab"
-      smokeUserPrincipal = "no_principal"
+      zookeeper_utils.validate_keytab(
+        params.smoke_user_keytab, "ZooKeeper service-check keytab"
+      )
+      cache_context = PrivateKerberosCache(
+        params.smokeuser,
+        params.user_group,
+        temp_dir=params.tmp_dir,
+        prefix="ambari-zookeeper-service-check-",
+      )
 
-    cmd_quorum = format(
-      "{tmp_dir}/zkSmoke.sh {zk_cli_shell} {smokeuser} {config_dir} {client_port} "
-      "{security_enabled} {kinit_path_local} {smokeUserKeytab} {smokeUserPrincipal} {zk_smoke_out}"
-    )
-
-    Execute(
-      cmd_quorum,
-      tries=3,
-      try_sleep=5,
-      path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
-      logoutput=True,
-    )
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ZookeeperServiceCheckWindows(ZookeeperServiceCheck):
-  def service_check(self, env):
-    import params
-
-    env.set_params(params)
-
-    smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
-    service = "Zookeeper"
-    Execute(
-      format("cmd /C {smoke_cmd} {service}"),
-      user=params.zk_user,
-      logoutput=True,
-      tries=3,
-      try_sleep=20,
-    )
+    with cache_context as kerberos_cache:
+      command_environment = {
+        "JAVA_HOME": params.java64_home,
+        "ZOOCFGDIR": params.config_dir,
+        "ZOOCFG": "zoo.cfg",
+      }
+      if kerberos_cache is not None:
+        command_environment = kerberos_cache.merge_environment(
+          command_environment
+        )
+        kerberos_cache.kinit(
+          params.kinit_path_local,
+          params.smoke_user_keytab,
+          params.smokeuser_principal,
+          timeout=60,
+        )
+      zookeeper_cli.verify_ensemble(
+        params.zookeeper_hosts,
+        params.client_port,
+        params.zk_cli_script,
+        params.smokeuser,
+        params.user_group,
+        params.tmp_dir,
+        command_environment,
+      )
 
 
 if __name__ == "__main__":

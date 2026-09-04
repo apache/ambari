@@ -20,100 +20,26 @@ Ambari Agent
 
 """
 
-import sys
+import os
+import uuid
+from contextlib import nullcontext
+
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
-from resource_management.libraries.functions.format import format
-from resource_management.core.resources.system import Execute, File
-from resource_management.core.source import StaticFile
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
+from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
+
+import yarn_process_utils
 
 
 class MapReduce2ServiceCheck(Script):
   def service_check(self, env):
     pass
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class MapReduce2ServiceCheckWindows(MapReduce2ServiceCheck):
-  def service_check(self, env):
-    import params
-
-    env.set_params(params)
-
-    component_type = "hs"
-    if params.hadoop_ssl_enabled:
-      component_address = params.hs_webui_address
-    else:
-      component_address = params.hs_webui_address
-
-    validateStatusFileName = "validateYarnComponentStatusWindows.py"
-    validateStatusFilePath = os.path.join(
-      os.path.dirname(params.hadoop_home), "temp", validateStatusFileName
-    )
-    python_executable = sys.executable
-    validateStatusCmd = "{0} {1} {2} -p {3} -s {4}".format(
-      python_executable,
-      validateStatusFilePath,
-      component_type,
-      component_address,
-      params.hadoop_ssl_enabled,
-    )
-
-    if params.security_enabled:
-      kinit_cmd = (
-        f"{params.kinit_path_local} -kt {params.smoke_user_keytab} {params.smokeuser};"
-      )
-      smoke_cmd = kinit_cmd + validateStatusCmd
-    else:
-      smoke_cmd = validateStatusCmd
-
-    File(validateStatusFilePath, content=StaticFile(validateStatusFileName))
-
-    Execute(smoke_cmd, tries=3, try_sleep=5, logoutput=True)
-
-    # hadoop_exe = os.path.join(params.hadoop_home, "bin", "hadoop")
-    #
-    # tested_file = os.path.join(params.hadoop_home, "bin", "hadoop.cmd")
-    # jar_path = os.path.join(params.hadoop_mapred_home, params.hadoopMapredExamplesJarName)
-    # input_file = format("/user/hadoop/mapredsmokeinput")
-    # output_file = format("/user/hadoop/mapredsmokeoutput")
-    # cleanup_cmd = format("cmd /C {hadoop_exe} fs -rm -r -f {output_file} {input_file}")
-    # create_file_cmd = format("cmd /C {hadoop_exe} fs -put {tested_file} {input_file}")
-    # run_wordcount_job = format("cmd /C {hadoop_exe} jar {jar_path} wordcount {input_file} {output_file}")
-    # test_cmd = format("cmd /C {hadoop_exe} fs -test -e {output_file}")
-    #
-    # if params.security_enabled:
-    #   kinit_cmd = "{0} -kt {1} {2};".format(kinit_path_local, smoke_user_keytab, smokeuser)
-    #   Execute(kinit_cmd)
-    #
-    # Execute(cleanup_cmd,
-    #         tries=1,
-    #         try_sleep=5,
-    #         logoutput=True,
-    #         user=params.hdfs_user
-    # )
-    #
-    # Execute(create_file_cmd,
-    #         tries=1,
-    #         try_sleep=5,
-    #         logoutput=True,
-    #         user=params.hdfs_user
-    # )
-    #
-    # Execute(run_wordcount_job,
-    #         tries=1,
-    #         try_sleep=5,
-    #         logoutput=True,
-    #         user=params.hdfs_user
-    # )
-    #
-    # Execute(test_cmd,
-    #         logoutput=True,
-    #         user=params.hdfs_user
-    # )
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -123,71 +49,118 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
 
     env.set_params(params)
 
-    jar_path = format("{hadoop_mapred_home}/{hadoopMapredExamplesJarName}")
-    source_file = format("/etc/passwd")
-    input_file = format("/user/{smokeuser}/mapredsmokeinput")
-    output_file = format("/user/{smokeuser}/mapredsmokeoutput")
+    smokeuser = yarn_process_utils.validate_path_segment(
+      params.smokeuser, "MapReduce service-check user"
+    )
 
-    hdfs_put_cmd = format("fs -put {source_file} {input_file}")
-    run_wordcount_job = format("jar {jar_path} wordcount {input_file} {output_file}")
-    test_cmd = format("fs -test -e {output_file}")
+    run_id = uuid.uuid4().hex
+    jar_path = os.path.join(
+      params.hadoop_mapred_home, "hadoop-mapreduce-examples.jar"
+    )
+    if not os.path.isfile(jar_path):
+      raise Fail(f"MapReduce examples jar is missing: {jar_path}")
+    local_input_file = os.path.join(
+      params.tmp_dir, f"ambari-mapreduce-smoke-{run_id}.txt"
+    )
+    smoke_root = f"/user/{smokeuser}/ambari-mapreduce-smoke-{run_id}"
+    input_file = f"{smoke_root}/input"
+    output_file = f"{smoke_root}/output"
 
     params.HdfsResource(
-      format("/user/{smokeuser}"),
+      f"/user/{smokeuser}",
       type="directory",
       action="create_on_execute",
-      owner=params.smokeuser,
+      owner=smokeuser,
       mode=params.smoke_hdfs_user_mode,
     )
 
-    params.HdfsResource(
-      input_file,
-      action="create_on_execute",
-      type="file",
-      source=source_file,
-      owner=params.smokeuser,
-      mode=params.smoke_hdfs_user_mode,
-      dfs_type=params.dfs_type,
+    File(
+      local_input_file,
+      content="Ambari MapReduce service check\n",
+      owner=smokeuser,
+      mode=0o600,
+      replace=False,
     )
-
-    params.HdfsResource(
-      output_file,
-      action="delete_on_execute",
-      type="directory",
-      dfs_type=params.dfs_type,
-    )
-    params.HdfsResource(None, action="execute")
-
-    # initialize the ticket
-    if params.security_enabled:
-      kinit_cmd = format(
-        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};"
+    primary_error = None
+    try:
+      params.HdfsResource(
+        input_file,
+        action="create_on_execute",
+        type="file",
+        source=local_input_file,
+        owner=smokeuser,
+        mode=0o600,
+        dfs_type=params.dfs_type,
       )
-      Execute(kinit_cmd, user=params.smokeuser)
+      params.HdfsResource(None, action="execute")
 
-    ExecuteHadoop(
-      run_wordcount_job,
-      tries=1,
-      try_sleep=5,
-      user=params.smokeuser,
-      bin_dir=params.execute_path,
-      conf_dir=params.hadoop_conf_dir,
-      logoutput=True,
-    )
-
-    # the ticket may have expired, so re-initialize
-    if params.security_enabled:
-      kinit_cmd = format(
-        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};"
+      cache_context = (
+        PrivateKerberosCache(
+          smokeuser,
+          params.user_group,
+          temp_dir=params.tmp_dir,
+          prefix="ambari-mapreduce-check-",
+        )
+        if params.security_enabled
+        else nullcontext(None)
       )
-      Execute(kinit_cmd, user=params.smokeuser)
+      with cache_context as kerberos_cache:
+        command_environment = {}
+        if kerberos_cache is not None:
+          kerberos_cache.kinit(
+            params.kinit_path_local,
+            params.smoke_user_keytab,
+            params.smokeuser_principal,
+          )
+          command_environment = kerberos_cache.environment
 
-    ExecuteHadoop(
-      test_cmd,
-      user=params.smokeuser,
-      bin_dir=params.execute_path,
-      conf_dir=params.hadoop_conf_dir,
-    )
+        hadoop_command = (
+          os.path.join(params.hadoop_bin_dir, "hadoop"),
+          "--config",
+          params.hadoop_conf_dir,
+        )
+        Execute(
+          hadoop_command + ("jar", jar_path, "wordcount", input_file, output_file),
+          user=smokeuser,
+          environment=command_environment,
+          logoutput=True,
+          timeout=330,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+
+        Execute(
+          hadoop_command + ("fs", "-test", "-e", output_file),
+          user=smokeuser,
+          environment=command_environment,
+          timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+    except Exception as error:
+      primary_error = error
+      raise
+    finally:
+      cleanup_errors = []
+      try:
+        params.HdfsResource(
+          smoke_root,
+          action="delete_on_execute",
+          type="directory",
+          dfs_type=params.dfs_type,
+        )
+        params.HdfsResource(None, action="execute")
+      except Exception as error:
+        cleanup_errors.append(f"HDFS cleanup failed: {error}")
+      try:
+        File(local_input_file, action="delete")
+      except Exception as error:
+        cleanup_errors.append(f"local cleanup failed: {error}")
+      if cleanup_errors:
+        cleanup_message = "; ".join(cleanup_errors)
+        if primary_error is None:
+          raise RuntimeError(cleanup_message)
+        Logger.warning(
+          f"Could not clean MapReduce service-check resources: {cleanup_message}"
+        )
 
 
 if __name__ == "__main__":

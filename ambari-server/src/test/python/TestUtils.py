@@ -18,17 +18,17 @@ limitations under the License.
 """
 
 import io
+import os
 import sys
+import tempfile
 from unittest import TestCase
-from mock.mock import patch, MagicMock
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+from unittest.mock import patch, MagicMock
 
 from ambari_commons.os_check import OSCheck, OSConst
 
 utils = __import__("ambari_server.utils").utils
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestUtils(TestCase):
   @patch.object(OSCheck, "get_os_family")
   @patch("os.listdir")
@@ -226,6 +226,19 @@ class TestUtils(TestCase):
     self.assertEqual(utils.compare_versions("2.0.0-1", "2.0.0-2"), 0)
     self.assertEqual(utils.compare_versions("2.0.0_1", "2.0.0_2"), 0)
     self.assertEqual(utils.compare_versions("2.0.0-abc", "2.0.0_abc"), 0)
+
+  def test_update_latest_in_repoinfos_for_stacks(self):
+    with tempfile.TemporaryDirectory() as stacks_root:
+      repos_dir = os.path.join(stacks_root, "HDP", "3.0", "repos")
+      os.makedirs(repos_dir)
+      repoinfo_path = os.path.join(repos_dir, "repoinfo.xml")
+      with open(repoinfo_path, "w", encoding="utf-8") as stream:
+        stream.write("<repos><latest>old-url</latest></repos>")
+
+      utils.update_latest_in_repoinfos_for_stacks(stacks_root, "new-url")
+
+      with open(repoinfo_path, encoding="utf-8") as stream:
+        self.assertIn("<latest>new-url</latest>", stream.read())
 
 
 class FakeProperties(object):

@@ -10,69 +10,6 @@
         {
           "name": "yarn_smokeuser",
           "reference": "/smokeuser"
-        },
-        {
-          "name": "yarn_ats",
-          "principal": {
-            "value": "${yarn-env/yarn_ats_user}${principal_suffix}@${realm}",
-            "type" : "user",
-            "configuration": "yarn-env/yarn_ats_principal_name",
-            "local_username": "${yarn-env/yarn_ats_user}"
-          },
-          "keytab": {
-            "file": "${keytab_dir}/yarn-ats.hbase-client.headless.keytab",
-            "owner": {
-              "name": "${yarn-env/yarn_ats_user}",
-              "access": "r"
-            },
-            "group": {
-              "name": "${cluster-env/user_group}",
-              "access": ""
-            },
-            "configuration": "yarn-env/yarn_ats_user_keytab"
-          }
-        },
-        {
-          "name": "yarn_ats_hbase_master",
-          "principal": {
-            "value": "yarn-ats-hbase/_HOST@${realm}",
-            "type" : "service",
-            "configuration": "yarn-hbase-site/hbase.master.kerberos.principal",
-            "local_username": "${yarn-env/yarn_ats_user}"
-          },
-          "keytab": {
-            "file": "${keytab_dir}/yarn-ats.hbase-master.service.keytab",
-            "owner": {
-              "name": "${yarn-env/yarn_ats_user}",
-              "access": "r"
-            },
-            "group": {
-              "name": "${cluster-env/user_group}",
-              "access": ""
-            },
-            "configuration": "yarn-hbase-site/hbase.master.keytab.file"
-          }
-        },
-        {
-          "name": "yarn_ats_hbase_regionserver",
-          "principal": {
-            "value": "yarn-ats-hbase/_HOST@${realm}",
-            "type" : "service",
-            "configuration": "yarn-hbase-site/hbase.regionserver.kerberos.principal",
-            "local_username": "${yarn-env/yarn_ats_user}"
-          },
-          "keytab": {
-            "file": "${keytab_dir}/yarn-ats.hbase-regionserver.service.keytab",
-            "owner": {
-              "name": "${yarn-env/yarn_ats_user}",
-              "access": "r"
-            },
-            "group": {
-              "name": "${cluster-env/user_group}",
-              "access": ""
-            },
-            "configuration": "yarn-hbase-site/hbase.regionserver.keytab.file"
-          }
         }
       ],
       "configurations": [
@@ -97,9 +34,9 @@
             "yarn.resourcemanager.proxyuser.*.hosts": "",
             "yarn.resourcemanager.proxyuser.*.users": "",
             "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
-            "yarn.resourcemanager.zk-acl" : "sasl:${principals/YARN/RESOURCEMANAGER/resource_manager_rm|principalPrimary()}:rwcda",
+            "hadoop.zk.acl" : "sasl:${principals/YARN/RESOURCEMANAGER/resource_manager_rm|principalPrimary()}:rwcda",
             "hadoop.registry.secure" : "true",
-            "hadoop.registry.system.accounts" : "sasl:${principals/YARN/APP_TIMELINE_SERVER/app_timeline_server_yarn|principalPrimary()},sasl:${principals/MAPREDUCE2/HISTORYSERVER/history_server_jhs|principalPrimary()},sasl:${principals/HDFS/NAMENODE/hdfs|principalPrimary()},sasl:${principals/YARN/RESOURCEMANAGER/resource_manager_rm|principalPrimary()},sasl:${principals/HIVE/HIVE_SERVER/hive_server_hive|principalPrimary()},sasl:${principals/SPARK2/spark_service_keytab|principalPrimary()}",
+            "hadoop.registry.system.accounts" : "sasl:${yarn-env/yarn_user},sasl:${hadoop-env/hdfs_user},sasl:${principals/YARN/RESOURCEMANAGER/resource_manager_rm|principalPrimary()}",
             "hadoop.registry.client.auth" : "kerberos",
             "hadoop.registry.jaas.context" : "Client"
           }
@@ -165,42 +102,6 @@
               }
             },
             {
-              "name": "yarn_nodemanager_hive_server_hive",
-              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
-              "principal": {
-                "configuration": "hive-interactive-site/hive.llap.daemon.service.principal"
-              },
-              "keytab": {
-                "configuration": "hive-interactive-site/hive.llap.daemon.keytab.file"
-              },
-              "when" : {
-                "contains" : ["services", "HIVE"]
-              }
-            },
-            {
-              "name": "llap_task_hive",
-              "principal": {
-                "value": "hive/_HOST@${realm}",
-                "type" : "service",
-                "configuration": "hive-interactive-site/hive.llap.task.principal"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/hive.llap.task.keytab",
-                "owner": {
-                  "name": "${yarn-env/yarn_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": "r"
-                },
-                "configuration": "hive-interactive-site/hive.llap.task.keytab.file"
-              },
-              "when" : {
-                "contains" : ["services", "HIVE"]
-              }
-            },
-            {
               "name": "yarn_nodemanager_spnego",
               "reference": "/spnego",
               "principal": {
@@ -208,6 +109,120 @@
               },
               "keytab": {
                 "configuration": "yarn-site/yarn.nodemanager.webapp.spnego-keytab-file"
+              }
+            },
+            {
+              "name": "yarn_ats",
+              "when": {
+                "and": [
+                  {
+                    "equals": ["configurations/yarn-hbase-env/is_hbase_system_service_launch", "true"]
+                  },
+                  {
+                    "and": [
+                      {
+                        "equals": ["configurations/yarn-hbase-env/use_external_hbase", "false"]
+                      },
+                      {
+                        "equals": ["configurations/yarn-hbase-env/hbase_within_cluster", "false"]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "principal": {
+                "value": "${yarn-env/yarn_ats_user}${principal_suffix}@${realm}",
+                "type" : "user",
+                "configuration": "yarn-env/yarn_ats_principal_name",
+                "local_username": "${yarn-env/yarn_ats_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/yarn-ats.hbase-client.headless.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_ats_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "yarn-env/yarn_ats_user_keytab"
+              }
+            },
+            {
+              "name": "yarn_ats_hbase_master",
+              "when": {
+                "and": [
+                  {
+                    "equals": ["configurations/yarn-hbase-env/is_hbase_system_service_launch", "true"]
+                  },
+                  {
+                    "and": [
+                      {
+                        "equals": ["configurations/yarn-hbase-env/use_external_hbase", "false"]
+                      },
+                      {
+                        "equals": ["configurations/yarn-hbase-env/hbase_within_cluster", "false"]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "principal": {
+                "value": "yarn-ats-hbase/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "yarn-hbase-site/hbase.master.kerberos.principal",
+                "local_username": "${yarn-env/yarn_ats_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/yarn-ats.hbase-master.service.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_ats_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "yarn-hbase-site/hbase.master.keytab.file"
+              }
+            },
+            {
+              "name": "yarn_ats_hbase_regionserver",
+              "when": {
+                "and": [
+                  {
+                    "equals": ["configurations/yarn-hbase-env/is_hbase_system_service_launch", "true"]
+                  },
+                  {
+                    "and": [
+                      {
+                        "equals": ["configurations/yarn-hbase-env/use_external_hbase", "false"]
+                      },
+                      {
+                        "equals": ["configurations/yarn-hbase-env/hbase_within_cluster", "false"]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "principal": {
+                "value": "yarn-ats-hbase/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "yarn-hbase-site/hbase.regionserver.kerberos.principal",
+                "local_username": "${yarn-env/yarn_ats_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/yarn-ats.hbase-regionserver.service.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_ats_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "yarn-hbase-site/hbase.regionserver.keytab.file"
               }
             }
           ],
@@ -346,6 +361,103 @@
             {
               "name": "yarn_timeline_reader_hdfs",
               "reference": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "yarn_ats",
+              "principal": {
+                "value": "${yarn-env/yarn_ats_user}${principal_suffix}@${realm}",
+                "type" : "user",
+                "configuration": "yarn-env/yarn_ats_principal_name",
+                "local_username": "${yarn-env/yarn_ats_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/yarn-ats.hbase-client.headless.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_ats_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "yarn-env/yarn_ats_user_keytab"
+              }
+            },
+            {
+              "name": "yarn_ats_hbase_master",
+              "when": {
+                "and": [
+                  {
+                    "equals": ["configurations/yarn-hbase-env/is_hbase_system_service_launch", "false"]
+                  },
+                  {
+                    "and": [
+                      {
+                        "equals": ["configurations/yarn-hbase-env/use_external_hbase", "false"]
+                      },
+                      {
+                        "equals": ["configurations/yarn-hbase-env/hbase_within_cluster", "false"]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "principal": {
+                "value": "yarn-ats-hbase/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "yarn-hbase-site/hbase.master.kerberos.principal",
+                "local_username": "${yarn-env/yarn_ats_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/yarn-ats.hbase-master.service.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_ats_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "yarn-hbase-site/hbase.master.keytab.file"
+              }
+            },
+            {
+              "name": "yarn_ats_hbase_regionserver",
+              "when": {
+                "and": [
+                  {
+                    "equals": ["configurations/yarn-hbase-env/is_hbase_system_service_launch", "false"]
+                  },
+                  {
+                    "and": [
+                      {
+                        "equals": ["configurations/yarn-hbase-env/use_external_hbase", "false"]
+                      },
+                      {
+                        "equals": ["configurations/yarn-hbase-env/hbase_within_cluster", "false"]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "principal": {
+                "value": "yarn-ats-hbase/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "yarn-hbase-site/hbase.regionserver.kerberos.principal",
+                "local_username": "${yarn-env/yarn_ats_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/yarn-ats.hbase-regionserver.service.keytab",
+                "owner": {
+                  "name": "${yarn-env/yarn_ats_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "yarn-hbase-site/hbase.regionserver.keytab.file"
+              }
             }
           ]
         },

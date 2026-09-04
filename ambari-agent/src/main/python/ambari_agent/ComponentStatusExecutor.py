@@ -19,6 +19,7 @@ limitations under the License.
 
 import logging
 import threading
+import copy
 
 from ambari_agent import Constants
 from ambari_agent.LiveStatus import LiveStatus
@@ -26,7 +27,7 @@ from ambari_agent.Utils import Utils
 from collections import defaultdict
 
 from ambari_agent.models.commands import AgentCommand
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 from resource_management.libraries.functions.default import default
 
 
@@ -297,28 +298,37 @@ class ComponentStatusExecutor(threading.Thread):
     ):
       return
 
+    report_snapshot = copy.deepcopy(cluster_reports)
     with self.reported_component_status_lock:
       if snapshot_generation is None:
         snapshot_generation = self.component_status_snapshot_generation
       elif snapshot_generation != self.component_status_snapshot_generation:
         return
 
-      correlation_id = self.initializer_module.connection.send(
+      def register_callback(
+        correlation_id,
+        snapshot=report_snapshot,
+        complete=snapshot_complete,
+        generation=snapshot_generation,
+      ):
+        on_success = (
+          lambda headers, message: self.save_reported_component_status(
+            snapshot, complete, generation
+          )
+          if save_reported_status
+          else lambda headers, message: None
+        )
+        return self.server_responses_listener.register_response_callback(
+          correlation_id, on_success=on_success
+        )
+
+      self.initializer_module.connection.send(
         message={
-          "clusters": cluster_reports,
+          "clusters": report_snapshot,
           "snapshotComplete": snapshot_complete,
         },
         destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT,
-      )
-    if save_reported_status:
-      self.server_responses_listener.listener_functions_on_success[correlation_id] = (
-        lambda headers, message: self.save_reported_component_status(
-          cluster_reports, snapshot_complete, snapshot_generation
-        )
-      )
-    else:
-      self.server_responses_listener.listener_functions_on_success[correlation_id] = (
-        lambda headers, message: None
+        presend_hook=register_callback,
       )
 
   def save_reported_component_status(

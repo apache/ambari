@@ -17,7 +17,7 @@
 -->
 <metainfo>
     <versions>
-	  <active>true</active>
+      <active>true</active>
     </versions>
     <extends>3.2.0</extends>
 </metainfo>

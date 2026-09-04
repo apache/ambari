@@ -16,9 +16,9 @@
         "requires_user_name": "false",
         "port":{
           "http_property": "hbase.master.info.port",
-          "http_default_port": "60010",
+          "http_default_port": "16010",
           "https_property": "hbase.master.info.port",
-          "https_default_port": "60443",
+          "https_default_port": "16010",
           "regex": "",
           "site": "hbase-site"
         }
@@ -31,9 +31,9 @@
         "requires_user_name": "false",
         "port":{
           "http_property": "hbase.master.info.port",
-          "http_default_port": "60010",
+          "http_default_port": "16010",
           "https_property": "hbase.master.info.port",
-          "https_default_port": "60443",
+          "https_default_port": "16010",
           "regex": "",
           "site": "hbase-site"
         }
@@ -46,9 +46,9 @@
         "requires_user_name": "false",
         "port":{
           "http_property": "hbase.master.info.port",
-          "http_default_port": "60010",
+          "http_default_port": "16010",
           "https_property": "hbase.master.info.port",
-          "https_default_port": "60443",
+          "https_default_port": "16010",
           "regex": "",
           "site": "hbase-site"
         }
@@ -61,9 +61,9 @@
         "requires_user_name": "false",
         "port":{
           "http_property": "hbase.master.info.port",
-          "http_default_port": "60010",
+          "http_default_port": "16010",
           "https_property": "hbase.master.info.port",
-          "https_default_port": "60443",
+          "https_default_port": "16010",
           "regex": "",
           "site": "hbase-site"
         }
@@ -76,9 +76,9 @@
         "requires_user_name": "false",
         "port":{
           "http_property": "hbase.master.info.port",
-          "http_default_port": "60010",
+          "http_default_port": "16010",
           "https_property": "hbase.master.info.port",
-          "https_default_port": "60443",
+          "https_default_port": "16010",
           "regex": "",
           "site": "hbase-site"
         }
@@ -91,9 +91,9 @@
         "requires_user_name": "false",
         "port":{
           "http_property": "hbase.master.info.port",
-          "http_default_port": "60010",
+          "http_default_port": "16010",
           "https_property": "hbase.master.info.port",
-          "https_default_port": "60443",
+          "https_default_port": "16010",
           "regex": "",
           "site": "hbase-site"
         }

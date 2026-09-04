@@ -24,8 +24,7 @@ import urllib.request, urllib.error, urllib.parse
 import base64
 import http.client
 
-# simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
-import ambari_simplejson as json
+import json
 from io import StringIO as BytesIO
 from ambari_commons.inet_utils import openurl
 from resource_management.core.logger import Logger
@@ -63,7 +62,7 @@ class RangeradminV2:
   @safe_retry(
     times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None
   )
-  def get_repository_by_name_urllib2(self, name, component, status, usernamepassword):
+  def get_repository_by_name_http(self, name, component, status, usernamepassword):
     """
     :param name: name of the component, from which, function will search in list of repositories
     :param component:, component for which repository has to be checked
@@ -72,14 +71,11 @@ class RangeradminV2:
     :return: Returns Ranger repository object if found otherwise None
     """
     try:
-      search_repo_url = (
-        self.url_repos_pub
-        + "?name="
-        + name
-        + "&type="
-        + component
-        + "&status="
-        + status
+      search_repo_url = "{}?{}".format(
+        self.url_repos_pub,
+        urllib.parse.urlencode(
+          {"name": name, "type": component, "status": status}
+        ),
       )
       request = urllib.request.Request(search_repo_url)
       base_64_string = (
@@ -102,7 +98,7 @@ class RangeradminV2:
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
         raise Fail(
-          f"Error getting {name} repository for component {component}. Http status code - {e.code}. \n {e.read()}"
+          f"Error getting {name} repository for component {component}. Http status code - {e.code}."
         )
       else:
         raise Fail(
@@ -132,7 +128,7 @@ class RangeradminV2:
     component_user_keytab=None,
   ):
     if not is_stack_supports_ranger_kerberos or not is_security_enabled:
-      response_code = self.check_ranger_login_urllib2(self.base_url)
+      response_code = self.check_ranger_login_http(self.base_url)
       repo_data = json.dumps(repo_properties)
       ambari_ranger_password = str(ambari_ranger_password)
       admin_password = str(admin_password)
@@ -149,14 +145,14 @@ class RangeradminV2:
         if user_resp_code is not None and user_resp_code == 200:
           retryCount = 0
           while retryCount <= 5:
-            repo = self.get_repository_by_name_urllib2(
+            repo = self.get_repository_by_name_http(
               repo_name, component, "true", ambari_username_password_for_ranger
             )
             if repo is not None:
               Logger.info(f'{component.title()} Repository {repo["name"]} exist')
               break
             else:
-              response = self.create_repository_urllib2(
+              response = self.create_repository_http(
                 repo_data, ambari_username_password_for_ranger
               )
               if response is not None:
@@ -235,7 +231,7 @@ class RangeradminV2:
   @safe_retry(
     times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None
   )
-  def create_repository_urllib2(self, data, usernamepassword):
+  def create_repository_http(self, data, usernamepassword):
     """
     :param data: json object to create repository
     :param usernamepassword: user credentials using which repository needs to be searched.
@@ -251,7 +247,7 @@ class RangeradminV2:
       request.add_header("Authorization", f"Basic {base_64_string}")
       result = openurl(request, timeout=20)
       response_code = result.getcode()
-      response = json.loads(json.JSONEncoder().encode(result.read()))
+      response = json.loads(result.read())
 
       if response_code == 200:
         Logger.info("Repository created Successfully")
@@ -260,9 +256,7 @@ class RangeradminV2:
         raise Fail("Repository creation failed")
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
-        raise Fail(
-          f"Error creating repository. Http status code - {e.code}. \n {e.read()}"
-        )
+        raise Fail(f"Error creating repository. Http status code - {e.code}.")
       else:
         raise Fail(f"Error creating repository. Reason - {e.reason}.")
     except http.client.BadStatusLine:
@@ -275,7 +269,7 @@ class RangeradminV2:
   @safe_retry(
     times=75, sleep_time=8, backoff_factor=1, err_class=Fail, return_on_fail=None
   )
-  def check_ranger_login_urllib2(self, url):
+  def check_ranger_login_http(self, url):
     """
     :param url: ranger admin host url
     :param usernamepassword: user credentials using which repository needs to be searched.
@@ -287,9 +281,7 @@ class RangeradminV2:
       return response_code
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
-        raise Fail(
-          f"Connection failed to Ranger Admin. Http status code - {e.code}. \n {e.read()}"
-        )
+        raise Fail(f"Connection failed to Ranger Admin. Http status code - {e.code}.")
       else:
         raise Fail(f"Connection failed to Ranger Admin. Reason - {e.reason}.")
     except http.client.BadStatusLine as e:
@@ -312,11 +304,14 @@ class RangeradminV2:
     :return: Returns user credentials if user exist otherwise rerutns credentials of  created user.
     """
     flag_ambari_admin_present = False
-    match = re.match("[a-zA-Z0-9_\S]+$", ambari_admin_password)
+    match = re.match(r"[a-zA-Z0-9_\S]+$", ambari_admin_password)
     if match is None:
       raise Fail("Invalid password given for Ranger Admin user for Ambari")
     try:
-      url = self.url_users + "?name=" + str(ambari_admin_username)
+      url = "{}?{}".format(
+        self.url_users,
+        urllib.parse.urlencode({"name": str(ambari_admin_username)}),
+      )
       request = urllib.request.Request(url)
       base_64_string = (
         base64.b64encode(usernamepassword.encode()).decode().replace("\n", "")
@@ -360,7 +355,7 @@ class RangeradminV2:
           request.add_header("Authorization", f"Basic {base_64_string}")
           result = openurl(request, timeout=20)
           response_code = result.getcode()
-          response = json.loads(json.JSONEncoder().encode(result.read()))
+          response = json.loads(result.read())
           if response_code == 200 and response is not None:
             Logger.info("Ambari admin user creation successful.")
             return response_code
@@ -372,7 +367,7 @@ class RangeradminV2:
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
         raise Fail(
-          f"Error creating ambari admin user. Http status code - {e.code}. \n {e.read()}"
+          f"Error creating ambari admin user. Http status code - {e.code}."
         )
       else:
         raise Fail(f"Error creating ambari admin user. Reason - {e.reason}.")
@@ -478,17 +473,14 @@ class RangeradminV2:
     :return: Returns Ranger repository object if found otherwise None
     """
     try:
-      search_repo_url = (
-        self.url_repos_pub
-        + "?serviceName="
-        + name
-        + "&serviceType="
-        + component
-        + "&isEnabled="
-        + status
-      )
+      query = {
+        "serviceName": name,
+        "serviceType": component,
+        "isEnabled": status,
+      }
       if is_keyadmin:
-        search_repo_url = f"{search_repo_url}&suser=keyadmin"
+        query["suser"] = "keyadmin"
+      search_repo_url = f"{self.url_repos_pub}?{urllib.parse.urlencode(query)}"
       response, error_message, time_in_millis = self.call_curl_request(
         component_user,
         component_user_keytab,
@@ -497,15 +489,25 @@ class RangeradminV2:
         False,
         request_method="GET",
       )
-      response_stripped = response[1 : len(response) - 1]
-      if response_stripped and len(response_stripped) > 0:
-        response_json = json.loads(response_stripped)
-        if "name" in response_json and response_json["name"].lower() == name.lower():
-          return response_json
-        else:
-          return None
-      else:
-        return None
+      response_json = json.loads(response)
+      repositories = (
+        response_json
+        if isinstance(response_json, list)
+        else [response_json]
+        if isinstance(response_json, dict)
+        else []
+      )
+      expected_name = name.casefold()
+      for repository in repositories:
+        if not isinstance(repository, dict):
+          continue
+        repository_name = repository.get("name")
+        if (
+          isinstance(repository_name, str)
+          and repository_name.casefold() == expected_name
+        ):
+          return repository
+      return None
     except Exception as err:
       raise Fail(f"Error in call for getting Ranger service:\n {err}")
 
@@ -533,7 +535,9 @@ class RangeradminV2:
     try:
       search_repo_url = self.url_repos_pub
       if is_keyadmin:
-        search_repo_url = f"{search_repo_url}?suser=keyadmin"
+        search_repo_url = (
+          f"{search_repo_url}?{urllib.parse.urlencode({'suser': 'keyadmin'})}"
+        )
       header = "Content-Type: application/json"
       method = "POST"
 
@@ -567,7 +571,7 @@ class RangeradminV2:
   @safe_retry(
     times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None
   )
-  def update_repository_urllib2(
+  def update_repository_http(
     self,
     component,
     repo_name,
@@ -585,9 +589,15 @@ class RangeradminV2:
     param force_rename: flag to forcefully rename service name if required during updation
     """
     try:
-      update_repo_url = self.url_repos_pub + "/name/" + repo_name
+      update_repo_url = (
+        self.url_repos_pub
+        + "/name/"
+        + urllib.parse.quote(str(repo_name), safe="")
+      )
       if force_rename:
-        update_repo_url = update_repo_url + "?forceRename=true"
+        update_repo_url = (
+          f"{update_repo_url}?{urllib.parse.urlencode({'forceRename': 'true'})}"
+        )
       repo_update_data = json.dumps(repo_properties)
       usernamepassword = admin_user + ":" + admin_password
       base_64_string = (
@@ -601,7 +611,7 @@ class RangeradminV2:
       request.get_method = lambda: "PUT"
       result = openurl(request, timeout=20)
       response_code = result.getcode()
-      response = json.loads(json.JSONEncoder().encode(result.read()))
+      response = json.loads(result.read())
 
       if response_code == 200:
         Logger.info(
@@ -615,7 +625,7 @@ class RangeradminV2:
     except urllib.error.URLError as e:
       if isinstance(e, urllib.error.HTTPError):
         raise Fail(
-          f"Error updating service name {repo_name} on Ranger Admin for service {component}. Http status code - {e.code} \n {e.read()}"
+          f"Error updating service name {repo_name} on Ranger Admin for service {component}. Http status code - {e.code}"
         )
       else:
         raise Fail(
@@ -651,9 +661,15 @@ class RangeradminV2:
     param force_rename: flag to forcefully rename service name if required during updation
     """
     try:
-      update_repo_url = self.url_repos_pub + "/name/" + repo_name
+      update_repo_url = (
+        self.url_repos_pub
+        + "/name/"
+        + urllib.parse.quote(str(repo_name), safe="")
+      )
       if force_rename:
-        update_repo_url = update_repo_url + "?forceRename=true"
+        update_repo_url = (
+          f"{update_repo_url}?{urllib.parse.urlencode({'forceRename': 'true'})}"
+        )
       repo_update_data = json.dumps(repo_properties)
       header = "Content-Type: application/json"
       method = "PUT"

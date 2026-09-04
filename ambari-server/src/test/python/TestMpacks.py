@@ -20,8 +20,8 @@ limitations under the License.
 import logging
 import os
 import platform
-import distro
-from mock.mock import patch, MagicMock, call
+from ambari_commons import os_check
+from unittest.mock import patch, MagicMock, call
 from unittest import TestCase
 from ambari_commons.exceptions import FatalException
 import importlib
@@ -34,7 +34,6 @@ from only_for_platform import (
   only_for_platform,
   os_distro_value,
   PLATFORM_LINUX,
-  PLATFORM_WINDOWS,
 )
 from ambari_commons import os_utils
 
@@ -51,7 +50,7 @@ shutil.copyfile(
 _search_file = os_utils.search_file
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
 with patch.object(
-  distro,
+  os_check,
   "linux_distribution",
   return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
 ):
@@ -62,7 +61,10 @@ with patch.object(
         "parse_log4j_file",
         return_value={"ambari.log.dir": "/var/log/ambari-server"},
       ):
-        with patch("distro.linux_distribution", return_value=os_distro_value):
+        with patch(
+          "ambari_commons.os_check.linux_distribution",
+          return_value=os_distro_value,
+        ):
           with patch("os.symlink"):
             with patch.object(os_utils, "is_service_exist", return_value=True):
               with patch("glob.glob", return_value=["/etc/init.d/postgresql-9.3"]):
@@ -116,6 +118,35 @@ def get_configs():
 
 
 configs = get_configs()
+SERVER_COMMAND_LOG = "/var/log/ambari-server/ambari-server-command.log"
+
+
+def path_exists_side_effect(results):
+  result_iterator = iter(results)
+
+  def path_exists(path):
+    if path == SERVER_COMMAND_LOG:
+      return False
+    return next(result_iterator)
+
+  return path_exists
+
+
+def assert_path_exists_calls(test_case, path_exists_mock, expected_calls):
+  actual_calls = [
+    actual_call
+    for actual_call in path_exists_mock.call_args_list
+    if actual_call != call(SERVER_COMMAND_LOG)
+  ]
+  expected_count = len(expected_calls)
+  has_expected_sequence = any(
+    actual_calls[index : index + expected_count] == expected_calls
+    for index in range(len(actual_calls) - expected_count + 1)
+  )
+  test_case.assertTrue(
+    has_expected_sequence,
+    f"Expected path calls {expected_calls!r} were not found in {actual_calls!r}",
+  )
 
 
 class TestMpacks(TestCase):
@@ -316,7 +347,9 @@ class TestMpacks(TestCase):
     self.assertTrue(fail)
 
     get_archive_root_dir_mock.return_value = "mpack"
-    os_path_exists_mock.side_effect = [True, True, False, False]
+    os_path_exists_mock.side_effect = path_exists_side_effect(
+      [True, True, False, False]
+    )
     untar_archive_mock.return_value = None
     fail = False
     try:
@@ -329,7 +362,9 @@ class TestMpacks(TestCase):
     self.assertTrue(fail)
 
     get_archive_root_dir_mock.return_value = "mpack"
-    os_path_exists_mock.side_effect = [True, True, False, True, False]
+    os_path_exists_mock.side_effect = path_exists_side_effect(
+      [True, True, False, True, False]
+    )
     untar_archive_mock.return_value = None
     fail = False
     try:
@@ -440,7 +475,7 @@ class TestMpacks(TestCase):
       call(mpacks_directory + "/mystack-ambari-mpack-1.0.0.0/hooks/after_install.py"),
     ]
 
-    os_path_exists_mock.side_effect = [
+    os_path_exists_mock.side_effect = path_exists_side_effect([
       True,
       True,
       True,
@@ -472,7 +507,7 @@ class TestMpacks(TestCase):
       False,
       False,
       True,
-    ]
+    ])
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
 
@@ -595,7 +630,7 @@ class TestMpacks(TestCase):
       ),
     ]
 
-    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+    assert_path_exists_calls(self, os_path_exists_mock, os_path_exists_calls)
     self.assertTrue(purge_stacks_and_mpacks_mock.called)
     run_os_command_mock.assert_has_calls(run_os_command_calls)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
@@ -636,7 +671,7 @@ class TestMpacks(TestCase):
     expand_mpack_mock.return_value = "mpacks/myextension-ambari-mpack-1.0.0.0"
     get_ambari_version_mock.return_value = "2.4.0.0"
 
-    os_path_exists_mock.side_effect = [
+    os_path_exists_mock.side_effect = path_exists_side_effect([
       True,
       True,
       True,
@@ -652,7 +687,7 @@ class TestMpacks(TestCase):
       False,
       False,
       False,
-    ]
+    ])
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
 
@@ -714,7 +749,7 @@ class TestMpacks(TestCase):
       ),
     ]
 
-    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+    assert_path_exists_calls(self, os_path_exists_mock, os_path_exists_calls)
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
@@ -758,7 +793,7 @@ class TestMpacks(TestCase):
     expand_mpack_mock.return_value = "mpacks/myservice-ambari-mpack-1.0.0.0"
     get_ambari_version_mock.return_value = "2.4.0.0"
 
-    os_path_exists_mock.side_effect = [
+    os_path_exists_mock.side_effect = path_exists_side_effect([
       True,
       True,
       True,
@@ -782,7 +817,7 @@ class TestMpacks(TestCase):
       True,
       True,
       False,
-    ]
+    ])
 
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
@@ -861,7 +896,7 @@ class TestMpacks(TestCase):
       ),
     ]
 
-    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+    assert_path_exists_calls(self, os_path_exists_mock, os_path_exists_calls)
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
@@ -915,7 +950,7 @@ class TestMpacks(TestCase):
     run_os_command_mock.return_value = (0, "", "")
 
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
-    os_path_exists_mock.side_effect = [
+    os_path_exists_mock.side_effect = path_exists_side_effect([
       True,
       True,
       True,
@@ -977,7 +1012,7 @@ class TestMpacks(TestCase):
       True,
       True,
       True,
-    ]
+    ])
 
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
@@ -1258,7 +1293,7 @@ class TestMpacks(TestCase):
       )
     ]
 
-    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+    assert_path_exists_calls(self, os_path_exists_mock, os_path_exists_calls)
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
     run_os_command_mock.assert_has_calls(run_os_command_calls)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)

@@ -34,7 +34,7 @@ REFRESH_HEADER_URL_KEY = "url"
 
 class RefreshHeaderProcessor(BaseHandler):
   """
-  Examines responses from urllib2 and determines if there is a refresh header
+  Examines HTTP responses and determines if there is a refresh header
   that points to a different location. If there is, then build a new URL
   swapping out the original requests's host for the redirected host and
   re-execute the query. If at any point, the parsing fails, then return the
@@ -50,7 +50,7 @@ class RefreshHeaderProcessor(BaseHandler):
 
   def http_response(self, request, response):
     """
-    Inspect the http response from urllib2 and see if there is a refresh
+    Inspect the HTTP response and see if there is a refresh
     response header. If there is, then attempt to follow it and re-execute
     the query using the new host.
     :param request:

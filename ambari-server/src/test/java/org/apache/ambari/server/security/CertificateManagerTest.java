@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.expect;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -47,6 +48,31 @@ public class CertificateManagerTest extends EasyMockSupport {
   public TemporaryFolder folder = new TemporaryFolder();
 
   @Test
+  public void testTemporaryKeystorePasswordFileIsRemovedOnFailure()
+      throws Exception {
+    File directory = folder.newFolder();
+    CertificateManager certificateManager = new CertificateManager();
+    Method createTemporaryPasswordFile = CertificateManager.class
+        .getDeclaredMethod("createTemporaryKeystorePasswordFile",
+            String.class, String.class);
+    createTemporaryPasswordFile.setAccessible(true);
+
+    try {
+      createTemporaryPasswordFile.invoke(certificateManager,
+          directory.getAbsolutePath(), "missing-password-file");
+      Assert.fail("Expected a missing password source to fail");
+    } catch (InvocationTargetException e) {
+      Assert.assertTrue(e.getCause() instanceof IllegalStateException);
+    }
+
+    File[] temporaryPasswordFiles = directory.listFiles(
+        (parent, name) -> name.startsWith(".ambari-keystore-pass-")
+            && name.endsWith(".tmp"));
+    Assert.assertNotNull(temporaryPasswordFiles);
+    Assert.assertEquals(0, temporaryPasswordFiles.length);
+  }
+
+  @Test
   public void testSignAgentCrt() throws Exception {
     Injector injector = getInjector();
 
@@ -59,6 +85,7 @@ public class CertificateManagerTest extends EasyMockSupport {
     configurationMap.put(Configuration.SRVR_CRT_PASS.getKey(), "server_cert_pass");
     configurationMap.put(Configuration.SRVR_CRT_NAME.getKey(), "server_cert_name");
     configurationMap.put(Configuration.SRVR_KEY_NAME.getKey(), "server_key_name");
+    configurationMap.put(Configuration.SRVR_CRT_PASS_FILE.getKey(), "pass.txt");
     configurationMap.put(Configuration.PASSPHRASE.getKey(), "passphrase");
 
     Configuration configuration = injector.getInstance(Configuration.class);
@@ -69,20 +96,24 @@ public class CertificateManagerTest extends EasyMockSupport {
 
     final File agentCrtFile = new File(directory, String.format("%s.crt", hostname));
 
-    String expectedCommand = String.format("openssl ca -config %s/ca.config -in %s/%s.csr -out %s -batch -passin pass:%s -keyfile %s/%s -cert %s/%s",
+    String expectedCommand = String.format("openssl ca -config %s/ca.config -in %s/%s.csr -out %s -extensions client_cert -batch -passin file:%s/pass.txt -keyfile %s/%s -cert %s/%s",
         directory.getAbsolutePath(),
         directory.getAbsolutePath(),
         hostname,
         agentCrtFile.getAbsolutePath(),
-        configurationMap.get(Configuration.SRVR_CRT_PASS.getKey()),
+        directory.getAbsolutePath(),
         directory.getAbsolutePath(),
         configurationMap.get(Configuration.SRVR_KEY_NAME.getKey()),
         directory.getAbsolutePath(),
         configurationMap.get(Configuration.SRVR_CRT_NAME.getKey()));
+    String expectedVerifyCommand = String.format(
+        "openssl req -in %s/%s.csr -noout -verify",
+        directory.getAbsolutePath(), hostname);
 
     CertificateManager certificateManager = createMockBuilder(CertificateManager.class)
         .addMockedMethod(runCommand)
         .createMock();
+    expect(certificateManager.runCommand(expectedVerifyCommand)).andReturn(0).once();
     expect(certificateManager.runCommand(expectedCommand))
         .andAnswer(new IAnswer<Integer>() {
           @Override
@@ -101,6 +132,49 @@ public class CertificateManagerTest extends EasyMockSupport {
     verifyAll();
 
     Assert.assertEquals(SignCertResponse.OK_STATUS, response.getResult());
+  }
+
+  @Test
+  public void testInvalidReplacementCsrDoesNotRevokeExistingCertificate()
+      throws Exception {
+    Injector injector = getInjector();
+    File directory = folder.newFolder();
+    String hostname = "host1.example.com";
+    File existingCertificate = new File(directory, hostname + ".crt");
+    Assert.assertTrue(existingCertificate.createNewFile());
+
+    Map<String, String> configurationMap = new HashMap<>();
+    configurationMap.put(Configuration.SRVR_KSTR_DIR.getKey(),
+        directory.getAbsolutePath());
+    configurationMap.put(Configuration.SRVR_CRT_PASS_FILE.getKey(), "pass.txt");
+    configurationMap.put(Configuration.SRVR_CRT_NAME.getKey(), "ca.crt");
+    configurationMap.put(Configuration.SRVR_KEY_NAME.getKey(), "ca.key");
+    configurationMap.put(Configuration.PASSPHRASE.getKey(), "passphrase");
+
+    Configuration configuration = injector.getInstance(Configuration.class);
+    expect(configuration.validateAgentHostnames()).andReturn(true).once();
+    expect(configuration.getConfigsMap()).andReturn(configurationMap).anyTimes();
+
+    Method runCommand = CertificateManager.class.getDeclaredMethod(
+        "runCommand", String.class);
+    CertificateManager certificateManager = createMockBuilder(CertificateManager.class)
+        .addMockedMethod(runCommand)
+        .createMock();
+    String verifyCommand = String.format(
+        "openssl req -in %s/%s.csr -noout -verify",
+        directory.getAbsolutePath(), hostname);
+    expect(certificateManager.runCommand(verifyCommand)).andReturn(1).once();
+    injector.injectMembers(certificateManager);
+    replayAll();
+
+    SignCertResponse response = certificateManager.signAgentCrt(
+        hostname, "not a valid CSR", "passphrase");
+
+    Assert.assertEquals(SignCertResponse.ERROR_STATUS, response.getResult());
+    Assert.assertEquals("The agent certificate request is invalid",
+        response.getMessage());
+    Assert.assertTrue(existingCertificate.isFile());
+    verifyAll();
   }
 
   @Test
@@ -145,6 +219,29 @@ public class CertificateManagerTest extends EasyMockSupport {
   }
 
   @Test
+  public void testSignAgentCrtMissingPassphrase() throws Exception {
+    Injector injector = getInjector();
+
+    Configuration configuration = injector.getInstance(Configuration.class);
+    expect(configuration.validateAgentHostnames()).andReturn(true).once();
+    expect(configuration.getConfigsMap()).andReturn(
+        Collections.singletonMap(Configuration.PASSPHRASE.getKey(), "some_passphrase")).once();
+
+    replayAll();
+
+    CertificateManager certificateManager = new CertificateManager();
+    injector.injectMembers(certificateManager);
+
+    SignCertResponse response = certificateManager.signAgentCrt(
+        "host1.example.com", "crtContent", null);
+
+    verifyAll();
+
+    Assert.assertEquals(SignCertResponse.ERROR_STATUS, response.getResult());
+    Assert.assertEquals("Incorrect passphrase from the agent", response.getMessage());
+  }
+
+  @Test
   public void testSignAgentCrtInvalidHostnameIgnoreBadPassphrase() throws Exception {
     Injector injector = getInjector();
 
@@ -163,6 +260,46 @@ public class CertificateManagerTest extends EasyMockSupport {
 
     Assert.assertEquals(SignCertResponse.ERROR_STATUS, response.getResult());
     Assert.assertEquals("Incorrect passphrase from the agent", response.getMessage());
+  }
+
+  @Test
+  public void testUnsafeAgentHostnameUsesStablePrivateFileName() {
+    String prefix = CertificateManager.getAgentCertificateFilePrefix(
+        "../../agent name;with shell syntax");
+
+    Assert.assertTrue(prefix.startsWith("agent-"));
+    Assert.assertEquals(70, prefix.length());
+    Assert.assertFalse(prefix.contains("/"));
+    Assert.assertEquals(prefix, CertificateManager.getAgentCertificateFilePrefix(
+        "../../agent name;with shell syntax"));
+  }
+
+  @Test
+  public void testSignAgentCrtFailsWhenRequestCannotBeWritten() throws Exception {
+    Injector injector = getInjector();
+    File invalidKeystoreDirectory = folder.newFile("keys");
+    Map<String, String> configurationMap = new HashMap<>();
+    configurationMap.put(Configuration.SRVR_KSTR_DIR.getKey(),
+        invalidKeystoreDirectory.getAbsolutePath());
+    configurationMap.put(Configuration.SRVR_CRT_PASS_FILE.getKey(), "pass.txt");
+    configurationMap.put(Configuration.SRVR_CRT_NAME.getKey(), "ca.crt");
+    configurationMap.put(Configuration.SRVR_KEY_NAME.getKey(), "ca.key");
+    configurationMap.put(Configuration.PASSPHRASE.getKey(), "passphrase");
+
+    Configuration configuration = injector.getInstance(Configuration.class);
+    expect(configuration.validateAgentHostnames()).andReturn(true).once();
+    expect(configuration.getConfigsMap()).andReturn(configurationMap).anyTimes();
+    replayAll();
+
+    CertificateManager certificateManager = new CertificateManager();
+    injector.injectMembers(certificateManager);
+    SignCertResponse response = certificateManager.signAgentCrt(
+        "host1.example.com", "crtContent", "passphrase");
+
+    Assert.assertEquals(SignCertResponse.ERROR_STATUS, response.getResult());
+    Assert.assertEquals("Unable to write the agent certificate request",
+        response.getMessage());
+    verifyAll();
   }
 
   @Test
@@ -197,6 +334,33 @@ public class CertificateManagerTest extends EasyMockSupport {
     Files.write(caCertChainFile.toPath(), Collections.singleton(caCertChainFile.getAbsolutePath()));
     content = certificateManager.getCACertificateChainContent();
     Assert.assertEquals(caCertChainFile.getAbsolutePath(), content.trim());
+
+    verifyAll();
+  }
+
+  @Test
+  public void testIncompleteCustomCertificateLayoutIsRejected() throws Exception {
+    Injector injector = getInjector();
+    File directory = folder.newFolder();
+    Map<String, String> configurationMap = new HashMap<>();
+    configurationMap.put(Configuration.SRVR_KSTR_DIR.getKey(), directory.getAbsolutePath());
+    configurationMap.put(Configuration.SRVR_CRT_NAME.getKey(), "custom-ca.crt");
+
+    Configuration configuration = injector.getInstance(Configuration.class);
+    expect(configuration.getConfigsMap()).andReturn(configurationMap).once();
+    expect(configuration.getProperty(Configuration.SRVR_CRT_NAME))
+        .andReturn("custom-ca.crt").once();
+
+    CertificateManager certificateManager = new CertificateManager();
+    injector.injectMembers(certificateManager);
+    replayAll();
+
+    try {
+      certificateManager.initRootCert();
+      Assert.fail("Expected incomplete custom certificate layout to be rejected");
+    } catch (IllegalStateException e) {
+      Assert.assertTrue(e.getMessage().contains("Custom Server certificate layout"));
+    }
 
     verifyAll();
   }

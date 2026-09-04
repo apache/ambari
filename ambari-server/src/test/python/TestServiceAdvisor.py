@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import json
 import os
 from unittest import TestCase
@@ -31,23 +31,23 @@ class TestServiceAdvisor(TestCase):
     os.path.join(resources_path, "stacks/ambari_configuration.py")
   )
   with open(ambari_configuration_path, "rb") as fp:
-    imp.load_module(
+    import_utils.load_module(
       "ambari_configuration",
       fp,
       ambari_configuration_path,
-      (".py", "rb", imp.PY_SOURCE),
+      (".py", "rb", import_utils.PY_SOURCE),
     )
 
   stack_advisor_path = os.path.join(resources_path, "stacks/stack_advisor.py")
   with open(stack_advisor_path, "rb") as fp:
-    imp.load_module(
-      "stack_advisor", fp, stack_advisor_path, (".py", "rb", imp.PY_SOURCE)
+    import_utils.load_module(
+      "stack_advisor", fp, stack_advisor_path, (".py", "rb", import_utils.PY_SOURCE)
     )
 
   serviceAdvisorPath = os.path.join(resources_path, "stacks/service_advisor.py")
   with open(serviceAdvisorPath, "rb") as fp:
-    service_advisor_impl = imp.load_module(
-      "service_advisor_impl", fp, serviceAdvisorPath, (".py", "rb", imp.PY_SOURCE)
+    service_advisor_impl = import_utils.load_module(
+      "service_advisor_impl", fp, serviceAdvisorPath, (".py", "rb", import_utils.PY_SOURCE)
     )
 
   def setUp(self):

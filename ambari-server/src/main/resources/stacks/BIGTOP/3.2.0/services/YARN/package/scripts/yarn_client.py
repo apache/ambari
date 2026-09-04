@@ -20,14 +20,12 @@ Ambari Agent
 
 """
 
-import sys
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from yarn import yarn
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
 
@@ -44,11 +42,6 @@ class YarnClient(Script):
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class YarnClientWindows(YarnClient):
-  pass
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

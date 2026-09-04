@@ -18,11 +18,11 @@ limitations under the License.
 """
 
 import io
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import os
 import sys
 import json
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from unittest import TestCase
 import urllib.request, urllib.parse, urllib.error
 
@@ -31,7 +31,7 @@ def get_configs():
   test_directory = os.path.dirname(os.path.abspath(__file__))
   configs_path = os.path.join(test_directory, "../../main/resources/scripts/configs.py")
   with open(configs_path, "rb") as fp:
-    return imp.load_module("configs", fp, configs_path, (".py", "rb", imp.PY_SOURCE))
+    return import_utils.load_module("configs", fp, configs_path, (".py", "rb", import_utils.PY_SOURCE))
 
 
 configs = get_configs()
@@ -46,7 +46,7 @@ class TestConfigs(TestCase):
     sys.stdout = sys.__stdout__
 
   def get_url_open_side_effect(self, response_mapping):
-    def urlopen_side_effect(request):
+    def urlopen_side_effect(request, *args, **kwargs):
       response = MagicMock()
       request_type = request.get_method()
       request_url = request.get_full_url()
@@ -63,6 +63,40 @@ class TestConfigs(TestCase):
       return response
 
     return urlopen_side_effect
+
+  @patch("urllib.request.urlopen")
+  @patch.object(configs.ssl, "create_default_context")
+  def test_api_accessor_uses_ca_and_timeout(self, context_mock, urlopen_mock):
+    response = MagicMock()
+    response.read.return_value = b"{}"
+    urlopen_mock.return_value = response
+    context = context_mock.return_value
+
+    accessor = configs.api_accessor(
+      "server.example", "user", "password", "https", "8443", ca_cert="ca.pem"
+    )
+    accessor("/api/v1/clusters")
+
+    context_mock.assert_called_once_with(cafile="ca.pem")
+    urlopen_mock.assert_called_once_with(
+      urlopen_mock.call_args.args[0], context=context, timeout=30
+    )
+    response.close.assert_called_once_with()
+
+  @patch("urllib.request.urlopen")
+  def test_api_accessor_unsafe_mode_is_explicitly_unverified(self, urlopen_mock):
+    response = MagicMock()
+    response.read.return_value = b"{}"
+    urlopen_mock.return_value = response
+
+    accessor = configs.api_accessor(
+      "server.example", "user", "password", "https", "8443", unsafe=True
+    )
+    accessor("/api/v1/clusters")
+
+    context = urlopen_mock.call_args.kwargs["context"]
+    self.assertEqual(context.verify_mode, configs.ssl.CERT_NONE)
+    self.assertFalse(context.check_hostname)
 
   @patch.object(configs, "output_to_file")
   @patch("urllib.request.urlopen")

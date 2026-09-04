@@ -40,7 +40,14 @@ limitations under the License.
           </commandScript>
           <dependencies>
             <dependency>
-              <name>SPARK2/SPARK2_CLIENT</name>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>SPARK/SPARK_CLIENT</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
@@ -65,10 +72,18 @@ limitations under the License.
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>zeppelin_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>zeppelin</name>
             </package>
           </packages>
         </osSpecific>
@@ -83,10 +98,21 @@ limitations under the License.
       <requiredServices>
         <service>HDFS</service>
         <service>YARN</service>
-        <service>SPARK2</service>
+        <service>SPARK</service>
       </requiredServices>
 
       <configuration-dependencies>
+        <config-type>core-site</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <config-type>viewfs-mount-table</config-type>
+        <config-type>hive-site</config-type>
+        <config-type>hive-interactive-site</config-type>
+        <config-type>spark-defaults</config-type>
+        <config-type>spark-env</config-type>
+        <config-type>spark-hive-site-override</config-type>
+        <config-type>hbase-site</config-type>
+        <config-type>livy-conf</config-type>
         <config-type>zeppelin-site</config-type>
         <config-type>zeppelin-env</config-type>
         <config-type>zeppelin-shiro-ini</config-type>

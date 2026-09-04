@@ -17,8 +17,10 @@ limitations under the License.
 
 import os
 
+from resource_management.core import sudo
 from resource_management.core.logger import Logger
-from resource_management.core.resources import File, Execute, Link
+from resource_management.core.resources import File, Link
+from resource_management.core.source import StaticFile
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.setup_ranger_plugin_xml import (
   setup_configuration_file_for_required_plugins,
@@ -43,47 +45,40 @@ def setup_ranger_kafka():
       )
 
     if params.has_namenode and params.xa_audit_hdfs_is_enabled:
-      try:
-        params.HdfsResource(
-          "/ranger/audit",
-          type="directory",
-          action="create_on_execute",
-          owner=params.hdfs_user,
-          group=params.hdfs_user,
-          mode=0o755,
-          recursive_chmod=True,
+      params.HdfsResource(
+        "/ranger/audit",
+        type="directory",
+        action="create_on_execute",
+        owner=params.hdfs_user,
+        group=params.hdfs_user,
+        mode=0o755,
+      )
+      params.HdfsResource(
+        "/ranger/audit/kafka",
+        type="directory",
+        action="create_on_execute",
+        owner=params.kafka_user,
+        group=params.user_group,
+        mode=0o700,
+      )
+      params.HdfsResource(None, action="execute")
+      if params.is_ranger_kms_ssl_enabled:
+        Logger.info(
+          "Ranger KMS is ssl enabled, configuring ssl-client for hdfs audits."
         )
-        params.HdfsResource(
-          "/ranger/audit/kafka",
-          type="directory",
-          action="create_on_execute",
-          owner=params.kafka_user,
-          group=params.kafka_user,
-          mode=0o700,
-          recursive_chmod=True,
+        setup_configuration_file_for_required_plugins(
+          component_user=params.kafka_user,
+          component_group=params.user_group,
+          create_core_site_path=params.conf_dir,
+          configurations=params.config["configurations"]["ssl-client"],
+          configuration_attributes=params.config["configurationAttributes"][
+            "ssl-client"
+          ],
+          file_name="ssl-client.xml",
         )
-        params.HdfsResource(None, action="execute")
-        if params.is_ranger_kms_ssl_enabled:
-          Logger.info(
-            "Ranger KMS is ssl enabled, configuring ssl-client for hdfs audits."
-          )
-          setup_configuration_file_for_required_plugins(
-            component_user=params.kafka_user,
-            component_group=params.user_group,
-            create_core_site_path=params.conf_dir,
-            configurations=params.config["configurations"]["ssl-client"],
-            configuration_attributes=params.config["configurationAttributes"][
-              "ssl-client"
-            ],
-            file_name="ssl-client.xml",
-          )
-        else:
-          Logger.info(
-            "Ranger KMS is not ssl enabled, skipping ssl-client for hdfs audits."
-          )
-      except Exception as err:
-        Logger.exception(
-          f"Audit directory creation in HDFS for KAFKA Ranger plugin failed with error:\n{err}"
+      else:
+        Logger.info(
+          "Ranger KMS is not ssl enabled, skipping ssl-client for hdfs audits."
         )
 
     setup_ranger_plugin(
@@ -93,7 +88,7 @@ def setup_ranger_kafka():
       params.downloaded_custom_connector,
       params.driver_curl_source,
       params.driver_curl_target,
-      params.java64_home,
+      params.ambari_java_home,
       params.repo_name,
       params.kafka_ranger_plugin_repo,
       params.ranger_env,
@@ -134,21 +129,12 @@ def setup_ranger_kafka():
       params.enable_ranger_kafka
       and params.stack_supports_kafka_env_include_ranger_script
     ):
-      Execute(
-        (
-          "cp",
-          "--remove-destination",
-          params.setup_ranger_env_sh_source,
-          params.setup_ranger_env_sh_target,
-        ),
-        not_if=format("test -f {setup_ranger_env_sh_target}"),
-        sudo=True,
-      )
       File(
         params.setup_ranger_env_sh_target,
         owner=params.kafka_user,
         group=params.user_group,
-        mode=0o755,
+        mode=0o640,
+        content=StaticFile(params.setup_ranger_env_sh_source),
       )
     elif not params.stack_supports_kafka_env_include_ranger_script:
       File(format("{params.setup_ranger_env_sh_target}"), action="delete")
@@ -157,8 +143,9 @@ def setup_ranger_kafka():
       and params.enable_ranger_kafka
       and params.kerberos_security_enabled
     ):
-      # sometimes this is a link for missing /etc/hdp directory, just remove link/file and create regular file.
-      Execute(("rm", "-f", os.path.join(params.conf_dir, "core-site.xml")), sudo=True)
+      core_site_path = os.path.join(params.conf_dir, "core-site.xml")
+      if sudo.path_lexists(core_site_path):
+        sudo.unlink(core_site_path)
 
       if params.has_namenode and params.stack_supports_kafka_env_include_ranger_script:
         Logger.info(
@@ -184,13 +171,9 @@ def setup_ranger_kafka():
           "Stack supports core-site.xml creation for Ranger plugin and create core-site and hdfs-site in the ranger-kafka-plugin-impl diretory."
         )
 
-        Link(
-          format("{ranger_kafka_plugin_impl_path}/core-site.xml"),
-          only_if=os.path.islink(
-            format("{ranger_kafka_plugin_impl_path}/core-site.xml")
-          ),
-          action="delete",
-        )
+        ranger_core_site = format("{ranger_kafka_plugin_impl_path}/core-site.xml")
+        if sudo.path_islink(ranger_core_site):
+          Link(ranger_core_site, action="delete")
         setup_configuration_file_for_required_plugins(
           component_user=params.kafka_user,
           component_group=params.user_group,
@@ -204,13 +187,9 @@ def setup_ranger_kafka():
           xml_include_file_content=params.mount_table_content,
         )
 
-        Link(
-          format("{ranger_kafka_plugin_impl_path}/hdfs-site.xml"),
-          only_if=os.path.islink(
-            format("{ranger_kafka_plugin_impl_path}/hdfs-site.xml")
-          ),
-          action="delete",
-        )
+        ranger_hdfs_site = format("{ranger_kafka_plugin_impl_path}/hdfs-site.xml")
+        if sudo.path_islink(ranger_hdfs_site):
+          Link(ranger_hdfs_site, action="delete")
         setup_configuration_file_for_required_plugins(
           component_user=params.kafka_user,
           component_group=params.user_group,
@@ -247,3 +226,7 @@ def setup_ranger_kafka():
       )
   else:
     Logger.info("Ranger Kafka plugin is not enabled")
+    File(
+      os.path.join(params.conf_dir, "kafka-ranger-env.sh"),
+      action="delete",
+    )

@@ -38,12 +38,12 @@ def dump(config_json, config_dict):
   File(config_json,
     owner=params.nifi_user,
     group=params.nifi_group,
-    mode=0600,
+    mode=0o600,
     content=PasswordString(json.dumps(config_dict, sort_keys=True, indent=4))
   )
 
 def overlay(config_dict, overlay_dict):
-  for k, v in overlay_dict.iteritems():
+  for k, v in overlay_dict.items():
     if v or k not in config_dict:
       config_dict[k] = v
 

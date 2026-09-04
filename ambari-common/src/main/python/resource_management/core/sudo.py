@@ -26,7 +26,9 @@ import tempfile
 import shutil
 import stat
 import errno
+import json
 import random
+import sys
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from ambari_commons.unicode_tolerant_fs import unicode_walk
@@ -147,6 +149,9 @@ if os.geteuid() == 0:
   def link(source, link_name):
     os.link(source, link_name)
 
+  def link_exclusive(source, link_name):
+    os.link(source, link_name, follow_symlinks=False)
+
   def unlink(path):
     os.unlink(path)
 
@@ -191,6 +196,21 @@ if os.geteuid() == 0:
           stat_val.st_gid,
           stat_val.st_mode & 0o7777,
         )
+
+    return Stat(path)
+
+  def lstat(path):
+    class Stat:
+      def __init__(self, path):
+        stat_val = os.lstat(path)
+        self.st_dev = stat_val.st_dev
+        self.st_ino = stat_val.st_ino
+        self.st_mode = stat_val.st_mode
+        self.st_uid = stat_val.st_uid
+        self.st_gid = stat_val.st_gid
+        self.st_nlink = stat_val.st_nlink
+        self.st_size = stat_val.st_size
+        self.st_mtime_ns = stat_val.st_mtime_ns
 
     return Stat(path)
 
@@ -242,6 +262,9 @@ else:
   # os.link replacement
   def link(source, link_name):
     shell.checked_call(["ln", "-f", source, link_name], sudo=True)
+
+  def link_exclusive(source, link_name):
+    shell.checked_call(["ln", "-T", "--", source, link_name], sudo=True)
 
   # os unlink
   def unlink(path):
@@ -310,6 +333,35 @@ else:
 
     return Stat(path)
 
+  def lstat(path):
+    class Stat:
+      def __init__(self, path):
+        cmd = ["stat", "-c", "%d %i %f %u %g %h %s %Y", "--", path]
+        code, out, err = shell.checked_call(cmd, sudo=True, stderr=subprocess.PIPE)
+        values = out.strip().split(" ")
+        if len(values) != 8:
+          raise Fail(f"Execution of '{cmd}' returned unexpected output. {err}\n{out}")
+        (
+          dev_str,
+          ino_str,
+          mode_str,
+          uid_str,
+          gid_str,
+          nlink_str,
+          size_str,
+          mtime_str,
+        ) = values
+        self.st_dev = int(dev_str)
+        self.st_ino = int(ino_str)
+        self.st_mode = int(mode_str, 16)
+        self.st_uid = int(uid_str)
+        self.st_gid = int(gid_str)
+        self.st_nlink = int(nlink_str)
+        self.st_size = int(size_str)
+        self.st_mtime_ns = int(mtime_str) * 1_000_000_000
+
+    return Stat(path)
+
   # os.kill replacement
   def kill(pid, signal):
     try:
@@ -369,3 +421,29 @@ def _create_file(filename, content, encoding, sudo, on_file_created=None):
   if on_file_created:
     on_file_created(tmpf_name)
   shell.checked_call(["mv", "-f", tmpf_name, filename], sudo=sudo)
+
+
+def signal_process(pid, uid, start_time, expected_cmdline, process_signal):
+  helper_path = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "libraries",
+    "functions",
+    "safe_process_signal.py",
+  )
+  command = (
+    sys.executable,
+    os.path.abspath(helper_path),
+    "--pid",
+    str(pid),
+    "--uid",
+    str(uid),
+    "--start-time",
+    str(start_time),
+    "--signal",
+    str(process_signal),
+    "--tokens-json",
+    json.dumps(tuple(expected_cmdline)),
+  )
+  _, output = shell.checked_call(command, sudo=True, logoutput=False)
+  return output.strip()

@@ -10,5 +10,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 include ambari-common/src/main/python/ambari_commons/resources/*
-include ambari-common/src/main/python/ambari_commons/libs/**/*.so
-include ambari-common/src/main/python/pluggable_stack_definition/configs/*
+recursive-include ambari-common/src/main/python/resource_management/core/files *
+recursive-include ambari-common/src/main/python/pluggable_stack_definition/configs *
+recursive-include ambari-common/src/main/python/pluggable_stack_definition/resources *

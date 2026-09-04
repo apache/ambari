@@ -20,8 +20,9 @@ under the License.
 
 from unittest import TestCase
 
-from mock.mock import patch
+from unittest.mock import patch
 
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import package_conditions
 
 
@@ -43,6 +44,10 @@ class TestPackageConditions(TestCase):
       package_conditions.should_install_ranger_hbase_plugin,
       "/configurations/ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled",
     ),
+    (
+      package_conditions.should_install_ranger_kafka_plugin,
+      "/configurations/ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled",
+    ),
   )
 
   def test_ranger_plugin_packages_are_installed_only_when_enabled(self):
@@ -55,3 +60,36 @@ class TestPackageConditions(TestCase):
         with patch.object(package_conditions, "default", return_value="Yes") as default:
           self.assertTrue(condition())
           default.assert_called_once_with(path, "No")
+
+        for invalid in (None, 1, "true", "enabled", ""):
+          with self.subTest(condition=condition.__name__, invalid=invalid), \
+            patch.object(package_conditions, "default", return_value=invalid), \
+            self.assertRaisesRegex(Fail, "must be Yes or No"):
+            condition()
+
+  def test_infra_solr_packages_follow_only_bigtop_components(self):
+    cases = (
+      ("INFRA_SOLR", package_conditions.should_install_infra_solr, True),
+      (
+        "INFRA_SOLR_CLIENT",
+        package_conditions.should_install_infra_solr_client,
+        True,
+      ),
+      ("RANGER_ADMIN", package_conditions.should_install_infra_solr_client, True),
+      ("UNRELATED_SERVER", package_conditions.should_install_infra_solr_client, False),
+    )
+    for role, condition, expected in cases:
+      with self.subTest(role=role), \
+        patch.object(
+          package_conditions.Script,
+          "get_config",
+          return_value={"role": role},
+        ):
+        self.assertEqual(expected, condition())
+
+  def test_infra_solr_conditions_are_public(self):
+    self.assertIn("should_install_infra_solr", package_conditions.__all__)
+    self.assertIn("should_install_infra_solr_client", package_conditions.__all__)
+
+  def test_ranger_kafka_package_condition_is_public(self):
+    self.assertIn("should_install_ranger_kafka_plugin", package_conditions.__all__)

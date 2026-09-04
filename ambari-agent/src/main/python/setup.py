@@ -14,24 +14,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup
+import os
+import re
+from pathlib import Path
+from xml.etree import ElementTree
+
+from setuptools import find_packages, setup
+
+
+def get_version():
+  version = os.environ.get("AMBARI_VERSION")
+  if version is None:
+    root_pom = Path(__file__).resolve().parents[4] / "pom.xml"
+    if root_pom.is_file():
+      namespace = "http://maven.apache.org/POM/4.0.0"
+      root = ElementTree.parse(root_pom).getroot()
+      version = root.findtext(f"{{{namespace}}}properties/{{{namespace}}}revision")
+  version = version or "3.1.0.0.dev0"
+  if version.endswith("-SNAPSHOT"):
+    version = version[: -len("-SNAPSHOT")] + ".dev0"
+  if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*(?:\.dev[0-9]+)?", version):
+    raise ValueError(f"Unsupported Ambari Agent package version: {version}")
+  return version
 
 setup(
-  name="ambari-agent",
-  version="1.0.3-SNAPSHOT",
-  packages=["ambari_agent"],
-  # metadata for upload to PyPI
-  author="Apache Software Foundation",
-  author_email="ambari-dev@incubator.apache.org",
-  description="Ambari agent",
-  license="Apache License v2.0",
-  keywords="hadoop, ambari",
-  url="http://incubator.apache.org/ambari",
-  long_description="This package implements the Ambari agent for installing Hadoop on large clusters.",
-  platforms=["any"],
-  entry_points={
-    "console_scripts": [
-      "ambari-agent = ambari_agent.main:main",
-    ],
-  },
+  version=get_version(),
+  packages=find_packages(),
 )

@@ -19,10 +19,10 @@ limitations under the License.
 
 import threading
 from unittest import TestCase
+from unittest.mock import ANY, MagicMock
 
 from ambari_agent.ComponentStatusExecutor import ComponentStatusExecutor
 from ambari_agent import Constants
-from mock.mock import MagicMock
 
 
 class TestComponentStatusExecutor(TestCase):
@@ -31,12 +31,25 @@ class TestComponentStatusExecutor(TestCase):
     initializer_module.config.status_commands_run_interval = 10
     initializer_module.stop_event = threading.Event()
     initializer_module.is_registered = True
-    initializer_module.server_responses_listener.listener_functions_on_success = {}
-    initializer_module.connection.send.return_value = "correlation-1"
+    initializer_module.server_responses_listener.register_response_callback.return_value = (
+      lambda: None
+    )
     return ComponentStatusExecutor(initializer_module), initializer_module
+
+  @staticmethod
+  def configure_send_correlations(initializer_module, *correlation_ids):
+    correlations = iter(correlation_ids)
+
+    def send(*_args, **kwargs):
+      correlation_id = next(correlations)
+      kwargs["presend_hook"](correlation_id)
+      return correlation_id
+
+    initializer_module.connection.send.side_effect = send
 
   def test_complete_snapshot_is_marked_only_after_server_ack(self):
     executor, initializer_module = self.create_executor()
+    self.configure_send_correlations(initializer_module, "correlation-1")
     reports = {
       "1": [
         {
@@ -54,18 +67,23 @@ class TestComponentStatusExecutor(TestCase):
     initializer_module.connection.send.assert_called_once_with(
       message={"clusters": reports, "snapshotComplete": True},
       destination=Constants.COMPONENT_STATUS_REPORTS_ENDPOINT,
+      presend_hook=ANY,
     )
     self.assertFalse(executor.component_status_snapshot_complete)
 
-    callback = initializer_module.server_responses_listener.listener_functions_on_success[
-      "correlation-1"
-    ]
+    register_call = (
+      initializer_module.server_responses_listener.register_response_callback.call_args
+    )
+    self.assertEqual("correlation-1", register_call.args[0])
+    callback = register_call.kwargs["on_success"]
     callback({}, {})
     self.assertTrue(executor.component_status_snapshot_complete)
 
   def test_ack_from_snapshot_before_forced_refresh_is_ignored(self):
     executor, initializer_module = self.create_executor()
-    initializer_module.connection.send.side_effect = ["scan-1", "forced-refresh"]
+    self.configure_send_correlations(
+      initializer_module, "scan-1", "forced-refresh"
+    )
     reports = {
       "1": [
         {
@@ -79,11 +97,13 @@ class TestComponentStatusExecutor(TestCase):
     }
 
     executor.send_updates_to_server(reports, snapshot_complete=True)
-    stale_callback = (
-      initializer_module.server_responses_listener.listener_functions_on_success[
-        "scan-1"
+    first_register_call = (
+      initializer_module.server_responses_listener.register_response_callback.call_args_list[
+        0
       ]
     )
+    self.assertEqual("scan-1", first_register_call.args[0])
+    stale_callback = first_register_call.kwargs["on_success"]
     executor.force_send_component_statuses()
     stale_callback({}, {})
 

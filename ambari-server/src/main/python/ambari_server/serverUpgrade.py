@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 import os
 import sys
 import shutil
@@ -26,9 +26,8 @@ import base64
 import urllib.request, urllib.error, urllib.parse
 import re
 import glob
-import optparse
 import logging
-import ambari_simplejson as json
+import json
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import (
@@ -679,7 +678,7 @@ def find_and_copy_custom_services(
     if os.path.isdir(service) and not os.path.basename(service) in managed_services:
       managed_services.append(os.path.basename(service))
   # add deprecated managed services
-  managed_services.extend(["NAGIOS", "GANGLIA", "MAPREDUCE", "WEBHCAT", "AMBARI_INFRA"])
+  managed_services.extend(["GANGLIA", "MAPREDUCE", "WEBHCAT", "AMBARI_INFRA"])
 
   stack_backup_dirs = glob.glob(os.path.join(resources_dir, old_dir_name))
   if stack_backup_dirs:

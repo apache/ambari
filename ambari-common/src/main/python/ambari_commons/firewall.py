@@ -36,12 +36,6 @@ class Firewall(object):
     pass
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class FirewallWindows(Firewall):
-  def getFirewallObject(self):
-    return WindowsFirewallChecks()
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FirewallLinux(Firewall):
   def getFirewallObject(self):
@@ -177,49 +171,3 @@ class SuseFirewallChecks(FirewallChecks):
       elif "running" in self.stdoutdata:
         result = True
     return result
-
-
-class WindowsFirewallChecks(FirewallChecks):
-  def __init__(self):
-    super(WindowsFirewallChecks, self).__init__()
-    self.FIREWALL_SERVICE_NAME = "MpsSvc"
-
-  def run_command(self):
-    from ambari_commons.os_windows import (
-      run_powershell_script,
-      CHECK_FIREWALL_SCRIPT,
-      WinServiceController,
-      SERVICE_STATUS_RUNNING,
-    )
-
-    if (
-      WinServiceController.QueryStatus(self.FIREWALL_SERVICE_NAME)
-      != SERVICE_STATUS_RUNNING
-    ):
-      self.returncode = 0
-      self.stdoutdata = ""
-      self.stderrdata = ""
-    else:
-      retcode, out, err = run_powershell_script(CHECK_FIREWALL_SCRIPT)
-      self.returncode = retcode
-      self.stdoutdata = out
-      self.stderrdata = err
-
-  def check_result(self):
-    if self.returncode != 0:
-      print_warning_msg(f"Unable to check firewall status:{self.stderrdata}")
-      return False
-    profiles_status = [i for i in self.stdoutdata.split("\n") if not i == ""]
-    if "1" in profiles_status:
-      enabled_profiles = []
-      if profiles_status[0] == "1":
-        enabled_profiles.append("DomainProfile")
-      if profiles_status[1] == "1":
-        enabled_profiles.append("StandardProfile")
-      if profiles_status[2] == "1":
-        enabled_profiles.append("PublicProfile")
-      print_warning_msg(
-        f'Following firewall profiles are enabled:{",".join(enabled_profiles)}. Make sure that the firewall is properly configured.'
-      )
-      return True
-    return False

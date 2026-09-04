@@ -13,12 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# To change a passphrase used by the agent adjust the line below. This value is used when no passphrase is
-# given through environment variable
-
-AMBARI_PASSPHRASE="DEV"
+# The bootstrap process writes the generated enrollment passphrase here with mode 0600.
+AMBARI_PASSPHRASE=""
 export PATH=$PATH:/var/lib/ambari-agent
 export PYTHONPATH=/usr/lib/ambari-agent/lib:$PYTHONPATH
 
 # customize python binary for ambari
-# export PYTHON=/usr/bin/python2
+# export PYTHON=/usr/bin/python3.9

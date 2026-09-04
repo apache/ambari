@@ -21,23 +21,27 @@ Ambari Agent
 """
 
 import os
-from resource_management.libraries.script import Script
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
-from resource_management.libraries.functions import format
-from resource_management.libraries.functions import StackFeature
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.core.resources.system import File, Execute
+import uuid
+from contextlib import nullcontext
 
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-
+from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute, File
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.script import Script
+
+import tez_utils
 
 
 class TezServiceCheck(Script):
-  pass
+  """OS-independent Tez service check entry point."""
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -47,98 +51,142 @@ class TezServiceCheckLinux(TezServiceCheck):
 
     env.set_params(params)
 
-    path_to_tez_jar = format(params.tez_examples_jar)
-    wordcount_command = format(
-      "jar {path_to_tez_jar} orderedwordcount /tmp/tezsmokeinput/sample-tez-test /tmp/tezsmokeoutput/"
+    path_to_tez_jar = tez_utils.find_unique_examples_jar(
+      params.tez_examples_jar_pattern
     )
-    test_command = format("fs -test -e /tmp/tezsmokeoutput/_SUCCESS")
+    check_id = uuid.uuid4().hex
+    hdfs_root = f"/tmp/ambari-tez-service-check-{check_id}"
+    hdfs_input = f"{hdfs_root}/input/sample-tez-test"
+    hdfs_output = f"{hdfs_root}/output"
+    local_input = os.path.join(params.tmp_dir, f"tez-service-check-{check_id}.txt")
 
-    File(
-      format("{tmp_dir}/sample-tez-test"), content="foo\nbar\nfoo\nbar\nfoo", mode=0o755
-    )
+    if params.security_enabled:
+      tez_utils.validate_keytab(params.hdfs_user_keytab, "HDFS service keytab")
+      tez_utils.validate_keytab(params.smoke_user_keytab, "Tez smoke keytab")
 
-    params.HdfsResource(
-      "/tmp/tezsmokeoutput", action="delete_on_execute", type="directory"
-    )
-
-    params.HdfsResource(
-      "/tmp/tezsmokeinput",
-      action="create_on_execute",
-      type="directory",
-      owner=params.smokeuser,
-    )
-    params.HdfsResource(
-      "/tmp/tezsmokeinput/sample-tez-test",
-      action="create_on_execute",
-      type="file",
-      owner=params.smokeuser,
-      source=format("{tmp_dir}/sample-tez-test"),
-    )
-
-    if params.stack_version_formatted and check_stack_feature(
-      StackFeature.ROLLING_UPGRADE, params.stack_version_formatted
-    ):
-      copy_to_hdfs(
-        "tez",
-        params.user_group,
-        params.hdfs_user,
-        skip=params.sysprep_skip_copy_tarballs_hdfs,
-      )
-    else:
-      # If the directory already exists, it is a NO-OP
+    File(local_input, content="foo\nbar\nfoo\nbar\nfoo", mode=0o644)
+    operation_error = None
+    try:
       params.HdfsResource(
-        params.tez_lib_base_dir_path,
-        type="directory",
+        f"{hdfs_root}/input",
         action="create_on_execute",
+        type="directory",
         owner=params.smokeuser,
       )
-      # If the file already exists, it is a NO-OP
       params.HdfsResource(
-        params.tez_lib_uris,
+        hdfs_input,
         action="create_on_execute",
         type="file",
         owner=params.smokeuser,
-        source=format("{tez_home}/lib/tez.tar.gz"),
+        source=local_input,
       )
 
-    params.HdfsResource(None, action="execute")
+      if params.stack_version_formatted and check_stack_feature(
+        StackFeature.ROLLING_UPGRADE, params.stack_version_formatted
+      ):
+        tarball_ready = copy_to_hdfs(
+          "tez",
+          params.user_group,
+          params.hdfs_user,
+          skip=params.sysprep_skip_copy_tarballs_hdfs,
+        )
+      else:
+        params.HdfsResource(
+          params.tez_lib_base_dir_path,
+          type="directory",
+          action="create_on_execute",
+          owner=params.hdfs_user,
+          mode=0o555,
+        )
+        params.HdfsResource(
+          params.tez_lib_uris,
+          action="create_on_execute",
+          type="file",
+          owner=params.hdfs_user,
+          group=params.user_group,
+          mode=0o444,
+          source=os.path.join(params.tez_home, "lib", "tez.tar.gz"),
+        )
+        tarball_ready = True
 
-    if params.security_enabled:
-      kinit_cmd = format(
-        "{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};"
-      )
-      Execute(kinit_cmd, user=params.smokeuser)
+      if not tarball_ready:
+        raise Fail("Could not stage the Tez runtime archive in HDFS")
+      params.HdfsResource(None, action="execute")
 
-    ExecuteHadoop(
-      wordcount_command,
-      tries=3,
-      try_sleep=5,
-      user=params.smokeuser,
-      conf_dir=params.hadoop_conf_dir,
-      bin_dir=params.hadoop_bin_dir,
-    )
+      if params.security_enabled:
+        cache_context = PrivateKerberosCache(
+          params.smokeuser,
+          params.user_group,
+          prefix="ambari-tez-service-check-",
+        )
+      else:
+        cache_context = nullcontext(None)
 
-    ExecuteHadoop(
-      test_command,
-      tries=10,
-      try_sleep=6,
-      user=params.smokeuser,
-      conf_dir=params.hadoop_conf_dir,
-      bin_dir=params.hadoop_bin_dir,
-    )
+      with cache_context as kerberos_cache:
+        command_environment = (
+          kerberos_cache.environment if kerberos_cache is not None else {}
+        )
+        if kerberos_cache is not None:
+          kerberos_cache.kinit(
+            params.kinit_path_local,
+            params.smoke_user_keytab,
+            params.smokeuser_principal,
+            timeout=60,
+          )
 
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class TezServiceCheckWindows(TezServiceCheck):
-  def service_check(self, env):
-    import params
-
-    env.set_params(params)
-    smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
-    service = "TEZ"
-    Execute(
-      format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.tez_user
-    )
+        hadoop_command = (
+          os.path.join(params.hadoop_bin_dir, "hadoop"),
+          "--config",
+          params.hadoop_conf_dir,
+        )
+        Execute(
+          hadoop_command
+          + ("jar", path_to_tez_jar, "orderedwordcount", hdfs_input, hdfs_output),
+          tries=3,
+          try_sleep=5,
+          user=params.smokeuser,
+          environment=command_environment,
+          timeout=330,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+        Execute(
+          hadoop_command + ("fs", "-test", "-e", f"{hdfs_output}/_SUCCESS"),
+          tries=10,
+          try_sleep=6,
+          user=params.smokeuser,
+          environment=command_environment,
+          timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+    except Exception as error:
+      operation_error = error
+      raise
+    finally:
+      hdfs_cleanup_error = None
+      try:
+        params.HdfsResource(
+          hdfs_root,
+          action="delete_on_execute",
+          type="directory",
+        )
+        params.HdfsResource(None, action="execute")
+      except Exception as error:
+        hdfs_cleanup_error = error
+        if operation_error is not None:
+          Logger.warning(
+            f"Could not clean HDFS data after Tez service check failure: {error}"
+          )
+      try:
+        File(local_input, action="delete")
+      except Exception as error:
+        if operation_error is not None or hdfs_cleanup_error is not None:
+          Logger.warning(
+            f"Could not remove local input after Tez service check failure: {error}"
+          )
+        else:
+          raise
+      if operation_error is None and hdfs_cleanup_error is not None:
+        raise hdfs_cleanup_error
 
 
 if __name__ == "__main__":

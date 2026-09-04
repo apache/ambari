@@ -19,9 +19,7 @@
 import { describe, expect, it } from "vitest";
 import {
   filterInstallableStackServices,
-  getClusterStackName,
   isInstallableStackService,
-  isWindowsStack,
 } from "./stackMetadata";
 
 describe("stack service installability", () => {
@@ -44,20 +42,5 @@ describe("stack service installability", () => {
   it("rejects malformed stack-service resources", () => {
     expect(isInstallableStackService({})).toBe(false);
     expect(isInstallableStackService(null)).toBe(false);
-  });
-});
-
-describe("stack family metadata", () => {
-  it("uses explicit stack metadata and falls back to the version prefix", () => {
-    expect(getClusterStackName({ stack: "HDPWIN", version: "HDP-3.1" }))
-      .toBe("HDPWIN");
-    expect(getClusterStackName({ Clusters: { version: "HDP-3.1" } }))
-      .toBe("HDP");
-  });
-
-  it("recognizes the Classic Windows stack name case-insensitively", () => {
-    expect(isWindowsStack("HDPWIN")).toBe(true);
-    expect(isWindowsStack(" hdpwin ")).toBe(true);
-    expect(isWindowsStack("HDP")).toBe(false);
   });
 });

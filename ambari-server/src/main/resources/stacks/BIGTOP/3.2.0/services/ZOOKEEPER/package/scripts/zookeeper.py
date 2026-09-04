@@ -15,155 +15,109 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Ambari Agent
-
 """
 
 import os
-import sys
 
-from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import conf_select, stack_select
-from resource_management.libraries.functions.constants import StackFeature
-from resource_management.libraries.functions.version import (
-  compare_versions,
-  format_stack_version,
-)
-from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.core.resources.system import Directory, File
-from resource_management.core.resources.service import ServiceConfig
-from resource_management.core.source import InlineTemplate, Template
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.core import sudo
+from resource_management.core.exceptions import Fail
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import InlineTemplate, Template
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def zookeeper(type=None, upgrade_type=None):
   import params
 
+  if type not in ("client", "server"):
+    raise Fail("ZooKeeper configuration type must be client or server")
+
   Directory(
     params.config_dir,
     owner=params.zk_user,
-    create_parents=True,
     group=params.user_group,
+    mode=0o750,
+    create_parents=True,
   )
-
   File(
     os.path.join(params.config_dir, "zookeeper-env.sh"),
     content=InlineTemplate(params.zk_env_sh_template),
     owner=params.zk_user,
     group=params.user_group,
+    mode=0o640,
   )
-
-  configFile("zoo.cfg", template_name="zoo.cfg.j2")
-  configFile("configuration.xsl", template_name="configuration.xsl.j2")
-
-  Directory(
-    params.zk_pid_dir,
-    owner=params.zk_user,
-    create_parents=True,
-    group=params.user_group,
-    mode=0o755,
-  )
-
-  Directory(
-    params.zk_log_dir,
-    owner=params.zk_user,
-    create_parents=True,
-    group=params.user_group,
-    mode=0o755,
-  )
-
-  Directory(
-    params.zk_data_dir,
-    owner=params.zk_user,
-    create_parents=True,
-    cd_access="a",
-    group=params.user_group,
-    mode=0o755,
-  )
+  config_file("zoo.cfg", "zoo.cfg.j2")
+  config_file("configuration.xsl", "configuration.xsl.j2")
 
   if type == "server":
-    myid = str(sorted(params.zookeeper_hosts).index(params.hostname) + 1)
-
-    File(os.path.join(params.zk_data_dir, "myid"), mode=0o644, content=myid)
-
-  if params.log4j_props != None:
-    File(
-      os.path.join(params.config_dir, "log4j.properties"),
-      mode=0o644,
+    if params.hostname not in params.zookeeper_hosts:
+      raise Fail("The ZooKeeper server host list does not contain the current host")
+    Directory(
+      params.zk_pid_dir,
+      owner=params.zk_user,
       group=params.user_group,
-      owner=params.zk_user,
-      content=InlineTemplate(params.log4j_props),
+      mode=0o750,
+      create_parents=True,
     )
-  elif os.path.exists(os.path.join(params.config_dir, "log4j.properties")):
-    File(
-      os.path.join(params.config_dir, "log4j.properties"),
-      mode=0o644,
+    Directory(
+      params.zk_log_dir,
+      owner=params.zk_user,
       group=params.user_group,
-      owner=params.zk_user,
+      mode=0o750,
+      create_parents=True,
     )
-
-  if params.security_enabled:
-    if type == "server":
-      configFile("zookeeper_jaas.conf", template_name="zookeeper_jaas.conf.j2")
-      configFile(
-        "zookeeper_client_jaas.conf", template_name="zookeeper_client_jaas.conf.j2"
-      )
-    else:
-      configFile(
-        "zookeeper_client_jaas.conf", template_name="zookeeper_client_jaas.conf.j2"
-      )
-
-  File(
-    os.path.join(params.config_dir, "zoo_sample.cfg"),
-    owner=params.zk_user,
-    group=params.user_group,
-  )
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def zookeeper(type=None, upgrade_type=None):
-  import params
-
-  configFile("zoo.cfg", template_name="zoo.cfg.j2", mode="f")
-  configFile("configuration.xsl", template_name="configuration.xsl.j2", mode="f")
-
-  ServiceConfig(
-    params.zookeeper_win_service_name,
-    action="change_user",
-    username=params.zk_user,
-    password=Script.get_password(params.zk_user),
-  )
-
-  Directory(
-    params.zk_data_dir, owner=params.zk_user, mode="(OI)(CI)F", create_parents=True
-  )
-  if params.log4j_props != None:
-    File(
-      os.path.join(params.config_dir, "log4j.properties"),
-      mode="f",
+    Directory(
+      params.zk_data_dir,
       owner=params.zk_user,
-      content=params.log4j_props,
+      group=params.user_group,
+      mode=0o750,
+      create_parents=True,
+      cd_access="a",
     )
-  elif os.path.exists(os.path.join(params.config_dir, "log4j.properties")):
-    File(
-      os.path.join(params.config_dir, "log4j.properties"),
-      mode="f",
-      owner=params.zk_user,
-    )
-  if type == "server":
-    myid = str(sorted(params.zookeeper_hosts).index(params.hostname) + 1)
+    myid = str(params.zookeeper_hosts.index(params.hostname) + 1)
     File(
       os.path.join(params.zk_data_dir, "myid"),
+      content=myid + "\n",
       owner=params.zk_user,
-      mode="f",
-      content=myid,
+      group=params.user_group,
+      mode=0o640,
     )
 
+  log4j_file = os.path.join(params.config_dir, "log4j.properties")
+  if params.log4j_props is not None:
+    File(
+      log4j_file,
+      content=InlineTemplate(params.log4j_props),
+      owner=params.zk_user,
+      group=params.user_group,
+      mode=0o644,
+    )
+  elif sudo.path_exists(log4j_file):
+    File(
+      log4j_file,
+      owner=params.zk_user,
+      group=params.user_group,
+      mode=0o644,
+    )
 
-def configFile(name, template_name=None, mode=None):
+  server_jaas = os.path.join(params.config_dir, "zookeeper_jaas.conf")
+  client_jaas = os.path.join(params.config_dir, "zookeeper_client_jaas.conf")
+  if params.security_enabled:
+    if type == "server":
+      config_file("zookeeper_jaas.conf", "zookeeper_jaas.conf.j2", mode=0o640)
+    config_file(
+      "zookeeper_client_jaas.conf",
+      "zookeeper_client_jaas.conf.j2",
+      mode=0o640,
+    )
+  else:
+    File(client_jaas, action="delete")
+    if type == "server":
+      File(server_jaas, action="delete")
+
+
+def config_file(name, template_name, mode=0o644):
   import params
 
   File(

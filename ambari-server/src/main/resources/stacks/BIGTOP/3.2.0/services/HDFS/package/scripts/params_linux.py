@@ -20,7 +20,8 @@ limitations under the License.
 
 import status_params
 import utils
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+from router_utils import build_router_client_sites, format_router_host
+import json
 import os
 import re
 
@@ -46,14 +47,16 @@ from resource_management.libraries.functions.get_not_managed_resources import (
   get_not_managed_resources,
 )
 from resource_management.libraries.script.script import Script
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
-from resource_management.libraries.functions.format_jvm_option import format_jvm_option
 from resource_management.libraries.functions.hdfs_utils import is_https_enabled_in_hdfs
 from resource_management.libraries.functions import is_empty
 from resource_management.libraries.functions.get_architecture import get_architecture
+from resource_management.libraries.functions.format_jvm_option import format_jvm_option
 from resource_management.libraries.functions.setup_ranger_plugin_xml import (
   get_audit_configs,
   generate_ranger_service_config,
+  require_external_ranger_credentials,
 )
 from resource_management.libraries.functions.namenode_ha_utils import (
   get_properties_for_all_nameservices,
@@ -126,6 +129,17 @@ dfs_dn_https_addr = default(
   "/configurations/hdfs-site/dfs.datanode.https.address", None
 )
 dfs_http_policy = default("/configurations/hdfs-site/dfs.http.policy", None)
+if str(dfs_http_policy or "").upper() in ("HTTPS_ONLY", "HTTP_AND_HTTPS"):
+  ssl_server_properties = config["configurations"].get("ssl-server", {})
+  for ssl_password_property in (
+    "ssl.server.truststore.password",
+    "ssl.server.keystore.password",
+    "ssl.server.keystore.keypassword",
+  ):
+    if is_empty(ssl_server_properties.get(ssl_password_property)):
+      raise Fail(
+        f"{ssl_password_property} must not be empty when HDFS HTTPS is enabled"
+      )
 dfs_dn_ipc_address = config["configurations"]["hdfs-site"]["dfs.datanode.ipc.address"]
 secure_dn_ports_are_in_use = False
 
@@ -139,13 +153,10 @@ hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec")
 hadoop_bin = stack_select.get_hadoop_dir("sbin")
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
 hadoop_home = stack_select.get_hadoop_dir("home")
-hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
-hadoop_mapred_home = stack_select.get_hadoop_dir("mapred_home")
 hadoop_lib_home = stack_select.get_hadoop_dir("lib")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_secure_dn_user = hdfs_user
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
-mapreduce_libs_path = format("{hadoop_mapred_home}/*")
 
 if not security_enabled:
   hadoop_secure_dn_user = '""'
@@ -198,8 +209,6 @@ create_lib_snappy_symlinks = check_stack_feature(
 jsvc_path = "/usr/lib/bigtop-utils"
 
 execute_path = os.environ["PATH"] + os.pathsep + hadoop_bin_dir
-ulimit_cmd = "ulimit -c unlimited ; "
-
 snappy_so = "libsnappy.so"
 so_target_dir_x86 = format("{hadoop_lib_home}/native/Linux-i386-32")
 so_target_dir_x64 = format("{hadoop_lib_home}/native/Linux-amd64-64")
@@ -213,7 +222,6 @@ so_src_x64 = format("{so_src_dir_x64}/{snappy_so}")
 # security params
 smoke_user_keytab = config["configurations"]["cluster-env"]["smokeuser_keytab"]
 hdfs_user_keytab = config["configurations"]["hadoop-env"]["hdfs_user_keytab"]
-falcon_user = config["configurations"]["falcon-env"]["falcon_user"]
 
 # exclude file
 if "all_decommissioned_hosts" in config["commandParams"]:
@@ -245,58 +253,27 @@ all_hosts = default("/clusterHostInfo/all_hosts", [])
 all_racks = default("/clusterHostInfo/all_racks", [])
 all_ipv4_ips = default("/clusterHostInfo/all_ipv4_ips", [])
 hostname = config["agentLevelParams"]["hostname"]
-rm_host = default("/clusterHostInfo/resourcemanager_hosts", [])
 public_hostname = config["agentLevelParams"]["public_hostname"]
-oozie_servers = default("/clusterHostInfo/oozie_server", [])
-hcat_server_hosts = default("/clusterHostInfo/webhcat_server_hosts", [])
-hive_server_host = default("/clusterHostInfo/hive_server_hosts", [])
-hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
-hs_host = default("/clusterHostInfo/historyserver_hosts", [])
-jtnode_host = default("/clusterHostInfo/jtnode_hosts", [])
 namenode_host = default("/clusterHostInfo/namenode_hosts", [])
 router_host = default("/clusterHostInfo/router_hosts", [])
 nm_host = default("/clusterHostInfo/nodemanager_hosts", [])
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
 journalnode_hosts = default("/clusterHostInfo/journalnode_hosts", [])
 zkfc_hosts = default("/clusterHostInfo/zkfc_hosts", [])
-falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 
-has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_namenodes = not len(namenode_host) == 0
-has_jobtracker = not len(jtnode_host) == 0
-has_resourcemanager = not len(rm_host) == 0
-has_histroryserver = not len(hs_host) == 0
-has_hbase_masters = not len(hbase_master_hosts) == 0
 has_slaves = not len(slave_hosts) == 0
-has_oozie_server = not len(oozie_servers) == 0
-has_hcat_server_host = not len(hcat_server_hosts) == 0
-has_hive_server_host = not len(hive_server_host) == 0
 has_journalnode_hosts = not len(journalnode_hosts) == 0
 has_zkfc_hosts = not len(zkfc_hosts) == 0
-has_falcon_host = not len(falcon_host) == 0
 
 
 is_namenode_master = hostname in namenode_host
-is_jtnode_master = hostname in jtnode_host
-is_rmnode_master = hostname in rm_host
-is_hsnode_master = hostname in hs_host
-is_hbase_master = hostname in hbase_master_hosts
 is_slave = hostname in slave_hosts
 
-if has_ganglia_server:
-  ganglia_server_host = ganglia_server_hosts[0]
-
 # users and groups
-yarn_user = config["configurations"]["yarn-env"]["yarn_user"]
-hbase_user = config["configurations"]["hbase-env"]["hbase_user"]
-oozie_user = config["configurations"]["oozie-env"]["oozie_user"]
-webhcat_user = config["configurations"]["hive-env"]["webhcat_user"]
-hive_user = config["configurations"]["hive-env"]["hive_user"]
 smoke_user = config["configurations"]["cluster-env"]["smokeuser"]
 smokeuser_principal = config["configurations"]["cluster-env"][
   "smokeuser_principal_name"
 ]
-mapred_user = config["configurations"]["mapred-env"]["mapred_user"]
 hdfs_principal_name = default("/configurations/hadoop-env/hdfs_principal_name", None)
 
 user_group = config["configurations"]["cluster-env"]["user_group"]
@@ -371,43 +348,24 @@ dfs_data_dirs_perm = int(
 
 data_dir_mount_file = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
-router_address = None
-if "dfs.federation.router.rpc-address" in config["configurations"]["hdfs-rbf-site"]:
-  router_rpcaddress = config["configurations"]["hdfs-rbf-site"][
-    "dfs.federation.router.rpc-address"
-  ]
-  router_address = format("hdfs://{router_rpcaddress}")
-else:
-  router_address = config["configurations"]["core-site"]["fs.defaultFS"]
+router_address = config["configurations"]["core-site"]["fs.defaultFS"]
+router_hdfs_site = None
+router_core_site = None
 if router_host:
-  router_hdfs_site = dict(config["configurations"]["hdfs-site"])
-  router_core_site = dict(config["configurations"]["core-site"])
-  nameservices = config["configurations"]["hdfs-site"].get("dfs.nameservices")
-  if not isinstance(nameservices, str):
-    # handle the error, for example by raising an exception or setting a default value
-    print("The dfs.nameservices property is not set or not a string")
-    nameservices = ""
-
-  router_hdfs_site["dfs.nameservices"] = nameservices + ",ns-fed"
-  router_hdfs_site["dfs.client.failover.proxy.provider.ns-fed"] = (
-    "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
+  router_rpc_port = utils.get_port(
+    config["configurations"]["hdfs-rbf-site"].get(
+      "dfs.federation.router.rpc-address"
+    )
   )
-  router_hdfs_site["dfs.client.failover.random.order"] = "true"
-  router_id_list = ["r" + str(i) for i in range(1, len(router_host) + 1)]
-  router_ids = ",".join(router_id_list)
-  router_hdfs_site["dfs.ha.namenodes.ns-fed"] = router_ids
-  for i, curr_router_host in enumerate(router_host):
-    id = router_id_list[i]
-    prop_name = "dfs.namenode.rpc-address.ns-fed." + id
-    prop_value = curr_router_host + ":" + "20010"
-    router_hdfs_site[prop_name] = prop_value
-
-  router_core_site["fs.defaultFS"] = "hdfs://ns-fed"
-  router_core_site["hadoop.zk.address"] = config["configurations"]["core-site"].get(
-    "ha.zookeeper.quorum"
+  if router_rpc_port is None:
+    raise Fail("Invalid dfs.federation.router.rpc-address for HDFS Router")
+  router_address = f"hdfs://{format_router_host(hostname)}:{router_rpc_port}"
+  router_hdfs_site, router_core_site = build_router_client_sites(
+    config["configurations"]["hdfs-site"],
+    config["configurations"]["core-site"],
+    router_host,
+    router_rpc_port,
   )
-else:
-  print("No router hosts found")
 
 # HDFS High Availability properties
 dfs_ha_enabled = False
@@ -496,15 +454,11 @@ if security_enabled:
   dn_keytab = config["configurations"]["hdfs-site"]["dfs.datanode.keytab.file"]
   dn_principal_name = dn_principal_name.replace("_HOST", hostname.lower())
 
-  dn_kinit_cmd = format("{kinit_path_local} -kt {dn_keytab} {dn_principal_name};")
-
   nn_principal_name = config["configurations"]["hdfs-site"][
     "dfs.namenode.kerberos.principal"
   ]
   nn_keytab = config["configurations"]["hdfs-site"]["dfs.namenode.keytab.file"]
   nn_principal_name = nn_principal_name.replace("_HOST", hostname.lower())
-
-  nn_kinit_cmd = format("{kinit_path_local} -kt {nn_keytab} {nn_principal_name};")
 
   jn_principal_name = default(
     "/configurations/hdfs-site/dfs.journalnode.kerberos.principal", None
@@ -512,20 +466,11 @@ if security_enabled:
   if jn_principal_name:
     jn_principal_name = jn_principal_name.replace("_HOST", hostname.lower())
   jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
-  hdfs_kinit_cmd = format(
-    "{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};"
-  )
-
   zk_principal_name = default(
     "/configurations/zookeeper-env/zookeeper_principal_name",
     "zookeeper/_HOST@EXAMPLE.COM",
   )
   zk_principal_user = zk_principal_name.split("/")[0]
-else:
-  dn_kinit_cmd = ""
-  nn_kinit_cmd = ""
-  hdfs_kinit_cmd = ""
-
 hdfs_site = config["configurations"]["hdfs-site"]
 default_fs = config["configurations"]["core-site"]["fs.defaultFS"]
 
@@ -554,31 +499,24 @@ HdfsResource = functools.partial(
 name_node_params = default("/commandParams/namenode", None)
 
 java_home = config["ambariLevelParams"]["java_home"]
-java_version = expect("/ambariLevelParams/java_version", int)
 java_exec = format("{java_home}/bin/java")
 
 ambari_java_home = config['ambariLevelParams']['ambari_java_home']
 ambari_java_exec = format("{ambari_java_home}/bin/java")
 
 hadoop_heapsize = config["configurations"]["hadoop-env"]["hadoop_heapsize"]
-namenode_heapsize = config["configurations"]["hadoop-env"]["namenode_heapsize"]
-namenode_opt_newsize = config["configurations"]["hadoop-env"]["namenode_opt_newsize"]
-namenode_opt_maxnewsize = config["configurations"]["hadoop-env"][
-  "namenode_opt_maxnewsize"
-]
-namenode_opt_permsize = format_jvm_option(
-  "/configurations/hadoop-env/namenode_opt_permsize", "128m"
+namenode_heapsize = format_jvm_option(
+  "/configurations/hadoop-env/namenode_heapsize", "1024m"
 )
-namenode_opt_maxpermsize = format_jvm_option(
-  "/configurations/hadoop-env/namenode_opt_maxpermsize", "256m"
+namenode_opt_newsize = format_jvm_option(
+  "/configurations/hadoop-env/namenode_opt_newsize", "200m"
 )
-
-jtnode_opt_newsize = "200m"
-jtnode_opt_maxnewsize = "200m"
-jtnode_heapsize = "1024m"
-ttnode_heapsize = "1024m"
-
-dtnode_heapsize = config["configurations"]["hadoop-env"]["dtnode_heapsize"]
+namenode_opt_maxnewsize = format_jvm_option(
+  "/configurations/hadoop-env/namenode_opt_maxnewsize", "200m"
+)
+dtnode_heapsize = format_jvm_option(
+  "/configurations/hadoop-env/dtnode_heapsize", "1024m"
+)
 mapred_pid_dir_prefix = default(
   "/configurations/mapred-env/mapred_pid_dir_prefix", "/var/run/hadoop-mapreduce"
 )
@@ -675,31 +613,29 @@ if enable_ranger_hdfs:
 
   # create ranger-env config having external ranger credential properties
   if not has_ranger_admin and enable_ranger_hdfs:
-    external_admin_username = default(
-      "/configurations/ranger-hdfs-plugin-properties/external_admin_username", "admin"
+    external_credentials = require_external_ranger_credentials(
+      config["configurations"]["ranger-hdfs-plugin-properties"]
     )
-    external_admin_password = default(
-      "/configurations/ranger-hdfs-plugin-properties/external_admin_password", "admin"
-    )
-    external_ranger_admin_username = default(
-      "/configurations/ranger-hdfs-plugin-properties/external_ranger_admin_username",
-      "amb_ranger_admin",
-    )
-    external_ranger_admin_password = default(
-      "/configurations/ranger-hdfs-plugin-properties/external_ranger_admin_password",
-      "amb_ranger_admin",
-    )
-    ranger_env = {}
-    ranger_env["admin_username"] = external_admin_username
-    ranger_env["admin_password"] = external_admin_password
-    ranger_env["ranger_admin_username"] = external_ranger_admin_username
-    ranger_env["ranger_admin_password"] = external_ranger_admin_password
+    ranger_env = {
+      "admin_username": external_credentials["external_admin_username"],
+      "admin_password": external_credentials["external_admin_password"],
+      "ranger_admin_username": external_credentials[
+        "external_ranger_admin_username"
+      ],
+      "ranger_admin_password": external_credentials[
+        "external_ranger_admin_password"
+      ],
+    }
 
   ranger_plugin_properties = config["configurations"]["ranger-hdfs-plugin-properties"]
   policy_user = config["configurations"]["ranger-hdfs-plugin-properties"]["policy_user"]
   repo_config_password = config["configurations"]["ranger-hdfs-plugin-properties"][
     "REPOSITORY_CONFIG_PASSWORD"
   ]
+  if is_empty(repo_config_password):
+    raise Fail(
+      "REPOSITORY_CONFIG_PASSWORD must not be empty when the Ranger HDFS plugin is enabled"
+    )
 
   xa_audit_db_password = ""
   if (

@@ -28,8 +28,11 @@ def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   @param xmn_percent: float (e.g 0.2)
   @param xmn_max: integer (e.g 512)
   """
-  heapsize = int(re.search("\d+", str(heapsize_str)).group(0))
-  heapsize_unit = re.search("\D+", str(heapsize_str)).group(0)
+  match = re.fullmatch(r"([1-9][0-9]*)([mMgG])", str(heapsize_str).strip())
+  if match is None:
+    raise ValueError("Heap size must be a positive integer followed by m or g")
+  heapsize = int(match.group(1))
+  heapsize_unit = match.group(2).lower()
 
   xmn_val = int(math.floor(heapsize * xmn_percent))
   xmn_val -= xmn_val % 8
@@ -38,13 +41,14 @@ def calc_xmn_from_xms(heapsize_str, xmn_percent, xmn_max):
   return str(result_xmn_val) + heapsize_unit
 
 
-def trim_heap_property(property, m_suffix="m"):
-  if property and property.endswith(m_suffix):
-    property = property[:-1]
-  return property
+def trim_heap_property(property_value, m_suffix="m"):
+  value = str(property_value).strip()
+  suffix = re.escape(m_suffix)
+  match = re.fullmatch(rf"([1-9][0-9]*)(?:{suffix})?", value, re.IGNORECASE)
+  if match is None:
+    raise ValueError("Heap value must be a positive integer with an optional suffix")
+  return match.group(1)
 
 
-def check_append_heap_property(property, m_suffix="m"):
-  if property and not property.endswith(m_suffix):
-    property += m_suffix
-  return property
+def check_append_heap_property(property_value, m_suffix="m"):
+  return trim_heap_property(property_value, m_suffix) + m_suffix

@@ -37,4 +37,11 @@
             <reponame>bigtop</reponame>
         </repo>
     </os>
+    <os family="ubuntu22">
+        <repo>
+            <baseurl>https://repo.invalid/bigtop/</baseurl>
+            <repoid>BIGTOP-3.4.0</repoid>
+            <reponame>jammy</reponame>
+        </repo>
+    </os>
 </reposinfo>

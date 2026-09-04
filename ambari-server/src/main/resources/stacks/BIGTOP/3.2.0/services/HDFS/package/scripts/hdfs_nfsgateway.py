@@ -20,37 +20,51 @@ limitations under the License.
 
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.resources import Directory
 from resource_management.core import shell
 from utils import service
-import subprocess
-import os
 
-# NFS GATEWAY is always started by root using jsvc due to rpcbind bugs
-# on Linux such as CentOS6.2. https://bugzilla.redhat.com/show_bug.cgi?id=731542
+# NFS Gateway is started by root because it binds privileged RPC ports.
+
+
+def _call_service_command(command, sudo=False, timeout=30):
+  return shell.call(
+    command,
+    sudo=sudo,
+    timeout=timeout,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    shell=False,
+  )
 
 
 def prepare_rpcbind():
   Logger.info("check if native nfs server is running")
-  p, output = shell.call("pgrep nfsd")
+  p, output = _call_service_command(("pgrep", "-x", "nfsd"))
   if p == 0:
     Logger.info("native nfs server is running. shutting it down...")
     # shutdown nfs
-    shell.call("service nfs stop")
-    shell.call("service nfs-kernel-server stop")
+    _call_service_command(("service", "nfs", "stop"), sudo=True, timeout=120)
+    _call_service_command(
+      ("service", "nfs-kernel-server", "stop"), sudo=True, timeout=120
+    )
     Logger.info("check if the native nfs server is down...")
-    p, output = shell.call("pgrep nfsd")
+    p, output = _call_service_command(("pgrep", "-x", "nfsd"))
     if p == 0:
       raise Fail("Failed to shutdown native nfs service")
 
   Logger.info("check if rpcbind or portmap is running")
-  p, output = shell.call("pgrep rpcbind")
-  q, output = shell.call("pgrep portmap")
+  p, output = _call_service_command(("pgrep", "-x", "rpcbind"))
+  q, output = _call_service_command(("pgrep", "-x", "portmap"))
 
   if p != 0 and q != 0:
     Logger.info("no portmap or rpcbind running. starting one...")
-    p, output = shell.call(("service", "rpcbind", "start"), sudo=True)
-    q, output = shell.call(("service", "portmap", "start"), sudo=True)
+    p, output = _call_service_command(
+      ("service", "rpcbind", "start"), sudo=True, timeout=120
+    )
+    q, output = _call_service_command(
+      ("service", "portmap", "start"), sudo=True, timeout=120
+    )
     if p != 0 and q != 0:
       raise Fail("Failed to start rpcbind or portmap")
 

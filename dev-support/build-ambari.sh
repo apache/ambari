@@ -30,7 +30,7 @@ REPO_NAME=contrib/views/node.js/target
 rm -rf $REPO_NAME
 mkdir -p $REPO_NAME.tmp
 pushd $REPO_NAME.tmp
-  curl --retry 3 --retry-delay 5 -k https://nodejs.org/dist/v4.5.0/node-v4.5.0-linux-x64.tar.gz | tar xzvf -
+  curl --fail --retry 3 --retry-delay 5 https://nodejs.org/dist/v4.5.0/node-v4.5.0-linux-x64.tar.gz | tar xzvf -
   mv node-v4.5.0-linux-x64/* .
   rmdir node-v4.5.0-linux-x64
 popd
@@ -50,9 +50,8 @@ echo "Checking Jenkins Java"
 ls -l /home/jenkins/tools/java
 which java
 java -version
-python -V
+"$WORKSPACE/ambari-common/src/main/unix/ambari-python-wrap" -V
 uname -a
 
 cd $WORKSPACE
 $MAVEN_HOME/bin/mvn -fae clean install
-

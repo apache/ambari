@@ -23,22 +23,11 @@ Ambari Agent
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.security_commons import (
-  build_expectations,
-  cached_kinit_executor,
-  get_params_from_filesystem,
-  validate_security_config_properties,
-  FILE_TYPE_XML,
-)
 from resource_management.core.logger import Logger
 from webhcat import webhcat
 from webhcat_service import webhcat_service
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyImpl
+from hive_service import check_hive_process_status
 
 
 class WebHCatServer(Script):
@@ -70,7 +59,12 @@ class WebHCatServer(Script):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.webhcat_pid_file)
+    check_hive_process_status(
+      status_params.webhcat_pid_file,
+      status_params.webhcat_user,
+      status_params.user_group,
+      "webhcat",
+    )
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing WebHCat Stack Upgrade pre-restart")

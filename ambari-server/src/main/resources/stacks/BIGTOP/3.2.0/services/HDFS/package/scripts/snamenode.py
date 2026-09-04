@@ -24,7 +24,6 @@ from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
-  cached_kinit_executor,
   get_params_from_filesystem,
   validate_security_config_properties,
   FILE_TYPE_XML,
@@ -111,11 +110,6 @@ class SNameNodeDefault(SNameNode):
     import status_params
 
     return [status_params.snamenode_pid_file]
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class SNameNodeWindows(SNameNode):
-  pass
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ Ambari Agent
 
 import re
 import os
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 import socket
 import traceback
 
@@ -164,7 +164,7 @@ class ExecuteUpgradeTasks(Script):
             command_params
           )
           # Replace redundant whitespace to make the unit tests easier to validate
-          task.command = re.sub("\s+", " ", task.command).strip()
+          task.command = re.sub(r"\s+", " ", task.command).strip()
 
         if task.command:
           task.command = replace_variables(task.command, host_name, version)

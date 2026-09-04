@@ -18,10 +18,6 @@ limitations under the License.
 
 """
 
-# Python Imports
-import sys
-import os
-
 # Local Imports
 import mysql_users
 from mysql_service import mysql_service

@@ -26,7 +26,7 @@
         non-secure network to prove their identity to one another in a
         secure manner.
       </comment>
-      <version>1.10.3-30</version>
+      <version>1.0.0</version>
 
       <components>
         <component>
@@ -81,7 +81,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>krb5-workstation</name>
@@ -91,7 +91,7 @@
         </osSpecific>
 
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
+          <osFamily>ubuntu22</osFamily>
           <packages>
             <package>
               <name>krb5-user</name>
@@ -99,16 +99,6 @@
             </package>
             <package>
               <name>krb5-config</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-          </packages>
-        </osSpecific>
-
-        <osSpecific>
-          <osFamily>suse11,suse12</osFamily>
-          <packages>
-            <package>
-              <name>krb5-client</name>
               <skipUpgrade>true</skipUpgrade>
             </package>
           </packages>

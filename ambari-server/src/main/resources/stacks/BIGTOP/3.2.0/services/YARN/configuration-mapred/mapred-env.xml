@@ -76,12 +76,20 @@
     <name>mapred_user_nofile_limit</name>
     <value>32768</value>
     <description>Max open files limit setting for MAPREDUCE user.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapred_user_nproc_limit</name>
     <value>65536</value>
     <description>Max number of processes limit setting for MAPREDUCE user.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <!-- mapred-env.sh -->
@@ -91,12 +99,13 @@
     <description>This is the jinja template for mapred-env.sh file</description>
     <value>
 
-export HADOOP_JOB_HISTORYSERVER_HEAPSIZE={{jobhistory_heapsize}}
+export HADOOP_JOB_HISTORYSERVER_HEAPSIZE={{jobhistory_heapsize_shell}}
 
 export HADOOP_ROOT_LOGGER=INFO,RFA
 
 # Could be enabled from deployment option if necessary
-export HADOOP_LOG_DIR={{mapred_log_dir_prefix}}/$USER  # Where log files are stored.  $HADOOP_MAPRED_HOME/logs by default.
+MAPRED_LOG_DIR_PREFIX={{mapred_log_dir_prefix_shell}}
+export HADOOP_LOG_DIR="$MAPRED_LOG_DIR_PREFIX/$USER"  # Where log files are stored.  $HADOOP_MAPRED_HOME/logs by default.
 export MAPRED_HISTORYSERVER_OPTS="$MAPRED_HISTORYSERVER_OPTS -Dhadoop.log.dir=$HADOOP_LOG_DIR"
 #export HADOOP_JHS_LOGGER=INFO,RFA # Hadoop JobSummary logger.
 #export HADOOP_PID_DIR= # The pid files are stored. /tmp by default.

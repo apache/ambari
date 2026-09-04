@@ -18,101 +18,109 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import optparse
+import argparse
 import http.client
-import socket
-import ssl
+import math
+
+from ambari_commons.inet_utils import create_ssl_context
 
 
-class ForcedProtocolHTTPSConnection(http.client.HTTPSConnection):
-  """
-  Some of python implementations does not work correctly with sslv3 but trying to use it, we need to change protocol to
-  tls1.
-  """
-
-  def __init__(self, host, port, force_protocol, **kwargs):
-    http.client.HTTPSConnection.__init__(self, host, port, **kwargs)
-    self.force_protocol = force_protocol
-
-  def connect(self):
-    sock = socket.create_connection((self.host, self.port), self.timeout)
-    if getattr(self, "_tunnel_host", None):
-      self.sock = sock
-      self._tunnel()
-    self.sock = ssl.wrap_socket(
-      sock, self.key_file, self.cert_file, ssl_version=getattr(ssl, self.force_protocol)
-    )
-
-
-def make_connection(host, port, https, force_protocol=None):
+def positive_timeout(value):
   try:
-    conn = (
-      http.client.HTTPConnection(host, port)
-      if not https
-      else http.client.HTTPSConnection(host, port)
-    )
+    timeout = float(value)
+  except (TypeError, ValueError) as error:
+    raise argparse.ArgumentTypeError("timeout must be a number") from error
+  if not math.isfinite(timeout) or timeout <= 0:
+    raise argparse.ArgumentTypeError("timeout must be a positive finite number")
+  return timeout
+
+
+def make_connection(host, port, https, timeout, force_protocol=None):
+  conn = None
+  try:
+    if https:
+      context = create_ssl_context(force_protocol or "PROTOCOL_TLS_CLIENT")
+      conn = http.client.HTTPSConnection(
+        host, port, timeout=timeout, context=context
+      )
+    else:
+      conn = http.client.HTTPConnection(host, port, timeout=timeout)
     conn.request("GET", "/")
     return conn.getresponse().status
-  except ssl.SSLError:
-    # got ssl error, lets try to use TLS1 protocol, maybe it will work
-    try:
-      tls1_conn = ForcedProtocolHTTPSConnection(host, port, force_protocol)
-      tls1_conn.request("GET", "/")
-      return tls1_conn.getresponse().status
-    except Exception as e:
-      print(e)
-    finally:
-      tls1_conn.close()
   except Exception as e:
     print(e)
   finally:
-    conn.close()
+    if conn is not None:
+      conn.close()
 
 
 #
 # Main.
 #
 def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options] component ")
-  parser.add_option(
+  parser = argparse.ArgumentParser(usage="usage: %(prog)s [options] component ")
+  parser.add_argument(
     "-m",
     "--hosts",
     dest="hosts",
+    required=True,
     help="Comma separated hosts list for WEB UI to check it availability",
   )
-  parser.add_option(
-    "-p", "--port", dest="port", help="Port of WEB UI to check it availability"
+  parser.add_argument(
+    "-p",
+    "--port",
+    dest="port",
+    required=True,
+    type=int,
+    choices=range(1, 65536),
+    metavar="PORT",
+    help="Port of WEB UI to check it availability",
   )
-  parser.add_option(
+  parser.add_argument(
     "-s",
     "--https",
     dest="https",
+    required=True,
+    choices=("true", "false", "True", "False"),
     help='"True" if value of dfs.http.policy is "HTTPS_ONLY"',
   )
-  parser.add_option(
+  parser.add_argument(
     "-o",
     "--protocol",
     dest="protocol",
     help="Protocol to use when executing https request",
   )
+  parser.add_argument(
+    "-t",
+    "--timeout",
+    dest="timeout",
+    type=positive_timeout,
+    default=10,
+    help="Per-host connection timeout in seconds",
+  )
 
-  (options, args) = parser.parse_args()
+  parser.add_argument("component", nargs="?", help=argparse.SUPPRESS)
+  options = parser.parse_args()
 
-  hosts = options.hosts.split(",")
+  hosts = [host.strip() for host in options.hosts.split(",") if host.strip()]
+  if not hosts:
+    parser.error("at least one WEB UI host is required")
   port = options.port
   https = options.https
   protocol = options.protocol
 
   for host in hosts:
-    httpCode = make_connection(host, port, https.lower() == "true", protocol)
+    httpCode = make_connection(
+      host, port, https.lower() == "true", options.timeout, protocol
+    )
 
     if httpCode != 200 and httpCode != 302:
       print(
-        "Cannot access WEB UI on: http://" + host + ":" + port
+        "Cannot access WEB UI on: http://" + host + ":" + str(port)
         if not https.lower() == "true"
-        else "Cannot access WEB UI on: https://" + host + ":" + port
+        else "Cannot access WEB UI on: https://" + host + ":" + str(port)
       )
-      exit(1)
+      raise SystemExit(1)
 
 
 if __name__ == "__main__":

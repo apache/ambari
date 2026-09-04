@@ -20,7 +20,7 @@ limitations under the License.
 
 import logging.handlers
 import logging.config
-from optparse import OptionParser
+import argparse
 import sys
 import os
 import time
@@ -40,7 +40,6 @@ import socket
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.shell import shellRunner
 
-# from ambari_commons.network import reconfigure_urllib2_opener
 from ambari_agent.HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.core.logger import Logger
@@ -56,7 +55,6 @@ alerts_logger = logging.getLogger("alerts")
 alerts_logger_2 = logging.getLogger("ambari_alerts")
 alerts_logger_global = logging.getLogger("ambari_agent.alerts")
 apscheduler_logger = logging.getLogger("apscheduler")
-apscheduler_logger_global = logging.getLogger("ambari_agent.apscheduler")
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
@@ -249,10 +247,7 @@ def perform_prestart_checks(expected_hostname):
       logger.error(msg)
       sys.exit(1)
   # Check if there is another instance running
-  if (
-    os.path.isfile(agent_pidfile)
-    and not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY
-  ):
+  if os.path.isfile(agent_pidfile):
     print(f"{agent_pidfile} already exists, exiting")
     sys.exit(1)
   # check if ambari prefix exists
@@ -325,7 +320,7 @@ def reset_agent(options):
     if new_host is not None and server_host != new_host:
       print("Updating server host from " + server_host + " to " + new_host)
       agent_config.set("server", "hostname", new_host)
-      with open(configFile, "wb") as new_agent_config:
+      with open(configFile, "w", encoding="utf-8") as new_agent_config:
         agent_config.write(new_agent_config)
 
     # clear agent certs
@@ -359,19 +354,20 @@ def run_threads(initializer_module):
     signal.pause()
 
   initializer_module.action_queue.interrupt()
+  initializer_module.alert_scheduler_handler.stop()
 
+  initializer_module.action_queue.join()
   initializer_module.command_status_reporter.join()
   initializer_module.component_status_executor.join()
   initializer_module.host_status_reporter.join()
   initializer_module.alert_status_reporter.join()
   initializer_module.heartbeat_thread.join()
-  initializer_module.action_queue.join()
 
 
 # parse the options from command line
 def setup_option_parser():
-  parser = OptionParser()
-  parser.add_option(
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
     "-v",
     "--verbose",
     dest="verbose",
@@ -379,7 +375,7 @@ def setup_option_parser():
     help="verbose log output",
     default=False,
   )
-  parser.add_option(
+  parser.add_argument(
     "-e",
     "--expected-hostname",
     dest="expected_hostname",
@@ -387,10 +383,11 @@ def setup_option_parser():
     help="expected hostname of current host. If hostname differs, agent will fail",
     default=None,
   )
-  parser.add_option(
+  parser.add_argument(
     "--home", dest="home_dir", action="store", help="Home directory", default=""
   )
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
 
   return options
 
@@ -414,18 +411,12 @@ def init_loggers(options):
   setup_logging(
     apscheduler_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level
   )
-  setup_logging(
-    apscheduler_logger_global,
-    AmbariConfig.AmbariConfig.getAlertsLogFile(),
-    logging_level,
-  )
   Logger.initialize_logger("resource_management", logging_level=logging_level)
 
   is_logger_setup = True
 
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
-# we need this for windows os, where no sigterm available
 def main(options, initializer_module, heartbeat_stop_callback=None):
   global config
   global home_dir
@@ -492,10 +483,8 @@ def main(options, initializer_module, heartbeat_stop_callback=None):
 
   if not config.use_system_proxy_setting():
     logger.info("Agent is configured to ignore system proxy settings")
-    # reconfigure_urllib2_opener(ignore_system_proxy=True)
 
-  if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-    daemonize()
+  daemonize()
 
   #
   # Iterate through the list of server hostnames and connect to the first active server
@@ -537,7 +526,7 @@ def main(options, initializer_module, heartbeat_stop_callback=None):
       #
       # If Ambari Agent connected to the server or
       # Ambari Agent was stopped using stop event
-      # Clean up if not Windows OS
+      # Clean up the connected or stopped agent.
       #
       if connected or stopped:
         ExitHelper().exit()

@@ -20,16 +20,42 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-from mock.mock import patch
+from unittest.mock import patch
 import os
 import tempfile
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
+from ambari_agent import HostCheckReportFileHandler as host_check_report_module
 import logging
 import configparser
 
 
 class TestHostCheckReportFileHandler(TestCase):
   logger = logging.getLogger()
+
+  @patch.object(host_check_report_module.traceback, "print_exc")
+  @patch.object(host_check_report_module.logger, "error")
+  def test_write_failures_report_original_exception(
+    self, logger_error_mock, print_exc_mock
+  ):
+    config = configparser.RawConfigParser()
+    config.add_section("agent")
+    config.set("agent", "prefix", tempfile.gettempdir())
+    handler = HostCheckReportFileHandler(config)
+
+    for method_name in (
+      "writeHostCheckFile",
+      "writeHostChecksCustomActionsFile",
+    ):
+      with self.subTest(method=method_name), patch.object(
+        handler, "removeFile"
+      ), patch.object(handler, "touchFile"), patch(
+        "builtins.open", side_effect=OSError("disk full")
+      ):
+        getattr(handler, method_name)({})
+        self.assertIn("disk full", logger_error_mock.call_args.args[0])
+        logger_error_mock.reset_mock()
+
+    self.assertEqual(2, print_exc_mock.call_count)
 
   def test_write_host_check_report_really_empty(self):
     tmpfile = tempfile.mktemp()
@@ -152,10 +178,10 @@ class TestHostCheckReportFileHandler(TestCase):
     self.chkItemsEqual(procs, ["455", "355"])
 
     mydict["installed_packages"] = [
-      {"name": "hadoop", "version": "3.2.3", "repoName": "HDP"},
-      {"name": "hadoop-lib", "version": "3.2.3", "repoName": "HDP"},
+      {"name": "hadoop", "version": "3.3.4", "repoName": "BIGTOP"},
+      {"name": "hadoop-lib", "version": "3.3.4", "repoName": "BIGTOP"},
     ]
-    mydict["existing_repos"] = ["HDP", "HDP-epel"]
+    mydict["existing_repos"] = ["BIGTOP", "epel"]
 
     handler.writeHostChecksCustomActionsFile(mydict)
     configValidator = configparser.RawConfigParser()
@@ -169,7 +195,7 @@ class TestHostCheckReportFileHandler(TestCase):
     self.chkItemsEqual(pkgs, ["hadoop", "hadoop-lib"])
 
     repos = configValidator.get("repositories", "repo_list")
-    self.chkItemsEqual(repos, ["HDP", "HDP-epel"])
+    self.chkItemsEqual(repos, ["BIGTOP", "epel"])
 
     time = configValidator.get("metadata", "created")
     self.assertTrue(time != None)
@@ -178,7 +204,7 @@ class TestHostCheckReportFileHandler(TestCase):
   @patch("os.listdir")
   def test_write_host_stack_list(self, list_mock, exists_mock):
     exists_mock.return_value = True
-    list_mock.return_value = ["1.1.1.1-1234", "current", "test"]
+    list_mock.return_value = ["3.3.0", "3.3.0-1", "current", "test"]
 
     tmpfile = tempfile.mktemp()
 
@@ -205,7 +231,14 @@ class TestHostCheckReportFileHandler(TestCase):
 
     paths = configValidator.get("directories", "dir_list")
     self.chkItemsEqual(
-      paths, ["/a/b", "/a/b.txt", "/usr/hdp/1.1.1.1-1234", "/usr/hdp/current"]
+      paths,
+      [
+        "/a/b",
+        "/a/b.txt",
+        "/usr/bigtop/3.3.0",
+        "/usr/bigtop/3.3.0-1",
+        "/usr/bigtop/current",
+      ],
     )
 
   def chkItemsEqual(self, commaDelimited, items):

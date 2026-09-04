@@ -20,10 +20,13 @@ limitations under the License.
 
 import os
 import re
+import glob
+from ambari_commons.db_connection_helper import verify_db_connection
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Directory, Execute, Link
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import DownloadSource, InlineTemplate, Template
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.modify_properties_file import (
@@ -37,11 +40,13 @@ from resource_management.libraries.functions.generate_logfeeder_input_config imp
 )
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
-from resource_management.core.utils import PasswordString
-from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import solr_cloud_util
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from ambari_commons.credential_store_helper import (
+  create_password_in_credential_store,
+)
 from resource_management.core.exceptions import ExecutionFailed
+from ranger_utils import private_secret_file
 
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
 # The design is to mimic what is done by the setup.sh script bundled by Ranger component currently.
@@ -71,7 +76,11 @@ def setup_ranger_admin(upgrade_type=None):
   ranger_conf = params.ranger_conf
 
   Directory(
-    ranger_conf, owner=params.unix_user, group=params.unix_group, create_parents=True
+    ranger_conf,
+    owner=params.unix_user,
+    group=params.unix_group,
+    mode=0o750,
+    create_parents=True,
   )
 
   copy_jdbc_connector(ranger_home)
@@ -93,31 +102,27 @@ def setup_ranger_admin(upgrade_type=None):
     cp = cp + os.pathsep + format("{driver_curl_target}")
   cp = cp + os.pathsep + format("{ranger_home}/ews/lib/*")
 
-  db_connection_check_command = format(
-    "{ambari_java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_jdbc_connection_url}' {ranger_db_user} {ranger_db_password!p} {ranger_jdbc_driver}"
-  )
   env_dict = {}
   if params.db_flavor.lower() == "sqla":
     env_dict = {"LD_LIBRARY_PATH": params.ld_lib_path}
 
-  Execute(
-    db_connection_check_command,
-    path="/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin",
+  verify_db_connection(
+    format("{ambari_java_home}/bin/java"),
+    cp,
+    params.ranger_jdbc_connection_url,
+    params.ranger_db_user,
+    params.ranger_db_password,
+    params.ranger_jdbc_driver,
+    environment=env_dict,
     tries=5,
     try_sleep=10,
-    environment=env_dict,
   )
 
-  Execute(
-    (
-      "ln",
-      "-sf",
-      format("{ranger_home}/ews/webapp/WEB-INF/classes/conf"),
-      format("{ranger_home}/conf"),
+  Link(
+    os.path.join(params.ranger_home, "conf"),
+    to=os.path.join(
+      params.ranger_home, "ews", "webapp", "WEB-INF", "classes", "conf"
     ),
-    not_if=format("ls {ranger_home}/conf"),
-    only_if=format("ls {ranger_home}/ews/webapp/WEB-INF/classes/conf"),
-    sudo=True,
   )
 
   if upgrade_type is not None:
@@ -125,27 +130,30 @@ def setup_ranger_admin(upgrade_type=None):
       "{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/ranger-admin-default-site.xml"
     )
     dst_file = format("{ranger_home}/conf/ranger-admin-default-site.xml")
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
     src_file = format(
       "{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/security-applicationContext.xml"
     )
     dst_file = format("{ranger_home}/conf/security-applicationContext.xml")
 
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
-
-  Directory(
-    format("{ranger_home}/"),
-    owner=params.unix_user,
-    group=params.unix_group,
-    recursive_ownership=True,
-  )
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
   Directory(
     params.ranger_pid_dir,
     mode=0o755,
     owner=params.unix_user,
-    group=params.user_group,
+    group=params.unix_group,
     cd_access="a",
     create_parents=True,
   )
@@ -171,7 +179,12 @@ def setup_ranger_admin(upgrade_type=None):
       "{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/ranger-admin-default-site.xml"
     )
     dst_file = format("{ranger_home}/conf/ranger-admin-default-site.xml")
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
     File(
       params.ranger_admin_default_file, owner=params.unix_user, group=params.unix_group
     )
@@ -188,7 +201,12 @@ def setup_ranger_admin(upgrade_type=None):
       "{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/security-applicationContext.xml"
     )
     dst_file = format("{ranger_home}/conf/security-applicationContext.xml")
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
     File(
       params.security_app_context_file, owner=params.unix_user, group=params.unix_group
     )
@@ -224,16 +242,9 @@ def setup_ranger_admin(upgrade_type=None):
         "Unable to use PAM authentication, /etc/pam.d/ directory does not exist."
       )
 
-  Execute(
-    (
-      "ln",
-      "-sf",
-      format("{ranger_home}/ews/ranger-admin-services.sh"),
-      "/usr/bin/ranger-admin",
-    ),
-    not_if=format("ls /usr/bin/ranger-admin"),
-    only_if=format("ls {ranger_home}/ews/ranger-admin-services.sh"),
-    sudo=True,
+  Link(
+    "/usr/bin/ranger-admin",
+    to=os.path.join(params.ranger_home, "ews", "ranger-admin-services.sh"),
   )
 
   # remove plain-text password from xml configs
@@ -257,7 +268,7 @@ def setup_ranger_admin(upgrade_type=None):
     ],
     owner=params.unix_user,
     group=params.unix_group,
-    mode=0o644,
+    mode=0o640,
   )
 
   Directory(
@@ -344,22 +355,24 @@ def setup_ranger_db(stack_version=None):
   # User wants us to setup the DB user and DB?
   if params.create_db_dbuser:
     Logger.info("Setting up Ranger DB and DB User")
-    dba_setup = format("ambari-python-wrap {ranger_home}/dba_script.py -q")
     Execute(
-      dba_setup,
+      ("/usr/bin/ambari-python-wrap", os.path.join(ranger_home, "dba_script.py"), "-q"),
       environment=env_dict,
       logoutput=True,
       user=params.unix_user,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
   else:
     Logger.info("Separate DBA property not set. Assuming Ranger DB and DB User exists!")
 
-  db_setup = format("ambari-python-wrap {ranger_home}/db_setup.py")
   Execute(
-    db_setup,
+    ("/usr/bin/ambari-python-wrap", os.path.join(ranger_home, "db_setup.py")),
     environment=env_dict,
     logoutput=True,
     user=params.unix_user,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
 
@@ -378,12 +391,16 @@ def setup_java_patch(stack_version=None):
       "LD_LIBRARY_PATH": params.ld_lib_path,
     }
 
-  setup_java_patch = format("ambari-python-wrap {ranger_home}/db_setup.py -javapatch")
   Execute(
-    setup_java_patch,
+    (
+      "/usr/bin/ambari-python-wrap",
+      os.path.join(ranger_home, "db_setup.py"),
+      "-javapatch",
+    ),
     environment=env_dict,
     logoutput=True,
-    user=params.unix_user,
+    timeout=120,
+    timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
   )
 
 
@@ -392,6 +409,11 @@ def do_keystore_setup(upgrade_type=None):
 
   ranger_home = params.ranger_home
   cred_lib_path = params.cred_lib_path
+
+  if params.https_enabled:
+    password_validation(
+      params.https_keystore_password, "Ranger Admin HTTPS keystore"
+    )
 
   ranger_credential_helper(
     cred_lib_path,
@@ -424,7 +446,7 @@ def do_keystore_setup(upgrade_type=None):
       params.ranger_credential_provider_path,
     )
 
-    if params.https_enabled and not params.http_enabled:
+    if params.https_enabled:
       ranger_credential_helper(
         params.cred_lib_path,
         params.ranger_https_keystore_alias,
@@ -436,7 +458,7 @@ def do_keystore_setup(upgrade_type=None):
     params.ranger_credential_provider_path,
     owner=params.unix_user,
     group=params.unix_group,
-    only_if=format("test -e {ranger_credential_provider_path}"),
+    only_if=lambda: os.path.exists(params.ranger_credential_provider_path),
     mode=0o640,
   )
 
@@ -447,19 +469,10 @@ def do_keystore_setup(upgrade_type=None):
   )
 
 
-def password_validation(password):
-  import params
-
-  if password.strip() == "":
-    raise Fail(
-      "Blank password is not allowed for Bind user. Please enter valid password."
-    )
-  if re.search("[\\\`'\"]", password):
-    raise Fail(
-      "LDAP/AD bind password contains one of the unsupported special characters like \" ' \ `"
-    )
-  else:
-    Logger.info("password validated")
+def password_validation(password, key="Bind user"):
+  if not isinstance(password, str) or password.strip() == "":
+    raise Fail(f"Blank password is not allowed for {key}. Please enter valid password.")
+  Logger.info("Password validated")
 
 
 def copy_jdbc_connector(ranger_home):
@@ -490,6 +503,13 @@ def copy_jdbc_connector(ranger_home):
       owner=params.unix_user,
     )
 
+  File(
+    os.path.join(ranger_home, "install.properties"),
+    owner=params.unix_user,
+    group=params.unix_group,
+    mode=0o600,
+  )
+
   if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
     if params.previous_jdbc_jar_name == params.jdbc_jar_name:
       Logger.info(format("{params.previous_jdbc_jar} already exists. Skip to download it."))
@@ -506,6 +526,8 @@ def copy_jdbc_connector(ranger_home):
     Execute(
       ("tar", "-xvf", params.downloaded_custom_connector, "-C", params.tmp_dir),
       sudo=True,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     Execute(
@@ -517,19 +539,25 @@ def copy_jdbc_connector(ranger_home):
       ),
       path=["/bin", "/usr/bin/"],
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     File(os.path.join(ranger_home, "ews", "lib", "sajdbc4.jar"), mode=0o644)
 
     Directory(params.jdbc_libs_dir, cd_access="a", create_parents=True)
 
-    Execute(
-      as_sudo(
-        ["yes", "|", "cp", params.libs_path_in_archive, params.jdbc_libs_dir],
-        auto_escape=False,
-      ),
-      path=["/bin", "/usr/bin/"],
-    )
+    native_libraries = sorted(glob.glob(params.libs_path_in_archive))
+    if not native_libraries:
+      raise Fail("SQL Anywhere native libraries were not found in the archive")
+    for native_library in native_libraries:
+      Execute(
+        ("cp", "--remove-destination", native_library, params.jdbc_libs_dir),
+        path=["/bin", "/usr/bin/"],
+        sudo=True,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
   else:
     Execute(
       (
@@ -540,6 +568,8 @@ def copy_jdbc_connector(ranger_home):
       ),
       path=["/bin", "/usr/bin/"],
       sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
 
     File(os.path.join(ranger_home, "ews", "lib", params.jdbc_jar_name), mode=0o644)
@@ -552,6 +582,11 @@ def setup_usersync(upgrade_type=None):
   ranger_home = params.ranger_home
   ranger_ugsync_conf = params.ranger_ugsync_conf
 
+  if params.ranger_usersync_ssl_enabled:
+    password_validation(
+      params.ranger_usersync_keystore_password, "Ranger Usersync keystore"
+    )
+
   if (
     not is_empty(params.ranger_usersync_ldap_ldapbindpassword)
     and params.ug_sync_source
@@ -563,7 +598,7 @@ def setup_usersync(upgrade_type=None):
     params.ranger_pid_dir,
     mode=0o755,
     owner=params.unix_user,
-    group=params.user_group,
+    group=params.unix_group,
     cd_access="a",
     create_parents=True,
   )
@@ -578,7 +613,12 @@ def setup_usersync(upgrade_type=None):
     recursive_ownership=True,
   )
 
-  Directory(format("{ranger_ugsync_conf}/"), owner=params.unix_user)
+  Directory(
+    format("{ranger_ugsync_conf}/"),
+    owner=params.unix_user,
+    group=params.unix_group,
+    mode=0o750,
+  )
 
   generate_logfeeder_input_config(
     "ranger", Template("input.config-ranger.json.j2", extra_imports=[default])
@@ -587,7 +627,12 @@ def setup_usersync(upgrade_type=None):
   if upgrade_type is not None:
     src_file = format("{usersync_home}/conf.dist/ranger-ugsync-default.xml")
     dst_file = format("{usersync_home}/conf/ranger-ugsync-default.xml")
-    Execute(("cp", "-f", src_file, dst_file), sudo=True)
+    Execute(
+      ("cp", "-f", src_file, dst_file),
+      sudo=True,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
   File(
     format("{params.ranger_ugsync_conf}/logback.xml"),
@@ -613,7 +658,7 @@ def setup_usersync(upgrade_type=None):
     ],
     owner=params.unix_user,
     group=params.unix_group,
-    mode=0o644,
+    mode=0o640,
   )
 
   if os.path.isfile(params.ranger_ugsync_default_file):
@@ -627,12 +672,13 @@ def setup_usersync(upgrade_type=None):
   if os.path.isfile(params.pam_cred_validator_file):
     File(params.pam_cred_validator_file, group=params.unix_group, mode=0o750)
 
-  ranger_credential_helper(
-    params.ugsync_cred_lib,
-    "usersync.ssl.key.password",
-    params.ranger_usersync_keystore_password,
-    params.ugsync_jceks_path,
-  )
+  if params.ranger_usersync_ssl_enabled:
+    ranger_credential_helper(
+      params.ugsync_cred_lib,
+      "usersync.ssl.key.password",
+      params.ranger_usersync_keystore_password,
+      params.ugsync_jceks_path,
+    )
 
   if (
     not is_empty(params.ranger_usersync_ldap_ldapbindpassword)
@@ -657,7 +703,7 @@ def setup_usersync(upgrade_type=None):
     params.ugsync_jceks_path,
     owner=params.unix_user,
     group=params.unix_group,
-    only_if=format("test -e {ugsync_jceks_path}"),
+    only_if=lambda: os.path.exists(params.ugsync_jceks_path),
     mode=0o640,
   )
 
@@ -672,18 +718,46 @@ def setup_usersync(upgrade_type=None):
     mode=0o755,
   )
 
-  if not os.path.isfile(params.ranger_usersync_keystore_file):
-    cmd = format(
-      "{java_home}/bin/keytool -genkeypair -keyalg RSA -alias selfsigned -keystore '{ranger_usersync_keystore_file}' -keypass {ranger_usersync_keystore_password!p} -storepass {ranger_usersync_keystore_password!p} -validity 3600 -keysize 2048 -dname '{default_dn_name}'"
-    )
-
-    Execute(cmd, logoutput=True, user=params.unix_user)
+  if params.ranger_usersync_ssl_enabled and not os.path.isfile(
+    params.ranger_usersync_keystore_file
+  ):
+    with private_secret_file(
+      params.ranger_pid_dir,
+      params.unix_user,
+      params.unix_group,
+      params.ranger_usersync_keystore_password,
+    ) as password_file:
+      Execute(
+        (
+          os.path.join(params.java_home, "bin", "keytool"),
+          "-genkeypair",
+          "-keyalg",
+          "RSA",
+          "-alias",
+          "selfsigned",
+          "-keystore",
+          params.ranger_usersync_keystore_file,
+          "-keypass:file",
+          password_file,
+          "-storepass:file",
+          password_file,
+          "-validity",
+          "3600",
+          "-keysize",
+          "2048",
+          "-dname",
+          params.default_dn_name,
+        ),
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        user=params.unix_user,
+      )
 
     File(
       params.ranger_usersync_keystore_file,
       owner=params.unix_user,
-      group=params.user_group,
-      only_if=format("test -e {ranger_usersync_keystore_file}"),
+      group=params.unix_group,
+      only_if=lambda: os.path.exists(params.ranger_usersync_keystore_file),
       mode=0o640,
     )
 
@@ -709,6 +783,7 @@ def setup_tagsync(upgrade_type=None):
     format("{ranger_tagsync_conf}"),
     owner=params.unix_user,
     group=params.unix_group,
+    mode=0o750,
     create_parents=True,
   )
 
@@ -717,7 +792,7 @@ def setup_tagsync(upgrade_type=None):
     mode=0o755,
     create_parents=True,
     owner=params.unix_user,
-    group=params.user_group,
+    group=params.unix_group,
     cd_access="a",
   )
 
@@ -739,7 +814,7 @@ def setup_tagsync(upgrade_type=None):
     ],
     owner=params.unix_user,
     group=params.unix_group,
-    mode=0o644,
+    mode=0o640,
   )
 
   if params.stack_supports_ranger_tagsync_ssl_xml_support:
@@ -751,7 +826,7 @@ def setup_tagsync(upgrade_type=None):
   PropertiesFile(
     format("{ranger_tagsync_conf}/atlas-application.properties"),
     properties=params.tagsync_application_properties,
-    mode=0o755,
+    mode=0o640,
     owner=params.unix_user,
     group=params.unix_group,
   )
@@ -783,21 +858,15 @@ def setup_tagsync(upgrade_type=None):
 def ranger_credential_helper(lib_path, alias_key, alias_value, file_path):
   import params
 
-  java_bin = format("{java_home}/bin/java")
   file_path = format("jceks://file{file_path}")
-  cmd = (
-    java_bin,
-    "-cp",
-    lib_path,
-    "org.apache.ranger.credentialapi.buildks",
-    "create",
+  create_password_in_credential_store(
     alias_key,
-    "-value",
-    PasswordString(alias_value),
-    "-provider",
     file_path,
+    lib_path,
+    params.ambari_java_home,
+    None,
+    alias_value,
   )
-  Execute(cmd, environment={"JAVA_HOME": params.java_home}, logoutput=True, sudo=True)
 
 
 def create_core_site_xml(conf_dir):
@@ -924,10 +993,7 @@ def setup_ranger_audit_solr():
         ("hive", "hive"),
         ("kafka", "kafka"),
         ("kms", "rangerkms"),
-        ("knox", "knox"),
-        ("nifi", "nifi"),
-        ("storm", "storm"),
-        ("yanr", "yarn"),
+        ("yarn", "yarn"),
       ]
       service_principals = get_ranger_plugin_principals(service_default_principals_map)
       solr_cloud_util.add_solr_roles(
@@ -961,9 +1027,9 @@ def setup_ranger_audit_solr():
         params.solr_jaas_file,
       )
   except ExecutionFailed as execution_exception:
-    Logger.error(
-      f"Error when configuring Solr for Ranger, Kindly check Solr/Zookeeper services to be up and running:\n {execution_exception}"
-    )
+    raise Fail(
+      "Could not configure Solr for Ranger; verify Solr and ZooKeeper availability"
+    ) from execution_exception
 
 
 def setup_ranger_admin_passwd_change(username, user_password, user_default_password):
@@ -977,31 +1043,22 @@ def setup_ranger_admin_passwd_change(username, user_password, user_default_passw
       "LD_LIBRARY_PATH": params.ld_lib_path,
     }
 
-  cmd = format(
-    "ambari-python-wrap {ranger_home}/db_setup.py -changepassword {username} {user_default_password!p} {user_password!p}"
-  )
-  Execute(
-    cmd,
-    environment=env_dict,
-    user=params.unix_user,
-    tries=3,
-    try_sleep=5,
-    logoutput=True,
-  )
+  password_changes = [[username, user_default_password, user_password]]
+  _execute_password_change(params, env_dict, password_changes)
 
 
 def setup_ranger_all_admin_password_change(
   admin_username,
-  default_admin_password,
+  upstream_bootstrap_admin_password,
   admin_password,
   rangerusersync_username,
-  default_rangerusersync_user_password,
+  upstream_bootstrap_rangerusersync_password,
   rangerusersync_user_password,
   rangertagsync_username,
-  default_rangertagsync_user_password,
+  upstream_bootstrap_rangertagsync_password,
   rangertagsync_user_password,
   keyadmin_username,
-  default_keyadmin_user_password,
+  upstream_bootstrap_keyadmin_password,
   keyadmin_user_password,
 ):
   import params
@@ -1014,21 +1071,45 @@ def setup_ranger_all_admin_password_change(
       "LD_LIBRARY_PATH": params.ld_lib_path,
     }
 
-  password_change_cmd = format(
-    "ambari-python-wrap {ranger_home}/db_setup.py -changepassword "
-    " -pair {admin_username} {default_admin_password!p} {admin_password!p} "
-    " -pair {rangerusersync_username} {default_rangerusersync_user_password!p} {rangerusersync_user_password!p} "
-    " -pair {rangertagsync_username} {default_rangertagsync_user_password!p} {rangertagsync_user_password!p} "
-    " -pair {keyadmin_username} {default_keyadmin_user_password!p} {keyadmin_user_password!p} "
-  )
-  Execute(
-    password_change_cmd,
-    environment=env_dict,
-    user=params.unix_user,
-    tries=3,
-    try_sleep=5,
-    logoutput=True,
-  )
+  password_changes = [
+    [admin_username, upstream_bootstrap_admin_password, admin_password],
+    [
+      rangerusersync_username,
+      upstream_bootstrap_rangerusersync_password,
+      rangerusersync_user_password,
+    ],
+    [
+      rangertagsync_username,
+      upstream_bootstrap_rangertagsync_password,
+      rangertagsync_user_password,
+    ],
+    [keyadmin_username, upstream_bootstrap_keyadmin_password, keyadmin_user_password],
+  ]
+  _execute_password_change(params, env_dict, password_changes)
+
+
+def _execute_password_change(params, environment, password_changes):
+  with private_secret_file(
+    params.ranger_pid_dir,
+    params.unix_user,
+    params.unix_group,
+    password_changes,
+    json_value=True,
+  ) as password_file:
+    Execute(
+      (
+        "/usr/bin/ambari-python-wrap",
+        os.path.join(params.ranger_home, "db_setup.py"),
+        "-changepasswordfile",
+        password_file,
+      ),
+      environment=environment,
+      user=params.unix_user,
+      tries=3,
+      try_sleep=5,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
 
 @retry(times=10, sleep_time=5, err_class=Fail)
@@ -1086,7 +1167,7 @@ def setup_tagsync_ssl_configs():
     cd_access="a",
     owner=params.unix_user,
     group=params.unix_group,
-    mode=0o775,
+    mode=0o750,
     create_parents=True,
   )
 
@@ -1108,7 +1189,7 @@ def setup_tagsync_ssl_configs():
     ],
     owner=params.unix_user,
     group=params.unix_group,
-    mode=0o644,
+    mode=0o640,
   )
 
   ranger_credential_helper(
@@ -1128,7 +1209,7 @@ def setup_tagsync_ssl_configs():
     params.ranger_tagsync_credential_file,
     owner=params.unix_user,
     group=params.unix_group,
-    only_if=format("test -e {ranger_tagsync_credential_file}"),
+    only_if=lambda: os.path.exists(params.ranger_tagsync_credential_file),
     mode=0o640,
   )
 
@@ -1154,7 +1235,7 @@ def setup_tagsync_ssl_configs():
     ],
     owner=params.unix_user,
     group=params.unix_group,
-    mode=0o644,
+    mode=0o640,
   )
 
   ranger_credential_helper(
@@ -1174,7 +1255,7 @@ def setup_tagsync_ssl_configs():
     params.atlas_tagsync_credential_file,
     owner=params.unix_user,
     group=params.unix_group,
-    only_if=format("test -e {atlas_tagsync_credential_file}"),
+    only_if=lambda: os.path.exists(params.atlas_tagsync_credential_file),
     mode=0o640,
   )
 
@@ -1222,8 +1303,8 @@ def validate_user_password(password_property=None):
     password = params.config["configurations"]["ranger-env"][
       ranger_password_properties[index]
     ]
-    if not bool(re.search(r"^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$", password)) or bool(
-      re.search("[\\\`\"']", password)
+    if not isinstance(password, str) or not bool(
+      re.search(r"^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$", password)
     ):
       validation.append(ranger_password_properties[index])
 
@@ -1231,7 +1312,7 @@ def validate_user_password(password_property=None):
     raise Fail(
       "Password validation failed for : "
       + ", ".join(validation)
-      + ". Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are \" ' \ `"
+      + ". Password should be minimum 8 characters with minimum one alphabet and one numeric."
     )
 
 
@@ -1245,6 +1326,6 @@ def update_dot_jceks_crc_ownership(credential_provider_path, user, group):
     dot_jceks_crc_file_path,
     owner=user,
     group=group,
-    only_if=format("test -e {dot_jceks_crc_file_path}"),
+    only_if=lambda: os.path.exists(dot_jceks_crc_file_path),
     mode=0o640,
   )

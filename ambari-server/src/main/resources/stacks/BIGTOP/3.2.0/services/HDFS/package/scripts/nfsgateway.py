@@ -18,13 +18,11 @@ limitations under the License.
 
 """
 
+import hdfs_process
+
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
-  cached_kinit_executor,
   get_params_from_filesystem,
   validate_security_config_properties,
   FILE_TYPE_XML,
@@ -81,7 +79,13 @@ class NFSGateway(Script):
 
     env.set_params(status_params)
 
-    check_process_status(status_params.nfsgateway_pid_file)
+    hdfs_process.check_component_status(
+      status_params.nfsgateway_pid_file,
+      status_params.root_user,
+      "nfs3",
+      owner=status_params.root_user,
+      group=status_params.user_group,
+    )
 
   def get_log_folder(self):
     import params

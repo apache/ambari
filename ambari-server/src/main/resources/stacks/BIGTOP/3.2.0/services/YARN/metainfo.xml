@@ -16,14 +16,14 @@
    limitations under the License.
 -->
 
-<metainfo>
+<metainfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
       <name>YARN</name>
       <displayName>YARN</displayName>
       <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-      <version>3.3.4-1</version>
+      <version>3.3.6-1</version>
       <components>
 
         <component>
@@ -58,6 +58,13 @@
               <auto-deploy>
                 <enabled>true</enabled>
               </auto-deploy>
+              <conditions>
+                <condition xsi:type="propertyValueEquals">
+                  <configType>yarn-hbase-env</configType>
+                  <property>hbase_within_cluster</property>
+                  <propertyValue>true</propertyValue>
+                </condition>
+              </conditions>
             </dependency>
           </dependencies>
         </component>
@@ -233,7 +240,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-yarn</name>
@@ -250,6 +257,29 @@
             </package>
             <package>
               <name>hbase_${stack_version}</name>
+              <condition>should_install_yarn_ats_hbase</condition>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-${stack_version}-yarn</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-mapreduce</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-hdfs</name>
+            </package>
+            <package>
+              <name>ranger-${stack_version}-yarn-plugin</name>
+              <condition>should_install_ranger_yarn_plugin</condition>
+            </package>
+            <package>
+              <name>hbase-${stack_version}</name>
+              <condition>should_install_yarn_ats_hbase</condition>
             </package>
           </packages>
         </osSpecific>
@@ -258,12 +288,11 @@
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
+        <timeout>600</timeout>
       </commandScript>
 
       <requiredServices>
         <service>HDFS</service>
-        <service>MAPREDUCE2</service>
         <service>ZOOKEEPER</service>
       </requiredServices>
 
@@ -308,7 +337,7 @@
       <name>MAPREDUCE2</name>
       <displayName>MapReduce2</displayName>
       <comment>Apache Hadoop NextGen MapReduce (YARN)</comment>
-      <version>3.3.4-1</version>
+      <version>3.3.6-1</version>
       <components>
         <component>
           <name>HISTORYSERVER</name>
@@ -324,20 +353,6 @@
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>TEZ/TEZ_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
-              <name>SLIDER/SLIDER</name>
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
@@ -390,10 +405,18 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hadoop_${stack_version}-mapreduce</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>hadoop-${stack_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -402,7 +425,7 @@
       <commandScript>
         <script>scripts/mapred_service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
+        <timeout>600</timeout>
       </commandScript>
 
       <requiredServices>

@@ -28,7 +28,7 @@ from unittest import TestCase
 
 from ambari_agent.security import CertificateManager
 from ambari_agent import AmbariConfig
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from ambari_commons import OSCheck
 from only_for_platform import os_distro_value
 
@@ -47,7 +47,7 @@ class TestCertGeneration(TestCase):
 
   @patch.object(os, "chmod")
   def test_generation(self, chmod_mock):
-    self.certMan.genAgentCrtReq("/dummy_dir/hostname.key")
+    self.certMan.genAgentCrtReq(self.certMan.getAgentKeyName())
     self.assertTrue(chmod_mock.called)
     self.assertTrue(os.path.exists(self.certMan.getAgentKeyName()))
     self.assertTrue(os.path.exists(self.certMan.getAgentCrtReqName()))

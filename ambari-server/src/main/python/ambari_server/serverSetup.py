@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import optparse
+import argparse
 import os
 import re
 import shutil
@@ -37,7 +37,6 @@ from ambari_commons.logging_utils import (
   print_error_msg,
   get_verbose,
 )
-from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import copy_files, run_os_command, is_root
 from ambari_commons.str_utils import compress_backslashes
@@ -232,14 +231,6 @@ def check_selinux():
   return 0
 
 
-# No security enhancements in Windows
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def disable_security_enhancements():
-  retcode = 0
-  err = ""
-  return (retcode, err)
-
-
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def disable_security_enhancements():
   print("Checking SELinux...")
@@ -302,97 +293,6 @@ class AmbariUserChecks(object):
     pass
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class AmbariUserChecksWindows(AmbariUserChecks):
-  def __init__(self, options):
-    super(AmbariUserChecksWindows, self).__init__()
-
-    self.NR_USER_CHANGE_PROMPT = "Ambari-server service is configured to run under user '{0}'. Change this setting [y/n] ({1})? "
-    self.NR_USER_CUSTOMIZE_PROMPT = (
-      "Customize user account for ambari-server service [y/n] ({0})? "
-    )
-    self.NR_DEFAULT_USER = "NT AUTHORITY\\SYSTEM"
-    self.NR_SYSTEM_USERS = [
-      "NT AUTHORITY\\SYSTEM",
-      "NT AUTHORITY\\NetworkService",
-      "NT AUTHORITY\\LocalService",
-    ]
-
-    self.user = options.svc_user
-    self.password = options.svc_password
-
-  def _create_custom_user(self):
-    user = get_validated_string_input(
-      f"Enter user account for ambari-server service ({self.user}):",
-      self.user,
-      None,
-      "Invalid username.",
-      False,
-    )
-    if user in self.NR_SYSTEM_USERS:
-      self.user = user
-      return 0
-
-    if get_silent():
-      password = self.password
-    else:
-      password = get_validated_string_input(
-        f"Enter password for user {user}:", "", None, "Password", True, False
-      )
-
-    from ambari_commons.os_windows import UserHelper
-
-    uh = UserHelper(user)
-
-    if uh.find_user():
-      print_info_msg(
-        "User {0} already exists, make sure that you typed correct password for user, "
-        "skipping user creation".format(user)
-      )
-    else:
-      status, message = uh.create_user(password)
-      if status == UserHelper.USER_EXISTS:
-        print_info_msg(
-          "User {0} already exists, make sure that you typed correct password for user, "
-          "skipping user creation".format(user)
-        )
-
-      elif status == UserHelper.ACTION_FAILED:  # fail
-        print_warning_msg(f"Can't create user {user}. Failed with message {message}")
-        return UserHelper.ACTION_FAILED
-
-    self.password = password
-
-    # setting SeServiceLogonRight and SeBatchLogonRight to user
-    # This is unconditional
-    status, message = uh.add_user_privilege("SeServiceLogonRight")
-    if status == UserHelper.ACTION_FAILED:
-      print_warning_msg(
-        f"Can't add SeServiceLogonRight to user {user}. Failed with message {message}"
-      )
-      return UserHelper.ACTION_FAILED
-
-    status, message = uh.add_user_privilege("SeBatchLogonRight")
-    if status == UserHelper.ACTION_FAILED:
-      print_warning_msg(
-        f"Can't add SeBatchLogonRight to user {user}. Failed with message {message}"
-      )
-      return UserHelper.ACTION_FAILED
-
-    print_info_msg("User configuration is done.")
-    print_warning_msg(
-      "When using non SYSTEM user make sure that your user has read\write access to log directories and "
-      "all server directories. In case of integrated authentication for SQL Server make sure that your "
-      "user is properly configured to access the ambari database."
-    )
-
-    if user.find("\\") == -1:
-      user = ".\\" + user
-
-    self.user = user
-    return 0
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class AmbariUserChecksLinux(AmbariUserChecks):
   def __init__(self, options):
@@ -445,22 +345,6 @@ def check_ambari_user(options):
   uc = AmbariUserChecks(options)
   retcode = uc.do_checks()
   return retcode, uc.register_service, uc.user, uc.password
-
-
-#
-# Windows service setup
-#
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def service_setup(register_service, svc_user, svc_password):
-  from ambari_windows_service import svcsetup
-
-  svc_user_setup = svc_user if svc_user.upper() != "NT AUTHORITY\\SYSTEM" else None
-
-  result = svcsetup(register_service, svc_user_setup, svc_password)
-  if result == 0:
-    write_property(NR_USER_PROPERTY, svc_user)
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -608,10 +492,7 @@ class JDKSetup(object):
       return
 
     java_home_var = find_jdk(min_version=MIN_AMBARI_JAVA_VERSION)
-    if OS_FAMILY == OSConst.WINSRV_FAMILY:
-      progress_func = None
-    else:
-      progress_func = download_progress
+    progress_func = download_progress
 
     if java_home_var:
       ambari_java_version = get_java_version(java_home_var)
@@ -910,85 +791,6 @@ class JDKSetup(object):
     pass
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class JDKSetupWindows(JDKSetup):
-  def __init__(self):
-    super(JDKSetupWindows, self).__init__()
-    self.JDK_DEFAULT_CONFIGS = [
-      JDKRelease(
-        "jdk7.67",
-        "Oracle JDK 1.7.67",
-        "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-7u67-windows-x64.exe",
-        "jdk-7u67-windows-x64.exe",
-        "http://public-repo-1.hortonworks.com/ARTIFACTS/UnlimitedJCEPolicyJDK7.zip",
-        "UnlimitedJCEPolicyJDK7.zip",
-        "C:\\jdk1.7.0_67",
-        "Creating (jdk.*)/jre",
-      )
-    ]
-
-    self.jdks = self.JDK_DEFAULT_CONFIGS
-    self.custom_jdk_number = len(self.jdks)
-
-    self.JAVA_BIN = "java.exe"
-
-  def _install_jdk(self, java_inst_file, jdk_cfg):
-    jdk_inst_dir = jdk_cfg.inst_dir
-    print(f"Installing JDK to {jdk_inst_dir}")
-
-    if not os.path.exists(jdk_inst_dir):
-      os.makedirs(jdk_inst_dir)
-
-    if java_inst_file.endswith(".exe"):
-      (dirname, filename) = os.path.split(java_inst_file)
-      installLogFilePath = os.path.join(
-        configDefaults.OUT_DIR, filename + "-install.log"
-      )
-      # jre7u67.exe /s INSTALLDIR=<dir> STATIC=1 WEB_JAVA=0 /L \\var\\log\\ambari-server\\jre7u67.exe-install.log
-      installCmd = [
-        java_inst_file,
-        "/s",
-        "INSTALLDIR=" + jdk_inst_dir,
-        "STATIC=1",
-        "WEB_JAVA=0",
-        "/L",
-        installLogFilePath,
-      ]
-      retcode, out, err = run_os_command(installCmd)
-      # TODO: support .msi file installations
-      # msiexec.exe jre.msi /s INSTALLDIR=<dir> STATIC=1 WEB_JAVA=0 /L \\var\\log\\ambari-server\\jre7u67-install.log ?
-    else:
-      err = "JDK installation failed.Unknown file mask."
-      raise FatalException(1, err)
-
-    if retcode == 1603:
-      # JDK already installed
-      print(f"JDK already installed in {jdk_inst_dir}")
-      retcode = 0
-    else:
-      if retcode != 0:
-        err = f"Installation of JDK returned exit code {retcode}"
-        raise FatalException(retcode, err)
-
-      print(f"Successfully installed JDK to {jdk_inst_dir}")
-
-    # Don't forget to adjust the JAVA_HOME env var
-
-    return (retcode, out, jdk_inst_dir)
-
-  def _ensure_java_home_env_var_is_set(self, java_home_dir):
-    if JAVA_HOME not in os.environ or os.environ[JAVA_HOME] != java_home_dir:
-      java_home_dir_unesc = compress_backslashes(java_home_dir)
-      retcode, out, err = run_os_command(f"SETX {JAVA_HOME} {java_home_dir_unesc} /M")
-      if retcode != 0:
-        print_warning_msg("SETX output: " + out)
-        print_warning_msg("SETX error output: " + err)
-        err = f"Setting JAVA_HOME failed. Exit code={retcode}"
-        raise FatalException(1, err)
-
-      os.environ[JAVA_HOME] = java_home_dir
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class JDKSetupLinux(JDKSetup):
   def __init__(self):
@@ -1149,13 +951,6 @@ def setup_jdbc(args):
   _cache_jdbc_driver(args)
 
 
-# No JDBC driver caching in Windows at this point. Will cache it along with the integrated authentication dll into a
-#  zip archive at a later moment.
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def _cache_jdbc_driver(args):
-  pass
-
-
 # TODO JDBC driver caching almost duplicates the LinuxDBMSConfig._install_jdbc_driver() functionality
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def _cache_jdbc_driver(args):
@@ -1272,13 +1067,12 @@ def _createDefDbFactory(options):
   ):
     raise FatalException(-1, "Ambari Server not set up yet. Nothing to reset.")
 
-  empty_options = optparse.Values()
+  empty_options = argparse.Namespace()
   empty_options.must_set_database_options = options.must_set_database_options
   empty_options.database_index = options.database_index
   empty_options.database_host = ""
   empty_options.database_port = ""
   empty_options.database_name = ""
-  empty_options.database_windows_auth = False
   empty_options.database_username = ""
   empty_options.database_password = ""
   empty_options.init_db_script_file = ""

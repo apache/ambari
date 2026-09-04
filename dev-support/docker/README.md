@@ -11,43 +11,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
+# Docker Build Environment
 
+The repository root `start-build-env.sh` creates a Rocky Linux 8 build image
+with JDK 17, Python 3.9, RPM tooling, and a checksum-verified Maven
+distribution. The source tree and the current user's Maven cache are mounted
+into a non-root container user.
 
-how to build
---------------------
+Start an interactive shell:
 
-```
-docker build -t ambari/build ./dev-support/docker/docker
-```
-
-how to run
---------------------
-
-```
-# bash
-docker run --privileged -t -i -p 80:80 -p 5005:5005 -p 8080:8080 -h node1.mydomain.com --name ambari1 -v ${AMBARI_SRC:-$(pwd)}:/tmp/ambari ambari/build bash
-# where 5005 is java debug port and 8080 is the default http port, if no --privileged ambari-server start fails due to access to /proc/??/exe
-# -t is required otherwise, sudo commands do not run
-
-# build, install ambari and deploy hadoop in container
-cd {ambari src}
-docker rm ambari1
-docker run --privileged -t -p 80:80 -p 5005:5005 -p 8080:8080 -h node1.mydomain.com --name ambari1 -v ${AMBARI_SRC:-$(pwd)}:/tmp/ambari ambari/build /tmp/ambari-build-docker/bin/ambaribuild.py [test|server|agent|deploy] [-b] [-s [HDP|BIGTOP|PHD]] [-d] [-c]
-where
-test: mvn test
-server: install and run ambari-server
-agent: install and run ambari-server and ambari-agent
-deploy: install and run ambari-server and ambari-agent, and deploy a hadoop
--b option to rebuild ambari
--d option to start ambari-server with --debug option
--c option to clean local git repo. "git clean -xdf"
+```shell
+./start-build-env.sh bash
 ```
 
-how to run unit test
---------------------
-```
-cd dev-support/docker/docker
-python -m bin.test.ambaribuild_test
+Run a build command directly:
 
+```shell
+./start-build-env.sh mvn -B -DskipTests package
 ```
 
+`BUILD_OS` and `MAVEN_VERSION` may be set explicitly. Only build-image
+definitions present under `dev-support/docker` are accepted; the supported
+default is `BUILD_OS=rocky8`.

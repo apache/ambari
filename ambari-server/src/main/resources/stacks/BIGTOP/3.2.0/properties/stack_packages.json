@@ -38,7 +38,6 @@
           ],
           "STANDARD": [
             "hbase-client",
-            "phoenix-client",
             "hadoop-client"
           ]
         },
@@ -322,28 +321,16 @@
         }
       },
       "LIVY": {
-        "LIVY_CLIENT": {
-          "STACK-SELECT-PACKAGE": "livy-client",
-          "INSTALL": [
-            "livy-client"
-          ],
-          "PATCH": [
-            "livy-client"
-          ],
-          "STANDARD": [
-            "livy-client"
-          ]
-        },
         "LIVY_SERVER": {
           "STACK-SELECT-PACKAGE": "livy-server",
           "INSTALL": [
-            "livy-server"
+            "livy"
           ],
           "PATCH": [
-            "livy-server"
+            "livy"
           ],
           "STANDARD": [
-            "livy-server"
+            "livy"
           ]
         }
       },
@@ -430,13 +417,13 @@
         "SOLR_SERVER": {
           "STACK-SELECT-PACKAGE": "solr-server",
           "INSTALL": [
-            "solr-server"
+            "solr"
           ],
           "PATCH": [
-            "solr-server"
+            "solr"
           ],
           "STANDARD": [
-            "solr-server"
+            "solr"
           ]
         }
       },
@@ -455,6 +442,19 @@
         }
       },
       "YARN": {
+        "APP_TIMELINE_SERVER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-timelineserver",
+          "INSTALL": [
+            "hadoop-yarn-timelineserver",
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-yarn-timelineserver"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-timelineserver"
+          ]
+        },
         "NODEMANAGER": {
           "STACK-SELECT-PACKAGE": "hadoop-yarn-nodemanager",
           "INSTALL": [
@@ -481,6 +481,19 @@
             "hadoop-yarn-resourcemanager"
           ]
         },
+        "TIMELINE_READER": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-timelinereader",
+          "INSTALL": [
+            "hadoop-yarn-timelinereader",
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-yarn-timelinereader"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-timelinereader"
+          ]
+        },
         "YARN_CLIENT": {
           "STACK-SELECT-PACKAGE": "hadoop-yarn-client",
           "INSTALL": [
@@ -493,19 +506,32 @@
           "STANDARD": [
             "hadoop-client"
           ]
+        },
+        "YARN_REGISTRY_DNS": {
+          "STACK-SELECT-PACKAGE": "hadoop-yarn-registrydns",
+          "INSTALL": [
+            "hadoop-yarn-registrydns",
+            "hadoop-client"
+          ],
+          "PATCH": [
+            "hadoop-yarn-registrydns"
+          ],
+          "STANDARD": [
+            "hadoop-yarn-registrydns"
+          ]
         }
       },
       "ZEPPELIN": {
         "ZEPPELIN_SERVER": {
           "STACK-SELECT-PACKAGE": "zeppelin-server",
           "INSTALL": [
-            "zeppelin-server"
+            "zeppelin"
           ],
           "PATCH": [
-            "zeppelin-server"
+            "zeppelin"
           ],
           "STANDARD": [
-            "zeppelin-server"
+            "zeppelin"
           ]
         }
       },
@@ -577,13 +603,6 @@
           "conf_dir": "/etc/kafka/conf",
           "current_dir": "{0}/current/kafka-broker/conf",
           "component": "kafka-broker"
-        }
-      ],
-      "phoenix": [
-        {
-          "conf_dir": "/etc/phoenix/conf",
-          "current_dir": "{0}/current/phoenix-client/conf",
-          "component": "phoenix-client"
         }
       ],
        "ranger-admin": [

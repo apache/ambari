@@ -20,7 +20,7 @@
     {
       "type":"zookeeper",
       "rowtype":"service",
-      "path":"{{default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zookeeper')}}/zookeeper*.log"
+      "path":{{zk_log_path_json}}
     }
   ],
   "filter":[

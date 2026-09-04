@@ -77,7 +77,7 @@ template = """
         "zeppelin.dep.additionalRemoteRepository": {
           "type": "string", 
           "name": "zeppelin.dep.additionalRemoteRepository", 
-          "value": "spark-packages,http://dl.bintray.com/spark-packages/maven,false;"
+          "value": ""
         },
         "zeppelin.spark.importImplicit": {
           "type": "string", 
@@ -102,7 +102,7 @@ template = """
         "zeppelin.pyspark.python": {
           "type": "string", 
           "name": "zeppelin.pyspark.python", 
-          "value": "python"
+          "value": "python3"
         },
         "zeppelin.dep.localrepo": {
           "type": "string", 
@@ -461,7 +461,7 @@ template = """
     {
       "id": "central",
       "type": "default",
-      "url": "http://repo1.maven.org/maven2/",
+      "url": "https://repo1.maven.org/maven2/",
       "releasePolicy": {
         "enabled": true,
         "updatePolicy": "daily",

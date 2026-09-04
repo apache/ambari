@@ -10,7 +10,7 @@
     "links": [
       {
         "name": "zookeeper-adminserver",
-        "label": "Zookeeper AdminServer",
+        "label": "ZooKeeper AdminServer",
         "requires_user_name": "false",
         "component_name": "ZOOKEEPER_SERVER",
         "url": "%@://%@:%@/commands/",

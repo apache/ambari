@@ -98,7 +98,7 @@
               "tab-rows": 1,
               "tab-columns": 1,
               "sections": [
-                 {
+                {
                   "name": "hive-database-configurations",
                   "display-name": "Database Configurations",
                   "row-index": "0",
@@ -198,198 +198,13 @@
           "subsection-name": "hive-database-configurations-col-2"
         },
         {
-          "config" : "hive-env/test_db_connection",
-          "removed" : false,
-          "subsection-name" : "hive-database-configurations-col-2",
-          "property_value_attributes" : {
-            "keyStore" : false,
-            "ui_only_property" : true
+          "config": "hive-env/test_db_connection",
+          "removed": false,
+          "subsection-name": "hive-database-configurations-col-2",
+          "property_value_attributes": {
+            "keyStore": false,
+            "ui_only_property": true
           }
-        },
-        {
-          "config": "hive-interactive-env/enable_hive_interactive",
-          "subsection-name": "interactive-query-row1-col1"
-        },
-        {
-          "config": "hive-interactive-site/hive.llap.daemon.queue.name",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "hive-interactive-env/num_llap_nodes",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "hive-interactive-site/hive.llap.daemon.yarn.container.mb",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "hive-interactive-site/hive.llap.io.memory.size",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "hive-interactive-site/hive.llap.daemon.num.executors",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "hive-interactive-site/hive.llap.io.allocator.mmap",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "hive-interactive-site/hive.llap.io.allocator.mmap.path",
-          "subsection-name": "interactive-query-row1-col1",
-          "depends-on": [
-            {
-              "configs":[
-                "hive-interactive-env/enable_hive_interactive",
-                "hive-interactive-site/hive.llap.io.allocator.mmap"
-              ],
-              "if": "${hive-interactive-env/enable_hive_interactive} && ${hive-interactive-site/hive.llap.io.allocator.mmap}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
-          "config": "hive-interactive-site/hive.server2.active.passive.ha.registry.namespace",
-          "subsection-name": "interactive-query-row1-col1"
         },
         {
           "config": "hive-env/hive.log.level",
@@ -520,110 +335,19 @@
         }
       },
       {
-        "config" : "hive-env/test_db_connection",
-        "widget" : {
-          "type" : "test-db-connection",
-          "required-properties" : {
-            "jdbc.driver.class" : "hive-site/javax.jdo.option.ConnectionDriverName",
-            "jdbc.driver.url" : "hive-site/javax.jdo.option.ConnectionURL",
-            "db.connection.source.host" : "hive-site/hive_server_hosts",
-            "db.type" : "hive-env/hive_database",
-            "db.connection.user" : "hive-site/javax.jdo.option.ConnectionUserName",
-            "db.connection.password" : "hive-site/javax.jdo.option.ConnectionPassword",
-            "db.type.label" : "hive-env/hive_database"
+        "config": "hive-env/test_db_connection",
+        "widget": {
+          "type": "test-db-connection",
+          "required-properties": {
+            "jdbc.driver.class": "hive-site/javax.jdo.option.ConnectionDriverName",
+            "jdbc.driver.url": "hive-site/javax.jdo.option.ConnectionURL",
+            "db.connection.source.host": "hive-site/hive_server_hosts",
+            "db.type": "hive-env/hive_database",
+            "db.connection.user": "hive-site/javax.jdo.option.ConnectionUserName",
+            "db.connection.password": "hive-site/javax.jdo.option.ConnectionPassword",
+            "db.type.label": "hive-env/hive_database"
           },
-          "display-name" : "Test Connection"
-        }
-      },
-      {
-        "config": "hive-interactive-env/enable_hive_interactive",
-        "widget": {
-          "type": "toggle"
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.llap.daemon.queue.name",
-        "widget": {
-          "type": "combo"
-        }
-      },
-      {
-        "config": "hive-interactive-env/num_llap_nodes",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "int"
-            }
-          ]
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.llap.daemon.yarn.container.mb",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "MB"
-            }
-          ]
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.llap.io.memory.size",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "MB"
-            }
-          ]
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.llap.daemon.num.executors",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "int"
-            }
-          ]
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.llap.io.allocator.mmap",
-        "widget": {
-          "type": "toggle"
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.llap.io.allocator.mmap.path",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.server2.active.passive.ha.enable",
-        "widget": {
-          "type": "toggle"
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.server2.active.passive.ha.registry.namespace",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "int"
-            }
-          ]
+          "display-name": "Test Connection"
         }
       },
       {

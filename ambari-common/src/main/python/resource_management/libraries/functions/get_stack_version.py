@@ -34,37 +34,6 @@ from resource_management.core import shell
 from resource_management.libraries.functions import stack_tools
 
 
-@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def get_stack_version(package_name):
-  """
-  @param package_name, name of the package, from which, function will try to get stack version
-  """
-  try:
-    component_home_dir = os.environ[package_name.upper() + "_HOME"]
-  except KeyError:
-    Logger.info(
-      f"Skipping get_stack_version since the component {package_name} is not yet available"
-    )
-    return None  # lazy fail
-
-  # As a rule, component_home_dir is of the form <stack_root_dir>\[\]<component_versioned_subdir>[\]
-  home_dir_split = os.path.split(component_home_dir)
-  iSubdir = len(home_dir_split) - 1
-  while not home_dir_split[iSubdir]:
-    iSubdir -= 1
-
-  # The component subdir is expected to be of the form <package_name>-<package_version>.<stack_version>
-  # with package_version = #.#.# and stack_version=#.#.#.#-<build_number>
-  match = re.findall("[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+", home_dir_split[iSubdir])
-  if not match:
-    Logger.info(
-      f"Failed to get extracted version for component {package_name}. Home dir not in expected format."
-    )
-    return None  # lazy fail
-
-  return match[0]
-
-
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def get_stack_version(package_name):
   """

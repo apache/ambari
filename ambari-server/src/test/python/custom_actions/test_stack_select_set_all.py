@@ -21,8 +21,8 @@ limitations under the License.
 import os
 import json
 
-from mock.mock import patch
-from mock.mock import MagicMock
+from unittest.mock import patch
+from unittest.mock import MagicMock
 
 from stacks.utils.RMFTestCase import experimental_mock
 
@@ -53,6 +53,14 @@ class TestStackSelectSetAll(RMFTestCase):
   def get_custom_actions_dir(self):
     return os.path.join(self.get_src_folder(), "test/resources/custom_actions/")
 
+  @staticmethod
+  def _use_bigtop_stack(payload):
+    """Keep the generic upgrade fixture on the supported BIGTOP stack."""
+    payload["clusterLevelParams"]["stack_name"] = "BIGTOP"
+    payload["clusterLevelParams"]["stack_version"] = "3.3.0"
+    payload["repositoryFile"]["stackName"] = "BIGTOP"
+    return payload
+
   @patch.object(Logger, "info")
   @patch.object(Logger, "error")
   def setUp(self, error_mock, info_mock):
@@ -80,6 +88,7 @@ class TestStackSelectSetAll(RMFTestCase):
 
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
+    self._use_bigtop_stack(json_payload)
 
     json_payload["configurations"]["cluster-env"]["stack_tools"] = (
       self.get_stack_tools()
@@ -110,8 +119,8 @@ class TestStackSelectSetAll(RMFTestCase):
     stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default("/roleParams/service_package_folder", None)
 
-    self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, "2.2")
+    self.assertEqual(stack_name, "BIGTOP")
+    self.assertEqual(stack_version, "3.3.0")
     self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
 
     # Begin the test
@@ -119,7 +128,13 @@ class TestStackSelectSetAll(RMFTestCase):
     ru_execute.actionexecute(None)
 
     call_mock.assert_called_with(
-      ("ambari-python-wrap", "/usr/bin/hdp-select", "set", "all", "2.5.9.9-9999"),
+      (
+        "ambari-python-wrap",
+        "/usr/lib/bigtop-select/distro-select",
+        "set",
+        "all",
+        "2.5.9.9-9999",
+      ),
       sudo=True,
     )
 
@@ -140,6 +155,7 @@ class TestStackSelectSetAll(RMFTestCase):
 
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
+    self._use_bigtop_stack(json_payload)
 
     json_payload["configurations"]["cluster-env"]["stack_tools"] = (
       self.get_stack_tools()
@@ -171,8 +187,8 @@ class TestStackSelectSetAll(RMFTestCase):
     stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default("/roleParams/service_package_folder", None)
 
-    self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, "2.2")
+    self.assertEqual(stack_name, "BIGTOP")
+    self.assertEqual(stack_version, "3.3.0")
     self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
 
     # Begin the test
@@ -180,7 +196,12 @@ class TestStackSelectSetAll(RMFTestCase):
     ru_execute.actionexecute(None)
 
     call_mock.assert_called_with(
-      ("ambari-python-wrap", "/usr/bin/hdp-select", "versions"), sudo=True
+      (
+        "ambari-python-wrap",
+        "/usr/lib/bigtop-select/distro-select",
+        "versions",
+      ),
+      sudo=True,
     )
     self.assertEqual(call_mock.call_count, 1)
 
@@ -203,6 +224,7 @@ class TestStackSelectSetAll(RMFTestCase):
 
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
+    self._use_bigtop_stack(json_payload)
 
     json_payload["configurations"]["cluster-env"]["stack_tools"] = (
       self.get_stack_tools()
@@ -234,8 +256,8 @@ class TestStackSelectSetAll(RMFTestCase):
     stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default("/roleParams/service_package_folder", None)
 
-    self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, "2.2")
+    self.assertEqual(stack_name, "BIGTOP")
+    self.assertEqual(stack_version, "3.3.0")
     self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
 
     # Begin the test
@@ -243,7 +265,12 @@ class TestStackSelectSetAll(RMFTestCase):
     ru_execute.actionexecute(None)
 
     call_mock.assert_called_with(
-      ("ambari-python-wrap", "/usr/bin/hdp-select", "versions"), sudo=True
+      (
+        "ambari-python-wrap",
+        "/usr/lib/bigtop-select/distro-select",
+        "versions",
+      ),
+      sudo=True,
     )
     self.assertEqual(call_mock.call_count, 1)
 
@@ -262,6 +289,7 @@ class TestStackSelectSetAll(RMFTestCase):
 
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
+    self._use_bigtop_stack(json_payload)
 
     json_payload["configurations"]["cluster-env"]["stack_tools"] = (
       self.get_stack_tools()
@@ -285,8 +313,8 @@ class TestStackSelectSetAll(RMFTestCase):
     stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default("/roleParams/service_package_folder", None)
 
-    self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, "2.2")
+    self.assertEqual(stack_name, "BIGTOP")
+    self.assertEqual(stack_version, "3.3.0")
     self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
 
     # Begin the test
@@ -310,6 +338,7 @@ class TestStackSelectSetAll(RMFTestCase):
 
     with open(json_file_path, "r") as json_file:
       json_payload = json.load(json_file)
+    self._use_bigtop_stack(json_payload)
 
     json_payload["configurations"]["cluster-env"]["stack_tools"] = (
       self.get_stack_tools()
@@ -333,8 +362,8 @@ class TestStackSelectSetAll(RMFTestCase):
     stack_version = default("/clusterLevelParams/stack_version", None)
     service_package_folder = default("/roleParams/service_package_folder", None)
 
-    self.assertEqual(stack_name, "HDP")
-    self.assertEqual(stack_version, "2.2")
+    self.assertEqual(stack_name, "BIGTOP")
+    self.assertEqual(stack_version, "3.3.0")
     self.assertEqual(service_package_folder, "common-services/HDFS/2.1.0.2.0/package")
 
     # Begin the test

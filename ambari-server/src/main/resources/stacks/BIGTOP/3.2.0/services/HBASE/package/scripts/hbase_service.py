@@ -15,53 +15,195 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
 """
 
-from resource_management.libraries.functions.format import format
+import os
+
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.libraries.functions import safe_process
 from resource_management.libraries.functions.show_logs import show_logs
-from resource_management.core.shell import as_sudo
-from resource_management.core.resources.system import Execute, File
 
 
-def hbase_service(name, action="start"):  # 'start' or 'stop' or 'status'
+HBASE_PROCESS_TOKENS = {
+  "master": ("org.apache.hadoop.hbase.master.HMaster",),
+  "regionserver": ("org.apache.hadoop.hbase.regionserver.HRegionServer",),
+  "thrift": ("org.apache.hadoop.hbase.thrift.ThriftServer",),
+}
+
+
+def expected_process_tokens(role):
+  try:
+    return HBASE_PROCESS_TOKENS[role]
+  except KeyError as error:
+    raise Fail(f"Unsupported HBase service role: {role}") from error
+
+
+def pid_file_for_role(pid_dir, user, role):
+  expected_process_tokens(role)
+  return os.path.join(pid_dir, f"hbase-{user}-{role}.pid")
+
+
+def read_or_discover_hbase_process(pid_file, user, group, role):
+  tokens = expected_process_tokens(role)
+  pid = safe_process.read_pid(pid_file)
+  if pid is not None:
+    identity = safe_process.inspect_process(pid, user, tokens)
+    if identity is not None and safe_process.is_process_running(
+      pid, user, tokens, identity=identity
+    ):
+      return publish_hbase_process(pid_file, identity, user, group, role)
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      pid,
+      expected_user=user,
+      expected_cmdline=tokens,
+    )
+
+  identity = safe_process.discover_running_process(user, tokens)
+  if identity is None:
+    return None
+  return publish_hbase_process(pid_file, identity, user, group, role)
+
+
+def publish_hbase_process(pid_file, identity, user, group, role):
+  tokens = expected_process_tokens(role)
+  return safe_process.publish_pid_file_for_identity(
+    pid_file,
+    identity,
+    user,
+    tokens,
+    owner=user,
+    group=group,
+    mode=0o640,
+  )
+
+
+def rollback_started_hbase_process(pid_file, identity, user, role):
+  tokens = expected_process_tokens(role)
+  safe_process.terminate_process(identity, user, tokens)
+  pid = safe_process.read_pid(pid_file)
+  if pid == identity.pid:
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user=user,
+      expected_cmdline=tokens,
+    )
+
+
+def wait_for_hbase_process(
+  pid_file, user, group, role, attempts=10, sleep_seconds=1
+):
+  tokens = expected_process_tokens(role)
+  identity = safe_process.wait_for_discovered_process(
+    user,
+    tokens,
+    attempts=attempts,
+    sleep_seconds=sleep_seconds,
+  )
+  try:
+    return publish_hbase_process(pid_file, identity, user, group, role)
+  except Exception:
+    try:
+      rollback_started_hbase_process(pid_file, identity, user, role)
+    except Exception as error:
+      Logger.warning(
+        f"Could not roll back failed HBase {role} PID publication: {error}"
+      )
+    raise
+
+
+def check_hbase_process_status(pid_file, user, group, role):
+  identity = read_or_discover_hbase_process(pid_file, user, group, role)
+  if identity is None:
+    raise ComponentIsNotRunning(f"HBase {role} is not running")
+  return identity
+
+
+def hbase_service(name, action=None, extra_args=()):
   import params
 
-  role = name
-  cmd = format("{daemon_script} --config {hbase_conf_dir}")
-  pid_file = format("{pid_dir}/hbase-{hbase_user}-{role}.pid")
-  pid_expression = as_sudo(["cat", pid_file])
-  no_op_test = as_sudo(["test", "-f", pid_file]) + format(
-    " && ps -p `{pid_expression}` >/dev/null 2>&1"
+  tokens = expected_process_tokens(name)
+  if action not in ("start", "stop"):
+    raise Fail(f"Unsupported HBase service action: {action}")
+  if not isinstance(extra_args, (tuple, list)) or any(
+    not isinstance(argument, str) or not argument for argument in extra_args
+  ):
+    raise Fail("HBase daemon arguments must be non-empty argv tokens")
+
+  pid_file = pid_file_for_role(params.pid_dir, params.hbase_user, name)
+  identity = read_or_discover_hbase_process(
+    pid_file, params.hbase_user, params.user_group, name
   )
 
   if action == "start":
-    daemon_cmd = format("{cmd} start {role}")
+    if identity is not None:
+      Logger.info(f"HBase {name} is already running with pid {identity.pid}")
+      return
 
-    try:
-      Execute(daemon_cmd, not_if=no_op_test, user=params.hbase_user)
-    except:
-      show_logs(params.log_dir, params.hbase_user)
-      raise
-  elif action == "stop":
-    daemon_cmd = format("{cmd} stop {role}")
-
+    command = (
+      params.daemon_script,
+      "--config",
+      params.hbase_conf_dir,
+      "start",
+      name,
+      *extra_args,
+    )
+    started_identity = None
     try:
       Execute(
-        daemon_cmd,
+        command,
         user=params.hbase_user,
-        only_if=no_op_test,
-        # BUGFIX: hbase regionserver sometimes hangs when nn is in safemode
-        timeout=params.hbase_regionserver_shutdown_timeout,
-        on_timeout=format(
-          "! ( {no_op_test} ) || {sudo} -H -E kill -9 `{pid_expression}`"
-        ),
+        environment={"JAVA_HOME": params.java64_home},
+        logoutput=True,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
-    except:
-      show_logs(params.log_dir, params.hbase_user)
+      started_identity = wait_for_hbase_process(
+        pid_file, params.hbase_user, params.user_group, name
+      )
+    except Exception:
+      if started_identity is not None:
+        try:
+          rollback_started_hbase_process(
+            pid_file, started_identity, params.hbase_user, name
+          )
+        except Exception as error:
+          Logger.warning(f"Could not roll back failed HBase {name} start: {error}")
+      try:
+        show_logs(params.log_dir, params.hbase_user)
+      except Exception as error:
+        Logger.warning(f"Could not collect HBase logs after start failure: {error}")
       raise
+    return
 
-    File(
-      pid_file,
-      action="delete",
+  if identity is None:
+    Logger.info(f"No running HBase {name} process was found")
+    return
+
+  try:
+    wait_attempts = max(1, int(params.hbase_regionserver_shutdown_timeout))
+    safe_process.terminate_process(
+      identity,
+      params.hbase_user,
+      tokens,
+      term_wait_attempts=wait_attempts,
+      term_wait_sleep=1,
+      kill_wait_attempts=10,
+      kill_wait_sleep=1,
     )
+    safe_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity.pid,
+      expected_user=params.hbase_user,
+      expected_cmdline=tokens,
+    )
+  except Exception:
+    try:
+      show_logs(params.log_dir, params.hbase_user)
+    except Exception as error:
+      Logger.warning(f"Could not collect HBase logs after stop failure: {error}")
+    raise

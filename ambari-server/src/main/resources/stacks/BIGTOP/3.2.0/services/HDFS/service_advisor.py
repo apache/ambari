@@ -1,8 +1,8 @@
-#!/usr/bin/env ambari-python-wrap
+#!/usr/bin/env python3
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
-disass HDFSRecommender(service_advisor.ServiceAdvisributed with this work for additional information
+distributed with this work for additional information
 regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
@@ -18,10 +18,10 @@ limitations under the License.
 """
 
 # Python imports
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import os
-import traceback
 import inspect
+from urllib.parse import urlparse
 
 # Local imports
 from resource_management.libraries.functions.mounted_dirs_helper import (
@@ -37,12 +37,11 @@ try:
   if "BASE_SERVICE_ADVISOR" in os.environ:
     PARENT_FILE = os.environ["BASE_SERVICE_ADVISOR"]
   with open(PARENT_FILE, "rb") as fp:
-    service_advisor = imp.load_module(
-      "service_advisor", fp, PARENT_FILE, (".py", "rb", imp.PY_SOURCE)
+    service_advisor = import_utils.load_module(
+      "service_advisor", fp, PARENT_FILE, (".py", "rb", import_utils.PY_SOURCE)
     )
-except Exception as e:
-  traceback.print_exc()
-  print("Failed to load parent.")
+except Exception as error:
+  raise RuntimeError(f"Failed to load parent service advisor {PARENT_FILE}") from error
 
 
 class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
@@ -154,16 +153,16 @@ class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
 
     # Due to the existing stack inheritance, make it clear where each calculation came from.
     recommender = HDFSRecommender()
-    recommender.recommendConfigurationsFromHDP206(
+    recommender.recommendStorageConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendConfigurationsFromHDP22(
+    recommender.recommendRuntimeConfigurations(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendConfigurationsFromHDP23(
+    recommender.recommendRangerAuthorizer(
       configurations, clusterData, services, hosts
     )
-    recommender.recommendConfigurationsFromHDP26(
+    recommender.recommendRangerRepository(
       configurations, clusterData, services, hosts
     )
     recommender.recommendConfigurationsForSSO(
@@ -215,11 +214,11 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(HDFSRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendConfigurationsFromHDP206(
+  def recommendStorageConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     """
-    Recommend configurations for this service based on HDP 2.0.6.
+    Recommend storage and heap configurations for BIGTOP HDFS.
     """
     self.logger.info(
       "Class: %s, Method: %s. Recommending Service Configurations."
@@ -253,10 +252,17 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       and "dfs.nameservices" in hdfsSiteProperties
     ):
       nameServices = hdfsSiteProperties["dfs.nameservices"]
-    if nameServices and f"dfs.ha.namenodes.{nameServices}" in hdfsSiteProperties:
-      namenodes = hdfsSiteProperties[f"dfs.ha.namenodes.{nameServices}"]
-      if len(namenodes.split(",")) > 1:
-        putHDFSSitePropertyAttributes("dfs.namenode.rpc-address", "delete", "true")
+    if nameServices:
+      for name_service in str(nameServices).split(","):
+        name_service = name_service.strip()
+        namenodes = hdfsSiteProperties.get(
+          f"dfs.ha.namenodes.{name_service}", ""
+        )
+        if len([item for item in namenodes.split(",") if item.strip()]) > 1:
+          putHDFSSitePropertyAttributes(
+            "dfs.namenode.rpc-address", "delete", "true"
+          )
+          break
 
     self.logger.info(
       "Class: %s, Method: %s. HDFS nameservices: %s"
@@ -265,7 +271,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
 
     hdfs_mount_properties = [
       ("dfs.datanode.data.dir", "DATANODE", "/hadoop/hdfs/data", "multi"),
-      ("dfs.namenode.name.dir", "DATANODE", "/hadoop/hdfs/namenode", "multi"),
+      ("dfs.namenode.name.dir", "NAMENODE", "/hadoop/hdfs/namenode", "multi"),
       (
         "dfs.namenode.checkpoint.dir",
         "SECONDARY_NAMENODE",
@@ -309,10 +315,10 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     # For each host selects maximum size of the volume. Then gets minimum for all hosts.
     # This ensures that each host will have at least one data dir with available space.
     reservedSizeRecommendation = 0  # kBytes
-    for host in hosts["items"]:
+    for host in hosts.get("items", []):
       mountPoints = []
       mountPointDiskAvailableSpace = []  # kBytes
-      for diskInfo in host["Hosts"]["disk_info"]:
+      for diskInfo in host["Hosts"].get("disk_info", []):
         mountPoints.append(diskInfo["mountpoint"])
         mountPointDiskAvailableSpace.append(int(diskInfo["size"]))
 
@@ -346,11 +352,11 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
 
-  def recommendConfigurationsFromHDP22(
+  def recommendRuntimeConfigurations(
     self, configurations, clusterData, services, hosts
   ):
     """
-    Recommend configurations for this service based on HDP 2.2
+    Recommend runtime and Ranger configurations for BIGTOP HDFS.
     """
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
@@ -359,7 +365,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     )
     putHdfsSiteProperty(
       "dfs.datanode.max.transfer.threads",
-      16384 if clusterData["hBaseInstalled"] else 4096,
+      16384 if clusterData.get("hBaseInstalled", False) else 4096,
     )
 
     dataDirsCount = 1
@@ -374,7 +380,10 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
           services["configurations"]["hdfs-site"]["properties"]["dfs.datanode.data.dir"]
         ).split(",")
       )
-    elif "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"]:
+    elif (
+      "hdfs-site" in configurations
+      and "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"]
+    ):
       dataDirsCount = len(
         str(configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"]).split(
           ","
@@ -388,7 +397,9 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       failedVolumesTolerated = 2
     putHdfsSiteProperty("dfs.datanode.failed.volumes.tolerated", failedVolumesTolerated)
 
-    namenodeHosts = self.getHostsWithComponent("HDFS", "NAMENODE", services, hosts)
+    namenodeHosts = self.getHostsWithComponent(
+      "HDFS", "NAMENODE", services, hosts
+    ) or []
 
     # 25 * # of cores on NameNode
     nameNodeCores = 4
@@ -400,9 +411,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
         "dfs.namenode.handler.count", "maximum", 25 * nameNodeCores
       )
 
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
+    servicesList = self.getServiceNames(services)
     if ("ranger-hdfs-plugin-properties" in services["configurations"]) and (
       "ranger-hdfs-plugin-enabled"
       in services["configurations"]["ranger-hdfs-plugin-properties"]["properties"]
@@ -410,7 +419,9 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       rangerPluginEnabled = services["configurations"]["ranger-hdfs-plugin-properties"][
         "properties"
       ]["ranger-hdfs-plugin-enabled"]
-      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
+      if ("RANGER" in servicesList) and (
+        str(rangerPluginEnabled).lower() == "yes"
+      ):
         putHdfsSiteProperty("dfs.permissions.enabled", "true")
 
     putHdfsSiteProperty(
@@ -435,7 +446,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
             int(namenodeHosts[0]["Hosts"]["total_mem"]),
             int(namenodeHosts[1]["Hosts"]["total_mem"]),
           )
-          / 1024
+          // 1024
         )
         masters_at_host = max(
           len(
@@ -494,20 +505,15 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
         {"nn_heap": 71424, "nn_opt": 8960},
         {"nn_heap": 94976, "nn_opt": 8960},
       ]
-      index = {
-        datanodeFilesM < 1: 0,
-        1 <= datanodeFilesM < 5: 1,
-        5 <= datanodeFilesM < 10: 2,
-        10 <= datanodeFilesM < 20: 3,
-        20 <= datanodeFilesM < 30: 4,
-        30 <= datanodeFilesM < 40: 5,
-        40 <= datanodeFilesM < 50: 6,
-        50 <= datanodeFilesM < 70: 7,
-        70 <= datanodeFilesM < 100: 8,
-        100 <= datanodeFilesM < 125: 9,
-        125 <= datanodeFilesM < 150: 10,
-        150 <= datanodeFilesM: 11,
-      }[1]
+      file_count_thresholds = (1, 5, 10, 20, 30, 40, 50, 70, 100, 125, 150)
+      index = next(
+        (
+          threshold_index
+          for threshold_index, threshold in enumerate(file_count_thresholds)
+          if datanodeFilesM < threshold
+        ),
+        len(file_count_thresholds),
+      )
 
       nn_memory_config = nn_memory_configs[index]
 
@@ -570,9 +576,11 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
         "ranger-kms-site" in services["configurations"]
         and "ranger.service.https.attrib.ssl.enabled"
         in services["configurations"]["ranger-kms-site"]["properties"]
-        and services["configurations"]["ranger-kms-site"]["properties"][
-          "ranger.service.https.attrib.ssl.enabled"
-        ].lower()
+        and str(
+          services["configurations"]["ranger-kms-site"]["properties"][
+            "ranger.service.https.attrib.ssl.enabled"
+          ]
+        ).lower()
         == "true"
       ):
         urlScheme = "https"
@@ -621,11 +629,11 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
         "ranger-hdfs-plugin-enabled", rangerEnvHdfsPluginProperty
       )
 
-  def recommendConfigurationsFromHDP23(
+  def recommendRangerAuthorizer(
     self, configurations, clusterData, services, hosts
   ):
     """
-    Recommend configurations for this service based on HDP 2.3.
+    Recommend the Ranger authorizer configuration for BIGTOP HDFS.
     """
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(
@@ -654,7 +662,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
           "ranger-hdfs-plugin-properties"
         ]["properties"]["ranger-hdfs-plugin-enabled"]
 
-      if rangerPluginEnabled and (rangerPluginEnabled.lower() == "Yes".lower()):
+      if rangerPluginEnabled and str(rangerPluginEnabled).lower() == "yes":
         putHdfsSiteProperty(
           "dfs.namenode.inode.attributes.provider.class",
           "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer",
@@ -668,11 +676,11 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
         "dfs.namenode.inode.attributes.provider.class", "delete", "true"
       )
 
-  def recommendConfigurationsFromHDP26(
+  def recommendRangerRepository(
     self, configurations, clusterData, services, hosts
   ):
     """
-    Recommend configurations for this service based on HDP 2.6
+    Recommend the Ranger repository identity for BIGTOP HDFS.
     """
     if (
       "hadoop-env" in services["configurations"]
@@ -680,7 +688,7 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     ):
       hdfs_user = services["configurations"]["hadoop-env"]["properties"]["hdfs_user"]
     else:
-      hdfs_user = "hadoop"
+      hdfs_user = "hdfs"
 
     if (
       "ranger-hdfs-plugin-properties" in configurations
@@ -688,10 +696,12 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       in configurations["ranger-hdfs-plugin-properties"]["properties"]
     ):
       ranger_hdfs_plugin_enabled = (
-        configurations["ranger-hdfs-plugin-properties"]["properties"][
-          "ranger-hdfs-plugin-enabled"
-        ].lower()
-        == "Yes".lower()
+        str(
+          configurations["ranger-hdfs-plugin-properties"]["properties"][
+            "ranger-hdfs-plugin-enabled"
+          ]
+        ).lower()
+        == "yes"
       )
     elif (
       "ranger-hdfs-plugin-properties" in services["configurations"]
@@ -699,10 +709,12 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       in services["configurations"]["ranger-hdfs-plugin-properties"]["properties"]
     ):
       ranger_hdfs_plugin_enabled = (
-        services["configurations"]["ranger-hdfs-plugin-properties"]["properties"][
-          "ranger-hdfs-plugin-enabled"
-        ].lower()
-        == "Yes".lower()
+        str(
+          services["configurations"]["ranger-hdfs-plugin-properties"]["properties"][
+            "ranger-hdfs-plugin-enabled"
+          ]
+        ).lower()
+        == "yes"
       )
     else:
       ranger_hdfs_plugin_enabled = False
@@ -751,7 +763,6 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
             "Enabling SSO integration for HDFS requires Kerberos, Since Kerberos is not enabled, SSO integration is not being recommended."
           )
           putHdfsSiteProperty("hadoop.http.authentication.type", "simple")
-          pass
 
       # If SSO should be disabled for this service
       elif ambari_sso_details.should_disable_sso("HDFS"):
@@ -807,55 +818,58 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
     self.validators = [
-      ("hdfs-site", self.validateHDFSConfigurationsFromHDP206),
-      ("hadoop-env", self.validateHadoopEnvConfigurationsFromHDP206),
-      ("core-site", self.validateHDFSCoreSiteFromHDP206),
-      ("hdfs-site", self.validateHDFSConfigurationsFromHDP22),
-      ("hadoop-env", self.validateHadoopEnvConfigurationsFromHDP22),
+      ("hdfs-site", self.validateStorageConfigurations),
+      ("hadoop-env", self.validateHeapConfigurations),
+      ("core-site", self.validateCoreSiteConfigurations),
+      ("hdfs-site", self.validateSecurityConfigurations),
+      ("ssl-server", self.validateSslServerConfigurations),
       (
         "ranger-hdfs-plugin-properties",
-        self.validateHDFSRangerPluginConfigurationsFromHDP22,
+        self.validateRangerPluginConfigurations,
       ),
-      ("hdfs-site", self.validateRangerAuthorizerFromHDP23),
+      ("hdfs-site", self.validateRangerAuthorizerConfiguration),
     ]
 
-    # **********************************************************
-    # Example of how to add a function that validates a certain config type.
-    # If the same config type has multiple functions, can keep adding tuples to self.validators
-    # self.validators.append(("hadoop-env", self.sampleValidator))
-
-  def sampleValidator(
-    self, properties, recommendedDefaults, configurations, services, hosts
-  ):
-    """
-    Example of a validator function other other Service Advisors to emulate.
-    :return: A list of configuration validation problems.
-    """
-    validationItems = []
-
-    """
-    Item is a simple dictionary.
-    Two functions can be used to construct it depending on the log level: WARN|ERROR
-    E.g.,
-    self.getErrorItem(message) or self.getWarnItem(message)
-
-    item = {"level": "ERROR|WARN", "message": "value"}
-    """
-    validationItems.append(
-      {
-        "config-name": "my_config_property_name",
-        "item": self.getErrorItem(
-          f"My custom message in method {inspect.stack()[0][3]}"
-        ),
-      }
+  @classmethod
+  def is_valid_host_port_authority(cls, target):
+    if (
+      not isinstance(target, str)
+      or not target
+      or target != target.strip()
+      or "://" in target
+    ):
+      return False
+    parsed = urlparse(f"//{target}")
+    try:
+      port = parsed.port
+    except ValueError:
+      return False
+    hostname = parsed.hostname
+    return bool(
+      hostname
+      and port is not None
+      and 0 < port <= 65535
+      and parsed.username is None
+      and parsed.password is None
+      and not parsed.path
+      and not parsed.params
+      and not parsed.query
+      and not parsed.fragment
+      and not any(character.isspace() for character in hostname)
+      and not any(character in hostname for character in "/@?#")
     )
-    return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
 
-  def validateHDFSConfigurationsFromHDP206(
+  @classmethod
+  def getPort(cls, address):
+    if not cls.is_valid_host_port_authority(address):
+      return None
+    return urlparse(f"//{address}").port
+
+  def validateStorageConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     """
-    This was copied from HDP 2.0.6; validate hdfs-site
+    Validate BIGTOP HDFS hdfs-site
     :return: A list of configuration validation problems.
     """
     clusterEnv = self.getSiteProperties(configurations, "cluster-env")
@@ -885,7 +899,7 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
     if not (
       clusterEnv
       and "one_dir_per_partition" in clusterEnv
-      and clusterEnv["one_dir_per_partition"].lower() == "true"
+      and str(clusterEnv["one_dir_per_partition"]).lower() == "true"
     ):
       return None
 
@@ -912,11 +926,11 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
 
     return None
 
-  def validateHadoopEnvConfigurationsFromHDP206(
+  def validateHeapConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     """
-    This was copied from HDP 2.0.6; validate hadoop-env
+    Validate BIGTOP HDFS hadoop-env
     :return: A list of configuration validation problems.
     """
     validationItems = [
@@ -941,11 +955,11 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
     ]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
 
-  def validateHDFSCoreSiteFromHDP206(
+  def validateCoreSiteConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     """
-    This was copied from HDP 2.0.6; validate core-site
+    Validate BIGTOP HDFS core-site
     :return: A list of configuration validation problems.
     """
     validationItems = []
@@ -971,7 +985,9 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
 
     validations = []
     if "HDFS" in services_list:
-      lzo_allowed = services["gpl-license-accepted"]
+      lzo_allowed = (
+        str(services.get("gpl-license-accepted", "false")).lower() == "true"
+      )
 
       self.validatePropertyToLZOCodec(
         "io.compression.codecs", properties, lzo_allowed, validations
@@ -994,7 +1010,11 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
     lzo_codec_class = "com.hadoop.compression.lzo.LzoCodec"
     if property_name in properties:
       property_value = properties.get(property_name)
-      if not lzo_allowed and lzo_codec_class in property_value:
+      if (
+        not lzo_allowed
+        and isinstance(property_value, str)
+        and lzo_codec_class in property_value
+      ):
         validations.append(
           {
             "config-name": property_name,
@@ -1023,24 +1043,20 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
 
     return validationItems
 
-  def validateHDFSConfigurationsFromHDP22(
+  def validateSecurityConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     """
-    This was copied from HDP 2.2; validate hdfs-site
+    Validate BIGTOP HDFS hdfs-site
     :return: A list of configuration validation problems.
     """
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristic here
     hdfs_site = properties
-    core_site = self.getSiteProperties(configurations, "core-site")
+    core_site = self.getSiteProperties(configurations, "core-site") or {}
 
     dfs_encrypt_data_transfer = "dfs.encrypt.data.transfer"  # Hadoop Wire encryption
-    wire_encryption_enabled = False
-    try:
-      wire_encryption_enabled = hdfs_site[dfs_encrypt_data_transfer] == "true"
-    except KeyError:
-      pass
+    wire_encryption_enabled = hdfs_site.get(dfs_encrypt_data_transfer) == "true"
 
     HTTP_ONLY = "HTTP_ONLY"
     HTTPS_ONLY = "HTTPS_ONLY"
@@ -1060,14 +1076,14 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
 
     validationItems = []
     address_properties = [
-      # "dfs.datanode.address",
-      # "dfs.datanode.http.address",
-      # "dfs.datanode.https.address",
-      # "dfs.datanode.ipc.address",
-      # "dfs.journalnode.http-address",
-      # "dfs.journalnode.https-address",
-      # "dfs.namenode.rpc-address",
-      # "dfs.namenode.secondary.http-address",
+      "dfs.datanode.address",
+      "dfs.datanode.http.address",
+      "dfs.datanode.https.address",
+      "dfs.datanode.ipc.address",
+      "dfs.journalnode.http-address",
+      "dfs.journalnode.https-address",
+      "dfs.namenode.rpc-address",
+      "dfs.namenode.secondary.http-address",
       "dfs.namenode.http-address",
       "dfs.namenode.https-address",
     ]
@@ -1083,7 +1099,7 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
               "item": self.getErrorItem(
                 address_property
                 + " does not contain a valid host:port authority: "
-                + value
+                + str(value)
               ),
             }
           )
@@ -1097,10 +1113,10 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
       if ranger_plugin_properties
       else "No"
     )
-    servicesList = [
-      service["StackServices"]["service_name"] for service in services["services"]
-    ]
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == "Yes".lower()):
+    servicesList = self.getServiceNames(services)
+    if ("RANGER" in servicesList) and (
+      str(ranger_plugin_enabled).lower() == "yes"
+    ):
       if (
         "dfs.permissions.enabled" in hdfs_site
         and hdfs_site["dfs.permissions.enabled"] != "true"
@@ -1141,12 +1157,6 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
         )
       except KeyError:
         privileged_dfs_http_port = False
-      try:
-        privileged_dfs_https_port = HDFSValidator.isSecurePort(
-          HDFSValidator.getPort(hdfs_site[datanode_https_address])
-        )
-      except KeyError:
-        privileged_dfs_https_port = False
       try:
         dfs_http_policy_value = hdfs_site[dfs_http_policy]
       except KeyError:
@@ -1215,40 +1225,40 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
           )
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
-  def validateHadoopEnvConfigurationsFromHDP22(
+  def validateSslServerConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
-    """
-    This was copied from HDP 2.2; validate hadoop-env
-    :return: A list of configuration validation problems.
-    """
-    validationItems = [
-      {
-        "config-name": "namenode_heapsize",
-        "item": self.validatorLessThenDefaultValue(
-          properties, recommendedDefaults, "namenode_heapsize"
-        ),
-      },
-      {
-        "config-name": "namenode_opt_newsize",
-        "item": self.validatorLessThenDefaultValue(
-          properties, recommendedDefaults, "namenode_opt_newsize"
-        ),
-      },
-      {
-        "config-name": "namenode_opt_maxnewsize",
-        "item": self.validatorLessThenDefaultValue(
-          properties, recommendedDefaults, "namenode_opt_maxnewsize"
-        ),
-      },
-    ]
-    return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
+    hdfs_site = self.getSiteProperties(configurations, "hdfs-site") or {}
+    if not hdfs_site:
+      hdfs_site = self.getServicesSiteProperties(services, "hdfs-site") or {}
+    if str(hdfs_site.get("dfs.http.policy", "HTTP_ONLY")).upper() not in (
+      "HTTPS_ONLY",
+      "HTTP_AND_HTTPS",
+    ):
+      return []
 
-  def validateHDFSRangerPluginConfigurationsFromHDP22(
+    validationItems = []
+    for name in (
+      "ssl.server.truststore.password",
+      "ssl.server.keystore.password",
+      "ssl.server.keystore.keypassword",
+    ):
+      if not str(properties.get(name, "")).strip():
+        validationItems.append(
+          {
+            "config-name": name,
+            "item": self.getErrorItem(
+              f"{name} must not be empty when HDFS HTTPS is enabled"
+            ),
+          }
+        )
+    return self.toConfigurationValidationProblems(validationItems, "ssl-server")
+
+  def validateRangerPluginConfigurations(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     """
-    This was copied from HDP 2.2; validate ranger-hdfs-plugin-properties
+    Validate BIGTOP HDFS ranger-hdfs-plugin-properties
     :return: A list of configuration validation problems.
     """
     validationItems = []
@@ -1260,13 +1270,22 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
       if ranger_plugin_properties
       else "No"
     )
-    if ranger_plugin_enabled.lower() == "yes":
+    if str(ranger_plugin_enabled).lower() == "yes":
+      if not str(ranger_plugin_properties.get("REPOSITORY_CONFIG_PASSWORD", "")).strip():
+        validationItems.append(
+          {
+            "config-name": "REPOSITORY_CONFIG_PASSWORD",
+            "item": self.getErrorItem(
+              "REPOSITORY_CONFIG_PASSWORD must not be empty when the Ranger HDFS plugin is enabled"
+            ),
+          }
+        )
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = self.getServicesSiteProperties(services, "ranger-env")
       if (
         not ranger_env
         or not "ranger-hdfs-plugin-enabled" in ranger_env
-        or ranger_env["ranger-hdfs-plugin-enabled"].lower() != "yes"
+        or str(ranger_env["ranger-hdfs-plugin-enabled"]).lower() != "yes"
       ):
         validationItems.append(
           {
@@ -1280,11 +1299,11 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
       validationItems, "ranger-hdfs-plugin-properties"
     )
 
-  def validateRangerAuthorizerFromHDP23(
+  def validateRangerAuthorizerConfiguration(
     self, properties, recommendedDefaults, configurations, services, hosts
   ):
     """
-    This was copied from HDP 2.3
+    Validate the BIGTOP HDFS Ranger authorizer.
     If Ranger service is present and the ranger plugin is enabled, check that the provider class is correctly set.
     :return: A list of configuration validation problems.
     """
@@ -1305,14 +1324,16 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
       else "No"
     )
     servicesList = self.getServiceNames(services)
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == "yes"):
+    if ("RANGER" in servicesList) and (
+      str(ranger_plugin_enabled).lower() == "yes"
+    ):
       try:
         if (
-          hdfs_site["dfs.namenode.inode.attributes.provider.class"].lower()
+          str(hdfs_site["dfs.namenode.inode.attributes.provider.class"]).lower()
           != "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer".lower()
         ):
           raise ValueError()
-      except (KeyError, ValueError) as e:
+      except (KeyError, ValueError):
         message = "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled."
         validationItems.append(
           {
@@ -1327,7 +1348,7 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
     """
     Returns the list of Data Node hosts. If none, return an empty list.
     """
-    if len(hosts["items"]) > 0:
+    if len(hosts.get("items", [])) > 0:
       dataNodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
       if dataNodeHosts is not None:
         return dataNodeHosts

@@ -18,31 +18,30 @@ limitations under the License.
 
 """
 
-import os
-
 # Local Imports
 import mysql_users
 
 # Ambari Commons & Resource Management Imports
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import InlineTemplate
 
 
 def mysql_configure():
   import params
 
-  # required for running hive
-  for mysql_configname in params.mysql_confignames:
-    if os.path.isfile(mysql_configname):
-      replace_bind_address = (
-        "sed",
-        "-i",
-        "s|^bind-address[ \t]*=.*|bind-address = 0.0.0.0|",
-        mysql_configname,
-      )
-      Execute(
-        replace_bind_address,
-        sudo=True,
-      )
+  Directory(
+    params.mysql_conf_dir,
+    owner="root",
+    group="root",
+    mode=0o755,
+    create_parents=True,
+  )
+  File(
+    f"{params.mysql_conf_dir}/99-ambari-hive.cnf",
+    owner="root",
+    group="root",
+    mode=0o644,
+    content=InlineTemplate("[mysqld]\nbind-address = 0.0.0.0\n"),
+  )
 
-  # this also will start mysql-server
   mysql_users.mysql_adduser()

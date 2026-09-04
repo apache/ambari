@@ -19,18 +19,11 @@ limitations under the License.
 """
 
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.security_commons import (
-  build_expectations,
-  cached_kinit_executor,
-  get_params_from_filesystem,
-  validate_security_config_properties,
-  FILE_TYPE_XML,
-)
+from resource_management.core.exceptions import Fail
 from ams import ams
 from ams_service import ams_service
 from hbase import hbase
 from status import check_service_status
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
 
@@ -47,7 +40,8 @@ class AmsCollector(Script):
     env.set_params(params)
     if action == "start" and params.embedded_mode_multiple_instances:
       raise Fail(
-        "AMS in embedded mode cannot have more than 1 instance. Delete all but 1 instances or switch to Distributed mode "
+        "AMS embedded mode supports exactly one collector; remove extra "
+        "instances or switch to distributed mode"
       )
     hbase("master", action)
     hbase("regionserver", action)
@@ -55,8 +49,6 @@ class AmsCollector(Script):
 
   def start(self, env, upgrade_type=None):
     self.configure(env, action="start")  # for security
-    # stop hanging components before start
-    ams_service("collector", action="stop")
     ams_service("collector", action="start")
 
   def stop(self, env, upgrade_type=None):
@@ -92,13 +84,6 @@ class AmsCollector(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class AmsCollectorDefault(AmsCollector):
   pass
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class AmsCollectorWindows(AmsCollector):
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)  # for security
 
 
 if __name__ == "__main__":

@@ -19,5 +19,8 @@
 #
 #
 
-HIVE_CONF_DIR=$4 TEZ_CONF_DIR=$5 {{hive_bin_dir}}/hiveserver2 > $1 2> $2 &
-echo $!|cat>$3
+set -eu
+umask 0027
+
+HIVE_CONF_DIR="$4" TEZ_CONF_DIR="$5" {{hive_bin_dir}}/hiveserver2 >"$1" 2>"$2" &
+printf '%s\n' "$!" >"$3"

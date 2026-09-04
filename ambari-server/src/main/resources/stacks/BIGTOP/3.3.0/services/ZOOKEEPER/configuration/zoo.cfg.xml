@@ -20,10 +20,15 @@
  */
 -->
 <configuration>
-   <property>
+  <property>
     <name>admin.serverPort</name>
     <value>8180</value>
-    <description>admin.serverPort</description>
+    <description>The port used by the embedded ZooKeeper AdminServer.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>65535</maximum>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

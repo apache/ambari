@@ -17,195 +17,198 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 import os
+import re
 import socket
 import time
-import logging
-import traceback
-from resource_management.libraries.functions import format
+
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from resource_management.libraries.script.script import Script
+from resource_management.core import sudo
+from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.core.resources import Execute
-from resource_management.core import global_lock
-
-
-stack_root = Script.get_stack_root()
-
-OK_MESSAGE = "TCP OK - {0:.3f}s response on port {1}"
-CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
-
-HIVE_SERVER_THRIFT_PORT_KEY = "{{spark-hive-site-override/hive.server2.thrift.port}}"
-HIVE_SERVER_THRIFT_HTTP_PORT_KEY = (
-  "{{spark-hive-site-override/hive.server2.thrift.http.port}}"
-)
-HIVE_SERVER_TRANSPORT_MODE_KEY = (
-  "{{spark-hive-site-override/hive.server2.transport.mode}}"
-)
-HIVE_SERVER_HTTP_ENDPOINT = "{{spark-hive-site-override/hive.server2.http.endpoint}}"
-HIVE_SERVER2_USE_SSL_KEY = "{{spark-hive-site-override/hive.server2.use.SSL}}"
-
-SECURITY_ENABLED_KEY = "{{cluster-env/security_enabled}}"
-
-HIVE_SERVER2_KERBEROS_KEYTAB = (
-  "{{spark-hive-site-override/hive.server2.authentication.kerberos.keytab}}"
-)
-HIVE_SERVER2_PRINCIPAL_KEY = (
-  "{{spark-hive-site-override/hive.server2.authentication.kerberos.principal}}"
+from resource_management.libraries.functions.stack_tools import get_stack_root
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
 )
 
-# The configured Kerberos executable search paths, if any
-KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = "{{kerberos-env/executable_search_paths}}"
 
-THRIFT_PORT_DEFAULT = 10002
-HIVE_SERVER_TRANSPORT_MODE_DEFAULT = "binary"
-
+PORT_KEY = "{{spark-hive-site-override/hive.server2.thrift.port}}"
+HTTP_PORT_KEY = "{{spark-hive-site-override/hive.server2.thrift.http.port}}"
+TRANSPORT_KEY = "{{spark-hive-site-override/hive.server2.transport.mode}}"
+ENDPOINT_KEY = "{{spark-hive-site-override/hive.server2.thrift.http.path}}"
+SSL_KEY = "{{spark-hive-site-override/hive.server2.use.SSL}}"
+SECURITY_KEY = "{{cluster-env/security_enabled}}"
+SEARCH_PATHS_KEY = "{{kerberos-env/executable_search_paths}}"
 SPARK_USER_KEY = "{{spark-env/spark_user}}"
-
-CHECK_COMMAND_TIMEOUT_KEY = "check.command.timeout"
-CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
-
-logger = logging.getLogger("ambari_alerts")
+KEYTAB_KEY = "{{spark-hive-site-override/hive.server2.authentication.kerberos.keytab}}"
+PRINCIPAL_KEY = "{{spark-hive-site-override/hive.server2.authentication.kerberos.principal}}"
+STACK_ROOT_KEY = "{{cluster-env/stack_root}}"
+TIMEOUT_KEY = "check.command.timeout"
+_HOST_PATTERN = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?", re.ASCII)
+_PATH_PATTERN = re.compile(r"/[A-Za-z0-9_./+@=-]*", re.ASCII)
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def get_tokens():
-  """
-  Returns a tuple of tokens in the format {{site/property}} that will be used
-  to build the dictionary passed into execute
-  """
   return (
-    HIVE_SERVER_THRIFT_PORT_KEY,
-    HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
-    HIVE_SERVER_TRANSPORT_MODE_KEY,
-    HIVE_SERVER_HTTP_ENDPOINT,
-    HIVE_SERVER2_USE_SSL_KEY,
-    SECURITY_ENABLED_KEY,
-    KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY,
+    PORT_KEY,
+    HTTP_PORT_KEY,
+    TRANSPORT_KEY,
+    ENDPOINT_KEY,
+    SSL_KEY,
+    SECURITY_KEY,
+    SEARCH_PATHS_KEY,
     SPARK_USER_KEY,
-    HIVE_SERVER2_KERBEROS_KEYTAB,
-    HIVE_SERVER2_PRINCIPAL_KEY,
+    KEYTAB_KEY,
+    PRINCIPAL_KEY,
+    STACK_ROOT_KEY,
   )
 
 
-@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def execute(configurations={}, parameters={}, host_name=None):
-  """
-  Returns a tuple containing the result code and a pre-formatted result label
+def _boolean(value, name):
+  normalized = str(value).strip().lower()
+  if normalized not in ("true", "false"):
+    raise ValueError(f"{name} must be true or false")
+  return normalized == "true"
 
-  Keyword arguments:
-  configurations (dictionary): a mapping of configuration key to value
-  parameters (dictionary): a mapping of script parameter key to value
-  host_name (string): the name of this host where the alert is running
-  """
 
-  spark_home = os.path.join(stack_root, "current", "spark-client")
+def _bounded_port(value):
+  port = int(value)
+  if not 1 <= port <= 65535:
+    raise ValueError("port is outside 1..65535")
+  return port
 
-  if configurations is None:
-    return ("UNKNOWN", ["There were no configurations supplied to the script."])
 
-  transport_mode = HIVE_SERVER_TRANSPORT_MODE_DEFAULT
-  if HIVE_SERVER_TRANSPORT_MODE_KEY in configurations:
-    transport_mode = configurations[HIVE_SERVER_TRANSPORT_MODE_KEY]
-
-  if HIVE_SERVER_HTTP_ENDPOINT in configurations:
-    http_endpoint = configurations[HIVE_SERVER_HTTP_ENDPOINT]
-
-  port = THRIFT_PORT_DEFAULT
+def _regular_file(path, name, executable=False):
   if (
-    transport_mode.lower() == "binary" and HIVE_SERVER_THRIFT_PORT_KEY in configurations
+    not isinstance(path, str)
+    or not os.path.isabs(path)
+    or os.path.normpath(path) != path
+    or _PATH_PATTERN.fullmatch(path) is None
   ):
-    port = int(configurations[HIVE_SERVER_THRIFT_PORT_KEY])
-  elif (
-    transport_mode.lower() == "http"
-    and HIVE_SERVER_THRIFT_HTTP_PORT_KEY in configurations
-  ):
-    port = int(configurations[HIVE_SERVER_THRIFT_HTTP_PORT_KEY])
+    raise ValueError(f"{name} path is invalid")
+  if not sudo.path_lexists(path) or sudo.path_islink(path) or not sudo.path_isfile(path):
+    raise ValueError(f"{name} must be a regular non-symlink file")
+  if executable and sudo.stat(path).st_mode & 0o111 == 0:
+    raise ValueError(f"{name} is not executable")
+  return path
 
-  ssl_enabled = False
-  if (
-    HIVE_SERVER2_USE_SSL_KEY in configurations
-    and str(configurations[HIVE_SERVER2_USE_SSL_KEY]).upper() == "TRUE"
-  ):
-    ssl_enabled = True
 
-  security_enabled = False
-  if SECURITY_ENABLED_KEY in configurations:
-    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == "TRUE"
-
-  hive_kerberos_keytab = None
-  if HIVE_SERVER2_KERBEROS_KEYTAB in configurations:
-    hive_kerberos_keytab = configurations[HIVE_SERVER2_KERBEROS_KEYTAB]
-
-  if host_name is None:
-    host_name = socket.getfqdn()
-
-  hive_principal = None
-  if HIVE_SERVER2_PRINCIPAL_KEY in configurations:
-    hive_principal = configurations[HIVE_SERVER2_PRINCIPAL_KEY]
-    hive_principal = hive_principal.replace("_HOST", host_name.lower())
-
-  # Get the configured Kerberos executable search paths, if any
-  if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
-    kerberos_executable_search_paths = configurations[
-      KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY
-    ]
+def _resolve_stack_root(configured_stack_root):
+  if not isinstance(configured_stack_root, str) or not configured_stack_root.strip():
+    raise ValueError("cluster-env/stack_root is required")
+  configured_stack_root = configured_stack_root.strip()
+  if configured_stack_root.startswith("{"):
+    try:
+      stack_roots = json.loads(configured_stack_root)
+    except json.JSONDecodeError as error:
+      raise ValueError("cluster-env/stack_root must be valid JSON") from error
+    if not isinstance(stack_roots, dict) or "BIGTOP" not in stack_roots:
+      raise ValueError("cluster-env/stack_root must define BIGTOP")
+    stack_root = get_stack_root("BIGTOP", configured_stack_root)
   else:
-    kerberos_executable_search_paths = None
+    stack_root = configured_stack_root
+  if (
+    not isinstance(stack_root, str)
+    or not os.path.isabs(stack_root)
+    or stack_root.startswith("//")
+    or os.path.normpath(stack_root) != stack_root
+    or stack_root == os.sep
+    or _PATH_PATTERN.fullmatch(stack_root) is None
+  ):
+    raise ValueError("BIGTOP stack root must be a safe absolute directory")
+  return stack_root
 
-  kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
 
-  sparkuser = configurations[SPARK_USER_KEY]
+def _beeline_url(host, port, transport, endpoint, ssl_enabled, principal):
+  if _HOST_PATTERN.fullmatch(host) is None or ".." in host:
+    raise ValueError("host name is invalid")
+  options = []
+  if principal:
+    options.append(f"principal={principal.replace('_HOST', host.lower())}")
+  options.append(f"transportMode={transport}")
+  if transport == "http":
+    if not endpoint or "/" in endpoint or any(character.isspace() for character in endpoint):
+      raise ValueError("HTTP endpoint is invalid")
+    options.append(f"httpPath={endpoint}")
+    if ssl_enabled:
+      options.append("ssl=true")
+  return ";".join((f"jdbc:hive2://{host}:{port}/default",) + tuple(options))
 
-  if security_enabled:
-    kinitcmd = format(
-      "{kinit_path_local} -kt {hive_kerberos_keytab} {hive_principal}; "
-    )
-    # prevent concurrent kinit
-    kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
-    kinit_lock.acquire()
-    try:
-      Execute(kinitcmd, user=sparkuser)
-    finally:
-      kinit_lock.release()
 
-  result_code = None
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def execute(configurations=None, parameters=None, host_name=None):
+  if not configurations:
+    return "UNKNOWN", ["There were no configurations supplied to the script."]
+  parameters = parameters or {}
   try:
-    if host_name is None:
-      host_name = socket.getfqdn()
-
-    beeline_url = [
-      "jdbc:hive2://{host_name}:{port}/default",
-      "transportMode={transport_mode}",
-    ]
-    if security_enabled:
-      beeline_url.append("principal={hive_principal}")
-    if transport_mode == "http":
-      beeline_url.append("httpPath={http_endpoint}")
-      if ssl_enabled:
-        beeline_url.append("ssl=true")
-
-    # append url according to used transport
-
-    beeline_cmd = os.path.join(spark_home, "bin", "beeline")
-    cmd = (
-      "! %s -u '%s'  -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL' -e 'Error: Could not open'"
-      % (beeline_cmd, format(";".join(beeline_url)))
+    host = (host_name or socket.getfqdn()).lower()
+    transport = str(configurations.get(TRANSPORT_KEY, "binary")).strip().lower()
+    if transport not in ("binary", "http"):
+      raise ValueError("transport mode must be binary or http")
+    port = _bounded_port(configurations[PORT_KEY if transport == "binary" else HTTP_PORT_KEY])
+    timeout = int(float(parameters.get(TIMEOUT_KEY, 60)))
+    if not 1 <= timeout <= 300:
+      raise ValueError("check timeout must be between 1 and 300 seconds")
+    secure = _boolean(configurations.get(SECURITY_KEY, False), "security_enabled")
+    user = configurations[SPARK_USER_KEY]
+    endpoint = configurations.get(ENDPOINT_KEY, "cliservice")
+    stack_root = _resolve_stack_root(configurations.get(STACK_ROOT_KEY))
+    url = _beeline_url(
+      host,
+      port,
+      transport,
+      endpoint,
+      _boolean(configurations.get(SSL_KEY, False), "hive.server2.use.SSL"),
+      configurations.get(PRINCIPAL_KEY) if secure else None,
     )
+  except (KeyError, TypeError, ValueError) as error:
+    return "UNKNOWN", [f"Invalid Spark Thrift Server alert configuration: {error}"]
 
-    start_time = time.time()
-    try:
+  started = time.monotonic()
+  try:
+    beeline = _regular_file(
+      os.path.join(stack_root, "current", "spark-client", "bin", "beeline"),
+      "Spark Beeline",
+      executable=True,
+    )
+    command = (beeline, "-u", url, "-e", "SELECT 1")
+    if secure:
+      keytab = configurations.get(KEYTAB_KEY)
+      principal = configurations.get(PRINCIPAL_KEY)
+      if not keytab or not principal:
+        return "UNKNOWN", ["Secure Spark Thrift Server alert requires a principal and keytab."]
+      _regular_file(keytab, "Spark Thrift Server keytab")
+      with PrivateKerberosCache(
+        user,
+        temp_dir="/tmp",
+        prefix="ambari-spark-thrift-alert-",
+      ) as cache:
+        cache.kinit(
+          get_kinit_path(configurations.get(SEARCH_PATHS_KEY)),
+          keytab,
+          principal.replace("_HOST", host),
+          timeout=30,
+        )
+        Execute(
+          command,
+          user=user,
+          environment=cache.environment,
+          timeout=timeout,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
+    else:
       Execute(
-        cmd, user=sparkuser, path=[beeline_cmd], timeout=CHECK_COMMAND_TIMEOUT_DEFAULT
+        command,
+        user=user,
+        timeout=timeout,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       )
-      total_time = time.time() - start_time
-      result_code = "OK"
-      label = OK_MESSAGE.format(total_time, port)
-    except:
-      result_code = "CRITICAL"
-      label = CRITICAL_MESSAGE.format(host_name, port, traceback.format_exc())
-  except:
-    label = traceback.format_exc()
-    result_code = "UNKNOWN"
-
-  return (result_code, [label])
+    elapsed = time.monotonic() - started
+    return "OK", [
+      f"Spark Thrift Server responded on port {port} in {elapsed:.3f}s"
+    ]
+  except Exception as error:
+    return "CRITICAL", [f"Spark Thrift Server check failed on {host}:{port}: {error}"]

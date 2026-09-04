@@ -18,7 +18,6 @@ package org.apache.ambari.funtest.server.orm;
  * limitations under the License.
  */
 
-import java.io.File;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
@@ -62,11 +61,6 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     String stacks = "src/test/resources/stacks";
     String version = "src/test/resources/version";
     String sharedResourcesDir = "src/test/resources/";
-    if (System.getProperty("os.name").contains("Windows")) {
-      stacks = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
-      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version").getPath();
-      sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
-    }
 
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
     properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks);

@@ -21,7 +21,7 @@ import os
 from unittest import TestCase
 
 from ambari_agent.models.hooks import HookPrefix
-from mock.mock import patch
+from unittest.mock import patch
 from ambari_agent.CommandHooksOrchestrator import (
   HookSequenceBuilder,
   ResolvedHooks,
@@ -70,6 +70,11 @@ class TestCommandHooksOrchestrator(TestCase):
 
     self.assertEqual(seq, check_list)
     self.assertEqual(seq_rev, check_list_1)
+
+  def test_hook_seq_builder_skips_role_hook_without_role(self):
+    seq = list(HookSequenceBuilder().build(HookPrefix.pre, "cmd", "srv", None))
+
+    self.assertEqual(seq, ["before-cmd", "before-cmd-srv"])
 
   def test_hook_resolved(self):
     def pre():

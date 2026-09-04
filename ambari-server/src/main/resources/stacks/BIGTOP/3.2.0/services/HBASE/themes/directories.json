@@ -92,10 +92,6 @@
           "subsection-name": "subsection-data-dirs"
         },
         {
-          "config": "hbase-site/hbase.bulkload.staging.dir",
-          "subsection-name": "subsection-data-dirs"
-        },
-        {
           "config": "hbase-site/hbase.local.dir",
           "subsection-name": "subsection-data-dirs"
         },
@@ -128,12 +124,6 @@
       },
       {
         "config": "hbase-env/hbase_java_io_tmpdir",
-        "widget": {
-          "type": "directories"
-        }
-      },
-      {
-        "config": "hbase-site/hbase.bulkload.staging.dir",
         "widget": {
           "type": "directories"
         }

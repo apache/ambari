@@ -18,37 +18,59 @@ limitations under the License.
 
 """
 
+import json
 import os
 import re
-import urllib.request, urllib.error, urllib.parse
-import subprocess
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import time
+import urllib.parse
+import urllib.request
+
+import hdfs_process
 
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions import check_process_status
-from resource_management.libraries.functions.check_process_status import (
-  wait_process_stopped,
-)
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.core import shell
-from resource_management.core.shell import as_user, as_sudo
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.source import Template
-from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.core.exceptions import ComponentIsNotRunning, Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.namenode_ha_utils import (
+  get_name_service_by_hostname,
   get_namenode_states,
 )
 from resource_management.libraries.functions.show_logs import show_logs
-from ambari_commons.inet_utils import ensure_ssl_using_protocol
+from ambari_commons.inet_utils import create_ssl_context
 from zkfc_slave import ZkfcSlaveDefault
+from hdfs_kerberos import hdfs_kerberos_environment
 
-ensure_ssl_using_protocol(
-  Script.get_force_https_protocol_name(), Script.get_ca_cert_file_path()
-)
+
+SUPPORTED_SERVICE_ACTIONS = {"start", "stop"}
+SUPPORTED_SERVICE_NAMES = {
+  "datanode",
+  "dfsrouter",
+  "journalnode",
+  "namenode",
+  "nfs3",
+  "secondarynamenode",
+  "zkfc",
+}
+SUPPORTED_SERVICE_OPTIONS = {
+  "": (),
+  "-rollingUpgrade downgrade": ("-rollingUpgrade", "downgrade"),
+  "-rollingUpgrade started": ("-rollingUpgrade", "started"),
+}
+SERVICE_USER_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_.-]*[$]?\Z")
+
+
+def _show_logs_without_masking(log_dir, user):
+  try:
+    show_logs(log_dir, user)
+  except Exception as log_error:
+    Logger.error(f"Could not collect HDFS logs from {log_dir}: {log_error}")
 
 
 def safe_zkfc_op(action, env):
@@ -57,15 +79,17 @@ def safe_zkfc_op(action, env):
   :param action: start or stop
   :param env: environment
   """
+  if action not in SUPPORTED_SERVICE_ACTIONS:
+    raise Fail(f"Unsupported ZKFC action: {action!r}")
+
   Logger.info(f"Performing action {action} on zkfc.")
-  zkfc = None
   if action == "start":
     try:
       ZkfcSlaveDefault.status_static(env)
     except ComponentIsNotRunning:
       ZkfcSlaveDefault.start_static(env)
 
-  if action == "stop":
+  else:
     try:
       ZkfcSlaveDefault.status_static(env)
     except ComponentIsNotRunning:
@@ -75,25 +99,28 @@ def safe_zkfc_op(action, env):
 
 
 def initiate_safe_zkfc_failover():
+  import params
+
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-zkfc-failover-"
+  ) as command_environment:
+    _initiate_safe_zkfc_failover(params, command_environment)
+
+
+def _initiate_safe_zkfc_failover(params, environment):
   """
   If this is the active namenode, initiate a safe failover and wait for it to become the standby.
 
   If an error occurs, force a failover to happen by killing zkfc on this host. In this case, during the Restart,
   will also have to start ZKFC manually.
   """
-  import params
-
-  # Must kinit before running the HDFS command
-  if params.security_enabled:
-    Execute(
-      format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-      user=params.hdfs_user,
-    )
-
   active_namenode_id = None
   standby_namenode_id = None
   active_namenodes, standby_namenodes, unknown_namenodes = get_namenode_states(
-    params.hdfs_site, params.security_enabled, params.hdfs_user
+    params.hdfs_site,
+    params.security_enabled,
+    params.hdfs_user,
+    environment=environment,
   )
   if active_namenodes:
     active_namenode_id = active_namenodes[0][0]
@@ -119,16 +146,40 @@ def initiate_safe_zkfc_failover():
       )
     )
 
-    failover_command = format(
-      "hdfs haadmin -ns {dfs_ha_nameservices} -failover {namenode_id} {other_namenode_id}"
+    name_service = get_name_service_by_hostname(
+      params.hdfs_site, params.hostname
     )
-    check_standby_cmd = format(
-      "hdfs haadmin -ns {dfs_ha_nameservices} -getServiceState {namenode_id} | grep standby"
+    if not name_service:
+      raise Fail(f"Could not determine the HDFS nameservice for {params.hostname}")
+    failover_command = (
+      "hdfs",
+      "haadmin",
+      "-ns",
+      name_service,
+      "-failover",
+      params.namenode_id,
+      params.other_namenode_id,
+    )
+    check_standby_cmd = (
+      "hdfs",
+      "haadmin",
+      "-ns",
+      name_service,
+      "-getServiceState",
+      params.namenode_id,
     )
 
     msg = f"Rolling Upgrade - Initiating a ZKFC failover on active NameNode host {params.hostname}."
     Logger.info(msg)
-    code, out = shell.call(failover_command, user=params.hdfs_user, logoutput=True)
+    code, out = shell.call(
+      failover_command,
+      user=params.hdfs_user,
+      logoutput=True,
+      env=environment,
+      timeout=60,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      shell=False,
+    )
     Logger.info(format("Rolling Upgrade - failover command returned {code}"))
     wait_for_standby = False
 
@@ -137,7 +188,15 @@ def initiate_safe_zkfc_failover():
     else:
       # Try to kill ZKFC manually
       was_zkfc_killed = kill_zkfc(params.hdfs_user)
-      code, out = shell.call(check_standby_cmd, user=params.hdfs_user, logoutput=True)
+      code, out = shell.call(
+        check_standby_cmd,
+        user=params.hdfs_user,
+        logoutput=True,
+        env=environment,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        shell=False,
+      )
       Logger.info(format("Rolling Upgrade - check for standby returned {code}"))
       if code == 255 and out:
         Logger.info("Rolling Upgrade - NameNode is already down.")
@@ -148,9 +207,22 @@ def initiate_safe_zkfc_failover():
 
     if wait_for_standby:
       Logger.info("Waiting for this NameNode to become the standby one.")
-      Execute(
-        check_standby_cmd, user=params.hdfs_user, tries=50, try_sleep=6, logoutput=True
-      )
+      for attempt in range(50):
+        code, output = shell.call(
+          check_standby_cmd,
+          user=params.hdfs_user,
+          logoutput=True,
+          env=environment,
+          timeout=60,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          shell=False,
+        )
+        if code == 0 and output and output.strip().lower() == "standby":
+          break
+        if attempt + 1 < 50:
+          time.sleep(6)
+      else:
+        raise Fail("NameNode did not transition to standby after ZKFC failover")
   else:
     msg = (
       f"Rolling Upgrade - Skipping ZKFC failover on NameNode host {params.hostname}."
@@ -170,20 +242,18 @@ def kill_zkfc(zkfc_user):
 
   if params.dfs_ha_enabled:
     if params.zkfc_pid_file:
-      check_process = as_user(
-        format(
-          "ls {zkfc_pid_file} > /dev/null 2>&1 && ps -p `cat {zkfc_pid_file}` > /dev/null 2>&1"
-        ),
-        user=zkfc_user,
+      identity = hdfs_process.recover_running_process(
+        params.zkfc_pid_file,
+        zkfc_user,
+        "zkfc",
+        owner=zkfc_user,
+        group=params.user_group,
       )
-      code, out = shell.call(check_process)
-      if code == 0:
+      if identity is not None:
         Logger.debug("ZKFC is running and will be killed.")
-        kill_command = format("kill -15 `cat {zkfc_pid_file}`")
-        Execute(kill_command, user=zkfc_user)
-        File(
-          params.zkfc_pid_file,
-          action="delete",
+        hdfs_process.terminate_process(identity, zkfc_user, "zkfc")
+        hdfs_process.remove_pid_file_if_stopped(
+          params.zkfc_pid_file, identity, zkfc_user, "zkfc"
         )
         return True
   return False
@@ -208,13 +278,21 @@ def service(
   import params
 
   options = options if options else ""
+  if action not in SUPPORTED_SERVICE_ACTIONS:
+    raise Fail(f"Unsupported HDFS service action: {action!r}")
+  if name not in SUPPORTED_SERVICE_NAMES:
+    raise Fail(f"Unsupported HDFS service name: {name!r}")
+  if options not in SUPPORTED_SERVICE_OPTIONS:
+    raise Fail(f"Unsupported HDFS service options: {options!r}")
+  if not isinstance(user, str) or SERVICE_USER_PATTERN.fullmatch(user) is None:
+    raise Fail(f"Invalid HDFS service user: {user!r}")
+
   pid_dir = format("{hadoop_pid_dir_prefix}/{user}")
   pid_file = format("{pid_dir}/hadoop-{user}-{name}.pid")
   hadoop_env_exports = {"HADOOP_LIBEXEC_DIR": params.hadoop_libexec_dir}
   log_dir = format("{hdfs_log_dir_prefix}/{user}")
 
-  # NFS GATEWAY is always started by root using jsvc due to rpcbind bugs
-  # on Linux such as CentOS6.2. https://bugzilla.redhat.com/show_bug.cgi?id=731542
+  # NFS Gateway is started by root because it binds privileged RPC ports.
   if name == "nfs3":
     pid_file = format("{pid_dir}/hadoop_privileged_nfs3.pid")
     custom_export = {
@@ -223,10 +301,6 @@ def service(
       "HADOOP_PRIVILEGED_NFS_LOG_DIR": log_dir,
     }
     hadoop_env_exports.update(custom_export)
-
-  process_id_exists_command = (
-    as_sudo(["test", "-f", pid_file]) + " && " + as_sudo(["pgrep", "-F", pid_file])
-  )
 
   # on STOP directories shouldn't be created
   # since during stop still old dirs are used (which were created during previous start)
@@ -253,6 +327,11 @@ def service(
       else:
         Directory(log_dir, owner=user, group=params.user_group, create_parents=True)
 
+  privileged = (
+    params.security_enabled
+    and name == "datanode"
+    and params.secure_dn_ports_are_in_use
+  )
   if params.security_enabled and name == "datanode":
     ## The directory where pid files are stored in the secure data environment.
     hadoop_secure_dn_pid_dir = format("{hadoop_pid_dir_prefix}/{hdfs_user}")
@@ -260,13 +339,10 @@ def service(
 
     hadoop_secure_dn_pid_file = status_params.datanode_pid_file
     pid_file = hadoop_secure_dn_pid_file
-    process_id_exists_command = (
-      as_sudo(["test", "-f", pid_file]) + " && " + as_sudo(["pgrep", "-F", pid_file])
-    )
-
     # At datanode_non_root stack version and further, we may start datanode as a non-root even in secure cluster
     if params.secure_dn_ports_are_in_use:
       user = "root"
+    process_user = user
 
     if action == "stop" and os.path.isfile(hadoop_secure_dn_pid_file):
       # We need special handling for this case to handle the situation
@@ -276,69 +352,127 @@ def service(
       user = "root"
 
       try:
-        check_process_status(hadoop_secure_dn_pid_file)
+        hdfs_process.check_component_status(
+          hadoop_secure_dn_pid_file,
+          process_user,
+          "datanode",
+          owner=process_user,
+          group=params.user_group,
+          privileged=privileged,
+        )
 
         custom_export = {"HADOOP_SECURE_DN_USER": params.hdfs_user}
         hadoop_env_exports.update(custom_export)
 
       except ComponentIsNotRunning:
         pass
+  else:
+    process_user = user
 
   hadoop_daemon = format("{hadoop_bin}/hadoop-daemon.sh")
 
-  if user == "root":
-    cmd = [hadoop_daemon, "--config", params.hadoop_conf_dir, action, name]
-    if options:
-      cmd += [
-        options,
-      ]
-    daemon_cmd = as_sudo(cmd)
-  else:
-    cmd = format(
-      "{ulimit_cmd} {hadoop_daemon} --config {hadoop_conf_dir} {action} {name}"
+  daemon_cmd = (
+    hadoop_daemon,
+    "--config",
+    params.hadoop_conf_dir,
+    action,
+    name,
+    *SUPPORTED_SERVICE_OPTIONS[options],
+  )
+  execute_as = {"sudo": True} if user == "root" else {"user": user}
+  if user != "root":
+    daemon_cmd = (
+      "bash",
+      "-c",
+      'ulimit -c unlimited; exec "$@"',
+      "ambari-hdfs-daemon",
+      *daemon_cmd,
     )
-    if options:
-      cmd += " " + options
-    daemon_cmd = as_user(cmd, user)
 
   if action == "start":
-    # remove pid file from dead process
-    File(pid_file, action="delete", not_if=process_id_exists_command)
+    running = hdfs_process.recover_running_process(
+      pid_file,
+      process_user,
+      name,
+      owner=process_user,
+      group=params.user_group,
+      privileged=privileged,
+    )
+    if running is not None:
+      return
 
     try:
       Execute(
-        daemon_cmd, not_if=process_id_exists_command, environment=hadoop_env_exports
+        daemon_cmd,
+        environment=hadoop_env_exports,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        **execute_as,
       )
-    except:
-      show_logs(log_dir, user)
+      hdfs_process.wait_for_running_process(
+        pid_file,
+        process_user,
+        name,
+        owner=process_user,
+        group=params.user_group,
+        privileged=privileged,
+      )
+    except Exception:
+      _show_logs_without_masking(log_dir, user)
       raise
   elif action == "stop":
+    identity = hdfs_process.recover_running_process(
+      pid_file,
+      process_user,
+      name,
+      owner=process_user,
+      group=params.user_group,
+      privileged=privileged,
+    )
+    if identity is None:
+      return
+
     try:
       Execute(
-        daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports
+        daemon_cmd,
+        environment=hadoop_env_exports,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        **execute_as,
       )
-    except:
-      show_logs(log_dir, user)
+    except Exception:
+      try:
+        hdfs_process.terminate_process(
+          identity, process_user, name, privileged=privileged
+        )
+        hdfs_process.remove_pid_file_if_stopped(
+          pid_file,
+          identity,
+          process_user,
+          name,
+          privileged=privileged,
+        )
+      except Exception as cleanup_error:
+        Logger.error(
+          f"Could not finish stopping HDFS {name} after its stop command failed: "
+          f"{cleanup_error}"
+        )
+      _show_logs_without_masking(log_dir, user)
       raise
 
-    # Wait until stop actually happens
-    process_id_does_not_exist_command = format("! ( {process_id_exists_command} )")
-    code, out = shell.call(
-      process_id_does_not_exist_command,
-      env=hadoop_env_exports,
-      tries=6,
-      try_sleep=10,
-    )
-
-    # If stop didn't happen, kill it forcefully
-    if code != 0:
-      code, out, err = shell.checked_call(
-        ("cat", pid_file), sudo=True, env=hadoop_env_exports, stderr=subprocess.PIPE
+    if not hdfs_process.wait_for_process_stopped(
+      identity, process_user, name, privileged=privileged
+    ):
+      hdfs_process.terminate_process(
+        identity, process_user, name, privileged=privileged
       )
-      pid = out
-      Execute(("kill", "-9", pid), sudo=True)
-
-    File(pid_file, action="delete")
+    hdfs_process.remove_pid_file_if_stopped(
+      pid_file,
+      identity,
+      process_user,
+      name,
+      privileged=privileged,
+    )
 
 
 def get_jmx_data(
@@ -380,7 +514,11 @@ def get_jmx_data(
       params.smoke_user,
     )
   else:
-    data = urllib.request.urlopen(nn_address).read()
+    context = create_ssl_context(
+      Script.get_force_https_protocol_name(), Script.get_ca_cert_file_path()
+    )
+    with urllib.request.urlopen(nn_address, context=context, timeout=10) as response:
+      data = response.read()
   my_data = None
   if data:
     data_dict = json.loads(data)
@@ -401,15 +539,33 @@ def get_jmx_data(
 
 def get_port(address):
   """
-  Extracts port from the address like 0.0.0.0:1019
+  Extracts a valid TCP port from an HTTP URL or host:port authority.
   """
   if address is None:
     return None
-  m = re.search(r"(?:http(?:s)?://)?([\w\d.]*):(\d{1,5})", address)
-  if m is not None and len(m.groups()) >= 2:
-    return int(m.group(2))
-  else:
-    return None
+  if not isinstance(address, str) or not address or address != address.strip():
+    raise Fail(f"Invalid HDFS network address {address!r}")
+
+  has_scheme = "://" in address
+  parsed = urllib.parse.urlparse(address if has_scheme else f"//{address}")
+  if (
+    (has_scheme and parsed.scheme not in ("http", "https"))
+    or parsed.hostname is None
+    or parsed.username is not None
+    or parsed.password is not None
+    or parsed.path not in ("", "/")
+    or parsed.params
+    or parsed.query
+    or parsed.fragment
+  ):
+    raise Fail(f"Invalid HDFS network address {address!r}")
+  try:
+    port = parsed.port
+  except ValueError as error:
+    raise Fail(f"Invalid HDFS network address {address!r}") from error
+  if port is None:
+    raise Fail(f"Invalid HDFS network address {address!r}")
+  return port
 
 
 def is_secure_port(port):
@@ -456,42 +612,15 @@ def get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=False):
   :param hdfs_binary: path to hdfs binary to use
   :param use_specific_namenode: flag if set and Namenode HA is enabled, then the dfsadmin command will use
   current namenode's address
-  :return: the constructed dfsadmin base command
+  :return: the constructed dfsadmin command argument tuple
   """
   import params
 
-  dfsadmin_base_command = ""
   if params.dfs_ha_enabled and use_specific_namenode:
-    dfsadmin_base_command = format(
-      "{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc}"
-    )
+    filesystem = f"hdfs://{params.namenode_rpc}"
   else:
-    dfsadmin_base_command = format(
-      "{hdfs_binary} dfsadmin -fs {params.namenode_address}"
-    )
-  return dfsadmin_base_command
-
-
-def get_dfsrouteradmin_base_command(hdfs_binary, use_specific_router=False):
-  """
-  Get the dfsrouteradmin base command constructed using hdfs_binary path and passing router address as explicit -fs argument
-  :param hdfs_binary: path to hdfs binary to use
-  :param use_specific_router: flag if set and Router HA is enabled, then the dfsrouteradmin command will use
-  current router's address
-  :return: the constructed dfsrouteradmin base command
-  """
-  import params
-
-  dfsrouteradmin_base_command = ""
-  if params.dfs_ha_enabled and use_specific_router:
-    dfsrouteradmin_base_command = format(
-      "{hdfs_binary} dfsrouteradmin -fs hdfs://{params.router_rpc}"
-    )
-  else:
-    dfsadmin_base_command = format(
-      "{hdfs_binary} dfsrouteradmin -fs {params.router_address}"
-    )
-  return dfsrouteradmin_base_command
+    filesystem = params.namenode_address
+  return (hdfs_binary, "dfsadmin", "-fs", filesystem)
 
 
 def set_up_zkfc_security(params):
@@ -499,21 +628,21 @@ def set_up_zkfc_security(params):
 
   if params.stack_supports_zk_security is False:
     Logger.info(
-      "Skipping setting up secure ZNode ACL for HFDS as it's supported only for HDP 2.6 and above."
+      "Skipping secure HDFS ZNode ACL setup because the stack feature is disabled."
     )
     return
 
   # check if the namenode is HA
   if params.dfs_ha_enabled is False:
     Logger.info(
-      "Skipping setting up secure ZNode ACL for HFDS as it's supported only for NameNode HA mode."
+      "Skipping secure HDFS ZNode ACL setup because NameNode HA is disabled."
     )
     return
 
   # check if the cluster is secure (skip otherwise)
   if params.security_enabled is False:
     Logger.info(
-      "Skipping setting up secure ZNode ACL for HFDS as it's supported only for secure clusters."
+      "Skipping secure HDFS ZNode ACL setup because Kerberos is disabled."
     )
     return
 
@@ -522,6 +651,6 @@ def set_up_zkfc_security(params):
     os.path.join(params.hadoop_conf_secure_dir, "hdfs_jaas.conf"),
     owner=params.hdfs_user,
     group=params.user_group,
-    mode=0o644,
+    mode=0o640,
     content=Template("hdfs_jaas.conf.j2"),
   )

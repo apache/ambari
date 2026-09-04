@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import os
+from ranger_utils import require_nonempty_secret, strict_bool, strict_yes_no
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.format import format
@@ -60,11 +61,15 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
 
-xml_configurations_supported = config["configurations"]["ranger-env"][
-  "xml_configurations_supported"
-]
+xml_configurations_supported = strict_bool(
+  config["configurations"]["ranger-env"]["xml_configurations_supported"],
+  "ranger-env/xml_configurations_supported",
+)
 
-create_db_dbuser = config["configurations"]["ranger-env"]["create_db_dbuser"]
+create_db_dbuser = strict_bool(
+  config["configurations"]["ranger-env"]["create_db_dbuser"],
+  "ranger-env/create_db_dbuser",
+)
 
 # get the correct version to use for checking stack features
 version_for_stack_feature_checks = get_stack_feature_version(config)
@@ -92,9 +97,6 @@ stack_supports_usersync_passwd = check_stack_feature(
 )
 stack_supports_infra_client = check_stack_feature(
   StackFeature.RANGER_INSTALL_INFRA_CLIENT, version_for_stack_feature_checks
-)
-stack_supports_pid = check_stack_feature(
-  StackFeature.RANGER_PID_SUPPORT, version_for_stack_feature_checks
 )
 stack_supports_ranger_admin_password_change = check_stack_feature(
   StackFeature.RANGER_ADMIN_PASSWD_CHANGE, version_for_stack_feature_checks
@@ -164,12 +166,6 @@ if upgrade_direction == Direction.DOWNGRADE and not check_stack_feature(
   StackFeature.RANGER_USERSYNC_NON_ROOT, version_for_stack_feature_checks
 ):
   stack_supports_usersync_non_root = False
-
-ranger_stop = format("{ranger_admin_services_file} stop")
-ranger_start = format("{ranger_admin_services_file} start")
-
-usersync_stop = format("{usersync_services_file} stop")
-usersync_start = format("{usersync_services_file} start")
 
 java_home = config["ambariLevelParams"]["java_home"]
 ambari_java_home = config["ambariLevelParams"]["ambari_java_home"]
@@ -345,15 +341,14 @@ ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"][
 ]
 ugsync_cred_lib = os.path.join(usersync_home, "lib", "*")
 cred_lib_path = os.path.join(ranger_home, "cred", "lib", "*")
-cred_setup_prefix = (
-  format("{ranger_home}/ranger_credential_helper.py"),
-  "-l",
-  cred_lib_path,
-)
 ranger_audit_source_type = config["configurations"]["ranger-admin-site"][
   "ranger.audit.source.type"
 ]
 
+ranger_usersync_ssl_enabled = strict_bool(
+  config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ssl"],
+  "ranger-ugsync-site/ranger.usersync.ssl",
+)
 ranger_usersync_keystore_password = str(
   config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.password"]
 )
@@ -422,7 +417,10 @@ usersync_logback_content = config["configurations"]["usersync-logback"]["content
 tagsync_logback_content = config["configurations"]["tagsync-logback"]["content"]
 
 # ranger kerberos
-security_enabled = config["configurations"]["cluster-env"]["security_enabled"]
+security_enabled = strict_bool(
+  config["configurations"]["cluster-env"]["security_enabled"],
+  "cluster-env/security_enabled",
+)
 namenode_hosts = default("/clusterHostInfo/namenode_hosts", [])
 has_namenode = len(namenode_hosts) > 0
 
@@ -434,8 +432,9 @@ ugsync_policymgr_keystore = config["configurations"]["ranger-ugsync-site"][
 ]
 
 # ranger solr
-audit_solr_enabled = default(
-  "/configurations/ranger-env/xasecure.audit.destination.solr", False
+audit_solr_enabled = strict_bool(
+  default("/configurations/ranger-env/xasecure.audit.destination.solr", False),
+  "ranger-env/xasecure.audit.destination.solr",
 )
 ranger_solr_config_set = config["configurations"]["ranger-env"][
   "ranger_solr_config_set"
@@ -450,9 +449,13 @@ replication_factor = config["configurations"]["ranger-env"][
 ranger_solr_conf = format("{ranger_home}/contrib/solr_for_audit_setup/conf")
 infra_solr_hosts = default("/clusterHostInfo/infra_solr_hosts", [])
 has_infra_solr = len(infra_solr_hosts) > 0
-is_solrCloud_enabled = default("/configurations/ranger-env/is_solrCloud_enabled", False)
-is_external_solrCloud_enabled = default(
-  "/configurations/ranger-env/is_external_solrCloud_enabled", False
+is_solrCloud_enabled = strict_bool(
+  default("/configurations/ranger-env/is_solrCloud_enabled", False),
+  "ranger-env/is_solrCloud_enabled",
+)
+is_external_solrCloud_enabled = strict_bool(
+  default("/configurations/ranger-env/is_external_solrCloud_enabled", False),
+  "ranger-env/is_external_solrCloud_enabled",
 )
 solr_znode = "/ranger_audits"
 if stack_supports_infra_client and is_solrCloud_enabled:
@@ -505,8 +508,9 @@ for host in zookeeper_hosts:
 
 # solr kerberised
 solr_jaas_file = None
-is_external_solrCloud_kerberos = default(
-  "/configurations/ranger-env/is_external_solrCloud_kerberos", False
+is_external_solrCloud_kerberos = strict_bool(
+  default("/configurations/ranger-env/is_external_solrCloud_kerberos", False),
+  "ranger-env/is_external_solrCloud_kerberos",
 )
 
 if security_enabled:
@@ -605,7 +609,9 @@ ranger_usersync_pid_file = format("{ranger_pid_dir}/usersync.pid")
 # admin credential
 admin_username = config["configurations"]["ranger-env"]["admin_username"]
 admin_password = config["configurations"]["ranger-env"]["admin_password"]
-default_admin_password = "admin"
+# Ranger seeds these accounts before Ambari can supply deployment credentials. These
+# values are accepted only as the old side of the mandatory pre-start rotation.
+upstream_bootstrap_admin_password = "admin"
 
 ranger_is_solr_kerberised = "false"
 if audit_solr_enabled and is_solrCloud_enabled:
@@ -629,11 +635,11 @@ if is_hbase_ha_enabled:
       "ranger-hbase-plugin-enabled"
     ]
   ):
-    ranger_hbase_plugin_enabled = (
+    ranger_hbase_plugin_enabled = strict_yes_no(
       config["configurations"]["ranger-hbase-plugin-properties"][
         "ranger-hbase-plugin-enabled"
-      ].lower()
-      == "yes"
+      ],
+      "ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled",
     )
 if is_namenode_ha_enabled:
   if not is_empty(
@@ -641,11 +647,11 @@ if is_namenode_ha_enabled:
       "ranger-hdfs-plugin-enabled"
     ]
   ):
-    ranger_hdfs_plugin_enabled = (
+    ranger_hdfs_plugin_enabled = strict_yes_no(
       config["configurations"]["ranger-hdfs-plugin-properties"][
         "ranger-hdfs-plugin-enabled"
-      ].lower()
-      == "yes"
+      ],
+      "ranger-hdfs-plugin-properties/ranger-hdfs-plugin-enabled",
     )
 
 ranger_admin_password_properties = [
@@ -685,12 +691,16 @@ ranger_https_keystore_alias = default(
 ranger_truststore_alias = default(
   "/configurations/ranger-admin-site/ranger.truststore.alias", "trustStoreAlias"
 )
-https_enabled = config["configurations"]["ranger-admin-site"][
-  "ranger.service.https.attrib.ssl.enabled"
-]
-http_enabled = config["configurations"]["ranger-admin-site"][
-  "ranger.service.http.enabled"
-]
+https_enabled = strict_bool(
+  config["configurations"]["ranger-admin-site"][
+    "ranger.service.https.attrib.ssl.enabled"
+  ],
+  "ranger-admin-site/ranger.service.https.attrib.ssl.enabled",
+)
+http_enabled = strict_bool(
+  config["configurations"]["ranger-admin-site"]["ranger.service.http.enabled"],
+  "ranger-admin-site/ranger.service.http.enabled",
+)
 https_keystore_password = config["configurations"]["ranger-admin-site"][
   "ranger.service.https.attrib.keystore.pass"
 ]
@@ -723,26 +733,30 @@ rangerusersync_username = "rangerusersync"
 rangerusersync_user_password = config["configurations"]["ranger-env"][
   "rangerusersync_user_password"
 ]
-default_rangerusersync_user_password = "rangerusersync"
+upstream_bootstrap_rangerusersync_password = "rangerusersync"
 
 # rangertagsync user credential
 rangertagsync_username = "rangertagsync"
 rangertagsync_user_password = config["configurations"]["ranger-env"][
   "rangertagsync_user_password"
 ]
-default_rangertagsync_user_password = "rangertagsync"
+upstream_bootstrap_rangertagsync_password = "rangertagsync"
 
 # keyadmin user credential
 keyadmin_username = "keyadmin"
 keyadmin_user_password = config["configurations"]["ranger-env"][
   "keyadmin_user_password"
 ]
-default_keyadmin_user_password = "keyadmin"
+upstream_bootstrap_keyadmin_password = "keyadmin"
 
 # atlas admin user password
 atlas_admin_password = default(
-  "/configurations/atlas-env/atlas.admin.password", "admin"
+  "/configurations/atlas-env/atlas.admin.password", None
 )
+if is_ranger_tagsync_host and stack_supports_ranger_tagsync_ssl_xml_support:
+  atlas_admin_password = require_nonempty_secret(
+    atlas_admin_password, "atlas-env/atlas.admin.password"
+  )
 
 mount_table_content = None
 if "viewfs-mount-table" in config["configurations"]:
@@ -767,10 +781,10 @@ ranger_tagsync_max_heap_size = default(
 add_zoneName_field = {
   "add-field": {"name": "zoneName", "type": "key_lower_case", "multiValued": False}
 }
-infra_solr_ssl_enabled = default(
-  "/configurations/infra-solr-env/infra_solr_ssl_enabled", False
+infra_solr_ssl_enabled = strict_bool(
+  default("/configurations/infra-solr-env/infra_solr_ssl_enabled", False),
+  "infra-solr-env/infra_solr_ssl_enabled",
 )
-infra_solr_protocol = "https" if infra_solr_ssl_enabled else "http"
 infra_solr_port = default("/configurations/infra-solr-env/infra_solr_port", "8886")
 if has_infra_solr:
   infra_solr_host = infra_solr_hosts[0]

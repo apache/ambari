@@ -39,13 +39,6 @@
               </auto-deploy>
             </dependency>
             <dependency>
-              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
-            <dependency>
               <name>YARN/YARN_CLIENT</name>
               <scope>host</scope>
               <auto-deploy>
@@ -72,8 +65,8 @@
           </commandScript>
           <configFiles>
             <configFile>
-              <type>xml</type>
-              <fileName>flink-conf.xml</fileName>
+              <type>env</type>
+              <fileName>flink-conf.yaml</fileName>
               <dictionaryName>flink-conf</dictionaryName>
             </configFile>
           </configFiles>
@@ -92,23 +85,24 @@
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
-            <dependency>
-              <name>MAPREDUCE2/MAPREDUCE2_CLIENT</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>true</enabled>
-              </auto-deploy>
-            </dependency>
           </dependencies>
         </component>
       </components>
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>flink_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>flink-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

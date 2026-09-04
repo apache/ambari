@@ -21,6 +21,17 @@
   <name>Ambari Functional Tests</name>
   <description>Ambari Functional Tests</description>
   <build>
+    <testResources>
+      <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+      </testResource>
+      <testResource>
+        <directory>${project.basedir}/../ambari-server/conf/unix</directory>
+        <includes>
+          <include>ca.config</include>
+        </includes>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -181,23 +192,6 @@
         <fileextension.dot.shell-default></fileextension.dot.shell-default>
         <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
       </properties>
-    </profile>
-    <profile>
-      <id>windows</id>
-      <activation>
-        <os>
-          <family>win</family>
-        </os>
-      </activation>
-      <properties>
-        <envClassifier>win</envClassifier>
-        <dirsep>\</dirsep>
-        <pathsep>;</pathsep>
-        <executable.shell>cmd</executable.shell>
-        <fileextension.shell>cmd</fileextension.shell>
-        <fileextension.dot.shell-default></fileextension.dot.shell-default>
-        <assemblydescriptor>src/main/assemblies/empty.xml</assemblydescriptor>
-        </properties>
     </profile>
   </profiles>
   <dependencies>

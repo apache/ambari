@@ -18,13 +18,11 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from hbase import hbase
-from ambari_commons import OSCheck, OSConst
+import upgrade
 from ambari_commons.os_family_impl import OsFamilyImpl
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 
@@ -35,6 +33,7 @@ class HbaseClient(Script):
 
     env.set_params(params)
     self.install_packages(env)
+    upgrade.select_phoenix_packages(params)
     self.configure(env)
 
   def configure(self, env):
@@ -47,11 +46,6 @@ class HbaseClient(Script):
     raise ClientComponentHasNoStatus()
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HbaseClientWindows(HbaseClient):
-  pass
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HbaseClientDefault(HbaseClient):
   def pre_upgrade_restart(self, env, upgrade_type=None):
@@ -62,12 +56,7 @@ class HbaseClientDefault(HbaseClient):
     if params.version and check_stack_feature(
       StackFeature.ROLLING_UPGRADE, params.version
     ):
-      # phoenix may not always be deployed
-      try:
-        stack_select.select_packages(params.version)
-      except Exception as e:
-        print("Ignoring error due to missing phoenix-client")
-        print(str(e))
+      upgrade.select_hbase_packages(params)
 
 
 if __name__ == "__main__":

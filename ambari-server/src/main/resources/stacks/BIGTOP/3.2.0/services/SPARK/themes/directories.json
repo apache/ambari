@@ -69,14 +69,6 @@
           "subsection-name": "subsection-log-dirs"
         },
         {
-          "config": "spark-thrift-sparkconf/spark.eventLog.dir",
-          "subsection-name": "subsection-log-dirs"
-        },
-        {
-          "config": "spark-thrift-sparkconf/spark.history.fs.logDirectory",
-          "subsection-name": "subsection-log-dirs"
-        },
-        {
           "config": "spark-env/spark_log_dir",
           "subsection-name": "subsection-log-dirs"
         },
@@ -95,18 +87,6 @@
       },
       {
         "config": "spark-defaults/spark.history.fs.logDirectory",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "spark-thrift-sparkconf/spark.eventLog.dir",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "spark-thrift-sparkconf/spark.history.fs.logDirectory",
         "widget": {
           "type": "text-field"
         }

@@ -372,7 +372,7 @@ layout.
 Conditions can be attached to a config placement, SubSection, or
 SubSectionTab. The mapper assigns a target-local declaration index and defaults
 an omitted `resource` to config behavior. The 28 descriptor-declared
-non-Metrics artifacts in main server resources currently have 53 config
+non-Metrics artifacts in main server resources currently have 45 config
 conditions and 9 service conditions; every current action changes `visible`,
 although the action model can carry other value attributes.
 
@@ -579,7 +579,7 @@ All 30 declared entries across main plus contrib currently set
 
 `radio-buttons`, `list`, `text-area`, and `label` are supported by the Classic
 dispatcher but absent from these current declared fixtures. The declared main
-inventory has 53 config conditions, 9 service conditions, and one Ranger
+inventory has 45 config conditions, 9 service conditions, and one Ranger
 SubSection containing three nested tabs.
 
 Inventory counts are evidence about today's fixtures, not a whitelist. Custom

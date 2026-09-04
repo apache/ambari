@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ShellCommandUtil {
   private static final Logger LOG = LoggerFactory.getLogger(ShellCommandUtil.class);
-  private static final Object WindowsProcessLaunchLock = new Object();
   private static final String PASS_TOKEN = "pass:";
   private static final String KEY_TOKEN = "-key ";
   private static final String AMBARI_SUDO = "ambari-sudo.sh";
@@ -113,12 +112,6 @@ public class ShellCommandUtil {
 
 
   /**
-   * Set to true when run on Windows platforms
-   */
-  public static final boolean WINDOWS
-      = System.getProperty("os.name").startsWith("Windows");
-
-  /**
    * Set to true when run on Linux platforms
    */
   public static final boolean LINUX
@@ -155,7 +148,7 @@ public class ShellCommandUtil {
 
   /**
    * Gets file permissions on Linux systems.
-   * Under Windows/Mac, command always returns MASK_EVERYBODY_RWX
+   * On non-Linux development hosts, command returns MASK_EVERYBODY_RWX.
    *
    * @param path
    */
@@ -177,7 +170,7 @@ public class ShellCommandUtil {
 
   /**
    * Sets file permissions to a given value on Linux systems.
-   * On Windows/Mac, command is silently ignored
+   * On non-Linux development hosts, command is silently ignored.
    *
    * @param mode
    * @param path
@@ -307,10 +300,7 @@ public class ShellCommandUtil {
    * @throws InterruptedException
    */
   public static Result pathExists(String path, boolean sudo) throws IOException, InterruptedException {
-    String[] command = {
-        (WINDOWS) ? "dir" : "/bin/ls",
-        path
-    };
+    String[] command = {"/bin/ls", path};
 
     return runCommand(command, null, null, sudo);
   }
@@ -332,9 +322,7 @@ public class ShellCommandUtil {
 
       command.add("/bin/mkdir");
 
-      if (!WINDOWS) {
-        command.add("-p"); // create parent directories
-      }
+      command.add("-p"); // create parent directories
 
       command.add(directoryPath);
 
@@ -355,19 +343,11 @@ public class ShellCommandUtil {
   public static Result copyFile(String srcFile, String destFile, boolean force, boolean sudo) throws IOException, InterruptedException {
     ArrayList<String> command = new ArrayList<>();
 
-    if (WINDOWS) {
-      command.add("copy");
+    command.add("cp");
+    command.add("-p"); // preserve mode, ownership, timestamps
 
-      if (force) {
-        command.add("/Y"); // force overwrite
-      }
-    } else {
-      command.add("cp");
-      command.add("-p"); // preserve mode, ownership, timestamps
-
-      if (force) {
-        command.add("-f"); // force overwrite
-      }
+    if (force) {
+      command.add("-f"); // force overwrite
     }
 
     command.add(srcFile);
@@ -387,16 +367,9 @@ public class ShellCommandUtil {
   public static Result delete(String file, boolean force, boolean sudo) throws IOException, InterruptedException {
     List<String> command = new ArrayList<>();
 
-    if (WINDOWS) {
-      command.add("del");
-      if (force) {
-        command.add("/f");
-      }
-    } else {
-      command.add("/bin/rm");
-      if (force) {
-        command.add("-f");
-      }
+    command.add("/bin/rm");
+    if (force) {
+      command.add("-f");
     }
 
     command.add(file);
@@ -446,19 +419,7 @@ public class ShellCommandUtil {
 
     LOG.debug("Executing the command {}", Arrays.toString(processArgs));
 
-    Process process;
-    if (WINDOWS) {
-      synchronized (WindowsProcessLaunchLock) {
-        // To workaround the race condition issue with child processes
-        // inheriting unintended handles during process launch that can
-        // lead to hangs on reading output and error streams, we
-        // serialize process creation. More info available at:
-        // http://support.microsoft.com/kb/315939
-        process = builder.start();
-      }
-    } else {
-      process = builder.start();
-    }
+    Process process = builder.start();
 
     // If an interactiveHandler is supplied ask it for responses to queries from the command
     // using the InputStream and OutputStream retrieved from the Process object. Use the remainder

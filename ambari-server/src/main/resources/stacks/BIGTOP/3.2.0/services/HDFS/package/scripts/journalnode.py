@@ -20,16 +20,14 @@ limitations under the License.
 
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
 
+import hdfs_process
+
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.security_commons import (
   build_expectations,
-  cached_kinit_executor,
   get_params_from_filesystem,
   validate_security_config_properties,
   FILE_TYPE_XML,
@@ -112,13 +110,18 @@ class JournalNodeDefault(JournalNode):
     )
     env.set_params(params)
     hdfs()
-    pass
 
   def status(self, env):
     import status_params
 
     env.set_params(status_params)
-    check_process_status(status_params.journalnode_pid_file)
+    hdfs_process.check_component_status(
+      status_params.journalnode_pid_file,
+      status_params.hdfs_user,
+      "journalnode",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
+    )
 
   def get_log_folder(self):
     import params
@@ -134,38 +137,6 @@ class JournalNodeDefault(JournalNode):
     import status_params
 
     return [status_params.journalnode_pid_file]
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class JournalNodeWindows(JournalNode):
-  def install(self, env):
-    import install_params
-
-    self.install_packages(env)
-
-  def start(self, env):
-    import params
-
-    self.configure(env)
-    Service(params.journalnode_win_service_name, action="start")
-
-  def stop(self, env):
-    import params
-
-    Service(params.journalnode_win_service_name, action="stop")
-
-  def configure(self, env):
-    import params
-
-    env.set_params(params)
-    hdfs("journalnode")
-    pass
-
-  def status(self, env):
-    import status_params
-
-    env.set_params(status_params)
-    check_windows_service_status(status_params.journalnode_win_service_name)
 
 
 if __name__ == "__main__":

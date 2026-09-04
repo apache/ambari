@@ -18,9 +18,6 @@ limitations under the License.
 
 """
 
-# Python Imports
-import sys
-
 # Local Imports
 from hive import hive
 

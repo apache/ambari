@@ -21,5 +21,8 @@
 #
 HIVE_BIN=${HIVE_BIN:-"hive"}
 
-HIVE_CONF_DIR=$4 $HIVE_BIN --service metastore > $1 2> $2 &
-echo $!|cat>$3
+set -eu
+umask 0027
+
+HIVE_CONF_DIR="$4" "$HIVE_BIN" --service metastore >"$1" 2>"$2" &
+printf '%s\n' "$!" >"$3"

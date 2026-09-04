@@ -20,15 +20,12 @@ limitations under the License.
 import tempfile
 
 from unittest import TestCase
-from mock.mock import patch
-
-from only_for_platform import get_platform, not_for_platform, PLATFORM_WINDOWS
-
-if get_platform() != PLATFORM_WINDOWS:
-  from validate_configs import ValidateConfigs
+from unittest.mock import patch
 
 
-@not_for_platform(PLATFORM_WINDOWS)
+from validate_configs import ValidateConfigs
+
+
 class TestValidateConfigs(TestCase):
   @patch("os.geteuid")
   def test_check_users(self, geteuid_mock):

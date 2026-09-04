@@ -30,12 +30,6 @@
       <overridable>false</overridable>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
-    <depends-on>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.rest.address</name>
-      </property>
-    </depends-on>
   </property>
   <property>
     <name>hive.metastore.heapsize</name>
@@ -65,25 +59,6 @@
         <name>hive_database</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>hive_ambari_database</name>
-    <value>MySQL</value>
-    <description>Database type.</description>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>hive_database_name</name>
-    <value>hive</value>
-    <description>Database name.</description>
-    <value-attributes>
-      <type>database</type>
-      <visible>false</visible>
-      <editable-only-at-install>true</editable-only-at-install>
-      <overridable>false</overridable>
-    </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -130,7 +105,7 @@
   <!--HCAT-->
   <property>
     <name>hcat_log_dir</name>
-    <value>/var/log/webhcat</value>
+    <value>/var/log/hive-hcatalog</value>
     <display-name>WebHCat Log Dir</display-name>
     <description>WebHCat Log Dir.</description>
     <value-attributes>
@@ -141,7 +116,7 @@
   </property>
   <property>
     <name>hcat_pid_dir</name>
-    <value>/var/run/webhcat</value>
+    <value>/var/lib/hive-hcatalog</value>
     <display-name>WebHCat Pid Dir</display-name>
     <description>WebHCat Pid Dir.</description>
     <value-attributes>
@@ -154,7 +129,7 @@
   <property>
     <name>webhcat_user</name>
     <display-name>WebHCat User</display-name>
-    <value>hcat</value>
+    <value>hive</value>
     <property-type>USER</property-type>
     <description>WebHCat User.</description>
     <value-attributes>
@@ -336,6 +311,74 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>alert_pam_username</name>
+    <value></value>
+    <description>PAM username to be used for alerts and service checks</description>
+    <display-name>PAM user for Checks</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>alert_pam_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <description>PAM password to be used for alerts and service checks</description>
+    <display-name>PAM password for Checks</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <type>password</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>alert_custom_username</name>
+    <value></value>
+    <description>Custom authentication username used for alerts and service checks</description>
+    <display-name>Custom Authentication User for Checks</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>alert_custom_password</name>
+    <value></value>
+    <property-type>PASSWORD</property-type>
+    <description>Custom authentication password used for alerts and service checks</description>
+    <display-name>Custom Authentication Password for Checks</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <type>password</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>enable_heap_dump</name>
     <value>false</value>
     <description>Enable or disable taking Heap Dump. (true/false)</description>
@@ -358,7 +401,7 @@
   <property>
     <name>beeline_jdbc_url_default</name>
     <value>container</value>
-    <description>Default url to use for beeline (container|llap)</description>
+    <description>Default BIGTOP HiveServer2 endpoint for Beeline.</description>
     <display-name>Default beeline url</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -369,55 +412,48 @@
     <display-name>hive-env template</display-name>
     <description>This is the jinja template for hive-env.sh file</description>
     <value>
-# The heap size of the jvm, and jvm args stared by hive shell script can be controlled via:
-if [ "$SERVICE" = "metastore" ]; then
+umask 0027
 
-  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore
-  export HADOOP_OPTS="$HADOOP_OPTS -Xloggc:{{hive_log_dir}}/hivemetastore-gc-%t.log -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCCause -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={{hive_log_dir}}/hms_heapdump.hprof -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hivemetastore.log"
+export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home_shell}}}
+export HIVE_HOME=${HIVE_HOME:-{{hive_home_shell}}}
+export HIVE_CONF_DIR=${HIVE_CONF_DIR:-{{hive_conf_dir_shell}}}
+export METASTORE_PORT={{hive_metastore_port}}
 
-fi
-
-if [ "$SERVICE" = "hiveserver2" ]; then
-
-  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client
-  export HADOOP_OPTS="$HADOOP_OPTS -Xloggc:{{hive_log_dir}}/hiveserver2-gc-%t.log -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCCause -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={{hive_log_dir}}/hs2_heapdump.hprof -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2.log"
-
+if [ "${SERVICE:-}" = "metastore" ]; then
+  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}}
+  if "$JAVA_HOME/bin/java" -version 2>&amp;1 | grep -q 'version "17'; then
+    export HADOOP_OPTS="${HADOOP_OPTS:-} -XX:+UseG1GC -Xlog:gc*:file={{hive_log_dir}}/hivemetastore-gc.log:time,uptime,level,tags:filecount=10,filesize=10M -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hivemetastore.log"
+  else
+    export HADOOP_OPTS="${HADOOP_OPTS:-} -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hivemetastore.log"
+  fi
+elif [ "${SERVICE:-}" = "hiveserver2" ]; then
+  export HADOOP_HEAPSIZE={{hive_heapsize}}
+  if "$JAVA_HOME/bin/java" -version 2>&amp;1 | grep -q 'version "17'; then
+    export HADOOP_OPTS="${HADOOP_OPTS:-} -XX:+UseG1GC -Xlog:gc*:file={{hive_log_dir}}/hiveserver2-gc.log:time,uptime,level,tags:filecount=10,filesize=10M -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2.log"
+  else
+    export HADOOP_OPTS="${HADOOP_OPTS:-} -Dhive.log.dir={{hive_log_dir}} -Dhive.log.file=hiveserver2.log"
+  fi
+else
+  export HADOOP_HEAPSIZE={{hive_heapsize}}
 fi
 
 {% if security_enabled %}
-export HADOOP_OPTS="$HADOOP_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}}"
+export HADOOP_OPTS="${HADOOP_OPTS:-} -Dzookeeper.sasl.client.username={{zk_principal_user}}"
 {% endif %}
 
-export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xms${HADOOP_HEAPSIZE}m -Xmx${HADOOP_HEAPSIZE}m"
-export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS{{heap_dump_opts}}"
+export HADOOP_CLIENT_OPTS="${HADOOP_CLIENT_OPTS:-} -Xms${HADOOP_HEAPSIZE}m -Xmx${HADOOP_HEAPSIZE}m"
+{% if heap_dump_enabled %}
+export HADOOP_CLIENT_OPTS="${HADOOP_CLIENT_OPTS} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={{heap_dump_path}}"
+{% endif %}
 
-# Larger heap size may be required when running queries over large number of files or partitions.
-# By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be
-# appropriate for hive server (hwi etc).
-
-
-# Set HADOOP_HOME to point to a specific hadoop install directory
-HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
-
-export HIVE_HOME=${HIVE_HOME:-{{hive_home}}}
-
-# Hive Configuration Directory can be controlled by:
-export HIVE_CONF_DIR=${HIVE_CONF_DIR:-{{hive_conf_dir}}}
-
-# Folder containing extra libraries required for hive compilation/execution can be controlled by:
-if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
-  export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
-elif [ -d "{{hive_hcatalog_home}}" ]; then
-  export HIVE_AUX_JARS_PATH={{hive_hcatalog_home}}/share/hcatalog/hive-hcatalog-core-*.jar
-else
-  export HIVE_AUX_JARS_PATH={{hive_hcatalog_home}}/share/hcatalog/hcatalog-core.jar
+if [ -z "${HIVE_AUX_JARS_PATH:-}" ]; then
+  if [ -d {{hive_hcatalog_home_shell}} ]; then
+    export HIVE_AUX_JARS_PATH={{hive_hcatalog_home_shell}}/share/hcatalog/hive-hcatalog-core-*.jar
+  else
+    export HIVE_AUX_JARS_PATH={{hive_hcatalog_home_shell}}/share/hcatalog/hcatalog-core.jar
+  fi
 fi
-export METASTORE_PORT={{hive_metastore_port}}
 
-{% if sqla_db_used or lib_dir_available %}
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:{{jdbc_libs_dir}}"
-export JAVA_LIBRARY_PATH="$JAVA_LIBRARY_PATH:{{jdbc_libs_dir}}"
-{% endif %}
     </value>
     <value-attributes>
       <type>content</type>

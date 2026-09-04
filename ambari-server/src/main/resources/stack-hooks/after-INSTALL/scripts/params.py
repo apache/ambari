@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 
+import json
 import os
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
@@ -69,6 +70,10 @@ logsearch_config_file_path = (
   + ".j2"
 )
 logsearch_config_file_exists = os.path.isfile(logsearch_config_file_path)
+zookeeper_log_dir = default(
+  "/configurations/zookeeper-env/zk_log_dir", "/var/log/zookeeper"
+)
+zk_log_path_json = json.dumps(os.path.join(zookeeper_log_dir, "zookeeper*.log"))
 
 # default hadoop params
 hadoop_home = stack_select.get_hadoop_dir("home")

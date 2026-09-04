@@ -23,15 +23,13 @@ import { AppContext } from "../../../store/context";
 
 export default function Step2Wrapper() {
   const { installedHosts } = useContext(AddHostContext);
-  const { cluster, supports } = useContext(AppContext);
-  const stackName = cluster?.stack || String(cluster?.version || "").split("-")[0];
+  const { supports } = useContext(AppContext);
 
   return (
     <Step2
       wizardName="addHost"
       installedHosts={installedHosts}
       customizeAgentUserAccount={Boolean(supports.customizeAgentUserAccount)}
-      isWindowsStack={stackName === "HDPWIN"}
     />
   );
 }

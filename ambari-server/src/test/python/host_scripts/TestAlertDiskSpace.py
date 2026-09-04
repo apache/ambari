@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 import alert_disk_space
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from ambari_commons.os_check import OSCheck
 from stacks.utils.RMFTestCase import *
 
@@ -27,11 +27,9 @@ from only_for_platform import (
   get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
 
-if get_platform() != PLATFORM_WINDOWS:
-  from pwd import getpwnam
+from pwd import getpwnam
 
 
 class TestAlertDiskSpace(RMFTestCase):

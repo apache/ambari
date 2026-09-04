@@ -21,7 +21,7 @@ from contextlib import contextmanager
 
 import unittest
 import signal
-from mock.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock, call
 from ambari_commons import shell
 from ambari_commons import OSCheck
 from ambari_commons.shell import shellRunnerLinux

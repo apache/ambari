@@ -22,7 +22,7 @@
 
 GRAPH_INFO_JSON_PATH="../../../src/dataServices/ganglia/graph_info";
 
-JSON_PRETTY_PRINT="python -mjson.tool"
+JSON_PRETTY_PRINT="python3 -m json.tool"
 
 ### WARNING: These PHP definitions have diverged from the actual JSON definitions
 ###          (which I started to modify directly), so running the scripts below

@@ -27,7 +27,6 @@ from .generic_manager import GenericManager
 from .apt_manager import AptManager
 from .yum_manager import YumManager
 from .zypper_manager import ZypperManager
-from .choco_manager import ChocoManager
 
 
 class ManagerFactory(object):
@@ -67,9 +66,6 @@ class ManagerFactory(object):
       return ZypperManager()
     if OSCheck.is_in_family(os_family, OSConst.REDHAT_FAMILY):
       return YumManager()
-    if OSCheck.is_in_family(os_family, OSConst.WINSRV_FAMILY):
-      return ChocoManager()
-
     raise RuntimeError(
       f"Not able to create Repository Manager object for unsupported OS family {os_family}"
     )

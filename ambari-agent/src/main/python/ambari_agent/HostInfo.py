@@ -251,7 +251,7 @@ class HostInfoLinux(HostInfo):
     "/tmp",
     "/var",
     "/hadoop",
-    "/usr/hdp",
+    "/usr/bigtop",
   ]
 
   # Exact directories names which are checked for existance
@@ -266,7 +266,7 @@ class HostInfoLinux(HostInfo):
   THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
   THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
 
-  THP_REGEXP = re.compile("\[(.+)\]")
+  THP_REGEXP = re.compile(r"\[(.+)\]")
 
   def __init__(self, config=None):
     super(HostInfoLinux, self).__init__(config)
@@ -327,6 +327,7 @@ class HostInfoLinux(HostInfo):
           if "java" in cmd:
             metrics = {}
             metrics["pid"] = int(pid)
+            metrics["command"] = cmd
             metrics["hadoop"] = False
             for filter in self.PROC_FILTER:
               if filter in cmd:
@@ -467,112 +468,6 @@ class HostInfoLinux(HostInfo):
     except Exception as ex:
       logger.warning(f"Checking service {service_name} status failed")
       return "", str(ex), 1
-
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class HostInfoWindows(HostInfo):
-  SERVICE_STATUS_CMD = "If ((Get-Service | Where-Object {{$_.Name -eq '{0}'}}).Status -eq 'Running') {{echo \"Running\"; $host.SetShouldExit(0)}} Else {{echo \"Stopped\"; $host.SetShouldExit(1)}}"
-  GET_USERS_CMD = '$accounts=(Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "name = \'{0}\' and Disabled=\'False\'" -ErrorAction Stop); foreach ($acc in $accounts) {{Write-Host ($acc.Domain + "\\" + $acc.Name)}}'
-  GET_JAVA_PROC_CMD = "foreach ($process in (gwmi Win32_Process -Filter \"name = 'java.exe'\")){{echo $process.ProcessId;echo $process.CommandLine; echo $process.GetOwner().User}}"
-  DEFAULT_LIVE_SERVICES = [("W32Time",)]
-  DEFAULT_USERS = "hadoop"
-
-  def checkUsers(self, user_mask, results):
-    get_users_cmd = [
-      "powershell",
-      "-noProfile",
-      "-NonInteractive",
-      "-nologo",
-      "-Command",
-      self.GET_USERS_CMD.format(user_mask),
-    ]
-    try:
-      osStat = subprocess.Popen(
-        get_users_cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-      )
-      out, err = osStat.communicate()
-    except:
-      raise Exception("Failed to get users.")
-    for user in out.split(os.linesep):
-      result = {}
-      result["name"] = user
-      result["homeDir"] = ""
-      result["status"] = "Available"
-      results.append(result)
-
-  def createAlerts(self, alerts):
-    # TODO AMBARI-7849 Implement createAlerts for Windows
-    return alerts
-
-  def javaProcs(self, list):
-    try:
-      from ambari_commons.os_windows import run_powershell_script
-
-      code, out, err = run_powershell_script(self.GET_JAVA_PROC_CMD)
-      if code == 0:
-        splitted_output = out.split(os.linesep)
-        for i in [
-          index for index in range(0, len(splitted_output)) if (index % 3) == 0
-        ]:
-          pid = splitted_output[i]
-          cmd = splitted_output[i + 1]
-          user = splitted_output[i + 2]
-          if not "AmbariServer" in cmd:
-            if "java" in cmd:
-              dict = {}
-              dict["pid"] = int(pid)
-              dict["hadoop"] = False
-              for filter in self.PROC_FILTER:
-                if filter in cmd:
-                  dict["hadoop"] = True
-              dict["command"] = cmd.strip()
-              dict["user"] = user
-              list.append(dict)
-    except Exception as e:
-      pass
-    pass
-
-  def getServiceStatus(self, serivce_name):
-    from ambari_commons.os_windows import run_powershell_script
-
-    code, out, err = run_powershell_script(self.SERVICE_STATUS_CMD.format(serivce_name))
-    return out, err, code
-
-  def register(self, metrics, runExpensiveChecks=False):
-    """Return various details about the host"""
-    metrics["hostHealth"] = {}
-
-    java = []
-    self.javaProcs(java)
-    metrics["hostHealth"]["activeJavaProcs"] = java
-
-    liveSvcs = []
-    self.checkLiveServices(self.DEFAULT_LIVE_SERVICES, liveSvcs)
-    metrics["hostHealth"]["liveServices"] = liveSvcs
-
-    metrics["umask"] = str(self.getUMask())
-
-    metrics["firewallRunning"] = self.checkFirewall()
-    metrics["firewallName"] = self.getFirewallName()
-    metrics["reverseLookup"] = self.checkReverseLookup()
-
-    if not runExpensiveChecks:
-      metrics["alternatives"] = []
-      metrics["stackFoldersAndFiles"] = []
-      metrics["existingUsers"] = []
-    else:
-      existingUsers = []
-      self.checkUsers(self.DEFAULT_USERS, existingUsers)
-      metrics["existingUsers"] = existingUsers
-      # TODO check HDP stack and folders here
-      self.reportFileHandler.writeHostCheckFile(metrics)
-      pass
-
-    # The time stamp must be recorded at the end
-    metrics["hostHealth"]["agentTimeStampAtReporting"] = int(time.time() * 1000)
 
 
 def main(argv=None):

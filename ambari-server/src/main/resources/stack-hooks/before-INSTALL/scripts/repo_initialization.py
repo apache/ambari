@@ -26,13 +26,13 @@ from resource_management.libraries.functions.repository_util import (
 )
 from resource_management.libraries.script.script import Script
 from resource_management.core.logger import Logger
-import ambari_simplejson as json
+import json
 
 
 def _alter_repo(action, repo_dicts, repo_template):
   """
   @param action: "delete" or "create"
-  @param repo_dicts: e.g. "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
+  @param repo_dicts: repository dictionaries from the command payload
   """
   if not isinstance(repo_dicts, list):
     repo_dicts = [repo_dicts]

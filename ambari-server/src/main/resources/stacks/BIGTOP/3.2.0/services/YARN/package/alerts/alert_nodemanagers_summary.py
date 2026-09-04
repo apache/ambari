@@ -17,10 +17,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import urllib.request, urllib.error, urllib.parse
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
+import math
 import logging
+import re
+import socket
 import traceback
+import urllib.parse
+import urllib.request
 
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
@@ -41,8 +45,8 @@ NODEMANAGER_HTTPS_ADDRESS_KEY = (
 )
 YARN_HTTP_POLICY_KEY = "{{yarn-site/yarn.http.policy}}"
 
-KERBEROS_KEYTAB = "{{yarn-site/yarn.nodemanager.webapp.spnego-keytab-file}}"
-KERBEROS_PRINCIPAL = "{{yarn-site/yarn.nodemanager.webapp.spnego-principal}}"
+KERBEROS_KEYTAB = "{{cluster-env/smokeuser_keytab}}"
+KERBEROS_PRINCIPAL = "{{cluster-env/smokeuser_principal_name}}"
 SECURITY_ENABLED_KEY = "{{cluster-env/security_enabled}}"
 SMOKEUSER_KEY = "{{cluster-env/smokeuser}}"
 EXECUTABLE_SEARCH_PATHS = "{{kerberos-env/executable_search_paths}}"
@@ -50,10 +54,35 @@ EXECUTABLE_SEARCH_PATHS = "{{kerberos-env/executable_search_paths}}"
 CONNECTION_TIMEOUT_KEY = "connection.timeout"
 CONNECTION_TIMEOUT_DEFAULT = 5.0
 
-LOGGER_EXCEPTION_MESSAGE = "[Alert] NodeManager Health Summary on {0} fails:"
 logger = logging.getLogger("ambari_alerts")
 
 QRY = "Hadoop:service=ResourceManager,name=RMNMInfo"
+
+
+def _parse_boolean(value, label):
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "true":
+      return True
+    if normalized == "false":
+      return False
+  raise ValueError(f"{label} must be true or false")
+
+
+def _valid_host_port(value):
+  if not isinstance(value, str):
+    return False
+  host, separator, port = value.strip().rpartition(":")
+  if not separator or not host:
+    return False
+  if ":" in host and not (host.startswith("[") and host.endswith("]")):
+    return False
+  if re.fullmatch(r"[0-9]+", port) is None:
+    return False
+  port_number = int(port)
+  return 1 <= port_number <= 65535
 
 
 def get_tokens():
@@ -85,15 +114,21 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   if configurations is None:
     return ("UNKNOWN", ["There were no configurations supplied to the script."])
+  if host_name is None:
+    host_name = socket.getfqdn()
 
   scheme = "http"
   http_uri = None
   https_uri = None
   http_policy = "HTTP_ONLY"
 
-  security_enabled = False
-  if SECURITY_ENABLED_KEY in configurations:
-    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == "TRUE"
+  try:
+    security_enabled = _parse_boolean(
+      configurations.get(SECURITY_ENABLED_KEY, False),
+      "cluster-env/security_enabled",
+    )
+  except ValueError as error:
+    return ("UNKNOWN", [str(error)])
 
   executable_paths = None
   if EXECUTABLE_SEARCH_PATHS in configurations:
@@ -117,40 +152,56 @@ def execute(configurations={}, parameters={}, host_name=None):
   if YARN_HTTP_POLICY_KEY in configurations:
     http_policy = configurations[YARN_HTTP_POLICY_KEY]
 
-  if SMOKEUSER_KEY in configurations:
-    smokeuser = configurations[SMOKEUSER_KEY]
+  smokeuser = configurations.get(SMOKEUSER_KEY)
 
   # parse script arguments
   connection_timeout = CONNECTION_TIMEOUT_DEFAULT
-  if CONNECTION_TIMEOUT_KEY in parameters:
-    connection_timeout = float(parameters[CONNECTION_TIMEOUT_KEY])
+  try:
+    if CONNECTION_TIMEOUT_KEY in parameters:
+      connection_timeout = float(parameters[CONNECTION_TIMEOUT_KEY])
+  except (TypeError, ValueError):
+    return ("CRITICAL", ["Connection timeout must be a number"])
+  if not math.isfinite(connection_timeout) or connection_timeout <= 0:
+    return ("CRITICAL", ["Connection timeout must be positive and finite"])
 
   kinit_timer_ms = parameters.get(
     KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS
   )
 
   # determine the right URI and whether to use SSL
-  uri = http_uri
+  http_policy = str(http_policy).strip().upper()
+  if http_policy not in ("HTTP_ONLY", "HTTPS_ONLY"):
+    return (
+      "UNKNOWN",
+      [f"Unsupported yarn.http.policy value: {http_policy or '<empty>'}"],
+    )
   if http_policy == "HTTPS_ONLY":
     scheme = "https"
+    uri = https_uri
+  else:
+    uri = http_uri
 
-    if https_uri is not None:
-      uri = https_uri
-
-  uri = str(host_name) + ":" + uri.split(":")[1]
-  live_nodemanagers_qry = f"{scheme}://{uri}/jmx?qry={QRY}"
+  if not _valid_host_port(uri):
+    return (
+      "UNKNOWN",
+      [f"ResourceManager {scheme.upper()} web application address is missing"],
+    )
+  uri = uri.strip()
+  _, _, uri_port = uri.rpartition(":")
+  url_host = f"[{host_name}]" if ":" in host_name else host_name
+  uri = f"{url_host}:{uri_port}"
+  query_string = urllib.parse.urlencode({"qry": QRY})
+  live_nodemanagers_qry = f"{scheme}://{uri}/jmx?{query_string}"
   convert_to_json_failed = False
   response_code = None
   try:
-    if (
-      kerberos_principal is not None
-      and kerberos_keytab is not None
-      and security_enabled
-    ):
+    if security_enabled:
+      if not kerberos_principal or not kerberos_keytab or not smokeuser:
+        return (
+          "CRITICAL",
+          ["Kerberos principal, keytab, and smoke user are required"],
+        )
       env = Environment.get_instance()
-
-      # curl requires an integer timeout
-      curl_connection_timeout = int(connection_timeout)
 
       url_response, error_msg, time_millis = curl_krb_request(
         env.tmp_dir,
@@ -162,7 +213,7 @@ def execute(configurations={}, parameters={}, host_name=None):
         False,
         "NodeManager Health Summary",
         smokeuser,
-        connection_timeout=curl_connection_timeout,
+        connection_timeout=connection_timeout,
         kinit_timer_ms=kinit_timer_ms,
       )
 
@@ -192,7 +243,7 @@ def execute(configurations={}, parameters={}, host_name=None):
           True,
           "NodeManager Health Summary",
           smokeuser,
-          connection_timeout=curl_connection_timeout,
+          connection_timeout=connection_timeout,
           kinit_timer_ms=kinit_timer_ms,
         )
     else:
@@ -202,18 +253,14 @@ def execute(configurations={}, parameters={}, host_name=None):
         )
       )
 
-    if (
-      kerberos_principal is not None
-      and kerberos_keytab is not None
-      and security_enabled
-    ):
+    if security_enabled:
       if response_code in [200, 307] and convert_to_json_failed:
         return (
           "UNKNOWN",
           [f"HTTP {str(response_code)} response (metrics unavailable)"],
         )
       elif convert_to_json_failed and response_code not in [200, 307]:
-        raise Exception(
+        raise RuntimeError(
           "[Alert][NodeManager Health Summary] Getting data from {0} failed with http code {1}".format(
             str(live_nodemanagers_qry), str(response_code)
           )
@@ -236,7 +283,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       else:
         label = ERROR_LABEL.format(unhealthy_count, "s", "are")
 
-  except:
+  except Exception:
     label = traceback.format_exc()
     result_code = "UNKNOWN"
 
@@ -247,7 +294,7 @@ def get_value_from_jmx(query, jmx_property, connection_timeout):
   response = None
 
   try:
-    # use a customer header process that will look for the non-standard
+    # Use a custom header processor that follows the non-standard
     # "Refresh" header and attempt to follow the redirect
     url_opener = urllib.request.build_opener(RefreshHeaderProcessor())
     response = url_opener.open(query, timeout=connection_timeout)
@@ -259,8 +306,8 @@ def get_value_from_jmx(query, jmx_property, connection_timeout):
     if response is not None:
       try:
         response.close()
-      except:
-        pass
+      except Exception:
+        logger.debug("Could not close ResourceManager JMX response", exc_info=True)
 
 
 def find_value_in_jmx(data_dict, jmx_property, query):
@@ -271,7 +318,7 @@ def find_value_in_jmx(data_dict, jmx_property, query):
     for jmx_prop_list_item in beans:
       if "name" in jmx_prop_list_item and jmx_prop_list_item["name"] == QRY:
         if jmx_property not in jmx_prop_list_item:
-          raise Exception(f"Unable to find {jmx_property} in JSON from {query} ")
+          raise RuntimeError(f"Unable to find {jmx_property} in JSON from {query}")
         json_data = jmx_prop_list_item
 
   return json_data[jmx_property]

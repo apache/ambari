@@ -97,6 +97,11 @@ public class AmbariServerTest {
   }
 
   @Test
+  public void testStopBeforeEmbeddedServerInitializationIsSafe() throws Exception {
+    new AmbariServer().stop();
+  }
+
+  @Test
   public void testConfigureSessionManager() throws Exception {
     SessionHandlerConfigurer sessionHandlerConfigurer = new SessionHandlerConfigurer();
 

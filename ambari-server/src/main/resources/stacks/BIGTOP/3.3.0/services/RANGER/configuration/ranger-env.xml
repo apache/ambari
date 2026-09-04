@@ -66,7 +66,7 @@
     <value/>
     <property-type>PASSWORD</property-type>
     <display-name>Ranger Admin user's password for Ambari</display-name>
-    <description>This is the ambari user password created for creating repositories and policies in Ranger Admin for each plugin. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <description>This is the ambari user password created for creating repositories and policies in Ranger Admin for each plugin. Password should be minimum 8 characters with minimum one alphabet and one numeric. Special characters are supported.</description>
     <value-attributes>
       <type>password</type>
       <overridable>false</overridable>
@@ -85,7 +85,7 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Ranger Admin user's password</display-name>
-    <description>This is the password for default admin user that is used for creating ambari user in Ranger Admin. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <description>This is the password for default admin user that is used for creating ambari user in Ranger Admin. Password should be minimum 8 characters with minimum one alphabet and one numeric. Special characters are supported.</description>
     <value-attributes>
       <type>password</type>
     </value-attributes>
@@ -533,7 +533,7 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Ranger Usersync user's password</display-name>
-    <description>This is the rangerusersync user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <description>This is the rangerusersync user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Special characters are supported.</description>
     <value-attributes>
       <type>password</type>
       <overridable>false</overridable>
@@ -545,7 +545,7 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Ranger Tagsync user's password</display-name>
-    <description>This is the rangertagsync user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <description>This is the rangertagsync user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Special characters are supported.</description>
     <value-attributes>
       <type>password</type>
       <overridable>false</overridable>
@@ -557,7 +557,7 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <display-name>Ranger KMS keyadmin user's password</display-name>
-    <description>This is the keyadmin user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Unsupported special characters are &quot; &apos; &#92; &#96; &#180;.</description>
+    <description>This is the keyadmin user password. Password should be minimum 8 characters with minimum one alphabet and one numeric. Special characters are supported.</description>
     <value-attributes>
       <type>password</type>
       <overridable>false</overridable>

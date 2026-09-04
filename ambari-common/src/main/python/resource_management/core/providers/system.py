@@ -356,7 +356,9 @@ class ExecuteScriptProvider(Provider):
     from tempfile import NamedTemporaryFile
 
     Logger.info(f"Running script {self.resource}")
-    with NamedTemporaryFile(prefix="resource_management-script", bufsize=0) as tf:
+    with NamedTemporaryFile(
+      mode="w", encoding="utf-8", prefix="resource_management-script"
+    ) as tf:
       tf.write(self.resource.code)
       tf.flush()
 
@@ -365,5 +367,5 @@ class ExecuteScriptProvider(Provider):
         [self.resource.interpreter, tf.name],
         cwd=self.resource.cwd,
         env=self.resource.environment,
-        preexec_fn=_preexec_fn(self.resource),
+        user=self.resource.user,
       )

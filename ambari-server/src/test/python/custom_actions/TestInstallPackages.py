@@ -23,7 +23,7 @@ import subprocess
 import select
 
 from stacks.utils.RMFTestCase import *
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from resource_management.core.base import Resource
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.script import Script
@@ -48,6 +48,23 @@ subproc_mock.return_value.stdout = subproc_stdout
 class TestInstallPackages(RMFTestCase):
   def setUp(self):
     self.maxDiff = None
+
+  @staticmethod
+  def _normalize_stack(payload):
+    """Exercise package installation against the supported BIGTOP stack root."""
+    payload["clusterLevelParams"]["stack_name"] = "BIGTOP"
+    payload["clusterLevelParams"]["stack_version"] = "3.3.0"
+    payload["repositoryFile"]["stackName"] = "BIGTOP"
+    return payload
+
+  def get_config_file(self, configs_path, config_file):
+    return self._normalize_stack(super().get_config_file(configs_path, config_file))
+
+  def executeScript(self, *args, **kwargs):
+    config_dict = kwargs.get("config_dict")
+    if config_dict is not None:
+      self._normalize_stack(config_dict)
+    return super().executeScript(*args, **kwargs)
 
   @staticmethod
   def _add_packages(*args, **kwargs):

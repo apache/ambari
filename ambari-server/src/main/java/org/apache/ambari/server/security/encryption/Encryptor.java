@@ -24,6 +24,8 @@ public interface Encryptor<T> {
   
   static final String ENCRYPTED_PROPERTY_PREFIX = "${enc=aes256_hex, value=";
   static final String ENCRYPTED_PROPERTY_SCHEME = ENCRYPTED_PROPERTY_PREFIX + "%s}";
+  static final String ENCRYPTED_PROPERTY_GCM_PREFIX = "${enc=aes256_gcm_hex, value=";
+  static final String ENCRYPTED_PROPERTY_GCM_SCHEME = ENCRYPTED_PROPERTY_GCM_PREFIX + "%s}";
 
   /**
    * Encrypts the given encryptible object

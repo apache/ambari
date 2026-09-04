@@ -76,7 +76,7 @@ class Dummy(Script):
   def install(self, env):
     print("Install")
     self.prepare()
-    """
+    r"""
     component_name = self.get_component_name()
     repo_info = str(default("/hostLevelParams/repoInfo", "1.1.1.1-1"))
     matches = re.findall(r"([\d\.]+\-\d+)", repo_info)

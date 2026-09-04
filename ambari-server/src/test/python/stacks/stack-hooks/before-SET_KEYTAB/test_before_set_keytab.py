@@ -18,12 +18,15 @@ limitations under the License.
 """
 
 from stacks.utils.RMFTestCase import *
-from mock.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch
 from resource_management import Hook
 import itertools
 
 
-@patch("distro.linux_distribution", new=MagicMock(return_value="Linux"))
+@patch(
+  "ambari_commons.os_check.linux_distribution",
+  new=MagicMock(return_value="Linux"),
+)
 @patch("os.path.exists", new=MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook")
 class TestHookBeforeSetKeytab(RMFTestCase):

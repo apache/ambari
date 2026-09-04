@@ -18,18 +18,38 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions import format
-from ambari_commons import OSConst
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 import os
 
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.core.exceptions import Fail
 
-def get_collector_pid_files():
-  pid_files = []
-  pid_files.append(format("{ams_collector_pid_dir}/ambari-metrics-collector.pid"))
-  pid_files.append(format("{hbase_pid_dir}/hbase-{hbase_user}-master.pid"))
-  if os.path.exists(format("{hbase_pid_dir}/distributed_mode")):
-    pid_files.append(format("{hbase_pid_dir}/hbase-{hbase_user}-regionserver.pid"))
+from metrics_process import (
+  check_ams_process_status,
+  check_hbase_process_status,
+  hbase_pid_file,
+)
+
+
+def get_collector_pid_files(status_params=None):
+  if status_params is None:
+    import status_params
+
+  pid_files = [
+    os.path.join(
+      status_params.ams_collector_pid_dir, "ambari-metrics-collector.pid"
+    ),
+    hbase_pid_file(
+      status_params.hbase_pid_dir, status_params.hbase_user, "master"
+    ),
+  ]
+  if status_params.is_hbase_distributed:
+    pid_files.append(
+      hbase_pid_file(
+        status_params.hbase_pid_dir,
+        status_params.hbase_user,
+        "regionserver",
+      )
+    )
   return pid_files
 
 
@@ -39,27 +59,48 @@ def check_service_status(env, name):
 
   env.set_params(status_params)
 
-  from resource_management.libraries.functions.check_process_status import (
-    check_process_status,
-  )
-
   if name == "collector":
-    for pid_file in get_collector_pid_files():
-      check_process_status(pid_file)
+    collector_pid_file = os.path.join(
+      status_params.ams_collector_pid_dir, "ambari-metrics-collector.pid"
+    )
+    check_ams_process_status(
+      collector_pid_file,
+      status_params.ams_user,
+      status_params.user_group,
+      "collector",
+    )
+    check_hbase_process_status(
+      hbase_pid_file(
+        status_params.hbase_pid_dir, status_params.hbase_user, "master"
+      ),
+      status_params.hbase_user,
+      status_params.user_group,
+      "master",
+    )
+    if status_params.is_hbase_distributed:
+      check_hbase_process_status(
+        hbase_pid_file(
+          status_params.hbase_pid_dir,
+          status_params.hbase_user,
+          "regionserver",
+        ),
+        status_params.hbase_user,
+        status_params.user_group,
+        "regionserver",
+      )
   elif name == "monitor":
-    check_process_status(status_params.monitor_pid_file)
+    check_ams_process_status(
+      status_params.monitor_pid_file,
+      status_params.ams_user,
+      status_params.user_group,
+      "monitor",
+    )
   elif name == "grafana":
-    check_process_status(status_params.grafana_pid_file)
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def check_service_status(name):
-  import service_mapping
-  from resource_management.libraries.functions.windows_service_utils import (
-    check_windows_service_status,
-  )
-
-  if name == "collector":
-    check_windows_service_status(service_mapping.ams_collector_win_service_name)
-  elif name == "monitor":
-    check_windows_service_status(service_mapping.ams_monitor_win_service_name)
+    check_ams_process_status(
+      status_params.grafana_pid_file,
+      status_params.ams_user,
+      status_params.user_group,
+      "grafana",
+    )
+  else:
+    raise Fail(f"Unsupported Ambari Metrics status component: {name}")

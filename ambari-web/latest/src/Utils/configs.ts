@@ -43,7 +43,6 @@ export interface MasterComponentHost {
 export interface NnHaConfigDependencies {
   namespaceId: string;
   serverConfigs: ServerConfig[];
-  isHadoopWindowsStack?: boolean;
 }
 
 export interface ServerConfig {

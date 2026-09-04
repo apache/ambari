@@ -75,10 +75,18 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>tez_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>tez-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -99,13 +107,6 @@
         <config-type>tez-env</config-type>
         <config-type>hive-site</config-type>
       </configuration-dependencies>
-
-      <themes>
-        <theme>
-          <fileName>directories.json</fileName>
-          <default>true</default>
-        </theme>
-      </themes>
 
     </service>
   </services>

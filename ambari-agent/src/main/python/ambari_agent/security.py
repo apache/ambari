@@ -15,45 +15,96 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from io import StringIO
-import gzip
-import http.client
+import hashlib
 import urllib.request, urllib.error, urllib.parse
 import socket
-import copy
 import ssl
 import os
 import logging
 import subprocess
-import ambari_simplejson as json
-import pprint
-import traceback
+import json
+import re
+import tempfile
 from ambari_agent import hostname
-import platform
-import ambari_stomp
-import threading
-from ambari_stomp.adapter.websocket import WsConnection
+from ambari_agent.AmbariStompConnection import AmbariStompConnection
 from socket import error as socket_error
 
 logger = logging.getLogger(__name__)
 
-GEN_AGENT_KEY = (
-  'openssl req -new -newkey rsa -nodes -keyout "%(keysdir)s'
-  + os.sep
-  + '%(hostname)s.key" -subj /OU=%(hostname)s/ '
-  '-out "%(keysdir)s' + os.sep + '%(hostname)s.csr"'
-)
-KEY_FILENAME = "%(hostname)s.key"
+
+def _is_shell_variable_assignment(line, variable):
+  return re.match(
+    rf"(?:export\s+)?{re.escape(variable)}=", line.lstrip()
+  ) is not None
+
+
+def certificate_file_prefix(agent_hostname):
+  if (
+    len(agent_hostname) <= 200
+    and not agent_hostname.startswith(".")
+    and ".." not in agent_hostname
+    and all(character.isalnum() or character in "._-" for character in agent_hostname)
+  ):
+    return agent_hostname
+  return "agent-" + hashlib.sha256(agent_hostname.encode("utf-8")).hexdigest()
+
+
+def remove_persisted_enrollment_passphrase(config):
+  passphrase_file = os.path.abspath(
+    config.get(
+      "security", "passphrase_file", "/var/lib/ambari-agent/ambari-env.sh"
+    )
+  )
+  if not os.path.isfile(passphrase_file):
+    return
+
+  passphrase_variable = config.get(
+    "security", "passphrase_env_var_name", "AMBARI_PASSPHRASE"
+  )
+  with open(passphrase_file, "r", encoding="utf-8") as stream:
+    original_lines = stream.readlines()
+  retained_lines = [
+    line
+    for line in original_lines
+    if not _is_shell_variable_assignment(line, passphrase_variable)
+  ]
+  if retained_lines == original_lines:
+    return
+
+  passphrase_directory = os.path.dirname(passphrase_file)
+  descriptor, temporary_path = tempfile.mkstemp(
+    prefix=".ambari-env-", dir=passphrase_directory, text=True
+  )
+  try:
+    with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+      stream.writelines(retained_lines)
+      stream.flush()
+      os.fsync(stream.fileno())
+    os.chmod(temporary_path, 0o600)
+    os.replace(temporary_path, passphrase_file)
+    temporary_path = None
+    directory_descriptor = os.open(passphrase_directory, os.O_RDONLY)
+    try:
+      os.fsync(directory_descriptor)
+    finally:
+      os.close(directory_descriptor)
+  finally:
+    if temporary_path is not None:
+      try:
+        os.unlink(temporary_path)
+      except OSError:
+        pass
 
 
 class VerifiedHTTPSConnection:
   """Connecting using ssl wrapped sockets"""
 
-  def __init__(self, host, connection_url, config):
+  def __init__(self, host, connection_url, config, enrollment_passphrase=None):
     self.two_way_ssl_required = False
     self.host = host
     self.connection_url = connection_url
     self.config = config
+    self.enrollment_passphrase = enrollment_passphrase
 
   def connect(self):
     self.two_way_ssl_required = self.config.isTwoWaySSLConnection(self.host)
@@ -67,27 +118,39 @@ class VerifiedHTTPSConnection:
 
     logging.info(f"Connecting to {self.connection_url}")
 
+    ssl_options = self.config.get_server_ssl_options()
     if not self.two_way_ssl_required:
-      conn = AmbariStompConnection(self.connection_url)
+      conn = AmbariStompConnection(self.connection_url, ssl_options=ssl_options)
       self.establish_connection(conn)
+      remove_persisted_enrollment_passphrase(self.config)
+      self.enrollment_passphrase = None
       logger.info(
         "SSL connection established. Two-way SSL authentication is "
         "turned off on the server."
       )
       return conn
     else:
-      self.certMan = CertificateManager(self.config, self.host)
+      self.certMan = CertificateManager(
+        self.config,
+        self.host,
+        enrollment_passphrase=self.enrollment_passphrase,
+      )
       self.certMan.initSecurity()
       agent_key = self.certMan.getAgentKeyName()
       agent_crt = self.certMan.getAgentCrtName()
       server_crt = self.certMan.getSrvrCrtName()
+      if os.path.isfile(agent_crt):
+        self.enrollment_passphrase = None
+        self.certMan.enrollment_passphrase = None
 
-      ssl_options = {
-        "keyfile": agent_key,
-        "certfile": agent_crt,
-        "cert_reqs": ssl.CERT_REQUIRED,
-        "ca_certs": server_crt,
-      }
+      ssl_options.update(
+        {
+          "keyfile": agent_key,
+          "certfile": agent_crt,
+          "cert_reqs": ssl.CERT_REQUIRED,
+          "ca_certs": server_crt,
+        }
+      )
 
       conn = AmbariStompConnection(self.connection_url, ssl_options=ssl_options)
 
@@ -116,7 +179,6 @@ class VerifiedHTTPSConnection:
     Create a stomp connection
     """
     try:
-      conn.start()
       conn.connect(wait=True)
     except Exception as ex:
       try:
@@ -130,189 +192,125 @@ class VerifiedHTTPSConnection:
       raise
 
 
-class AmbariStompConnection(WsConnection):
-  def __init__(self, *args, **kwargs):
-    self.lock = threading.RLock()
-    self.correlation_id = -1
-    WsConnection.__init__(self, *args, **kwargs)
-
-  def send(
-    self,
-    destination,
-    message,
-    content_type=None,
-    headers=None,
-    log_message_function=lambda x: x,
-    presend_hook=None,
-    **keyword_headers,
-  ):
-    with self.lock:
-      self.correlation_id += 1
-      correlation_id = self.correlation_id
-
-    if presend_hook:
-      presend_hook(correlation_id)
-
-    logged_message = log_message_function(copy.deepcopy(message))
-    logger.info(
-      f"Event to server at {destination} (correlation_id={correlation_id}): {logged_message}"
-    )
-
-    body = json.dumps(message)
-    WsConnection.send(
-      self,
-      destination,
-      body,
-      content_type=content_type,
-      headers=headers,
-      correlationId=correlation_id,
-      **keyword_headers,
-    )
-
-    return correlation_id
-
-  def add_listener(self, listener):
-    self.set_listener(listener.__class__.__name__, listener)
-
-
-class CachedHTTPSConnection:
-  """Caches a ssl socket and uses a single https connection to the server."""
-
-  def __init__(self, config, server_hostname):
-    self.connected = False
-    self.config = config
-    self.server = server_hostname
-    self.port = config.get("server", "secured_url_port")
-    self.connect()
-
-  def connect(self):
-    if not self.connected:
-      self.httpsconn = VerifiedHTTPSConnection(self.server, self.port, self.config)
-      self.httpsconn.connect()
-      self.connected = True
-    # possible exceptions are caught and processed in Controller
-
-  def forceClear(self):
-    self.httpsconn = VerifiedHTTPSConnection(self.server, self.port, self.config)
-    self.connect()
-
-  def request(self, req):
-    self.connect()
-    try:
-      self.httpsconn.request(
-        req.get_method(), req.get_full_url(), req.get_data(), req.headers
-      )
-      response = self.httpsconn.getresponse()
-      # Ungzip if gzipped
-      if response.getheader("Content-Encoding") == "gzip":
-        buf = StringIO(response.read())
-        response = gzip.GzipFile(fileobj=buf)
-      readResponse = response.read()
-    except Exception as ex:
-      # This exception is caught later in Controller
-      logger.debug(
-        "Error in sending/receving data from the server " + traceback.format_exc()
-      )
-      logger.info("Encountered communication error. Details: " + repr(ex))
-      self.connected = False
-      raise IOError("Error occured during connecting to the server: " + str(ex))
-    return readResponse
-
-
 class CertificateManager:
-  def __init__(self, config, server_hostname):
+  def __init__(self, config, server_hostname, enrollment_passphrase=None):
     self.config = config
     self.keysdir = os.path.abspath(self.config.get("security", "keysdir"))
     self.server_crt = self.config.get("security", "server_crt")
+    self.enrollment_passphrase = enrollment_passphrase
     self.server_url = (
       "https://" + server_hostname + ":" + self.config.get("server", "url_port")
     )
 
   def getAgentKeyName(self):
     keysdir = os.path.abspath(self.config.get("security", "keysdir"))
-    return keysdir + os.sep + hostname.hostname(self.config) + ".key"
+    return os.path.join(
+      keysdir, certificate_file_prefix(hostname.hostname(self.config)) + ".key"
+    )
 
   def getAgentCrtName(self):
     keysdir = os.path.abspath(self.config.get("security", "keysdir"))
-    return keysdir + os.sep + hostname.hostname(self.config) + ".crt"
+    return os.path.join(
+      keysdir, certificate_file_prefix(hostname.hostname(self.config)) + ".crt"
+    )
 
   def getAgentCrtReqName(self):
     keysdir = os.path.abspath(self.config.get("security", "keysdir"))
-    return keysdir + os.sep + hostname.hostname(self.config) + ".csr"
+    return os.path.join(
+      keysdir, certificate_file_prefix(hostname.hostname(self.config)) + ".csr"
+    )
 
   def getSrvrCrtName(self):
-    keysdir = os.path.abspath(self.config.get("security", "keysdir"))
-    return keysdir + os.sep + "ca.crt"
+    return self.config.get_ca_cert_file_path()
 
   def checkCertExists(self):
-    s = os.path.abspath(self.config.get("security", "keysdir")) + os.sep + "ca.crt"
+    s = self.getSrvrCrtName()
 
     server_crt_exists = os.path.exists(s)
 
     if not server_crt_exists:
-      logger.info("Server certicate not exists, downloading")
-      self.loadSrvrCrt()
+      raise ssl.SSLError(
+        f"Ambari Server CA certificate does not exist at {s}. "
+        "Install the trusted CA before starting the Agent."
+      )
     else:
       logger.info("Server certicate exists, ok")
 
-    agent_key_exists = os.path.exists(self.getAgentKeyName())
+    agent_key = self.getAgentKeyName()
+    agent_crt = self.getAgentCrtName()
+    agent_key_exists = os.path.exists(agent_key)
+    agent_crt_exists = os.path.exists(agent_crt)
 
+    if agent_key_exists and agent_crt_exists:
+      try:
+        validation_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        validation_context.load_cert_chain(agent_crt, agent_key)
+      except (OSError, ssl.SSLError):
+        logger.error("Agent certificate and private key do not form a valid pair")
+        os.unlink(agent_key)
+        os.unlink(agent_crt)
+        agent_key_exists = False
+        agent_crt_exists = False
+
+    csr_generated = False
     if not agent_key_exists:
       logger.info("Agent key not exists, generating request")
-      self.genAgentCrtReq(self.getAgentKeyName())
+      if agent_crt_exists:
+        os.unlink(agent_crt)
+        agent_crt_exists = False
+      self.genAgentCrtReq(agent_key)
+      csr_generated = True
     else:
       logger.info("Agent key exists, ok")
 
-    agent_crt_exists = os.path.exists(self.getAgentCrtName())
-
     if not agent_crt_exists:
       logger.info("Agent certificate not exists, sending sign request")
+      if not csr_generated:
+        self.genAgentCrtReq(agent_key, reuse_key=True)
       self.reqSignCrt()
     else:
       logger.info("Agent certificate exists, ok")
-
-  def loadSrvrCrt(self):
-    get_ca_url = self.server_url + "/cert/ca/"
-    logger.info("Downloading server cert from " + get_ca_url)
-    proxy_handler = urllib.request.ProxyHandler({})
-    opener = urllib.request.build_opener(proxy_handler)
-    stream = opener.open(get_ca_url)
-    response = stream.read()
-    stream.close()
-    srvr_crt_f = open(self.getSrvrCrtName(), "w+")
-    srvr_crt_f.write(response)
-    srvr_crt_f.close()
+      remove_persisted_enrollment_passphrase(self.config)
 
   def reqSignCrt(self):
-    sign_crt_req_url = self.server_url + "/certs/" + hostname.hostname(self.config)
-    agent_crt_req_f = open(self.getAgentCrtReqName())
-    agent_crt_req_content = agent_crt_req_f.read()
-    agent_crt_req_f.close()
-    passphrase_env_var = self.config.get("security", "passphrase_env_var_name")
-    passphrase = os.environ[passphrase_env_var]
-    register_data = {"csr": agent_crt_req_content, "passphrase": passphrase}
-    data = json.dumps(register_data)
+    sign_crt_req_url = self.server_url + "/certs/" + urllib.parse.quote(
+      hostname.hostname(self.config), safe=""
+    )
+    with open(self.getAgentCrtReqName(), encoding="utf-8") as agent_crt_req_f:
+      agent_crt_req_content = agent_crt_req_f.read()
+    if not self.enrollment_passphrase:
+      raise RuntimeError("Ambari Agent enrollment passphrase is not available")
+    register_data = {
+      "csr": agent_crt_req_content,
+      "passphrase": self.enrollment_passphrase,
+    }
+    data = json.dumps(register_data).encode("utf-8")
     proxy_handler = urllib.request.ProxyHandler({})
-    opener = urllib.request.build_opener(proxy_handler)
-    urllib.request.install_opener(opener)
+    https_handler = urllib.request.HTTPSHandler(
+      context=self.config.get_server_ssl_context()
+    )
+    opener = urllib.request.build_opener(proxy_handler, https_handler)
     req = urllib.request.Request(
       sign_crt_req_url, data, {"Content-Type": "application/json"}
     )
-    f = urllib.request.urlopen(req)
-    response = f.read()
-    f.close()
+    timeout = int(self.config.get("server", "connection_timeout", "10"))
+    with opener.open(req, timeout=timeout) as response_stream:
+      response = response_stream.read()
     try:
-      data = json.loads(response)
-      if logger.isEnabledFor(logging.DEBUG):
-        logger.debug("Sign response from Server: \n" + pprint.pformat(data))
+      data = json.loads(response.decode("utf-8"))
+      logger.debug("Certificate signing response result=%s", data.get("result"))
     except Exception:
-      logger.warning("Malformed response! data: %s", data)
+      logger.warning(
+        "Malformed certificate signing response (bytes=%s)", len(response)
+      )
       data = {"result": "ERROR"}
     result = data["result"]
     if result == "OK":
-      agentCrtContent = data["signedCa"]
-      agentCrtF = open(self.getAgentCrtName(), "w")
-      agentCrtF.write(agentCrtContent)
+      agent_crt_content = data["signedCa"].encode("utf-8")
+      self._atomic_write(self.getAgentCrtName(), agent_crt_content, 0o644)
+      remove_persisted_enrollment_passphrase(self.config)
+      self.enrollment_passphrase = None
+      register_data["passphrase"] = None
     else:
       # Possible exception is catched higher at Controller
       logger.error(
@@ -325,22 +323,81 @@ class CertificateManager:
       )
       raise ssl.SSLError
 
-  def genAgentCrtReq(self, keyname):
+  def genAgentCrtReq(self, keyname, reuse_key=False):
     keysdir = os.path.abspath(self.config.get("security", "keysdir"))
-    generate_script = GEN_AGENT_KEY % {
-      "hostname": hostname.hostname(self.config),
-      "keysdir": keysdir,
-    }
-
-    logger.info(generate_script)
-    if platform.system() == "Windows":
-      p = subprocess.Popen(generate_script, stdout=subprocess.PIPE)
-      p.communicate()
+    agent_hostname = hostname.hostname(self.config)
+    os.makedirs(keysdir, mode=0o700, exist_ok=True)
+    os.chmod(keysdir, 0o700)
+    key_descriptor, temporary_key = tempfile.mkstemp(prefix=".agent-key-", dir=keysdir)
+    os.close(key_descriptor)
+    csr_descriptor, temporary_csr = tempfile.mkstemp(prefix=".agent-csr-", dir=keysdir)
+    os.close(csr_descriptor)
+    command = ["openssl", "req", "-new"]
+    if reuse_key:
+      os.unlink(temporary_key)
+      temporary_key = None
+      command.extend(["-key", keyname])
     else:
-      p = subprocess.Popen([generate_script], shell=True, stdout=subprocess.PIPE)
-      p.communicate()
-    # this is required to be 600 for security concerns.
-    os.chmod(keyname, 0o600)
+      command.extend(
+        ["-newkey", "rsa:2048", "-nodes", "-keyout", temporary_key]
+      )
+    command.extend(
+      ["-subj", f"/OU={agent_hostname}/", "-out", temporary_csr]
+    )
+    logger.info("Generating Ambari Agent certificate request with OpenSSL")
+    try:
+      subprocess.run(
+        command,
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+      )
+      if temporary_key is not None:
+        os.chmod(temporary_key, 0o600)
+        os.replace(temporary_key, keyname)
+        temporary_key = None
+      os.chmod(temporary_csr, 0o600)
+      os.replace(temporary_csr, self.getAgentCrtReqName())
+      temporary_csr = None
+      directory_descriptor = os.open(keysdir, os.O_RDONLY)
+      try:
+        os.fsync(directory_descriptor)
+      finally:
+        os.close(directory_descriptor)
+    finally:
+      for temporary_path in (temporary_key, temporary_csr):
+        if temporary_path is not None:
+          try:
+            os.unlink(temporary_path)
+          except OSError:
+            pass
+
+  def _atomic_write(self, path, content, mode):
+    directory = os.path.dirname(path)
+    os.makedirs(directory, mode=0o700, exist_ok=True)
+    os.chmod(directory, 0o700)
+    descriptor, temporary_path = tempfile.mkstemp(
+      prefix=f".{os.path.basename(path)}-", dir=directory
+    )
+    try:
+      with os.fdopen(descriptor, "wb") as stream:
+        stream.write(content)
+        stream.flush()
+        os.fsync(stream.fileno())
+      os.chmod(temporary_path, mode)
+      os.replace(temporary_path, path)
+      temporary_path = None
+      directory_descriptor = os.open(os.path.dirname(path), os.O_RDONLY)
+      try:
+        os.fsync(directory_descriptor)
+      finally:
+        os.close(directory_descriptor)
+    finally:
+      if temporary_path is not None:
+        try:
+          os.unlink(temporary_path)
+        except OSError:
+          pass
 
   def initSecurity(self):
     self.checkCertExists()

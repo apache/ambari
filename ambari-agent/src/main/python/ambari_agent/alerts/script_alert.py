@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from ambari_commons import import_utils as imp
+from ambari_commons import import_utils
 import logging
 import os
 import re
@@ -189,7 +189,7 @@ class ScriptAlert(BaseAlert):
 
       return None
 
-    return imp.load_source(
+    return import_utils.load_source(
       self._get_alert_meta_value_safely("name"), self.path_to_script
     )
 

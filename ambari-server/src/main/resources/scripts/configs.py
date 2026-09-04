@@ -18,8 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import optparse
-from optparse import OptionGroup
+import argparse
 from collections import OrderedDict
 import sys
 import urllib.request, urllib.error, urllib.parse, ssl
@@ -76,7 +75,19 @@ class UsageException(Exception):
   pass
 
 
-def api_accessor(host, login, password, protocol, port, unsafe=None):
+def api_accessor(host, login, password, protocol, port, unsafe=False, ca_cert=None):
+  ssl_context = None
+  if protocol.lower() == HTTPS_PROTOCOL:
+    if unsafe:
+      logger.critical(
+        "TLS certificate and hostname verification are disabled by --unsafe"
+      )
+      ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+      ssl_context.check_hostname = False
+      ssl_context.verify_mode = ssl.CERT_NONE
+    elif ca_cert:
+      ssl_context = ssl.create_default_context(cafile=ca_cert)
+
   def do_request(api_url, request_type=GET_REQUEST_TYPE, request_body=None):
     try:
       url = f"{protocol}://{host}:{port}{api_url}"
@@ -89,15 +100,11 @@ def api_accessor(host, login, password, protocol, port, unsafe=None):
       request.data = request_body
       request.get_method = lambda: request_type
 
-      if unsafe:
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        response = urllib.request.urlopen(request, context=ctx)
-      else:
-        response = urllib.request.urlopen(request)
-
-      response_body = response.read()
+      response = urllib.request.urlopen(request, context=ssl_context, timeout=30)
+      try:
+        response_body = response.read()
+      finally:
+        response.close()
       response_body = (
         response_body.decode("utf-8")
         if isinstance(response_body, bytes)
@@ -316,67 +323,70 @@ def get_properties(cluster, config_type, args, accessor):
 
 
 def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options]")
+  parser = argparse.ArgumentParser(usage="usage: %(prog)s [options]")
 
-  login_options_group = OptionGroup(
-    parser, 'To specify credentials please use "-e" OR "-u" and "-p\'"'
+  login_options_group = parser.add_argument_group(
+    'To specify credentials please use "-e" OR "-u" and "-p\'"'
   )
-  login_options_group.add_option(
+  login_options_group.add_argument(
     "-u",
     "--user",
     dest="user",
     default="admin",
     help="Optional user ID to use for authentication. Default is 'admin'",
   )
-  login_options_group.add_option(
+  login_options_group.add_argument(
     "-p",
     "--password",
     dest="password",
-    default="admin",
-    help="Optional password to use for authentication. Default is 'admin'",
+    default=None,
+    help="Password to use for authentication.",
   )
-  login_options_group.add_option(
+  login_options_group.add_argument(
     "-e",
     "--credentials-file",
     dest="credentials_file",
     help="Optional file with user credentials separated by new line.",
   )
-  parser.add_option_group(login_options_group)
-
-  parser.add_option(
+  parser.add_argument(
     "-t",
     "--port",
     dest="port",
     default="8080",
     help="Optional port number for Ambari server. Default is '8080'. Provide empty string to not use port.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-s",
     "--protocol",
     dest="protocol",
     default="http",
     help="Optional support of SSL. Default protocol is 'http'",
   )
-  parser.add_option(
+  parser.add_argument(
     "--unsafe",
     action="store_true",
     dest="unsafe",
     help="Skip SSL certificate verification.",
   )
-  parser.add_option(
+  parser.add_argument(
+    "--ca-cert",
+    dest="ca_cert",
+    help="CA certificate used to verify the Ambari Server HTTPS endpoint.",
+  )
+  parser.add_argument(
     "-a", "--action", dest="action", help="Script action: <get>, <set>, <delete>"
   )
-  parser.add_option("-l", "--host", dest="host", help="Server external host name")
-  parser.add_option(
+  parser.add_argument("-l", "--host", dest="host", help="Server external host name")
+  parser.add_argument(
     "-n", "--cluster", dest="cluster", help="Name given to cluster. Ex: 'c1'"
   )
-  parser.add_option(
+  parser.add_argument(
     "-c",
     "--config-type",
     dest="config_type",
     help="One of the various configuration types in Ambari. Ex: core-site, hdfs-site, mapred-queue-acls, etc.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-b",
     "--version-note",
     dest="version_note",
@@ -384,30 +394,30 @@ def main():
     help="Version change notes which will help to know what has been changed in this config. This value is optional and is used for actions <set> and <delete>.",
   )
 
-  config_options_group = OptionGroup(
-    parser, 'To specify property(s) please use "-f" OR "-k" and "-v\'"'
+  config_options_group = parser.add_argument_group(
+    'To specify property(s) please use "-f" OR "-k" and "-v\'"'
   )
-  config_options_group.add_option(
+  config_options_group.add_argument(
     "-f",
     "--file",
     dest="file",
     help="File where entire configurations are saved to, or read from. Supported extensions (.xml, .json>)",
   )
-  config_options_group.add_option(
+  config_options_group.add_argument(
     "-k",
     "--key",
     dest="key",
     help="Key that has to be set or deleted. Not necessary for 'get' action.",
   )
-  config_options_group.add_option(
+  config_options_group.add_argument(
     "-v",
     "--value",
     dest="value",
     help="Optional value to be set. Not necessary for 'get' or 'delete' actions.",
   )
-  parser.add_option_group(config_options_group)
-
-  (options, args) = parser.parse_args()
+  parser.add_argument("arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
+  args = options.arguments
 
   logger.setLevel(logging.INFO)
   formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
@@ -451,6 +461,8 @@ def main():
 
   port = options.port
   protocol = options.protocol
+  if options.ca_cert and not os.path.isfile(options.ca_cert):
+    parser.error(f"CA certificate does not exist: {options.ca_cert}")
 
   # options without default value
   if None in [options.action, options.host, options.cluster, options.config_type]:
@@ -462,7 +474,15 @@ def main():
   config_type = options.config_type
   version_note = options.version_note
 
-  accessor = api_accessor(host, user, password, protocol, port, options.unsafe)
+  accessor = api_accessor(
+    host,
+    user,
+    password,
+    protocol,
+    port,
+    unsafe=options.unsafe,
+    ca_cert=options.ca_cert,
+  )
   if action == SET_ACTION:
     if not options.file and (not options.key or options.value is None):
       parser.error(

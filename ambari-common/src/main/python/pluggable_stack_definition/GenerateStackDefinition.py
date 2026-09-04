@@ -59,8 +59,7 @@ class _named_dict(dict):
   def __getattr__(self, item):
     if item in self:
       return self[item]
-    else:
-      dict.__getattr__(self, item)
+    raise AttributeError(item)
 
 
 def copy_tree(src, dest, exclude=None, post_copy=None):
@@ -102,7 +101,8 @@ def copy_tree(src, dest, exclude=None, post_copy=None):
 
 
 def process_replacements(file_path, config_data, stack_version_changes):
-  file_data = open(file_path, "r").read().decode("utf-8")
+  with open(file_path, "r", encoding="utf-8") as source:
+    file_data = source.read()
 
   # save user-defined text before replacements
   preserved_map = {}
@@ -139,8 +139,8 @@ def process_replacements(file_path, config_data, stack_version_changes):
   if preserved_map:
     for _from, _to in preserved_map.items():
       file_data = file_data.replace(_from, _to)
-  with open(file_path, "w") as target:
-    target.write(file_data.encode("utf-8"))
+  with open(file_path, "w", encoding="utf-8") as target:
+    target.write(file_data)
   return file_path
 
 
@@ -156,7 +156,9 @@ def process_version_replace(text, base_version, version):
   return text
 
 
-def process_metainfo(file_path, config_data, stack_version_changes, common_services=[]):
+def process_metainfo(file_path, config_data, stack_version_changes, common_services=None):
+  if common_services is None:
+    common_services = []
   tree = ET.parse(file_path)
   root = tree.getroot()
 
@@ -263,8 +265,8 @@ def process_metainfo(file_path, config_data, stack_version_changes, common_servi
                   # Default: Update package version by replacing stack version in the package name
                   # Example (ex: falcon_2_2_* -> falcon_3_0_*, falcon-2-3-* -> falcon-3-1-*)
                   ####################################################################################################
-                  for packages_tag in service_tag.getiterator("packages"):
-                    for package_tag in packages_tag.getiterator("package"):
+                  for packages_tag in service_tag.iter("packages"):
+                    for package_tag in packages_tag.iter("package"):
                       name_tag = package_tag.find("name")
                       for base_version in stack_version_changes:
                         version = stack_version_changes[base_version]
@@ -364,7 +366,7 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
     root = tree.getroot()
     remove_list = list()
     if "family" in stack:
-      for os_tag in root.getiterator("os"):
+      for os_tag in root.iter("os"):
         os_family = os_tag.get("family")
         if os_family not in stack.family:
           remove_list.append(os_tag)
@@ -372,13 +374,13 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
       root.remove(os_tag)
 
     # Update all base urls
-    for baseurl_tag in root.getiterator("baseurl"):
+    for baseurl_tag in root.iter("baseurl"):
       baseurl_tag.text = "http://SET_REPO_URL"
     # Update latest url
-    for latest_tag in root.getiterator("latest"):
+    for latest_tag in root.iter("latest"):
       latest_tag.text = "http://SET_LATEST_REPO_URL_INFO"
     # Update repo ids
-    for repoid_tag in root.getiterator("repoid"):
+    for repoid_tag in root.iter("repoid"):
       repoid_tag.text = repoid_tag.text.replace(
         config_data.baseStackName, config_data.stackName
       )
@@ -387,7 +389,7 @@ def process_repoinfo_xml(file_path, config_data, stack_version_changes, stack):
           baseVersion, stack_version_changes[baseVersion]
         )
     # Update repo name
-    for reponame_tag in root.getiterator("reponame"):
+    for reponame_tag in root.iter("reponame"):
       reponame_tag.text = reponame_tag.text.replace(
         config_data.baseStackName, config_data.stackName
       )
@@ -563,7 +565,7 @@ class GeneratorHelper(object):
             # process configuration xml
             target = process_config_xml(target, self.config_data)
           # process upgrade-x.x.xml
-          _upgrade_re = re.compile("upgrade-(.*)\.xml")
+          _upgrade_re = re.compile(r"upgrade-(.*)\.xml")
           result = re.search(_upgrade_re, target)
           if result:
             target_version = result.group(1)
@@ -608,7 +610,7 @@ class GeneratorHelper(object):
       os.path.join(target_folder, "../stack_advisor.py"),
     )
 
-  def copy_common_services(self, common_services=[]):
+  def copy_common_services(self, common_services=None):
     ignored_files = [".pyc"]
     if not common_services:
       common_services = self.common_services
@@ -645,7 +647,7 @@ class GeneratorHelper(object):
         self.copy_common_services(parent_services)
     pass
 
-  def copy_remaining_common_services(self, common_services=[]):
+  def copy_remaining_common_services(self):
     ignored_files = [".pyc"]
     source_common_services_path = os.path.join(self.resources_folder, "common-services")
     dest_common_services_path = os.path.join(self.output_folder, "common-services")
@@ -762,7 +764,8 @@ def main(argv):
     print(HELP_STRING)
     sys.exit(2)
 
-  config_data = _named_dict(json.load(open(config, "r")))
+  with open(config, "r", encoding="utf-8") as config_file:
+    config_data = _named_dict(json.load(config_file))
   gen_helper = GeneratorHelper(config_data, resources_folder, output_folder)
   gen_helper.copy_stacks()
   gen_helper.copy_resource_management()

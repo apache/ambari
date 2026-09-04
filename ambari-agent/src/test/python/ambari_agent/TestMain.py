@@ -25,34 +25,31 @@ import signal
 import os
 import socket
 import tempfile
+import threading
 import configparser
 import ambari_agent.hostname as hostname
 import resource
 
 from ambari_commons import OSCheck
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from only_for_platform import (
-  get_platform,
   not_for_platform,
   os_distro_value,
-  PLATFORM_WINDOWS,
 )
-from mock.mock import MagicMock, patch, ANY, Mock, call
+from unittest.mock import MagicMock, patch, call
 
 with patch.object(
   OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value)
 ):
-  from ambari_agent import NetUtil, security
+  from ambari_agent import NetUtil
   from ambari_agent import main
   from ambari_agent.AmbariConfig import AmbariConfig
   from ambari_agent.PingPortListener import PingPortListener
-  from ambari_agent.DataCleaner import DataCleaner
   import ambari_agent.HeartbeatHandlers as HeartbeatHandlers
   from ambari_commons.os_check import OSConst, OSCheck
   from ambari_agent.ExitHelper import ExitHelper
 
 
-class TestMain:  # (unittest.TestCase):
+class TestMain(unittest.TestCase):
   def setUp(self):
     # disable stdout
     out = io.StringIO()
@@ -62,22 +59,13 @@ class TestMain:  # (unittest.TestCase):
     # enable stdout
     sys.stdout = sys.__stdout__
 
-  @not_for_platform(PLATFORM_WINDOWS)
-  @patch("ambari_agent.HeartbeatHandlers.HeartbeatStopHandlersLinux")
-  @patch("sys.exit")
-  @patch("os.getpid")
-  def test_signal_handler(self, os_getpid_mock, sys_exit_mock, heartbeat_handler_mock):
-    # testing exit of children
-    main.agentPid = 4444
-    os_getpid_mock.return_value = 5555
-    HeartbeatHandlers.signal_handler("signum", "frame")
-    heartbeat_handler_mock.set_stop.assert_called()
-    sys_exit_mock.reset_mock()
+  def test_signal_handler_sets_shared_stop_event(self):
+    stop_event = threading.Event()
+    HeartbeatHandlers._handler = stop_event
 
-    # testing exit of main process
-    os_getpid_mock.return_value = main.agentPid
     HeartbeatHandlers.signal_handler("signum", "frame")
-    heartbeat_handler_mock.set_stop.assert_called()
+
+    self.assertTrue(stop_event.is_set())
 
   @patch.object(main.logger, "addHandler")
   @patch.object(main.logger, "setLevel")
@@ -136,30 +124,31 @@ class TestMain:  # (unittest.TestCase):
     main.update_log_level(config)
     setLevel_mock.assert_called_with(logging.INFO)
 
-  # Set open files ulimit hard limit
-  def test_update_open_files_ulimit(self):
-    # get the current soft and hard limits
-    (soft_limit, hard_limit) = resource.getrlimit(resource.RLIMIT_NOFILE)
-    # update will be successful only if the new value is >= soft limit
-    if hard_limit != resource.RLIM_INFINITY:
-      open_files_ulimit = soft_limit + (hard_limit - soft_limit) / 2
-    else:
-      open_files_ulimit = soft_limit
-    config = AmbariConfig()
-    config.set_ulimit_open_files(open_files_ulimit)
-    main.update_open_files_ulimit(config)
-    (soft_limit, hard_limit) = resource.getrlimit(resource.RLIMIT_NOFILE)
-    self.assertEqual(hard_limit, open_files_ulimit)
+  @patch.object(resource, "setrlimit")
+  @patch.object(resource, "getrlimit", return_value=(100, 200))
+  def test_update_open_files_ulimit(self, _getrlimit_mock, setrlimit_mock):
+    config = MagicMock()
+    config.get_ulimit_open_files.return_value = 150
 
-  @not_for_platform(PLATFORM_WINDOWS)
+    main.update_open_files_ulimit(config)
+
+    setrlimit_mock.assert_called_once_with(resource.RLIMIT_NOFILE, (100, 150))
+
   @patch("signal.signal")
   def test_bind_signal_handlers(self, signal_mock):
-    main.bind_signal_handlers(os.getpid())
+    stop_event = threading.Event()
+
+    returned_event = main.bind_signal_handlers(os.getpid(), stop_event)
+
     # Check if on SIGINT/SIGTERM agent is configured to terminate
     signal_mock.assert_any_call(signal.SIGINT, HeartbeatHandlers.signal_handler)
     signal_mock.assert_any_call(signal.SIGTERM, HeartbeatHandlers.signal_handler)
+    signal_mock.assert_any_call(
+      signal.SIGUSR1, HeartbeatHandlers.log_thread_stack_traces
+    )
+    self.assertIs(stop_event, returned_event)
 
-  @patch("distro.linux_distribution")
+  @patch("ambari_commons.os_check.linux_distribution")
   @patch("os.path.exists")
   @patch("configparser.RawConfigParser.read")
   def test_resolve_ambari_config(self, read_mock, exists_mock, platform_mock):
@@ -197,12 +186,11 @@ class TestMain:  # (unittest.TestCase):
 
     exit_mock.reset_mock()
 
-    if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
-      # Trying case if there is another instance running, only valid for linux
-      isfile_mock.return_value = True
-      isdir_mock.return_value = True
-      main.perform_prestart_checks(None)
-      self.assertTrue(exit_mock.called)
+    # Trying case if there is another instance running, only valid for linux
+    isfile_mock.return_value = True
+    isdir_mock.return_value = True
+    main.perform_prestart_checks(None)
+    self.assertTrue(exit_mock.called)
 
     isfile_mock.reset_mock()
     isdir_mock.reset_mock()
@@ -224,7 +212,6 @@ class TestMain:  # (unittest.TestCase):
     main.perform_prestart_checks(None)
     self.assertFalse(exit_mock.called)
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("time.sleep")
   @patch("os.path.exists")
@@ -288,13 +275,13 @@ class TestMain:  # (unittest.TestCase):
       )
 
     # Restore
-    main.pidfile = oldpid
+    main.agent_pidfile = oldpid
     os.remove(tmpoutfile)
 
   @patch("os.rmdir")
   @patch("os.path.join")
   @patch("builtins.open")
-  @patch.object(configparser, "configparser")
+  @patch.object(configparser, "ConfigParser")
   @patch("sys.exit")
   @patch("os.walk")
   @patch("os.remove")
@@ -312,18 +299,19 @@ class TestMain:  # (unittest.TestCase):
     config_mock = MagicMock()
     os_walk_mock.return_value = [("/", ("",), ("file1.txt", "file2.txt"))]
     config_parser_mock.return_value = config_mock
-    config_mock.get("server", "hostname").return_value = "old_host"
+    config_mock.get.side_effect = ["old_host", "/keys"]
     main.reset_agent(["test", "reset", "new_hostname"])
-    self.assertEqual(config_mock.get.call_count, 3)
+    self.assertEqual(config_mock.get.call_count, 2)
     self.assertEqual(config_mock.set.call_count, 1)
     self.assertEqual(os_remove_mock.call_count, 2)
+    open_mock.assert_any_call(main.configFile, "w", encoding="utf-8")
 
     self.assertTrue(sys_exit_mock.called)
 
   @patch("os.rmdir")
   @patch("os.path.join")
   @patch("builtins.open")
-  @patch.object(configparser, "configparser")
+  @patch.object(configparser, "ConfigParser")
   @patch("sys.exit")
   @patch("os.walk")
   @patch("os.remove")
@@ -341,132 +329,80 @@ class TestMain:  # (unittest.TestCase):
     config_mock = MagicMock()
     os_walk_mock.return_value = [("/", ("",), ("file1.txt", "file2.txt"))]
     config_parser_mock.return_value = config_mock
-    config_mock.get("server", "hostname").return_value = "old_host"
+    config_mock.get.return_value = "old_host"
     open_mock.side_effect = Exception("Invalid Path!")
-    try:
-      main.reset_agent(["test", "reset", "new_hostname"])
-      self.fail("Should have thrown exception!")
-    except:
-      self.assertTrue(True)
+    main.reset_agent(["test", "reset", "new_hostname"])
 
     self.assertTrue(sys_exit_mock.called)
 
-  @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-  def init_ambari_config_mock(self):
-    return os.path.normpath(
-      os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "..",
-        "..",
-        "..",
-        "conf",
-        "windows",
-        "ambari-agent.ini",
-      )
-    )
-
-  @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-  def init_ambari_config_mock(self):
-    return os.path.normpath(
-      os.path.join(
-        os.path.dirname(__file__),
-        "..",
-        "..",
-        "..",
-        "..",
-        "conf",
-        "unix",
-        "ambari-agent.ini",
-      )
-    )
-
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
-  @patch.object(socket, "gethostbyname")
-  @patch.object(main, "setup_logging")
-  @patch.object(main, "bind_signal_handlers")
-  @patch.object(main, "stop_agent")
-  @patch.object(AmbariConfig, "getConfigFile")
+  @patch.object(hostname, "server_hostnames", return_value=["host1", "host2"])
+  @patch.object(socket, "gethostbyname", return_value="192.0.2.10")
+  @patch.object(main, "resolve_ambari_config")
   @patch.object(main, "perform_prestart_checks")
   @patch.object(main, "daemonize")
   @patch.object(main, "update_log_level")
   @patch.object(NetUtil.NetUtil, "try_to_connect")
-  @patch("optparse.OptionParser.parse_args")
-  @patch.object(DataCleaner, "start")
-  @patch.object(DataCleaner, "__init__")
   @patch.object(PingPortListener, "start")
   @patch.object(PingPortListener, "__init__")
-  @patch.object(ExitHelper, "execute_cleanup")
   @patch.object(ExitHelper, "exit")
+  @patch.object(main, "run_threads")
+  @patch.object(main, "config")
+  @patch.object(sys, "argv", ["ambari-agent"])
   def test_main(
     self,
+    config_mock,
+    run_threads_mock,
     exithelper_exit_mock,
-    cleanup_mock,
     ping_port_init_mock,
     ping_port_start_mock,
-    data_clean_init_mock,
-    data_clean_start_mock,
-    parse_args_mock,
     try_to_connect_mock,
     update_log_level_mock,
     daemonize_mock,
     perform_prestart_checks_mock,
-    ambari_config_mock,
-    stop_mock,
-    bind_signal_handlers_mock,
-    setup_logging_mock,
+    resolve_ambari_config_mock,
     socket_mock,
+    server_hostnames_mock,
   ):
-    data_clean_init_mock.return_value = None
     ping_port_init_mock.return_value = None
-    options = MagicMock()
-    parse_args_mock.return_value = (options, MagicMock)
-    try_to_connect_mock.return_value = (0, True, False)  # (retries, connected, stopped)
-    # use default unix config
-    ambari_config_mock.return_value = self.init_ambari_config_mock()
-    # testing call without command-line arguments
+    config_mock.has_option.return_value = False
+    config_mock.use_system_proxy_setting.return_value = False
+    config_mock.get_ulimit_open_files.return_value = 65536
+    config_mock.get_api_url.side_effect = lambda host: f"https://{host}:8441"
+    try_to_connect_mock.side_effect = [(0, False, False), (0, True, False)]
+    options = MagicMock(expected_hostname="test.hst", home_dir="")
+    initializer_module = MagicMock()
+    initializer_module.stop_event = threading.Event()
 
-    main.main()
+    active_server = main.main(options, initializer_module)
 
-    self.assertTrue(setup_logging_mock.called)
-    self.assertTrue(perform_prestart_checks_mock.called)
-    if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
-      self.assertTrue(daemonize_mock.called)
-    self.assertTrue(update_log_level_mock.called)
-    try_to_connect_mock.assert_called_once_with(ANY, main.MAX_RETRIES, ANY)
-    self.assertTrue(start_mock.called)
-    self.assertTrue(data_clean_init_mock.called)
-    self.assertTrue(data_clean_start_mock.called)
-    self.assertTrue(ping_port_init_mock.called)
-    self.assertTrue(ping_port_start_mock.called)
-    self.assertTrue(exithelper_exit_mock.called)
-    perform_prestart_checks_mock.reset_mock()
+    self.assertEqual("host2", active_server)
+    initializer_module.init.assert_called_once_with()
+    config_mock.load.assert_called_once_with({"agent": {"prefix": "/home/ambari"}})
+    resolve_ambari_config_mock.assert_called_once_with()
+    perform_prestart_checks_mock.assert_called_once_with("test.hst")
+    daemonize_mock.assert_called_once_with()
+    update_log_level_mock.assert_called_once_with(config_mock)
+    self.assertEqual(2, try_to_connect_mock.call_count)
+    run_threads_mock.assert_called_once_with(initializer_module)
+    ping_port_start_mock.assert_called_once_with()
+    exithelper_exit_mock.assert_called_once_with()
 
-    # Testing call with --expected-hostname parameter
-    options.expected_hostname = "test.hst"
-    main.main()
-    perform_prestart_checks_mock.assert_called_once_with(options.expected_hostname)
+  def test_run_threads_stops_scheduler_and_joins_every_worker(self):
+    initializer_module = MagicMock()
+    initializer_module.stop_event.is_set.return_value = True
 
-    # Test with multiple server hostnames
-    default_server_hostnames = hostname.cached_server_hostnames
-    hostname.cached_server_hostnames = ["host1", "host2", "host3"]
+    main.run_threads(initializer_module)
 
-    def try_to_connect_impl(*args, **kwargs):
-      for server_hostname in hostname.cached_server_hostnames:
-        if args[0].find(server_hostname) != -1:
-          if server_hostname == "host1":
-            return 0, False, False
-          elif server_hostname == "host2":
-            return 0, False, False
-          elif server_hostname == "host3":
-            return 0, True, False
-          else:
-            return 0, True, False
-      pass
-
-    try_to_connect_mock.reset_mock()
-    try_to_connect_mock.side_effect = try_to_connect_impl
-    active_server = main.main()
-    self.assertEqual(active_server, "host3")
-    hostname.cached_server_hostnames = default_server_hostnames
-    pass
+    initializer_module.action_queue.interrupt.assert_called_once_with()
+    initializer_module.alert_scheduler_handler.stop.assert_called_once_with()
+    for worker in (
+      initializer_module.action_queue,
+      initializer_module.command_status_reporter,
+      initializer_module.component_status_executor,
+      initializer_module.host_status_reporter,
+      initializer_module.alert_status_reporter,
+      initializer_module.heartbeat_thread,
+    ):
+      worker.start.assert_called_once_with()
+      worker.join.assert_called_once_with()

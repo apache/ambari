@@ -18,36 +18,78 @@ limitations under the License.
 
 """
 
-from resource_management.core.resources.system import Execute, File
-from resource_management.libraries.functions.format import format
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.libraries.functions.show_logs import show_logs
+
+from metrics_process import (
+  hbase_pid_file,
+  read_or_discover_hbase_process,
+  stop_hbase_process,
+  wait_for_hbase_process,
+)
 
 
 def hbase_service(name, action="start"):  # 'start' or 'stop' or 'status'
   import params
 
-  role = name
-  cmd = format("{daemon_script} --config {hbase_conf_dir}")
-  pid_file = format("{hbase_pid_dir}/hbase-{hbase_user}-{role}.pid")
-  no_op_test = format(
-    "ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1"
+  if action not in ("start", "stop"):
+    raise Fail(f"Unsupported AMS HBase action: {action}")
+
+  pid_file = hbase_pid_file(params.hbase_pid_dir, params.hbase_user, name)
+  identity = read_or_discover_hbase_process(
+    pid_file, params.hbase_user, params.user_group, name
   )
 
   if action == "start":
-    daemon_cmd = format("{cmd} start {role}")
+    if identity is not None:
+      Logger.info(f"AMS HBase {name} is already running with pid {identity.pid}")
+      return False
 
-    Execute(daemon_cmd, not_if=no_op_test, user=params.hbase_user)
-  elif action == "stop":
-    daemon_cmd = format("{cmd} stop {role}")
-
-    Execute(
-      daemon_cmd,
-      user=params.hbase_user,
-      # BUGFIX: hbase regionserver sometimes hangs when nn is in safemode
-      timeout=params.hbase_regionserver_shutdown_timeout,
-      on_timeout=format("{no_op_test} && {sudo} -H -E kill -9 `{sudo} cat {pid_file}`"),
+    command = (
+      params.daemon_script,
+      "--config",
+      params.hbase_conf_dir,
+      "start",
+      name,
     )
+    try:
+      Execute(
+        command,
+        user=params.hbase_user,
+        environment={"JAVA_HOME": params.java64_home},
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
+      started_identity = wait_for_hbase_process(
+        pid_file, params.hbase_user, params.user_group, name
+      )
+    except Exception:
+      try:
+        show_logs(params.hbase_log_dir, params.hbase_user)
+      except Exception as log_error:
+        Logger.warning(f"Unable to show AMS HBase startup logs: {log_error}")
+      raise
+    return started_identity
 
-    File(
+  if identity is None:
+    Logger.info(f"No running AMS HBase {name} process was found")
+    return False
+
+  try:
+    wait_attempts = max(1, int(params.hbase_regionserver_shutdown_timeout))
+    return stop_hbase_process(
       pid_file,
-      action="delete",
+      params.hbase_user,
+      params.user_group,
+      name,
+      wait_attempts=wait_attempts,
     )
+  except Exception:
+    try:
+      show_logs(params.hbase_log_dir, params.hbase_user)
+    except Exception as log_error:
+      Logger.warning(f"Unable to show AMS HBase shutdown logs: {log_error}")
+    raise

@@ -25,10 +25,10 @@ import re
 from textwrap import dedent
 
 flags = re.DOTALL | re.IGNORECASE
-create_table_re = re.compile("CREATE TABLE ([^\s(]+).*", flags=flags)
+create_table_re = re.compile(r"CREATE TABLE ([^\s(]+).*", flags=flags)
 create_index_re = re.compile("CREATE(?: NONCLUSTERED)? INDEX ([^ (]+).*", flags=flags)
 add_fk_const_re = re.compile(
-  "ALTER TABLE \S+ ADD CONSTRAINT (\S+) FOREIGN KEY.*", flags=flags
+  r"ALTER TABLE \S+ ADD CONSTRAINT (\S+) FOREIGN KEY.*", flags=flags
 )
 
 input_sql = "".join(fileinput.input())
@@ -39,9 +39,9 @@ for statement in input_statements:
   statement = re.sub(
     create_table_re,
     dedent("""\
-      IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('\g<1>') AND type = 'U')
+      IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('\\g<1>') AND type = 'U')
       BEGIN
-      \g<0>
+      \\g<0>
       END
       """),
     statement,
@@ -51,9 +51,9 @@ for statement in input_statements:
   statement = re.sub(
     create_index_re,
     dedent("""\
-      IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = '\g<1>')
+      IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = '\\g<1>')
       BEGIN
-      \g<0>
+      \\g<0>
       END
       """),
     statement,
@@ -63,9 +63,9 @@ for statement in input_statements:
   statement = re.sub(
     add_fk_const_re,
     dedent("""\
-      IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('\g<1>') AND type = 'F')
+      IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID('\\g<1>') AND type = 'F')
       BEGIN
-      \g<0>
+      \\g<0>
       END
       """),
     statement,
@@ -84,6 +84,6 @@ for table in inserts:
     tables.add(table)
 deletes.reverse()
 delete_sql = "\n".join(deletes)
-sql = re.sub("BEGIN TRANSACTION", "\g<0>\n" + delete_sql, sql, count=1)
+sql = re.sub("BEGIN TRANSACTION", "\\g<0>\n" + delete_sql, sql, count=1)
 
 print(sql)

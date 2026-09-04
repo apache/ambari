@@ -20,17 +20,85 @@ limitations under the License.
 
 from unittest import TestCase
 import tempfile
-from mock.mock import patch
-from mock.mock import MagicMock
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+from unittest.mock import patch
+from unittest.mock import MagicMock
 from ambari_commons.os_check import OSCheck
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Hardware import Hardware
 from ambari_agent.Facter import FacterLinux
+from ambari_agent.HeartbeatThread import HeartbeatThread
+from ambari_agent.listeners.ServerResponsesListener import ServerResponsesListener
+from ambari_agent import Constants
 
 
-@not_for_platform(PLATFORM_WINDOWS)
 class TestRegistration(TestCase):
+  def _heartbeat_with_response_listener(self):
+    initializer_module = MagicMock()
+    listener = ServerResponsesListener(initializer_module)
+    heartbeat = object.__new__(HeartbeatThread)
+    heartbeat.connection = initializer_module.connection
+    heartbeat.server_responses_listener = listener
+    return heartbeat, listener
+
+  def test_blocking_request_registers_and_consumes_synchronous_response(self):
+    heartbeat, listener = self._heartbeat_with_response_listener()
+
+    def send(**kwargs):
+      kwargs["presend_hook"](7)
+      listener.on_event(
+        {Constants.CORRELATION_ID_STRING: "7"}, {"status": "OK", "id": 1}
+      )
+      return 7
+
+    heartbeat.connection.send.side_effect = send
+
+    self.assertEqual(
+      {"status": "OK", "id": 1},
+      heartbeat.blocking_request({"request": 1}, "/register", timeout=1),
+    )
+    self.assertEqual(set(), listener.synchronous_response_ids)
+    self.assertEqual({}, listener.responses.dict)
+
+  def test_blocking_request_timeout_cleans_response_and_logging_registration(self):
+    heartbeat, listener = self._heartbeat_with_response_listener()
+
+    def send(**kwargs):
+      kwargs["presend_hook"](7)
+      return 7
+
+    heartbeat.connection.send.side_effect = send
+
+    with self.assertRaisesRegex(Exception, "timeout expired"):
+      heartbeat.blocking_request(
+        {"request": 1}, "/register", log_handler=MagicMock(), timeout=0
+      )
+
+    self.assertEqual(set(), listener.synchronous_response_ids)
+    self.assertEqual({}, listener.logging_handlers)
+    self.assertEqual({}, listener.responses.dict)
+
+  def test_each_stomp_topic_uses_a_unique_subscription_id(self):
+    heartbeat = object.__new__(HeartbeatThread)
+    heartbeat.connection = MagicMock()
+
+    heartbeat.subscribe_to_topics(["/events/commands", "/events/metadata"])
+
+    self.assertEqual(
+      [call.kwargs for call in heartbeat.connection.subscribe.call_args_list],
+      [
+        {
+          "destination": "/events/commands",
+          "id": "/events/commands",
+          "ack": "client-individual",
+        },
+        {
+          "destination": "/events/metadata",
+          "id": "/events/metadata",
+          "ack": "client-individual",
+        },
+      ],
+    )
+
   @patch("subprocess.Popen")
   @patch.object(Hardware, "_chk_writable_mount", new=MagicMock(return_value=True))
   @patch("builtins.open", new=MagicMock())
@@ -78,4 +146,5 @@ class TestRegistration(TestCase):
     self.assertEqual(
       data["prefix"], config.get("agent", "prefix"), "The prefix path does not match"
     )
-    self.assertEqual(len(data), 10)
+    self.assertEqual(["aes256_hex", "aes256_gcm"], data["encryptionTypes"])
+    self.assertEqual(len(data), 11)

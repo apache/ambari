@@ -405,7 +405,7 @@ public class Configuration {
    */
   @Markdown(description = "The password to set on the `AMBARI_PASSPHRASE` environment variable before invoking the bootstrap script.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SETUP_AGENT_PASSWORD = new ConfigurationProperty<>(
-      "bootstrap.setup_agent.password", "password");
+      "bootstrap.setup_agent.password", "");
 
   /**
    * The host name of the Ambari Server which will be used by the Ambari Agents
@@ -636,7 +636,7 @@ public class Configuration {
    */
   @Markdown(description = "The name of the truststore file ambari uses to store trusted certificates. Located in `security.server.keys_dir`")
   public static final ConfigurationProperty<String> TSTR_NAME = new ConfigurationProperty<>(
-      "security.server.truststore_name", "keystore.p12");
+      "security.server.truststore_name", "truststore.p12");
 
   /**
    * The type of the truststore file specified in {@link #TSTR_NAME}. By default
@@ -1643,8 +1643,8 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> THREAD_POOL_SIZE_FOR_EXTERNAL_SCRIPT = new ConfigurationProperty<>(
     "server.script.threads", 20);
 
-  public static final String DEF_ARCHIVE_EXTENSION;
-  public static final String DEF_ARCHIVE_CONTENT_TYPE;
+  public static final String DEF_ARCHIVE_EXTENSION = ".tar.gz";
+  public static final String DEF_ARCHIVE_CONTENT_TYPE = "application/x-ustar";
 
   /**
    * The port used to communicate with the Kerberos Key Distribution Center.
@@ -2759,17 +2759,6 @@ public class Configuration {
    * The Kerberos authentication-specific properties container (for convenience)
    */
   private final AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties;
-
-  static {
-    if (System.getProperty("os.name").contains("Windows")) {
-      DEF_ARCHIVE_EXTENSION = ".zip";
-      DEF_ARCHIVE_CONTENT_TYPE = "application/zip";
-    }
-    else {
-      DEF_ARCHIVE_EXTENSION = ".tar.gz";
-      DEF_ARCHIVE_CONTENT_TYPE = "application/x-ustar";
-    }
-  }
 
   /**
    * Validate password policy regexp syntax

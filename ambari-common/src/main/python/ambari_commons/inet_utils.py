@@ -24,18 +24,11 @@ import sys
 import urllib.request, urllib.error, urllib.parse
 import socket
 import re
-from ambari_commons import OSCheck
-from functools import wraps
 
 from .exceptions import FatalException, NonFatalException, TimeoutError
 
-if OSCheck.is_windows_family():
-  from ambari_commons.os_windows import os_run_os_command
-else:
-  # MacOS not supported
-  from ambari_commons.os_linux import os_run_os_command
-
-  pass
+# MacOS not supported
+from ambari_commons.os_linux import os_run_os_command
 
 from .logging_utils import *
 from .os_check import OSCheck
@@ -46,17 +39,16 @@ def openurl(url, timeout=socket._GLOBAL_DEFAULT_TIMEOUT, *args, **kwargs):
 
   :param url: url to open
   :param timeout: open timeout, raise TimeoutError on timeout
-  :rtype urllib2.Request
+  :rtype: http.client.HTTPResponse
   """
   try:
     return urllib.request.urlopen(url, timeout=timeout, *args, **kwargs)
   except urllib.error.URLError as e:
-    # Python 2.6 timeout handling
     if hasattr(e, "reason") and isinstance(e.reason, socket.timeout):
       raise TimeoutError(e.reason)
     else:
       raise e  # re-throw exception
-  except socket.timeout as e:  # Python 2.7 timeout handling
+  except socket.timeout as e:
     raise TimeoutError(e)
 
 
@@ -73,7 +65,7 @@ def download_file(link, destination, chunk_size=16 * 1024, progress_func=None):
 
 def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func=None):
   print_info_msg(
-    f"Trying to download {link} to {destination} with python lib [urllib2]."
+    f"Trying to download {link} to {destination} with Python library [urllib.request]."
   )
   if os.path.exists(destination):
     print_warning_msg(
@@ -84,13 +76,13 @@ def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func=
     force_download_file(link, destination, chunk_size, progress_func=progress_func)
   except:
     print_error_msg(
-      f"Download {link} with python lib [urllib2] failed with error: {str(sys.exc_info())}"
+      f"Download {link} with Python library [urllib.request] failed with error: {str(sys.exc_info())}"
     )
 
   if not os.path.exists(destination):
     print(f"Trying to download {link} to {destination} with [curl] command.")
     # print_info_msg(f"Trying to download {link} to {destination} with [curl] command.")
-    curl_command = f"curl --fail -k -o {destination} {link}"
+    curl_command = f"curl --fail -o {destination} {link}"
     retcode, out, err = os_run_os_command(curl_command)
     if retcode != 0:
       print_error_msg(
@@ -176,7 +168,7 @@ def force_download_file(link, destination, chunk_size=16 * 1024, progress_func=N
   if os.path.exists(temp_dest):
     # Support for resuming downloads, in case the process is killed while downloading a file
     #  set resume range
-    # See http://stackoverflow.com/questions/6963283/python-urllib2-resume-download-doesnt-work-when-network-reconnects
+    # Resume from the previous chunk boundary after an interrupted download.
     partial_size = os.stat(temp_dest).st_size
     if partial_size > chunk_size:
       # Re-download the last chunk, to minimize the possibilities of file corruption
@@ -231,49 +223,62 @@ def force_download_file(link, destination, chunk_size=16 * 1024, progress_func=N
 
   # when download is complete -> mv temp_dest destination
   if os.path.exists(destination):
-    # Windows behavior: rename fails if the destination file exists
     os.unlink(destination)
   os.rename(temp_dest, destination)
 
 
 def resolve_address(address):
   """
-  Resolves address to proper one in special cases, for example 0.0.0.0 to 127.0.0.1 on windows os.
+  Returns the address used by alert probes.
 
   :param address: address to resolve
   :return: resulting address
   """
-  if OSCheck.is_windows_family():
-    if address == "0.0.0.0":
-      return "127.0.0.1"
   return address
 
 
-def ensure_ssl_using_protocol(protocol="PROTOCOL_TLSv1_2", ca_certs=None):
-  """
-  Patching ssl module to use configured protocol and ca certs
-
-  :param protocol: one of ("PROTOCOL_SSLv2", "PROTOCOL_SSLv3", "PROTOCOL_SSLv23", "PROTOCOL_TLSv1", "PROTOCOL_TLSv1_1", "PROTOCOL_TLSv1_2")
-  :param ca_certs: path to ca_certs file
-  :return:
-  """
-  from functools import wraps
+def resolve_tls_client_protocol(protocol="PROTOCOL_TLS_CLIENT"):
+  """Resolve supported legacy configuration values to a secure client protocol."""
   import ssl
 
-  if hasattr(ssl, "_create_default_https_context"):
-    if not hasattr(ssl._create_default_https_context, "_ambari_patched"):
+  allowed_values = {ssl.PROTOCOL_TLS_CLIENT}
+  legacy_tls_1_2 = getattr(ssl, "PROTOCOL_TLSv1_2", None)
+  if legacy_tls_1_2 is not None:
+    allowed_values.add(legacy_tls_1_2)
 
-      @wraps(ssl._create_default_https_context)
-      def _create_default_https_context_patched():
-        context = ssl.SSLContext(protocol=getattr(ssl, protocol))
-        if ca_certs:
-          context.load_verify_locations(ca_certs)
-          context.verify_mode = ssl.CERT_REQUIRED
-          context.check_hostname = False
-        return context
+  if isinstance(protocol, str):
+    if protocol not in ("PROTOCOL_TLS_CLIENT", "PROTOCOL_TLSv1_2"):
+      raise ValueError(f"Unsupported TLS client protocol: {protocol}")
+    if protocol == "PROTOCOL_TLSv1_2" and legacy_tls_1_2 is None:
+      raise ValueError("PROTOCOL_TLSv1_2 is not available in this Python runtime")
+  elif protocol not in allowed_values:
+    raise ValueError(f"Unsupported TLS client protocol: {protocol}")
+  return ssl.PROTOCOL_TLS_CLIENT
 
-      _create_default_https_context_patched._ambari_patched = True
-      ssl._create_default_https_context = _create_default_https_context_patched
+
+def create_ssl_context(protocol="PROTOCOL_TLS_CLIENT", ca_certs=None):
+  """
+  Create an explicitly scoped client SSL context.
+
+  :param protocol: PROTOCOL_TLS_CLIENT or legacy PROTOCOL_TLSv1_2
+  :param ca_certs: path to ca_certs file
+  :return: a context that verifies the certificate chain and hostname
+  """
+  import ssl
+
+  context = ssl.SSLContext(protocol=resolve_tls_client_protocol(protocol))
+  context.minimum_version = ssl.TLSVersion.TLSv1_2
+  context.load_default_certs(ssl.Purpose.SERVER_AUTH)
+  if ca_certs:
+    context.load_verify_locations(ca_certs)
+  context.verify_mode = ssl.CERT_REQUIRED
+  context.check_hostname = True
+  return context
+
+
+def ensure_ssl_using_protocol(protocol="PROTOCOL_TLS_CLIENT", ca_certs=None):
+  """Compatibility alias returning a scoped context without global patching."""
+  return create_ssl_context(protocol, ca_certs)
 
 
 """
@@ -297,7 +302,7 @@ def get_host_from_url(uri):
     return None
 
     # RFC3986, Appendix B
-  parts = re.findall("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", uri)
+  parts = re.findall(r"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?", uri)
 
   # index of parts
   # scheme    = 1

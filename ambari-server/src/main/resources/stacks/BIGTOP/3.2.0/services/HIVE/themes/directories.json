@@ -92,10 +92,6 @@
           "subsection-name": "subsection-data-dirs"
         },
         {
-          "config": "tez-interactive-site/tez.lib.uris",
-          "subsection-name": "subsection-data-dirs"
-        },
-        {
           "config": "hive-env/hive_log_dir",
           "subsection-name": "subsection-log-dirs"
         },
@@ -132,12 +128,6 @@
       },
       {
         "config": "hive-site/hive.user.install.directory",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "tez-interactive-site/tez.lib.uris",
         "widget": {
           "type": "text-field"
         }

@@ -20,8 +20,7 @@ limitations under the License.
 
 import logging
 import os
-
-import ambari_simplejson as json
+import json
 
 from ambari_agent import hostname
 

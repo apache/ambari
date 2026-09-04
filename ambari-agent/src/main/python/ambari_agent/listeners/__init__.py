@@ -17,12 +17,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import ambari_simplejson as json
-import ambari_stomp
+import json
 import logging
 import traceback
 import copy
-from ambari_stomp.adapter.websocket import ConnectionIsAlreadyClosed
+from stomp.listener import ConnectionListener
+
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 from ambari_agent import Constants
 from ambari_agent.Utils import Utils
 from queue import Queue
@@ -31,9 +32,7 @@ import threading
 logger = logging.getLogger(__name__)
 
 
-class EventListener(ambari_stomp.ConnectionListener):
-  unprocessed_messages_queue = Queue(100)
-
+class EventListener(ConnectionListener):
   """
   Base abstract class for event listeners on specific topics.
   """
@@ -41,6 +40,7 @@ class EventListener(ambari_stomp.ConnectionListener):
   def __init__(self, initializer_module):
     self.initializer_module = initializer_module
     self.enabled = True
+    self.unprocessed_messages_queue = Queue(100)
     self.event_queue_lock = threading.RLock()
 
   def dequeue_unprocessed_events(self):
@@ -48,7 +48,9 @@ class EventListener(ambari_stomp.ConnectionListener):
       payload = self.unprocessed_messages_queue.get_nowait()
       if payload:
         logger.info(
-          f"Processing event from unprocessed queue {payload[0]} {payload[1]}"
+          "Processing queued event from %s (message-id=%s)",
+          payload[0],
+          payload[1].get(Constants.MESSAGE_ID),
         )
         destination = payload[0]
         headers = payload[1]
@@ -58,18 +60,27 @@ class EventListener(ambari_stomp.ConnectionListener):
           self.on_event(headers, message_json)
         except Exception as ex:
           logger.exception(
-            f"Exception while handing event from {destination} {headers} {message}"
+            "Exception while handling queued event from %s (message-id=%s)",
+            destination,
+            headers.get(Constants.MESSAGE_ID),
           )
           self.report_status_to_sender(headers, message, ex)
         else:
           self.report_status_to_sender(headers, message)
+        self.acknowledge_message(headers)
 
-  def on_message(self, headers, message):
+  def on_message(self, frame, message=None):
     """
     This method is triggered by stomp when message from serve is received.
 
     Here we handle some decode the message to json and check if it addressed to this specific event listener.
     """
+    if message is None:
+      headers = frame.headers
+      message = frame.body
+    else:
+      headers = frame
+
     if not "destination" in headers:
       logger.warning(
         "Received event from server which does not contain 'destination' header"
@@ -82,9 +93,13 @@ class EventListener(ambari_stomp.ConnectionListener):
         message_json = json.loads(message)
       except ValueError as ex:
         logger.exception(
-          f"Received from server event is not a valid message json. Message is:\n{message}"
+          "Server event from %s is not valid JSON (message-id=%s, bytes=%s)",
+          destination,
+          headers.get(Constants.MESSAGE_ID),
+          len(message.encode("utf-8")) if isinstance(message, str) else len(message),
         )
         self.report_status_to_sender(headers, message, ex)
+        self.acknowledge_message(headers)
         return
 
       if destination != Constants.ENCRYPTION_KEY_TOPIC:
@@ -103,10 +118,10 @@ class EventListener(ambari_stomp.ConnectionListener):
               self.unprocessed_messages_queue.put_nowait(
                 (destination, headers, message_json, message)
               )
-            except Exception as ex:
+            except Exception:
               logger.warning(
-                "Cannot queue any more unprocessed events since "
-                "queue is full! {0} {1}".format(destination, message)
+                "Cannot queue event from %s because the unprocessed queue is full",
+                destination,
               )
             return
 
@@ -114,11 +129,28 @@ class EventListener(ambari_stomp.ConnectionListener):
         self.on_event(headers, message_json)
       except Exception as ex:
         logger.exception(
-          f"Exception while handing event from {destination} {headers} {message}"
+          "Exception while handling event from %s (message-id=%s)",
+          destination,
+          headers.get(Constants.MESSAGE_ID),
         )
         self.report_status_to_sender(headers, message, ex)
       else:
         self.report_status_to_sender(headers, message)
+      self.acknowledge_message(headers)
+
+  def acknowledge_message(self, headers):
+    """Acknowledge a processed STOMP 1.2 MESSAGE subscription frame."""
+    acknowledgement_id = headers.get("ack")
+    if acknowledgement_id is None:
+      return
+
+    try:
+      connection = self.initializer_module.connection
+      connection.ack(id=acknowledgement_id)
+    except Exception:
+      logger.exception(
+        "Could not acknowledge STOMP message %s", acknowledgement_id
+      )
 
   def report_status_to_sender(self, headers, message, ex=None):
     """
@@ -153,9 +185,11 @@ class EventListener(ambari_stomp.ConnectionListener):
       connection.send(
         message=confirmation_of_received, destination=Constants.AGENT_RESPONSES_TOPIC
       )
-    except:
+    except Exception:
       logger.exception(
-        f"Could not send a confirmation '{confirmation_of_received}' to server"
+        "Could not send event confirmation to server (message-id=%s, status=%s)",
+        confirmation_of_received[Constants.MESSAGE_ID],
+        confirmation_of_received["status"],
       )
 
   def on_event(self, headers, message):
@@ -171,4 +205,15 @@ class EventListener(ambari_stomp.ConnectionListener):
     """
     This string will be used to log received messsage of this type
     """
-    return ": " + str(message_json)
+    if not isinstance(message_json, dict):
+      return " (payload-type={0})".format(type(message_json).__name__)
+
+    fields = ",".join(sorted(str(field) for field in message_json.keys()))
+    details = []
+    if "eventType" in message_json:
+      details.append("eventType={0}".format(message_json["eventType"]))
+    clusters = message_json.get("clusters")
+    if isinstance(clusters, dict):
+      details.append("clusters={0}".format(len(clusters)))
+    details.append("fields={0}".format(fields))
+    return " ({0})".format(", ".join(details))

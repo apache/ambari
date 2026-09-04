@@ -32,7 +32,7 @@ def get_path_from_url(address):
   if is_empty(address):
     return address
 
-  result = re.findall("^((.+)://)?(([a-zA-Z0-9]|\.|-)*)(:([\d]{2,}))?/(.*)$", address)
+  result = re.findall(r"^((.+)://)?(([a-zA-Z0-9]|\.|-)*)(:([\d]{2,}))?/(.*)$", address)
   if result:
     return result[0][6]
   return None

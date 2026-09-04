@@ -118,7 +118,7 @@ JDBC_DATABASE_PROPERTY = (
   "server.jdbc.database"  # E.g., embedded|oracle|mysql|mssql|postgres
 )
 JDBC_DATABASE_NAME_PROPERTY = (
-  "server.jdbc.database_name"  # E.g., ambari. Not used on Windows.
+  "server.jdbc.database_name"  # E.g., ambari.
 )
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
@@ -167,14 +167,6 @@ JDBC_RCA_PASSWORD_FILE_PROPERTY = "server.jdbc.rca.user.passwd"
 DEFAULT_DBMS_PROPERTY = "server.setup.default.dbms"
 
 JDBC_RCA_PASSWORD_ALIAS = "ambari.db.password"
-
-### # Windows-specific # ###
-
-JDBC_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.use.integrated.auth"
-
-JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.rca.use.integrated.auth"
-
-### # End Windows-specific # ###
 # The user which will bootstrap embedded postgres database setup by creating the default schema and ambari user.
 LOCAL_DATABASE_ADMIN_PROPERTY = "local.database.user"
 
@@ -525,72 +517,6 @@ class ServerConfigDefaults(object):
         )
 
 
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class ServerConfigDefaultsWindows(ServerConfigDefaults):
-  def __init__(self):
-    super(ServerConfigDefaultsWindows, self).__init__()
-    self.JDK_INSTALL_DIR = "C:\\"
-    self.JDK_SEARCH_PATTERN = "j[2se|dk|re]*"
-    self.JAVA_EXE_SUBPATH = "bin\\java.exe"
-
-    # Configuration defaults
-    self.DEFAULT_CONF_DIR = "conf"
-    self.DEFAULT_LIBS_DIR = "lib"
-
-    self.AMBARI_PROPERTIES_BACKUP_FILE = "ambari.properties.backup"
-    self.AMBARI_KRB_JAAS_LOGIN_BACKUP_FILE = ""  # ToDo: should be adjusted later
-    # ownership/permissions mapping
-    # path - permissions - user - group - recursive
-    # Rules are executed in the same order as they are listed
-    # {0} in user/group will be replaced by customized ambari-server username
-    # The permissions are icacls
-    self.NR_ADJUST_OWNERSHIP_LIST = [
-      (self.OUT_DIR, "M", "{0}", True),  # 0110-0100-0100 rw-r-r
-      (self.OUT_DIR, "F", "{0}", False),  # 0111-0101-0101 rwx-rx-rx
-      (self.PID_DIR, "M", "{0}", True),
-      (self.PID_DIR, "F", "{0}", False),
-      ("bootstrap", "F", "{0}", False),
-      ("ambari-env.cmd", "F", "{0}", False),
-      ("keystore", "M", "{0}", True),
-      ("keystore", "F", "{0}", False),
-      ("keystore\\db", "700", "{0}", False),
-      ("keystore\\db\\newcerts", "700", "{0}", False),
-      ("resources\\stacks", "755", "{0}", True),
-      ("resources\\custom_actions", "755", "{0}", True),
-      ("conf", "644", "{0}", True),
-      ("conf", "755", "{0}", False),
-      ("conf\\password.dat", "640", "{0}", False),
-      # Also, /etc/ambari-server/conf/password.dat
-      # is generated later at store_password_file
-    ]
-    self.NR_USERADD_CMD = "cmd /C net user {0} {1} /ADD"
-
-    self.SERVER_RESOURCES_DIR = "resources"
-    self.STACK_LOCATION_DEFAULT = "resources\\stacks"
-    self.EXTENSION_LOCATION_DEFAULT = "resources\\extensions"
-    self.COMMON_SERVICES_LOCATION_DEFAULT = "resources\\common-services"
-    self.MPACKS_STAGING_LOCATION_DEFAULT = "resources\\mpacks"
-    self.SERVER_TMP_DIR_DEFAULT = "data\\tmp"
-
-    self.DEFAULT_VIEWS_DIR = "resources\\views"
-
-    # keytool commands
-    self.keytool_bin_subpath = "bin\\keytool.exe"
-
-    # Standard messages
-    self.MESSAGE_SERVER_RUNNING_AS_ROOT = (
-      "Ambari Server running with 'root' privileges."
-    )
-    self.MESSAGE_WARN_SETUP_NOT_ROOT = "Ambari-server setup is run with root-level privileges, passwordless sudo access for some commands commands may be required"
-    self.MESSAGE_ERROR_RESET_NOT_ROOT = (
-      "Ambari-server reset must be run with administrator-level privileges"
-    )
-    self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = (
-      "Ambari-server upgrade must be run with administrator-level privileges"
-    )
-    self.MESSAGE_CHECK_FIREWALL = "Checking firewall status..."
-
-
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ServerConfigDefaultsLinux(ServerConfigDefaults):
   def __init__(self):
@@ -685,39 +611,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
       (AmbariPath.get("/var/lib/ambari-server/data/cache/"), "700", "{0}", False),
       (
         AmbariPath.get(
-          "/var/lib/ambari-server/resources/common-services/STORM/0.9.1/package/files/wordCount.jar"
-        ),
-        "644",
-        "{0}",
-        False,
-      ),
-      (
-        AmbariPath.get(
-          "/var/lib/ambari-server/resources/stacks/HDP/2.1.GlusterFS/services/STORM/package/files/wordCount.jar"
-        ),
-        "644",
-        "{0}",
-        False,
-      ),
-      (
-        AmbariPath.get(
           "/var/lib/ambari-server/resources/stack-hooks/before-START/files/fast-hdfs-resource.jar"
-        ),
-        "644",
-        "{0}",
-        False,
-      ),
-      (
-        AmbariPath.get(
-          "/var/lib/ambari-server/resources/stacks/HDP/2.1/services/SMARTSENSE/package/files/view/smartsense-ambari-view-1.4.0.0.60.jar"
-        ),
-        "644",
-        "{0}",
-        False,
-      ),
-      (
-        AmbariPath.get(
-          "/var/lib/ambari-server/resources/stacks/HDP/3.0/hooks/before-START/files/fast-hdfs-resource.jar"
         ),
         "644",
         "{0}",
@@ -1105,7 +999,7 @@ def get_encrypted_password(alias, password, properties, options):
 
 
 def is_alias_string(passwdStr):
-  regex = re.compile("\$\{alias=[\w\.]+\}")
+  regex = re.compile(r"\$\{alias=[\w\.]+\}")
   # Match implies string at beginning of word
   r = regex.match(passwdStr)
   if r is not None:
@@ -1221,16 +1115,24 @@ def get_pass_file_path(conf_file, filename):
 def store_password_file(password, filename):
   conf_file = find_properties_file()
   passFilePath = get_pass_file_path(conf_file, filename)
+  descriptor, staged_path = tempfile.mkstemp(
+    prefix=f".{filename}.", dir=os.path.dirname(passFilePath)
+  )
+  try:
+    with os.fdopen(descriptor, "w", encoding="utf-8") as passFile:
+      passFile.write(password)
+      passFile.flush()
+      os.fsync(passFile.fileno())
+    print_info_msg("Adjusting filesystem permissions")
+    ambari_user = read_ambari_user()
+    if ambari_user:  # The first install fixes ownership later if the user is unset.
+      set_file_permissions(staged_path, "660", ambari_user, False)
+    os.replace(staged_path, passFilePath)
+  finally:
+    if os.path.exists(staged_path):
+      os.remove(staged_path)
 
-  with open(passFilePath, "w+") as passFile:
-    passFile.write(password)
-  print_info_msg("Adjusting filesystem permissions")
-  ambari_user = read_ambari_user()
-  if ambari_user:  # at the first install ambari_user can be None. Which is fine since later on password.dat is chowned with the correct ownership.
-    set_file_permissions(passFilePath, "660", ambari_user, False)
-
-  # Windows paths need double backslashes, otherwise the Ambari server deserializer will think the single \ are escape markers
-  return passFilePath.replace("\\", "\\\\")
+  return passFilePath
 
 
 def remove_password_file(filename):
@@ -1533,8 +1435,7 @@ def update_ambari_properties():
   return 0
 
 
-# update properties in a section-less properties file
-# Cannot use ConfigParser due to bugs in version 2.6
+# Update properties in Ambari's section-less Java properties file.
 def update_properties(propertyMap):
   conf_file = search_file(AMBARI_PROPERTIES_FILE, get_conf_dir())
   backup_file_in_temp(conf_file)
@@ -1810,7 +1711,7 @@ def find_jdk(java_home_type=JavaHomeType.AMBARI, min_version=None):
     return jdkPath
 
   if java_home_type == JavaHomeType.AMBARI:
-    java_executable = shutil.which("java.exe" if OS_FAMILY == OSConst.WINSRV_FAMILY else "java")
+    java_executable = shutil.which("java")
     if java_executable:
       jdkPath = os.path.dirname(os.path.dirname(os.path.realpath(java_executable)))
       if is_usable_jdk(jdkPath):

@@ -5,12 +5,12 @@
       {
         "name": "ALLUXIO_MASTER_PROCESS",
         "label": "alluxio master",
-        "description": "This host-level alert is triggered if the alluxio msater cannot be determined to be up.",
+        "description": "This host-level alert is triggered if the Alluxio master cannot be determined to be up.",
         "interval": 1,
         "scope": "HOST",
         "source": {
           "type": "PORT",
-          "uri": "{{alluxio-log4j-properties/alluxio.master.rpc.port}}",
+          "uri": "{{alluxio-site-properties/alluxio.master.rpc.port}}",
           "default_port": 19998,
           "reporting": {
             "ok": {
@@ -32,12 +32,12 @@
       {
         "name": "ALLUXIO_WORKER_PROCESS",
         "label": "alluxio worker",
-        "description": "This host-level alert is triggered if the alluxio worker cannot be determined to be up.",
+        "description": "This host-level alert is triggered if the Alluxio worker cannot be determined to be up.",
         "interval": 1,
         "scope": "HOST",
         "source": {
           "type": "PORT",
-          "uri": "{{alluxio-log4j-properties/alluxio.worker.rpc.port}}",
+          "uri": "{{alluxio-site-properties/alluxio.worker.rpc.port}}",
           "default_port": 29999,
           "reporting": {
             "ok": {

@@ -111,10 +111,18 @@
     <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
     <deb.publisher>Hortonworks</deb.publisher>
     <deb.section>universe/admin</deb.section>
-    <deb.architecture>i386 amd64</deb.architecture>
+    <deb.architecture>${ambari.deb.architecture}</deb.architecture>
+    <ambari.deb.architecture>amd64</ambari.deb.architecture>
     <deb.priority>extra</deb.priority>
     <stack.distribution>BIGTOP</stack.distribution>
     <ambari.dir>${project.basedir}</ambari.dir>
+    <python.wheel.platform>manylinux2014_x86_64</python.wheel.platform>
+    <python.wheel.version>3.9.2</python.wheel.version>
+    <python.wheel.implementation>cp</python.wheel.implementation>
+    <python.wheel.abi>cp39</python.wheel.abi>
+    <python.deb.runtime.dependency>python3 (&gt;= 3.9.2), python3 (&lt;&lt; 3.10)</python.deb.runtime.dependency>
+    <python.pip.no.index>false</python.pip.no.index>
+    <python.wheelhouse>${project.build.directory}/python-wheelhouse-disabled</python.wheelhouse>
     <distMgmtSnapshotsId>apache.snapshots.https</distMgmtSnapshotsId>
     <distMgmtSnapshotsName>Apache Development Snapshot Repository</distMgmtSnapshotsName>
     <distMgmtSnapshotsUrl>https://repository.apache.org/content/repositories/snapshots</distMgmtSnapshotsUrl>
@@ -347,16 +355,12 @@
             <exclude>**/version.txt</exclude>
             <exclude>**/release.txt</exclude>
             <exclude>**/*.list</exclude>
-            <exclude>**/hdp_mon_nagios_addons.conf</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.svg</exclude>
             <exclude>**/*.csv</exclude>
             <exclude>derby.log</exclude>
             <exclude>CHANGES.txt</exclude>
             <exclude>pass.txt</exclude>
-            <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
-            <exclude>contrib/agent-simulator/docker_image/package_list.txt</exclude>
-            <exclude>contrib/agent-simulator/config/cluster.txt</exclude>
             <exclude>version</exclude>
             <!--IDE and GIT files-->
             <exclude>**/.idea/</exclude>
@@ -380,25 +384,7 @@
             <exclude>**/robots.txt</exclude>
             <exclude>**/rat.txt</exclude>
 
-            <!--Python Mock library (BSD license)-->
-            <exclude>ambari-common/src/test/python/mock/**</exclude>
-            <!--Coilmq Mock library (Apache license)-->
-            <exclude>ambari-common/src/test/python/coilmq/**</exclude>
-            <!--Jinja2 library (BSD license)-->
-            <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
-            <exclude>ambari-common/src/main/python/jinja2/**</exclude>
-            <exclude>ambari-common/src/main/python/ambari_pyaes/**</exclude>
-            <exclude>ambari-common/src/main/python/ambari_pbkdf2/**</exclude>
             <exclude>**/.metadata_never_index</exclude>
-            <!--Simplejson library (MIT license)-->
-            <exclude>ambari-common/src/main/python/ambari_simplejson/**</exclude>
-            <!--Subprocess32 library (PSF license)-->
-            <exclude>ambari-common/src/main/python/ambari_commons/subprocess32.py</exclude>
-            <exclude>ambari-common/src/main/python/ambari_commons/_posixsubprocess.so</exclude>
-            <!--Stomp library (Apache license)-->
-            <exclude>ambari-common/src/main/python/ambari_stomp/**</exclude>
-            <!--ws4py library (BSD 3-Clause)-->
-            <exclude>ambari-common/src/main/python/ambari_ws4py/**</exclude>
 
             <exclude>ambari-web/node_modules/**</exclude>
 
@@ -406,11 +392,7 @@
             <exclude>contrib/**/bower_components/**</exclude>
             <exclude>contrib/**/dist/**</exclude>
             <exclude>contrib/management-packs/hdf-ambari-mpack/src/main/resources/stacks/HDF/2.0/hooks/before-START/files/fast-hdfs-resource.jar</exclude>
-            <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
             <exclude>contrib/addons/test/dataServices/jmx/data/cluster_configuration.json.nohbase</exclude>
-            <exclude>contrib/ambari-scom/msi/src/GUI_Ambari.sln</exclude>
-            <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
-            <exclude>contrib/ambari-scom/*/rat.txt</exclude>
             <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/node_modules/**</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/.bowerrc</exclude>
             <exclude>contrib/views/commons/src/main/resources/ui/*/bower_components/**</exclude>
@@ -429,16 +411,12 @@
             <exclude>contrib/views/files/src/main/resources/ui/runner.js</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/app/assets/stylesheets/**</exclude>
             <exclude>contrib/views/files/src/main/resources/ui/app/assets/javascripts/**</exclude>
-            <exclude>contrib/addons/package/deb/nagios_addon_deb_control</exclude>
-            <exclude>contrib/addons/src/addOns/nagios/conf.d/hdp_mon_nagios_addons.conf</exclude>
             <exclude>contrib/views/*/.classpath</exclude>
             <exclude>contrib/views/*/.project</exclude>
             <exclude>contrib/views/*/.settings/**</exclude>
             <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/app/**</exclude>
             <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/runner.js</exclude>
 
-            <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
-            <exclude>contrib/ambari-scom/*/rat.txt</exclude>
 
             <!--Velocity log -->
             <exclude>**/velocity.log*</exclude>
@@ -566,6 +544,38 @@
   </build>
   <profiles>
     <profile>
+      <id>python-wheel-aarch64</id>
+      <activation>
+        <property>
+          <name>build.os_arch</name>
+          <value>aarch64</value>
+        </property>
+      </activation>
+      <properties>
+        <python.wheel.platform>manylinux2014_aarch64</python.wheel.platform>
+        <ambari.deb.architecture>arm64</ambari.deb.architecture>
+      </properties>
+    </profile>
+    <profile>
+      <id>python-wheel-cp310</id>
+      <properties>
+        <python.wheel.version>3.10.0</python.wheel.version>
+        <python.wheel.abi>cp310</python.wheel.abi>
+        <python.deb.runtime.dependency>python3 (&gt;= 3.10), python3 (&lt;&lt; 3.11)</python.deb.runtime.dependency>
+      </properties>
+    </profile>
+    <profile>
+      <id>python-offline-wheelhouse</id>
+      <activation>
+        <property>
+          <name>python.wheelhouse</name>
+        </property>
+      </activation>
+      <properties>
+        <python.pip.no.index>true</python.pip.no.index>
+      </properties>
+    </profile>
+    <profile>
       <id>default-views</id>
       <activation>
         <property>
@@ -646,27 +656,6 @@
       <id>ambari-serviceadvisor</id>
       <modules>
         <module>ambari-serviceadvisor</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>windows</id>
-      <activation>
-        <os>
-          <family>win</family>
-        </os>
-      </activation>
-      <modules>
-        <module>ambari-serviceadvisor</module>
-        <module>ambari-utility</module>
-        <module>ambari-web</module>
-        <module>ambari-project</module>
-        <module>ambari-views</module>
-        <module>ambari-admin</module>
-        <module>contrib/views</module>
-        <module>ambari-server</module>
-        <module>ambari-server-spi</module>
-        <module>ambari-funtest</module>
-        <module>ambari-agent</module>
       </modules>
     </profile>
     <profile>

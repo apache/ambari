@@ -56,6 +56,8 @@
           </logs>
           <configuration-dependencies>
             <config-type>hive-site</config-type>
+            <config-type>hivemetastore-site</config-type>
+            <config-type>hive-env</config-type>
           </configuration-dependencies>
         </component>
 
@@ -187,6 +189,9 @@
           </commandScript>
           <configuration-dependencies>
             <config-type>hive-site</config-type>
+            <config-type>webhcat-site</config-type>
+            <config-type>webhcat-env</config-type>
+            <config-type>webhcat-log4j</config-type>
           </configuration-dependencies>
         </component>
 
@@ -281,7 +286,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat8,redhat9,openeuler22</osFamily>
+          <osFamily>redhat8,redhat9,openeuler22</osFamily>
           <packages>
             <package>
               <name>hive_${stack_version}</name>
@@ -303,12 +308,35 @@
             </package>
           </packages>
         </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu22</osFamily>
+          <packages>
+            <package>
+              <name>hive-${stack_version}</name>
+            </package>
+            <package>
+              <name>hive-${stack_version}-hcatalog</name>
+            </package>
+            <package>
+              <name>hive-${stack_version}-webhcat</name>
+            </package>
+            <package>
+              <name>mariadb-server</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_mysql</condition>
+            </package>
+            <package>
+              <name>ranger-${stack_version}-hive-plugin</name>
+              <condition>should_install_ranger_hive_plugin</condition>
+            </package>
+          </packages>
+        </osSpecific>
       </osSpecifics>
 
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
+        <timeout>900</timeout>
       </commandScript>
 
       <themes>
@@ -347,20 +375,29 @@
       <configuration-dependencies>
         <config-type>core-site</config-type>
         <config-type>viewfs-mount-table</config-type>
-        <config-type>hive-log4j</config-type>
-        <config-type>hive-exec-log4j</config-type>
+        <config-type>hive-log4j2</config-type>
+        <config-type>hive-exec-log4j2</config-type>
+        <config-type>beeline-log4j2</config-type>
         <config-type>hive-env</config-type>
-        <config-type>hivemetastore-site.xml</config-type>
+        <config-type>hivemetastore-site</config-type>
+        <config-type>hiveserver2-site</config-type>
+        <config-type>hcat-env</config-type>
+        <config-type>webhcat-site</config-type>
+        <config-type>webhcat-env</config-type>
+        <config-type>webhcat-log4j</config-type>
         <config-type>ranger-hive-plugin-properties</config-type>
         <config-type>ranger-hive-audit</config-type>
         <config-type>ranger-hive-policymgr-ssl</config-type>
         <config-type>ranger-hive-security</config-type>
         <config-type>parquet-logging</config-type>
         <config-type>mapred-site</config-type>
-        <config-type>application.properties</config-type>
         <config-type>hive-atlas-application.properties</config-type>
         <config-type>tez-site</config-type>
-        <config-type>druid-common</config-type>
+        <config-type>hdfs-site</config-type>
+        <config-type>hadoop-env</config-type>
+        <config-type>yarn-site</config-type>
+        <config-type>zookeeper-env</config-type>
+        <config-type>cluster-env</config-type>
       </configuration-dependencies>
     </service>
   </services>

@@ -22,7 +22,7 @@ limitations under the License.
 # Main.
 #
 import sys
-import optparse
+import argparse
 import getpass
 import logging
 import urllib.request, urllib.error, urllib.parse
@@ -147,8 +147,6 @@ class AmbariBlueprint:
   def __init__(self):
     handler = PreemptiveBasicAuthHandler()
     opener = urllib.request.build_opener(handler)
-    # Install opener for all requests
-    urllib.request.install_opener(opener)
     self.urlOpener = opener
 
   def importBlueprint(self, blueprintLocation, hostsLocation, clusterName):
@@ -433,14 +431,14 @@ class AmbariBlueprint:
 
 
 def main():
-  parser = optparse.OptionParser(usage="usage: %prog [options]")
-  parser.set_description(
+  parser = argparse.ArgumentParser(usage="usage: %(prog)s [options]")
+  parser.description = (
     "This python program is a Ambari thin client and "
     "supports import/export of Ambari managed clusters "
     "using a cluster blueprint."
   )
 
-  parser.add_option(
+  parser.add_argument(
     "-v",
     "--verbose",
     dest="verbose",
@@ -448,31 +446,31 @@ def main():
     default=False,
     help="output verbosity.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-a",
     "--action",
     dest="action",
     default="import",
     help="Script action. (import/export) [default: import]",
   )
-  parser.add_option(
+  parser.add_argument(
     "-f",
     "--blueprint",
     dest="blueprint",
     metavar="FILE",
     help="File Path. (import/export) file path.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-o", "--hosts", dest="hosts", metavar="FILE", help="Host Assignments. Import only."
   )
-  parser.add_option("-c", "--cluster", dest="cluster", help="Target cluster.")
-  parser.add_option(
+  parser.add_argument("-c", "--cluster", dest="cluster", help="Target cluster.")
+  parser.add_argument(
     "-d",
     "--arguments",
     dest="arguments",
     help="Inline arguments for masters and slaves. " "master=X,Y&slaves=A,B&gateway=G",
   )
-  parser.add_option(
+  parser.add_argument(
     "-s",
     "--silent",
     dest="silent",
@@ -480,28 +478,28 @@ def main():
     action="store_true",
     help="Run silently. Appropriate accompanying arguments required.",
   )
-  parser.add_option(
+  parser.add_argument(
     "-r",
     "--port",
     dest="port",
     default="8080",
     help="Ambari server port, when running silently. [default: 8080]",
   )
-  parser.add_option(
+  parser.add_argument(
     "-u",
     "--user",
     dest="user",
     default="admin",
     help="Ambari server username, when running silently. [default: admin]",
   )
-  parser.add_option(
+  parser.add_argument(
     "-p",
     "--password",
     dest="password",
     default="admin",
     help="Ambari server password, when running silently. [default: admin]",
   )
-  parser.add_option(
+  parser.add_argument(
     "-i",
     "--host",
     dest="hostname",
@@ -509,7 +507,9 @@ def main():
     help="Ambari server host, when running silently. [default: localhost]",
   )
 
-  (options, args) = parser.parse_args()
+  parser.add_argument("positional_arguments", nargs="*", help=argparse.SUPPRESS)
+  options = parser.parse_args()
+  args = options.positional_arguments
 
   global ACTION
   ACTION = options.action

@@ -40,6 +40,7 @@ import org.apache.ambari.server.agent.RegistrationResponse;
 import org.apache.ambari.server.agent.RegistrationStatus;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.spring.GuiceBeansConfig;
+import org.apache.ambari.server.security.encryption.AgentEncryptionCapabilities;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -73,6 +74,8 @@ public class HeartbeatController {
   private final ExecutorService executor;
   private final ScheduledExecutorService scheduledExecutorService;
   private final UnitOfWork unitOfWork;
+  private final AgentEncryptionCapabilities encryptionCapabilities;
+  private final AgentConfigsHolder agentConfigsHolder;
 
   @Autowired
   private AgentsRegistrationQueue agentsRegistrationQueue;
@@ -82,6 +85,8 @@ public class HeartbeatController {
     clusters = injector.getInstance(ClustersImpl.class);
     unitOfWork = injector.getInstance(UnitOfWork.class);
     agentSessionManager = injector.getInstance(AgentSessionManager.class);
+    encryptionCapabilities = injector.getInstance(AgentEncryptionCapabilities.class);
+    agentConfigsHolder = injector.getInstance(AgentConfigsHolder.class);
     hostLevelParamsHolder = injector.getInstance(HostLevelParamsHolder.class);
     recoveryTopologyManager = injector.getInstance(RecoveryTopologyManager.class);
 
@@ -108,6 +113,9 @@ public class HeartbeatController {
           recoveryTopologyManager.beginAgentSession(host.getHostId(), simpSessionId);
           hostLevelParamsHolder.updateRecoveryTopology(message.getHostname());
           agentSessionManager.register(simpSessionId, host);
+          if (encryptionCapabilities.update(host.getHostId(), message.getEncryptionTypes())) {
+            agentConfigsHolder.onEncryptionCapabilitiesChanged(host.getHostId());
+          }
           LOG.debug("Sending registration response " + response);
         } catch (Exception ex) {
           LOG.info(ex.getMessage(), ex);

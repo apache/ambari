@@ -70,6 +70,11 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
     return deleteEvent;
   }
 
+  /** Refresh global metadata after an atomically published resource manifest changes. */
+  public boolean refreshResourceArchiveDigests() throws AmbariException {
+    return updateData(ambariManagementController.getAmbariLevelMetadataUpdate());
+  }
+
   @Override
   protected boolean handleUpdate(MetadataUpdateEvent update) throws AmbariException {
     boolean changed = false;

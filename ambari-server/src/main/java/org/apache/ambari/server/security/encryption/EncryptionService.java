@@ -89,6 +89,8 @@ public interface EncryptionService {
    */
   String encrypt(String toBeEncrypted, String key, TextEncoding textEncoding);
 
+  String encryptGcm(String toBeEncrypted, String key, TextEncoding textEncoding);
+
   /**
    * @return the default encryption key used by this encryption service
    */
@@ -141,5 +143,7 @@ public interface EncryptionService {
    * @return the String representation of the decrypted text
    */
   String decrypt(String toBeDecrypted, String key, TextEncoding textEncoding);
+
+  String decryptGcm(String toBeDecrypted, String key, TextEncoding textEncoding);
 
 }

@@ -24,10 +24,10 @@ import io
 import sys
 from ambari_commons.exceptions import FatalException
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 from ambari_commons import os_utils
 import platform
-import distro
+from ambari_commons import os_check
 import urllib.request, urllib.parse, urllib.error
 
 import shutil
@@ -42,7 +42,7 @@ shutil.copyfile(
 _search_file = os_utils.search_file
 os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
 with patch.object(
-  distro,
+  os_check,
   "linux_distribution",
   return_value=MagicMock(return_value=("Redhat", "6.4", "Final")),
 ):
@@ -60,7 +60,7 @@ os_utils.search_file = _search_file
 
 
 @patch.object(
-  distro, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
+  os_check, "linux_distribution", new=MagicMock(return_value=("Redhat", "6.4", "Final"))
 )
 @patch("os.path.isdir", new=MagicMock(return_value=True))
 @patch("os.access", new=MagicMock(return_value=True))

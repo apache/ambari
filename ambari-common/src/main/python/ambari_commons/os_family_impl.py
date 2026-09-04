@@ -26,12 +26,12 @@ class OsFamilyImpl(object):
   Base class for os dependent factory. Usage::
 
       class BaseFoo(object): pass
-      @OsFamilyImpl(os_family="windows")
+      @OsFamilyImpl(os_family="ubuntu")
       class OsFooW(BaseFoo):pass
-      print BaseFoo()# OsFooW
+      print(BaseFoo())  # OsFooW
       @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
       class OsFooD(BaseFoo):pass
-      print BaseFoo()# OsFooD
+      print(BaseFoo())  # OsFooD
 
   """
 
@@ -71,7 +71,7 @@ class OsFamilyFuncImpl(object):
   """
   Base class for os dependent function. Usage::
 
-      @OSFamilyFuncImpl(os_family="windows")
+      @OSFamilyFuncImpl(os_family="ubuntu")
       def os_foo(...):pass
 
   """

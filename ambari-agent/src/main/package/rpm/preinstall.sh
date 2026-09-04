@@ -14,10 +14,12 @@
 # limitations under the License
 
 
+ROOT=$(printf '%s' "${RPM_INSTALL_PREFIX:-}" | sed 's|/*$||')
+
 do_backups(){
-  local etc_dir="/etc/ambari-agent"
-  local var_dir="/var/lib/ambari-agent"
-  local sudoers_dir="/etc/sudoers.d"
+  local etc_dir="${ROOT}/etc/ambari-agent"
+  local var_dir="${ROOT}/var/lib/ambari-agent"
+  local sudoers_dir="${ROOT}/etc/sudoers.d"
 
   # format: title note source target
   local backup_folders="stack folders::${var_dir}/cache/stacks:${var_dir}/cache/stacks_$(date '+%d_%m_%y_%H_%M').old
@@ -29,7 +31,7 @@ sudoers:Please restore the file if you were using it for ambari-agent non-root f
     if [ -e "${source}" ]; then
       echo -n "Moving ${title}: ${source} -> ${target}"
 
-      if [ ! -z ${notes} ]; then
+      if [ -n "${notes}" ]; then
         echo ", ${notes}"
       else
         echo ""

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 
 """
-Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements.  See the NOTICE file
-distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
-to you under the Apache License, Version 2.0 (the
-"License"); you may not use this file except in compliance
-with the License.  You may obtain a copy of the License at
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements.  See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
@@ -18,275 +17,318 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import tempfile
+import json
 from unittest import TestCase
+from unittest.mock import MagicMock, patch
+
+from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 from ambari_agent.CommandStatusDict import CommandStatusDict
-import os
-import logging
-import json, pprint
-from mock.mock import patch, MagicMock, call
+from ambari_agent.models.commands import CommandStatus
 
 
-class TestCommandStatusDict:  # (TestCase):
-  logger = logging.getLogger()
+class TestCommandStatusDict(TestCase):
+  def setUp(self):
+    self.initializer = MagicMock()
+    self.initializer.is_registered = True
+    self.initializer.config.command_update_output = True
+    self.initializer.config.log_max_symbols_size = 1000
+    self.initializer.server_responses_listener.listener_functions_on_success = {}
+    self.initializer.server_responses_listener.listener_functions_on_error = {}
 
-  def test_put_command_status(self):
-    execution_command = {
-      "commandType": "EXECUTION_COMMAND",
-      "commandId": "1-1",
-      "clusterName": "cc",
-      "exitCode": 777,
-      "role": "DATANODE",
-      "roleCommand": "INSTALL",
-      "serviceName": "HDFS",
-      "taskId": 5,
-    }
-    status_command = {
-      "componentName": "DATANODE",
-      "commandType": "STATUS_COMMAND",
-    }
-    callback_mock = MagicMock()
-    commandStatuses = CommandStatusDict(callback_action=callback_mock)
-    commandStatuses.put_command_status(status_command, None)
-    self.assertEqual(callback_mock.call_count, 0)
-    commandStatuses.put_command_status(execution_command, None)
-    self.assertEqual(callback_mock.call_count, 1)
+    def register_callback(correlation_id, on_success=None, on_error=None):
+      if on_success is not None:
+        self.initializer.server_responses_listener.listener_functions_on_success[
+          correlation_id
+        ] = on_success
+      if on_error is not None:
+        self.initializer.server_responses_listener.listener_functions_on_error[
+          correlation_id
+        ] = on_error
+      return lambda: discard_callback(correlation_id)
 
-  def test_put_and_generate(self):
-    callback_mock = MagicMock()
-    commandStatuses = CommandStatusDict(callback_action=callback_mock)
-    command_in_progress1 = {
-      "commandType": "EXECUTION_COMMAND",
-      "commandId": "1-1",
-      "clusterName": "cc",
-      "exitCode": 777,
-      "role": "DATANODE",
-      "roleCommand": "INSTALL",
-      "serviceName": "HDFS",
-      "stderr": "",
-      "stdout": "notice: /Stage[1]/Hdp::Iptables/Service[iptables]/ensure: ensure changed 'running' to 'stopped'\nnotice: /Stage[1]/Hdp/File[/tmp/changeUid.sh]/ensure: defined content as '{md5}32b994a2e970f8acc3c91c198b484654'\nnotice: /Stage[1]/Hdp::Snappy::Package/Hdp::Package[snappy]/Hdp::Package::Process_pkg[snappy]/Package[snappy]/ensure: created\nnotice: /Stage[1]/Hdp::Snmp/Hdp::Package[snmp]/Hdp::Package::Process_pkg[snmp]/Package[net-snmp-utils]/ensure: created",
-      "taskId": 5,
-    }
-    command_in_progress1_report = {"status": "IN_PROGRESS", "taskId": 5}
-    command_in_progress2 = {
-      "commandType": "EXECUTION_COMMAND",
-      "commandId": "1-1",
-      "role": "DATANODE",
-      "roleCommand": "INSTALL",
-      "taskId": 6,
-      "clusterName": "cc",
-      "serviceName": "HDFS",
-    }
-    command_in_progress2_report = {"status": "IN_PROGRESS", "taskId": 6}
-    finished_command = {
-      "commandType": "EXECUTION_COMMAND",
-      "role": "DATANODE",
-      "roleCommand": "INSTALL",
-      "commandId": "1-1",
-      "taskId": 4,
-      "clusterName": "cc",
-      "serviceName": "HDFS",
-    }
-    finished_command_report = {
-      "status": "COMPLETE",
-      "taskId": 4,
-    }
-    failed_command = {
-      "commandType": "EXECUTION_COMMAND",
-      "role": "DATANODE",
-      "roleCommand": "INSTALL",
-      "commandId": "1-1",
-      "taskId": 3,
-      "clusterName": "cc",
-      "serviceName": "HDFS",
-    }
-    failed_command_report = {
-      "status": "FAILED",
-      "taskId": 3,
-    }
-    status_command = {
-      "componentName": "DATANODE",
-      "commandType": "STATUS_COMMAND",
-    }
-    status_command_report = {"componentName": "DATANODE", "status": "HEALTHY"}
-    commandStatuses.put_command_status(
-      command_in_progress1, command_in_progress1_report
+    def discard_callback(correlation_id):
+      self.initializer.server_responses_listener.listener_functions_on_success.pop(
+        correlation_id, None
+      )
+      self.initializer.server_responses_listener.listener_functions_on_error.pop(
+        correlation_id, None
+      )
+
+    self.initializer.server_responses_listener.register_response_callback.side_effect = (
+      register_callback
     )
-    commandStatuses.put_command_status(
-      command_in_progress2, command_in_progress2_report
+    self.initializer.server_responses_listener.discard_response_callback.side_effect = (
+      discard_callback
     )
-    commandStatuses.put_command_status(finished_command, finished_command_report)
-    commandStatuses.put_command_status(failed_command, failed_command_report)
-    commandStatuses.put_command_status(status_command, status_command_report)
-    report = commandStatuses.generate_report()
-    expected = {
-      "componentStatus": [{"status": "HEALTHY", "componentName": "DATANODE"}],
-      "reports": [
-        {"status": "FAILED", "taskId": 3},
-        {"status": "COMPLETE", "taskId": 4},
-        {
-          "status": "IN_PROGRESS",
-          "stderr": "...",
-          "stdout": "...",
-          "clusterName": "cc",
-          "structuredOut": "{}",
-          "roleCommand": "INSTALL",
-          "serviceName": "HDFS",
-          "role": "DATANODE",
-          "actionId": "1-1",
-          "taskId": 5,
-          "exitCode": 777,
-        },
-        {
-          "status": "IN_PROGRESS",
-          "stderr": "...",
-          "stdout": "...",
-          "structuredOut": "{}",
-          "clusterName": "cc",
-          "roleCommand": "INSTALL",
-          "serviceName": "HDFS",
-          "role": "DATANODE",
-          "actionId": "1-1",
-          "taskId": 6,
-          "exitCode": 777,
-        },
-      ],
-    }
-    self.assertEqual(report, expected)
+    self.sent_reports = {}
+    self.next_correlation_id = 0
+    self.initializer.connection.send.side_effect = self._send
+    self.statuses = CommandStatusDict(self.initializer)
 
-  @patch("builtins.open")
-  def test_structured_output(self, open_mock):
-    callback_mock = MagicMock()
-    commandStatuses = CommandStatusDict(callback_action=callback_mock)
-    file_mock = MagicMock(name="file_mock")
-    file_mock.__enter__.return_value = file_mock
-    file_mock.read.return_value = '{"var1":"test1", "var2":"test2"}'
-    open_mock.return_value = file_mock
-    command_in_progress1 = {
+  def _send(self, message, destination, log_message_function, presend_hook):
+    correlation_id = self.next_correlation_id
+    self.next_correlation_id += 1
+    presend_hook(correlation_id)
+    self.sent_reports[correlation_id] = message["clusters"]
+    return correlation_id
+
+  @staticmethod
+  def _command(task_id, cluster_id="1"):
+    return {
+      "clusterId": cluster_id,
       "commandType": "EXECUTION_COMMAND",
-      "commandId": "1-1",
-      "clusterName": "cc",
-      "exitCode": 777,
-      "role": "DATANODE",
-      "roleCommand": "INSTALL",
-      "serviceName": "HDFS",
-      "stderr": "",
-      "stdout": "notice: /Stage[1]/Hdp::Iptables/Service[iptables]/ensure: ensure changed 'running' to 'stopped'\nnotice: /Stage[1]/Hdp/File[/tmp/changeUid.sh]/ensure: defined content as '{md5}32b994a2e970f8acc3c91c198b484654'\nnotice: /Stage[1]/Hdp::Snappy::Package/Hdp::Package[snappy]/Hdp::Package::Process_pkg[snappy]/Package[snappy]/ensure: created\nnotice: /Stage[1]/Hdp::Snmp/Hdp::Package[snmp]/Hdp::Package::Process_pkg[snmp]/Package[net-snmp-utils]/ensure: created",
-      "taskId": 5,
+      "taskId": task_id,
     }
-    command_in_progress1_report = {
-      "status": "IN_PROGRESS",
-      "taskId": 5,
-      "structuredOut": "structured_out.tmp",
-    }
-    commandStatuses.put_command_status(
-      command_in_progress1, command_in_progress1_report
-    )
-    report = commandStatuses.generate_report()
-    expected = {
-      "componentStatus": [],
-      "reports": [
-        {
-          "status": "IN_PROGRESS",
-          "stderr": "...",
-          "stdout": "...",
-          "clusterName": "cc",
-          "structuredOut": '{"var1":"test1", "var2":"test2"}',
-          "roleCommand": "INSTALL",
-          "serviceName": "HDFS",
-          "role": "DATANODE",
-          "actionId": "1-1",
-          "taskId": 5,
-          "exitCode": 777,
-        }
-      ],
-    }
-    self.assertEqual(report, expected)
 
-  def test_size_approved(self):
-    # as json: '{"status": "IN_PROGRESS", "structuredOut": "structured_out.tmp", "taskId": 5}', length=77
-    command_in_progress_report = {
-      "status": "IN_PROGRESS",
-      "taskId": 5,
-      "structuredOut": "structured_out.tmp",
+  @staticmethod
+  def _report(task_id, marker=None, cluster_id="1"):
+    report = {
+      "clusterId": cluster_id,
+      "status": CommandStatus.completed,
+      "taskId": task_id,
     }
-    mock = MagicMock()
-    command_statuses = CommandStatusDict(mock)
+    if marker is not None:
+      report["marker"] = marker
+    return report
+
+  def _queue_terminal_report(self, task_id, marker=None, cluster_id="1"):
+    self.statuses.queue_report_sending(
+      task_id,
+      self._command(task_id, cluster_id),
+      self._report(task_id, marker, cluster_id),
+    )
+
+  def test_put_terminal_status_is_cleared_only_after_success_ack(self):
+    command = self._command(1)
+    report = self._report(1)
+
+    self.statuses.put_command_status(command, report)
+
+    self.assertIn(1, self.statuses.current_state)
+    self.initializer.server_responses_listener.listener_functions_on_success[0](
+      {}, {"status": "OK"}
+    )
+    self.assertNotIn(1, self.statuses.current_state)
+
+  def test_split_ack_callbacks_clear_only_their_own_reports_out_of_order(self):
+    for task_id in (1, 2, 3):
+      self._queue_terminal_report(task_id, marker="x" * 32)
+
+    with patch.object(CommandStatusDict, "MAX_REPORT_SIZE", 110):
+      self.statuses.report()
+
+    self.assertEqual(len(self.sent_reports), 3)
+    task_by_correlation = {
+      correlation_id: next(iter(batch.values()))[0]["taskId"]
+      for correlation_id, batch in self.sent_reports.items()
+    }
+    callbacks = (
+      self.initializer.server_responses_listener.listener_functions_on_success
+    )
+
+    callbacks[2]({}, {"status": "OK"})
+    self.assertNotIn(task_by_correlation[2], self.statuses.current_state)
+    self.assertIn(task_by_correlation[0], self.statuses.current_state)
+    self.assertIn(task_by_correlation[1], self.statuses.current_state)
+
+    callbacks[0]({}, {"status": "OK"})
+    callbacks[1]({}, {"status": "OK"})
+    self.assertEqual(self.statuses.current_state, {})
+
+  def test_failed_split_does_not_block_successful_split_cleanup(self):
+    for task_id in (1, 2):
+      self._queue_terminal_report(task_id, marker="x" * 32)
+
+    successful_send = self._send
+
+    def fail_second_send(*args, **kwargs):
+      if self.next_correlation_id == 1:
+        raise ConnectionIsAlreadyClosed("closed")
+      return successful_send(*args, **kwargs)
+
+    self.initializer.connection.send.side_effect = fail_second_send
+    with patch.object(CommandStatusDict, "MAX_REPORT_SIZE", 110):
+      self.statuses.report()
+
+    self.initializer.server_responses_listener.listener_functions_on_success[0](
+      {}, {"status": "OK"}
+    )
+    self.assertEqual(set(self.statuses.current_state), {2})
+    self.assertEqual(self.statuses.pending_batches, {})
+
+  def test_duplicate_ack_is_idempotent(self):
+    self.statuses.put_command_status(self._command(1), self._report(1))
+
+    self.statuses.acknowledge_batch(0)
+    self.statuses.acknowledge_batch(0)
+
+    self.assertEqual(self.statuses.current_state, {})
+
+  def test_stale_ack_does_not_clear_a_newer_report_for_the_same_task(self):
+    self.statuses.put_command_status(self._command(1), self._report(1, "old"))
+    self.statuses.put_command_status(self._command(1), self._report(1, "new"))
+
+    self.statuses.acknowledge_batch(0)
+
+    self.assertEqual(self.statuses.current_state[1][1]["marker"], "new")
+    self.statuses.acknowledge_batch(1)
+    self.assertEqual(self.statuses.current_state, {})
+
+  def test_stale_ack_does_not_clear_identical_new_generation(self):
+    report = self._report(1, "same")
+    self.statuses.put_command_status(self._command(1), report)
+    self.statuses.put_command_status(self._command(1), report.copy())
+
+    self.statuses.acknowledge_batch(0)
+
+    self.assertIn(1, self.statuses.current_state)
+    self.statuses.acknowledge_batch(1)
+    self.assertEqual(self.statuses.current_state, {})
+
+  def test_unexpected_send_failure_removes_registered_callbacks(self):
+    def fail_after_presend(*args, **kwargs):
+      kwargs["presend_hook"](7)
+      raise RuntimeError("send failed")
+
+    self.initializer.connection.send.side_effect = fail_after_presend
+
+    with self.assertRaisesRegex(RuntimeError, "send failed"):
+      self.statuses.put_command_status(self._command(1), self._report(1))
+
+    self.assertEqual(self.statuses.pending_batches, {})
     self.assertEqual(
-      command_statuses.size_approved(command_in_progress_report, 78), True
+      self.initializer.server_responses_listener.listener_functions_on_success, {}
     )
     self.assertEqual(
-      command_statuses.size_approved(command_in_progress_report, 77), True
+      self.initializer.server_responses_listener.listener_functions_on_error, {}
+    )
+    self.assertIn(1, self.statuses.current_state)
+
+  def test_error_response_discards_pending_batch_but_keeps_report(self):
+    self.statuses.put_command_status(self._command(1), self._report(1))
+
+    self.initializer.server_responses_listener.listener_functions_on_error[0](
+      {}, {"status": "ERROR"}
+    )
+
+    self.assertEqual(self.statuses.pending_batches, {})
+    self.assertIn(1, self.statuses.current_state)
+
+  def test_unregistered_agent_does_not_register_none_correlation(self):
+    self.initializer.is_registered = False
+
+    self.statuses.put_command_status(self._command(1), self._report(1))
+
+    self.initializer.connection.send.assert_not_called()
+    self.assertEqual(
+      self.initializer.server_responses_listener.listener_functions_on_success, {}
+    )
+
+  def test_auto_execution_status_is_cleaned_without_waiting_for_an_ack(self):
+    command = self._command(1)
+    command.update({"commandId": "auto-1", "commandType": "AUTO_EXECUTION_COMMAND"})
+    self.statuses.queue_report_sending(1, command, self._report(1))
+
+    report = self.statuses.generate_report()
+
+    self.assertEqual({}, report)
+    self.assertNotIn(1, self.statuses.current_state)
+    self.assertNotIn(1, self.statuses.report_revisions)
+    self.assertNotIn(1, self.statuses.reported_reports)
+
+  def test_disabled_command_output_suppresses_periodic_in_progress_report(self):
+    self.statuses.command_update_output = False
+    report = self._report(1)
+    report["status"] = CommandStatus.in_progress
+    self.statuses.queue_report_sending(1, self._command(1), report)
+
+    self.assertEqual({}, self.statuses.generate_report())
+    self.assertIn(1, self.statuses.current_state)
+
+  def test_single_oversized_report_is_truncated_without_an_empty_batch(self):
+    oversized = self._report(1)
+    oversized["stdout"] = "prefix" + "x" * 200
+
+    batches = list(self.statuses.split_reports({"1": [oversized]}, 150))
+
+    self.assertEqual(1, len(batches))
+    self.assertTrue(all(batch for batch in batches))
+    self.assertTrue(self.statuses.size_approved(batches[0], 150))
+    compact = batches[0]["1"][0]
+    self.assertTrue(compact["stdout"].startswith(self.statuses.TRUNCATION_NOTICE))
+    self.assertTrue(compact["stdout"].endswith("x"))
+
+  def test_truncated_terminal_report_is_cleared_by_its_ack(self):
+    oversized = self._report(1)
+    oversized["stdout"] = "x" * 200
+    self.statuses.queue_report_sending(1, self._command(1), oversized)
+
+    with patch.object(CommandStatusDict, "MAX_REPORT_SIZE", 150):
+      self.statuses.report()
+
+    self.assertTrue(self.statuses.size_approved(self.sent_reports[0], 150))
+    self.statuses.acknowledge_batch(0)
+    self.assertNotIn(1, self.statuses.current_state)
+
+  def test_retry_of_same_revision_supersedes_old_pending_callback(self):
+    self._queue_terminal_report(1)
+
+    self.statuses.report()
+    self.statuses.report()
+
+    self.assertEqual({1}, set(self.statuses.pending_batches))
+    self.assertEqual(
+      {1},
+      set(
+        self.initializer.server_responses_listener.listener_functions_on_success
+      ),
     )
     self.assertEqual(
-      command_statuses.size_approved(command_in_progress_report, 76), False
+      {1},
+      set(self.initializer.server_responses_listener.listener_functions_on_error),
     )
 
-  def test_split_reports(self):
-    # 4 reports for each cluster, general size in json = 295
-    generated_reports = {
-      "1": [
-        {"status": "FAILED", "taskId": 3},
-        {"status": "FAILED", "taskId": 4},
-        {"status": "FAILED", "taskId": 5},
-        {"status": "FAILED", "taskId": 6},
-      ],
-      "2": [
-        {"status": "FAILED", "taskId": 7},
-        {"status": "FAILED", "taskId": 8},
-        {"status": "FAILED", "taskId": 9},
-        {"status": "FAILED", "taskId": 10},
-      ],
+  def test_new_in_progress_revision_supersedes_old_pending_callback(self):
+    command = self._command(1)
+    first = self._report(1, marker="first")
+    first["status"] = CommandStatus.in_progress
+    second = self._report(1, marker="second")
+    second["status"] = CommandStatus.in_progress
+
+    self.statuses.put_command_status(command, first)
+    self.statuses.put_command_status(command, second)
+
+    self.assertEqual({1}, set(self.statuses.pending_batches))
+    self.assertEqual(
+      {1},
+      set(
+        self.initializer.server_responses_listener.listener_functions_on_success
+      ),
+    )
+
+  def test_multibyte_report_size_is_measured_in_bytes(self):
+    report = {"value": "\u4f60\u597d"}
+    encoded_size = len(json.dumps(report).encode("utf-8"))
+
+    self.assertTrue(self.statuses.size_approved(report, encoded_size))
+    self.assertFalse(self.statuses.size_approved(report, encoded_size - 1))
+
+  def test_command_output_fields_are_redacted_from_transport_log(self):
+    message = {
+      "clusters": {
+        "1": [
+          {
+            "stdout": "stdout-secret",
+            "stderr": "stderr-secret",
+            "structuredOut": '{"password": "structured-secret"}',
+            "status": CommandStatus.completed,
+          }
+        ]
+      }
     }
-    mock = MagicMock()
-    command_statuses = CommandStatusDict(mock)
 
-    # all reports will be send at once
-    splitted_reports = []
-    for report in command_statuses.split_reports(generated_reports, 295):
-      splitted_reports.append(report)
+    logged = CommandStatusDict.log_sending(message)
 
-    self.assertEqual(len(splitted_reports), 1)
-    self.assertEqual(len(splitted_reports[0]), 2)
-    self.assertEqual(len(splitted_reports[0]["1"]), 4)
-    self.assertEqual(len(splitted_reports[0]["2"]), 4)
-
-    # all reports will be divided between two parts
-    # {'1': [{3}, {4}, {5}, {6}], '2': [{7}, {8}, {9}]}
-    # {'2': [{10}]}
-    splitted_reports = []
-    for report in command_statuses.split_reports(generated_reports, 294):
-      splitted_reports.append(report)
-
-    self.assertEqual(len(splitted_reports), 2)
-    self.assertEqual(len(splitted_reports[0]), 2)
-    self.assertEqual(len(splitted_reports[0]["1"]), 4)
-    self.assertEqual(len(splitted_reports[0]["2"]), 3)
-    self.assertEqual(len(splitted_reports[1]), 1)
-    self.assertEqual(len(splitted_reports[1]["2"]), 1)
-
-    # all reports will be divided between 8 parts
-    # {'1': [{3}]}
-    # ...
-    # {'2': [{10}]}
-    splitted_reports = []
-    for report in command_statuses.split_reports(generated_reports, 73):
-      splitted_reports.append(report)
-
-    self.assertEqual(len(splitted_reports), 8)
-    self.assertEqual(len(splitted_reports[0]), 1)
-    self.assertEqual(len(splitted_reports[0]["1"]), 1)
-    self.assertEqual(len(splitted_reports[1]), 1)
-    self.assertEqual(len(splitted_reports[1]["1"]), 1)
-    self.assertEqual(len(splitted_reports[2]), 1)
-    self.assertEqual(len(splitted_reports[2]["1"]), 1)
-    self.assertEqual(len(splitted_reports[3]), 1)
-    self.assertEqual(len(splitted_reports[3]["1"]), 1)
-    self.assertEqual(len(splitted_reports[4]), 1)
-    self.assertEqual(len(splitted_reports[4]["2"]), 1)
-    self.assertEqual(len(splitted_reports[5]), 1)
-    self.assertEqual(len(splitted_reports[5]["2"]), 1)
-    self.assertEqual(len(splitted_reports[6]), 1)
-    self.assertEqual(len(splitted_reports[6]["2"]), 1)
-    self.assertEqual(len(splitted_reports[7]), 1)
-    self.assertEqual(len(splitted_reports[7]["2"]), 1)
+    self.assertEqual("...", logged["clusters"]["1"][0]["stdout"])
+    self.assertEqual("...", logged["clusters"]["1"][0]["stderr"])
+    self.assertEqual("...", logged["clusters"]["1"][0]["structuredOut"])

@@ -84,18 +84,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <property>
-    <name>alluxio_keytab</name>
-    <description>Alluxio keytab path</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>alluxio_principal</name>
-    <description>Alluxio principal</description>
-    <property-type>KERBEROS_PRINCIPAL</property-type>
-    <on-ambari-upgrade add="false"/>
-  </property> 
-
     <!-- alluxio-env.sh -->
     <property>
         <name>content</name>
@@ -134,10 +122,11 @@
 # JAVA_HOME
 # JAVA
 
-JAVA_HOME={{java_home}}
+JAVA_HOME={{java_home_shell}}
 
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
 # ALLUXIO_LOGS_DIR
+ALLUXIO_LOGS_DIR={{alluxio_log_dir_shell}}
 
 # The hostname for log server. If set, remote logging is enabled.
 # ALLUXIO_LOGSERVER_HOSTNAME
@@ -150,7 +139,8 @@ JAVA_HOME={{java_home}}
 # E.g. "-Dalluxio.master.rpc.port=39999"
 # ALLUXIO_JAVA_OPTS
 
-ALLUXIO_JAVA_OPTS+=" -Djava.library.path=/usr/hdp/current/hadoop-client/lib/native/ "
+ALLUXIO_NATIVE_LIBRARY_OPTION={{alluxio_native_library_option_shell}}
+ALLUXIO_JAVA_OPTS+=" ${ALLUXIO_NATIVE_LIBRARY_OPTION}"
 
 # Config properties set for Alluxio master daemon. (Default: "")
 # E.g. "-Dalluxio.master.rpc.port=39999"

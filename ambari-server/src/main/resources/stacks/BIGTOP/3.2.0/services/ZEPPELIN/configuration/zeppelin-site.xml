@@ -150,7 +150,7 @@
     </property>
     <property>
         <name>zeppelin.ssl.keystore.password</name>
-        <value>change me</value>
+        <value></value>
         <property-type>PASSWORD</property-type>
         <description>Keystore password. Can be obfuscated by the Jetty Password tool</description>
         <value-attributes>
@@ -160,7 +160,7 @@
     </property>
     <property>
         <name>zeppelin.ssl.key.manager.password</name>
-        <value>change me</value>
+        <value></value>
         <property-type>PASSWORD</property-type>
         <description>Key Manager password. Defaults to keystore password. Can be obfuscated.
         </description>
@@ -186,7 +186,7 @@
     </property>
     <property>
         <name>zeppelin.ssl.truststore.password</name>
-        <value>change me</value>
+        <value></value>
         <property-type>PASSWORD</property-type>
         <description>Truststore password. Can be obfuscated by the Jetty Password tool. Defaults to
             the keystore password

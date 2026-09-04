@@ -19,9 +19,8 @@ limitations under the License.
 
 import base64
 import urllib.request, urllib.error, urllib.parse
-import ambari_simplejson as json  # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import json
 import logging
-from resource_management.core.environment import Environment
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
@@ -33,6 +32,38 @@ ADMIN_PASSWORD = "{{ranger-env/admin_password}}"
 RANGER_ADMIN_USERNAME = "{{ranger-env/ranger_admin_username}}"
 RANGER_ADMIN_PASSWORD = "{{ranger-env/ranger_admin_password}}"
 SECURITY_ENABLED = "{{cluster-env/security_enabled}}"
+
+
+def _strict_bool(value, name):
+  if isinstance(value, bool):
+    return value
+  if isinstance(value, str):
+    normalized = value.strip().lower()
+    if normalized == "true":
+      return True
+    if normalized == "false":
+      return False
+  raise ValueError(f"{name} must be true or false")
+
+
+def _validate_ranger_url(value):
+  try:
+    parsed_url = urllib.parse.urlsplit(value)
+    hostname = parsed_url.hostname
+    port = parsed_url.port
+  except (TypeError, ValueError) as error:
+    raise ValueError("Ranger Admin URL is invalid") from error
+  if (
+    parsed_url.scheme not in ("http", "https")
+    or not hostname
+    or parsed_url.username is not None
+    or parsed_url.password is not None
+    or parsed_url.query
+    or parsed_url.fragment
+    or (port is not None and not 1 <= port <= 65535)
+  ):
+    raise ValueError("Ranger Admin URL is invalid")
+  return value.rstrip("/")
 
 
 def get_tokens():
@@ -52,7 +83,7 @@ def get_tokens():
   )
 
 
-def execute(configurations={}, parameters={}, host_name=None):
+def execute(configurations=None, parameters=None, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
@@ -80,9 +111,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   )
 
   if RANGER_ADMIN_URL in configurations:
-    ranger_link = configurations[RANGER_ADMIN_URL]
-    if ranger_link.endswith("/"):
-      ranger_link = ranger_link[:-1]
+    try:
+      ranger_link = _validate_ranger_url(configurations[RANGER_ADMIN_URL])
+    except ValueError as error:
+      return ("UNKNOWN", [str(error)])
     ranger_auth_link = f"{ranger_link}/service/public/api/repository/count"
     ranger_get_user = f"{ranger_link}/service/xusers/users"
 
@@ -99,7 +131,12 @@ def execute(configurations={}, parameters={}, host_name=None):
     ranger_admin_password = configurations[RANGER_ADMIN_PASSWORD]
 
   if SECURITY_ENABLED in configurations:
-    security_enabled = str(configurations[SECURITY_ENABLED]).upper() == "TRUE"
+    try:
+      security_enabled = _strict_bool(
+        configurations[SECURITY_ENABLED], "cluster-env/security_enabled"
+      )
+    except ValueError as error:
+      return ("UNKNOWN", [str(error)])
 
   label = None
   result_code = "OK"
@@ -109,6 +146,16 @@ def execute(configurations={}, parameters={}, host_name=None):
       result_code = "UNKNOWN"
       label = "This alert will get skipped for Ranger Admin on kerberos env"
     else:
+      required_values = (
+        ranger_auth_link,
+        ranger_get_user,
+        admin_username,
+        admin_password,
+        ranger_admin_username,
+        ranger_admin_password,
+      )
+      if any(not isinstance(value, str) or not value for value in required_values):
+        raise ValueError("Required Ranger alert configuration is missing")
       admin_http_code = check_ranger_login(
         ranger_auth_link, admin_username, admin_password
       )
@@ -143,8 +190,8 @@ def execute(configurations={}, parameters={}, host_name=None):
         result_code = "WARNING"
         label = "Ranger Admin service is not reachable, please restart the service"
 
-  except Exception as e:
-    label = str(e)
+  except Exception:
+    label = "Ranger credential check failed"
     result_code = "UNKNOWN"
     logger.exception(label)
 
@@ -168,21 +215,19 @@ def check_ranger_login(ranger_auth_link, username, password):
     request.add_header("Content-Type", "application/json")
     request.add_header("Accept", "application/json")
     request.add_header("Authorization", f"Basic {base_64_string}")
-    result = urllib.request.urlopen(request, timeout=20)
-    response_code = result.getcode()
-    if response_code == 200:
-      response = json.loads(result.read())
-    return response_code
+    with urllib.request.urlopen(request, timeout=20) as result:
+      return result.getcode()
   except urllib.error.HTTPError as e:
     logger.exception(
-      f"Error during Ranger service authentication. Http status code - {e.code}. {e.read()}"
+      f"Error during Ranger service authentication. Http status code - {e.code}."
     )
     return e.code
-  except urllib.error.URLError as e:
-    logger.exception(f"Error during Ranger service authentication. {e.reason}")
+  except urllib.error.URLError:
+    logger.exception("Error connecting to Ranger during authentication")
     return None
-  except Exception as e:
-    return 401
+  except (TypeError, ValueError):
+    logger.exception("Invalid Ranger authentication request")
+    return None
 
 
 def get_ranger_user(ranger_get_user, username, password, user):
@@ -194,7 +239,7 @@ def get_ranger_user(ranger_get_user, username, password, user):
   return Boolean if user exist or not
   """
   try:
-    url = f"{ranger_get_user}?name={user}"
+    url = f"{ranger_get_user}?{urllib.parse.urlencode({'name': user})}"
     usernamepassword = f"{username}:{password}"
     base_64_string = (
       base64.b64encode(usernamepassword.encode()).decode().replace("\n", "")
@@ -203,22 +248,23 @@ def get_ranger_user(ranger_get_user, username, password, user):
     request.add_header("Content-Type", "application/json")
     request.add_header("Accept", "application/json")
     request.add_header("Authorization", f"Basic {base_64_string}")
-    result = urllib.request.urlopen(request, timeout=20)
-    response_code = result.getcode()
-    response = json.loads(result.read())
-    if response_code == 200 and len(response["vXUsers"]) > 0:
-      for xuser in response["vXUsers"]:
-        if xuser["name"] == user:
-          return True
-    else:
+    with urllib.request.urlopen(request, timeout=20) as result:
+      response_code = result.getcode()
+      response = json.loads(result.read().decode("utf-8"))
+    users = response.get("vXUsers") if isinstance(response, dict) else None
+    if response_code != 200 or not isinstance(users, list):
       return False
+    return any(
+      isinstance(xuser, dict) and xuser.get("name") == user for xuser in users
+    )
   except urllib.error.HTTPError as e:
     logger.exception(
-      f"Error getting user from Ranger service. Http status code - {e.code}. {e.read()}"
+      f"Error getting user from Ranger service. Http status code - {e.code}."
     )
     return False
-  except urllib.error.URLError as e:
-    logger.exception(f"Error getting user from Ranger service. {e.reason}")
+  except urllib.error.URLError:
+    logger.exception("Error connecting to Ranger while looking up a user")
     return False
-  except Exception as e:
+  except (TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
+    logger.exception("Invalid Ranger user lookup response")
     return False

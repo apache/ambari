@@ -18,9 +18,7 @@ limitations under the License.
 
 """
 
-# Python Imports
-import os
-import shutil
+from contextlib import nullcontext
 
 
 # Local Imports
@@ -28,10 +26,11 @@ from hive import create_hive_hdfs_dirs
 
 
 # Ambari Commons & Resource Management Imports
-from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
-from resource_management.libraries.functions import upgrade_summary
-from resource_management.libraries.functions.format import format
+from resource_management.core.signal_utils import TerminateStrategy
+from resource_management.libraries.functions.private_kerberos_cache import (
+  PrivateKerberosCache,
+)
 from resource_management.libraries.script import Script
 
 
@@ -43,13 +42,44 @@ class HivePostUpgrade(Script):
 
     create_hive_hdfs_dirs()
 
-    target_version = upgrade_summary.get_target_version(service_name="HIVE")
+    cache_context = nullcontext(None)
+    if params.security_enabled:
+      cache_context = PrivateKerberosCache(
+        params.hdfs_user,
+        params.user_group,
+        params.tmp_dir,
+        "ambari-hive-managed-migration-",
+      )
 
-    hive_script = format("/usr/bigtop/{target_version}/usr/lib/hive/bin/hive")
-    cmd = format(
-      "{hive_script} --config /etc/hive/conf --service  strictmanagedmigration --hiveconf hive.strict.managed.tables=true  -m automatic  --modifyManagedTables --oldWarehouseRoot /apps/hive/warehouse"
-    )
-    Execute(cmd, environment={"JAVA_HOME": params.java64_home}, user=params.hdfs_user)
+    with cache_context as cache:
+      environment = {"JAVA_HOME": params.java64_home}
+      if cache is not None:
+        cache.kinit(
+          params.kinit_path_local,
+          params.hdfs_user_keytab,
+          params.hdfs_principal_name,
+        )
+        environment = cache.merge_environment(environment)
+      Execute(
+        (
+          f"{params.hive_bin_dir}/hive",
+          "--config",
+          params.hive_conf_dir,
+          "--service",
+          "strictmanagedmigration",
+          "--hiveconf",
+          "hive.strict.managed.tables=true",
+          "-m",
+          "automatic",
+          "--modifyManagedTables",
+          "--oldWarehouseRoot",
+          "/apps/hive/warehouse",
+        ),
+        environment=environment,
+        user=params.hdfs_user,
+        timeout=1200,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
 
 
 if __name__ == "__main__":

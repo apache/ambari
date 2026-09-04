@@ -20,46 +20,92 @@ limitations under the License.
 
 import os.path
 import time
+from urllib.parse import unquote, urlparse
+
+import hdfs_process
 
 from ambari_commons import constants
 
 from resource_management.core import shell
 from resource_management.core.source import Template
 from resource_management.core.resources.system import File, Execute, Directory
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.resources.service import Service
 from resource_management.libraries.functions import namenode_ha_utils
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.check_process_status import (
-  check_process_status,
-)
 from resource_management.libraries.functions.namenode_ha_utils import (
   get_name_service_by_hostname,
 )
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
-from resource_management.libraries.resources.execute_hdfs import ExecuteHDFS
 from resource_management.libraries.functions import Direction
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from utils import get_dfsadmin_base_command
 from utils import set_up_zkfc_security
 
-if OSCheck.is_windows_family():
-  from resource_management.libraries.functions.windows_service_utils import (
-    check_windows_service_status,
-  )
-
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 
 from utils import service, safe_zkfc_op, is_previous_fs_image
 from setup_ranger_hdfs import setup_ranger_hdfs, create_ranger_audit_hdfs_directories
+from hdfs_kerberos import hdfs_kerberos_environment
 
 import namenode_upgrade
 
 
+def get_safemode_wait_options(rolling_restart, timeout):
+  if not rolling_restart:
+    return {}
+
+  if timeout is None:
+    return {}
+
+  timeout_text = str(timeout).strip()
+  if not timeout_text:
+    return {}
+
+  if not timeout_text.isascii() or not timeout_text.isdigit():
+    raise Fail(
+      "NameNode rolling restart safemode exit timeout must be a positive integer, "
+      f"got {timeout!r}"
+    )
+
+  timeout_seconds = int(timeout_text)
+  if timeout_seconds <= 0:
+    raise Fail(
+      "NameNode rolling restart safemode exit timeout must be a positive integer, "
+      f"got {timeout!r}"
+    )
+
+  return {
+    "afterwait_sleep": 30,
+    "retries": max(1, (timeout_seconds + 29) // 30),
+    "sleep_seconds": 30,
+  }
+
+
 def wait_for_safemode_off(
   hdfs_binary, afterwait_sleep=0, execute_kinit=False, retries=115, sleep_seconds=10
+):
+  import params
+
+  # Retain execute_kinit for management-pack caller compatibility. Secure
+  # commands now always use an isolated cache instead of the process default.
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-safemode-wait-"
+  ) as command_environment:
+    return _wait_for_safemode_off(
+      hdfs_binary,
+      afterwait_sleep,
+      retries,
+      sleep_seconds,
+      command_environment,
+    )
+
+
+def _wait_for_safemode_off(
+  hdfs_binary, afterwait_sleep, retries, sleep_seconds, environment
 ):
   """
   During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
@@ -74,30 +120,31 @@ def wait_for_safemode_off(
     f"Waiting up to {sleep_minutes} minutes for the NameNode to leave Safemode..."
   )
 
-  if params.security_enabled and execute_kinit:
-    kinit_command = format(
-      "{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}"
-    )
-    Execute(kinit_command, user=params.hdfs_user, logoutput=True)
-
   try:
     # Note, this fails if namenode_address isn't prefixed with "params."
 
     dfsadmin_base_command = get_dfsadmin_base_command(
       hdfs_binary, use_specific_namenode=True
     )
-    is_namenode_safe_mode_off = (
-      dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
-    )
-
-    # Wait up to 30 mins
-    Execute(
-      is_namenode_safe_mode_off,
-      tries=retries,
-      try_sleep=sleep_seconds,
-      user=params.hdfs_user,
-      logoutput=True,
-    )
+    safemode_command = dfsadmin_base_command + ("-safemode", "get")
+    for attempt in range(retries):
+      code, output = shell.call(
+        safemode_command,
+        user=params.hdfs_user,
+        logoutput=True,
+        env=environment,
+        timeout=60,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        shell=False,
+      )
+      if code == 0 and output and "Safe mode is OFF" in output:
+        break
+      if attempt + 1 < retries:
+        time.sleep(sleep_seconds)
+    else:
+      raise Fail(
+        f"NameNode did not leave safemode after {retries} attempts"
+      )
 
     # Wait a bit more since YARN still depends on block reports coming in.
     # Also saw intermittent errors with HBASE service check if it was done too soon.
@@ -106,6 +153,7 @@ def wait_for_safemode_off(
     Logger.error(
       "The NameNode is still in Safemode. Please be careful with commands that need Safemode OFF."
     )
+    raise
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -130,7 +178,7 @@ def namenode(
     # additional namenode)
     create_name_dirs(params.dfs_name_dir)
 
-    # set up failover /  secure zookeper ACLs, this feature is supported from HDP 2.6 ownwards
+    # Set up failover and secure ZooKeeper ACLs when the stack feature is enabled.
     set_up_zkfc_security(params)
   elif action == "start":
     Logger.info(f"Called service {action} with upgrade_type: {str(upgrade_type)}")
@@ -151,11 +199,9 @@ def namenode(
         owner=params.hdfs_user,
         group=params.user_group,
       )
-      pass
 
     if do_format and not params.hdfs_namenode_format_disabled:
       format_namenode()
-      pass
 
     if (
       params.dfs_ha_enabled
@@ -195,8 +241,7 @@ def namenode(
       elif params.upgrade_direction == Direction.DOWNGRADE:
         options = "-rollingUpgrade downgrade"
     elif upgrade_type == constants.UPGRADE_TYPE_HOST_ORDERED:
-      # nothing special to do for HOU - should be very close to a normal restart
-      pass
+      Logger.debug("Host-ordered upgrade uses normal NameNode start options")
     elif upgrade_type is None and upgrade_suspended is True:
       # the rollingUpgrade flag must be passed in during a suspended upgrade when starting NN
       if os.path.exists(namenode_upgrade.get_upgrade_in_progress_marker()):
@@ -219,12 +264,6 @@ def namenode(
       create_pid_dir=True,
       create_log_dir=True,
     )
-
-    if params.security_enabled:
-      Execute(
-        format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-        user=params.hdfs_user,
-      )
 
     name_service = get_name_service_by_hostname(params.hdfs_site, params.hostname)
 
@@ -280,13 +319,10 @@ def namenode(
 
     # wait for Safemode to end
     if ensure_safemode_off:
-      if params.rolling_restart and params.rolling_restart_safemode_exit_timeout:
-        calculated_retries = int(params.rolling_restart_safemode_exit_timeout) / 30
-        wait_for_safemode_off(
-          hdfs_binary, afterwait_sleep=30, retries=calculated_retries, sleep_seconds=30
-        )
-      else:
-        wait_for_safemode_off(hdfs_binary)
+      safemode_wait_options = get_safemode_wait_options(
+        params.rolling_restart, params.rolling_restart_safemode_exit_timeout
+      )
+      wait_for_safemode_off(hdfs_binary, **safemode_wait_options)
 
     # Always run this on the "Active" NN unless Safemode has been ignored
     # in the case where safemode was ignored (like during an express upgrade), then
@@ -306,49 +342,15 @@ def namenode(
   elif action == "status":
     import status_params
 
-    check_process_status(status_params.namenode_pid_file)
+    hdfs_process.check_component_status(
+      status_params.namenode_pid_file,
+      status_params.hdfs_user,
+      "namenode",
+      owner=status_params.hdfs_user,
+      group=status_params.user_group,
+    )
   elif action == "decommission":
     decommission()
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def namenode(
-  action=None,
-  hdfs_binary=None,
-  do_format=True,
-  upgrade_type=None,
-  upgrade_suspended=False,
-  env=None,
-):
-  if action is None:
-    raise Fail('"action" parameter is required for function namenode().')
-
-  if action in ["start", "stop"] and hdfs_binary is None:
-    raise Fail('"hdfs_binary" parameter is required for function namenode().')
-
-  if action == "configure":
-    pass
-  elif action == "start":
-    import params
-
-    # TODO: Replace with format_namenode()
-    namenode_format_marker = os.path.join(params.hadoop_conf_dir, "NN_FORMATTED")
-    if not os.path.exists(namenode_format_marker):
-      hadoop_cmd = f"cmd /C {os.path.join(params.hadoop_home, 'bin', 'hadoop.cmd')}"
-      Execute(f"{hadoop_cmd} namenode -format", logoutput=True)
-      open(namenode_format_marker, "a").close()
-    Service(params.namenode_win_service_name, action=action)
-  elif action == "stop":
-    import params
-
-    Service(params.namenode_win_service_name, action=action)
-  elif action == "status":
-    import status_params
-
-    check_windows_service_status(status_params.namenode_win_service_name)
-  elif action == "decommission":
-    decommission()
-
 
 def create_name_dirs(directories):
   import params
@@ -374,7 +376,7 @@ def create_hdfs_directories(name_service):
     type="directory",
     action="create_on_execute",
     owner=params.hdfs_user,
-    mode=0o777,
+    mode=0o1777,
     nameservices=name_services,
   )
   params.HdfsResource(
@@ -411,10 +413,19 @@ def format_namenode(force=None):
     else:
       if not is_namenode_formatted(params):
         Execute(
-          format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
+          (
+            "hdfs",
+            "--config",
+            hadoop_conf_dir,
+            "namenode",
+            "-format",
+            "-nonInteractive",
+          ),
           user=params.hdfs_user,
           path=[params.hadoop_bin_dir],
           logoutput=True,
+          timeout=300,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         )
         for m_dir in mark_dir:
           Directory(m_dir, create_parents=True)
@@ -433,27 +444,47 @@ def format_namenode(force=None):
           logoutput=True,
         )
       else:
-        nn_name_dirs = params.dfs_name_dir.split(",")
         if not is_namenode_formatted(params):
-          try:
-            Execute(
-              format(
-                "hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"
-              ),
-              user=params.hdfs_user,
-              path=[params.hadoop_bin_dir],
-              logoutput=True,
-            )
-          except Fail:
-            # We need to clean-up mark directories, so we can re-run format next time.
-            for nn_name_dir in nn_name_dirs:
-              Execute(
-                format("rm -rf {nn_name_dir}/*"),
-                user=params.hdfs_user,
-              )
-            raise
+          Execute(
+            (
+              "hdfs",
+              "--config",
+              hadoop_conf_dir,
+              "namenode",
+              "-format",
+              "-nonInteractive",
+            ),
+            user=params.hdfs_user,
+            path=[params.hadoop_bin_dir],
+            logoutput=True,
+            timeout=300,
+            timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          )
           for m_dir in mark_dir:
             Directory(m_dir, create_parents=True)
+
+
+def get_local_name_dir(configured_name_dir):
+  if not isinstance(configured_name_dir, str):
+    return None
+  if (
+    configured_name_dir != configured_name_dir.strip()
+    or not configured_name_dir
+  ):
+    return None
+
+  parsed = urlparse(configured_name_dir)
+  if parsed.scheme:
+    if (
+      parsed.scheme != "file"
+      or parsed.netloc not in ("", "localhost")
+      or parsed.params
+      or parsed.query
+      or parsed.fragment
+    ):
+      return None
+    return unquote(parsed.path) or None
+  return configured_name_dir
 
 
 def is_namenode_formatted(params):
@@ -477,7 +508,12 @@ def is_namenode_formatted(params):
   for old_mark_dir in old_mark_dirs:
     if os.path.isdir(old_mark_dir):
       for mark_dir in mark_dirs:
-        Execute(("cp", "-ar", old_mark_dir, mark_dir), sudo=True)
+        Execute(
+          ("cp", "-ar", old_mark_dir, mark_dir),
+          sudo=True,
+          timeout=300,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+        )
         marked = True
       Directory(old_mark_dir, action="delete")
     elif os.path.isfile(old_mark_dir):
@@ -493,27 +529,29 @@ def is_namenode_formatted(params):
     return True
 
   # Check if name dirs are not empty
-  for name_dir in nn_name_dirs:
-    code, out = shell.call(("ls", name_dir))
-    dir_exists_and_valid = bool(not code)
-
-    if not dir_exists_and_valid:  # situations if disk exists but is crashed at the moment (ls: reading directory ...: Input/output error)
+  for configured_name_dir in nn_name_dirs:
+    name_dir = get_local_name_dir(configured_name_dir)
+    if name_dir is None:
       Logger.info(
-        format(
-          "NameNode will not be formatted because the directory {name_dir} is missing or cannot be checked for content. {out}"
-        )
+        "NameNode will not be formatted because its storage directory is not "
+        f"a supported local path: {configured_name_dir!r}"
       )
       return True
 
     try:
-      Execute(
-        format("ls {name_dir} | wc -l  | grep -q ^0$"),
-      )
-    except Fail:
+      with os.scandir(name_dir) as entries:
+        has_content = next(entries, None) is not None
+    except OSError as error:
       Logger.info(
-        format(
-          "NameNode will not be formatted since {name_dir} exists and contains content"
-        )
+        "NameNode will not be formatted because the directory "
+        f"{name_dir!r} is missing or cannot be checked for content: {error}"
+      )
+      return True
+
+    if has_content:
+      Logger.info(
+        "NameNode will not be formatted because the directory "
+        f"{name_dir!r} contains content"
       )
       return True
 
@@ -524,25 +562,33 @@ def is_namenode_formatted(params):
 def refreshProxyUsers():
   import params
 
-  if params.security_enabled:
-    Execute(params.nn_kinit_cmd, user=params.hdfs_user)
-
-  if params.dfs_ha_enabled:
-    # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
-    # need to execute each command scoped to a particular namenode
-    nn_refresh_cmd = format(
-      "dfsadmin -fs hdfs://{namenode_rpc} -refreshSuperUserGroupsConfiguration"
-    )
-  else:
-    nn_refresh_cmd = format(
-      "dfsadmin -fs {namenode_address} -refreshSuperUserGroupsConfiguration"
-    )
-  ExecuteHDFS(
-    nn_refresh_cmd,
-    user=params.hdfs_user,
-    conf_dir=params.hadoop_conf_dir,
-    bin_dir=params.hadoop_bin_dir,
+  filesystem = (
+    f"hdfs://{params.namenode_rpc}"
+    if params.dfs_ha_enabled
+    else params.namenode_address
   )
+  with hdfs_kerberos_environment(
+    params,
+    "ambari-hdfs-refresh-proxy-users-",
+    keytab=params.nn_keytab if params.security_enabled else None,
+    principal=params.nn_principal_name if params.security_enabled else None,
+  ) as command_environment:
+    Execute(
+      (
+        "hdfs",
+        "--config",
+        params.hadoop_conf_dir,
+        "dfsadmin",
+        "-fs",
+        filesystem,
+        "-refreshSuperUserGroupsConfiguration",
+      ),
+      user=params.hdfs_user,
+      path=[params.hadoop_bin_dir],
+      environment=command_environment,
+      timeout=120,
+      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    )
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -552,8 +598,6 @@ def decommission():
   hdfs_user = params.hdfs_user
   conf_dir = params.hadoop_conf_dir
   user_group = params.user_group
-  nn_kinit_cmd = params.nn_kinit_cmd
-
   File(
     params.exclude_file_path,
     content=Template("exclude_hosts_list.j2"),
@@ -568,7 +612,6 @@ def decommission():
       owner=params.hdfs_user,
       group=params.user_group,
     )
-    pass
 
   # regenerate topology_mappings.data
   File(
@@ -577,51 +620,37 @@ def decommission():
     owner=params.hdfs_user,
     group=params.user_group,
     mode=0o644,
-    only_if=format("test -d {hadoop_conf_dir}")
+    only_if=("test", "-d", conf_dir),
   )
 
   if not params.update_files_only:
-    Execute(nn_kinit_cmd, user=hdfs_user)
-
-    if params.dfs_ha_enabled:
-      # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
-      # need to execute each command scoped to a particular namenode
-      nn_refresh_cmd = format("dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes")
-    else:
-      nn_refresh_cmd = format("dfsadmin -fs {namenode_address} -refreshNodes")
-    ExecuteHDFS(
-      nn_refresh_cmd, user=hdfs_user, conf_dir=conf_dir, bin_dir=params.hadoop_bin_dir
+    filesystem = (
+      f"hdfs://{params.namenode_rpc}"
+      if params.dfs_ha_enabled
+      else params.namenode_address
     )
-
-
-@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def decommission():
-  import params
-
-  hdfs_user = params.hdfs_user
-  conf_dir = params.hadoop_conf_dir
-
-  File(
-    params.exclude_file_path, content=Template("exclude_hosts_list.j2"), owner=hdfs_user
-  )
-
-  if params.hdfs_include_file:
-    File(
-      params.include_file_path,
-      content=Template("include_hosts_list.j2"),
-      owner=params.hdfs_user,
-    )
-    pass
-
-  if params.dfs_ha_enabled:
-    # due to a bug in hdfs, refreshNodes will not run on both namenodes so we
-    # need to execute each command scoped to a particular namenode
-    nn_refresh_cmd = format(
-      "cmd /c hdfs dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes"
-    )
-  else:
-    nn_refresh_cmd = format("cmd /c hdfs dfsadmin -fs {namenode_address} -refreshNodes")
-  Execute(nn_refresh_cmd, user=hdfs_user)
+    with hdfs_kerberos_environment(
+      params,
+      "ambari-hdfs-refresh-nodes-",
+      keytab=params.nn_keytab if params.security_enabled else None,
+      principal=params.nn_principal_name if params.security_enabled else None,
+    ) as command_environment:
+      Execute(
+        (
+          "hdfs",
+          "--config",
+          params.hadoop_conf_dir,
+          "dfsadmin",
+          "-fs",
+          filesystem,
+          "-refreshNodes",
+        ),
+        user=hdfs_user,
+        path=[params.hadoop_bin_dir],
+        environment=command_environment,
+        timeout=120,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
 
 
 def bootstrap_standby_namenode(params, use_path=False):
@@ -630,7 +659,12 @@ def bootstrap_standby_namenode(params, use_path=False):
   try:
     iterations = 50
     bootstrapped = False
-    bootstrap_cmd = format("{bin_path}hdfs namenode -bootstrapStandby -nonInteractive")
+    bootstrap_cmd = (
+      f"{bin_path}hdfs",
+      "namenode",
+      "-bootstrapStandby",
+      "-nonInteractive",
+    )
     # Blue print based deployments start both NN in parallel and occasionally
     # the first attempt to bootstrap may fail. Depending on how it fails the
     # second attempt may not succeed (e.g. it may find the folder and decide that
@@ -638,28 +672,44 @@ def bootstrap_standby_namenode(params, use_path=False):
     # during initial start
     if params.command_phase == "INITIAL_START":
       # force bootstrap in INITIAL_START phase
-      bootstrap_cmd = format(
-        "{bin_path}hdfs namenode -bootstrapStandby -nonInteractive -force"
+      bootstrap_cmd = (
+        f"{bin_path}hdfs",
+        "namenode",
+        "-bootstrapStandby",
+        "-nonInteractive",
+        "-force",
       )
     elif is_namenode_bootstrapped(params):
       # Once out of INITIAL_START phase bootstrap only if we couldnt bootstrap during cluster deployment
       return True
     Logger.info(f"Boostrapping standby namenode: {bootstrap_cmd}")
-    for i in range(iterations):
-      Logger.info("Try %d out of %d" % (i + 1, iterations))
-      code, out = shell.call(bootstrap_cmd, logoutput=False, user=params.hdfs_user)
-      if code == 0:
-        Logger.info("Standby namenode bootstrapped successfully")
-        bootstrapped = True
-        break
-      elif code == 5:
-        Logger.info("Standby namenode already bootstrapped")
-        bootstrapped = True
-        break
-      else:
-        Logger.warning(
-          "Bootstrap standby namenode failed with %d error code. Will retry" % (code)
+    with hdfs_kerberos_environment(
+      params, "ambari-hdfs-namenode-bootstrap-retry-"
+    ) as command_environment:
+      for i in range(iterations):
+        Logger.info("Try %d out of %d" % (i + 1, iterations))
+        code, out = shell.call(
+          bootstrap_cmd,
+          logoutput=False,
+          user=params.hdfs_user,
+          env=command_environment,
+          timeout=300,
+          timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+          shell=False,
         )
+        if code == 0:
+          Logger.info("Standby namenode bootstrapped successfully")
+          bootstrapped = True
+          break
+        elif code == 5:
+          Logger.info("Standby namenode already bootstrapped")
+          bootstrapped = True
+          break
+        else:
+          Logger.warning(
+            "Bootstrap standby namenode failed with %d error code. Will retry"
+            % (code)
+          )
   except Exception as ex:
     Logger.error(f"Bootstrap standby namenode threw an exception. Reason {str(ex)}")
   if bootstrapped:
@@ -715,15 +765,19 @@ def is_this_namenode_active(name_service):
   # returns ([], [('nn1', 'c6401.ambari.apache.org:50070')], [('nn2', 'c6402.ambari.apache.org:50070')], [])
   #          0                                              1                                             2
   #
-  namenode_states = namenode_ha_utils.get_namenode_states(
-    params.hdfs_site,
-    params.security_enabled,
-    params.hdfs_user,
-    times=5,
-    sleep_time=5,
-    backoff_factor=2,
-    name_service=name_service,
-  )
+  with hdfs_kerberos_environment(
+    params, "ambari-hdfs-namenode-ha-state-"
+  ) as command_environment:
+    namenode_states = namenode_ha_utils.get_namenode_states(
+      params.hdfs_site,
+      params.security_enabled,
+      params.hdfs_user,
+      times=5,
+      sleep_time=5,
+      backoff_factor=2,
+      name_service=name_service,
+      environment=command_environment,
+    )
 
   # unwraps [('nn1', 'c6401.ambari.apache.org:50070')]
   active_namenodes = [] if len(namenode_states[0]) < 1 else namenode_states[0]

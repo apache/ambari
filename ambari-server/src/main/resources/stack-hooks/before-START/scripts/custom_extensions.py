@@ -27,15 +27,15 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import format
 
 
-DEFAULT_HADOOP_HDFS_EXTENSION_DIR = "/hdp/ext/{0}/hadoop"
-DEFAULT_HADOOP_HIVE_EXTENSION_DIR = "/hdp/ext/{0}/hive"
-DEFAULT_HADOOP_HBASE_EXTENSION_DIR = "/hdp/ext/{0}/hbase"
+DEFAULT_HADOOP_HDFS_EXTENSION_DIR = "/bigtop/ext/{0}/hadoop"
+DEFAULT_HADOOP_HIVE_EXTENSION_DIR = "/bigtop/ext/{0}/hive"
+DEFAULT_HADOOP_HBASE_EXTENSION_DIR = "/bigtop/ext/{0}/hbase"
 
 
 def setup_extensions():
   """
   The goal of this method is to distribute extensions (for example jar files) from
-  HDFS (/hdp/ext/{major_stack_version}/{service_name}) to all nodes which contain related
+  HDFS (/bigtop/ext/{major_stack_version}/{service_name}) to all nodes which contain related
   components of service (YARN, HIVE or HBASE). Extensions should be added to HDFS by
   user manually.
   """

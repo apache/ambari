@@ -25,44 +25,25 @@ import resource
 from ambari_commons import OSCheck
 from string import Template
 
-if OSCheck.is_windows_family():
-  pass
-else:
-  import pwd
+import pwd
 
-if OSCheck.is_windows_family():
-  from ambari_commons.os_windows import (
-    os_change_owner,
-    os_getpass,
-    os_is_root,
-    os_run_os_command,
-    os_set_open_files_limit,
-    os_set_file_permissions,
-    os_is_service_exist,
-  )
-else:
-  # MacOS not supported
-  from ambari_commons.os_linux import (
-    os_change_owner,
-    os_getpass,
-    os_is_root,
-    os_run_os_command,
-    os_set_open_files_limit,
-    os_set_file_permissions,
-    os_is_service_exist,
-  )
-
-  pass
+# MacOS not supported
+from ambari_commons.os_linux import (
+  os_change_owner,
+  os_getpass,
+  os_is_root,
+  os_run_os_command,
+  os_set_open_files_limit,
+  os_set_file_permissions,
+  os_is_service_exist,
+)
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg
 
 
 def current_user():
-  if OSCheck.is_windows_family():
-    return None
-  else:
-    return pwd.getpwuid(os.geteuid())[0]
+  return pwd.getpwuid(os.geteuid())[0]
 
 
 def get_used_ram():
@@ -210,12 +191,6 @@ def get_ambari_repo_file_full_name():
     ambari_repo_file = "/etc/yum.repos.d/ambari.repo"
   elif OSCheck.is_suse_family():
     ambari_repo_file = "/etc/zypp/repos.d/ambari.repo"
-  elif OSCheck.is_windows_family():
-    ambari_repo_file = os.path.join(
-      os.environ[ChocolateyConsts.CHOCOLATEY_INSTALL_VAR_NAME],
-      ChocolateyConsts.CHOCOLATEY_CONFIG_DIR,
-      ChocolateyConsts.CHOCOLATEY_CONFIG_FILENAME,
-    )
   else:
     raise Exception("Ambari repo file path not set for current OS.")
 
@@ -224,10 +199,7 @@ def get_ambari_repo_file_full_name():
 
 # Gets the owner of the specified file
 def get_file_owner(file_full_name):
-  if OSCheck.is_windows_family():
-    return ""
-  else:
-    return pwd.getpwuid(os.stat(file_full_name).st_uid).pw_name
+  return pwd.getpwuid(os.stat(file_full_name).st_uid).pw_name
 
 
 def parse_log4j_file(filename):
@@ -261,12 +233,3 @@ def parse_log4j_file(filename):
     )
 
   return properties
-
-
-#
-# Chololatey package manager constants for Windows
-#
-class ChocolateyConsts:
-  CHOCOLATEY_INSTALL_VAR_NAME = "ChocolateyInstall"
-  CHOCOLATEY_CONFIG_DIR = "config"
-  CHOCOLATEY_CONFIG_FILENAME = "chocolatey.config"

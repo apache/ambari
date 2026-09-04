@@ -23,7 +23,7 @@ main.MEMORY_LEAK_DEBUG_FILEPATH = "/tmp/memory_leak_debug.out"
 import os
 import logging
 from unittest import TestCase
-from mock.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch
 
 from resource_management.libraries.functions import mounted_dirs_helper
 from resource_management.core.logger import Logger
