@@ -113,7 +113,11 @@ export function resolveConfigHistorySelection(
   currentDefaultVersion: string,
   navigationState?: ConfigHistoryNavigationState | null,
 ) {
-  const selectedVersion = navigationState?.serviceConfigVersion || currentDefaultVersion;
+  // Normalize to string: navigationState may carry a raw numeric version
+  // (e.g. from router state constructed elsewhere), and comparing that
+  // against the string-typed currentDefaultVersion with === would otherwise
+  // never match, making every property look read-only.
+  const selectedVersion = String(navigationState?.serviceConfigVersion || currentDefaultVersion);
   const configGroup = navigationState?.configGroup || "Default";
   const versionsToLoad = selectedVersion === currentDefaultVersion && configGroup === "Default"
     ? null

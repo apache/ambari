@@ -233,7 +233,8 @@ export default function ServiceConfigs({
   async function onVersionChange(versionNumber: any) {
     const requestId = ++versionRequestId.current;
     try {
-      setSelectedVersion(versionNumber);
+      // Normalize to string so it compares correctly against defaultVersionNumber.
+      setSelectedVersion(String(versionNumber));
       let apiVersionNumber = versionNumber;
       if (configGroup !== "Default") {
         apiVersionNumber = defaultVersionNumber + "," + versionNumber;

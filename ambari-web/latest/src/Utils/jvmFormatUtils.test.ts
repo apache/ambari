@@ -24,24 +24,33 @@ import {
 } from "./jvmFormatUtils";
 
 describe("JVM parameter formatting", () => {
-  it("formats JVM options without splitting quoted whitespace", () => {
-    const value = '-Xmx1g -Dname="value with spaces" -XX:+UseG1GC';
-    const displayed = [
-      "-Xmx1g",
-      '-Dname="value with spaces"',
-      "-XX:+UseG1GC",
-    ].join("\n");
+  it("does not treat single-line JVM/command-line argument strings as multiline", () => {
+    // e.g. mapreduce.admin.map.child.java.opts — must stay single-line, or the
+    // injected display newlines get persisted and corrupt the config.
+    const value =
+      "-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}";
 
-    expect(shouldUseMultilineFormatting(value, "string")).toBe(true);
-    expect(formatParamsForDisplay(value, "string")).toBe(displayed);
-    expect(formatParamsForSave(displayed)).toBe(value);
+    expect(shouldUseMultilineFormatting(value)).toBe(false);
+    expect(formatParamsForDisplay(value)).toBe(value);
+    expect(formatParamsForSave(value)).toBe(value);
   });
 
-  it("does not rewrite ordinary or explicitly multiline content", () => {
+  it("honors an explicit multiLine displayType regardless of content", () => {
+    expect(shouldUseMultilineFormatting("-Xmx1g -Xms1g", "multiLine")).toBe(true);
+  });
+
+  it("does not treat content as multiline when displayType says otherwise", () => {
     expect(shouldUseMultilineFormatting("first\nsecond", "string")).toBe(false);
-    expect(shouldUseMultilineFormatting("-Xmx1g -Xms1g", "multiLine")).toBe(
-      false,
-    );
-    expect(shouldUseMultilineFormatting("plain words", "string")).toBe(false);
+  });
+
+  it("falls back to content-based detection when no displayType is given", () => {
+    expect(shouldUseMultilineFormatting("first\nsecond")).toBe(true);
+    expect(shouldUseMultilineFormatting("first\\nsecond")).toBe(true);
+    expect(shouldUseMultilineFormatting("plain words")).toBe(false);
+  });
+
+  it("converts escaped newlines for display and leaves real newlines for save", () => {
+    expect(formatParamsForDisplay("first\\nsecond")).toBe("first\nsecond");
+    expect(formatParamsForSave("first\nsecond")).toBe("first\nsecond");
   });
 });
