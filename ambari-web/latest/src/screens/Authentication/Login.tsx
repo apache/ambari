@@ -33,8 +33,11 @@ import "../../../custom.scss";
 import { useUserContext } from "../../store/UserContext";
 import { LOCAL_LOGIN_PATH } from "../../Utils/authNavigation";
 import LoginMessageModal from "./LoginMessageModal";
+import { useTranslation } from "react-i18next";
+import LanguageSelector from "../../components/LanguageSelector";
 
 export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -74,10 +77,10 @@ export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
       // Use the UserContext login method
       const success = await login(username, password);
       if (!success) {
-        setErrorMessage(loginError || "Login failed. Please check your credentials.");
+        setErrorMessage(loginError || "login.error.failed");
       }
     } catch {
-      setErrorMessage(loginError || "An unexpected error occurred during login.");
+      setErrorMessage(loginError || "login.error.unexpected");
     }
   };
   return (
@@ -87,34 +90,35 @@ export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
         className="w-100 d-flex align-items-center py-2 px-4"
         style={{ background: "#313d54" }}
       >
-        <Image src={AmbariLogo} className="logo" height={30} />
+        <Image src={AmbariLogo} alt="Ambari" className="logo" height={30} />
         <h2 className="logo-text  fs-16 mt-2 ms-3" style={{ color: "#b8bec4" }}>
           Ambari
         </h2>
+        <div className="ms-auto ps-3"><LanguageSelector /></div>
       </div>
       <Container fluid className=" h-100 w-100 mt-3">
         <Row className="justify-content-center w-100 d-flex justify-content-center align-items-start">
           <Col className="d-flex justify-content-center">
-            <Card className="p-4 bg-transparent border-1 custom-width">
+            <Card className="p-4 bg-transparent border-1 w-100" style={{ maxWidth: 440 }}>
               <Form onSubmit={handleSignIn}>
                 <Card.Title className="text-start">
-                  <h2>Sign in</h2>
+                  <h2>{t("login.header")}</h2>
                 </Card.Title>
                 {isLocalLogin && new URLSearchParams(location.search).has("redirectError") ? (
                   <Alert variant="warning" className="my-3">
-                    External authentication could not be completed. Use local Ambari credentials.
+                    {t("login.externalAuthError")}
                   </Alert>
                 ) : null}
                 {errorMessage ? (
                   <Alert variant="danger" className="my-3">
-                    {errorMessage}
+                    {t(errorMessage, { defaultValue: errorMessage })}
                   </Alert>
                 ) : (
                   ""
                 )}
                 <div className="my-3">
                   <Form.Group controlId="ambari-login-username">
-                    <Form.Label className="fw-bold">Username</Form.Label>
+                    <Form.Label className="fw-bold">{t("login.username")}</Form.Label>
                     <Form.Control
                       type="text"
                       autoComplete="username"
@@ -125,7 +129,7 @@ export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
                     />
                   </Form.Group>
                   <Form.Group controlId="ambari-login-password">
-                    <Form.Label className="fw-bold">Password</Form.Label>
+                    <Form.Label className="fw-bold">{t("common.password")}</Form.Label>
                     <Form.Control
                       type="password"
                       autoComplete="current-password"
@@ -141,11 +145,11 @@ export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
                     className="mt-3 text-white"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Signing In..." : "SIGN IN"}
+                    {isLoading ? t("login.signingIn") : t("login.loginButton")}
                   </Button>
                   {!isLocalLogin ? (
                     <a className="d-block mt-3" href={`#${LOCAL_LOGIN_PATH}`}>
-                      Sign in with local credentials
+                      {t("login.localCredentials")}
                     </a>
                   ) : null}
                 </div>

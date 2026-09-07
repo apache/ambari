@@ -19,23 +19,59 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import englishTranslations from "./locales/en/translation.json"
+import englishTranslations from './locales/en/translation.json';
+import chineseTranslations from './locales/zh/translation.json';
+
+const languageDetector = new LanguageDetector();
+languageDetector.addDetector({
+  name: 'ambariLocalStorage',
+  lookup() {
+    try {
+      return localStorage.getItem('i18nextLng') || undefined;
+    } catch {
+      return undefined;
+    }
+  },
+  cacheUserLanguage(language: string) {
+    try {
+      localStorage.setItem('i18nextLng', language);
+    } catch {
+      // Language switching must still work when browser storage is blocked.
+    }
+  },
+});
+
+// Keep the document language aligned with the bundled Simplified Chinese locale.
+i18n.on('languageChanged', (language: string) => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = language.startsWith('zh') ? 'zh-CN' : 'en';
+  }
+});
 
 i18n
   // detect user language
-  .use(LanguageDetector)
+  .use(languageDetector)
   // pass the i18n instance to react-i18next.
   .use(initReactI18next)
   // init i18next
   .init({
-    debug: true,
+    initAsync: false,
+    supportedLngs: ['en', 'zh'],
+    load: 'languageOnly',
     fallbackLng: 'en',
+    detection: {
+      order: ['ambariLocalStorage', 'navigator', 'htmlTag'],
+      caches: ['ambariLocalStorage'],
+    },
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },
     resources: {
       en: {
         translation: englishTranslations
+      },
+      zh: {
+        translation: chineseTranslations
       }
     }
   });

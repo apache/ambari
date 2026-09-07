@@ -102,6 +102,7 @@ describe("user session lifecycle", () => {
   });
 
   it("completes client cleanup when server logout fails", async () => {
+    localStorage.setItem("i18nextLng", "zh");
     mocks.authenticate.mockResolvedValue({});
     mocks.handleSuccessfulLogin.mockResolvedValue({
       data: { Users: user, privileges: [] },
@@ -121,6 +122,34 @@ describe("user session lifecycle", () => {
     expect(currentContext.isAuthenticated).toBe(false);
     expect(currentContext.user).toBeNull();
     expect(db.get("Installer", "currentStep")).toBeUndefined();
+    expect(localStorage.getItem("i18nextLng")).toBe("zh");
+  });
+
+  it.each([
+    [403, "login.error.invalidCredentials"],
+    [500, "login.error.server"],
+    [0, "login.error.unavailable"],
+  ])("returns a translatable fallback for login status %s", async (status, key) => {
+    mocks.authenticate.mockRejectedValue({ response: { status } });
+    await renderProvider();
+
+    await act(async () => {
+      expect(await currentContext.login("operator", "test-password")).toBe(false);
+    });
+    expect(currentContext.loginError).toBe(key);
+    expect(currentContext.isAuthenticated).toBe(false);
+  });
+
+  it("preserves a server-provided login diagnostic", async () => {
+    mocks.authenticate.mockRejectedValue({
+      response: { status: 403, data: { message: "Server-specific diagnostic" } },
+    });
+    await renderProvider();
+
+    await act(async () => {
+      await currentContext.login("operator", "test-password");
+    });
+    expect(currentContext.loginError).toBe("Server-specific diagnostic");
   });
 
   it("identifies only the exact CLUSTER.USER privilege as a cluster user", async () => {

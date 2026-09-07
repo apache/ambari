@@ -34,9 +34,11 @@ vi.mock("../../store/UserContext", () => ({
 }));
 
 import { Login } from "./Login";
+import i18n from "../../i18n";
 
 describe("login form", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("en");
     mocks.login.mockReset();
     mocks.login.mockResolvedValue(true);
   });

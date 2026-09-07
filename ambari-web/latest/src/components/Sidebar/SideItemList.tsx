@@ -49,6 +49,7 @@ const getSideItemList = (
   havePermissions: (auth: string) => boolean,
   isAuthorized: (auth: string) => boolean,
   supports: Record<string, boolean>,
+  translate = (_key: string, fallback: string) => fallback,
 ): SideItem[] => {
   const adminChildren: SideItem[] = [];
   
@@ -57,7 +58,7 @@ const getSideItemList = (
     adminChildren.push({
       id: SideItemLabels.STACK_AND_VERSIONS,
       icon: <></>,
-      name: "Stack And Versions",
+      name: translate("admin.stackUpgrade.title", "Stack And Versions"),
       path: "/main/admin/stack/services",
       children: [],
       style: {}
@@ -69,7 +70,7 @@ const getSideItemList = (
     adminChildren.push({
       id: SideItemLabels.SERVICE_ACCOUNTS,
       icon: <></>,
-      name: "Service Accounts",
+      name: translate("common.serviceAccounts", "Service Accounts"),
       path: "/main/admin/serviceAccounts",
       children: [],
       style: {}
@@ -98,7 +99,7 @@ const getSideItemList = (
     adminChildren.push({
       id: SideItemLabels.SERVICE_AUTO_START,
       icon: <></>,
-      name: "Service Auto Start",
+      name: translate("admin.serviceAutoStart.title", "Service Auto Start"),
       path: "/main/admin/serviceAutoStart",
       children: [],
       style: {}
@@ -119,7 +120,7 @@ const getSideItemList = (
     {
       id: SideItemLabels.DASHBOARD,
       icon: <FontAwesomeIcon icon={faTachometerAlt} height={15} width={15} />,
-      name: "Dashboard",
+      name: translate("menu.item.dashboard", "Dashboard"),
       path: "/main/dashboard",
       children: [],
       style: {},
@@ -127,7 +128,7 @@ const getSideItemList = (
     {
       id: SideItemLabels.SERVICES,
       icon: <FontAwesomeIcon icon={faBriefcase} height={15} width={15} />,
-      name: "Services",
+      name: translate("menu.item.services", "Services"),
       path: "/main/dashboard",
       style: { position: "relative" },
       sideItems: true,
@@ -136,7 +137,7 @@ const getSideItemList = (
     {
       id: SideItemLabels.HOSTS,
       icon: <FontAwesomeIcon icon={faTasksAlt} height={15} width={15} />,
-      name: "Hosts",
+      name: translate("menu.item.hosts", "Hosts"),
       path: "/main/hosts",
       children: [],
       style: {}
@@ -144,7 +145,7 @@ const getSideItemList = (
     {
       id: SideItemLabels.ALERTS,
       icon: <FontAwesomeIcon icon={faBell} height={15} width={15} />,
-      name: "Alerts",
+      name: translate("menu.item.alerts", "Alerts"),
       path: "/main/alerts",
       children: [],
       style: {}
@@ -157,25 +158,25 @@ const getSideItemList = (
     const monitoringChildren: SideItem[] = [];
     if (canViewClusterMetrics) {
       monitoringChildren.push(
-        { id: "monitoring_dashboards", icon: <></>, name: "Dashboards", path: "/main/monitoring/dashboards", children: [], style: {} },
-        { id: "monitoring_explore", icon: <></>, name: "Explore", path: "/main/monitoring/explorer", children: [], style: {} },
+        { id: "monitoring_dashboards", icon: <></>, name: translate("menu.monitoring.dashboards", "Dashboards"), path: "/main/monitoring/dashboards", children: [], style: {} },
+        { id: "monitoring_explore", icon: <></>, name: translate("menu.monitoring.explore", "Explore"), path: "/main/monitoring/explorer", children: [], style: {} },
       );
     }
     if (canViewHostMetrics) {
       monitoringChildren.push(
-        { id: "monitoring_targets", icon: <></>, name: "Targets", path: "/main/monitoring/targets", children: [], style: {} },
+        { id: "monitoring_targets", icon: <></>, name: translate("menu.monitoring.targets", "Targets"), path: "/main/monitoring/targets", children: [], style: {} },
       );
     }
     if (canViewClusterMetrics) {
       monitoringChildren.push(
-        { id: "monitoring_datasources", icon: <></>, name: "Data sources", path: "/main/monitoring/data-sources", children: [], style: {} },
+        { id: "monitoring_datasources", icon: <></>, name: translate("menu.monitoring.dataSources", "Data sources"), path: "/main/monitoring/data-sources", children: [], style: {} },
       );
     }
 
     baseItems.splice(2, 0, {
       id: SideItemLabels.MONITORING,
       icon: <FontAwesomeIcon icon={faChartLine} height={15} width={15} />,
-      name: "Monitoring",
+      name: translate("menu.monitoring", "Monitoring"),
       path: "/main/monitoring",
       sideItems: true,
       children: monitoringChildren,
@@ -196,7 +197,7 @@ const getSideItemList = (
       id: SideItemLabels.CLUSTER_ADMIN,
       icon: <FontAwesomeIcon icon={faWrench} height={15} width={15} />,
       path: "/main/admin",
-      name: "Cluster Admin",
+      name: translate("menu.item.admin", "Cluster Admin"),
       children: adminChildren,
       sideItems: true,
       style: {}

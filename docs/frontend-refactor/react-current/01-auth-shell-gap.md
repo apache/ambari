@@ -61,6 +61,66 @@ The static gaps in authentication and the application shell have been filled: th
 | `SHELL-008` | `NEEDS_RUNTIME_VALIDATION` | Maven injects `VITE_AMBARI_VERSION`; Installer is blocked only when both client/server values are non-empty and differ; tests cover empty/match/mismatch | Maven packaged artifact; matching and mismatching versions and an empty development-build version; blocked page displays both versions |
 | `SHELL-009` | `NEEDS_RUNTIME_VALIDATION` | Preserves three gates: menu `AMBARI.MANAGE_SETTINGS`, handler `CLUSTER.UPGRADE_DOWNGRADE_STACK`, and save `CLUSTER.MANAGE_USER_PERSISTED_DATA`; background/timezone/default persistence, cluster/View privileges, and error feedback are implemented | Different combinations of the three permissions; first-login default write-back; string/JSON persistence; timezone reload; no privileges, Ambari admin, and API failure |
 
+## Simplified Chinese Increment
+
+The September 2026 locale increment adds a bundled Simplified Chinese resource
+alongside the existing English i18next resource. The Classic Login template uses
+translation keys, but the Classic User Settings "Locale" section only exposes
+timezone selection. React language selection is an additional capability, not
+evidence that a missing Classic language selector has been reproduced.
+
+- `src/i18n.ts` recognizes Chinese browser language variants, retains English as
+  the fallback, prefers the explicit `i18nextLng` localStorage choice, and updates
+  the document language. Language preferences are local to the browser, not
+  persisted through Ambari's permission-controlled User Settings API.
+- `LanguageSelector` is available before authentication and in the shared Navbar,
+  including the minimal Views shell. Switching does not reload the browser or
+  remount authentication and therefore preserves login input.
+- Login labels, pending/error/recovery messages, Navbar menus, and authorized
+  sidebar labels use translations. Routes, authorization IDs, service names,
+  server diagnostics, and credentials are not translated. Logout preserves the
+  language choice while continuing to clear session and wizard data.
+- The Chinese resource covers this PR branch's existing English resource,
+  including monitoring dashboard labels, positional placeholders, interpolation
+  tokens, and HTML.
+  This does not mean every React screen is fully localized: hardcoded English,
+  the separate `screens/messages.ts` dictionary, date/time formatting, and
+  translation strings cached outside React remain follow-up work. Components
+  that only call the global `t()` or `translate()` helper update on their next
+  render; immediate language-change subscriptions are currently added to Login,
+  Navbar, and Sidebar.
+- Focused evidence is in `src/i18n.test.ts`,
+  `src/screens/Authentication/Login.i18n.test.tsx`,
+  `src/components/Sidebar/SideItemList.test.tsx`, and
+  `src/store/UserContext.test.tsx`. The resource check also preserves executable
+  code snippets. One existing unclosed `code-snippet` attribute in the English
+  HA rollback message was corrected in both locales to retain the instruction
+  markup.
+
+Validation after integration (commands run from `ambari-web/latest`):
+
+| Check | Result |
+| --- | --- |
+| `npm test -- --reporter=dot` | 207 files passed, 1 failed; 1,070 tests passed, 2 existing failures |
+| `npm test -- src/i18n.test.ts src/screens/Authentication/Login.i18n.test.tsx src/screens/Authentication/Login.test.tsx src/components/Sidebar/SideItemList.test.tsx src/store/UserContext.test.tsx src/screens/Monitoring/Dashboard/DashboardRow.test.tsx --reporter=dot` | 6 files, 35 tests passed |
+| `npm run build` | Passed; existing Sass, duplicate-case, eval, and bundle-size warnings remain |
+| `npx eslint src/i18n.ts src/i18n.test.ts src/components/LanguageSelector.tsx src/screens/Authentication/Login.tsx src/screens/Authentication/Login.test.tsx src/screens/Authentication/Login.i18n.test.tsx src/components/Sidebar/SideItemList.test.tsx src/screens/Monitoring/Dashboard/DashboardRow.test.tsx` | Passed |
+| `AMBARI_UI_ROOT=/tmp/ambari-pr4182-zh/ambari-web/latest AMBARI_ARTIFACT_PREFIX=pr4182- node /tmp/ambari-locale-browser/check.mjs` | Chromium screenshots and assertions passed at 1440x1000, 375x812, and 320x700 against `npm run preview -- --host 127.0.0.1 --port 4173 --strictPort` |
+
+The two `ServiceComponents.test.tsx` failures report a missing
+`HostsListStateProvider`. Both were reproduced without this patch at PR #4182's
+original head `16733f03073964af69b682fac28d65a704bfda01` by running
+`npm test -- src/screens/Services/ServiceComponents.test.tsx --reporter=dot`
+in a clean worktree. They are not changed by this locale increment.
+
+Browser checks intercepted authentication APIs with 401/403 responses and verified
+Chinese browser detection, language switching, persistence after reload, retained
+form input, localized errors, logo loading, and viewport fit. They do not validate
+real Ambari Server or Knox integration. Vite development mode encountered the
+pre-existing dependency error `global is not defined`; the production preview
+was used for browser validation. Remaining hardcoded English and date/time locale
+behavior are not covered by these checks.
+
 ## Backend API Comparison
 
 | Ember contract | React implementation | Static conclusion | Runtime gate |

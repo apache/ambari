@@ -39,6 +39,7 @@ import {
 import { displayOrder } from "../../screens/ClusterWizard/constants";
 import { isEmpty } from "lodash";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 type SideBarProps = {
   isRoot?: boolean;
   isSidebarCollapsed: boolean;
@@ -50,6 +51,7 @@ const SideBar = ({
   isSidebarCollapsed,
   setIsSidebarCollapsed,
 }: SideBarProps) => {
+  const { t } = useTranslation();
   const {
     clusterName,
     services: contextServices,
@@ -82,6 +84,7 @@ const SideBar = ({
     havePermissions,
     isAuthorized,
     supports,
+    t,
   );
   const [services, setServices] = useState<
     {

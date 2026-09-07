@@ -38,6 +38,28 @@ const hasKerberosItem = (isNonWizardUser: boolean) => {
 };
 
 describe("Kerberos sidebar ownership", () => {
+  it("translates navigation labels without changing route identifiers or permissions", () => {
+    const supports = { enableToggleKerberos: true, serviceAutoStart: true };
+    const original = getSideItemList(() => true, () => true, supports);
+    const localized = getSideItemList(
+      () => true,
+      () => true,
+      supports,
+      (key) => `translated:${key}`,
+    );
+    expect(localized.map(({ id, path }) => ({ id, path })))
+      .toEqual(original.map(({ id, path }) => ({ id, path })));
+    expect(localized.find(({ id }) => id === SideItemLabels.DASHBOARD)?.name)
+      .toBe("translated:menu.item.dashboard");
+    expect(localized.find(({ id }) => id === SideItemLabels.MONITORING)?.name)
+      .toBe("translated:menu.monitoring");
+    for (const item of localized) {
+      expect(item.children.map(({ id, path }) => ({ id, path })))
+        .toEqual(original.find(({ id }) => id === item.id)
+          ?.children.map(({ id, path }) => ({ id, path })));
+    }
+  });
+
   it("shows Kerberos to the wizard owner", () => {
     expect(hasKerberosItem(false)).toBe(true);
   });
