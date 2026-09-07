@@ -20,6 +20,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it } from "vitest";
+import { HostsListStateProvider } from "../../store/HostsListStateContext";
 import { ServiceContext } from "../../store/ServiceContext";
 import ServiceComponents from "./ServiceComponents";
 
@@ -86,17 +87,19 @@ const victoriaMetricsComponents = [
 function renderComponents(data: any[]) {
   return render(
     <MemoryRouter>
-      <ServiceContext.Provider
-        value={
-          {
-            masterSlaveClientsData: data,
-          } as unknown as ComponentProps<
-            typeof ServiceContext.Provider
-          >["value"]
-        }
-      >
-        <ServiceComponents serviceName="VICTORIAMETRICS" alerts={[]} />
-      </ServiceContext.Provider>
+      <HostsListStateProvider>
+        <ServiceContext.Provider
+          value={
+            {
+              masterSlaveClientsData: data,
+            } as unknown as ComponentProps<
+              typeof ServiceContext.Provider
+            >["value"]
+          }
+        >
+          <ServiceComponents serviceName="VICTORIAMETRICS" alerts={[]} />
+        </ServiceContext.Provider>
+      </HostsListStateProvider>
     </MemoryRouter>
   );
 }
