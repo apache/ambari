@@ -24,7 +24,6 @@
       "live_regionservers": 4,
       "dead_regionservers": 3,
       "regions_in_transition_count": 3,
-      "ganglia_url": "http://gangliahost/ganglia",
    	  "nagios_url": "http://nagioshost/nagios",
       "hdfs_installed": true,
       "mapreduce_installed": true,

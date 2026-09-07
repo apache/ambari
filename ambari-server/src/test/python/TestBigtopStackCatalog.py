@@ -61,7 +61,6 @@ class TestBigtopStackCatalog(unittest.TestCase):
     advisors.extend(
       (
         common_services / "AMBARI_INFRA_SOLR/3.0.0/service_advisor.py",
-        common_services / "AMBARI_METRICS/3.0.0/service_advisor.py",
       )
     )
     excluded = {"ALLUXIO", "HBASE"}
@@ -88,7 +87,6 @@ class TestBigtopStackCatalog(unittest.TestCase):
     metadata_files.extend(
       (
         common_services / "AMBARI_INFRA_SOLR/3.0.0/metainfo.xml",
-        common_services / "AMBARI_METRICS/3.0.0/metainfo.xml",
       )
     )
 

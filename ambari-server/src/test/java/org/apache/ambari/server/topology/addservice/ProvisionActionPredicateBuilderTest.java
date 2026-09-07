@@ -43,10 +43,10 @@ public class ProvisionActionPredicateBuilderTest {
 
   private static final String CLUSTER_NAME = "TEST";
   private static final Map<String, Map<String, Set<String>>> NEW_SERVICES = ImmutableMap.of(
-    "AMBARI_METRICS", ImmutableMap.of(
-      "METRICS_COLLECTOR", ImmutableSet.of("c7401"),
-      "METRICS_GRAFANA", ImmutableSet.of("c7403"),
-      "METRICS_MONITOR", ImmutableSet.of("c7401", "c7402", "c7403", "c7404", "c7405")
+    "HDFS", ImmutableMap.of(
+      "NAMENODE", ImmutableSet.of("c7401"),
+      "JOURNALNODE", ImmutableSet.of("c7403"),
+      "DATANODE", ImmutableSet.of("c7401", "c7402", "c7403", "c7404", "c7405")
     ),
     "KAFKA", ImmutableMap.of(
       "KAFKA_BROKER", ImmutableSet.of("c7402", "c7404")
@@ -103,18 +103,18 @@ public class ProvisionActionPredicateBuilderTest {
   public void customAtAllLevels() {
     AddServiceRequest request = createRequest(ProvisionAction.START_ONLY,
       ImmutableSet.of(
-        Service.of("AMBARI_METRICS", ProvisionAction.INSTALL_AND_START),
+        Service.of("HDFS", ProvisionAction.INSTALL_AND_START),
         Service.of("KAFKA"),
         Service.of("ZOOKEEPER", ProvisionAction.INSTALL_ONLY)
       ),
       ImmutableSet.of(
         Component.of("KAFKA_BROKER", ProvisionAction.INSTALL_AND_START, "c7404"), // overrides request-level
         // KAFKA_BROKER on c7402 added by layout recommendation inherits request-level
-        Component.of("METRICS_GRAFANA", ProvisionAction.START_ONLY, "c7403"), // overrides service-level
-        Component.of("METRICS_MONITOR", "c7401"), // inherit from service
-        Component.of("METRICS_MONITOR", ProvisionAction.INSTALL_AND_START, "c7402"), // matches service-level
-        // METRICS_MONITOR on c7403 added by layout recommendation, inherits service-level
-        Component.of("METRICS_MONITOR", ProvisionAction.INSTALL_ONLY, "c7404", "c7405") // overrides service-level
+        Component.of("JOURNALNODE", ProvisionAction.START_ONLY, "c7403"), // overrides service-level
+        Component.of("DATANODE", "c7401"), // inherit from service
+        Component.of("DATANODE", ProvisionAction.INSTALL_AND_START, "c7402"), // matches service-level
+        // DATANODE on c7403 added by layout recommendation, inherits service-level
+        Component.of("DATANODE", ProvisionAction.INSTALL_ONLY, "c7404", "c7405") // overrides service-level
       )
     );
     AddServiceInfo info = ADD_SERVICE_INFO_BUILDER.setRequest(request).build();
@@ -129,9 +129,9 @@ public class ProvisionActionPredicateBuilderTest {
     Predicate startPredicate = builder.getPredicate(ProvisionStep.START).get();
 
     Map<String, Map<String, Set<String>>> installComponents = ImmutableMap.of(
-      "AMBARI_METRICS", ImmutableMap.of(
-        "METRICS_COLLECTOR", ImmutableSet.of("c7401"),
-        "METRICS_MONITOR", ImmutableSet.of("c7401", "c7402", "c7404", "c7405")
+      "HDFS", ImmutableMap.of(
+        "NAMENODE", ImmutableSet.of("c7401"),
+        "DATANODE", ImmutableSet.of("c7401", "c7402", "c7404", "c7405")
       ),
       "KAFKA", ImmutableMap.of(
         "KAFKA_BROKER", ImmutableSet.of("c7404")
@@ -142,18 +142,18 @@ public class ProvisionActionPredicateBuilderTest {
       )
     );
     Map<String, Map<String, Set<String>>> skipInstallComponents = ImmutableMap.of(
-      "AMBARI_METRICS", ImmutableMap.of(
-        "METRICS_GRAFANA", ImmutableSet.of("c7403")
+      "HDFS", ImmutableMap.of(
+        "JOURNALNODE", ImmutableSet.of("c7403")
       ),
       "KAFKA", ImmutableMap.of(
         "KAFKA_BROKER", ImmutableSet.of("c7402")
       )
     );
     Map<String, Map<String, Set<String>>> startComponents = ImmutableMap.of(
-      "AMBARI_METRICS", ImmutableMap.of(
-        "METRICS_COLLECTOR", ImmutableSet.of("c7401"),
-        "METRICS_GRAFANA", ImmutableSet.of("c7403"),
-        "METRICS_MONITOR", ImmutableSet.of("c7401", "c7402", "c7403")
+      "HDFS", ImmutableMap.of(
+        "NAMENODE", ImmutableSet.of("c7401"),
+        "JOURNALNODE", ImmutableSet.of("c7403"),
+        "DATANODE", ImmutableSet.of("c7401", "c7402", "c7403")
       ),
       "KAFKA", ImmutableMap.of(
         "KAFKA_BROKER", ImmutableSet.of("c7402", "c7404")
@@ -173,7 +173,7 @@ public class ProvisionActionPredicateBuilderTest {
   }
 
   private static Resource existingComponent() {
-    return hostComponent("HDFS", "NAMENODE", "c7401");
+    return hostComponent("HIVE", "HIVE_SERVER", "c7401");
   }
 
   private static void assertMatchesAll(Predicate predicates, Collection<? extends Resource> resources) {

@@ -33,7 +33,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.text.MessageFormat;
@@ -99,16 +98,11 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.TopologyHostInfoDAO;
-import org.apache.ambari.server.orm.dao.WidgetDAO;
-import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.orm.entities.WidgetEntity;
-import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
-import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.serveraction.ServerAction;
@@ -6983,7 +6977,7 @@ public class AmbariManagementControllerTest {
   public void testGetStackServices() throws Exception {
     StackServiceRequest request = new StackServiceRequest(STACK_NAME, NEW_STACK_VERSION, null);
     Set<StackServiceResponse> responses = controller.getStackServices(Collections.singleton(request));
-    Assert.assertEquals(12, responses.size());
+    Assert.assertEquals(11, responses.size());
 
 
     StackServiceRequest requestWithParams = new StackServiceRequest(STACK_NAME, NEW_STACK_VERSION, SERVICE_NAME);
@@ -7419,9 +7413,7 @@ public class AmbariManagementControllerTest {
       roleToIndex.put(Role.PIG, 19);
 
       roleToIndex.put(Role.SQOOP, 20);
-      roleToIndex.put(Role.GANGLIA_SERVER, 21);
-      roleToIndex.put(Role.GANGLIA_MONITOR, 22);
-      roleToIndex.put(Role.AMBARI_SERVER_ACTION, 23);
+      roleToIndex.put(Role.AMBARI_SERVER_ACTION, 21);
     }
   }
 
@@ -10309,83 +10301,6 @@ public class AmbariManagementControllerTest {
     assertThat(sles11Packages, is(expectedSles11));
   }
 
-  @Test
-  public void testServiceWidgetCreationOnServiceCreate() throws Exception {
-    String cluster1 = getUniqueName();
-    ClusterRequest r = new ClusterRequest(null, cluster1,
-      State.INSTALLED.name(), SecurityType.NONE, "OTHER-2.0", null);
-    controller.createCluster(r);
-    String serviceName = "HBASE";
-    clusters.getCluster(cluster1).setDesiredStackVersion(new StackId("OTHER-2.0"));
-
-    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(
-        new StackId("OTHER-2.0"), "2.0-1234");
-
-    createService(cluster1, serviceName, repositoryVersion, State.INIT);
-
-    Service s = clusters.getCluster(cluster1).getService(serviceName);
-    Assert.assertNotNull(s);
-    Assert.assertEquals(serviceName, s.getName());
-    Assert.assertEquals(cluster1, s.getCluster().getClusterName());
-
-    WidgetDAO widgetDAO = injector.getInstance(WidgetDAO.class);
-    WidgetLayoutDAO widgetLayoutDAO = injector.getInstance(WidgetLayoutDAO.class);
-    List<WidgetEntity> widgetEntities = widgetDAO.findAll();
-    List<WidgetLayoutEntity> layoutEntities = widgetLayoutDAO.findAll();
-
-    Assert.assertNotNull(widgetEntities);
-    Assert.assertFalse(widgetEntities.isEmpty());
-    Assert.assertNotNull(layoutEntities);
-    Assert.assertFalse(layoutEntities.isEmpty());
-
-    WidgetEntity candidateVisibleEntity = null;
-    for (WidgetEntity entity : widgetEntities) {
-      if (entity.getWidgetName().equals("OPEN_CONNECTIONS")) {
-        candidateVisibleEntity = entity;
-      }
-    }
-    Assert.assertNotNull(candidateVisibleEntity);
-    Assert.assertEquals("GRAPH", candidateVisibleEntity.getWidgetType());
-    Assert.assertEquals("ambari", candidateVisibleEntity.getAuthor());
-    Assert.assertEquals("CLUSTER", candidateVisibleEntity.getScope());
-    Assert.assertNotNull(candidateVisibleEntity.getMetrics());
-    Assert.assertNotNull(candidateVisibleEntity.getProperties());
-    Assert.assertNotNull(candidateVisibleEntity.getWidgetValues());
-
-    WidgetLayoutEntity candidateLayoutEntity = null;
-    for (WidgetLayoutEntity entity : layoutEntities) {
-      if (entity.getLayoutName().equals("default_hbase_layout")) {
-        candidateLayoutEntity = entity;
-      }
-    }
-    Assert.assertNotNull(candidateLayoutEntity);
-    List<WidgetLayoutUserWidgetEntity> layoutUserWidgetEntities =
-      candidateLayoutEntity.getListWidgetLayoutUserWidgetEntity();
-    Assert.assertNotNull(layoutUserWidgetEntities);
-    Assert.assertEquals(4, layoutUserWidgetEntities.size());
-    Assert.assertEquals("RS_READS_WRITES", layoutUserWidgetEntities.get(0).getWidget().getWidgetName());
-    Assert.assertEquals("OPEN_CONNECTIONS", layoutUserWidgetEntities.get(1).getWidget().getWidgetName());
-    Assert.assertEquals("FILES_LOCAL", layoutUserWidgetEntities.get(2).getWidget().getWidgetName());
-    Assert.assertEquals("UPDATED_BLOCKED_TIME", layoutUserWidgetEntities.get(3).getWidget().getWidgetName());
-    Assert.assertEquals("HBASE_SUMMARY", layoutUserWidgetEntities.get(0).getWidget().getDefaultSectionName());
-
-    File widgetsFile  = ambariMetaInfo.getCommonWidgetsDescriptorFile();
-    assertNotNull(widgetsFile);
-    assertEquals("src/test/resources/widgets.json", widgetsFile.getPath());
-    assertTrue(widgetsFile.exists());
-
-    candidateLayoutEntity = null;
-    for (WidgetLayoutEntity entity : layoutEntities) {
-      if (entity.getLayoutName().equals("default_system_heatmap")) {
-        candidateLayoutEntity = entity;
-        break;
-      }
-    }
-    Assert.assertNotNull(candidateLayoutEntity);
-    Assert.assertEquals("ambari", candidateVisibleEntity.getAuthor());
-    Assert.assertEquals("CLUSTER", candidateVisibleEntity.getScope());
-  }
-
   // this is a temporary measure as a result of moving updateHostComponents from AmbariManagementController
   // to HostComponentResourceProvider.  Eventually the tests should be moved out of this class.
   private RequestStatusResponse updateHostComponents(Set<ServiceComponentHostRequest> requests,
@@ -10404,5 +10319,3 @@ public class AmbariManagementControllerTest {
         controller, injector, requests, requestProperties, runSmokeTest);
   }
 }
-
-

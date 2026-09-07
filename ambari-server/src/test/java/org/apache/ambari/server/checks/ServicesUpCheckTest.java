@@ -167,30 +167,30 @@ public class ServicesUpCheckTest {
 
     final Service hdfsService = Mockito.mock(Service.class);
     final Service tezService = Mockito.mock(Service.class);
-    final Service amsService = Mockito.mock(Service.class);
+    final Service auxiliaryService = Mockito.mock(Service.class);
 
     m_services.put("HDFS", hdfsService);
     m_services.put("TEZ", tezService);
-    m_services.put("AMBARI_METRICS", amsService);
+    m_services.put("AUXILIARY", auxiliaryService);
 
     Mockito.when(hdfsService.getName()).thenReturn("HDFS");
     Mockito.when(tezService.getName()).thenReturn("TEZ");
-    Mockito.when(amsService.getName()).thenReturn("AMBARI_METRICS");
+    Mockito.when(auxiliaryService.getName()).thenReturn("AUXILIARY");
 
     StackId stackId = new StackId("HDP", "2.2");
     Mockito.when(hdfsService.getDesiredStackId()).thenReturn(stackId);
     Mockito.when(tezService.getDesiredStackId()).thenReturn(stackId);
-    Mockito.when(amsService.getDesiredStackId()).thenReturn(stackId);
+    Mockito.when(auxiliaryService.getDesiredStackId()).thenReturn(stackId);
 
     Mockito.when(hdfsService.isClientOnlyService()).thenReturn(false);
     Mockito.when(tezService.isClientOnlyService()).thenReturn(true);
-    Mockito.when(amsService.isClientOnlyService()).thenReturn(false);
+    Mockito.when(auxiliaryService.isClientOnlyService()).thenReturn(false);
 
     Mockito.when(cluster.getServices()).thenReturn(m_services);
 
     Mockito.when(cluster.getService("HDFS")).thenReturn(hdfsService);
     Mockito.when(cluster.getService("TEZ")).thenReturn(tezService);
-    Mockito.when(cluster.getService("AMBARI_METRICS")).thenReturn(amsService);
+    Mockito.when(cluster.getService("AUXILIARY")).thenReturn(auxiliaryService);
 
     Mockito.when(ambariMetaInfo.getComponent(Mockito.anyString(), Mockito.anyString(),
             nullable(String.class), Mockito.anyString())).thenAnswer(new Answer<ComponentInfo>() {
@@ -247,23 +247,23 @@ public class ServicesUpCheckTest {
 
     Mockito.when(tezService.getServiceComponents()).thenReturn(tezComponents);
 
-    // AMS
-    Map<String, ServiceComponent> amsComponents = new HashMap<>();
+    // Auxiliary service with components that do not advertise versions.
+    Map<String, ServiceComponent> auxiliaryComponents = new HashMap<>();
 
-    ServiceComponent metricsCollector = Mockito.mock(ServiceComponent.class);
-    Mockito.when(metricsCollector.getName()).thenReturn("METRICS_COLLECTOR");
-    Mockito.when(metricsCollector.isClientComponent()).thenReturn(false);
-    Mockito.when(metricsCollector.isVersionAdvertised()).thenReturn(false);
+    ServiceComponent auxiliaryMaster = Mockito.mock(ServiceComponent.class);
+    Mockito.when(auxiliaryMaster.getName()).thenReturn("AUXILIARY_MASTER");
+    Mockito.when(auxiliaryMaster.isClientComponent()).thenReturn(false);
+    Mockito.when(auxiliaryMaster.isVersionAdvertised()).thenReturn(false);
 
-    ServiceComponent metricsMonitor = Mockito.mock(ServiceComponent.class);
-    Mockito.when(metricsMonitor.getName()).thenReturn("METRICS_MONITOR");
-    Mockito.when(metricsMonitor.isClientComponent()).thenReturn(false);
-    Mockito.when(metricsMonitor.isVersionAdvertised()).thenReturn(false);
+    ServiceComponent auxiliaryAgent = Mockito.mock(ServiceComponent.class);
+    Mockito.when(auxiliaryAgent.getName()).thenReturn("AUXILIARY_AGENT");
+    Mockito.when(auxiliaryAgent.isClientComponent()).thenReturn(false);
+    Mockito.when(auxiliaryAgent.isVersionAdvertised()).thenReturn(false);
 
-    amsComponents.put("METRICS_COLLECTOR", metricsCollector);
-    amsComponents.put("METRICS_MONITOR", metricsMonitor);
+    auxiliaryComponents.put("AUXILIARY_MASTER", auxiliaryMaster);
+    auxiliaryComponents.put("AUXILIARY_AGENT", auxiliaryAgent);
 
-    Mockito.when(amsService.getServiceComponents()).thenReturn(amsComponents);
+    Mockito.when(auxiliaryService.getServiceComponents()).thenReturn(auxiliaryComponents);
 
     final HostComponentSummary hcsNameNode = Mockito.mock(HostComponentSummary.class);
     final HostComponentSummary hcsDataNode1 = Mockito.mock(HostComponentSummary.class);
@@ -271,8 +271,8 @@ public class ServicesUpCheckTest {
     final HostComponentSummary hcsDataNode3 = Mockito.mock(HostComponentSummary.class);
     final HostComponentSummary hcsZKFC = Mockito.mock(HostComponentSummary.class);
     final HostComponentSummary hcsTezClient = Mockito.mock(HostComponentSummary.class);
-    final HostComponentSummary hcsMetricsCollector = Mockito.mock(HostComponentSummary.class);
-    final HostComponentSummary hcsMetricsMonitor = Mockito.mock(HostComponentSummary.class);
+    final HostComponentSummary hcsAuxiliaryMaster = Mockito.mock(HostComponentSummary.class);
+    final HostComponentSummary hcsAuxiliaryAgent = Mockito.mock(HostComponentSummary.class);
 
     // set hosts for the summaries
     Mockito.when(hcsNameNode.getHostId()).thenReturn(Long.valueOf(1));
@@ -281,8 +281,8 @@ public class ServicesUpCheckTest {
     Mockito.when(hcsDataNode3.getHostId()).thenReturn(Long.valueOf(3));
     Mockito.when(hcsZKFC.getHostId()).thenReturn(Long.valueOf(1));
     Mockito.when(hcsTezClient.getHostId()).thenReturn(Long.valueOf(2));
-    Mockito.when(hcsMetricsCollector.getHostId()).thenReturn(Long.valueOf(1));
-    Mockito.when(hcsMetricsMonitor.getHostId()).thenReturn(Long.valueOf(1));
+    Mockito.when(hcsAuxiliaryMaster.getHostId()).thenReturn(Long.valueOf(1));
+    Mockito.when(hcsAuxiliaryAgent.getHostId()).thenReturn(Long.valueOf(1));
 
     List<HostComponentSummary> allHostComponentSummaries = new ArrayList<>();
     allHostComponentSummaries.add(hcsNameNode);
@@ -291,16 +291,16 @@ public class ServicesUpCheckTest {
     allHostComponentSummaries.add(hcsDataNode3);
     allHostComponentSummaries.add(hcsZKFC);
     allHostComponentSummaries.add(hcsTezClient);
-    allHostComponentSummaries.add(hcsMetricsCollector);
-    allHostComponentSummaries.add(hcsMetricsMonitor);
+    allHostComponentSummaries.add(hcsAuxiliaryMaster);
+    allHostComponentSummaries.add(hcsAuxiliaryAgent);
 
     // Mock the static method
     Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenAnswer(invocation -> Arrays.asList(hcsNameNode));
     Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenAnswer(invocation -> Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
     Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "ZKFC")).thenAnswer(invocation -> Arrays.asList(hcsZKFC));
     Mockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenAnswer(invocation -> Arrays.asList(hcsTezClient));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenAnswer(invocation -> Arrays.asList(hcsMetricsCollector));
-    Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenAnswer(invocation -> Arrays.asList(hcsMetricsMonitor));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("AUXILIARY", "AUXILIARY_MASTER")).thenAnswer(invocation -> Arrays.asList(hcsAuxiliaryMaster));
+    Mockito.when(HostComponentSummary.getHostComponentSummaries("AUXILIARY", "AUXILIARY_AGENT")).thenAnswer(invocation -> Arrays.asList(hcsAuxiliaryAgent));
 
     // Case 1. Initialize with good values
     for (HostComponentSummary hcs : allHostComponentSummaries) {
@@ -325,10 +325,10 @@ public class ServicesUpCheckTest {
     Assert.assertEquals(UpgradeCheckStatus.PASS, check.getStatus());
     Assert.assertTrue(check.getFailedDetail().isEmpty());
 
-    // Case 3. Ensure that ZKFC and AMS are ignored even if their current state is not STARTED
+    // Case 3. Ensure that non-version components are ignored even if they are not started.
     Mockito.when(hcsZKFC.getCurrentState()).thenReturn(State.INSTALLED);
-    Mockito.when(hcsMetricsCollector.getCurrentState()).thenReturn(State.INSTALLED);
-    Mockito.when(hcsMetricsMonitor.getCurrentState()).thenReturn(State.INSTALLED);
+    Mockito.when(hcsAuxiliaryMaster.getCurrentState()).thenReturn(State.INSTALLED);
+    Mockito.when(hcsAuxiliaryAgent.getCurrentState()).thenReturn(State.INSTALLED);
 
     check = new UpgradeCheckResult(null, null);
     check = servicesUpCheck.perform(request);

@@ -1,0 +1,34 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Architecture Kind SHA256 Filename
+amd64 archive 22bfe77be3de1ad03f214a005129312536d77ed4e293b66c186df417ee40a61d victoria-metrics-linux-amd64-v1.150.0.tar.gz
+amd64 archive 0a10dc36fd459bc82abed280b561464152c277bbaa1b41777d8dd77ed29eb67e victoria-metrics-linux-amd64-v1.150.0-cluster.tar.gz
+amd64 archive dbfb3a747d40de62142bcd6ec615377b27c346cced03763eba3cf6a8ba946bb7 vmutils-linux-amd64-v1.150.0.tar.gz
+amd64 binary 8aaafea8ea32ed04eea3064386110c6978d5db66e462406e6c9eb3b89c496d20 victoria-metrics-prod
+amd64 binary d166b931b325dad6f72e61f94f3b0769a6b7b16d20c6c36ea8f630747a2eb640 vminsert-prod
+amd64 binary 8a286b8ccef477683eb04f459bdf2f8812b646b7676cbb05885c909e00727b9f vmselect-prod
+amd64 binary a25053430383a27db924a108c39e0dc20afbc7f61a61e0323602e44d237ce059 vmstorage-prod
+amd64 binary af68afd8470800ccd0fcc01977cd97c7601d26ae6f68a5fb11d5d4aec7224197 vmagent-prod
+amd64 binary d224fffa798ebf0ab7a2865a3665a37b61267bb58c72f39b67c130c7cb770486 vmauth-prod
+arm64 archive fdb9e272f5e4d49cb506991b7293ed53bccbff821a62653dea7c463ae1980da5 victoria-metrics-linux-arm64-v1.150.0.tar.gz
+arm64 archive a877cc1d86990ed428a221c6528016085e88ccbd8142f263d1294a63e1b94c50 victoria-metrics-linux-arm64-v1.150.0-cluster.tar.gz
+arm64 archive 4932627812458dc1c89dee7f4aa40d1980d6a546a4ee0eed7561392fd967c084 vmutils-linux-arm64-v1.150.0.tar.gz
+arm64 binary 2f22801f4f57ec78f534c7bec858577ceeb4432ecc51ad6232dadac43740b733 victoria-metrics-prod
+arm64 binary a097314b1cb9a575cb92e4dcc001fe5881bb145e36b3be9900544cd388d87f53 vminsert-prod
+arm64 binary bfb4a4c3ddc3ef77bc656c092cbbbc3ab7d0cd0cb624dc1efb43ac4bc6eaa384 vmselect-prod
+arm64 binary d2393468526224228516cd4ed168a8a7b66947b46360ed58d1551dbe4ec687b3 vmstorage-prod
+arm64 binary 09dec333ea9201812debb4fcbc046fb1cce80305e2c4d30d8c7302f3e69631b3 vmagent-prod
+arm64 binary 73c4ec62c8a93027e19776704f45698fd0a606c74ed977ab53c00ca7e5004cb2 vmauth-prod

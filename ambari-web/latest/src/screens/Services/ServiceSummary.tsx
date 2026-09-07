@@ -19,12 +19,9 @@
 import { Card, CardBody, Col, Row } from "react-bootstrap";
 import ServiceAlerts from "./ServiceAlerts";
 import ServiceComponents from "./ServiceComponents";
-import ServiceMetrics from "./ServiceMetrics";
 import OptimizedServiceQuicklinks from "./OptimizedServiceQuicklinks";
-import HDFSFederationSummary from "./HDFSFederationSummary";
 import { find, isNumber, isObject } from "lodash";
-import { useContext, useEffect, useState } from "react";
-import { ServiceContext } from "../../store/ServiceContext";
+import { useEffect, useState } from "react";
 import { useAlerts } from "../../store/AlertsContext";
 
 type SummaryProps = {
@@ -34,7 +31,6 @@ type SummaryProps = {
 function ServiceSummary({ serviceName, selectedTab }: SummaryProps) {
   const [alerts, setAlerts] = useState<any>([]);
   const [alertsCount, setAlertsCount] = useState<number>(0);
-  const { allServiceModels } = useContext(ServiceContext);
 
   // FOLLOWING EMBERJS PATTERN: Get alert data from useAlerts hook (WebSocket updates)
   // EmberJS: App.AlertDefinition.find() from Ember Data store
@@ -168,29 +164,7 @@ function ServiceSummary({ serviceName, selectedTab }: SummaryProps) {
                   alertsCount={alertsCount}
                 />
               </div>
-              {serviceName?.toLowerCase() === "hdfs" &&
-              allServiceModels?.["hdfs"]?.federationNamespaces &&
-              allServiceModels["hdfs"].federationNamespaces.length > 1 ? (
-                <Row className="mt-4">
-                  <Col>
-                    <HDFSFederationSummary
-                      hdfsModel={allServiceModels["hdfs"]}
-                      masterComponents={
-                        allServiceModels["hdfs"]?.masterComponents || []
-                      }
-                      alerts={alerts}
-                    />
-                  </Col>
-                </Row>
-              ) : (
-                <>
-                  <ServiceComponents
-                    serviceName={serviceName}
-                    alerts={alerts}
-                  />
-                  <ServiceMetrics serviceName={serviceName} />
-                </>
-              )}
+              <ServiceComponents serviceName={serviceName} alerts={alerts} />
             </CardBody>
           </Card>
         </Col>

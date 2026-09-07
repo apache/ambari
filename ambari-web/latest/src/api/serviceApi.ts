@@ -164,7 +164,7 @@ export const ServiceApi = {
     return response.data;
   },
 
-  getAllServiceComponentsListAndInitialMetrics: async (clusterName: string, fields: string) => {
+  getAllServiceComponents: async (clusterName: string, fields: string) => {
     const url = `/clusters/${clusterName}/components?fields=${fields}&_=${Date.now()}`;
     const response = await ambariApi.request({url: url,
       method: "GET",

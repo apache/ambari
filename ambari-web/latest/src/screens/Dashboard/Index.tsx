@@ -17,25 +17,36 @@
  */
 
 import { Col, Row, Tab, Tabs } from "react-bootstrap";
-import DashboardMetrics from "./Metrics";
+import EmbeddedDashboards from "../Monitoring/EmbeddedDashboards";
 import DashboardConfigHistory from "./ConfigHistory";
-import DashboardHeatmaps from "./DashboardHeatmaps";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useAuth } from "../../hooks/useAuth";
 
-function Dashboard() {
+const dashboardTabs = ["metrics", "confighistory"];
+
+function Dashboard({ tabName: tabNameProp }: { tabName?: string }) {
   const navigate = useNavigate();
-  const { tabName } = useParams<{ tabName: string }>();
-  const [activeTab, setActiveTab] = useState("metrics");
+  const { tabName: tabNameParam } = useParams<{ tabName: string }>();
+  const { hasAuthorization } = useAuth();
+  const canViewMetrics = hasAuthorization("CLUSTER.VIEW_METRICS");
+  const defaultTab = canViewMetrics ? "metrics" : "confighistory";
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const tabName = tabNameProp || tabNameParam;
   
-  // Set the active tab based on the tabName parameter from the URL
   useEffect(() => {
-    if (tabName) {
+    if (
+      tabName &&
+      dashboardTabs.includes(tabName) &&
+      (tabName !== "metrics" || canViewMetrics)
+    ) {
       setActiveTab(tabName);
-    } else {
-      setActiveTab("metrics");
+      return;
     }
-  }, [tabName]);
+
+    setActiveTab(defaultTab);
+    navigate(`/main/dashboard/${defaultTab}`, { replace: true });
+  }, [canViewMetrics, defaultTab, navigate, tabName]);
   
   // Handle tab selection and update URL
   const handleTabSelect = (key: string | null) => {
@@ -55,12 +66,11 @@ function Dashboard() {
             activeKey={activeTab}
             onSelect={handleTabSelect}
           >
-            <Tab eventKey="metrics" title="METRICS">
-              <DashboardMetrics />
-            </Tab>
-            <Tab eventKey="heatmaps" title="HEATMAPS">
-              <DashboardHeatmaps />
-            </Tab>
+            {canViewMetrics && (
+              <Tab eventKey="metrics" title="METRICS">
+                {activeTab === "metrics" ? <EmbeddedDashboards location="Dashboard" includeAllFallback /> : null}
+              </Tab>
+            )}
             <Tab eventKey="confighistory" title="CONFIG HISTORY">
               <DashboardConfigHistory />
             </Tab>

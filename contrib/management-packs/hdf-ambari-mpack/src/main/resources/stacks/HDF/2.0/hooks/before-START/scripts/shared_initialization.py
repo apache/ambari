@@ -99,12 +99,6 @@ def setup_hadoop():
              owner=params.hdfs_user,
         )
 
-      File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
-           owner=params.hdfs_user,
-           group=params.user_group,
-           content=Template("hadoop-metrics2.properties.j2")
-      )
-
     if params.dfs_type == 'HCFS' and params.has_core_site and 'ECS_CLIENT' in params.component_list:
        create_dirs()
 
@@ -159,4 +153,3 @@ def create_dirs():
    params.HdfsResource(None,
                       action="execute"
    )
-

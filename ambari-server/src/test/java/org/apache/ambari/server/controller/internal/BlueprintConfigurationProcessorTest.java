@@ -45,7 +45,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -211,11 +210,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     falconComponents.add("FALCON_CLIENT");
     serviceComponents.put("FALCON", falconComponents);
 
-    Collection<String> gangliaComponents = new HashSet<>();
-    gangliaComponents.add("GANGLIA_SERVER");
-    gangliaComponents.add("GANGLIA_CLIENT");
-    serviceComponents.put("GANGLIA", gangliaComponents);
-
     Collection<String> kafkaComponents = new HashSet<>();
     kafkaComponents.add("KAFKA_BROKER");
     serviceComponents.put("KAFKA", kafkaComponents);
@@ -237,10 +231,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     atlasComponents.add("ATLAS_SERVER");
     atlasComponents.add("ATLAS_CLIENT");
     serviceComponents.put("ATLAS", atlasComponents);
-
-    Collection<String> amsComponents = new HashSet<>();
-    amsComponents.add("METRICS_COLLECTOR");
-    serviceComponents.put("AMBARI_METRICS", amsComponents);
 
     Collection<String> stormComponents = new HashSet<>();
     stormComponents.add("NIMBUS");
@@ -2110,46 +2100,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     assertEquals("Knox config for Oozie not properly exported",
       createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
       oozieSiteProperties.get("oozie.service.ProxyUserService.proxyuser.knox.hosts"));
-  }
-
-  @Test
-  public void testKafkaConfigExported() throws Exception {
-    final String expectedHostName = "c6401.apache.ambari.org";
-    final String expectedHostGroupName = "host_group_1";
-    final String expectedPortNumberOne = "2112";
-
-    Map<String, Map<String, String>> configProperties = new HashMap<>();
-    Map<String, String> kafkaBrokerProperties = new HashMap<>();
-    configProperties.put("kafka-broker", kafkaBrokerProperties);
-    kafkaBrokerProperties.put("kafka.ganglia.metrics.host", createHostAddress(expectedHostName, expectedPortNumberOne));
-
-    Configuration clusterConfig = new Configuration(configProperties,
-      emptyMap());
-
-    Collection<String> groupComponents = new HashSet<>();
-    groupComponents.add("KAFKA_BROKER");
-    Collection<String> hosts = new ArrayList<>();
-    hosts.add(expectedHostName);
-    hosts.add("serverTwo");
-    TestHostGroup group = new TestHostGroup(expectedHostGroupName, groupComponents, hosts);
-
-    Collection<String> groupComponents2 = new HashSet<>();
-    groupComponents2.add("NAMENODE");
-    TestHostGroup group2 = new TestHostGroup("group2", groupComponents2, Collections.singleton("group2Host"));
-
-    Collection<TestHostGroup> hostGroups = new HashSet<>();
-    hostGroups.add(group);
-    hostGroups.add(group2);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    // call top-level export method
-    configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
-
-    assertEquals("kafka Ganglia config not properly exported",
-      createExportedHostName(expectedHostGroupName, expectedPortNumberOne),
-      kafkaBrokerProperties.get("kafka.ganglia.metrics.host"));
   }
 
   @Test
@@ -5444,103 +5394,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   @Test
-  public void testStormAndKafkaConfigClusterUpdateWithoutGangliaServer() throws Exception {
-    final String expectedHostGroupName = "host_group_1";
-
-    Map<String, Map<String, String>> properties = new HashMap<>();
-    Map<String, String> stormSiteProperties = new HashMap<>();
-    Map<String, String> kafkaBrokerProperties = new HashMap<>();
-
-    properties.put("storm-site", stormSiteProperties);
-    properties.put("kafka-broker", kafkaBrokerProperties);
-
-    stormSiteProperties.put("worker.childopts", "localhost");
-    stormSiteProperties.put("supervisor.childopts", "localhost");
-    stormSiteProperties.put("nimbus.childopts", "localhost");
-
-    kafkaBrokerProperties.put("kafka.ganglia.metrics.host", "localhost");
-
-    Configuration clusterConfig = new Configuration(properties, emptyMap());
-
-    Collection<String> hgComponents = new HashSet<>();
-    hgComponents.add("HIVE_METASTORE");
-    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton("testserver"));
-
-    Collection<TestHostGroup> hostGroups = new HashSet<>();
-    hostGroups.add(group1);
-
-    expect(stack.getCardinality("GANGLIA_SERVER")).andReturn(new Cardinality("1")).anyTimes();
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
-
-    // call top-level export method
-    updater.doUpdateForClusterCreate();
-
-    // verify that the server name is not replaced, since the GANGLIA_SERVER
-    // component is not available
-    assertEquals("worker startup settings not properly handled by cluster create",
-      "localhost", stormSiteProperties.get("worker.childopts"));
-
-    assertEquals("supervisor startup settings not properly handled by cluster create",
-      "localhost", stormSiteProperties.get("supervisor.childopts"));
-
-    assertEquals("nimbus startup settings not properly handled by cluster create",
-      "localhost", stormSiteProperties.get("nimbus.childopts"));
-
-    assertEquals("Kafka ganglia host property not properly handled by cluster create",
-      "localhost", kafkaBrokerProperties.get("kafka.ganglia.metrics.host"));
-  }
-
-  @Test
-  public void testStormandKafkaConfigClusterUpdateWithGangliaServer() throws Exception {
-    final String expectedHostName = "c6401.apache.ambari.org";
-    final String expectedHostGroupName = "host_group_1";
-
-    Map<String, Map<String, String>> properties = new HashMap<>();
-    Map<String, String> stormSiteProperties = new HashMap<>();
-    Map<String, String> kafkaBrokerProperties = new HashMap<>();
-
-    properties.put("storm-site", stormSiteProperties);
-    properties.put("kafka-broker", kafkaBrokerProperties);
-
-    stormSiteProperties.put("worker.childopts", "localhost");
-    stormSiteProperties.put("supervisor.childopts", "localhost");
-    stormSiteProperties.put("nimbus.childopts", "localhost");
-
-    kafkaBrokerProperties.put("kafka.ganglia.metrics.host", "localhost");
-
-    Configuration clusterConfig = new Configuration(properties, emptyMap());
-
-    Collection<String> hgComponents = new HashSet<>();
-    hgComponents.add("GANGLIA_SERVER");
-    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
-
-    Collection<TestHostGroup> hostGroups = new HashSet<>();
-    hostGroups.add(group1);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
-
-    // call top-level export method
-    updater.doUpdateForClusterCreate();
-
-    // verify that the server name is not replaced, since the GANGLIA_SERVER
-    // component is not available
-    assertEquals("worker startup settings not properly handled by cluster create",
-      expectedHostName, stormSiteProperties.get("worker.childopts"));
-
-    assertEquals("supervisor startup settings not properly handled by cluster create",
-      expectedHostName, stormSiteProperties.get("supervisor.childopts"));
-
-    assertEquals("nimbus startup settings not properly handled by cluster create",
-      expectedHostName, stormSiteProperties.get("nimbus.childopts"));
-
-    assertEquals("Kafka ganglia host property not properly handled by cluster create",
-      expectedHostName, kafkaBrokerProperties.get("kafka.ganglia.metrics.host"));
-  }
-
-  @Test
   public void testDoUpdateForClusterWithNameNodeHAEnabled() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "c6401.apache.ambari.org";
@@ -7654,132 +7507,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   @Test
-  public void testStormAmsPropertiesDefault() throws Exception {
-    Map<String, Map<String, String>> properties = new HashMap<>();
-
-    Map<String, String> stormSite = new HashMap<>();
-    //default
-    stormSite.put("metrics.reporter.register", "");
-    properties.put("storm-site", stormSite);
-
-    Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties,
-      emptyMap());
-    Configuration clusterConfig = new Configuration(properties,
-      emptyMap(), parentClusterConfig);
-
-    Collection<String> hgComponents1 = new HashSet<>();
-    hgComponents1.add("METRICS_COLLECTOR");
-    hgComponents1.add("NIMBUS");
-    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
-
-    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    configProcessor.doUpdateForClusterCreate();
-
-    assertEquals("org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter",
-      clusterConfig.getPropertyValue("storm-site", "metrics.reporter.register"));
-  }
-
-  @Test
-  public void testStormAmsPropertiesUserDefinedReporter() throws Exception {
-    Map<String, Map<String, String>> properties = new HashMap<>();
-
-    Map<String, String> stormSite = new HashMap<>();
-    //default
-    stormSite.put("metrics.reporter.register", "user.Reporter");
-    properties.put("storm-site", stormSite);
-
-    Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties,
-      emptyMap());
-    Configuration clusterConfig = new Configuration(properties,
-      emptyMap(), parentClusterConfig);
-
-    Collection<String> hgComponents1 = new HashSet<>();
-    hgComponents1.add("METRICS_COLLECTOR");
-    hgComponents1.add("NIMBUS");
-    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
-
-    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    configProcessor.doUpdateForClusterCreate();
-
-    assertEquals("user.Reporter",
-      clusterConfig.getPropertyValue("storm-site", "metrics.reporter.register"));
-  }
-
-  @Test
-  public void testKafkaAmsProperties() throws Exception {
-    Map<String, Map<String, String>> properties = new HashMap<>();
-
-    Map<String, String> stormSite = new HashMap<>();
-    //default
-    stormSite.put("kafka.metrics.reporters", "");
-    properties.put("kafka-broker", stormSite);
-
-    Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties,
-      emptyMap());
-    Configuration clusterConfig = new Configuration(properties,
-      emptyMap(), parentClusterConfig);
-
-    Collection<String> hgComponents1 = new HashSet<>();
-    hgComponents1.add("METRICS_COLLECTOR");
-    hgComponents1.add("KAFKA_BROKER");
-    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
-
-    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    configProcessor.doUpdateForClusterCreate();
-
-    assertEquals("org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter",
-      clusterConfig.getPropertyValue("kafka-broker", "kafka.metrics.reporters"));
-
-  }
-
-  @Test
-  public void testKafkaAmsPropertiesMultipleReporters() throws Exception {
-    Map<String, Map<String, String>> properties = new HashMap<>();
-
-    Map<String, String> stormSite = new HashMap<>();
-    //default
-    stormSite.put("kafka.metrics.reporters", "user.Reporter");
-    properties.put("kafka-broker", stormSite);
-
-    Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties,
-      emptyMap());
-    Configuration clusterConfig = new Configuration(properties,
-      emptyMap(), parentClusterConfig);
-
-    Collection<String> hgComponents1 = new HashSet<>();
-    hgComponents1.add("METRICS_COLLECTOR");
-    hgComponents1.add("KAFKA_BROKER");
-    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
-
-    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    configProcessor.doUpdateForClusterCreate();
-
-    assertEquals("user.Reporter,org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter",
-      clusterConfig.getPropertyValue("kafka-broker", "kafka.metrics.reporters"));
-
-  }
-
-  @Test
   public void testRecommendConfiguration_applyStackDefaultsOnly() throws Exception {
     // GIVEN
     final String expectedHostName = "c6401.apache.ambari.org";
@@ -9357,7 +9084,7 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
   }
 
   @Test
-  public void testDoUpdateForBlueprintExport_NonTopologyProperty() throws Exception {
+  public void testDoUpdateForBlueprintExport_NonTopologyProperty__HivePostHooks() throws Exception {
     String someString = "String.To.Represent.A.String.Value";
     Map<String, Map<String, String>> properties = new HashMap<>();
 
@@ -9366,37 +9093,22 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
     Collection<String> hgComponents = new HashSet<>();
     hgComponents.add("ATLAS_SERVER");
     hgComponents.add("HIVE_SERVER");
-    hgComponents.add("KAFKA_BROKER");
-    hgComponents.add("NIMBUS");
     TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
 
     Collection<TestHostGroup> hostGroups = new HashSet<>();
     hostGroups.add(group1);
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    Long clusterId = topology.getClusterId();
 
     Map<String, String> hiveSiteProps = new HashMap<>();
     hiveSiteProps.put("hive.exec.post.hooks", someString);
     properties.put("hive-site", hiveSiteProps);
 
-    Map<String, String> kafkaBrokerProps = new HashMap<>();
-    kafkaBrokerProps.put("kafka.metrics.reporters", someString);
-    properties.put("kafka-broker", kafkaBrokerProps);
-
-    Map<String, String> stormSiteProps = new HashMap<>();
-    stormSiteProps.put("metrics.reporter.register", someString);
-    properties.put("storm-site", stormSiteProps);
-
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport(BlueprintExportType.FULL);
 
     String hiveExecPostHooks = properties.get("hive-site").get("hive.exec.post.hooks");
-    String kafkaMetricsReporters = properties.get("kafka-broker").get("kafka.metrics.reporters");
-    String metricsReporterRegister = properties.get("storm-site").get("metrics.reporter.register");
     assertEquals(someString, hiveExecPostHooks);
-    assertEquals(someString, kafkaMetricsReporters);
-    assertEquals(someString, metricsReporterRegister);
   }
 
   @Test
@@ -9429,101 +9141,6 @@ public class BlueprintConfigurationProcessorTest extends EasyMockSupport {
 
     assertEquals(String.format(connectUriTemplate, "host1"), clusterConfig.getPropertyValue("druid-common", connectUriKey));
     assertEquals("host1", clusterConfig.getPropertyValue("druid-common", metastoreHostnameKey));
-  }
-
-  @Test
-  public void testAmsPropertiesDefault() throws Exception {
-    Map<String, Map<String, String>> properties = new HashMap<>();
-
-    Map<String, String> amsSite = new HashMap<>();
-    //default
-    amsSite.put("timeline.metrics.service.webapp.address", "localhost:6188");
-    properties.put("ams-site", amsSite);
-
-    Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties,
-      emptyMap());
-    Configuration clusterConfig = new Configuration(properties,
-      emptyMap(), parentClusterConfig);
-
-    Collection<String> hgComponents1 = new HashSet<>();
-    hgComponents1.add("METRICS_COLLECTOR");
-    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
-
-    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    configProcessor.doUpdateForClusterCreate();
-
-    assertEquals("0.0.0.0:6188",
-      clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
-  }
-
-  @Test
-  public void testAmsPropertiesSpecialAddress() throws Exception {
-    Map<String, Map<String, String>> properties = new HashMap<>();
-
-    Map<String, String> amsSite = new HashMap<>();
-    //default
-    amsSite.put("timeline.metrics.service.webapp.address", "0.0.0.0:6188");
-    properties.put("ams-site", amsSite);
-
-    Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties,
-      emptyMap());
-    Configuration clusterConfig = new Configuration(properties,
-      emptyMap(), parentClusterConfig);
-
-    Collection<String> hgComponents1 = new HashSet<>();
-    hgComponents1.add("METRICS_COLLECTOR");
-    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
-
-    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    configProcessor.doUpdateForClusterCreate();
-
-    assertEquals("0.0.0.0:6188",
-      clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
-  }
-
-  @Test
-  public void testAmsPropertiesSpecialAddressMultipleCollectors() throws Exception {
-    Map<String, Map<String, String>> properties = new HashMap<>();
-
-    Map<String, String> amsSite = new HashMap<>();
-    //default
-    amsSite.put("timeline.metrics.service.webapp.address", "0.0.0.0:6188");
-    properties.put("ams-site", amsSite);
-
-    Map<String, Map<String, String>> parentProperties = new HashMap<>();
-    Configuration parentClusterConfig = new Configuration(parentProperties,
-      emptyMap());
-    Configuration clusterConfig = new Configuration(properties,
-      emptyMap(), parentClusterConfig);
-
-    Collection<String> hgComponents1 = new HashSet<>();
-    Collection<String> hgComponents2 = new HashSet<>();
-    hgComponents1.add("METRICS_COLLECTOR");
-    hgComponents2.add("METRICS_COLLECTOR");
-    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
-    TestHostGroup group2 = new TestHostGroup("group2", hgComponents1, Collections.singleton("host2"));
-
-    Collection<TestHostGroup> hostGroups = new LinkedList<>();
-    hostGroups.add(group1);
-    hostGroups.add(group2);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    configProcessor.doUpdateForClusterCreate();
-
-    assertEquals("0.0.0.0:6188",
-      clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
   }
 
   @Test

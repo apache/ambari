@@ -16,7 +16,8 @@ limitations under the License.
 -->
 
 # Service Resources
-Service resources are services of a Hadoop cluster (e.g. HDFS, MapReduce and Ganglia).  Service resources are sub-resources of clusters. 
+Service resources are services of a Hadoop cluster (for example, HDFS, YARN,
+and HBase). Service resources are sub-resources of clusters.
 
 ### API Summary
 
@@ -136,6 +137,5 @@ A service can be started through the API by setting its state to be STARTED (see
 
 ### Stopping a Service
 A service can be stopped through the API by setting its state to be INSTALLED (see [update service](update-service.md)).
-
 
 

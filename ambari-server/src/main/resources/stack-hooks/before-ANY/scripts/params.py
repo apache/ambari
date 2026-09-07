@@ -220,8 +220,6 @@ hadoop_env_sh_template = config["configurations"]["hadoop-env"]["content"]
 # users and groups
 hbase_user = config["configurations"]["hbase-env"]["hbase_user"]
 smoke_user = config["configurations"]["cluster-env"]["smokeuser"]
-gmetad_user = config["configurations"]["ganglia-env"]["gmetad_user"]
-gmond_user = config["configurations"]["ganglia-env"]["gmond_user"]
 tez_user = config["configurations"]["tez-env"]["tez_user"]
 oozie_user = config["configurations"]["oozie-env"]["oozie_user"]
 falcon_user = config["configurations"]["falcon-env"]["falcon_user"]
@@ -231,7 +229,6 @@ zeppelin_group = config["configurations"]["zeppelin-env"]["zeppelin_group"]
 
 user_group = config["configurations"]["cluster-env"]["user_group"]
 
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_hosts", [])
 hdfs_client_hosts = default("/clusterHostInfo/hdfs_client_hosts", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
@@ -244,7 +241,6 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 
 
 has_hdfs_clients = not len(hdfs_client_hosts) == 0
-has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_tez = "tez-site" in config["configurations"]
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0

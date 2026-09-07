@@ -1160,17 +1160,6 @@
           "dependencies": [
             {
               "StackConfigurationDependency": {
-                "dependency_type": "ams-hbase-site",
-                "stack_name": "HDP",
-                "service_name": "HDFS",
-                "stack_version": "3.0",
-                "dependency_name": "hbase.rootdir",
-                "property_name": "fs.defaultFS"
-              },
-              "href": "/api/v1/stacks/HDP/versions/3.0/services/HDFS/configurations/fs.defaultFS/dependencies/hbase.rootdir"
-            },
-            {
-              "StackConfigurationDependency": {
                 "dependency_type": "ranger-env",
                 "stack_name": "HDP",
                 "service_name": "HDFS",

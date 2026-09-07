@@ -87,4 +87,15 @@ describe("useHostComponents recovery", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.error).toBe("");
   });
+
+  it("does not request JMX fields for enablement validation", async () => {
+    const { result } = renderHook(() => useHostComponents(["HDFS", "HBASE"]), {
+      wrapper,
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const fields = mocks.getHostComponents.mock.calls[0][2] as string;
+
+    expect(fields).not.toContain("host_components/metrics");
+  });
 });

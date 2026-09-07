@@ -50,6 +50,18 @@ class TestServiceAdvisor(TestCase):
       "service_advisor_impl", fp, serviceAdvisorPath, (".py", "rb", import_utils.PY_SOURCE)
     )
 
+  victoria_metrics_advisor_path = os.path.join(
+    resources_path,
+    "stacks/BIGTOP/3.2.0/services/VICTORIAMETRICS/service_advisor.py",
+  )
+  with open(victoria_metrics_advisor_path, "rb") as fp:
+    victoria_metrics_advisor_impl = import_utils.load_module(
+      "victoria_metrics_service_advisor",
+      fp,
+      victoria_metrics_advisor_path,
+      (".py", "rb", import_utils.PY_SOURCE),
+    )
+
   def setUp(self):
     serviceAdvisorClass = getattr(self.service_advisor_impl, "ServiceAdvisor")
     self.serviceAdvisor = serviceAdvisorClass()
@@ -90,3 +102,104 @@ class TestServiceAdvisor(TestCase):
       services, hosts, "HDFS"
     )
     self.assertEqual(len(validations), 0)
+
+  def test_victoria_metrics_single_mode_layout(self):
+    advisor = self.victoria_metrics_advisor_impl.VictoriaMetricsServiceAdvisor()
+    services = self._victoria_metrics_services("single")
+
+    self.assertEqual(
+      ["host1"],
+      advisor.getHostsForMasterComponent(
+        services,
+        {},
+        self._component("VICTORIAMETRICS_SERVER", "MASTER", "0-1"),
+        ["host1"],
+      ),
+    )
+    self.assertEqual(
+      [],
+      advisor.getHostsForMasterComponent(
+        services, {}, self._component("VMINSERT", "MASTER", "0+"), ["host1"]
+      ),
+    )
+    self.assertEqual(
+      [],
+      advisor.getHostsForSlaveComponent(
+        services,
+        {},
+        self._component("VMSTORAGE", "SLAVE", "0+"),
+        ["host1"],
+        ["host1"],
+      ),
+    )
+    self.assertEqual(
+      ["host1"],
+      advisor.getHostsForSlaveComponent(
+        services,
+        {},
+        self._component("VMAGENT", "SLAVE", "0+"),
+        ["host1"],
+        ["host1"],
+      ),
+    )
+
+  def test_victoria_metrics_cluster_mode_layout(self):
+    advisor = self.victoria_metrics_advisor_impl.VictoriaMetricsServiceAdvisor()
+    services = self._victoria_metrics_services("cluster")
+
+    self.assertEqual(
+      [],
+      advisor.getHostsForMasterComponent(
+        services,
+        {},
+        self._component("VICTORIAMETRICS_SERVER", "MASTER", "0-1"),
+        ["host1"],
+      ),
+    )
+    self.assertEqual(
+      ["host1"],
+      advisor.getHostsForMasterComponent(
+        services, {}, self._component("VMSELECT", "MASTER", "0+"), ["host1"]
+      ),
+    )
+    self.assertEqual(
+      ["host1"],
+      advisor.getHostsForSlaveComponent(
+        services,
+        {},
+        self._component("VMSTORAGE", "SLAVE", "0+"),
+        ["host1"],
+        ["host1"],
+      ),
+    )
+
+  def test_victoria_metrics_layout_preserves_explicit_assignments(self):
+    advisor = self.victoria_metrics_advisor_impl.VictoriaMetricsServiceAdvisor()
+    component = self._component("VMINSERT", "MASTER", "0+", ["host1"])
+
+    self.assertEqual(
+      ["host1"],
+      advisor.getHostsForMasterComponent(
+        self._victoria_metrics_services("single"), {}, component, ["host1"]
+      ),
+    )
+
+  @staticmethod
+  def _victoria_metrics_services(mode):
+    return {
+      "configurations": {
+        "victoriametrics": {"properties": {"deployment_mode": mode}}
+      }
+    }
+
+  @staticmethod
+  def _component(name, category, cardinality, hostnames=None):
+    return {
+      "StackServiceComponents": {
+        "component_name": name,
+        "component_category": category,
+        "is_master": category == "MASTER",
+        "cardinality": cardinality,
+        "hostnames": hostnames or [],
+      }
+    }

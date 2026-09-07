@@ -20,7 +20,7 @@ import { useContext, useEffect } from "react";
 import { cloneDeep, get, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -79,13 +79,13 @@ export const useKerberosConfigUpdater = () => {
       if (componentData.category === Categories.CLIENT) {
         const kerberosClientsInstalled = componentData.installedCount;
         currentConfig[
-          ServiceComponentMetricsEnums.KERBEROS.kerberosClientsInstalled
+          ServiceComponentFields.KERBEROS.kerberosClientsInstalled
         ] = kerberosClientsInstalled;
         clientComponents.push(componentData);
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.KERBEROS.clientComponents] =
+    currentConfig[ServiceComponentFields.KERBEROS.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["kerberos"], currentConfig)) {
@@ -119,8 +119,8 @@ export const useKerberosConfigUpdater = () => {
     }
     if (
         latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)
-        || maintenanceStates.includes(latestHostOperationMessage.maintenance_state)
+        (componentFinishStates.includes(latestHostOperationMessage.state)
+        || maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
     ) {
       await updateServiceMaintenanceState(latestHostOperationMessage.maintenance_state);
       await updateAlertsAndServiceStateData();

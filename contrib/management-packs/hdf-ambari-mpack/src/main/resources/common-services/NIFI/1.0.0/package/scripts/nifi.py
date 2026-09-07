@@ -150,16 +150,6 @@ class Master(Script):
     self.configure(env, is_starting = True)
     setup_ranger_nifi(upgrade_type=None)
 
-    # Write out flow.xml.gz to internal dir only if AMS installed (must be writable by Nifi)
-    # only during first install. It is used to automate setup of Ambari metrics reporting task in Nifi
-    if params.metrics_collector_host and params.nifi_ambari_reporting_enabled and self.check_is_fresh_install(self):
-      Execute('echo "First time setup so generating flow.xml.gz" >> ' + params.nifi_node_log_file, user=params.nifi_user)
-      flow_content=InlineTemplate(params.nifi_flow_content)
-      File(format("{params.nifi_flow_config_dir}/flow.xml"), content=flow_content, owner=params.nifi_user, group=params.nifi_group, mode=0o600)
-      Execute(format("cd {params.nifi_flow_config_dir}; mv flow.xml.gz flow_$(date +%d-%m-%Y).xml.gz ;"),user=params.nifi_user,ignore_failures=True)
-      Execute(format("cd {params.nifi_flow_config_dir}; gzip flow.xml;"), user=params.nifi_user)
-
-
     Execute ('export JAVA_HOME='+params.jdk64_home+';'+params.bin_dir+'/nifi.sh start >> ' + params.nifi_node_log_file, user=params.nifi_user)
     #If nifi pid file not created yet, wait a bit
     if not os.path.isfile(status_params.nifi_pid_dir+'/nifi.pid'):
@@ -169,65 +159,6 @@ class Master(Script):
   def status(self, env):
     import status_params
     check_process_status(status_params.nifi_node_pid_file)
-
-
-  def check_is_fresh_install(self, env):
-    """
-    Checks if fresh nifi install by checking if zk dir exists
-    :return:
-    """
-    import params, re
-    from resource_management.core import shell
-    from resource_management.core.exceptions import Fail
-    from resource_management.core.logger import Logger
-
-    ZK_CONNECT_ERROR = "ConnectionLoss"
-    ZK_NODE_NOT_EXIST = "Node does not exist"
-
-    zookeeper_queried = False
-    is_fresh_nifi_install = True
-
-    # For every zk server try to find nifi zk dir
-    zookeeper_server_list = params.config['clusterHostInfo']['zookeeper_hosts']
-    for zookeeper_server in zookeeper_server_list:
-      # Determine where the zkCli.sh shell script is
-      zk_command_location = os.path.join(params.stack_root, "current", "zookeeper-client", "bin", "zkCli.sh")
-      if params.stack_version_buildnum is not None:
-        zk_command_location = os.path.join(params.stack_root, params.stack_version_buildnum, "zookeeper", "bin", "zkCli.sh")
-
-      # create the ZooKeeper query command e.g.
-      # /usr/hdf/current/zookeeper-client/bin/zkCli.sh -server node:2181 ls /nifi
-      command = "{0} -server {1}:{2} ls {3}".format(
-        zk_command_location, zookeeper_server, params.zookeeper_port, params.nifi_znode)
-              
-      # echo 'ls /nifi' | /usr/hdf/current/zookeeper-client/bin/zkCli.sh -server node:2181
-      #command = "echo 'ls {3}' | {0} -server {1}:{2}".format(
-      #  zk_command_location, zookeeper_server, params.zookeeper_port, params.nifi_znode)
-
-      Logger.info("Running command: " + command)
-
-      code, out = shell.call(command, logoutput=True, quiet=False, timeout=20)
-      if not out or re.search(ZK_CONNECT_ERROR, out):
-        Logger.info("Unable to query Zookeeper: " + zookeeper_server + ". Skipping and trying next ZK server")
-        continue
-      elif re.search(ZK_NODE_NOT_EXIST, out):
-        Logger.info("Nifi ZNode does not exist, so must be fresh install of Nifi: " + params.nifi_znode)
-        zookeeper_queried = True
-        is_fresh_nifi_install = True
-        break
-      else:
-        Logger.info("Nifi ZNode already exists, so must not be a fresh install of Nifi: " + params.nifi_znode)
-        zookeeper_queried = True
-        is_fresh_nifi_install = False
-        break
-
-    # fail if the ZK data could not be queried
-    if not zookeeper_queried:
-      raise Fail("Unable to query for znode on on any of the following ZooKeeper hosts: {0}. Please ensure Zookeepers are started and retry".format(
-        zookeeper_server_list))
-    else:
-      return is_fresh_nifi_install    
-            
 
 if __name__ == "__main__":
   Master().execute()

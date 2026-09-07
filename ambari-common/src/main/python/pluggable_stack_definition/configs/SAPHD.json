@@ -110,9 +110,6 @@
           "name": "KERBEROS"
         },
         {
-          "name": "AMBARI_METRICS"
-        },
-        {
           "name": "HDFS"
 
         },
@@ -158,9 +155,6 @@
       "services": [
         {
           "name": "KERBEROS"
-        },
-        {
-          "name": "AMBARI_METRICS"
         },
         {
           "name": "HDFS"
@@ -222,9 +216,6 @@
       "services": [
         {
           "name": "KERBEROS"
-        },
-        {
-          "name": "AMBARI_METRICS"
         },
         {
           "name": "HDFS"
@@ -298,9 +289,6 @@
       "services": [
         {
           "name": "KERBEROS"
-        },
-        {
-          "name": "AMBARI_METRICS"
         },
         {
           "name": "HDFS"

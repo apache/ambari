@@ -193,13 +193,6 @@ export const SERVICE_SSL_CONFIGS = {
     defaultHttpPort: 21000,
     defaultHttpsPort: 21443
   },
-  AMBARI_METRICS: {
-    supportsHttps: false,
-    httpConfig: 'port',
-    site: 'ams-grafana-ini',
-    defaultHttpPort: 3000,
-    defaultHttpsPort: 3000
-  },
   ACCUMULO: {
     supportsHttps: true,
     httpConfig: 'monitor.port.client',

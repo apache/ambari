@@ -177,7 +177,6 @@ compiled behavior.
 | `logSearch=true` | `STATICALLY_ALIGNED` | Host Logs requires this flag, installed LOGSEARCH, and `SERVICE.VIEW_OPERATIONAL_LOGS`. |
 | `logCountVizualization=false` | `STATICALLY_ALIGNED` | Host Summary renders `HostLogMetrics` only when this flag is true, `logSearch` is enabled, LOGSEARCH is installed, and the user has `SERVICE.VIEW_OPERATIONAL_LOGS`; the component loads per-host operational error/fatal counts with loading, empty, error, and Retry states. This remains in scope and is distinct from excluded Metrics UI. |
 | `installGanglia=false` | `OUT_OF_SCOPE` | Legacy Metrics service behavior is excluded. |
-| `customizedWidgetLayout=false` | `OUT_OF_SCOPE` | Metrics widgets are excluded. |
 | `showPageLoadTime=false` | `OUT_OF_SCOPE` | Development timing display is not a migration acceptance item. |
 | `redhatSatellite=false` | `STATIC_ONLY` | Neither executable Classic nor React has a confirmed product consumer. |
 | `addingNewRepository=false` | `STATIC_ONLY` | Neither executable Classic nor React has a confirmed product consumer. |

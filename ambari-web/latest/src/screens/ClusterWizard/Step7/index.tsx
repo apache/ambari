@@ -50,7 +50,6 @@ import { ranger_properties } from "../../../data/configs/services/ranger_propert
 import { mapreduce2_properties } from "../../../data/configs/services/mapreduce2_properties";
 import { tez_properties } from "../../../data/configs/services/tez_properties";
 import { zookeeper_properties } from "../../../data/configs/services/zookeeper_properties";
-import { ambari_metrics_properties } from "../../../data/configs/services/ambari_metrics_properties";
 import { ActionTypes } from "../clusterStore/types";
 import { ContextWrapper } from "..";
 import {
@@ -408,7 +407,6 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     MAPREDUCE2: mapreduce2_properties,
     TEZ: tez_properties,
     ZOOKEEPER: zookeeper_properties,
-    AMBARI_METRICS: ambari_metrics_properties,
   };
 
   // useEffect(() => {

@@ -239,9 +239,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   protected static final String REPO_VERSION_REPO_VERSION_ID_COLUMN = "repo_version_id";
   protected static final String REPO_VERSION_REPOSITORIES_COLUMN = "repositories";
 
-  protected static final String WIDGET_TABLE = "widget";
-  protected static final String WIDGET_TAG_COLUMN = "tag";
-
   protected static final String SERVICE_COMPONENT_DESIRED_STATE_TABLE = "servicecomponentdesiredstate";
   protected static final String HIVE_SERVICE_COMPONENT_WEBHCAT_SERVER = "WEBHCAT_SERVER";
   protected static final String CONFIGURATION_CORE_SITE = "core-site";
@@ -313,7 +310,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     upgradeUserTables();
     upgradeKerberosTables();
     upgradeRepoTables();
-    upgradeWidgetTable();
   }
 
   /**
@@ -967,10 +963,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn(REQUEST_TABLE, new DBAccessor.DBColumnInfo(REQUEST_USER_NAME_COLUMN, String.class, 255));
   }
 
-  protected void upgradeWidgetTable() throws SQLException {
-    dbAccessor.addColumn(WIDGET_TABLE, new DBAccessor.DBColumnInfo(WIDGET_TAG_COLUMN, String.class, 255));
-  }
-
   protected void addAmbariConfigurationTable() throws SQLException {
     List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
     columns.add(new DBAccessor.DBColumnInfo(AMBARI_CONFIGURATION_CATEGORY_NAME_COLUMN, String.class, 100, null, false));
@@ -1054,7 +1046,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     createRoleAuthorizations();
     addUserAuthenticationSequence();
     updateSolrConfigurations();
-    updateAmsConfigs();
     updateStormConfigs();
     clearHadoopMetrics2Content();
   }
@@ -1843,72 +1834,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     return content.replaceAll("SOLR_KERB_NAME_RULES=\".*\"", "")
             .replaceAll("#*SOLR_HOST=\".*\"", "SOLR_HOST=`hostname -f`")
             .replaceAll("SOLR_AUTHENTICATION_CLIENT_CONFIGURER=\".*\"", "SOLR_AUTH_TYPE=\"kerberos\"");
-  }
-
-  protected void updateAmsConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if (clusterMap != null && !clusterMap.isEmpty()) {
-        for (final Cluster cluster : clusterMap.values()) {
-          Map<String, String> newProperties = new HashMap<>();
-          LOG.info("Updating ams-site:timeline.metrics.service.default.result.limit to 5760");
-          newProperties.put("timeline.metrics.service.default.result.limit", "5760");
-
-          Config config = cluster.getDesiredConfigByType("ams-site");
-          if (config != null) {
-            Map<String, String> oldAmsSite = config.getProperties();
-            if (MapUtils.isNotEmpty(oldAmsSite)) {
-              if (oldAmsSite.containsKey("timeline.container-metrics.ttl")) {
-                try {
-                  int oldTtl = Integer.parseInt(oldAmsSite.get("timeline.container-metrics.ttl"));
-                  if (oldTtl > 14 * 86400) {
-                    LOG.info("Updating ams-site:timeline.container-metrics.ttl to 1209600");
-                    newProperties.put("timeline.container-metrics.ttl", "1209600");
-                  }
-                } catch (Exception e) {
-                  LOG.warn("Error updating Container metrics TTL for ams-site (AMBARI_METRICS)");
-                }
-              }
-              String topnDownsamplerMetricPatternsKey = "timeline.metrics.downsampler.topn.metric.patterns";
-              if (oldAmsSite.containsKey(topnDownsamplerMetricPatternsKey) &&
-                StringUtils.isNotEmpty(oldAmsSite.get(topnDownsamplerMetricPatternsKey))) {
-                LOG.info("Updating ams-site:timeline.metrics.downsampler.topn.metric.patterns to empty.");
-                newProperties.put(topnDownsamplerMetricPatternsKey, "");
-              }
-            }
-          }
-          LOG.info("Removing ams-site host and aggregate cluster split points.");
-          Set<String> removeProperties = Sets.newHashSet("timeline.metrics.host.aggregate.splitpoints",
-            "timeline.metrics.cluster.aggregate.splitpoints");
-          updateConfigurationPropertiesForCluster(cluster, "ams-site", newProperties, removeProperties, true, true);
-
-
-          Map<String, String> newAmsHbaseSiteProperties = new HashMap<>();
-          Config amsHBasiteSiteConfig = cluster.getDesiredConfigByType("ams-hbase-site");
-          if (amsHBasiteSiteConfig != null) {
-            Map<String, String> oldAmsHBaseSite = amsHBasiteSiteConfig.getProperties();
-            if (MapUtils.isNotEmpty(oldAmsHBaseSite)) {
-              if (oldAmsHBaseSite.containsKey("hbase.snapshot.enabled")) {
-                try {
-                  Boolean hbaseSnapshotEnabled = Boolean.valueOf(oldAmsHBaseSite.get("hbase.snapshot.enabled"));
-                  if (!hbaseSnapshotEnabled) {
-                    LOG.info("Updating ams-hbase-site:hbase.snapshot.enabled to true");
-                    newAmsHbaseSiteProperties.put("hbase.snapshot.enabled", "true");
-                  }
-                } catch (Exception e) {
-                  LOG.warn("Error updating ams-hbase-site:hbase.snapshot.enabled (AMBARI_METRICS)");
-                }
-              }
-            }
-            updateConfigurationPropertiesForCluster(cluster, "ams-hbase-site", newAmsHbaseSiteProperties, true, true);
-          }
-
-        }
-      }
-    }
   }
 
   /**

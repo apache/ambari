@@ -196,13 +196,6 @@ GET cluster
       ],
       "services" : [
         {
-          "href" : "http://your.ambari.server/api/v1/clusters/c1/services/GANGLIA",
-          "ServiceInfo" : {
-            "cluster_name" : "c1",
-            "service_name" : "GANGLIA"
-          }
-        },
-        {
           "href" : "http://your.ambari.server/api/v1/clusters/c1/services/HDFS",
           "ServiceInfo" : {
             "cluster_name" : "c1",
@@ -570,13 +563,6 @@ GET services
           "ServiceInfo" : {
             "cluster_name" : "c1",
             "service_name" : "HDFS"
-          }
-        },
-        {
-          "href" : "http://your.ambari.server/api/v1/clusters/c1/services/GANGLIA",
-          "ServiceInfo" : {
-            "cluster_name" : "c1",
-            "service_name" : "GANGLIA"
           }
         }
       ]
@@ -1563,10 +1549,6 @@ GET host
               "type" : "not_exist"
             },
             {
-              "name" : "/etc/ganglia",
-              "type" : "directory"
-            },
-            {
               "name" : "/etc/nagios",
               "type" : "directory"
             },
@@ -1642,10 +1624,6 @@ GET host
               "version" : "nagios-3.2.3-2.el6.x86_64"
             },
             {
-              "name" : "ganglia",
-              "installed" : false
-            },
-            {
               "name" : "hadoop",
               "installed" : true,
               "version" : "hadoop-1.2.0.1.3.0.0-107.el6.x86_64"
@@ -1705,14 +1683,6 @@ GET host
       },
       "host_components" : [
         {
-          "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/ip-10-39-130-141.ec2.internal/host_components/GANGLIA_SERVER",
-          "HostRoles" : {
-            "cluster_name" : "c1",
-            "component_name" : "GANGLIA_SERVER",
-            "host_name" : "ip-10-39-130-141.ec2.internal"
-          }
-        },
-        {
           "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/ip-10-39-130-141.ec2.internal/host_components/DATANODE",
           "HostRoles" : {
             "cluster_name" : "c1",
@@ -1757,14 +1727,6 @@ GET host
           "HostRoles" : {
             "cluster_name" : "c1",
             "component_name" : "NAGIOS_SERVER",
-            "host_name" : "ip-10-39-130-141.ec2.internal"
-          }
-        },
-        {
-          "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/ip-10-39-130-141.ec2.internal/host_components/GANGLIA_MONITOR",
-          "HostRoles" : {
-            "cluster_name" : "c1",
-            "component_name" : "GANGLIA_MONITOR",
             "host_name" : "ip-10-39-130-141.ec2.internal"
           }
         }
@@ -1981,32 +1943,10 @@ GET host_component
           }
         },
         {
-          "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/ip-10-39-130-141.ec2.internal/host_components/GANGLIA_SERVER",
-          "HostRoles" : {
-            "cluster_name" : "c1",
-            "component_name" : "GANGLIA_SERVER",
-            "host_name" : "ip-10-39-130-141.ec2.internal"
-          },
-          "host" : {
-            "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/ip-10-39-130-141.ec2.internal"
-          }
-        },
-        {
           "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/ip-10-39-130-141.ec2.internal/host_components/DATANODE",
           "HostRoles" : {
             "cluster_name" : "c1",
             "component_name" : "DATANODE",
-            "host_name" : "ip-10-39-130-141.ec2.internal"
-          },
-          "host" : {
-            "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/ip-10-39-130-141.ec2.internal"
-          }
-        },
-        {
-          "href" : "http://your.ambari.server/api/v1/clusters/c1/hosts/ip-10-39-130-141.ec2.internal/host_components/GANGLIA_MONITOR",
-          "HostRoles" : {
-            "cluster_name" : "c1",
-            "component_name" : "GANGLIA_MONITOR",
             "host_name" : "ip-10-39-130-141.ec2.internal"
           },
           "host" : {

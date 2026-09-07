@@ -173,14 +173,6 @@ export const rbacData = {
                     }
                 },
                 {
-                    "href": "http://host.example.com:8080/api/v1/permissions/1/authorizations/CLUSTER.MANAGE_WIDGETS",
-                    "AuthorizationInfo": {
-                        "authorization_id": "CLUSTER.MANAGE_WIDGETS",
-                        "authorization_name": "Manage widgets",
-                        "permission_id": 1
-                    }
-                },
-                {
                     "href": "http://host.example.com:8080/api/v1/permissions/1/authorizations/CLUSTER.MODIFY_CONFIGS",
                     "AuthorizationInfo": {
                         "authorization_id": "CLUSTER.MODIFY_CONFIGS",
@@ -661,14 +653,6 @@ export const rbacData = {
                     }
                 },
                 {
-                    "href": "http://host.example.com:8080/api/v1/permissions/3/authorizations/CLUSTER.MANAGE_WIDGETS",
-                    "AuthorizationInfo": {
-                        "authorization_id": "CLUSTER.MANAGE_WIDGETS",
-                        "authorization_name": "Manage widgets",
-                        "permission_id": 3
-                    }
-                },
-                {
                     "href": "http://host.example.com:8080/api/v1/permissions/3/authorizations/CLUSTER.MODIFY_CONFIGS",
                     "AuthorizationInfo": {
                         "authorization_id": "CLUSTER.MODIFY_CONFIGS",
@@ -997,14 +981,6 @@ export const rbacData = {
                     "AuthorizationInfo": {
                         "authorization_id": "CLUSTER.MANAGE_USER_PERSISTED_DATA",
                         "authorization_name": "Manage cluster-level user persisted data",
-                        "permission_id": 5
-                    }
-                },
-                {
-                    "href": "http://host.example.com:8080/api/v1/permissions/5/authorizations/CLUSTER.MANAGE_WIDGETS",
-                    "AuthorizationInfo": {
-                        "authorization_id": "CLUSTER.MANAGE_WIDGETS",
-                        "authorization_name": "Manage widgets",
                         "permission_id": 5
                     }
                 },

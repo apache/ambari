@@ -52,7 +52,7 @@ proc_list = 323,434
 proc_owner_list = abc,efg
 
 [users]
-usr_list = rrdcached,ambari-qa,hive,oozie,hbase,hcat,mysql,mapred,hdfs,zookeeper,sqoop
+usr_list = ambari-qa,hive,oozie,hbase,hcat,mysql,mapred,hdfs,zookeeper,sqoop
 
 [repositories]
 repo_list = HDP-1.3.0,HDP-epel
@@ -65,7 +65,7 @@ symlink_list = hcatalog-conf,hadoop-default,hadoop-log,oozie-conf
 target_list = /etc/hcatalog/conf.dist,/usr/share/man/man1/hadoop.1.gz,/etc/oozie/conf.dist,/usr/lib/hadoop
 
 [packages]
-pkg_list = sqoop.noarch,hadoop-libhdfs.x86_64,rrdtool.x86_64,ganglia-gmond.x86_64
+pkg_list = sqoop.noarch,hadoop-libhdfs.x86_64
 
 [metadata]
 created = 2013-07-02 20:39:22.162757"""

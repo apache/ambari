@@ -1,0 +1,1779 @@
+{
+  "name": "YARN ResourceManager host and JVM monitoring",
+  "tags": "",
+  "group_id": 0,
+  "ident": "YARN-ResourceManager-SYS",
+  "id": 0,
+  "create_at": 0,
+  "create_by": "",
+  "update_at": 0,
+  "update_by": "",
+  "public": 0,
+  "public_cate": 0,
+  "bgids": null,
+  "built_in": 0,
+  "hide": 0,
+  "uuid": 1767556321738575000,
+  "configs": {
+    "var": [],
+    "panels": [
+      {
+        "type": "row",
+        "id": "b8e1e2ac-7007-4168-9798-cfeb377dc5ee",
+        "name": "ResourceManager JVM",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.jvm",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0,
+          "i": "b8e1e2ac-7007-4168-9798-cfeb377dc5ee",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "f30b7760-b811-4489-9f9c-25599d954090",
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 1,
+          "i": "f30b7760-b811-4489-9f9c-25599d954090",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(jvm_metrics_gc_count{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}[$__rate_interval]))",
+            "time": {
+              "start": "now-15m",
+              "end": "now"
+            },
+            "legend": "JVM GC rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM GC rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "cps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.23,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "305ed192-e4b2-4db8-a5e3-5be335c139ee",
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 8,
+          "y": 1,
+          "i": "9c9ae171-bb0d-4e46-bcd4-009c2d6bb895",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (jvm_metrics_mem_heap_committed_m{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}) * 1048576",
+            "legend": "JVM committed heap - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM committed heap",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.18,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "43bb5afc-352b-4c39-9d7e-d3eaeb0258c7",
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 16,
+          "y": 1,
+          "i": "ba61b746-5f49-4dfe-ba85-b5389f8a06e6",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (jvm_metrics_mem_non_heap_used_m{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}) * 1048576",
+            "legend": "JVM non-heap used - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM non-heap used",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.21,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "d5ee2d71-7beb-4698-ba28-27820933a591",
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 7,
+          "i": "4312da85-41f4-4fbb-beb1-253230a95e29",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (jvm_metrics_mem_heap_used_m{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}) * 1048576",
+            "legend": "Used - {{host}}"
+          },
+          {
+            "expr": "max by (host) (jvm_metrics_mem_heap_max_m{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}) * 1048576",
+            "__mode__": "__query__",
+            "refId": "B",
+            "maxDataPoints": 240,
+            "legend": "Maximum - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM heap memory",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "table",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.16,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "be5b8020-750c-4c7c-970d-4c065baaa08a",
+        "layout": {
+          "h": 6,
+          "w": 8,
+          "x": 8,
+          "y": 7,
+          "i": "d46de976-455b-4dac-9382-505167dc3627",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(jvm_metrics_gc_time_millis{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}[$__rate_interval])) / 1000",
+            "legend": "JVM GC time ratio - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM GC time ratio",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percentUnit"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "cfdba75a-9452-4a02-92d6-cc44d6136823",
+        "name": "ResourceManager threads",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.threads",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 13,
+          "i": "cfdba75a-9452-4a02-92d6-cc44d6136823",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "barchart",
+        "id": "9f42f6d9-8c95-495d-96a9-48669be28346",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 14,
+          "i": "9f42f6d9-8c95-495d-96a9-48669be28346",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (jvm_metrics_threads_runnable{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Runnable JVM threads - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Runnable JVM threads",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.21,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "06ac2903-3008-4c9c-99f4-e2c308ceaf56",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 14,
+          "i": "06ac2903-3008-4c9c-99f4-e2c308ceaf56",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (jvm_metrics_threads_blocked{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Blocked JVM threads - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Blocked JVM threads",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.21,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "1c7221d7-474e-406b-ab17-a3431504b739",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 19,
+          "i": "7be835f3-fdae-402a-865c-cfba260d91cf",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (jvm_metrics_threads_waiting{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Waiting JVM threads - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Waiting JVM threads",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.21,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "be14a190-7963-4ad1-9907-20ad82024b9b",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 19,
+          "i": "288ec10b-1f3d-449b-aefc-7a58451b6999",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (jvm_metrics_threads_timed_waiting{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Timed-waiting JVM threads - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Timed-waiting JVM threads",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.21,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "b08df038-434f-4c4b-b7ab-83c02c59b952",
+        "name": "ResourceManager network traffic",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.networkTraffic",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 24,
+          "i": "b08df038-434f-4c4b-b7ab-83c02c59b952",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "5f68c345-351f-4c9a-afac-101176947c0e",
+        "layout": {
+          "h": 6,
+          "w": 12,
+          "x": 0,
+          "y": 25,
+          "i": "7451bd69-84bc-459f-9714-a2e6dfa6f0be",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(rpc_sent_bytes{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}[$__rate_interval]))",
+            "legend": "RPC bytes sent per second - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "RPC bytes sent per second",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesSecIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.28,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "36f4add3-6dfc-4bfa-96ab-46135c34b352",
+        "layout": {
+          "h": 6,
+          "w": 12,
+          "x": 12,
+          "y": 25,
+          "i": "36f4add3-6dfc-4bfa-96ab-46135c34b352",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(rpc_received_bytes{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}[$__rate_interval]))",
+            "legend": "RPC bytes received per second - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "RPC bytes received per second",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesSecIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.28,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "d38ca3c1-b987-4b9c-ab61-66a3391af391",
+        "name": "ResourceManager system resource usage",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.systemResources",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 31,
+          "i": "d38ca3c1-b987-4b9c-ab61-66a3391af391",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "gauge",
+        "id": "6cde5a1e-24a3-4fdb-8d33-b6c3118af256",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 32,
+          "i": "12b483df-2822-44bf-9960-a87e7de571a7",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "(1 - avg by (host) (rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",cpu!=\"total\",mode=\"idle\"}[$__rate_interval]))) and on (host) max by (host) (jvm_metrics_mem_heap_used_m{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Host CPU busy ratio - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Host CPU busy ratio",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percentUnit"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.28,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "115b5dec-6470-45be-9bc6-a44ab0f9cbc9",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 37,
+          "i": "67cd0729-c28b-4f16-abdd-6a38f9422844",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rpc_num_open_connections{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Open RPC connections - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Open RPC connections",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.28,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "gauge",
+        "id": "af6246b6-bda1-424f-87de-094e442f4044",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 37,
+          "i": "238f0dfa-37ca-478f-8c24-362b6ff02e8f",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (ambari_agent_system_load1{cluster=\"${cluster}\",ambari_target=\"host\"}) and on (host) max by (host) (jvm_metrics_mem_heap_used_m{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Host load average (1m) - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Host load average (1m)",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.28,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "6bf70528-b7a5-48dd-897b-0e10451d6629",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 47,
+          "i": "04553cbe-0d0e-440c-b24d-2c3e6f84b235",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}) and on (host) max by (host) (jvm_metrics_mem_heap_used_m{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Host available memory - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Host available memory",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.28,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "cb95e4d3-cc03-4821-932e-68f549fb5776",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 47,
+          "i": "bcd0dc7e-34bd-4d2c-9e5c-a5e4dce00e3c",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}) and on (host) max by (host) (jvm_metrics_mem_heap_used_m{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "Host total memory - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Host total memory",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.28,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "95b583e9-ac8c-4e85-af01-ae55c93a00d0",
+        "name": "ResourceManager RPC performance",
+        "titleKey": "monitoring.dashboard.sections.resourceManager.rpcPerformance",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 52,
+          "i": "95b583e9-ac8c-4e85-af01-ae55c93a00d0",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "timeseries",
+        "id": "db203f42-c5f4-49a6-9599-822b473615ed",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 53,
+          "i": "db203f42-c5f4-49a6-9599-822b473615ed",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(rpc_rpc_processing_time_num_ops{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}[$__rate_interval]))",
+            "legend": "RPC processing rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "RPC processing rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "reqps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "91e745cf-5458-4d54-a884-424e0e40be6f",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 53,
+          "i": "8e8c0b9c-c15b-495d-9267-47ae699705b9",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (rpc_rpc_processing_time_avg_time{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}) / 1000",
+            "legend": "Average RPC processing duration - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Average RPC processing duration",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "seconds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "f4012fe8-a9dd-493e-8250-ca11e1dad01b",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 58,
+          "i": "fa67c10f-be7a-4029-b3f5-338c4c8354cf",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rpc_call_queue_length{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"})",
+            "legend": "RPC call queue length - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "RPC call queue length",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "a46e4599-54e9-4a78-8b4a-fad2c81d7263",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 63,
+          "i": "a46e4599-54e9-4a78-8b4a-fad2c81d7263",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (rpc_rpc_queue_time_avg_time{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}) / 1000",
+            "legend": "Average RPC queue duration - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Average RPC queue duration",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "seconds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.29,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "5c72b1ce-83a3-4766-b40c-31846454630b",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 63,
+          "i": "5c72b1ce-83a3-4766-b40c-31846454630b",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(rpc_rpc_slow_calls{cluster=\"${cluster}\",service=\"YARN\",component=\"RESOURCEMANAGER\"}[$__rate_interval]))",
+            "legend": "Slow RPC rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Slow RPC rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "reqps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.28,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      }
+    ],
+    "version": "3.0.0",
+    "graphTooltip": "default",
+    "graphZoom": "default"
+  }
+}

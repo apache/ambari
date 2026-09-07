@@ -39,6 +39,7 @@ import {
 import { displayOrder } from "../../screens/ClusterWizard/constants";
 import { isEmpty } from "lodash";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 type SideBarProps = {
   isRoot?: boolean;
   isSidebarCollapsed: boolean;
@@ -50,6 +51,7 @@ const SideBar = ({
   isSidebarCollapsed,
   setIsSidebarCollapsed,
 }: SideBarProps) => {
+  const { t } = useTranslation();
   const {
     clusterName,
     services: contextServices,
@@ -82,6 +84,7 @@ const SideBar = ({
     havePermissions,
     isAuthorized,
     supports,
+    t,
   );
   const [services, setServices] = useState<
     {
@@ -121,23 +124,16 @@ const SideBar = ({
           const serviceName = service?.ServiceInfo?.service_name;
         // Type assertion to tell TypeScript this is a valid key
           const modelKey = serviceName && serviceNameModelMapping[serviceName as keyof typeof serviceNameModelMapping];
-          const currentServiceModel = allServiceModels[modelKey];
-
-          // Skip if model doesn't exist
-          if (!currentServiceModel) {
-            console.warn(
-              `No model found for service ${serviceName} with key ${modelKey}`
-            );
-            return null;
-          }
-
-          // Alert counts from serviceStatesData (updated reactively from socket events).
-          // Ember's alertDefinitionSummaryMapper immediately updates service.alertsCount +
-          // service.hasCriticalAlerts on each /events/alerts socket push; allServiceModels
-          // instances are never updated so we must read from serviceStatesData.
-          const stateData = serviceStatesData.get(serviceName);
-          const alertsCount = stateData?.alertsCount ?? currentServiceModel["alertsCount"] ?? 0;
-          const hasCriticalAlerts = stateData?.hasCriticalAlerts ?? currentServiceModel["hasCriticalAlerts"] ?? false;
+          const currentServiceModel = modelKey ? allServiceModels[modelKey] : undefined;
+          const currentServiceState = serviceStatesData.get(serviceName);
+          const alertsCount =
+            currentServiceState?.alertsCount ??
+            currentServiceModel?.alertsCount ??
+            0;
+          const hasCriticalAlerts =
+            currentServiceState?.hasCriticalAlerts ??
+            currentServiceModel?.hasCriticalAlerts ??
+            false;
 
           // Create the service object with proper state handling
           const serviceData = {
@@ -147,21 +143,24 @@ const SideBar = ({
               ] || serviceName,
             serviceName: serviceName, // Keep original service name for sorting
             state:
-              currentServiceModel["serviceState"] &&
-              currentServiceModel["serviceState"] !== ""
-                ? currentServiceModel["serviceState"]
-                : "UNKNOWN",
+              currentServiceState?.state ||
+              currentServiceModel?.serviceState ||
+              service?.ServiceInfo?.state ||
+              "UNKNOWN",
             alertsCountDisplay:
               alertsCount > 0
                 ? alertsCount
                 : undefined,
             noAlerts: alertsCount === 0,
             hasCriticalAlerts: hasCriticalAlerts,
-            isClientOnlyService: currentServiceModel["isClientOnlyService"] || false,
-            isInPassiveForService: currentServiceModel["isInPassiveForService"] || false,
+            isClientOnlyService: currentServiceModel?.isClientOnlyService || false,
+            isInPassiveForService:
+              currentServiceState?.maintenance_state === "ON" ||
+              currentServiceModel?.isInPassiveForService ||
+              false,
             isRestartRequiredForService:
               servicesNeedingRestart.has(serviceName) ||
-              currentServiceModel["isRestartRequiredForService"] ||
+              currentServiceModel?.isRestartRequiredForService ||
               false
           };
 

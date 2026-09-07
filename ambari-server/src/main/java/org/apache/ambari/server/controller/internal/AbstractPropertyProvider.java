@@ -35,16 +35,13 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
-import org.apache.ambari.server.controller.metrics.MetricReportingAdapter;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -454,8 +451,6 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
         }
         PropertyInfo compPropertyInfo = new PropertyInfo(key,
           propertyInfo.isTemporal(), propertyInfo.isPointInTime());
-        compPropertyInfo.setAmsHostMetric(propertyInfo.isAmsHostMetric());
-        compPropertyInfo.setAmsId(propertyInfo.getAmsId());
         compPropertyInfo.setUnit(propertyInfo.getUnit());
         componentMetricMap.put(propertyId, compPropertyInfo);
       }
@@ -508,30 +503,4 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     return false;
   }
 
-  // Normalize percent values: Copied over from Ganglia Metric
-  private static Number[][] getGangliaLikeDatapoints(TimelineMetric metric, TemporalInfo temporalInfo) {
-    MetricReportingAdapter rpt = new MetricReportingAdapter(metric);
-
-    return rpt.reportMetricData(metric, temporalInfo);
-  }
-
-  /**
-   * Get value from the given metric.
-   *
-   * @param metric      the metric
-   * @param temporalInfo  indicates whether or not this a temporal metric
-   *
-   * @return a range of temporal data or a point in time value if not temporal
-   */
-  protected static Object getValue(TimelineMetric metric, TemporalInfo temporalInfo) {
-    Number[][] dataPoints = getGangliaLikeDatapoints(metric, temporalInfo);
-
-    int length = dataPoints.length;
-    if (temporalInfo != null) {
-      return length > 0 ? dataPoints : null;
-    } else {
-      // return the value of the last data point
-      return length > 0 ? dataPoints[length - 1][0] : 0;
-    }
-  }
 }

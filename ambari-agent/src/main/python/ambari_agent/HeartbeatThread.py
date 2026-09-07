@@ -21,6 +21,7 @@ limitations under the License.
 import logging
 import os
 import threading
+import time
 from socket import error as socket_error
 
 from ambari_agent import Constants
@@ -40,11 +41,14 @@ from ambari_agent.listeners.AlertDefinitionsEventListener import (
   AlertDefinitionsEventListener,
 )
 from ambari_agent.listeners.EncryptionKeyListener import EncryptionKeyListener
+from ambari_agent.listeners.TelemetryEventListener import TelemetryEventListener
 from ambari_agent import security
 from ambari_agent.AmbariStompConnection import ConnectionIsAlreadyClosed
 
 HEARTBEAT_INTERVAL = 10
 REQUEST_RESPONSE_TIMEOUT = 10
+TELEMETRY_RECONCILIATION_INTERVAL = 300
+TELEMETRY_CAPABILITY = "telemetry-v1"
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +85,7 @@ class HeartbeatThread(threading.Thread):
     self.alert_definitions_events_listener = AlertDefinitionsEventListener(
       initializer_module
     )
+    self.telemetry_events_listener = TelemetryEventListener(initializer_module)
     self.agent_actions_events_listener = AgentActionsListener(initializer_module)
     self.component_status_executor = initializer_module.component_status_executor
     self.listeners = [
@@ -91,6 +96,7 @@ class HeartbeatThread(threading.Thread):
       self.configuration_events_listener,
       self.host_level_params_events_listener,
       self.alert_definitions_events_listener,
+      self.telemetry_events_listener,
       self.agent_actions_events_listener,
       self.encryption_key_events_listener,
     ]
@@ -128,6 +134,8 @@ class HeartbeatThread(threading.Thread):
       ),
     ]
     self.responseId = 0
+    self.telemetry_supported = False
+    self.last_telemetry_reconciliation = 0
     self.file_cache = initializer_module.file_cache
     self.stale_alerts_monitor = initializer_module.stale_alerts_monitor
     self.post_registration_actions = [
@@ -155,6 +163,7 @@ class HeartbeatThread(threading.Thread):
         response = self.blocking_request(heartbeat_body, Constants.HEARTBEAT_ENDPOINT)
         logger.debug("Heartbeat response id=%s", response.get("id"))
         self.handle_heartbeat_reponse(response)
+        self.reconcile_telemetry_if_due()
       except Exception as ex:
         if isinstance(ex, (ConnectionIsAlreadyClosed)):
           logger.info("Connection was closed. Re-running the registration")
@@ -202,7 +211,18 @@ class HeartbeatThread(threading.Thread):
 
     self.handle_registration_response(response)
 
-    for endpoint, cache, listener, subscribe_to in self.post_registration_requests:
+    post_registration_requests = list(self.post_registration_requests)
+    if self.telemetry_supported:
+      post_registration_requests.append(
+        (
+          Constants.TELEMETRY_REQUEST_ENDPOINT,
+          self.initializer_module.telemetry_cache,
+          self.telemetry_events_listener,
+          Constants.TELEMETRY_TOPIC,
+        )
+      )
+
+    for endpoint, cache, listener, subscribe_to in post_registration_requests:
       try:
         listener.enabled = False
         self.subscribe_to_topics([subscribe_to])
@@ -284,6 +304,28 @@ class HeartbeatThread(threading.Thread):
       raise Exception(error_message)
 
     self.responseId = int(response["id"])
+    capabilities = response.get("serverCapabilities", [])
+    self.telemetry_supported = TELEMETRY_CAPABILITY in capabilities
+    self.last_telemetry_reconciliation = time.monotonic()
+
+  def reconcile_telemetry_if_due(self):
+    if not self.telemetry_supported:
+      return
+
+    now = time.monotonic()
+    if now - self.last_telemetry_reconciliation < TELEMETRY_RECONCILIATION_INTERVAL:
+      return
+
+    self.last_telemetry_reconciliation = now
+    try:
+      response = self.blocking_request(
+        {"hash": self.initializer_module.telemetry_cache.hash},
+        Constants.TELEMETRY_REQUEST_ENDPOINT,
+        log_handler=self.telemetry_events_listener.get_log_message,
+      )
+      self.telemetry_events_listener.on_event({}, response)
+    except Exception:
+      logger.exception("Unable to reconcile the telemetry assignment")
 
   def handle_heartbeat_reponse(self, response):
     serverId = int(response["id"])

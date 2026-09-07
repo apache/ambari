@@ -142,9 +142,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     this.isCommonService = isCommonService;
 
     serviceInfo.setMetricsFile(serviceDirectory.getMetricsFile(serviceInfo.getName()));
+    serviceInfo.setTelemetryFile(serviceDirectory.getTelemetryFile(serviceInfo.getName()));
     serviceInfo.setAlertsFile(serviceDirectory.getAlertsFile());
     serviceInfo.setKerberosDescriptorFile(serviceDirectory.getKerberosDescriptorFile());
-    serviceInfo.setWidgetsDescriptorFile(serviceDirectory.getWidgetsDescriptorFile(serviceInfo.getName()));
     serviceInfo.setRoleCommandOrder(serviceDirectory.getRoleCommandOrder());
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
@@ -247,6 +247,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.getMetricsFile() == null) {
       serviceInfo.setMetricsFile(parent.getMetricsFile());
     }
+    if (serviceInfo.getTelemetryFile() == null) {
+      serviceInfo.setTelemetryFile(parent.getTelemetryFile());
+    }
     if (serviceInfo.getAlertsFile() == null) {
       serviceInfo.setAlertsFile(parent.getAlertsFile());
     }
@@ -255,9 +258,6 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
     if (serviceInfo.getThemesMap().isEmpty()) {
       serviceInfo.setThemesMap(parent.getThemesMap());
-    }
-    if (serviceInfo.getWidgetsDescriptorFile() == null) {
-      serviceInfo.setWidgetsDescriptorFile(parent.getWidgetsDescriptorFile());
     }
     if (serviceInfo.getAdvisorFile() == null) {
       serviceInfo.setAdvisorFile(parent.getAdvisorFile());

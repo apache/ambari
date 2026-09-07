@@ -52,6 +52,8 @@ import useAuthorizationPolicy from "../hooks/useAuthorizationPolicy";
 import { clusterNavigationEnabled } from "../Utils/authPolicy";
 import { openViewInstance, ViewInstance } from "../Utils/viewUtils";
 import DigitalClock from "./DigitalClock";
+import LanguageSelector from "./LanguageSelector";
+import { useTranslation } from "react-i18next";
 
 type NavbarOption = {
   label: string;
@@ -83,6 +85,7 @@ export default function NavBar({
   hostname,
   enableDigitalClock,
 }: NavBarProps) {
+  const { t } = useTranslation();
   const [showUserSettingsModal, setShowUserSettingsModal] = useState(false);
   const [filteredNotifications, setFilteredNotifications] = useState<any[]>([]);
   const [alertCounts, setAlertCounts] = useState({
@@ -182,11 +185,11 @@ export default function NavBar({
 
   const navbarOptions: NavbarOption[] = [
     {
-      label: "About",
+      label: t("app.aboutAmbari"),
       callback: () => setShowAmbariAboutModal(true),
     },
     {
-      label: "Switch Experience",
+      label: t("app.switchExperience"),
       callback: () => window.location.assign(
         classicExperienceUrl(window.location.pathname),
       ),
@@ -194,7 +197,7 @@ export default function NavBar({
     ...(canManageAmbari
       ? [
           {
-            label: "Manage Ambari",
+            label: t("app.manageAmbari"),
             callback: () => void redirectToAdminView(),
           },
         ]
@@ -202,7 +205,7 @@ export default function NavBar({
     ...(canSeeSettings
       ? [
           {
-            label: "Settings",
+            label: t("app.settings"),
             callback: () => {
               if (canOpenSettings) setShowUserSettingsModal(true);
             },
@@ -210,7 +213,7 @@ export default function NavBar({
         ]
       : []),
     {
-      label: "Sign out",
+      label: t("app.signout"),
       callback: handleSignOut,
     },
   ];
@@ -230,7 +233,7 @@ export default function NavBar({
         />
       )}
       <Navbar id="top-nav" collapseOnSelect expand="lg" className="bg-white">
-        <Container className="d-flex justify-content-between">
+        <Container className="d-flex flex-wrap gap-2 justify-content-between">
           <Navbar.Brand
             className="text-black m-0 breadcrumb d-flex align-items-center"
             style={{ fontSize: 24 }}
@@ -258,7 +261,7 @@ export default function NavBar({
                             icon={faMedkit}
                             className="text-dark ms-1 me-1"
                             style={{ fontSize: 18 }}
-                            title={`Host ${hostname} is in maintenance mode`}
+                            title={t("app.hostMaintenance", { hostname })}
                           />
                         </>
                       )}
@@ -270,7 +273,8 @@ export default function NavBar({
               )}
             </div>
           </Navbar.Brand>
-          <div className="right-nav-container d-flex align-items-center">
+          <div className="right-nav-container d-flex flex-wrap align-items-center row-gap-2">
+            <div className="me-3"><LanguageSelector /></div>
             {shouldShowDigitalClock ? (
               <>
                 <DigitalClock
@@ -334,7 +338,7 @@ export default function NavBar({
                   />
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="rounded-0">
-                  <Dropdown.Header>Views</Dropdown.Header>
+                  <Dropdown.Header>{t("common.views")}</Dropdown.Header>
                   <DropdownDivider />
                   {getViewsLength() ? (
                     viewsList.map((item) => {
@@ -350,7 +354,7 @@ export default function NavBar({
                       );
                     })
                   ) : (
-                    <Dropdown.Item disabled>No Views</Dropdown.Item>
+                    <Dropdown.Item disabled>{t("menu.item.views.noViews")}</Dropdown.Item>
                   )}
                 </Dropdown.Menu>
               </Dropdown>

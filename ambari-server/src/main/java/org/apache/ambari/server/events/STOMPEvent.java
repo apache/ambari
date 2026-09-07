@@ -51,6 +51,7 @@ public abstract class STOMPEvent {
     UI_TOPOLOGY("events.topology_update"),
     AGENT_TOPOLOGY("events.topology_update"),
     AGENT_CONFIGS("events.agent.configs"),
+    TELEMETRY("events.agent.telemetry"),
     CONFIGS("events.configs"),
     HOSTCOMPONENT("events.hostcomponents"),
     NAMEDHOSTCOMPONENT("events.hostrolecommands.named"),

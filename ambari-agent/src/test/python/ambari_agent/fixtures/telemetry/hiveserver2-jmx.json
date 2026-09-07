@@ -1,0 +1,48 @@
+{
+  "beans": [
+    {
+      "name": "metrics:name=cumulative_connection_count",
+      "Count": 28
+    },
+    {
+      "name": "metrics:name=open_connections",
+      "Count": 0
+    },
+    {
+      "name": "metrics:name=hs2_active_sessions",
+      "Value": 0
+    },
+    {
+      "name": "metrics:name=exec_async_pool_size",
+      "Value": 1
+    },
+    {
+      "name": "metrics:name=exec_async_queue_size",
+      "Value": 0
+    },
+    {
+      "name": "metrics:name=hs2_open_sessions",
+      "Value": 0
+    },
+    {
+      "name": "metrics:name=memory.heap.used",
+      "Value": 203948312
+    },
+    {
+      "name": "metrics:name=memory.heap.max",
+      "Value": 536870912
+    },
+    {
+      "name": "metrics:name=threads.count",
+      "Value": 39
+    },
+    {
+      "name": "metrics:name=qc_current_size",
+      "Value": 0
+    },
+    {
+      "name": "metrics:name=qc_max_size",
+      "Value": 2147483648
+    }
+  ]
+}

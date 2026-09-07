@@ -63,23 +63,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
 
-
-  <property>
-    <name>nifi.ambari_reporting_frequency</name>
-    <value>1 mins</value>
-    <display-name>Metrics reporting frequency</display-name>
-    <description>Frequency with which Nifi metrics will be reported to Ambari Metrics. Only used during initial install of service. The existence of nifi_znode is used to determine whether initial install or not. Post-install this can be reconfigured from Nifi UI under Controller Settings</description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-
-  <property>
-    <name>nifi.ambari_reporting_enabled</name>
-    <value>true</value>
-    <display-name>Enable metrics reporting to Ambari?</display-name>
-    <description>Whether to setup reporting of Nifi metrics to Ambari Metrics. Only used during initial install of service. The existence of nifi_znode is used to determine whether initial install or not. Post-install this can be reconfigured from Nifi UI under Controller Settings</description>
-    <on-ambari-upgrade add="true"/>
-  </property>
-
   <property>
     <name>nifi.nifi_znode</name>
     <value>/nifi</value>

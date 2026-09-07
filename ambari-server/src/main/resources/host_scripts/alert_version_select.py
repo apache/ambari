@@ -94,8 +94,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     except:
       pass
 
-    # This may not exist if the host does not contain any stack components,
-    # or only contains components like Ambari Metrics and SmartSense
+    # This may not exist if the host does not contain stack-managed components.
     stack_root_dir = Script.get_stack_root()
 
     if os.path.isdir(stack_root_dir):

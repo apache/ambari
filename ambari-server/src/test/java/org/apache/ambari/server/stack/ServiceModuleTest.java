@@ -1353,7 +1353,6 @@ public class ServiceModuleTest {
 
     expect(serviceDirectory.getConfigurationDirectory(dir, StackDirectory.SERVICE_PROPERTIES_FOLDER_NAME)).andReturn(configDir).anyTimes();
     expect(serviceDirectory.getMetricsFile(anyObject(String.class))).andReturn(new File("testMetricsFile")).anyTimes();
-    expect(serviceDirectory.getWidgetsDescriptorFile(anyObject(String.class))).andReturn(new File("testWidgetsFile")).anyTimes();
     expect(serviceDirectory.getAlertsFile()).andReturn(new File("testAlertsFile")).anyTimes();
     expect(serviceDirectory.getKerberosDescriptorFile()).andReturn(new File("testKerberosDescriptorFile")).anyTimes();
     expect(serviceDirectory.getPackageDir()).andReturn("packageDir").anyTimes();

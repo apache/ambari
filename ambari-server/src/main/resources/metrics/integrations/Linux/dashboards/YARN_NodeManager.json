@@ -1,0 +1,1792 @@
+{
+  "name": "YARN NodeManager monitoring",
+  "tags": "",
+  "group_id": 0,
+  "ident": "YARN-NodeManager-Service",
+  "id": 0,
+  "create_at": 0,
+  "create_by": "",
+  "update_at": 0,
+  "update_by": "",
+  "public": 0,
+  "public_cate": 0,
+  "bgids": null,
+  "built_in": 0,
+  "hide": 0,
+  "uuid": 1717556411738575000,
+  "configs": {
+    "var": [],
+    "panels": [
+      {
+        "type": "row",
+        "id": "8f706de4-0e8f-48fe-8c34-5ce917e332e2",
+        "name": "NodeManager resource usage",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.resourceUsage",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0,
+          "i": "8f706de4-0e8f-48fe-8c34-5ce917e332e2",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "barGauge",
+        "id": "884e6670-1972-48c7-b96f-4ef249d3ff87",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 1,
+          "i": "bf90cac9-2474-438c-9a0a-7ee8e07f44bd",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_available_memory_bytes{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Available container memory - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Available container memory",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "4f2b0a63-f281-44e2-98ca-789d41ee6f6c",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 1,
+          "i": "4f2b0a63-f281-44e2-98ca-789d41ee6f6c",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_allocated_memory_bytes{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Allocated container memory - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Allocated container memory",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "08855d86-61cb-49b6-96ea-200bcecdae5e",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 1,
+          "i": "a116ff6b-4490-4ecb-a52f-7e333416ce36",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_allocated_containers{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Allocated containers - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Allocated containers",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "f5de8054-2202-430c-b764-b5cab8e4ca8b",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 6,
+          "i": "2756ff49-f742-401e-a76b-4ae78465043e",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_available_vcores{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Available vcores - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Available vcores",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "fdc25784-eb05-41b9-8886-cc7de0248429",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 6,
+          "i": "c0c2867d-f15f-4bab-ab67-f5e7e99ceaca",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_allocated_vcores{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Allocated vcores - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Allocated vcores",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "09f45b67-b456-4f41-abea-27012f30873b",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 6,
+          "i": "6bb7300d-758a-44c1-bfe3-9b72f75a5479",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (ambari_agent_system_cpu_count{cluster=\"${cluster}\",ambari_target=\"host\"}) and on (host) max by (host) (yarn_nodemanager_containers_running{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Host logical CPU count - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Host logical CPU count",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "af4eefe2-873f-48cd-b0c5-e09deea615e4",
+        "name": "NodeManager container allocation",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.containerAllocation",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 11,
+          "i": "af4eefe2-873f-48cd-b0c5-e09deea615e4",
+          "isResizable": false
+        },
+        "panels": []
+      },
+      {
+        "type": "timeseries",
+        "id": "982474be-deaf-4b4e-a118-cd9b7f50d353",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 12,
+          "i": "9ff95385-a16c-4bb7-af1b-badc42eaa599",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "expr": "sum by (host) (rate(yarn_nodemanager_containers_launched_total{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "G",
+            "maxDataPoints": 240,
+            "legend": "Container launch rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Container launch rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "cps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "c4d962a4-5b4d-4122-8560-7864e46f09e3",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 12,
+          "i": "635ed63c-d57f-4227-a1dd-6c809dc71975",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "expr": "max by (host) (yarn_nodemanager_containers_initializing{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "__mode__": "__query__",
+            "refId": "G",
+            "maxDataPoints": 240,
+            "legend": "Initializing containers - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Initializing containers",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "8c846c8c-8e83-46f7-8865-6f28670551e3",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 12,
+          "i": "ddbb436f-94cc-40d0-94b2-5287bcc47624",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "expr": "max by (host) (yarn_nodemanager_containers_running{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "__mode__": "__query__",
+            "refId": "G",
+            "maxDataPoints": 240,
+            "legend": "Running containers - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Running containers",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "a500e37f-781e-4078-a99e-dc3d7ebbc693",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 17,
+          "i": "dc9f99f2-2023-42db-b28b-2d5e63e54b5c",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "expr": "sum by (host) (rate(yarn_nodemanager_containers_completed_total{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "G",
+            "maxDataPoints": 240,
+            "legend": "Container completion rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Container completion rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "cps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "8cd75a41-bb13-4e9e-864b-7319995d6e89",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 17,
+          "i": "b6ead88e-01e5-4219-b343-b258cb1dedae",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "expr": "sum by (host) (rate(yarn_nodemanager_containers_failed_total{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "G",
+            "maxDataPoints": 240,
+            "legend": "Container failure rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Container failure rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "cps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "30e089cd-2e19-4131-b7c1-8799f9b93739",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 17,
+          "i": "e0b7f3c2-e856-48e7-9394-4859b4e37a53",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "expr": "sum by (host) (rate(yarn_nodemanager_containers_killed_total{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"}[$__rate_interval]))",
+            "__mode__": "__query__",
+            "refId": "G",
+            "maxDataPoints": 240,
+            "legend": "Container kill rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Container kill rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "cps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "184399eb-8edc-4de6-b89a-b6f20a3f7d09",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 22,
+          "i": "81c26266-648c-4ff4-8465-de09f1001a51",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "expr": "max by (host) (yarn_nodemanager_container_launch_duration_seconds{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "__mode__": "__query__",
+            "refId": "G",
+            "maxDataPoints": 240,
+            "legend": "Average container launch duration - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Average container launch duration",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "seconds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              },
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "1383fd15-9ba2-4109-bb88-d284691a2c3a",
+        "name": "NodeManager disk and local directories",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.storage",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 27,
+          "i": "1383fd15-9ba2-4109-bb88-d284691a2c3a",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "stat",
+        "id": "3cc11ba4-6f40-4ecb-ba6f-4ae44b48db03",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 28,
+          "i": "3cc11ba4-6f40-4ecb-ba6f-4ae44b48db03",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_bad_local_directories{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Bad local directories - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Bad local directories",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off",
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "5a5ddac3-ff29-4ad3-ad36-26d8b02a26a7",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 28,
+          "i": "93dfc81f-ee42-44aa-ba03-8a84f1443025",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_bad_log_directories{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Bad log directories - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Bad log directories",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off",
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "gauge",
+        "id": "8d525c7b-ff17-49ba-94d4-7f63c8d49084",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 28,
+          "i": "9c278809-0700-455a-b58a-11bca124c751",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_local_directory_utilization_ratio{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Local directory utilization ratio - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Local directory utilization ratio",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percentUnit"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off",
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "gauge",
+        "id": "6242bcab-ea9c-4f45-930a-dca68b9ee1cc",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 33,
+          "i": "08a52515-fa04-4194-ab02-559fae09ad6c",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (yarn_nodemanager_log_directory_utilization_ratio{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Log directory utilization ratio - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Log directory utilization ratio",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percentUnit"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off",
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "6465f48b-0157-444f-bbc0-6a3093d41dda",
+        "name": "NodeManager system resource usage",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.systemResources",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 43,
+          "i": "6465f48b-0157-444f-bbc0-6a3093d41dda",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "gauge",
+        "id": "67d11450-1667-43d1-9dbe-22adb5eeac09",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 44,
+          "i": "67d11450-1667-43d1-9dbe-22adb5eeac09",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "(1 - avg by (host) (rate(ambari_agent_cpu_seconds_total{cluster=\"${cluster}\",ambari_target=\"host\",cpu!=\"total\",mode=\"idle\"}[$__rate_interval]))) and on (host) max by (host) (yarn_nodemanager_containers_running{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Host CPU busy ratio - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Host CPU busy ratio",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percentUnit"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "f5e15d53-d1d4-44fd-8faa-ad3126280a54",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 44,
+          "i": "c0fb1fa5-107d-46e3-ba46-1ea130fedaf7",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (ambari_agent_memory_available_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}) and on (host) max by (host) (yarn_nodemanager_containers_running{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Host available memory - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Host available memory",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "637ca9f6-3919-4f97-91c9-acb896891827",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 49,
+          "i": "a2981424-fcbd-4e01-b7a7-e78e30d3c016",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (ambari_agent_memory_total_bytes{cluster=\"${cluster}\",ambari_target=\"host\"}) and on (host) max by (host) (yarn_nodemanager_containers_running{cluster=\"${cluster}\",service=\"YARN\",component=\"NODEMANAGER\"})",
+            "legend": "Host total memory - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Host total memory",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "604504ef-d12e-43ae-a4b6-e85ccf6092f5",
+        "name": "NodeManager RPC and network",
+        "titleKey": "monitoring.dashboard.sections.nodeManager.rpcNetwork",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 54,
+          "i": "604504ef-d12e-43ae-a4b6-e85ccf6092f5",
+          "isResizable": false
+        }
+      }
+    ],
+    "version": "3.0.0",
+    "graphTooltip": "default",
+    "graphZoom": "default"
+  }
+}

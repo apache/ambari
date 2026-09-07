@@ -85,15 +85,6 @@
 # unit seconds Units of poll period
 # directory /tmp Where to store CSV files
 
-# org.apache.spark.metrics.sink.GangliaSink
-# Name: Default: Description:
-# host NONE Hostname or multicast group of Ganglia server
-# port NONE Port of Ganglia server(s)
-# period 10 Poll period
-# unit seconds Units of poll period
-# ttl 1 TTL of messages sent by Ganglia
-# mode multicast Ganglia network mode ('unicast' or 'multicast')
-
 # org.apache.spark.metrics.sink.JmxSink
 
 # org.apache.spark.metrics.sink.MetricsServlet

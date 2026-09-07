@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "components": {
+    "RESOURCEMANAGER": {
+      "format": "prometheus_text",
+      "path": "/prom",
+      "endpoint": {
+        "policy": {
+          "configType": "yarn-site",
+          "property": "yarn.http.policy",
+          "httpsValues": ["HTTPS_ONLY", "HTTP_AND_HTTPS"]
+        },
+        "http": {
+          "configType": "yarn-site",
+          "property": "yarn.resourcemanager.webapp.address",
+          "propertyPrefix": "yarn.resourcemanager.webapp.address.",
+          "defaultPort": 8088
+        },
+        "https": {
+          "configType": "yarn-site",
+          "property": "yarn.resourcemanager.webapp.https.address",
+          "propertyPrefix": "yarn.resourcemanager.webapp.https.address.",
+          "defaultPort": 8090
+        }
+      },
+      "auth": {
+        "principal": {
+          "configType": "yarn-site",
+          "property": "yarn.resourcemanager.webapp.spnego-principal"
+        },
+        "keytab": {
+          "configType": "yarn-site",
+          "property": "yarn.resourcemanager.webapp.spnego-keytab-file"
+        }
+      }
+    },
+    "NODEMANAGER": {
+      "format": "jmx_json",
+      "path": "/jmx",
+      "profile": "telemetry-profiles/nodemanager-3.3.json",
+      "endpoint": {
+        "policy": {
+          "configType": "yarn-site",
+          "property": "yarn.http.policy",
+          "httpsValues": ["HTTPS_ONLY", "HTTP_AND_HTTPS"]
+        },
+        "http": {
+          "configType": "yarn-site",
+          "property": "yarn.nodemanager.webapp.address",
+          "defaultPort": 8042
+        },
+        "https": {
+          "configType": "yarn-site",
+          "property": "yarn.nodemanager.webapp.https.address",
+          "defaultPort": 8044
+        }
+      },
+      "auth": {
+        "principal": {
+          "configType": "yarn-site",
+          "property": "yarn.nodemanager.webapp.spnego-principal"
+        },
+        "keytab": {
+          "configType": "yarn-site",
+          "property": "yarn.nodemanager.webapp.spnego-keytab-file"
+        }
+      }
+    }
+  }
+}

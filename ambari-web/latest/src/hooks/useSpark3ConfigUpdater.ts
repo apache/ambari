@@ -21,7 +21,7 @@ import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
 import { ServiceApi } from "../api/serviceApi";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { Categories } from "../enums/Categories";
@@ -108,7 +108,7 @@ export const useSpark3ConfigUpdater =  () => {
     let updatedConfig = cloneDeep(allServiceModels["spark3"]);
     const serviceName = "SPARK3"; // Replace with the desired service name
     const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true`;
-    await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
+    await ServiceApi.getAllServiceComponents(
       clusterName,
       `${fields}&ServiceComponentInfo/service_name=${serviceName}`
     );
@@ -131,18 +131,18 @@ export const useSpark3ConfigUpdater =  () => {
       const startedCount = hostComponents.ServiceComponentInfo.started_count;
       const totalCount = hostComponents.ServiceComponentInfo.total_count;
       updatedConfig[
-        ServiceComponentMetricsEnums.SPARK3[
-          `${component.metric}Started` as keyof typeof ServiceComponentMetricsEnums.SPARK3
+        ServiceComponentFields.SPARK3[
+          `${component.metric}Started` as keyof typeof ServiceComponentFields.SPARK3
         ] as any
       ] = startedCount;
       updatedConfig[
-        ServiceComponentMetricsEnums.SPARK3[
-          `${component.metric}Installed` as keyof typeof ServiceComponentMetricsEnums.SPARK3
+        ServiceComponentFields.SPARK3[
+          `${component.metric}Installed` as keyof typeof ServiceComponentFields.SPARK3
         ] as any
       ] = installedCount;
       updatedConfig[
-        ServiceComponentMetricsEnums.SPARK3[
-          `${component.metric}Total` as keyof typeof ServiceComponentMetricsEnums.SPARK3
+        ServiceComponentFields.SPARK3[
+          `${component.metric}Total` as keyof typeof ServiceComponentFields.SPARK3
         ] as any
       ] = totalCount;
     });
@@ -184,7 +184,7 @@ export const useSpark3ConfigUpdater =  () => {
         }
       });
       currentConfig[
-        ServiceComponentMetricsEnums.SPARK3.spark3JobHistoryServers
+        ServiceComponentFields.SPARK3.spark3JobHistoryServers
       ] = spark3HistoryServers;
     }
     if (!isEqual(allServiceModels["spark3"], currentConfig)) {
@@ -228,17 +228,17 @@ export const useSpark3ConfigUpdater =  () => {
         slaveConponents.push(componentData);
       } else {
         const spark3ClientsInstalled = componentData.installedCount;
-        currentConfig[ServiceComponentMetricsEnums.SPARK3.spark3Clients] =
+        currentConfig[ServiceComponentFields.SPARK3.spark3Clients] =
           spark3ClientsInstalled;
         clientComponents.push(componentData);
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.SPARK3.masterComponents] =
+    currentConfig[ServiceComponentFields.SPARK3.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.SPARK3.slaveComponents] =
+    currentConfig[ServiceComponentFields.SPARK3.slaveComponents] =
       slaveConponents;
-    currentConfig[ServiceComponentMetricsEnums.SPARK3.clientComponents] =
+    currentConfig[ServiceComponentFields.SPARK3.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["spark3"], currentConfig)) {
@@ -289,8 +289,8 @@ export const useSpark3ConfigUpdater =  () => {
     }
     if (
         latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)
-        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
+        (componentFinishStates.includes(latestHostOperationMessage.state)
+        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state)))
     ) {
       await updateServiceMaintenanceState(latestHostOperationMessage.maintenance_state);
       await updateAlertsAndServiceStateData();

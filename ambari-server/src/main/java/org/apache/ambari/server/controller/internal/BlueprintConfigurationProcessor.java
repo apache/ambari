@@ -2131,10 +2131,7 @@ public class BlueprintConfigurationProcessor {
 
   /**
    * Extension of SingleHostTopologyUpdater that supports the
-   * notion of an optional service.  An example: the Storm
-   * service has config properties that require the location
-   * of the Ganglia server when Ganglia is deployed, but Storm
-   * should also start properly without Ganglia.
+   * notion of an optional service.
    *
    * This updater detects the case when the specified component
    * is not found, and returns the original property value.
@@ -2861,7 +2858,6 @@ public class BlueprintConfigurationProcessor {
     allUpdaters.add(mPropertyUpdaters);
     allUpdaters.add(nonTopologyUpdaters);
 
-    Map<String, PropertyUpdater> amsSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> druidCommon = new HashMap<>();
     Map<String, PropertyUpdater> hdfsSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> mapredSiteMap = new HashMap<>();
@@ -2874,11 +2870,9 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<>();
     Map<String, PropertyUpdater> oozieSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> stormSiteMap = new HashMap<>();
-    Map<String, PropertyUpdater> stormSiteNonTopologyMap = new HashMap<>();
     Map<String, PropertyUpdater> accumuloSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> falconStartupPropertiesMap = new HashMap<>();
     Map<String, PropertyUpdater> kafkaBrokerMap = new HashMap<>();
-    Map<String, PropertyUpdater> kafkaBrokerNonTopologyMap = new HashMap<>();
     Map<String, PropertyUpdater> atlasPropsMap = new HashMap<>();
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<>();
     Map<String, PropertyUpdater> mHadoopEnvMap = new HashMap<>();
@@ -2916,7 +2910,6 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hawqSiteMap = new HashMap<>();
     Map<String, PropertyUpdater> zookeeperEnvMap = new HashMap<>();
 
-    singleHostTopologyUpdaters.put("ams-site", amsSiteMap);
     singleHostTopologyUpdaters.put("druid-common", druidCommon);
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
     singleHostTopologyUpdaters.put("mapred-site", mapredSiteMap);
@@ -2971,8 +2964,6 @@ public class BlueprintConfigurationProcessor {
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
     nonTopologyUpdaters.put("hive-site", hiveSiteNonTopologyMap);
-    nonTopologyUpdaters.put("kafka-broker", kafkaBrokerNonTopologyMap);
-    nonTopologyUpdaters.put("storm-site", stormSiteNonTopologyMap);
 
     //todo: Need to change updaters back to being static
     //todo: will need to pass ClusterTopology in as necessary
@@ -3177,27 +3168,6 @@ public class BlueprintConfigurationProcessor {
     stormSiteMap.put("drpc_server_host", new SingleHostTopologyUpdater("DRPC_SERVER"));
     stormSiteMap.put("drpc.servers", new SingleHostTopologyUpdater("DRPC_SERVER"));
     stormSiteMap.put("storm_ui_server_host", new SingleHostTopologyUpdater("STORM_UI_SERVER"));
-    stormSiteMap.put("worker.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
-    stormSiteMap.put("supervisor.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
-    stormSiteMap.put("nimbus.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
-    // Storm AMS integration
-    stormSiteNonTopologyMap.put("metrics.reporter.register", new NonTopologyUpdater() {
-      @Override
-      public String updateForClusterCreate(String propertyName,
-                                           String origValue,
-                                           Map<String, Map<String, String>> properties,
-                                           ClusterTopology topology) {
-
-        if (topology.getBlueprint().getServices().contains("AMBARI_METRICS")) {
-          final String amsReporterClass = "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter";
-          if (origValue == null || origValue.isEmpty()) {
-            return amsReporterClass;
-          }
-        }
-        return origValue;
-      }
-    });
-
     multiStormSiteMap.put("supervisor_hosts",
       new YamlMultiValuePropertyDecorator(new MultipleHostTopologyUpdater("SUPERVISOR")));
     multiStormSiteMap.put("storm.zookeeper.servers",
@@ -3210,27 +3180,6 @@ public class BlueprintConfigurationProcessor {
     falconStartupPropertiesMap.put("*.broker.url", new SingleHostTopologyUpdater("FALCON_SERVER"));
 
     // KAFKA
-    kafkaBrokerMap.put("kafka.ganglia.metrics.host", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
-    // KAFKA AMS integration
-    kafkaBrokerNonTopologyMap.put("kafka.metrics.reporters", new NonTopologyUpdater() {
-      @Override
-      public String updateForClusterCreate(String propertyName,
-                                           String origValue,
-                                           Map<String, Map<String, String>> properties,
-                                           ClusterTopology topology) {
-
-        if (topology.getBlueprint().getServices().contains("AMBARI_METRICS")) {
-          final String amsReportesClass = "org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter";
-          if (origValue == null || origValue.isEmpty()) {
-            return amsReportesClass;
-          } else if (!origValue.contains(amsReportesClass)) {
-            return String.format("%s,%s", origValue, amsReportesClass);
-          }
-        }
-        return origValue;
-      }
-    });
-
     // KNOX
     multiCoreSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
     multiWebhcatSiteMap.put("webhcat.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
@@ -3276,18 +3225,6 @@ public class BlueprintConfigurationProcessor {
     hawqSiteMap.put("hawq_master_address_host", new SingleHostTopologyUpdater("HAWQMASTER"));
     hawqSiteMap.put("hawq_standby_address_host", new SingleHostTopologyUpdater("HAWQSTANDBY"));
     hawqSiteMap.put("hawq_dfs_url", new SingleHostTopologyUpdater("NAMENODE"));
-
-    // AMS
-    amsSiteMap.put("timeline.metrics.service.webapp.address", new SingleHostTopologyUpdater("METRICS_COLLECTOR") {
-      @Override
-      public String updateForClusterCreate(String propertyName, String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
-        if (!origValue.startsWith(BIND_ALL_IP_ADDRESS)) {
-          return origValue.replace(origValue.split(":")[0], BIND_ALL_IP_ADDRESS);
-        } else {
-          return origValue;
-        }
-      }
-    });
 
     // DRUID
     druidCommon.put("metastore_hostname", HostGroupUpdater.INSTANCE);

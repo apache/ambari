@@ -117,11 +117,6 @@ PROPERTIES_TO_CHECK = {
   "ZOOKEEPER_CLIENT": {"zookeeper-env": ["zk_data_dir", "zk_log_dir", "zk_pid_dir"]},
   # FLUME
   "FLUME_HANDLER": {"flume-env": ["flume_conf_dir", "flume_log_dir"]},
-  # GANGLIA
-  "GANGLIA_MONITOR": {"ganglia-env": ["ganglia_conf_dir", "ganglia_runtime_dir"]},
-  "GANGLIA_SERVER": {
-    "ganglia-env": ["ganglia_conf_dir", "ganglia_runtime_dir", "rrdcached_base_dir"]
-  },
   # HBASE
   "HBASE_MASTER": {
     "hbase-env": ["hbase_log_dir", "hbase_pid_dir"],
@@ -218,9 +213,6 @@ USERS_TO_GROUP_MAPPING = {
   "ZOOKEEPER_CLIENT": {"zookeeper-env": {"zk_user": "zk_user"}},
   # FLUME
   "FLUME_HANDLER": {"flume-env": {"flume_user": "flume_user"}},
-  # GANGLIA
-  "GANGLIA_MONITOR": {"ganglia-env": {"gmond_user": "gmond_user"}},
-  "GANGLIA_SERVER": {"ganglia-env": {"gmetad_user": "gmetad_user"}},
   # HBASE
   "HBASE_MASTER": {"hbase-env": {"hbase_user": "hbase_user"}},
   "HBASE_REGIONSERVER": {"hbase-env": {"hbase_user": "hbase_user"}},

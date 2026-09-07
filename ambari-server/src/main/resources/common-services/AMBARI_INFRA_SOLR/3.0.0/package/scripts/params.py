@@ -26,15 +26,10 @@ from resource_management.core.shell import quote_bash_args
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
 
 import infra_solr_utils
 import status_params
-
-
-def get_port_from_url(address):
-  return address.split(":")[-1] if not is_empty(address) else address
 
 
 def get_name_from_principal(principal):
@@ -370,33 +365,6 @@ reserved_security_users = {
 }
 if reserved_security_users.intersection(infra_solr_ranger_audit_service_users):
   raise Fail("Ranger audit users must not duplicate Infra Solr or Ranger Admin")
-
-metric_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
-ams_collector_hosts = ",".join(
-  infra_solr_utils.validate_host(host, "Metrics collector host")
-  for host in metric_hosts
-)
-metrics_enabled = bool(ams_collector_hosts)
-if metrics_enabled:
-  metrics_http_policy = config["configurations"]["ams-site"][
-    "timeline.metrics.service.http.policy"
-  ]
-  ams_collector_protocol = (
-    "https" if metrics_http_policy == "HTTPS_ONLY" else "http"
-  )
-  ams_collector_port = infra_solr_utils.bounded_int(
-    get_port_from_url(
-      config["configurations"]["ams-site"][
-        "timeline.metrics.service.webapp.address"
-      ]
-    ),
-    "Metrics collector port",
-    1,
-    65535,
-  )
-else:
-  ams_collector_port = ""
-  ams_collector_protocol = ""
 
 infra_solr_java_home_assignment = shell_assignment(java64_home)
 infra_solr_java_mem_assignment = shell_assignment(

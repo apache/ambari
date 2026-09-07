@@ -33,6 +33,8 @@ Status meanings:
 
 The confirmed migration gaps in the normal NNHA and Manage JournalNodes paths have been implemented. The shared progress runner now persists a task checkpoint before executing or advancing, resumes saved request IDs after refresh, treats every terminal failure state consistently, and fails closed on install or KDC prerequisites. The remaining product gap is the Stack Upgrade custom-check shortcut into NNHA. Stack-specific combinations, real Kerberos credential stores, Windows JournalNode defaults, server restart, and multi-user recovery still require the runtime matrix below and are not claimed from unit evidence.
 
+Product telemetry is provided by the independent Prometheus monitoring path and does not participate in NNHA configuration submission. These workflows retain only the small JMX-derived control-plane fields required to validate NameNode checkpoints, NameNode journal state, and JournalNode formatted state. Legacy AMS service detection and `ams-hbase-site` migration are not part of the React contract.
+
 Classic automatic rollback and Disable NNHA remain explicitly out of scope because the executable Classic tree contains only placeholder, unreachable, or incorrectly routed implementations. Metrics product pages remain excluded.
 
 ## State Machines
@@ -50,7 +52,7 @@ Classic automatic rollback and Disable NNHA remain explicitly out of scope becau
 | Step 6 Initialize JNs | Poll every selected JN as a complete set; all must report this nameservice formatted | No Back; critical exit preserves owner/checkpoint | Next starts disabled and requires a host-keyed response from every selected JN, including 4/5-node sets; malformed/missing results remain visible and polling retries. |
 | Step 7 Start Components | Strictly start ZK, conditional Infra/MySQL/Ranger, then current NN | No Back; command Retry and critical exit | React reloads authoritative component topology, builds only applicable dependency tasks, restores saved operations, and offers Retry when topology loading fails. |
 | Step 8 Initialize Metadata | Manual `formatZK` and `bootstrapStandby`; KDC gate; explicit completion confirmation | No Back; critical exit/rollback boundary | Both commands use the configured HDFS user. KDC validation precedes an explicit manual-completion confirmation and persistence failure remains on the step. |
-| Step 9 Finalize | Strictly start new NN, install/start ZKFC, conditional PXF/dependency configs, delete SNN, stop HDFS, start all | Complete clears owner only after persistence; Retry resumes first failure; no Back | PXF, complete Ranger groups, HBase/AMS/Accumulo, HAWQ plus `hdfs-client`, SNN deletion, HDFS stop, and start-all are ordered. HAWQ acknowledgement and completion-persistence errors are visible. |
+| Step 9 Finalize | Strictly start new NN, install/start ZKFC, conditional PXF/dependency configs, delete SNN, stop HDFS, start all | Complete clears owner only after persistence; Retry resumes first failure; no Back | PXF, complete Ranger groups, HBase/Accumulo, HAWQ plus `hdfs-client`, SNN deletion, HDFS stop, and start-all are ordered. Prometheus configuration remains independent. HAWQ acknowledgement and completion-persistence errors are visible. |
 
 ### Manage JournalNodes
 
@@ -74,7 +76,7 @@ Classic automatic rollback and Disable NNHA remain explicitly out of scope becau
 | NNHA-SCOPE-001 | `MATCH` | A modal nine-step route exists and stores step state. |
 | NNHA-SCOPE-002 | `MATCH` | Manage JN has seven normal steps and five visible, renumbered delete-only steps. |
 | NNHA-SCOPE-003 | `MATCH` | Product Metrics is absent while checkpoint/JN formatted fields are read. |
-| NNHA-SCOPE-004 | `MATCH` | AMS is limited to `ams-hbase-site` migration/submission. |
+| NNHA-SCOPE-004 | `NOT_APPLICABLE` | Legacy AMS and `ams-hbase-site` migration were removed. Prometheus owns product telemetry; the workflow reads only its minimal JMX-derived HA safety fields. |
 | NNHA-SCOPE-005 | `MATCH` | This audit uses executable routes, operations, API helpers, and tests rather than inventory hits. |
 | NNHA-ENTRY-001 | `MATCH` | The HDFS action uses its `HA_MODE` service model, `SERVICE.ENABLE_HA`, persisted-data permission, HA-disabled state, and validation disable reasons. |
 | NNHA-ENTRY-002 | `MATCH` | React exposes no Disable NNHA entry. |
@@ -127,7 +129,7 @@ Classic automatic rollback and Disable NNHA remain explicitly out of scope becau
 | NNHA-STEP9-003 | `MATCH` | Historical PXF is installed on the additional NN only when the service is present and the component is absent there. |
 | NNHA-STEP9-004 | `MATCH` | Ranger env and every installed YARN/Storm/Kafka/Knox/Atlas/Hive/KMS group are loaded and submitted using JavaScript-safe lookups. |
 | NNHA-STEP9-005 | `MATCH` | HBase and present Ranger HBase sites are saved together. |
-| NNHA-STEP9-006 | `MATCH` | Complete `ams-hbase-site` is submitted whenever AMS is installed. |
+| NNHA-STEP9-006 | `NOT_APPLICABLE` | Step 9 has no AMS service branch and never submits `ams-hbase-site`; Prometheus collection configuration is managed outside NNHA. |
 | NNHA-STEP9-007 | `MATCH` | `accumulo-site` is conditionally submitted. |
 | NNHA-STEP9-008 | `MATCH` | `hawq-site` and `hdfs-client` are saved together. |
 | NNHA-STEP9-009 | `MATCH` | SNN host-component is deleted directly. |
@@ -144,10 +146,10 @@ Classic automatic rollback and Disable NNHA remain explicitly out of scope becau
 | NNHA-CONFIG-009 | `PARTIAL` | Default/editability match; the Windows current-value branch is absent. |
 | NNHA-CONFIG-010 | `MATCH` | HBase authority replacement matches Classic. |
 | NNHA-CONFIG-011 | `MATCH` | Accumulo volume/replacements are generated. |
-| NNHA-CONFIG-012 | `MATCH` | AMS changes only on current-NN authority match and is always submitted when installed. |
+| NNHA-CONFIG-012 | `NOT_APPLICABLE` | The removed AMS service has no NNHA configuration branch. Minimal JMX control-plane reads do not mutate monitoring configuration. |
 | NNHA-CONFIG-013 | `MATCH` | HAWQ URL migration and the completion filespace acknowledgement are both present. |
 | NNHA-CONFIG-014 | `MATCH` | Generated `hdfs-client` values are submitted with `hawq-site`. |
-| NNHA-CONFIG-015 | `MATCH` | HDFS/HBase/AMS/Accumulo and all applicable Ranger/HAWQ sites are submitted from the reviewed snapshot. |
+| NNHA-CONFIG-015 | `MATCH` | HDFS/HBase/Accumulo and all applicable Ranger/HAWQ sites are submitted from the reviewed snapshot; no legacy AMS site is loaded or submitted. |
 | NNHA-CONFIG-016 | `MATCH` | Ranger's multi-configuration PUT contains one desired-config body per installed service group. |
 
 ### JournalNode Entry, Modes, and Steps
@@ -298,7 +300,7 @@ No mutation may begin until the previous mutation is terminal and its workflow c
 | Manage JN service action | Classic visibility under `RUN_CUSTOM_COMMAND`, `RUN_SERVICE_CHECK`, `TOGGLE_MAINTENANCE`, or `ENABLE_HA`, plus persisted-data capability | Menu and direct route use the combined service alternatives, persistence permission, feature flag, HA, and cardinality. |
 | Manage JN Host Details | `HOST.ADD_DELETE_COMPONENTS`, HA/topology/cardinality gate, KDC check for add | Existing add/delete navigation is retained; add passes through KDC and delete is disabled at three JNs. |
 | Manage JN route | Persisted-data plus accepted service/host mutation permission; HA enabled; Active/Standby; supported stack; add/delete cardinality | Enforced by feature/authorization/owner guards followed by workflow validation. |
-| Service conditions | Ranger, HBase, AMS, Accumulo, HAWQ/PXF, Infra, MySQL branches only when installed/component-count conditions match | Authoritative topology/config tags build only applicable tasks; historical combinations remain runtime matrix cases. |
+| Service conditions | Ranger, HBase, Accumulo, HAWQ/PXF, Infra, and MySQL branches only when installed/component-count conditions match | Authoritative topology/config tags build only applicable tasks. Prometheus telemetry is independent, while the small JMX HA safety field set remains read-only; historical combinations remain runtime matrix cases. |
 | Kerberos | Non-secure, automatic KDC, and Manual Kerberos; cancellation/error must terminate the current transition without losing owner state | Static branches are fail closed and tested; MIT/AD/IPA credential-store behavior remains runtime validation. |
 | Auto rollback | Do not advertise automatic rollback or Disable NNHA parity | React correctly exposes neither. |
 
@@ -331,7 +333,7 @@ Criteria 1-15 are implemented in the reviewed React code and focused tests. Item
 6. Progress executes one operation at a time, treats `FAILED`, `TIMEDOUT`, and `ABORTED` as failure, persists request IDs/status before advancing, restores polling after refresh, and retries only the failed operation.
 7. NNHA Step 6 waits for every selected JN, associates each response with its host, and enables Next only when every host reports the current nameservice formatted.
 8. NNHA Step 8 requires explicit confirmation after a successful KDC gate. Steps 5-9 do not offer unsafe Back navigation, and critical Cancel preserves completed-side-effect evidence with a manual recovery warning.
-9. NNHA Step 9 executes every applicable PXF/Ranger/HBase/AMS/Accumulo/HAWQ branch, includes `hdfs-client` for HAWQ, then deletes SNN, stops HDFS, and starts all services in order.
+9. NNHA Step 9 executes every applicable PXF/Ranger/HBase/Accumulo/HAWQ branch, includes `hdfs-client` for HAWQ, then deletes SNN, stops HDFS, and starts all services in order; it does not mutate Prometheus or legacy AMS configuration.
 10. Manage JN begins with the live JN set, enforces minimum/maximum/no-op rules, supports add-only/delete-only/mixed, and displays five renumbered steps for delete-only.
 11. Federation Review writes exactly one shared-edits property per nameservice. Checkpoint renders one command set per nameservice and requires a one-to-one expected namespace/host response set.
 12. JN deletion awaits all hosts and reports failures by host. Retry targets only failed deletions. Reconfigure cannot start while any deletion is unresolved.
@@ -347,7 +349,7 @@ Criteria 1-15 are implemented in the reviewed React code and focused tests. Item
 | NNHA 5 JNs | 5+ hosts, out-of-order formatted responses | Delay the fourth/fifth JN and return malformed JSON once | Next remains disabled until all five valid responses; visible recovery; shared-edits includes all five. | `NEEDS_RUNTIME_VALIDATION` |
 | NNHA automatic Kerberos | MIT, AD, and IPA where supported | Expired KDC session, popup cancel, bad credential save, retry | No mutation after cancel/failure; persisted owner survives; successful replay executes once. | `NEEDS_RUNTIME_VALIDATION` |
 | NNHA Manual Kerberos | `kdc_type=none` | Refresh at install and metadata gates | No KDC admin credential required; component identities/keytabs install; progress resumes. | `NEEDS_RUNTIME_VALIDATION` |
-| NNHA dependencies | Ranger, HBase, AMS, Accumulo, historical HAWQ/PXF combinations | Missing optional site/property and config-save failure | Only applicable sites submitted, complete snapshots retained, failure stops sequence, HAWQ warning shown. | `NEEDS_RUNTIME_VALIDATION` |
+| NNHA dependencies | Ranger, HBase, Accumulo, historical HAWQ/PXF combinations; independent Prometheus telemetry | Missing optional site/property and config-save failure | Only applicable HA dependency sites are submitted, complete snapshots are retained, failure stops the sequence, and the HAWQ warning is shown. No monitoring configuration is submitted. | `NEEDS_RUNTIME_VALIDATION` |
 | NNHA Windows branch | A stack exposing the Windows JournalNode directory default | Review and secure reload | `dfs.journalnode.edits.dir` uses the stack/runtime-supported default and survives submission. | `NEEDS_RUNTIME_VALIDATION` |
 | NNHA critical exit | Steps 5, 6, 7, 8, and 9 | Close modal after each completed command | Completed-side-effect list retained; no false rollback claim; manual recovery is actionable. | `NEEDS_RUNTIME_VALIDATION` |
 | JN add-only | 3 to 4/5 JNs | Refresh after registration and before start | Seven steps; exact add set; final reload starts all final JNs. | `NEEDS_RUNTIME_VALIDATION` |

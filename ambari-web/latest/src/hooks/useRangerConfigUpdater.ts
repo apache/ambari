@@ -18,9 +18,8 @@
 
 import { useContext, useEffect, useRef } from "react";
 import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
-import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constants";
@@ -137,9 +136,9 @@ export const useRangerConfigUpdater = () => {
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.RANGER.masterComponents] =
+    currentConfig[ServiceComponentFields.RANGER.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.RANGER.slaveComponents] =
+    currentConfig[ServiceComponentFields.RANGER.slaveComponents] =
       slaveComponents;
 
     if (!isEqual(allServiceModels["ranger"], currentConfig)) {
@@ -156,65 +155,6 @@ export const useRangerConfigUpdater = () => {
     // }
   };
 
-  //updating RANGER_TAGSYNC
-  //@ts-ignore
-  //copy paste this in spark and it will show the counts
-  const updateRangerHostComponentsData = async () => {
-    // 🚀 OPTIMIZATION: Use centralized cached data instead of individual API call
-    
-    if (!allServiceModels || !allServiceModels["ranger"]) return;
-
-    let updatedConfig = cloneDeep(allServiceModels["ranger"]);
-    
-    // Get RANGER data from centralized cache (Ember.js style)
-    const rangerComponentsData = cachedServiceApi.getServiceComponentData("RANGER");
-    
-    if (!rangerComponentsData) {
-      return;
-    }
-
-    const components = [{ name: "RANGER_TAGSYNC", metric: "rangerTagsyncs" }];
-
-    components.forEach((component) => {
-      // Find component in cached data instead of making API call
-      const hostComponents = rangerComponentsData.find((item: any) =>
-        item.ServiceComponentInfo?.component_name === component.name
-      );
-      
-      if (hostComponents && hostComponents.ServiceComponentInfo) {
-        const installedCount = hostComponents.ServiceComponentInfo.installed_count;
-        const startedCount = hostComponents.ServiceComponentInfo.started_count;
-        const totalCount = hostComponents.ServiceComponentInfo.total_count;
-        
-        updatedConfig[
-          ServiceComponentMetricsEnums.RANGER[
-            `${component.metric}Started` as keyof typeof ServiceComponentMetricsEnums.RANGER
-          ] as any
-        ] = startedCount;
-        updatedConfig[
-          ServiceComponentMetricsEnums.RANGER[
-            `${component.metric}Installed` as keyof typeof ServiceComponentMetricsEnums.RANGER
-          ] as any
-        ] = installedCount;
-        updatedConfig[
-          ServiceComponentMetricsEnums.RANGER[
-            `${component.metric}Total` as keyof typeof ServiceComponentMetricsEnums.RANGER
-          ] as any
-        ] = totalCount;
-      }
-    });
-
-    if (
-      !isEqual(allServiceModels["ranger"], updatedConfig) &&
-      !isRangerConfigUpdating.current
-    ) {
-      isRangerConfigUpdating.current = true;
-      allServiceModels["ranger"].updateConfig(updatedConfig);
-      updateRegistry(allServiceModels);
-      isRangerConfigUpdating.current = false;
-    }
-  };
-
   const parseWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;
     if (parsedSocketMessages.length > 0) {
@@ -229,7 +169,6 @@ export const useRangerConfigUpdater = () => {
     ) {
       for (const hostComponent of latestHostOperationMessage.hostComponents) {
         if (hostComponent.currentState in componentFinishStates) {
-          //await updateRangerHostComponentsData();
           await findMasterSlaveClientComponents();
         }
       }
@@ -271,7 +210,7 @@ export const useRangerConfigUpdater = () => {
 
 
     const rangerPluginPropertiesKeys = Object.keys(
-      ServiceComponentMetricsEnums.RANGER.pluginProperties
+      ServiceComponentFields.RANGER.pluginProperties
     );
 
 
@@ -313,9 +252,9 @@ export const useRangerConfigUpdater = () => {
     let currentConfig = cloneDeep(allServiceModels["ranger"]);
     Object.keys(pluginStatusMapping).forEach((key) => {
       const propertyKey =
-        key as keyof typeof ServiceComponentMetricsEnums.RANGER.pluginProperties;
+        key as keyof typeof ServiceComponentFields.RANGER.pluginProperties;
       currentConfig[
-        ServiceComponentMetricsEnums.RANGER.pluginProperties[propertyKey]
+        ServiceComponentFields.RANGER.pluginProperties[propertyKey]
       ] =
         //@ts-ignore
         pluginStatusMapping[key];
@@ -323,12 +262,12 @@ export const useRangerConfigUpdater = () => {
 
     // Object.keys(pluginStatusMapping).forEach((key) => {
     //   currentConfig[
-    //     ServiceComponentMetricsEnums.RANGER.pluginProperties[
-    //       key as keyof typeof ServiceComponentMetricsEnums.RANGER.pluginProperties
+    //     ServiceComponentFields.RANGER.pluginProperties[
+    //       key as keyof typeof ServiceComponentFields.RANGER.pluginProperties
     //     ]
     //   ] =
     //     pluginStatusMapping[
-    //       key as keyof typeof ServiceComponentMetricsEnums.RANGER.pluginProperties
+    //       key as keyof typeof ServiceComponentFields.RANGER.pluginProperties
     //     ];
     // });
 
@@ -366,7 +305,7 @@ export const useRangerConfigUpdater = () => {
           rangerAdmins.push(hostComponentData);
         }
       });
-      currentConfig[ServiceComponentMetricsEnums.RANGER.rangerAdmins] =
+      currentConfig[ServiceComponentFields.RANGER.rangerAdmins] =
         rangerAdmins;
     }
 
@@ -406,8 +345,8 @@ export const useRangerConfigUpdater = () => {
     }
     if (
         latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)
-        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
+        (componentFinishStates.includes(latestHostOperationMessage.state)
+        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state)))
     ) {
       await updateServiceMaintenanceState(latestHostOperationMessage.maintenance_state);
       await updateAlertsAndServiceStateData();
@@ -422,10 +361,6 @@ export const useRangerConfigUpdater = () => {
       fetchRangerPluginInfo();
     }
   }, [polledHostComponentsData]);
-
-  useEffect(() => {
-    updateRangerHostComponentsData();
-  }, []);
 
   useEffect(() => {
     parseWebSocketMessages();

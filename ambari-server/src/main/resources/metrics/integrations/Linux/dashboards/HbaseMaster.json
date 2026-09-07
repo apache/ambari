@@ -1,0 +1,1961 @@
+{
+  "name": "HBase Master monitoring",
+  "tags": "",
+  "group_id": 0,
+  "ident": "HBASE-Master",
+  "id": 0,
+  "create_at": 0,
+  "create_by": "",
+  "update_at": 0,
+  "update_by": "",
+  "public": 0,
+  "public_cate": 0,
+  "bgids": null,
+  "built_in": 0,
+  "hide": 0,
+  "uuid": 1717556321738575000,
+  "configs": {
+    "var": [],
+    "panels": [
+      {
+        "type": "row",
+        "id": "395024ed-3fb8-4111-acbc-08f3f4e21735",
+        "name": "HBase Master overview",
+        "titleKey": "monitoring.dashboard.sections.hbaseMaster.overview",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0,
+          "i": "395024ed-3fb8-4111-acbc-08f3f4e21735",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "stat",
+        "id": "7ccec8cb-6232-4c9b-9b25-164d63ffa897",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 1,
+          "i": "d25becce-e1b1-4599-bef6-a8f2e531c7d4",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(hbase_master_regionservers{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} and on(host) (hbase_master_active{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} == 1))",
+            "legend": "Live"
+          },
+          {
+            "expr": "max(hbase_master_dead_regionservers{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} and on(host) (hbase_master_active{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} == 1))",
+            "__mode__": "__query__",
+            "refId": "B",
+            "maxDataPoints": 240,
+            "legend": "Dead"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "RegionServers",
+        "maxPerRow": 4,
+        "custom": {
+          "textMode": "valueAndName",
+          "graphMode": "none",
+          "colorMode": "value",
+          "calc": "lastNotNull",
+          "valueField": "Value",
+          "colSpan": 0,
+          "textSize": {},
+          "orientation": "auto"
+        },
+        "options": {
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          },
+          "standardOptions": {}
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off",
+              "thresholds": {
+                "steps": [
+                  {
+                    "color": "#5cb85c",
+                    "value": null,
+                    "type": "base"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "327b1058-4d54-41ee-8c65-d9bf74aee5e2",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 1,
+          "i": "93d3667c-3c80-428b-b77d-ae81b82f8ce5",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(hbase_master_regions_in_transition{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} and on(host) (hbase_master_active{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} == 1))",
+            "legend": "Regions in transition"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Regions in transition",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "e64f10fd-749c-4a57-86ae-ff6a5207716c",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 1,
+          "i": "297831d8-d7a1-4128-a2db-f0951f94bbd2",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(hbase_master_regions_in_transition_over_threshold{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} and on(host) (hbase_master_active{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} == 1))",
+            "legend": "Regions over transition threshold"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Regions over transition threshold",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "755afaeb-73c1-4673-8f46-db843957b44c",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 6,
+          "i": "755afaeb-73c1-4673-8f46-db843957b44c",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(hbase_master_average_region_load{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} and on(host) (hbase_master_active{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} == 1))",
+            "legend": "Average region load"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Average region load",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "7b8a2659-f8e2-47b4-a09e-00a943827f77",
+        "name": "HBase Master JVM",
+        "titleKey": "monitoring.dashboard.sections.hbaseMaster.jvm",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 11,
+          "i": "7b8a2659-f8e2-47b4-a09e-00a943827f77",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "gauge",
+        "id": "5019b821-7a17-4295-a3a8-9e3fcb6416f6",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 12,
+          "i": "496a9432-f841-4d10-9e25-747f8161ae85",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_jvm_heap_used_bytes{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "JVM heap used - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM heap used",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "2a712e77-dc39-4d91-aed9-b57982260f66",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 12,
+          "i": "6c2cbf37-d7eb-4436-93f8-f0e6d233d85e",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_jvm_heap_max_bytes{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "JVM maximum heap - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM maximum heap",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "6c47419e-becd-41aa-9655-eaf0dc355711",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 12,
+          "i": "b9e27c5b-fba1-4d8e-b3b7-471946869613",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_jvm_nonheap_used_bytes{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "JVM non-heap used - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM non-heap used",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "bytesIEC"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "540dca83-042f-49fd-a514-71c18d380ab7",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 0,
+          "y": 17,
+          "i": "367014b6-67da-4eee-858f-f11a5a7c4668",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max(hbase_master_draining_regionservers{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} and on(host) (hbase_master_active{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} == 1))",
+            "legend": "Draining RegionServers"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Draining RegionServers",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "id": "a3dda637-bd35-4021-879c-561b2b15d829",
+        "layout": {
+          "h": 5,
+          "w": 12,
+          "x": 12,
+          "y": 17,
+          "i": "d0650532-d0af-430f-a132-b27f96b4e931",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "time() - max by (host) (hbase_master_start_time_seconds{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Master uptime - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Master uptime",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "seconds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "69b8de01-6afd-4dc6-87a5-6d03d4b1a519",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 22,
+          "i": "db3d2439-749f-4f43-8598-5655efd95cc8",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(hbase_master_jvm_gc_collections_total{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"}[$__rate_interval]))",
+            "legend": "JVM garbage collection rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM garbage collection rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "cps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "75c8409a-1fd5-4180-a70d-a1dfc3c7d37e",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 22,
+          "i": "39e7753a-28b8-4edf-8cdb-603f1496d734",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(hbase_master_jvm_gc_time_seconds_total{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"}[$__rate_interval]))",
+            "legend": "JVM GC time ratio - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "JVM GC time ratio",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "percentUnit"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "bf0d14fd-ffe0-442d-9141-c99966d28a4f",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 22,
+          "i": "d77c24b8-cb69-4bca-94a3-b6a92b0e919b",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_jvm_threads_timed_waiting{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Timed-waiting JVM threads - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Timed-waiting JVM threads",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "abf91e40-6e02-4447-a1a6-0866a71dd41d",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 27,
+          "i": "87ef6cad-779d-4568-8af6-9a4341747ed6",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_jvm_threads_runnable{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Runnable JVM threads - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Runnable JVM threads",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "7da1cbd3-e6d4-4717-8184-52c6ea90c251",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 27,
+          "i": "837a80ec-8a89-4e72-b15e-1eda6b49ff21",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_jvm_threads_blocked{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Blocked JVM threads - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Blocked JVM threads",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "4e8d69b1-219e-4e8f-ba75-49290ea4127d",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 27,
+          "i": "ec18f501-756e-483b-bd86-4eb1715b5163",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_jvm_threads_waiting{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Waiting JVM threads - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Waiting JVM threads",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "row",
+        "id": "ea9bb27f-615b-4d04-affe-5124b0acce4c",
+        "name": "HBase Master RPC",
+        "titleKey": "monitoring.dashboard.sections.hbaseMaster.rpc",
+        "collapsed": false,
+        "layout": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 32,
+          "i": "ea9bb27f-615b-4d04-affe-5124b0acce4c",
+          "isResizable": false
+        }
+      },
+      {
+        "type": "barGauge",
+        "id": "883d61b1-ff15-48a8-a52d-3d00c4b87344",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 33,
+          "i": "883d61b1-ff15-48a8-a52d-3d00c4b87344",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_rpc_queue_size{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "RPC queue size - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "RPC queue size",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "barGauge",
+        "id": "3055732d-bc98-46bb-86ea-0f1e28908d2d",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 33,
+          "i": "f24a4099-ecc1-4a5e-871d-3f43b664c54e",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_rpc_open_connections{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Open RPC connections - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Open RPC connections",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "9cb52766-ba51-48d4-b23d-5b7ba7aae650",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 33,
+          "i": "267803b3-7f96-46e9-a6b9-2be85c9aa0f1",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_rpc_active_handlers{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Active RPC handlers - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Active RPC handlers",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 3,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "b4835fb8-cb7a-4335-8528-0c925ffc2ecd",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 38,
+          "i": "1195fea7-e799-4af1-9df7-9de3dfaff62d",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_rpc_general_queue_calls{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Calls in general RPC queue - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Calls in general RPC queue",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 3,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "2dcc0bf2-ed46-45f1-940a-48ea8a6c3a36",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 38,
+          "i": "049864e5-352a-4b4a-98c7-cbd3e2d364d7",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_rpc_priority_queue_calls{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Calls in priority RPC queue - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Calls in priority RPC queue",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "df5e0450-c4b1-4215-84f9-1e5d338bc251",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 38,
+          "i": "108800ce-067d-4d4a-8086-7b5bd1c25bda",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_rpc_replication_queue_calls{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Calls in replication RPC queue - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Calls in replication RPC queue",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {},
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 3,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "09110b4c-5bc8-4cc2-b561-5e23bbe18956",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 0,
+          "y": 43,
+          "i": "059f372f-039a-4f92-bf24-3a97ca433bb3",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_rpc_process_call_duration_seconds{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "Mean RPC processing duration - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Mean RPC processing duration",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "seconds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "4f5beceb-ab6d-44bc-ac35-5201f9f9b1b9",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 8,
+          "y": 43,
+          "i": "6715927c-2858-4527-8c42-8b12b20f17d2",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "max by (host) (hbase_master_rpc_process_call_duration_p99_seconds{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"})",
+            "legend": "P99 RPC processing duration - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "P99 RPC processing duration",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "seconds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "id": "4b9aef2a-3526-41d6-ba16-a590f9e8bf47",
+        "layout": {
+          "h": 5,
+          "w": 8,
+          "x": 16,
+          "y": 43,
+          "i": "38ea3664-92cd-4cc1-afea-b1ceeda43c10",
+          "isResizable": true
+        },
+        "version": "3.0.0",
+        "datasourceCate": "prometheus",
+        "datasourceValue": 1,
+        "targets": [
+          {
+            "refId": "A",
+            "maxDataPoints": 240,
+            "expr": "sum by (host) (rate(hbase_master_cluster_requests_total{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"}[$__rate_interval]) and on(host) (hbase_master_active{cluster=\"${cluster}\",service=\"HBASE\",component=\"HBASE_MASTER\"} == 1))",
+            "legend": "Cluster request rate - {{host}}"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {}
+          }
+        ],
+        "name": "Cluster request rate",
+        "maxPerRow": 4,
+        "options": {
+          "tooltip": {
+            "mode": "all",
+            "sort": "none"
+          },
+          "legend": {
+            "displayMode": "list",
+            "heightInPercentage": 30,
+            "placement": "bottom",
+            "behaviour": "showItem",
+            "selectMode": "single"
+          },
+          "standardOptions": {
+            "util": "reqps"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "#5cb85c",
+                "value": null,
+                "type": "base"
+              }
+            ]
+          }
+        },
+        "custom": {
+          "drawStyle": "lines",
+          "lineInterpolation": "smooth",
+          "spanNulls": false,
+          "lineWidth": 2,
+          "fillOpacity": 0.01,
+          "gradientMode": "none",
+          "stack": "off",
+          "scaleDistribution": {
+            "type": "linear"
+          },
+          "showPoints": "none",
+          "pointSize": 5
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byFrameRefID"
+            },
+            "properties": {
+              "rightYAxisDisplay": "off"
+            }
+          }
+        ]
+      }
+    ],
+    "version": "3.0.0",
+    "graphTooltip": "default",
+    "graphZoom": "default"
+  }
+}

@@ -78,7 +78,6 @@ export const relatedServicesMap:any = {
   WEBHCAT_SERVER: ["HIVE"],
   OOZIE_SERVER: ["OOZIE", "FALCON", "KNOX"],
   MYSQL_SERVER: ["HIVE", "OOZIE", "RANGER", "RANGER_KMS"],
-  METRICS_COLLECTOR: ["AMBARI_METRICS"],
 };
 
 export const dbPropertyMap = {

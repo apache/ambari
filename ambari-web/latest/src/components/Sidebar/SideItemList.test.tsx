@@ -38,6 +38,28 @@ const hasKerberosItem = (isNonWizardUser: boolean) => {
 };
 
 describe("Kerberos sidebar ownership", () => {
+  it("translates navigation labels without changing route identifiers or permissions", () => {
+    const supports = { enableToggleKerberos: true, serviceAutoStart: true };
+    const original = getSideItemList(() => true, () => true, supports);
+    const localized = getSideItemList(
+      () => true,
+      () => true,
+      supports,
+      (key) => `translated:${key}`,
+    );
+    expect(localized.map(({ id, path }) => ({ id, path })))
+      .toEqual(original.map(({ id, path }) => ({ id, path })));
+    expect(localized.find(({ id }) => id === SideItemLabels.DASHBOARD)?.name)
+      .toBe("translated:menu.item.dashboard");
+    expect(localized.find(({ id }) => id === SideItemLabels.MONITORING)?.name)
+      .toBe("translated:menu.monitoring");
+    for (const item of localized) {
+      expect(item.children.map(({ id, path }) => ({ id, path })))
+        .toEqual(original.find(({ id }) => id === item.id)
+          ?.children.map(({ id, path }) => ({ id, path })));
+    }
+  });
+
   it("shows Kerberos to the wizard owner", () => {
     expect(hasKerberosItem(false)).toBe(true);
   });
@@ -57,5 +79,37 @@ describe("Kerberos sidebar ownership", () => {
       .find((item) => item.id === SideItemLabels.CLUSTER_ADMIN)
       ?.children.some((item) => item.id === SideItemLabels.STACK_AND_VERSIONS))
       .toBe(true);
+  });
+});
+
+describe("Monitoring sidebar permissions", () => {
+  const monitoringItem = (...authorizations: string[]) => {
+    const haveAnyPermission = (expression: string) => expression
+      .split(",")
+      .map((value) => value.trim())
+      .some((authorization) => authorizations.includes(authorization));
+    return getSideItemList(
+      haveAnyPermission,
+      haveAnyPermission,
+      {},
+    ).find((item) => item.id === SideItemLabels.MONITORING);
+  };
+
+  it("shows only cluster metric pages with cluster metric permission", () => {
+    expect(monitoringItem("CLUSTER.VIEW_METRICS")?.children.map(({ id }) => id))
+      .toEqual([
+        "monitoring_dashboards",
+        "monitoring_explore",
+        "monitoring_datasources",
+      ]);
+  });
+
+  it("keeps the Monitoring entry and Targets for host-only access", () => {
+    expect(monitoringItem("HOST.VIEW_METRICS")?.children.map(({ id }) => id))
+      .toEqual(["monitoring_targets"]);
+  });
+
+  it("hides Monitoring without either metrics permission", () => {
+    expect(monitoringItem()).toBeUndefined();
   });
 });

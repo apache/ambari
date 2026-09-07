@@ -24,7 +24,6 @@ import tempfile
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.alerts.metric_alert import MetricAlert
-from ambari_agent.alerts.ams_alert import AmsAlert
 from ambari_agent.alerts.port_alert import PortAlert
 from ambari_agent.alerts.web_alert import WebAlert
 
@@ -237,24 +236,6 @@ class TestAlertSchedulerHandler(TestCase):
 
     self.assertTrue(callable_result is not None)
     self.assertTrue(isinstance(callable_result, MetricAlert))
-    self.assertEqual(callable_result.alert_meta, json_definition)
-    self.assertEqual(callable_result.alert_source_meta, json_definition["source"])
-
-  def test_json_to_callable_ams(self):
-    initializer_module = InitializerModule()
-    initializer_module.config.get_server_ssl_context = MagicMock()
-    initializer_module.init()
-
-    scheduler = AlertSchedulerHandler(initializer_module)
-    # (TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, self.config, None)
-    json_definition = {"clusterId": "0", "source": {"type": "AMS"}}
-
-    callable_result = scheduler._AlertSchedulerHandler__json_to_callable(
-      "cluster", "host", "host", copy.deepcopy(json_definition)
-    )
-
-    self.assertTrue(callable_result is not None)
-    self.assertTrue(isinstance(callable_result, AmsAlert))
     self.assertEqual(callable_result.alert_meta, json_definition)
     self.assertEqual(callable_result.alert_source_meta, json_definition["source"])
 

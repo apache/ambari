@@ -22,10 +22,6 @@ What's New with Ambari?
 
     * The Ambari UI, Ambari Server, and Ambari Agent have been significantly reworked to more efficiently handle large cluster management
 
-    * In order to more efficiently manage large clusters, the AMS schema has been updated, and metric aggregation has been improved.
-
-    * Updated default configurations, and configuration recommendations to ensure AMS is tuned well out of the box.
-
     * Added support for easily adding and managing new HDFS namespaces.
 
     * Added support for managing ViewFS mount table configuration.
@@ -73,4 +69,3 @@ Stay Tuned
 
   {{{http://ambari.apache.org/mail-lists.html} Subscribe to the Ambari mailing lists}} and check back here often to learn about our
   upcoming releases.
-

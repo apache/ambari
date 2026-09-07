@@ -71,9 +71,6 @@ responces = [
           "ambari_db_server_host": [
               "dev.hortonworks.com"
           ],
-          "ganglia_server_host": [
-              "dev.hortonworks.com"
-          ],
           "namenode_host": [
               "dev.hortonworks.com"
           ],
@@ -204,9 +201,6 @@ if __name__ == "__main__":
   #        },
   #        "clusterHostInfo": {
   #          "ambari_db_server_host": [
-  #              "dev.hortonworks.com"
-  #          ],
-  #          "ganglia_server_host": [
   #              "dev.hortonworks.com"
   #          ],
   #          "namenode_host": [

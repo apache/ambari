@@ -29,9 +29,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileReader;
-import java.lang.reflect.Type;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -59,16 +55,11 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.lang3.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.util.Assert;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
 /**
  * StackManager unit tests.
@@ -286,10 +277,9 @@ public class StackManagerTest {
     assertNotNull(si);
 
     //should include all stacks in hierarchy
-    assertEquals(18, services.size());
+    assertEquals(16, services.size());
 
     HashSet<String> expectedServices = new HashSet<>();
-    expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
     expectedServices.add("HCATALOG");
     expectedServices.add("HDFS");
@@ -304,7 +294,6 @@ public class StackManagerTest {
     expectedServices.add("FLUME");
     expectedServices.add("FAKENAGIOS");
     expectedServices.add("TEZ");
-    expectedServices.add("AMBARI_METRICS");
     expectedServices.add("SPARK3");
     expectedServices.add("SYSTEMML");
 
@@ -416,9 +405,6 @@ public class StackManagerTest {
     assertEquals(baseStormService.getExcludedConfigTypes(), stormService.getExcludedConfigTypes());
     assertEquals(baseStormService.getProperties(), stormService.getProperties());
     assertEquals(baseStormService.getMetrics(), stormService.getMetrics());
-    assertNotNull(baseStormService.getMetricsFile());
-    assertNotNull(stormService.getMetricsFile());
-    assertFalse(baseStormService.getMetricsFile().equals(stormService.getMetricsFile()));
     assertEquals(baseStormService.getOsSpecifics(), stormService.getOsSpecifics());
     assertEquals(baseStormService.getRequiredServices(), stormService.getRequiredServices());
     assertEquals(baseStormService.getSchemaVersion(), stormService.getSchemaVersion());
@@ -511,7 +497,7 @@ public class StackManagerTest {
   public void testMonitoringServicePropertyInheritance() throws Exception{
     StackInfo stack = stackManager.getStack("HDP", "2.0.8");
     Collection<ServiceInfo> allServices = stack.getServices();
-    assertEquals(15, allServices.size());
+    assertEquals(14, allServices.size());
 
     boolean monitoringServiceFound = false;
 
@@ -532,9 +518,8 @@ public class StackManagerTest {
     StackInfo stack = stackManager.getStack("HDP", "2.0.6");
     Collection<ServiceInfo> allServices = stack.getServices();
 
-    assertEquals(12, allServices.size());
+    assertEquals(11, allServices.size());
     HashSet<String> expectedServices = new HashSet<>();
-    expectedServices.add("GANGLIA");
     expectedServices.add("HBASE");
     expectedServices.add("HCATALOG");
     expectedServices.add("HDFS");
@@ -680,15 +665,6 @@ public class StackManagerTest {
   }
 
   @Test
-  public void testHDFSServiceContainsMetricsFile() throws Exception {
-    StackInfo stack = stackManager.getStack("HDP", "2.0.6");
-    ServiceInfo hdfsService = stack.getService("HDFS");
-
-    assertEquals("HDFS", hdfsService.getName());
-    assertNotNull(hdfsService.getMetricsFile());
-  }
-
-  @Test
   public void testMergeRoleCommandOrder() throws Exception {
     StackInfo stack = stackManager.getStack("HDP", "2.1.1");
     // merged role command order with parent stacks
@@ -742,73 +718,6 @@ public class StackManagerTest {
     ConfigUpgradePack configUpgradePack = stack.getConfigUpgradePack();
     assertNotNull(configUpgradePack);
     assertNotNull(configUpgradePack.services);
-  }
-
-  @Test
-  public void testMetricsLoaded() throws Exception {
-
-    URL rootDirectoryURL = StackManagerTest.class.getResource("/");
-    Assert.notNull(rootDirectoryURL, "Test classes root must be available");
-
-    File resourcesDirectory = new File(new File(rootDirectoryURL.getFile()).getParentFile().getParentFile(), "src/test/resources");
-
-    File stackRoot = new File(resourcesDirectory, "stacks");
-    File commonServices = new File(resourcesDirectory, "common-services");
-    File extensions = null;
-
-    try {
-         URL extensionsURL = ClassLoader.getSystemClassLoader().getResource("extensions");
-      if (extensionsURL != null) {
-        extensions = new File(extensionsURL.getPath().replace("test-classes","classes"));
-      }
-    }
-    catch (Exception e) {}
-
-    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
-    StackDAO stackDao = createNiceMock(StackDAO.class);
-    ExtensionDAO extensionDao = createNiceMock(ExtensionDAO.class);
-    ExtensionLinkDAO linkDao = createNiceMock(ExtensionLinkDAO.class);
-    ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
-    Configuration config = createNiceMock(Configuration.class);
-    ExtensionEntity extensionEntity = createNiceMock(ExtensionEntity.class);
-
-    expect(config.getSharedResourcesDirPath()).andReturn(
-            ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
-
-    expect(
-        extensionDao.find(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(extensionEntity).atLeastOnce();
-
-    List<ExtensionLinkEntity> list = Collections.emptyList();
-    expect(
-        linkDao.findByStack(EasyMock.anyObject(String.class),
-            EasyMock.anyObject(String.class))).andReturn(list).atLeastOnce();
-
-    replay(config, metaInfoDao, stackDao, extensionDao, linkDao, actionMetadata);
-
-    OsFamily osFamily = new OsFamily(config);
-    AmbariManagementHelper helper = new AmbariManagementHelper(stackDao, extensionDao, linkDao);
-
-    StackManager stackManager = new StackManager(stackRoot, commonServices, extensions,
-            osFamily, false, metaInfoDao, actionMetadata, stackDao, extensionDao, linkDao, helper);
-
-    for (StackInfo stackInfo : stackManager.getStacks()) {
-      for (ServiceInfo serviceInfo : stackInfo.getServices()) {
-        Type type = new TypeToken<Map<String, Map<String, List<MetricDefinition>>>>() {
-        }.getType();
-
-        Gson gson = new Gson();
-        Map<String, Map<String, List<MetricDefinition>>> map = null;
-        if (serviceInfo.getMetricsFile() != null) {
-          try {
-            map = gson.fromJson(new FileReader(serviceInfo.getMetricsFile()), type);
-          } catch (Exception e) {
-            e.printStackTrace();
-            throw new AmbariException("Failed to load metrics from file " + serviceInfo.getMetricsFile().getAbsolutePath());
-          }
-        }
-      }
-    }
   }
 
   @Test

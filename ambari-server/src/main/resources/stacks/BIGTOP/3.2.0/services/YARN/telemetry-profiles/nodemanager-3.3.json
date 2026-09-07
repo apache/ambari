@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "id": "nodemanager-3.3",
+  "maxSeries": 64,
+  "rules": [
+    {
+      "bean": {
+        "domain": "Hadoop",
+        "properties": {
+          "service": "NodeManager",
+          "name": "NodeManagerMetrics"
+        }
+      },
+      "attributes": {
+        "ApplicationsRunning": {
+          "name": "yarn_nodemanager_applications_running",
+          "type": "gauge",
+          "unit": "applications",
+          "help": "Current number of applications running on the NodeManager."
+        },
+        "AllocatedContainers": {
+          "name": "yarn_nodemanager_allocated_containers",
+          "type": "gauge",
+          "unit": "containers",
+          "help": "Current number of containers allocated on the NodeManager."
+        },
+        "ContainersRunning": {
+          "name": "yarn_nodemanager_containers_running",
+          "type": "gauge",
+          "unit": "containers",
+          "help": "Current number of containers running on the NodeManager."
+        },
+        "ContainersIniting": {
+          "name": "yarn_nodemanager_containers_initializing",
+          "type": "gauge",
+          "unit": "containers",
+          "help": "Current number of containers initializing on the NodeManager."
+        },
+        "ContainersLaunched": {
+          "name": "yarn_nodemanager_containers_launched_total",
+          "type": "counter",
+          "unit": "containers",
+          "help": "Total number of containers launched by the NodeManager."
+        },
+        "ContainersCompleted": {
+          "name": "yarn_nodemanager_containers_completed_total",
+          "type": "counter",
+          "unit": "containers",
+          "help": "Total number of containers completed on the NodeManager."
+        },
+        "ContainersFailed": {
+          "name": "yarn_nodemanager_containers_failed_total",
+          "type": "counter",
+          "unit": "containers",
+          "help": "Total number of containers failed on the NodeManager."
+        },
+        "ContainersKilled": {
+          "name": "yarn_nodemanager_containers_killed_total",
+          "type": "counter",
+          "unit": "containers",
+          "help": "Total number of containers killed on the NodeManager."
+        },
+        "AllocatedGB": {
+          "name": "yarn_nodemanager_allocated_memory_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "scale": 1073741824,
+          "help": "Memory currently allocated to containers in bytes."
+        },
+        "AvailableGB": {
+          "name": "yarn_nodemanager_available_memory_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "scale": 1073741824,
+          "help": "Memory currently available to containers in bytes."
+        },
+        "AllocatedVCores": {
+          "name": "yarn_nodemanager_allocated_vcores",
+          "type": "gauge",
+          "unit": "cores",
+          "help": "Virtual CPU cores currently allocated to containers."
+        },
+        "AvailableVCores": {
+          "name": "yarn_nodemanager_available_vcores",
+          "type": "gauge",
+          "unit": "cores",
+          "help": "Virtual CPU cores currently available to containers."
+        },
+        "BadLocalDirs": {
+          "name": "yarn_nodemanager_bad_local_directories",
+          "type": "gauge",
+          "unit": "directories",
+          "help": "Current number of unhealthy local directories."
+        },
+        "BadLogDirs": {
+          "name": "yarn_nodemanager_bad_log_directories",
+          "type": "gauge",
+          "unit": "directories",
+          "help": "Current number of unhealthy log directories."
+        },
+        "GoodLocalDirsDiskUtilizationPerc": {
+          "name": "yarn_nodemanager_local_directory_utilization_ratio",
+          "type": "gauge",
+          "unit": "ratio",
+          "scale": 0.01,
+          "help": "Average disk utilization ratio for healthy local directories."
+        },
+        "GoodLogDirsDiskUtilizationPerc": {
+          "name": "yarn_nodemanager_log_directory_utilization_ratio",
+          "type": "gauge",
+          "unit": "ratio",
+          "scale": 0.01,
+          "help": "Average disk utilization ratio for healthy log directories."
+        },
+        "ContainerLaunchDurationAvgTime": {
+          "name": "yarn_nodemanager_container_launch_duration_seconds",
+          "type": "gauge",
+          "unit": "seconds",
+          "scale": 0.001,
+          "help": "Average NodeManager container launch duration in seconds."
+        }
+      }
+    }
+  ]
+}

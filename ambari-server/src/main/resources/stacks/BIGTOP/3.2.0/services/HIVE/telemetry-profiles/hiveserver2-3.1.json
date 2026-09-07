@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "id": "hiveserver2-3.1",
+  "maxSeries": 64,
+  "rules": [
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "hs2_open_sessions"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_open_sessions",
+          "type": "gauge",
+          "unit": "sessions",
+          "help": "Current number of open HiveServer2 sessions."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "hs2_active_sessions"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_active_sessions",
+          "type": "gauge",
+          "unit": "sessions",
+          "help": "Current number of active HiveServer2 sessions."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "open_connections"
+        }
+      },
+      "attributes": {
+        "Count": {
+          "name": "hive_server2_open_connections",
+          "type": "gauge",
+          "unit": "connections",
+          "help": "Current number of open HiveServer2 client connections."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "cumulative_connection_count"
+        }
+      },
+      "attributes": {
+        "Count": {
+          "name": "hive_server2_connections_total",
+          "type": "counter",
+          "unit": "connections",
+          "help": "Total number of HiveServer2 client connections."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "hs2_submitted_queries"
+        }
+      },
+      "attributes": {
+        "Count": {
+          "name": "hive_server2_submitted_queries_total",
+          "type": "counter",
+          "unit": "queries",
+          "help": "Total number of queries submitted to HiveServer2."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "hs2_succeeded_queries"
+        }
+      },
+      "attributes": {
+        "Count": {
+          "name": "hive_server2_succeeded_queries_total",
+          "type": "counter",
+          "unit": "queries",
+          "help": "Total number of queries completed successfully by HiveServer2."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "hs2_failed_queries"
+        }
+      },
+      "attributes": {
+        "Count": {
+          "name": "hive_server2_failed_queries_total",
+          "type": "counter",
+          "unit": "queries",
+          "help": "Total number of queries failed by HiveServer2."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "exec_async_queue_size"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_async_queue_size",
+          "type": "gauge",
+          "unit": "operations",
+          "help": "Current number of HiveServer2 operations waiting in the asynchronous execution queue."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "exec_async_pool_size"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_async_pool_size",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current size of the HiveServer2 asynchronous execution thread pool."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "memory.heap.used"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_jvm_heap_used_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "help": "Current HiveServer2 JVM heap memory used in bytes."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "memory.heap.max"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_jvm_heap_max_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "help": "Maximum HiveServer2 JVM heap memory in bytes."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "threads.count"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_jvm_threads",
+          "type": "gauge",
+          "unit": "threads",
+          "help": "Current number of live HiveServer2 JVM threads."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "qc_current_size"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_query_cache_size_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "help": "Current HiveServer2 query result cache size in bytes."
+        }
+      }
+    },
+    {
+      "bean": {
+        "domain": "metrics",
+        "properties": {
+          "name": "qc_max_size"
+        }
+      },
+      "attributes": {
+        "Value": {
+          "name": "hive_server2_query_cache_max_bytes",
+          "type": "gauge",
+          "unit": "bytes",
+          "help": "Maximum configured HiveServer2 query result cache size in bytes."
+        }
+      }
+    }
+  ]
+}

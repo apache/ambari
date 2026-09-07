@@ -29,7 +29,6 @@ const serviceByComponent: Record<string, string> = {
   app_timeline_server: "YARN",
   yarn_registry_dns: "YARN",
   rangeradmin: "RANGER",
-  metrics_collector: "AMBARI_METRICS",
   ssm_server: "SSM",
   hive_server: "HIVE",
   hive_metastore: "HIVE",

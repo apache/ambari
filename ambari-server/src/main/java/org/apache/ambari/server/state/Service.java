@@ -170,13 +170,11 @@ public interface Service {
     OOZIE,
     WEBHCAT,
     SQOOP,
-    GANGLIA,
     ZOOKEEPER,
     PIG,
     FLUME,
     YARN,
     MAPREDUCE2,
-    AMBARI_METRICS,
     KERBEROS
   }
 }

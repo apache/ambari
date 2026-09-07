@@ -22,7 +22,6 @@ import ConfigsApi from "../../api/configsApi";
 import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { AuthGuard } from "../../components/AuthGuard";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
-import { ambari_metrics_properties } from "../../data/configs/services/ambari_metrics_properties";
 import { hbase_properties } from "../../data/configs/services/hbase_properties";
 import { hdfs_properties } from "../../data/configs/services/hdfs_properties";
 import { hive_properties } from "../../data/configs/services/hive_properties";
@@ -209,7 +208,6 @@ export default function ServiceConfigs({
     TEZ: tez_properties,
     SQOOP: sqoop_properties,
     ZOOKEEPER: zookeeper_properties,
-    AMBARI_METRICS: ambari_metrics_properties,
     KERBEROS: kerberos_properties,
     KYUUBI: kyuubi_properties,
   };

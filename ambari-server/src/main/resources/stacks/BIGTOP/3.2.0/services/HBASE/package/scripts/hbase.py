@@ -135,10 +135,7 @@ def hbase(name=None):
     content=Template("hbase.conf.j2"),
   )
 
-  hbase_TemplateConfig(
-    params.metric_prop_file_name,
-    tag="GANGLIA-MASTER" if name == "master" else "GANGLIA-RS",
-  )
+  hbase_TemplateConfig(params.metric_prop_file_name)
 
   hbase_TemplateConfig("regionservers")
 

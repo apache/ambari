@@ -122,22 +122,6 @@ def kafka(upgrade_type=None):
   else:
     kafka_server_config["host.name"] = params.hostname
 
-  if params.has_metric_collector:
-    kafka_server_config["kafka.timeline.metrics.hosts"] = params.ams_collector_hosts
-    kafka_server_config["kafka.timeline.metrics.port"] = params.metric_collector_port
-    kafka_server_config["kafka.timeline.metrics.protocol"] = (
-      params.metric_collector_protocol
-    )
-    kafka_server_config["kafka.timeline.metrics.truststore.path"] = (
-      params.metric_truststore_path
-    )
-    kafka_server_config["kafka.timeline.metrics.truststore.type"] = (
-      params.metric_truststore_type
-    )
-    kafka_server_config["kafka.timeline.metrics.truststore.password"] = (
-      params.metric_truststore_password
-    )
-
   kafka_data_dirs = validate_data_directories(kafka_server_config.get("log.dirs"))
   ensure_directories_are_not_symlinks(kafka_data_dirs)
 

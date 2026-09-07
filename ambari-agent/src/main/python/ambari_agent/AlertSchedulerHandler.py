@@ -27,7 +27,6 @@ from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 from ambari_agent.alerts.collector import AlertCollector
 from ambari_agent.alerts.metric_alert import MetricAlert
-from ambari_agent.alerts.ams_alert import AmsAlert
 from ambari_agent.alerts.port_alert import PortAlert
 from ambari_agent.alerts.script_alert import ScriptAlert
 from ambari_agent.alerts.web_alert import WebAlert
@@ -42,7 +41,6 @@ logger = logging.getLogger(__name__)
 class AlertSchedulerHandler:
   TYPE_PORT = "PORT"
   TYPE_METRIC = "METRIC"
-  TYPE_AMS = "AMS"
   TYPE_SCRIPT = "SCRIPT"
   TYPE_WEB = "WEB"
   TYPE_RECOVERY = "RECOVERY"
@@ -296,8 +294,6 @@ class AlertSchedulerHandler:
 
       if source_type == AlertSchedulerHandler.TYPE_METRIC:
         alert = MetricAlert(json_definition, source, self.config)
-      elif source_type == AlertSchedulerHandler.TYPE_AMS:
-        alert = AmsAlert(json_definition, source, self.config)
       elif source_type == AlertSchedulerHandler.TYPE_PORT:
         alert = PortAlert(json_definition, source, self.config)
       elif source_type == AlertSchedulerHandler.TYPE_SCRIPT:

@@ -17,11 +17,10 @@
  */
 
 import { useContext, useEffect } from "react";
-import { cloneDeep, find, get, isEmpty, isEqual } from "lodash";
-import { ServiceApi } from "../api/serviceApi";
+import { cloneDeep, find, get, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { updateServiceAlertsAndStateFromCentralizedApi } from "../Utils/centralizedServiceStateUtils";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import {
@@ -38,7 +37,7 @@ export const useHbaseConfigUpdater = () => {
   } = useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, clusterName, parsedSocketMessages, clockDistance } = useContext(AppContext);
+  const { services, parsedSocketMessages } = useContext(AppContext);
 
   // Early return if HBASE service is not installed
   const isHbaseInstalled = services && Array.isArray(services) &&
@@ -148,69 +147,15 @@ export const useHbaseConfigUpdater = () => {
         clientComponents.push(componentData);
       }
     });
-    currentConfig[ServiceComponentMetricsEnums.HDFS.masterComponents] =
+    currentConfig[ServiceComponentFields.HBASE.masterComponents] =
       masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.HDFS.slaveComponents] =
+    currentConfig[ServiceComponentFields.HBASE.slaveComponents] =
       slaveComponents;
-    currentConfig[ServiceComponentMetricsEnums.HDFS.clientComponents] =
+    currentConfig[ServiceComponentFields.HBASE.clientComponents] =
       clientComponents;
 
     if (!isEqual(allServiceModels["hbase"], currentConfig)) {
       allServiceModels["hbase"].updateConfig(currentConfig);
-      updateRegistry(allServiceModels);
-    }
-  };
-
-  const updateHbaseHostComponentsData = async () => {
-    let updatedConfig = cloneDeep(allServiceModels["hbase"]);
-
-    const serviceName = "HBASE"; // Replace with the desired service name
-    const fields = `ServiceComponentInfo/service_name,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name,host_components/HostRoles/host_name&minimal_response=true`;
-    const response =
-      await ServiceApi.getAllServiceComponentsListAndInitialMetrics(
-        clusterName,
-        `${fields}&ServiceComponentInfo/service_name=${serviceName}`
-      );
-
-    const components = [
-      { name: "HBASE_REGIONSERVER", metric: "hbaseRegionServers" },
-      { name: "PHOENIX_QUERY_SERVER", metric: "phoenixQueryServers" },
-    ];
-
-    components.forEach((component) => {
-      const hostComponents = findHostComponentItems(
-        "HBASE",
-        component.name,
-        response
-      );
-      
-      if (!hostComponents || !hostComponents.ServiceComponentInfo) {
-        return; // Skip if hostComponents is undefined or doesn't have ServiceComponentInfo
-      }
-      
-      const installedCount =
-        hostComponents.ServiceComponentInfo.installed_count;
-      const startedCount = hostComponents.ServiceComponentInfo.started_count;
-      const totalCount = hostComponents.ServiceComponentInfo.total_count;
-      updatedConfig[
-        ServiceComponentMetricsEnums.HBASE[
-          `${component.metric}Started ` as keyof typeof ServiceComponentMetricsEnums.HBASE
-        ] as any
-      ] = startedCount;
-      updatedConfig[
-        ServiceComponentMetricsEnums.HBASE[
-          `${component.metric}Installed` as keyof typeof ServiceComponentMetricsEnums.HBASE
-        ] as any
-      ] = installedCount;
-      updatedConfig[
-        ServiceComponentMetricsEnums.HBASE[
-          `${component.metric}Total` as keyof typeof ServiceComponentMetricsEnums.HBASE
-        ] as any
-      ] = totalCount;
-    });
-
-    if (!isEqual(allServiceModels["hbase"], updatedConfig)) {
-      allServiceModels["hbase"].updateConfig(updatedConfig);
       updateRegistry(allServiceModels);
     }
   };
@@ -228,64 +173,11 @@ export const useHbaseConfigUpdater = () => {
     ) {
       for (const hostComponent of latestHostOperationMessage.hostComponents) {
         if (hostComponent.currentState in componentFinishStates) {
-          await updateHbaseHostComponentsData();
           await findMasterSlaveClientComponents();
         }
       }
     }
   };
-
-  const calculateHbaseMasterUptime = (startOrActiveTime: number) => {
-    const currentConfig = cloneDeep(allServiceModels["hbase"]);
-    const hbaseServiceObj = currentConfig?.getServiceObject();
-    const uptime = startOrActiveTime;
-    if (uptime && uptime > 0) {
-      const appDateTime = Date.now() + clockDistance;
-      let diff = appDateTime - uptime;
-      if (diff < 0) {
-        diff = 0;
-      }
-      const formatted = hbaseServiceObj.timingFormat(diff);
-      return formatted.toString();
-    }
-  };
-  const calcDiskUsagePartandPercent = () => {
-    const currentConfig = cloneDeep(allServiceModels["hbase"]);
-    const hbaseServiceObj = currentConfig?.getServiceObject();
-
-    if (!hbaseServiceObj) {
-      return;
-    }
-
-    const updates = [
-      {
-        key: "diskPartHbaseMasterHeap",
-        value: hbaseServiceObj.diskPart(
-          hbaseServiceObj.heapMemoryUsed,
-          hbaseServiceObj.heapMemoryMax
-        ),
-      },
-      {
-        key: "percentHbaseMasterHeap",
-        value: hbaseServiceObj.findCapacityPercentage(
-          hbaseServiceObj.heapMemoryUsed,
-          hbaseServiceObj.heapMemoryMax
-        ),
-      },
-    ];
-
-    updates.forEach(({ key, value }) => {
-      if (currentConfig[key] && currentConfig[key] !== value) {
-        currentConfig[key] = value.toString();
-      }
-    });
-
-    if (!isEqual(allServiceModels["hbase"], currentConfig)) {
-      allServiceModels["hbase"].updateConfig(currentConfig);
-      updateRegistry(allServiceModels);
-    }
-  };
-
 
   const updateHbaseMasterComponents = async () => {
     //@ts-ignore
@@ -321,7 +213,6 @@ export const useHbaseConfigUpdater = () => {
             hostComponentData.state === componentFinishStates[1] && //denotes started
             hostComponentData.isActiveMaster === "true"
           ) {
-            //updates[ServiceComponentMetricsEnums.HDFS["nameNode"]] = hostComponentData;
             activeHbaseMasters.push(hostComponentData);
             return;
           } else if (
@@ -335,12 +226,12 @@ export const useHbaseConfigUpdater = () => {
         }
       });
     }
-    updates[ServiceComponentMetricsEnums.HBASE["activeHbaseMasters"]] =
+    updates[ServiceComponentFields.HBASE["activeHbaseMasters"]] =
       activeHbaseMasters;
-    updates[ServiceComponentMetricsEnums.HBASE["standbyHbaseMasters"]] =
+    updates[ServiceComponentFields.HBASE["standbyHbaseMasters"]] =
       standbyHbaseMasters;
     updates[
-      ServiceComponentMetricsEnums.HBASE["nonActiveStandbyHbaseMasters"]
+      ServiceComponentFields.HBASE["nonActiveStandbyHbaseMasters"]
     ] = nonActiveStandbyHbaseMasters;
 
     // Only update if we have changes
@@ -349,124 +240,6 @@ export const useHbaseConfigUpdater = () => {
       updateRegistry(allServiceModels);
     }
   };
-
-  const findHostComponentItems = (
-    serviceName: string,
-    componentName: any,
-    response: any
-  ) => {
-    const item = find(response.data.items, (item) => {
-      return (
-        get(item, "ServiceComponentInfo.service_name") === serviceName &&
-        get(item, "ServiceComponentInfo.component_name") === componentName
-      );
-    });
-    return item;
-  };
-
-  const updateHbaseData = () => {
-    const findMetrics = (data: any, metricParams: any) => {
-      let hbaseMetrics = new Map();
-      const item = find(
-        data.items,
-        (item) =>
-          get(item, "ServiceComponentInfo.service_name") === "HBASE" &&
-          get(item, "ServiceComponentInfo.component_name") === "HBASE_MASTER"
-      );
-      if (item) {
-        const hostComponent = find(item.host_components, (hostComponent) => {
-          return (
-            get(hostComponent, "HostRoles.component_name") === "HBASE_MASTER" &&
-            get(hostComponent, "HostRoles.state") === "STARTED" &&
-            get(hostComponent, "metrics.hbase.master.IsActiveMaster") === "true"
-          );
-        });
-        if (hostComponent) {
-          metricParams.forEach((metricParam: any) => {
-            //check for hbase master main metrics
-            let metricParamValue = get(
-              hostComponent,
-              `metrics.hbase.master.${metricParam}`,
-              null
-            );
-            if (metricParam === "AverageLoad" && metricParamValue !== null) {
-              metricParamValue = Number.isInteger(metricParamValue)
-                ? metricParamValue + " regions per RegionServer"
-                : metricParamValue.toFixed(2) + " regions per RegionServer";
-            } else if (
-              metricParam === "MasterStartTime" ||
-              metricParam === "MasterActiveTime"
-            ) {
-              metricParamValue = calculateHbaseMasterUptime(metricParamValue);
-            }
-
-            //check for jvm metrics
-            if (metricParamValue == null) {
-              metricParamValue = get(
-                hostComponent,
-                `metrics.jvm.${metricParam}`,
-                null
-              );
-            }
-            //check for regions in transition
-            if (metricParamValue == null) {
-              metricParamValue = get(
-                hostComponent,
-                `metrics.master.AssignmentManager.${metricParam}`,
-                null
-              );
-            }
-            hbaseMetrics.set(metricParam, metricParamValue);
-          });
-          return hbaseMetrics;
-        }
-      }
-      return null;
-    };
-
-    const fetchComponentsData = async () => {
-      let updatedConfig = cloneDeep(allServiceModels["hbase"]);
-
-      // Simulating the fetching of host components data
-      if (isEmpty(polledHostComponentsData)) {
-        return;
-      }
-
-      // Simulating the fetching of HDFS metric keys and finding metrics
-      const hbaseMetricKeys = Object.keys(
-        ServiceComponentMetricsEnums.HBASE.metrics
-      );
-      const metricsMap = findMetrics(polledHostComponentsData, hbaseMetricKeys);
-      const currentMetrics = {};
-      const newMetrics = {};
-
-      if (metricsMap) {
-        hbaseMetricKeys.forEach((key) => {
-          const metricKey =
-            ServiceComponentMetricsEnums.HBASE.metrics[
-              key as keyof typeof ServiceComponentMetricsEnums.HBASE.metrics
-            ];
-          const metricValue = metricsMap.get(key);
-          if (metricValue || metricValue >= 0) {
-            //@ts-ignore
-            currentMetrics[metricKey as string] =
-              allServiceModels["hbase"][metricKey as string];
-            //@ts-ignore
-            newMetrics[metricKey as string] = metricValue;
-            updatedConfig[metricKey] = metricValue;
-          }
-
-          if (!isEqual(updatedConfig, allServiceModels["hbase"])) {
-            allServiceModels["hbase"].updateConfig(updatedConfig);
-            updateRegistry(allServiceModels);
-          }
-        });
-      }
-    };
-    fetchComponentsData();
-  };
-
-  //usePolling(pollServiceComponentInfoApi, 3000);
 
   const updateServiceMaintenanceState = (maintenanceState: string) => {
     let configToBeUpdated = cloneDeep(allServiceModels["hbase"]);
@@ -491,9 +264,9 @@ export const useHbaseConfigUpdater = () => {
       );
     }
     if (
-      (latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)) ||
-      (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
+      latestHostOperationMessage &&
+      (componentFinishStates.includes(latestHostOperationMessage.state) ||
+        (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state)))
     ) {
       await updateServiceMaintenanceState(
         latestHostOperationMessage.maintenance_state
@@ -505,15 +278,12 @@ export const useHbaseConfigUpdater = () => {
   useEffect(() => {
     //@ts-ignore
     if (polledHostComponentsData?.items) {
-      updateHbaseData();
       updateHbaseMasterComponents();
       findMasterSlaveClientComponents();
-      calcDiskUsagePartandPercent();
     }
   }, [polledHostComponentsData]);
 
   useEffect(() => {
-    updateHbaseHostComponentsData();
     findMasterSlaveClientComponents();
     parseAlertsWebSocketMessages();
   }, []);

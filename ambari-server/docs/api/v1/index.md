@@ -29,7 +29,6 @@ The Ambari API facilitates the management and monitoring of the resources of an 
 - [Query Predicates](#query-predicates)
 - [Batch Requests](#batch-requests)
 - [RequestInfo](#request-info)
-- [Temporal Metrics](#temporal-metrics)
 - [Pagination](#pagination)
 - [Errors](#errors)
 
@@ -269,7 +268,8 @@ Cluster resources represent named Hadoop clusters.  Clusters are top level resou
 [Cluster Resources](cluster-resources.md)
 
 #### services
-Service resources are services of a Hadoop cluster (e.g. HDFS, MapReduce and Ganglia).  Service resources are sub-resources of clusters. 
+Service resources are services of a Hadoop cluster (for example, HDFS, YARN,
+and HBase). Service resources are sub-resources of clusters.
 
 [Service Resources](service-resources.md)
 
@@ -391,67 +391,48 @@ Used to control which fields are returned by a query.  Partial response can be u
 
 **Example: Using Partial Response to restrict response to a specific field**
 
-    GET    /api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total
+    GET    /api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=ServiceComponentInfo/state
 
     200 OK
 	{
-    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total”,
-    	“ServiceComponentInfo” : {
-        	“cluster_name” : “c1”,
-        	“component_name” : NAMENODE”,
-        	“service_name” : “HDFS”
-    	},
-    	“metrics” : {
-        	"disk" : {       
-            	"disk_total" : 100000
-        	}
-    	}
+	    “href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=ServiceComponentInfo/state”,
+	    “ServiceComponentInfo” : {
+	        “cluster_name” : “c1”,
+	        “component_name” : NAMENODE”,
+	        “service_name” : “HDFS”,
+	        “state” : “STARTED”
+	    }
     }
 
 **Example: Using Partial Response to restrict response to specified category**
 
-    GET    /api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk
+    GET    /api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=ServiceComponentInfo
 
     200 OK
 	{
-    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk”,
-    	“ServiceComponentInfo” : {
-        	“cluster_name” : “c1”,
-        	“component_name” : NAMENODE”,
-        	“service_name” : “HDFS”
-    	},
-    	“metrics” : {
-        	"disk" : {       
-            	"disk_total" : 100000,
-            	“disk_free” : 50000,
-            	“part_max_used” : 1010
-        	}
-    	}
+	    “href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=ServiceComponentInfo”,
+	    “ServiceComponentInfo” : {
+	        “cluster_name” : “c1”,
+	        “component_name” : NAMENODE”,
+	        “service_name” : “HDFS”,
+	        “state” : “STARTED”
+	    }
 	}
 
 **Example – Using Partial Response to restrict response to multiple fields/categories**
 
-	GET	/api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total,metrics/cpu
+	GET	/api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=ServiceComponentInfo/state,ServiceComponentInfo/category
 	
 	200 OK
 	{
-    	“href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=metrics/disk/disk_total,metrics/cpu”,
-    	“ServiceComponentInfo” : {
-        	“cluster_name” : “c1”,
-        	“component_name” : NAMENODE”,
-        	“service_name” : “HDFS”
-    	},
-    	“metrics” : {
-        	"disk" : {       
-            	"disk_total" : 100000
-        	},
-        	“cpu” : {
-            	“cpu_speed” : 10000000,
-            	“cpu_num” : 4,
-            	“cpu_idle” : 999999,
-            	...
-        	}
-    	}
+	    “href”: “.../api/v1/clusters/c1/services/HDFS/components/NAMENODE?fields=ServiceComponentInfo/state,ServiceComponentInfo/category”,
+	    “ServiceComponentInfo” : {
+	        “cluster_name” : “c1”,
+	        “component_name” : NAMENODE”,
+	        “service_name” : “HDFS”,
+	        “state” : “STARTED”,
+	        “category” : “MASTER”
+	    }
 	}
 
 **Example – Using Partial Response to restrict response to a sub-resource**
@@ -839,9 +820,9 @@ Operator functions behave like relational operators and provide additional funct
 	
 	GET	/api/v1/clusters/c1/hosts?Hosts/host_name.in(host1,host2,host3)
 
-**Example – Get and expand all HDFS components, which have at least 1 property in the “metrics/jvm” category (combines query and partial response syntax)**
+**Example – Get and expand all HDFS components whose state is STARTED (combines query and partial response syntax)**
 
-	GET	/api/v1/clusters/c1/services/HDFS/components?!metrics/jvm.isEmpty()&fields=*
+	GET	/api/v1/clusters/c1/services/HDFS/components?ServiceComponentInfo/state=STARTED&fields=*
 
 **Example – Update the state of all ‘INSTALLED’ services to be ‘STARTED’**
 
@@ -1017,78 +998,6 @@ When the request resource returned in the above example is queried, the supplied
     }
  
 
-Temporal Metrics
-----
-
-Some metrics have values that are available across a range in time.  To query a metric for a range of values, the following partial response syntax is used.  
-
-To get temporal data for a single property:
-?fields=category/property[start-time,end-time,step]	
-
-To get temporal data for all properties in a category:
-?fields=category[start-time,end-time,step]
-
-start-time: Required field.  The start time for the query in Unix epoch time format.
-end-time: Optional field, defaults to now.  The end time for the query in Unix epoch time format.
-step: Optional field, defaults to the corresponding metrics system’s default value.  If provided, end-time must also be provided. The interval of time between returned data points specified in seconds. The larger the value provided, the fewer data points returned so this can be used to limit how much data is returned for the given time range.  This is only used as a suggestion so the result interval may differ from the one specified.
-
-The returned result is a list of data points over the specified time range.  Each data point is a value / timestamp pair.
-
-**Note**: It is important to understand that requesting large amounts of temporal data may result in severe performance degradation.  **Always** request the minimal amount of information necessary.  If large amounts of data are required, consider splitting the request up into multiple smaller requests.
-
-**Example – Temporal Query for a single property using only start-time**
-
-	GET	/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm/gcCount[1360610225]
-
-	
-	200 OK
-	{
-    	“href” : …/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm/gcCount[1360610225]”,
-    	...
-    	“metrics”: [
-        	{
-            	“jvm”: {
-          	    	"gcCount" : [
-                   		[10, 1360610165],
-                     	[12, 1360610180],
-                     	[13, 1360610195],
-                     	[14, 1360610210],
-                     	[15, 1360610225]
-                  	]
-             	}
-         	}
-    	]
-	}
-
-**Example – Temporal Query for a category using start-time, end-time and step**
-
-	GET	/api/v1/clusters/c1/hosts/host1?fields=metrics/jvm[1360610200,1360610500,100]
-
-	200 OK
-	{
-    	“href” : …/clusters/c1/hosts/host1?fields=metrics/jvm[1360610200,1360610500,100]”,
-    	...
-    	“metrics”: [
-        	{
-            	“jvm”: {
-          	    	"gcCount" : [
-                   		[10, 1360610200],
-                     	[12, 1360610300],
-                     	[13, 1360610400],
-                     	[14, 1360610500]
-                  	],
-                	"gcTimeMillis" : [
-                   		[1000, 1360610200],
-                     	[2000, 1360610300],
-                     	[5000, 1360610400],
-                     	[9500, 1360610500]
-                  	],
-                  	...
-             	}
-         	}
-    	]
-	}
-
 Pagination
 ----
 
@@ -1199,5 +1108,3 @@ Errors
     	"message" : "The properties [foo] specified in the request or predicate are not supported for the 
                 	 resource type Cluster."
 	}
-
-

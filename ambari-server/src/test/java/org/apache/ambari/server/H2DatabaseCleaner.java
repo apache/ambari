@@ -79,14 +79,12 @@ public class H2DatabaseCleaner {
         sequenceList.add("upgrade_id_seq");
         sequenceList.add("stack_id_seq");
         sequenceList.add("alert_current_id_seq");
-        sequenceList.add("widget_id_seq");
         sequenceList.add("remote_cluster_service_id_seq");
         sequenceList.add("alert_history_id_seq");
         sequenceList.add("config_id_seq");
         sequenceList.add("upgrade_group_id_seq");
         sequenceList.add("member_id_seq");
         sequenceList.add("service_config_id_seq");
-        sequenceList.add("widget_layout_id_seq");
         sequenceList.add("hostcomponentdesiredstate_id_seq");
         sequenceList.add("operation_level_id_seq");
         sequenceList.add("servicecomponent_version_id_seq");

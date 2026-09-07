@@ -41,6 +41,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
         put(STOMPEvent.Type.UI_TOPOLOGY, "/events/ui_topologies");
         put(STOMPEvent.Type.AGENT_TOPOLOGY, "/events/topologies");
         put(STOMPEvent.Type.AGENT_CONFIGS, "/configs");
+        put(STOMPEvent.Type.TELEMETRY, "/telemetry");
         put(STOMPEvent.Type.CONFIGS, "/events/configs");
         put(STOMPEvent.Type.HOSTCOMPONENT, "/events/hostcomponents");
         put(STOMPEvent.Type.NAMEDTASK, "/events/tasks");
@@ -60,6 +61,7 @@ public class DefaultMessageEmitter extends MessageEmitter {
         STOMPEvent.Type.HOSTLEVELPARAMS,
         STOMPEvent.Type.AGENT_TOPOLOGY,
         STOMPEvent.Type.AGENT_CONFIGS,
+        STOMPEvent.Type.TELEMETRY,
         STOMPEvent.Type.COMMAND,
         STOMPEvent.Type.ALERT_DEFINITIONS,
         STOMPEvent.Type.AGENT_ACTIONS,

@@ -171,11 +171,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearSession();
       const status = error?.response?.status;
       if (status === 403) {
-        setLoginError(error?.response?.data?.message || "Invalid username or password.");
+        setLoginError(error?.response?.data?.message || "login.error.invalidCredentials");
       } else if (status === 500) {
-        setLoginError(error?.response?.data?.message || "Ambari Server could not complete the login request.");
+        setLoginError(error?.response?.data?.message || "login.error.server");
       } else {
-        setLoginError(error?.response?.data?.message || "Unable to sign in to Ambari.");
+        setLoginError(error?.response?.data?.message || "login.error.unavailable");
       }
       return false;
     } finally {

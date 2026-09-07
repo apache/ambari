@@ -48,7 +48,7 @@ public class ComponentInfo {
    * For example, Masters will typically advertise the version upon a RESTART.
    * Whereas clients will advertise the version when INSTALLED.
    * Some components do not need to advertise a version because it is either redundant, or they don't have a mechanism
-   * at the moment. For instance, ZKFC has the same version as NameNode, while AMBARI_METRICS and KERBEROS do not have a mechanism.
+   * at the moment. For instance, ZKFC has the same version as NameNode, while KERBEROS does not have a mechanism.
    *
    * This is the translation of the xml element ["true", "false", null] (note that if a value is not specified,
    * it will inherit from the parent) into a boolean after actually resolving it.

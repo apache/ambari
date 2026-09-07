@@ -993,15 +993,6 @@ class TestYarnServiceJsonContract(unittest.TestCase):
     self.assertEqual(1, document["components"][0]["number_of_containers"])
     self.assertEqual(1, document["components"][0]["resource"]["cpus"])
     self.assertEqual("2048", document["components"][0]["resource"]["memory"])
-    self.assertIn(
-      "hadoop-metrics2-hbase.properties",
-      [entry["dest_file"] for entry in document["configuration"]["files"]],
-    )
-
-  def test_yarnfile_omits_metrics_resource_without_collector(self):
-    document, _ = self._render(
-      "yarn_hbase_unsecure.yarnfile.j2", False, has_metric_collector=False
-    )
     self.assertNotIn(
       "hadoop-metrics2-hbase.properties",
       [entry["dest_file"] for entry in document["configuration"]["files"]],

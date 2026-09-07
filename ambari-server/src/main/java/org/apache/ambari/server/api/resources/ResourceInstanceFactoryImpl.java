@@ -423,18 +423,6 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.QuickLink, "quicklink", "quicklinks");
         break;
 
-      case Widget:
-        resourceDefinition = new WidgetResourceDefinition();
-        break;
-
-      case WidgetLayout:
-        resourceDefinition = new WidgetLayoutResourceDefinition();
-        break;
-
-      case ActiveWidgetLayout:
-        resourceDefinition = new ActiveWidgetLayoutResourceDefinition();
-        break;
-
       case HostKerberosIdentity:
         resourceDefinition = new HostKerberosIdentityResourceDefinition();
         break;

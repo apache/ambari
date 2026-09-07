@@ -220,7 +220,7 @@ public class MetricsRetrievalService extends AbstractService {
     m_threadPoolExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardOldestPolicy());
 
     ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
-        "ambari-metrics-retrieval-service-thread-%d").setPriority(
+        "ambari-jmx-retrieval-service-thread-%d").setPriority(
             threadPriority).setUncaughtExceptionHandler(
             new MetricRunnableExceptionHandler()).build();
 

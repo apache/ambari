@@ -273,13 +273,13 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
-    final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
-    expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
-    expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
+    final ServiceComponentHost schHdfsClient = createMock(ServiceComponentHost.class);
+    expect(schHdfsClient.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(schHdfsClient.getServiceComponentName()).andReturn("HDFS_CLIENT").anyTimes();
     // First host contains versionable components
-    final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schAMS);
+    final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schHdfsClient);
     // Second host does not contain versionable components
-    final List<ServiceComponentHost> schsH2 = Lists.newArrayList(schAMS);
+    final List<ServiceComponentHost> schsH2 = Lists.newArrayList(schHdfsClient);
 
     ServiceOsSpecific.Package hdfsPackage = new ServiceOsSpecific.Package();
     hdfsPackage.setName("hdfs");
@@ -366,7 +366,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     // replay
     replay(managementController, response, clusters,
-            cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schAMS, actionManager,
+            cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schHdfsClient, actionManager,
             executionCommand, executionCommandWrapper,stage, stageFactory);
 
 
@@ -456,19 +456,19 @@ public class ClusterStackVersionResourceProviderTest {
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
 
-    final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
-    expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
-    expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
+    final ServiceComponentHost schHdfsClient = createMock(ServiceComponentHost.class);
+    expect(schHdfsClient.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(schHdfsClient.getServiceComponentName()).andReturn("HDFS_CLIENT").anyTimes();
 
     final ServiceComponentHost schHBM = createMock(ServiceComponentHost.class);
     expect(schHBM.getServiceName()).andReturn("HBASE").anyTimes();
     expect(schHBM.getServiceComponentName()).andReturn("HBASE_MASTER").anyTimes();
 
     // First host contains versionable components
-    final List<ServiceComponentHost> schsH1 = Arrays.asList(schDatanode, schNamenode, schAMS);
+    final List<ServiceComponentHost> schsH1 = Arrays.asList(schDatanode, schNamenode, schHdfsClient);
 
     // Second host does not contain versionable components
-    final List<ServiceComponentHost> schsH2 = Arrays.asList(schAMS);
+    final List<ServiceComponentHost> schsH2 = Arrays.asList(schHdfsClient);
 
     // Third host only has hbase
     final List<ServiceComponentHost> schsH3 = Arrays.asList(schHBM);
@@ -564,7 +564,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     // replay
     replay(managementController, response, clusters, hdfsService, hbaseService, resourceProviderFactory, csvResourceProvider,
-            cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schAMS, schHBM, actionManager,
+            cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schHdfsClient, schHBM, actionManager,
             executionCommand, executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -1129,13 +1129,13 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
-    final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
-    expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
-    expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
+    final ServiceComponentHost schHdfsClient = createMock(ServiceComponentHost.class);
+    expect(schHdfsClient.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(schHdfsClient.getServiceComponentName()).andReturn("HDFS_CLIENT").anyTimes();
     // First host contains versionable components
-    final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schAMS);
+    final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schHdfsClient);
     // Second host does not contain versionable components
-    final List<ServiceComponentHost> schsH2 = Lists.newArrayList(schAMS);
+    final List<ServiceComponentHost> schsH2 = Lists.newArrayList(schHdfsClient);
 
     ServiceOsSpecific.Package hdfsPackage = new ServiceOsSpecific.Package();
     hdfsPackage.setName("hdfs");
@@ -1225,7 +1225,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     // replay
     replay(managementController, response, clusters,
-            cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schAMS, actionManager,
+            cluster, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schHdfsClient, actionManager,
             executionCommand, executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = createProvider(managementController);
@@ -1502,13 +1502,13 @@ public class ClusterStackVersionResourceProviderTest {
     final ServiceComponentHost schNamenode = createMock(ServiceComponentHost.class);
     expect(schNamenode.getServiceName()).andReturn("HDFS").anyTimes();
     expect(schNamenode.getServiceComponentName()).andReturn("NAMENODE").anyTimes();
-    final ServiceComponentHost schAMS = createMock(ServiceComponentHost.class);
-    expect(schAMS.getServiceName()).andReturn("AMBARI_METRICS").anyTimes();
-    expect(schAMS.getServiceComponentName()).andReturn("METRICS_COLLECTOR").anyTimes();
+    final ServiceComponentHost schHdfsClient = createMock(ServiceComponentHost.class);
+    expect(schHdfsClient.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(schHdfsClient.getServiceComponentName()).andReturn("HDFS_CLIENT").anyTimes();
     // First host contains versionable components
-    final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schAMS);
+    final List<ServiceComponentHost> schsH1 = Lists.newArrayList(schDatanode, schNamenode, schHdfsClient);
     // Second host does not contain versionable components
-    final List<ServiceComponentHost> schsH2 = Lists.newArrayList(schAMS);
+    final List<ServiceComponentHost> schsH2 = Lists.newArrayList(schHdfsClient);
 
     ServiceOsSpecific.Package hdfsPackage = new ServiceOsSpecific.Package();
     hdfsPackage.setName("hdfs");
@@ -1604,7 +1604,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
-            cluster, repoVersion, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schAMS, actionManager,
+            cluster, repoVersion, repositoryVersionDAOMock, configHelper, schDatanode, schNamenode, schHdfsClient, actionManager,
             executionCommand, executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = createProvider(managementController);

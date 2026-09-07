@@ -20,7 +20,7 @@ import { useContext, useEffect} from "react";
 import { cloneDeep, find, get, isEqual } from "lodash";
 import { cachedServiceApi } from "../api/cachedServiceApi";
 import { centralizedServiceStateApi } from "../api/centralizedServiceStateApi";
-import { ServiceComponentMetricsEnums } from "../enums/ServiceComponentMetricsEnums";
+import { ServiceComponentFields } from "../enums/ServiceComponentFields";
 import { AppContext } from "../store/context.tsx";
 import { ServiceContext } from "../store/ServiceContext.tsx";
 import { componentFinishStates, maintenanceStates } from "../screens/Hosts/constants";
@@ -133,23 +133,23 @@ export const usePinotConfigUpdater = () => {
         
         // Update specific component counts
         if (componentData.componentName === "PINOT_BROKER") {
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotBrokerStartedCount] = componentData.startedCount;
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotBrokerInstalledCount] = componentData.installedCount;
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotBrokerTotalCount] = componentData.totalCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotBrokerStartedCount] = componentData.startedCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotBrokerInstalledCount] = componentData.installedCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotBrokerTotalCount] = componentData.totalCount;
         } else if (componentData.componentName === "PINOT_MINION") {
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotMinionStartedCount] = componentData.startedCount;
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotMinionInstalledCount] = componentData.installedCount;
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotMinionTotalCount] = componentData.totalCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotMinionStartedCount] = componentData.startedCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotMinionInstalledCount] = componentData.installedCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotMinionTotalCount] = componentData.totalCount;
         } else if (componentData.componentName === "PINOT_SERVER") {
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotServerStartedCount] = componentData.startedCount;
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotServerInstalledCount] = componentData.installedCount;
-          currentConfig[ServiceComponentMetricsEnums.PINOT.pinotServerTotalCount] = componentData.totalCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotServerStartedCount] = componentData.startedCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotServerInstalledCount] = componentData.installedCount;
+          currentConfig[ServiceComponentFields.PINOT.pinotServerTotalCount] = componentData.totalCount;
         }
       }
     });
 
-    currentConfig[ServiceComponentMetricsEnums.PINOT.masterComponents] = masterComponents;
-    currentConfig[ServiceComponentMetricsEnums.PINOT.slaveComponents] = slaveComponents;
+    currentConfig[ServiceComponentFields.PINOT.masterComponents] = masterComponents;
+    currentConfig[ServiceComponentFields.PINOT.slaveComponents] = slaveComponents;
 
     if (!isEqual(allServiceModels["pinot"], currentConfig)) {
       allServiceModels["pinot"].updateConfig(currentConfig);
@@ -200,9 +200,9 @@ export const usePinotConfigUpdater = () => {
 
     if (!alertsCount && alertsCount !== 0) return;
 
-    currentConfig[ServiceComponentMetricsEnums.PINOT.hasCriticalAlerts] = hasCriticalAlerts;
-    currentConfig[ServiceComponentMetricsEnums.PINOT.alertsCount] = alertsCount;
-    currentConfig[ServiceComponentMetricsEnums.PINOT.state] = state;
+    currentConfig[ServiceComponentFields.PINOT.hasCriticalAlerts] = hasCriticalAlerts;
+    currentConfig[ServiceComponentFields.PINOT.alertsCount] = alertsCount;
+    currentConfig[ServiceComponentFields.PINOT.state] = state;
 
     if (!isEqual(allServiceModels["pinot"], currentConfig)) {
       allServiceModels["pinot"].updateConfig(currentConfig);
@@ -219,8 +219,8 @@ export const usePinotConfigUpdater = () => {
     }
     if (
         latestHostOperationMessage &&
-        componentFinishStates.includes(latestHostOperationMessage.state)
-        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state))
+        (componentFinishStates.includes(latestHostOperationMessage.state)
+        || (latestHostOperationMessage.maintenance_state && maintenanceStates.includes(latestHostOperationMessage.maintenance_state)))
     ) {
       await updateServiceMaintenanceState(latestHostOperationMessage.maintenance_state);
       await updateAlertsAndServiceStateData();

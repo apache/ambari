@@ -22,7 +22,6 @@ type HostComponent = {
   componentName: string;
   hostName: string;
   //haNameSpace?: string;
-  //clusterIdValue?: string;
 };
 
 type MapReduce2ServiceData = {

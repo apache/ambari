@@ -34,7 +34,7 @@ public class ComponentSSLConfigurationTest {
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PATH.getKey(), path);
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), pass);
     ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_TYPE.getKey(), type);
-    ambariProperties.setProperty(Configuration.AMBARI_METRICS_HTTPS_ENABLED.getKey(),
+    ambariProperties.setProperty(Configuration.COMPONENT_HTTPS_ENABLED.getKey(),
         Boolean.toString(isSslEnabled));
 
     Configuration configuration =  new TestConfiguration(ambariProperties);
@@ -68,7 +68,7 @@ public class ComponentSSLConfigurationTest {
   }
 
   @Test
-  public void testIsGangliaSSL() throws Exception {
+  public void testIsComponentHttpsEnabled() throws Exception {
     ComponentSSLConfiguration sslConfiguration = getConfiguration("tspath",
         "tspass", "tstype", true);
     Assert.assertTrue(sslConfiguration.isHttpsEnabled());

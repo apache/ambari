@@ -19,6 +19,7 @@
 type ServiceNavigationOptions = {
   availableTabs: Record<string, string[]>;
   canViewConfigs: boolean;
+  canViewMetrics: boolean;
   installedServices: string[];
   requestedService?: string;
   requestedTab?: string;
@@ -27,6 +28,7 @@ type ServiceNavigationOptions = {
 export function resolveServiceNavigation({
   availableTabs,
   canViewConfigs,
+  canViewMetrics,
   installedServices,
   requestedService,
   requestedTab,
@@ -56,7 +58,8 @@ export function resolveServiceNavigation({
   const canSelectRequestedTab =
     Boolean(requestedTab) &&
     supportedTabs.includes(requestedTab as string) &&
-    (requestedTab !== "configs" || canViewConfigs);
+    (requestedTab !== "configs" || canViewConfigs) &&
+    (requestedTab !== "metrics" || canViewMetrics);
   const selectedTab = canSelectRequestedTab ? requestedTab as string : "summary";
 
   return {

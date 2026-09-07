@@ -1,0 +1,56 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol": {
+      "type": "HTTP_ONLY"
+    },
+    "links": [
+      {
+        "name": "victoriametrics_single_vmui",
+        "label": "VictoriaMetrics Single-node VMUI",
+        "component_name": "VICTORIAMETRICS_SERVER",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@/vmui/",
+        "port": {
+          "http_property": "server_http_port",
+          "http_default_port": "8428",
+          "https_property": "server_http_port",
+          "https_default_port": "8428",
+          "regex": "^(\\d+)$",
+          "site": "victoriametrics"
+        }
+      },
+      {
+        "name": "victoriametrics_cluster_vmui",
+        "label": "VictoriaMetrics Cluster VMUI",
+        "component_name": "VMAUTH",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@/vmui/",
+        "port": {
+          "http_property": "vmauth_http_port",
+          "http_default_port": "8427",
+          "https_property": "vmauth_http_port",
+          "https_default_port": "8427",
+          "regex": "^(\\d+)$",
+          "site": "victoriametrics-auth"
+        }
+      },
+      {
+        "name": "victoriametrics_targets",
+        "label": "VMAGENT Targets",
+        "component_name": "VMAGENT",
+        "requires_user_name": "false",
+        "url": "%@://%@:%@/targets",
+        "port": {
+          "http_property": "vmagent_http_port",
+          "http_default_port": "8429",
+          "https_property": "vmagent_http_port",
+          "https_default_port": "8429",
+          "regex": "^(\\d+)$",
+          "site": "victoriametrics-scrape"
+        }
+      }
+    ]
+  }
+}

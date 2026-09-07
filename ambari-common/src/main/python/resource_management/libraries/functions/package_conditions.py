@@ -22,8 +22,6 @@ Ambari Agent
 
 __all__ = [
   "should_install_phoenix",
-  "should_install_ams_collector",
-  "should_install_ams_grafana",
   "should_install_infra_solr",
   "should_install_infra_solr_client",
   "should_install_mysql",
@@ -88,16 +86,6 @@ def should_install_phoenix():
   if "phoenix_sql_enabled" not in hbase_env:
     return False
   return _strict_configuration_boolean(config, "hbase-env", "phoenix_sql_enabled")
-
-
-def should_install_ams_collector():
-  config = Script.get_config()
-  return _has_applicable_local_component(config, ["METRICS_COLLECTOR"])
-
-
-def should_install_ams_grafana():
-  config = Script.get_config()
-  return _has_applicable_local_component(config, ["METRICS_GRAFANA"])
 
 
 def should_install_yarn_ats_hbase():

@@ -367,9 +367,6 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
       // Components that are automatically added (not shown as checkboxes)
       // These should be filtered out from validation errors
       const autoAddedComponents: string[] = [];
-      if (services.includes("AMBARI_METRICS")) {
-        autoAddedComponents.push("METRICS_MONITOR");
-      }
       if (services.includes("KERBEROS")) {
         autoAddedComponents.push("KERBEROS_CLIENT");
       }
@@ -385,7 +382,7 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
           return false;
         }
         
-        // Filter out auto-added components (METRICS_MONITOR, KERBEROS_CLIENT, etc.)
+        // Filter out auto-added components such as KERBEROS_CLIENT.
         if (componentName && autoAddedComponents.includes(componentName)) {
           return false;
         }
@@ -421,13 +418,6 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
   const getAdditionalServiceComponents = () => {
     const changedComponents = cloneDeep(serviceComponents);
     for (const serviceComponent of changedComponents) {
-      if (services.includes("AMBARI_METRICS")) {
-        serviceComponent.checkboxes.push({
-          label: "METRICS_MONITOR",
-          checked: true,
-          isDisabled: false,
-        });
-      }
       if (services.includes("KERBEROS")) {
         serviceComponent.checkboxes.push({
           label: "KERBEROS_CLIENT",

@@ -609,12 +609,6 @@ export function getConfigCategories(
         { name: "General", displayName: "General" },
       );
       break;
-    case "AMBARI_METRICS":
-      categories.push(
-        { name: "General", displayName: "General" },
-        { name: "MetricCollector", displayName: "Metric Collector" },
-      );
-      break;
     case "RANGER":
       categories.push(
         { name: "RANGER_ADMIN", displayName: "Admin Settings", showHost: true },

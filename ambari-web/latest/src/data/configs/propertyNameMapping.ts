@@ -27,11 +27,6 @@ const propertyNameMapping:any = {
       displayType: "user",
       category: "Users and Groups",
     },
-    ambari_metrics_user: {
-      displayName: "Ambari Metrics User",
-      displayType: "user",
-      category: "Users and Groups",
-    },
     kms_group: {
       displayName: "KMS Group",
       displayType: "user",

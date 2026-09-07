@@ -163,8 +163,6 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 #users and groups
 hbase_user = config['configurations']['hbase-env']['hbase_user']
 smoke_user =  config['configurations']['cluster-env']['smokeuser']
-gmetad_user = config['configurations']['ganglia-env']["gmetad_user"]
-gmond_user = config['configurations']['ganglia-env']["gmond_user"]
 tez_user = config['configurations']['tez-env']["tez_user"]
 oozie_user = config['configurations']['oozie-env']["oozie_user"]
 falcon_user = config['configurations']['falcon-env']["falcon_user"]
@@ -173,7 +171,6 @@ nifi_user = config['configurations']['nifi-env']["nifi_user"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 
-ganglia_server_hosts = default("/clusterHostInfo/ganglia_server_host", [])
 namenode_host = default("/clusterHostInfo/namenode_host", [])
 hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
@@ -182,7 +179,6 @@ ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 nifi_master_hosts = default("/clusterHostInfo/nifi_master_hosts", [])
 
 has_namenode = not len(namenode_host) == 0
-has_ganglia_server = not len(ganglia_server_hosts) == 0
 has_tez = 'tez-site' in config['configurations']
 has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
@@ -212,9 +208,6 @@ service_repo_info = default("/hostLevelParams/service_repo_info",None)
 
 user_to_groups_dict = collections.defaultdict(lambda:[user_group])
 user_to_groups_dict[smoke_user] = [proxyuser_group]
-if has_ganglia_server:
-  user_to_groups_dict[gmond_user] = [gmond_user]
-  user_to_groups_dict[gmetad_user] = [gmetad_user]
 if has_tez:
   user_to_groups_dict[tez_user] = [proxyuser_group]
 if has_oozie_server:

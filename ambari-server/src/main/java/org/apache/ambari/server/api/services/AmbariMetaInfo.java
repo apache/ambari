@@ -18,9 +18,6 @@
 
 package org.apache.ambari.server.api.services;
 
-import static org.apache.ambari.server.controller.spi.Resource.InternalType.Component;
-import static org.apache.ambari.server.controller.spi.Resource.InternalType.HostComponent;
-import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
 
 import java.io.File;
 import java.io.FileReader;
@@ -123,11 +120,6 @@ public class AmbariMetaInfo {
    */
   public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
 
-  /**
-   * The filename for a Widgets descriptor file at either the stack or service level
-   */
-  public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
-
   private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
 
 
@@ -148,7 +140,6 @@ public class AmbariMetaInfo {
   private File commonServicesRoot;
   private File extensionsRoot;
   private File serverVersionFile;
-  private File commonWidgetsDescriptorFile;
   private File customActionRoot;
 
   private String commonKerberosDescriptorFileLocation;
@@ -254,8 +245,6 @@ public class AmbariMetaInfo {
 
 
     commonKerberosDescriptorFileLocation = new File(conf.getResourceDirPath(), KERBEROS_DESCRIPTOR_FILE_NAME).getAbsolutePath();
-    commonWidgetsDescriptorFile = new File(conf.getResourceDirPath(), WIDGETS_DESCRIPTOR_FILE_NAME);
-
     String mpackV2StagingPath = conf.getMpacksV2StagingPath();
     mpacksV2Staging = new File(mpackV2StagingPath);
 
@@ -986,18 +975,6 @@ public class AmbariMetaInfo {
                 if (processedMetrics != null) {
                   iterator.remove(); // Remove current metric entry
                   newMetricsToAdd.putAll(processedMetrics);
-                } else {
-                  processedMetrics = Collections.singletonMap(metricEntry.getKey(), metricEntry.getValue());
-                }
-
-                // NOTE: Only Component aggregates for AMS supported for now.
-                if (metricDefinition.getType().equals("ganglia") &&
-                  (metricDefEntry.getKey().equals(Component.name()) ||
-                    metricDefEntry.getKey().equals(HostComponent.name()))) {
-                  for (Map.Entry<String, Metric> processedMetric : processedMetrics.entrySet()) {
-                    newMetricsToAdd.putAll(getAggregateFunctionMetrics(processedMetric.getKey(),
-                      processedMetric.getValue()));
-                  }
                 }
               }
               metricByCategory.getValue().putAll(newMetricsToAdd);
@@ -1008,26 +985,6 @@ public class AmbariMetaInfo {
     }
 
     return metricMap;
-  }
-
-  private Map<String, Metric> getAggregateFunctionMetrics(String metricName, Metric currentMetric) {
-    Map<String, Metric> newMetrics = new HashMap<>();
-    if (!PropertyHelper.hasAggregateFunctionSuffix(currentMetric.getName())) {
-      // For every function id
-      for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
-        String newMetricKey = metricName + identifierToAdd;
-        Metric newMetric = new Metric(
-          currentMetric.getName() + identifierToAdd,
-          currentMetric.isPointInTime(),
-          currentMetric.isTemporal(),
-          currentMetric.isAmsHostMetric(),
-          currentMetric.getUnit()
-        );
-        newMetrics.put(newMetricKey, newMetric);
-      }
-    }
-
-    return newMetrics;
   }
 
   /**
@@ -1534,10 +1491,6 @@ public class AmbariMetaInfo {
     }
 
     return null;
-  }
-
-  public File getCommonWidgetsDescriptorFile() {
-    return commonWidgetsDescriptorFile;
   }
 
   /***

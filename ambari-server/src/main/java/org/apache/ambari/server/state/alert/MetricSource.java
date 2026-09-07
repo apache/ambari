@@ -48,23 +48,12 @@ public class MetricSource extends Source {
   @SerializedName("jmx")
   private JmxInfo jmxInfo = null;
 
-  @SerializedName("ganglia")
-  private String gangliaInfo = null;
-
   /**
    * @return the jmx info, if this metric is jmx-based
    */
   @JsonProperty("jmx")
   public JmxInfo getJmxInfo() {
     return jmxInfo;
-  }
-
-  /**
-   * @return the ganglia info, if this metric is ganglia-based
-   */
-  @JsonProperty("ganglia")
-  public String getGangliaInfo() {
-    return gangliaInfo;
   }
 
   /**
@@ -77,7 +66,7 @@ public class MetricSource extends Source {
 
   @Override
   public int hashCode() {
-    return Objects.hash(super.hashCode(), gangliaInfo, uri, jmxInfo);
+    return Objects.hash(super.hashCode(), uri, jmxInfo);
   }
 
   @Override
@@ -95,8 +84,7 @@ public class MetricSource extends Source {
     }
 
     MetricSource other = (MetricSource) obj;
-    return Objects.equals(gangliaInfo, other.gangliaInfo) &&
-      Objects.equals(uri, other.uri) &&
+    return Objects.equals(uri, other.uri) &&
       Objects.equals(jmxInfo, other.jmxInfo);
   }
 

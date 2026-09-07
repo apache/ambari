@@ -25,6 +25,7 @@ const options = {
     YARN: ["summary", "configs"],
   },
   canViewConfigs: true,
+  canViewMetrics: true,
   installedServices: ["HDFS", "YARN"],
 };
 
@@ -67,6 +68,15 @@ describe("service navigation", () => {
         canViewConfigs: false,
         requestedService: "HDFS",
         requestedTab: "configs",
+      }).redirectPath
+    ).toBe("/main/services/HDFS/summary");
+    expect(
+      resolveServiceNavigation({
+        ...options,
+        availableTabs: { HDFS: ["summary", "configs", "metrics"] },
+        canViewMetrics: false,
+        requestedService: "HDFS",
+        requestedTab: "metrics",
       }).redirectPath
     ).toBe("/main/services/HDFS/summary");
   });

@@ -66,12 +66,12 @@ import com.google.common.collect.Sets;
  * AND
  * (
  *   (
- *     service_name=AMBARI_METRICS
+ *     service_name=HDFS
  *     AND
  *     (
- *       component_name=METRICS_MONITOR
+ *       component_name=NAMENODE
  *       OR
- *       component_name=METRICS_COLLECTOR
+ *       component_name=DATANODE
  *     )
  *   )
  *   OR

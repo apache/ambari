@@ -24,7 +24,6 @@ import sys
 import urllib.request, urllib.error, urllib.parse
 import tempfile
 import random
-from alerts.ams_alert import AmsAlert
 
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.RecoveryManager import RecoveryManager
@@ -97,7 +96,7 @@ class TestAlerts(TestCase):
     definition_json = self._get_recovery_alert_definition()
     is_stale_mock.return_value = False
     rm_get_actions_mock.return_value = {
-      "METRICS_COLLECTOR": {
+      "DATANODE": {
         "count": 0,
         "lastAttempt": 1447860184,
         "warnedLastReset": False,
@@ -126,7 +125,7 @@ class TestAlerts(TestCase):
 
     #  WARN - "count": 1
     rm_get_actions_mock.return_value = {
-      "METRICS_COLLECTOR": {
+      "DATANODE": {
         "count": 1,
         "lastAttempt": 1447860184,
         "warnedLastReset": False,
@@ -143,7 +142,7 @@ class TestAlerts(TestCase):
 
     #  CRIT - "count": 5
     rm_get_actions_mock.return_value = {
-      "METRICS_COLLECTOR": {
+      "DATANODE": {
         "count": 5,
         "lastAttempt": 1447860184,
         "warnedLastReset": False,
@@ -169,7 +168,7 @@ class TestAlerts(TestCase):
     #  CRIT, after recovery manager window expired,
     # but max_lifetime_count reached, warnedThresholdReached == True
     rm_get_actions_mock.return_value = {
-      "METRICS_COLLECTOR": {
+      "DATANODE": {
         "count": 5,
         "lastAttempt": 1447860184,
         "warnedLastReset": False,
@@ -429,60 +428,6 @@ class TestAlerts(TestCase):
     self.assertEqual(0, len(collector.alerts()))
     self.assertEqual("OK", alerts[0]["state"])
     self.assertEqual("(Unit Tests) OK: 1 25 None", alerts[0]["text"])
-
-  @patch.object(ConfigurationBuilder, "get_configuration")
-  @patch.object(AmsAlert, "_load_metric")
-  def test_ams_alert(self, ma_load_metric_mock, get_configuration_mock):
-    definition_json = self._get_ams_alert_definition()
-    configuration = {
-      "ams-site": {"timeline.metrics.service.webapp.address": "0.0.0.0:6188"}
-    }
-
-    collector = AlertCollector()
-    cluster_configuration = self.__get_cluster_configuration()
-    self.__update_cluster_configuration(cluster_configuration, configuration)
-
-    initializer_module = self.create_initializer_module()
-    get_configuration_mock.return_value = {"configurations": configuration}
-
-    alert = AmsAlert(definition_json, definition_json["source"], self.config)
-    alert.set_helpers(
-      collector, cluster_configuration, initializer_module.configuration_builder
-    )
-    alert.set_cluster("c1", "0", "c6401.ambari.apache.org")
-
-    # trip an OK
-    ma_load_metric_mock.return_value = ([{1: 100, 2: 100, 3: 200, 4: 200}], None)
-
-    alert.collect()
-    alerts = collector.alerts()
-    self.assertEqual(0, len(collector.alerts()))
-    self.assertEqual("OK", alerts[0]["state"])
-    self.assertEqual(
-      "(Unit Tests) OK: the mean used heap size is 150.0 MB.", alerts[0]["text"]
-    )
-
-    # trip a warning
-    ma_load_metric_mock.return_value = ([{1: 800, 2: 800, 3: 900, 4: 900}], None)
-
-    alert.collect()
-    alerts = collector.alerts()
-    self.assertEqual(0, len(collector.alerts()))
-    self.assertEqual("WARNING", alerts[0]["state"])
-    self.assertEqual(
-      "(Unit Tests) Warning: the mean used heap size is 850.0 MB.", alerts[0]["text"]
-    )
-
-    # trip a critical now
-    ma_load_metric_mock.return_value = ([{1: 1000, 2: 1000, 3: 2000, 4: 2000}], None)
-
-    alert.collect()
-    alerts = collector.alerts()
-    self.assertEqual(0, len(collector.alerts()))
-    self.assertEqual("CRITICAL", alerts[0]["state"])
-    self.assertEqual(
-      "(Unit Tests) Critical: the mean used heap size is 1500.0 MB.", alerts[0]["text"]
-    )
 
   @patch.object(ConfigurationBuilder, "get_configuration")
   @patch.object(MetricAlert, "_load_jmx")
@@ -1685,10 +1630,10 @@ class TestAlerts(TestCase):
   def _get_recovery_alert_definition(self):
     return {
       "definitionId": 1,
-      "componentName": "METRICS_COLLECTOR",
-      "name": "ams_metrics_collector_autostart",
-      "label": "Metrics Collector Recovery",
-      "description": "This alert is triggered if the Metrics Collector has been auto-started for number of times equal to threshold.",
+      "componentName": "DATANODE",
+      "name": "datanode_autostart",
+      "label": "DataNode Recovery",
+      "description": "This alert is triggered if the DataNode has been auto-started for number of times equal to threshold.",
       "interval": 1,
       "scope": "HOST",
       "enabled": True,
@@ -1696,14 +1641,14 @@ class TestAlerts(TestCase):
         "type": "RECOVERY",
         "reporting": {
           "ok": {
-            "text": "Metrics Collector has not been auto-started and is running normally{0}."
+            "text": "DataNode has not been auto-started and is running normally{0}."
           },
           "warning": {
-            "text": "Metrics Collector has been auto-started {1} times{0}.",
+            "text": "DataNode has been auto-started {1} times{0}.",
             "count": 1,
           },
           "critical": {
-            "text": "Metrics Collector has been auto-started {1} times{0}.",
+            "text": "DataNode has been auto-started {1} times{0}.",
             "count": 5,
           },
         },
@@ -1739,48 +1684,6 @@ class TestAlerts(TestCase):
           },
           "warning": {"text": "(Unit Tests) Warning: {0} {1} {2}", "value": 150},
           "critical": {"text": "(Unit Tests) Critical: {0} {1} {2}", "value": 200},
-        },
-      },
-    }
-
-  def _get_ams_alert_definition(self):
-    return {
-      "ignore_host": False,
-      "name": "namenode_mean_heapsize_used",
-      "componentName": "NAMENODE",
-      "interval": 1,
-      "clusterId": 2,
-      "uuid": "8a857295-ad11-4985-896e-d866dc27b963",
-      "label": "NameNode Mean Used Heap Size (Hourly)",
-      "definitionId": 28,
-      "source": {
-        "ams": {
-          "compute": "mean",
-          "interval": 30,
-          "app_id": "NAMENODE",
-          "value": "{0}",
-          "metric_list": ["jvm.JvmMetrics.MemHeapUsedM"],
-          "minimum_value": -1,
-        },
-        "reporting": {
-          "units": "#",
-          "warning": {
-            "text": "(Unit Tests) Warning: the mean used heap size is {0} MB.",
-            "value": 768,
-          },
-          "ok": {"text": "(Unit Tests) OK: the mean used heap size is {0} MB."},
-          "critical": {
-            "text": "(Unit Tests) Critical: the mean used heap size is {0} MB.",
-            "value": 1024,
-          },
-        },
-        "type": "AMS",
-        "uri": {
-          "http": "{{ams-site/timeline.metrics.service.webapp.address}}",
-          "https_property_value": "HTTPS_ONLY",
-          "https_property": "{{ams-site/timeline.metrics.service.http.policy}}",
-          "https": "{{ams-site/timeline.metrics.service.webapp.address}}",
-          "connection_timeout": 5.0,
         },
       },
     }

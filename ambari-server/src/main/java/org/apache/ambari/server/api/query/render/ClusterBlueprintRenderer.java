@@ -180,7 +180,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
   @Override
   public boolean requiresPropertyProviderInput() {
     // the Blueprint-based renderer does not require property provider input
-    // this method will help to filter out the un-necessary calls to the AMS
+    // This method filters unnecessary provider calls.
     // and Alerts Property providers, since they are not included in the
     // exported Blueprint
     return false;

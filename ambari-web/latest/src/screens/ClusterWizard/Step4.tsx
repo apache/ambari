@@ -179,7 +179,6 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     }
 
     serviceValidation("RANGER", newErrorStack);
-    serviceValidation("AMBARI_METRICS", newErrorStack);
 
     setErrorStack(newErrorStack);
     if (newErrorStack.length > 0) {

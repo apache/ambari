@@ -43,7 +43,6 @@ export default function CommonConfig() {
     "HIVE",
     "HBASE",
     "ZOOKEEPER",
-    "AMBARI_METRICS",
     "RANGER",
     "RANGER_KMS",
     "SPARK3",

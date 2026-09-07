@@ -21,10 +21,7 @@ import org.apache.ambari.server.utils.PasswordUtils;
 
 /**
  * Configuration for SSL communication between Ambari and 3rd party services.
- * Currently, the following services are supported with SSL communication:
- * <ul>
- * <li>Ambari metrics</li>
- * </ul>
+ * This configuration is shared by HTTP clients that connect to managed components.
  */
 public class ComponentSSLConfiguration {
 
@@ -62,7 +59,7 @@ public class ComponentSSLConfiguration {
     truststorePath     = configuration.getProperty(Configuration.SSL_TRUSTSTORE_PATH.getKey());
     truststorePassword = getPassword(configuration);
     truststoreType     = configuration.getProperty(Configuration.SSL_TRUSTSTORE_TYPE.getKey());
-    httpsEnabled = Boolean.parseBoolean(configuration.getProperty(Configuration.AMBARI_METRICS_HTTPS_ENABLED.getKey()));
+    httpsEnabled = Boolean.parseBoolean(configuration.getProperty(Configuration.COMPONENT_HTTPS_ENABLED.getKey()));
   }
 
 
@@ -96,9 +93,9 @@ public class ComponentSSLConfiguration {
   }
 
   /**
-   * Indicates whether or not Ambari Metrics is setup for SSL.
+   * Indicates whether managed component connections use HTTPS.
    *
-   * @return true if AMS is setup for SSL
+   * @return true if HTTPS is enabled
    */
   public boolean isHttpsEnabled() {
     return httpsEnabled;

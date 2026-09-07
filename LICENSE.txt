@@ -208,6 +208,9 @@ notices and license terms. Your use of the source code for the these
 subcomponents is subject to the terms and conditions of the following
 licenses. 
 
+This product bundles VictoriaMetrics (https://victoriametrics.com/),
+which is available under the Apache License, Version 2.0.
+
 and some parts:
 
 Copyright (C) 2011 Krzysztof Wilczynski

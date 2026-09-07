@@ -24,11 +24,10 @@ export default {
         { name: 'HDFS', displayName: 'HDFS'},
         { name: 'HBASE', displayName: 'HBase'},
         { name: 'ACCUMULO', displayName: 'Accumulo'},
-        { name: 'AMBARI_METRICS', displayName: 'Ambari Metrics'},
         { name: 'HAWQ', displayName: 'HAWQ'}, 
         { name: 'RANGER', displayName: 'Ranger'}
       ],
-      sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site', 'ams-hbase-site', 'hawq-site', 'hdfs-client', 'ranger-env', 'ranger-knox-plugin-properties', 'ranger-kms-audit', 'ranger-storm-plugin-properties', 'ranger-hbase-plugin-properties', 'ranger-hdfs-plugin-properties', 'ranger-hive-plugin-properties', 'ranger-kafka-audit', 'ranger-knox-audit', 'ranger-hdfs-audit', 'ranger-hive-audit', 'ranger-atlas-audit', 'ranger-storm-audit', 'ranger-hbase-audit', 'ranger-yarn-audit'],
+      sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site', 'hawq-site', 'hdfs-client', 'ranger-env', 'ranger-knox-plugin-properties', 'ranger-kms-audit', 'ranger-storm-plugin-properties', 'ranger-hbase-plugin-properties', 'ranger-hdfs-plugin-properties', 'ranger-hive-plugin-properties', 'ranger-kafka-audit', 'ranger-knox-audit', 'ranger-hdfs-audit', 'ranger-hive-audit', 'ranger-atlas-audit', 'ranger-storm-audit', 'ranger-hbase-audit', 'ranger-yarn-audit'],
       configs: [
       /**********************************************HDFS***************************************/
         {
@@ -250,18 +249,6 @@ export default {
           "value": "/hadoop/hdfs/journal",
           "category": "ACCUMULO",
           "filename": "accumulo-site",
-          "serviceName": 'MISC'
-        },
-        {
-          "name": "hbase.rootdir",
-          "displayName": "hbase.rootdir",
-          "description": "Ambari Metrics service uses HBase as default storage backend. Set the rootdir for HBase to either local filesystem path if using Ambari Metrics in embedded mode or to a HDFS dir, example: hdfs://namenode.example.org:8020/amshbase.",
-          "isReconfigurable": false,
-          "recommendedValue": "file:///var/lib/ambari-metrics-collector/hbase",
-          "value": "file:///var/lib/ambari-metrics-collector/hbase",
-          "category": "AMBARI_METRICS",
-          "isVisible": false,
-          "filename": "ams-hbase-site",
           "serviceName": 'MISC'
         },
         {

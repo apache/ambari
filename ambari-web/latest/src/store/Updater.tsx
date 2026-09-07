@@ -27,7 +27,6 @@ import { useTezConfigUpdater } from "../hooks/useTezConfigUpdater";
 import { useSpark3ConfigUpdater } from "../hooks/useSpark3ConfigUpdater";
 import { useKerberosConfigUpdater } from "../hooks/useKerberosConfigUpdater";
 import { useRangerKMSConfigUpdater } from "../hooks/useRangerKMSConfigUpdater";
-import { useAmbariMetricsConfigUpdater } from "../hooks/useAmbariMetricsConfigUpdater";
 import { useTrinoConfigUpdater } from "../hooks/useTrinoConfigUpdater";
 import { useSSMConfigUpdater } from "../hooks/useSSMConfigUpdater";
 import { useYarnConfigUpdater } from "../hooks/useYarnConfigUpdater";
@@ -68,9 +67,6 @@ function Updater() {
         break;
       case "RANGER_KMS":
         useRangerKMSConfigUpdater();
-        break;
-      case "AMBARI_METRICS":
-        useAmbariMetricsConfigUpdater();
         break;
       case "TRINO":
         useTrinoConfigUpdater();

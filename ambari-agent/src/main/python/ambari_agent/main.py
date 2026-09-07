@@ -343,6 +343,7 @@ MAX_RETRIES = 10
 
 def run_threads(initializer_module):
   initializer_module.alert_scheduler_handler.start()
+  initializer_module.prometheus_metrics_server.start()
   initializer_module.heartbeat_thread.start()
   initializer_module.component_status_executor.start()
   initializer_module.command_status_reporter.start()
@@ -355,6 +356,7 @@ def run_threads(initializer_module):
 
   initializer_module.action_queue.interrupt()
   initializer_module.alert_scheduler_handler.stop()
+  initializer_module.prometheus_metrics_server.stop()
 
   initializer_module.action_queue.join()
   initializer_module.command_status_reporter.join()
@@ -362,6 +364,7 @@ def run_threads(initializer_module):
   initializer_module.host_status_reporter.join()
   initializer_module.alert_status_reporter.join()
   initializer_module.heartbeat_thread.join()
+  initializer_module.prometheus_metrics_server.join()
 
 
 # parse the options from command line

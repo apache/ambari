@@ -72,11 +72,11 @@ public class LogQueryResponseTest {
       "    \"type\" : \"yarn_resourcemanager\"," +
       "    \"seq_num\" : 10583," +
       "    \"path\" : \"/var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-c6401.ambari.apache.org.log\"," +
-      "    \"file\" : \"HadoopTimelineMetricsSink.java\"," +
+      "    \"file\" : \"HadoopService.java\"," +
       "    \"line_number\" : 262," +
       "    \"host\" : \"c6401.ambari.apache.org\"," +
       "    \"log_message\" : \"Unable to send metrics to collector by address:http://c6401.ambari.apache.org:6188/ws/v1/timeline/metrics\"," +
-      "    \"logger_name\" : \"timeline.HadoopTimelineMetricsSink\"," +
+      "    \"logger_name\" : \"org.apache.hadoop.service\"," +
       "    \"id\" : \"8361c5a9-5b1c-4f44-bc8f-4c6f07d94228\"," +
       "    \"message_md5\" : \"5942185045779825717\"," +
       "    \"logtime\" : 1458148746937," +
@@ -199,7 +199,7 @@ public class LogQueryResponseTest {
     assertEquals("log file path not parsed properly",
       "/var/log/hadoop-yarn/yarn/yarn-yarn-resourcemanager-c6401.ambari.apache.org.log", resultTwo.getLogFilePath());
     assertEquals("log src file name not parsed properly",
-      "HadoopTimelineMetricsSink.java", resultTwo.getSourceFile());
+      "HadoopService.java", resultTwo.getSourceFile());
     assertEquals("log src line number not parsed properly",
       "262", resultTwo.getSourceFileLineNumber());
     assertEquals("host name not parsed properly",
@@ -207,7 +207,7 @@ public class LogQueryResponseTest {
     assertEquals("log message not parsed properly",
       "Unable to send metrics to collector by address:http://c6401.ambari.apache.org:6188/ws/v1/timeline/metrics", resultTwo.getLogMessage());
     assertEquals("logger name not parsed properly",
-      "timeline.HadoopTimelineMetricsSink", resultTwo.getLoggerName());
+      "org.apache.hadoop.service", resultTwo.getLoggerName());
     assertEquals("id not parsed properly",
       "8361c5a9-5b1c-4f44-bc8f-4c6f07d94228", resultTwo.getId());
     assertEquals("message MD5 not parsed properly",

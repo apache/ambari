@@ -1,0 +1,24 @@
+{
+  "beans": [
+    {
+      "name": "Hadoop:service=NodeManager,name=NodeManagerMetrics",
+      "ApplicationsRunning": 0,
+      "AllocatedContainers": 0,
+      "ContainersRunning": 0,
+      "ContainersIniting": 0,
+      "ContainersLaunched": 0,
+      "ContainersCompleted": 0,
+      "ContainersFailed": 0,
+      "ContainersKilled": 0,
+      "AllocatedGB": 0,
+      "AvailableGB": 1,
+      "AllocatedVCores": 0,
+      "AvailableVCores": 1,
+      "BadLocalDirs": 0,
+      "BadLogDirs": 0,
+      "GoodLocalDirsDiskUtilizationPerc": 10,
+      "GoodLogDirsDiskUtilizationPerc": 10,
+      "ContainerLaunchDurationAvgTime": 0.0
+    }
+  ]
+}

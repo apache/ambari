@@ -43,7 +43,6 @@
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <hadoop.version>3.3.4</hadoop.version>
-    <ambari.metrics.version>2.7.0.0.0</ambari.metrics.version>
     <empty.dir>src/main/package</empty.dir>
     <el.log>ALL</el.log>
     <xlint>none</xlint>
@@ -382,7 +381,6 @@
             <exclude>pass.txt</exclude>
             <exclude>src/test/resources/version</exclude>
             <exclude>src/test/resources/users.ldif</exclude>
-            <exclude>src/test/resources/temporal_ganglia_data.txt</exclude>
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/test/resources/mpacks_replay.log</exclude>
             <exclude>src/test/python/ldap-password.dat</exclude>
@@ -1744,21 +1742,6 @@
       <groupId>com.esotericsoftware.yamlbeans</groupId>
       <artifactId>yamlbeans</artifactId>
       <version>${yamlbeans.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ambari</groupId>
-      <artifactId>ambari-metrics-common</artifactId>
-      <version>${ambari.metrics.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.httpcomponents</groupId>
-          <artifactId>httpclient</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.curator</groupId>
-          <artifactId>curator-framework</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
