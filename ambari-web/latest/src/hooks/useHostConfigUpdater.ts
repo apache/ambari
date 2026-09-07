@@ -38,7 +38,6 @@ import VersionsApi from "../api/versionsApi";
 
 export const useHostConfigUpdater = (
   hostApiQueryParams: any,
-  allHostModels: Host[],
   setAllHostModels: Function,
   setTotalItems?: Function,
   setPaginationLoading?: Function
@@ -48,7 +47,6 @@ export const useHostConfigUpdater = (
   const [isEmptyResult, setIsEmptyResult] = useState<boolean | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const queryData = useRef({});
-  const allHostModelsRef = useRef<Host[]>(allHostModels);
 
   const {
     cluster,
@@ -59,41 +57,29 @@ export const useHostConfigUpdater = (
   } =
     useContext(AppContext);
 
-  // Keep the ref updated with the latest allHostModels
   useEffect(() => {
-    allHostModelsRef.current = allHostModels;
-  }, [allHostModels]);
-
-  useEffect(() => {
-    // Ember ignores realtime updates for records that are not loaded yet. An
-    // empty update here can otherwise overwrite the initial REST response and
-    // make a valid Host Details route look like a missing host.
-    if (parsedSocketMessages.length && allHostModelsRef.current.length) {
+    if (!parsedSocketMessages.length) return;
+    // Merge into committed models via a functional update; a snapshot taken
+    // outside setAllHostModels would write back stale data.
+    setAllHostModels((prevModels: Host[]) => {
+      // Ember ignores realtime updates for records that are not loaded yet. An
+      // empty update here can otherwise overwrite the initial REST response and
+      // make a valid Host Details route look like a missing host.
+      if (!prevModels.length) return prevModels;
       switch (get(parsedSocketMessages[0], "destination", "")) {
         case "/events/hostcomponents":
-          setAllHostModels(
-            applyHostComponentEvent(
-              allHostModelsRef.current,
-              parsedSocketMessages[0],
-            ),
-          );
-          break;
+          return applyHostComponentEvent(prevModels, parsedSocketMessages[0]);
         case "/events/hosts":
-          setAllHostModels(
-            applyHostEvent(allHostModelsRef.current, parsedSocketMessages[0]),
-          );
-          break;
+          return applyHostEvent(prevModels, parsedSocketMessages[0]);
         case "/events/requests":
-          setAllHostModels(
-            applyCompletedDecommissionRequest(
-              allHostModelsRef.current,
-              parsedSocketMessages[0],
-            ),
+          return applyCompletedDecommissionRequest(
+            prevModels,
+            parsedSocketMessages[0],
           );
-          break;
         default:
+          return prevModels;
       }
-    }
+    });
   }, [parsedSocketMessages]);
 
   useEffect(() => {

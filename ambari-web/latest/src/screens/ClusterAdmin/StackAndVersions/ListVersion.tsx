@@ -44,7 +44,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { cloneDeep, get, set } from "lodash";
 import { RequestApi } from "../../../api/requestApi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useHostsFilterNavigation } from "../../Hosts/hostsFilterNavigation";
 import { StackVersion, Item, Response, ClusterCheckPopupData } from "./types";
 import VersionsApi from "../../../api/versionsApi";
 import toast from "react-hot-toast";
@@ -160,7 +161,7 @@ export default function Versions() {
   // Refs for fast switching between upgrade methods
   const methodTypeRef = useRef("");
   const isUpgradeInProgress = upgradeIsRunning && !upgradeSuspended;
-  const navigate = useNavigate();
+  const { goToHostsFilteredByVersion } = useHostsFilterNavigation();
   const { getKDCSessionState } = useKDCSessionState(null);
 
   const {} = usePolling(fetchServices, 6000);
@@ -2248,8 +2249,9 @@ export default function Versions() {
           cancelButtonText: "CLOSE",
         }}
         successCallback={() => {
-          navigate(
-            `/main/hosts/version/${hostModalData.current.versionName}/${hostModalData.current.versionStatus}`
+          goToHostsFilteredByVersion(
+            hostModalData.current.versionName,
+            hostModalData.current.versionStatus
           );
         }}
       />

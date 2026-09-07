@@ -25,9 +25,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { useParams } from "react-router-dom";
 import { Alert, Button, Card, Form } from "react-bootstrap";
-import { cloneDeep, get, isEmpty, startCase } from "lodash";
+import { cloneDeep, get, startCase } from "lodash";
 import DefaultButton from "../../components/DefaultButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -58,6 +57,7 @@ import {
 import { AppContext } from "../../store/context";
 import useStackVersion from "../../hooks/useStackVersion";
 import { ServiceContext } from "../../store/ServiceContext";
+import { useHostsListState } from "../../store/HostsListStateContext";
 import { IHostComponent } from "../../models/hostComponent";
 import { IHostStackVersion } from "../../models/hostStackVersion";
 import Host, { IHost } from "../../models/host";
@@ -74,7 +74,7 @@ import Spinner from "../../components/Spinner";
 import { HostsApi } from "../../api/hostsApi";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
 import Paginator from "../../components/Paginator";
-import HostComboSearch, { SelectedFilters } from "./HostComboSearch";
+import HostComboSearch from "./HostComboSearch";
 import { getQueryParameters } from "./host";
 import { computeParameters } from "../../globals/updateControl";
 import { translate, translateWithVariables } from "../../Utils/Utility";
@@ -87,30 +87,49 @@ export const getCmponentsToBeRestarted = (data: IHost) => {
 };
 
 export default function HostsList() {
-  const params = useParams<{
-    componentName?: string;
-    versionName?: string;
-    versionStatus?: string;
-  }>();
   const { clusterName, serviceComponentInfo } = useContext(AppContext);
   const { allServiceModels: serviceModels, polledHostComponentsData } = useContext(ServiceContext);
   const [loading, setLoading] = useState(true);
   const [paginationLoading, setPaginationLoading] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [currentHostModels, setCurrentHostModels] = useState<Host[]>([]);
   const [allHostCount, setAllHostCount] = useState(0);
-  const [selectedHosts, setSelectedHosts] = useState<string[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState<any>([]);
-  const [filterString, setFilterString] = useState<string>("");
-  const [hostApiQueryParams, setHostApiQueryParams] = useState<any>({
-    pageSize: 10,
-    startFrom: 0,
-    sortBy: "Hosts/host_name",
-    sortOrder: "asc",
-    RequestInfo: {
-      query: `page_size=10&from=0`,
-    },
+  const {
+    selectedFilters,
+    setSelectedFilters,
+    selectedHosts,
+    setSelectedHosts,
+  } = useHostsListState();
+  // Keep restored filters visible instead of hidden behind a collapsed bar.
+  const [showFilters, setShowFilters] = useState(
+    () => selectedFilters.length > 0
+  );
+  const [filterString, setFilterString] = useState<string>(() =>
+    selectedFilters.length > 0
+      ? computeParameters(getQueryParameters(selectedFilters))
+      : ""
+  );
+  const clearFilters = useCallback(() => {
+    setSelectedFilters([]);
+  }, [setSelectedFilters]);
+  // Must carry the filter: the fetch keys on this object, so without it mount
+  // sends an unfiltered request and every host shows for one cycle.
+  const [hostApiQueryParams, setHostApiQueryParams] = useState<any>(() => {
+    const initialFilter =
+      selectedFilters.length > 0
+        ? computeParameters(getQueryParameters(selectedFilters))
+        : "";
+    return {
+      pageSize: 10,
+      startFrom: 0,
+      sortBy: "Hosts/host_name",
+      sortOrder: "asc",
+      RequestInfo: {
+        query: initialFilter
+          ? `page_size=10&from=0&${initialFilter}`
+          : `page_size=10&from=0`,
+      },
+    };
   });
   const [clusterComponents, setClusterComponents] = useState<any>({});
   const [clusterLoadError, setClusterLoadError] = useState<string | null>(null);
@@ -137,10 +156,19 @@ export default function HostsList() {
   // {{#havePermissions "HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS"}}
   const canShowHostActions = havePermissions("HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS");
 
+  // Clear the spinner when a host response lands - not on the cluster-wide
+  // components poll, which can arrive first and show an empty table.
+  const applyHostModels = useCallback(
+    (models: Host[] | ((prev: Host[]) => Host[])) => {
+      setCurrentHostModels(models);
+      setLoading(false);
+    },
+    []
+  );
+
   const hostData = useHostConfigUpdater(
     hostApiQueryParams,
-    currentHostModels,
-    setCurrentHostModels,
+    applyHostModels,
     setTotalItems,
     setPaginationLoading
   );
@@ -154,13 +182,19 @@ export default function HostsList() {
     order: "asc",
   });
 
+  // Filters can arrive after mount, set by another page before navigating here.
+  useEffect(() => {
+    if (selectedFilters.length > 0) {
+      setShowFilters(true);
+    }
+  }, [selectedFilters.length]);
+
   // Reuse centralized polled data from CachedServiceApi instead of making a separate API call
   // This eliminates the duplicate /components/ call that was previously polled independently
   useEffect(() => {
     if (polledHostComponentsData?.items) {
       setClusterComponents(polledHostComponentsData);
       setClusterLoadError(null);
-      setLoading(false);
     }
   }, [polledHostComponentsData]);
 
@@ -169,98 +203,6 @@ export default function HostsList() {
       void getClusterComponents();
     }
   }, [clusterName, clusterRetryCount]);
-
-  useEffect(() => {
-    if (params.componentName && !isEmpty(clusterComponents)) {
-      const component = get(clusterComponents, "items", []).find(
-        (component: any) =>
-          get(component, "ServiceComponentInfo.component_name", "") ===
-          params.componentName
-      );
-      if (component) {
-        const newFilter: SelectedFilters = [
-          {
-            field: {
-              label: get(
-                component,
-                "host_components.[0].HostRoles.display_name",
-                get(component, "ServiceComponentInfo.component_name", "")
-              ),
-              value: get(component, "ServiceComponentInfo.component_name", ""),
-              name: "componentState",
-            },
-            value: {
-              label: "All",
-              value: "ALL",
-            },
-          },
-        ];
-        setSelectedFilters(newFilter);
-      }
-    }
-  }, [params.componentName, clusterComponents]);
-
-  useEffect(() => {
-    if (
-      params.versionName &&
-      params.versionStatus &&
-      !isEmpty(stackVersionList)
-    ) {
-      const versionExists = stackVersionList.some(
-        (version: any) =>
-          version.displayName === params.versionName &&
-          version.state === params.versionStatus
-      );
-      if (versionExists || params.versionStatus === "NOT_INSTALLED") {
-        const status =
-          params.versionStatus === "NOT_INSTALLED"
-            ? ["INSTALLING", "INSTALL_FAILED", "OUT_OF_SYNC"]
-            : params.versionStatus;
-        const newFilter = [
-          {
-            field: {
-              label: "Stack Version",
-              value: "version",
-              name: "host",
-            },
-            value: {
-              label: params.versionName,
-              value: params.versionName,
-            },
-          },
-          {
-            field: {
-              label: "Version State",
-              value: "versionState",
-              name: "host",
-            },
-            value: {
-              label: status,
-              value: status,
-            },
-          },
-        ];
-        setSelectedFilters(newFilter);
-      }
-    }
-  }, [params.versionName, params.versionStatus, stackVersionList]);
-
-  useEffect(() => {
-    if (
-      (!params.componentName && !isEmpty(currentHostModels)) ||
-      (params.componentName &&
-        !isEmpty(clusterComponents) &&
-        filterString.includes(params.componentName)) ||
-      (params.versionName &&
-        params.versionStatus &&
-        !isEmpty(clusterComponents) &&
-        !isEmpty(stackVersionList) &&
-        filterString.includes(params.versionName) &&
-        filterString.includes(params.versionStatus))
-    ) {
-      setLoading(false);
-    }
-  }, [currentHostModels]);
 
   useEffect(() => {
     if (!filterString) {
@@ -289,6 +231,13 @@ export default function HostsList() {
         (currentPage - 1) * itemsPerPage
       }`;
     }
+    // Skip no-op rebuilds; the fetch effect keys on this object by reference.
+    if (
+      hostApiQueryParamsCopy.RequestInfo.query ===
+      get(hostApiQueryParams, "RequestInfo.query", "")
+    ) {
+      return;
+    }
     setPaginationLoading(true);
     setHostApiQueryParams(hostApiQueryParamsCopy);
     setCurrentPage(1);
@@ -303,6 +252,12 @@ export default function HostsList() {
         hostApiQueryParamsCopy.RequestInfo.query = `page_size=${itemsPerPage}&from=0&${filterString}`;
       } else {
         hostApiQueryParamsCopy.RequestInfo.query = `page_size=${itemsPerPage}&from=0`;
+      }
+      if (
+        hostApiQueryParamsCopy.RequestInfo.query ===
+        get(hostApiQueryParams, "RequestInfo.query", "")
+      ) {
+        return;
       }
       setPaginationLoading(true);
       setHostApiQueryParams(hostApiQueryParamsCopy);
@@ -323,6 +278,12 @@ export default function HostsList() {
       hostApiQueryParamsCopy.RequestInfo.query = `page_size=${itemsPerPage}&from=${
         (currentPage - 1) * itemsPerPage
       }`;
+    }
+    if (
+      hostApiQueryParamsCopy.RequestInfo.query ===
+      get(hostApiQueryParams, "RequestInfo.query", "")
+    ) {
+      return;
     }
     setPaginationLoading(true);
     setHostApiQueryParams(hostApiQueryParamsCopy);
@@ -1366,6 +1327,7 @@ export default function HostsList() {
                 searchCallback={setSelectedFilters}
                 selectedFilters={selectedFilters}
                 setSelectedFilters={setSelectedFilters}
+                onResetFilters={clearFilters}
               />
               {paginationLoading ? (
                 <Spinner />

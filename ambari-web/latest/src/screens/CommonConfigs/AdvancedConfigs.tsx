@@ -295,6 +295,77 @@ function AdvancedConfigs({
     );
   };
 
+  // capacity-scheduler.xml properties are edited as one combined "key=value"
+  // per-line textarea (matching the old Ember UI's App.CapacitySceduler widget)
+  // instead of one field per property. The underlying properties map is still
+  // individual key/value entries - only the presentation is combined here.
+  const CAPACITY_SCHEDULER_SECTION = "capacity-scheduler";
+  // Matches ui/app/models/stack_service.js:381 - the category that shows as "Scheduler".
+  const CAPACITY_SCHEDULER_CATEGORY = "CapacityScheduler";
+
+  const getCapacitySchedulerTextValue = (properties: {
+    [key: string]: PropertyType;
+  }) => {
+    return Object.keys(properties)
+      .sort()
+      .map((name) => `${name}=${properties[name]?.value ?? ""}`)
+      .join("\n");
+  };
+
+  const handleCapacitySchedulerChange = (section: string, rawValue: string) => {
+    let advancedDataCopy = cloneDeep(advancedConfigs);
+    const properties = advancedDataCopy[chosenService][section].properties;
+    const templateProperty = Object.values(properties)[0] as
+      | PropertyType
+      | undefined;
+
+    const seenNames = new Set<string>();
+    rawValue.split("\n").forEach((line) => {
+      if (!line.trim()) {
+        return;
+      }
+      const separatorIndex = line.indexOf("=");
+      const name =
+        separatorIndex === -1 ? line.trim() : line.slice(0, separatorIndex).trim();
+      if (!name) {
+        return;
+      }
+      const value = separatorIndex === -1 ? "" : line.slice(separatorIndex + 1);
+      seenNames.add(name);
+
+      if (properties[name]) {
+        properties[name].value = value;
+      } else if (templateProperty) {
+        properties[name] = {
+          ...cloneDeep(templateProperty),
+          propertyName: name,
+          propertyDisplayname: name,
+          value,
+          previousValue: value,
+          overrideValues: [],
+        };
+      }
+    });
+
+    Object.keys(properties).forEach((name) => {
+      if (!seenNames.has(name)) {
+        delete properties[name];
+      }
+    });
+
+    advancedDataCopy = updateVisibilityByForeignKeys(advancedDataCopy);
+    advancedDataCopy = validateAllProperties(advancedDataCopy);
+
+    commitAdvancedConfigs(advancedDataCopy);
+
+    const changedProperty = Object.values(properties)[0] as
+      | PropertyType
+      | undefined;
+    if (changedProperty) {
+      onValueUpdate(changedProperty, advancedDataCopy);
+    }
+  };
+
    const handleChangeForOverridenValues = (
     section: string,
     property: string,
@@ -773,8 +844,27 @@ function AdvancedConfigs({
                 return null;
               }
 
+              // capacity-scheduler.xml properties live in their own catch-all
+              // "capacity-scheduler" bucket, but Ember shows them inside the
+              // "CapacityScheduler" category (displayName "Scheduler") next to
+              // yarn.resourcemanager.scheduler.class - see
+              // ui/app/models/stack_service.js:381. Fold that bucket's combined
+              // textarea into the CapacityScheduler section below instead of
+              // rendering it as its own accordion item.
+              if (config === CAPACITY_SCHEDULER_SECTION) {
+                return null;
+              }
+              const capacitySchedulerBucket =
+                config === CAPACITY_SCHEDULER_CATEGORY
+                  ? advancedConfigs[chosenService][CAPACITY_SCHEDULER_SECTION]
+                  : undefined;
+              const capacitySchedulerProperties =
+                capacitySchedulerBucket?.properties || {};
+              const hasCapacitySchedulerProperties =
+                Object.keys(capacitySchedulerProperties).length > 0;
+
               // Check if section has no visible properties
-              const hasNoVisibleProperties = isEmpty(currentConfigValue.properties) || 
+              const hasNoVisibleProperties = isEmpty(currentConfigValue.properties) ||
                 filteredPropertiesCount === 0;
 
               // For custom sections with search active, hide if no properties match
@@ -784,7 +874,13 @@ function AdvancedConfigs({
 
               // For NON-custom sections, skip if no visible properties
               // Custom sections should always be shown so users can add properties via "Add Property..."
-              if (hasNoVisibleProperties && !config.includes("Custom")) {
+              // Keep the CapacityScheduler section visible when it has nothing of its
+              // own but the folded-in capacity-scheduler.xml bucket does.
+              if (
+                hasNoVisibleProperties &&
+                !config.includes("Custom") &&
+                !hasCapacitySchedulerProperties
+              ) {
                 return null;
               }
 
@@ -794,6 +890,8 @@ function AdvancedConfigs({
                     <div className="d-flex align-items-center fs-18">
                       {advancedConfigs[chosenService][config].displayName
                         ? advancedConfigs[chosenService][config].displayName
+                        : config === CAPACITY_SCHEDULER_CATEGORY
+                        ? "Scheduler"
                         : config}{" "}
                       {errorCount > 0 && (
                         <span className="ms-2 badge rounded-pill bg-danger">
@@ -1243,6 +1341,39 @@ function AdvancedConfigs({
                         return null;
                       }
                     )}
+                    {config === CAPACITY_SCHEDULER_CATEGORY &&
+                      hasCapacitySchedulerProperties && (
+                        <Row className="mt-2 align-items-center">
+                          <Col md={4}>
+                            <Form.Label className="p-2">
+                              Capacity Scheduler
+                            </Form.Label>
+                          </Col>
+                          <Col>
+                            <Form.Control
+                              as="textarea"
+                              rows={16}
+                              value={getCapacitySchedulerTextValue(
+                                capacitySchedulerProperties
+                              )}
+                              onChange={(e) =>
+                                handleCapacitySchedulerChange(
+                                  CAPACITY_SCHEDULER_SECTION,
+                                  e.target.value
+                                )
+                              }
+                              disabled={
+                                !(
+                                  canEditProperties &&
+                                  (Object.values(capacitySchedulerProperties)[0] as
+                                    | PropertyType
+                                    | undefined)?.isEditable !== false
+                                )
+                              }
+                            />
+                          </Col>
+                        </Row>
+                      )}
                     {!hostConfigs && canEditProperties && config.includes("Custom") ? (
                       <h4
                         className="text-info ms-2 mt-2"

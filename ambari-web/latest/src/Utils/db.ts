@@ -213,6 +213,26 @@ interface DbData {
       return JSON.parse(JSON.stringify(InitialData));
     }
 
+    // Ember stores host selection at app.tables.selectedItems.mainHostController.
+    getSelectedHosts(): string[] {
+      const selectedHosts = this.get('app', 'tables.selectedItems.mainHostController');
+      return Array.isArray(selectedHosts)
+        ? selectedHosts.filter((hostName: any) => typeof hostName === 'string')
+        : [];
+    }
+
+    setSelectedHosts(selectedHosts: string[]): void {
+      this.set('app', 'tables.selectedItems.mainHostController', selectedHosts);
+    }
+
+    unselectHosts(hostsToUnselect: string[] = []): void {
+      this.setSelectedHosts(
+        this.getSelectedHosts().filter(
+          (hostName) => !hostsToUnselect.includes(hostName)
+        )
+      );
+    }
+
   }
 
   export const db = new Database()

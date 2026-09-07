@@ -101,7 +101,6 @@ export function Hosts() {
 
   const hostData = useHostConfigUpdater(
     hostApiQueryParams,
-    allHostModels,
     setAllHostModels,
   );
   const { startHostCheck, stopHostCheck, isHostCheckRunning, hostCheckResult } =
