@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import jakarta.persistence.EntityManager;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.controller.AlertNoticeRequest;
@@ -127,7 +125,7 @@ public class AlertDispatchDAOTest {
   @After
   public void teardown() throws Exception {
     m_injector.getInstance(UnitOfWork.class).end();
-    H2DatabaseCleaner.clearDatabase(m_injector.getProvider(EntityManager.class).get());
+    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(m_injector);
   }
 
   private void initTestData() throws Exception {
