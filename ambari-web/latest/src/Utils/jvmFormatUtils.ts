@@ -16,66 +16,62 @@
  * limitations under the License.
  */
 
-const splitQuotedParameters = (value: string): string[] => {
-  const parameters: string[] = [];
-  let current = "";
-  let quote = "";
-  let escaped = false;
-
-  for (const character of value) {
-    if (escaped) {
-      current += character;
-      escaped = false;
-      continue;
-    }
-    if (character === "\\") {
-      current += character;
-      escaped = true;
-      continue;
-    }
-    if (quote) {
-      current += character;
-      if (character === quote) quote = "";
-      continue;
-    }
-    if (character === '"' || character === "'") {
-      current += character;
-      quote = character;
-      continue;
-    }
-    if (/\s/.test(character)) {
-      if (current) parameters.push(current);
-      current = "";
-      continue;
-    }
-    current += character;
-  }
-  if (current) parameters.push(current);
-  return parameters;
+// Checks if a string contains only a single line. Also treats an escaped
+// newline sequence from the backend as a newline.
+const isSingleLine = (value: string): boolean => {
+  const stringValue = String(value).trim();
+  return stringValue.indexOf("\n") === -1 && stringValue.indexOf("\\n") === -1;
 };
 
-const startsLikeJvmOption = (value: string) =>
-  /^(?:-X|-D|-XX:|-server$|-client$|--add-(?:opens|exports)=)/.test(value);
-
-export const formatParamsForDisplay = (
-  value: string,
-  _displayType?: string,
-): string => splitQuotedParameters(String(value ?? "")).join("\n");
-
-export const formatParamsForSave = (value: string): string =>
-  splitQuotedParameters(String(value ?? "")).join(" ");
-
+// Ember's logic: an explicit displayType from the backend takes priority;
+// otherwise fall back to content-based detection. Values that merely look
+// like command-line/JVM arguments (e.g. mapreduce.admin.map.child.java.opts:
+// "-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}")
+// must NOT be treated as multiline just because they contain multiple "-X"-style
+// tokens — only genuine (real or escaped) newlines should.
 export const shouldUseMultilineFormatting = (
   value: string,
   displayType?: string,
 ): boolean => {
-  if (
-    ["content", "directories", "directory", "multiLine"].includes(
-      String(displayType),
-    )
-  ) {
+  if (!value || typeof value !== "string") {
     return false;
   }
-  const parameters = splitQuotedParameters(String(value ?? ""));
-  return parameters.length > 1 && parameters.every(startsLikeJvmOption);
+  if (displayType) {
+    return displayType === "multiLine";
+  }
+  return !isSingleLine(value);
+};
+
+export const formatParamsForDisplay = (
+  value: string,
+  displayType?: string,
+): string => {
+  if (!value || typeof value !== "string") {
+    return value;
+  }
+  if (!shouldUseMultilineFormatting(value, displayType)) {
+    return value;
+  }
+  // Already has real newlines; let the textarea render it naturally.
+  if (value.includes("\n")) {
+    return value;
+  }
+  // Convert escaped newline sequences to actual newlines for display.
+  if (value.includes("\\n")) {
+    return value.replace(/\\n/g, "\n");
+  }
+  return value;
+};
+
+// Leaves real newlines as real newlines — JSON.stringify() will escape them
+// when the save payload is serialized. Escaping here too would double-escape
+// (\n -> \\n -> \\\\n).
+export const formatParamsForSave = (value: string): string => {
+  if (!value || typeof value !== "string") {
+    return value;
+  }
+  if (value.includes("\\n")) {
+    return value;
+  }
+  return value;
 };
