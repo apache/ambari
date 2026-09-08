@@ -132,6 +132,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.ee10.servlet.DefaultServlet;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ResourceServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
@@ -507,15 +508,7 @@ public class AmbariServer {
       cert.setInitOrder(4);
 
       File resourcesDirectory = new File(configs.getResourceDirPath());
-      ServletHolder resources = new ServletHolder(DefaultServlet.class);
-      resources.setInitParameter("resourceBase", resourcesDirectory.getParent());
-      resources.setInitParameter("dirAllowed", "false");
-      root.addServlet(resources, "/resources/*");
-      resources.setInitOrder(5);
-
-      // Allow symlinked files beneath the configured resource directory.
-      Resource baseResource = root.newResource(resourcesDirectory.getParentFile().getAbsolutePath());
-      root.addAliasCheck(new SymlinkAllowedResourceAliasChecker(root, baseResource));
+      configureResourcesServlet(root, resourcesDirectory);
 
       if (configs.csrfProtectionEnabled()) {
         sh.setInitParameter("org.glassfish.jersey.server.ContainerRequestFilter",
@@ -836,6 +829,18 @@ public class AmbariServer {
 
     /* Configure web app context */
     root.setBaseResourceAsString(configs.getWebAppDir());
+  }
+
+  static void configureResourcesServlet(ServletContextHandler root, File resourcesDirectory) throws IOException {
+    ServletHolder resources = new ServletHolder(ResourceServlet.class);
+    resources.setInitParameter("baseResource", resourcesDirectory.getAbsolutePath());
+    resources.setInitParameter("dirAllowed", "false");
+    resources.setInitOrder(5);
+    root.addServlet(resources, "/resources/*");
+
+    // Allow symlinked files beneath the configured resource directory.
+    Resource baseResource = root.newResource(resourcesDirectory.getAbsolutePath());
+    root.addAliasCheck(new SymlinkAllowedResourceAliasChecker(root, baseResource));
   }
 
   /**

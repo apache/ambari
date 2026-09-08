@@ -1761,6 +1761,43 @@ class TestHdfsBigtop(unittest.TestCase):
       curl.call_args.kwargs["connection_timeout"],
     )
 
+  def test_journalnode_web_check_preserves_agent_python_path_for_smoke_user(self):
+    hdfs_resource = MagicMock()
+    params = params_module(
+      hdfs_tmp_dir="/tmp",
+      HdfsResource=hdfs_resource,
+      has_journalnode_hosts=True,
+      security_enabled=False,
+      journalnode_hosts=["journalnode.example.com"],
+      journalnode_port=8480,
+      https_only=False,
+      script_https_protocol="PROTOCOL_TLS_CLIENT",
+      tmp_dir="/var/lib/ambari-agent/tmp",
+      smoke_user="ambari-qa",
+      is_namenode_master=False,
+    )
+
+    def render(template):
+      return (
+        template.replace("{hdfs_dir}", params.hdfs_tmp_dir)
+        .replace("{tmp_dir}", params.tmp_dir)
+        .replace("{unique}", "check-id")
+      )
+
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(
+        SERVICE_CHECK.functions, "get_unique_id_and_date", return_value="check-id"
+      ), \
+      patch.object(SERVICE_CHECK, "Execute") as execute, \
+      patch.object(SERVICE_CHECK, "File"), \
+      patch.object(SERVICE_CHECK, "format", side_effect=render):
+      SERVICE_CHECK.HdfsServiceCheckDefault().service_check(MagicMock())
+
+    python_path = execute.call_args.kwargs["environment"]["PYTHONPATH"]
+    self.assertTrue(python_path)
+    self.assertNotIn(os.pathsep, python_path)
+    self.assertTrue((Path(python_path) / "ambari_commons").is_dir())
+
   def test_journalnode_web_check_uses_bounded_connection_timeout(self):
     response = MagicMock(status=200)
     connection = MagicMock()

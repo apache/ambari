@@ -84,6 +84,14 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
     primary_error = None
     try:
       params.HdfsResource(
+        smoke_root,
+        action="create_on_execute",
+        type="directory",
+        owner=smokeuser,
+        mode=0o700,
+        dfs_type=params.dfs_type,
+      )
+      params.HdfsResource(
         input_file,
         action="create_on_execute",
         type="file",

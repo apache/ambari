@@ -29,11 +29,13 @@ import uuid
 
 from resource_management.core import sudo
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.private_kerberos_cache import (
   PrivateKerberosCache,
 )
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import Template
 from resource_management.core.logger import Logger
@@ -143,6 +145,16 @@ def _hadoop_archive_required_members(stack_version):
   )
 
 
+def _hadoop_artifact_version():
+  service_version = default("/serviceLevelParams/version", None)
+  version = format_stack_version(service_version)
+  if not version:
+    raise Fail(
+      "Cannot determine the Hadoop artifact version from YARN service metadata"
+    )
+  return version
+
+
 def _copy_directory_contents(source, destination):
   Execute(
     (
@@ -201,8 +213,9 @@ def _validate_package_source_chain(path, version_lib_dir):
   return identities
 
 
-def _snapshot_package_sources(source_roots, version_lib_dir):
+def _snapshot_package_sources(source_roots, version_lib_dir, excluded_paths=()):
   version_lib_dir = os.path.normpath(version_lib_dir)
+  excluded_paths = {os.path.normpath(path) for path in excluded_paths}
   snapshot = _validate_package_source_chain(version_lib_dir, version_lib_dir)
 
   def fail_walk(error):
@@ -215,6 +228,10 @@ def _snapshot_package_sources(source_roots, version_lib_dir):
     ):
       for name in list(directory_names) + list(file_names):
         path = os.path.join(current_root, name)
+        if path in excluded_paths:
+          if name in directory_names:
+            directory_names.remove(name)
+          continue
         try:
           metadata = sudo.lstat(path)
         except Exception as error:
@@ -241,8 +258,12 @@ def _snapshot_package_sources(source_roots, version_lib_dir):
   return snapshot
 
 
-def _require_same_package_sources(expected, source_roots, version_lib_dir):
-  current = _snapshot_package_sources(source_roots, version_lib_dir)
+def _require_same_package_sources(
+  expected, source_roots, version_lib_dir, excluded_paths=()
+):
+  current = _snapshot_package_sources(
+    source_roots, version_lib_dir, excluded_paths
+  )
   if current != expected:
     changed_paths = sorted(set(current).symmetric_difference(expected))
     if not changed_paths:
@@ -259,7 +280,14 @@ def _copy_matching_files(pattern, destination):
   matches = sorted(glob.glob(pattern))
   if not matches:
     raise Fail(f"No BIGTOP package files match {pattern}")
+  copied = False
   for source in matches:
+    try:
+      metadata = sudo.lstat(source)
+    except Exception as error:
+      raise Fail(f"BIGTOP package file is not accessible: {source}") from error
+    if stat.S_ISLNK(metadata.st_mode):
+      continue
     source_identity = _regular_file_identity(source, "BIGTOP package file")
     Execute(
       ("cp", "--", source, destination),
@@ -268,6 +296,9 @@ def _copy_matching_files(pattern, destination):
       timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )
     _require_same_file(source, source_identity, "BIGTOP package file")
+    copied = True
+  if not copied:
+    raise Fail(f"No regular BIGTOP package files match {pattern}")
 
 
 def _replace_external_zookeeper_links(source_directory, destination):
@@ -559,9 +590,18 @@ def create_hbase_package():
     )
 
   archive_path = os.path.join(archive_directory, "hbase.tar.gz")
-  required_archive_members = _hadoop_archive_required_members(params.version)
   if sudo.path_islink(archive_path):
     raise Fail(f"Refusing symbolic link at HBase archive path {archive_path}")
+
+  version_lib_dir = os.path.join(params.stack_root, params.version, "usr", "lib")
+  hadoop_sources = {
+    "common": os.path.join(version_lib_dir, "hadoop"),
+    "hdfs": os.path.join(version_lib_dir, "hadoop-hdfs"),
+    "mapreduce": os.path.join(version_lib_dir, "hadoop-mapreduce"),
+    "yarn": os.path.join(version_lib_dir, "hadoop-yarn"),
+  }
+  hadoop_version = _hadoop_artifact_version()
+  required_archive_members = _hadoop_archive_required_members(hadoop_version)
   if sudo.path_exists(archive_path):
     existing_identity = _regular_file_identity(
       archive_path, "Existing HBase archive"
@@ -582,15 +622,8 @@ def create_hbase_package():
     Logger.info(f"Reusing existing HBase archive {archive_path}")
     return
 
-  version_lib_dir = os.path.join(params.stack_root, params.version, "usr", "lib")
   source_hbase_dir = os.path.join(version_lib_dir, "hbase")
   source_zookeeper_lib_dir = os.path.join(version_lib_dir, "zookeeper")
-  hadoop_sources = {
-    "common": os.path.join(version_lib_dir, "hadoop"),
-    "hdfs": os.path.join(version_lib_dir, "hadoop-hdfs"),
-    "mapreduce": os.path.join(version_lib_dir, "hadoop-mapreduce"),
-    "yarn": os.path.join(version_lib_dir, "hadoop-yarn"),
-  }
   required_directories = (
     source_hbase_dir,
     source_zookeeper_lib_dir,
@@ -614,7 +647,10 @@ def create_hbase_package():
     hadoop_sources["mapreduce"],
     hadoop_sources["yarn"],
   )
-  source_snapshot = _snapshot_package_sources(source_roots, version_lib_dir)
+  excluded_source_paths = (os.path.join(hadoop_sources["common"], "logs"),)
+  source_snapshot = _snapshot_package_sources(
+    source_roots, version_lib_dir, excluded_source_paths
+  )
   for required_directory in required_directories:
     metadata = sudo.lstat(required_directory)
     if not stat.S_ISDIR(metadata.st_mode):
@@ -622,7 +658,6 @@ def create_hbase_package():
         "Cannot create ATS HBase archive; required package directory is invalid: "
         f"{required_directory}"
       )
-  hadoop_version = params.version.split("-", 1)[0]
   required_source_files = (
     os.path.join(source_hbase_dir, "bin", "hbase"),
     os.path.join(hadoop_sources["common"], "bin", "hadoop"),
@@ -799,7 +834,10 @@ def create_hbase_package():
       hadoop_destinations["timeline_lib"],
     )
     _require_same_package_sources(
-      source_snapshot, source_roots, version_lib_dir
+      source_snapshot,
+      source_roots,
+      version_lib_dir,
+      excluded_source_paths,
     )
     Execute(
       (

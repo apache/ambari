@@ -147,6 +147,31 @@ class _YarnResourceTestCase(unittest.TestCase):
     self._resource_environment.__exit__(None, None, None)
 
 
+class TestYarnJavaCompatibility(unittest.TestCase):
+  def test_mapreduce_application_master_opens_java_lang_on_modular_jdks(self):
+    original = {"yarn.app.mapreduce.am.command-opts": "-Xmx819m"}
+
+    rendered = YARN_CONFIG._mapred_site_configurations(original, 17)
+
+    self.assertEqual(
+      "-Xmx819m --add-opens=java.base/java.lang=ALL-UNNAMED",
+      rendered["yarn.app.mapreduce.am.command-opts"],
+    )
+    self.assertEqual("-Xmx819m", original["yarn.app.mapreduce.am.command-opts"])
+
+  def test_mapreduce_application_master_module_option_is_version_safe_and_idempotent(self):
+    option = "--add-opens=java.base/java.lang=ALL-UNNAMED"
+    java8 = YARN_CONFIG._mapred_site_configurations(
+      {"yarn.app.mapreduce.am.command-opts": "-Xmx819m"}, 8
+    )
+    configured = YARN_CONFIG._mapred_site_configurations(
+      {"yarn.app.mapreduce.am.command-opts": f"-Xmx819m {option}"}, 17
+    )
+
+    self.assertEqual("-Xmx819m", java8["yarn.app.mapreduce.am.command-opts"])
+    self.assertEqual(1, configured["yarn.app.mapreduce.am.command-opts"].count(option))
+
+
 class TestYarnComponentWorkflows(_YarnResourceTestCase):
   def test_timeline_reader_stops_before_embedded_hbase(self):
     params = params_module(
@@ -399,9 +424,11 @@ nm10.example:45454 RUNNING nm10.example:8042 0
       rm_zk_failover_znode="/leader-election",
     )
     with patch.dict(sys.modules, {"params": params}), \
-      patch(
-        "resource_management.core.resources.zkmigrator.Execute"
-      ) as execute:
+      patch.dict(
+        RESOURCE_MANAGER.ZkMigrator.set_acls.__globals__,
+        {"Execute": MagicMock()},
+      ):
+      execute = RESOURCE_MANAGER.ZkMigrator.set_acls.__globals__["Execute"]
       RESOURCE_MANAGER.ResourcemanagerDefault().disable_security(MagicMock())
 
     self.assertEqual(3, execute.call_count)
@@ -2062,6 +2089,21 @@ class TestMapReduceServiceCheck(unittest.TestCase):
         if options.get("content")
       )
     )
+    smoke_roots = [
+      (path, options)
+      for call_item in params.HdfsResource.call_args_list
+      for path, options in ((call_item.args[0], call_item.kwargs),)
+      if path and "ambari-mapreduce-smoke-" in path
+      and options.get("action") == "create_on_execute"
+      and options.get("type") == "directory"
+    ]
+    self.assertEqual(2, len(smoke_roots))
+    self.assertTrue(
+      all(
+        options["owner"] == "ambari-qa" and options["mode"] == 0o700
+        for _, options in smoke_roots
+      )
+    )
     jar_commands = [
       (command, options)
       for command, options in hadoop_calls
@@ -2087,6 +2129,7 @@ class TestMapReduceServiceCheck(unittest.TestCase):
   def test_cleanup_failure_is_logged_without_replacing_mapreduce_failure(self):
     params = self._params()
     params.HdfsResource.side_effect = (
+      None,
       None,
       None,
       None,
@@ -2240,6 +2283,84 @@ class TestAtsHBasePackage(_YarnResourceTestCase):
           snapshot, (source_root,), version_lib
         )
 
+  def test_package_source_snapshot_excludes_uncopied_hadoop_logs(self):
+    version_lib = "/usr/bigtop/3.3.0/usr/lib"
+    source_root = f"{version_lib}/hadoop"
+    logs = f"{source_root}/logs"
+    package_jar = f"{source_root}/hadoop-common-3.3.6.jar"
+
+    def metadata(path):
+      is_file = path == package_jar
+      is_logs = path == logs
+      return SimpleNamespace(
+        st_mode=(
+          stat.S_IFREG | 0o444
+          if is_file
+          else stat.S_IFDIR | (0o1777 if is_logs else 0o755)
+        ),
+        st_uid=0,
+        st_gid=0,
+        st_dev=1,
+        st_ino=1,
+        st_size=10,
+        st_mtime_ns=20,
+      )
+
+    def walk(*args, **kwargs):
+      return [(source_root, ["logs"], ["hadoop-common-3.3.6.jar"])]
+
+    with patch.object(HBASE_SERVICE.os, "walk", side_effect=walk), \
+      patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=metadata):
+      snapshot = HBASE_SERVICE._snapshot_package_sources(
+        (source_root,), version_lib, (logs,)
+      )
+    self.assertNotIn(logs, snapshot)
+    self.assertIn(package_jar, snapshot)
+
+    with patch.object(HBASE_SERVICE.os, "walk", side_effect=walk), \
+      patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=metadata):
+      with self.assertRaisesRegex(Fail, "root-owned and non-writable"):
+        HBASE_SERVICE._snapshot_package_sources((source_root,), version_lib)
+
+  def test_matching_jar_copy_skips_package_alias_symlinks(self):
+    source_dir = "/usr/bigtop/3.3.0/usr/lib/hadoop"
+    alias = f"{source_dir}/hadoop-common.jar"
+    versioned = f"{source_dir}/hadoop-common-3.3.6.jar"
+
+    def metadata(path):
+      return SimpleNamespace(
+        st_mode=(
+          stat.S_IFLNK | 0o777
+          if path == alias
+          else stat.S_IFREG | 0o444
+        ),
+        st_uid=0,
+        st_dev=1,
+        st_ino=2,
+      )
+
+    with patch.object(HBASE_SERVICE.glob, "glob", return_value=[alias, versioned]), \
+      patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=metadata), \
+      patch.object(HBASE_SERVICE, "Execute") as execute:
+      HBASE_SERVICE._copy_matching_files(
+        f"{source_dir}/*.jar", "/staging/hadoop/common"
+      )
+    execute.assert_called_once_with(
+      ("cp", "--", versioned, "/staging/hadoop/common"),
+      user="root",
+      timeout=60,
+      timeout_kill_strategy=HBASE_SERVICE.TerminateStrategy.KILL_PROCESS_GROUP,
+    )
+
+    with patch.object(HBASE_SERVICE.glob, "glob", return_value=[alias]), \
+      patch.object(HBASE_SERVICE.sudo, "lstat", side_effect=metadata), \
+      patch.object(HBASE_SERVICE, "Execute") as execute:
+      with self.assertRaisesRegex(Fail, "No regular BIGTOP package files"):
+        HBASE_SERVICE._copy_matching_files(
+          f"{source_dir}/*.jar", "/staging/hadoop/common"
+        )
+    execute.assert_not_called()
+
   def test_staged_runtime_symlink_is_unlinked_without_directory_delete(self):
     with patch.object(HBASE_SERVICE.sudo, "path_lexists", return_value=True), \
       patch.object(HBASE_SERVICE.sudo, "path_islink", return_value=True), \
@@ -2304,6 +2425,7 @@ class TestAtsHBasePackage(_YarnResourceTestCase):
       ), \
       patch.object(HBASE_SERVICE, "Directory"), \
       patch.object(HBASE_SERVICE, "File") as file_resource, \
+      patch.object(HBASE_SERVICE, "_hadoop_artifact_version", return_value="3.3.6"), \
       patch.object(HBASE_SERVICE, "_validate_tar_archive"):
       HBASE_SERVICE.create_hbase_package()
 
@@ -2431,6 +2553,7 @@ class TestAtsHBasePackage(_YarnResourceTestCase):
         side_effect=OSError("already published"),
       ), \
       patch.object(HBASE_SERVICE.glob, "glob", return_value=["zookeeper.jar"]), \
+      patch.object(HBASE_SERVICE, "_hadoop_artifact_version", return_value="3.3.6"), \
       patch.object(HBASE_SERVICE, "_snapshot_package_sources", return_value={}), \
       patch.object(HBASE_SERVICE, "_require_same_package_sources"), \
       patch.object(HBASE_SERVICE, "Directory"), \
@@ -2532,6 +2655,18 @@ class TestAtsHBasePackage(_YarnResourceTestCase):
       "hadoop/share/hadoop/mapreduce/hadoop-mapreduce-client-core-3.3.6.jar",
       required,
     )
+
+  def test_hadoop_artifact_version_comes_from_yarn_service_metadata(self):
+    with patch.object(HBASE_SERVICE, "default", return_value="3.3.6-1") as get_version:
+      self.assertEqual("3.3.6", HBASE_SERVICE._hadoop_artifact_version())
+    get_version.assert_called_once_with("/serviceLevelParams/version", None)
+
+  def test_hadoop_artifact_version_rejects_missing_or_invalid_metadata(self):
+    for repository_version in (None, "", "not-a-version"):
+      with self.subTest(repository_version=repository_version), \
+        patch.object(HBASE_SERVICE, "default", return_value=repository_version):
+        with self.assertRaisesRegex(Fail, "YARN service metadata"):
+          HBASE_SERVICE._hadoop_artifact_version()
 
   def test_secure_table_creation_uses_one_private_cache_for_both_commands(self):
     params = params_module(
@@ -2849,6 +2984,65 @@ class TestYarnFilesystemSafety(_YarnResourceTestCase):
       with self.assertRaisesRegex(Fail, "symbolic link"):
         YARN_CONFIG._validate_local_service_directory(
           "/var/run/hadoop-yarn", "yarn_pid_dir_prefix"
+        )
+
+  def test_embedded_hbase_config_accepts_bigtop_conf_empty_alias(self):
+    config_dir = "/etc/hadoop/conf"
+    target = "/etc/hadoop/conf/embedded-yarn-ats-hbase"
+    resolved = "/usr/bigtop/3.3.0/etc/hadoop/conf.empty"
+
+    def metadata(path):
+      return SimpleNamespace(
+        st_mode=(stat.S_IFLNK | 0o777 if path == config_dir else stat.S_IFDIR | 0o755),
+        st_uid=0,
+      )
+
+    with patch.object(
+        YARN_CONFIG.sudo,
+        "path_lexists",
+        side_effect=lambda path: path != target,
+      ), \
+      patch.object(
+        YARN_CONFIG.sudo,
+        "path_islink",
+        side_effect=lambda path: path == config_dir,
+      ), \
+      patch.object(YARN_CONFIG.sudo, "lstat", side_effect=metadata), \
+      patch.object(
+        YARN_CONFIG.os.path,
+        "realpath",
+        side_effect=lambda path: resolved if path == config_dir else path,
+      ):
+      self.assertEqual(
+        target,
+        YARN_CONFIG._validate_bigtop_hadoop_config_subdirectory(
+          target, "yarn_hbase_conf_dir", config_dir, "/usr/bigtop"
+        ),
+      )
+
+  def test_embedded_hbase_config_rejects_alias_outside_bigtop(self):
+    config_dir = "/etc/hadoop/conf"
+    target = "/etc/hadoop/conf/embedded-yarn-ats-hbase"
+
+    with patch.object(YARN_CONFIG.sudo, "path_lexists", return_value=True), \
+      patch.object(
+        YARN_CONFIG.sudo,
+        "path_islink",
+        side_effect=lambda path: path == config_dir,
+      ), \
+      patch.object(
+        YARN_CONFIG.sudo,
+        "lstat",
+        return_value=SimpleNamespace(st_mode=stat.S_IFDIR | 0o755, st_uid=0),
+      ), \
+      patch.object(
+        YARN_CONFIG.os.path,
+        "realpath",
+        side_effect=lambda path: "/etc/ssh" if path == config_dir else path,
+      ):
+      with self.assertRaisesRegex(Fail, "BIGTOP-managed"):
+        YARN_CONFIG._validate_bigtop_hadoop_config_subdirectory(
+          target, "yarn_hbase_conf_dir", config_dir, "/usr/bigtop"
         )
 
   def test_node_manager_cleanup_rejects_unsafe_paths_and_symlinks(self):
