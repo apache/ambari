@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.configuration;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -25,7 +25,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Locale;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class H2DatabaseCompatibilityTest {
 
