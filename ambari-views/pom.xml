@@ -113,7 +113,7 @@
                 <executions>
                     <execution>
                         <id>build-tarball</id>
-                        <phase>prepare-package</phase>
+                        <phase>none</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
