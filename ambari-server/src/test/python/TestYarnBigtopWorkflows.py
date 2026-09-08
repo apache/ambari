@@ -1689,7 +1689,7 @@ class TestYarnAlertContracts(unittest.TestCase):
         result, _ = alert.execute(
           {
             alert.YARN_HTTP_POLICY_KEY: "HTTPS_ONLY",
-            alert.NODEMANAGER_HTTP_ADDRESS_KEY: "rm.example:8088",
+            alert.NODEMANAGER_HTTPS_ADDRESS_KEY: "",
           },
           {},
           "host.example",
@@ -1714,6 +1714,28 @@ class TestYarnAlertContracts(unittest.TestCase):
             "host.example",
           )
           self.assertEqual("UNKNOWN", result)
+
+  def test_nodemanager_health_uses_hadoop_default_address_when_token_is_absent(self):
+    alert = NODEMANAGER_HEALTH_ALERT
+    for policy, expected_url in (
+      ("HTTP_ONLY", "http://nm.example:8042/ws/v1/node/info"),
+      ("HTTPS_ONLY", "https://nm.example:8044/ws/v1/node/info"),
+    ):
+      response = MagicMock()
+      response.read.return_value = (
+        b'{"nodeInfo":{"nodeHealthy":true,"healthReport":""}}'
+      )
+      with self.subTest(policy=policy), patch.object(
+        alert.urllib.request, "urlopen", return_value=response
+      ) as open_url:
+        result, _ = alert.execute(
+          {alert.YARN_HTTP_POLICY_KEY: policy},
+          {},
+          "nm.example",
+        )
+
+      self.assertEqual("OK", result)
+      self.assertEqual(expected_url, open_url.call_args.args[0])
 
   def test_nodemanager_health_uses_the_address_for_the_effective_policy(self):
     alert = NODEMANAGER_HEALTH_ALERT

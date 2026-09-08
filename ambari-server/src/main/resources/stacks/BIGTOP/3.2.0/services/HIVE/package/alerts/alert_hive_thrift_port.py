@@ -93,6 +93,12 @@ CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
 
 logger = logging.getLogger("ambari_alerts")
 _STACK_ROOT_PATTERN = re.compile(r"/[A-Za-z0-9_./+@=-]*", re.ASCII)
+# Hive 3.1 Beeline has no option to disable its ambient default connection.
+# A local, non-sensitive bootstrap keeps that connection deterministic until
+# the private command file switches to HiveServer2.
+_BEELINE_BOOTSTRAP_URL = "jdbc:derby:memory:ambari_hive_alert;create=true"
+_BEELINE_BOOTSTRAP_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver"
+_BEELINE_BOOTSTRAP_USER = "AMBARI"
 
 
 def get_tokens():
@@ -452,19 +458,45 @@ def _run_beeline_alert(
     temp_dir="/tmp",
     prefix="ambari-hive-alert-beeline-",
   ) as properties_file:
-    shell.checked_call(
-      (
-        beeline_path,
-        "--property-file",
-        properties_file,
-        "-e",
-        "show databases",
-      ),
-      user=smokeuser,
-      env=environment,
-      timeout=timeout,
-      timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+    command_file_content = (
+      f"!close\n!properties {properties_file}\nshow databases;\n"
     )
+    with private_temporary_file(
+      command_file_content,
+      smokeuser,
+      user_group,
+      temp_dir="/tmp",
+      prefix="ambari-hive-alert-command-",
+    ) as command_file:
+      command_environment = dict(environment or {})
+      existing_client_options = str(
+        command_environment.get("HADOOP_CLIENT_OPTS", "")
+      ).strip()
+      command_environment["HADOOP_CLIENT_OPTS"] = " ".join(
+        option
+        for option in (
+          existing_client_options,
+          "-Dderby.stream.error.file=/dev/null",
+        )
+        if option
+      )
+      shell.checked_call(
+        (
+          beeline_path,
+          "-u",
+          _BEELINE_BOOTSTRAP_URL,
+          "-d",
+          _BEELINE_BOOTSTRAP_DRIVER,
+          "-n",
+          _BEELINE_BOOTSTRAP_USER,
+          "-f",
+          command_file,
+        ),
+        user=smokeuser,
+        env=command_environment,
+        timeout=timeout,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
+      )
 
 
 def _escape_java_property(value):

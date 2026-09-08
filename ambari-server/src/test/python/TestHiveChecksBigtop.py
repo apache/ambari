@@ -540,13 +540,16 @@ class TestHiveThriftAlert(unittest.TestCase):
 
   def test_alert_passwords_are_absent_from_beeline_argv(self):
     @contextmanager
-    def private_properties(*args, **kwargs):
-      yield "/tmp/ambari-hive-alert-private"
+    def private_file(*args, **kwargs):
+      if kwargs["prefix"] == "ambari-hive-alert-beeline-":
+        yield "/tmp/ambari-hive-alert-private-properties"
+      else:
+        yield "/tmp/ambari-hive-alert-private-command"
 
     with patch.object(
       THRIFT_ALERT,
       "private_temporary_file",
-      side_effect=private_properties,
+      side_effect=private_file,
     ) as private_file, patch.object(
       THRIFT_ALERT.shell, "checked_call"
     ) as checked_call:
@@ -573,13 +576,39 @@ class TestHiveThriftAlert(unittest.TestCase):
         beeline_path="/usr/bigtop/current/hive-client/bin/beeline",
       )
 
-    properties = private_file.call_args.args[0]
+    properties = private_file.call_args_list[0].args[0]
     self.assertIn("trustStorePassword\\=ssl\\ secret;$(id)", properties)
     self.assertIn("password=ldap\\ secret;$(id)", properties)
+    command_file = private_file.call_args_list[1].args[0]
+    self.assertEqual(
+      "!close\n"
+      "!properties /tmp/ambari-hive-alert-private-properties\n"
+      "show databases;\n",
+      command_file,
+    )
     command = checked_call.call_args.args[0]
     self.assertNotIn("ssl secret;$(id)", repr(command))
     self.assertNotIn("ldap secret;$(id)", repr(command))
-    self.assertEqual("--property-file", command[1])
+    self.assertNotIn("jdbc:hive2", repr(command))
+    self.assertEqual(
+      (
+        "/usr/bigtop/current/hive-client/bin/beeline",
+        "-u",
+        THRIFT_ALERT._BEELINE_BOOTSTRAP_URL,
+        "-d",
+        THRIFT_ALERT._BEELINE_BOOTSTRAP_DRIVER,
+        "-n",
+        THRIFT_ALERT._BEELINE_BOOTSTRAP_USER,
+        "-f",
+        "/tmp/ambari-hive-alert-private-command",
+      ),
+      command,
+    )
+    command_environment = checked_call.call_args.kwargs["env"]
+    self.assertIn(
+      "-Dderby.stream.error.file=/dev/null",
+      command_environment["HADOOP_CLIENT_OPTS"],
+    )
 
   def test_invalid_port_is_reported_as_unknown(self):
     result, labels = THRIFT_ALERT.execute(
