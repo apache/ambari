@@ -777,6 +777,7 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
+          <appendAssemblyId>false</appendAssemblyId>
           <tarLongFileMode>gnu</tarLongFileMode>
           <descriptors>
             <descriptor>src/packages/tarball/all.xml</descriptor>
