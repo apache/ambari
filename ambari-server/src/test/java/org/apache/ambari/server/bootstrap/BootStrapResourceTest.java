@@ -33,7 +33,6 @@ import jakarta.ws.rs.core.MediaType;
 import org.apache.ambari.server.api.rest.BootStrapResource;
 import org.apache.ambari.server.bootstrap.BSResponse.BSRunStat;
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
-import org.codehaus.jettison.json.JSONException;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.DeploymentContext;
 import org.glassfish.jersey.test.JerseyTest;
@@ -93,7 +92,7 @@ public class BootStrapResourceTest extends JerseyTest {
     return defaultPort;
   }
 
-  protected SshHostInfo createDummySshInfo() throws JSONException {
+  protected SshHostInfo createDummySshInfo() {
     SshHostInfo sshInfo = new SshHostInfo();
     sshInfo.setSshKey("awesome");
     ArrayList<String> hosts = new ArrayList<>();
@@ -130,7 +129,7 @@ public class BootStrapResourceTest extends JerseyTest {
   }
 
   @Test
-  public void bootStrapPost() throws JSONException {
+  public void bootStrapPost() {
     WebTarget webTarget = target("/bootstrap");
     JsonNode object = webTarget.request(MediaType.APPLICATION_JSON)
             .post(Entity.json(createDummySshInfo()), JsonNode.class);

@@ -188,11 +188,6 @@
         <version>4.5.13</version>
       </dependency>
       <dependency>
-        <groupId>org.codehaus.jettison</groupId>
-        <artifactId>jettison</artifactId>
-        <version>1.1</version>
-      </dependency>
-      <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers</artifactId>
         <version>${testContainers.version}</version>

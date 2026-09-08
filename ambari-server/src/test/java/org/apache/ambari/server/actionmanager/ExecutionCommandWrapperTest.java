@@ -47,7 +47,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
-import org.codehaus.jettison.json.JSONException;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -178,7 +177,7 @@ public class ExecutionCommandWrapperTest {
   }
 
   @Test
-  public void testGetExecutionCommand() throws JSONException, AmbariException {
+  public void testGetExecutionCommand() throws AmbariException {
 
     ExecutionCommand executionCommand = new ExecutionCommand();
 
@@ -241,12 +240,11 @@ public class ExecutionCommandWrapperTest {
    * Test that the execution command wrapper properly sets the version
    * information when the cluster is in the INSTALLING state.
    *
-   * @throws JSONException
    * @throws AmbariException
    */
   @Test
   public void testExecutionCommandHasVersionInfoWithoutCurrentClusterVersion()
-      throws JSONException, AmbariException {
+      throws AmbariException {
     Cluster cluster = clusters.getCluster(CLUSTER1);
 
     StackId stackId = cluster.getDesiredStackVersion();
