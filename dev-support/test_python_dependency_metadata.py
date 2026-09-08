@@ -69,14 +69,14 @@ class PythonDependencyMetadataTest(unittest.TestCase):
       encoding="utf-8",
     )
     (self.repository / "requirements-build.in").write_text(
-      "setuptools==4.0\nbuild==5.0\n", encoding="utf-8"
+      "setuptools==83.0.0\nbuild==5.0\n", encoding="utf-8"
     )
     (self.repository / "requirements-tooling.txt").write_text(
       "ruff==6.0 \\\n  --hash=sha256:" + "a" * 64 + "\n",
       encoding="utf-8",
     )
     (self.repository / "requirements-build.lock").write_text(
-      "setuptools==4.0 --hash=sha256:" + "a" * 64 + "\n"
+      "setuptools==83.0.0 --hash=sha256:" + "a" * 64 + "\n"
       "build==5.0 --hash=sha256:" + "a" * 64 + "\n",
       encoding="utf-8",
     )
@@ -89,7 +89,7 @@ class PythonDependencyMetadataTest(unittest.TestCase):
       encoding="utf-8",
     )
     (self.repository / "pyproject.toml").write_text(
-      "[build-system]\nrequires=['setuptools==4.0']\n"
+      "[build-system]\nrequires=['setuptools==83.0.0']\n"
       "[project]\nrequires-python='>=3.9.2'\ndependencies=['base==1.0']\n"
       "[project.optional-dependencies]\n"
       "agent=['agent==2.0']\nserver=['server==3.0']\n"
@@ -98,7 +98,7 @@ class PythonDependencyMetadataTest(unittest.TestCase):
       encoding="utf-8",
     )
     (agent / "pyproject.toml").write_text(
-      "[build-system]\nrequires=['setuptools==4.0']\n"
+      "[build-system]\nrequires=['setuptools==83.0.0']\n"
       "[project]\nrequires-python='>=3.9.2'\n"
       "dependencies=['base==1.0', 'agent==2.0']\n"
       "[project.scripts]\nambari-agent='ambari_agent.AmbariAgent:main'\n",
@@ -150,10 +150,22 @@ class PythonDependencyMetadataTest(unittest.TestCase):
 
   def test_lock_entry_without_hash_is_rejected(self):
     lock_path = self.repository / "requirements-build.lock"
-    lock_path.write_text("setuptools==4.0\nbuild==5.0\n", encoding="utf-8")
+    lock_path.write_text("setuptools==83.0.0\nbuild==5.0\n", encoding="utf-8")
 
     with self.assertRaisesRegex(metadata_check.MetadataError, "SHA-256"):
       metadata_check.audit(self.repository)
+
+  def test_vulnerable_setuptools_build_backend_is_rejected(self):
+    build_path = self.repository / "requirements-build.in"
+    build_path.write_text(
+      build_path.read_text(encoding="utf-8").replace("83.0.0", "82.0.1"),
+      encoding="utf-8",
+    )
+
+    self.assertIn(
+      "Build setuptools must be pinned to version 83.0.0 or newer",
+      metadata_check.audit(self.repository),
+    )
 
   def test_maven_sdist_execution_requires_locked_build_environment(self):
     agent_pom = self.repository / "ambari-agent/pom.xml"
@@ -186,6 +198,11 @@ class PythonDependencyMetadataTest(unittest.TestCase):
     self.assertIn(
       "Agent Maven execution bundle-python-sdist-dependencies omits arguments: "
       "--use-pep517",
+      errors,
+    )
+    self.assertIn(
+      "Agent Maven execution bundle-python-sdist-dependencies requires executable "
+      "${maven.multiModuleProjectDirectory}/dev-support/ambari-python-build",
       errors,
     )
 

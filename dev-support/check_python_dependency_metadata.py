@@ -144,6 +144,13 @@ def _toml_requirements(values):
   return {_normalize_requirement(value) for value in values}
 
 
+def _numeric_pin(requirement):
+  version = requirement.split("==", 1)[1].split(";", 1)[0]
+  if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*", version):
+    return ()
+  return tuple(int(part) for part in version.split("."))
+
+
 def _compare(errors, label, actual, expected):
   if actual == expected:
     return
@@ -183,6 +190,9 @@ def _maven_executions(path):
       executions[execution_id] = {
         "arguments": arguments,
         "environment": environment,
+        "executable": execution.findtext(
+          "m:configuration/m:executable", namespaces=namespace
+        ),
         "phase": execution.findtext("m:phase", namespaces=namespace),
       }
   return executions
@@ -206,6 +216,7 @@ def _require_maven_execution(
   execution_id,
   required_arguments=(),
   required_environment=None,
+  required_executable=None,
   phase=None,
 ):
   execution = executions.get(execution_id)
@@ -227,6 +238,14 @@ def _require_maven_execution(
       errors.append(
         f"{component} Maven execution {execution_id} requires {name}={value}"
       )
+  if (
+    required_executable is not None
+    and execution["executable"] != required_executable
+  ):
+    errors.append(
+      f"{component} Maven execution {execution_id} requires executable "
+      f"{required_executable}"
+    )
   if phase is not None and execution["phase"] != phase:
     errors.append(
       f"{component} Maven execution {execution_id} must run in {phase}, "
@@ -257,6 +276,9 @@ def _validate_maven_contracts(repository, errors):
         "--require-hashes",
         "${python.build.dependencies.dir}",
         "${maven.multiModuleProjectDirectory}/requirements-build.lock",
+      ),
+      required_executable=(
+        "${maven.multiModuleProjectDirectory}/dev-support/ambari-python-build"
       ),
       phase="generate-resources",
     )
@@ -296,6 +318,7 @@ def _validate_maven_contracts(repository, errors):
         "PYTHONNOUSERSITE": "1",
         "PYTHONPATH": "${python.build.dependencies.dir}",
       },
+      "${maven.multiModuleProjectDirectory}/dev-support/ambari-python-build",
       "generate-resources",
     )
     _require_maven_execution(
@@ -441,6 +464,9 @@ def audit(repository):
   server_direct = read_requirements(server_path, include_references=False)
   agent_sdist_path = repository / "ambari-agent/src/main/python/requirements-sdist.in"
   build = read_requirements(build_path)
+  setuptools_pins = [
+    requirement for requirement in build if requirement.startswith("setuptools==")
+  ]
   tooling = read_requirements(tooling_path, require_hashes=True)
   project = tomllib.loads((repository / "pyproject.toml").read_text(encoding="utf-8"))
   agent_project = tomllib.loads(
@@ -450,6 +476,8 @@ def audit(repository):
   )
 
   errors = []
+  if len(setuptools_pins) != 1 or _numeric_pin(setuptools_pins[0]) < (83, 0, 0):
+    errors.append("Build setuptools must be pinned to version 83.0.0 or newer")
   _validate_setup_contract(repository / "setup.py", errors, "root")
   _validate_setup_contract(
     repository / "ambari-agent/src/main/python/setup.py", errors, "Agent"

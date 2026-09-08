@@ -31,6 +31,9 @@ RUN dnf -y install \
     python39 \
     python39-devel \
     python39-pip \
+    python3.11 \
+    python3.11-devel \
+    python3.11-pip \
     redhat-rpm-config \
     rpm-build \
     sudo \

@@ -14,9 +14,11 @@ limitations under the License.
 # Docker Build Environment
 
 The repository root `start-build-env.sh` creates a Rocky Linux 8 build image
-with JDK 17, Python 3.9, RPM tooling, and a checksum-verified Maven
-distribution. The source tree and the current user's Maven cache are mounted
-into a non-root container user.
+with JDK 17, Python 3.9 for the packaged runtime, Python 3.11 for secure Python
+package builds, RPM tooling, and a checksum-verified Maven distribution. The
+source tree and the current user's Maven cache are mounted into a non-root
+container user. Outside the build image, set `AMBARI_BUILD_PYTHON` when a
+Python 3.10+ interpreter is not available under a versioned `python3.X` name.
 
 Start an interactive shell:
 

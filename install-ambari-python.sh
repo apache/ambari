@@ -15,13 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Requires a CPython 3.9.2+ interpreter with venv support.
+# Requires a CPython 3.9.2+ runtime and a CPython 3.10+ build interpreter.
 
 set -euo pipefail
 
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
 BUILD_VENV="$SCRIPT_DIR/target/ambari-python-build-venv"
 BUILD_PYTHON="$BUILD_VENV/bin/python"
+BUILD_PYTHON_LAUNCHER="$SCRIPT_DIR/dev-support/ambari-python-build"
+RUNTIME_VENV="$SCRIPT_DIR/target/ambari-python-runtime-venv"
+RUNTIME_PYTHON="$RUNTIME_VENV/bin/python"
 WHEELHOUSE=""
 
 function print_help() {
@@ -34,6 +37,7 @@ function print_help() {
    -i, --repository-id <id>     repository id in settings.xml for remote repository
    -r, --repository-url <url>   repository url of remote repository
    -w, --wheelhouse <path>      install locked build tools from an offline wheelhouse
+   -b, --build-python <path>    use this Python 3.10+ interpreter for package builds
    -h, --help                   print help
 EOF
 }
@@ -47,6 +51,19 @@ function get_python_artifact_file() {
     -print 2>/dev/null)
   if [[ ${#artifacts[@]} -ne 1 ]]; then
     echo "Expected exactly one ambari-python source distribution" >&2
+    return 1
+  fi
+  basename "${artifacts[0]}"
+}
+
+function get_python_wheel_file() {
+  local artifacts=()
+  while IFS= read -r artifact; do
+    artifacts+=("$artifact")
+  done < <(find "$SCRIPT_DIR/dist" -maxdepth 1 -type f \
+    -name 'ambari_python-*.whl' -print 2>/dev/null)
+  if [[ ${#artifacts[@]} -ne 1 ]]; then
+    echo "Expected exactly one ambari-python wheel" >&2
     return 1
   fi
   basename "${artifacts[0]}"
@@ -80,6 +97,10 @@ function clean() {
     echo "Removing '$BUILD_VENV' directory ..."
     rm -r "$BUILD_VENV"
   fi
+  if [[ -d "$RUNTIME_VENV" ]]; then
+    echo "Removing '$RUNTIME_VENV' directory ..."
+    rm -r "$RUNTIME_VENV"
+  fi
 }
 
 function select_python() {
@@ -103,7 +124,7 @@ function select_python() {
 
 function prepare_build_environment() {
   mkdir -p "$SCRIPT_DIR/target"
-  "$AMBARI_PYTHON" -m venv "$BUILD_VENV"
+  "$BUILD_PYTHON_LAUNCHER" -m venv "$BUILD_VENV"
   local pip_args=(
     install
     --disable-pip-version-check
@@ -117,11 +138,15 @@ function prepare_build_environment() {
   "$BUILD_PYTHON" -m pip "${pip_args[@]}"
 }
 
+function prepare_runtime_environment() {
+  "$AMBARI_PYTHON" -m venv "$RUNTIME_VENV"
+}
+
 function generate_site_packages() {
   local artifact="$1"
   local destination="$SCRIPT_DIR/target/ambari-python-dist/site-packages"
   mkdir -p "$destination"
-  "$BUILD_PYTHON" -m pip install \
+  "$RUNTIME_PYTHON" -m pip install \
     "$SCRIPT_DIR/dist/$artifact" \
     --disable-pip-version-check \
     --no-build-isolation \
@@ -154,12 +179,12 @@ function deploy() {
   mvn gpg:sign-and-deploy-file -Dfile="$artifact_file" -Dpackaging=tar.gz -DgeneratePom=true -Dversion="$version" -DartifactId=ambari-python -DgroupId=org.apache.ambari -Durl="$repo_url" -DrepositoryId="$repo_id"
 }
 
-function build_sdist() {
+function build_distributions() {
   local version="$1"
   if [[ -n "$version" ]]; then
-    (cd "$SCRIPT_DIR" && env AMBARI_VERSION="$version" "$BUILD_PYTHON" -m build --sdist --no-isolation)
+    (cd "$SCRIPT_DIR" && env AMBARI_VERSION="$version" "$BUILD_PYTHON" -m build --sdist --wheel --no-isolation)
   else
-    (cd "$SCRIPT_DIR" && "$BUILD_PYTHON" -m build --sdist --no-isolation)
+    (cd "$SCRIPT_DIR" && "$BUILD_PYTHON" -m build --sdist --wheel --no-isolation)
   fi
 }
 
@@ -197,6 +222,11 @@ function main() {
           WHEELHOUSE="$2"
           shift 2
         ;;
+        -b|--build-python)
+          AMBARI_BUILD_PYTHON="$2"
+          export AMBARI_BUILD_PYTHON
+          shift 2
+        ;;
         -h|--help)
           shift 1
           print_help
@@ -220,13 +250,16 @@ function main() {
     return 1
   fi
   prepare_build_environment
-  build_sdist "$VERSION"
+  prepare_runtime_environment
+  build_distributions "$VERSION"
   local artifact_name
   artifact_name=$(get_python_artifact_file)
+  local wheel_name
+  wheel_name=$(get_python_wheel_file)
   local artifact_version
   artifact_version=$(get_version)
 
-  generate_site_packages "$artifact_name"
+  generate_site_packages "$wheel_name"
   archive_python_dist "$artifact_name"
 
   install "$SCRIPT_DIR/target/$artifact_name" "$artifact_version"
@@ -246,4 +279,6 @@ function main() {
   fi
 }
 
-main "$@"
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+  main "$@"
+fi
