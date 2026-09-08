@@ -77,7 +77,7 @@
                 <version>1.11.0</version>
                 <configuration>
                     <skip>${skipUiBuild}</skip>
-                    <nodeVersion>v22.22.2</nodeVersion>
+                    <nodeVersion>v22.23.1</nodeVersion>
                     <yarnVersion>v1.22.22</yarnVersion>
                     <workingDirectory>${uidir}</workingDirectory>
                     <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>

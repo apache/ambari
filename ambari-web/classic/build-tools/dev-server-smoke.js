@@ -231,6 +231,7 @@ function startServer(port, noPushState) {
       environment[key] = process.env[key];
     }
   }
+  environment.AMBARI_BRUNCH_HOSTNAME = '127.0.0.1';
   if (noPushState) {
     environment.AMBARI_BRUNCH_NO_PUSH_STATE = 'true';
   }

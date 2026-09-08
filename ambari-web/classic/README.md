@@ -32,7 +32,7 @@ yarn test
 yarn test:server
 ```
 
-Maven installs Node 22.22.2 for the legacy application. Installation skips the
+Maven installs Node 22.23.1 for the legacy application. Installation skips the
 optional legacy `fsevents` dependency; Brunch uses its portable file watcher.
 
 The `resolutions` in `package.json` intentionally replace vulnerable
