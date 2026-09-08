@@ -44,8 +44,8 @@
     <spring.version>6.2.19</spring.version>
     <spring.security.version>6.5.11</spring.security.version>
     <spring.ldap.version>3.3.8</spring.ldap.version>
-    <fasterxml.jackson.version>2.18.2</fasterxml.jackson.version>
-    <fasterxml.jackson.databind.version>2.18.2</fasterxml.jackson.databind.version>
+    <fasterxml.jackson.version>2.18.9</fasterxml.jackson.version>
+    <fasterxml.jackson.databind.version>2.18.9</fasterxml.jackson.databind.version>
     <postgres.version>42.7.13</postgres.version>
     <testContainers.version>1.21.4</testContainers.version>
     <forkCount>4</forkCount>
