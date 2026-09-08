@@ -407,6 +407,27 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
   }
 
   @Test
+  public void testCreateKeytabPreservesLegacyEightBitKvno() throws Exception {
+    KerberosOperationHandler handler = createHandler();
+    handler.setKeyEncryptionTypes(EnumSet.of(EncryptionType.AES128_CTS_HMAC_SHA1_96));
+    int[] requestedKvnos = {127, 128, 255, 256};
+    int[] expectedKvnos = {127, 128, 255, 0};
+
+    for (int i = 0; i < requestedKvnos.length; i++) {
+      String principal = "user" + requestedKvnos[i] + "@EXAMPLE.COM";
+      Keytab keytab = handler.createKeytab(principal, "password", requestedKvnos[i]);
+      Assert.assertEquals(expectedKvnos[i], handler.getKeytabEntries(keytab).get(0).getKvno());
+
+      File keytabFile = folder.newFile();
+      keytab.store(keytabFile);
+      KerberosKey[] jdkKeys = KeyTab.getInstance(keytabFile)
+          .getKeys(new KerberosPrincipal(principal));
+      Assert.assertEquals(1, jdkKeys.length);
+      Assert.assertEquals(expectedKvnos[i], jdkKeys[0].getVersionNumber());
+    }
+  }
+
+  @Test
   public void testReadsLegacyApacheDsKeytabAndWritesJdkCompatibleKeytab() throws Exception {
     String principal = "service/host.example.com@EXAMPLE.COM";
     byte[] legacyKeytab = Base64.decodeBase64(

@@ -346,7 +346,7 @@ public abstract class KerberosOperationHandler {
     Keytab keytab = new Keytab();
 
     if (!ciphers.isEmpty()) {
-      int keyVersion = (keyNumber == null) ? 0 : keyNumber.byteValue();
+      int keyVersion = (keyNumber == null) ? 0 : Byte.toUnsignedInt(keyNumber.byteValue());
       KerberosTime timestamp = new KerberosTime();
       PrincipalName principalName = new PrincipalName(principal);
 
