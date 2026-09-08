@@ -21,6 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Driver;
+import java.sql.DriverPropertyInfo;
+import java.util.Properties;
 
 import org.junit.Test;
 
@@ -31,16 +33,29 @@ public class JdbcDriverCompatibilityTest {
     Driver driver = new org.mariadb.jdbc.Driver();
 
     assertTrue(driver.acceptsURL("jdbc:mariadb://localhost:3306/ambari"));
-    assertEquals(2, driver.getMajorVersion());
-    assertEquals(7, driver.getMinorVersion());
+    assertTrue(driver.acceptsURL("jdbc:mysql://localhost:3306/ambari"));
   }
 
   @Test
   public void testSqlServerDriverContract() throws Exception {
     Driver driver = new com.microsoft.sqlserver.jdbc.SQLServerDriver();
+    DriverPropertyInfo[] properties = driver.getPropertyInfo(
+        "jdbc:sqlserver://localhost:1433;databaseName=ambari;"
+            + "encrypt=false;trustServerCertificate=true",
+        new Properties());
 
     assertTrue(driver.acceptsURL("jdbc:sqlserver://localhost:1433;databaseName=ambari"));
-    assertEquals(13, driver.getMajorVersion());
-    assertEquals(4, driver.getMinorVersion());
+    assertEquals("ambari", propertyValue(properties, "databaseName"));
+    assertEquals("false", propertyValue(properties, "encrypt"));
+    assertEquals("true", propertyValue(properties, "trustServerCertificate"));
+  }
+
+  private static String propertyValue(DriverPropertyInfo[] properties, String name) {
+    for (DriverPropertyInfo property : properties) {
+      if (name.equals(property.name)) {
+        return property.value;
+      }
+    }
+    throw new AssertionError("Missing JDBC driver property " + name);
   }
 }
