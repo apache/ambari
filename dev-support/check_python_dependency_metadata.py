@@ -402,6 +402,37 @@ def _validate_maven_contracts(repository, errors):
     )
 
 
+def _validate_jenkins_contract(repository, errors):
+  jenkinsfile = repository / "Jenkinsfile"
+  if not jenkinsfile.is_file():
+    return
+  content = jenkinsfile.read_text(encoding="utf-8")
+  build_python = "target/jenkins-python-build-venv/bin/python"
+  required_fragments = {
+    "create its Python 3.10+ build environment with the Ambari launcher": (
+      "dev-support/ambari-python-build -m venv --clear "
+      "target/jenkins-python-build-venv"
+    ),
+    "install requirements-tooling.txt with the Python build interpreter": (
+      f"{build_python} -m pip install "
+      "--only-binary=:all: --require-hashes --requirement requirements-tooling.txt"
+    ),
+    "install requirements-build.lock with the Python build interpreter": (
+      f"{build_python} -m pip install "
+      "--only-binary=:all: --require-hashes --requirement requirements-build.lock"
+    ),
+    "run dependency metadata checks with the Python build interpreter": (
+      f"{build_python} dev-support/check_python_dependency_metadata.py"
+    ),
+    "run dev-support tests with the Python build interpreter": (
+      f"{build_python} -m unittest discover -s dev-support -p 'test_*.py'"
+    ),
+  }
+  for description, fragment in required_fragments.items():
+    if fragment not in content:
+      errors.append(f"Jenkins must {description}")
+
+
 def _validate_assembly_contracts(repository, errors):
   assemblies = (
     ("Agent", repository / "ambari-agent/src/packages/tarball/all.xml"),
@@ -544,6 +575,7 @@ def audit(repository):
     if missing:
       errors.append(f"{label} lock omits manifest pins: {','.join(missing)}")
   _validate_maven_contracts(repository, errors)
+  _validate_jenkins_contract(repository, errors)
   _validate_assembly_contracts(repository, errors)
   return errors
 

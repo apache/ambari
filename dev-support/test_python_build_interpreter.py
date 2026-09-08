@@ -57,6 +57,25 @@ class PythonBuildInterpreterTest(unittest.TestCase):
     self.assertEqual(0, result.returncode, result.stderr)
     self.assertEqual("-m build\n", result.stdout)
 
+  def test_supported_generic_python3_is_used_as_fallback(self):
+    with tempfile.TemporaryDirectory() as directory:
+      path = Path(directory)
+      (path / "bash").symlink_to("/bin/bash")
+      candidate = path / "python3"
+      self._write_candidate(candidate, supported=True)
+      environment = {"PATH": directory}
+
+      result = subprocess.run(
+        [str(LAUNCHER), "-m", "build"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=environment,
+      )
+
+    self.assertEqual(0, result.returncode, result.stderr)
+    self.assertEqual("-m build\n", result.stdout)
+
   def test_unsupported_interpreters_fail_with_override_guidance(self):
     with tempfile.TemporaryDirectory() as directory:
       path = Path(directory)

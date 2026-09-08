@@ -224,6 +224,32 @@ class PythonDependencyMetadataTest(unittest.TestCase):
       errors,
     )
 
+  def test_jenkins_cannot_install_build_lock_with_runtime_python(self):
+    (self.repository / "Jenkinsfile").write_text(
+      "sh 'pip3 install --requirement requirements-build.lock'\n"
+      "sh 'python3 dev-support/check_python_dependency_metadata.py'\n"
+      "sh \"python3 -m unittest discover -s dev-support -p 'test_*.py'\"\n",
+      encoding="utf-8",
+    )
+    errors = []
+
+    metadata_check._validate_jenkins_contract(self.repository, errors)
+
+    self.assertIn(
+      "Jenkins must install requirements-build.lock with the Python build "
+      "interpreter",
+      errors,
+    )
+    self.assertIn(
+      "Jenkins must run dependency metadata checks with the Python build "
+      "interpreter",
+      errors,
+    )
+    self.assertIn(
+      "Jenkins must run dev-support tests with the Python build interpreter",
+      errors,
+    )
+
   def test_assembly_cannot_strip_locked_wheel_content(self):
     for excluded_directory in ("doc", "docs", "examples", "test", "tests"):
       with self.subTest(excluded_directory=excluded_directory):

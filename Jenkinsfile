@@ -57,19 +57,20 @@ pipeline {
         stage('Find and Run Ruff') {
             steps {
                 script {
-                    sh 'pip3 install --user --only-binary=:all: --require-hashes --requirement requirements-tooling.txt'
-                    sh 'pip3 install --user --only-binary=:all: --require-hashes --requirement requirements-build.lock'
-                    echo "Contents of /home/jenkins/.local/bin:"
-                    sh 'ls -l /home/jenkins/.local/bin || echo "Directory not found"'
+                    sh 'dev-support/ambari-python-build -m venv --clear target/jenkins-python-build-venv'
+                    sh 'target/jenkins-python-build-venv/bin/python -m pip install --only-binary=:all: --require-hashes --requirement requirements-tooling.txt'
+                    sh 'target/jenkins-python-build-venv/bin/python -m pip install --only-binary=:all: --require-hashes --requirement requirements-build.lock'
+                    echo "Contents of the Python build environment:"
+                    sh 'ls -l target/jenkins-python-build-venv/bin'
                 }
             }
         }
 
         stage('Ruff Check') {
             steps {
-                withEnv(["PATH+LOCALBIN=/home/jenkins/.local/bin:${env.PATH}"]) {
-                    sh 'python3 dev-support/check_python_dependency_metadata.py'
-                    sh "python3 -m unittest discover -s dev-support -p 'test_*.py'"
+                withEnv(["PATH+PYTHONBUILD=${env.WORKSPACE}/target/jenkins-python-build-venv/bin"]) {
+                    sh 'target/jenkins-python-build-venv/bin/python dev-support/check_python_dependency_metadata.py'
+                    sh "target/jenkins-python-build-venv/bin/python -m unittest discover -s dev-support -p 'test_*.py'"
                     sh 'ruff --version'
                     sh 'mvn exec:exec@ruff-check -Pruff-check -pl :ambari -DskipTests -Dmaven.install.skip=true'
                 }
