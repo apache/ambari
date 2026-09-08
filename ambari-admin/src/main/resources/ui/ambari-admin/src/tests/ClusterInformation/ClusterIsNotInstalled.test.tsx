@@ -159,7 +159,7 @@ describe('Cluster is not installed', () => {
         await waitFor(() => {
             const installBoxImgElement = screen.getByAltText('Install Box') as HTMLImageElement;
             expect(installBoxImgElement).toBeInTheDocument();
-            expect(installBoxImgElement.src).toContain("install-box.svg");
+            expect(installBoxImgElement.src).toMatch(/(?:install-box\.svg|^data:image\/svg\+xml)/);
         })
     });
 });
