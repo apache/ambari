@@ -21,6 +21,7 @@
   <!--This 'all' id is not appended to the produced bundle because we do this:
     http://maven.apache.org/plugins/maven-assembly-plugin/faq.html#required-classifiers
   -->
+  <id>all</id>
   <formats>
     <format>dir</format>
     <format>tar.gz</format>
