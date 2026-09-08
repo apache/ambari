@@ -233,8 +233,9 @@ public class Configuration {
    * unit tests.
    */
   public static final String JDBC_IN_MEMORY_URL = String.format(
-      "jdbc:h2:mem:%1$s;ALIAS_COLUMN_NAME=TRUE;INIT=CREATE SCHEMA IF NOT EXISTS %1$s\\;SET SCHEMA %1$s;",
-      DEFAULT_DERBY_SCHEMA);
+      "jdbc:h2:mem:%1$s;MODE=LEGACY;NON_KEYWORDS=MONTH,VALUE;"
+          + "INIT=CREATE SCHEMA IF NOT EXISTS %1$s\\;SET SCHEMA %1$s;",
+      DEFAULT_H2_SCHEMA);
 
   /**
    * The H2 driver to use when creating a {@link DatabaseType#H2} database
