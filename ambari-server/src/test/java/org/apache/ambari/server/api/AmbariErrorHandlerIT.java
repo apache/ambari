@@ -19,7 +19,9 @@
 package org.apache.ambari.server.api;
 
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -38,10 +40,10 @@ import jakarta.ws.rs.core.Response;
 
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationPropertiesProvider;
 import org.easymock.EasyMockSupport;
+import org.eclipse.jetty.ee10.servlet.DefaultServlet;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -58,10 +60,12 @@ public class AmbariErrorHandlerIT extends EasyMockSupport {
 
     replayAll();
 
-    ServletContextHandler root = new ServletContextHandler(server, "/",
-      ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
+    ServletContextHandler root = new ServletContextHandler("/",
+        ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
+    server.setHandler(root);
 
     root.addServlet(HelloServlet.class, "/hello");
+    root.addServlet(FailingServlet.class, "/error");
     root.addServlet(DefaultServlet.class, "/");
     root.setErrorHandler(new AmbariErrorHandler(gson, propertiesProvider));
 
@@ -89,6 +93,13 @@ public class AmbariErrorHandlerIT extends EasyMockSupport {
       fail("Incorrect response");
     }
 
+    Response internalErrorResponse = resource.path("error").request().get();
+    assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), internalErrorResponse.getStatus());
+    Map internalError = gson.fromJson(readResponse(internalErrorResponse), Map.class);
+    assertEquals(500.0, internalError.get("status"));
+    assertTrue(internalError.get("message").toString().startsWith(
+        "Internal server error, please refer the exception by "));
+
     server.stop();
 
     verifyAll();
@@ -109,5 +120,13 @@ public class AmbariErrorHandlerIT extends EasyMockSupport {
       response.getWriter().println("hello");
     }
 
+  }
+
+  @SuppressWarnings("serial")
+  public static class FailingServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+      throw new ServletException("sensitive failure details");
+    }
   }
 }

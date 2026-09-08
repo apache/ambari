@@ -27,16 +27,23 @@ import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.partialMockBuilder;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.net.Authenticator;
 import java.net.InetAddress;
 import java.net.PasswordAuthentication;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -58,11 +65,16 @@ import org.apache.ambari.server.testutils.PartialNiceMockBinder;
 import org.apache.velocity.app.Velocity;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.After;
 import org.junit.Assert;
@@ -168,7 +180,7 @@ public class AmbariServerTest {
 
     handler.setMaxFormContentSize(-1);
     EasyMock.expectLastCall().once();
-    EasyMock.expect(handler.getMimeTypes()).andReturn(new MimeTypes()).anyTimes();
+    EasyMock.expect(handler.getMimeTypes()).andReturn(new MimeTypes.Mutable()).anyTimes();
     replay(handler, filter);
 
     injector.getInstance(AmbariServer.class).configureRootHandler(handler);
@@ -195,7 +207,7 @@ public class AmbariServerTest {
   public void testConfigureContentTypes() throws Exception {
     ServletContextHandler handler = EasyMock.createNiceMock(ServletContextHandler.class);
     FilterHolder filter = EasyMock.createNiceMock(FilterHolder.class);
-    MimeTypes expectedMimeTypes = new MimeTypes();
+    MimeTypes.Mutable expectedMimeTypes = new MimeTypes.Mutable();
     EasyMock.expect(handler.getMimeTypes()).andReturn(expectedMimeTypes).anyTimes();
     EasyMock.expect(handler.addFilter(isA(Class.class), anyString(), isA(EnumSet.class))).andReturn(filter).anyTimes();
     replay(handler, filter);
@@ -203,6 +215,80 @@ public class AmbariServerTest {
     assertEquals("application/font-woff", expectedMimeTypes.getMimeByExtension("/file.woff").toString());
     assertEquals("application/font-sfnt", expectedMimeTypes.getMimeByExtension("/file.ttf").toString());
     EasyMock.verify(handler);
+  }
+
+  @Test
+  public void testCreateClientTlsConnectorPreservesSecurityConfiguration() {
+    Configuration configuration = createTlsConfiguration(true);
+    AmbariServer ambariServer = new AmbariServer();
+    ambariServer.configs = configuration;
+
+    ServerConnector connector = ambariServer.createSelectChannelConnectorForClient(new Server(), 1);
+
+    SslConnectionFactory sslConnectionFactory = connector.getConnectionFactory(SslConnectionFactory.class);
+    assertNotNull(sslConnectionFactory);
+    SslContextFactory.Server sslContextFactory = sslConnectionFactory.getSslContextFactory();
+    assertEquals(testStorePath(), sslContextFactory.getKeyStorePath());
+    assertEquals(testStorePath(), sslContextFactory.getTrustStorePath());
+    assertArrayEquals(new String[] {"TLSv1"}, sslContextFactory.getExcludeProtocols());
+    assertEquals(8443, connector.getPort());
+    assertEquals(30000L, connector.getIdleTimeout());
+
+    HttpConfiguration httpConfiguration = connector.getConnectionFactory(HttpConnectionFactory.class)
+        .getHttpConfiguration();
+    assertEquals(16384, httpConfiguration.getRequestHeaderSize());
+    assertEquals(16384, httpConfiguration.getResponseHeaderSize());
+  }
+
+  @Test
+  public void testCreateAgentTlsConnectorPreservesMutualAuthentication() {
+    Configuration configuration = createTlsConfiguration(false);
+    AmbariServer ambariServer = new AmbariServer();
+    ambariServer.configs = configuration;
+
+    ServerConnector connector = ambariServer.createSelectChannelConnectorForAgent(new Server(), 8671, true, 1);
+
+    SslConnectionFactory sslConnectionFactory = connector.getConnectionFactory(SslConnectionFactory.class);
+    assertNotNull(sslConnectionFactory);
+    SslContextFactory.Server sslContextFactory = sslConnectionFactory.getSslContextFactory();
+    assertTrue(sslContextFactory.getNeedClientAuth());
+    assertEquals(testStorePath(), sslContextFactory.getKeyStorePath());
+    assertEquals(testStorePath(), sslContextFactory.getTrustStorePath());
+    assertArrayEquals(new String[] {"TLSv1"}, sslContextFactory.getExcludeProtocols());
+    assertEquals(8671, connector.getPort());
+  }
+
+  private Configuration createTlsConfiguration(boolean clientApi) {
+    Configuration configuration = createNiceMock(Configuration.class);
+    Map<String, String> properties = new HashMap<>();
+    Path storePath = Paths.get("pom.xml").toAbsolutePath();
+    properties.put(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey(), storePath.getParent().toString());
+    properties.put(Configuration.CLIENT_API_SSL_KSTR_NAME.getKey(), storePath.getFileName().toString());
+    properties.put(Configuration.CLIENT_API_SSL_TSTR_NAME.getKey(), storePath.getFileName().toString());
+    properties.put(Configuration.CLIENT_API_SSL_CRT_PASS.getKey(), "secret");
+    properties.put(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey(), "PKCS12");
+    properties.put(Configuration.SRVR_KSTR_DIR.getKey(), storePath.getParent().toString());
+    properties.put(Configuration.KSTR_NAME.getKey(), storePath.getFileName().toString());
+    properties.put(Configuration.TSTR_NAME.getKey(), storePath.getFileName().toString());
+    properties.put(Configuration.SRVR_CRT_PASS.getKey(), "secret");
+    properties.put(Configuration.KSTR_TYPE.getKey(), "PKCS12");
+    properties.put(Configuration.TSTR_TYPE.getKey(), "PKCS12");
+
+    expect(configuration.getConfigsMap()).andReturn(properties).anyTimes();
+    expect(configuration.getApiSSLAuthentication()).andReturn(clientApi).anyTimes();
+    expect(configuration.getAgentSSLAuthentication()).andReturn(!clientApi).anyTimes();
+    expect(configuration.getClientSSLApiPort()).andReturn(8443).anyTimes();
+    expect(configuration.getConnectionMaxIdleTime()).andReturn(30000).anyTimes();
+    expect(configuration.getHttpRequestHeaderSize()).andReturn(16384).anyTimes();
+    expect(configuration.getHttpResponseHeaderSize()).andReturn(16384).anyTimes();
+    expect(configuration.getSrvrDisabledCiphers()).andReturn("").anyTimes();
+    expect(configuration.getSrvrDisabledProtocols()).andReturn("").anyTimes();
+    replay(configuration);
+    return configuration;
+  }
+
+  private String testStorePath() {
+    return Paths.get("pom.xml").toAbsolutePath().toUri().toString();
   }
 
   /**

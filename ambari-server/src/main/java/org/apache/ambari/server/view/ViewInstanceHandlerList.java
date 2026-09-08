@@ -19,7 +19,7 @@ package org.apache.ambari.server.view;
 
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.view.SystemException;
-import org.eclipse.jetty.server.session.SessionCache;
+import org.eclipse.jetty.session.SessionCache;
 
 /**
  * List of handlers for deployed view instances.

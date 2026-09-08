@@ -84,7 +84,6 @@ import org.apache.ambari.server.controller.utilities.KerberosIdentityCleaner;
 import org.apache.ambari.server.events.AmbariPropertiesChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.ldap.LdapModule;
-import org.apache.ambari.server.listeners.WebSocketInitializerListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -131,29 +130,26 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpVersion;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.velocity.app.Velocity;
+import org.eclipse.jetty.ee10.servlet.DefaultServlet;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
+import org.eclipse.jetty.ee10.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.eclipse.jetty.server.CustomRequestLog;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.SymlinkAllowedResourceAliasChecker;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
-import org.eclipse.jetty.server.session.DefaultSessionIdManager;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.session.DefaultSessionIdManager;
+import org.eclipse.jetty.session.SessionIdManager;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
@@ -330,8 +326,8 @@ public class AmbariServer {
       configs.getClientThreadPoolSize());
 
     final SessionIdManager sessionIdManager = new DefaultSessionIdManager(server);
+    server.addBean(sessionIdManager);
     sessionHandler.setSessionIdManager(sessionIdManager);
-    server.setSessionIdManager(sessionIdManager);
 
     // Agent Jetty thread pool - widen the thread pool if needed !
     Integer agentAcceptors = configs.getAgentApiAcceptors() != null ?
@@ -383,8 +379,8 @@ public class AmbariServer {
 
       // the agent communication (heartbeats, registration, etc) is stateless
       // and does not use sessions.
-      ServletContextHandler agentroot = new ServletContextHandler(
-          serverForAgent, "/", ServletContextHandler.NO_SESSIONS);
+      ServletContextHandler agentroot = new ServletContextHandler("/", ServletContextHandler.NO_SESSIONS);
+      serverForAgent.setHandler(agentroot);
 
       AnnotationConfigWebApplicationContext agentApiContext = new AnnotationConfigWebApplicationContext();
       agentApiContext.setParent(parentSpringAppContext);
@@ -393,13 +389,12 @@ public class AmbariServer {
         configureHandlerCompression(agentroot);
       }
 
-      JettyWebSocketServletContainerInitializer initializerForAgentroot = new JettyWebSocketServletContainerInitializer((context, jettyContainer) -> {
+      JettyWebSocketServletContainerInitializer.configure(agentroot, (context, jettyContainer) -> {
         jettyContainer.setMaxTextMessageSize(configs.getStompMaxIncomingMessageSize());
         LOG.info("Configured WebSocket container max text message size: {}", configs.getStompMaxIncomingMessageSize());
       });
 
       agentroot.addEventListener(new ContextLoaderListener(agentApiContext));
-      agentroot.addEventListener(new WebSocketInitializerListener(initializerForAgentroot));
 
       ServletHolder rootServlet = root.addServlet(DefaultServlet.class, "/");
       rootServlet.setInitParameter("dirAllowed", "false");
@@ -433,14 +428,13 @@ public class AmbariServer {
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", DISPATCHER_TYPES);
       root.addFilter(new FilterHolder(new ContentTypeOverrideFilter()), "/api/*", DISPATCHER_TYPES);
 
-      JettyWebSocketServletContainerInitializer initializerForRoot = new JettyWebSocketServletContainerInitializer((context, jettyContainer) -> {
+      JettyWebSocketServletContainerInitializer.configure(root, (context, jettyContainer) -> {
         jettyContainer.setMaxTextMessageSize(configs.getStompMaxIncomingMessageSize());
         LOG.info("Configured WebSocket container max text message size: {}", configs.getStompMaxIncomingMessageSize());
       });
 
       // register listener to capture request context
       root.addEventListener(new RequestContextListener());
-      root.addEventListener(new WebSocketInitializerListener(initializerForRoot));
       root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", DISPATCHER_TYPES);
       root.addFilter(new FilterHolder(new UserNameOverrideFilter()), "/api/v1/users/*", DISPATCHER_TYPES);
 
@@ -480,7 +474,7 @@ public class AmbariServer {
       viewRegistry.readViewArchives();
 
       //Check and load requestlog handler.
-      loadRequestlogHandler(handlerList, serverForAgent, configsMap);
+      loadRequestlogHandler(server, serverForAgent, configsMap);
 
       enableLog4jMonitor(configsMap);
 
@@ -519,8 +513,8 @@ public class AmbariServer {
       root.addServlet(resources, "/resources/*");
       resources.setInitOrder(5);
 
-      // Allow symlinked files in Jetty 11
-      Resource baseResource = Resource.newResource(resourcesDirectory.getParentFile().getAbsolutePath());
+      // Allow symlinked files beneath the configured resource directory.
+      Resource baseResource = root.newResource(resourcesDirectory.getParentFile().getAbsolutePath());
       root.addAliasCheck(new SymlinkAllowedResourceAliasChecker(root, baseResource));
 
       if (configs.csrfProtectionEnabled()) {
@@ -621,7 +615,7 @@ public class AmbariServer {
    * @return org.eclipse.jetty.server.nio.SelectChannelConnector
    */
   @SuppressWarnings("deprecation")
-  private ServerConnector createSelectChannelConnectorForAgent(Server server, int port, boolean needClientAuth, int acceptors) {
+  ServerConnector createSelectChannelConnectorForAgent(Server server, int port, boolean needClientAuth, int acceptors) {
     Map<String, String> configsMap = configs.getConfigsMap();
     ServerConnector agentConnector;
 
@@ -671,7 +665,7 @@ public class AmbariServer {
   }
 
   @SuppressWarnings("deprecation")
-  private ServerConnector createSelectChannelConnectorForClient(Server server, int acceptors) {
+  ServerConnector createSelectChannelConnectorForClient(Server server, int acceptors) {
     Map<String, String> configsMap = configs.getConfigsMap();
     ServerConnector apiConnector;
 
@@ -841,7 +835,7 @@ public class AmbariServer {
     root.setMaxFormContentSize(-1);
 
     /* Configure web app context */
-    root.setResourceBase(configs.getWebAppDir());
+    root.setBaseResourceAsString(configs.getWebAppDir());
   }
 
   /**
@@ -862,7 +856,7 @@ public class AmbariServer {
               "application/json"
       );
       gzipHandler.setMinGzipSize(Integer.parseInt(configs.getApiGzipMinSize()));
-      context.setGzipHandler(gzipHandler);
+      context.insertHandler(gzipHandler);
     }
   }
 
@@ -1051,7 +1045,7 @@ public class AmbariServer {
   /**
    * For loading requestlog handlers
    */
-  private static void loadRequestlogHandler(AmbariHandlerList handlerList, Server serverForAgent , Map<String, String> configsMap) {
+  private static void loadRequestlogHandler(Server server, Server serverForAgent, Map<String, String> configsMap) {
 
     //Example:  /var/log/ambari-server/ambari-server-access-yyyy_mm_dd.log
     String requestlogpath =  configsMap.get(Configuration.REQUEST_LOGPATH.getKey());
@@ -1060,11 +1054,6 @@ public class AmbariServer {
     if(!StringUtils.isBlank(requestlogpath)) {
       String logfullpath = requestlogpath + "//" + Configuration.REQUEST_LOGNAMEPATTERN.getDefaultValue();
       LOG.info("********* Initializing request access log: " + logfullpath);
-      RequestLogHandler requestLogHandler = new RequestLogHandler();
-
-      CustomRequestLog requestLog = new CustomRequestLog(requestlogpath);
-
-
       String retaindays = configsMap.get(Configuration.REQUEST_LOG_RETAINDAYS.getKey());
       int retaindaysInt = Configuration.REQUEST_LOG_RETAINDAYS.getDefaultValue();
       if(retaindays != null && !StringUtils.isBlank(retaindays)) {
@@ -1075,18 +1064,8 @@ public class AmbariServer {
 //      requestLog.setAppend(true);
 //      requestLog.setLogLatency(true);
 //      requestLog.setExtended(true);
-      requestLogHandler.setRequestLog(requestLog);
-      //Add requestloghandler to existing handlerlist.
-      handlerList.addHandler(requestLogHandler);
-
-      //For agent communication.
-      HandlerCollection handlers = new HandlerCollection();
-      Handler[] handler = serverForAgent.getHandlers();
-      if(handler != null ) {
-        handlers.setHandlers((Handler[])handler);
-        handlers.addHandler(requestLogHandler);
-        serverForAgent.setHandler(handlers);
-      }
+      server.setRequestLog(new CustomRequestLog(requestlogpath));
+      serverForAgent.setRequestLog(new CustomRequestLog(requestlogpath));
 
     }
   }

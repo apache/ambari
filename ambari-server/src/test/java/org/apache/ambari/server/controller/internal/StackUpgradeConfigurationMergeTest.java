@@ -94,7 +94,7 @@ import org.apache.ambari.spi.upgrade.UpgradeType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

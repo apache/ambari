@@ -29,7 +29,7 @@ import static org.junit.Assert.assertNull;
 import jakarta.servlet.SessionCookieConfig;
 import jakarta.servlet.http.HttpSession;
 
-import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.junit.Test;
 
 public class AmbariSessionManagerTest {

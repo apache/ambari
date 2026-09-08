@@ -26,6 +26,7 @@ import jakarta.servlet.ServletContext;
 import org.apache.ambari.server.configuration.Configuration;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import com.google.inject.Injector;
@@ -42,17 +43,17 @@ public class StompWebSocketConfigurationTest {
   }
 
   @Test
-  public void usesJetty11UpgradeStrategyForEveryStompEndpoint() {
+  public void usesJetty12UpgradeStrategyForEveryStompEndpoint() {
     AgentStompConfig agentConfig = new AgentStompConfig(servletContext, injector);
     ApiStompConfig apiConfig = new ApiStompConfig(injector);
     RootStompConfig rootConfig = new RootStompConfig(servletContext, injector);
 
-    assertJetty11UpgradeStrategy(agentConfig.getHandshakeHandler());
-    assertJetty11UpgradeStrategy(apiConfig.getHandshakeHandler());
-    assertJetty11UpgradeStrategy(rootConfig.handshakeHandler());
+    assertJetty12UpgradeStrategy(agentConfig.getHandshakeHandler());
+    assertJetty12UpgradeStrategy(apiConfig.getHandshakeHandler());
+    assertJetty12UpgradeStrategy(rootConfig.handshakeHandler());
   }
 
-  private void assertJetty11UpgradeStrategy(DefaultHandshakeHandler handshakeHandler) {
-    assertTrue(handshakeHandler.getRequestUpgradeStrategy() instanceof Jetty11RequestUpgradeStrategy);
+  private void assertJetty12UpgradeStrategy(DefaultHandshakeHandler handshakeHandler) {
+    assertTrue(handshakeHandler.getRequestUpgradeStrategy() instanceof JettyRequestUpgradeStrategy);
   }
 }

@@ -18,28 +18,18 @@
 
 package org.apache.ambari.server.api;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-
 import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.http.HttpStatus;
+import org.eclipse.jetty.ee10.servlet.ErrorHandler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javassist.util.proxy.MethodHandler;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 /**
  * Wraps the given ErrorHandler to log the error stacks
  */
-public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodHandler {
-
-  private final static Logger LOGGER = LoggerFactory.getLogger(AmbariViewErrorHandlerProxy.class);
+public class AmbariViewErrorHandlerProxy extends ErrorHandler {
 
   private final ErrorHandler webAppErrorHandler;
   private final AmbariErrorHandler ambariErrorHandler;
@@ -49,20 +39,15 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
     this.ambariErrorHandler = ambariErrorHandler;
   }
 
-
   @Override
-  public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-
+  public boolean handle(Request request, Response response, Callback callback) throws Exception {
     if (isInternalError(request, response)) {
-      //invoke the ambari error handler
-      ambariErrorHandler.handle(target, baseRequest, request, response);
-    } else {
-      //invoke the original errorhandler
-      webAppErrorHandler.handle(target, baseRequest, request, response);
+      return ambariErrorHandler.handle(request, response, callback);
     }
+    return webAppErrorHandler.handle(request, response, callback);
   }
 
-  private boolean isInternalError(HttpServletRequest request, HttpServletResponse response) {
+  private boolean isInternalError(Request request, Response response) {
     Throwable th = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
     return null != th && response.getStatus() == HttpStatus.SC_INTERNAL_SERVER_ERROR;
   }
@@ -72,36 +57,4 @@ public class AmbariViewErrorHandlerProxy extends ErrorHandler implements MethodH
     ambariErrorHandler.setShowStacks(showStacks);
     webAppErrorHandler.setShowStacks(showStacks);
   }
-
-  @Override
-  public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-    LOGGER.debug("invoked method: " + thisMethod.getName());
-    Method m = findDeclaredMethod(this.getClass(), thisMethod);
-    if (m != null) {
-      return m.invoke(this, args);
-    }
-    m = findMethod(webAppErrorHandler.getClass(), thisMethod);
-    if (m != null) {
-      return m.invoke(webAppErrorHandler, args);
-    }
-    return null;
-  }
-
-  private Method findDeclaredMethod(Class<?> clazz, Method method) {
-    try {
-      return clazz.getDeclaredMethod(method.getName(), method.getParameterTypes());
-    } catch (NoSuchMethodException e) {
-      return null;
-    }
-  }
-
-  private Method findMethod(Class<?> clazz, Method method) {
-    try {
-      return clazz.getMethod(method.getName(), method.getParameterTypes());
-    } catch (NoSuchMethodException e) {
-      return null;
-    }
-  }
-
-
 }

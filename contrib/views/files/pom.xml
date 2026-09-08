@@ -154,7 +154,6 @@
 
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
-    <jetty.version>9.4.43.v20210629</jetty.version>
     <skipUiBuild>false</skipUiBuild>
     <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
   </properties>

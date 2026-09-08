@@ -38,9 +38,6 @@ import org.apache.http.HttpStatus;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.eclipse.jetty.server.HttpChannel;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.junit.Test;
 import org.slf4j.Logger;
 
@@ -51,17 +48,10 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
 
   private Logger logger = createNiceMock(Logger.class);
 
-  private HttpChannel httpChannel = createNiceMock(HttpChannel.class);
-
-  private Response response = createNiceMock(Response.class);
-  private Request request = createNiceMock(Request.class);
-
   private HttpServletResponse httpServletResponse = createNiceMock(HttpServletResponse.class);
   private HttpServletRequest httpServletRequest = createNiceMock(HttpServletRequest.class);
 
   private JwtAuthenticationPropertiesProvider propertiesProvider = createNiceMock(JwtAuthenticationPropertiesProvider.class);
-
-  final String target = "target";
 
   @Test
   public void testHandleInternalServerError() throws IOException {
@@ -73,12 +63,6 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
     Capture<String> captureLogMessage = EasyMock.newCapture();
     logger.error(capture(captureLogMessage), eq(th));
     expectLastCall().anyTimes();
-
-    expect(request.getHttpChannel()).andReturn(httpChannel);
-    request.setHandled(true);
-    expectLastCall().once();
-    expect(httpChannel.getResponse()).andReturn(response).times(2);
-    expect(response.getStatus()).andReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
     final String requestUri = "/path/to/target";
     expect(httpServletRequest.getRequestURI()).andReturn(requestUri);
@@ -98,7 +82,8 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
     ambariErrorHandler.setShowStacks(false);
 
     //when
-    ambariErrorHandler.handle(target, request, httpServletRequest, httpServletResponse);
+    ambariErrorHandler.generateAcceptableResponse(null, httpServletRequest, httpServletResponse,
+        HttpStatus.SC_INTERNAL_SERVER_ERROR, null);
 
     //then
     assertEquals(expectedResponse, writer.toString());
@@ -110,12 +95,6 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
   public void testHandleGeneralError() throws Exception {
 
     //given
-    expect(request.getHttpChannel()).andReturn(httpChannel);
-    request.setHandled(true);
-    expectLastCall().once();
-    expect(httpChannel.getResponse()).andReturn(response).anyTimes();
-    expect(response.getStatus()).andReturn(HttpStatus.SC_BAD_REQUEST);
-
     final StringWriter writer = new StringWriter();
     expect(httpServletResponse.getWriter()).andReturn(new PrintWriter(writer));
 
@@ -128,7 +107,8 @@ public class AmbariErrorHandlerTest extends EasyMockSupport {
     AmbariErrorHandler ambariErrorHandler = new AmbariErrorHandler(gson, propertiesProvider, logger, UUID::randomUUID);
 
     //when
-    ambariErrorHandler.handle(target, request, httpServletRequest, httpServletResponse);
+    ambariErrorHandler.generateAcceptableResponse(null, httpServletRequest, httpServletResponse,
+        HttpStatus.SC_BAD_REQUEST, null);
     System.out.println(writer.toString());
 
     //then

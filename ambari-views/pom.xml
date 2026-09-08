@@ -30,9 +30,8 @@
     <description>Ambari View interfaces.</description>
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-jndi</artifactId>
-            <version>11.0.15</version>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-jndi</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
