@@ -1356,6 +1356,86 @@ class TestYarnAdvisorContract(unittest.TestCase):
     self.assertEqual("NODEMANAGER", mounts[0][1][0][1][0])
     self.assertIn(("mapreduce.map.memory.mb", "maximum", 8192), attributes)
 
+  def test_mapreduce_recommendations_rebuild_yarn_dependency_for_other_config_page(self):
+    recommender = YARN_ADVISOR.MAPREDUCE2Recommender()
+    configurations = {
+      "victoriametrics": {"properties": {"retentionPeriod": "30d"}}
+    }
+    services = {
+      "configurations": {
+        "victoriametrics": {"properties": {"retentionPeriod": "30d"}}
+      },
+      "services": [
+        {"StackServices": {"service_name": "MAPREDUCE2"}},
+        {"StackServices": {"service_name": "VICTORIAMETRICS"}},
+        {"StackServices": {"service_name": "YARN"}},
+      ],
+      "user-context": {"operation": "RecommendAttribute"},
+    }
+
+    def calculate_allocations(updated_configurations, _, __):
+      updated_configurations["yarn-site"] = {
+        "properties": {
+          "yarn.scheduler.minimum-allocation-mb": "512",
+          "yarn.scheduler.maximum-allocation-mb": "8192",
+        }
+      }
+
+    with patch.object(
+      recommender,
+      "calculateYarnAllocationSizes",
+      side_effect=calculate_allocations,
+    ) as calculate, patch.object(
+      recommender, "putProperty", return_value=lambda name, value: None
+    ), patch.object(
+      recommender, "putPropertyAttribute", return_value=lambda *args: None
+    ), patch.object(
+      recommender, "updateMountProperties"
+    ), patch.object(
+      recommender, "recommendYarnQueue", return_value=None
+    ), patch.object(
+      recommender, "getServicesSiteProperties", return_value=None
+    ):
+      recommender.recommendBigtopMapReduceConfigurations(
+        configurations,
+        {"ramPerContainer": 1024, "totalAvailableRam": 8192},
+        services,
+        {"items": []},
+      )
+
+    calculate.assert_called_once_with(configurations, services, {"items": []})
+
+  def test_mapreduce_recommendations_reject_incomplete_explicit_yarn_site(self):
+    recommender = YARN_ADVISOR.MAPREDUCE2Recommender()
+    services = {
+      "configurations": {
+        "yarn-site": {
+          "properties": {"yarn.scheduler.minimum-allocation-mb": "512"}
+        }
+      },
+      "services": [],
+    }
+
+    with patch.object(
+      recommender, "calculateYarnAllocationSizes"
+    ) as calculate, patch.object(
+      recommender, "putProperty", return_value=lambda name, value: None
+    ), patch.object(
+      recommender,
+      "getServicesSiteProperties",
+      return_value=services["configurations"]["yarn-site"]["properties"],
+    ), self.assertRaisesRegex(
+      ValueError, "yarn.scheduler.maximum-allocation-mb"
+    ):
+      recommender.recommendBigtopMapReduceConfigurations(
+        {},
+        {"ramPerContainer": 1024, "totalAvailableRam": 8192},
+        services,
+        {"items": []},
+      )
+
+    calculate.assert_not_called()
+
   def test_spark_user_is_added_to_capacity_admins_exactly_once(self):
     recommender = YARN_ADVISOR.YARNRecommender()
     updates = []
