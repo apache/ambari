@@ -40,7 +40,7 @@ import org.apache.ambari.server.serveraction.kerberos.stageutils.KerberosKeytabC
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosKeytab;
 import org.apache.ambari.server.serveraction.kerberos.stageutils.ResolvedKerberosPrincipal;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.directory.server.kerberos.shared.keytab.Keytab;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -335,8 +335,8 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
       if (cachedKeytabPath != null) {
         try {
-          keytab = Keytab.read(new File(cachedKeytabPath));
-        } catch (IOException e) {
+          keytab = Keytab.loadKeytab(new File(cachedKeytabPath));
+        } catch (IOException | IllegalArgumentException e) {
           LOG.warn("Failed to read the cached keytab for {}, recreating if possible - {}", principal, e.getMessage());
         }
       }
@@ -419,7 +419,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
     File cachedKeytabFile = new File(cacheDirectory, DigestUtils.sha256Hex(principal + String.valueOf(System.currentTimeMillis())));
 
     try {
-      keytab.write(cachedKeytabFile);
+      keytab.store(cachedKeytabFile);
     } catch (IOException e) {
       String message = String.format("Failed to write the keytab for %s to the cache location (%s)",
           principal, cachedKeytabFile.getAbsolutePath());

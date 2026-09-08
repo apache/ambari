@@ -19,39 +19,45 @@ package org.apache.ambari.server.api.rest;
 
 import static org.apache.ambari.server.KdcServerConnectionVerification.ConnectionProtocol.TCP;
 import static org.apache.ambari.server.KdcServerConnectionVerification.ConnectionProtocol.UDP;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.ambari.server.KdcServerConnectionVerification;
+import org.apache.ambari.server.KdcServerConnectionVerification.ConnectionProtocol;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.directory.kerberos.client.KdcConfig;
-import org.apache.directory.kerberos.client.KdcConnection;
-import org.apache.directory.kerberos.client.TgTicket;
-import org.apache.directory.shared.kerberos.KerberosMessageType;
-import org.apache.directory.shared.kerberos.exceptions.ErrorType;
-import org.apache.directory.shared.kerberos.exceptions.KerberosException;
-import org.apache.directory.shared.kerberos.messages.KrbError;
+import org.apache.kerby.kerberos.kerb.KrbErrorCode;
+import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.server.SimpleKdcServer;
+import org.apache.kerby.kerberos.kerb.type.base.KrbError;
+import org.apache.kerby.kerberos.kerb.type.base.KrbMessage;
+import org.apache.kerby.kerberos.kerb.type.kdc.AsRep;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
-
+import org.junit.rules.TemporaryFolder;
 
 /**
- * Test for {@link KdcServerConnectionVerification}
+ * Test for {@link KdcServerConnectionVerification}.
  */
-public class KdcServerConnectionVerificationTest  {
+public class KdcServerConnectionVerificationTest {
+
+  private static final int KDC_TEST_PORT = 8090;
 
   private Configuration configuration;
 
-  private static final int KDC_TEST_PORT = 8090;
+  @Rule
+  public TemporaryFolder folder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
@@ -61,373 +67,238 @@ public class KdcServerConnectionVerificationTest  {
   }
 
   @Test
-  public void testValidate__Fail_InvalidPort() throws Exception {
+  public void testValidateFailInvalidPort() {
     assertFalse(new KdcServerConnectionVerification(configuration).isKdcReachable("test-host:abcd"));
   }
 
   @Test
-  public void testValidate__Success() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+  public void testValidateSuccess() {
+    TestKdcServerConnectionVerification verifier = successVerifier();
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andReturn(null).once();
-    replay(connection);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host:11111");
-    assertTrue(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection);
+    assertTrue(verifier.isKdcReachable("test-host:11111"));
+    assertProbeSettings(verifier, "test-host", 11111, TCP, 10_000);
   }
 
   @Test
-  public void testValidateTCP__Successful() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+  public void testValidateTcpSuccess() {
+    TestKdcServerConnectionVerification verifier = successVerifier();
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andReturn(null).once();
-    replay(connection);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, TCP);
-    assertTrue(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertFalse(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection);
+    assertTrue(verifier.isKdcReachable("test-host", 11111, TCP));
+    assertProbeSettings(verifier, "test-host", 11111, TCP, 10_000);
   }
 
   @Test
-  public void testValidateTCP__Successful2() throws Exception {
-    KrbError error = createNiceMock(KrbError.class);
-    expect(error.getErrorCode()).andReturn(ErrorType.KDC_ERR_C_PRINCIPAL_UNKNOWN).once();
-    expect(error.getMessageType()).andReturn(KerberosMessageType.KRB_ERROR).once();
+  public void testValidateUdpSuccess() {
+    TestKdcServerConnectionVerification verifier = successVerifier();
 
-    KerberosException exception = createNiceMock(KerberosException.class);
-    expect(exception.getError()).andReturn(error).once();
-
-    KdcConnection connection = createStrictMock(KdcConnection.class);
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(exception);
-
-    replay(connection, exception, error);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, TCP);
-    assertTrue(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertFalse(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection, exception);
+    assertTrue(verifier.isKdcReachable("test-host", 11111, UDP));
+    assertProbeSettings(verifier, "test-host", 11111, UDP, 10_000);
   }
 
   @Test
-  public void testValidateTCP__Fail_UnknownException() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+  public void testDecodedKrbErrorProvesKdcIsReachable() {
+    KrbError error = new KrbError();
+    error.setErrorCode(KrbErrorCode.KDC_ERR_C_PRINCIPAL_UNKNOWN);
+    error.setEtext("Unknown test principal");
+    TestKdcServerConnectionVerification verifier = new TestKdcServerConnectionVerification(configuration, error);
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(
-        new RuntimeException("This is a really bad exception"));
-    replay(connection);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, TCP);
-    assertFalse(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertFalse(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection);
+    assertTrue(verifier.isKdcReachable("test-host", 11111, TCP));
   }
 
   @Test
-  public void testValidateTCP__Fail_Timeout() throws Exception {
-    int timeout = 1;
-    KdcConnection connection = new BlockingKdcConnection(null);
+  public void testGenericKerberosClientFailureDoesNotProveReachability() {
+    TestKdcServerConnectionVerification verifier = failureVerifier(new KrbException("Malformed KDC response"));
 
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    kdcConnVerifier.setConnectionTimeout(timeout);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, TCP);
-    assertFalse(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertFalse(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(timeout * 1000, kdcConfig.getTimeout());
+    assertFalse(verifier.isKdcReachable("test-host", 11111, TCP));
   }
 
   @Test
-  public void testValidateTCP__Fail_TimeoutErrorCode() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+  public void testLocallyGeneratedCodedKerberosFailureDoesNotProveReachability() {
+    TestKdcServerConnectionVerification verifier = failureVerifier(
+        new KrbException(KrbErrorCode.KDC_ERR_ETYPE_NOSUPP, "No local encryption implementation"));
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(
-        new KerberosException(ErrorType.KRB_ERR_GENERIC, "TimeOut occurred"));
-    replay(connection);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, TCP);
-    assertFalse(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertFalse(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection);
+    assertFalse(verifier.isKdcReachable("test-host", 11111, TCP));
   }
 
   @Test
-  public void testValidateTCP__Fail_GeneralErrorCode_NotTimeout() throws Exception {
-    KrbError error = createNiceMock(KrbError.class);
-    expect(error.getErrorCode()).andReturn(ErrorType.KRB_ERR_GENERIC).once();
-    expect(error.getMessageType()).andReturn(KerberosMessageType.KRB_ERROR).once();
+  public void testUnknownRuntimeFailureDoesNotProveReachability() {
+    TestKdcServerConnectionVerification verifier = failureVerifier(
+        new RuntimeException("Unexpected client failure"));
 
-    KerberosException exception = createNiceMock(KerberosException.class);
-    expect(exception.getError()).andReturn(error).once();
-
-    KdcConnection connection = createStrictMock(KdcConnection.class);
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(exception);
-
-    replay(connection, exception, error);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, TCP);
-    assertTrue(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertFalse(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection, exception);
+    assertFalse(verifier.isKdcReachable("test-host", 11111, UDP));
   }
 
   @Test
-  public void testValidateUDP__Successful() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+  public void testRequestTimeoutCancelsProbe() {
+    TestKdcServerConnectionVerification verifier = new TestKdcServerConnectionVerification(configuration) {
+      @Override
+      protected KrbMessage sendProbe(String server, int port, ConnectionProtocol connectionProtocol,
+                                     int timeoutMillis) throws KrbException {
+        recordProbe(server, port, connectionProtocol, timeoutMillis);
+        try {
+          Thread.sleep(60_000);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new KrbException("Probe interrupted", e);
+        }
+        return new AsRep();
+      }
+    };
+    verifier.setConnectionTimeout(1);
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andReturn(null).once();
-    replay(connection);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, UDP);
-    assertTrue(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertTrue(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection);
+    assertFalse(verifier.isKdcReachable("test-host", 11111, TCP));
+    assertProbeSettings(verifier, "test-host", 11111, TCP, 1_000);
   }
 
   @Test
-  public void testValidateUDP__Successful2() throws Exception {
-    KrbError error = createNiceMock(KrbError.class);
-    expect(error.getErrorCode()).andReturn(ErrorType.KDC_ERR_C_PRINCIPAL_UNKNOWN).once();
-    expect(error.getMessageType()).andReturn(KerberosMessageType.KRB_ERROR).once();
+  public void testTcpFailureFallsBackToUdp() {
+    TestKdcServerConnectionVerification verifier = new TestKdcServerConnectionVerification(configuration) {
+      @Override
+      protected KrbMessage sendProbe(String server, int port, ConnectionProtocol connectionProtocol,
+                                     int timeoutMillis) throws KrbException {
+        recordProbe(server, port, connectionProtocol, timeoutMillis);
+        if (connectionProtocol == TCP) {
+          throw new KrbException("TCP unavailable");
+        }
+        KrbError error = new KrbError();
+        error.setErrorCode(KrbErrorCode.KDC_ERR_C_PRINCIPAL_UNKNOWN);
+        return error;
+      }
+    };
 
-    KerberosException exception = createNiceMock(KerberosException.class);
-    expect(exception.getError()).andReturn(error).once();
-
-    KdcConnection connection = createStrictMock(KdcConnection.class);
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(exception);
-
-    replay(connection, exception, error);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, UDP);
-    assertTrue(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertTrue(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection, exception);
+    assertTrue(verifier.isKdcReachable("test-host", 11111));
+    assertEquals(List.of(TCP, UDP), verifier.getProtocols());
   }
 
   @Test
-  public void testValidateUDP__Fail_UnknownException() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
+  public void testMalformedTcpEndpointIsRejected() throws Exception {
+    try (ServerSocket serverSocket = new ServerSocket(0)) {
+      Thread serverThread = new Thread(() -> sendMalformedResponse(serverSocket), "malformed-kdc-test-server");
+      serverThread.start();
 
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(
-        new RuntimeException("This is a really bad exception"));
-    replay(connection);
+      KdcServerConnectionVerification verifier = new KdcServerConnectionVerification(configuration);
+      verifier.setConnectionTimeout(2);
+      assertFalse(verifier.isKdcReachable("127.0.0.1", serverSocket.getLocalPort(), TCP));
 
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, UDP);
-    assertFalse(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertTrue(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection);
+      serverThread.join(5_000);
+      assertFalse(serverThread.isAlive());
+    }
   }
 
   @Test
-  public void testValidateUDP__Fail_Timeout() throws Exception {
-    int timeout = 1;
-    KdcConnection connection = new BlockingKdcConnection(null);
+  public void testEmbeddedKdcAuthenticationAndReachability() throws Exception {
+    int port;
+    try (ServerSocket socket = new ServerSocket(0)) {
+      port = socket.getLocalPort();
+    }
 
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
+    SimpleKdcServer kdc = new SimpleKdcServer();
+    kdc.setWorkDir(folder.newFolder("embedded-kdc"));
+    kdc.setKdcRealm("EXAMPLE.COM");
+    kdc.setKdcHost("127.0.0.1");
+    kdc.setKdcTcpPort(port);
+    kdc.setKdcUdpPort(port);
+    kdc.setAllowTcp(true);
+    kdc.setAllowUdp(true);
+    kdc.init();
+    kdc.start();
+    try {
+      kdc.createPrincipal("probe-user@EXAMPLE.COM", "correct-password");
+      assertTrue(kdc.getKrbClient().requestTgt("probe-user@EXAMPLE.COM", "correct-password") != null);
+      try {
+        kdc.getKrbClient().requestTgt("probe-user@EXAMPLE.COM", "wrong-password");
+        fail("Invalid KDC credentials unexpectedly authenticated");
+      } catch (KrbException expected) {
+        // Expected authentication failure.
+      }
 
-    kdcConnVerifier.setConnectionTimeout(timeout);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, UDP);
-    assertFalse(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertTrue(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(timeout * 1000, kdcConfig.getTimeout());
+      KdcServerConnectionVerification verifier = new KdcServerConnectionVerification(configuration);
+      verifier.setConnectionTimeout(5);
+      assertTrue(verifier.isKdcReachable("127.0.0.1", port, TCP));
+      assertTrue(verifier.isKdcReachable("127.0.0.1", port, UDP));
+    } finally {
+      kdc.stop();
+    }
   }
 
-  @Test
-  public void testValidateUDP__Fail_TimeoutErrorCode() throws Exception {
-    KdcConnection connection = createStrictMock(KdcConnection.class);
-
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(
-        new KerberosException(ErrorType.KRB_ERR_GENERIC, "TimeOut occurred"));
-    replay(connection);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, UDP);
-    assertFalse(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertTrue(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection);
+  private TestKdcServerConnectionVerification successVerifier() {
+    return new TestKdcServerConnectionVerification(configuration);
   }
 
-  @Test
-  public void testValidateUDP__Fail_GeneralErrorCode_NotTimeout() throws Exception {
-    KrbError error = createNiceMock(KrbError.class);
-    expect(error.getErrorCode()).andReturn(ErrorType.KRB_ERR_GENERIC).once();
-    expect(error.getMessageType()).andReturn(KerberosMessageType.KRB_ERROR).once();
-
-    KerberosException exception = createNiceMock(KerberosException.class);
-    expect(exception.getError()).andReturn(error).once();
-
-    KdcConnection connection = createStrictMock(KdcConnection.class);
-    expect(connection.getTgt("noUser@noRealm", "noPassword")).andThrow(exception);
-
-    replay(connection, exception, error);
-
-    TestKdcServerConnectionVerification kdcConnVerifier =
-        new TestKdcServerConnectionVerification(configuration, connection);
-
-    boolean result = kdcConnVerifier.isKdcReachable("test-host", 11111, UDP);
-    assertTrue(result);
-
-    KdcConfig kdcConfig = kdcConnVerifier.getConfigUsedInConnectionCreation();
-    assertTrue(kdcConfig.isUseUdp());
-    assertEquals("test-host", kdcConfig.getHostName());
-    assertEquals(11111, kdcConfig.getKdcPort());
-    assertEquals(10 * 1000, kdcConfig.getTimeout());
-
-    verify(connection, exception);
+  private TestKdcServerConnectionVerification failureVerifier(Throwable failure) {
+    return new TestKdcServerConnectionVerification(configuration) {
+      @Override
+      protected KrbMessage sendProbe(String server, int port, ConnectionProtocol connectionProtocol,
+                                     int timeoutMillis) throws KrbException {
+        recordProbe(server, port, connectionProtocol, timeoutMillis);
+        if (failure instanceof KrbException) {
+          throw (KrbException) failure;
+        }
+        throw (RuntimeException) failure;
+      }
+    };
   }
 
-  @Test
-  @Ignore
-  public void testValidate__Live() throws Exception {
-    KdcServerConnectionVerification kdcConnVerifier = new KdcServerConnectionVerification(configuration);
-    boolean result = kdcConnVerifier.isKdcReachable("c6501:88");
-    assertTrue(result);
+  private static void assertProbeSettings(TestKdcServerConnectionVerification verifier, String host, int port,
+                                          ConnectionProtocol protocol, int timeoutMillis) {
+    assertEquals(host, verifier.getLastHost());
+    assertEquals(port, verifier.getLastPort());
+    assertEquals(protocol, verifier.getProtocols().get(verifier.getProtocols().size() - 1));
+    assertEquals(timeoutMillis, verifier.getLastTimeoutMillis());
   }
 
+  private static void sendMalformedResponse(ServerSocket serverSocket) {
+    try (Socket socket = serverSocket.accept(); OutputStream output = socket.getOutputStream()) {
+      output.write("not-a-kerberos-response".getBytes(StandardCharsets.US_ASCII));
+    } catch (Exception ignored) {
+      // The assertion on the verifier result covers this test server's observable behavior.
+    }
+  }
 
-  // Test implementation which allows a mock KDC connection to be used.
   private static class TestKdcServerConnectionVerification extends KdcServerConnectionVerification {
-    private KdcConnection connection;
-    private KdcConfig kdcConfig = null;
+    private final List<ConnectionProtocol> protocols = new ArrayList<>();
+    private final KrbMessage response;
+    private String lastHost;
+    private int lastPort;
+    private int lastTimeoutMillis;
 
-    public TestKdcServerConnectionVerification(Configuration config, KdcConnection connectionMock) {
+    TestKdcServerConnectionVerification(Configuration config) {
+      this(config, new AsRep());
+    }
+
+    TestKdcServerConnectionVerification(Configuration config, KrbMessage response) {
       super(config);
-      connection = connectionMock;
+      this.response = response;
     }
 
     @Override
-    protected KdcConnection getKdcConnection(KdcConfig config) {
-      kdcConfig = config;
-      return connection;
+    protected KrbMessage sendProbe(String server, int port, ConnectionProtocol connectionProtocol,
+                                   int timeoutMillis) throws IOException, KrbException {
+      recordProbe(server, port, connectionProtocol, timeoutMillis);
+      return response;
     }
 
-    public KdcConfig getConfigUsedInConnectionCreation() {
-      return kdcConfig;
-    }
-  }
-
-  /**
-   * Test implementation which blocks on getTgt() for 60 seconds to facilitate timeout testing.
-   */
-  private static class BlockingKdcConnection extends KdcConnection {
-
-    public BlockingKdcConnection(KdcConfig config) {
-      super(config);
+    void recordProbe(String server, int port, ConnectionProtocol connectionProtocol, int timeoutMillis) {
+      protocols.add(connectionProtocol);
+      lastHost = server;
+      lastPort = port;
+      lastTimeoutMillis = timeoutMillis;
     }
 
-    @Override
-    public TgTicket getTgt(String principal, String password) throws Exception {
-      // although it is generally a bad idea to use sleep in a unit test for a
-      // timing mechanism, this is being used to simulate a timeout and should be
-      // generally safe as we are not relying on this for timing other than expecting
-      // that this will block longer than the timeout set on the connection validator
-      // which should be set to 1 second when using this implementation.
-      // We will only block the full 60 seconds in the case of a specific test failure
-      // where the callable doesn't properly set the timeout on the get.
-      Thread.sleep(60000);
-      return null;
+    String getLastHost() {
+      return lastHost;
+    }
+
+    int getLastPort() {
+      return lastPort;
+    }
+
+    int getLastTimeoutMillis() {
+      return lastTimeoutMillis;
+    }
+
+    List<ConnectionProtocol> getProtocols() {
+      return protocols;
     }
   }
 }

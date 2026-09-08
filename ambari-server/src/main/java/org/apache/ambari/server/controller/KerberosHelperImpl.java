@@ -138,7 +138,7 @@ import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.directory.server.kerberos.shared.keytab.Keytab;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

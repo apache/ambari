@@ -26,7 +26,7 @@ import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.directory.shared.kerberos.codec.types.EncryptionType;
+import org.apache.kerby.kerberos.kerb.type.base.EncryptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

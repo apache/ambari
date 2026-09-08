@@ -88,10 +88,7 @@
     <metrics.version>4.2.40</metrics.version>
     <libpam4j.version>1.11</libpam4j.version>
     <jna.version>5.19.1</jna.version>
-    <api.ldap.model.version>2.0.0.AM1</api.ldap.model.version>
-    <api.ldap.client.api.version>2.0.0.AM1</api.ldap.client.api.version>
-    <apacheds.kerberos.codec.version>2.0.0-M24</apacheds.kerberos.codec.version>
-    <kerberos.client.version>2.0.0-M24</kerberos.client.version>
+    <directory.api.version>2.1.5</directory.api.version>
     <json.schema.validator.version>0.1.10</json.schema.validator.version>
   </properties>
   <build>
@@ -2019,38 +2016,20 @@
     <dependency>
       <groupId>org.apache.directory.api</groupId>
       <artifactId>api-ldap-model</artifactId>
-      <version>${api.ldap.model.version}</version>
+      <version>${directory.api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.directory.api</groupId>
       <artifactId>api-ldap-client-api</artifactId>
-      <version>${api.ldap.client.api.version}</version>
+      <version>${directory.api.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.directory.server</groupId>
-      <artifactId>apacheds-kerberos-codec</artifactId>
-      <version>${apacheds.kerberos.codec.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>net.sf.ehcache</groupId>
-          <artifactId>ehcache</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerb-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.directory.server</groupId>
-      <artifactId>kerberos-client</artifactId>
-      <version>${kerberos.client.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.commons</groupId>
-          <artifactId>commons-collections4</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.directory.api</groupId>
-          <artifactId>api-ldap-model</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerb-util</artifactId>
     </dependency>
     <dependency>
       <groupId>com.networknt</groupId>

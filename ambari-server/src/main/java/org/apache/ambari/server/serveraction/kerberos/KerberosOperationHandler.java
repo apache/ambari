@@ -37,12 +37,14 @@ import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.directory.server.kerberos.shared.crypto.encryption.KerberosKeyFactory;
-import org.apache.directory.server.kerberos.shared.keytab.Keytab;
-import org.apache.directory.server.kerberos.shared.keytab.KeytabEntry;
-import org.apache.directory.shared.kerberos.KerberosTime;
-import org.apache.directory.shared.kerberos.codec.types.EncryptionType;
-import org.apache.directory.shared.kerberos.components.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
+import org.apache.kerby.kerberos.kerb.keytab.KeytabEntry;
+import org.apache.kerby.kerberos.kerb.type.KerberosTime;
+import org.apache.kerby.kerberos.kerb.type.base.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.type.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.type.base.PrincipalName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,23 +138,23 @@ public abstract class KerberosOperationHandler {
           // arcfour-hmac rc4-hmac arcfour-hmac-md5:	RC4 with HMAC/MD5
           put("arcfour-hmac", EnumSet.of(EncryptionType.RC4_HMAC));
           put("rc4-hmac", EnumSet.of(EncryptionType.RC4_HMAC));
-          put("arcfour-hmac-md5", EnumSet.of(EncryptionType.UNKNOWN));
+          put("arcfour-hmac-md5", EnumSet.of(EncryptionType.NONE));
 
           // arcfour-hmac-exp rc4-hmac-exp arcfour-hmac-md5-exp:	Exportable RC4 with HMAC/MD5 (weak)
           put("arcfour-hmac-exp", EnumSet.of(EncryptionType.RC4_HMAC_EXP));
           put("rc4-hmac-exp", EnumSet.of(EncryptionType.RC4_HMAC_EXP));
-          put("arcfour-hmac-md5-exp", EnumSet.of(EncryptionType.UNKNOWN));
+          put("arcfour-hmac-md5-exp", EnumSet.of(EncryptionType.NONE));
 
           // camellia 	The Camellia family: camellia256-cts-cmac and camellia128-cts-cmac
-          put("camellia", EnumSet.of(EncryptionType.UNKNOWN));
+          put("camellia", EnumSet.of(EncryptionType.NONE));
 
           // camellia256-cts-cmac camellia256-cts:	Camellia-256 CTS mode with CMAC
-          put("camellia256-cts-cmac", EnumSet.of(EncryptionType.UNKNOWN));
-          put("camellia256-cts", EnumSet.of(EncryptionType.UNKNOWN));
+          put("camellia256-cts-cmac", EnumSet.of(EncryptionType.NONE));
+          put("camellia256-cts", EnumSet.of(EncryptionType.NONE));
 
           // camellia128-cts-cmac camellia128-cts:	Camellia-128 CTS mode with CMAC
-          put("camellia128-cts-cmac", EnumSet.of(EncryptionType.UNKNOWN));
-          put("camellia128-cts", EnumSet.of(EncryptionType.UNKNOWN));
+          put("camellia128-cts-cmac", EnumSet.of(EncryptionType.NONE));
+          put("camellia128-cts", EnumSet.of(EncryptionType.NONE));
 
           //des:	The DES family: des-cbc-crc, des-cbc-md5, and des-cbc-md4 (weak)
           put("des", EnumSet.of(EncryptionType.DES_CBC_CRC, EncryptionType.DES_CBC_MD5, EncryptionType.DES_CBC_MD4));
@@ -167,20 +169,20 @@ public abstract class KerberosOperationHandler {
           put("des-cbc-crc", EnumSet.of(EncryptionType.DES_CBC_CRC));
 
           // des-cbc-raw: DES cbc mode raw (weak)
-          put("des-cbc-raw", EnumSet.of(EncryptionType.UNKNOWN));
+          put("des-cbc-raw", EnumSet.of(EncryptionType.NONE));
 
           // des-hmac-sha1: DES with HMAC/sha1 (weak)
-          put("des-hmac-sha1", EnumSet.of(EncryptionType.UNKNOWN));
+          put("des-hmac-sha1", EnumSet.of(EncryptionType.NONE));
 
           // des3:	The triple DES family: des3-cbc-sha1
           put("des3", EnumSet.of(EncryptionType.DES3_CBC_SHA1_KD)); // Using DES3_CBC_SHA1_KD since DES3_CBC_SHA1 invalid key issues with KDC
 
           // des3-cbc-raw:	Triple DES cbc mode raw (weak)
-          put("des3-cbc-raw", EnumSet.of(EncryptionType.UNKNOWN));
+          put("des3-cbc-raw", EnumSet.of(EncryptionType.NONE));
 
           // des3-cbc-sha1 des3-hmac-sha1 des3-cbc-sha1-kd:	Triple DES cbc mode with HMAC/sha1
           put("des3-cbc-sha1", EnumSet.of(EncryptionType.DES3_CBC_SHA1_KD)); // Using DES3_CBC_SHA1_KD since DES3_CBC_SHA1 invalid key issues with KDC
-          put("des3-hmac-sha1", EnumSet.of(EncryptionType.UNKNOWN));
+          put("des3-hmac-sha1", EnumSet.of(EncryptionType.NONE));
           put("des3-cbc-sha1-kd", EnumSet.of(EncryptionType.DES3_CBC_SHA1_KD));
 
 
@@ -341,23 +343,21 @@ public abstract class KerberosOperationHandler {
     }
 
     Set<EncryptionType> ciphers = new HashSet<>(keyEncryptionTypes);
-    List<KeytabEntry> keytabEntries = new ArrayList<>();
     Keytab keytab = new Keytab();
 
-
     if (!ciphers.isEmpty()) {
-      // Create a set of keys and relevant keytab entries
-      Map<EncryptionType, EncryptionKey> keys = KerberosKeyFactory.getKerberosKeys(principal, password, ciphers);
+      int keyVersion = (keyNumber == null) ? 0 : keyNumber.byteValue();
+      KerberosTime timestamp = new KerberosTime();
+      PrincipalName principalName = new PrincipalName(principal);
 
-      if (keys != null) {
-        byte keyVersion = (keyNumber == null) ? 0 : keyNumber.byteValue();
-        KerberosTime timestamp = new KerberosTime();
-
-        for (EncryptionKey encryptionKey : keys.values()) {
-          keytabEntries.add(new KeytabEntry(principal, 1, timestamp, keyVersion, encryptionKey));
+      for (EncryptionType encryptionType : ciphers) {
+        try {
+          EncryptionKey encryptionKey = EncryptionHandler.string2Key(principal, password, encryptionType);
+          keytab.addEntry(new KeytabEntry(principalName, timestamp, keyVersion, encryptionKey));
+        } catch (KrbException | IllegalArgumentException e) {
+          // Preserve the previous behavior of skipping algorithms unavailable from the active provider.
+          LOG.debug("Unable to create a {} key for {}", encryptionType, principal, e);
         }
-
-        keytab.setEntries(keytabEntries);
       }
     }
 
@@ -374,7 +374,7 @@ public abstract class KerberosOperationHandler {
    * @param destinationKeytabFile a File containing the absolute path to where the keytab data is to be stored
    * @return true if the keytab file was successfully created; false otherwise
    * @throws KerberosOperationException
-   * @see #createKeytabFile(org.apache.directory.server.kerberos.shared.keytab.Keytab, java.io.File)
+   * @see #createKeytabFile(Keytab, java.io.File)
    */
   protected boolean createKeytabFile(File sourceKeytabFile, File destinationKeytabFile)
       throws KerberosOperationException {
@@ -393,7 +393,7 @@ public abstract class KerberosOperationHandler {
    * @param destinationKeytabFile a File containing the absolute path to where the keytab data is to be stored
    * @return true if the keytab file was successfully created; false otherwise
    * @throws KerberosOperationException
-   * @see #createKeytabFile(org.apache.directory.server.kerberos.shared.keytab.Keytab, java.io.File)
+   * @see #createKeytabFile(Keytab, java.io.File)
    */
   protected boolean createKeytabFile(String principal, String password, Integer keyNumber, File destinationKeytabFile)
       throws KerberosOperationException {
@@ -419,7 +419,7 @@ public abstract class KerberosOperationHandler {
     }
 
     try {
-      mergeKeytabs(readKeytabFile(destinationKeytabFile), keytab).write(destinationKeytabFile);
+      mergeKeytabs(readKeytabFile(destinationKeytabFile), keytab).store(destinationKeytabFile);
       return true;
     } catch (IOException e) {
       String message = "Failed to export keytab file";
@@ -445,10 +445,10 @@ public abstract class KerberosOperationHandler {
   protected Keytab mergeKeytabs(Keytab keytab, Keytab updates) {
     List<KeytabEntry> keytabEntries = (keytab == null)
         ? Collections.emptyList()
-        : new ArrayList<>(keytab.getEntries());
+        : getKeytabEntries(keytab);
     List<KeytabEntry> updateEntries = (updates == null)
         ? Collections.emptyList()
-        : new ArrayList<>(updates.getEntries());
+        : getKeytabEntries(updates);
     List<KeytabEntry> mergedEntries = new ArrayList<>();
 
     if (keytabEntries.isEmpty()) {
@@ -462,8 +462,8 @@ public abstract class KerberosOperationHandler {
         KeytabEntry keytabEntry = iterator.next();
 
         for (KeytabEntry entry : updateEntries) {
-          if (entry.getPrincipalName().equals(keytabEntry.getPrincipalName()) &&
-              entry.getKey().getKeyType().equals(keytabEntry.getKey().getKeyType())) {
+          if (entry.getPrincipal().getName().equals(keytabEntry.getPrincipal().getName()) &&
+              entry.getKey().getKeyType().getValue() == keytabEntry.getKey().getKeyType().getValue()) {
             iterator.remove();
             break;
           }
@@ -475,8 +475,16 @@ public abstract class KerberosOperationHandler {
     }
 
     Keytab mergedKeytab = new Keytab();
-    mergedKeytab.setEntries(mergedEntries);
+    mergedKeytab.addKeytabEntries(mergedEntries);
     return mergedKeytab;
+  }
+
+  protected List<KeytabEntry> getKeytabEntries(Keytab keytab) {
+    List<KeytabEntry> entries = new ArrayList<>();
+    for (PrincipalName principal : keytab.getPrincipals()) {
+      entries.addAll(keytab.getKeytabEntries(principal));
+    }
+    return entries;
   }
 
   /**
@@ -490,8 +498,8 @@ public abstract class KerberosOperationHandler {
 
     if (file.exists() && file.canRead() && (file.length() > 0)) {
       try {
-        keytab = Keytab.read(file);
-      } catch (IOException e) {
+        keytab = Keytab.loadKeytab(file);
+      } catch (IOException | IllegalArgumentException e) {
         // There was an issue reading in the existing keytab file... quietly assume no data
         keytab = null;
       }
@@ -792,8 +800,7 @@ public abstract class KerberosOperationHandler {
   /**
    * Given a cipher (or algorithm) name, attempts to translate it into an EncryptionType value.
    * <p/>
-   * If a translation is not able to be made, {@link org.apache.directory.shared.kerberos.codec.types.EncryptionType#UNKNOWN}
-   * is returned.
+   * If a translation is not able to be made, an empty set is returned.
    *
    * @param name a String containing the name of the cipher to translate
    * @return an EncryptionType

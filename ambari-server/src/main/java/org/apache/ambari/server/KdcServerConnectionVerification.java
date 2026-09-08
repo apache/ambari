@@ -18,6 +18,15 @@
 
 package org.apache.ambari.server;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -26,12 +35,18 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.directory.kerberos.client.KdcConfig;
-import org.apache.directory.kerberos.client.KdcConnection;
-import org.apache.directory.shared.kerberos.KerberosMessageType;
-import org.apache.directory.shared.kerberos.exceptions.ErrorType;
-import org.apache.directory.shared.kerberos.exceptions.KerberosException;
-import org.apache.directory.shared.kerberos.messages.KrbError;
+import org.apache.kerby.kerberos.kerb.KrbCodec;
+import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.common.KrbUtil;
+import org.apache.kerby.kerberos.kerb.type.KerberosTime;
+import org.apache.kerby.kerberos.kerb.type.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.type.base.KrbError;
+import org.apache.kerby.kerberos.kerb.type.base.KrbMessage;
+import org.apache.kerby.kerberos.kerb.type.base.KrbMessageType;
+import org.apache.kerby.kerberos.kerb.type.base.PrincipalName;
+import org.apache.kerby.kerberos.kerb.type.kdc.AsReq;
+import org.apache.kerby.kerberos.kerb.type.kdc.KdcOptions;
+import org.apache.kerby.kerberos.kerb.type.kdc.KdcReqBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +73,10 @@ import com.google.inject.Singleton;
 public class KdcServerConnectionVerification {
 
   private static final Logger LOG = LoggerFactory.getLogger(KdcServerConnectionVerification.class);
+  private static final int MAX_TCP_RESPONSE_BYTES = 4 * 1024 * 1024;
+  private static final int MAX_UDP_RESPONSE_BYTES = 65_507;
+  private static final String PROBE_PRINCIPAL = "noUser@noRealm";
+  private static final String PROBE_REALM = "noRealm";
 
   private Configuration config;
 
@@ -128,11 +147,6 @@ public class KdcServerConnectionVerification {
    */
   public boolean isKdcReachable(final String server, final int port, final ConnectionProtocol connectionProtocol) {
     int timeoutMillis = connectionTimeout * 1000;
-    final KdcConfig config = KdcConfig.getDefaultConfig();
-    config.setHostName(server);
-    config.setKdcPort(port);
-    config.setUseUdp(ConnectionProtocol.UDP == connectionProtocol);
-    config.setTimeout(timeoutMillis);
 
     FutureTask<Boolean> future = new FutureTask<>(new Callable<Boolean>() {
       @Override
@@ -140,62 +154,28 @@ public class KdcServerConnectionVerification {
         Boolean success;
 
         try {
-          KdcConnection connection = getKdcConnection(config);
-          // we are only testing whether we can communicate with server and not
-          // validating credentials
-          connection.getTgt("noUser@noRealm", "noPassword");
+          KrbMessage response = sendProbe(server, port, connectionProtocol, timeoutMillis);
+          success = response.getMsgType() == KrbMessageType.AS_REP ||
+              response.getMsgType() == KrbMessageType.KRB_ERROR;
 
-          LOG.info(String.format("Encountered no Exceptions while testing connectivity to the KDC:\n" +
-              "**** Host: %s:%d (%s)",
-            server, port, connectionProtocol.name()));
-          success = true;
-        } catch (KerberosException e) {
-          KrbError error = e.getError();
-          ErrorType errorCode = error.getErrorCode();
+          if (response instanceof KrbError) {
+            KrbError error = (KrbError) response;
+            String message = String.format("Received a valid Kerberos error while testing connectivity to the KDC:\n" +
+              "**** Host:  %s:%d (%s)\n" +
+              "**** Error: %s\n" +
+              "**** Code:  %d (%s)",
+            server, port, connectionProtocol.name(), error.getEtext(),
+            error.getErrorCode().getValue(), error.getErrorCode().getMessage());
 
-          String errorCodeMessage;
-          int errorCodeCode;
-          if (errorCode != null) {
-            errorCodeMessage = errorCode.getMessage();
-            errorCodeCode = errorCode.getValue();
+            LOG.info(message);
           } else {
-            errorCodeMessage = "<Not Specified>";
-            errorCodeCode = -1;
+            LOG.info("Received Kerberos {} while testing connectivity to the KDC at {}:{} over {}",
+                response.getMsgType(), server, port, connectionProtocol.name());
           }
-
-          // unfortunately, need to look at msg as error 60 is a generic error code
-          //todo: evaluate other error codes to provide better information
-          //todo: as there may be other error codes where we should return false
-          success = !(errorCodeCode == ErrorType.KRB_ERR_GENERIC.getValue() &&
-            errorCodeMessage.contains("TimeOut"));
-
-          if (!success || LOG.isDebugEnabled()) {
-            KerberosMessageType messageType = error.getMessageType();
-
-            String messageTypeMessage;
-            int messageTypeCode;
-            if (messageType != null) {
-              messageTypeMessage = messageType.getMessage();
-              messageTypeCode = messageType.getValue();
-            } else {
-              messageTypeMessage = "<Not Specified>";
-              messageTypeCode = -1;
-            }
-
-            String message = String.format("Received KerberosException while testing connectivity to the KDC: %s\n" +
-                "**** Host:    %s:%d (%s)\n" +
-                "**** Error:   %s\n" +
-                "**** Code:    %d (%s)\n" +
-                "**** Message: %d (%s)",
-              e.getLocalizedMessage(), server, port, connectionProtocol.name(), error.getEText(), errorCodeCode,
-              errorCodeMessage, messageTypeCode, messageTypeMessage);
-
-            if (LOG.isDebugEnabled()) {
-              LOG.info(message, e);
-            } else {
-              LOG.info(message);
-            }
-          }
+        } catch (IOException | KrbException e) {
+          LOG.info(String.format("Received Kerberos probe failure while testing connectivity to the KDC: %s\n" +
+              "**** Host: %s:%d (%s)", e.getLocalizedMessage(), server, port, connectionProtocol.name()), e);
+          success = false;
         } catch (Throwable e) {
           LOG.info(String.format("Received Exception while testing connectivity to the KDC: %s\n**** Host: %s:%d (%s)",
             e.getLocalizedMessage(), server, port, connectionProtocol.name()), e);
@@ -258,16 +238,69 @@ public class KdcServerConnectionVerification {
     return result;
   }
 
-  /**
-   * Get a KDC UDP connection for the given configuration.
-   * This has been extracted into it's own method primarily
-   * for unit testing purposes.
-   *
-   * @param config KDC connection configuration
-   * @return new KDC connection
-   */
-  protected KdcConnection getKdcConnection(KdcConfig config) {
-    return new KdcConnection(config);
+  protected KrbMessage sendProbe(String server, int port, ConnectionProtocol connectionProtocol,
+                                 int timeoutMillis) throws IOException, KrbException {
+    byte[] request = KrbCodec.encode(createProbeRequest());
+    byte[] response = ConnectionProtocol.TCP == connectionProtocol
+        ? exchangeTcp(server, port, timeoutMillis, request)
+        : exchangeUdp(server, port, timeoutMillis, request);
+    return KrbCodec.decodeMessage(ByteBuffer.wrap(response));
+  }
+
+  private byte[] exchangeTcp(String server, int port, int timeoutMillis, byte[] request) throws IOException {
+    InetSocketAddress address = new InetSocketAddress(server, port);
+    try (Socket socket = new Socket()) {
+      socket.connect(address, timeoutMillis);
+      socket.setSoTimeout(timeoutMillis);
+      DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+      output.writeInt(request.length);
+      output.write(request);
+      output.flush();
+
+      DataInputStream input = new DataInputStream(socket.getInputStream());
+      int responseLength = input.readInt();
+      if (responseLength < 1 || responseLength > MAX_TCP_RESPONSE_BYTES) {
+        throw new IOException("Invalid KDC response length: " + responseLength);
+      }
+      byte[] response = new byte[responseLength];
+      input.readFully(response);
+      return response;
+    }
+  }
+
+  private byte[] exchangeUdp(String server, int port, int timeoutMillis, byte[] request) throws IOException {
+    InetSocketAddress address = new InetSocketAddress(server, port);
+    try (DatagramSocket socket = new DatagramSocket()) {
+      socket.connect(address);
+      socket.setSoTimeout(timeoutMillis);
+      socket.send(new DatagramPacket(request, request.length));
+
+      byte[] responseBuffer = new byte[MAX_UDP_RESPONSE_BYTES];
+      DatagramPacket response = new DatagramPacket(responseBuffer, responseBuffer.length);
+      socket.receive(response);
+      if (response.getLength() < 1) {
+        throw new IOException("The KDC returned an empty response");
+      }
+      return Arrays.copyOf(response.getData(), response.getLength());
+    }
+  }
+
+  private AsReq createProbeRequest() {
+    long now = System.currentTimeMillis();
+    KdcReqBody requestBody = new KdcReqBody();
+    requestBody.setKdcOptions(new KdcOptions());
+    requestBody.setCname(new PrincipalName(PROBE_PRINCIPAL));
+    requestBody.setRealm(PROBE_REALM);
+    requestBody.setSname(KrbUtil.makeTgsPrincipal(PROBE_REALM));
+    requestBody.setTill(new KerberosTime(now + KerberosTime.MINUTE));
+    requestBody.setNonce((int) now);
+    requestBody.setEtypes(Arrays.asList(
+        EncryptionType.AES256_CTS_HMAC_SHA1_96,
+        EncryptionType.AES128_CTS_HMAC_SHA1_96));
+
+    AsReq request = new AsReq();
+    request.setReqBody(requestBody);
+    return request;
   }
 
   /**

@@ -20,18 +20,27 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.security.auth.kerberos.KerberosKey;
+import javax.security.auth.kerberos.KerberosPrincipal;
+import javax.security.auth.kerberos.KeyTab;
+
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.directory.server.kerberos.shared.keytab.Keytab;
-import org.apache.directory.server.kerberos.shared.keytab.KeytabEntry;
-import org.apache.directory.shared.kerberos.codec.types.EncryptionType;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
+import org.apache.kerby.kerberos.kerb.keytab.KeytabEntry;
+import org.apache.kerby.kerberos.kerb.type.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.type.base.NameType;
 import org.easymock.EasyMockSupport;
 import org.junit.Rule;
 import org.junit.Test;
@@ -181,25 +190,25 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
 
     Assert.assertTrue(handler.createKeytabFile(principal1, "some password", 0, file));
 
-    Keytab keytab = Keytab.read(file);
+    Keytab keytab = Keytab.loadKeytab(file);
     Assert.assertNotNull(keytab);
 
-    List<KeytabEntry> entries = keytab.getEntries();
+    List<KeytabEntry> entries = handler.getKeytabEntries(keytab);
     Assert.assertNotNull(entries);
     Assert.assertFalse(entries.isEmpty());
 
     count = entries.size();
 
     for (KeytabEntry entry : entries) {
-      Assert.assertEquals(principal1, entry.getPrincipalName());
+      Assert.assertEquals(principal1, entry.getPrincipal().getName());
     }
 
     Assert.assertTrue(handler.createKeytabFile(principal2, "some password", 0, file));
 
-    keytab = Keytab.read(file);
+    keytab = Keytab.loadKeytab(file);
     Assert.assertNotNull(keytab);
 
-    entries = keytab.getEntries();
+    entries = handler.getKeytabEntries(keytab);
     Assert.assertNotNull(entries);
     Assert.assertFalse(entries.isEmpty());
 
@@ -220,15 +229,15 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     // Attempt to add duplicate entries
     Assert.assertTrue(handler.createKeytabFile(principal2, "some password", 0, file));
 
-    Keytab keytab = Keytab.read(file);
+    Keytab keytab = Keytab.loadKeytab(file);
     Assert.assertNotNull(keytab);
 
-    List<KeytabEntry> entries = keytab.getEntries();
+    List<KeytabEntry> entries = handler.getKeytabEntries(keytab);
     Assert.assertNotNull(entries);
     Assert.assertFalse(entries.isEmpty());
 
     for (KeytabEntry entry : entries) {
-      String seenEntry = String.format("%s|%s", entry.getPrincipalName(), entry.getKey().getKeyType().toString());
+      String seenEntry = String.format("%s|%s", entry.getPrincipal().getName(), entry.getKey().getKeyType().toString());
       Assert.assertFalse(seenEntries.contains(seenEntry));
       seenEntries.add(seenEntry);
     }
@@ -279,15 +288,15 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     File f = handler.createKeytabFile(Base64.encodeBase64String(data));
     if (f != null) {
       try {
-        Keytab keytab = Keytab.read(f);
+        Keytab keytab = Keytab.loadKeytab(f);
         Assert.assertNotNull(keytab);
 
-        List<KeytabEntry> entries = keytab.getEntries();
+        List<KeytabEntry> entries = handler.getKeytabEntries(keytab);
         Assert.assertNotNull(entries);
         Assert.assertFalse(entries.isEmpty());
 
         for (KeytabEntry entry : entries) {
-          Assert.assertEquals(principal, entry.getPrincipalName());
+          Assert.assertEquals(principal, entry.getPrincipal().getName());
         }
       } finally {
         if (!f.delete()) {
@@ -308,16 +317,125 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     Keytab merged;
 
     merged = handler.mergeKeytabs(keytab1, keytab2);
-    Assert.assertEquals(keytab1.getEntries().size(), merged.getEntries().size());
+    Assert.assertEquals(handler.getKeytabEntries(keytab1).size(), handler.getKeytabEntries(merged).size());
 
     merged = handler.mergeKeytabs(keytab1, keytab3);
-    Assert.assertEquals(keytab1.getEntries().size() + keytab3.getEntries().size(), merged.getEntries().size());
+    Assert.assertEquals(handler.getKeytabEntries(keytab1).size() + handler.getKeytabEntries(keytab3).size(),
+        handler.getKeytabEntries(merged).size());
 
     merged = handler.mergeKeytabs(keytab2, keytab3);
-    Assert.assertEquals(keytab2.getEntries().size() + keytab3.getEntries().size(), merged.getEntries().size());
+    Assert.assertEquals(handler.getKeytabEntries(keytab2).size() + handler.getKeytabEntries(keytab3).size(),
+        handler.getKeytabEntries(merged).size());
 
     merged = handler.mergeKeytabs(keytab2, merged);
-    Assert.assertEquals(keytab2.getEntries().size() + keytab3.getEntries().size(), merged.getEntries().size());
+    Assert.assertEquals(handler.getKeytabEntries(keytab2).size() + handler.getKeytabEntries(keytab3).size(),
+        handler.getKeytabEntries(merged).size());
+  }
+
+  @Test
+  public void testCreateKeytabPreservesKeyDerivationAndJdkFormatCompatibility() throws Exception {
+    KerberosOperationHandler handler = createHandler();
+    handler.setKeyEncryptionTypes(EnumSet.of(
+        EncryptionType.AES256_CTS_HMAC_SHA1_96,
+        EncryptionType.AES128_CTS_HMAC_SHA1_96,
+        EncryptionType.DES3_CBC_SHA1_KD,
+        EncryptionType.RC4_HMAC,
+        EncryptionType.DES_CBC_MD5));
+
+    String principal = "service/host.example.com@EXAMPLE.COM";
+    Keytab keytab = handler.createKeytab(principal, "correct horse battery staple", 7);
+    List<KeytabEntry> entries = handler.getKeytabEntries(keytab);
+
+    Map<EncryptionType, String> expectedKeys = new HashMap<>();
+    expectedKeys.put(EncryptionType.AES256_CTS_HMAC_SHA1_96,
+        "17e4caf893cc1e339ad02dbc4c1174b4e5a847614abf5a12d763aebcee10f67f");
+    expectedKeys.put(EncryptionType.AES128_CTS_HMAC_SHA1_96, "7a22a28993125fad78648d72338a93f2");
+    expectedKeys.put(EncryptionType.DES3_CBC_SHA1_KD, "ce7ad53db67cba854508f1d97ccef2f15ec8ef455d2562f4");
+    expectedKeys.put(EncryptionType.RC4_HMAC, "1b9d5effd34ac283c8efe2eacaea8bbc");
+    expectedKeys.put(EncryptionType.DES_CBC_MD5, "d5b0e3c7e5e6c1dc");
+
+    Assert.assertEquals(expectedKeys.size(), entries.size());
+    for (KeytabEntry entry : entries) {
+      Assert.assertEquals(principal, entry.getPrincipal().getName());
+      Assert.assertEquals(NameType.NT_PRINCIPAL, entry.getPrincipal().getNameType());
+      Assert.assertEquals(7, entry.getKvno());
+      Assert.assertEquals(findExpectedKey(expectedKeys, entry.getKey().getKeyType().getValue()),
+          HexFormat.of().formatHex(entry.getKey().getKeyData()));
+    }
+
+    File keytabFile = folder.newFile();
+    keytab.store(keytabFile);
+    KerberosKey[] jdkKeys = KeyTab.getInstance(keytabFile)
+        .getKeys(new KerberosPrincipal(principal));
+    Assert.assertEquals(2, jdkKeys.length);
+    for (KerberosKey key : jdkKeys) {
+      Assert.assertEquals(7, key.getVersionNumber());
+      String expectedKey = findExpectedKey(expectedKeys, key.getKeyType());
+      Assert.assertNotNull(expectedKey);
+      Assert.assertEquals(expectedKey, HexFormat.of().formatHex(key.getEncoded()));
+    }
+    Assert.assertEquals(
+        new HashSet<>(Arrays.asList(EncryptionType.AES128_CTS_HMAC_SHA1_96.getValue(),
+            EncryptionType.AES256_CTS_HMAC_SHA1_96.getValue())),
+        new HashSet<>(Arrays.asList(jdkKeys[0].getKeyType(), jdkKeys[1].getKeyType())));
+  }
+
+  private static String findExpectedKey(Map<EncryptionType, String> expectedKeys, int encryptionType) {
+    return expectedKeys.entrySet().stream()
+        .filter(entry -> entry.getKey().getValue() == encryptionType)
+        .map(Map.Entry::getValue)
+        .findFirst()
+        .orElse(null);
+  }
+
+  @Test
+  public void testCreateKeytabDerivationPreservesPrincipalCaseInSalt() throws Exception {
+    KerberosOperationHandler handler = createHandler();
+    handler.setKeyEncryptionTypes(EnumSet.of(EncryptionType.AES128_CTS_HMAC_SHA1_96));
+
+    List<KeytabEntry> mixedCaseEntries = handler.getKeytabEntries(handler.createKeytab(
+        "service/Host.Example.Com@EXAMPLE.COM", "correct horse battery staple", 1));
+    List<KeytabEntry> lowerRealmEntries = handler.getKeytabEntries(handler.createKeytab(
+        "service/host.example.com@example.com", "correct horse battery staple", 1));
+
+    Assert.assertEquals("8d41ea04fdb638f05b02806ae39a37d4",
+        HexFormat.of().formatHex(mixedCaseEntries.get(0).getKey().getKeyData()));
+    Assert.assertEquals("0ca0cdba7276dd08d8695c3c9f73a683",
+        HexFormat.of().formatHex(lowerRealmEntries.get(0).getKey().getKeyData()));
+    Assert.assertFalse(Arrays.equals(mixedCaseEntries.get(0).getKey().getKeyData(),
+        lowerRealmEntries.get(0).getKey().getKeyData()));
+  }
+
+  @Test
+  public void testReadsLegacyApacheDsKeytabAndWritesJdkCompatibleKeytab() throws Exception {
+    String principal = "service/host.example.com@EXAMPLE.COM";
+    byte[] legacyKeytab = Base64.decodeBase64(
+        "BQIAAABHAAIAC0VYQU1QTEUuQ09NAAdzZXJ2aWNlABBob3N0LmV4YW1wbGUuY29tAAAAAWVT8QAHABEAEHoioomTEl+teGSNcjOKk/I=");
+    File legacyFile = folder.newFile();
+    Files.write(legacyFile.toPath(), legacyKeytab);
+
+    KerberosOperationHandler handler = createHandler();
+    Keytab keytab = Keytab.loadKeytab(legacyFile);
+    List<KeytabEntry> entries = handler.getKeytabEntries(keytab);
+    Assert.assertEquals(1, entries.size());
+    KeytabEntry entry = entries.get(0);
+    Assert.assertEquals(principal, entry.getPrincipal().getName());
+    Assert.assertEquals(NameType.NT_PRINCIPAL, entry.getPrincipal().getNameType());
+    Assert.assertEquals(1_700_000_000_000L, entry.getTimestamp().getTime());
+    Assert.assertEquals(7, entry.getKvno());
+    Assert.assertEquals(EncryptionType.AES128_CTS_HMAC_SHA1_96.getValue(),
+        entry.getKey().getKeyType().getValue());
+    Assert.assertEquals("7a22a28993125fad78648d72338a93f2",
+        HexFormat.of().formatHex(entry.getKey().getKeyData()));
+
+    File migratedFile = folder.newFile();
+    keytab.store(migratedFile);
+    KerberosKey[] jdkKeys = KeyTab.getInstance(migratedFile)
+        .getKeys(new KerberosPrincipal(principal));
+    Assert.assertEquals(1, jdkKeys.length);
+    Assert.assertEquals(7, jdkKeys[0].getVersionNumber());
+    Assert.assertEquals("7a22a28993125fad78648d72338a93f2",
+        HexFormat.of().formatHex(jdkKeys[0].getEncoded()));
   }
 
   @Test
@@ -332,7 +450,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
           add(EncryptionType.DES_CBC_MD5);
           add(EncryptionType.DES_CBC_MD4);
           add(EncryptionType.DES_CBC_CRC);
-          add(EncryptionType.UNKNOWN);
+          add(EncryptionType.NONE);
         }},
         handler.translateEncryptionTypes("aes256-cts-hmac-sha1-96\n aes128-cts-hmac-sha1-96\tdes3-cbc-sha1 arcfour-hmac-md5 " +
             "camellia256-cts-cmac camellia128-cts-cmac des-cbc-crc des-cbc-md5 des-cbc-md4", "\\s+")

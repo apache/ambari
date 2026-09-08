@@ -33,7 +33,7 @@
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>2.0.9</powermock.version>
     <jetty.version>11.0.26</jetty.version>
-    <ldap-api.version>1.0.0</ldap-api.version>
+    <kerby.version>2.1.2</kerby.version>
     <checkstyle.version>10.26.1</checkstyle.version>
     <swagger.version>1.6.8</swagger.version>
     <swagger.maven.plugin.version>3.1.5</swagger.maven.plugin.version>
@@ -109,6 +109,13 @@
   </profiles>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>org.apache.kerby</groupId>
+        <artifactId>kerby-bom</artifactId>
+        <version>${kerby.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
