@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
@@ -81,7 +82,8 @@ public class AgentReportsController {
   }
 
   @MessageMapping("/component_version")
-  public ReportsResponse handleComponentVersionReport(@Header String simpSessionId, ComponentVersionReports message)
+  public ReportsResponse handleComponentVersionReport(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, ComponentVersionReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
 
     agentReportsProcessor.addAgentReport(new ComponentVersionAgentReport(hh,
@@ -90,7 +92,8 @@ public class AgentReportsController {
   }
 
   @MessageMapping("/component_status")
-  public ReportsResponse handleComponentReportStatus(@Header String simpSessionId, ComponentStatusReports message)
+  public ReportsResponse handleComponentReportStatus(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, ComponentStatusReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
     List<ComponentStatus> statuses = new ArrayList<>();
     for (Map.Entry<String, List<ComponentStatusReport>> clusterReport : message.getComponentStatusReports().entrySet()) {
@@ -112,7 +115,8 @@ public class AgentReportsController {
   }
 
   @MessageMapping("/commands_status")
-  public ReportsResponse handleCommandReportStatus(@Header String simpSessionId, CommandStatusReports message)
+  public ReportsResponse handleCommandReportStatus(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, CommandStatusReports message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
     List<CommandReport> statuses = new ArrayList<>();
     for (Map.Entry<String, List<CommandReport>> clusterReport : message.getClustersComponentReports().entrySet()) {
@@ -125,14 +129,16 @@ public class AgentReportsController {
   }
 
   @MessageMapping("/host_status")
-  public ReportsResponse handleHostReportStatus(@Header String simpSessionId, HostStatusReport message) throws AmbariException {
+  public ReportsResponse handleHostReportStatus(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, HostStatusReport message) throws AmbariException {
     agentReportsProcessor.addAgentReport(new HostStatusAgentReport(hh,
         agentSessionManager.getHost(simpSessionId).getHostName(), message));
     return new ReportsResponse();
   }
 
   @MessageMapping("/alerts_status")
-  public ReportsResponse handleAlertsStatus(@Header String simpSessionId, Alert[] message) throws AmbariException {
+  public ReportsResponse handleAlertsStatus(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, Alert[] message) throws AmbariException {
     String hostName = agentSessionManager.getHost(simpSessionId).getHostName();
     List<Alert> alerts = Arrays.asList(message);
     LOG.debug("Handling {} alerts status for host {}", alerts.size(), hostName);
@@ -141,7 +147,9 @@ public class AgentReportsController {
   }
 
   @MessageMapping("/responses")
-  public ReportsResponse handleReceiveReport(@Header String simpSessionId, AckReport ackReport) throws HostNotRegisteredException {
+  public ReportsResponse handleReceiveReport(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, AckReport ackReport)
+      throws HostNotRegisteredException {
     Long hostId = agentSessionManager.getHost(simpSessionId).getHostId();
     LOG.debug("Handling agent receive report for execution message with messageId {}, status {}, reason {}",
         ackReport.getMessageId(), ackReport.getStatus(), ackReport.getReason());

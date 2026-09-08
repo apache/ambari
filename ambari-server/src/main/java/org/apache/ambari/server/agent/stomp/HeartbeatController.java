@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
@@ -98,7 +99,8 @@ public class HeartbeatController {
   }
 
   @MessageMapping("/register")
-  public CompletableFuture<RegistrationResponse> register(@Header String simpSessionId, Register message)
+  public CompletableFuture<RegistrationResponse> register(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, Register message)
       throws WebApplicationException, InvalidStateTransitionException, AmbariException {
     CompletableFuture<RegistrationResponse> completableFuture = new CompletableFuture<>();
 
@@ -139,7 +141,8 @@ public class HeartbeatController {
   }
 
   @MessageMapping("/heartbeat")
-  public HeartBeatResponse heartbeat(@Header String simpSessionId, HeartBeat message) {
+  public HeartBeatResponse heartbeat(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, HeartBeat message) {
     try {
       unitOfWork.begin();
       if (LOG.isDebugEnabled()) {
