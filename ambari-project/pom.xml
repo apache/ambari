@@ -47,6 +47,8 @@
     <fasterxml.jackson.version>2.18.9</fasterxml.jackson.version>
     <fasterxml.jackson.databind.version>2.18.9</fasterxml.jackson.databind.version>
     <postgres.version>42.7.13</postgres.version>
+    <mariadb.jdbc.version>2.7.15</mariadb.jdbc.version>
+    <mssql.jdbc.version>13.4.0.jre11</mssql.jdbc.version>
     <testContainers.version>1.21.4</testContainers.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
@@ -214,7 +216,7 @@
       <dependency>
         <groupId>org.mariadb.jdbc</groupId>
         <artifactId>mariadb-java-client</artifactId>
-        <version>2.3.0</version>
+        <version>${mariadb.jdbc.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -226,7 +228,7 @@
       <dependency>
         <groupId>com.microsoft.sqlserver</groupId>
         <artifactId>mssql-jdbc</artifactId>
-        <version>7.0.0.jre8</version>
+        <version>${mssql.jdbc.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
