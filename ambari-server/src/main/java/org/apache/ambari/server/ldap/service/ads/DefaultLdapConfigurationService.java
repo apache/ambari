@@ -179,7 +179,7 @@ public class DefaultLdapConfigurationService implements LdapConfigurationService
     EntryMapper<String> entryMapper = new EntryMapper<String>() {
       @Override
       public String map(Entry entry) throws LdapException {
-        return entry.get(ambariLdapConfiguration.groupNameAttribute()).get().getValue();
+        return entry.get(ambariLdapConfiguration.groupNameAttribute()).get().getString();
       }
     };
 
@@ -206,6 +206,5 @@ public class DefaultLdapConfigurationService implements LdapConfigurationService
 
 
 }
-
 
 

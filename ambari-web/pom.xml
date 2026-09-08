@@ -77,8 +77,8 @@
                 <version>1.11.0</version>
                 <configuration>
                     <skip>${skipUiBuild}</skip>
-                    <nodeVersion>v4.5.0</nodeVersion>
-                    <yarnVersion>v0.23.2</yarnVersion>
+                    <nodeVersion>v22.23.1</nodeVersion>
+                    <yarnVersion>v1.22.22</yarnVersion>
                     <workingDirectory>${uidir}</workingDirectory>
                     <npmInheritsProxyConfigFromMaven>false</npmInheritsProxyConfigFromMaven>
                     <!-- setting npm_config_tmp environment variable is a workaround for
@@ -102,7 +102,7 @@
                             <goal>yarn</goal>
                         </goals>
                         <configuration>
-                            <arguments>install --ignore-engines --pure-lockfile</arguments>
+                            <arguments>install --ignore-engines --ignore-optional --frozen-lockfile --non-interactive</arguments>
                         </configuration>
                     </execution>
                     <execution>
@@ -277,6 +277,21 @@
                             <commandlineArgs>${args.npm} test</commandlineArgs>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>ambari-web development server smoke test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skipTests}</skip>
+                            <executable>${uidir}/node/${node.executable}</executable>
+                            <workingDirectory>${uidir}</workingDirectory>
+                            <arguments>
+                                <argument>build-tools/dev-server-smoke.js</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -311,8 +326,6 @@
                 <configuration>
                     <excludes>
                         <exclude>.idea/**</exclude>
-                        <exclude>package.json</exclude>
-                        <exclude>yarn.lock</exclude>
                         <exclude>classic/package.json</exclude>
                         <exclude>classic/public/**</exclude>
                         <exclude>classic/public-static/**</exclude>
@@ -323,7 +336,6 @@
                         <exclude>classic/node/**</exclude>
                         <exclude>classic/npm-debug.log</exclude>
                         <exclude>classic/yarn.lock</exclude>
-                        <exclude>classic/package-lock.json</exclude>
                         <exclude>latest/package.json</exclude>
                         <exclude>latest/package-lock.json</exclude>
                         <exclude>latest/yarn.lock</exclude>

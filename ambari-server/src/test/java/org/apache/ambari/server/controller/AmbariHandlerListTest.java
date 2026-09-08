@@ -19,22 +19,22 @@
 package org.apache.ambari.server.controller;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.List;
 
 import jakarta.inject.Provider;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
+import org.apache.ambari.server.api.AmbariErrorHandler;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.ViewEntity;
@@ -42,15 +42,17 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
 import org.apache.ambari.server.view.ViewRegistry;
+import org.eclipse.jetty.ee10.servlet.ErrorHandler;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
+import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.SessionIdManager;
-import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.eclipse.jetty.server.session.SessionCache;
-import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.session.SessionCache;
+import org.eclipse.jetty.session.SessionIdManager;
+import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -74,8 +76,10 @@ public class AmbariHandlerListTest {
   @Mock private SessionCache sessionCache;
   @Mock private Configuration configuration;
   @Mock private WebAppContext handler;
-  @Mock private Server server;
   @Mock private ErrorHandler errorHandler;
+  @Mock private AmbariErrorHandler ambariErrorHandler;
+  @Mock private Response response;
+  @Mock private Callback callback;
 
   @Captor private ArgumentCaptor<FilterHolder> filterHolderCaptor;
   @Captor private ArgumentCaptor<Boolean> showStackCaptor;
@@ -91,6 +95,7 @@ public class AmbariHandlerListTest {
     list.sessionHandler = sessionHandler;
     list.sessionHandlerConfigurer = sessionHandlerConfigurer;
     list.configuration = configuration;
+    list.ambariErrorHandler = ambariErrorHandler;
     return list;
   }
 
@@ -98,10 +103,7 @@ public class AmbariHandlerListTest {
   public void testAddViewInstance() throws Exception {
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
 
-    when(handler.getServer()).thenReturn(server);
-    when(handler.getChildHandlers()).thenReturn(new Handler[]{});
     when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
-    handler.setServer(null);
 
     final boolean showErrorStacks = true;
     when(configuration.isServerShowErrorStacks()).thenReturn(showErrorStacks);
@@ -124,14 +126,14 @@ public class AmbariHandlerListTest {
     assertEquals(persistFilter.getClass().getName(),              holders.get(1).getClassName());
     assertEquals(springSecurityFilter.getClass().getName(),       holders.get(2).getClassName());
 
-    // verify allowNullPathInfo and error handler
-    verify(handler).setAllowNullPathInfo(true);
-    verify(handler, times(3)).getErrorHandler();
+    // verify null path handling and error handler
+    verify(handler).setAllowNullPathInContext(true);
+    verify(handler, times(2)).getErrorHandler();
     verify(errorHandler).setShowStacks(showStackCaptor.capture());
     assertEquals(showErrorStacks, showStackCaptor.getValue());
 
     // assert handler registered
-    List<Handler> registered = Arrays.asList(handlerList.getHandlers());
+    List<Handler> registered = handlerList.getHandlers();
     assertTrue(registered.contains(handler));
   }
 
@@ -140,24 +142,40 @@ public class AmbariHandlerListTest {
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
 
     // Stub required for handlerList.addViewInstance to work
-    when(handler.getServer()).thenReturn(server);
-    when(handler.getChildHandlers()).thenReturn(new Handler[]{});
     when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
-    handler.setServer(null);
 
     when(sessionHandler.getSessionCache()).thenReturn(sessionCache);
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
     handlerList.addViewInstance(viewInstanceEntity);
-    List<Handler> registered = Arrays.asList(handlerList.getHandlers());
+    List<Handler> registered = handlerList.getHandlers();
     assertTrue(registered.contains(handler));
 
     handlerList.removeViewInstance(viewInstanceEntity);
-    assertNull(handlerList.getHandlers());
+    assertTrue(handlerList.getHandlers().isEmpty());
 
-    verify(handler).getServer();
-    verify(handler).getChildHandlers();
     verify(handler).getSessionHandler();
+  }
+
+  @Test
+  public void testAddViewInstanceRollsBackAfterStartFailureAndCanRetry() throws Exception {
+    ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
+    when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
+    doThrow(new Exception("start failed")).doNothing().when(handler).start();
+
+    AmbariHandlerList handlerList = getAmbariHandlerList(handler);
+    handlerList.start();
+
+    try {
+      handlerList.addViewInstance(viewInstanceEntity);
+      fail("Expected view startup to fail");
+    } catch (org.apache.ambari.view.SystemException expected) {
+      assertTrue(expected.getMessage().contains("adding a view instance"));
+    }
+    assertTrue(handlerList.getHandlers().isEmpty());
+
+    handlerList.addViewInstance(viewInstanceEntity);
+    assertTrue(handlerList.getHandlers().contains(handler));
   }
 
   @Test
@@ -166,26 +184,28 @@ public class AmbariHandlerListTest {
     ViewEntity viewEntity = mock(ViewEntity.class);
     ClassLoader classLoader = mock(ClassLoader.class);
     Request baseRequest = mock(Request.class);
-    HttpServletRequest request = mock(HttpServletRequest.class);
-    HttpServletResponse response = mock(HttpServletResponse.class);
+    String target = "/api/v1/views/%54EST/versions/1%2E0%2E0/instances/INSTANCE_1/resources/test";
 
     when(viewRegistry.getDefinition("TEST", "1.0.0")).thenReturn(viewEntity);
     when(viewEntity.getClassLoader()).thenReturn(classLoader);
-
-    when(handler.getChildHandlers()).thenReturn(new Handler[]{});
+    when(baseRequest.getHttpURI()).thenReturn(HttpURI.from(target));
+    when(handler.handle(baseRequest, response, callback)).thenAnswer(invocation -> {
+      assertSame(classLoader, Thread.currentThread().getContextClassLoader());
+      return true;
+    });
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
     handlerList.viewRegistry = viewRegistry;
 
+    ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
     handlerList.start();
     handlerList.addHandler(handler);
-    handlerList.handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
-        baseRequest, request, response);
+    assertTrue(handlerList.handle(baseRequest, response, callback));
 
-    verify(handler).handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
-        baseRequest, request, response);
+    verify(handler).handle(baseRequest, response, callback);
     verify(viewRegistry, atLeastOnce()).getDefinition("TEST", "1.0.0");
     verify(viewEntity, atLeastOnce()).getClassLoader();
+    assertSame(originalClassLoader, Thread.currentThread().getContextClassLoader());
   }
 
   private static class HandlerProvider implements Provider<WebAppContext> {

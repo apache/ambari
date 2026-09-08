@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +30,9 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
+import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +44,24 @@ public class CreateKeytabFilesServerActionTest {
 
   @Rule
   public TemporaryFolder testFolder = new TemporaryFolder();
+
+  @Test
+  public void testMissingCachedKeytabIsRegenerated() throws Exception {
+    String principal = "service/host@EXAMPLE.COM";
+    File missingCachedKeytab = new File(testFolder.getRoot(), "missing.keytab");
+    KerberosPrincipalEntity principalEntity = createMock(KerberosPrincipalEntity.class);
+    expect(principalEntity.getCachedKeytabPath()).andReturn(missingCachedKeytab.getAbsolutePath());
+
+    Keytab regeneratedKeytab = new Keytab();
+    KerberosOperationHandler operationHandler = createMock(KerberosOperationHandler.class);
+    expect(operationHandler.createKeytab(principal, "password", 3)).andReturn(regeneratedKeytab);
+    replay(principalEntity, operationHandler);
+
+    CreateKeytabFilesServerAction action = new CreateKeytabFilesServerAction();
+    Assert.assertSame(regeneratedKeytab, action.createKeytab(
+        principal, principalEntity, "password", 3, operationHandler, true, false, null));
+    verify(principalEntity, operationHandler);
+  }
 
   @Test
   public void testEnsureAmbariOnlyAccess() throws Exception {

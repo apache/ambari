@@ -27,65 +27,61 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.http.HttpStatus;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.eclipse.jetty.ee10.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.ErrorHandler;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
 
 public class AmbariViewErrorHandlerProxyTest {
 
   final AmbariErrorHandler ambariErrorHandler = createNiceMock(AmbariErrorHandler.class);
-  final ErrorHandler errorHandler = createNiceMock(ErrorHandler.class);
+  final ErrorPageErrorHandler errorHandler = createNiceMock(ErrorPageErrorHandler.class);
 
-  final HttpServletRequest httpServletRequest = createNiceMock(HttpServletRequest.class);
-  final HttpServletResponse httpServletResponse = createNiceMock(HttpServletResponse.class);
   final Request request = createNiceMock(Request.class);
-
-  final String target = "test/target/uri";
+  final Response response = createNiceMock(Response.class);
+  final Callback callback = createNiceMock(Callback.class);
 
   @Test
   public void testHandleInternalServerError() throws Throwable {
     //given
     Throwable th = createNiceMock(Throwable.class);
-    expect(httpServletRequest.getAttribute(RequestDispatcher.ERROR_EXCEPTION)).andReturn(th).anyTimes();
-    expect(httpServletResponse.getStatus()).andReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR).anyTimes();
+    expect(request.getAttribute(RequestDispatcher.ERROR_EXCEPTION)).andReturn(th).anyTimes();
+    expect(response.getStatus()).andReturn(HttpStatus.SC_INTERNAL_SERVER_ERROR).anyTimes();
 
-    ambariErrorHandler.handle(target, request, httpServletRequest, httpServletResponse);
-    expectLastCall();
+    expect(ambariErrorHandler.handle(request, response, callback)).andReturn(true);
 
-    replay(ambariErrorHandler, errorHandler, httpServletRequest, httpServletResponse, th);
+    replay(ambariErrorHandler, errorHandler, request, response, callback, th);
 
     //when
     AmbariViewErrorHandlerProxy proxy = new AmbariViewErrorHandlerProxy(errorHandler, ambariErrorHandler);
-    proxy.handle(target, request, httpServletRequest, httpServletResponse);
+    proxy.handle(request, response, callback);
 
     //then
-    verify(ambariErrorHandler, errorHandler, httpServletRequest, httpServletResponse, th);
+    verify(ambariErrorHandler, errorHandler, request, response, callback, th);
   }
 
   @Test
-  public void testHandleGeneralError() throws Throwable {
+  public void testDelegatesCustomErrorPageHandlerForNonInternalError() throws Throwable {
     //given
     Throwable th = createNiceMock(Throwable.class);
-    expect(httpServletRequest.getAttribute(RequestDispatcher.ERROR_EXCEPTION)).andReturn(th).anyTimes();
-    expect(httpServletResponse.getStatus()).andReturn(HttpStatus.SC_BAD_REQUEST).anyTimes();
+    expect(request.getAttribute(RequestDispatcher.ERROR_EXCEPTION)).andReturn(th).anyTimes();
+    expect(response.getStatus()).andReturn(HttpStatus.SC_BAD_REQUEST).anyTimes();
 
-    errorHandler.handle(target, request, httpServletRequest, httpServletResponse);
-    expectLastCall();
+    expect(errorHandler.handle(request, response, callback)).andReturn(true);
 
-    replay(ambariErrorHandler, errorHandler, httpServletRequest, httpServletResponse, th);
+    replay(ambariErrorHandler, errorHandler, request, response, callback, th);
 
     //when
     AmbariViewErrorHandlerProxy proxy = new AmbariViewErrorHandlerProxy(errorHandler, ambariErrorHandler);
-    proxy.handle(target, request, httpServletRequest, httpServletResponse);
+    proxy.handle(request, response, callback);
 
     //then
-    verify(ambariErrorHandler, errorHandler, httpServletRequest, httpServletResponse, th);
+    verify(ambariErrorHandler, errorHandler, request, response, callback, th);
   }
 
   @Test

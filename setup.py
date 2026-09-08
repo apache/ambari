@@ -94,10 +94,10 @@ def get_version():
 
 """
 Example usage:
-- build the source distribution from the locked build environment:
-  python3 -m build --sdist --no-isolation
-- install the source distribution into an isolated target:
-  python3 -m pip install --no-build-isolation --target "my/site-packages" dist/ambari-python-*.tar.gz
+- build distributions with the locked Python 3.10+ environment:
+  ./install-ambari-python.sh --build-python /path/to/python3.10
+- install the resulting wheel with a supported runtime:
+  python3.9 -m pip install dist/ambari_python-*.whl
 
 Installing from pip:
 - python3 -m pip install ambari-python==3.1.0.0.dev0

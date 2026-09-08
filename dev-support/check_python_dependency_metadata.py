@@ -144,6 +144,13 @@ def _toml_requirements(values):
   return {_normalize_requirement(value) for value in values}
 
 
+def _numeric_pin(requirement):
+  version = requirement.split("==", 1)[1].split(";", 1)[0]
+  if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*", version):
+    return ()
+  return tuple(int(part) for part in version.split("."))
+
+
 def _compare(errors, label, actual, expected):
   if actual == expected:
     return
@@ -183,6 +190,9 @@ def _maven_executions(path):
       executions[execution_id] = {
         "arguments": arguments,
         "environment": environment,
+        "executable": execution.findtext(
+          "m:configuration/m:executable", namespaces=namespace
+        ),
         "phase": execution.findtext("m:phase", namespaces=namespace),
       }
   return executions
@@ -206,6 +216,7 @@ def _require_maven_execution(
   execution_id,
   required_arguments=(),
   required_environment=None,
+  required_executable=None,
   phase=None,
 ):
   execution = executions.get(execution_id)
@@ -227,6 +238,14 @@ def _require_maven_execution(
       errors.append(
         f"{component} Maven execution {execution_id} requires {name}={value}"
       )
+  if (
+    required_executable is not None
+    and execution["executable"] != required_executable
+  ):
+    errors.append(
+      f"{component} Maven execution {execution_id} requires executable "
+      f"{required_executable}"
+    )
   if phase is not None and execution["phase"] != phase:
     errors.append(
       f"{component} Maven execution {execution_id} must run in {phase}, "
@@ -257,6 +276,9 @@ def _validate_maven_contracts(repository, errors):
         "--require-hashes",
         "${python.build.dependencies.dir}",
         "${maven.multiModuleProjectDirectory}/requirements-build.lock",
+      ),
+      required_executable=(
+        "${maven.multiModuleProjectDirectory}/dev-support/ambari-python-build"
       ),
       phase="generate-resources",
     )
@@ -296,6 +318,7 @@ def _validate_maven_contracts(repository, errors):
         "PYTHONNOUSERSITE": "1",
         "PYTHONPATH": "${python.build.dependencies.dir}",
       },
+      "${maven.multiModuleProjectDirectory}/dev-support/ambari-python-build",
       "generate-resources",
     )
     _require_maven_execution(
@@ -379,6 +402,37 @@ def _validate_maven_contracts(repository, errors):
     )
 
 
+def _validate_jenkins_contract(repository, errors):
+  jenkinsfile = repository / "Jenkinsfile"
+  if not jenkinsfile.is_file():
+    return
+  content = jenkinsfile.read_text(encoding="utf-8")
+  build_python = "target/jenkins-python-build-venv/bin/python"
+  required_fragments = {
+    "create its Python 3.10+ build environment with the Ambari launcher": (
+      "dev-support/ambari-python-build -m venv --clear "
+      "target/jenkins-python-build-venv"
+    ),
+    "install requirements-tooling.txt with the Python build interpreter": (
+      f"{build_python} -m pip install "
+      "--only-binary=:all: --require-hashes --requirement requirements-tooling.txt"
+    ),
+    "install requirements-build.lock with the Python build interpreter": (
+      f"{build_python} -m pip install "
+      "--only-binary=:all: --require-hashes --requirement requirements-build.lock"
+    ),
+    "run dependency metadata checks with the Python build interpreter": (
+      f"{build_python} dev-support/check_python_dependency_metadata.py"
+    ),
+    "run dev-support tests with the Python build interpreter": (
+      f"{build_python} -m unittest discover -s dev-support -p 'test_*.py'"
+    ),
+  }
+  for description, fragment in required_fragments.items():
+    if fragment not in content:
+      errors.append(f"Jenkins must {description}")
+
+
 def _validate_assembly_contracts(repository, errors):
   assemblies = (
     ("Agent", repository / "ambari-agent/src/packages/tarball/all.xml"),
@@ -441,6 +495,9 @@ def audit(repository):
   server_direct = read_requirements(server_path, include_references=False)
   agent_sdist_path = repository / "ambari-agent/src/main/python/requirements-sdist.in"
   build = read_requirements(build_path)
+  setuptools_pins = [
+    requirement for requirement in build if requirement.startswith("setuptools==")
+  ]
   tooling = read_requirements(tooling_path, require_hashes=True)
   project = tomllib.loads((repository / "pyproject.toml").read_text(encoding="utf-8"))
   agent_project = tomllib.loads(
@@ -450,6 +507,8 @@ def audit(repository):
   )
 
   errors = []
+  if len(setuptools_pins) != 1 or _numeric_pin(setuptools_pins[0]) < (83, 0, 0):
+    errors.append("Build setuptools must be pinned to version 83.0.0 or newer")
   _validate_setup_contract(repository / "setup.py", errors, "root")
   _validate_setup_contract(
     repository / "ambari-agent/src/main/python/setup.py", errors, "Agent"
@@ -516,6 +575,7 @@ def audit(repository):
     if missing:
       errors.append(f"{label} lock omits manifest pins: {','.join(missing)}")
   _validate_maven_contracts(repository, errors)
+  _validate_jenkins_contract(repository, errors)
   _validate_assembly_contracts(repository, errors)
   return errors
 

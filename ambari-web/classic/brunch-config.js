@@ -136,7 +136,9 @@ module.exports.config = {
 
   server: {
     port: 3333,
-    base: '/',
+    hostname: process.env.AMBARI_BRUNCH_HOSTNAME || '0.0.0.0',
+    base: '',
+    noPushState: process.env.AMBARI_BRUNCH_NO_PUSH_STATE === 'true',
     run: 'no'
   },
 

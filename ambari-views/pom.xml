@@ -32,7 +32,6 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-jndi</artifactId>
-            <version>11.0.15</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -114,7 +113,7 @@
                 <executions>
                     <execution>
                         <id>build-tarball</id>
-                        <phase>prepare-package</phase>
+                        <phase>none</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>

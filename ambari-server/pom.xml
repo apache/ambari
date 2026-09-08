@@ -59,12 +59,11 @@
     <equalsverifier.version>3.15.6</equalsverifier.version>
     <persistence.version>3.1.0</persistence.version>
     <collections4.version>4.4</collections4.version>
-    <commons.compress.version>1.21</commons.compress.version>
     <commons.text.version>1.10.0</commons.text.version>
     <commons.net.version>3.13.0</commons.net.version>
     <cloning.version>1.9.2</cloning.version>
     <guava.version>32.1.3-jre</guava.version>
-    <h2database.version>1.4.193</h2database.version>
+    <h2database.version>2.5.250</h2database.version>
     <mockito.core.version>3.5.10</mockito.core.version>
     <mockito.inline.version>3.5.10</mockito.inline.version>
     <objenesis.tck.version>1.2</objenesis.tck.version>
@@ -85,14 +84,11 @@
     <ehcache.version>3.10.0</ehcache.version>
     <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
     <jsch.version>0.2.26</jsch.version>
-    <c3p0.version>0.11.2</c3p0.version>
+    <c3p0.version>0.14.2</c3p0.version>
     <metrics.version>4.2.40</metrics.version>
     <libpam4j.version>1.11</libpam4j.version>
     <jna.version>5.19.1</jna.version>
-    <api.ldap.model.version>2.0.0.AM1</api.ldap.model.version>
-    <api.ldap.client.api.version>2.0.0.AM1</api.ldap.client.api.version>
-    <apacheds.kerberos.codec.version>2.0.0-M24</apacheds.kerberos.codec.version>
-    <kerberos.client.version>2.0.0-M24</kerberos.client.version>
+    <directory.api.version>2.1.5</directory.api.version>
     <json.schema.validator.version>0.1.10</json.schema.validator.version>
   </properties>
   <build>
@@ -980,8 +976,8 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-maven-plugin</artifactId>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-maven-plugin</artifactId>
         <version>${jetty.version}</version>
       </plugin>
       <!-- Checkstyle binds to phase "validate" by default.
@@ -1161,7 +1157,6 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-jndi</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>jakarta.servlet</groupId>
@@ -1215,7 +1210,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <version>${commons.compress.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -1343,6 +1337,12 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>eclipselink</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.sun.xml.bind</groupId>
+          <artifactId>jaxb-xjc</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -1371,34 +1371,24 @@
       <artifactId>jetty-security</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-servlet</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlets</artifactId>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-servlets</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-webapp</artifactId>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-webapp</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util-ajax</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jsp-api-2.1-glassfish</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jsp-2.1-glassfish</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>ant</groupId>
-          <artifactId>ant</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.eclipse.jetty.ee10</groupId>
+      <artifactId>jetty-ee10-apache-jsp</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.ant</groupId>
@@ -1409,22 +1399,12 @@
       <artifactId>jetty-server</artifactId>
     </dependency>
     <dependency>
-      <groupId>jakarta.websocket</groupId>
-      <artifactId>jakarta.websocket-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.websocket</groupId>
-      <artifactId>jakarta.websocket-client-api</artifactId>
+      <groupId>org.eclipse.jetty.ee10.websocket</groupId>
+      <artifactId>jetty-ee10-websocket-jetty-server</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty.websocket</groupId>
-      <artifactId>websocket-jetty-server</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty.websocket</groupId>
-      <artifactId>websocket-jetty-api</artifactId>
-      <version>${jetty.version}</version>
+      <artifactId>jetty-websocket-jetty-api</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -1607,10 +1587,6 @@
           <artifactId>junit-jupiter</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jettison</groupId>
-      <artifactId>jettison</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -1900,6 +1876,14 @@
           <artifactId>jetty</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-servlet</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-webapp</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.apache.zookeeper</groupId>
           <artifactId>zookeeper</artifactId>
         </exclusion>
@@ -2025,38 +2009,20 @@
     <dependency>
       <groupId>org.apache.directory.api</groupId>
       <artifactId>api-ldap-model</artifactId>
-      <version>${api.ldap.model.version}</version>
+      <version>${directory.api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.directory.api</groupId>
       <artifactId>api-ldap-client-api</artifactId>
-      <version>${api.ldap.client.api.version}</version>
+      <version>${directory.api.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.directory.server</groupId>
-      <artifactId>apacheds-kerberos-codec</artifactId>
-      <version>${apacheds.kerberos.codec.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>net.sf.ehcache</groupId>
-          <artifactId>ehcache</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerb-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.directory.server</groupId>
-      <artifactId>kerberos-client</artifactId>
-      <version>${kerberos.client.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.commons</groupId>
-          <artifactId>commons-collections4</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.directory.api</groupId>
-          <artifactId>api-ldap-model</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerb-util</artifactId>
     </dependency>
     <dependency>
       <groupId>com.networknt</groupId>

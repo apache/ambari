@@ -42,6 +42,8 @@ RESULT_CODE_UNKNOWN = "UNKNOWN"
 NODEMANAGER_HTTP_ADDRESS_KEY = "{{yarn-site/yarn.nodemanager.webapp.address}}"
 NODEMANAGER_HTTPS_ADDRESS_KEY = "{{yarn-site/yarn.nodemanager.webapp.https.address}}"
 YARN_HTTP_POLICY_KEY = "{{yarn-site/yarn.http.policy}}"
+NODEMANAGER_HTTP_ADDRESS_DEFAULT = "0.0.0.0:8042"
+NODEMANAGER_HTTPS_ADDRESS_DEFAULT = "0.0.0.0:8044"
 
 OK_MESSAGE = "NodeManager Healthy"
 CRITICAL_CONNECTION_MESSAGE = "Connection failed to {0} ({1})"
@@ -148,11 +150,14 @@ def execute(configurations={}, parameters={}, host_name=None):
   if KERBEROS_PRINCIPAL in configurations:
     kerberos_principal = configurations[KERBEROS_PRINCIPAL]
 
-  if NODEMANAGER_HTTP_ADDRESS_KEY in configurations:
-    http_uri = configurations[NODEMANAGER_HTTP_ADDRESS_KEY]
-
-  if NODEMANAGER_HTTPS_ADDRESS_KEY in configurations:
-    https_uri = configurations[NODEMANAGER_HTTPS_ADDRESS_KEY]
+  http_uri = configurations.get(
+    NODEMANAGER_HTTP_ADDRESS_KEY,
+    NODEMANAGER_HTTP_ADDRESS_DEFAULT,
+  )
+  https_uri = configurations.get(
+    NODEMANAGER_HTTPS_ADDRESS_KEY,
+    NODEMANAGER_HTTPS_ADDRESS_DEFAULT,
+  )
 
   if YARN_HTTP_POLICY_KEY in configurations:
     http_policy = configurations[YARN_HTTP_POLICY_KEY]

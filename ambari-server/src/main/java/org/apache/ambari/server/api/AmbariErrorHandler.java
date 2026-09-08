@@ -34,11 +34,10 @@ import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationPro
 import org.apache.ambari.server.security.authentication.jwt.JwtAuthenticationPropertiesProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.jetty.ee10.servlet.ErrorHandler;
+import org.eclipse.jetty.ee10.servlet.ServletContextRequest;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.MimeTypes;
-import org.eclipse.jetty.server.HttpChannel;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,16 +71,12 @@ public class AmbariErrorHandler extends ErrorHandler {
   }
 
   @Override
-  public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException {
-    HttpChannel connection = baseRequest.getHttpChannel();
-    baseRequest.setHandled(true);
-
+  protected void generateAcceptableResponse(ServletContextRequest baseRequest, HttpServletRequest request,
+      HttpServletResponse response, int code, String message) throws IOException {
     response.setContentType(MimeTypes.Type.TEXT_PLAIN.asString());
 
     Map<String, Object> errorMap = new LinkedHashMap<>();
-    int code = connection.getResponse().getStatus();
     errorMap.put("status", code);
-    String message = connection.getResponse().getReason();
     if (message == null) {
       message = HttpStatus.getMessage(code);
     }

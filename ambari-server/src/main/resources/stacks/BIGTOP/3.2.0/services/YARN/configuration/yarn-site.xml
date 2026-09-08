@@ -408,6 +408,22 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>yarn.nodemanager.webapp.address</name>
+    <value>0.0.0.0:8042</value>
+    <description>
+      The HTTP address of the NodeManager web application.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>yarn.nodemanager.webapp.https.address</name>
+    <value>0.0.0.0:8044</value>
+    <description>
+      The HTTPS address of the NodeManager web application.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>yarn.nodemanager.vmem-check-enabled</name>
     <value>false</value>
     <description>

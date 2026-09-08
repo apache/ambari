@@ -2,13 +2,14 @@
   "name": "Ambari",
   "description": "Front-end package for the Apache Ambari Project",
   "version": "2.4.0",
+  "license": "Apache-2.0",
+  "packageManager": "yarn@1.22.22",
   "homepage": "http://ambari.apache.org/",
   "repository": {
     "type": "git",
     "url": "https://gitbox.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary"
   },
   "dependencies": {
-    "Ambari": "file:",
     "assetsmanager-brunch": "~1.8.1",
     "babel-brunch": "6.0.0",
     "brunch": "1.7.20",
@@ -26,7 +27,6 @@
     "babel-plugin-transform-object-assign": "6.22.0",
     "babel-preset-es2015": "^6.18.0",
     "chai": "~3.5.0",
-    "express": "2.5.8",
     "karma": ">=0.11.14",
     "karma-babel-preprocessor": "^6.0.1",
     "karma-chai": "~0.1.0",
@@ -41,11 +41,18 @@
     "sinon": "=1.7.3",
     "sinon-chai": "~2.8.0"
   },
+  "resolutions": {
+    "brace-expansion": "1.1.18",
+    "js-yaml": "3.15.1",
+    "pushserve": "1.0.2"
+  },
   "scripts": {
+    "build": "brunch build",
     "start": "brunch watch --server",
-    "test": "karma start"
+    "test": "karma start",
+    "test:server": "node build-tools/dev-server-smoke.js"
   },
   "engines": {
-    "node": "^4.0.0"
+    "node": ">=22.0.0"
   }
 }

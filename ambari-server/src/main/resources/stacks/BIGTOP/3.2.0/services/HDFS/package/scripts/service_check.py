@@ -18,8 +18,10 @@ limitations under the License.
 
 """
 
+import os
 import sys
 
+import ambari_commons
 import hdfs_process
 
 from resource_management.libraries.script.script import Script
@@ -108,6 +110,9 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
           "-t",
           str(JOURNALNODE_CONNECTION_TIMEOUT),
         )
+        ambari_python_path = os.path.dirname(
+          os.path.dirname(os.path.realpath(ambari_commons.__file__))
+        )
         File(checkWebUIFilePath, content=StaticFile("checkWebUI.py"), mode=0o755)
         try:
           Execute(
@@ -116,6 +121,7 @@ class HdfsServiceCheckDefault(HdfsServiceCheck):
             try_sleep=3,
             tries=5,
             user=params.smoke_user,
+            environment={"PYTHONPATH": ambari_python_path},
             timeout=max(
               JOURNALNODE_CONNECTION_TIMEOUT + 5,
               len(params.journalnode_hosts) * JOURNALNODE_CONNECTION_TIMEOUT + 5,

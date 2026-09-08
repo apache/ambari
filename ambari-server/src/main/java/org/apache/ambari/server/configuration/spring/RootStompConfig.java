@@ -42,6 +42,7 @@ import org.springframework.messaging.simp.annotation.support.SimpAnnotationMetho
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
 import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import com.google.inject.Injector;
@@ -74,7 +75,7 @@ public class RootStompConfig {
 
   @Bean
   public DefaultHandshakeHandler handshakeHandler() {
-    return new DefaultHandshakeHandler(new Jetty11RequestUpgradeStrategy());
+    return new DefaultHandshakeHandler(new JettyRequestUpgradeStrategy());
   }
 
 

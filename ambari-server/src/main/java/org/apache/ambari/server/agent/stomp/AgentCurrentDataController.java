@@ -29,6 +29,7 @@ import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
@@ -68,23 +69,27 @@ public class AgentCurrentDataController {
   }
 
   @MessageMapping("/alert_definitions")
-  public AlertDefinitionsAgentUpdateEvent getAlertDefinitions(@Header String simpSessionId, Hash hash) throws AmbariException {
+  public AlertDefinitionsAgentUpdateEvent getAlertDefinitions(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, Hash hash) throws AmbariException {
     Long hostId = agentSessionManager.getHost(simpSessionId).getHostId();
     return alertDefinitionsHolder.getUpdateIfChanged(hash.getHash(), hostId);
   }
 
   @MessageMapping("/configs")
-  public AgentConfigsUpdateEvent getCurrentConfigs(@Header String simpSessionId, Hash hash) throws AmbariException {
+  public AgentConfigsUpdateEvent getCurrentConfigs(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, Hash hash) throws AmbariException {
     return agentConfigsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostId());
   }
 
   @MessageMapping("/host_level_params")
-  public HostLevelParamsUpdateEvent getCurrentHostLevelParams(@Header String simpSessionId, Hash hash) throws AmbariException {
+  public HostLevelParamsUpdateEvent getCurrentHostLevelParams(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, Hash hash) throws AmbariException {
     return hostLevelParamsHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostId());
   }
 
   @MessageMapping("/telemetry")
-  public TelemetryUpdateEvent getCurrentTelemetry(@Header String simpSessionId, Hash hash) throws AmbariException {
+  public TelemetryUpdateEvent getCurrentTelemetry(
+      @Header(SimpMessageHeaderAccessor.SESSION_ID_HEADER) String simpSessionId, Hash hash) throws AmbariException {
     return telemetryHolder.getUpdateIfChanged(hash.getHash(), agentSessionManager.getHost(simpSessionId).getHostId());
   }
 

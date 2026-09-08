@@ -18,7 +18,7 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.configuration.Configuration;
-import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

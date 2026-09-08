@@ -53,6 +53,22 @@ from hbase_service import (
 
 _validate_hdfs_directory = validate_hdfs_directory
 
+_MAPREDUCE_MODULE_OPEN_OPTION = "--add-opens=java.base/java.lang=ALL-UNNAMED"
+
+
+def _mapred_site_configurations(configurations, java_version):
+  rendered = dict(configurations)
+  if java_version < 9:
+    return rendered
+
+  command_opts_name = "yarn.app.mapreduce.am.command-opts"
+  command_opts = str(rendered.get(command_opts_name, "")).strip()
+  if _MAPREDUCE_MODULE_OPEN_OPTION not in command_opts.split():
+    rendered[command_opts_name] = " ".join(
+      option for option in (command_opts, _MAPREDUCE_MODULE_OPEN_OPTION) if option
+    )
+  return rendered
+
 
 def _is_trusted_var_run_alias(path):
   if path != "/var/run" or not sudo.path_islink(path):
@@ -209,13 +225,12 @@ def _root_owned_directory(path, label, allowed_roots, group="root", mode=0o755):
   return normalized
 
 
-def _validate_root_managed_config_file(path, label, config_dir, stack_root):
-  normalized = os.path.normpath(path) if isinstance(path, str) else ""
+def _validate_bigtop_hadoop_config_directory(config_dir, label, stack_root):
   normalized_config_dir = (
     os.path.normpath(config_dir) if isinstance(config_dir, str) else ""
   )
   if normalized_config_dir != "/etc/hadoop/conf":
-    raise Fail("ResourceManager host files require the BIGTOP Hadoop config directory")
+    raise Fail(f"{label} requires the BIGTOP Hadoop config directory")
   normalized_stack_root = (
     os.path.normpath(stack_root) if isinstance(stack_root, str) else ""
   )
@@ -225,13 +240,7 @@ def _validate_root_managed_config_file(path, label, config_dir, stack_root):
     or normalized_stack_root != stack_root
     or normalized_stack_root == os.sep
   ):
-    raise Fail("ResourceManager host files require a valid BIGTOP stack root")
-  if (
-    not normalized
-    or path != normalized
-    or os.path.dirname(normalized) != normalized_config_dir
-  ):
-    raise Fail(f"{label} must be a direct child of {normalized_config_dir}")
+    raise Fail(f"{label} requires a valid BIGTOP stack root")
 
   current = os.sep
   for part in [part for part in normalized_config_dir.split(os.sep) if part]:
@@ -285,6 +294,42 @@ def _validate_root_managed_config_file(path, label, config_dir, stack_root):
       raise Fail(
         f"{label} resolved parent must be root-owned and non-writable: {current}"
       )
+  return normalized_config_dir
+
+
+def _validate_bigtop_hadoop_config_subdirectory(
+  path, label, config_dir, stack_root
+):
+  normalized = os.path.normpath(path) if isinstance(path, str) else ""
+  normalized_config_dir = _validate_bigtop_hadoop_config_directory(
+    config_dir, label, stack_root
+  )
+  if (
+    not normalized
+    or path != normalized
+    or os.path.dirname(normalized) != normalized_config_dir
+  ):
+    raise Fail(f"{label} must be a direct child of {normalized_config_dir}")
+  if sudo.path_lexists(normalized):
+    metadata = sudo.lstat(normalized)
+    if not stat.S_ISDIR(metadata.st_mode):
+      raise Fail(f"{label} must be a real directory: {normalized}")
+    if metadata.st_uid != 0 or metadata.st_mode & 0o022:
+      raise Fail(f"{label} must be root-owned and non-writable: {normalized}")
+  return normalized
+
+
+def _validate_root_managed_config_file(path, label, config_dir, stack_root):
+  normalized = os.path.normpath(path) if isinstance(path, str) else ""
+  normalized_config_dir = _validate_bigtop_hadoop_config_directory(
+    config_dir, label, stack_root
+  )
+  if (
+    not normalized
+    or path != normalized
+    or os.path.dirname(normalized) != normalized_config_dir
+  ):
+    raise Fail(f"{label} must be a direct child of {normalized_config_dir}")
 
   if sudo.path_lexists(normalized):
     metadata = sudo.lstat(normalized)
@@ -529,9 +574,20 @@ def yarn(name=None, config_dir=None):
       path, label, params.mapred_user, params.user_group
     )
   if manages_embedded_hbase:
-    yarn_hbase_conf_dir = _validate_local_service_directory(
-      params.yarn_hbase_conf_dir, "yarn_hbase_conf_dir"
+    default_hbase_conf_dir = os.path.join(
+      params.hadoop_conf_dir, "embedded-yarn-ats-hbase"
     )
+    if params.yarn_hbase_conf_dir == default_hbase_conf_dir:
+      yarn_hbase_conf_dir = _validate_bigtop_hadoop_config_subdirectory(
+        params.yarn_hbase_conf_dir,
+        "yarn_hbase_conf_dir",
+        params.hadoop_conf_dir,
+        params.stack_root,
+      )
+    else:
+      yarn_hbase_conf_dir = _validate_local_service_directory(
+        params.yarn_hbase_conf_dir, "yarn_hbase_conf_dir"
+      )
     Directory(
       yarn_hbase_conf_dir,
       owner="root",
@@ -579,7 +635,9 @@ def yarn(name=None, config_dir=None):
   XmlConfig(
     "mapred-site.xml",
     conf_dir=config_dir,
-    configurations=params.config["configurations"]["mapred-site"],
+    configurations=_mapred_site_configurations(
+      params.config["configurations"]["mapred-site"], params.java_version
+    ),
     configuration_attributes=params.config["configurationAttributes"]["mapred-site"],
     owner="root",
     group=params.user_group,

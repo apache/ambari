@@ -17,15 +17,25 @@
  */
 package org.apache.ambari.server.configuration.spring;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+
 import jakarta.servlet.ServletContext;
 
+import org.apache.ambari.server.agent.stomp.AgentCurrentDataController;
+import org.apache.ambari.server.agent.stomp.AgentReportsController;
+import org.apache.ambari.server.agent.stomp.HeartbeatController;
 import org.apache.ambari.server.configuration.Configuration;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import com.google.inject.Injector;
@@ -42,17 +52,35 @@ public class StompWebSocketConfigurationTest {
   }
 
   @Test
-  public void usesJetty11UpgradeStrategyForEveryStompEndpoint() {
+  public void usesJetty12UpgradeStrategyForEveryStompEndpoint() {
     AgentStompConfig agentConfig = new AgentStompConfig(servletContext, injector);
     ApiStompConfig apiConfig = new ApiStompConfig(injector);
     RootStompConfig rootConfig = new RootStompConfig(servletContext, injector);
 
-    assertJetty11UpgradeStrategy(agentConfig.getHandshakeHandler());
-    assertJetty11UpgradeStrategy(apiConfig.getHandshakeHandler());
-    assertJetty11UpgradeStrategy(rootConfig.handshakeHandler());
+    assertJetty12UpgradeStrategy(agentConfig.getHandshakeHandler());
+    assertJetty12UpgradeStrategy(apiConfig.getHandshakeHandler());
+    assertJetty12UpgradeStrategy(rootConfig.handshakeHandler());
   }
 
-  private void assertJetty11UpgradeStrategy(DefaultHandshakeHandler handshakeHandler) {
-    assertTrue(handshakeHandler.getRequestUpgradeStrategy() instanceof Jetty11RequestUpgradeStrategy);
+  @Test
+  public void agentControllersExplicitlyMapSessionIdHeaders() {
+    assertSessionIdHeaders(HeartbeatController.class);
+    assertSessionIdHeaders(AgentCurrentDataController.class);
+    assertSessionIdHeaders(AgentReportsController.class);
+  }
+
+  private void assertJetty12UpgradeStrategy(DefaultHandshakeHandler handshakeHandler) {
+    assertTrue(handshakeHandler.getRequestUpgradeStrategy() instanceof JettyRequestUpgradeStrategy);
+  }
+
+  private void assertSessionIdHeaders(Class<?> controllerClass) {
+    for (Method method : controllerClass.getDeclaredMethods()) {
+      for (Parameter parameter : method.getParameters()) {
+        Header header = parameter.getAnnotation(Header.class);
+        if (header != null) {
+          assertEquals(SimpMessageHeaderAccessor.SESSION_ID_HEADER, header.value());
+        }
+      }
+    }
   }
 }

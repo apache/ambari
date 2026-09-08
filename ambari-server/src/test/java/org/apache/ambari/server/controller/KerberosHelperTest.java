@@ -141,7 +141,7 @@ import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.directory.server.kerberos.shared.keytab.Keytab;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;

@@ -22,8 +22,8 @@ import java.io.IOException;
 import java.net.URL;
 
 import org.apache.ambari.server.view.configuration.ViewConfig;
-import org.eclipse.jetty.webapp.WebAppClassLoader;
-import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.ee10.webapp.WebAppClassLoader;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 
 
 /**
