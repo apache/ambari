@@ -24,6 +24,7 @@ import "@testing-library/jest-dom/vitest";
 import userEvent from '@testing-library/user-event';
 import { createMemoryHistory, MemoryHistory } from "history";
 import ClusterApi from "../../../src/api/clusterApi";
+import InstallBox from "../../../src/assets/img/install-box.svg";
 import mockClusterInfo from "../../__mocks__/mockClusterInfo";
 import mockHostClusterInfo from "../../__mocks__/mockHostClusterInfo";
 import ClusterInformation from "../../screens/ClusterManagement/ClusterInformation";
@@ -159,7 +160,7 @@ describe('Cluster is not installed', () => {
         await waitFor(() => {
             const installBoxImgElement = screen.getByAltText('Install Box') as HTMLImageElement;
             expect(installBoxImgElement).toBeInTheDocument();
-            expect(installBoxImgElement.src).toMatch(/(?:install-box\.svg|^data:image\/svg\+xml)/);
+            expect(installBoxImgElement).toHaveAttribute("src", InstallBox);
         })
     });
 });
