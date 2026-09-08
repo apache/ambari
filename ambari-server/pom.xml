@@ -84,7 +84,7 @@
     <ehcache.version>3.10.0</ehcache.version>
     <nimbus.jose.jwt.version>10.9.1</nimbus.jose.jwt.version>
     <jsch.version>0.2.26</jsch.version>
-    <c3p0.version>0.11.2</c3p0.version>
+    <c3p0.version>0.14.2</c3p0.version>
     <metrics.version>4.2.40</metrics.version>
     <libpam4j.version>1.11</libpam4j.version>
     <jna.version>5.19.1</jna.version>
