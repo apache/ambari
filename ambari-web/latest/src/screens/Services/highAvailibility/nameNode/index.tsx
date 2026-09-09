@@ -20,7 +20,8 @@ import { DropdownItem } from "react-bootstrap";
 import { ServiceActionEnums } from "../../../../enums/ServiceActionEnums";
 import { useEffect, useState } from "react";
 import ValidateEnablement from "./ValidateEnablement";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
+import useClusterNavigate from "../../../../hooks/useClusterNavigate";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSitemap } from "@fortawesome/free-solid-svg-icons";
 
@@ -32,7 +33,7 @@ function EnableHighAvailibilityNameNode({
   const [shouldStartEnableFlow, setShouldStartEnableFlow] = useState(false);
   const { componentName } = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   useEffect(() => {
     if (
       location.pathname.includes("highAvailability") &&

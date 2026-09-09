@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.TrustedPlan;
 import org.apache.ambari.server.state.ChangedConfigInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.Configuration;
@@ -61,6 +62,7 @@ public class StackAdvisorRequest {
   private Map<String, Object> ldapConfig = new HashMap<>();
   private Boolean gplLicenseAccepted;
   private Boolean configsResponse = false;
+  private TrustedPlan managedDependencyPlan;
 
   public String getStackName() {
     return stackName;
@@ -151,6 +153,10 @@ public class StackAdvisorRequest {
     return configsResponse;
   }
 
+  public TrustedPlan getManagedDependencyPlan() {
+    return managedDependencyPlan;
+  }
+
   private StackAdvisorRequest(String stackName, String stackVersion) {
     this.stackName = stackName;
     this.stackVersion = stackVersion;
@@ -169,7 +175,11 @@ public class StackAdvisorRequest {
       .withConfigGroups(configGroups)
       .withUserContext(userContext)
       .withGPLLicenseAccepted(gplLicenseAccepted)
-      .withLdapConfig(ldapConfig);
+      .withLdapConfig(ldapConfig)
+      .withClusterId(clusterId)
+      .withServiceName(serviceName)
+      .withConfigsResponse(configsResponse)
+      .withManagedDependencyPlan(managedDependencyPlan);
   }
 
   public static class StackAdvisorRequestBuilder {
@@ -282,6 +292,11 @@ public class StackAdvisorRequest {
     public StackAdvisorRequestBuilder withConfigsResponse(
         Boolean configsResponse) {
       this.instance.configsResponse = configsResponse;
+      return this;
+    }
+
+    public StackAdvisorRequestBuilder withManagedDependencyPlan(TrustedPlan managedDependencyPlan) {
+      this.instance.managedDependencyPlan = managedDependencyPlan;
       return this;
     }
 

@@ -61,10 +61,14 @@ export const ServiceApi = {
    * fields like state, maintenance_state, desired_repository_version_id, and component names to name a few.
    * @param clusterName
    */
-  getAllServices: async function (clusterName: string): Promise<ServicesListResponse> {
+  getAllServices: async function (
+    clusterName: string,
+    signal?: AbortSignal,
+  ): Promise<ServicesListResponse> {
     const response = await ambariApi.request({
       url: `/clusters/${clusterName}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,ServiceInfo/desired_repository_version_id,components/ServiceComponentInfo/component_name&minimal_response=true`,
       method: "GET",
+      signal,
     });
     return response.data;
   },

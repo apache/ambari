@@ -32,10 +32,9 @@ import {
 export const useKyuubiConfigUpdater = () => {
   const { polledHostComponentsData, masterSlaveClientsData, serviceStatesData } =
     useContext(ServiceContext);
-  const { services } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
   //@ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
-  const { parsedSocketMessages } = useContext(AppContext);
   const serviceNameForServiceModel = "kyuubi";
   const serviceNameForPolledApi = "KYUUBI";
 
@@ -49,7 +48,7 @@ export const useKyuubiConfigUpdater = () => {
   const fetchKyuubiMasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
     
-    let kyuubiComponentsData = cachedServiceApi.getServiceComponentData("KYUUBI");
+    let kyuubiComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "KYUUBI");
     
     if (!kyuubiComponentsData) {
       kyuubiComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -157,7 +156,7 @@ export const useKyuubiConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("KYUUBI", "kyuubi", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "KYUUBI", "kyuubi", allServiceModels, updateRegistry);
   };
 
   const parseAlertsWebSocketMessages = async () => {

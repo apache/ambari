@@ -61,6 +61,11 @@ public class SchemaUpgradeHelper {
   private PersistService persistService;
   private DBAccessor dbAccessor;
   private Configuration configuration;
+  private HostMembershipSchemaUpgrade hostMembershipSchemaUpgrade;
+  private ScopedWorkflowSchemaUpgrade scopedWorkflowSchemaUpgrade;
+  private ClusterCreationSchemaUpgrade clusterCreationSchemaUpgrade;
+  private TopologyProvisioningSchemaUpgrade topologyProvisioningSchemaUpgrade;
+  private ServiceDependencySchemaUpgrade serviceDependencySchemaUpgrade;
   private static final String[] rcaTableNames = {"workflow", "job", "task", "taskAttempt", "hdfsEvent", "mapreduceEvent", "clusterEvent"};
   static final Gson gson = new GsonBuilder().create();
 
@@ -68,11 +73,21 @@ public class SchemaUpgradeHelper {
   public SchemaUpgradeHelper(Set<UpgradeCatalog> allUpgradeCatalogs,
                              PersistService persistService,
                              DBAccessor dbAccessor,
-                             Configuration configuration) {
+                             Configuration configuration,
+                             HostMembershipSchemaUpgrade hostMembershipSchemaUpgrade,
+                             ScopedWorkflowSchemaUpgrade scopedWorkflowSchemaUpgrade,
+                             ClusterCreationSchemaUpgrade clusterCreationSchemaUpgrade,
+                             TopologyProvisioningSchemaUpgrade topologyProvisioningSchemaUpgrade,
+                             ServiceDependencySchemaUpgrade serviceDependencySchemaUpgrade) {
     this.allUpgradeCatalogs = allUpgradeCatalogs;
     this.persistService = persistService;
     this.dbAccessor = dbAccessor;
     this.configuration = configuration;
+    this.hostMembershipSchemaUpgrade = hostMembershipSchemaUpgrade;
+    this.scopedWorkflowSchemaUpgrade = scopedWorkflowSchemaUpgrade;
+    this.clusterCreationSchemaUpgrade = clusterCreationSchemaUpgrade;
+    this.topologyProvisioningSchemaUpgrade = topologyProvisioningSchemaUpgrade;
+    this.serviceDependencySchemaUpgrade = serviceDependencySchemaUpgrade;
   }
 
   public void startPersistenceService() {
@@ -217,6 +232,25 @@ public class SchemaUpgradeHelper {
     }
   }
 
+  /**
+   * Runs versioned DDL first and then applies retry-safe schema invariants which
+   * must also reach databases already marked with the current server version.
+   */
+  public void executeUpgradeAndEnsureAdditiveSchema(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
+    executeUpgrade(upgradeCatalogs);
+    try {
+      hostMembershipSchemaUpgrade.execute();
+      scopedWorkflowSchemaUpgrade.execute();
+      clusterCreationSchemaUpgrade.execute();
+      topologyProvisioningSchemaUpgrade.execute();
+      serviceDependencySchemaUpgrade.execute();
+    } catch (AmbariException e) {
+      throw e;
+    } catch (SQLException e) {
+      throw new AmbariException(e.getMessage(), e);
+    }
+  }
+
   public void executePreDMLUpdates(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
     LOG.info("Executing Pre-DML changes.");
 
@@ -312,6 +346,18 @@ public class SchemaUpgradeHelper {
     } catch (Exception e) {
       LOG.warn("Error cleaning rca tables from ambarirca db", e);
     }
+  }
+
+  /**
+   * Same-version additive schema repairs must not reset unrelated persisted UI
+   * state or clean historical RCA data.
+   */
+  public void executePostUpgradeMaintenance(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
+    if (upgradeCatalogs == null || upgradeCatalogs.isEmpty()) {
+      return;
+    }
+    resetUIState();
+    cleanUpRCATables();
   }
 
   private void cleanUpTablesFromRCADatabase() throws ClassNotFoundException, SQLException {
@@ -449,7 +495,7 @@ public class SchemaUpgradeHelper {
       String date = new SimpleDateFormat("MM-dd-yyyy_HH:mm:ss").format(new Date());
       String ambariUpgradeConfigUpdatesFileName = "ambari_upgrade_config_changes_" + date + ".json";
 
-      schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);
+      schemaUpgradeHelper.executeUpgradeAndEnsureAdditiveSchema(upgradeCatalogs);
 
       // The DDL is expected to be updated, now send the JPA initialized event so Entity
       // implementations can be created.
@@ -462,11 +508,9 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
       schemaUpgradeHelper.outputUpgradeJsonOutput(upgradeCatalogs);
 
-      schemaUpgradeHelper.resetUIState();
+      schemaUpgradeHelper.executePostUpgradeMaintenance(upgradeCatalogs);
 
       LOG.info("Upgrade successful.");
-
-      schemaUpgradeHelper.cleanUpRCATables();
 
       schemaUpgradeHelper.stopPersistenceService();
 

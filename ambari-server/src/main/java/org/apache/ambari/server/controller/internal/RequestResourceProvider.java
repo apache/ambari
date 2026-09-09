@@ -44,6 +44,7 @@ import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyLifecyclePolicy;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.RequestRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -360,8 +361,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       }
     }
     // Validate
-    List<org.apache.ambari.server.actionmanager.Request> targets =
-      new ArrayList<>();
+    List<RequestUpdateTarget> targets = new ArrayList<>();
     for (RequestRequest updateRequest : requests) {
       ActionManager actionManager = amc.getActionManager();
       List<org.apache.ambari.server.actionmanager.Request> internalRequests =
@@ -372,10 +372,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       }
       // There should be only one request with this id (or no request at all)
       org.apache.ambari.server.actionmanager.Request internalRequest = internalRequests.get(0);
+      authorizeRequestUpdate(updateRequest, internalRequest);
 
       if (updateRequest.isRemovePendingHostRequests()) {
         if (internalRequest instanceof LogicalRequest) {
-          targets.add(internalRequest);
+          targets.add(new RequestUpdateTarget(updateRequest, internalRequest));
         } else {
           throw new IllegalArgumentException("Request with id: " + internalRequest.getRequestId() + "is not a Logical Request.");
         }
@@ -399,20 +400,20 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           // Ignore updates to completed requests to avoid throwing exception on race condition
         } else {
           // Validation passed
-          targets.add(internalRequest);
+          targets.add(new RequestUpdateTarget(updateRequest, internalRequest));
         }
       }
 
     }
 
     // Perform update
-    Iterator<RequestRequest> reqIterator = requests.iterator();
-    for (org.apache.ambari.server.actionmanager.Request target : targets) {
-      if (target instanceof LogicalRequest) {
-        topologyManager.removePendingHostRequests(target.getClusterName(), target.getRequestId());
+    for (RequestUpdateTarget target : targets) {
+      if (target.internalRequest instanceof LogicalRequest) {
+        topologyManager.removePendingHostRequests(target.internalRequest.getClusterName(),
+            target.internalRequest.getRequestId());
       } else {
-        String reason = reqIterator.next().getAbortReason();
-        amc.getActionManager().cancelRequest(target.getRequestId(), reason);
+        amc.getActionManager().cancelRequest(target.internalRequest.getRequestId(),
+            target.updateRequest.getAbortReason());
       }
     }
     return getRequestStatus(null);
@@ -442,6 +443,56 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
     return requestRequest;
 
+  }
+
+  private void authorizeRequestUpdate(RequestRequest updateRequest,
+      org.apache.ambari.server.actionmanager.Request internalRequest)
+      throws AuthorizationException, NoSuchParentResourceException {
+    Long actualClusterId = internalRequest.getClusterId();
+    String requestedClusterName = updateRequest.getClusterName();
+    if (actualClusterId == null || actualClusterId == -1L) {
+      if (StringUtils.isNotBlank(requestedClusterName)) {
+        throw new AuthorizationException("The request does not belong to the requested cluster");
+      }
+      if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+          RoleAuthorization.AMBARI_RUN_CUSTOM_COMMAND)) {
+        throw new AuthorizationException("The authenticated user is not authorized to update the request");
+      }
+      return;
+    }
+
+    Cluster actualCluster;
+    try {
+      actualCluster = getManagementController().getClusters().getClusterById(actualClusterId);
+      if (StringUtils.isNotBlank(requestedClusterName)) {
+        Cluster requestedCluster = getManagementController().getClusters().getCluster(requestedClusterName);
+        if (requestedCluster.getClusterId() != actualClusterId.longValue()) {
+          throw new AuthorizationException("The request does not belong to the requested cluster");
+        }
+      }
+    } catch (AuthorizationException e) {
+      throw e;
+    } catch (AmbariException e) {
+      throw new AuthorizationException("The request cluster is unavailable");
+    }
+    RoleAuthorization requiredAuthorization = internalRequest instanceof LogicalRequest
+        ? RoleAuthorization.HOST_ADD_DELETE_HOSTS
+        : RoleAuthorization.SERVICE_START_STOP;
+    if (!AuthorizationHelper.isAuthorized(
+        ResourceType.CLUSTER, actualCluster.getResourceId(), requiredAuthorization)) {
+      throw new AuthorizationException("The authenticated user is not authorized to update the request");
+    }
+  }
+
+  private static final class RequestUpdateTarget {
+    private final RequestRequest updateRequest;
+    private final org.apache.ambari.server.actionmanager.Request internalRequest;
+
+    private RequestUpdateTarget(RequestRequest updateRequest,
+        org.apache.ambari.server.actionmanager.Request internalRequest) {
+      this.updateRequest = updateRequest;
+      this.internalRequest = internalRequest;
+    }
   }
 
   @Override
@@ -510,6 +561,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         params.put(key.substring(keyPrefix.length()), requestInfoProperties.get(key));
       }
     }
+    ManagedDependencyLifecyclePolicy.copyParameters(requestInfoProperties, params);
 
     boolean exclusive = false;
     if (requestInfoProperties.containsKey(EXCLUSIVE_ID)) {
@@ -829,12 +881,12 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
     if (summary.isEmpty() && null != logicalRequest) {
       status = logicalRequest.calculateStatus();
-      if (status == CalculatedStatus.ABORTED) {
-        Optional<String> failureReason = logicalRequest.getFailureReason();
-        if (failureReason.isPresent()) {
-          requestContext += "\nFAILED: " + failureReason.get();
-          setResourceProperty(resource, REQUEST_CONTEXT_ID, requestContext, requestedPropertyIds);
-        }
+      Optional<String> failureReason = logicalRequest.getFailureReason();
+      if (failureReason.isPresent()) {
+        String message = failureReason.get();
+        requestContext += "\n" + (message.startsWith("CONFIGURATION_FAILED:")
+            ? message : "FAILED: " + message);
+        setResourceProperty(resource, REQUEST_CONTEXT_ID, requestContext, requestedPropertyIds);
       }
     } else {
       // there are either tasks or this is not a logical request, so do normal

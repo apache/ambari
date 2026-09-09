@@ -56,6 +56,13 @@ interface MetricsEnvelope<T> {
   error: string;
 }
 
+export const metricsApiErrorCode = (error: any): string => String(
+  error?.response?.data?.code || error?.code || "",
+);
+
+export const isMetricsScopeUnsupported = (error: unknown) =>
+  metricsApiErrorCode(error) === "METRICS_SCOPE_UNSUPPORTED";
+
 const data = <T>(response: { data?: MetricsEnvelope<T> }): T => {
   if (!response.data || !("data" in response.data)) {
     throw new Error("Metrics API returned an invalid response");

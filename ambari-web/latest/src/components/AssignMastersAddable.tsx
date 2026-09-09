@@ -52,6 +52,10 @@ import classNames from "classnames";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { responseErrorMessage } from "../Utils/httpError";
+import type {
+  PreparedStackAdvisorRequest,
+  RunWithStackAdvisorRequest,
+} from "../screens/ClusterWizard/managedDependencyAdvisor";
 
 export type AssignMastersLoadState = {
   status: "loading" | "ready" | "error";
@@ -81,6 +85,9 @@ type AssignMastersAddableProps = {
     errors: string[],
   ) => void;
   onLoadStateChange?: (state: AssignMastersLoadState) => void;
+  runWithAdvisorRequest?: RunWithStackAdvisorRequest;
+  savedMasters?: any[];
+  advisorInputKey?: string;
 };
 
 type MasterAssignment = {
@@ -304,6 +311,132 @@ export function canRemoveAdditionalMaster(
   return additionalCount > minimumCount;
 }
 
+// Persisted Add Service data is grouped by host, while the assignment editor
+// renders one row per component. Keep the conversion at this boundary so old
+// callers that do not provide saved data retain their current behavior.
+// eslint-disable-next-line react-refresh/only-export-components
+export function flattenSavedMasterAssignments(savedMasters: any[] = []) {
+  return savedMasters.flatMap((hostGroup: any) => {
+    const groupHost = get(hostGroup, "host_name", "");
+    return (hostGroup?.masterServices || []).map((master: any) => {
+      const componentName = master.component_name || master.component;
+      const hostName =
+        master.movedHost ||
+        master.selectedHost ||
+        master.hostName ||
+        groupHost;
+      return {
+        ...master,
+        component_name: componentName,
+        selectedHost: hostName,
+        hostName,
+      };
+    });
+  });
+}
+
+// Apply saved rows in component order. Matching by occurrence keeps multiple
+// instances stable without changing the existing recommendation ordering.
+// eslint-disable-next-line react-refresh/only-export-components
+export function restoreSavedMasterAssignments(
+  assignments: any[] = [],
+  savedMasters: any[] = [],
+  options: {
+    availableHosts?: string[];
+    maxAssignmentsByComponent?: (componentName: string) => number;
+  } = {},
+) {
+  const savedByComponent = new Map<string, any[]>();
+  flattenSavedMasterAssignments(savedMasters).forEach((assignment) => {
+    const componentName = assignment.component_name || assignment.component;
+    if (!componentName) return;
+    const entries = savedByComponent.get(componentName) || [];
+    entries.push(assignment);
+    savedByComponent.set(componentName, entries);
+  });
+  const consumed = new Set<any>();
+  const availableHosts = options.availableHosts
+    ? new Set(options.availableHosts)
+    : undefined;
+  const savedHost = (assignment: any) =>
+    assignment.movedHost ||
+    assignment.selectedHost ||
+    assignment.hostName ||
+    assignment.host_name ||
+    "";
+  const isUsableSavedAssignment = (assignment: any) => {
+    const hostName = savedHost(assignment);
+    return Boolean(hostName) &&
+      (!availableHosts || availableHosts.has(hostName));
+  };
+  const nextSavedAssignment = (componentName: string) =>
+    (savedByComponent.get(componentName) || []).find(
+      (assignment) => !consumed.has(assignment) && isUsableSavedAssignment(assignment),
+    );
+
+  const restoredAssignments = assignments.map((assignment) => {
+    const componentName = assignment.component_name || assignment.component;
+    const savedAssignments = savedByComponent.get(componentName) || [];
+    if (assignment.isInstalled) {
+      const currentHost = savedHost(assignment);
+      const installedMatch = savedAssignments.find(
+        (savedAssignment) =>
+          !consumed.has(savedAssignment) &&
+          savedHost(savedAssignment) === currentHost,
+      );
+      if (installedMatch) consumed.add(installedMatch);
+      return assignment;
+    }
+    const savedAssignment = nextSavedAssignment(componentName);
+    if (!savedAssignment?.selectedHost) return assignment;
+    consumed.add(savedAssignment);
+
+    return {
+      ...assignment,
+      selectedHost: savedAssignment.selectedHost,
+      hostName: savedAssignment.hostName,
+      ...(savedAssignment.movedHost
+        ? { movedHost: savedAssignment.movedHost, isMoving: true }
+        : {}),
+    };
+  });
+
+  for (const [componentName, savedAssignments] of savedByComponent) {
+    const currentCount = restoredAssignments.filter(
+      (assignment) =>
+        (assignment.component_name || assignment.component) === componentName,
+    ).length;
+    const maxCount = Math.min(
+      savedAssignments.length,
+      options.maxAssignmentsByComponent?.(componentName) ?? Number.POSITIVE_INFINITY,
+      availableHosts?.size ?? Number.POSITIVE_INFINITY,
+    );
+    let componentCount = currentCount;
+    while (componentCount < maxCount) {
+      const savedAssignment = nextSavedAssignment(componentName);
+      const template = restoredAssignments.find(
+        (assignment) =>
+          (assignment.component_name || assignment.component) === componentName &&
+          !assignment.isInstalled,
+      );
+      if (!savedAssignment || !template) break;
+      consumed.add(savedAssignment);
+      restoredAssignments.push({
+        ...template,
+        selectedHost: savedAssignment.selectedHost,
+        hostName: savedAssignment.hostName,
+        isInstalled: false,
+        ...(savedAssignment.movedHost
+          ? { movedHost: savedAssignment.movedHost, isMoving: true }
+          : {}),
+      });
+      componentCount += 1;
+    }
+  }
+
+  return restoredAssignments;
+}
+
 function AssignMastersAddable({
   services,
   mastersToCreate = [],
@@ -324,6 +457,9 @@ function AssignMastersAddable({
   validateAssignments = false,
   onAssignmentValidationChange,
   onLoadStateChange,
+  runWithAdvisorRequest,
+  savedMasters = [],
+  advisorInputKey,
 }: AssignMastersAddableProps) {
   const [hosts, setHosts] = useState([]);
   const {
@@ -347,6 +483,9 @@ function AssignMastersAddable({
     []
   );
   const [loadError, setLoadError] = useState("");
+  const [hostsLoading, setHostsLoading] = useState(true);
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false);
+  const requestSequenceRef = useRef(0);
   const assignmentValidationErrors = validateAssignments
     ? validateMasterAssignments(
         addableMasters,
@@ -372,9 +511,11 @@ function AssignMastersAddable({
 
   const loadStatus = loadError
     ? "error"
-    : masterHostsMapping.length
-      ? "ready"
-      : "loading";
+    : hostsLoading || recommendationsLoading
+      ? "loading"
+      : masterHostsMapping.length
+        ? "ready"
+        : "loading";
 
   useEffect(() => {
     loadStateCallbackRef.current?.({
@@ -461,6 +602,7 @@ function AssignMastersAddable({
   const [, setRebalanceHostCounter] = useState(0);
   
   useEffect(() => {
+    if (!masterHostsMapping.length) return;
     const flattenedHostComponents = flatten(
       map(serviceHostComponents, "host_components")
     );
@@ -487,8 +629,9 @@ function AssignMastersAddable({
       masterComponentHosts: masterComponentHostsToDispatch,
       slaveComponentHosts: null,
       hostComponents,
+      advisorInputKey,
     });
-  }, [masterHostsMapping]);
+  }, [masterHostsMapping, advisorInputKey]);
 
   function createComponentInstallationObject(
     fullComponent: any,
@@ -500,7 +643,13 @@ function AssignMastersAddable({
     fullComponent.component =
       fullComponent.componentName || fullComponent.component_name;
     const componentName: any = fullComponent.component_name,
-      resultingHostName = savedComponent ? savedComponent.hostName : hostName;
+      resultingHostName = savedComponent
+        ? savedComponent.movedHost ||
+          savedComponent.selectedHost ||
+          savedComponent.hostName ||
+          savedComponent.host_name ||
+          hostName
+        : hostName;
     let componentObj: any = {};
     componentObj.component_name = componentName;
     componentObj.component = componentName;
@@ -823,11 +972,22 @@ function AssignMastersAddable({
     });
   }
 
-  async function renderComponents(masterComponents: any) {
+  async function renderComponents(
+    masterComponents: any,
+    assignmentsToRestore: any[] = savedMasters,
+  ) {
     let result: any = [];
     //@ts-ignore
     let serviceComponentId, previousComponentName;
     addNewMasters(masterComponents);
+    const assembledMasterComponents = restoreSavedMasterAssignments(
+      masterComponents,
+      assignmentsToRestore,
+      {
+        availableHosts: hosts.map((host: any) => host.Hosts.host_name),
+        maxAssignmentsByComponent: getMaxNumberOfMasters,
+      },
+    );
     //@ts-ignore
     const allComponents = flatten(
       map(
@@ -835,7 +995,7 @@ function AssignMastersAddable({
         "StackServiceComponents"
       )
     );
-    masterComponents.forEach(function (item: any) {
+    assembledMasterComponents.forEach(function (item: any) {
       const allComponents = flatten(
         map(
           flatten(map(serviceComponents, "components")),
@@ -846,7 +1006,7 @@ function AssignMastersAddable({
         "component_name",
         item.component_name,
       ]);
-      setInferredMasterComponents(masterComponents);
+      setInferredMasterComponents(assembledMasterComponents);
       if (masterComponent) {
         let componentObj = { ...item };
         if (item.nameSpace) {
@@ -860,7 +1020,7 @@ function AssignMastersAddable({
         let showRemoveControl;
         if (masterComponent.isMasterWithMultipleInstances) {
           showRemoveControl =
-            filter(masterComponents, function (masterComponent: any) {
+            filter(assembledMasterComponents, function (masterComponent: any) {
               masterComponent.component_name === item.component_name &&
                 !masterComponent.isInstalled;
             }).length > 1;
@@ -1221,6 +1381,8 @@ function AssignMastersAddable({
     });
   }
   async function getRecommendedHosts() {
+    const requestSequence = ++requestSequenceRef.current;
+    const isCurrentRequest = () => requestSequenceRef.current === requestSequence;
     const payloadObject = {
       services: [],
       hosts: map(hosts, "Hosts.host_name"),
@@ -1230,27 +1392,42 @@ function AssignMastersAddable({
     payloadObject.components = formatRecommendComponents(serviceHostComponents);
     const payload = getRecommendationRequestData(payloadObject);
     setLoadError("");
+    setRecommendationsLoading(true);
     try {
-      const data = await AssignMastersApi.postRecommendations(
-        payload,
-        stack,
-        versionNum
-      );
-      const firstRecommendations = recommendationDocumentFromResponse(data);
-      const payloadWithComponentsObject = {
-        services: [],
-        hosts: map(hosts, "Hosts.host_name"),
-        components: [],
-        recommendations: firstRecommendations,
+      const requestRecommendations = async (
+        prepared: PreparedStackAdvisorRequest,
+      ) => {
+        if (!isCurrentRequest() || !prepared.isCurrent()) return null;
+        const data = await AssignMastersApi.postRecommendations(
+          { ...payload, ...prepared.properties },
+          stack,
+          versionNum,
+        );
+        if (!isCurrentRequest() || !prepared.isCurrent()) return null;
+        const firstRecommendations = recommendationDocumentFromResponse(data);
+        const payloadWithComponents = getRecommendationRequestData({
+          services: [],
+          hosts: map(hosts, "Hosts.host_name"),
+          components: [],
+          recommendations: firstRecommendations,
+        });
+        const dataWithComponents = await AssignMastersApi.postRecommendations(
+          { ...payloadWithComponents, ...prepared.properties },
+          stack,
+          versionNum,
+        );
+        return isCurrentRequest() && prepared.isCurrent()
+          ? dataWithComponents
+          : null;
       };
-      const payloadWithComponents = getRecommendationRequestData(
-        payloadWithComponentsObject
-      );
-      const dataWithComponents = await AssignMastersApi.postRecommendations(
-        payloadWithComponents,
-        stack,
-        versionNum
-      );
+      const dataWithComponents = runWithAdvisorRequest
+        ? await runWithAdvisorRequest(requestRecommendations)
+        : await requestRecommendations({
+            isCurrent: () => true,
+            properties: {},
+          });
+      if (!dataWithComponents) return;
+      if (!isCurrentRequest()) return;
       const recommendationsServerWithComponents =
         recommendationDocumentFromResponse(
           dataWithComponents,
@@ -1277,16 +1454,22 @@ function AssignMastersAddable({
       );
       setRecommendedHostsForComponents(recommendedHostsForComponent);
     } catch (error) {
+      if (!isCurrentRequest()) return;
       setLoadError(
         assignmentLoadErrorMessage(
           error,
           "Ambari could not load host assignment recommendations.",
         ),
       );
+    } finally {
+      if (isCurrentRequest()) setRecommendationsLoading(false);
     }
   }
   async function fetchHosts() {
+    const requestSequence = ++requestSequenceRef.current;
+    const isCurrentRequest = () => requestSequenceRef.current === requestSequence;
     setLoadError("");
+    setHostsLoading(true);
     try {
       const allHosts = await HostsApi.getHostComponentsDetails(
         clusterName,
@@ -1311,21 +1494,23 @@ function AssignMastersAddable({
           total_mem: host.Hosts.total_mem,
         };
       });
+      if (!isCurrentRequest()) return;
       setHosts(sortAssignmentHosts(allHosts.items) as never[]);
     } catch (error) {
+      if (!isCurrentRequest()) return;
       setLoadError(
         assignmentLoadErrorMessage(
           error,
           "Ambari could not load hosts for master component assignment.",
         ),
       );
+    } finally {
+      if (isCurrentRequest()) setHostsLoading(false);
     }
   }
 
   function retryLoad() {
     setLoadError("");
-    setRecommendations([]);
-    setRecommendedHostsForComponents({});
     if (!hosts.length) {
       void fetchHosts();
       return;
@@ -1439,7 +1624,10 @@ function AssignMastersAddable({
         "StackServiceComponents"
       )
     );
-    renderComponents(components);
+    renderComponents(
+      components,
+      masterHostsMapping.length ? masterHostsMapping : savedMasters,
+    );
     const addableMasterInstallerWizard = (function () {
       return map(
         filter(allComponents, (component: any) => {
@@ -1469,14 +1657,17 @@ function AssignMastersAddable({
   }
 
   useEffect(() => {
-    fetchHosts();
+    void fetchHosts();
+    return () => {
+      requestSequenceRef.current += 1;
+    };
   }, []);
 
   useEffect(() => {
     if (serviceHostComponents.length && hosts.length) {
-      getRecommendedHosts();
+      void getRecommendedHosts();
     }
-  }, [serviceHostComponents.length, hosts.length]);
+  }, [serviceHostComponents.length, hosts.length, advisorInputKey]);
 
   useEffect(() => {
     if (servicesMasters.length && !initiallyLoaded.current) {
@@ -1493,9 +1684,15 @@ function AssignMastersAddable({
 
   useEffect(() => {
     if (!isEmpty(recommededHostsForComponents) && !isEmpty(recommendations)) {
-      loadStepCallback(createComponentInstallationObjects());
+      loadStepCallback(
+        createComponentInstallationObjects(),
+      );
     }
-  }, [!isEmpty(recommededHostsForComponents), !isEmpty(recommendations)]);
+  }, [
+    recommededHostsForComponents,
+    recommendations,
+    advisorInputKey,
+  ]);
 
   if (loadError) {
     return (

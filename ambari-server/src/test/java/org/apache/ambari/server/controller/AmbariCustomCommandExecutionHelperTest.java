@@ -38,6 +38,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
@@ -732,6 +733,36 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
 
     EasyMock.verify(configHelper, stage, execCmdWrapper, execCmd);
+  }
+
+  @Test
+  public void testManagedRestartDefersDesiredStateUntilWholeRequestIsAccepted() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+    ServiceComponentHost target = cluster.getService("HBASE").getServiceComponent(
+        "HBASE_REGIONSERVER").getServiceComponentHost("c1-c6401");
+    Assert.assertEquals(State.INIT, target.getDesiredState());
+
+    AmbariCustomCommandExecutionHelper helper =
+        injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    Stage stage = injector.getInstance(StageFactory.class).createNew(
+        1L, "/tmp", "c1", cluster.getClusterId(), "managed restart", "{}", "{}");
+    ActionExecutionContext context = new ActionExecutionContext("c1", "RESTART",
+        Arrays.asList(
+            new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER",
+                Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER",
+                Collections.emptyList())));
+
+    EasyMock.replay(configHelper);
+    try {
+      helper.addExecutionCommandsToStage(context, stage, new HashMap<>(), null);
+      Assert.fail("Expected the later empty filter to reject the request");
+    } catch (AmbariException expected) {
+      // The first task was built before the later filter failed.
+    }
+
+    Assert.assertNotNull(stage.getHostRoleCommand("c1-c6401", "HBASE_REGIONSERVER"));
+    Assert.assertEquals(State.INIT, target.getDesiredState());
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,

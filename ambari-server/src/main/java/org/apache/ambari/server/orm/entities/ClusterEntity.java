@@ -57,7 +57,15 @@ import org.apache.ambari.server.state.State;
     @NamedQuery(name = "clusterByResourceId", query =
         "SELECT cluster " +
             "FROM ClusterEntity cluster " +
-            "WHERE cluster.resource.id=:resourceId")
+            "WHERE cluster.resource.id=:resourceId"),
+    @NamedQuery(name = "clusterByCreationDraft", query =
+        "SELECT cluster FROM ClusterEntity cluster " +
+            "WHERE cluster.creatorUserId=:creatorUserId " +
+            "AND cluster.creationDraftId=:creationDraftId"),
+    @NamedQuery(name = "clustersByCreatorUserId", query =
+        "SELECT cluster FROM ClusterEntity cluster " +
+            "WHERE cluster.creatorUserId=:creatorUserId " +
+            "AND cluster.creationDraftId IS NOT NULL")
 })
 @Entity
 @TableGenerator(name = "cluster_id_generator",
@@ -76,6 +84,14 @@ public class ClusterEntity {
   @Column(name = "cluster_name", nullable = false, insertable = true,
       updatable = true, unique = true, length = 100)
   private String clusterName;
+
+  @Basic
+  @Column(name = "creator_user_id")
+  private Integer creatorUserId;
+
+  @Basic
+  @Column(name = "creation_draft_id", length = 36)
+  private String creationDraftId;
 
   @Basic
   @Enumerated(value = EnumType.STRING)
@@ -162,6 +178,22 @@ public class ClusterEntity {
 
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  public Integer getCreatorUserId() {
+    return creatorUserId;
+  }
+
+  public void setCreatorUserId(Integer creatorUserId) {
+    this.creatorUserId = creatorUserId;
+  }
+
+  public String getCreationDraftId() {
+    return creationDraftId;
+  }
+
+  public void setCreationDraftId(String creationDraftId) {
+    this.creationDraftId = creationDraftId;
   }
 
   public String getDesiredClusterState() {

@@ -27,6 +27,14 @@ export const RequestApi = {
         });
         return response.data;
     },
+    getRequests: async function (clusterName: string) {
+        const url = `/clusters/${clusterName}/requests/?to=end&page_size=100&fields=Requests/id,Requests/request_context,Requests/request_status,Requests/start_time,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true`;
+        const response = await supressErrorAmbariApi.request({
+            url: url,
+            method: "GET",
+        });
+        return response.data;
+    },
      getRunningRequests: async function (clusterName: string) {
         const url = `/clusters/${clusterName}/requests/?page_size=20&fields=Requests/request_status&Requests/request_status.in(IN_PROGRESS)`;
         const response = await ambariApi.request({

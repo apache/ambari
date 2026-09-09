@@ -28,7 +28,7 @@
  * plain /main/hosts route avoids both problems.
  */
 
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import { useHostsListState } from "../../store/HostsListStateContext";
 
 export type HostsFilter = {
@@ -87,7 +87,7 @@ export const buildVersionHostsFilter = (
  * the page never issues an unfiltered request first.
  */
 export const useHostsFilterNavigation = () => {
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { setSelectedFilters } = useHostsListState();
 
   const goToHostsFilteredByComponent = (

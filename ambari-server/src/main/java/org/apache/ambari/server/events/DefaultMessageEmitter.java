@@ -27,6 +27,7 @@ import java.util.Set;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.MessageDestinationIsNotDefinedException;
 import org.apache.ambari.server.agent.AgentSessionManager;
+import org.apache.ambari.server.api.stomp.ApiStompEventMessageHeaders;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -71,7 +72,6 @@ public class DefaultMessageEmitter extends MessageEmitter {
       Collections.unmodifiableSet(new HashSet<STOMPEvent.Type>(Arrays.asList(
         STOMPEvent.Type.ALERT,
         STOMPEvent.Type.ALERT_GROUP,
-        STOMPEvent.Type.METADATA,
         STOMPEvent.Type.UI_TOPOLOGY,
         STOMPEvent.Type.CONFIGS,
         STOMPEvent.Type.HOSTCOMPONENT,
@@ -103,6 +103,15 @@ public class DefaultMessageEmitter extends MessageEmitter {
     } else {
       emitMessageToAll(event);
     }
+  }
+
+  public void emitApiMessage(STOMPEvent event) throws AmbariException {
+    String destination = getDestination(event);
+    if (!DEFAULT_API_EVENT_TYPES.contains(event.getType()) || event instanceof STOMPHostEvent
+        || StringUtils.isEmpty(destination)) {
+      throw new MessageDestinationIsNotDefinedException(event.getType());
+    }
+    ApiStompEventMessageHeaders.convertAndSend(simpMessagingTemplate, destination, event);
   }
 
   @Override

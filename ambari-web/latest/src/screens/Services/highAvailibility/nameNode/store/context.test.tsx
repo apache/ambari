@@ -19,20 +19,20 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useContext } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ClusterProgressStatus } from "../../../../../constants";
 
 const mocks = vi.hoisted(() => ({
   getPersistData: vi.fn(),
-  postPersistData: vi.fn(),
+  reload: vi.fn(),
+  release: vi.fn(),
+  savePersistData: vi.fn(),
 }));
 
-vi.mock("../../../../../api/clusterApi", () => ({
-  default: {
-    getPersistData: mocks.getPersistData,
-    postPersistData: mocks.postPersistData,
-  },
+vi.mock("../../../../../hooks/useClusterWorkflowPersistence", () => ({
+  default: () => mocks,
 }));
 vi.mock("../../../../../hooks/useAuth", () => ({
-  default: () => ({ user: { user_name: "ha-owner" } }),
+  default: () => ({ hasAuthorization: () => true }),
 }));
 
 import {
@@ -47,6 +47,7 @@ const wizardUtilities = {
   jumpToStep,
   wizardSteps: {
     0: { name: "GET_STARTED" },
+    2: { name: "CONFIGURE_NAMESERVICE" },
     4: { name: "CONFIGURE_COMPONENTS" },
   },
 };
@@ -77,28 +78,30 @@ function renderProvider(autoRollbackHA = false) {
 describe("NameNode HA workflow hydration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.postPersistData.mockResolvedValue({});
+    mocks.getPersistData.mockResolvedValue({});
+    mocks.reload.mockResolvedValue({});
+    mocks.release.mockResolvedValue(undefined);
+    mocks.savePersistData.mockResolvedValue(undefined);
   });
 
   afterEach(() => cleanup());
 
   it("treats a missing persisted value as a fresh workflow", async () => {
-    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
     renderProvider();
 
     expect(await screen.findByTestId("state")).toBeTruthy();
     expect(jumpToStep).toHaveBeenCalledWith(0, true);
-    expect(mocks.postPersistData).not.toHaveBeenCalled();
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
   });
 
   it("restores a string-valued checkpoint before rendering children", async () => {
     mocks.getPersistData.mockResolvedValue(
-      JSON.stringify({
+      { HIGH_AVAILIBILITY_NAMENODE: {
         activeStep: "CONFIGURE_COMPONENTS",
         enableHighAvailibilitySteps: {
           REVIEW: { step: "REVIEW", data: { nameserviceId: "nameservice1" } },
         },
-      }),
+      } },
     );
     renderProvider();
 
@@ -106,23 +109,41 @@ describe("NameNode HA workflow hydration", () => {
       expect(jumpToStep).toHaveBeenCalledWith(4, true),
     );
     expect(screen.getByTestId("state").textContent).toContain("nameservice1");
-    expect(mocks.postPersistData).not.toHaveBeenCalled();
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
   });
 
-  it("persists the workflow owner with the recoverable checkpoint", async () => {
-    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
+  it("routes a redacted HA checkpoint to its editable step without auto-saving", async () => {
+    mocks.getPersistData.mockResolvedValue({
+      HIGH_AVAILIBILITY_NAMENODE: {
+        activeStep: "CONFIGURE_COMPONENTS",
+        enableHighAvailibilitySteps: {
+          CONFIGURE_NAMESERVICE: {
+            data: { password: { requires_reentry: true } },
+          },
+        },
+      },
+    });
+
+    renderProvider();
+
+    expect(await screen.findByText(/credential values were removed/)).toBeTruthy();
+    expect(jumpToStep).toHaveBeenCalledWith(2, true);
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
+  });
+
+  it("persists the recoverable checkpoint in the scoped workflow", async () => {
     renderProvider();
 
     fireEvent.click(await screen.findByRole("button", { name: "Persist" }));
 
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledOnce());
-    expect(mocks.postPersistData.mock.calls[0][0]["wizard-data"]).toBe(
-      JSON.stringify({ userName: "ha-owner" }),
-    );
+    await waitFor(() => expect(mocks.savePersistData).toHaveBeenCalledOnce());
+    expect(mocks.savePersistData).toHaveBeenCalledWith({
+      HIGH_AVAILIBILITY_NAMENODE: expect.objectContaining({ activeStep: "" }),
+      CLUSTER_STATE: {},
+    }, ClusterProgressStatus.ENABLING_NAMENODE_HA);
   });
 
   it("locks cancellation on Classic's critical automatic-rollback phases", async () => {
-    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
     wizardUtilities.activeStep = 4;
     renderProvider(true);
 

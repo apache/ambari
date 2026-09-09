@@ -106,6 +106,12 @@ public class ValidationResourceProvider extends StackAdvisorResourceProvider {
       ITEMS_HOST_GROUP_PROPERTY_ID,
       HOSTS_PROPERTY_ID,
       SERVICES_PROPERTY_ID,
+      MANAGED_DEPENDENCY_PLAN_PROPERTY,
+      PropertyHelper.getPropertyId(MANAGED_DEPENDENCY_PLAN_PROPERTY, "consumer/scope"),
+      PropertyHelper.getPropertyId(MANAGED_DEPENDENCY_PLAN_PROPERTY, "consumer/draft_id"),
+      PropertyHelper.getPropertyId(MANAGED_DEPENDENCY_PLAN_PROPERTY, "consumer/cluster_id"),
+      PropertyHelper.getPropertyId(MANAGED_DEPENDENCY_PLAN_PROPERTY, "consumer/expected_revision"),
+      PropertyHelper.getPropertyId(MANAGED_DEPENDENCY_PLAN_PROPERTY, "selections"),
       RECOMMENDATIONS_PROPERTY_ID);
 
   protected ValidationResourceProvider(AmbariManagementController managementController) {

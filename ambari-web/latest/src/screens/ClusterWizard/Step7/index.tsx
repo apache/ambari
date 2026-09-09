@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import WizardApi from "../../../api/wizardApi";
 import Spinner from "../../../components/Spinner";
 import CredentialsTab, { processDataForCredentialsTab } from "./CredentialsTab";
@@ -51,6 +52,7 @@ import { mapreduce2_properties } from "../../../data/configs/services/mapreduce2
 import { tez_properties } from "../../../data/configs/services/tez_properties";
 import { zookeeper_properties } from "../../../data/configs/services/zookeeper_properties";
 import { ActionTypes } from "../clusterStore/types";
+import { clearResolvedReentryMarkers } from "../../../Utils/scopedWorkflow";
 import { ContextWrapper } from "..";
 import {
   addTabNames,
@@ -94,6 +96,22 @@ import {
   ThemeLoadNotice,
 } from "../../CommonConfigs/themeLoadUtils";
 import { getCategoryClientErrors } from "./categoryValidation";
+import ManagedDependencySettings from "../ManagedDependencySettings";
+import {
+  buildManagedDependencyClientConfig,
+  mergeManagedDependencyConfigProperties,
+} from "../managedDependencyConfig";
+import {
+  createManagedDependencyAdvisorRunner,
+  managedDependencyAdvisorInputKey,
+  stackAdvisorNeedsProviderReview,
+  type RunWithStackAdvisorRequest,
+} from "../managedDependencyAdvisor";
+import type { ManagedDependencySelections } from "../managedDependencySelection";
+import { responseErrorMessage } from "../../../Utils/httpError";
+import type {
+  EnhancedConfigRecommendationState,
+} from "../../../hooks/useEnhancedConfigs";
 
 type PropTypes = {
   wizardName?: string;
@@ -108,6 +126,7 @@ const createConfigurationStepPayload = (
   preInstallChecksWereRun: boolean,
   selectedTab: string,
   selectedServicesByTab: Record<string, string>,
+  managedDependencyClientConfig: Record<string, Record<string, string>>,
 ) => ({
   step,
   data: {
@@ -115,6 +134,7 @@ const createConfigurationStepPayload = (
     themes,
     configs,
     stackLevelConfigs,
+    managedDependencyClientConfig,
     preInstallChecksWereRun,
     navigation: {
       selectedTab,
@@ -204,6 +224,16 @@ const preserveEditedConfigValues = (
         ].forEach((field) => {
           if (field in current) property[field] = cloneDeep(current[field]);
         });
+        if (current.isManagedDependency) {
+          [
+            "_managedDependencyBase",
+            "isManagedDependency",
+            "isEditable",
+            "recommendedValue",
+          ].forEach((field) => {
+            if (field in current) property[field] = cloneDeep(current[field]);
+          });
+        }
       });
     });
   });
@@ -212,7 +242,14 @@ const preserveEditedConfigValues = (
 
 export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const { Context } = useContext(ContextWrapper);
-  const { ambariProperties, clusterName, supports } = useContext(AppContext);
+  const { t } = useTranslation();
+  const {
+    ambariProperties,
+    cluster,
+    clusterName,
+    runtimeKey,
+    supports,
+  } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
   const {
     state,
@@ -220,6 +257,10 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     installedHosts,
     installedServices,
     flushStateToDb,
+    storeStepDataAndFlush,
+    withStateCheckpoint,
+    draftId,
+    workflowMaterializedServices = [],
     stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
   } = useContext(Context) as any;
   const getStepData = (stepName: string, dataKey: string) => {
@@ -230,6 +271,25 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     state,
     "addServiceSteps.SERVICES.data.addServiceFlow",
     {},
+  );
+  const servicesData: any = get(
+    state,
+    `${wizardName}Steps.SERVICES.data.services`,
+    {},
+  );
+  const services = Object.keys(servicesData).filter(
+    (service) => servicesData[service].selected,
+  );
+  const conditionServices = [
+    ...new Set([...(installedServices || []), ...services]),
+  ];
+  const managedDependencies = get(
+    state,
+    `${wizardName}Steps.SERVICES.data.managedDependencies`,
+    {},
+  ) as ManagedDependencySelections;
+  const managedDependencyClientConfig = buildManagedDependencyClientConfig(
+    managedDependencies,
   );
   const storedConfigProperties =
     getStepData("CONFIGURATION", "configProperties") || {};
@@ -260,6 +320,26 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const [configProperties, setConfigProperties] = useState(
     storedConfigProperties
   );
+  const configEditGenerationRef = useRef(0);
+  const [configEditGeneration, setConfigEditGeneration] = useState(0);
+  const [childRecommendationState, setChildRecommendationState] = useState<
+    EnhancedConfigRecommendationState
+  >({
+    pending: false,
+    error: null,
+    retry: () => undefined,
+  });
+  const markConfigEdited = useCallback(() => {
+    const nextGeneration = configEditGenerationRef.current + 1;
+    configEditGenerationRef.current = nextGeneration;
+    setConfigEditGeneration(nextGeneration);
+  }, []);
+  const handleChildRecommendationStateChange = useCallback(
+    (nextState: EnhancedConfigRecommendationState) => {
+      setChildRecommendationState(nextState);
+    },
+    [],
+  );
   const configPropertiesRef = useRef(configProperties);
   const themeRequestId = useRef(0);
   //@ts-ignore
@@ -271,7 +351,20 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     []
   );
   const [requiredConfigsToShow, setRequiredConfigsToShow] = useState<any[]>([]);
-  const initialRecommendationRequestedRef = useRef(false);
+  const initialRecommendationScopeRef = useRef<string | null>(null);
+  const initialRecommendationSequence = useRef(0);
+  const [initialRecommendationInProgress, setInitialRecommendationInProgress] =
+    useState(false);
+  const [recommendationFailure, setRecommendationFailure] = useState<{
+    message: string;
+    reviewRequired: boolean;
+  } | null>(null);
+  const [validationFailure, setValidationFailure] = useState<{
+    message: string;
+    reviewRequired: boolean;
+  } | null>(null);
+  const [validationInProgress, setValidationInProgress] = useState(false);
+  const validationSequence = useRef(0);
 
   const [configPropertiesLoaded, setConfigPropertiesLoaded] = useState(false);
   const [propertyValues, setPropertyValues] = useState<any>({});
@@ -287,6 +380,14 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   useEffect(() => {
     configPropertiesRef.current = configProperties;
   }, [configProperties]);
+
+  useEffect(() => {
+    setConfigProperties((current: ConfigPropertiesType) =>
+      mergeManagedDependencyConfigProperties(
+        current,
+        managedDependencyClientConfig,
+      ));
+  }, [configProperties, JSON.stringify(managedDependencyClientConfig)]);
 
   useEffect(() => () => {
     themeRequestId.current += 1;
@@ -321,11 +422,85 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   );
   const stackName = get(versionStepData, "selectedStack.stack_name", "");
 
+  const hasFreshHBaseSelection = Boolean(
+    servicesData.HBASE?.selected && !servicesData.HBASE?.installed,
+  );
+  const hasManagedDependencies = hasFreshHBaseSelection
+    && Object.values(managedDependencies).some(
+      (choice) => choice?.mode === "managed",
+    );
+  const advisorInputKey = managedDependencyAdvisorInputKey({
+    hosts: hostsList,
+    selections: managedDependencies,
+    services: conditionServices,
+    stack: stackName,
+    version: stackVersion,
+  });
+  const advisorScopeInputs = [
+    wizardName === "addService" ? "add-service-advisor" : "cluster-create-advisor",
+    runtimeKey,
+    Number(cluster?.cluster_id) || null,
+    draftId || "missing-draft",
+    workflowMaterializedServices.join("\u0000"),
+    advisorInputKey,
+  ];
+  const advisorInitializationKey = JSON.stringify(advisorScopeInputs);
+  const advisorScopeKey = JSON.stringify([
+    ...advisorScopeInputs,
+    configEditGeneration,
+  ]);
+  const advisorScopeKeyRef = useRef(advisorScopeKey);
+  advisorScopeKeyRef.current = advisorScopeKey;
+  const runWithAdvisorRequest: RunWithStackAdvisorRequest | undefined =
+    hasManagedDependencies
+      ? createManagedDependencyAdvisorRunner({
+          clusterId: Number(cluster?.cluster_id),
+          draftId,
+          managedDependencies,
+          scopeKey: advisorScopeKey,
+          scopeKeyRef: advisorScopeKeyRef,
+          scopeGeneration: configEditGenerationRef.current,
+          scopeGenerationRef: configEditGenerationRef,
+          withStateCheckpoint,
+          workflowMaterializedServices,
+        })
+      : undefined;
+
+  const checkpointConfiguration = async (
+    snapshot: ConfigPropertiesType,
+  ) => {
+    if (!runWithAdvisorRequest || !storeStepDataAndFlush) return;
+    const persistedConfigProperties = cloneDeep(configProperties);
+    Object.entries(snapshot).forEach(([serviceName, serviceConfigs]) => {
+      persistedConfigProperties[serviceName] = {
+        ...(persistedConfigProperties[serviceName] || {}),
+        ...serviceConfigs,
+      };
+    });
+    await storeStepDataAndFlush(
+      currentStep.name,
+      createConfigurationStepPayload(
+        currentStep.name,
+        persistedConfigProperties,
+        themes,
+        configs,
+        stackLevelConfigs,
+        preInstallChecksWereRun,
+        selectedTab,
+        selectedServicesByTab,
+        managedDependencyClientConfig,
+      ).data,
+    );
+  };
+
   const { 
     processRecommendations, 
     loadAddServiceRecommendations, 
     recommendedChanges,
     setRecommendedChanges,
+    recommendationsInProgress,
+    processingConfig,
+    recommendationError,
   } = useEnhancedConfigs(
     setConfigProperties,
     undefined, // serviceName
@@ -334,14 +509,47 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     wizardName, // controllerName - THIS WAS MISSING!
     stackName, // STACK
     stackVersion, // VERSION
-    hostsList // HOSTS
+    hostsList, // HOSTS
+    undefined,
+    runWithAdvisorRequest,
+    advisorScopeKey,
+    checkpointConfiguration,
   );
 
-  const servicesData: any = get(
-    state,
-    `${wizardName}Steps.SERVICES.data.services`,
-    {}
+  const recommendationBlocked = Boolean(
+    initialRecommendationInProgress
+      || recommendationsInProgress
+      || processingConfig
+      || validationInProgress
+      || recommendationFailure
+      || validationFailure
+      || recommendationError
+      || childRecommendationState.pending
+      || childRecommendationState.error,
   );
+
+  useEffect(() => {
+    initialRecommendationSequence.current += 1;
+    setRecommendationFailure(null);
+    setInitialRecommendationInProgress(false);
+    setChildRecommendationState({
+      pending: false,
+      error: null,
+      retry: () => undefined,
+    });
+    return () => {
+      initialRecommendationSequence.current += 1;
+    };
+  }, [advisorScopeKey]);
+
+  useEffect(() => {
+    validationSequence.current += 1;
+    setValidationFailure(null);
+    setValidationInProgress(false);
+    return () => {
+      validationSequence.current += 1;
+    };
+  }, [advisorScopeKey]);
 
   useEffect(() => {
     dispatch({
@@ -355,6 +563,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         preInstallChecksWereRun,
         selectedTab,
         selectedServicesByTab,
+        managedDependencyClientConfig,
       ),
     });
   }, [
@@ -365,6 +574,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     preInstallChecksWereRun,
     selectedTab,
     selectedServicesByTab,
+    JSON.stringify(managedDependencyClientConfig),
   ]);
 
   const initialServiceComponents = get(
@@ -382,13 +592,6 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     allServiceComponentsList,
     ComponentCategory,
   } = useServiceComponents(wizardName || "", initialServiceComponents);
-  const services = Object.keys(servicesData).filter((service) => {
-    return servicesData[service].selected;
-  });
-
-  const conditionServices = [
-    ...new Set([...(installedServices || []), ...services]),
-  ];
 
   // Kerberos contributes condition/config context but does not get an ordinary
   // Add Service configuration tab.
@@ -430,21 +633,50 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const validateConfigProperties = useDebounce(validatedConfigProperties, 500);
 
   async function validatedConfigProperties() {
-    const recommendations: any = getValidationRequestBody();
-    recommendations.blueprint.configurations = buildConfigsJSON(
-      configProperties,
-      wizardName === "addService"
-    );
-    const response = await ConfigsApi.validateConfigProperties(
-      stackName,
-      stackVersion,
-      {
-        hosts: hostsList,
-        recommendations,
-        services: conditionServices,
-        validate: "configurations",
+    const requestSequence = ++validationSequence.current;
+    const capturedScope = advisorScopeKey;
+    const capturedEditGeneration = configEditGenerationRef.current;
+    const isCurrentRequest = () =>
+      requestSequence === validationSequence.current
+      && capturedScope === advisorScopeKeyRef.current
+      && capturedEditGeneration === configEditGenerationRef.current;
+    setValidationFailure(null);
+    setValidationInProgress(true);
+    try {
+      if (runWithAdvisorRequest) {
+        await checkpointConfiguration(configProperties);
+        if (!isCurrentRequest()) return;
       }
-    );
+      const requestValidation = async ({
+        isCurrent,
+        properties,
+      }: {
+        isCurrent: () => boolean;
+        properties: Record<string, unknown>;
+      }) => {
+        if (!isCurrentRequest() || !isCurrent()) return null;
+        const recommendations: any = getValidationRequestBody();
+        recommendations.blueprint.configurations = buildConfigsJSON(
+          configProperties,
+          wizardName === "addService",
+        );
+        const response = await ConfigsApi.validateConfigProperties(
+          stackName,
+          stackVersion,
+          {
+            hosts: hostsList,
+            recommendations,
+            services: conditionServices,
+            validate: "configurations",
+            ...properties,
+          },
+        );
+        return isCurrentRequest() && isCurrent() ? response : null;
+      };
+      const response = runWithAdvisorRequest
+        ? await runWithAdvisorRequest(requestValidation)
+        : await requestValidation({ isCurrent: () => true, properties: {} });
+      if (!response || !isCurrentRequest()) return;
     const {
       resources: [validationResult],
     } = response;
@@ -529,6 +761,20 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     set(validationErrorsCopy, "warnings", detailedWarnings);
     validationsRef.current = validationErrorsCopy;
     setValidationErrors(validationErrorsCopy);
+    } catch (error) {
+      if (isCurrentRequest()) {
+        setValidationFailure({
+          message: responseErrorMessage(
+            error,
+            t("managedDependencies.configurationValidationFailed"),
+          ),
+          reviewRequired: hasManagedDependencies
+            || stackAdvisorNeedsProviderReview(error),
+        });
+      }
+    } finally {
+      if (isCurrentRequest()) setValidationInProgress(false);
+    }
   }
   function validateClientSideValidations() {
     //get all the keys which have hasError nn empty string
@@ -561,7 +807,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           selectedTab,
           serviceNames: conditionServices,
           themes,
-        }).length === 0,
+        }).length === 0 && !recommendationBlocked,
       );
       return;
     }
@@ -573,19 +819,28 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           serviceNames: conditionServices,
           themes,
         }).length === 0 &&
-          (validationErrors.criticalErrors?.length || 0) === 0,
+          (validationErrors.criticalErrors?.length || 0) === 0 &&
+          !recommendationBlocked,
       );
       return;
     }
-    setIsNextEnabled(true);
-  }, [configProperties, selectedTab, themes, validationErrors]);
+    setIsNextEnabled(!recommendationBlocked);
+  }, [configProperties, selectedTab, themes, validationErrors, recommendationBlocked]);
+
   useEffect(() => {
-    if (!configPropertiesLoaded || initialRecommendationRequestedRef.current) {
+    if (wizardName === "addService" && recommendationBlocked) {
+      setIsNextEnabled(false);
+    }
+  }, [wizardName, recommendationBlocked]);
+
+  useEffect(() => {
+    if (!configPropertiesLoaded) {
       return;
     }
     if (wizardName === "clusterCreation") {
-      initialRecommendationRequestedRef.current = true;
-      loadConfigRecommendations();
+      if (initialRecommendationScopeRef.current === advisorInitializationKey) return;
+      initialRecommendationScopeRef.current = advisorInitializationKey;
+      void loadConfigRecommendations();
     } else if (wizardName === "addService") {
       const newlyAddingServices = services.filter(
         (service) => !installedServices?.includes(service) && service !== "MISC"
@@ -593,14 +848,20 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       if (newlyAddingServices.length === 0) {
         return;
       }
-      initialRecommendationRequestedRef.current = true;
-      loadAddServiceRecommendations(
+      if (initialRecommendationScopeRef.current === advisorInitializationKey) return;
+      initialRecommendationScopeRef.current = advisorInitializationKey;
+      void loadAddServiceRecommendations(
         configProperties,
         newlyAddingServices,
         getValidationRequestBody()
       );
     }
-  }, [configPropertiesLoaded, services, installedServices]);
+  }, [
+    configPropertiesLoaded,
+    services,
+    installedServices,
+    advisorInitializationKey,
+  ]);
 
   // Monitor recommended changes and prepare data for add service wizard
   // This implements the Ember.js filtering logic from changedProperties and filterRequiredChanges
@@ -845,6 +1106,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
             }))
           }
           conditionServices={conditionServices}
+          runWithAdvisorRequest={runWithAdvisorRequest}
+          advisorScopeKey={advisorScopeKey}
+          checkpointConfigProperties={checkpointConfiguration}
+          onConfigEdit={markConfigEdited}
+          onRecommendationStateChange={handleChildRecommendationStateChange}
         />
       ),
     },
@@ -873,6 +1139,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
             }))
           }
           conditionServices={conditionServices}
+          runWithAdvisorRequest={runWithAdvisorRequest}
+          advisorScopeKey={advisorScopeKey}
+          checkpointConfigProperties={checkpointConfiguration}
+          onConfigEdit={markConfigEdited}
+          onRecommendationStateChange={handleChildRecommendationStateChange}
         />
       ),
     },
@@ -913,6 +1184,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
             }))
           }
           conditionServices={conditionServices}
+          runWithAdvisorRequest={runWithAdvisorRequest}
+          advisorScopeKey={advisorScopeKey}
+          checkpointConfigProperties={checkpointConfiguration}
+          onConfigEdit={markConfigEdited}
+          onRecommendationStateChange={handleChildRecommendationStateChange}
         />
       ),
     },
@@ -1029,36 +1305,109 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   }, [configProperties, configPropertiesLoaded]);
 
   const loadConfigRecommendations = async () => {
+    const requestSequence = ++initialRecommendationSequence.current;
+    const capturedScope = advisorScopeKey;
+    const capturedEditGeneration = configEditGenerationRef.current;
+    const isCurrentRequest = () =>
+      requestSequence === initialRecommendationSequence.current
+      && capturedScope === advisorScopeKeyRef.current
+      && capturedEditGeneration === configEditGenerationRef.current;
+    setRecommendationFailure(null);
+    setInitialRecommendationInProgress(true);
     try {
-      let recommendationsInPayload: any = getValidationRequestBody();
-      recommendationsInPayload.blueprint.configurations = buildConfigsJSON(
-        configProperties,
-        wizardName === "addService"
-      );
-
-      const dataToSend = {
-        autoComplete: false,
-        clusterId: null,
-        configsResponse: false,
-        recommend: "configurations",
-        hosts: hostsList,
-        recommendations: recommendationsInPayload,
-        services: services,
-        user_context: { operation: "ClusterCreate" },
+      const requestRecommendations = async ({
+        isCurrent,
+        properties,
+      }: {
+        isCurrent: () => boolean;
+        properties: Record<string, unknown>;
+      }) => {
+        if (!isCurrentRequest() || !isCurrent()) return null;
+        const recommendationsInPayload: any = getValidationRequestBody();
+        recommendationsInPayload.blueprint.configurations = buildConfigsJSON(
+          configProperties,
+          wizardName === "addService",
+        );
+        const dataToSend = {
+          autoComplete: false,
+          clusterId: null,
+          configsResponse: false,
+          recommend: "configurations",
+          hosts: hostsList,
+          recommendations: recommendationsInPayload,
+          services,
+          user_context: { operation: "ClusterCreate" },
+        };
+        const response = await ConfigsApi.getRecommendations(
+          stackName,
+          stackVersion,
+          { ...dataToSend, ...properties },
+        );
+        return isCurrentRequest() && isCurrent() ? response : null;
       };
+      const response = runWithAdvisorRequest
+        ? await runWithAdvisorRequest(requestRecommendations)
+        : await requestRecommendations({ isCurrent: () => true, properties: {} });
 
-      const response = await ConfigsApi.getRecommendations(
-        stackName,
-        stackVersion,
-        dataToSend
-      );
-
+      if (!response || !isCurrentRequest()) return;
       processRecommendations(response, configProperties);
-    } catch {
-      console.error("Error loading configuration recommendations.");
-      // Don't fail the entire process if recommendations fail
+    } catch (error) {
+      if (isCurrentRequest()) {
+        setRecommendationFailure({
+          message: responseErrorMessage(
+            error,
+            t("managedDependencies.configurationRecommendationFailed"),
+          ),
+          reviewRequired: hasManagedDependencies
+            || stackAdvisorNeedsProviderReview(error),
+        });
+      }
+    } finally {
+      if (isCurrentRequest()) {
+        setInitialRecommendationInProgress(false);
+      }
     }
   };
+
+  const retryRecommendations = () => {
+    setRecommendationFailure(null);
+    if (childRecommendationState.error) {
+      childRecommendationState.retry();
+      return;
+    }
+    if (wizardName === "clusterCreation") {
+      void loadConfigRecommendations();
+      return;
+    }
+    const newlyAddingServices = services.filter(
+      (service) => !installedServices?.includes(service) && service !== "MISC",
+    );
+    if (newlyAddingServices.length > 0) {
+      void loadAddServiceRecommendations(
+        configPropertiesRef.current,
+        newlyAddingServices,
+        getValidationRequestBody(),
+      );
+    }
+  };
+
+  const retryValidation = () => {
+    void validatedConfigProperties();
+  };
+
+  const recommendationNotice = validationFailure || recommendationFailure || (
+    recommendationError
+      ? {
+          message: recommendationError,
+          reviewRequired: hasManagedDependencies,
+        }
+      : childRecommendationState.error
+        ? {
+            message: childRecommendationState.error,
+            reviewRequired: hasManagedDependencies,
+          }
+      : null
+  );
 
   const getConfigDependencies = (configProperties: ConfigPropertiesType) => {
     let dependencies: any = {};
@@ -2512,7 +2861,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   const continueAfterConfiguration = async () => {
     dispatch({
       type: ActionTypes.STORE_INFORMATION,
-      payload: createConfigurationStepPayload(
+      payload: clearResolvedReentryMarkers(createConfigurationStepPayload(
         currentStep.name,
         configProperties,
         themes,
@@ -2521,7 +2870,8 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
         preInstallChecksWereRun,
         selectedTab,
         selectedServicesByTab,
-      ),
+        managedDependencyClientConfig,
+      )),
     });
     if (wizardName === "addService") {
       const nextStep = nextAddServiceStep(4, addServiceFlow);
@@ -2537,6 +2887,12 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     setPreInstallChecksWereRun(true);
     setShowSkippedChecksWarning(false);
     setShowPreInstallChecks(true);
+  };
+
+  const returnToProviderSelection = async () => {
+    const servicesStep = wizardName === "addService" ? 1 : 4;
+    await Promise.resolve(flushStateToDb("jump", servicesStep));
+    jumpToStep(servicesStep);
   };
 
   const handleNext = async () => {
@@ -2596,6 +2952,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           }))
         }
         conditionServices={conditionServices}
+        runWithAdvisorRequest={runWithAdvisorRequest}
+        advisorScopeKey={advisorScopeKey}
+        checkpointConfigProperties={checkpointConfiguration}
+        onConfigEdit={markConfigEdited}
+        onRecommendationStateChange={handleChildRecommendationStateChange}
       />
     );
   };
@@ -2644,6 +3005,11 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
           </Button>
         </BootstrapModal.Footer>
       </BootstrapModal>
+      <ManagedDependencySettings
+        onReturn={() => void returnToProviderSelection()}
+        selections={managedDependencies}
+        view="configuration"
+      />
       <div>
         {themeLoadNotice && (
           <Alert
@@ -2670,6 +3036,31 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
                   {themeRetrying ? "Retrying..." : "Retry"}
                 </Button>
               )}
+            </div>
+          </Alert>
+        )}
+        {recommendationNotice && (
+          <Alert variant="danger" className="mb-3" role="alert">
+            <div className="d-flex justify-content-between align-items-center gap-3">
+              <span>{recommendationNotice.message}</span>
+              <div className="d-flex gap-2">
+                {recommendationNotice.reviewRequired && (
+                  <Button
+                    size="sm"
+                    variant="outline-danger"
+                    onClick={() => void returnToProviderSelection()}
+                  >
+                    {t("managedDependencies.reviewProviderSettings")}
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline-danger"
+                  onClick={validationFailure ? retryValidation : retryRecommendations}
+                >
+                  {t("common.retry")}
+                </Button>
+              </div>
             </div>
           </Alert>
         )}

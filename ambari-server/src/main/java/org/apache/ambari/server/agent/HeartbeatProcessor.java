@@ -46,6 +46,7 @@ import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReport;
 import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReports;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyTaskResultProcessor;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -146,6 +147,9 @@ public class HeartbeatProcessor extends AbstractService{
 
   @Inject
   Provider<MetadataHolder> metadataHolder;
+
+  @Inject
+  ManagedDependencyTaskResultProcessor managedDependencyTaskResultProcessor;
 
   @Inject
   public HeartbeatProcessor(Clusters clusterFsm, ActionManager am, HeartbeatMonitor heartbeatMonitor,
@@ -546,6 +550,9 @@ public class HeartbeatProcessor extends AbstractService{
 
     //Update state machines from reports
     actionManager.processTaskResponse(hostName, reports, commands);
+    for (CommandReport report : reports) {
+      managedDependencyTaskResultProcessor.process(report, hostName, commands.get(report.getTaskId()));
+    }
   }
 
   /**

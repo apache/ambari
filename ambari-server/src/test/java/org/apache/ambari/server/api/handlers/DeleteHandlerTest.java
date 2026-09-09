@@ -42,6 +42,7 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.util.TreeNode;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyIntegrationException;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -247,6 +248,23 @@ public class DeleteHandlerTest {
     assertNotNull(result);
     assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
   }  
+
+  @Test
+  public void testManagedDependencyConflictIsReturnedAsConflict() throws Exception {
+    ResourceInstance resource = createNiceMock(ResourceInstance.class);
+    RequestBody body = createNiceMock(RequestBody.class);
+    PersistenceManager pm = createStrictMock(PersistenceManager.class);
+    expect(pm.delete(resource, body)).andThrow(new ManagedDependencyIntegrationException(
+        409, "DEPENDENCY_PROVIDER_DELETE_BLOCKED", "Detach every dependent first."));
+    replay(resource, body, pm);
+
+    Result result = new TestDeleteHandler(pm).persist(resource, body);
+
+    assertEquals(ResultStatus.STATUS.CONFLICT, result.getStatus().getStatus());
+    assertEquals("DEPENDENCY_PROVIDER_DELETE_BLOCKED: Detach every dependent first.",
+        result.getStatus().getMessage());
+    verify(resource, body, pm);
+  }
 
   private class TestDeleteHandler extends DeleteHandler {
     private PersistenceManager m_testPm;

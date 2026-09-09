@@ -50,12 +50,230 @@ var InitialData = {
   'RAHighAvailabilityWizard': {},
   'NameNodeFederationWizard': {},
   'RouterFederationWizard': {},
+  'ManageJournalNodeWizard': {},
   'RollbackHighAvailabilityWizard': {},
   'MainAdminStackAndUpgrade': {},
   'KerberosDisable': {},
   'tmp': {}
 
 };
+
+var workflowNamespaces = [
+  'Installer',
+  'AddHost',
+  'AddService',
+  'WidgetWizard',
+  'KerberosWizard',
+  'ReassignMaster',
+  'HighAvailabilityWizard',
+  'RMHighAvailabilityWizard',
+  'AddHawqStandbyWizard',
+  'RemoveHawqStandbyWizard',
+  'ActivateHawqStandbyWizard',
+  'RAHighAvailabilityWizard',
+  'NameNodeFederationWizard',
+  'RouterFederationWizard',
+  'ManageJournalNodeWizard',
+  'RollbackHighAvailabilityWizard',
+  'MainAdminStackAndUpgrade'
+];
+var workflowStorageScope = null;
+var workflowMemoryStorage = {};
+var sensitiveKeyPattern = /(password|secret|private.?key|ssh.?key|credential|token|cookie|keytab)/i;
+var sensitiveValueFields = [
+  'value', 'property_value', 'propertyvalue', 'savedvalue', 'recommendedvalue',
+  'initialvalue', 'defaultvalue', 'currentvalue', 'previousvalue', 'priorvalue',
+  'originalvalue', 'uservalue', 'changedvalue', 'newvalue', 'oldvalue',
+  'default_value', 'initial_value', 'previous_value', 'recommended_value',
+  'new_value', 'old_value', 'confirmpassword', 'confirm_password'
+];
+
+function rootNamespace(namespace) {
+  return String(namespace || '').split('.')[0];
+}
+
+function isWorkflowNamespace(namespace) {
+  return workflowNamespaces.contains(rootNamespace(namespace));
+}
+
+function workflowStorageKey() {
+  return workflowStorageScope ? 'ambari-workflow:' + encodeURIComponent(workflowStorageScope) : null;
+}
+
+function loadGlobalStorage() {
+  return localStorage.getObject('ambari') || $.extend(true, {}, InitialData);
+}
+
+function loadWorkflowStorage() {
+  var key = workflowStorageKey();
+  return key ? (localStorage.getObject(key) || {}) : {};
+}
+
+function loadWorkflowMemory() {
+  if (!workflowStorageScope) {
+    return {};
+  }
+  if (!workflowMemoryStorage[workflowStorageScope]) {
+    workflowMemoryStorage[workflowStorageScope] = $.extend(true, {}, loadWorkflowStorage());
+  }
+  return workflowMemoryStorage[workflowStorageScope];
+}
+
+function loadCurrentStorage() {
+  var data = loadGlobalStorage();
+  if (workflowStorageScope) {
+    var scopedData = loadWorkflowMemory();
+    workflowNamespaces.forEach(function (namespace) {
+      data[namespace] = $.extend(true, {}, InitialData[namespace], scopedData[namespace]);
+    });
+  }
+  App.db.data = data;
+  return data;
+}
+
+function hasUrlCredentials(value) {
+  return typeof value === 'string' && /[a-z][a-z0-9+.-]*:\/\/[^\s/@]+@/i.test(value);
+}
+
+function isOpaqueCredential(value) {
+  return typeof value === 'string' && (
+    /-----BEGIN(?: [A-Z0-9]+)* PRIVATE KEY-----/i.test(value) ||
+    /["'](?:password|secret|token|credential)["']\s*:/i.test(value)
+  );
+}
+
+function isSafePathMetadata(property, value, key) {
+  if (typeof value !== 'string' || value.charAt(0) !== '/' || /[\n\0]/.test(value)) {
+    return false;
+  }
+  var name = String(property.name || property.propertyName || property.property_name || property.key || key || '').toLowerCase();
+  return name.indexOf('keytab') !== -1 || name.indexOf('principal') !== -1;
+}
+
+function hasReenteredValue(value) {
+  var propertyName = value.name || value.propertyName || value.property_name || value.key || '';
+  var mapSensitive = sensitiveKeyPattern.test(String(propertyName));
+  return Object.keys(value).some(function (key) {
+    var item = value[key];
+    var normalizedKey = key.toLowerCase();
+    var reentryField = sensitiveValueFields.contains(normalizedKey) ||
+      /^(baseurl|base_url|version_url|localrepovdfdata|versiondefinitionsource)$/i.test(key) ||
+      sensitiveKeyPattern.test(key) || (mapSensitive && normalizedKey === 'value');
+    return reentryField && item !== undefined && item !== null &&
+      (typeof item !== 'string' || item.trim().length > 0);
+  });
+}
+
+function clearResolvedReentryMarkers(value) {
+  if (Array.isArray(value)) {
+    return value.map(clearResolvedReentryMarkers);
+  }
+  if (!value || typeof value !== 'object') {
+    return value;
+  }
+  var result = {};
+  Object.keys(value).forEach(function (key) {
+    if (key !== 'requires_reentry' || !hasReenteredValue(value)) {
+      result[key] = clearResolvedReentryMarkers(value[key]);
+    }
+  });
+  return result;
+}
+
+function containsReentryMarker(value) {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+  if (!Array.isArray(value) && value.requires_reentry === true) {
+    return true;
+  }
+  return Object.keys(value).some(function (key) {
+    return containsReentryMarker(value[key]);
+  });
+}
+
+function sanitizeWorkflowData(value, sensitiveContext, ancestors) {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  if (typeof value !== 'object') {
+    return sensitiveContext || isOpaqueCredential(value) ? undefined : value;
+  }
+  ancestors = ancestors || [];
+  if (ancestors.contains(value)) {
+    return undefined;
+  }
+  var nextAncestors = ancestors.concat([value]);
+  if (Array.isArray(value)) {
+    if (sensitiveContext) {
+      return [];
+    }
+    return value.map(function (item) {
+      return sanitizeWorkflowData(item, false, nextAncestors);
+    }).filter(function (item) {
+      return item !== undefined;
+    });
+  }
+
+  var propertyName = value.name || value.propertyName || value.property_name || value.key || '';
+  var attributes = value.propertyAttributes || value.property_attributes || value.property_value_attributes || {};
+  var mapSensitive = sensitiveContext || sensitiveKeyPattern.test(String(propertyName)) || String(attributes.type || '').toLowerCase() === 'password';
+  var result = {};
+  var redacted = false;
+  Object.keys(value).forEach(function (key) {
+    var item = value[key];
+    var normalizedKey = key.toLowerCase();
+    var sensitiveKey = sensitiveKeyPattern.test(key);
+    var opaqueSource = /^(versiondefinitionsource|localrepovdfdata)$/i.test(key);
+    var safePath = isSafePathMetadata(value, item, key);
+    var redact = (mapSensitive && sensitiveValueFields.contains(normalizedKey) && !safePath) ||
+      (sensitiveKey && (item === null || typeof item !== 'object') && !safePath) ||
+      (/(baseurl|defaulturl|version_url|base_url|default_base_url)/i.test(key) && hasUrlCredentials(item)) ||
+      (opaqueSource && (typeof item === 'string' || (item && item.type === 'xml')));
+    if (redact) {
+      redacted = true;
+      return;
+    }
+    var sanitized = sanitizeWorkflowData(item, sensitiveKey && !safePath, nextAncestors);
+    if (sanitized === undefined) {
+      redacted = true;
+    } else {
+      result[key] = sanitized;
+    }
+  });
+  if (redacted) {
+    result.requires_reentry = true;
+  }
+  return result;
+}
+
+function persistWorkflowNamespace(namespace) {
+  var scopedData = loadWorkflowStorage();
+  var memoryData = loadWorkflowMemory();
+  var root = rootNamespace(namespace);
+  memoryData[root] = $.extend(true, {}, clearResolvedReentryMarkers(App.db.data[root]));
+  scopedData[root] = sanitizeWorkflowData(App.db.data[root], false);
+  localStorage.setObject(workflowStorageKey(), scopedData);
+}
+
+function persistCurrentStorage(namespace) {
+  if (workflowStorageScope && isWorkflowNamespace(namespace)) {
+    persistWorkflowNamespace(namespace);
+    return;
+  }
+  var globalData = loadGlobalStorage();
+  if (namespace) {
+    var root = rootNamespace(namespace);
+    globalData[root] = App.db.data[root];
+  } else {
+    Object.keys(App.db.data).forEach(function (key) {
+      if (!isWorkflowNamespace(key)) {
+        globalData[key] = App.db.data[key];
+      }
+    });
+  }
+  localStorage.setObject('ambari', globalData);
+}
 
 function checkNamespace(namespace) {
   if (!namespace) {
@@ -76,6 +294,9 @@ if (typeof Storage === 'undefined') {
   localStorage.getItem = function (key) {
     return this[key];
   };
+  localStorage.removeItem = function (key) {
+    delete this[key];
+  };
   window.localStorage.setObject = function (key, value) {
     this[key] = value;
   };
@@ -95,17 +316,21 @@ else {
 }
 
 App.db.cleanUp = function () {
-  App.db.data = InitialData;
+  App.db.data = $.extend(true, {}, InitialData);
   localStorage.setObject('ambari', App.db.data);
+  if (workflowStorageScope) {
+    localStorage.removeItem(workflowStorageKey());
+    delete workflowMemoryStorage[workflowStorageScope];
+  }
 };
 
 App.db.cleanTmp = function () {
   App.db.data.tmp = {};
-  localStorage.setObject('ambari', App.db.data);
+  persistCurrentStorage('tmp');
 };
 
 App.db.updateStorage = function () {
-  App.db.data = localStorage.getObject('ambari');
+  loadCurrentStorage();
   if (Em.get(App, 'db.data.app.tables') && Em.get(App, 'db.data.app.configs')) {
     return true;
   }
@@ -121,7 +346,8 @@ App.db.mergeStorage = function () {
   if (localStorage.getObject('ambari') == null) {
     App.db.cleanUp();
   } else {
-    localStorage.setObject('ambari', $.extend(true, {}, InitialData, App.db.data));
+    App.db.data = $.extend(true, {}, InitialData, App.db.data);
+    persistCurrentStorage();
   }
 };
 
@@ -137,7 +363,7 @@ if (localStorage.getObject('ambari') == null) {
  * @returns {*}
  */
 App.db.get = function (namespace, key) {
-  App.db.data = localStorage.getObject('ambari');
+  loadCurrentStorage();
   Em.assert('`namespace` should be defined', !!namespace);
   checkNamespace(namespace);
   if (key.contains('user-pref')) {
@@ -154,7 +380,7 @@ App.db.get = function (namespace, key) {
  * @returns {object}
  */
 App.db.getProperties = function (namespace, listOfProperties) {
-  App.db.data = localStorage.getObject('ambari');
+  loadCurrentStorage();
   Em.assert('`namespace` should be defined', !!namespace);
   checkNamespace(namespace);
   return Em.getProperties(Em.get(App.db.data, namespace), listOfProperties);
@@ -167,7 +393,7 @@ App.db.getProperties = function (namespace, listOfProperties) {
  * @param {*} value
  */
 App.db.set = function (namespace, key, value) {
-  App.db.data = localStorage.getObject('ambari');
+  loadCurrentStorage();
   Em.assert('`namespace` should be defined', !!namespace);
   checkNamespace(namespace);
   if (key.contains('user-pref')) {
@@ -176,7 +402,7 @@ App.db.set = function (namespace, key, value) {
   } else {
     Em.set(Em.get(App.db.data, namespace), key, value);
   }
-  localStorage.setObject('ambari', App.db.data);
+  persistCurrentStorage(namespace);
 };
 
 /**
@@ -185,11 +411,11 @@ App.db.set = function (namespace, key, value) {
  * @param {{key: value}} hash
  */
 App.db.setProperties = function (namespace, hash) {
-  App.db.data = localStorage.getObject('ambari');
+  loadCurrentStorage();
   Em.assert('`namespace` should be defined', !!namespace);
   checkNamespace(namespace);
   Em.setProperties(Em.get(App.db.data, namespace), hash);
-  localStorage.setObject('ambari', App.db.data);
+  persistCurrentStorage(namespace);
 };
 
 App.db.setLoginName = function (name) {
@@ -210,7 +436,7 @@ App.db.setAuth = function (auth) {
 
 App.db.setAuthenticated = function (authenticated) {
   App.db.set('app', 'authenticated', authenticated);
-  App.db.data = localStorage.getObject('ambari');
+  loadCurrentStorage();
 };
 
 App.db.setFilterConditions = function (name, filterConditions) {
@@ -296,7 +522,84 @@ App.db.setWizardCurrentStep = function (wizardType, currentStep) {
  * Set localStorage with data from server
  */
 App.db.setLocalStorage = function () {
-  localStorage.setObject('ambari', App.db.data);
+  persistCurrentStorage();
+  if (workflowStorageScope) {
+    workflowNamespaces.forEach(persistWorkflowNamespace);
+  }
+};
+
+App.db.sanitizeWorkflowData = function (value) {
+  return sanitizeWorkflowData(value, false);
+};
+
+App.db.activateWorkflowScope = function (scope) {
+  if (workflowStorageScope && workflowStorageScope !== scope) {
+    delete workflowMemoryStorage[workflowStorageScope];
+  }
+  workflowStorageScope = scope;
+  loadCurrentStorage();
+};
+
+App.db.deactivateWorkflowScope = function () {
+  if (workflowStorageScope) {
+    delete workflowMemoryStorage[workflowStorageScope];
+  }
+  workflowStorageScope = null;
+  loadCurrentStorage();
+};
+
+App.db.getWorkflowStorageScope = function () {
+  return workflowStorageScope;
+};
+
+App.db.getWorkflowSnapshot = function (namespaces) {
+  loadCurrentStorage();
+  return (namespaces || workflowNamespaces).reduce(function (snapshot, namespace) {
+    if (App.db.data[namespace] && !$.isEmptyObject(App.db.data[namespace])) {
+      snapshot[namespace] = sanitizeWorkflowData(App.db.data[namespace], false);
+    }
+    return snapshot;
+  }, {});
+};
+
+App.db.hasUnresolvedWorkflowReentry = function (namespaces) {
+  loadCurrentStorage();
+  return (namespaces || workflowNamespaces).some(function (namespace) {
+    return containsReentryMarker(App.db.data[namespace]);
+  });
+};
+
+App.db.getLegacyWorkflowSnapshot = function (namespaces) {
+  var legacyData = loadGlobalStorage();
+  return (namespaces || workflowNamespaces).reduce(function (snapshot, namespace) {
+    if (legacyData[namespace] && !$.isEmptyObject(legacyData[namespace])) {
+      snapshot[namespace] = sanitizeWorkflowData(legacyData[namespace], false);
+    }
+    return snapshot;
+  }, {});
+};
+
+App.db.restoreWorkflowSnapshot = function (snapshot) {
+  if (!workflowStorageScope || !snapshot) {
+    return;
+  }
+  var scopedData = loadWorkflowStorage();
+  var memoryData = loadWorkflowMemory();
+  workflowNamespaces.forEach(function (namespace) {
+    if (snapshot[namespace]) {
+      var sanitized = sanitizeWorkflowData(snapshot[namespace], false);
+      scopedData[namespace] = sanitized;
+      memoryData[namespace] = $.extend(true, {}, sanitized);
+    }
+  });
+  localStorage.setObject(workflowStorageKey(), scopedData);
+  loadCurrentStorage();
+};
+
+App.db.resetWorkflowNamespace = function (namespace) {
+  loadCurrentStorage();
+  App.db.data[rootNamespace(namespace)] = {};
+  persistCurrentStorage(namespace);
 };
 
 App.db.setSecurityWizardStatus = function (status) {

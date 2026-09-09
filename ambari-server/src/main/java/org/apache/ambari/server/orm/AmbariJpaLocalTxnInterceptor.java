@@ -78,6 +78,20 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
   };
 
   /**
+   * Locks acquired by code whose lock identity is only known at runtime and
+   * which must remain held until the enclosing transaction completes.
+   */
+  private static final ThreadLocal<LinkedList<Lock>> s_transactionalDynamicLocks =
+      new ThreadLocal<LinkedList<Lock>>() {
+        @Override
+        protected LinkedList<Lock> initialValue() {
+          return new LinkedList<>();
+        }
+      };
+
+  private static final ThreadLocal<Boolean> s_transactionActive = new ThreadLocal<>();
+
+  /**
    * Used to ensure that methods which rely on the completion of
    * {@link Transactional} can detect when they are able to run.
    *
@@ -122,6 +136,7 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
       // this is the outer-most transactional, begin a transaction
       final EntityTransaction txn = em.getTransaction();
       txn.begin();
+      s_transactionActive.set(true);
 
       Object result;
       try {
@@ -167,6 +182,33 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
     } finally {
       // unlock all lock areas for this transaction
       unlockTransaction();
+      s_transactionActive.remove();
+    }
+  }
+
+  /**
+   * Returns whether the current thread is inside the outermost transaction
+   * interceptor invocation.
+   */
+  public static boolean isTransactionActive() {
+    return Boolean.TRUE.equals(s_transactionActive.get());
+  }
+
+  /**
+   * Acquires a runtime lock and retains it until the enclosing transaction
+   * commits or rolls back.
+   *
+   * @param lock lock to retain through transaction completion
+   */
+  public static void holdLockUntilTransactionCompletion(Lock lock) {
+    if (!isTransactionActive()) {
+      throw new IllegalStateException("A transaction is required for a transaction-scoped lock");
+    }
+
+    LinkedList<Lock> locks = s_transactionalDynamicLocks.get();
+    if (!locks.contains(lock)) {
+      lock.lock();
+      locks.add(lock);
     }
   }
 
@@ -307,10 +349,6 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
    */
   private void unlockTransaction(){
     LinkedList<TransactionalLock> annotations = s_transactionalLocks.get();
-    if (annotations.isEmpty()) {
-      return;
-    }
-
     // iterate through all locks which were encountered during the course of
     // this transaction and release them all now that the transaction is
     // committed; iterate reverse to unlock the most recently locked areas
@@ -325,6 +363,20 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
 
       lock.unlock();
       iterator.remove();
+    }
+
+    LinkedList<Lock> dynamicLocks = s_transactionalDynamicLocks.get();
+    Iterator<Lock> dynamicIterator = dynamicLocks.descendingIterator();
+    while (dynamicIterator.hasNext()) {
+      dynamicIterator.next().unlock();
+      dynamicIterator.remove();
+    }
+
+    if (annotations.isEmpty()) {
+      s_transactionalLocks.remove();
+    }
+    if (dynamicLocks.isEmpty()) {
+      s_transactionalDynamicLocks.remove();
     }
   }
 

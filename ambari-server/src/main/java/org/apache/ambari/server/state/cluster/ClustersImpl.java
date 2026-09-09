@@ -31,7 +31,11 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.RollbackException;
 
 import org.apache.ambari.server.AmbariException;
@@ -51,6 +55,7 @@ import org.apache.ambari.server.events.TopologyUpdateEvent;
 import org.apache.ambari.server.events.UpdateEventType;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO.ClusterCreationResult;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
@@ -70,12 +75,14 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterCreationContext;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
@@ -94,6 +101,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -110,6 +118,8 @@ public class ClustersImpl implements Clusters {
   private ConcurrentHashMap<Long, Host> hostsById = null;
   private ConcurrentHashMap<String, Set<Cluster>> hostClustersMap = null;
   private ConcurrentHashMap<String, Set<Host>> clusterHostsMap1 = null;
+  private final Striped<Lock> hostMembershipLocks = Striped.lazyWeakLock(100);
+  private final ReadWriteLock hostMembershipLifecycleLock = new ReentrantReadWriteLock();
 
   @Inject
   private ClusterDAO clusterDAO;
@@ -296,6 +306,7 @@ public class ClustersImpl implements Clusters {
 
     List<HostEntity> hostEntities = hostDAO.findAll();
     for (HostEntity hostEntity : hostEntities) {
+      validateExclusiveHostMembership(hostEntity);
       Host host = hostFactory.create(hostEntity);
       hostsByNameTemp.put(hostEntity.getHostName(), host);
       hostsByIdTemp.put(hostEntity.getHostId(), host);
@@ -354,11 +365,48 @@ public class ClustersImpl implements Clusters {
   @Override
   public void addCluster(String clusterName, StackId stackId, SecurityType securityType)
       throws AmbariException {
-    Cluster cluster = null;
+    Lock lifecycleWriteLock = hostMembershipLifecycleLock.writeLock();
+    lifecycleWriteLock.lock();
+    try {
+      addClusterLocked(clusterName, stackId, securityType, null, null);
+    } finally {
+      lifecycleWriteLock.unlock();
+    }
+  }
 
-    if (getClustersByName().containsKey(clusterName)) {
-      throw new DuplicateResourceException(
-          "Attempted to create a Cluster which already exists" + ", clusterName=" + clusterName);
+  @Override
+  public Cluster addCluster(String clusterName, StackId stackId, SecurityType securityType,
+      ClusterCreationContext creationContext) throws AmbariException {
+    return addCluster(clusterName, stackId, securityType, creationContext, null);
+  }
+
+  @Override
+  public Cluster addCluster(String clusterName, StackId stackId, SecurityType securityType,
+      ClusterCreationContext creationContext, TopologyRequestEntity provisioningIntent)
+      throws AmbariException {
+    Lock lifecycleWriteLock = hostMembershipLifecycleLock.writeLock();
+    lifecycleWriteLock.lock();
+    try {
+      return addClusterLocked(clusterName, stackId, securityType, creationContext, provisioningIntent);
+    } finally {
+      lifecycleWriteLock.unlock();
+    }
+  }
+
+  private Cluster addClusterLocked(String clusterName, StackId stackId, SecurityType securityType,
+      ClusterCreationContext creationContext, TopologyRequestEntity provisioningIntent)
+      throws AmbariException {
+    Cluster cachedCluster = getClustersByName().get(clusterName);
+    if (cachedCluster != null) {
+      if (creationContext != null && isExactCreationRetry(
+          cachedCluster.getClusterEntity(), stackId, securityType, creationContext)) {
+        if (provisioningIntent == null) {
+          return cachedCluster;
+        }
+      } else {
+        throw new DuplicateResourceException(
+            "Attempted to create a Cluster which already exists" + ", clusterName=" + clusterName);
+      }
     }
 
     // create an admin resource to represent this cluster
@@ -385,20 +433,41 @@ public class ClustersImpl implements Clusters {
       clusterEntity.setSecurityType(securityType);
     }
 
+    boolean initializeClusterState = creationContext == null && provisioningIntent == null;
+    ClusterCreationResult creationResult = null;
     try {
-      clusterDAO.create(clusterEntity);
+      if (provisioningIntent != null) {
+        creationResult = clusterDAO.createWithProvisioningIntent(
+            clusterEntity, creationContext, provisioningIntent);
+        clusterEntity = creationResult.getClusterEntity();
+      } else if (creationContext == null) {
+        clusterDAO.create(clusterEntity);
+      } else {
+        creationResult = clusterDAO.createForDraft(clusterEntity, creationContext);
+        clusterEntity = creationResult.getClusterEntity();
+      }
+    } catch (IllegalStateException e) {
+      LOG.warn("Cluster creation conflict for " + clusterName, e);
+      throw new DuplicateResourceException(
+          "Cluster creation conflict for " + clusterName + ": " + e.getMessage());
     } catch (RollbackException e) {
       LOG.warn("Unable to create cluster " + clusterName, e);
-      throw new AmbariException("Unable to create cluster " + clusterName, e);
+      throw new AmbariException("Unable to create cluster " + clusterName + ": " + e.getMessage(), e);
     }
 
-    cluster = clusterFactory.create(clusterEntity);
+    if (cachedCluster != null && creationResult != null && !creationResult.isCreated()) {
+      return cachedCluster;
+    }
+
+    Cluster cluster = clusterFactory.create(clusterEntity);
     getClustersByName().put(clusterName, cluster);
     getClustersById().put(cluster.getClusterId(), cluster);
     getClusterHostsMap().put(clusterName,
         Collections.newSetFromMap(new ConcurrentHashMap<>()));
 
-    cluster.setCurrentStackVersion(stackId);
+    if (initializeClusterState) {
+      cluster.setCurrentStackVersion(stackId);
+    }
 
     TreeMap<String, TopologyCluster> addedClusters = new TreeMap<>();
     TopologyCluster addedCluster = new TopologyCluster();
@@ -407,6 +476,18 @@ public class ClustersImpl implements Clusters {
         UpdateEventType.UPDATE);
     m_topologyHolder.get().updateData(topologyUpdateEvent);
     m_metadataHolder.get().updateData(m_ambariManagementController.get().getClusterMetadata(cluster));
+    return cluster;
+  }
+
+  private boolean isExactCreationRetry(ClusterEntity clusterEntity, StackId stackId,
+      SecurityType securityType, ClusterCreationContext creationContext) {
+    SecurityType requestedSecurityType = securityType == null ? SecurityType.NONE : securityType;
+    return Integer.valueOf(creationContext.getCreatorUserId()).equals(clusterEntity.getCreatorUserId())
+        && creationContext.getCreationDraftId().equals(clusterEntity.getCreationDraftId())
+        && clusterEntity.getDesiredStack() != null
+        && stackId.getStackName().equals(clusterEntity.getDesiredStack().getStackName())
+        && stackId.getStackVersion().equals(clusterEntity.getDesiredStack().getStackVersion())
+        && requestedSecurityType == clusterEntity.getSecurityType();
   }
 
   @Override
@@ -532,33 +613,42 @@ public class ClustersImpl implements Clusters {
    */
   @Override
   public void addHost(String hostname) throws AmbariException {
-    if (getHostsByName().containsKey(hostname)) {
-      throw new AmbariException(MessageFormat.format("Duplicate entry for Host {0}", hostname));
-    }
+    Lock lifecycleReadLock = hostMembershipLifecycleLock.readLock();
+    Lock hostLock = hostMembershipLocks.get(hostname);
+    lifecycleReadLock.lock();
+    hostLock.lock();
+    try {
+      if (getHostsByName().containsKey(hostname)) {
+        throw new AmbariException(MessageFormat.format("Duplicate entry for Host {0}", hostname));
+      }
 
-    HostEntity hostEntity = new HostEntity();
-    hostEntity.setHostName(hostname);
-    hostEntity.setClusterEntities(new ArrayList<>());
+      HostEntity hostEntity = new HostEntity();
+      hostEntity.setHostName(hostname);
+      hostEntity.setClusterEntities(new ArrayList<>());
 
-    // not stored to DB
-    Host host = hostFactory.create(hostEntity);
-    host.setAgentVersion(new AgentVersion(""));
-    List<DiskInfo> emptyDiskList = new CopyOnWriteArrayList<>();
-    host.setDisksInfo(emptyDiskList);
-    host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
-    host.setHostAttributes(new ConcurrentHashMap<>());
-    host.setState(HostState.INIT);
+      // not stored to DB
+      Host host = hostFactory.create(hostEntity);
+      host.setAgentVersion(new AgentVersion(""));
+      List<DiskInfo> emptyDiskList = new CopyOnWriteArrayList<>();
+      host.setDisksInfo(emptyDiskList);
+      host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
+      host.setHostAttributes(new ConcurrentHashMap<>());
+      host.setState(HostState.INIT);
 
-    // the hosts by ID map is updated separately since the host has not yet
-    // been persisted yet - the below event is what causes the persist
-    getHostsByName().put(hostname, host);
-    getHostsById().put(host.getHostId(), host);
+      // the hosts by ID map is updated separately since the host has not yet
+      // been persisted yet - the below event is what causes the persist
+      getHostsByName().put(hostname, host);
+      getHostsById().put(host.getHostId(), host);
 
-    getHostClustersMap().put(hostname,
-        Collections.newSetFromMap(new ConcurrentHashMap<>()));
+      getHostClustersMap().put(hostname,
+          Collections.newSetFromMap(new ConcurrentHashMap<>()));
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Adding a host to Clusters, hostname={}", hostname);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Adding a host to Clusters, hostname={}", hostname);
+      }
+    } finally {
+      hostLock.unlock();
+      lifecycleReadLock.unlock();
     }
   }
 
@@ -632,11 +722,33 @@ public class ClustersImpl implements Clusters {
    */
   @Override
   public void mapAndPublishHostsToCluster(Set<String> hostnames, String clusterName) throws AmbariException {
-    for (String hostname : hostnames) {
-      mapHostToCluster(hostname, clusterName);
+    Lock lifecycleReadLock = hostMembershipLifecycleLock.readLock();
+    lifecycleReadLock.lock();
+    List<String> sortedHostnames = new ArrayList<>(hostnames);
+    Collections.sort(sortedHostnames);
+    List<Lock> locks = new ArrayList<>(sortedHostnames.size());
+    try {
+      try {
+        for (Lock lock : hostMembershipLocks.bulkGet(sortedHostnames)) {
+          lock.lock();
+          locks.add(lock);
+        }
+        for (String hostname : sortedHostnames) {
+          validateHostClusterAssignment(hostname, clusterName);
+        }
+        for (String hostname : sortedHostnames) {
+          mapHostToClusterLocked(hostname, clusterName);
+        }
+      } finally {
+        for (int i = locks.size() - 1; i >= 0; i--) {
+          locks.get(i).unlock();
+        }
+      }
+      publishAddingHostsToCluster(hostnames, clusterName);
+      getCluster(clusterName).refresh();
+    } finally {
+      lifecycleReadLock.unlock();
     }
-    publishAddingHostsToCluster(hostnames, clusterName);
-    getCluster(clusterName).refresh();
   }
 
   private void publishAddingHostsToCluster(Set<String> hostnames, String clusterName) throws AmbariException {
@@ -654,18 +766,22 @@ public class ClustersImpl implements Clusters {
   @Override
   public void mapHostToCluster(String hostname, String clusterName)
       throws AmbariException {
+    Lock lifecycleReadLock = hostMembershipLifecycleLock.readLock();
+    Lock hostLock = hostMembershipLocks.get(hostname);
+    lifecycleReadLock.lock();
+    hostLock.lock();
+    try {
+      mapHostToClusterLocked(hostname, clusterName);
+    } finally {
+      hostLock.unlock();
+      lifecycleReadLock.unlock();
+    }
+  }
 
+  private void mapHostToClusterLocked(String hostname, String clusterName) throws AmbariException {
     Host host = getHost(hostname);
     Cluster cluster = getCluster(clusterName);
-    ConcurrentHashMap<String, Set<Cluster>> hostClustersMap = getHostClustersMap();
-
-    // check to ensure there are no duplicates
-    for (Cluster c : hostClustersMap.get(hostname)) {
-      if (c.getClusterName().equals(clusterName)) {
-        throw new DuplicateResourceException("Attempted to create a host which already exists: clusterName=" +
-          clusterName + ", hostName=" + hostname);
-      }
-    }
+    validateHostClusterAssignment(hostname, clusterName);
 
     long clusterId = cluster.getClusterId();
     if (LOG.isDebugEnabled()) {
@@ -673,21 +789,103 @@ public class ClustersImpl implements Clusters {
         clusterId);
     }
 
-    mapHostClusterEntities(hostname, clusterId);
-    hostClustersMap.get(hostname).add(cluster);
+    try {
+      mapHostClusterEntities(hostname, clusterId);
+    } catch (PersistenceException e) {
+      DuplicateResourceException conflict = findCommittedHostMappingConflict(hostname, clusterName, e);
+      if (conflict != null) {
+        throw conflict;
+      }
+      throw e;
+    }
+    getHostClustersMap().get(hostname).add(cluster);
     getClusterHostsMap().get(clusterName).add(host);
   }
 
   @Transactional
   void mapHostClusterEntities(String hostName, Long clusterId) {
-    HostEntity hostEntity = hostDAO.findByName(hostName);
-    ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
+    hostDAO.addClusterMapping(hostName, clusterId);
+  }
 
-    hostEntity.getClusterEntities().add(clusterEntity);
-    clusterEntity.getHostEntities().add(hostEntity);
+  private void validateHostClusterAssignment(String hostname, String clusterName) throws AmbariException {
+    getHost(hostname);
+    getCluster(clusterName);
 
-    clusterDAO.merge(clusterEntity);
-    hostDAO.merge(hostEntity);
+    for (Cluster existingCluster : getHostClustersMap().get(hostname)) {
+      if (existingCluster.getClusterName().equals(clusterName)) {
+        throw duplicateHostMapping(hostname, clusterName);
+      }
+      throw conflictingHostMapping(hostname, existingCluster.getClusterName(), clusterName);
+    }
+  }
+
+  private DuplicateResourceException duplicateHostMapping(String hostname, String clusterName) {
+    return new DuplicateResourceException("Attempted to create a host which already exists: clusterName=" +
+        clusterName + ", hostName=" + hostname);
+  }
+
+  private DuplicateResourceException conflictingHostMapping(String hostname, String existingClusterName,
+      String requestedClusterName) {
+    return new DuplicateResourceException(String.format(
+        "Host %s already belongs to cluster %s and cannot be mapped to cluster %s",
+        hostname, existingClusterName, requestedClusterName));
+  }
+
+  private DuplicateResourceException findCommittedHostMappingConflict(String hostname, String requestedClusterName,
+      PersistenceException cause) {
+    List<String> clusterNames = hostDAO.findClusterNamesByHostName(hostname);
+    if (clusterNames.size() > 1) {
+      Collections.sort(clusterNames);
+      throw new AmbariRuntimeException(String.format(
+          "Host %s has multiple committed cluster mappings %s after a failed assignment",
+          hostname, clusterNames), cause);
+    }
+    if (clusterNames.isEmpty()) {
+      return null;
+    }
+
+    String existingClusterName = clusterNames.get(0);
+    synchronizeCommittedHostMapping(hostname, existingClusterName);
+    DuplicateResourceException conflict = existingClusterName.equals(requestedClusterName)
+        ? duplicateHostMapping(hostname, requestedClusterName)
+        : conflictingHostMapping(hostname, existingClusterName, requestedClusterName);
+    conflict.initCause(cause);
+    return conflict;
+  }
+
+  private void synchronizeCommittedHostMapping(String hostname, String clusterName) {
+    try {
+      Host host = getHost(hostname);
+      Cluster cluster = getCluster(clusterName);
+      Set<Cluster> cachedClusters = getHostClustersMap().get(hostname);
+      for (Cluster cachedCluster : new HashSet<>(cachedClusters)) {
+        Set<Host> cachedHosts = getClusterHostsMap().get(cachedCluster.getClusterName());
+        if (cachedHosts != null) {
+          cachedHosts.remove(host);
+        }
+      }
+      cachedClusters.clear();
+      cachedClusters.add(cluster);
+      getClusterHostsMap().get(clusterName).add(host);
+    } catch (AmbariException e) {
+      throw new AmbariRuntimeException(String.format(
+          "Unable to synchronize committed cluster mapping for host %s and cluster %s",
+          hostname, clusterName), e);
+    }
+  }
+
+  private void validateExclusiveHostMembership(HostEntity hostEntity) {
+    Collection<ClusterEntity> clusterEntities = hostEntity.getClusterEntities();
+    if (clusterEntities != null && clusterEntities.size() > 1) {
+      List<String> clusterNames = new ArrayList<>();
+      for (ClusterEntity clusterEntity : clusterEntities) {
+        clusterNames.add(clusterEntity.getClusterName());
+      }
+      Collections.sort(clusterNames);
+      throw new AmbariRuntimeException(String.format(
+          "Host %s has multiple cluster mappings %s. Remove conflicting ClusterHostMapping rows and restart Ambari Server.",
+          hostEntity.getHostName(), clusterNames));
+    }
   }
 
   @Override
@@ -696,14 +894,32 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  public void executeWithClusterWriteLock(ClusterLifecycleOperation operation)
+      throws AmbariException {
+    Lock lifecycleWriteLock = hostMembershipLifecycleLock.writeLock();
+    lifecycleWriteLock.lock();
+    try {
+      operation.execute();
+    } finally {
+      lifecycleWriteLock.unlock();
+    }
+  }
+
+  @Override
   public void updateClusterName(String oldName, String newName) {
-    ConcurrentHashMap<String, Cluster> clusters = getClustersByName();
-    clusters.put(newName, clusters.remove(oldName));
+    Lock lifecycleWriteLock = hostMembershipLifecycleLock.writeLock();
+    lifecycleWriteLock.lock();
+    try {
+      ConcurrentHashMap<String, Cluster> clusters = getClustersByName();
+      clusters.put(newName, clusters.remove(oldName));
 
-    ConcurrentHashMap<String, Set<Host>> clusterHostsMap = getClusterHostsMap();
-    clusterHostsMap.put(newName, clusterHostsMap.remove(oldName));
+      ConcurrentHashMap<String, Set<Host>> clusterHostsMap = getClusterHostsMap();
+      clusterHostsMap.put(newName, clusterHostsMap.remove(oldName));
 
-    //TODO metadata update
+      //TODO metadata update
+    } finally {
+      lifecycleWriteLock.unlock();
+    }
   }
 
 
@@ -749,30 +965,53 @@ public class ClustersImpl implements Clusters {
   @Override
   public void deleteCluster(String clusterName)
       throws AmbariException {
-    Cluster cluster = getCluster(clusterName);
-    if (!cluster.canBeRemoved()) {
-      throw new AmbariException("Could not delete cluster" + ", clusterName=" + clusterName);
-    }
+    Cluster requestedCluster = getCluster(clusterName);
+    long clusterId = requestedCluster.getClusterId();
+    topologyManager.deleteCluster(clusterName, clusterId, () -> {
+      Lock lifecycleWriteLock = hostMembershipLifecycleLock.writeLock();
+      lifecycleWriteLock.lock();
+      try {
+        Cluster cluster = getCluster(clusterName);
+        if (cluster.getClusterId() != clusterId) {
+          throw new AmbariException(
+              "Cluster identity changed while deletion was waiting, clusterName=" + clusterName);
+        }
+        if (!cluster.canBeRemoved()) {
+          throw new AmbariException("Could not delete cluster" + ", clusterName=" + clusterName);
+        }
 
-    LOG.info("Deleting cluster " + cluster.getClusterName());
-    cluster.delete();
+        LOG.info("Deleting cluster " + cluster.getClusterName());
+        cluster.delete();
 
-    // clear maps
-    for (Set<Cluster> clusterSet : getHostClustersMap().values()) {
-      clusterSet.remove(cluster);
-    }
-    getClusterHostsMap().remove(cluster.getClusterName());
-    getClustersByName().remove(clusterName);
+        for (Set<Cluster> clusterSet : getHostClustersMap().values()) {
+          clusterSet.remove(cluster);
+        }
+        getClusterHostsMap().remove(cluster.getClusterName());
+        getClustersByName().remove(clusterName);
+        getClustersById().remove(cluster.getClusterId());
+      } finally {
+        lifecycleWriteLock.unlock();
+      }
+    });
   }
 
   @Override
   public void unmapHostFromCluster(String hostname, String clusterName) throws AmbariException {
-    final Cluster cluster = getCluster(clusterName);
-    Host host = getHost(hostname);
+    Lock lifecycleReadLock = hostMembershipLifecycleLock.readLock();
+    Lock hostLock = hostMembershipLocks.get(hostname);
+    lifecycleReadLock.lock();
+    hostLock.lock();
+    try {
+      final Cluster cluster = getCluster(clusterName);
+      Host host = getHost(hostname);
 
-    unmapHostFromClusters(host, Sets.newHashSet(cluster));
+      unmapHostFromClusters(host, Sets.newHashSet(cluster));
 
-    cluster.refresh();
+      cluster.refresh();
+    } finally {
+      hostLock.unlock();
+      lifecycleReadLock.unlock();
+    }
   }
 
   @Transactional
@@ -807,14 +1046,7 @@ public class ClustersImpl implements Clusters {
 
   @Transactional
   void unmapHostClusterEntities(String hostName, long clusterId) {
-    HostEntity hostEntity = hostDAO.findByName(hostName);
-    ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
-
-    hostEntity.getClusterEntities().remove(clusterEntity);
-    clusterEntity.getHostEntities().remove(hostEntity);
-
-    hostDAO.merge(hostEntity);
-    clusterDAO.merge(clusterEntity, true);
+    hostDAO.removeClusterMapping(hostName, clusterId);
   }
 
   @Transactional
@@ -837,15 +1069,28 @@ public class ClustersImpl implements Clusters {
    */
   @Override
   public void deleteHost(String hostname) throws AmbariException {
-    // unmapping hosts from a cluster modifies the collections directly; keep
-    // a copy of this to ensure that we can pass in the original set of
-    // clusters that the host belonged to to the host removal event
-    Set<Cluster> clusters = getHostClustersMap().get(hostname);
-    if (clusters == null) {
-      throw new HostNotFoundException(hostname);
-    }
+    topologyManager.executeWithLifecycleReadLock(() -> deleteHostWithMembershipLock(hostname));
+  }
 
-    deleteHostEntityRelationships(hostname);
+  private void deleteHostWithMembershipLock(String hostname) throws AmbariException {
+    Lock lifecycleReadLock = hostMembershipLifecycleLock.readLock();
+    Lock hostLock = hostMembershipLocks.get(hostname);
+    lifecycleReadLock.lock();
+    hostLock.lock();
+    try {
+      // unmapping hosts from a cluster modifies the collections directly; keep
+      // a copy of this to ensure that we can pass in the original set of
+      // clusters that the host belonged to to the host removal event
+      Set<Cluster> clusters = getHostClustersMap().get(hostname);
+      if (clusters == null) {
+        throw new HostNotFoundException(hostname);
+      }
+
+      deleteHostEntityRelationships(hostname);
+    } finally {
+      hostLock.unlock();
+      lifecycleReadLock.unlock();
+    }
   }
 
   @Override

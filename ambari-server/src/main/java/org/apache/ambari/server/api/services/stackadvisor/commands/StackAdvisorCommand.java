@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
@@ -48,6 +49,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.RootComponent;
 import org.apache.ambari.server.controller.RootService;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.TrustedPlan;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -177,6 +179,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     try {
       ObjectNode root = (ObjectNode) this.mapper.readTree(data.servicesJSON);
 
+      populateManagedDependencyPlan(root, request);
       populateStackHierarchy(root);
       populateComponentHostsMap(root, request.getComponentHostsMap());
       populateServiceAdvisors(root);
@@ -185,6 +188,8 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       populateAmbariServerInfo(root);
       populateAmbariConfiguration(root);
       data.servicesJSON = mapper.writeValueAsString(root);
+    } catch (WebApplicationException e) {
+      throw e;
     } catch (Exception e) {
       // should not happen
       String message = "Error parsing services.json file content: " + e.getMessage();
@@ -193,6 +198,26 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     }
 
     return data;
+  }
+
+  void populateManagedDependencyPlan(ObjectNode root, StackAdvisorRequest request) {
+    root.remove("managed_dependency_plan");
+    TrustedPlan plan = request.getManagedDependencyPlan();
+    if (plan == null) {
+      return;
+    }
+    if (!plan.appliesTo(request.getClusterId(), request.getStackName(),
+        request.getStackVersion(), request.getServices())) {
+      throw new WebApplicationException(Response.status(Status.BAD_REQUEST)
+          .type(MediaType.APPLICATION_JSON_TYPE)
+          .entity(Map.of("code", "INVALID_MANAGED_DEPENDENCY_PLAN",
+              "message", "The managed dependency advisor context is invalid"))
+          .build());
+    }
+    ObjectNode projection = root.putObject("managed_dependency_plan");
+    projection.put("consumer_service", "HBASE");
+    ArrayNode satisfied = projection.putArray("satisfied_components");
+    plan.satisfiedComponents().forEach(satisfied::add);
   }
 
   /**

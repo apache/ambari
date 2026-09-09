@@ -64,6 +64,9 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyLifecyclePolicy;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyOperationDispatcher;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyRuntimePlanner;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
@@ -98,6 +101,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
@@ -161,7 +166,11 @@ public class AmbariCustomCommandExecutionHelper {
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
 
-  private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
+  @Inject
+  private ManagedDependencyRuntimePlanner managedDependencyRuntimePlanner;
+
+  @Inject
+  private ManagedDependencyLifecyclePolicy managedDependencyLifecyclePolicy;
 
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
   protected static final String START_COMMAND_NAME = "START";
@@ -186,6 +195,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     Cluster cluster = clusters.getCluster(clusterName);
     Service service = cluster.getService(serviceName);
+
     ServiceComponent component = service.getServiceComponent(componentName);
     StackId stackId = component.getDesiredStackId();
 
@@ -214,6 +224,14 @@ public class AmbariCustomCommandExecutionHelper {
       return false;
     }
 
+    if (ManagedDependencyOperationDispatcher.isInternalDispatch()
+        && "HBASE".equals(serviceName)
+        && ManagedDependencyOperationDispatcher.isPreparationCommand(commandName)
+        && Set.of("HBASE_MASTER", "HBASE_REGIONSERVER", "HBASE_THRIFT")
+            .contains(componentName)) {
+      return true;
+    }
+
     return isValidCustomCommand(clusterName, serviceName, componentName, commandName);
   }
 
@@ -226,6 +244,14 @@ public class AmbariCustomCommandExecutionHelper {
 
     if (componentName == null) {
       return false;
+    }
+
+    if (ManagedDependencyOperationDispatcher.isInternalDispatch()
+        && "HBASE".equals(serviceName)
+        && ManagedDependencyOperationDispatcher.isPreparationCommand(commandName)
+        && Set.of("HBASE_MASTER", "HBASE_REGIONSERVER", "HBASE_THRIFT")
+            .contains(componentName)) {
+      return true;
     }
 
     return isValidCustomCommand(clusterName, serviceName, componentName, commandName);
@@ -270,6 +296,14 @@ public class AmbariCustomCommandExecutionHelper {
 
     String clusterName = stage.getClusterName();
     final Cluster cluster = clusters.getCluster(clusterName);
+
+    String effectiveCommandName = commandName == null
+        ? null : commandName.trim().toUpperCase(java.util.Locale.ROOT);
+    if (serviceName != null && Set.of("HDFS", "ZOOKEEPER").contains(serviceName)
+        && effectiveCommandName != null && Set.of("STOP", "RESTART").contains(effectiveCommandName)) {
+      managedDependencyLifecyclePolicy.validateProviderAction(cluster, serviceName, commandName,
+          requestParams);
+    }
 
     // start with all hosts
     Set<String> candidateHosts = new HashSet<>(resourceFilter.getHostNames());
@@ -317,6 +351,17 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException(message);
     }
 
+    Map<String, String> prevalidatedManagedBundles = new HashMap<>();
+    if ("HBASE".equals(serviceName) && commandName != null
+        && Set.of("START", "RESTART").contains(commandName.trim().toUpperCase(java.util.Locale.ROOT))) {
+      // Validate every target before RESTART backend logic can change any desired state.
+      for (String hostName : candidateHosts) {
+        String bundle = managedDependencyRuntimePlanner.readyPreparationBundle(
+            cluster.getClusterId(), clusters.getHost(hostName).getHostId());
+        prevalidatedManagedBundles.put(hostName, bundle);
+      }
+    }
+
     Service service = cluster.getService(serviceName);
 
     // grab the stack ID from the service first, and use the context's if it's set
@@ -336,9 +381,13 @@ public class AmbariCustomCommandExecutionHelper {
 
     long nowTimestamp = System.currentTimeMillis();
 
+    boolean managedPreparation = ManagedDependencyOperationDispatcher.isInternalDispatch()
+        && ManagedDependencyOperationDispatcher.isPreparationCommand(commandName);
     for (String hostName : candidateHosts) {
+      RoleCommand generatedRoleCommand = managedPreparation
+          ? RoleCommand.INSTALL : RoleCommand.CUSTOM_COMMAND;
       stage.addHostRoleExecutionCommand(hostName, Role.valueOf(componentName),
-          RoleCommand.CUSTOM_COMMAND,
+          generatedRoleCommand,
           new ServiceComponentHostOpInProgressEvent(componentName, hostName, nowTimestamp),
           cluster.getClusterName(), serviceName, retryAllowed, autoSkipFailure);
 
@@ -353,6 +402,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       HostRoleCommand cmd = stage.getHostRoleCommand(hostName, componentName);
       if (cmd != null) {
+        cmd.setFutureCommand(actionExecutionContext.isFutureCommand());
         cmd.setCommandDetail(commandDetail);
         cmd.setCustomCommandName(commandName);
         if (customCommandDefinition != null){
@@ -375,12 +425,8 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setCredentialStoreEnabled(String.valueOf(clusterService.isCredentialStoreEnabled()));
 
       // Get the map of service config type to password properties for the service
-      Map<String, Map<String, String>> configCredentials;
-      configCredentials = configCredentialsForService.get(clusterService.getName());
-      if (configCredentials == null) {
-        configCredentials = configHelper.getCredentialStoreEnabledProperties(stackId, clusterService);
-        configCredentialsForService.put(clusterService.getName(), configCredentials);
-      }
+      Map<String, Map<String, String>> configCredentials =
+          configHelper.getCredentialStoreEnabledProperties(stackId, clusterService);
 
       execCmd.setConfigurationCredentials(configCredentials);
 
@@ -417,9 +463,12 @@ public class AmbariCustomCommandExecutionHelper {
           commandParams.put(key, additionalCommandParams.get(key));
         }
       }
+      ManagedDependencyLifecyclePolicy.copyParametersForTarget(requestParams, commandParams,
+          cluster.getClusterId(), serviceName, commandName);
       commandParams.put(CUSTOM_COMMAND, commandName);
 
-      boolean isInstallCommand = commandName.equals(RoleCommand.INSTALL.toString());
+      boolean isInstallCommand = generatedRoleCommand == RoleCommand.INSTALL
+          || commandName.equals(RoleCommand.INSTALL.toString());
       int commandTimeout = Integer.valueOf(configs.getDefaultAgentTaskTimeout(isInstallCommand));
 
       ComponentInfo componentInfo = ambariMetaInfo.getComponent(
@@ -466,6 +515,26 @@ public class AmbariCustomCommandExecutionHelper {
 
       commandParams.put(COMMAND_TIMEOUT, "" + commandTimeout);
 
+      boolean persistedDependencyCommand = commandParams.containsKey(
+          ManagedDependencyOperationDispatcher.COMMAND_PARAMETER);
+      boolean persistedDependencyBundle = commandParams.containsKey(
+          ManagedDependencyRuntimePlanner.BUNDLE_PARAMETER);
+      if ((persistedDependencyCommand || persistedDependencyBundle)
+          && !ManagedDependencyOperationDispatcher.isInternalDispatch()) {
+        throw new AmbariException(
+            "Managed dependency command parameters are reserved for server operations");
+      }
+      if (!persistedDependencyCommand && "HBASE".equals(serviceName)
+          && Set.of("START", "RESTART", "RECONFIGURE").contains(commandName)) {
+        String managedBundle = prevalidatedManagedBundles.containsKey(hostName)
+            ? prevalidatedManagedBundles.get(hostName)
+            : managedDependencyRuntimePlanner.readyPreparationBundle(
+                cluster.getClusterId(), clusters.getHost(hostName).getHostId());
+        if (managedBundle != null) {
+          commandParams.put(ManagedDependencyRuntimePlanner.BUNDLE_PARAMETER, managedBundle);
+        }
+      }
+
       Map<String, String> roleParams = execCmd.getRoleParams();
       if (roleParams == null) {
         roleParams = new TreeMap<>();
@@ -492,14 +561,27 @@ public class AmbariCustomCommandExecutionHelper {
 
       execCmd.setCommandParams(commandParams);
       execCmd.setRoleParams(roleParams);
+      String preparationBundle = commandParams.get(
+          ManagedDependencyRuntimePlanner.BUNDLE_PARAMETER);
+      if (preparationBundle != null) {
+        managedDependencyRuntimePlanner.decoratePersistedCommandConfigurations(
+            clusters.getHost(hostName).getHostId(), preparationBundle,
+            execCmd.getConfigurations(), execCmd.getConfigurationTypeOverrides());
+      }
 
       // skip anything else
       if (actionExecutionContext.isFutureCommand()) {
         continue;
       }
 
-      // perform any server side command related logic - eg - set desired states on restart
-      applyCustomCommandBackendLogic(cluster, serviceName, componentName, commandName, hostName);
+      // Managed lifecycle restart state is applied by the guarded action transaction below.
+      boolean managedRestart = serviceName != null
+          && Set.of("HBASE", "HDFS", "ZOOKEEPER").contains(serviceName)
+          && "RESTART".equalsIgnoreCase(commandName);
+      if (!managedRestart) {
+        // perform any server side command related logic - eg - set desired states on restart
+        applyCustomCommandBackendLogic(cluster, serviceName, componentName, commandName, hostName);
+      }
     }
   }
 
@@ -1052,6 +1134,16 @@ public class AmbariCustomCommandExecutionHelper {
    * @throws AmbariException if the action can not be validated
    */
   public void validateAction(ExecuteActionRequest actionRequest) throws AmbariException {
+    if (ManagedDependencyOperationDispatcher.isReservedCommand(actionRequest.getCommandName())) {
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      if (!(authentication instanceof org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken)
+          || !authentication.isAuthenticated()
+          || !ManagedDependencyOperationDispatcher.INTERNAL_AUTH_TOKEN
+              .equals(authentication.getCredentials())) {
+        throw new AmbariException(
+            "Managed dependency commands may only be issued by the persisted operation dispatcher");
+      }
+    }
 
     List<RequestResourceFilter> resourceFilters = actionRequest.getResourceFilters();
 

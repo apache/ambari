@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-import { FormEvent, useContext, useEffect, useState } from "react";
+import { FormEvent, useContext, useEffect, useRef, useState } from "react";
 import { Alert, Button, ButtonGroup, Form, Spinner, Table } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faRotate } from "@fortawesome/free-solid-svg-icons";
-import MetricsApi from "../../api/metricsApi";
+import MetricsApi, { isMetricsScopeUnsupported } from "../../api/metricsApi";
 import { AppContext } from "../../store/context";
 import { Datasource, PrometheusResult } from "./types";
 import { normalizePrometheusResults } from "./utils";
 import PrometheusChart from "./PrometheusChart";
+import { translate } from "../../Utils/Utility";
 
 const toLocalInput = (date: Date) => {
   const offset = date.getTimezoneOffset() * 60_000;
@@ -35,9 +36,20 @@ const metricLabel = (metric: Record<string, string>) => Object.entries(metric)
   .map(([name, value]) => `${name}="${value}"`)
   .join(", ");
 
-const queryHistory = (): string[] => {
+const queryHistoryKey = (
+  loginName: string,
+  clusterId: string | number | undefined,
+) => loginName && clusterId != null && /^\d+$/.test(String(clusterId))
+  ? `ambari-promql-history:${JSON.stringify([
+      "principal-cluster",
+      loginName,
+      `id:${clusterId}`,
+    ])}`
+  : "";
+
+const queryHistory = (storageKey: string): string[] => {
   try {
-    const value = JSON.parse(localStorage.getItem("ambari-promql-history") || "[]") as unknown;
+    const value = JSON.parse(localStorage.getItem(storageKey) || "[]") as unknown;
     return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
   } catch {
     return [];
@@ -45,7 +57,7 @@ const queryHistory = (): string[] => {
 };
 
 export default function Explorer() {
-  const { clusterName } = useContext(AppContext);
+  const { cluster, clusterName, loginName } = useContext(AppContext);
   const [datasources, setDatasources] = useState<Datasource[]>([]);
   const [datasourceId, setDatasourceId] = useState(0);
   const [query, setQuery] = useState("up");
@@ -54,8 +66,15 @@ export default function Explorer() {
   const [end, setEnd] = useState(toLocalInput(new Date()));
   const [results, setResults] = useState<PrometheusResult[]>([]);
   const [labels, setLabels] = useState<string[]>([]);
+  const [metadataWarning, setMetadataWarning] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const metadataGeneration = useRef(0);
+  const queryGeneration = useRef(0);
+  const historyKey = queryHistoryKey(
+    String(loginName || ""),
+    cluster?.cluster_id,
+  );
 
   useEffect(() => {
     if (!clusterName) return;
@@ -69,20 +88,48 @@ export default function Explorer() {
   }, [clusterName]);
 
   useEffect(() => {
+    const generation = ++metadataGeneration.current;
     if (!datasourceId) {
       setLabels([]);
+      setMetadataWarning("");
       return;
     }
+    setLabels([]);
+    setMetadataWarning("");
     void MetricsApi.labels(datasourceId).then((response) => {
+      if (metadataGeneration.current !== generation) return;
       setLabels(Array.isArray(response.data)
         ? response.data.filter((label): label is string => typeof label === "string")
         : []);
-    }).catch(() => setLabels([]));
+    }).catch((caught: unknown) => {
+      if (metadataGeneration.current !== generation) return;
+      setLabels([]);
+      if (isMetricsScopeUnsupported(caught)) {
+        setMetadataWarning(String(translate("monitoring.metadataUnsupported")));
+      }
+    });
+    return () => {
+      metadataGeneration.current += 1;
+    };
   }, [datasourceId]);
+
+  useEffect(() => {
+    queryGeneration.current += 1;
+    setResults([]);
+    setError("");
+    setLoading(false);
+    return () => {
+      queryGeneration.current += 1;
+    };
+  }, [datasourceId, historyKey]);
 
   const execute = async (event?: FormEvent) => {
     event?.preventDefault();
     if (!datasourceId || !query.trim()) return;
+    const generation = ++queryGeneration.current;
+    const requestedDatasourceId = datasourceId;
+    const requestedQuery = query.trim();
+    const requestedHistoryKey = historyKey;
     setLoading(true);
     setError("");
     try {
@@ -90,21 +137,25 @@ export default function Explorer() {
       const startSeconds = Math.floor(new Date(start).getTime() / 1000);
       const duration = Math.max(endSeconds - startSeconds, 1);
       const response = mode === "instant"
-        ? await MetricsApi.query(datasourceId, query.trim(), endSeconds)
-        : await MetricsApi.queryRange(datasourceId, query.trim(), startSeconds, endSeconds, Math.max(Math.ceil(duration / 240), 1));
+        ? await MetricsApi.query(requestedDatasourceId, requestedQuery, endSeconds)
+        : await MetricsApi.queryRange(requestedDatasourceId, requestedQuery, startSeconds, endSeconds, Math.max(Math.ceil(duration / 240), 1));
+      if (queryGeneration.current !== generation) return;
       if (response.status !== "success") {
         throw new Error(response.error || "Prometheus query failed");
       }
       setResults(normalizePrometheusResults(response.data?.result));
-      const history = queryHistory();
-      localStorage.setItem("ambari-promql-history", JSON.stringify(
-        [query.trim(), ...history.filter((item) => item !== query.trim())].slice(0, 20),
-      ));
+      if (requestedHistoryKey) {
+        const history = queryHistory(requestedHistoryKey);
+        localStorage.setItem(requestedHistoryKey, JSON.stringify(
+          [requestedQuery, ...history.filter((item) => item !== requestedQuery)].slice(0, 20),
+        ));
+      }
     } catch (caught: unknown) {
+      if (queryGeneration.current !== generation) return;
       setResults([]);
       setError(caught instanceof Error ? caught.message : "Prometheus query failed");
     } finally {
-      setLoading(false);
+      if (queryGeneration.current === generation) setLoading(false);
     }
   };
 
@@ -119,14 +170,15 @@ export default function Explorer() {
       </div>
       <Form className="monitoring-panel p-3 mb-3" onSubmit={execute}>
         <div className="row g-3 align-items-end">
-          <Form.Group className="col-lg-3"><Form.Label>Datasource</Form.Label><Form.Select value={datasourceId} onChange={(event) => setDatasourceId(Number(event.target.value))}><option value={0}>Select a datasource</option>{datasources.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Form.Select></Form.Group>
+          <Form.Group controlId="monitoring-explorer-datasource" className="col-lg-3"><Form.Label>Datasource</Form.Label><Form.Select value={datasourceId} onChange={(event) => setDatasourceId(Number(event.target.value))}><option value={0}>Select a datasource</option>{datasources.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</Form.Select></Form.Group>
           <Form.Group className="col-lg-2"><Form.Label>Mode</Form.Label><ButtonGroup className="w-100"><Button variant={mode === "range" ? "secondary" : "outline-secondary"} onClick={() => setMode("range")}>Range</Button><Button variant={mode === "instant" ? "secondary" : "outline-secondary"} onClick={() => setMode("instant")}>Instant</Button></ButtonGroup></Form.Group>
-          <Form.Group className="col-lg-3"><Form.Label>Start</Form.Label><Form.Control type="datetime-local" disabled={mode === "instant"} value={start} onChange={(event) => setStart(event.target.value)} /></Form.Group>
-          <Form.Group className="col-lg-3"><Form.Label>{mode === "instant" ? "Evaluation time" : "End"}</Form.Label><Form.Control type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} /></Form.Group>
-          <div className="col-lg-1 d-grid"><Button type="submit" variant="success" disabled={loading || !datasourceId}>{loading ? <Spinner size="sm" /> : <FontAwesomeIcon icon={faPlay} />}</Button></div>
-          <Form.Group className="col-12"><Form.Label>PromQL</Form.Label><Form.Control className="monitoring-code" as="textarea" rows={3} list="prometheus-labels" value={query} onChange={(event) => setQuery(event.target.value)} /><datalist id="prometheus-labels">{labels.map((label) => <option key={label} value={label} />)}</datalist></Form.Group>
+          <Form.Group controlId="monitoring-explorer-start" className="col-lg-3"><Form.Label>Start</Form.Label><Form.Control type="datetime-local" disabled={mode === "instant"} value={start} onChange={(event) => setStart(event.target.value)} /></Form.Group>
+          <Form.Group controlId="monitoring-explorer-end" className="col-lg-3"><Form.Label>{mode === "instant" ? "Evaluation time" : "End"}</Form.Label><Form.Control type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} /></Form.Group>
+          <div className="col-lg-1 d-grid"><Button type="submit" aria-label="Run query" title="Run query" variant="success" disabled={loading || !datasourceId}>{loading ? <Spinner size="sm" /> : <FontAwesomeIcon icon={faPlay} />}</Button></div>
+          <Form.Group controlId="monitoring-explorer-query" className="col-12"><Form.Label>PromQL</Form.Label><Form.Control className="monitoring-code" as="textarea" rows={3} list="prometheus-labels" value={query} onChange={(event) => setQuery(event.target.value)} /><datalist id="prometheus-labels">{labels.map((label) => <option key={label} value={label} />)}</datalist></Form.Group>
         </div>
       </Form>
+      {metadataWarning && <Alert variant="warning">{metadataWarning}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
       <div className="monitoring-panel p-3">
         {results.length === 0 ? <div className="monitoring-empty">Run a query to inspect its result.</div> : <>

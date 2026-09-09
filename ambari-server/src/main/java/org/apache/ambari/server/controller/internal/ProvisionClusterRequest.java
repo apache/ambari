@@ -151,6 +151,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   private Long repoVersionId;
 
+  private String creationDraftId;
+
   private final String quickLinksProfileJson;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
@@ -172,6 +174,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
     if (properties.containsKey(REPO_VERSION_ID_PROPERTY)) {
       repoVersionId = Long.parseLong(properties.get(REPO_VERSION_ID_PROPERTY).toString());
+    }
+
+    if (properties.containsKey(ClusterResourceProvider.CLUSTER_CREATION_DRAFT_ID_PROPERTY_ID)) {
+      creationDraftId = String.valueOf(
+          properties.get(ClusterResourceProvider.CLUSTER_CREATION_DRAFT_ID_PROPERTY_ID));
     }
 
     if (properties.containsKey(DEFAULT_PASSWORD_PROPERTY)) {
@@ -256,6 +263,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   public String getClusterName() {
     return clusterName;
+  }
+
+  public String getCreationDraftId() {
+    return creationDraftId;
   }
 
   public void setClusterName(String clusterName) {

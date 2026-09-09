@@ -19,6 +19,7 @@
 import React, {
   createContext,
   Dispatch,
+  useContext,
   useEffect,
   useReducer,
   useRef,
@@ -28,16 +29,15 @@ import { Alert, Button } from "react-bootstrap";
 import { get, isEmpty } from "lodash";
 import { State, Action, ActionTypes } from "./types";
 import { reducer, initialState } from "./reducer";
-import ClusterApi from "../../../../../api/clusterApi";
 import { ClusterProgressStatus } from "../../../../../constants";
 import Spinner from "../../../../../components/Spinner";
 import modalManager from "../../../../../store/ModalManager";
-import {
-  parsePersistedValue,
-  persistedPayload,
-} from "../../../../../Utils/persistedSettings";
 import useAuth from "../../../../../hooks/useAuth";
+import useClusterWorkflowPersistence from "../../../../../hooks/useClusterWorkflowPersistence";
 import { Step } from "../../../../../types/StepWizard";
+import { AppContext } from "../../../../../store/context";
+import { containsReentryMarker, workflowErrorMessage } from "../../../../../Utils/scopedWorkflow";
+import { translate } from "../../../../../Utils/Utility";
 
 export const RANGER_ADMIN_HA_PERSIST_KEY = "HIGH_AVAILIBILITY_RANGER_HA";
 
@@ -105,68 +105,64 @@ export const EnableHighAvailibilityRangerAdminContext =
     flushStateToDb: async () => undefined,
   });
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const clearRangerAdminHaPersistedState = () =>
-  ClusterApi.postPersistData(
-    persistedPayload({
-      [RANGER_ADMIN_HA_PERSIST_KEY]: initialState,
-      CLUSTER_STATE: {},
-      "wizard-data": {},
-    }),
-  );
-
 export const EnableHighAvailibilityProvider: React.FC<{
   stepWizardUtilities: unknown;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities: stepWizardUtilitiesInput, children }) => {
+  const { navigateCluster } = useContext(AppContext);
   const stepWizardUtilities =
     stepWizardUtilitiesInput as StepWizardUtilities;
-  const { user } = useAuth();
-  const workflowOwner = user?.user_name || "";
+  const { hasAuthorization } = useAuth();
+  const canPersist = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const persistence = useClusterWorkflowPersistence(RANGER_ADMIN_HA_PERSIST_KEY, {
+    controllerNames: ["rAHighAvailabilityWizardController"],
+    keys: [RANGER_ADMIN_HA_PERSIST_KEY, "CLUSTER_STATE"],
+  });
   const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [isHydrated, setIsHydrated] = useState(false);
   const [initializationError, setInitializationError] = useState("");
+  const [reentryRequired, setReentryRequired] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const stateRef = useRef<State>(initialState);
   const currentStepRef = useRef<Record<string, unknown>>({});
-  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
+  const hydrationGeneration = useRef(0);
+  const stepWizardUtilitiesRef = useRef(stepWizardUtilities);
+  stepWizardUtilitiesRef.current = stepWizardUtilities;
 
   const dispatch: Dispatch<Action> = (action) => {
     stateRef.current = reducer(stateRef.current, action);
     reducerDispatch(action);
   };
 
-  const queuePersistence = (operation: () => Promise<void>) => {
-    const nextOperation = persistenceQueue.current
-      .catch(() => undefined)
-      .then(operation);
-    persistenceQueue.current = nextOperation.catch(() => undefined);
-    return nextOperation;
-  };
-
   useEffect(() => {
-    void syncUserPersistedData();
-    // Hydration is intentionally retried only through retryCount.
+    const generation = ++hydrationGeneration.current;
+    void syncUserPersistedData(generation);
+    return () => {
+      if (hydrationGeneration.current === generation) hydrationGeneration.current += 1;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [retryCount]);
+  }, [canPersist, persistence, retryCount]);
 
-  async function syncUserPersistedData() {
+  async function syncUserPersistedData(generation: number) {
     setIsHydrated(false);
     setInitializationError("");
+    if (!canPersist || !persistence) {
+      setInitializationError(
+        !canPersist
+          ? translate("workflow.persistence.permissionRequired")
+          : translate("workflow.persistence.explicitCluster"),
+      );
+      return;
+    }
     try {
-      let response: unknown = initialState;
-      try {
-        response = await ClusterApi.getPersistData(RANGER_ADMIN_HA_PERSIST_KEY);
-      } catch (error: unknown) {
-        const requestError = error as RequestError;
-        if (
-          requestError.response?.status !== 404 &&
-          requestError.status !== 404
-        ) {
-          throw error;
-        }
-      }
-      const persistedData = parsePersistedValue(response, initialState);
+      const values = retryCount > 0
+        ? await persistence.reload()
+        : await persistence.getPersistData();
+      if (hydrationGeneration.current !== generation) return;
+      const persistedData = (values?.[RANGER_ADMIN_HA_PERSIST_KEY] || initialState) as State;
+      const currentWizardUtilities = stepWizardUtilitiesRef.current;
+      const needsReentry = containsReentryMarker(persistedData);
+      setReentryRequired(needsReentry);
       if (
         !isEmpty(
           get(persistedData, "enableHighAvailibilityRangerAdminSteps", {}),
@@ -174,7 +170,9 @@ export const EnableHighAvailibilityProvider: React.FC<{
       ) {
         dispatch({ type: ActionTypes.SYNC_STATE, payload: persistedData });
       }
-      const activeStepName = get(persistedData, "activeStep", "");
+      const activeStepName = needsReentry
+        ? currentWizardUtilities.wizardSteps[1]?.name
+        : get(persistedData, "activeStep", "");
       if (activeStepName) {
         const restoredStep = {
           progressStatus: ClusterProgressStatus.ENABLING_RANGER_ADMIN_HA,
@@ -182,25 +180,25 @@ export const EnableHighAvailibilityProvider: React.FC<{
         };
         currentStepRef.current = restoredStep;
         const activeStepNumber = Object.keys(
-          stepWizardUtilities.wizardSteps,
+          currentWizardUtilities.wizardSteps,
         ).find(
           (stepNumber) =>
-            stepWizardUtilities.wizardSteps[stepNumber]?.name === activeStepName,
+            currentWizardUtilities.wizardSteps[stepNumber]?.name === activeStepName,
         );
         if (activeStepNumber !== undefined) {
-          stepWizardUtilities.jumpToStep(Number(activeStepNumber), true);
+          currentWizardUtilities.jumpToStep(Number(activeStepNumber), true);
         }
       } else {
-        stepWizardUtilities.jumpToStep(1, true);
+        currentWizardUtilities.jumpToStep(1, true);
       }
       setIsHydrated(true);
     } catch (error: unknown) {
+      if (hydrationGeneration.current !== generation) return;
       const requestError = error as RequestError;
-      setInitializationError(
-        requestError.response?.data?.message ||
-          requestError.message ||
-          "Ambari could not restore the Ranger Admin HA workflow.",
-      );
+      setInitializationError(workflowErrorMessage(
+        requestError,
+        translate("workflow.persistence.haLoadFailed"),
+      ));
     }
   }
 
@@ -208,30 +206,28 @@ export const EnableHighAvailibilityProvider: React.FC<{
     stateSnapshot = stateRef.current,
     stepSnapshot = currentStepRef.current,
   ) {
-    await ClusterApi.postPersistData(
-      persistedPayload({
-        [RANGER_ADMIN_HA_PERSIST_KEY]: {
-          ...stateSnapshot,
-          activeStep: get(stepSnapshot, "stepName", ""),
-        },
-        CLUSTER_STATE: stepSnapshot,
-        "wizard-data": { userName: workflowOwner },
-      }),
-    );
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    const activeStep = get(stepSnapshot, "stepName", "");
+    await persistence.savePersistData({
+      [RANGER_ADMIN_HA_PERSIST_KEY]: { ...stateSnapshot, activeStep },
+      CLUSTER_STATE: stepSnapshot,
+    }, activeStep || ClusterProgressStatus.ENABLING_RANGER_ADMIN_HA);
+    setReentryRequired(false);
   }
 
   async function clearPersistedState() {
-    await queuePersistence(clearRangerAdminHaPersistedState);
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    await persistence.release();
   }
 
   async function flushOnCancel() {
     if (stepWizardUtilities.activeStep >= 4) {
-      await queuePersistence(() => flushCurrentData());
+      await flushCurrentData();
     } else {
       await clearPersistedState();
     }
     modalManager.hide();
-    window.location.href = "/#/main/services/RANGER/summary";
+    navigateCluster("/main/services/RANGER/summary");
   }
 
   async function flushOnStepChange(nextStep: number | undefined) {
@@ -252,7 +248,7 @@ export const EnableHighAvailibilityProvider: React.FC<{
       stepName: nextStepDetails?.name,
     };
     currentStepRef.current = nextStepData;
-    await queuePersistence(() => flushCurrentData(nextState, nextStepData));
+    await flushCurrentData(nextState, nextStepData);
   }
 
   async function flushStateToDb(
@@ -276,7 +272,7 @@ export const EnableHighAvailibilityProvider: React.FC<{
         await flushOnStepChange(jumpStep);
         break;
       default:
-        await queuePersistence(() => flushCurrentData());
+        await flushCurrentData();
     }
   }
 
@@ -288,8 +284,9 @@ export const EnableHighAvailibilityProvider: React.FC<{
           size="sm"
           className="ms-3"
           onClick={() => setRetryCount((value) => value + 1)}
+          disabled={!canPersist || !persistence}
         >
-          Retry
+          {translate("common.retry")}
         </Button>
       </Alert>
     );
@@ -300,6 +297,11 @@ export const EnableHighAvailibilityProvider: React.FC<{
     <EnableHighAvailibilityRangerAdminContext.Provider
       value={{ state, dispatch, stepWizardUtilities, flushStateToDb }}
     >
+      {reentryRequired && (
+        <Alert variant="warning">
+          {translate("workflow.persistence.reentryRequired")}
+        </Alert>
+      )}
       {children}
     </EnableHighAvailibilityRangerAdminContext.Provider>
   );

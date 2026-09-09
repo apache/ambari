@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.services.stackadvisor.commands;
 
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.nullable;
@@ -40,6 +41,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -57,6 +60,17 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequestExc
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand.StackAdvisorData;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.ConsumerPlan;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.ConsumerScope;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.PlanRequest;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.SelectionPlan;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.TrustedPlan;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyType;
+import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator;
+import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.AdvisorSelection;
+import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ConsumerReference;
+import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ProviderReference;
 import org.apache.ambari.server.controller.internal.AmbariServerConfigurationHandler;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.commons.io.FileUtils;
@@ -313,6 +327,89 @@ public class StackAdvisorCommandTest {
     command.populateAmbariConfiguration((ObjectNode)servicesRootNode);
     JsonNode expectedLdapConfig = json("{\"ambari-server-configuration\":{}}");
     assertEquals(expectedLdapConfig, servicesRootNode);
+  }
+
+  @Test
+  public void callerManagedPlanIsStrippedWithoutTrustedRequestPlan() throws Exception {
+    TestStackAdvisorCommand command = command();
+    ObjectNode root = (ObjectNode) command.mapper.readTree(
+        "{\"managed_dependency_plan\":{\"consumer_service\":\"HBASE\","
+            + "\"satisfied_components\":[\"HDFS_CLIENT\",\"ZOOKEEPER_SERVER\"]}}");
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("BIGTOP", "3.2.0")
+        .forServices(Set.of("HBASE"))
+        .withClusterId(27L)
+        .build();
+
+    command.populateManagedDependencyPlan(root, request);
+
+    assertFalse(root.has("managed_dependency_plan"));
+  }
+
+  @Test
+  public void trustedPlanProjectionIsRequestLocalAndBoundToItsTarget() throws Exception {
+    TestStackAdvisorCommand command = command();
+    TrustedPlan trusted = trustedHdfsPlan();
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("BIGTOP", "3.2.0")
+        .forServices(Set.of("HBASE"))
+        .withClusterId(27L)
+        .withManagedDependencyPlan(trusted)
+        .build();
+    String cachedServicesJson = "{\"services\":[],\"managed_dependency_plan\":{"
+        + "\"consumer_service\":\"HBASE\",\"satisfied_components\":[\"ZOOKEEPER_SERVER\"]}}";
+    ObjectNode clusterA = (ObjectNode) command.mapper.readTree(cachedServicesJson);
+    ObjectNode clusterB = (ObjectNode) command.mapper.readTree(cachedServicesJson);
+
+    command.populateManagedDependencyPlan(clusterA, request);
+    command.populateManagedDependencyPlan(clusterB,
+        StackAdvisorRequestBuilder.forStack("BIGTOP", "3.2.0")
+            .forServices(Set.of("HBASE"))
+            .withClusterId(28L)
+            .build());
+
+    assertEquals("HBASE", clusterA.path("managed_dependency_plan")
+        .path("consumer_service").asText());
+    assertEquals(List.of("HDFS_CLIENT"), command.mapper.convertValue(
+        clusterA.path("managed_dependency_plan").path("satisfied_components"), List.class));
+    assertFalse(clusterB.has("managed_dependency_plan"));
+    assertTrue(cachedServicesJson.contains("ZOOKEEPER_SERVER"));
+
+    ObjectNode wrongTarget = (ObjectNode) command.mapper.readTree("{}");
+    try {
+      command.populateManagedDependencyPlan(wrongTarget,
+          StackAdvisorRequestBuilder.forStack("BIGTOP", "3.2.0")
+              .forServices(Set.of("HBASE"))
+              .withClusterId(28L)
+              .withManagedDependencyPlan(trusted)
+              .build());
+      throw new AssertionError("Expected target-bound plan rejection");
+    } catch (WebApplicationException e) {
+      assertEquals(400, e.getResponse().getStatus());
+      assertFalse(wrongTarget.has("managed_dependency_plan"));
+    }
+  }
+
+  private TestStackAdvisorCommand command() throws IOException {
+    return new TestStackAdvisorCommand(temp.newFolder("recommendationDir"), "1w",
+        ServiceInfo.ServiceAdvisorType.PYTHON, 0, mock(StackAdvisorRunner.class),
+        mock(AmbariMetaInfo.class), null);
+  }
+
+  private TrustedPlan trustedHdfsPlan() {
+    UUID bindingId = UUID.fromString("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    String providerFingerprint = "sha256:" + "1".repeat(64);
+    String consumerFingerprint = "sha256:" + "2".repeat(64);
+    String snapshotFingerprint = "sha256:" + "3".repeat(64);
+    ManagedServiceDependencyCoordinator coordinator = mock(ManagedServiceDependencyCoordinator.class);
+    ProviderReference provider = new ProviderReference(41L, "HDFS");
+    when(coordinator.authorizeAdvisorSelections(ConsumerReference.service(27L), any(List.class)))
+        .thenReturn(List.of(new AdvisorSelection(
+            bindingId, ManagedDependencyType.HDFS, 27L, "HBASE", 41L, "HDFS", 2,
+            "BIGTOP", "3.2.0", providerFingerprint, consumerFingerprint, snapshotFingerprint)));
+    ManagedDependencyStackAdvisorPlanner planner = new ManagedDependencyStackAdvisorPlanner(coordinator);
+    PlanRequest plan = new PlanRequest(new ConsumerPlan(ConsumerScope.SERVICE, null, 27L, 0L),
+        List.of(new SelectionPlan(ManagedDependencyType.HDFS, bindingId, provider, 2,
+            providerFingerprint, consumerFingerprint, snapshotFingerprint)));
+    return planner.authorize(plan, 27L, "BIGTOP", "3.2.0", Set.of("HBASE"));
   }
 
   /**

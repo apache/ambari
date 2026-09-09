@@ -42,13 +42,24 @@ vi.mock("./config/axiosConfig", () => ({
   },
 }));
 
-import MetricsApi from "./metricsApi";
+import MetricsApi, {
+  isMetricsScopeUnsupported,
+  metricsApiErrorCode,
+} from "./metricsApi";
 
 const envelope = <T>(value: T) => ({ data: { data: value, error: "" } });
 
 describe("monitoring API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("recognizes the stable scoped-metadata error code", () => {
+    const error = { response: { data: { code: "METRICS_SCOPE_UNSUPPORTED" } } };
+
+    expect(metricsApiErrorCode(error)).toBe("METRICS_SCOPE_UNSUPPORTED");
+    expect(isMetricsScopeUnsupported(error)).toBe(true);
+    expect(isMetricsScopeUnsupported(new Error("request failed"))).toBe(false);
   });
 
   it("preserves datasource cluster scoping and unwraps responses", async () => {

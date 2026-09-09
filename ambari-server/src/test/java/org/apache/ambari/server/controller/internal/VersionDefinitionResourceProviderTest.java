@@ -27,6 +27,13 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import jakarta.persistence.PersistenceException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
@@ -38,6 +45,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -61,6 +69,7 @@ import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -340,6 +349,133 @@ public class VersionDefinitionResourceProviderTest {
 
     results = versionProvider.getResources(getRequest, null);
     Assert.assertEquals(1, results.size());
+  }
+
+  @Test
+  public void testCreateWithInitialOperatingSystemsRetriesExactDefinition() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    VersionDefinitionResourceProvider provider = new VersionDefinitionResourceProvider();
+    RequestStatus first = provider.createResources(initialRepositoryCreateRequest("http://repo.example/hdp"));
+    RequestStatus retry = provider.createResources(initialRepositoryCreateRequest("http://repo.example/hdp"));
+
+    Object firstId = first.getAssociatedResources().iterator().next().getPropertyValue(
+        VersionDefinitionResourceProvider.VERSION_DEF_ID);
+    Object retryId = retry.getAssociatedResources().iterator().next().getPropertyValue(
+        VersionDefinitionResourceProvider.VERSION_DEF_ID);
+    Assert.assertEquals(firstId, retryId);
+
+    RepositoryVersionEntity entity = injector.getInstance(RepositoryVersionDAO.class)
+        .findByStackAndVersion(parentEntity.getStack(), "2.2.0.8-5678");
+    Assert.assertNotNull(entity);
+    Assert.assertEquals(1, entity.getRepoOsEntities().size());
+    Assert.assertEquals("http://repo.example/hdp",
+        entity.getRepoOsEntities().get(0).getRepoDefinitionEntities().get(0).getBaseUrl());
+
+    try {
+      provider.createResources(initialRepositoryCreateRequest("http://other.example/hdp"));
+      fail("Expected conflicting initial repository settings to be rejected");
+    } catch (ResourceAlreadyExistsException expected) {
+      Assert.assertTrue(expected.getMessage().contains("different initial repository settings"));
+    }
+  }
+
+  @Test
+  public void testConcurrentCreateWithSameInitialOperatingSystemsReusesCompleteEntity()
+      throws Exception {
+    CyclicBarrier persistBarrier = new CyclicBarrier(2);
+    VersionDefinitionResourceProvider provider = new VersionDefinitionResourceProvider() {
+      @Override
+      void persistRepositoryVersion(RepositoryVersionEntity entity) {
+        try {
+          persistBarrier.await(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+          throw new IllegalStateException("Concurrent create did not reach the persistence barrier", e);
+        }
+        super.persistRepositoryVersion(entity);
+      }
+    };
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    try {
+      Future<RequestStatus> first = executor.submit(() -> createInitialRepositoryVersion(
+          provider, authentication, "http://repo.example/hdp"));
+      Future<RequestStatus> second = executor.submit(() -> createInitialRepositoryVersion(
+          provider, authentication, "http://repo.example/hdp"));
+
+      Object firstId = first.get(20, TimeUnit.SECONDS).getAssociatedResources().iterator().next()
+          .getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
+      Object secondId = second.get(20, TimeUnit.SECONDS).getAssociatedResources().iterator().next()
+          .getPropertyValue(VersionDefinitionResourceProvider.VERSION_DEF_ID);
+      Assert.assertEquals(firstId, secondId);
+
+      RepositoryVersionEntity entity = injector.getInstance(RepositoryVersionDAO.class)
+          .findByStackAndVersion(parentEntity.getStack(), "2.2.0.8-5678");
+      Assert.assertNotNull(entity);
+      Assert.assertEquals("http://repo.example/hdp",
+          entity.getRepoOsEntities().get(0).getRepoDefinitionEntities().get(0).getBaseUrl());
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
+  @Test
+  public void testInvalidInitialOperatingSystemsDoesNotPublishRepositoryVersion() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    VersionDefinitionResourceProvider provider = new VersionDefinitionResourceProvider();
+    try {
+      provider.createResources(initialRepositoryCreateRequest(
+          "http://repo.example/hdp", "unsupported-operating-system"));
+      fail("Expected unsupported initial operating systems to be rejected");
+    } catch (Exception expected) {
+      Assert.assertTrue(expected.getMessage().contains("is not supported by stack"));
+    }
+
+    Assert.assertNull(injector.getInstance(RepositoryVersionDAO.class)
+        .findByStackAndVersion(parentEntity.getStack(), "2.2.0.8-5678"));
+  }
+
+  @Test
+  public void testMalformedInitialOperatingSystemsDoNotPublishRepositoryVersion() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    String duplicateOperatingSystem = "[{\"OperatingSystems/os_type\":\"redhat6\","
+        + "\"repositories\":[{" + repositoryJson("one", "http://repo.example/one") + "}]},"
+        + "{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{"
+        + repositoryJson("two", "http://repo.example/two") + "}]}]";
+    assertInitialRepositoriesRejected(duplicateOperatingSystem, "specified more than once");
+
+    String duplicateRepository = "[{\"OperatingSystems/os_type\":\"redhat6\","
+        + "\"repositories\":[{" + repositoryJson("duplicate", "http://repo.example/one")
+        + "},{" + repositoryJson("duplicate", "http://repo.example/two") + "}]}]";
+    assertInitialRepositoriesRejected(duplicateRepository, "Repository ID duplicate is specified more than once");
+
+    String emptyRepositories =
+        "[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[]}]";
+    assertInitialRepositoriesRejected(emptyRepositories, "must define at least one repository");
+  }
+
+  @Test
+  public void testInitialOperatingSystemsStorageFailureIsNotReportedAsConcurrentCreate()
+      throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+    VersionDefinitionResourceProvider provider = new VersionDefinitionResourceProvider() {
+      @Override
+      void persistRepositoryVersion(RepositoryVersionEntity entity) {
+        throw new PersistenceException("repository storage is unavailable");
+      }
+    };
+
+    try {
+      provider.createResources(initialRepositoryCreateRequest("http://repo.example/hdp"));
+      fail("Expected the repository storage failure to be preserved");
+    } catch (PersistenceException expected) {
+      Assert.assertEquals("repository storage is unavailable", expected.getMessage());
+    }
+
+    Assert.assertNull(injector.getInstance(RepositoryVersionDAO.class)
+        .findByStackAndVersion(parentEntity.getStack(), "2.2.0.8-5678"));
   }
 
   @Test
@@ -700,6 +836,54 @@ public class VersionDefinitionResourceProviderTest {
     }
 
     cluster.addService(serviceName, serviceRepo);
+  }
+
+  private Request initialRepositoryCreateRequest(String baseUrl) throws Exception {
+    return initialRepositoryCreateRequest(baseUrl, "redhat6");
+  }
+
+  private Request initialRepositoryCreateRequest(String baseUrl, String operatingSystem) throws Exception {
+    String operatingSystems = "[{\"OperatingSystems/os_type\":\"" + operatingSystem
+        + "\",\"repositories\":[{" + repositoryJson("HDP-2.2", baseUrl) + "}]}]";
+    return initialRepositoryCreateRequestFromJson(operatingSystems);
+  }
+
+  private Request initialRepositoryCreateRequestFromJson(String operatingSystems) throws Exception {
+    Map<String, Object> properties = new LinkedHashMap<>();
+    properties.put(VersionDefinitionResourceProvider.VERSION_DEF_DEFINITION_URL,
+        new File("src/test/resources/version_definition_resource_provider.xml").toURI().toURL().toString());
+    properties.put(VersionDefinitionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
+        new Gson().fromJson(operatingSystems, Object.class));
+    return PropertyHelper.getCreateRequest(Collections.singleton(properties), null);
+  }
+
+  private String repositoryJson(String repositoryId, String baseUrl) {
+    return "\"Repositories/repo_id\":\"" + repositoryId + "\","
+        + "\"Repositories/repo_name\":\"" + repositoryId + "\","
+        + "\"Repositories/base_url\":\"" + baseUrl + "\","
+        + "\"Repositories/unique\":\"true\"";
+  }
+
+  private void assertInitialRepositoriesRejected(String operatingSystems, String message) throws Exception {
+    try {
+      new VersionDefinitionResourceProvider().createResources(
+          initialRepositoryCreateRequestFromJson(operatingSystems));
+      fail("Expected invalid initial repository settings to be rejected");
+    } catch (Exception expected) {
+      Assert.assertTrue(expected.getMessage().contains(message));
+    }
+    Assert.assertNull(injector.getInstance(RepositoryVersionDAO.class)
+        .findByStackAndVersion(parentEntity.getStack(), "2.2.0.8-5678"));
+  }
+
+  private RequestStatus createInitialRepositoryVersion(VersionDefinitionResourceProvider provider,
+      Authentication authentication, String baseUrl) throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    try {
+      return provider.createResources(initialRepositoryCreateRequest(baseUrl));
+    } finally {
+      SecurityContextHolder.clearContext();
+    }
   }
 
 }

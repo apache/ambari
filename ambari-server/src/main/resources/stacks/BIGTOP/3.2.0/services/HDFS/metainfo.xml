@@ -91,6 +91,42 @@
           </logs>
           <customCommands>
             <customCommand>
+              <name>PREPARE_BINDING_JOURNAL</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>INITIALIZE_BINDING_JOURNAL</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>PROVISION_HDFS_NAMESPACE</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>INVALIDATE_BINDING_EPOCH</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
               <name>DECOMMISSION</name>
               <commandScript>
                 <script>scripts/namenode.py</script>

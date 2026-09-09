@@ -938,6 +938,106 @@ public class RequestResourceProviderTest {
     verify(managementController, response, stage);
   }
 
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateRequestCannotTargetAnotherClustersRequestId() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createMock(ActionManager.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster clusterA = createMock(Cluster.class);
+    Cluster clusterB = createMock(Cluster.class);
+    org.apache.ambari.server.actionmanager.Request requestB =
+        createMock(org.apache.ambari.server.actionmanager.Request.class);
+
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(actionManager.getRequests(EasyMock.<Collection<Long>>anyObject()))
+        .andReturn(Collections.singletonList(requestB));
+    expect(requestB.getClusterId()).andReturn(2L);
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(2L)).andReturn(clusterB);
+    expect(clusters.getCluster("cluster-a")).andReturn(clusterA);
+    expect(clusterA.getClusterId()).andReturn(1L);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 11L));
+    replay(managementController, actionManager, clusters, clusterA, clusterB, requestB);
+
+    Map<String, Object> properties = new LinkedHashMap<>();
+    properties.put(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID, "ABORTED");
+    properties.put(RequestResourceProvider.REQUEST_ABORT_REASON_PROPERTY_ID, "cancel");
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
+    Predicate predicate = new PredicateBuilder()
+        .property(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID).equals("cluster-a")
+        .and().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").toPredicate();
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Request, managementController);
+
+    provider.updateResources(request, predicate);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testViewOnlyUserCannotCancelRequest() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createMock(ActionManager.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    org.apache.ambari.server.actionmanager.Request internalRequest =
+        createMock(org.apache.ambari.server.actionmanager.Request.class);
+
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(actionManager.getRequests(EasyMock.<Collection<Long>>anyObject()))
+        .andReturn(Collections.singletonList(internalRequest));
+    expect(internalRequest.getClusterId()).andReturn(1L);
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
+    expect(clusters.getCluster("cluster-a")).andReturn(cluster);
+    expect(cluster.getClusterId()).andReturn(1L);
+    expect(cluster.getResourceId()).andReturn(1L);
+    SecurityContextHolder.getContext().setAuthentication(createViewUser(1L));
+    replay(managementController, actionManager, clusters, cluster, internalRequest);
+
+    Map<String, Object> properties = new LinkedHashMap<>();
+    properties.put(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID, "ABORTED");
+    properties.put(RequestResourceProvider.REQUEST_ABORT_REASON_PROPERTY_ID, "cancel");
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
+    Predicate predicate = new PredicateBuilder()
+        .property(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID).equals("cluster-a")
+        .and().property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").toPredicate();
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Request, managementController);
+
+    provider.updateResources(request, predicate);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testLogicalRequestAbortRequiresHostRemovalAuthorization() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    ActionManager actionManager = createMock(ActionManager.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    LogicalRequest logicalRequest = createMock(LogicalRequest.class);
+
+    expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
+    expect(actionManager.getRequests(EasyMock.<Collection<Long>>anyObject()))
+        .andReturn(Collections.singletonList(logicalRequest));
+    expect(logicalRequest.getClusterId()).andReturn(1L);
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
+    expect(cluster.getResourceId()).andReturn(1L);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createServiceOperator("operator", 1L));
+    replay(managementController, actionManager, clusters, cluster, logicalRequest);
+
+    Map<String, Object> properties = new LinkedHashMap<>();
+    properties.put(RequestResourceProvider.REQUEST_STATUS_PROPERTY_ID, "ABORTED");
+    properties.put(RequestResourceProvider.REQUEST_ABORT_REASON_PROPERTY_ID, "cancel");
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
+    Predicate predicate = new PredicateBuilder()
+        .property(RequestResourceProvider.REQUEST_ID_PROPERTY_ID).equals("100").toPredicate();
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Request, managementController);
+
+    provider.updateResources(request, predicate);
+  }
+
   @Test
   public void testDeleteResources() throws Exception {
     Resource.Type type = Resource.Type.Request;
@@ -1747,9 +1847,10 @@ public class RequestResourceProviderTest {
       expect(logicalRequest.getHostRequests()).andReturn(hostRequests).anyTimes();
       expect(logicalRequest.constructNewPersistenceEntity()).andReturn(requestMock).anyTimes();
       expect(logicalRequest.calculateStatus()).andReturn(calculatedStatus).anyTimes();
-      Optional<String> failureReason = calculatedStatus == CalculatedStatus.ABORTED
-        ? Optional.of("some reason")
-        : Optional.<String>absent();
+      Optional<String> failureReason = calculatedStatus == CalculatedStatus.COMPLETED
+        ? Optional.<String>absent()
+        : Optional.of(calculatedStatus == CalculatedStatus.PENDING
+            ? "CONFIGURATION_FAILED: retry the exact provisioning request" : "some reason");
       expect(logicalRequest.getFailureReason()).andReturn(failureReason).anyTimes();
 
       prepareGetAuthorizationExpectations();

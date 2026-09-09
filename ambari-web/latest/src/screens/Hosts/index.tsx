@@ -26,7 +26,8 @@ import { forEach, get } from "lodash";
 import { useContext, useEffect, useMemo, useState } from "react";
 import IHost from "../../models/host";
 import { useHostConfigUpdater } from "../../hooks/useHostConfigUpdater";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import { IHostComponent } from "../../models/hostComponent";
 import { AppContext } from "../../store/context";
 import { confirmRecoverHost, doAction } from "./details";
@@ -49,7 +50,7 @@ import useKerberosMode from "../../hooks/useKerberosMode";
 
 export function Hosts() {
   const params = useParams();
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const {
     isKerberosEnabled,
     clusterName,
@@ -378,6 +379,7 @@ export function Hosts() {
             action: "deleteHost",
             hostName: hostName,
             clusterName: clusterName,
+            navigateCluster: navigate,
             host: get(allHostModels, "[0]"),
             clusterComponents: get(clusterComponents, "items", []),
             serviceModels: serviceModels,

@@ -19,6 +19,7 @@ import { MouseEventHandler, useState } from "react";
 import { Dropdown } from "react-bootstrap";
 import SidebarItem from "./SidebarItem";
 import { Link } from "react-router-dom";
+import useClusterPath from "../../hooks/useClusterPath";
 
 const SidebarItemCollapsed = ({
   ele,
@@ -38,6 +39,7 @@ const SidebarItemCollapsed = ({
   setSelectedOption?: any;
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const scopedPath = useClusterPath();
   if (childElements?.length) {
     return (
       <Dropdown
@@ -101,7 +103,7 @@ const SidebarItemCollapsed = ({
           setSelectedOption(ele.id);
         }}
       >
-        <Link to={ele.path} className="sideitem">
+        <Link to={scopedPath(ele.path)} className="sideitem">
           <div style={{ fontSize: 20 }}>{ele.icon}</div>
         </Link>
       </div>

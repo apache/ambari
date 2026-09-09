@@ -35,6 +35,14 @@ import {
   masterValidationKey,
   MasterValidationMessages,
 } from "../screens/ClusterWizard/masterValidation";
+import {
+  hasManagedAdvisorDependency,
+  ManagedDependencyAdvisorReviewRequiredError,
+  stackAdvisorNeedsProviderReview,
+  type PreparedStackAdvisorRequest,
+} from "../screens/ClusterWizard/managedDependencyAdvisor";
+import { responseErrorMessage } from "../Utils/httpError";
+import { useTranslation } from "react-i18next";
 
 const initialState: State = {
   hosts: {},
@@ -82,173 +90,228 @@ export default function AssignMasters({
   dispatch: dispatchParent,
   installedServices,
   parentState,
+  advisorInputKey,
   setCanProceed,
   setHasValidationIssues = () => {},
+  onReviewManagedDependencies,
+  runWithAdvisorRequest,
 }: AssignMastersProps) {
-  const [state, dispatch] = useReducer(reducer, get(
-      parentState,
-      `clusterCreationSteps.MASTERS.data.state`,
-      undefined
-    ) || initialState);
+  const { t } = useTranslation();
+  const restoredData = get(
+    parentState,
+    `clusterCreationSteps.MASTERS.data`,
+    {},
+  );
+  const canRestoreAdvice = Boolean(
+    advisorInputKey
+      && restoredData.advisorInputKey === advisorInputKey
+      && Object.keys(restoredData.state?.hosts || {}).length > 0,
+  );
+  const restoredState = canRestoreAdvice ? restoredData.state : initialState;
+  const [state, dispatch] = useReducer(reducer, restoredState);
   const [loading, setLoading] = useState(false);
   const [mastersData, setMastersData] = useState<Masters[]>([]);
   const [servicesAndComponents, setServicesAndComponents] = useState<ServicesResponse | null>(null);
   const [validationMessages, setValidationMessages] =
     useState<MasterValidationMessages>({});
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [loadFailure, setLoadFailure] = useState<{
+    kind: "recommendation" | "validation";
+    message: string;
+    reviewRequired: boolean;
+  } | null>(null);
   const validationSequence = useRef(0);
+  const requestSequence = useRef(0);
+  const advisorRequestRef = useRef<PreparedStackAdvisorRequest | null>(null);
   const notMasters = ["MYSQL_SERVER", "HIVE_SERVER_INTERACTIVE"];
 
   useEffect(() => {
+    const sequence = ++requestSequence.current;
+    const isCurrent = (prepared?: PreparedStackAdvisorRequest | null) =>
+      sequence === requestSequence.current && (!prepared || prepared.isCurrent());
+
     async function getMastersData() {
       setLoading(true);
-
-      const cpuResponse = await AssignMastersApi.getCpuInfo(hostsList);
-      const hostnames = cpuResponse.data.items.map(
-        (item: any) => item.Hosts.host_name
-      );
-
-      const recommendationPayload1 = Utility.recommendationPayload(
-        hostnames,
-        "host_groups",
-        [],
-        [],
-        services
-      );
-
-      const recommendationsResponse1 =
-        await AssignMastersApi.postRecommendations(
-          recommendationPayload1,
-          STACK,
-          VERSION
+      setLoadFailure(null);
+      setCanProceed(false);
+      let prepared: PreparedStackAdvisorRequest | null = null;
+      try {
+        if (canRestoreAdvice) {
+          if (!runWithAdvisorRequest) {
+            advisorRequestRef.current = { isCurrent: () => true, properties: {} };
+          }
+          const servicesAndComponentsData = await ChooseServicesApi.getServices(
+            STACK,
+            VERSION,
+          );
+          if (!isCurrent()) return;
+          setServicesAndComponents(servicesAndComponentsData);
+          return;
+        }
+        const cpuResponse = await AssignMastersApi.getCpuInfo(hostsList);
+        if (!isCurrent()) return;
+        const hostnames = cpuResponse.data.items.map(
+          (item: any) => item.Hosts.host_name
         );
+        const requestRecommendations = async (
+          currentPrepared: PreparedStackAdvisorRequest,
+        ) => {
+          prepared = currentPrepared;
+          advisorRequestRef.current = currentPrepared;
+          if (!isCurrent(currentPrepared)) return null;
+          const recommendationsResponse1 =
+            await AssignMastersApi.postRecommendations(
+              {
+                ...Utility.recommendationPayload(
+                  hostnames,
+                  "host_groups",
+                  [],
+                  [],
+                  services,
+                ),
+                ...currentPrepared.properties,
+              },
+              STACK,
+              VERSION,
+            );
+          if (!isCurrent(currentPrepared)) return null;
+          const firstBlueprintClusterBinding =
+            recommendationsResponse1.resources[0].recommendations
+              .blueprint_cluster_binding.host_groups;
+          const firstBlueprint =
+            recommendationsResponse1.resources[0].recommendations.blueprint
+              .host_groups;
+          const response = await AssignMastersApi.postRecommendations(
+            {
+              ...Utility.recommendationPayload(
+                hostnames,
+                "host_groups",
+                firstBlueprint,
+                firstBlueprintClusterBinding,
+                services,
+              ),
+              ...currentPrepared.properties,
+            },
+            STACK,
+            VERSION,
+          );
+          return isCurrent(currentPrepared) ? response : null;
+        };
+        const recommendationsResponse2 = runWithAdvisorRequest
+          ? await runWithAdvisorRequest(requestRecommendations)
+          : await requestRecommendations({ isCurrent: () => true, properties: {} });
+        if (!recommendationsResponse2 || !isCurrent(prepared)) return;
 
-      const firstBlueprintClusterBinding =
-        recommendationsResponse1.resources[0].recommendations
-          .blueprint_cluster_binding.host_groups;
-      const firstBlueprint =
-        recommendationsResponse1.resources[0].recommendations.blueprint
-          .host_groups;
-
-      const recommendationPayload2 = Utility.recommendationPayload(
-        hostnames,
-        "host_groups",
-        firstBlueprint,
-        firstBlueprintClusterBinding,
-        services
-      );
-
-      const recommendationsResponse2 =
-        await AssignMastersApi.postRecommendations(
-          recommendationPayload2,
-          STACK,
-          VERSION
-        );
-      const processRecommendations = (response: any) => {
         const blueprintClusterBinding =
-          response.resources[0].recommendations.blueprint_cluster_binding
-            .host_groups;
+          recommendationsResponse2.resources[0].recommendations
+            .blueprint_cluster_binding.host_groups;
         const blueprint =
-          response.resources[0].recommendations.blueprint.host_groups;
-
-        return blueprintClusterBinding.reduce(
+          recommendationsResponse2.resources[0].recommendations.blueprint
+            .host_groups;
+        const hostsData = blueprintClusterBinding.reduce(
           (acc: { [key: string]: Host }, hostGroup: any) => {
             const hostname = hostGroup.hosts[0].fqdn;
             const components = blueprint
               .find((group: any) => group.name === hostGroup.name)
               .components.map((component: any) => component.name);
-            acc[hostname] = {
-              hostname,
-              cores: 0,
-              memory: 0,
-              components,
-            };
+            acc[hostname] = { hostname, cores: 0, memory: 0, components };
             return acc;
           },
-          {}
+          {},
         );
-      };
 
-      const hostsData = processRecommendations(recommendationsResponse2);
-      // Add ZOOKEEPER_SERVER to all hosts by default
-      Object.keys(hostsData).forEach((hostname) => {
-        if (!hostsData[hostname].components.includes("ZOOKEEPER_SERVER")) {
-          hostsData[hostname].components.push("ZOOKEEPER_SERVER");
+        if (!hasManagedAdvisorDependency(prepared, "ZOOKEEPER")) {
+          Object.keys(hostsData).forEach((hostname) => {
+            if (!hostsData[hostname].components.includes("ZOOKEEPER_SERVER")) {
+              hostsData[hostname].components.push("ZOOKEEPER_SERVER");
+            }
+          });
         }
-      });
-      
-      cpuResponse.data.items.forEach((item: any) => {
-        const hostname = item.Hosts.host_name;
-        if (hostsData[hostname]) {
-          hostsData[hostname].cores = item.Hosts.cpu_count;
-          hostsData[hostname].memory = item.Hosts.total_mem;
-        }
-      });
 
-      // Sort hosts alphabetically and create a new sorted object
-      const sortedHostsData: { [key: string]: Host } = {};
-      Object.keys(hostsData)
-        .sort()
-        .forEach(hostname => {
+        cpuResponse.data.items.forEach((item: any) => {
+          const hostname = item.Hosts.host_name;
+          if (hostsData[hostname]) {
+            hostsData[hostname].cores = item.Hosts.cpu_count;
+            hostsData[hostname].memory = item.Hosts.total_mem;
+          }
+        });
+
+        const sortedHostsData: { [key: string]: Host } = {};
+        Object.keys(hostsData).sort().forEach((hostname) => {
           sortedHostsData[hostname] = hostsData[hostname];
         });
 
-      const servicesAndComponentsData: ServicesResponse =
-        await ChooseServicesApi.getServices(STACK, VERSION);
-      
-      setServicesAndComponents(servicesAndComponentsData);
+        const servicesAndComponentsData: ServicesResponse =
+          await ChooseServicesApi.getServices(STACK, VERSION);
+        if (!isCurrent(prepared)) return;
+        setServicesAndComponents(servicesAndComponentsData);
 
-      // Filter components based on is_master and ensure no duplicates on a single host
-      // except for components that allow multiple instances (using isMasterAddableInstallerWizard)
-      const assignedComponents = new Set<string>();
-      Object.keys(hostsData).forEach((hostname) => {
-        hostsData[hostname].components = hostsData[hostname].components.filter(
-          (component: any) => {
-            if(notMasters.includes(component)) {
+        const assignedComponents = new Set<string>();
+        Object.keys(hostsData).forEach((hostname) => {
+          hostsData[hostname].components = hostsData[hostname].components.filter(
+            (component: any) => {
+              if (notMasters.includes(component)) return false;
+              const serviceComponent = servicesAndComponentsData.items
+                .flatMap((service: any) => service.components)
+                .find(
+                  (comp: any) => get(
+                    comp,
+                    "StackServiceComponents.component_name",
+                  ) === component,
+                );
+              if (!serviceComponent
+                || !get(serviceComponent, "StackServiceComponents.is_master")) {
+                return false;
+              }
+              const stackComponent = get(serviceComponent, "StackServiceComponents");
+              if (isMasterAddableInstallerWizard(stackComponent)) return true;
+              if (!assignedComponents.has(component)) {
+                assignedComponents.add(component);
+                return true;
+              }
               return false;
-            }
-            const serviceComponent = servicesAndComponentsData.items
-              .flatMap((service: any) => service.components)
-              .find(
-                (comp: any) =>
-                  get(comp, "StackServiceComponents.component_name") ===
-                  component
-              );
+            },
+          );
+        });
 
-            if (!serviceComponent || !get(serviceComponent, "StackServiceComponents.is_master")) {
-              return false;
-            }
-
-            const stackComponent = get(serviceComponent, "StackServiceComponents");
-            if (isMasterAddableInstallerWizard(stackComponent)) {
-              return true;
-            }
-
-            // For single-instance components, ensure no duplicates
-            if (!assignedComponents.has(component)) {
-              assignedComponents.add(component);
-              return true;
-            }
-            return false;
-          }
-        );
-      });
-
-      dispatch({ type: "SET_HOSTS_DATA", payload: sortedHostsData });
-      dispatchParent({
-        hostsData: sortedHostsData,
-        mastersData: getTransformedMastersData(mastersData),
-        state,
-      });
-      setLoading(false);
+        if (!isCurrent(prepared)) return;
+        dispatch({ type: "SET_HOSTS_DATA", payload: sortedHostsData });
+        dispatchParent({
+          hostsData: sortedHostsData,
+          mastersData: getTransformedMastersData(mastersData),
+          state,
+          advisorInputKey,
+        });
+      } catch (error: any) {
+        if (!isCurrent(prepared)) return;
+        advisorRequestRef.current = null;
+        setLoadFailure({
+          kind: "recommendation",
+          message: error instanceof ManagedDependencyAdvisorReviewRequiredError
+            ? t("managedDependencies.advisorReviewRequired")
+            : responseErrorMessage(error, t("managedDependencies.advisorFailed")),
+          reviewRequired: error instanceof ManagedDependencyAdvisorReviewRequiredError
+            || stackAdvisorNeedsProviderReview(error)
+            || Boolean(prepared?.properties.managed_dependency_plan),
+        });
+      } finally {
+        if (isCurrent(prepared)) setLoading(false);
+      }
     }
-    getMastersData();
-  }, []);
+    void getMastersData();
+    return () => {
+      requestSequence.current += 1;
+      validationSequence.current += 1;
+      advisorRequestRef.current = null;
+    };
+  }, [loadAttempt]);
   
   useEffect(() => {
     const transformedMastersData = getTransformedMastersData(mastersData);
     dispatchParent({
       mastersData: transformedMastersData,
       state,
+      advisorInputKey,
     });
     validateChange(transformedMastersData)
   }, [mastersData]);
@@ -286,27 +349,50 @@ export default function AssignMasters({
       return;
     }
     setCanProceed(false);
+    let prepared = advisorRequestRef.current;
     try {
       const allHostnames = map(transformedMastersData, "host_name");
       const hostnames = uniq(allHostnames);
-      const validationResponse = await AssignMastersApi.postValidations(
-        {
-          hosts: hostnames,
-          services,
-          validate: "host_groups",
-          recommendations: getValidationRequestBody(transformedMastersData),
-        },
-        STACK,
-        VERSION,
-      );
-      if (sequence !== validationSequence.current) return;
+      const requestValidation = async (
+        currentPrepared: PreparedStackAdvisorRequest,
+      ) => {
+        prepared = currentPrepared;
+        advisorRequestRef.current = currentPrepared;
+        if (sequence !== validationSequence.current || !currentPrepared.isCurrent()) {
+          return null;
+        }
+        return AssignMastersApi.postValidations(
+          {
+            hosts: hostnames,
+            services,
+            validate: "host_groups",
+            recommendations: getValidationRequestBody(transformedMastersData),
+            ...currentPrepared.properties,
+          },
+          STACK,
+          VERSION,
+        );
+      };
+      const validationResponse = runWithAdvisorRequest
+        ? await runWithAdvisorRequest(requestValidation)
+        : prepared
+          ? await requestValidation(prepared)
+          : null;
+      if (!validationResponse || !prepared) return;
+      if (sequence !== validationSequence.current || !prepared.isCurrent()) return;
       updateValidationsSuccessCallback(validationResponse);
     } catch (error) {
-      if (sequence !== validationSequence.current) return;
-      console.error('Validation API call failed:', error);
+      if (sequence !== validationSequence.current
+        || (prepared && !prepared.isCurrent())) return;
       setValidationMessages({});
       setHasValidationIssues(false);
       setCanProceed(false);
+      setLoadFailure({
+        kind: "validation",
+        message: responseErrorMessage(error, t("managedDependencies.advisorFailed")),
+        reviewRequired: stackAdvisorNeedsProviderReview(error)
+          || Boolean(prepared?.properties.managed_dependency_plan),
+      });
     }
   };
 
@@ -403,6 +489,7 @@ export default function AssignMasters({
       dispatchParent({
         mastersData: getTransformedMastersData(sortedMastersData),
         state,
+        advisorInputKey,
       });
       setMastersData(sortedMastersData);
     }
@@ -485,9 +572,19 @@ export default function AssignMasters({
    */
   const updateValidationsSuccessCallback = (data: any) => {
     const messages = getMasterValidationMessages(data, mastersData);
+    setLoadFailure((failure) => failure?.kind === "validation" ? null : failure);
     setValidationMessages(messages);
     setHasValidationIssues(Object.keys(messages).length > 0);
     setCanProceed(true);
+  };
+
+  const retryFailure = () => {
+    if (loadFailure?.kind === "validation") {
+      setLoadFailure(null);
+      void validateChange(getTransformedMastersData(mastersData));
+      return;
+    }
+    setLoadAttempt((attempt) => attempt + 1);
   };
 
   return (
@@ -496,10 +593,33 @@ export default function AssignMasters({
       <p className="step-description">
         Assign master components to hosts you want to run them on.
       </p>
+      {loadFailure ? (
+        <Alert variant="danger">
+          <div>{loadFailure.message}</div>
+          <div className="d-flex flex-wrap gap-2 mt-2">
+            <Button
+              size="sm"
+              variant="outline-danger"
+              onClick={retryFailure}
+            >
+              {t("common.retry")}
+            </Button>
+            {loadFailure.reviewRequired && onReviewManagedDependencies ? (
+              <Button
+                size="sm"
+                variant="outline-danger"
+                onClick={onReviewManagedDependencies}
+              >
+                {t("managedDependencies.reviewProviderSettings")}
+              </Button>
+            ) : null}
+          </div>
+        </Alert>
+      ) : null}
       
       {loading ? (
         <Spinner />
-      ) : (
+      ) : loadFailure?.kind !== "recommendation" ? (
         <Card>
           <CardBody>
             <Row>
@@ -695,7 +815,7 @@ export default function AssignMasters({
             </Row>
           </CardBody>
         </Card>
-      )}
+      ) : null}
     </>
   );
 }

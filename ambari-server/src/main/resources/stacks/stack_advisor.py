@@ -1137,6 +1137,10 @@ class DefaultStackAdvisor(StackAdvisor):
         if not conditionsPresent and scope == "host":
           componentName = component["StackServiceComponents"]["component_name"]
           requiredComponentName = dependency["Dependencies"]["component_name"]
+          if self.isManagedDependencySatisfied(
+            services, component, requiredComponentName
+          ):
+            continue
           requiredService = self.getServiceForComponentName(
             services, requiredComponentName
           )
@@ -1165,6 +1169,10 @@ class DefaultStackAdvisor(StackAdvisor):
       if not conditionsPresent:
         componentName = component["StackServiceComponents"]["component_name"]
         requiredComponentName = dependency["Dependencies"]["component_name"]
+        if self.isManagedDependencySatisfied(
+          services, component, requiredComponentName
+        ):
+          continue
         requiredComponent = self.getRequiredComponent(services, requiredComponentName)
 
         # We only deal with "host" scope.
@@ -1285,8 +1293,13 @@ class DefaultStackAdvisor(StackAdvisor):
               and dependency["Dependencies"]["conditions"]
             )
             if not conditionsPresent:
+              requiredComponentName = dependency["Dependencies"]["component_name"]
+              if self.isManagedDependencySatisfied(
+                services, component, requiredComponentName
+              ):
+                continue
               dependentComponent = self.getRequiredComponent(
-                services, dependency["Dependencies"]["component_name"]
+                services, requiredComponentName
               )
               componentDisplayName = component["StackServiceComponents"]["display_name"]
               dependentComponentDisplayName = (
@@ -2382,6 +2395,34 @@ class DefaultStackAdvisor(StackAdvisor):
       )
 
     return component
+
+  def isManagedDependencySatisfied(self, services, component, requiredComponentName):
+    plan = services.get("managed_dependency_plan")
+    if not isinstance(plan, dict) or set(plan.keys()) != {
+      "consumer_service",
+      "satisfied_components",
+    }:
+      return False
+    satisfiedComponents = plan.get("satisfied_components")
+    if (
+      plan.get("consumer_service") != "HBASE"
+      or not isinstance(satisfiedComponents, list)
+      or not satisfiedComponents
+      or len(satisfiedComponents) > 2
+      or len(set(satisfiedComponents)) != len(satisfiedComponents)
+      or not set(satisfiedComponents).issubset(
+        {"HDFS_CLIENT", "ZOOKEEPER_SERVER"}
+      )
+    ):
+      return False
+    componentService = self.getServiceForComponentName(
+      services, self.getComponentName(component)
+    )
+    return (
+      componentService is not None
+      and componentService["StackServices"]["service_name"] == "HBASE"
+      and requiredComponentName in satisfiedComponents
+    )
 
   def getComponentAttribute(self, component, attribute):
     serviceComponent = component.get("StackServiceComponents", None)

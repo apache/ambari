@@ -76,10 +76,16 @@ public class RequestUpdateEvent extends STOMPEvent {
 
   public RequestUpdateEvent(Long requestId, HostRoleStatus requestStatus,
                             Set<HostRoleCommand> hostRoleCommands) {
+    this(requestId, requestStatus, hostRoleCommands, null);
+  }
+
+  public RequestUpdateEvent(Long requestId, HostRoleStatus requestStatus,
+                            Set<HostRoleCommand> hostRoleCommands, String clusterName) {
     super(Type.REQUEST);
     this.requestId = requestId;
     this.requestStatus = requestStatus;
     this.hostRoleCommands = hostRoleCommands;
+    this.clusterName = clusterName;
   }
 
   public Long getRequestId() {

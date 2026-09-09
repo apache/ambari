@@ -30,20 +30,27 @@ import { useAuth } from "../../hooks/useAuth";
 import AuthGuard from "../../components/AuthGuard";
 import RestartWarning from "./RestartWarning";
 import { resolveServiceNavigation } from "../../Utils/serviceNavigation";
+import useClusterPath from "../../hooks/useClusterPath";
+import { clusterDraftPath } from "../../Utils/scopedWorkflow";
+import ServiceDependencies from "./ServiceDependencies";
+import ServiceDependents from "./ServiceDependents";
+import { useTranslation } from "react-i18next";
 
 enum TabNames {
   SUMMARY = "summary",
   CONFIGS = "configs",
   METRICS = "metrics",
+  DEPENDENCIES = "dependencies",
+  DEPENDENTS = "dependents",
 }
 
 const serviceTabs: Record<string, string[]> = {
-  HDFS: ["summary", "configs", "metrics"],
+  HDFS: ["summary", "configs", "metrics", "dependents"],
   YARN: ["summary", "configs", "metrics"],
   HIVE: ["summary", "configs", "metrics"],
   KAFKA: ["summary", "configs"],
-  ZOOKEEPER: ["summary", "configs"],
-  HBASE: ["summary", "configs", "metrics"],
+  ZOOKEEPER: ["summary", "configs", "dependents"],
+  HBASE: ["summary", "configs", "metrics", "dependencies"],
   ATLAS: ["summary", "configs"],
   RANGER: ["summary", "configs"],
   RANGER_KMS: ["summary", "configs"],
@@ -67,6 +74,8 @@ const serviceTabs: Record<string, string[]> = {
 export function ServiceIndexRedirect() {
   const { services, clusterName } = useContext(AppContext);
   const navigate = useNavigate();
+  const scopedPath = useClusterPath();
+  const [installerPath] = useState(() => clusterDraftPath());
 
   useEffect(() => {
     if (!clusterName || !services?.length) {
@@ -74,9 +83,9 @@ export function ServiceIndexRedirect() {
     }
     const firstService = map(services, "ServiceInfo.service_name").find(Boolean);
     if (firstService) {
-      navigate(`/main/services/${firstService}/summary`, { replace: true });
+      navigate(scopedPath(`/main/services/${firstService}/summary`), { replace: true });
     }
-  }, [clusterName, navigate, services]);
+  }, [clusterName, navigate, scopedPath, services]);
 
   return null;
 }
@@ -86,6 +95,7 @@ function ServiceDashboard({
 }: {
   serviceName?: string;
 }) {
+  const { t } = useTranslation();
   // Authorization hooks - implementing Ember.js hasConfigTab logic
   const { hasAuthorization } = useAuth();
   // Check CLUSTER.VIEW_CONFIGS permission like in Ember.js ui/app/views/main/service/item.js
@@ -97,6 +107,8 @@ function ServiceDashboard({
   const [selectedTab, setSelectedTab] = useState(tabName || TabNames.SUMMARY);
   const { services, clusterName } = useContext(AppContext);
   const navigate = useNavigate();
+  const scopedPath = useClusterPath();
+  const [installerPath] = useState(() => clusterDraftPath());
 
   useEffect(() => {
     // Don't run URL replacement logic if services are still loading
@@ -117,7 +129,7 @@ function ServiceDashboard({
     setSelectedTab(selection.selectedTab);
 
     if (serviceNameParams && selection.redirectPath) {
-      navigate(clusterName ? selection.redirectPath : "/installer/step0", {
+      navigate(clusterName ? scopedPath(selection.redirectPath) : installerPath, {
         replace: true,
       });
     }
@@ -125,10 +137,12 @@ function ServiceDashboard({
     clusterName,
     canViewMetrics,
     hasConfigTab,
+    installerPath,
     navigate,
     serviceName,
     serviceNameParams,
     services,
+    scopedPath,
     tabName,
   ]);
 
@@ -142,7 +156,7 @@ function ServiceDashboard({
             activeKey={selectedTab}
             onSelect={(tab) => {
               if (!tab) return;
-              navigate(`/main/services/${serviceName}/${tab}`);
+              navigate(scopedPath(`/main/services/${serviceName}/${tab}`));
               setSelectedTab(tab);
             }}
           >
@@ -177,6 +191,18 @@ function ServiceDashboard({
                   {selectedTab === TabNames.METRICS ? <EmbeddedDashboards location={serviceName as string} /> : null}
                 </Tab>
               )}
+            {serviceName?.toUpperCase() === "HBASE" ? (
+              <Tab eventKey={TabNames.DEPENDENCIES} title={t("serviceDependencies.tab")}>
+                {selectedTab === TabNames.DEPENDENCIES ? <ServiceDependencies /> : null}
+              </Tab>
+            ) : null}
+            {serviceName && ["HDFS", "ZOOKEEPER"].includes(serviceName.toUpperCase()) ? (
+              <Tab eventKey={TabNames.DEPENDENTS} title={t("serviceDependents.tab")}>
+                {selectedTab === TabNames.DEPENDENTS ? (
+                  <ServiceDependents serviceName={serviceName.toUpperCase()} />
+                ) : null}
+              </Tab>
+            ) : null}
           </Tabs>
           <Actions serviceName={serviceName!} className="action-btn" />
         </Col>

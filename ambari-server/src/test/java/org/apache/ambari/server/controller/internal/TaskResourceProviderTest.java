@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -37,6 +38,7 @@ import java.util.Set;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapperFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -50,10 +52,18 @@ import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -62,6 +72,11 @@ import com.google.inject.Injector;
  * TaskResourceProvider tests.
  */
 public class TaskResourceProviderTest {
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.clearContext();
+  }
+
   @Test
   public void testCreateResources() throws Exception {
     Resource.Type type = Resource.Type.Task;
@@ -107,6 +122,8 @@ public class TaskResourceProviderTest {
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
 
     Injector m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     TaskResourceProvider provider = (TaskResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
@@ -124,14 +141,24 @@ public class TaskResourceProviderTest {
     hostRoleCommandEntity.setCustomCommandName("customCommandName");
     hostRoleCommandEntity.setCommandDetail("commandDetail");
     hostRoleCommandEntity.setOpsDisplayName("opsDisplayName");
+    StageEntity stageEntity = new StageEntity();
+    stageEntity.setClusterId(1L);
+    stageEntity.setRequestId(100L);
+    stageEntity.setStageId(100L);
+    hostRoleCommandEntity.setStage(stageEntity);
     entities.add(hostRoleCommandEntity);
 
     // set expectations
     expect(hostRoleCommandDAO.findAll(EasyMock.anyObject(Request.class),
         EasyMock.anyObject(Predicate.class))).andReturn(entities).once();
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).once();
+    expect(cluster.getResourceId()).andReturn(11L).once();
+    expect(cluster.getClusterName()).andReturn("c1").once();
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     // replay
-    replay(hostRoleCommandDAO);
+    replay(amc, hostRoleCommandDAO, clusters, cluster);
 
     Set<String> propertyIds = new HashSet<>();
 
@@ -158,7 +185,7 @@ public class TaskResourceProviderTest {
     }
 
     // verify
-    verify(hostRoleCommandDAO);
+    verify(amc, hostRoleCommandDAO, clusters, cluster);
   }
 
   @Test
@@ -171,6 +198,9 @@ public class TaskResourceProviderTest {
     HostDAO hostDAO = createMock(HostDAO.class);
     ExecutionCommandDAO executionCommandDAO = createMock(ExecutionCommandDAO.class);
     ExecutionCommandWrapperFactory ecwFactory = createMock(ExecutionCommandWrapperFactory.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    LogicalRequest logicalRequest = createMock(LogicalRequest.class);
 
     Injector m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     TaskResourceProvider provider = (TaskResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
@@ -191,15 +221,36 @@ public class TaskResourceProviderTest {
     hostRoleCommandEntity.setCustomCommandName("customCommandName");
     hostRoleCommandEntity.setCommandDetail("commandDetail");
     hostRoleCommandEntity.setOpsDisplayName("opsDisplayName");
+    StageEntity stageEntity = new StageEntity();
+    stageEntity.setClusterId(1L);
+    stageEntity.setRequestId(100L);
+    stageEntity.setStageId(100L);
+    hostRoleCommandEntity.setStage(stageEntity);
     commands.add(new HostRoleCommand(hostRoleCommandEntity, hostDAO, executionCommandDAO, ecwFactory));
+    HostRoleCommandEntity siblingEntity = new HostRoleCommandEntity();
+    siblingEntity.setRequestId(100L);
+    siblingEntity.setTaskId(101L);
+    siblingEntity.setStageId(101L);
+    siblingEntity.setRole(Role.DATANODE);
+    siblingEntity.setStage(stageEntity);
+    commands.add(new HostRoleCommand(siblingEntity, hostDAO, executionCommandDAO, ecwFactory));
 
     // set expectations
     expect(hostRoleCommandDAO.findAll(EasyMock.anyObject(Request.class),
       EasyMock.anyObject(Predicate.class))).andReturn(entities).once();
-    expect(topologyManager.getTasks(EasyMock.anyLong())).andReturn(commands).once();
+    expect(topologyManager.getRequests(EasyMock.<Collection<Long>>anyObject()))
+        .andReturn(List.of(logicalRequest)).once();
+    expect(logicalRequest.getClusterId()).andReturn(1L).once();
+    expect(logicalRequest.getRequestId()).andReturn(100L).anyTimes();
+    expect(logicalRequest.getCommands()).andReturn(commands).once();
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).once();
+    expect(cluster.getResourceId()).andReturn(11L).once();
+    expect(cluster.getClusterName()).andReturn("c1").times(2);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     // replay
-    replay(hostRoleCommandDAO, topologyManager);
+    replay(amc, hostRoleCommandDAO, topologyManager, clusters, cluster, logicalRequest);
 
     Set<String> propertyIds = new HashSet<>();
 
@@ -227,7 +278,274 @@ public class TaskResourceProviderTest {
     }
 
     // verify
-    verify(hostRoleCommandDAO, topologyManager);
+    verify(amc, hostRoleCommandDAO, topologyManager, clusters, cluster, logicalRequest);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testTaskRouteCannotSelectTaskFromAnotherCluster() throws Exception {
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster clusterA = createMock(Cluster.class);
+    Cluster clusterB = createMock(Cluster.class);
+
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Task, amc);
+    injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+
+    StageEntity stageB = new StageEntity();
+    stageB.setClusterId(2L);
+    stageB.setRequestId(100L);
+    stageB.setStageId(1L);
+    HostRoleCommandEntity taskB = new HostRoleCommandEntity();
+    taskB.setRequestId(100L);
+    taskB.setTaskId(100L);
+    taskB.setStageId(1L);
+    taskB.setStage(stageB);
+
+    Predicate predicate = new PredicateBuilder()
+        .property(TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID).equals("cluster-a")
+        .and().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100")
+        .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("100").toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(TaskResourceProvider.TASK_ID_PROPERTY_ID));
+    expect(hostRoleCommandDAO.findAll(request, predicate)).andReturn(List.of(taskB));
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(2L)).andReturn(clusterB).once();
+    expect(clusterB.getResourceId()).andReturn(22L).once();
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 11L));
+    replay(amc, hostRoleCommandDAO, clusters, clusterA, clusterB);
+
+    provider.getResources(request, predicate);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testTaskMustBelongToSelectedRequest() throws Exception {
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Task, amc);
+    injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+
+    StageEntity stage = new StageEntity();
+    stage.setClusterId(1L);
+    stage.setRequestId(200L);
+    stage.setStageId(1L);
+    HostRoleCommandEntity task = new HostRoleCommandEntity();
+    task.setRequestId(200L);
+    task.setStageId(1L);
+    task.setTaskId(9L);
+    task.setStage(stage);
+    Predicate predicate = new PredicateBuilder()
+        .property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100")
+        .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("9").toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(TaskResourceProvider.TASK_ID_PROPERTY_ID));
+    expect(hostRoleCommandDAO.findAll(request, predicate)).andReturn(List.of(task));
+    replay(amc, hostRoleCommandDAO);
+
+    provider.getResources(request, predicate);
+  }
+
+  @Test
+  public void testClusterTaskCollectionFiltersOtherClusters() throws Exception {
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    TopologyManager topologyManager = createMock(TopologyManager.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster clusterA = createMock(Cluster.class);
+    Cluster clusterB = createMock(Cluster.class);
+
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Task, amc);
+    injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+    TaskResourceProvider.s_topologyManager = topologyManager;
+
+    HostRoleCommandEntity taskA = createTask(1L, 100L, 1L, 10L);
+    HostRoleCommandEntity taskB = createTask(2L, 200L, 1L, 20L);
+    Predicate predicate = new PredicateBuilder()
+        .property(TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID).equals("cluster-a")
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(
+        TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID,
+        TaskResourceProvider.TASK_ID_PROPERTY_ID));
+
+    expect(hostRoleCommandDAO.findAll(request, predicate)).andReturn(List.of(taskA, taskB));
+    expect(topologyManager.getRequests(EasyMock.<Collection<Long>>anyObject()))
+        .andReturn(List.of());
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(clusterA).once();
+    expect(clusters.getClusterById(2L)).andReturn(clusterB).once();
+    expect(clusterA.getResourceId()).andReturn(11L).anyTimes();
+    expect(clusterA.getClusterName()).andReturn("cluster-a").once();
+    expect(clusterB.getResourceId()).andReturn(22L).once();
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 11L));
+    replay(amc, hostRoleCommandDAO, topologyManager, clusters, clusterA, clusterB);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    assertEquals(1, resources.size());
+    Resource resource = resources.iterator().next();
+    assertEquals(10L, resource.getPropertyValue(TaskResourceProvider.TASK_ID_PROPERTY_ID));
+    assertEquals("cluster-a",
+        resource.getPropertyValue(TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID));
+    verify(amc, hostRoleCommandDAO, topologyManager, clusters, clusterA, clusterB);
+  }
+
+  @Test
+  public void testTaskQuerySupportsOrRequestParents() throws Exception {
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Task, amc);
+    injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+
+    Predicate predicate = new PredicateBuilder()
+        .property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100")
+        .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("9")
+        .or().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("200")
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(TaskResourceProvider.TASK_ID_PROPERTY_ID));
+    HostRoleCommandEntity first = createTask(1L, 100L, 1L, 9L);
+    HostRoleCommandEntity second = createTask(1L, 200L, 2L, 10L);
+    expect(hostRoleCommandDAO.findAll(request, predicate)).andReturn(List.of(first, second));
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getResourceId()).andReturn(11L).times(2);
+    expect(cluster.getClusterName()).andReturn("cluster-a").times(2);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 11L));
+    replay(amc, hostRoleCommandDAO, clusters, cluster);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    assertEquals(2, resources.size());
+    verify(amc, hostRoleCommandDAO, clusters, cluster);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidTaskParentIsRejectedBeforeDaoQuery() throws Exception {
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Task, amc);
+    injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+    Predicate predicate = new PredicateBuilder()
+        .property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("invalid")
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(TaskResourceProvider.TASK_ID_PROPERTY_ID));
+    replay(amc, hostRoleCommandDAO);
+
+    provider.getResources(request, predicate);
+  }
+
+  @Test
+  public void testTaskQueryMergesPersistedAndLogicalRequests() throws Exception {
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    TopologyManager topologyManager = createMock(TopologyManager.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    LogicalRequest logicalRequest = createMock(LogicalRequest.class);
+    HostRoleCommand logicalTask = createNiceMock(HostRoleCommand.class);
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Task, amc);
+    injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+    TaskResourceProvider.s_topologyManager = topologyManager;
+
+    Predicate predicate = new PredicateBuilder()
+        .property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100")
+        .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("10")
+        .or().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("200")
+        .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("20")
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(TaskResourceProvider.TASK_ID_PROPERTY_ID));
+    HostRoleCommandEntity persistedTask = createTask(1L, 100L, 1L, 10L);
+    expect(hostRoleCommandDAO.findAll(request, predicate)).andReturn(List.of(persistedTask));
+    expect(topologyManager.getRequests(EasyMock.<Collection<Long>>anyObject()))
+        .andReturn(List.of(logicalRequest));
+    expect(logicalRequest.getClusterId()).andReturn(1L);
+    expect(logicalRequest.getRequestId()).andReturn(200L).anyTimes();
+    expect(logicalRequest.getCommands()).andReturn(List.of(logicalTask));
+    expect(logicalTask.getRequestId()).andReturn(200L).anyTimes();
+    expect(logicalTask.getTaskId()).andReturn(20L).anyTimes();
+    expect(logicalTask.getStageId()).andReturn(2L).anyTimes();
+    expect(logicalTask.getRole()).andReturn(Role.DATANODE).anyTimes();
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getResourceId()).andReturn(11L).times(2);
+    expect(cluster.getClusterName()).andReturn("cluster-a").times(2);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 11L));
+    replay(amc, hostRoleCommandDAO, topologyManager, clusters, cluster, logicalRequest, logicalTask);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    assertEquals(2, resources.size());
+    verify(amc, hostRoleCommandDAO, topologyManager, clusters, cluster, logicalRequest, logicalTask);
+  }
+
+  @Test
+  public void testDirectTaskStatusFilterCanReturnNoMatch() throws Exception {
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider)
+        AbstractControllerResourceProvider.getResourceProvider(Resource.Type.Task, amc);
+    injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+
+    Predicate predicate = new PredicateBuilder()
+        .property(TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID).equals("cluster-a")
+        .and().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100")
+        .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("10")
+        .and().property(TaskResourceProvider.TASK_STATUS_PROPERTY_ID).equals(HostRoleStatus.FAILED)
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(TaskResourceProvider.TASK_ID_PROPERTY_ID));
+    HostRoleCommandEntity task = createTask(1L, 100L, 1L, 10L);
+    task.setStatus(HostRoleStatus.IN_PROGRESS);
+    expect(hostRoleCommandDAO.findAll(request, predicate)).andReturn(List.of(task));
+    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
+    expect(cluster.getResourceId()).andReturn(11L);
+    expect(cluster.getClusterName()).andReturn("cluster-a").times(2);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 11L));
+    replay(amc, hostRoleCommandDAO, clusters, cluster);
+
+    Assert.assertTrue(provider.getResources(request, predicate).isEmpty());
+    verify(amc, hostRoleCommandDAO, clusters, cluster);
+  }
+
+  private HostRoleCommandEntity createTask(long clusterId, long requestId,
+      long stageId, long taskId) {
+    StageEntity stage = new StageEntity();
+    stage.setClusterId(clusterId);
+    stage.setRequestId(requestId);
+    stage.setStageId(stageId);
+    HostRoleCommandEntity task = new HostRoleCommandEntity();
+    task.setRequestId(requestId);
+    task.setStageId(stageId);
+    task.setTaskId(taskId);
+    task.setRole(Role.DATANODE);
+    task.setStage(stage);
+    return task;
   }
 
 

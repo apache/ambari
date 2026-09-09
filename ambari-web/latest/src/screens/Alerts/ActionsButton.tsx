@@ -21,7 +21,8 @@ import Modal from '../../components/Modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faGear, faPlus, faTh } from '@fortawesome/free-solid-svg-icons';
 import { AlertGroupItem, AlertDefinition, AlertNotification, AlertGroupState } from './types';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import useClusterNavigate from '../../hooks/useClusterNavigate';
 import { AppContext } from '../../store/context';
 import { 
   ManageAlertGroupsModal, 
@@ -73,7 +74,7 @@ export const ActionsButton: React.FC<ActionsButtonProps> = ({
   // Context and URL params
   const { clusterName: urlClusterName } = useParams<{ clusterName: string }>();
   const { clusterName: contextClusterName, supports } = useContext(AppContext);
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   
   // Authorization hooks - implementing Ember.js alert authorization patterns
   const { isAuthorized } = useAuthorizationPolicy();

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   ConfigPropertiesType,
   PropertyType,
@@ -44,6 +44,14 @@ import { useDebounce } from "./useDebounce";
 import { groupPropertyValues } from "../Utils/dataUtils";
 import useHostComponents from "../screens/ClusterWizard/hooks/useHostComponents";
 import { buildAddServiceRecommendationPayload } from "./addServiceRecommendationPayload";
+import type { RunWithStackAdvisorRequest } from "../screens/ClusterWizard/managedDependencyAdvisor";
+import { responseErrorMessage } from "../Utils/httpError";
+
+export type EnhancedConfigRecommendationState = {
+  pending: boolean;
+  error: string | null;
+  retry: () => void;
+};
 
 // List of config types that always need to be processed
 const ALWAYS_PROCESS_CONFIG_TYPES = ["capacity-scheduler"];
@@ -125,6 +133,11 @@ function useEnhancedConfigs(
   transformConfigProperties?: (
     configs: ConfigPropertiesType,
   ) => ConfigPropertiesType,
+  runWithAdvisorRequest?: RunWithStackAdvisorRequest,
+  advisorScopeKey?: string,
+  checkpointConfigProperties?: (
+    configProperties: ConfigPropertiesType,
+  ) => Promise<unknown>,
 ) {
   const {
     cluster: { stack, versionNum, cluster_id: clusterId },
@@ -137,12 +150,27 @@ function useEnhancedConfigs(
   const [currentlyChangedConfig, setCurrentlyChangedConfig] =
     useState<any>(null);
   const [processingConfig, setProcessingConfig] = useState<boolean>(false);
+  const [recommendationError, setRecommendationError] = useState<string | null>(null);
+  const recommendationSequence = useRef(0);
+  const lastRecommendationRef = useRef<(() => void) | null>(null);
+  const advisorScopeRef = useRef(advisorScopeKey);
+  advisorScopeRef.current = advisorScopeKey;
   const serviceNames =
     services.map((service: any) => service.ServiceInfo?.service_name) || [];
   const { hostComponents } = useHostComponents(serviceNames);
   const recommededConfigsRef = useRef<{ [propertyName: string]: any }>({});
   const [recommendedChanges, setRecommendedChanges] = useState<any>();
   const [configTypeToServiceMap, setConfigTypeToServiceMap] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    recommendationSequence.current += 1;
+    setRecommendationError(null);
+    setRecommendationsInProgress(false);
+    setProcessingConfig(false);
+    return () => {
+      recommendationSequence.current += 1;
+    };
+  }, [advisorScopeKey]);
 
   useEffect(() => {
     const loadConfigTypeMapping = async () => {
@@ -165,32 +193,74 @@ function useEnhancedConfigs(
     setRecommendedChanges(recommededConfigsRef.current);
   }, [JSON.stringify(recommededConfigsRef.current)]);
 
+  const startRecommendationRequest = () => {
+    const sequence = ++recommendationSequence.current;
+    const scope = advisorScopeRef.current;
+    setRecommendationError(null);
+    return {
+      sequence,
+      isCurrent: () => sequence === recommendationSequence.current
+        && scope === advisorScopeRef.current,
+    };
+  };
+
+  const retryLastRecommendation = useCallback(() => {
+    lastRecommendationRef.current?.();
+  }, []);
+
   async function loadRecommendationsForConfigOnLoad(
     configProperties: ConfigPropertiesType
   ) {
+    const requestState = startRecommendationRequest();
     setRecommendationsInProgress(true);
+    lastRecommendationRef.current = () => {
+      void loadRecommendationsForConfigOnLoad(configProperties);
+    };
     try {
-      const payload = {
-        autoComplete: "true",
-        clusterId: clusterId,
-        configsResponse: "true",
-        recommend: "configurations",
-        recommendations: {},
-        serviceName: serviceName,
-        user_context: {
-          operation: "RecommendAttribute",
-        },
+      if (checkpointConfigProperties) {
+        await checkpointConfigProperties(configProperties);
+        if (!requestState.isCurrent()) return;
+      }
+      const requestRecommendations = async ({
+        isCurrent,
+        properties,
+      }: {
+        isCurrent: () => boolean;
+        properties: Record<string, unknown>;
+      }) => {
+        if (!requestState.isCurrent() || !isCurrent()) return null;
+        const payload = {
+          autoComplete: "true",
+          clusterId,
+          configsResponse: "true",
+          recommend: "configurations",
+          recommendations: {},
+          serviceName,
+          user_context: {
+            operation: "RecommendAttribute",
+          },
+        };
+        const response = await ConfigsApi.getRecommendations(
+          stack,
+          versionNum,
+          { ...payload, ...properties },
+        );
+        return requestState.isCurrent() && isCurrent() ? response : null;
       };
-      const recommendationsResponse = await ConfigsApi.getRecommendations(
-        stack,
-        versionNum,
-        payload
-      );
+      const recommendationsResponse = runWithAdvisorRequest
+        ? await runWithAdvisorRequest(requestRecommendations)
+        : await requestRecommendations({ isCurrent: () => true, properties: {} });
+      if (!recommendationsResponse || !requestState.isCurrent()) return;
       processRecommendations(recommendationsResponse, configProperties, true);
     } catch (error) {
-      console.error("Error loading recommendations:", error);
+      if (requestState.isCurrent()) {
+        setRecommendationError(responseErrorMessage(
+          error,
+          "Ambari could not load configuration recommendations.",
+        ));
+      }
     } finally {
-      setRecommendationsInProgress(false);
+      if (requestState.isCurrent()) setRecommendationsInProgress(false);
     }
   }
 
@@ -856,46 +926,73 @@ function useEnhancedConfigs(
     if (!changedConfigs || changedConfigs.length === 0 || !configProperties) {
       return;
     }
+    const requestState = startRecommendationRequest();
     setProcessingConfig(true);
     setRecommendationsInProgress(true);
+    lastRecommendationRef.current = () => {
+      void loadConfigRecommendations(changedConfigs, configProperties);
+    };
     try {
-      let recommendationsInPayload: any = !isWizard()
-        ? getComponentsBlueprint()
-        : recommendationsDataToSend || {};
-      recommendationsInPayload.blueprint.configurations =
-        buildConfigsJSON(configProperties);
-
-      let hostNames: string[] = !isWizard() ? allHostNames : HOSTS || [];
-
-      const payload = {
-        recommend: "configuration-dependencies",
-        hosts: hostNames,
-        services: installedServices || serviceNames,
-        changed_configurations: changedConfigs?.map((config) => ({
-          type: config.type,
-          name: config.name,
-          old_value: config.old_value,
-        })),
-        user_context: {
-          operation: "EditConfig",
-        },
-        recommendations: recommendationsInPayload,
-        ...(isWizard() ? {} : { serviceName: serviceName }),
-        clusterId: clusterId || null,
-        autoComplete: "false",
-        configsResponse: "false",
+      if (checkpointConfigProperties) {
+        await checkpointConfigProperties(configProperties);
+        if (!requestState.isCurrent()) return;
+      }
+      const requestRecommendations = async ({
+        isCurrent,
+        properties,
+      }: {
+        isCurrent: () => boolean;
+        properties: Record<string, unknown>;
+      }) => {
+        if (!requestState.isCurrent() || !isCurrent()) return null;
+        const recommendationsInPayload: any = !isWizard()
+          ? getComponentsBlueprint()
+          : cloneDeep(recommendationsDataToSend || {});
+        recommendationsInPayload.blueprint ||= {};
+        recommendationsInPayload.blueprint.configurations =
+          buildConfigsJSON(configProperties);
+        const payload = {
+          recommend: "configuration-dependencies",
+          hosts: !isWizard() ? allHostNames : HOSTS || [],
+          services: installedServices || serviceNames,
+          changed_configurations: changedConfigs?.map((config) => ({
+            type: config.type,
+            name: config.name,
+            old_value: config.old_value,
+          })),
+          user_context: {
+            operation: "EditConfig",
+          },
+          recommendations: recommendationsInPayload,
+          ...(isWizard() ? {} : { serviceName: serviceName }),
+          clusterId: clusterId || null,
+          autoComplete: "false",
+          configsResponse: "false",
+        };
+        const response = await ConfigsApi.getRecommendations(
+          isWizard() ? STACK : stack,
+          isWizard() ? VERSION : versionNum,
+          { ...payload, ...properties },
+        );
+        return requestState.isCurrent() && isCurrent() ? response : null;
       };
-      const recommendationsResponse = await ConfigsApi.getRecommendations(
-        isWizard() ? STACK : stack,
-        isWizard() ? VERSION : versionNum,
-        payload
-      );
+      const recommendationsResponse = runWithAdvisorRequest
+        ? await runWithAdvisorRequest(requestRecommendations)
+        : await requestRecommendations({ isCurrent: () => true, properties: {} });
+      if (!recommendationsResponse || !requestState.isCurrent()) return;
       processRecommendations(recommendationsResponse, configProperties);
     } catch (error) {
-      console.error("Error getting recommendations for config change:", error);
+      if (requestState.isCurrent()) {
+        setRecommendationError(responseErrorMessage(
+          error,
+          "Ambari could not load configuration recommendations.",
+        ));
+      }
     } finally {
-      setRecommendationsInProgress(false);
-      setProcessingConfig(false);
+      if (requestState.isCurrent()) {
+        setRecommendationsInProgress(false);
+        setProcessingConfig(false);
+      }
     }
   }
 
@@ -904,28 +1001,61 @@ function useEnhancedConfigs(
     selectedServices: string[],
     recommendationsInPayload: any
   ) => {
+    const requestState = startRecommendationRequest();
     setProcessingConfig(true);
     setRecommendationsInProgress(true);
-    try {
-      const payload = buildAddServiceRecommendationPayload({
-        clusterId,
+    lastRecommendationRef.current = () => {
+      void loadAddServiceRecommendations(
         configProperties,
-        hosts: HOSTS?.length ? HOSTS : allHostNames,
-        installedServices: installedServices || [],
-        recommendations: recommendationsInPayload || {},
         selectedServices,
-      });
-      const recommendationsResponse = await ConfigsApi.getRecommendations(
-        STACK || stack,
-        VERSION || versionNum,
-        payload
+        recommendationsInPayload,
       );
+    };
+    try {
+      if (checkpointConfigProperties) {
+        await checkpointConfigProperties(configProperties);
+        if (!requestState.isCurrent()) return;
+      }
+      const requestRecommendations = async ({
+        isCurrent,
+        properties,
+      }: {
+        isCurrent: () => boolean;
+        properties: Record<string, unknown>;
+      }) => {
+        if (!requestState.isCurrent() || !isCurrent()) return null;
+        const payload = buildAddServiceRecommendationPayload({
+          clusterId,
+          configProperties,
+          hosts: HOSTS?.length ? HOSTS : allHostNames,
+          installedServices: installedServices || [],
+          recommendations: recommendationsInPayload || {},
+          selectedServices,
+        });
+        const response = await ConfigsApi.getRecommendations(
+          STACK || stack,
+          VERSION || versionNum,
+          { ...payload, ...properties },
+        );
+        return requestState.isCurrent() && isCurrent() ? response : null;
+      };
+      const recommendationsResponse = runWithAdvisorRequest
+        ? await runWithAdvisorRequest(requestRecommendations)
+        : await requestRecommendations({ isCurrent: () => true, properties: {} });
+      if (!recommendationsResponse || !requestState.isCurrent()) return;
       processRecommendations(recommendationsResponse, configProperties);
     } catch (error) {
-      console.error("Error loading add service recommendations:", error);
+      if (requestState.isCurrent()) {
+        setRecommendationError(responseErrorMessage(
+          error,
+          "Ambari could not load Add Service recommendations.",
+        ));
+      }
     } finally {
-      setRecommendationsInProgress(false);
-      setProcessingConfig(false);
+      if (requestState.isCurrent()) {
+        setRecommendationsInProgress(false);
+        setProcessingConfig(false);
+      }
     }
   };
 
@@ -938,6 +1068,8 @@ function useEnhancedConfigs(
     loadAddServiceRecommendations,
     recommendedChanges,
     setRecommendedChanges,
+    recommendationError,
+    retryLastRecommendation,
     clearAllRecommendations,
   };
 }

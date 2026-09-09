@@ -32,10 +32,9 @@ import {
 export const useTrinoGatewayConfigUpdater = () => {
   const { polledHostComponentsData, masterSlaveClientsData, serviceStatesData } =
     useContext(ServiceContext);
-  const { services } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
   //@ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
-  const { parsedSocketMessages } = useContext(AppContext);
   const serviceNameForServiceModel = "trino_gateway";
   const serviceNameForPolledApi = "TRINO_GATEWAY";
 
@@ -49,7 +48,7 @@ export const useTrinoGatewayConfigUpdater = () => {
   const fetchTrinoGatewayMasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
     
-    let trinoGatewayComponentsData = cachedServiceApi.getServiceComponentData("TRINO_GATEWAY");
+    let trinoGatewayComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "TRINO_GATEWAY");
     
     if (!trinoGatewayComponentsData) {
       trinoGatewayComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -157,7 +156,7 @@ export const useTrinoGatewayConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("TRINO_GATEWAY", "trino_gateway", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "TRINO_GATEWAY", "trino_gateway", allServiceModels, updateRegistry);
   };
 
   const parseAlertsWebSocketMessages = async () => {

@@ -127,6 +127,9 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.LoggingService;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyLifecyclePolicy;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyRequestPersistence;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyRuntimePlanner;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
@@ -135,6 +138,7 @@ import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLRedirectProvider;
+import org.apache.ambari.server.api.services.PersistKeyValueImpl;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -191,6 +195,7 @@ import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterCreationContext;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -346,6 +351,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private SettingDAO settingDAO;
 
   @Inject
+  private PersistKeyValueImpl persistKeyValue;
+
+  @Inject
   private ResourceManager resourceManager;
 
   private MaintenanceStateHelper maintenanceStateHelper;
@@ -413,9 +421,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private AmbariCustomCommandExecutionHelper customCommandExecutionHelper;
 
   @Inject
-  private AmbariActionExecutionHelper actionExecutionHelper;
+  private ManagedDependencyRuntimePlanner managedDependencyRuntimePlanner;
 
-  private Map<String, Map<String, Map<String, String>>> configCredentialsForService = new HashMap<>();
+  @Inject
+  private ManagedDependencyRequestPersistence managedDependencyRequestPersistence;
+
+  @Inject
+  private AmbariActionExecutionHelper actionExecutionHelper;
 
   @Inject
   public AmbariManagementControllerImpl(ActionManager actionManager,
@@ -505,7 +517,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public void createCluster(ClusterRequest request)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
     if (request.getClusterName() == null
         || request.getClusterName().isEmpty()
         || request.getClusterId() != null) {
@@ -554,7 +566,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       throw new HostNotFoundException(invalidHostsStr.toString());
     }
 
-    clusters.addCluster(request.getClusterName(), stackId, request.getSecurityType());
+    ClusterCreationContext creationContext = null;
+    if (StringUtils.isNotBlank(request.getCreationDraftId())) {
+      creationContext = persistKeyValue.validateClusterCreationDraft(request.getCreationDraftId());
+    }
+    clusters.addCluster(request.getClusterName(), stackId, request.getSecurityType(), creationContext,
+        request.getTopologyProvisioningIntent());
     if (request.getHostNames() != null) {
       clusters.mapAndPublishHostsToCluster(request.getHostNames(),
           request.getClusterName());
@@ -1322,22 +1339,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     if (singleCluster != null) {
+      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, singleCluster.getResourceId(),
+          RoleAuthorization.AUTHORIZATIONS_VIEW_CLUSTER)) {
+        // Do not disclose whether a named or identified cluster exists to an unauthorized user.
+        throw new AuthorizationException();
+      }
+
       ClusterResponse cr = singleCluster.convertToResponse();
       cr.setDesiredConfigs(singleCluster.getDesiredConfigs());
       cr.setDesiredServiceConfigVersions(singleCluster.getActiveServiceConfigVersions());
       cr.setCredentialStoreServiceProperties(getCredentialStoreServiceProperties());
-
-     // If the user is authorized to view information about this cluster, add it to the response
-// TODO: Uncomment this when the UI doesn't require view access for View-only users.
-//      if (AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cr.getResourceId(),
-//          RoleAuthorization.AUTHORIZATIONS_VIEW_CLUSTER)) {
       response.add(cr);
-//      }
-//      else {
-//        // the user shouldn't know the difference between a cluster that does not exist or one that
-//        // he doesn't have access to.
-//        throw new AuthorizationException();
-//      }
 
       return response;
     }
@@ -1345,17 +1357,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Map<String, Cluster> allClusters = clusters.getClusters();
     for (Cluster c : allClusters.values()) {
-
-// TODO: Uncomment this when the UI doesn't require view access for View-only users.
-//       If the user is authorized to view information about this cluster, add it to the response
-//       if (AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, c.getResourceId(),
-//        RoleAuthorization.AUTHORIZATIONS_VIEW_CLUSTER)) {
-      ClusterResponse cr = c.convertToResponse();
-      cr.setDesiredConfigs(c.getDesiredConfigs());
-      cr.setDesiredServiceConfigVersions(c.getActiveServiceConfigVersions());
-      cr.setCredentialStoreServiceProperties(getCredentialStoreServiceProperties());
-      response.add(cr);
-//       }
+      if (AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, c.getResourceId(),
+          RoleAuthorization.AUTHORIZATIONS_VIEW_CLUSTER)) {
+        ClusterResponse cr = c.convertToResponse();
+        cr.setDesiredConfigs(c.getDesiredConfigs());
+        cr.setDesiredServiceConfigVersions(c.getActiveServiceConfigVersions());
+        cr.setCredentialStoreServiceProperties(getCredentialStoreServiceProperties());
+        response.add(cr);
+      }
     }
     StringBuilder builder = new StringBuilder();
     if (LOG.isDebugEnabled()) {
@@ -2593,12 +2602,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ServiceComponent component = clusterService.getServiceComponent(componentName);
 
     // Get the map of service config type to password properties for the service
-    Map<String, Map<String, String>> configCredentials;
-    configCredentials = configCredentialsForService.get(clusterService.getName());
-    if (configCredentials == null) {
-      configCredentials = configHelper.getCredentialStoreEnabledProperties(stackId, clusterService);
-      configCredentialsForService.put(clusterService.getName(), configCredentials);
-    }
+    Map<String, Map<String, String>> configCredentials =
+        configHelper.getCredentialStoreEnabledProperties(stackId, clusterService);
 
     execCmd.setConfigurationCredentials(configCredentials);
 
@@ -2607,6 +2612,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (commandParamsInp != null) { // if not defined
       commandParams.putAll(commandParamsInp);
     }
+    ManagedDependencyLifecyclePolicy.copyParametersForTarget(commandParamsInp, commandParams,
+        cluster.getClusterId(), serviceName, roleCommand.name());
 
     boolean isInstallCommand = roleCommand.equals(RoleCommand.INSTALL);
     String agentDefaultCommandTimeout = configs.getDefaultAgentTaskTimeout(isInstallCommand);
@@ -2758,7 +2765,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     execCmd.setRoleParams(roleParams);
-    execCmd.setCommandParams(commandParams);
 
     CommandRepository commandRepository;
     try {
@@ -2766,6 +2772,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     } catch (SystemException e) {
       throw new RuntimeException(e);
     }
+    managedDependencyRuntimePlanner.augmentHostCommand(cluster, scHost, roleCommand,
+        commandParams, execCmd.getConfigurations(), execCmd.getConfigurationTypeOverrides(),
+        commandRepository == null ? null : commandRepository.getRepoVersion());
+    execCmd.setCommandParams(commandParams);
     execCmd.setRepositoryFile(commandRepository);
     execCmdWrapper.setVersions(cluster, null);
 
@@ -2880,6 +2890,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, String> requestProperties,
       boolean runSmokeTest, boolean reconfigureClients, boolean useLatestConfigs, boolean useClusterHostInfo)
       throws AmbariException {
+
+    if (requestParameters == null) {
+      requestParameters = new HashMap<>();
+    }
+    ManagedDependencyLifecyclePolicy.copyParameters(requestProperties, requestParameters);
 
 
     // TODO handle different transitions?
@@ -3602,7 +3617,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         changedHosts, requestParameters, requestProperties,
         runSmokeTest, reconfigureClients, useGeneratedConfigs, useClusterHostInfo);
 
-    updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
+    managedDependencyRuntimePlanner.validateLifecycleStages(cluster, requestStages.getStages());
+
+    if (managedDependencyRuntimePlanner.hasManagedLifecycleStages(requestStages.getStages())) {
+      requestStages.addPrePersistAction(request -> updateServiceStates(cluster, changedServices,
+          changedComponents, changedHosts, ignoredHosts));
+      requestStages.setPersistenceHandler((request, publication) ->
+          managedDependencyRuntimePlanner.executeWithPreparationParentLocks(request,
+              () -> managedDependencyRequestPersistence.persist(request, publication)));
+    } else {
+      updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
+    }
 
     return requestStages;
   }
@@ -3905,6 +3930,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         if (requests.size() == 1) {
           // only throw exception if 1 request.
           // there will be > 1 request in case of OR predicate
+          throw e;
+        }
+      } catch (AuthorizationException e) {
+        if (requests.size() == 1) {
           throw e;
         }
       }
@@ -5852,12 +5881,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       String servicePackageFolder = serviceInfo.getServicePackageFolder();
 
       // Get the map of service config type to password properties for the service
-      Map<String, Map<String, String>> configCredentials;
-      configCredentials = configCredentialsForService.get(service.getName());
-      if (configCredentials == null) {
-        configCredentials = configHelper.getCredentialStoreEnabledProperties(serviceStackId, service);
-        configCredentialsForService.put(service.getName(), configCredentials);
-      }
+      Map<String, Map<String, String>> configCredentials =
+          configHelper.getCredentialStoreEnabledProperties(serviceStackId, service);
 
       serviceLevelParams.put(serviceInfo.getName(),
           new MetadataServiceInfo(serviceInfo.getVersion(),

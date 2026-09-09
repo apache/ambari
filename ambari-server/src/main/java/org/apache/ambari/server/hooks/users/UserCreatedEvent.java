@@ -30,14 +30,20 @@ import com.google.inject.assistedinject.AssistedInject;
 public class UserCreatedEvent extends AmbariEvent {
 
   private HookContext context;
+  private long clusterId;
 
   @AssistedInject
-  public UserCreatedEvent(@Assisted HookContext context) {
+  public UserCreatedEvent(@Assisted HookContext context, @Assisted long clusterId) {
     super(AmbariEventType.USER_CREATED);
     this.context = context;
+    this.clusterId = clusterId;
   }
 
   public HookContext getContext() {
     return context;
+  }
+
+  public long getClusterId() {
+    return clusterId;
   }
 }

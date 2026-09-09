@@ -21,9 +21,9 @@ import { ComponentProps, ReactNode } from "react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import KerberosApi from "../../api/kerberosApi";
-import ClusterApi from "../../api/clusterApi";
 import { AppContext } from "../../store/context";
 import credentialsUtils from "../../Utils/credentialsUtils";
+import { saveWorkflowReturnPath } from "../../Utils/workflowReturnPath";
 import EnableKerberos from "./EnableKerberos";
 
 vi.mock("react-router-dom", async () => {
@@ -47,6 +47,10 @@ const testState = vi.hoisted(() => ({
     retry: vi.fn(),
   },
 }));
+const persistenceMocks = vi.hoisted(() => ({
+  release: vi.fn(),
+  savePersistData: vi.fn(),
+}));
 
 vi.mock("../../hooks/useKerberosMode", () => ({
   default: () => testState.mode,
@@ -55,6 +59,9 @@ vi.mock("../../hooks/useKerberosMode", () => ({
 vi.mock("../../hooks/useAuth", () => ({
   useAuthorization: () => testState.canDownloadCsv,
   useAuth: () => ({ user: { user_name: testState.userName } }),
+}));
+vi.mock("../../hooks/useClusterWorkflowPersistence", () => ({
+  default: () => persistenceMocks,
 }));
 
 vi.mock("../../Utils/credentialsUtils", () => ({
@@ -140,6 +147,7 @@ const renderPage = ({
       value={
         {
           clusterName: "c1",
+          cluster: { cluster_id: 31, cluster_name: "c1" },
           services,
           supports,
           isKerberosEnabled: contextKerberosEnabled,
@@ -156,6 +164,7 @@ const renderPage = ({
 
 describe("EnableKerberos management entry", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     testState.canDownloadCsv = true;
     testState.userName = "operator";
     testState.mode = {
@@ -166,9 +175,8 @@ describe("EnableKerberos management entry", () => {
       retry: vi.fn(),
     };
     vi.mocked(credentialsUtils.isStorePersisted).mockResolvedValue(true);
-    vi.spyOn(ClusterApi, "postPersistData").mockResolvedValue(
-      {} as Awaited<ReturnType<typeof ClusterApi.postPersistData>>,
-    );
+    persistenceMocks.release.mockResolvedValue(undefined);
+    persistenceMocks.savePersistData.mockResolvedValue(undefined);
     vi.spyOn(KerberosApi, "getSecurityType").mockResolvedValue({
       Clusters: { security_type: "KERBEROS" },
     } as Awaited<ReturnType<typeof KerberosApi.getSecurityType>>);
@@ -176,7 +184,7 @@ describe("EnableKerberos management entry", () => {
 
   afterEach(() => {
     cleanup();
-    localStorage.removeItem("module06WizardReturnPath");
+    sessionStorage.clear();
     vi.restoreAllMocks();
   });
 
@@ -253,10 +261,8 @@ describe("EnableKerberos management entry", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Enable Kerberos" }));
 
-    await waitFor(() => expect(ClusterApi.postPersistData).toHaveBeenCalledTimes(1));
-    const persisted = JSON.parse(
-      vi.mocked(ClusterApi.postPersistData).mock.calls[0][0],
-    );
+    await waitFor(() => expect(persistenceMocks.savePersistData).toHaveBeenCalledTimes(1));
+    const persisted = JSON.parse(persistenceMocks.savePersistData.mock.calls[0][0]);
     expect(JSON.parse(persisted.CLUSTER_STATE)).toEqual({
       progressStatus: "ENABLING_KERBEROS",
       stepName: "GET_STARTED",
@@ -265,6 +271,7 @@ describe("EnableKerberos management entry", () => {
       userName: "operator",
       controllerName: "kerberosWizardController",
     });
+    expect(persistenceMocks.savePersistData.mock.calls[0][1]).toBe("GET_STARTED");
     expect(await screen.findByText("Enable wizard")).toBeTruthy();
   });
 
@@ -272,8 +279,12 @@ describe("EnableKerberos management entry", () => {
     vi.mocked(KerberosApi.getSecurityType).mockResolvedValue({
       Clusters: { security_type: "NONE" },
     } as Awaited<ReturnType<typeof KerberosApi.getSecurityType>>);
-    localStorage.setItem(
-      "module06WizardReturnPath",
+    saveWorkflowReturnPath(
+      {
+        clusterId: 31,
+        principal: "operator",
+        workflow: "ENABLING_KERBEROS",
+      },
       "/main/admin/stack/services",
     );
     renderPage({ contextKerberosEnabled: false });
@@ -286,7 +297,7 @@ describe("EnableKerberos management entry", () => {
 
     await waitFor(() => expect(screen.getByTestId("current-path").textContent)
       .toBe("/main/admin/stack/services"));
-    expect(localStorage.getItem("module06WizardReturnPath")).toBeNull();
+    expect(sessionStorage.length).toBe(0);
   });
 
   it("opens Disable from the Classic deep link", async () => {

@@ -242,6 +242,26 @@ public class DatasourceService {
     requireDatasource(id, clusterName);
   }
 
+  public boolean hasGlobalMetricsAccess() {
+    return AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+        RoleAuthorization.AMBARI_MANAGE_SETTINGS);
+  }
+
+  public void verifyGlobalMetricsAccess() throws AuthorizationException {
+    AuthorizationHelper.verifyAuthorization(ResourceType.AMBARI, null,
+        Set.of(RoleAuthorization.AMBARI_MANAGE_SETTINGS));
+  }
+
+  public long requireManagedMetricsClusterId(DatasourceEntity entity, String baseUrl)
+      throws AmbariException {
+    Cluster cluster = getCluster(entity.getClusterName());
+    if (!builtinDatasourceProvisioner.isTrustedManagedEndpoint(entity, cluster, baseUrl)) {
+      throw new MetricsScopeException(
+          "Cluster-scoped metrics queries require the Ambari-managed VictoriaMetrics datasource");
+    }
+    return cluster.getClusterId();
+  }
+
   public JsonNode resolveAuth(DatasourceEntity entity) throws AmbariException {
     JsonNode stored = readStoredConfiguration(entity);
     if (SECRET_FORMAT.equals(stored.path(SECRET_FORMAT_FIELD).asText())) {

@@ -34,6 +34,33 @@ class HbaseThrift(Script):
     env.set_params(params)
     self.install_packages(env)
     upgrade.select_phoenix_packages(params)
+    from managed_hbase_dependency import managed_dependency_requested
+
+    if managed_dependency_requested():
+      from managed_hbase_dependency import report_managed_dependency_preparation
+
+      bundle = hbase(name="thrift")
+      report_managed_dependency_preparation(self, params, bundle, "thrift")
+
+  def verify_hdfs_consumer(self, env):
+    from managed_hbase_dependency import execute_managed_hbase_verification
+    from resource_management.libraries.functions.managed_dependency import (
+      VERIFY_HDFS_CONSUMER,
+    )
+
+    execute_managed_hbase_verification(
+      self, env, "thrift", VERIFY_HDFS_CONSUMER
+    )
+
+  def verify_zookeeper_consumer(self, env):
+    from managed_hbase_dependency import execute_managed_hbase_verification
+    from resource_management.libraries.functions.managed_dependency import (
+      VERIFY_ZOOKEEPER_CONSUMER,
+    )
+
+    execute_managed_hbase_verification(
+      self, env, "thrift", VERIFY_ZOOKEEPER_CONSUMER
+    )
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -43,6 +70,7 @@ class HbaseThrift(Script):
 
   def configure(self, env):
     import params
+    from managed_hbase_dependency import report_managed_dependency_preparation
 
     env.set_params(params)
     thrift_site_config = params.config["configurations"].get(
@@ -51,7 +79,8 @@ class HbaseThrift(Script):
     hbase_site_config = params.config["configurations"].get("hbase-site", {})
     hbase_env_config = params.config["configurations"].get("hbase-env", {})
 
-    hbase(name="thrift")
+    bundle = hbase(name="thrift")
+    report_managed_dependency_preparation(self, params, bundle, "thrift")
 
     effective_hbase_site_config = dict(hbase_site_config)
     if not effective_hbase_site_config.get("hbase.thrift.kerberos.principal"):

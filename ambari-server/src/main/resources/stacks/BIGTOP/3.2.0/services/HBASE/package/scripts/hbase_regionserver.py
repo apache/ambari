@@ -47,12 +47,41 @@ class HbaseRegionServer(Script):
     env.set_params(params)
     self.install_packages(env)
     upgrade.select_phoenix_packages(params)
+    from managed_hbase_dependency import managed_dependency_requested
+
+    if managed_dependency_requested():
+      from managed_hbase_dependency import report_managed_dependency_preparation
+
+      bundle = hbase(name="regionserver")
+      report_managed_dependency_preparation(self, params, bundle, "regionserver")
+
+  def verify_hdfs_consumer(self, env):
+    from managed_hbase_dependency import execute_managed_hbase_verification
+    from resource_management.libraries.functions.managed_dependency import (
+      VERIFY_HDFS_CONSUMER,
+    )
+
+    execute_managed_hbase_verification(
+      self, env, "regionserver", VERIFY_HDFS_CONSUMER
+    )
+
+  def verify_zookeeper_consumer(self, env):
+    from managed_hbase_dependency import execute_managed_hbase_verification
+    from resource_management.libraries.functions.managed_dependency import (
+      VERIFY_ZOOKEEPER_CONSUMER,
+    )
+
+    execute_managed_hbase_verification(
+      self, env, "regionserver", VERIFY_ZOOKEEPER_CONSUMER
+    )
 
   def configure(self, env):
     import params
+    from managed_hbase_dependency import report_managed_dependency_preparation
 
     env.set_params(params)
-    hbase(name="regionserver")
+    bundle = hbase(name="regionserver")
+    report_managed_dependency_preparation(self, params, bundle, "regionserver")
 
   def decommission(self, env):
     raise Fail("RegionServer decommission must be issued through HBase Master")

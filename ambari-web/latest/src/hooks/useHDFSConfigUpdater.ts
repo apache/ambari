@@ -52,7 +52,7 @@ export const useHDFSConfigUpdater = () => {
   const { configsData } = useHDFSConfigsTags();
 
   // @ts-ignore
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, runtimeKey } = useContext(AppContext);
   // @ts-ignore
   const { parsedSocketMessages } = useContext(AppContext);
 
@@ -568,7 +568,7 @@ export const useHDFSConfigUpdater = () => {
     const serviceName = "HDFS";
     
     // Use centralized service state API instead of individual call
-    const serviceStateData = centralizedServiceStateApi.getServiceStateData(serviceName);
+    const serviceStateData = centralizedServiceStateApi.getServiceStateData(runtimeKey, serviceName);
     
     if (!serviceStateData) return;
 
@@ -624,7 +624,7 @@ export const useHDFSConfigUpdater = () => {
 
   useEffect(() => {
     if (isEmpty(masterSlaveClientsData) && clusterName) {
-      cachedServiceApi.fetchAllServiceComponents(clusterName);
+      cachedServiceApi.fetchAllServiceComponents(clusterName, runtimeKey);
     }
     findMasterSlaveClientComponents();
   }, [masterSlaveClientsData, clusterName]);

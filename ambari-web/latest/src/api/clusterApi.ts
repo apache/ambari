@@ -126,22 +126,16 @@ const ClusterApi = {
     });
     return response.data;
   },
-  getClusterName : async function () {
-      const url = `/clusters?fields=Clusters`;
-      const response = await ambariApi.request({
-        url: url,
-        method: "GET"
-    });
-    const clusterName = response?.data?.items[0]?.Clusters?.cluster_name;
-    return clusterName;
-  },
-  getClusterData: async function () {
-    const url= `/clusters?fields=Clusters/cluster_name,Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id`;
+  getClusterData: async function (clusterName?: string) {
+    const baseUrl = clusterName
+      ? `/clusters/${encodeURIComponent(clusterName)}`
+      : "/clusters";
+    const url = `${baseUrl}?fields=Clusters/cluster_name,Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
     });
-    return response.data;
+    return clusterName ? { items: [response.data] } : response.data;
   },
   getPersistData: async function (key?: any) {
     const persistData = await loadPersistData();

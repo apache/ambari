@@ -62,6 +62,8 @@ import com.google.common.base.Throwables;
 public class HostRequest implements Comparable<HostRequest> {
 
   private final static Logger LOG = LoggerFactory.getLogger(HostRequest.class);
+  static final String CONFIGURATION_FAILURE_MESSAGE =
+      "CONFIGURATION_FAILED: cluster configuration did not complete before host dispatch; retry the exact provisioning request";
 
   private long requestId;
   private String blueprint;
@@ -183,6 +185,18 @@ public class HostRequest implements Comparable<HostRequest> {
 
   public Optional<String> getStatusMessage() {
     return Optional.fromNullable(statusMessage);
+  }
+
+  void recordConfigurationFailure(PersistedState persistedState) {
+    statusMessage = CONFIGURATION_FAILURE_MESSAGE;
+    persistedState.setHostRequestStatus(id, HostRoleStatus.PENDING, statusMessage);
+  }
+
+  void clearConfigurationFailure(PersistedState persistedState) {
+    if (CONFIGURATION_FAILURE_MESSAGE.equals(statusMessage)) {
+      statusMessage = null;
+      persistedState.setHostRequestStatus(id, HostRoleStatus.PENDING, null);
+    }
   }
 
   public void setHostName(String hostName) {
@@ -457,6 +471,22 @@ public class HostRequest implements Comparable<HostRequest> {
 
   public Map<Long, Long> getPhysicalTaskMapping() {
     return new ConcurrentHashMap<>(physicalTasks);
+  }
+
+  /**
+   * Configuration may be retried only before any host operation was dispatched
+   * and while this request remains pending.
+   */
+  boolean isConfigurationRetrySafe() {
+    if (status != HostRoleStatus.PENDING || !physicalTasks.isEmpty()) {
+      return false;
+    }
+    for (HostRoleCommand task : logicalTasks.values()) {
+      if (task.getStatus() != HostRoleStatus.PENDING) {
+        return false;
+      }
+    }
+    return true;
   }
 
   //todo: since this is used to determine equality, using hashCode() isn't safe as it can return the same

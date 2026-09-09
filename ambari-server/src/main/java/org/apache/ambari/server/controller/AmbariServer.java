@@ -64,6 +64,8 @@ import org.apache.ambari.server.configuration.SingleFileWatch;
 import org.apache.ambari.server.configuration.spring.AgentStompConfig;
 import org.apache.ambari.server.configuration.spring.ApiSecurityConfig;
 import org.apache.ambari.server.configuration.spring.ApiStompConfig;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyOperationDispatcher;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
@@ -560,6 +562,7 @@ public class AmbariServer {
           StateRecoveryManager.class);
 
       recoveryManager.doWork();
+      injector.getInstance(ManagedDependencyOperationDispatcher.class).recoverOutstanding();
       /*
        * Start the server after controller state is recovered.
        */
@@ -927,7 +930,9 @@ public class AmbariServer {
     KeyService.init(injector.getInstance(PersistKeyValueImpl.class));
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class),
-        injector.getInstance(Configuration.class), injector.getInstance(Clusters.class), injector.getInstance(AmbariMetaInfo.class));
+        injector.getInstance(Configuration.class), injector.getInstance(Clusters.class),
+        injector.getInstance(AmbariMetaInfo.class),
+        injector.getInstance(ManagedDependencyStackAdvisorPlanner.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
     StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     StageUtils.setConfiguration(injector.getInstance(Configuration.class));

@@ -19,7 +19,8 @@
 import { Alert, Button, Tab, Tabs } from "react-bootstrap";
 import ListStack from "./ListStack";
 import Versions from "./ListVersion";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import useClusterNavigate from "../../../hooks/useClusterNavigate";
 import { useContext, useEffect, useState } from "react";
 import VersionsApi from "../../../api/versionsApi";
 import { AppContext } from "../../../store/context";
@@ -36,7 +37,7 @@ function StackAndVersions() {
   const [showUpgradeHistory, setShowUpgradeHistory] = useState(false);
   const [historyLoadError, setHistoryLoadError] = useState<string | null>(null);
   const [historyLoadAttempt, setHistoryLoadAttempt] = useState(0);
-  const navigate=useNavigate();
+  const navigate = useClusterNavigate();
   const { clusterName, upgradeId } = useContext(AppContext);
   const { stackVersion, stackVersionList } = useStackVersion();
   const stackVersionStateLoaded = stackVersion !== undefined;

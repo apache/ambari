@@ -29,7 +29,7 @@ import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constan
 export const useSqoopConfigUpdater = () => {
   const { polledHostComponentsData, masterSlaveClientsData, serviceStatesData } =
     useContext(ServiceContext);
-  const { services, parsedSocketMessages } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
   //@ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
 
@@ -43,7 +43,7 @@ export const useSqoopConfigUpdater = () => {
   const fetchSqoopMasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
     
-    let sqoopComponentsData = cachedServiceApi.getServiceComponentData("SQOOP");
+    let sqoopComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "SQOOP");
     
     if (!sqoopComponentsData) {
       sqoopComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -114,7 +114,7 @@ export const useSqoopConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("SQOOP", "sqoop", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "SQOOP", "sqoop", allServiceModels, updateRegistry);
   };
 
   const parseAlertsWebSocketMessages = async () => {

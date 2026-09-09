@@ -53,6 +53,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +94,8 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   private final ConfigFactory configFactory;
 
+  private final ManagedDependencyConfigPolicy managedDependencyConfigPolicy;
+
   @AssistedInject
   public ConfigGroupImpl(@Assisted("cluster") Cluster cluster,
       @Assisted("serviceName") @Nullable String serviceName, @Assisted("name") String name,
@@ -101,7 +104,8 @@ public class ConfigGroupImpl implements ConfigGroup {
       @Assisted("hosts") Map<Long, Host> hosts, Clusters clusters, ConfigFactory configFactory,
       ClusterDAO clusterDAO, HostDAO hostDAO, ConfigGroupDAO configGroupDAO,
       ConfigGroupConfigMappingDAO configGroupConfigMappingDAO,
-      ConfigGroupHostMappingDAO configGroupHostMappingDAO, LockFactory lockFactory)
+      ConfigGroupHostMappingDAO configGroupHostMappingDAO, LockFactory lockFactory,
+      ManagedDependencyConfigPolicy managedDependencyConfigPolicy)
       throws AmbariException {
 
     this.configFactory = configFactory;
@@ -110,6 +114,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     this.configGroupDAO = configGroupDAO;
     this.configGroupConfigMappingDAO = configGroupConfigMappingDAO;
     this.configGroupHostMappingDAO = configGroupHostMappingDAO;
+    this.managedDependencyConfigPolicy = managedDependencyConfigPolicy;
 
     hostLock = lockFactory.newReadWriteLock(hostLockLabel);
 
@@ -131,7 +136,10 @@ public class ConfigGroupImpl implements ConfigGroup {
         : new ConcurrentHashMap<>(configurations);
 
     // save the entity and grab the ID
-    persist(configGroupEntity);
+    executeUnderClusterWriteLock(() -> {
+      managedDependencyConfigPolicy.validateConfigGroup(cluster, serviceName, m_configurations);
+      persist(configGroupEntity);
+    });
     configGroupId = configGroupEntity.getGroupId();
   }
 
@@ -140,7 +148,8 @@ public class ConfigGroupImpl implements ConfigGroup {
       Clusters clusters, ConfigFactory configFactory,
       ClusterDAO clusterDAO, HostDAO hostDAO, ConfigGroupDAO configGroupDAO,
       ConfigGroupConfigMappingDAO configGroupConfigMappingDAO,
-      ConfigGroupHostMappingDAO configGroupHostMappingDAO, LockFactory lockFactory) {
+      ConfigGroupHostMappingDAO configGroupHostMappingDAO, LockFactory lockFactory,
+      ManagedDependencyConfigPolicy managedDependencyConfigPolicy) {
 
     this.configFactory = configFactory;
     this.clusterDAO = clusterDAO;
@@ -148,6 +157,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     this.configGroupDAO = configGroupDAO;
     this.configGroupConfigMappingDAO = configGroupConfigMappingDAO;
     this.configGroupHostMappingDAO = configGroupHostMappingDAO;
+    this.managedDependencyConfigPolicy = managedDependencyConfigPolicy;
 
     hostLock = lockFactory.newReadWriteLock(hostLockLabel);
 
@@ -255,14 +265,16 @@ public class ConfigGroupImpl implements ConfigGroup {
    */
   @Override
   public void setHosts(Map<Long, Host> hosts) {
-    hostLock.writeLock().lock();
-    try {
-      // persist enitites in a transaction first, then update internal state
-      replaceHostMappings(hosts);
-      m_hosts = new ConcurrentHashMap<>(hosts);
-    } finally {
-      hostLock.writeLock().unlock();
-    }
+    cluster.executeUnderWriteLock(() -> {
+      hostLock.writeLock().lock();
+      try {
+        // persist enitites in a transaction first, then update internal state
+        replaceHostMappings(hosts);
+        m_hosts = new ConcurrentHashMap<>(hosts);
+      } finally {
+        hostLock.writeLock().unlock();
+      }
+    });
   }
 
   /**
@@ -270,40 +282,45 @@ public class ConfigGroupImpl implements ConfigGroup {
    */
   @Override
   public void setConfigurations(Map<String, Config> configurations) throws AmbariException {
-    ConfigGroupEntity configGroupEntity = getConfigGroupEntity();
-    ClusterEntity clusterEntity = configGroupEntity.getClusterEntity();
+    executeUnderClusterWriteLock(() -> {
+      managedDependencyConfigPolicy.validateConfigGroup(cluster, serviceName, configurations);
+      ConfigGroupEntity configGroupEntity = getConfigGroupEntity();
+      ClusterEntity clusterEntity = configGroupEntity.getClusterEntity();
 
-    // only update the internal state after the configurations have been
-    // persisted
-    persistConfigMapping(clusterEntity, configGroupEntity, configurations);
-    m_configurations = new ConcurrentHashMap<>(configurations);
+      // only update the internal state after the configurations have been
+      // persisted
+      persistConfigMapping(clusterEntity, configGroupEntity, configurations);
+      m_configurations = new ConcurrentHashMap<>(configurations);
+    });
   }
 
   @Override
   public void removeHost(Long hostId) throws AmbariException {
-    hostLock.writeLock().lock();
-    try {
-      Host host = m_hosts.get(hostId);
-      if (null == host) {
-        return;
-      }
-
-      String hostName = host.getHostName();
-      LOG.info("Removing host (id={}, name={}) from config group", host.getHostId(), hostName);
-
+    executeUnderClusterWriteLock(() -> {
+      hostLock.writeLock().lock();
       try {
-        // remove the entities first, then update internal state
-        removeConfigGroupHostEntity(host);
-        m_hosts.remove(hostId);
-      } catch (Exception e) {
-        LOG.error("Failed to delete config group host mapping for cluster {} and host {}",
-            cluster.getClusterName(), hostName, e);
+        Host host = m_hosts.get(hostId);
+        if (null == host) {
+          return;
+        }
 
-        throw new AmbariException(e.getMessage());
+        String hostName = host.getHostName();
+        LOG.info("Removing host (id={}, name={}) from config group", host.getHostId(), hostName);
+
+        try {
+          // remove the entities first, then update internal state
+          removeConfigGroupHostEntity(host);
+          m_hosts.remove(hostId);
+        } catch (Exception e) {
+          LOG.error("Failed to delete config group host mapping for cluster {} and host {}",
+              cluster.getClusterName(), hostName, e);
+
+          throw new AmbariException(e.getMessage());
+        }
+      } finally {
+        hostLock.writeLock().unlock();
       }
-    } finally {
-      hostLock.writeLock().unlock();
-    }
+    });
   }
 
   /**
@@ -448,34 +465,37 @@ public class ConfigGroupImpl implements ConfigGroup {
   }
 
   @Override
-  @Transactional
   public void delete() {
-    configGroupConfigMappingDAO.removeAllByGroup(configGroupId);
-    configGroupHostMappingDAO.removeAllByGroup(configGroupId);
-    configGroupDAO.removeByPK(configGroupId);
-    cluster.refresh();
+    cluster.executeUnderWriteLock(() -> {
+      if (configGroupDAO.removeGroup(configGroupId)) {
+        configGroupHostMappingDAO.evictGroupFromCache(configGroupId);
+        cluster.refresh();
+      }
+    });
   }
 
   @Override
   public void addHost(Host host) throws AmbariException {
-    hostLock.writeLock().lock();
-    try {
-      if (m_hosts.containsKey(host.getHostId())) {
-        String message = String.format(
-            "Host %s is already associated with the configuration group %s", host.getHostName(),
-            configGroupName);
+    executeUnderClusterWriteLock(() -> {
+      hostLock.writeLock().lock();
+      try {
+        if (m_hosts.containsKey(host.getHostId())) {
+          String message = String.format(
+              "Host %s is already associated with the configuration group %s", host.getHostName(),
+              configGroupName);
 
-        throw new DuplicateResourceException(message);
+          throw new DuplicateResourceException(message);
+        }
+
+        // ensure that we only update the in-memory structure if the merge was
+        // successful
+        ConfigGroupEntity configGroupEntity = getConfigGroupEntity();
+        persistHostMapping(Collections.singletonList(host), configGroupEntity);
+        m_hosts.putIfAbsent(host.getHostId(), host);
+      } finally {
+        hostLock.writeLock().unlock();
       }
-
-      // ensure that we only update the in-memory structure if the merge was
-      // successful
-      ConfigGroupEntity configGroupEntity = getConfigGroupEntity();
-      persistHostMapping(Collections.singletonList(host), configGroupEntity);
-      m_hosts.putIfAbsent(host.getHostId(), host);
-    } finally {
-      hostLock.writeLock().unlock();
-    }
+    });
   }
 
   @Override
@@ -511,11 +531,43 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public void setServiceName(String serviceName) {
-    ConfigGroupEntity configGroupEntity = getConfigGroupEntity();
-    configGroupEntity.setServiceName(serviceName);
-    configGroupDAO.merge(configGroupEntity);
+    cluster.executeUnderWriteLock(() -> {
+      managedDependencyConfigPolicy.validateConfigGroup(cluster, serviceName, m_configurations);
+      ConfigGroupEntity configGroupEntity = getConfigGroupEntity();
+      configGroupEntity.setServiceName(serviceName);
+      configGroupDAO.merge(configGroupEntity);
+      this.serviceName = serviceName;
+    });
+  }
 
-    this.serviceName = serviceName;
+  private void executeUnderClusterWriteLock(ClusterWriteOperation operation) throws AmbariException {
+    try {
+      cluster.executeUnderWriteLock(() -> {
+        try {
+          operation.run();
+        } catch (AmbariException e) {
+          throw new ClusterWriteException(e);
+        }
+      });
+    } catch (ClusterWriteException e) {
+      throw e.getCause();
+    }
+  }
+
+  @FunctionalInterface
+  private interface ClusterWriteOperation {
+    void run() throws AmbariException;
+  }
+
+  private static final class ClusterWriteException extends RuntimeException {
+    private ClusterWriteException(AmbariException cause) {
+      super(cause);
+    }
+
+    @Override
+    public synchronized AmbariException getCause() {
+      return (AmbariException) super.getCause();
+    }
   }
 
   /**

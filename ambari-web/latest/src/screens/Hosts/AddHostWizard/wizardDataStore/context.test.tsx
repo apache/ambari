@@ -24,31 +24,30 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 
 const mocks = vi.hoisted(() => ({
   getPersistData: vi.fn(),
-  postPersistData: vi.fn(),
-  releaseWizard: vi.fn(),
+  reload: vi.fn(),
+  release: vi.fn(),
+  savePersistData: vi.fn(),
 }));
 
-vi.mock("../../../../api/clusterApi", () => ({
-  default: {
+vi.mock("../../../../hooks/useClusterWorkflowPersistence", () => ({
+  default: () => ({
     getPersistData: mocks.getPersistData,
-    postPersistData: mocks.postPersistData,
-  },
-}));
-
-vi.mock("../../../../Utils/wizardOwnership", () => ({
-  claimWizard: vi.fn(),
-  releaseWizard: mocks.releaseWizard,
+    reload: mocks.reload,
+    release: mocks.release,
+    savePersistData: mocks.savePersistData,
+  }),
 }));
 
 import { AddHostContext, AddHostProvider } from "./context";
 import { ActionTypes } from "./types";
 
 const wizardUtilities = {
-  currentStep: { name: "INSTALL_OPTIONS" },
+  currentStep: { name: "HOSTS" },
   jumpToStep: vi.fn(),
   wizardSteps: {
-    1: { name: "INSTALL_OPTIONS" },
+    1: { name: "HOSTS" },
     2: { name: "HOST_STATUS" },
+    4: { name: "CONFIGURATIONS" },
   },
 };
 
@@ -98,55 +97,64 @@ function renderProvider() {
 describe("Add Host persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.postPersistData.mockResolvedValue({});
-    mocks.releaseWizard.mockResolvedValue({});
+    mocks.getPersistData.mockResolvedValue({ ADD_HOST: {}, CLUSTER_STATE: {} });
+    mocks.reload.mockResolvedValue({ ADD_HOST: {}, CLUSTER_STATE: {} });
+    mocks.release.mockResolvedValue(undefined);
+    mocks.savePersistData.mockResolvedValue(undefined);
   });
 
   afterEach(() => cleanup());
 
   it("does not overwrite persisted state when hydration fails", async () => {
     mocks.getPersistData
-      .mockRejectedValueOnce({ response: { data: { message: "Restore failed" } } })
-      .mockResolvedValueOnce({});
+      .mockRejectedValueOnce({ response: { data: { message: "Restore failed" } } });
     renderProvider();
 
     expect(await screen.findByText("Restore failed")).toBeTruthy();
-    expect(mocks.postPersistData).not.toHaveBeenCalled();
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     expect(await screen.findByRole("button", { name: "Persist" })).toBeTruthy();
-    expect(mocks.getPersistData).toHaveBeenCalledTimes(3);
+    expect(mocks.getPersistData).toHaveBeenCalledOnce();
+    expect(mocks.reload).toHaveBeenCalledOnce();
   });
 
-  it("serializes persistence requests", async () => {
-    let completeFirstWrite: () => void = () => undefined;
-    mocks.getPersistData.mockResolvedValue({});
-    mocks.postPersistData
-      .mockReturnValueOnce(new Promise<void>((resolve) => {
-        completeFirstWrite = resolve;
-      }))
-      .mockResolvedValueOnce({});
+  it("routes a redacted SSH checkpoint to Install Options without auto-saving it", async () => {
+    mocks.getPersistData.mockResolvedValue({
+      ADD_HOST: {
+        activeStep: "INSTALL_START_TEST",
+        addHostSteps: {
+          HOSTS: { data: { installOptions: { requires_reentry: true } } },
+        },
+      },
+      CLUSTER_STATE: { stepName: "INSTALL_START_TEST" },
+    });
+
+    renderProvider();
+
+    expect(await screen.findByText(/credential values were removed/)).toBeTruthy();
+    expect(wizardUtilities.jumpToStep).toHaveBeenCalledWith(1, true);
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
+  });
+
+  it("writes one scoped workflow snapshot without raw persistence", async () => {
     renderProvider();
 
     const persist = await screen.findByRole("button", { name: "Persist" });
     fireEvent.click(persist);
-    fireEvent.click(persist);
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledTimes(1));
-
-    completeFirstWrite();
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(mocks.savePersistData).toHaveBeenCalledOnce());
+    expect(mocks.savePersistData).toHaveBeenCalledWith({
+      ADD_HOST: { activeStep: "" , addHostSteps: {} },
+      CLUSTER_STATE: {},
+    }, "ADD_HOST");
   });
 
   it("persists same-event checkpoints with the destination step before resolving", async () => {
-    mocks.getPersistData.mockResolvedValue({});
     renderProvider();
 
     fireEvent.click(await screen.findByRole("button", { name: "Persist next" }));
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalled());
-    const snapshots = mocks.postPersistData.mock.calls.map(([payload]) => {
-      const outer = JSON.parse(payload);
-      return JSON.parse(outer.ADD_HOST);
-    });
+    await waitFor(() => expect(mocks.savePersistData).toHaveBeenCalled());
+    const snapshots = mocks.savePersistData.mock.calls.map(([payload]) => payload.ADD_HOST);
 
     expect(snapshots).toContainEqual(expect.objectContaining({
       activeStep: "HOST_STATUS",
@@ -161,18 +169,13 @@ describe("Add Host persistence", () => {
 
   it("clears persisted state before returning to the Hosts route", async () => {
     let completeRelease: () => void = () => undefined;
-    mocks.getPersistData.mockResolvedValue({});
-    mocks.releaseWizard.mockReturnValueOnce(new Promise<void>((resolve) => {
+    mocks.release.mockReturnValueOnce(new Promise<void>((resolve) => {
       completeRelease = resolve;
     }));
     renderProvider();
 
     fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledTimes(1));
-    const persistedData = JSON.parse(mocks.postPersistData.mock.calls[0][0]);
-    expect(JSON.parse(persistedData.ADD_HOST)).toEqual({ addHostSteps: {} });
-    expect(JSON.parse(persistedData.CLUSTER_STATE)).toEqual({});
-    expect(mocks.releaseWizard).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mocks.release).toHaveBeenCalledOnce());
     expect(screen.getByTestId("location").textContent).toBe("/main/host/add/step1");
 
     completeRelease();
@@ -182,13 +185,11 @@ describe("Add Host persistence", () => {
   });
 
   it("stays in the wizard when persisted state cannot be cleared", async () => {
-    mocks.getPersistData.mockResolvedValue({});
-    mocks.postPersistData.mockRejectedValueOnce(new Error("Clear failed"));
+    mocks.release.mockRejectedValueOnce(new Error("Clear failed"));
     renderProvider();
 
     fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledTimes(1));
-    expect(mocks.releaseWizard).not.toHaveBeenCalled();
+    await waitFor(() => expect(mocks.release).toHaveBeenCalledOnce());
     expect(screen.getByTestId("location").textContent).toBe("/main/host/add/step1");
   });
 });

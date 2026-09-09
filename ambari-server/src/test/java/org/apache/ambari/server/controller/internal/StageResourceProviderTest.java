@@ -27,6 +27,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,14 +53,18 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
@@ -82,6 +87,7 @@ public class StageResourceProviderTest {
     dao = createStrictMock(StageDAO.class);
     clusters = createStrictMock(Clusters.class);
     cluster = createStrictMock(Cluster.class);
+    expect(cluster.getResourceId()).andReturn(1L).anyTimes();
     hrcDao = createStrictMock(HostRoleCommandDAO.class);
     topologyManager = EasyMock.createNiceMock(TopologyManager.class);
 
@@ -104,6 +110,12 @@ public class StageResourceProviderTest {
         new InMemoryDefaultTestModule()).with(new MockModule()));
 
     Assert.assertNotNull(injector);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @After
+  public void after() {
+    SecurityContextHolder.clearContext();
   }
 
 
@@ -157,6 +169,7 @@ public class StageResourceProviderTest {
 
     expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(predicate.evaluate(EasyMock.anyObject(Resource.class))).andReturn(true).anyTimes();
 
     replay(dao, clusters, cluster, request, predicate);
 
@@ -208,6 +221,152 @@ public class StageResourceProviderTest {
     verify(topologyManager, dao, clusters, cluster);
   }
 
+  @Test(expected = AuthorizationException.class)
+  public void testDirectStageLookupUsesAuthoritativeClusterAuthorization() throws Exception {
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+    Request request = createNiceMock(Request.class);
+    Predicate predicate = new PredicateBuilder().property(StageResourceProvider.STAGE_REQUEST_ID)
+        .equals(1L).and().property(StageResourceProvider.STAGE_STAGE_ID).equals(1L).toPredicate();
+    List<StageEntity> entities = getStageEntities(HostRoleStatus.COMPLETED);
+    entities.get(0).setStageId(1L);
+    entities.get(0).setClusterId(2L);
+
+    expect(dao.findAll(request, predicate)).andReturn(entities);
+    expect(clusters.getClusterById(anyLong())).andReturn(cluster);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 99L));
+    replay(dao, clusters, cluster, request);
+
+    provider.getResources(request, predicate);
+  }
+
+  @Test
+  public void testClusterStageListFiltersOtherTopologyClusters() throws Exception {
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+    Request request = createNiceMock(Request.class);
+    Cluster clusterB = createStrictMock(Cluster.class);
+    Predicate predicate = new PredicateBuilder().property(StageResourceProvider.STAGE_CLUSTER_NAME)
+        .equals("cluster-a").toPredicate();
+    StageEntity stageA = getStageEntities(HostRoleStatus.COMPLETED).get(0);
+    stageA.setClusterId(1L);
+    stageA.setStageId(1L);
+    StageEntity stageB = getStageEntities(HostRoleStatus.COMPLETED).get(0);
+    stageB.setClusterId(2L);
+    stageB.setStageId(1L);
+
+    expect(dao.findAll(request, predicate)).andReturn(Collections.emptyList());
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(clusters.getClusterById(2L)).andReturn(clusterB);
+    expect(clusterB.getResourceId()).andReturn(2L);
+    expect(cluster.getClusterName()).andReturn("cluster-a");
+    reset(topologyManager);
+    expect(topologyManager.getStages()).andReturn(Arrays.asList(stageA, stageB));
+    expect(topologyManager.getStageSummaries(1L)).andReturn(Collections.emptyMap());
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 1L));
+    replay(topologyManager, dao, clusters, cluster, clusterB, request);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    verify(topologyManager, dao, clusters, cluster, clusterB);
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testMixedStageUpdateIsFullyAuthorizedBeforeMutation() throws Exception {
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+    Cluster clusterB = createStrictMock(Cluster.class);
+    Predicate predicate = new PredicateBuilder().property(StageResourceProvider.STAGE_STATUS)
+        .equals(HostRoleStatus.HOLDING.name()).toPredicate();
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(StageResourceProvider.STAGE_STATUS, HostRoleStatus.ABORTED.name());
+    Request request = PropertyHelper.getUpdateRequest(requestProps, null);
+    StageEntity stageA = getStageEntities(HostRoleStatus.HOLDING).get(0);
+    stageA.setClusterId(1L);
+    StageEntity stageB = getStageEntities(HostRoleStatus.HOLDING).get(0);
+    stageB.setClusterId(2L);
+
+    expect(dao.findAll(request, predicate)).andReturn(Arrays.asList(stageA, stageB));
+    expect(clusters.getClusterById(1L)).andReturn(cluster);
+    expect(clusters.getClusterById(2L)).andReturn(clusterB);
+    expect(clusterB.getResourceId()).andReturn(2L);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterAdministrator("alice", 1L));
+    replay(dao, clusters, cluster, clusterB, managementController);
+
+    provider.updateResources(request, predicate);
+  }
+
+  @Test
+  public void testStageQuerySupportsOrRequestParents() throws Exception {
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+    Predicate predicate = new PredicateBuilder()
+        .property(StageResourceProvider.STAGE_REQUEST_ID).equals(1L)
+        .and().property(StageResourceProvider.STAGE_STAGE_ID).equals(2L)
+        .or().property(StageResourceProvider.STAGE_REQUEST_ID).equals(2L)
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(StageResourceProvider.STAGE_STAGE_ID));
+    StageEntity first = getStageEntities(HostRoleStatus.COMPLETED).get(0);
+    first.setClusterId(1L);
+    first.setStageId(2L);
+    StageEntity second = getStageEntities(HostRoleStatus.COMPLETED).get(0);
+    second.setClusterId(1L);
+    second.setRequestId(2L);
+    second.setStageId(3L);
+
+    expect(dao.findAll(request, predicate)).andReturn(Arrays.asList(first, second));
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(4);
+    expect(cluster.getClusterName()).andReturn("cluster-a").times(2);
+    reset(topologyManager);
+    expect(topologyManager.getRequest(1L)).andReturn(null);
+    expect(topologyManager.getRequest(2L)).andReturn(null);
+    replay(topologyManager, dao, clusters, cluster);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(2, resources.size());
+    verify(topologyManager, dao, clusters, cluster);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidStageParentIsRejectedBeforeDaoQuery() throws Exception {
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+    Predicate predicate = new PredicateBuilder()
+        .property(StageResourceProvider.STAGE_REQUEST_ID).equals("invalid")
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(StageResourceProvider.STAGE_STAGE_ID));
+    replay(dao);
+
+    provider.getResources(request, predicate);
+  }
+
+  @Test
+  public void testDirectStageStatusFilterCanReturnNoMatch() throws Exception {
+    StageResourceProvider provider = new StageResourceProvider(managementController);
+    Predicate predicate = new PredicateBuilder()
+        .property(StageResourceProvider.STAGE_CLUSTER_NAME).equals("cluster-a")
+        .and().property(StageResourceProvider.STAGE_REQUEST_ID).equals(1L)
+        .and().property(StageResourceProvider.STAGE_STAGE_ID).equals(1L)
+        .and().property(StageResourceProvider.STAGE_STATUS).equals(HostRoleStatus.FAILED)
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(Set.of(StageResourceProvider.STAGE_STAGE_ID));
+    StageEntity stage = getStageEntities(HostRoleStatus.COMPLETED).get(0);
+    stage.setClusterId(1L);
+    stage.setStageId(1L);
+
+    expect(clusters.getCluster("cluster-a")).andReturn(cluster);
+    expect(cluster.getClusterId()).andReturn(1L);
+    expect(dao.findAll(request, predicate)).andReturn(List.of(stage));
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getClusterName()).andReturn("cluster-a");
+    reset(topologyManager);
+    expect(topologyManager.getRequest(1L)).andReturn(null);
+    replay(topologyManager, dao, clusters, cluster);
+
+    Assert.assertTrue(provider.getResources(request, predicate).isEmpty());
+    verify(topologyManager, dao, clusters, cluster);
+  }
+
   /**
    * Tests getting the display status of a stage which can differ from the final
    * status.
@@ -243,6 +402,7 @@ public class StageResourceProviderTest {
 
     expect(clusters.getClusterById(anyLong())).andReturn(cluster).anyTimes();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(predicate.evaluate(EasyMock.anyObject(Resource.class))).andReturn(true).anyTimes();
 
     replay(dao, clusters, cluster, request, predicate);
 
@@ -303,6 +463,7 @@ public class StageResourceProviderTest {
     Request request = PropertyHelper.getUpdateRequest(requestProps, null);
 
     List<StageEntity> entities = getStageEntities(HostRoleStatus.HOLDING);
+    entities.get(0).setStageId(2L);
 
     expect(dao.findAll(request, predicate)).andReturn(entities);
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();

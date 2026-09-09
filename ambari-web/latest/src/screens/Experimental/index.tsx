@@ -18,7 +18,7 @@
 
 import { useContext, useState } from "react";
 import { Alert, Button, Form, Table } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import ClusterApi from "../../api/clusterApi";
 import Modal from "../../components/Modal";
 import { useAuth } from "../../hooks/useAuth";
@@ -35,7 +35,7 @@ export default function Experimental() {
     setSupports: setSharedSupports,
     supports: sharedSupports,
   } = useContext(AppContext);
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const [supports, setSupports] = useState(sharedSupports);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");

@@ -19,8 +19,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ComponentProps, isValidElement, useContext } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import ClusterApi from "../../../api/clusterApi";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import KerberosApi from "../../../api/kerberosApi";
 import { RequestApi } from "../../../api/requestApi";
 import modalManager from "../../../store/ModalManager";
@@ -31,7 +30,29 @@ import {
   KerberosWizardProvider,
 } from "./context";
 
+const persistenceMocks = vi.hoisted(() => ({
+  getPersistData: vi.fn(),
+  reload: vi.fn(),
+  release: vi.fn(),
+  savePersistData: vi.fn(),
+}));
+
+vi.mock("../../../hooks/useClusterWorkflowPersistence", () => ({
+  default: () => persistenceMocks,
+}));
+vi.mock("../../../hooks/useAuth", () => ({
+  default: () => ({ hasAuthorization: () => true }),
+}));
+
 describe("Kerberos wizard discard", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    persistenceMocks.getPersistData.mockResolvedValue({});
+    persistenceMocks.reload.mockResolvedValue({});
+    persistenceMocks.release.mockResolvedValue(undefined);
+    persistenceMocks.savePersistData.mockResolvedValue(undefined);
+  });
+
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -65,8 +86,6 @@ describe("Kerberos wizard discard", () => {
   });
 
   it("hands completed footer cancellation to the outer navigation guard", async () => {
-    vi.spyOn(ClusterApi, "getPersistData").mockResolvedValue({} as any);
-    vi.spyOn(ClusterApi, "postPersistData").mockResolvedValue({} as any);
     vi.spyOn(RequestApi, "preparingOperations").mockResolvedValue({} as any);
     vi.spyOn(KerberosApi, "deleteKerberosService").mockResolvedValue({} as any);
     const show = vi.spyOn(modalManager, "show");
@@ -111,19 +130,13 @@ describe("Kerberos wizard discard", () => {
     await confirmation.props.successCallback();
 
     await waitFor(() => expect(onWizardExitReady).toHaveBeenCalledTimes(1));
-    expect(ClusterApi.postPersistData).toHaveBeenCalledTimes(1);
-    const resetPayload = JSON.parse(
-      vi.mocked(ClusterApi.postPersistData).mock.calls[0][0],
-    );
-    expect(JSON.parse(resetPayload["wizard-data"])).toEqual({});
+    expect(persistenceMocks.release).toHaveBeenCalledTimes(1);
   });
 
   it("shows recovery load failure and retries before rendering the wizard", async () => {
-    vi.spyOn(ClusterApi, "getPersistData")
+    persistenceMocks.reload
       .mockRejectedValueOnce(new Error("load failed"))
-      .mockResolvedValueOnce(
-        {} as Awaited<ReturnType<typeof ClusterApi.getPersistData>>,
-      );
+      .mockResolvedValueOnce({});
     const stepWizardUtilities = {
       wizardSteps: { 1: { name: "GET_STARTED" } },
       currentStep: { name: "GET_STARTED" },
@@ -153,18 +166,51 @@ describe("Kerberos wizard discard", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     expect(await screen.findByText("Wizard content")).toBeTruthy();
-    expect(ClusterApi.getPersistData).toHaveBeenCalledTimes(2);
+    expect(persistenceMocks.reload).toHaveBeenCalledTimes(2);
   });
 
-  it("makes a checkpoint save failure visible and retryable", async () => {
-    vi.spyOn(ClusterApi, "getPersistData").mockResolvedValue(
-      {} as Awaited<ReturnType<typeof ClusterApi.getPersistData>>,
+  it("routes a redacted KDC credential to Configure Kerberos without auto-saving", async () => {
+    persistenceMocks.reload.mockResolvedValue({
+      ENABLING_KERBEROS: {
+        activeStep: "KERBERIZE_CLUSTER",
+        kerberosWizardSteps: {
+          CONFIGURE_KERBEROS: {
+            data: {
+              configProperties: [{
+                name: "admin_password",
+                requires_reentry: true,
+              }],
+            },
+          },
+        },
+      },
+    });
+    const stepWizardUtilities = {
+      wizardSteps: {
+        1: { name: "GET_STARTED" },
+        2: { name: "CONFIGURE_KERBEROS" },
+      },
+      currentStep: { name: "GET_STARTED" },
+      jumpToStep: vi.fn(),
+    };
+
+    render(
+      <MemoryRouter>
+        <AppContext.Provider value={{ clusterName: "c1" } as any}>
+          <KerberosWizardProvider stepWizardUtilities={stepWizardUtilities}>
+            <div>Wizard content</div>
+          </KerberosWizardProvider>
+        </AppContext.Provider>
+      </MemoryRouter>,
     );
-    vi.spyOn(ClusterApi, "postPersistData")
-      .mockRejectedValueOnce(new Error("save failed"))
-      .mockResolvedValueOnce(
-        {} as Awaited<ReturnType<typeof ClusterApi.postPersistData>>,
-      );
+
+    expect(await screen.findByText(/credential values were removed/)).toBeTruthy();
+    expect(stepWizardUtilities.jumpToStep).toHaveBeenCalledWith(2, true);
+    expect(persistenceMocks.savePersistData).not.toHaveBeenCalled();
+  });
+
+  it("reloads saved state after a checkpoint conflict instead of replaying it", async () => {
+    persistenceMocks.savePersistData.mockRejectedValueOnce(new Error("save failed"));
     const stepWizardUtilities = {
       wizardSteps: { 1: { name: "GET_STARTED" } },
       currentStep: { name: "GET_STARTED" },
@@ -202,7 +248,8 @@ describe("Kerberos wizard discard", () => {
     )).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
-    await waitFor(() => expect(ClusterApi.postPersistData).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(persistenceMocks.reload).toHaveBeenCalledTimes(2));
+    expect(persistenceMocks.savePersistData).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(screen.queryByText(
       "save failed",
     )).toBeNull());

@@ -19,6 +19,7 @@
 package org.apache.ambari.tools.zk;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -39,6 +40,10 @@ public class ZkMigrator {
   private static final int CONNECTION_TIMEOUT_MILLIS = 30000;
 
   public static void main(String[] args) throws Exception {
+    if (args.length > 0 && "--managed-dependency".equals(args[0])) {
+      ManagedDependencyZk.main(Arrays.copyOfRange(args, 1, args.length));
+      return;
+    }
     CommandLine cli = new DefaultParser().parse(options(), args);
     if (cli.hasOption("connection-string") && cli.hasOption("znode")) {
       if (cli.hasOption("acl") && !cli.hasOption("delete")) {

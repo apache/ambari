@@ -93,6 +93,8 @@ CREATE TABLE clusters (
   cluster_id BIGINT NOT NULL,
   resource_id BIGINT NOT NULL,
   upgrade_id BIGINT,
+  creator_user_id INTEGER,
+  creation_draft_id VARCHAR(36),
   cluster_info VARCHAR(255) NOT NULL,
   cluster_name VARCHAR(100) NOT NULL UNIQUE,
   provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT',
@@ -102,6 +104,8 @@ CREATE TABLE clusters (
   CONSTRAINT PK_clusters PRIMARY KEY (cluster_id),
   CONSTRAINT FK_clusters_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id));
+
+CREATE UNIQUE INDEX uq_clusters_creation_draft ON clusters (creator_user_id, creation_draft_id);
 
 CREATE TABLE clusterconfig (
   config_id BIGINT NOT NULL,
@@ -503,6 +507,85 @@ CREATE TABLE key_value_store (`key` VARCHAR(255),
   `value` LONGTEXT,
   CONSTRAINT PK_key_value_store PRIMARY KEY (`key`));
 
+CREATE TABLE scoped_workflow_state (
+  scope_key VARCHAR(255) NOT NULL,
+  revision BIGINT NOT NULL,
+  owner_user_id INTEGER,
+  owner_name VARCHAR(255),
+  created_cluster_id BIGINT,
+  workflow VARCHAR(64) NOT NULL,
+  phase VARCHAR(128) NOT NULL,
+  payload LONGTEXT NOT NULL,
+  CONSTRAINT PK_scoped_workflow_state PRIMARY KEY (scope_key));
+
+CREATE TABLE service_dependency_binding (
+  binding_id VARCHAR(36) NOT NULL, consumer_cluster_id BIGINT NOT NULL,
+  consumer_service_name VARCHAR(255) NOT NULL, provider_cluster_id BIGINT NOT NULL,
+  provider_service_name VARCHAR(255) NOT NULL, dependency_type VARCHAR(32) NOT NULL,
+  state VARCHAR(32) NOT NULL, provisioning_phase VARCHAR(64), row_version BIGINT NOT NULL,
+  operation_epoch BIGINT NOT NULL, desired_snapshot_version BIGINT NOT NULL,
+  snapshot_approval VARCHAR(32) NOT NULL, provider_preparation_hash VARCHAR(71),
+  applied_snapshot_version BIGINT, provider_fingerprint VARCHAR(71) NOT NULL,
+  applied_provider_fingerprint VARCHAR(71), namespace_root VARCHAR(2048),
+  namespace_wal VARCHAR(2048), namespace_znode VARCHAR(1024), action_host_id BIGINT,
+  active_operation_id VARCHAR(36) NOT NULL, active_request_id BIGINT,
+  failure_code VARCHAR(128), failure_phase VARCHAR(64), failure_message VARCHAR(1024),
+  failure_retryable SMALLINT NOT NULL, created_by_user_id INTEGER NOT NULL,
+  updated_by_user_id INTEGER NOT NULL, create_timestamp BIGINT NOT NULL, update_timestamp BIGINT NOT NULL,
+  CONSTRAINT PK_service_dependency_binding PRIMARY KEY (binding_id),
+  CONSTRAINT UQ_svc_dep_consumer_type UNIQUE (consumer_cluster_id, consumer_service_name, dependency_type),
+  CONSTRAINT FK_svc_dep_consumer FOREIGN KEY (consumer_service_name, consumer_cluster_id) REFERENCES clusterservices (service_name, cluster_id),
+  CONSTRAINT FK_svc_dep_provider FOREIGN KEY (provider_service_name, provider_cluster_id) REFERENCES clusterservices (service_name, cluster_id),
+  CONSTRAINT FK_svc_dep_action_host FOREIGN KEY (action_host_id) REFERENCES hosts (host_id));
+
+CREATE TABLE service_dependency_snapshot (
+  binding_id VARCHAR(36) NOT NULL, snapshot_version BIGINT NOT NULL, schema_version INTEGER NOT NULL,
+  consumer_fingerprint VARCHAR(71) NOT NULL, provider_fingerprint VARCHAR(71) NOT NULL,
+  provider_display_name VARCHAR(255) NOT NULL,
+  consumer_service_version VARCHAR(128) NOT NULL,
+  snapshot_fingerprint VARCHAR(71) NOT NULL, client_features_hash VARCHAR(71) NOT NULL,
+  security_policy_hash VARCHAR(71) NOT NULL, snapshot_json LONGTEXT NOT NULL,
+  created_by_user_id INTEGER NOT NULL, create_timestamp BIGINT NOT NULL,
+  CONSTRAINT PK_service_dependency_snapshot PRIMARY KEY (binding_id, snapshot_version),
+  CONSTRAINT FK_svc_dep_snapshot_binding FOREIGN KEY (binding_id) REFERENCES service_dependency_binding (binding_id));
+
+CREATE TABLE service_dependency_operation (
+  operation_id VARCHAR(36) NOT NULL, binding_id VARCHAR(36) NOT NULL,
+  operation_kind VARCHAR(32) NOT NULL, operation_epoch BIGINT NOT NULL,
+  target_snapshot_version BIGINT NOT NULL, request_hash VARCHAR(71) NOT NULL,
+  state VARCHAR(32) NOT NULL, ambari_request_id BIGINT, failure_code VARCHAR(128),
+  failure_message VARCHAR(1024), create_timestamp BIGINT NOT NULL, update_timestamp BIGINT NOT NULL,
+  CONSTRAINT PK_service_dependency_operation PRIMARY KEY (operation_id),
+  CONSTRAINT FK_svc_dep_operation_binding FOREIGN KEY (binding_id) REFERENCES service_dependency_binding (binding_id));
+
+CREATE TABLE service_dependency_host_result (
+  binding_id VARCHAR(36) NOT NULL, snapshot_version BIGINT NOT NULL, host_id BIGINT NOT NULL,
+  dependency_type VARCHAR(32) NOT NULL, check_kind VARCHAR(64) NOT NULL,
+  operation_epoch BIGINT NOT NULL, operation_id VARCHAR(36) NOT NULL, component_name VARCHAR(255),
+  command_request_hash VARCHAR(71) NOT NULL, command_json LONGTEXT NOT NULL,
+  ambari_request_id BIGINT, ambari_stage_id BIGINT, ambari_task_id BIGINT,
+  required_package_hash VARCHAR(71) NOT NULL,
+  observed_package_hash VARCHAR(71), rendered_config_hash VARCHAR(71), identity_fingerprint VARCHAR(71),
+  result_json LONGTEXT, result_hash VARCHAR(71), preparation_observation_id VARCHAR(36),
+  preparation_request_hash VARCHAR(71), preparation_observation_fingerprint VARCHAR(71),
+  package_name VARCHAR(128), package_version VARCHAR(512), client_software_version VARCHAR(128),
+  state VARCHAR(32) NOT NULL, check_timestamp BIGINT NOT NULL, failure_code VARCHAR(128),
+  failure_message VARCHAR(1024),
+  CONSTRAINT PK_service_dependency_host_result PRIMARY KEY (binding_id, snapshot_version, operation_epoch, host_id, dependency_type, check_kind),
+  CONSTRAINT FK_svc_dep_host_snapshot FOREIGN KEY (binding_id, snapshot_version) REFERENCES service_dependency_snapshot (binding_id, snapshot_version),
+  CONSTRAINT FK_svc_dep_host_operation FOREIGN KEY (operation_id) REFERENCES service_dependency_operation (operation_id),
+  CONSTRAINT FK_svc_dep_host FOREIGN KEY (host_id) REFERENCES hosts (host_id));
+
+CREATE TABLE service_dependency_fence (
+  binding_id VARCHAR(36) NOT NULL, final_epoch BIGINT NOT NULL,
+  immutable_spec_hash VARCHAR(71) NOT NULL, dependency_type VARCHAR(32) NOT NULL,
+  consumer_cluster_id BIGINT NOT NULL, consumer_service_name VARCHAR(255) NOT NULL,
+  provider_cluster_id BIGINT NOT NULL, provider_service_name VARCHAR(255) NOT NULL,
+  namespace_hash VARCHAR(71) NOT NULL, detach_operation_id VARCHAR(36) NOT NULL,
+  detach_request_hash VARCHAR(71) NOT NULL, detached_by_user_id INTEGER NOT NULL,
+  detach_timestamp BIGINT NOT NULL,
+  CONSTRAINT PK_service_dependency_fence PRIMARY KEY (binding_id));
+
 CREATE TABLE hostconfigmapping (
   create_timestamp BIGINT NOT NULL,
   host_id BIGINT NOT NULL,
@@ -525,6 +608,7 @@ CREATE TABLE ClusterHostMapping (
   cluster_id BIGINT NOT NULL,
   host_id BIGINT NOT NULL,
   CONSTRAINT PK_ClusterHostMapping PRIMARY KEY (cluster_id, host_id),
+  CONSTRAINT UQ_clusterhostmapping_host_id UNIQUE (host_id),
   CONSTRAINT FK_clhostmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id),
   CONSTRAINT FK_clusterhostmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id));
 
@@ -834,8 +918,12 @@ CREATE TABLE topology_request (
   cluster_attributes LONGTEXT,
   description VARCHAR(1024),
   provision_action VARCHAR(255),
+  repository_version_id BIGINT,
+  specification_hash VARCHAR(64),
+  provisioning_state VARCHAR(32),
   CONSTRAINT PK_topology_request PRIMARY KEY (id),
-  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id));
+  CONSTRAINT FK_topology_request_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
+  CONSTRAINT FK_topology_request_repo_ver FOREIGN KEY (repository_version_id) REFERENCES repo_version(repo_version_id));
 
 CREATE TABLE topology_hostgroup (
   id BIGINT NOT NULL,

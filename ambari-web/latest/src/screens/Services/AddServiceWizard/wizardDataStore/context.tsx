@@ -28,10 +28,8 @@ import React, {
 } from "react";
 import { State, Action, ActionTypes } from "./types";
 import { reducer, initialState } from "./reducer";
-import ClusterApi from "../../../../api/clusterApi";
 import { AppContext } from "../../../../store/context";
-import { forEach, get, isEmpty, map } from "lodash";
-import { excludeServicesOnDisplay } from "../../../ClusterWizard/constants";
+import { forEach, get, isEmpty, isEqual, map } from "lodash";
 import VersionsApi from "../../../../api/versionsApi";
 import { HostsApi } from "../../../../api/hostsApi";
 import { getAllComponents } from "../../../Hosts/utils";
@@ -40,31 +38,82 @@ import { ClusterProgressStatus } from "../../../../constants";
 import modalManager from "../../../../store/ModalManager";
 import {
   CANCEL_ADD_SERVICE_WIZARD_EVENT,
-  clearAddServiceWizardState,
-  reloadAtHashRoute,
 } from "../../../../Utils/addServicePersistence";
 import { Alert, Button } from "react-bootstrap";
-import { claimWizard, releaseWizard } from "../../../../Utils/wizardOwnership";
 import { resolveRecoveryStep } from "../../../ClusterWizard/wizardRecovery";
+import useClusterWorkflowPersistence from "../../../../hooks/useClusterWorkflowPersistence";
+import Spinner from "../../../../components/Spinner";
+import {
+  containsReentryMarker,
+  WorkflowQueueInvalidatedError,
+  workflowErrorMessage,
+  WorkflowMutationQueue,
+} from "../../../../Utils/scopedWorkflow";
+import { translate } from "../../../../Utils/Utility";
+import { consumeWorkflowReturnPath } from "../../../../Utils/workflowReturnPath";
 
 interface AddServiceContextProps {
   state: State;
   dispatch: Dispatch<Action>;
   stepWizardUtilities?: any;
   flushStateToDb?: any;
+  storeStepDataAndFlush?: (
+    step: string,
+    data: Record<string, unknown>,
+  ) => Promise<number>;
+  withStateCheckpoint?: <T>(
+    request: (revision: number) => Promise<T>,
+  ) => Promise<T>;
+  getWorkflowRevision?: () => number;
   installedHosts: string[];
   serviceContextLoading: boolean;
   installedServices: string[];
+  workflowMaterializedServices: string[];
 }
 
 export const AddServiceContext = createContext<AddServiceContextProps>({
   state: initialState,
   dispatch: () => undefined,
   flushStateToDb: () => undefined,
+  storeStepDataAndFlush: async () => 0,
+  withStateCheckpoint: async (request) => request(0),
+  getWorkflowRevision: () => 0,
   installedHosts: [],
   serviceContextLoading: false,
   installedServices: [],
+  workflowMaterializedServices: [],
 });
+
+export const classifyAddServiceServices = (
+  items: Array<{ ServiceInfo?: { service_name?: string; state?: string } }>,
+  state: State,
+  target: { clusterId: number; clusterName: string },
+) => {
+  const creationIntent = get(
+    state,
+    "addServiceSteps.REVIEW.data.serviceCreationIntent",
+    null,
+  );
+  const ownsCreationIntent = Number(creationIntent?.clusterId) === target.clusterId
+    && creationIntent?.clusterName === target.clusterName;
+  const workflowFreshServices = new Set<string>(
+    ownsCreationIntent && Array.isArray(creationIntent?.serviceNames)
+      ? creationIntent.serviceNames
+      : [],
+  );
+  const installedServices: string[] = [];
+  const workflowMaterializedServices: string[] = [];
+  items.forEach((item) => {
+    const serviceName = item.ServiceInfo?.service_name;
+    if (!serviceName) return;
+    if (item.ServiceInfo?.state === "INIT" && workflowFreshServices.has(serviceName)) {
+      workflowMaterializedServices.push(serviceName);
+    } else {
+      installedServices.push(serviceName);
+    }
+  });
+  return { installedServices, workflowMaterializedServices };
+};
 
 export const AddServiceProvider: React.FC<{
   stepWizardUtilities: any;
@@ -73,20 +122,39 @@ export const AddServiceProvider: React.FC<{
   const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [installedHosts, setInstalledHosts] = useState([]);
   const [installedServices, setInstalledServices] = useState([]);
+  const [workflowMaterializedServices, setWorkflowMaterializedServices] = useState<string[]>([]);
+  const [installedServicesLoaded, setInstalledServicesLoaded] = useState(false);
   const [serviceContextLoading, setServiceContextLoading] = useState(true);
   const [currStepData, setCurrStepData] = useState({});
   const [isHydrated, setIsHydrated] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [errorGeneration, setErrorGeneration] = useState(-1);
+  const [reentryRequired, setReentryRequired] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const { clusterName, services, serviceComponentInfo, loginName } =
+  const {
+    cluster,
+    clusterName,
+    loginName,
+    navigateCluster,
+    serviceComponentInfo,
+  } =
     useContext(AppContext);
+  const persistence = useClusterWorkflowPersistence("ADD_SERVICE", {
+    controllerNames: ["addServiceController"],
+    keys: ["ADD_SERVICE", "CLUSTER_STATE"],
+  });
+  const [hydratedPersistence, setHydratedPersistence] = useState<typeof persistence>(null);
 
   const isDataPersisted = useRef(false);
   const isCancelled = useRef(false);
   const cancelWizardRef = useRef<(() => Promise<void>) | null>(null);
-  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
   const stateRef = useRef<State>(initialState);
   const currStepDataRef = useRef<Record<string, any>>({});
+  const scopeGeneration = useRef(0);
+  const workflowQueueRef = useRef(new WorkflowMutationQueue());
+  const persistenceRef = useRef<typeof persistence>(null);
+  const explicitlyPersistedStateRef = useRef<State | null>(null);
+  const hasCurrentHydration = isHydrated && hydratedPersistence === persistence;
 
   const dispatch: Dispatch<Action> = (action) => {
     stateRef.current = reducer(stateRef.current, action);
@@ -94,44 +162,41 @@ export const AddServiceProvider: React.FC<{
   };
 
   const queuePersistence = useCallback((operation: () => Promise<any>) => {
-    const nextOperation = persistenceQueue.current
-      .catch(() => undefined)
-      .then(operation)
-      .then(() => undefined);
-    persistenceQueue.current = nextOperation.catch(() => undefined);
-    return nextOperation;
-  }, []);
-
-  const getInstalledServices = () => {
-    const serviceNames = services.map((service: any) =>
-      get(service, "ServiceInfo.service_name", "")
-    );
-    let installedServicesData: any = {};
-    forEach(serviceComponentInfo.items, (service: any) => {
-      if (serviceNames.includes(get(service, "StackServices.service_name"))) {
-        installedServicesData[service.StackServices.service_name] = {
-          displayName: service.StackServices.display_name,
-          serviceName: service.StackServices.service_name,
-          serviceType: service.StackServices.service_type,
-          version: service.StackServices.service_version,
-          comments: service.StackServices.comments,
-          selected: true,
-          required: service.StackServices.required_services,
-          isIgnored: false,
-          isHiddenOnDisplay: excludeServicesOnDisplay.includes(
-            service.StackServices.service_name
-          ),
-        };
+    if (!persistence) {
+      return Promise.reject(new Error(String(translate("workflow.persistence.explicitCluster"))));
+    }
+    const generation = scopeGeneration.current;
+    const queueGeneration = workflowQueueRef.current.currentGeneration;
+    const queued = workflowQueueRef.current.enqueue(async () => {
+      await operation();
+      if (generation !== scopeGeneration.current
+        || persistenceRef.current !== persistence
+        || !workflowQueueRef.current.isCurrent(queueGeneration)) {
+        throw new WorkflowQueueInvalidatedError("Add Service persistence scope changed.");
       }
     });
-    dispatch({
-      type: ActionTypes.STORE_INFORMATION,
-      payload: {
-        step: "SERVICES",
-        data: { services: installedServicesData },
-      },
+    void queued.catch((error) => {
+      if (error instanceof WorkflowQueueInvalidatedError
+        || !workflowQueueRef.current.isCurrent(queueGeneration)) return;
+      if (generation === scopeGeneration.current && persistenceRef.current === persistence) {
+        isDataPersisted.current = false;
+        setErrorGeneration(generation);
+        setInitializationError(workflowErrorMessage(
+          error,
+          translate("workflow.persistence.addServiceSaveFailed"),
+        ));
+      }
     });
-  };
+    return queued;
+  }, [persistence]);
+
+  useEffect(() => {
+    workflowQueueRef.current.activate();
+    return () => {
+      isDataPersisted.current = false;
+      workflowQueueRef.current.deactivate();
+    };
+  }, []);
 
   const setClusterName = () => {
     dispatch({
@@ -143,8 +208,9 @@ export const AddServiceProvider: React.FC<{
     });
   };
 
-  const setStackAndVersion = async () => {
+  const setStackAndVersion = async (generation: number) => {
     const response = await VersionsApi.getServices(clusterName);
+    if (generation !== scopeGeneration.current) return;
     
     // Find the current stack version instead of just using the first one
     const currentStack = response.items.find(
@@ -174,6 +240,7 @@ export const AddServiceProvider: React.FC<{
       ""
     );
     const repoData = await VersionsApi.getRepoDetails(stackName, repoVersion);
+    if (generation !== scopeGeneration.current) return;
     const os = get(
       repoData,
       "items.[0].repository_versions.[0].operating_systems.[0]",
@@ -220,91 +287,136 @@ export const AddServiceProvider: React.FC<{
   };
 
   useEffect(() => {
-    if (isHydrated && clusterName) {
-      void getAlreadyInstalledServices().catch(handleInitializationError);
+    if (hasCurrentHydration && clusterName) {
+      const generation = scopeGeneration.current;
+      void getAlreadyInstalledServices(generation).catch((error) =>
+        handleInitializationError(error, generation));
     }
-  }, [clusterName, isHydrated, retryCount]);
+  }, [clusterName, hasCurrentHydration]);
 
   useEffect(() => {
-    if (
-      isHydrated
-      && !isEmpty(services)
-      && !isEmpty(serviceComponentInfo)
-      && !state.addServiceSteps?.SERVICES
-    ) {
-      getInstalledServices();
-    }
-  }, [isHydrated, services, serviceComponentInfo, state.addServiceSteps?.SERVICES]);
+    const generation = scopeGeneration.current + 1;
+    scopeGeneration.current = generation;
+    persistenceRef.current = persistence;
+    isDataPersisted.current = false;
+    stateRef.current = initialState;
+    currStepDataRef.current = {};
+    dispatch({ type: ActionTypes.SYNC_STATE, payload: initialState });
+    setCurrStepData({});
+    setReentryRequired(false);
+    setInstalledHosts([]);
+    setInstalledServices([]);
+    setWorkflowMaterializedServices([]);
+    setInstalledServicesLoaded(false);
+    setServiceContextLoading(true);
+    const persistenceSnapshot = persistence;
+    void syncUserPersistedData(generation, persistenceSnapshot);
+    return () => {
+      if (scopeGeneration.current === generation) scopeGeneration.current += 1;
+    };
+  }, [persistence, retryCount]);
 
   useEffect(() => {
-    void syncUserPersistedData();
-  }, [retryCount]);
-
-  useEffect(() => {
-    if (isHydrated && clusterName && !state.addServiceSteps?.NAME) {
+    if (hasCurrentHydration && clusterName && !state.addServiceSteps?.NAME) {
       setClusterName();
     }
-  }, [clusterName, isHydrated, state.addServiceSteps?.NAME]);
+  }, [clusterName, hasCurrentHydration, state.addServiceSteps?.NAME]);
 
   useEffect(() => {
     if (
-      isHydrated
+      hasCurrentHydration
       && clusterName
       && !isEmpty(serviceComponentInfo)
       && (!state.addServiceSteps?.HOST_STATUS || !state.addServiceSteps?.MASTERS)
     ) {
-      void getHostComponents().catch(handleInitializationError);
+      const generation = scopeGeneration.current;
+      void getHostComponents(generation).catch((error) =>
+        handleInitializationError(error, generation));
     }
-  }, [clusterName, isHydrated, serviceComponentInfo, retryCount]);
+  }, [clusterName, hasCurrentHydration, serviceComponentInfo]);
 
   useEffect(() => {
-    if (isHydrated && clusterName && !state.addServiceSteps?.VERSION) {
+    if (hasCurrentHydration && clusterName && !state.addServiceSteps?.VERSION) {
       setServiceContextLoading(true);
-      void setStackAndVersion().catch(handleInitializationError);
-    } else if (isHydrated) {
+      const generation = scopeGeneration.current;
+      void setStackAndVersion(generation).catch((error) =>
+        handleInitializationError(error, generation));
+    } else if (hasCurrentHydration) {
       setServiceContextLoading(false);
     }
-  }, [clusterName, isHydrated, state.addServiceSteps?.VERSION, retryCount]);
+  }, [clusterName, hasCurrentHydration, state.addServiceSteps?.VERSION]);
 
   useEffect(() => {
-    if (isDataPersisted.current) {
-      void queuePersistence(() => flushCurrentData(state, currStepData));
+    if (isDataPersisted.current && !reentryRequired) {
+      if (explicitlyPersistedStateRef.current
+        && isEqual(explicitlyPersistedStateRef.current, state)) {
+        explicitlyPersistedStateRef.current = null;
+        return;
+      }
+      void queuePersistence(() => flushCurrentData(state, currStepData))
+        .catch(() => undefined);
     }
-  }, [state.addServiceSteps, currStepData]);
+  }, [state.addServiceSteps, currStepData, reentryRequired]);
 
-  const handleInitializationError = (error: any) => {
+  useEffect(() => {
+    if (hasCurrentHydration) isDataPersisted.current = true;
+  }, [hasCurrentHydration]);
+
+  const handleInitializationError = (error: any, generation = scopeGeneration.current) => {
+    if (generation !== scopeGeneration.current) return;
     isDataPersisted.current = false;
+    setErrorGeneration(generation);
     setInitializationError(
-      error?.response?.data?.message
-        || error?.message
-        || "Ambari could not initialize the Add Service wizard.",
+      workflowErrorMessage(error, translate("workflow.persistence.addServiceLoadFailed")),
     );
   };
 
-  async function syncUserPersistedData() {
+  async function syncUserPersistedData(
+    generation: number,
+    persistenceSnapshot: typeof persistence,
+  ) {
+    const queueGeneration = await workflowQueueRef.current.reset();
+    if (!workflowQueueRef.current.isCurrent(queueGeneration)
+      || generation !== scopeGeneration.current
+      || persistenceRef.current !== persistenceSnapshot) return;
     setInitializationError(null);
+    setErrorGeneration(-1);
     setIsHydrated(false);
     isDataPersisted.current = false;
     isCancelled.current = false;
     try {
-      const persistedData = await ClusterApi.getPersistData("ADD_SERVICE");
-      if (!isEmpty(get(persistedData, "addServiceSteps", {}))) {
-        dispatch({
-          type: ActionTypes.SYNC_STATE,
-          payload: persistedData,
-        });
+      if (!persistenceSnapshot) {
+        throw new Error(String(translate("workflow.persistence.explicitCluster")));
       }
-      const clusterState = await ClusterApi.getPersistData("CLUSTER_STATE");
+      const persistedValues = retryCount > 0
+        ? await persistenceSnapshot.reload()
+        : await persistenceSnapshot.getPersistData();
+      if (generation !== scopeGeneration.current || persistenceRef.current !== persistenceSnapshot) {
+        return;
+      }
+      const persistedData = get(persistedValues, "ADD_SERVICE", {});
+      const restoredData = !isEmpty(get(persistedData, "addServiceSteps", {}))
+        ? persistedData
+        : initialState;
+      const needsReentry = containsReentryMarker(restoredData);
+      setReentryRequired(needsReentry);
+      dispatch({
+        type: ActionTypes.SYNC_STATE,
+        payload: restoredData,
+      });
+      const clusterState = get(persistedValues, "CLUSTER_STATE", {});
       const classicStep = resolveRecoveryStep(
         "addService",
         get(clusterState, "clusterState"),
       );
-      const activeStepName = get(persistedData, "activeStep", "");
+      const activeStepName = get(restoredData, "activeStep", "");
       const storedStep = Object.keys(stepWizardUtilities.wizardSteps).find(
         (stepNumber) =>
           stepWizardUtilities.wizardSteps?.[stepNumber]?.name === activeStepName,
       );
-      const activeStep = classicStep ?? (storedStep === undefined ? 1 : Number(storedStep));
+      const activeStep = needsReentry
+        ? 4
+        : classicStep ?? (storedStep === undefined ? 1 : Number(storedStep));
       const restoredStepData = clusterState && !isEmpty(clusterState)
         ? clusterState
         : {
@@ -314,28 +426,32 @@ export const AddServiceProvider: React.FC<{
       currStepDataRef.current = restoredStepData;
       setCurrStepData(restoredStepData);
       stepWizardUtilities.jumpToStep(activeStep, true);
-      if (loginName) {
-        await claimWizard(loginName, "addServiceController");
-      }
-      isDataPersisted.current = true;
+      setHydratedPersistence(persistenceSnapshot);
       setIsHydrated(true);
     } catch (error: any) {
-      handleInitializationError(error);
+      handleInitializationError(error, generation);
     }
   }
 
-  const getAlreadyInstalledServices = async () => {
+  const getAlreadyInstalledServices = async (generation: number) => {
     const installedServicesApi = await ServiceApi.getAllServices(clusterName);
-    setInstalledServices(
-      map(installedServicesApi.items, "ServiceInfo.service_name") as any
+    if (generation !== scopeGeneration.current) return;
+    const classified = classifyAddServiceServices(
+      installedServicesApi.items,
+      stateRef.current,
+      { clusterId: Number(cluster?.cluster_id), clusterName },
     );
+    setInstalledServices(classified.installedServices as any);
+    setWorkflowMaterializedServices(classified.workflowMaterializedServices);
+    setInstalledServicesLoaded(true);
   };
 
-  const getHostComponents = async () => {
+  const getHostComponents = async (generation: number) => {
     const response = await HostsApi.getHostComponentsDetails(
       clusterName,
       "fields=host_components/HostRoles/state&minimal_response=true"
     );
+    if (generation !== scopeGeneration.current) return;
     const hostsList = get(response, "items", []).map((item: any) =>
       get(item, "Hosts.host_name")
     );
@@ -400,36 +516,99 @@ export const AddServiceProvider: React.FC<{
     if (isCancelled.current) {
       return;
     }
-    await ClusterApi.postPersistData(JSON.stringify({
-      ADD_SERVICE: JSON.stringify({
+    if (!persistence) throw new Error(String(translate("workflow.persistence.explicitCluster")));
+    await persistence.savePersistData({
+      ADD_SERVICE: {
         ...stateSnapshot,
         activeStep: get(stepSnapshot, "stepName", ""),
-      }),
-      CLUSTER_STATE: JSON.stringify(stepSnapshot),
-    }));
+      },
+      CLUSTER_STATE: stepSnapshot,
+    }, String(get(stepSnapshot, "clusterState") || get(stepSnapshot, "stepName") || "ADD_SERVICE"));
+    setReentryRequired(false);
+  }
+
+  async function storeStepDataAndFlush(
+    step: string,
+    data: Record<string, unknown>,
+  ) {
+    const action: Action = {
+      type: ActionTypes.STORE_INFORMATION,
+      payload: { step, data },
+    };
+    const nextState = reducer(stateRef.current, action);
+    stateRef.current = nextState;
+    explicitlyPersistedStateRef.current = nextState;
+    reducerDispatch(action);
+    await queuePersistence(() => flushCurrentData(nextState, currStepDataRef.current));
+    return persistence?.currentRevision || 0;
+  }
+
+  async function withStateCheckpoint<T>(
+    request: (revision: number) => Promise<T>,
+  ): Promise<T> {
+    const stateSnapshot = stateRef.current;
+    const stepSnapshot = currStepDataRef.current;
+    explicitlyPersistedStateRef.current = stateSnapshot;
+    const generation = scopeGeneration.current;
+    const queueGeneration = workflowQueueRef.current.currentGeneration;
+    const queued = workflowQueueRef.current.enqueue(async () => {
+      await flushCurrentData(stateSnapshot, stepSnapshot);
+      if (generation !== scopeGeneration.current
+        || persistenceRef.current !== persistence
+        || !workflowQueueRef.current.isCurrent(queueGeneration)) {
+        throw new WorkflowQueueInvalidatedError("Add Service persistence scope changed.");
+      }
+      const revision = persistence?.currentRevision || 0;
+      try {
+        return { ok: true as const, value: await request(revision) };
+      } catch (error) {
+        return { ok: false as const, error };
+      }
+    });
+    void queued.catch((error) => {
+      if (error instanceof WorkflowQueueInvalidatedError
+        || !workflowQueueRef.current.isCurrent(queueGeneration)) return;
+      if (generation === scopeGeneration.current && persistenceRef.current === persistence) {
+        isDataPersisted.current = false;
+        setErrorGeneration(generation);
+        setInitializationError(workflowErrorMessage(
+          error,
+          translate("workflow.persistence.addServiceSaveFailed"),
+        ));
+      }
+    });
+    const outcome = await queued;
+    if (!outcome.ok) throw outcome.error;
+    return outcome.value;
   }
 
   async function flushOnCancel() {
+    const generation = scopeGeneration.current;
     isCancelled.current = true;
     try {
-      await queuePersistence(() => clearAddServiceWizardState(initialState));
-      await releaseWizard();
+      await queuePersistence(async () => {
+        if (!persistence) return;
+        await persistence.release();
+      });
     } catch (error: any) {
-      isCancelled.current = false;
+      if (generation === scopeGeneration.current) isCancelled.current = false;
       throw error;
     }
-    const returnPath = localStorage.getItem("module06WizardReturnPath")
-      || "/main/services";
-    localStorage.removeItem("module06WizardReturnPath");
+    const returnPath = consumeWorkflowReturnPath({
+      clusterId: cluster?.cluster_id,
+      principal: loginName,
+      workflow: "ADD_SERVICE",
+    }, "/main/services");
     modalManager.hide();
-    reloadAtHashRoute(returnPath);
+    navigateCluster(returnPath);
   }
 
   cancelWizardRef.current = flushOnCancel;
 
   useEffect(() => {
     const cancelWizard = () => {
-      void cancelWizardRef.current?.();
+      const cancellation = cancelWizardRef.current?.();
+      void cancellation?.catch(() => undefined);
     };
     window.addEventListener(CANCEL_ADD_SERVICE_WIZARD_EVENT, cancelWizard);
     return () => {
@@ -503,6 +682,10 @@ export const AddServiceProvider: React.FC<{
     }
   }
 
+  const currentInitializationError = persistenceRef.current === persistence
+    && errorGeneration === scopeGeneration.current
+    ? initializationError
+    : null;
   return (
     <AddServiceContext.Provider
       value={{
@@ -510,22 +693,33 @@ export const AddServiceProvider: React.FC<{
         dispatch,
         stepWizardUtilities,
         flushStateToDb,
+        storeStepDataAndFlush,
+        withStateCheckpoint,
+        getWorkflowRevision: () => persistence?.currentRevision || 0,
         installedHosts,
         serviceContextLoading,
         installedServices,
+        workflowMaterializedServices,
       }}
     >
-      {initializationError ? (
+      {hasCurrentHydration && reentryRequired && (
+        <Alert variant="warning" className="m-4">
+          {translate("workflow.persistence.reentryRequired")}
+        </Alert>
+      )}
+      {currentInitializationError ? (
         <Alert variant="danger" className="m-4">
-          {initializationError}{" "}
+          {currentInitializationError}{" "}
           <Button
             size="sm"
             variant="outline-danger"
             onClick={() => setRetryCount((value) => value + 1)}
           >
-            Retry
+            {translate("common.retry")}
           </Button>
         </Alert>
+      ) : !hasCurrentHydration || !installedServicesLoaded ? (
+        <Spinner />
       ) : children}
     </AddServiceContext.Provider>
   );

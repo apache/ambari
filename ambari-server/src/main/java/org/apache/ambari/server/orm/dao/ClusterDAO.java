@@ -21,8 +21,10 @@ package org.apache.ambari.server.orm.dao;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -32,7 +34,11 @@ import jakarta.persistence.criteria.Root;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterStateEntity;
+import org.apache.ambari.server.orm.entities.ScopedWorkflowStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.state.ClusterCreationContext;
 import org.apache.ambari.server.state.StackId;
 
 import com.google.inject.Inject;
@@ -71,6 +77,23 @@ public class ClusterDAO {
     } catch (NoResultException ignored) {
       return null;
     }
+  }
+
+  @RequiresSession
+  public ClusterEntity findByCreationDraft(int creatorUserId, String creationDraftId) {
+    TypedQuery<ClusterEntity> query = entityManagerProvider.get().createNamedQuery(
+        "clusterByCreationDraft", ClusterEntity.class);
+    query.setParameter("creatorUserId", creatorUserId);
+    query.setParameter("creationDraftId", creationDraftId);
+    return daoUtils.selectOne(query);
+  }
+
+  @RequiresSession
+  public List<ClusterEntity> findByCreatorUserId(int creatorUserId) {
+    TypedQuery<ClusterEntity> query = entityManagerProvider.get().createNamedQuery(
+        "clustersByCreatorUserId", ClusterEntity.class);
+    query.setParameter("creatorUserId", creatorUserId);
+    return query.getResultList();
   }
 
 
@@ -139,6 +162,20 @@ public class ClusterDAO {
     );
     TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createQuery(cq);
     return daoUtils.selectOne(query);
+  }
+
+  /** Updates an existing configuration row under an authoritative database lock. */
+  @Transactional
+  public boolean updateConfigData(long configId, String data) {
+    EntityManager entityManager = entityManagerProvider.get();
+    ClusterConfigEntity entity = entityManager.find(
+        ClusterConfigEntity.class, configId, LockModeType.PESSIMISTIC_WRITE);
+    if (entity == null) {
+      return false;
+    }
+    entity.setData(data);
+    entityManager.flush();
+    return true;
   }
 
   /**
@@ -305,6 +342,128 @@ public class ClusterDAO {
   @Transactional
   public void create(ClusterEntity clusterEntity) {
     entityManagerProvider.get().persist(clusterEntity);
+  }
+
+  /**
+   * Creates the cluster and its initial state while holding the associated
+   * workflow draft lock. An exact retry returns the already committed entity.
+   */
+  @Transactional
+  public ClusterCreationResult createForDraft(ClusterEntity requested,
+      ClusterCreationContext creationContext) {
+    return createWithProvisioningIntent(requested, creationContext, null);
+  }
+
+  @Transactional
+  public ClusterCreationResult createWithProvisioningIntent(ClusterEntity requested,
+      ClusterCreationContext creationContext, TopologyRequestEntity provisioningIntent) {
+    EntityManager entityManager = entityManagerProvider.get();
+    ScopedWorkflowStateEntity draft = null;
+    if (creationContext != null) {
+      draft = entityManager.find(ScopedWorkflowStateEntity.class,
+          creationContext.getWorkflowScopeKey(), LockModeType.PESSIMISTIC_WRITE);
+      if (draft == null || !Objects.equals(draft.getOwnerUserId(), creationContext.getCreatorUserId())
+          || !"CLUSTER_CREATE".equals(draft.getWorkflow())) {
+        throw new IllegalStateException("The cluster creation draft is not active for the authenticated user");
+      }
+    }
+
+    ClusterEntity existing = null;
+    if (creationContext != null) {
+      TypedQuery<ClusterEntity> query = entityManager.createNamedQuery(
+          "clusterByCreationDraft", ClusterEntity.class);
+      query.setParameter("creatorUserId", creationContext.getCreatorUserId());
+      query.setParameter("creationDraftId", creationContext.getCreationDraftId());
+      existing = daoUtils.selectOne(query);
+      if (draft.getCreatedClusterId() != null) {
+        if (existing == null || !Objects.equals(existing.getClusterId(), draft.getCreatedClusterId())) {
+          throw new IllegalStateException(
+              "The cluster creation draft was consumed but its original cluster is no longer available");
+        }
+        validateExactCreationRetry(existing, requested);
+        persistOrValidateProvisioningIntent(entityManager, existing, provisioningIntent);
+        entityManager.flush();
+        return new ClusterCreationResult(existing, false);
+      }
+      if (existing != null) {
+        throw new IllegalStateException(
+            "The cluster creation identity exists without its immutable draft association");
+      }
+    }
+
+    if (creationContext != null) {
+      requested.setCreatorUserId(creationContext.getCreatorUserId());
+      requested.setCreationDraftId(creationContext.getCreationDraftId());
+    }
+    entityManager.persist(requested);
+    entityManager.flush();
+
+    ClusterStateEntity clusterState = new ClusterStateEntity();
+    clusterState.setClusterId(requested.getClusterId());
+    clusterState.setClusterEntity(requested);
+    clusterState.setCurrentStack(requested.getDesiredStack());
+    requested.setClusterStateEntity(clusterState);
+    entityManager.persist(clusterState);
+
+    if (draft != null) {
+      draft.setCreatedClusterId(requested.getClusterId());
+    }
+    persistOrValidateProvisioningIntent(entityManager, requested, provisioningIntent);
+    entityManager.flush();
+    return new ClusterCreationResult(requested, true);
+  }
+
+  private void persistOrValidateProvisioningIntent(EntityManager entityManager,
+      ClusterEntity cluster, TopologyRequestEntity requestedIntent) {
+    if (requestedIntent == null) {
+      return;
+    }
+    TypedQuery<TopologyRequestEntity> query = entityManager.createNamedQuery(
+        "TopologyRequestEntity.findProvisionByClusterId", TopologyRequestEntity.class);
+    query.setParameter("clusterId", cluster.getClusterId());
+    TopologyRequestEntity existingIntent = daoUtils.selectOne(query);
+    if (existingIntent == null) {
+      requestedIntent.setClusterId(cluster.getClusterId());
+      entityManager.persist(requestedIntent);
+      return;
+    }
+    if (!Objects.equals(existingIntent.getSpecificationHash(), requestedIntent.getSpecificationHash())) {
+      throw new IllegalStateException(
+          "The cluster provisioning request differs from the durable request already associated with this cluster");
+    }
+    if (TopologyRequestEntity.PROVISIONING_STATE_CANCELLED.equals(existingIntent.getProvisioningState())) {
+      throw new IllegalStateException(
+          "The durable cluster provisioning request was cancelled and cannot be restarted through a creation retry");
+    }
+  }
+
+  private void validateExactCreationRetry(ClusterEntity existing, ClusterEntity requested) {
+    boolean sameStack = existing.getDesiredStack() != null && requested.getDesiredStack() != null
+        && Objects.equals(existing.getDesiredStack().getStackId(), requested.getDesiredStack().getStackId());
+    if (!Objects.equals(existing.getClusterName(), requested.getClusterName())
+        || !sameStack
+        || !Objects.equals(existing.getSecurityType(), requested.getSecurityType())) {
+      throw new IllegalStateException(
+          "The cluster creation draft is already associated with a different name, stack, or security type");
+    }
+  }
+
+  public static final class ClusterCreationResult {
+    private final ClusterEntity clusterEntity;
+    private final boolean created;
+
+    private ClusterCreationResult(ClusterEntity clusterEntity, boolean created) {
+      this.clusterEntity = clusterEntity;
+      this.created = created;
+    }
+
+    public ClusterEntity getClusterEntity() {
+      return clusterEntity;
+    }
+
+    public boolean isCreated() {
+      return created;
+    }
   }
 
   /**

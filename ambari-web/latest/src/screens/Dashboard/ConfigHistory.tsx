@@ -17,7 +17,7 @@
  */
 
 import { useContext, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import { AppContext } from "../../store/context";
 import ConfigHistoryApi from "../../api/configHistoryApi";
 import Spinner from "../../components/Spinner";
@@ -75,7 +75,7 @@ export default function DashboardConfigHistory() {
     services,
     userTimezone,
   } = useContext(AppContext);
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const [configHistoryData, setConfigHistoryData] = useState<ConfigHistoryItem[]>([]);
   const [filteredTotal, setFilteredTotal] = useState(0);
   const [overallTotal, setOverallTotal] = useState(0);

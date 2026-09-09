@@ -17,17 +17,21 @@
  */
 
 import { useContext, useEffect, useState } from "react";
-import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  Outlet,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { Alert, Button, ProgressBar } from "react-bootstrap";
 import { AppContext, AppProvider } from "./store/context";
 import { AlertsProvider } from "./store/AlertsContext";
 import { HostsListStateProvider } from "./store/HostsListStateContext";
 import { ModalProvider } from "./store/ModalContext";
 import { useAuth } from "./hooks/useAuth";
-import useAuthorizationPolicy from "./hooks/useAuthorizationPolicy";
 import usePolling from "./hooks/usePolling";
 import ClusterApi from "./api/clusterApi";
-import { toBePreservedPaths } from "./constants";
 import {
   consumePreferredPath,
   normalizeInternalPath,
@@ -40,8 +44,17 @@ import LoginMessageModal from "./screens/Authentication/LoginMessageModal";
 import {
   clusterProvisioningRedirect,
   isViewOnlyUser,
-  selectLandingPath,
 } from "./Utils/authPolicy";
+import {
+  clusterNameFromPath,
+  clusterPath,
+  legacyMainContinuation,
+  normalizeLegacyMainPath,
+} from "./Utils/clusterRoute";
+import { clusterDraftPath } from "./Utils/scopedWorkflow";
+import useClusterPath from "./hooks/useClusterPath";
+import { applicationScopeKey } from "./Utils/runtimeIdentity";
+import ClusterDirectory from "./screens/Directories/ClusterDirectory";
 
 export function AuthenticatedApplication() {
   const {
@@ -50,8 +63,11 @@ export function AuthenticatedApplication() {
     loginMessage,
     retrySession,
     sessionError,
+    canAccessCluster,
+    user,
   } = useAuth();
   const location = useLocation();
+  const requestedClusterName = clusterNameFromPath(location.pathname);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && location.pathname !== "/") {
@@ -107,8 +123,29 @@ export function AuthenticatedApplication() {
     return <LoginMessageModal />;
   }
 
+  if (
+    location.pathname.startsWith("/clusters/")
+    && (!requestedClusterName || !canAccessCluster(requestedClusterName))
+  ) {
+    return (
+      <div className="container py-5" role="alert">
+        <Alert variant="danger">
+          <Alert.Heading>Cluster access unavailable</Alert.Heading>
+          <p>
+            This cluster does not exist or your account is not authorized to open it.
+            No other cluster was selected.
+          </p>
+          <Link className="btn btn-outline-danger" to="/clusters">Choose a cluster</Link>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
-    <AppProvider>
+    <AppProvider
+      key={applicationScopeKey(user?.user_name || "", requestedClusterName || undefined)}
+      requestedClusterName={requestedClusterName || undefined}
+    >
       <AlertsProvider>
         <HostsListStateProvider>
           <ModalProvider>
@@ -121,32 +158,77 @@ export function AuthenticatedApplication() {
 }
 
 export function LandingRoute() {
-  const { cluster, isClusterInstalled } = useContext(AppContext);
-  const { authorizations } = useAuth();
+  const { availableClusters } = useContext(AppContext);
+  const { authorizations, canAccessCluster, hasGlobalAuthorization } = useAuth();
   const preferredPath = consumePreferredPath();
-  const landingPath = selectLandingPath({
-    clusterInstalled: Boolean(isClusterInstalled),
-    clusterName: cluster?.cluster_name,
-    preferredPath,
-    viewOnly: isViewOnlyUser(authorizations),
-  });
+  const [installerPath] = useState(() => clusterDraftPath());
+  if (isViewOnlyUser(authorizations)) return <Navigate to="/main/view" replace />;
+
+  const clusters = availableClusters.filter(
+    (item) => canAccessCluster(item?.Clusters?.cluster_name),
+  );
+  if (preferredPath?.startsWith("/clusters/")) {
+    const preferredCluster = clusterNameFromPath(preferredPath);
+    if (preferredCluster && canAccessCluster(preferredCluster)) {
+      return <Navigate to={preferredPath} replace />;
+    }
+  }
+  const legacyPath = preferredPath ? normalizeLegacyMainPath(preferredPath) : undefined;
+  if (clusters.length === 1) {
+    return (
+      <Navigate
+        to={clusterPath(
+          clusters[0].Clusters.cluster_name,
+          legacyPath || "/main/dashboard/metrics",
+        )}
+        replace
+      />
+    );
+  }
+  if (clusters.length > 1) {
+    const query = legacyPath ? `?continue=${encodeURIComponent(legacyPath)}` : "";
+    return <Navigate to={`/clusters${query}`} replace />;
+  }
+  return hasGlobalAuthorization("AMBARI.ADD_DELETE_CLUSTERS")
+    ? <Navigate to={installerPath} replace />
+    : <Navigate to="/adminView" replace state={{ noClusterLanding: true }} />;
+}
+
+export function LegacyMainRedirect() {
+  const { availableClusters } = useContext(AppContext);
+  const { canAccessCluster } = useAuth();
+  const location = useLocation();
+  const continuation = legacyMainContinuation(location.pathname, location.search);
+  const clusters = availableClusters.filter(
+    (item) => canAccessCluster(item?.Clusters?.cluster_name),
+  );
+  if (clusters.length === 1) {
+    return (
+      <Navigate
+        replace
+        to={clusterPath(clusters[0].Clusters.cluster_name, continuation)}
+      />
+    );
+  }
   return (
     <Navigate
-      to={landingPath}
       replace
-      state={landingPath === "/adminView" ? { noClusterLanding: true } : undefined}
+      to={`/clusters?continue=${encodeURIComponent(continuation)}`}
     />
   );
 }
 
+export function ClusterChooser() {
+  return <ClusterDirectory />;
+}
+
 export function RouteTracker() {
   const { cluster, isClusterInstalled } = useContext(AppContext);
-  const { hasAuthorization } = useAuth();
-  const { isAuthorized } = useAuthorizationPolicy();
+  const { hasGlobalAuthorization } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const canAddDeleteClusters = hasAuthorization("AMBARI.ADD_DELETE_CLUSTERS");
-  const canPersistRoute = isAuthorized("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const canAddDeleteClusters = hasGlobalAuthorization("AMBARI.ADD_DELETE_CLUSTERS");
+  const scopedPath = useClusterPath();
 
   useEffect(() => {
     const currentPath = normalizeInternalPath(`${location.pathname}${location.search}`);
@@ -155,23 +237,18 @@ export function RouteTracker() {
     }
 
     savePreferredPath(currentPath);
-    if (
-      canPersistRoute
-      && Object.keys(toBePreservedPaths).some((path) => location.pathname.includes(path))
-    ) {
-      void ClusterApi.postPersistData({ USER_REDIRECTION_URL: currentPath });
-    }
-  }, [canPersistRoute, location.pathname, location.search]);
+  }, [location.pathname, location.search]);
 
   useEffect(() => {
+    const clusterRelativePath = location.pathname.replace(/^\/clusters\/[^/]+/, "");
     const redirect = clusterProvisioningRedirect({
       canAddDeleteClusters,
       clusterInstalled: isClusterInstalled,
       clusterName: cluster?.cluster_name,
-      pathname: location.pathname,
+      pathname: clusterRelativePath,
     });
     if (redirect) {
-      navigate(redirect, { replace: true });
+      navigate(scopedPath(redirect), { replace: true });
     }
   }, [
     canAddDeleteClusters,
@@ -179,6 +256,7 @@ export function RouteTracker() {
     isClusterInstalled,
     location.pathname,
     navigate,
+    scopedPath,
   ]);
 
   return null;

@@ -27,10 +27,9 @@ import { Categories } from "../enums/Categories";
 import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constants";
 
 export const useRangerKMSConfigUpdater = () => {
-  const { parsedSocketMessages } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
   const { polledHostComponentsData, masterSlaveClientsData, serviceStatesData } =
     useContext(ServiceContext);
-  const { services} = useContext(AppContext);
   //@ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
 
@@ -44,7 +43,7 @@ export const useRangerKMSConfigUpdater = () => {
   const fetchRangerKMSMasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
     
-    let rangerKMSComponentsData = cachedServiceApi.getServiceComponentData("RANGER_KMS");
+    let rangerKMSComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "RANGER_KMS");
     
     if (!rangerKMSComponentsData) {
       rangerKMSComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -149,7 +148,7 @@ export const useRangerKMSConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("RANGER_KMS", "ranger_kms", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "RANGER_KMS", "ranger_kms", allServiceModels, updateRegistry);
   };
   const parseAlertsWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;

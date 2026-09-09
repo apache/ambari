@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +73,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosLivePlanProvider;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
@@ -266,6 +268,8 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(KerberosOperationHandlerFactory.class).toInstance(kerberosOperationHandlerFactory);
         bind(ClusterController.class).toInstance(clusterController);
         bind(KerberosDescriptorFactory.class).toInstance(kerberosDescriptorFactory);
+        bind(ManagedHBaseKerberosLivePlanProvider.class)
+            .toInstance(cluster -> Optional.empty());
         bind(KerberosConfigDataFileWriterFactory.class).toInstance(kerberosConfigDataFileWriterFactory);
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(KerberosHelper.class).toInstance(kerberosHelper);

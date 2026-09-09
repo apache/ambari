@@ -33,7 +33,9 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
+import ScopedLink from "../../../components/ScopedLink";
+import useClusterNavigate from "../../../hooks/useClusterNavigate";
 import MetricsApi from "../../../api/metricsApi";
 import { AppContext } from "../../../store/context";
 import { useAuth } from "../../../hooks/useAuth";
@@ -102,7 +104,7 @@ export interface DashboardPageProps {
 export default function DashboardPage({ dashboardId: dashboardIdProp, embedded = false }: DashboardPageProps) {
   const { dashboardId: routeDashboardId = "" } = useParams<{ dashboardId: string }>();
   const dashboardId = dashboardIdProp || routeDashboardId;
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { clusterName } = useContext(AppContext);
   const { hasAuthorization } = useAuth();
@@ -342,9 +344,9 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
     <section className={`dashboard-workspace ${isEditing ? "dashboard-workspace-editing" : ""}`}>
       <div className="dashboard-workspace-header">
         <div className="dashboard-workspace-identity">
-          {!embedded && <Link className="btn btn-sm btn-outline-secondary" title="Back to dashboards" to="/main/monitoring/dashboards" onClick={(event) => {
+          {!embedded && <ScopedLink className="btn btn-sm btn-outline-secondary" title="Back to dashboards" to="/main/monitoring/dashboards" onClick={(event) => {
             if (dirty && !window.confirm("Leave this dashboard and discard unsaved changes?")) event.preventDefault();
-          }}><FontAwesomeIcon icon={faArrowLeft} /></Link>}
+          }}><FontAwesomeIcon icon={faArrowLeft} /></ScopedLink>}
           <div className="dashboard-workspace-title">
             <div className="d-flex align-items-center gap-2">
               <h2>{dashboard.name}</h2>

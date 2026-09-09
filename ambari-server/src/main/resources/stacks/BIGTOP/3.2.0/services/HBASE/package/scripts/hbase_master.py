@@ -39,9 +39,11 @@ from resource_management.libraries.functions.private_kerberos_cache import (
 class HbaseMaster(Script):
   def configure(self, env):
     import params
+    from managed_hbase_dependency import report_managed_dependency_preparation
 
     env.set_params(params)
-    hbase(name="master")
+    bundle = hbase(name="master")
+    report_managed_dependency_preparation(self, params, bundle, "master")
 
   def install(self, env):
     import params
@@ -49,6 +51,33 @@ class HbaseMaster(Script):
     env.set_params(params)
     self.install_packages(env)
     upgrade.select_phoenix_packages(params)
+    from managed_hbase_dependency import managed_dependency_requested
+
+    if managed_dependency_requested():
+      from managed_hbase_dependency import report_managed_dependency_preparation
+
+      bundle = hbase(name="master")
+      report_managed_dependency_preparation(self, params, bundle, "master")
+
+  def verify_hdfs_consumer(self, env):
+    from managed_hbase_dependency import execute_managed_hbase_verification
+    from resource_management.libraries.functions.managed_dependency import (
+      VERIFY_HDFS_CONSUMER,
+    )
+
+    execute_managed_hbase_verification(
+      self, env, "master", VERIFY_HDFS_CONSUMER
+    )
+
+  def verify_zookeeper_consumer(self, env):
+    from managed_hbase_dependency import execute_managed_hbase_verification
+    from resource_management.libraries.functions.managed_dependency import (
+      VERIFY_ZOOKEEPER_CONSUMER,
+    )
+
+    execute_managed_hbase_verification(
+      self, env, "master", VERIFY_ZOOKEEPER_CONSUMER
+    )
 
   def decommission(self, env):
     import params

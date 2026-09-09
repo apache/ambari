@@ -27,7 +27,6 @@ import {
   flatten,
   forEach,
   get,
-  isArray,
   isUndefined,
   map,
   uniq,
@@ -42,6 +41,7 @@ import WizardFooter from "../../components/StepWizard/WizardFooter";
 import ClusterDeploymentApi from "../../api/clusterDeployment";
 import ClusterApi from "../../api/clusterApi";
 import { ServiceApi } from "../../api/serviceApi";
+import { HostsApi } from "../../api/hostsApi";
 import { ActionTypes } from "./clusterStore/types";
 import { ContextWrapper } from ".";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
@@ -56,16 +56,85 @@ import { saveAs } from "file-saver";
 import JSZip from "jszip";
 import { buildBlueprintExport } from "./blueprintExport";
 import { buildClusterConfigurationPayload } from "./clusterConfigPayload";
+import {
+  buildAtomicVersionDefinitionPayload,
+  buildInitialOperatingSystems,
+  resolveRepositoryVersion,
+} from "./repositoryVersionResolution";
+import { clusterCreationReentrySteps } from "../../Utils/scopedWorkflow";
+import WorkflowStateApi from "../../api/workflowStateApi";
+import { useTranslation } from "react-i18next";
+import ServiceDependenciesApi, {
+  type ManagedDependencyBinding,
+  type ManagedDependencyPlanPreviewResponse,
+  type ManagedDependencyPreview,
+  type ManagedDependencyType,
+} from "../../api/serviceDependenciesApi";
+import ManagedDependencySettings from "./ManagedDependencySettings";
+import {
+  buildManagedDependencyClientConfig,
+  reviewedManagedDependencies,
+} from "./managedDependencyConfig";
+import {
+  appendManagedDependencyAttempt,
+  assertManagedDependencyRecord,
+  buildManagedDependencyPlanSelections,
+  buildManagedDependencyCreateRequest,
+  isBindingIdUnavailable,
+  isMissingManagedDependency,
+  managedDependencyAttemptMatchesPreview,
+  managedDependencyAttempts,
+  ManagedDependencyAttemptLimitError,
+  ManagedDependencyReviewRequiredError,
+  managedDependencyReviewSignature,
+  recordManagedDependencyResponse,
+  type ManagedDependencyMaterializationAttempt,
+  type ManagedDependencyMaterializationRecord,
+  type ManagedDependencyMaterializations,
+} from "./managedDependencyMaterialization";
+import { DependencyCard } from "../Services/ServiceDependencies";
+import {
+  clearDeploymentSignatureScope,
+  createDeploymentSignatureScope,
+  DeploymentTopologyRecoveryRequiredError,
+  deploymentInputSignature,
+  reconcileDeploymentInputSignatures,
+} from "./deploymentInputRecovery";
+import { createSecureUuid } from "../../Utils/uuid";
+import type {
+  ManagedDependencyInstallIntent,
+  ManagedDependencyInstallTarget,
+} from "./installationProgress";
 
 type Step8Props = {
   wizardName?: string;
 };
 
+type HostComponentAssignmentAttempt = {
+  component: string;
+  hostNames: string[];
+  request: Record<string, any>;
+  targetClusterName: string;
+  topologyInput: "masters" | "slavesAndClients";
+};
+
+const normalizeHostComponentAssignmentAttempts = (
+  value: Record<string, HostComponentAssignmentAttempt | HostComponentAssignmentAttempt[]> = {},
+) => Object.fromEntries(Object.entries(value).map(([key, attempts]) => [
+  key,
+  (Array.isArray(attempts) ? attempts : [attempts]).filter(Boolean),
+]));
+
 function Step8({ wizardName = "clusterCreation" }: Step8Props) {
+  const { t } = useTranslation();
   const { Context } = useContext(ContextWrapper);
   const { state, dispatch, installedServices = [] }: any = useContext(Context);
   const {
     flushStateToDb,
+    getDraftRevision,
+    getWorkflowRevision,
+    storeStepDataAndFlush,
+    draftId,
     stepWizardUtilities: {
       currentStep,
       handleNextImperitive,
@@ -83,6 +152,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   const [isNextEnabled, setIsNextEnabled] = useState(true);
   const [deploymentTriggered, setDeploymentTriggered] = useState(false);
   const [deploymentError, setDeploymentError] = useState("");
+  const [topologyRecoveryInputs, setTopologyRecoveryInputs] = useState<string[]>([]);
   const [deploymentStage, setDeploymentStage] = useState("Ready to deploy");
   const [exportError, setExportError] = useState("");
   const [isExportingBlueprint, setIsExportingBlueprint] = useState(false);
@@ -95,9 +165,10 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
 
   const {
     clusterName = "",
-    cluster: { stack, versionNum },
+    cluster = {},
     isKerberosEnabled,
   } = useContext(AppContext);
+  const { stack, versionNum } = cluster;
   const { getKDCSessionState } = useKDCSessionState(() => {});
   const {
     error: kerberosModeError,
@@ -115,15 +186,61 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     "addServiceSteps.SERVICES.data.addServiceFlow",
     {},
   );
+  const managedDependencies = get(
+    state,
+    `${wizardName}Steps.SERVICES.data.managedDependencies`,
+    {},
+  );
+  const managedDependencyClientConfig = buildManagedDependencyClientConfig(
+    managedDependencies,
+  );
   const reviewDataRef = useRef<Record<string, any>>(restoredReview);
   const completedOperationIds = useRef<Set<string>>(
     new Set(restoredReview.completedOperationIds || []),
   );
   const deploymentArtifacts = useRef<Record<string, any>>({
+    clusterCreationAttempted: restoredReview.clusterCreationAttempted,
+    clusterId: restoredReview.clusterId,
     repositoryVersionId: restoredReview.repositoryVersionId,
+    repositoryVersionReused: restoredReview.repositoryVersionReused,
     stackName: restoredReview.stackName,
     stackVersion: restoredReview.stackVersion,
   });
+  const managedDependencyMaterializations = useRef<ManagedDependencyMaterializations>(
+    restoredReview.managedDependencyMaterializations || {},
+  );
+  const hostComponentAssignmentAttempts = useRef<Record<
+    string,
+    HostComponentAssignmentAttempt[]
+  >>(normalizeHostComponentAssignmentAttempts(
+    restoredReview.hostComponentAssignmentAttempts,
+  ));
+  const [managedDependencyBindings, setManagedDependencyBindings] = useState<
+    Partial<Record<ManagedDependencyType, ManagedDependencyBinding>>
+  >(() => Object.fromEntries(
+    Object.entries(restoredReview.managedDependencyMaterializations || {})
+      .flatMap(([type, record]: [string, any]) =>
+        record?.response ? [[type, record.response]] : []),
+  ));
+  const [managedDependencyReviewPending, setManagedDependencyReviewPending] =
+    useState(Boolean(restoredReview.managedDependencyPendingReviewSignature));
+  const authoritativeClusterId = useRef<number | null>(null);
+  const deploymentGenerationRef = useRef(0);
+  const deploymentSignatureScopeRef = useRef(createDeploymentSignatureScope());
+  const currentHostAssignmentsRef = useRef<Map<string, Set<string>> | null>(null);
+  const managedDependencyPlanPreviewsRef = useRef<Partial<
+    Record<ManagedDependencyType, ManagedDependencyPreview>
+  >>({});
+
+  useEffect(() => {
+    const signatureScope = createDeploymentSignatureScope();
+    deploymentSignatureScopeRef.current = signatureScope;
+    deploymentGenerationRef.current += 1;
+    return () => {
+      clearDeploymentSignatureScope(signatureScope);
+      deploymentGenerationRef.current += 1;
+    };
+  }, [cluster?.cluster_id, clusterName, draftId, wizardName]);
 
   // Kerberos-related state variables
   const [kerberosDescriptor, setKerberosDescriptor] = useState<any>(null);
@@ -757,7 +874,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     return versionInfo;
   }
 
-  async function getUpdateRepoOSInfoBody() {
+  function getInitialOperatingSystems() {
     const usesRedhat = getStepData("VERSION", "redhatSatellite");
     // Use selectedVersion.id to match the key stored by Step1 (e.g. "3.4.1.0-13"), not selectedStack.id (e.g. "VDP-3.4")
     const selectedVersionId = getStepData("VERSION", "selectedVersion.id");
@@ -766,48 +883,52 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       `operatingSystems`
     );
     const operatingSystems = operatingSystemsFromState[selectedVersionId];
-    if (isArray(operatingSystems) && operatingSystems.length) {
-      const selectedOperatingSystems = operatingSystems?.filter(
-        (os: any) => os.isAdded
-      );
-      const osPayload = selectedOperatingSystems.map((selectedOs) => {
-        return {
-          OperatingSystems: {
-            ambari_managed_repositories: !usesRedhat,
-            os_type: selectedOs.os,
-          },
-          repositories: selectedOs.repos.map((selectedRepo: any) => {
-            return {
-              Repositories: {
-                base_url: selectedRepo.baseUrl,
-                repo_id: selectedRepo.id,
-                repo_name: selectedRepo.name,
-                tags: [],
-                applicable_services: [],
-                components: null,
-                distribution: null,
-              },
-            };
-          }),
-        };
-      });
-
-      return { operating_systems: osPayload };
-    }
-    return {};
+    return buildInitialOperatingSystems(operatingSystems || [], !usesRedhat);
   }
 
-  function createCluster() {
+  async function createCluster() {
     const selectedStackVersion = getStepData("VERSION", "selectedStack.id");
-    const clusterName = getStepData("NAME", "clusterName");
-    return ClusterDeploymentApi.createCluster(clusterName, {
-      Clusters: {
-        version: selectedStackVersion,
-      },
+    const targetClusterName = getStepData("NAME", "clusterName");
+    if (!draftId) {
+      throw new Error(t("installer.step8.draftMissing"));
+    }
+
+    if (authoritativeClusterId.current != null) return;
+    if (deploymentArtifacts.current.clusterId != null) {
+      throw new Error(
+        t("installer.step8.clusterNoLongerAvailable", { cluster: targetClusterName }),
+      );
+    }
+
+    deploymentArtifacts.current.clusterCreationAttempted = true;
+    await saveReviewData({
+      ...deploymentArtifacts.current,
+      clusterCreationAttempted: true,
     });
+    let created: any;
+    try {
+      created = await ClusterDeploymentApi.createCluster(targetClusterName, {
+        Clusters: {
+          creation_draft_id: draftId,
+          version: selectedStackVersion,
+        },
+      });
+    } catch (error) {
+      if (await reconcileCreatedClusterDraft()) return;
+      throw error;
+    }
+    const clusterId = get(created, "Clusters.cluster_id")
+      || get(created, "resources.0.Clusters.cluster_id");
+    if (clusterId == null) {
+      if (await reconcileCreatedClusterDraft()) return;
+      throw new Error(t("installer.step8.clusterResultMissing"));
+    }
+    authoritativeClusterId.current = Number(clusterId);
+    deploymentArtifacts.current.clusterId = clusterId;
+    await saveReviewData({ ...deploymentArtifacts.current });
   }
 
-  async function createSelectedServices(versionId?: string) {
+  async function createSelectedServices(versionId?: string, generation?: number) {
     const selectedServices = filter(
       getStepData("SERVICES", "services"),
       function (service: any) {
@@ -828,10 +949,50 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       }
     );
     if (!selectedServicesBody.length) return;
-    await ClusterDeploymentApi.createSelectedServices(
-      getStepData("NAME", "clusterName") || clusterName,
-      selectedServicesBody
+    const { targetClusterId, targetClusterName } = targetClusterIdentity();
+    const serviceNames = selectedServicesBody.map(({ ServiceInfo }) =>
+      ServiceInfo.service_name).sort();
+    let intent = reviewDataRef.current.serviceCreationIntent;
+    const existing = await ServiceApi.getAllServices(targetClusterName);
+    if (generation != null) assertCurrentDeployment(generation);
+    const existingByName = new Map(
+      get(existing, "items", []).map((item: any) => [
+        get(item, "ServiceInfo.service_name"),
+        get(item, "ServiceInfo.state"),
+      ]),
     );
+    if (!intent) {
+      const collision = serviceNames.find((serviceName) => existingByName.has(serviceName));
+      if (collision) {
+        throw new Error(t("installer.step8.serviceAlreadyExists", { service: collision }));
+      }
+      intent = {
+        clusterId: targetClusterId,
+        clusterName: targetClusterName,
+        request: selectedServicesBody,
+        serviceNames,
+      };
+      await saveReviewData({ serviceCreationIntent: intent });
+      if (generation != null) assertCurrentDeployment(generation);
+    } else if (intent.clusterId !== targetClusterId
+      || intent.clusterName !== targetClusterName
+      || JSON.stringify(intent.serviceNames) !== JSON.stringify(serviceNames)
+      || JSON.stringify(intent.request) !== JSON.stringify(selectedServicesBody)) {
+      throw new Error(t("installer.step8.serviceSelectionChangedAfterAttempt"));
+    }
+    const unsafeExisting = serviceNames.find((serviceName) =>
+      existingByName.has(serviceName) && existingByName.get(serviceName) !== "INIT");
+    if (unsafeExisting) {
+      throw new Error(t("installer.step8.serviceStateChanged", { service: unsafeExisting }));
+    }
+    const missingServicesBody = selectedServicesBody.filter(({ ServiceInfo }) =>
+      !existingByName.has(ServiceInfo.service_name));
+    if (!missingServicesBody.length) return;
+    await ClusterDeploymentApi.createSelectedServices(
+      targetClusterName,
+      missingServicesBody
+    );
+    if (generation != null) assertCurrentDeployment(generation);
   }
 
   function getServiceComponentsForService(serviceName: string) {
@@ -847,20 +1008,35 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     return matchedServiceComponents;
   }
 
-  async function createComponents() {
+  async function createComponents(generation: number) {
     const selectedServices = filter(
       getStepData("SERVICES", "services"),
       function (service: any) {
         return service.selected && !service.installed;
       }
     );
+    if (!selectedServices.length) return;
+    const targetClusterName = getStepData("NAME", "clusterName") || clusterName;
+    const existingServices = await ServiceApi.getAllServices(targetClusterName);
+    assertCurrentDeployment(generation);
     for (const selectedService of selectedServices) {
       const matchedServiceComponents = getServiceComponentsForService(
         selectedService.serviceName
       );
       if (!matchedServiceComponents?.length) continue;
+      const existingService = get(existingServices, "items", []).find((item: any) =>
+        get(item, "ServiceInfo.service_name") === selectedService.serviceName);
+      const existingComponentNames = new Set(
+        get(existingService, "components", []).map((component: any) =>
+          get(component, "ServiceComponentInfo.component_name")),
+      );
+      const missingComponents = matchedServiceComponents.filter((serviceComponent: any) =>
+        !existingComponentNames.has(
+          get(serviceComponent, "StackServiceComponents.component_name"),
+        ));
+      if (!missingComponents.length) continue;
       const requestBody = {
-        components: matchedServiceComponents.map((serviceComponent: any) => {
+        components: missingComponents.map((serviceComponent: any) => {
           return {
             ServiceComponentInfo: {
               component_name:
@@ -869,22 +1045,59 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
           };
         }),
       };
+      assertCurrentDeployment(generation);
       await ClusterDeploymentApi.addRequestToCreateComponent(
-        getStepData("NAME", "clusterName") || clusterName,
+        targetClusterName,
         selectedService.serviceName,
         requestBody
       );
+      assertCurrentDeployment(generation);
     }
   }
 
   async function registerHostsToComponent(
     hostNames: string[],
-    component: string
+    component: string,
+    topologyInput: "masters" | "slavesAndClients",
+    generation: number,
   ) {
     if (!hostNames.length) return;
+    const targetClusterName = getStepData("NAME", "clusterName") || clusterName;
+
+    if (!currentHostAssignmentsRef.current) {
+      const existing = await HostsApi.getHostComponentsDetails(
+        targetClusterName,
+        "fields=Hosts/host_name,host_components/HostRoles/component_name,host_components/HostRoles/host_name,host_components/HostRoles/state",
+      );
+      assertCurrentDeployment(generation);
+      const assignments = new Map<string, Set<string>>();
+      get(existing, "items", []).forEach((host: any) => {
+        const fallbackHostName = get(host, "Hosts.host_name");
+        get(host, "host_components", []).forEach((hostComponent: any) => {
+          const currentComponent = get(hostComponent, "HostRoles.component_name");
+          const currentHostName = get(hostComponent, "HostRoles.host_name", fallbackHostName);
+          if (!currentComponent || !currentHostName) return;
+          if (!assignments.has(currentComponent)) assignments.set(currentComponent, new Set());
+          assignments.get(currentComponent)?.add(currentHostName);
+        });
+      });
+      currentHostAssignmentsRef.current = assignments;
+    }
+    const desiredHostNames = uniq(hostNames).sort();
+    const existingHostNames = currentHostAssignmentsRef.current.get(component) || new Set();
+    const unexpectedHostNames = [...existingHostNames].filter(
+      (hostName) => !desiredHostNames.includes(hostName),
+    );
+    if (topologyInput === "masters" && unexpectedHostNames.length) {
+      throw new DeploymentTopologyRecoveryRequiredError([topologyInput]);
+    }
+    const missingHostNames = desiredHostNames.filter(
+      (hostName) => !existingHostNames.has(hostName),
+    );
+    if (!missingHostNames.length) return;
 
     let queryStr = "";
-    hostNames.forEach(function (hostName) {
+    missingHostNames.forEach(function (hostName) {
       queryStr += "Hosts/host_name=" + hostName + "|";
     });
     //slice off last symbol '|'
@@ -904,13 +1117,48 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         ],
       },
     };
+    const attemptKey = `${topologyInput}:${component}`;
+    const attempt = {
+      component,
+      hostNames: desiredHostNames,
+      request: data,
+      targetClusterName,
+      topologyInput,
+    } as const;
+    const savedAttempts = hostComponentAssignmentAttempts.current[attemptKey] || [];
+    const savedTargetChanged = savedAttempts.some((savedAttempt) =>
+      savedAttempt.component !== component
+      || savedAttempt.targetClusterName !== targetClusterName
+      || savedAttempt.topologyInput !== topologyInput
+      || JSON.stringify(savedAttempt.hostNames) !== JSON.stringify(desiredHostNames));
+    if (savedTargetChanged) {
+      throw new DeploymentTopologyRecoveryRequiredError([topologyInput]);
+    }
+    const hasExactAttempt = savedAttempts.some((savedAttempt) =>
+      JSON.stringify(savedAttempt.request) === JSON.stringify(data));
+    if (!hasExactAttempt) {
+      const nextAttempts = {
+        ...hostComponentAssignmentAttempts.current,
+        [attemptKey]: [...savedAttempts, attempt],
+      };
+      await saveReviewData({
+        hostComponentAssignmentAttempts: nextAttempts,
+      });
+      assertCurrentDeployment(generation);
+      hostComponentAssignmentAttempts.current = nextAttempts;
+    }
+    assertCurrentDeployment(generation);
     await ClusterDeploymentApi.registerHostToCluster(
-      getStepData("NAME", "clusterName") || clusterName,
+      targetClusterName,
       data
     );
+    assertCurrentDeployment(generation);
+    const current = currentHostAssignmentsRef.current.get(component) || new Set<string>();
+    missingHostNames.forEach((hostName) => current.add(hostName));
+    currentHostAssignmentsRef.current.set(component, current);
   }
 
-  async function createMasterHostComponents() {
+  async function createMasterHostComponents(generation: number) {
     const masterOnAllHosts: any = [];
     const selectedServices = filter(
       getStepData("SERVICES", "services"),
@@ -993,6 +1241,8 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       await registerHostsToComponent(
         registration.hostNames,
         registration.component,
+        "masters",
+        generation,
       );
     }
   }
@@ -1141,7 +1391,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     return clientsMap;
   }
 
-  async function createAdditionalHostComponents() {
+  async function createAdditionalHostComponents(generation: number) {
     const registrations: Array<{ hostNames: string[]; component: string }> = [];
     const registeredHosts = filter(getStepData("HOST_STATUS", "hosts"), [
       "bootStatus",
@@ -1184,11 +1434,13 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       await registerHostsToComponent(
         registration.hostNames,
         registration.component,
+        "slavesAndClients",
+        generation,
       );
     }
   }
 
-  async function createSlaveAndClientsHostComponents() {
+  async function createSlaveAndClientsHostComponents(generation: number) {
     const installedHosts = getStepData("HOSTS", "installedHosts");
     const masterHosts = flatten(
       map(getStepData("MASTERS", "mastersData"), "masterServices")
@@ -1211,10 +1463,9 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
           "componentName",
           currentComponent.label,
         ]);
-        const isHostInstalled = installedHosts.includes(component.hostname);
         const newHostObj = {
           group: "Default",
-          isInstalled: isHostInstalled,
+          isInstalled: Boolean(currentComponent.isInstalled),
           host_id: find(masterHosts, [
             "host_name" || "hostName",
             component.hostname,
@@ -1451,6 +1702,8 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       await registerHostsToComponent(
         registration.hostNames,
         registration.component,
+        "slavesAndClients",
+        generation,
       );
     }
   }
@@ -1461,6 +1714,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       configProperties: configurations,
       includeInstalledChanges: isAddServiceWizard(),
       installedServices,
+      requiredConfigurations: managedDependencyClientConfig,
     });
     if (!applyConfigurationsPayload.length) return;
     await ClusterDeploymentApi.applyClusterConfigs(
@@ -1488,31 +1742,839 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     await Promise.resolve(flushStateToDb("checkpoint", -1, clusterState));
   };
 
-  const deleteExistingClusters = async () => {
+  const assertCurrentDeployment = (generation: number) => {
+    if (generation !== deploymentGenerationRef.current) {
+      throw new Error(t("installer.step8.targetChanged"));
+    }
+  };
+
+  const targetClusterIdentity = () => {
+    const targetClusterName = getStepData("NAME", "clusterName") || clusterName;
+    const targetClusterId = isAddServiceWizard()
+      ? Number(cluster?.cluster_id)
+      : Number(authoritativeClusterId.current || deploymentArtifacts.current.clusterId);
+    if (!targetClusterName || !Number.isInteger(targetClusterId) || targetClusterId <= 0) {
+      throw new Error(t("installer.step8.clusterIdentityMissing"));
+    }
+    return { targetClusterId, targetClusterName };
+  };
+
+  const managedSelectionSignature = (selections: Record<string, any>) =>
+    JSON.stringify(reviewedManagedDependencies(selections).map(({ dependencyType, choice }) => [
+      dependencyType,
+      choice.preview ? managedDependencyReviewSignature(choice.preview) : null,
+    ]));
+
+  const currentDeploymentInputSignatures = async () => {
+    const selectedServices = filter(
+      getStepData("SERVICES", "services"),
+      (service: any) => service.selected && !service.installed,
+    ).map((service: any) => ({
+      installed: Boolean(service.installed),
+      serviceName: service.serviceName,
+    })).sort((left: any, right: any) =>
+      String(left.serviceName).localeCompare(String(right.serviceName)));
+    const configuration = buildClusterConfigurationPayload({
+      configProperties: getStepData("CONFIGURATION", "configProperties") || {},
+      includeInstalledChanges: isAddServiceWizard(),
+      installedServices,
+      requiredConfigurations: managedDependencyClientConfig,
+    });
+    const inputs = {
+      configuration,
+      configGroups: getStepData("CONFIGURATION", "configGroupData") || [],
+      hosts: {
+        installed: getStepData("HOSTS", "installedHosts") || [],
+        registered: getStepData("HOST_STATUS", "hosts") || [],
+      },
+      managedDependencies: managedSelectionSignature(managedDependencies),
+      masters: getStepData("MASTERS", "mastersData") || [],
+      serviceComponents: serviceComponents.items,
+      services: selectedServices,
+      slavesAndClients: getStepData("SLAVES_AND_CLIENTS", "serviceComponents") || [],
+    };
+    return Object.fromEntries(await Promise.all(
+      Object.entries(inputs).map(async ([key, value]) => [
+        key,
+        await deploymentInputSignature(
+          value,
+          globalThis.crypto,
+          deploymentSignatureScopeRef.current,
+        ),
+      ] as const),
+    ));
+  };
+
+  const currentDeploymentTopologyIntent = () => ({
+    masters: cloneDeep(getStepData("MASTERS", "mastersData") || []),
+    slavesAndClients: cloneDeep(
+      getStepData("SLAVES_AND_CLIENTS", "serviceComponents") || [],
+    ),
+  });
+
+  const currentManagedInstallIntent = (): ManagedDependencyInstallIntent => {
+    const { targetClusterId, targetClusterName } = targetClusterIdentity();
+    const selectedServiceNames = Object.values(
+      getStepData("SERVICES", "services") || {},
+    )
+      .filter((service: any) => service.selected && !service.installed)
+      .map((service: any) => String(service.serviceName))
+      .sort();
+    const selectedServices = new Set(selectedServiceNames);
+    const componentServiceNames = new Map<string, string>();
+    serviceComponents.items.forEach((service: any) => {
+      const serviceName = get(service, "StackServices.service_name");
+      get(service, "components", []).forEach((component: any) => {
+        const componentName = get(component, "StackServiceComponents.component_name");
+        if (serviceName && componentName) componentServiceNames.set(componentName, serviceName);
+      });
+    });
+    const targets: ManagedDependencyInstallTarget[] = [];
+    const masters = getStepData("MASTERS", "mastersData") || [];
+    masters.forEach((host: any) => {
+      (host.masterServices || []).forEach((component: any) => {
+        const serviceName = String(component.serviceId || componentServiceNames.get(component.component) || "");
+        if (component.isInstalled || !serviceName || !selectedServices.has(serviceName)) return;
+        targets.push({
+          componentName: String(component.component),
+          hostName: String(component.hostName || host.host_name),
+          serviceName,
+        });
+      });
+    });
+    const slavesAndClients = getStepData("SLAVES_AND_CLIENTS", "serviceComponents") || [];
+    slavesAndClients.forEach((host: any) => {
+      (host.checkboxes || []).filter((component: any) =>
+        component.checked && component.isInstalled !== true,
+      ).forEach((component: any) => {
+        const serviceName = String(component.serviceName || componentServiceNames.get(component.label) || "");
+        if (!serviceName || !selectedServices.has(serviceName)) return;
+        targets.push({
+          componentName: String(component.label),
+          hostName: String(host.hostname),
+          serviceName,
+        });
+      });
+    });
+    const uniqueTargets = Array.from(new Map(
+      targets.map((target) => [
+        `${target.serviceName}:${target.componentName}:${target.hostName}`,
+        target,
+      ]),
+    ).values()).sort((left, right) =>
+      `${left.serviceName}:${left.componentName}:${left.hostName}`
+        .localeCompare(`${right.serviceName}:${right.componentName}:${right.hostName}`));
+    const existingIntent = reviewDataRef.current.managedDependencyInstallIntent;
+    return {
+      clusterId: targetClusterId,
+      clusterName: targetClusterName,
+      wizardName: wizardName as ManagedDependencyInstallIntent["wizardName"],
+      serviceNames: selectedServiceNames,
+      targets: uniqueTargets,
+      intentId: existingIntent?.intentId || createSecureUuid(),
+      state: "READY",
+      ...(existingIntent?.requestId != null ? { requestId: existingIntent.requestId } : {}),
+    };
+  };
+
+  const reconcileDeploymentInputs = async (generation: number) => {
+    const current = await currentDeploymentInputSignatures();
+    assertCurrentDeployment(generation);
+    const reconciled = reconcileDeploymentInputSignatures({
+      attemptedTopologyInputs: Object.values(hostComponentAssignmentAttempts.current)
+        .flatMap((attempts) => attempts.map((attempt) => attempt.topologyInput)),
+      completedOperationIds: completedOperationIds.current,
+      current,
+      previous: reviewDataRef.current.deploymentInputSignatures,
+    });
+    if (reconciled.topologyChanges.length) {
+      throw new DeploymentTopologyRecoveryRequiredError(reconciled.topologyChanges);
+    }
+    const currentTopology = currentDeploymentTopologyIntent();
+    const savedTopology = reviewDataRef.current.deploymentTopologyIntent || {};
+    const nextTopology = {
+      masters: !reviewDataRef.current.deploymentInputSignatures
+        || reconciled.changedInputs.includes("masters")
+        ? currentTopology.masters
+        : savedTopology.masters,
+      slavesAndClients: !reviewDataRef.current.deploymentInputSignatures
+        || reconciled.changedInputs.includes("slavesAndClients")
+        ? currentTopology.slavesAndClients
+        : savedTopology.slavesAndClients,
+    };
+    if (!reconciled.changed
+      && savedTopology.masters
+      && savedTopology.slavesAndClients) return;
+    completedOperationIds.current = new Set(reconciled.completedOperationIds);
+    await saveReviewData({
+      completedOperationIds: reconciled.completedOperationIds,
+      deploymentInputSignatures: current,
+      deploymentTopologyIntent: nextTopology,
+    });
+    assertCurrentDeployment(generation);
+  };
+
+  const restoreSavedTopologyIntent = async () => {
+    const savedTopology = reviewDataRef.current.deploymentTopologyIntent;
+    if (!savedTopology) return;
+    if (topologyRecoveryInputs.includes("masters") && savedTopology.masters) {
+      const mastersData = get(state, `${wizardName}Steps.MASTERS.data`, {});
+      await storeStepDataAndFlush("MASTERS", {
+        ...mastersData,
+        mastersData: cloneDeep(savedTopology.masters),
+      });
+    }
+    if (topologyRecoveryInputs.includes("slavesAndClients")
+      && savedTopology.slavesAndClients) {
+      const slavesData = get(
+        state,
+        `${wizardName}Steps.SLAVES_AND_CLIENTS.data`,
+        {},
+      );
+      await storeStepDataAndFlush("SLAVES_AND_CLIENTS", {
+        ...slavesData,
+        serviceComponents: cloneDeep(savedTopology.slavesAndClients),
+      });
+    }
+    const mastersChanged = topologyRecoveryInputs.includes("masters");
+    const recoveryStep = isAddServiceWizard()
+      ? (mastersChanged ? 2 : 3)
+      : (mastersChanged ? 5 : 6);
+    setDeploymentError("");
+    setTopologyRecoveryInputs([]);
+    jumpToStep(recoveryStep);
+  };
+
+  const saveManagedDependencySelections = async (selections: Record<string, any>) => {
+    const servicesData = get(state, `${wizardName}Steps.SERVICES.data`, {});
+    const nextData = { ...servicesData, managedDependencies: selections };
+    if (storeStepDataAndFlush) {
+      await storeStepDataAndFlush("SERVICES", nextData);
+      return;
+    }
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: { step: "SERVICES", data: nextData },
+    });
+    await Promise.resolve(flushStateToDb("checkpoint", -1, `${deploymentStatePrefix}_DEPLOY_PREP_2`));
+  };
+
+  const saveMaterializationRecord = async (
+    dependencyType: ManagedDependencyType,
+    record: ManagedDependencyMaterializationRecord,
+  ) => {
+    managedDependencyMaterializations.current = {
+      ...managedDependencyMaterializations.current,
+      [dependencyType]: record,
+    };
+    await saveReviewData({
+      managedDependencyMaterializations: managedDependencyMaterializations.current,
+    });
+  };
+
+  const reconcileMaterializationRecord = async (
+    record: ManagedDependencyMaterializationRecord,
+    generation: number,
+  ) => {
+    try {
+      const binding = await ServiceDependenciesApi.get(
+        record.clusterName,
+        record.bindingId,
+      );
+      assertCurrentDeployment(generation);
+      const recovered = assertManagedDependencyRecord(binding, record);
+      setManagedDependencyBindings((current) => ({
+        ...current,
+        [record.dependencyType]: binding,
+      }));
+      return recovered;
+    } catch (error: any) {
+      assertCurrentDeployment(generation);
+      if (isMissingManagedDependency(error)) return null;
+      throw error;
+    }
+  };
+
+  const reconcileManagedDependencyMaterializations = async (generation: number) => {
+    let changed = false;
+    for (const record of Object.values(managedDependencyMaterializations.current)) {
+      if (!record || !managedDependencyAttempts(record).length) continue;
+      const { targetClusterId, targetClusterName } = targetClusterIdentity();
+      if (record.clusterId !== targetClusterId || record.clusterName !== targetClusterName) {
+        throw new Error(t("installer.step8.dependencyTargetChanged"));
+      }
+      const recovered = await reconcileMaterializationRecord(record, generation);
+      const operationKey = `create-managed-dependency-${record.dependencyType}-${record.bindingId}`;
+      if (recovered) {
+        const choice = managedDependencies[record.dependencyType];
+        if (!choice?.preview
+          || !managedDependencyAttemptMatchesPreview(recovered.attempt, choice.preview)) {
+          throw new Error(t("installer.step8.dependencyExistingBindingRequiresReview"));
+        }
+        completedOperationIds.current.add(operationKey);
+        if (record.response !== recovered.binding) {
+          managedDependencyMaterializations.current = {
+            ...managedDependencyMaterializations.current,
+            [record.dependencyType]: recordManagedDependencyResponse(
+              record,
+              recovered.attempt,
+              recovered.binding,
+            ),
+          };
+          changed = true;
+        }
+      } else {
+        completedOperationIds.current.delete(operationKey);
+      }
+    }
+    if (changed) {
+      await saveReviewData({
+        completedOperationIds: [...completedOperationIds.current],
+        managedDependencyMaterializations: managedDependencyMaterializations.current,
+      });
+      assertCurrentDeployment(generation);
+    }
+  };
+
+  const pauseForManagedDependencyReview = async (
+    selections: Record<string, any>,
+    generation: number,
+  ) => {
+    await saveManagedDependencySelections(selections);
+    assertCurrentDeployment(generation);
+    await saveReviewData({
+      managedDependencyPendingReviewSignature: managedSelectionSignature(selections),
+    });
+    assertCurrentDeployment(generation);
+    setManagedDependencyReviewPending(true);
+    throw new ManagedDependencyReviewRequiredError();
+  };
+
+  const completeProspectiveManagedDependencyPreviews = async (
+    generation: number,
+  ) => {
+    const reviewed = reviewedManagedDependencies(managedDependencies);
+    if (!reviewed.length) return;
+    const currentRevision = Number(
+      (isAddServiceWizard() ? getWorkflowRevision?.() : getDraftRevision?.()) || 0,
+    );
+    const { targetClusterId } = targetClusterIdentity();
+    const consumer = isAddServiceWizard()
+      ? {
+          scope: "SERVICE_PLAN" as const,
+          cluster_id: targetClusterId,
+          expected_revision: currentRevision,
+        }
+      : {
+          scope: "DRAFT" as const,
+          draft_id: draftId,
+          expected_revision: currentRevision,
+        };
+    const selections = buildManagedDependencyPlanSelections(
+      reviewed.map(({ choice, dependencyType }) => {
+        if (!choice.preview?.compatible) {
+          throw new Error(t("installer.step8.dependencyPreviewFailed"));
+        }
+        return { dependencyType, preview: choice.preview };
+      }),
+    );
+    let response: ManagedDependencyPlanPreviewResponse;
+    try {
+      response = await ServiceDependenciesApi.previewPlan({ consumer, selections });
+    } catch (error: any) {
+      assertCurrentDeployment(generation);
+      throw error;
+    }
+    assertCurrentDeployment(generation);
+    if (!Array.isArray(response?.items)
+      || response.items.length !== reviewed.length) {
+      throw new Error(t("installer.step8.dependencyPreviewFailed"));
+    }
+    const returnedByType = new Map(
+      response.items.map((preview) => [preview.dependency_type, preview]),
+    );
+    const nextSelections = cloneDeep(managedDependencies);
+    let reviewChanged = false;
+    reviewed.forEach(({ choice, dependencyType }) => {
+      const preview = returnedByType.get(dependencyType);
+      if (!preview?.compatible) {
+        throw new Error(
+          preview?.errors?.[0]?.message || t("installer.step8.dependencyPreviewFailed"),
+        );
+      }
+      managedDependencyPlanPreviewsRef.current[dependencyType] = preview;
+      if (!choice.preview
+        || managedDependencyReviewSignature(preview)
+          !== managedDependencyReviewSignature(choice.preview)) {
+        nextSelections[dependencyType] = { ...choice, preview, planningIssue: undefined };
+        reviewChanged = true;
+      }
+    });
+    if (reviewChanged) {
+      await pauseForManagedDependencyReview(nextSelections, generation);
+    }
+  };
+
+  const materializeManagedDependency = async (
+    dependencyType: ManagedDependencyType,
+    generation: number,
+  ) => {
+    const choice = managedDependencies[dependencyType];
+    if (choice?.mode !== "managed" || !choice.provider || !choice.preview?.compatible) {
+      return;
+    }
+    const { targetClusterId, targetClusterName } = targetClusterIdentity();
+    let record = managedDependencyMaterializations.current[dependencyType];
+    if (record) {
+      if (record.clusterId !== targetClusterId
+        || record.clusterName !== targetClusterName
+        || record.bindingId !== choice.preview.binding_id) {
+        throw new Error(t("installer.step8.dependencySelectionChangedAfterAttempt"));
+      }
+      const reconciled = await reconcileMaterializationRecord(record, generation);
+      if (reconciled) {
+        if (!managedDependencyAttemptMatchesPreview(reconciled.attempt, choice.preview)) {
+          throw new Error(t("installer.step8.dependencyExistingBindingRequiresReview"));
+        }
+        record = recordManagedDependencyResponse(
+          record,
+          reconciled.attempt,
+          reconciled.binding,
+        );
+        await saveMaterializationRecord(dependencyType, record);
+        return;
+      }
+
+      const latestAttempt = managedDependencyAttempts(record).at(-1);
+      const currentRevision = Number(
+        (isAddServiceWizard() ? getWorkflowRevision?.() : getDraftRevision?.()) || 0,
+      );
+      const canReplayExactRequest = latestAttempt
+        && managedDependencyAttemptMatchesPreview(latestAttempt, choice.preview)
+        && (!latestAttempt.request.draft
+          || latestAttempt.request.draft.revision === currentRevision);
+      if (latestAttempt && canReplayExactRequest) {
+        try {
+          const binding = await ServiceDependenciesApi.create(
+            targetClusterName,
+            latestAttempt.request,
+          );
+          assertCurrentDeployment(generation);
+          const recovered = assertManagedDependencyRecord(binding, record);
+          if (!managedDependencyAttemptMatchesPreview(recovered.attempt, choice.preview)) {
+            throw new Error(t("installer.step8.dependencyExistingBindingRequiresReview"));
+          }
+          record = recordManagedDependencyResponse(record, recovered.attempt, binding);
+          await saveMaterializationRecord(dependencyType, record);
+          assertCurrentDeployment(generation);
+          setManagedDependencyBindings((current) => ({
+            ...current,
+            [dependencyType]: binding,
+          }));
+          return;
+        } catch (error: any) {
+          assertCurrentDeployment(generation);
+          const reconciledAfterFailure = await reconcileMaterializationRecord(record, generation);
+          if (reconciledAfterFailure) {
+            if (!managedDependencyAttemptMatchesPreview(
+              reconciledAfterFailure.attempt,
+              choice.preview,
+            )) {
+              throw new Error(t("installer.step8.dependencyExistingBindingRequiresReview"));
+            }
+            record = recordManagedDependencyResponse(
+              record,
+              reconciledAfterFailure.attempt,
+              reconciledAfterFailure.binding,
+            );
+            await saveMaterializationRecord(dependencyType, record);
+            return;
+          }
+          throw error;
+        }
+      }
+    }
+
+    let finalPreview: ManagedDependencyPreview;
+    try {
+      finalPreview = await ServiceDependenciesApi.previewService(
+        targetClusterName,
+        dependencyType,
+        {
+          cluster_id: choice.provider.cluster_id,
+          service_name: choice.provider.service_name,
+        },
+        undefined,
+        choice.preview.binding_id,
+      );
+    } catch (error: any) {
+      assertCurrentDeployment(generation);
+      if (record && isBindingIdUnavailable(error)) {
+        const reconciled = await reconcileMaterializationRecord(record, generation);
+        if (reconciled) {
+          if (!managedDependencyAttemptMatchesPreview(reconciled.attempt, choice.preview)) {
+            throw new Error(t("installer.step8.dependencyExistingBindingRequiresReview"));
+          }
+          record = recordManagedDependencyResponse(
+            record,
+            reconciled.attempt,
+            reconciled.binding,
+          );
+          await saveMaterializationRecord(dependencyType, record);
+          return;
+        }
+      }
+      throw error;
+    }
+    assertCurrentDeployment(generation);
+    if (!finalPreview.compatible) {
+      throw new Error(
+        finalPreview.errors?.[0]?.message || t("installer.step8.dependencyPreviewFailed"),
+      );
+    }
+    if (managedDependencyReviewSignature(finalPreview)
+      !== managedDependencyReviewSignature(choice.preview)) {
+      await pauseForManagedDependencyReview({
+        ...managedDependencies,
+        [dependencyType]: { ...choice, preview: finalPreview },
+      }, generation);
+    }
+
+    record ||= {
+      bindingId: finalPreview.binding_id,
+      clusterId: targetClusterId,
+      clusterName: targetClusterName,
+      dependencyType,
+      operationId: "",
+    };
+    const operationId = createSecureUuid();
+    const draft = isAddServiceWizard()
+      ? undefined
+      : { id: draftId, revision: Number(getDraftRevision?.() || 0) + 1 };
+    const request = buildManagedDependencyCreateRequest({
+      draft,
+      operationId,
+      preview: finalPreview,
+    });
+    const attempt: ManagedDependencyMaterializationAttempt = { operationId, request };
+    record = appendManagedDependencyAttempt(record, attempt);
+    await saveMaterializationRecord(dependencyType, record);
+    assertCurrentDeployment(generation);
+    if (draft && Number(getDraftRevision?.() || 0) !== draft.revision) {
+      throw new Error(t("installer.step8.dependencyDraftRevisionChanged"));
+    }
+    try {
+      const binding = await ServiceDependenciesApi.create(targetClusterName, request);
+      assertCurrentDeployment(generation);
+      const recovered = assertManagedDependencyRecord(binding, record);
+      record = recordManagedDependencyResponse(record, recovered.attempt, binding);
+      await saveMaterializationRecord(dependencyType, record);
+      assertCurrentDeployment(generation);
+      setManagedDependencyBindings((current) => ({ ...current, [dependencyType]: binding }));
+    } catch (error: any) {
+      assertCurrentDeployment(generation);
+      const reconciled = await reconcileMaterializationRecord(record, generation);
+      if (reconciled) {
+        if (!managedDependencyAttemptMatchesPreview(reconciled.attempt, finalPreview)) {
+          throw new Error(t("installer.step8.dependencyExistingBindingRequiresReview"));
+        }
+        record = recordManagedDependencyResponse(
+          record,
+          reconciled.attempt,
+          reconciled.binding,
+        );
+        await saveMaterializationRecord(dependencyType, record);
+        return;
+      }
+      throw error;
+    }
+  };
+
+  const materializeManagedDependencyPlan = async (generation: number) => {
+    const reviewed = reviewedManagedDependencies(managedDependencies);
+    if (!reviewed.length) return;
+    const { targetClusterId, targetClusterName } = targetClusterIdentity();
+    const currentRevision = Number(
+      (isAddServiceWizard() ? getWorkflowRevision?.() : getDraftRevision?.()) || 0,
+    );
+
+    // Reconcile every saved identity before deciding whether a batch POST is needed.
+    // A lost response for one item must not cause the other item to be recreated alone.
+    for (const { dependencyType, choice } of reviewed) {
+      if (!choice.preview?.compatible) {
+        throw new Error(t("installer.step8.dependencyPreviewFailed"));
+      }
+      const record = managedDependencyMaterializations.current[dependencyType];
+      if (!record) continue;
+      if (record.clusterId !== targetClusterId
+        || record.clusterName !== targetClusterName
+        || record.bindingId !== choice.preview.binding_id) {
+        throw new Error(t("installer.step8.dependencySelectionChangedAfterAttempt"));
+      }
+      const recovered = await reconcileMaterializationRecord(record, generation);
+      if (recovered) {
+        if (!managedDependencyAttemptMatchesPreview(recovered.attempt, choice.preview)) {
+          throw new Error(t("installer.step8.dependencyExistingBindingRequiresReview"));
+        }
+        managedDependencyMaterializations.current = {
+          ...managedDependencyMaterializations.current,
+          [dependencyType]: recordManagedDependencyResponse(
+            record,
+            recovered.attempt,
+            recovered.binding,
+          ),
+        };
+      }
+    }
+
+    const nextMaterials = { ...managedDependencyMaterializations.current };
+    const requests = reviewed.map(({ dependencyType, choice }) => {
+      const preview = managedDependencyPlanPreviewsRef.current[dependencyType]
+        || choice.preview!;
+      const existing = nextMaterials[dependencyType];
+      const latestAttempt = existing && managedDependencyAttempts(existing).at(-1);
+      const draft = isAddServiceWizard()
+        ? undefined
+        : { id: draftId, revision: currentRevision + 1 };
+      const reusable = latestAttempt
+        && managedDependencyAttemptMatchesPreview(latestAttempt, preview)
+        && (Boolean(latestAttempt.response)
+          || !latestAttempt.request.draft
+          || latestAttempt.request.draft.revision === currentRevision);
+      const request = reusable
+        ? latestAttempt.request
+        : buildManagedDependencyCreateRequest({
+            draft,
+            operationId: createSecureUuid(),
+            preview,
+          });
+      const record = existing || {
+        bindingId: request.binding_id,
+        clusterId: targetClusterId,
+        clusterName: targetClusterName,
+        dependencyType,
+        operationId: request.operation_id,
+      };
+      nextMaterials[dependencyType] = reusable
+        ? record
+        : appendManagedDependencyAttempt(record, {
+            operationId: request.operation_id,
+            request,
+          });
+      return request;
+    });
+
+    const managedDependencyInstallIntent = currentManagedInstallIntent();
+    const managedDependencyHandoff = {
+      phase: "WAIT_FOR_PROVIDER_PREPARATION" as const,
+      clusterId: targetClusterId,
+      clusterName: targetClusterName,
+      consumerServiceName: "HBASE" as const,
+      installIntent: managedDependencyInstallIntent,
+      items: requests.map((request) => ({
+        bindingId: request.binding_id,
+        dependencyType: request.dependency_type,
+        operationId: request.operation_id,
+      })),
+    };
+
+    await saveReviewData({
+      managedDependencyMaterializations: nextMaterials,
+      managedDependencyInstallIntent,
+      managedDependencyHandoff,
+    });
+    assertCurrentDeployment(generation);
+    managedDependencyMaterializations.current = nextMaterials;
+
+    try {
+      const bindings = await ServiceDependenciesApi.createMany(
+        targetClusterName,
+        requests,
+      );
+      assertCurrentDeployment(generation);
+      if (!Array.isArray(bindings) || bindings.length !== requests.length) {
+        throw new Error(t("installer.step8.dependencyMaterializationIncomplete"));
+      }
+      const bindingsByIdentity = new Map(
+        bindings.map((binding) => [
+          `${binding.dependency_type}:${binding.binding_id}`,
+          binding,
+        ]),
+      );
+      const resolvedMaterials = { ...nextMaterials };
+      const resolvedBindings: Partial<Record<ManagedDependencyType, ManagedDependencyBinding>> = {};
+      reviewed.forEach(({ dependencyType }) => {
+        const record = resolvedMaterials[dependencyType]!;
+        const request = managedDependencyAttempts(record).at(-1)!.request;
+        const binding = bindingsByIdentity.get(`${dependencyType}:${request.binding_id}`);
+        if (!binding) {
+          throw new Error(t("installer.step8.dependencyMaterializationIncomplete"));
+        }
+        const recovered = assertManagedDependencyRecord(binding, record);
+        resolvedMaterials[dependencyType] = recordManagedDependencyResponse(
+          record,
+          recovered.attempt,
+          binding,
+        );
+        resolvedBindings[dependencyType] = binding;
+      });
+      managedDependencyMaterializations.current = resolvedMaterials;
+      setManagedDependencyBindings((current) => ({ ...current, ...resolvedBindings }));
+      await saveReviewData({
+        managedDependencyMaterializations: resolvedMaterials,
+        managedDependencyInstallIntent,
+        managedDependencyHandoff,
+      });
+    } catch (error: any) {
+      assertCurrentDeployment(generation);
+      let unresolved = false;
+      for (const { dependencyType } of reviewed) {
+        const record = managedDependencyMaterializations.current[dependencyType];
+        if (!record) {
+          unresolved = true;
+          continue;
+        }
+        const recovered = await reconcileMaterializationRecord(record, generation);
+        if (!recovered) {
+          unresolved = true;
+          continue;
+        }
+        const choice = managedDependencies[dependencyType];
+        if (!choice?.preview
+          || !managedDependencyAttemptMatchesPreview(recovered.attempt, choice.preview)) {
+          throw new Error(t("installer.step8.dependencyExistingBindingRequiresReview"));
+        }
+        managedDependencyMaterializations.current = {
+          ...managedDependencyMaterializations.current,
+          [dependencyType]: recordManagedDependencyResponse(
+            record,
+            recovered.attempt,
+            recovered.binding,
+          ),
+        };
+        setManagedDependencyBindings((current) => ({
+          ...current,
+          [dependencyType]: recovered.binding,
+        }));
+      }
+      if (unresolved) throw error;
+      await saveReviewData({
+        managedDependencyMaterializations: managedDependencyMaterializations.current,
+      });
+    }
+  };
+
+  const approveManagedDependencyReview = async () => {
+    const signature = managedSelectionSignature(managedDependencies);
+    await saveReviewData({
+      managedDependencyApprovedSignature: signature,
+      managedDependencyPendingReviewSignature: null,
+    });
+    setManagedDependencyReviewPending(false);
+    setDeploymentError("");
+    setDeploymentStage(t("installer.step8.readyToDeploy"));
+    setIsNextEnabled(true);
+  };
+
+  const returnToManagedDependencySelection = async () => {
+    const servicesStep = isAddServiceWizard() ? 1 : 4;
+    await Promise.resolve(flushStateToDb("jump", servicesStep));
+    jumpToStep(servicesStep);
+  };
+
+  const reconcileCreatedClusterDraft = async () => {
+    const targetClusterName = getStepData("NAME", "clusterName");
+    if (!draftId) {
+      throw new Error(t("installer.step8.draftMissing"));
+    }
+    try {
+      const target = await WorkflowStateApi.getCreationDraftCluster(draftId);
+      if (target.cluster_name !== targetClusterName || !target.cluster_id) {
+        throw new Error(t("installer.step8.clusterIdentityMismatch"));
+      }
+      if (deploymentArtifacts.current.clusterId != null
+        && String(deploymentArtifacts.current.clusterId) !== String(target.cluster_id)) {
+        throw new Error(t("installer.step8.clusterIdentityChanged"));
+      }
+      authoritativeClusterId.current = Number(target.cluster_id);
+      if (String(deploymentArtifacts.current.clusterId || "") !== String(target.cluster_id)) {
+        deploymentArtifacts.current.clusterId = target.cluster_id;
+        await saveReviewData({ ...deploymentArtifacts.current });
+      }
+      return true;
+    } catch (error: any) {
+      if (error?.response?.status !== 404) throw error;
+      authoritativeClusterId.current = null;
+      if (deploymentArtifacts.current.clusterId != null
+        || completedOperationIds.current.has("create-cluster")) {
+        throw new Error(
+          t("installer.step8.clusterNoLongerAvailable", { cluster: targetClusterName }),
+        );
+      }
+      return false;
+    }
+  };
+
+  const validateClusterTarget = async () => {
+    const targetClusterName = getStepData("NAME", "clusterName");
     const response = await ClusterApi.getAllClusters();
-    await Promise.all(get(response, "items", []).map((item: any) =>
-      ClusterApi.deleteCluster(item.Clusters.cluster_name),
-    ));
+    const collision = get(response, "items", []).find(
+      (item: any) => item?.Clusters?.cluster_name === targetClusterName,
+    );
+    if (collision) {
+      if (authoritativeClusterId.current != null
+        && String(collision?.Clusters?.cluster_id) === String(authoritativeClusterId.current)) {
+        return;
+      }
+      throw new Error(
+        t("installer.step8.clusterNameCollision", { cluster: targetClusterName }),
+      );
+    }
   };
 
-  const deleteExistingVersions = async () => {
-    const response = await VersionsApi.getAllVersionDefinitions();
-    await Promise.all(get(response, "items", []).map((item: any) =>
-      VersionsApi.deleteRepositoryVersion(
-        item.VersionDefinition.stack_name,
-        item.VersionDefinition.stack_version,
-        item.VersionDefinition.id,
-      ),
-    ));
-  };
-
-  const createRepositoryVersion = async () => {
+  const resolveOrCreateRepositoryVersion = async () => {
     const selectedStack = getStepData("VERSION", "selectedStack");
+    const selectedVersion = getStepData("VERSION", "selectedVersion");
+    const operatingSystems = getStepData(
+      "VERSION",
+      `operatingSystems.${selectedVersion.id}`,
+    ) || [];
+    const definitions = await VersionsApi.getVersionDefinitions(
+      selectedStack.stack_name,
+    );
+    const resolution = resolveRepositoryVersion({
+      items: get(definitions, "items", []),
+      ambariManagedRepositories: !getStepData("VERSION", "redhatSatellite"),
+      operatingSystems,
+      repositoryVersion: selectedVersion.repository_version || selectedVersion.id,
+      stackName: selectedStack.stack_name,
+      stackVersion: selectedStack.stack_version,
+    });
+    if (resolution.kind === "conflict") {
+      throw new Error(t("installer.step8.repositoryVersionConflict", {
+        version: resolution.versionLabel,
+      }));
+    }
+    if (resolution.kind === "reuse") {
+      deploymentArtifacts.current.repositoryVersionId = resolution.repositoryVersionId;
+      deploymentArtifacts.current.repositoryVersionReused = true;
+      deploymentArtifacts.current.stackName = resolution.stackName;
+      deploymentArtifacts.current.stackVersion = resolution.stackVersion;
+      return;
+    }
+
     const source = getStepData("VERSION", "versionDefinitionSource");
-    const payload = source?.payload || {
+    const sourcePayload = source?.payload || {
       VersionDefinition: { available: selectedStack.id },
     };
-    const response = await postVersionDefinition(payload, source?.headers);
+    const payload = buildAtomicVersionDefinitionPayload(
+      sourcePayload,
+      getInitialOperatingSystems(),
+    );
+    const response = await postVersionDefinition(
+      payload,
+      typeof sourcePayload === "string" ? {} : source?.headers,
+    );
     const versionDefinition = get(
       response,
       "resources.0.VersionDefinition",
@@ -1523,37 +2585,54 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       || !versionDefinition.stack_name
       || !versionDefinition.stack_version
     ) {
-      throw new Error("Ambari did not return the created repository version.");
+      throw new Error(t("installer.step8.repositoryResultMissing"));
     }
     deploymentArtifacts.current.repositoryVersionId = versionDefinition.id;
+    deploymentArtifacts.current.repositoryVersionReused = false;
     deploymentArtifacts.current.stackName = versionDefinition.stack_name;
     deploymentArtifacts.current.stackVersion = versionDefinition.stack_version;
   };
 
-  const updateRepositoryOperatingSystems = async () => {
-    const repositoryVersionId = deploymentArtifacts.current.repositoryVersionId;
-    if (!repositoryVersionId) {
-      throw new Error("The repository version was not created.");
-    }
-    await VersionsApi.updateRepoOSInfo(
-      deploymentArtifacts.current.stackName || STACK,
-      deploymentArtifacts.current.stackVersion || VERSION,
-      repositoryVersionId,
-      await getUpdateRepoOSInfoBody(),
-    );
-  };
-
-  const buildDeploymentStages = () => {
+  const buildDeploymentStages = (generation: number) => {
+    const scoped = (operation: { id: string; label: string; run: () => Promise<unknown> }) => ({
+      ...operation,
+      run: async () => {
+        assertCurrentDeployment(generation);
+        const result = await operation.run();
+        assertCurrentDeployment(generation);
+        return result;
+      },
+    });
+    const managedPlanOperationKey = reviewedManagedDependencies(managedDependencies)
+      .map(({ choice, dependencyType }) => [
+        dependencyType,
+        choice.preview?.binding_id || "pending",
+        choice.preview?.provider_fingerprint || choice.provider?.cluster_id || "provider",
+        choice.preview?.consumer_descriptor_fingerprint || "consumer",
+      ].join(":"))
+      .join("|") || "local";
     const commonOperations = [
       { id: "create-services", label: "Creating services", run: () =>
-        createSelectedServices(deploymentArtifacts.current.repositoryVersionId) },
-      { id: "apply-configurations", label: "Applying configurations", run: applyConfigurationsToCluster },
-      { id: "create-components", label: "Creating service components", run: createComponents },
+        createSelectedServices(deploymentArtifacts.current.repositoryVersionId, generation) },
+      {
+        id: `complete-managed-dependency-previews-${managedPlanOperationKey}`,
+        label: t("installer.step8.reviewingManagedDependencies"),
+        run: () => completeProspectiveManagedDependencyPreviews(generation),
+      },
+      { id: `apply-configurations-${managedPlanOperationKey}`, label: "Applying configurations", run: applyConfigurationsToCluster },
+      { id: "create-components", label: "Creating service components", run: () => createComponents(generation) },
       { id: "create-configuration-groups", label: "Saving configuration groups", run: createConfigurationGroups },
-      { id: "register-masters", label: "Assigning master components", run: createMasterHostComponents },
-      { id: "register-slaves-clients", label: "Assigning slave and client components", run: createSlaveAndClientsHostComponents },
-      { id: "register-required-components", label: "Assigning required components", run: createAdditionalHostComponents },
+      { id: "register-masters", label: "Assigning master components", run: () => createMasterHostComponents(generation) },
+      { id: "register-slaves-clients", label: "Assigning slave and client components", run: () => createSlaveAndClientsHostComponents(generation) },
+      { id: "register-required-components", label: "Assigning required components", run: () => createAdditionalHostComponents(generation) },
     ];
+    const managedDependencyOperations = reviewedManagedDependencies(managedDependencies).length
+      ? [{
+          id: `create-managed-dependency-plan-${managedPlanOperationKey}`,
+          label: t("installer.step8.preparingManagedDependencies"),
+          run: () => materializeManagedDependencyPlan(generation),
+        }]
+      : [];
 
     if (isAddServiceWizard()) {
       const kerberosOperations = isKerberosEnabled && !isManualKerberos
@@ -1563,19 +2642,22 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
             run: updateKerberosDescriptorMethod,
           }]
         : [];
-      return [...commonOperations.slice(0, 1), ...kerberosOperations, ...commonOperations.slice(1)]
-        .map((operation) => ({ operations: [operation] }));
+      return [
+        ...commonOperations.slice(0, 1),
+        ...kerberosOperations,
+        ...commonOperations.slice(1),
+        ...managedDependencyOperations,
+      ].map((operation) => ({ operations: [scoped(operation)] }));
     }
 
     return [
-      { operations: [{ id: "delete-clusters", label: "Removing incomplete clusters", run: deleteExistingClusters }] },
-      { operations: [{ id: "delete-repository-versions", label: "Removing incomplete repository versions", run: deleteExistingVersions }] },
-      { operations: [{ id: "create-repository-version", label: "Creating the repository version", run: createRepositoryVersion }] },
-      { operations: [{ id: "update-repositories", label: "Saving repositories", run: updateRepositoryOperatingSystems }] },
-      { operations: [{ id: "create-cluster", label: "Creating the cluster", run: createCluster }] },
-      ...commonOperations.slice(0, 3).map((operation) => ({ operations: [operation] })),
-      { operations: [{ id: "register-hosts", label: "Adding hosts to the cluster", run: registerHostsToCluster }] },
-      ...commonOperations.slice(3).map((operation) => ({ operations: [operation] })),
+      { operations: [scoped({ id: "validate-cluster-target", label: t("installer.step8.checkingClusterName"), run: validateClusterTarget })] },
+      { operations: [scoped({ id: "resolve-repository-version", label: t("installer.step8.resolvingRepositoryVersion"), run: resolveOrCreateRepositoryVersion })] },
+      { operations: [scoped({ id: "create-cluster", label: "Creating the cluster", run: createCluster })] },
+      ...commonOperations.slice(0, 4).map((operation) => ({ operations: [scoped(operation)] })),
+      { operations: [scoped({ id: "register-hosts", label: "Adding hosts to the cluster", run: registerHostsToCluster })] },
+      ...commonOperations.slice(4).map((operation) => ({ operations: [scoped(operation)] })),
+      ...managedDependencyOperations.map((operation) => ({ operations: [scoped(operation)] })),
     ];
   };
 
@@ -1585,6 +2667,18 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
 
   const deploy = async () => {
     if (deploymentTriggered) return;
+    const generation = deploymentGenerationRef.current;
+    if (!isAddServiceWizard()) {
+      const requiredReentry = clusterCreationReentrySteps({ state });
+      if (requiredReentry.length) {
+        setDeploymentError(
+          t("installer.step8.reentryBeforeDeploy", {
+            steps: requiredReentry.map(({ labelKey }) => t(labelKey)).join(", "),
+          }),
+        );
+        return;
+      }
+    }
     if (isAddServiceWizard() && isKerberosEnabled && !isKerberosDescriptorReady) {
       setKerberosPreparationError(
         "The Kerberos descriptor must be prepared before deployment.",
@@ -1594,13 +2688,22 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
     setDeploymentTriggered(true);
     setIsNextEnabled(false);
     setDeploymentError("");
+    setTopologyRecoveryInputs([]);
+    currentHostAssignmentsRef.current = null;
 
     try {
+      if (!isAddServiceWizard()) {
+        await reconcileCreatedClusterDraft();
+      }
+      assertCurrentDeployment(generation);
+      await reconcileManagedDependencyMaterializations(generation);
+      await reconcileDeploymentInputs(generation);
       await saveReviewData({
         completedOperationIds: [...completedOperationIds.current],
         deploymentStage: "Preparing deployment",
       });
-      const stages = buildDeploymentStages();
+      assertCurrentDeployment(generation);
+      const stages = buildDeploymentStages(generation);
       const operations = stages.flatMap((stage) => stage.operations);
       setTotalOperationsCount(operations.length);
       setCompletedOperationsCount(
@@ -1621,16 +2724,62 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         },
       );
 
+      if (reviewedManagedDependencies(managedDependencies).length) {
+        setDeploymentStage(t("installer.step8.providerPreparationStarted"));
+        setDeploymentTriggered(false);
+        setIsNextEnabled(false);
+        const managedDependencyHandoff = reviewDataRef.current.managedDependencyHandoff;
+        const managedDependencyInstallIntent =
+          reviewDataRef.current.managedDependencyInstallIntent
+          || managedDependencyHandoff?.installIntent;
+        await saveReviewData({
+          completedOperationIds: [...completedOperationIds.current],
+          deploymentStage: t("installer.step8.providerPreparationStarted"),
+          managedDependencyMaterializations: managedDependencyMaterializations.current,
+          managedDependencyHandoff,
+          managedDependencyInstallIntent,
+        });
+        const clusterStatus = {
+          ...(getStepData("REVIEW", "clusterStatus") || {}),
+          status: "PENDING",
+          phase: "WAIT_FOR_PROVIDER_PREPARATION",
+          managedDependencyHandoff,
+          managedDependencyInstallIntent,
+        };
+        await storeStepDataAndFlush("INSTALL_START_TEST", {
+          clusterStatus,
+          phase: "WAIT_FOR_PROVIDER_PREPARATION",
+          managedDependencyHandoff,
+          managedDependencyInstallIntent,
+          hostInfo: getStepData("INSTALL_START_TEST", "hostInfo") || [],
+        });
+        handleNextImperitive();
+        return;
+      }
+
       if (isAddServiceWizard()) {
         await waitForKdcSession();
       }
       setDeploymentStage("Starting component installation");
       await installServices();
     } catch (error: any) {
-      const message = error?.response?.data?.message
+      if (error instanceof ManagedDependencyReviewRequiredError) {
+        setDeploymentStage(t("installer.step8.managedDependencyReviewRequired"));
+        setDeploymentTriggered(false);
+        setIsNextEnabled(false);
+        return;
+      }
+      const message = error instanceof DeploymentTopologyRecoveryRequiredError
+        ? t("installer.step8.topologyRecoveryRequired")
+        : error instanceof ManagedDependencyAttemptLimitError
+        ? t("installer.step8.dependencyAttemptLimit")
+        : error?.response?.data?.message
         || error?.message
-        || "Ambari could not prepare the cluster deployment.";
+        || t("installer.step8.prepareFailed");
       setDeploymentError(String(message));
+      if (error instanceof DeploymentTopologyRecoveryRequiredError) {
+        setTopologyRecoveryInputs(error.changedInputs);
+      }
       setDeploymentStage("Deployment preparation failed");
       setDeploymentTriggered(false);
       setIsNextEnabled(true);
@@ -1663,6 +2812,48 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
             <span className="text-info">✵</span>.
           </small>
         ) : null}
+        <div className="mt-4">
+          <ManagedDependencySettings
+            onReturn={() => void returnToManagedDependencySelection()}
+            selections={managedDependencies}
+            view="review"
+          />
+          {managedDependencyReviewPending ? (
+            <Alert variant="warning">
+              <div>{t("installer.step8.managedDependencyReviewRequired")}</div>
+              <Button
+                className="mt-2"
+                size="sm"
+                variant="primary"
+                onClick={() => void approveManagedDependencyReview().catch((error: any) =>
+                  setDeploymentError(String(
+                    error?.response?.data?.message
+                      || error?.message
+                      || t("installer.step8.prepareFailed"),
+                  )))}
+              >
+                {t("installer.step8.approveManagedDependencies")}
+              </Button>
+            </Alert>
+          ) : null}
+          {Object.values(managedDependencyBindings).length ? (
+            <section aria-labelledby="managed-dependency-progress-heading">
+              <h3 className="h5" id="managed-dependency-progress-heading">
+                {t("installer.step8.managedDependencyProgress")}
+              </h3>
+              <Alert variant="info">
+                {t("installer.step8.providerPreparationStarted")}
+              </Alert>
+              <div className="row g-3">
+                {Object.values(managedDependencyBindings).map((binding) => (
+                  <div className="col-12 col-xl-6" key={binding.binding_id}>
+                    <DependencyCard binding={binding} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </div>
         {isAddServiceWizard() && isKerberosEnabled && isKerberosPreparationRunning ? (
           <Alert variant="info" className="mt-3 d-flex align-items-center gap-2">
             <BootstrapSpinner animation="border" size="sm" />
@@ -1725,7 +2916,18 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
         ) : null}
         {deploymentError ? (
           <Alert variant="danger" className="mt-3">
-            {deploymentError}
+            <div>{deploymentError}</div>
+            {topologyRecoveryInputs.length
+              && reviewDataRef.current.deploymentTopologyIntent ? (
+              <Button
+                className="mt-2"
+                size="sm"
+                variant="outline-danger"
+                onClick={() => void restoreSavedTopologyIntent()}
+              >
+                {t("installer.step8.restoreSavedAssignments")}
+              </Button>
+            ) : null}
           </Alert>
         ) : null}
         {deploymentTriggered ? (

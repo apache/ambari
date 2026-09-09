@@ -26,7 +26,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Alert, Button, Card, Dropdown } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -51,7 +51,8 @@ import {
   translate,
   translateWithVariables,
 } from "../../Utils/Utility";
-import { Link } from "react-router-dom";
+import ScopedLink from "../../components/ScopedLink";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import {
   apiDataToHostComponentModel,
   getClientCustomCommands,
@@ -137,7 +138,7 @@ export default function HostsSummary({
   } = useContext(AppContext);
   const { allServiceModels: serviceModels } = useContext(ServiceContext);
   const params = useParams();
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const [loading, setLoading] = useState(true);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -1107,12 +1108,12 @@ export default function HostsSummary({
                 {get(component, "displayName", "")}
                 {" / "}
               </div>
-              <Link
+              <ScopedLink
                 to={`/main/services/${serviceName}/summary`}
                 className="custom-link me-1"
               >
                 <div>{startCase(serviceName.toLowerCase())}</div>
-              </Link>
+              </ScopedLink>
               <div>{haState ? " - " + clusterName : ""}</div>
             </div>
           );

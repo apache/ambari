@@ -19,7 +19,8 @@
 import { useState, useEffect } from "react";
 import { cloneDeep } from "lodash";
 import { Step } from "../types/StepWizard";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
+import useClusterNavigate from "./useClusterNavigate";
 
 export const getVisibleStepNumbers = (steps: { [key: number]: Step }) =>
   Object.keys(steps)
@@ -47,7 +48,7 @@ export const getAdjacentVisibleStep = (
 
 const useStepWizard = (steps: any, initialActiveStep = 0, onCancel?: any) => {
   const [activeStep, setActiveStep] = useState(initialActiveStep || 0);
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const [wizardSteps, setWizardSteps] = useState<{ [key: number]: Step }>(
     () =>
       Object.fromEntries(

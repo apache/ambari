@@ -71,6 +71,7 @@ import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.MetadataHolder;
+import org.apache.ambari.server.agent.stomp.dto.MetadataServiceInfo;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
@@ -80,6 +81,8 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -207,6 +210,58 @@ public class AmbariManagementControllerImplTest {
   }
 
   @Test
+  public void testServiceMetadataCredentialsAreResolvedForEachClusterService() throws Exception {
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
+    constructorInit(injector, controllerCapture, createNiceMock(KerberosHelper.class));
+
+    AmbariMetaInfo localMetaInfo = createMock(AmbariMetaInfo.class);
+    ConfigHelper localConfigHelper = createMock(ConfigHelper.class);
+    RepositoryVersionEntity repositoryVersionA = createMock(RepositoryVersionEntity.class);
+    RepositoryVersionEntity repositoryVersionB = createMock(RepositoryVersionEntity.class);
+    Service serviceA = createMock(Service.class);
+    Service serviceB = createMock(Service.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+    StackId stackId = new StackId("HDP-3.1");
+    Map<String, Map<String, String>> credentialsA = ImmutableMap.of(
+        "hdfs-site", ImmutableMap.of("cluster-a.password", "alias-a"));
+    Map<String, Map<String, String>> credentialsB = ImmutableMap.of(
+        "hdfs-site", ImmutableMap.of("cluster-b.password", "alias-b"));
+
+    expect(serviceA.getDesiredRepositoryVersion()).andReturn(repositoryVersionA);
+    expect(repositoryVersionA.getStackId()).andReturn(stackId);
+    expect(serviceA.getName()).andReturn("HDFS").anyTimes();
+    expect(serviceA.isCredentialStoreEnabled()).andReturn(true);
+    expect(serviceB.getDesiredRepositoryVersion()).andReturn(repositoryVersionB);
+    expect(repositoryVersionB.getStackId()).andReturn(stackId);
+    expect(serviceB.getName()).andReturn("HDFS").anyTimes();
+    expect(serviceB.isCredentialStoreEnabled()).andReturn(true);
+    expect(localMetaInfo.getService("HDP", "3.1", "HDFS")).andReturn(serviceInfo).times(2);
+    expect(localConfigHelper.getCredentialStoreEnabledProperties(stackId, serviceA)).andReturn(credentialsA);
+    expect(localConfigHelper.getCredentialStoreEnabledProperties(stackId, serviceB)).andReturn(credentialsB);
+
+    replay(injector, localMetaInfo, localConfigHelper, repositoryVersionA,
+        repositoryVersionB, serviceA, serviceB, serviceInfo);
+
+    AmbariManagementControllerImpl controller =
+        new AmbariManagementControllerImpl(null, null, injector);
+    Field metaInfoField = AmbariManagementControllerImpl.class.getDeclaredField("ambariMetaInfo");
+    metaInfoField.setAccessible(true);
+    metaInfoField.set(controller, localMetaInfo);
+    Field configHelperField = AmbariManagementControllerImpl.class.getDeclaredField("configHelper");
+    configHelperField.setAccessible(true);
+    configHelperField.set(controller, localConfigHelper);
+
+    MetadataServiceInfo metadataA = controller.getMetadataServiceLevelParams(serviceA).get("HDFS");
+    MetadataServiceInfo metadataB = controller.getMetadataServiceLevelParams(serviceB).get("HDFS");
+
+    assertSame(credentialsA, metadataA.getCredentialStoreEnabledProperties());
+    assertSame(credentialsB, metadataB.getCredentialStoreEnabledProperties());
+    verify(injector, localMetaInfo, localConfigHelper, repositoryVersionA,
+        repositoryVersionB, serviceA, serviceB, serviceInfo);
+  }
+
+  @Test
   public void testGetClusters() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
@@ -247,6 +302,67 @@ public class AmbariManagementControllerImplTest {
     assertTrue(setResponses.contains(response));
 
     verify(injector, clusters, cluster, response, credentialStoreService);
+  }
+
+  @Test
+  public void testGetClustersFiltersClustersWithoutViewAuthorization() throws Exception {
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
+    Cluster clusterA = createNiceMock(Cluster.class);
+    Cluster clusterB = createNiceMock(Cluster.class);
+    ClusterResponse responseA = createNiceMock(ClusterResponse.class);
+    CredentialStoreService credentialStoreService = createNiceMock(CredentialStoreService.class);
+
+    constructorInit(injector, controllerCapture, createNiceMock(KerberosHelper.class));
+    expect(clusters.getClusters()).andReturn(ImmutableMap.of("clusterA", clusterA, "clusterB", clusterB));
+    expect(clusterA.getResourceId()).andReturn(4L).anyTimes();
+    expect(clusterB.getResourceId()).andReturn(5L).anyTimes();
+    expect(clusterA.convertToResponse()).andReturn(responseA);
+    expect(credentialStoreService.isInitialized(anyObject(CredentialStoreType.class))).andReturn(true).anyTimes();
+    replay(injector, clusters, clusterA, clusterB, responseA, credentialStoreService);
+
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    Field field = controller.getClass().getDeclaredField("credentialStoreService");
+    field.setAccessible(true);
+    field.set(controller, credentialStoreService);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterUser("clusterAUser", 4L));
+    try {
+      ClusterRequest request = new ClusterRequest(null, null, null, Collections.emptySet());
+      Set<ClusterResponse> responses = controller.getClusters(Collections.singleton(request));
+      assertEquals(Collections.singleton(responseA), responses);
+      verify(injector, clusters, clusterA, clusterB, responseA, credentialStoreService);
+    } finally {
+      setupAuthentication();
+    }
+  }
+
+  @Test
+  public void testGetClustersObscuresDirectUnauthorizedCluster() throws Exception {
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
+    Cluster clusterB = createNiceMock(Cluster.class);
+
+    constructorInit(injector, controllerCapture, createNiceMock(KerberosHelper.class));
+    expect(clusters.getCluster("clusterB")).andReturn(clusterB);
+    expect(clusterB.getResourceId()).andReturn(5L);
+    replay(injector, clusters, clusterB);
+
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createClusterUser("clusterAUser", 4L));
+    try {
+      ClusterRequest request = new ClusterRequest(null, "clusterB", null, Collections.emptySet());
+      try {
+        controller.getClusters(Collections.singleton(request));
+        fail("Expected unauthorized cluster lookup to be obscured");
+      } catch (AuthorizationException expected) {
+        // Expected.
+      }
+      verify(injector, clusters, clusterB);
+    } finally {
+      setupAuthentication();
+    }
   }
 
   @Test

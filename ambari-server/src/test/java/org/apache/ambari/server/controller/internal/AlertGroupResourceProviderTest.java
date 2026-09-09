@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.ambari.server.controller.AlertDefinitionResponse;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -47,6 +48,9 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
+import org.apache.ambari.server.events.UpdateEventType;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -105,6 +109,7 @@ public class AlertGroupResourceProviderTest {
   private AmbariManagementController m_amc;
   private Clusters m_clusters;
   private Cluster m_cluster;
+  private STOMPUpdatePublisher m_stompUpdatePublisher;
 
   @Before
   public void before() throws Exception {
@@ -114,6 +119,7 @@ public class AlertGroupResourceProviderTest {
     m_amc = createMock(AmbariManagementController.class);
     m_clusters = createMock(Clusters.class);
     m_cluster = createMock(Cluster.class);
+    m_stompUpdatePublisher = createNiceMock(STOMPUpdatePublisher.class);
 
     // create an injector which will inject the mocks
     m_injector = Guice.createInjector(Modules.override(
@@ -127,6 +133,7 @@ public class AlertGroupResourceProviderTest {
     expect(m_cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(m_cluster.getResourceId()).andReturn(4L).anyTimes();
     AuthorizationHelperInitializer.viewInstanceDAOReturningNull();
+    replay(m_stompUpdatePublisher);
   }
 
   @After
@@ -751,7 +758,9 @@ public class AlertGroupResourceProviderTest {
    */
   private void testDeleteResources(Authentication authentication) throws Exception {
     Capture<AlertGroupEntity> entityCapture = EasyMock.newCapture();
+    Capture<AlertGroupsUpdateEvent> eventCapture = EasyMock.newCapture();
     Capture<List<AlertGroupEntity>> listCapture = EasyMock.newCapture();
+    AtomicBoolean deleteReturned = new AtomicBoolean(false);
 
     m_dao.createGroups(capture(listCapture));
     expectLastCall();
@@ -786,17 +795,57 @@ public class AlertGroupResourceProviderTest {
     entity.setGroupId(ALERT_GROUP_ID);
 
     resetToStrict(m_dao);
+    resetToStrict(m_stompUpdatePublisher);
     expect(m_dao.findGroupById(ALERT_GROUP_ID.longValue())).andReturn(entity).anyTimes();
     m_dao.remove(capture(entityCapture));
-    expectLastCall();
-    replay(m_dao);
+    expectLastCall().andAnswer(() -> {
+      deleteReturned.set(true);
+      return null;
+    });
+    m_stompUpdatePublisher.publish(capture(eventCapture));
+    expectLastCall().andAnswer(() -> {
+      assertTrue(deleteReturned.get());
+      return null;
+    });
+    replay(m_dao, m_stompUpdatePublisher);
 
     provider.deleteResources(new RequestImpl(null, null, null, null), predicate);
 
     AlertGroupEntity entity1 = entityCapture.getValue();
     assertEquals(ALERT_GROUP_ID, entity1.getGroupId());
+    AlertGroupsUpdateEvent event = eventCapture.getValue();
+    assertEquals(UpdateEventType.DELETE, event.getUpdateType());
+    assertEquals(ALERT_GROUP_ID, event.getGroups().get(0).getId());
+    assertEquals(ALERT_GROUP_CLUSTER_ID, event.getGroups().get(0).getClusterId().longValue());
 
-    verify(m_amc, m_clusters, m_cluster, m_dao);
+    verify(m_amc, m_clusters, m_cluster, m_dao, m_stompUpdatePublisher);
+  }
+
+  @Test
+  public void testDeleteFailureDoesNotPublish() throws Exception {
+    AlertGroupEntity entity = getMockEntities().get(0);
+    Predicate predicate = new PredicateBuilder().property(
+        AlertGroupResourceProvider.ALERT_GROUP_CLUSTER_NAME).equals(
+        ALERT_GROUP_CLUSTER_NAME).and().property(
+        AlertGroupResourceProvider.ALERT_GROUP_ID).equals(
+        ALERT_GROUP_ID.toString()).toPredicate();
+
+    resetToStrict(m_dao);
+    resetToStrict(m_stompUpdatePublisher);
+    expect(m_dao.findGroupById(ALERT_GROUP_ID)).andReturn(entity).anyTimes();
+    m_dao.remove(entity);
+    expectLastCall().andThrow(new IllegalStateException("delete failed"));
+    replay(m_dao, m_stompUpdatePublisher, m_amc, m_clusters, m_cluster);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    try {
+      createProvider(m_amc).deleteResources(new RequestImpl(null, null, null, null), predicate);
+      org.junit.Assert.fail("Expected delete failure");
+    } catch (IllegalStateException expected) {
+      assertEquals("delete failed", expected.getMessage());
+    }
+
+    verify(m_dao, m_stompUpdatePublisher);
   }
 
   @Test
@@ -939,6 +988,7 @@ public class AlertGroupResourceProviderTest {
       binder.bind(AlertDefinitionDAO.class).toInstance(m_definitionDao);
       binder.bind(Clusters.class).toInstance(m_clusters);
       binder.bind(Cluster.class).toInstance(m_cluster);
+      binder.bind(STOMPUpdatePublisher.class).toInstance(m_stompUpdatePublisher);
       binder.bind(ActionMetadata.class);
     }
   }

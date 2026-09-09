@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.controller.internal.BaseClusterRequest;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.state.Host;
 
 /**
@@ -39,6 +40,19 @@ public interface PersistedState {
    * adds an id that can be used to refer to the persisted entity
    */
   PersistedTopologyRequest persistTopologyRequest(BaseClusterRequest topologyRequest);
+
+  /**
+   * Builds, but does not persist, the non-secret provisioning intent which is
+   * committed atomically with the new cluster.
+   */
+  TopologyRequestEntity prepareProvisioningIntent(BaseClusterRequest topologyRequest,
+      Long repositoryVersionId);
+
+  /**
+   * Returns the durable provision request for a cluster, even when its logical
+   * request has not yet been created.
+   */
+  PersistedTopologyRequest getProvisioningIntent(long clusterId);
 
   /**
    * Persist a logical request.

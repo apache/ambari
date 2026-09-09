@@ -28,7 +28,7 @@ import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constan
 
 export const useKerberosConfigUpdater = () => {
   // @ts-ignore
-  const { services, parsedSocketMessages, clusterName } = useContext(AppContext);
+  const { services, parsedSocketMessages, clusterName, runtimeKey } = useContext(AppContext);
   
   // Early return if KERBEROS service is not installed
   const isKerberosInstalled = services && Array.isArray(services) && 
@@ -44,7 +44,7 @@ export const useKerberosConfigUpdater = () => {
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
 
   const fetchKerberosMasterSlaveClientsData = async () => {
-    let kerberosComponentsData = cachedServiceApi.getServiceComponentData("KERBEROS");
+    let kerberosComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "KERBEROS");
     
     if (!kerberosComponentsData) {
       kerberosComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -108,7 +108,7 @@ export const useKerberosConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("KERBEROS", "kerberos", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "KERBEROS", "kerberos", allServiceModels, updateRegistry);
   };
   const parseAlertsWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;

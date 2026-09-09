@@ -24,12 +24,15 @@ import java.util.concurrent.locks.Lock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.agent.stomp.dto.AlertGroupUpdate;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.events.AlertGroupsUpdateEvent;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
 import org.apache.ambari.server.events.ServiceRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
@@ -84,6 +87,9 @@ public class AlertServiceStateListener {
    */
   @Inject
   private AlertDispatchDAO m_alertDispatchDao;
+
+  @Inject
+  private STOMPUpdatePublisher m_stompUpdatePublisher;
 
   /**
    * Used when a service is installed to insert {@link AlertDefinitionEntity}
@@ -216,7 +222,9 @@ public class AlertServiceStateListener {
 
       if (null != group && group.isDefault()) {
         try {
+          AlertGroupUpdate deletedGroup = new AlertGroupUpdate(group.getGroupId(), group.getClusterId());
           m_alertDispatchDao.remove(group);
+          m_stompUpdatePublisher.publish(AlertGroupsUpdateEvent.deleteAlertGroupsUpdateEvent(deletedGroup));
         } catch (Exception exception) {
           LOG.error("Unable to remove default alert group {}", group.getGroupName(), exception);
         }

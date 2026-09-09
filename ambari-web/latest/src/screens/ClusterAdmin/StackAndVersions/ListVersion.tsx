@@ -66,7 +66,7 @@ import { redirectToAdminView } from "../../../Utils/adminViewRedirect";
 import ClusterApi from "../../../api/clusterApi";
 import { useAuth } from "../../../hooks/useAuth";
 import { HostsApi } from "../../../api/hostsApi";
-import { persistedPayload } from "../../../Utils/persistedSettings";
+import useClusterWorkflowPersistence from "../../../hooks/useClusterWorkflowPersistence";
 import {
   canHideRepositoryVersion,
   compatibleRepositoryVersionNames,
@@ -77,6 +77,32 @@ import {
 import useKDCSessionState from "../../../hooks/useKDCSessionState";
 import useAuthorizationPolicy from "../../../hooks/useAuthorizationPolicy";
 import PreUpgradeCheckItem from "./PreUpgradeCheckItem";
+import { containsReentryMarker } from "../../../Utils/scopedWorkflow";
+
+type UpgradeWorkflowPersistence = NonNullable<
+  ReturnType<typeof useClusterWorkflowPersistence>
+>;
+
+export async function restoreVersionOperationCheckpoint(
+  persistence: UpgradeWorkflowPersistence,
+) {
+  const savedValues = await persistence.getPersistData();
+  if (containsReentryMarker(savedValues)) {
+    await persistence.replacePersistData(
+      { versionOperations: [] },
+      "RECOVERY_RECONCILED",
+    );
+    return { operations: [], regenerated: true };
+  }
+  const savedData = savedValues?.versionOperations;
+  const operations = typeof savedData === "string"
+    ? JSON.parse(savedData)
+    : savedData;
+  return {
+    operations: Array.isArray(operations) ? operations : [],
+    regenerated: false,
+  };
+}
 
 export const iconMapping: { [key: string]: IconDefinition } = {
   faDashboard: faDashboard,
@@ -101,6 +127,7 @@ export default function Versions() {
   const [currentUpgradeTypes, setCurrentUpgradeTypes] = useState<string[]>([]);
   const [isOperationInProgress, setIsOperationInProgress] = useState(false);
   const [operationsState, setOperationsState] = useState<any[]>([]);
+  const [workflowRecoveryNotice, setWorkflowRecoveryNotice] = useState(false);
   const [slaveComponentFailures, setSlaveComponentFailures] = useState(false);
   const [serviceCheckFailures, setServiceCheckFailures] = useState(false);
   const [isRestoring, setIsRestoring] = useState(true);
@@ -109,7 +136,22 @@ export default function Versions() {
   const packagesPayloadRef = useRef<any>({});
   
   // Authorization hooks - implementing Ember.js stack/version authorization patterns
-  const { hasAuthorization, isAdmin, isOperator, user } = useAuth();
+  const { hasAuthorization, isAdmin, isOperator } = useAuth();
+  const workflowPersistence = useClusterWorkflowPersistence("UPGRADE", {
+    keys: [
+      "versionOperations",
+      "isPatchUpgrade",
+      "upgradeIsFinalizeItem",
+      "upgradeVersionDisplayName",
+      "CLUSTER_STATE",
+    ],
+  });
+  const saveUpgradeWorkflow = useCallback(async (values: Record<string, unknown>, phase: string) => {
+    if (!workflowPersistence) {
+      throw new Error("Stack version operations require an explicit cluster target.");
+    }
+    return workflowPersistence.savePersistData(values, phase);
+  }, [workflowPersistence]);
   const { havePermissions } = useAuthorizationPolicy();
   
   // Check specific authorizations for stack/version operations
@@ -244,24 +286,20 @@ export default function Versions() {
   async function restoreOperationsState() {
     try {
       setIsRestoring(true);
-      const savedData = await ClusterApi.getPersistData("versionOperations");
-      if (savedData) {
-        let savedOperationsState;
-        if (typeof savedData === 'string') {
-          savedOperationsState = JSON.parse(savedData);
-        } else {
-          savedOperationsState = savedData;
-        }
-        if (savedOperationsState && Array.isArray(savedOperationsState) && savedOperationsState.length > 0) {
-          setOperationsState(savedOperationsState);
+      if (!workflowPersistence) {
+        throw new Error("Stack version operations require an explicit cluster target.");
+      }
+      const restored = await restoreVersionOperationCheckpoint(workflowPersistence);
+      setWorkflowRecoveryNotice(restored.regenerated);
+      if (restored.operations.length > 0) {
+          setOperationsState(restored.operations);
           
-          const hasActiveOperations = savedOperationsState.some((op: any) => 
+          const hasActiveOperations = restored.operations.some((op: any) =>
             op.status === 'IN_PROGRESS' || op.status === 'PENDING'
           );
           if (hasActiveOperations) {
             setIsOperationInProgress(true);
           }
-        }
       }
     } catch (error) {
       console.error("Failed to restore operations state:", error);
@@ -414,10 +452,9 @@ export default function Versions() {
           }
           
           // Reset operations state to empty array
-          await ClusterApi.postPersistData(
-            JSON.stringify({
-              versionOperations: JSON.stringify([]),
-            })
+          await saveUpgradeWorkflow(
+            { versionOperations: [] },
+            "STACK_VERSION_INSTALL",
           );
         }}
         errorCallback={async (errorMsg) => {
@@ -436,10 +473,9 @@ export default function Versions() {
           }
           
           // Reset operations state to empty array
-          await ClusterApi.postPersistData(
-            JSON.stringify({
-              versionOperations: JSON.stringify([]),
-            })
+          await saveUpgradeWorkflow(
+            { versionOperations: [] },
+            "STACK_VERSION_INSTALL_FAILED",
           );
           
           if (!alertModal) {
@@ -452,10 +488,9 @@ export default function Versions() {
           setOperationsState(operationsState);
           
           // Persist the current operations state
-          await ClusterApi.postPersistData(
-            JSON.stringify({
-              versionOperations: JSON.stringify(operationsState),
-            })
+          await saveUpgradeWorkflow(
+            { versionOperations: operationsState },
+            "STACK_VERSION_INSTALL",
           );
         }}
       />
@@ -663,10 +698,12 @@ export default function Versions() {
     setIsOperationInProgress(false);
     
     // Clear persistent storage
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        versionOperations: JSON.stringify([]),
-      })
+    if (!workflowPersistence) {
+      throw new Error("Stack version operations require an explicit cluster target.");
+    }
+    await workflowPersistence.savePersistData(
+      { versionOperations: [] },
+      "STACK_VERSION_INSTALL",
     );
     
     setSelectedStack(stackData);
@@ -1221,10 +1258,19 @@ export default function Versions() {
     }
   }
 
-  async function claimUpgradeOwnership() {
-    await ClusterApi.postPersistData(persistedPayload({
-      "wizard-data": { userName: user?.user_name || "" },
-    }));
+  async function claimUpgradeOwnership(
+    isPatch: boolean,
+    versionDisplayName: string,
+    phase: string,
+  ) {
+    if (!workflowPersistence) {
+      throw new Error("Upgrade operations require an explicit cluster target.");
+    }
+    await workflowPersistence.savePersistData({
+      isPatchUpgrade: isPatch,
+      upgradeVersionDisplayName: versionDisplayName,
+      CLUSTER_STATE: { progressStatus: "UPGRADE", stepName: phase },
+    }, phase);
   }
 
   async function startUpgrade() {
@@ -1241,33 +1287,26 @@ export default function Versions() {
 
     setStartInProgress(true);
     try {
-      // Persist the owner before creating the request so other open browsers
-      // become read-only as soon as they receive the upgrade event.
-      await claimUpgradeOwnership();
-      const response = await VersionsApi.getUpgradeId(payload, clusterName);
-      const newUpgradeId = response?.resources?.[0]?.Upgrade?.request_id;
-      if (!newUpgradeId) throw new Error("Ambari did not return an upgrade request ID");
-      setUpgradeId(newUpgradeId);
-
       const isPatch = get(
         selectedStackRef.current,
         "repository_versions[0].RepositoryVersions.type",
         "STANDARD",
       ) === "PATCH";
-      if (setIsPatchUpgrade) setIsPatchUpgrade(isPatch);
       const versionDisplayName = get(
         selectedStackRef.current,
         "repository_versions[0].RepositoryVersions.display_name",
         "",
       );
-      if (setUpgradeVersionDisplayName) setUpgradeVersionDisplayName(versionDisplayName);
+      // Persist the owner before creating the request so other open browsers
+      // become read-only as soon as they receive the upgrade event.
+      await claimUpgradeOwnership(isPatch, versionDisplayName, "STARTING_UPGRADE");
+      const response = await VersionsApi.getUpgradeId(payload, clusterName);
+      const newUpgradeId = response?.resources?.[0]?.Upgrade?.request_id;
+      if (!newUpgradeId) throw new Error("Ambari did not return an upgrade request ID");
+      setUpgradeId(newUpgradeId);
 
-      await Promise.all([
-        ClusterApi.postPersistData(persistedPayload({ isPatchUpgrade: isPatch })),
-        ClusterApi.postPersistData(persistedPayload({ upgradeVersionDisplayName: versionDisplayName })),
-      ]).catch(() => {
-        toast.error("The upgrade started, but its browser state could not be persisted");
-      });
+      if (setIsPatchUpgrade) setIsPatchUpgrade(isPatch);
+      if (setUpgradeVersionDisplayName) setUpgradeVersionDisplayName(versionDisplayName);
       setUpgradeCheckModal(false);
       setUpgradeConfirmationModal(false);
       if (setUpgradeAssociatedVersion) {
@@ -1817,14 +1856,6 @@ export default function Versions() {
 
     setStartInProgress(true);
     try {
-      await claimUpgradeOwnership();
-      const response = await VersionsApi.getUpgradeId(
-        payload,
-        clusterName
-      );
-      const upgradeId = response?.resources[0]?.Upgrade?.request_id;
-      if (!upgradeId) throw new Error("Ambari did not return a revert request ID");
-      setUpgradeId(upgradeId);
       const isPatch = get(
         selectedStack,
         "repository_versions[0].RepositoryVersions.type",
@@ -1835,15 +1866,16 @@ export default function Versions() {
         "repository_versions[0].RepositoryVersions.display_name",
         "",
       );
+      await claimUpgradeOwnership(isPatch, targetDisplayName, "STARTING_REVERT");
+      const response = await VersionsApi.getUpgradeId(
+        payload,
+        clusterName
+      );
+      const upgradeId = response?.resources[0]?.Upgrade?.request_id;
+      if (!upgradeId) throw new Error("Ambari did not return a revert request ID");
+      setUpgradeId(upgradeId);
       if (setIsPatchUpgrade) setIsPatchUpgrade(isPatch);
       if (setUpgradeVersionDisplayName) setUpgradeVersionDisplayName(targetDisplayName);
-
-      await Promise.all([
-        ClusterApi.postPersistData(persistedPayload({ isPatchUpgrade: isPatch })),
-        ClusterApi.postPersistData(persistedPayload({ upgradeVersionDisplayName: targetDisplayName })),
-      ]).catch(() => {
-        toast.error("The revert started, but its browser state could not be persisted");
-      });
       if (setUpgradeAssociatedVersion) {
         setUpgradeAssociatedVersion(get(selectedStackRef.current, "repository_versions[0].RepositoryVersions.repository_version", ""));
       }
@@ -2059,6 +2091,11 @@ export default function Versions() {
 
   return (
     <>
+      {workflowRecoveryNotice && (
+        <Alert variant="warning" className="mt-3">
+          {translate("workflow.persistence.upgradeRecoveryReset")}
+        </Alert>
+      )}
       {loadError && (
         <Alert variant="danger" className="mt-3 d-flex justify-content-between align-items-center">
           <span>{loadError}</span>

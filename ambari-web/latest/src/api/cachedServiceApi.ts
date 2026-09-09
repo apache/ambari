@@ -25,9 +25,20 @@ import { ServiceApi } from "./serviceApi";
  */
 class CachedServiceApiManager {
   private static instance: CachedServiceApiManager;
-  private pendingRequest: Promise<any> | null = null;
-  private lastData: any = null;
-  private subscribers = new Set<(data: any) => void>();
+  private entries = new Map<string, {
+    pendingRequest: Promise<any> | null;
+    lastData: any;
+    subscribers: Set<(data: any) => void>;
+  }>();
+
+  private entry(runtimeKey: string) {
+    let entry = this.entries.get(runtimeKey);
+    if (!entry) {
+      entry = { pendingRequest: null, lastData: null, subscribers: new Set() };
+      this.entries.set(runtimeKey, entry);
+    }
+    return entry;
+  }
 
   static getInstance(): CachedServiceApiManager {
     if (!CachedServiceApiManager.instance) {
@@ -41,31 +52,33 @@ class CachedServiceApiManager {
    * returns fresh data, regardless of which caller initiated the request.
    * If data is already available, immediately notify the new subscriber.
    */
-  subscribe(callback: (data: any) => void): () => void {
-    this.subscribers.add(callback);
-    if (this.lastData) {
-      callback(this.lastData);
+  subscribe(runtimeKey: string, callback: (data: any) => void): () => void {
+    const entry = this.entry(runtimeKey);
+    entry.subscribers.add(callback);
+    if (entry.lastData) {
+      callback(entry.lastData);
     }
-    return () => this.subscribers.delete(callback);
+    return () => entry.subscribers.delete(callback);
   }
 
-  private notifySubscribers(data: any): void {
-    this.subscribers.forEach(cb => cb(data));
+  private notifySubscribers(entry: { subscribers: Set<(data: any) => void> }, data: any): void {
+    entry.subscribers.forEach(cb => cb(data));
   }
 
   /**
    * Get all component data (last fetched)
    */
-  getAllComponentData(): any {
-    return this.lastData;
+  getAllComponentData(runtimeKey: string): any {
+    return this.entry(runtimeKey).lastData;
   }
 
   /**
    * Get component data for a specific service
    */
-  getServiceComponentData(serviceName: string): any {
-    if (!this.lastData?.items) return null;
-    return this.lastData.items.filter(
+  getServiceComponentData(runtimeKey: string, serviceName: string): any {
+    const lastData = this.entry(runtimeKey).lastData;
+    if (!lastData?.items) return null;
+    return lastData.items.filter(
       (item: any) => item.ServiceComponentInfo?.service_name === serviceName
     );
   }
@@ -75,36 +88,41 @@ class CachedServiceApiManager {
    * No caching - always makes a real API call (like Ember).
    * REQUEST DEDUPLICATION: If a request is already in progress, return the pending promise.
    */
-  async fetchAllServiceComponents(clusterName: string): Promise<any> {
-    if (this.pendingRequest) {
-      return this.pendingRequest;
+  fetchAllServiceComponents(clusterName: string, runtimeKey: string): Promise<any> {
+    const entry = this.entry(runtimeKey);
+    if (entry.pendingRequest) {
+      return entry.pendingRequest;
     }
 
-    try {
-      const fields = `ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/hbase/master/IsActiveMaster,host_components/processes/HostComponentProcess,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name&minimal_response=true`;
+    const fields = `ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,host_components/metrics/dfs/FSNamesystem/HAState,host_components/metrics/hbase/master/IsActiveMaster,host_components/processes/HostComponentProcess,ServiceComponentInfo/category,ServiceComponentInfo/installed_count,ServiceComponentInfo/started_count,ServiceComponentInfo/init_count,ServiceComponentInfo/install_failed_count,ServiceComponentInfo/unknown_count,ServiceComponentInfo/total_count,ServiceComponentInfo/display_name&minimal_response=true`;
 
-      this.pendingRequest = ServiceApi.getAllServiceComponents(
+    const operation = ServiceApi.getAllServiceComponents(
         clusterName,
         fields
-      );
-
-      const response = await this.pendingRequest;
-
+      ).then((response) => {
+      if (this.entries.get(runtimeKey) !== entry) return null;
       if (response?.data?.items) {
-        this.lastData = response.data;
+        entry.lastData = response.data;
         // Notify all subscribers (including ServiceContext) so state updates flow
         // regardless of which caller initiated this fetch
-        this.notifySubscribers(response.data);
+        this.notifySubscribers(entry, response.data);
         return response.data;
       }
 
       return null;
-    } catch (error) {
+    }).catch((error) => {
       console.error('Error fetching service components:', error);
       return null;
-    } finally {
-      this.pendingRequest = null;
-    }
+    }).finally(() => {
+      if (this.entries.get(runtimeKey) === entry) entry.pendingRequest = null;
+    });
+    entry.pendingRequest = operation;
+    return operation;
+  }
+
+  clear(runtimeKey?: string): void {
+    if (runtimeKey) this.entries.delete(runtimeKey);
+    else this.entries.clear();
   }
 
 }

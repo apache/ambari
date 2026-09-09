@@ -29,6 +29,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../../store/context";
 import { ServiceContext } from "../../../store/ServiceContext";
 import { ContextWrapper } from "..";
+import "../../../i18n";
 
 type TestConfigProperty = {
   propertyName: string;
@@ -65,6 +66,7 @@ const mocks = vi.hoisted(() => ({
   processRecommendations: vi.fn(),
   recommendedChanges: {},
   setRecommendedChanges: vi.fn(),
+  useEnhancedConfigsArgs: [] as unknown[],
   updateVisibilityForDependsOn: vi.fn((configProperties: object) =>
     configProperties
   ),
@@ -114,12 +116,18 @@ vi.mock("../hooks/useServiceComponents", () => ({
 }));
 
 vi.mock("../../../hooks/useEnhancedConfigs", () => ({
-  default: () => ({
+  default: (...args: unknown[]) => {
+    mocks.useEnhancedConfigsArgs.push(args);
+    return {
     loadAddServiceRecommendations: mocks.loadAddServiceRecommendations,
     processRecommendations: mocks.processRecommendations,
     recommendedChanges: mocks.recommendedChanges,
     setRecommendedChanges: mocks.setRecommendedChanges,
-  }),
+      recommendationsInProgress: false,
+      processingConfig: false,
+      recommendationError: null,
+    };
+  },
 }));
 
 vi.mock("../../../hooks/useDebounce", () => ({
@@ -152,6 +160,7 @@ vi.mock("./RestAllTabs", () => ({
     services,
     selectedService,
     onServiceChange,
+    onConfigEdit,
     tabName,
   }: {
     configProperties: TestConfigProperties;
@@ -163,6 +172,7 @@ vi.mock("./RestAllTabs", () => ({
     services: string[];
     selectedService?: string;
     onServiceChange?: (serviceName: string) => void;
+    onConfigEdit?: () => void;
     tabName: string;
   }) => {
     const properties = Object.values(configProperties).flatMap((service) =>
@@ -189,7 +199,7 @@ vi.mock("./RestAllTabs", () => ({
           </button>
         ))}
         <button
-          onClick={() =>
+          onClick={() => {
             setConfigProperties((current) => {
               const updated = structuredClone(current);
               const property = Object.values(updated).flatMap((service) =>
@@ -203,8 +213,9 @@ vi.mock("./RestAllTabs", () => ({
                   : "edited-during-fallback";
               }
               return updated;
-            })
-          }
+            });
+            onConfigEdit?.();
+          }}
         >
           Edit current property
         </button>
@@ -368,6 +379,8 @@ function renderStep(
     flushStateToDb: mocks.flushStateToDb,
     installedHosts: ["host1"],
     installedServices: wizardName === "addService" ? ["HDFS"] : [],
+    withStateCheckpoint: async (request: (revision: number) => Promise<unknown>) =>
+      request(19),
     state,
     stepWizardUtilities: {
       currentStep: { name: "CONFIGURATION" },
@@ -382,6 +395,7 @@ function renderStep(
       value={
         {
           clusterName: "cluster1",
+          cluster: { cluster_id: 27 },
           supports: { preInstallChecks: false },
         } as unknown as ContextType<typeof AppContext>
       }
@@ -406,6 +420,7 @@ function renderStep(
 describe("Step 7 Theme fallback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.useEnhancedConfigsArgs.length = 0;
     mocks.flushStateToDb.mockResolvedValue(undefined);
     mocks.getConfigValues.mockResolvedValue(existingClusterValues);
     mocks.getConfigsByTags.mockResolvedValue({ items: [] });
@@ -619,6 +634,164 @@ describe("Step 7 Theme fallback", () => {
     );
   });
 
+  it("merges reviewed provider values into read-only configuration state", async () => {
+    const steps = createWizardSteps() as any;
+    steps.SERVICES.data.services = { HBASE: { selected: true } };
+    steps.SERVICES.data.managedDependencies = {
+      HDFS: {
+        mode: "managed",
+        provider: {
+          cluster_id: 9,
+          cluster_name: "provider-a",
+          service_name: "HDFS",
+        },
+        preview: {
+          binding_id: "11111111-1111-4111-8111-111111111111",
+          client_config: {
+            "hbase-site": { "existing.property": "provider-required" },
+          },
+          compatible: true,
+          consumer: {
+            lifecycle: "INIT",
+            planned_hbase_user: "hbase_a",
+            scope: "DRAFT",
+            service_name: "HBASE",
+          },
+          dependency_type: "HDFS",
+          errors: [],
+          preview_schema_version: 2,
+          provider: {
+            cluster_id: 9,
+            cluster_name: "provider-a",
+            service_name: "HDFS",
+          },
+          consumer_descriptor_fingerprint: "consumer-fingerprint",
+          provider_fingerprint: "provider-fingerprint",
+          snapshot_fingerprint: "snapshot-fingerprint",
+        },
+      },
+    };
+    steps.CONFIGURATION = {
+      data: {
+        configProperties: {
+          HBASE: {
+            General: {
+              errors: 0,
+              properties: {
+                existing: {
+                  fileName: "hbase-site.xml",
+                  final: "false",
+                  isEditable: true,
+                  propertyAttributes: { type: "string" },
+                  propertyDisplayname: "Existing property",
+                  propertyName: "existing.property",
+                  propertyValue: "local-edited",
+                  previousValue: "local-default",
+                  serviceName: "HBASE",
+                  type: "hbase-site",
+                  value: "local-edited",
+                },
+              },
+            },
+          },
+        },
+        configs: stackConfigurations,
+        stackLevelConfigs: { configurations: [] },
+        themes: themedServicesResponse(["HBASE"]),
+      },
+    };
+
+    renderStep("clusterCreation", steps);
+
+    expect((await screen.findByTestId("config-default")).textContent)
+      .toContain("provider-required");
+    await waitFor(() => expect(mocks.dispatch.mock.calls.some(([action]) =>
+      action.payload?.data?.managedDependencyClientConfig?.["hdfs-site"]?.[
+        "existing.property"
+      ] === "provider-required")).toBe(false));
+    await waitFor(() => expect(mocks.dispatch.mock.calls.some(([action]) =>
+      action.payload?.data?.managedDependencyClientConfig?.["hbase-site"]?.[
+        "existing.property"
+      ] === "provider-required")).toBe(true));
+    const mergedProperty = mocks.dispatch.mock.calls
+      .map(([action]) => action.payload?.data?.configProperties)
+      .filter(Boolean)
+      .flatMap((properties) => Object.values(properties as TestConfigProperties))
+      .flatMap((service) => Object.values(service))
+      .flatMap((category) => Object.values(category.properties || {}))
+      .find((property) => property.propertyName === "existing.property"
+        && property.value === "provider-required");
+    expect(mergedProperty).toMatchObject({
+      isEditable: false,
+      isManagedDependency: true,
+    });
+  });
+
+  it("restores ordinary config metadata when a recovered provider choice is local", async () => {
+    const steps = createWizardSteps() as any;
+    steps.SERVICES.data.services = { HBASE: { selected: true } };
+    steps.SERVICES.data.managedDependencies = { HDFS: { mode: "local" } };
+    steps.CONFIGURATION = {
+      data: {
+        configProperties: {
+          HBASE: {
+            General: {
+              errors: 0,
+              properties: {
+                existing: {
+                  _managedDependencyBase: {
+                    isEditable: { present: true, value: true },
+                    recommendedValue: { present: true, value: "local-default" },
+                    value: { present: true, value: "local-edited" },
+                  },
+                  fileName: "hbase-site.xml",
+                  final: "false",
+                  isEditable: false,
+                  isManagedDependency: true,
+                  propertyAttributes: { type: "string" },
+                  propertyDisplayname: "Existing property",
+                  propertyName: "existing.property",
+                  propertyValue: "local-default",
+                  previousValue: "local-default",
+                  recommendedValue: "provider-required",
+                  serviceName: "HBASE",
+                  type: "hbase-site",
+                  value: "provider-required",
+                },
+              },
+            },
+          },
+        },
+        configs: stackConfigurations,
+        stackLevelConfigs: { configurations: [] },
+        themes: themedServicesResponse(["HBASE"]),
+      },
+    };
+
+    renderStep("clusterCreation", steps);
+
+    expect((await screen.findByTestId("config-default")).textContent)
+      .toContain("local-edited");
+    const restoredProperty = await waitFor(() => {
+      const property = mocks.dispatch.mock.calls
+        .map(([action]) => action.payload?.data?.configProperties)
+        .filter(Boolean)
+        .flatMap((properties) => Object.values(properties as TestConfigProperties))
+        .flatMap((service) => Object.values(service))
+        .flatMap((category) => Object.values(category.properties || {}))
+        .find((candidate) => candidate.propertyName === "existing.property"
+          && candidate.value === "local-edited");
+      expect(property).toBeTruthy();
+      return property;
+    });
+    expect(restoredProperty).toMatchObject({
+      isEditable: true,
+      recommendedValue: "local-default",
+    });
+    expect(restoredProperty).not.toHaveProperty("_managedDependencyBase");
+    expect(restoredProperty).not.toHaveProperty("isManagedDependency");
+  });
+
   it("treats a successful empty Theme collection as non-retryable fallback", async () => {
     mocks.getStackThemes.mockReset();
     mocks.getStackThemes.mockResolvedValueOnce({ items: [] });
@@ -787,5 +960,148 @@ describe("Step 7 Theme fallback", () => {
       services: ["HDFS"],
       user_context: { operation: "ClusterCreate" },
     });
+  });
+
+  it("passes the owned SERVICE_PLAN runner to the Add Service recommendation caller", async () => {
+    const steps = createWizardSteps() as any;
+    steps.SERVICES.data.services = {
+      HBASE: { selected: true, installed: false },
+    };
+    steps.SERVICES.data.managedDependencies = {
+      HDFS: {
+        mode: "managed",
+        provider: {
+          cluster_id: 31,
+          service_name: "HDFS",
+        },
+        preview: {
+          binding_id: "11111111-1111-4111-8111-111111111111",
+          compatible: true,
+          consumer: {
+            lifecycle: "ADD_SERVICE_PLAN",
+            planned_hbase_user: "hbase_a",
+            scope: "SERVICE_PLAN",
+            service_name: "HBASE",
+          },
+          consumer_descriptor_fingerprint: "consumer-fingerprint",
+          dependency_type: "HDFS",
+          errors: [],
+          preview_schema_version: 2,
+          provider: {
+            cluster_id: 31,
+            service_name: "HDFS",
+          },
+          provider_fingerprint: "provider-fingerprint",
+          snapshot_fingerprint: "snapshot-fingerprint",
+        },
+      },
+    };
+
+    renderStep("addService", steps);
+
+    await waitFor(() => expect(mocks.useEnhancedConfigsArgs.length).toBeGreaterThan(0));
+    const latestArgs = mocks.useEnhancedConfigsArgs.at(-1) as unknown[];
+    const runner = latestArgs[9] as (
+      request: (prepared: unknown) => Promise<unknown>
+    ) => Promise<unknown>;
+    const prepared = await runner(async (request: unknown) => request);
+
+    expect((prepared as any).properties.managed_dependency_plan.consumer).toEqual({
+      scope: "SERVICE_PLAN",
+      cluster_id: 27,
+      expected_revision: 19,
+    });
+    expect(
+      (prepared as any).properties.managed_dependency_plan.selections,
+    ).toMatchObject([{
+      dependency_type: "HDFS",
+      expected_consumer_descriptor_fingerprint: "consumer-fingerprint",
+      expected_provider_fingerprint: "provider-fingerprint",
+      expected_snapshot_fingerprint: "snapshot-fingerprint",
+    }]);
+  });
+
+  it("does not rerun initial advice when a configuration edit changes scope", async () => {
+    const steps = createWizardSteps() as any;
+    steps.SERVICES.data.services = {
+      HBASE: { selected: true, installed: false },
+    };
+    steps.SERVICES.data.managedDependencies = {
+      HDFS: {
+        mode: "managed",
+        provider: { cluster_id: 31, service_name: "HDFS" },
+        preview: {
+          binding_id: "11111111-1111-4111-8111-111111111111",
+          compatible: true,
+          consumer: {
+            lifecycle: "DRAFT",
+            planned_hbase_user: "hbase",
+            scope: "DRAFT",
+            service_name: "HBASE",
+          },
+          consumer_descriptor_fingerprint: "consumer-fingerprint",
+          dependency_type: "HDFS",
+          errors: [],
+          preview_schema_version: 2,
+          provider: { cluster_id: 31, service_name: "HDFS" },
+          provider_fingerprint: "provider-fingerprint",
+          snapshot_fingerprint: "snapshot-fingerprint",
+        },
+      },
+    };
+    renderStep("clusterCreation", steps);
+
+    await waitFor(() => expect(mocks.getRecommendations).toHaveBeenCalledTimes(1));
+    fireEvent.click(await screen.findByRole("button", { name: "Edit current property" }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mocks.getRecommendations).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps Step 7 configuration visible and offers Retry after advice failure", async () => {
+    const steps = createWizardSteps() as any;
+    steps.CONFIGURATION = {
+      data: {
+        configProperties: {
+          HDFS: {
+            "hdfs-site": {
+              errors: 0,
+              properties: {
+                existing: {
+                  propertyName: "existing.property",
+                  propertyDisplayname: "Existing property",
+                  propertyValue: "cluster-current",
+                  propertyAttributes: { type: "string" },
+                  previousValue: "cluster-current",
+                  value: "cluster-current",
+                  final: "false",
+                  type: "hdfs-site",
+                  serviceName: "HDFS",
+                  isEditable: true,
+                },
+              },
+            },
+          },
+        },
+        configs: stackConfigurations,
+        stackLevelConfigs: { configurations: [] },
+        themes: themedServicesResponse(["HDFS"]),
+        navigation: { selectedTab: "allConfigurations" },
+      },
+    };
+    mocks.getRecommendations.mockRejectedValueOnce(new Error("advisor failed"));
+
+    renderStep("clusterCreation", steps);
+
+    expect(await screen.findByText("advisor failed")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+    expect(screen.getByTestId("config-default")).toBeTruthy();
+
+    mocks.getRecommendations.mockResolvedValueOnce({});
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() => expect(mocks.getRecommendations).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByText("advisor failed")).toBeNull());
   });
 });

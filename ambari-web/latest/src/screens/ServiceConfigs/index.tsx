@@ -17,7 +17,8 @@
  */
 
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useBlocker, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useBlocker, useLocation, useParams } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import ConfigsApi from "../../api/configsApi";
 import useAuthorizationPolicy from "../../hooks/useAuthorizationPolicy";
 import { AuthGuard } from "../../components/AuthGuard";
@@ -90,7 +91,7 @@ export default function ServiceConfigs({
   const serviceName =
     serviceNameProps?.toUpperCase() || serviceNameParams?.toUpperCase() || "";
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const locationSelection = location.state as ConfigHistoryNavigationState | null;
   const pendingHistorySelection = useRef<ConfigHistoryNavigationState | null>(
     locationSelection?.serviceName === serviceName ? locationSelection : null,
@@ -164,7 +165,7 @@ export default function ServiceConfigs({
     setConfigProperties,
     serviceName
   );
-  const { clusterName, services, cluster } = useContext(AppContext);
+  const { clusterName, runtimeKey, services, cluster } = useContext(AppContext);
   const selectedServices = map(services, "ServiceInfo.service_name");
   const { hostComponents } = useHostComponents(selectedServices);
   const [currentVersion, setCurrentVersion] = useState<string>("");
@@ -1471,7 +1472,7 @@ export default function ServiceConfigs({
     // Re-poll host components so stale_configs (and therefore the Sidebar
     // restart icon / RestartWarning) update immediately after a save instead
     // of waiting for the next 5s poll cycle.
-    cachedServiceApi.fetchAllServiceComponents(clusterName);
+    cachedServiceApi.fetchAllServiceComponents(clusterName, runtimeKey);
     if (blocker.state === "blocked") {
       blocker.proceed();
     }

@@ -62,7 +62,7 @@ interface ReassignData {
 function Step4() {
   const { componentName } = useParams<{ componentName: string }>();
   const { allServiceModels } = useContext(ServiceContext);
-  const { services, serviceComponentInfo, clusterName, ambariProperties } =
+  const { services, serviceComponentInfo, clusterName, ambariProperties, navigateCluster } =
     useContext(AppContext);
   const {
     state,
@@ -1808,7 +1808,7 @@ function Step4() {
       await startRequiredServices();
       await flushStateToDb("complete");
       const serviceName = getServiceForComponent(componentName || "");
-      window.location.href = `/#/main/services/${serviceName}/summary`;
+      navigateCluster(`/main/services/${serviceName}/summary`);
     } catch (error: unknown) {
       const fallbackMessage =
         error instanceof Error
@@ -1844,15 +1844,10 @@ function Step4() {
     if (isLastStep) {
       // If this is the final step, complete the wizard and redirect
       await flushStateToDb("complete");
-      await ClusterApi.postPersistData(
-        JSON.stringify({
-          USER_REDIRECTION_URL: "",
-        })
-      );
       // Get the service name for the component
       const serviceName = getServiceForComponent(componentName || "");
       // Redirect to service summary page
-      window.location.href = `/#/main/services/${serviceName}/summary`;
+      navigateCluster(`/main/services/${serviceName}/summary`);
     } else {
       // If not the final step, proceed to next step
       flushStateToDb("next");

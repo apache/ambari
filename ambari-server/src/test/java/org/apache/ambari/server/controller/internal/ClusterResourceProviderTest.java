@@ -578,6 +578,31 @@ public class ClusterResourceProviderTest {
     verify(managementController, response);
   }
 
+  @Test
+  public void testDirectCreatePropagatesCreationDraftIdentity() throws Exception {
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Capture<ClusterRequest> capturedRequest = EasyMock.newCapture();
+    managementController.createCluster(capture(capturedRequest));
+    EasyMock.expectLastCall().once();
+    replay(managementController);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
+    Map<String, Object> properties = new LinkedHashMap<>();
+    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "draft-cluster");
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
+    properties.put(ClusterResourceProvider.CLUSTER_CREATION_DRAFT_ID_PROPERTY_ID,
+        "00000000-0000-0000-0000-000000000001");
+    ResourceProvider resourceProvider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Cluster, managementController);
+
+    resourceProvider.createResources(PropertyHelper.getCreateRequest(
+        Collections.singleton(properties), null));
+
+    assertEquals("00000000-0000-0000-0000-000000000001",
+        capturedRequest.getValue().getCreationDraftId());
+    verify(managementController);
+  }
+
   public void testUpdateResources(Authentication authentication) throws Exception{
     Resource.Type type = Resource.Type.Cluster;
 

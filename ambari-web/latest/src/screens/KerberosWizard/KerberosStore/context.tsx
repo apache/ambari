@@ -19,21 +19,22 @@
 import React, { createContext, Dispatch, useContext, useEffect, useReducer, useRef, useState } from "react";
 import { State, Action, ActionTypes } from "./types";
 import { reducer, initialState } from "./reducer";
-import ClusterApi from "../../../api/clusterApi";
 import { get, isEmpty } from "lodash";
 import { ClusterProgressStatus } from "../../../constants";
 import modalManager from "../../../store/ModalManager";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { AppContext } from "../../../store/context";
 import {translate } from "../../../Utils/Utility";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../../hooks/useClusterNavigate";
 import { RequestApi } from "../../../api/requestApi";
 import KerberosApi from "../../../api/kerberosApi";
 import { Alert, Button } from "react-bootstrap";
 import Spinner from "../../../components/Spinner";
 import { responseErrorMessage } from "../../../Utils/httpError";
-import { kerberosWizardPersistenceResetPayload } from "../../../Utils/kerberosWizard";
-import { postKerberosWizardPersistData } from "../../../Utils/kerberosWizardPersistence";
+import useAuth from "../../../hooks/useAuth";
+import useClusterWorkflowPersistence from "../../../hooks/useClusterWorkflowPersistence";
+import { containsReentryMarker, workflowErrorMessage } from "../../../Utils/scopedWorkflow";
+import { consumeWorkflowReturnPath } from "../../../Utils/workflowReturnPath";
 
 interface KerberosWizardContextProps {
   state: State;
@@ -68,32 +69,68 @@ export const KerberosWizardProvider: React.FC<{
   children: React.ReactNode;
   onWizardExitReady?: () => void;
 }> = ({ stepWizardUtilities, children, onWizardExitReady }) => {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, reducerDispatch] = useReducer(reducer, initialState);
   const isDataPersisted = useRef(false);
-  const [currStepData, setCurrStepData] = useState({});
+  const stateRef = useRef<State>(initialState);
+  const currStepDataRef = useRef<Record<string, unknown>>({});
   const [isRecoveryLoading, setIsRecoveryLoading] = useState(true);
   const [recoveryLoadError, setRecoveryLoadError] = useState("");
   const [persistenceError, setPersistenceError] = useState("");
-  const {clusterName} = useContext(AppContext);
-  const navigate = useNavigate();
+  const [reentryRequired, setReentryRequired] = useState(false);
+  const { cluster, clusterName, loginName } = useContext(AppContext);
+  const { hasAuthorization } = useAuth();
+  const canPersist = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const persistence = useClusterWorkflowPersistence("ENABLING_KERBEROS", {
+    controllerNames: ["kerberosWizardController"],
+    keys: ["ENABLING_KERBEROS", "CLUSTER_STATE"],
+  });
+  const navigate = useClusterNavigate();
+  const hydrationGeneration = useRef(0);
+  const stepWizardUtilitiesRef = useRef(stepWizardUtilities);
+  stepWizardUtilitiesRef.current = stepWizardUtilities;
+
+  const dispatch: Dispatch<Action> = (action) => {
+    stateRef.current = reducer(stateRef.current, action);
+    reducerDispatch(action);
+  };
 
   useEffect(() => {
-    void syncUserPersistedData();
-  }, [])
+    const generation = ++hydrationGeneration.current;
+    void syncUserPersistedData(generation);
+    return () => {
+      if (hydrationGeneration.current === generation) hydrationGeneration.current += 1;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canPersist, persistence]);
 
   useEffect(() => {
-    if (isDataPersisted.current) {
+    if (isDataPersisted.current && !reentryRequired) {
       void flushCurrentData().catch(() => undefined);
     }
-  }, [state.kerberosWizardSteps, currStepData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.kerberosWizardSteps, reentryRequired]);
 
-  async function syncUserPersistedData() {
+  async function syncUserPersistedData(generation = ++hydrationGeneration.current) {
+    isDataPersisted.current = false;
     setIsRecoveryLoading(true);
     setRecoveryLoadError("");
-    try {
-      const persistedData = await ClusterApi.getPersistData(
-        "ENABLING_KERBEROS"
+    setPersistenceError("");
+    if (!canPersist || !persistence) {
+      setRecoveryLoadError(
+        !canPersist
+          ? translate("workflow.persistence.permissionRequired")
+          : translate("workflow.persistence.explicitCluster"),
       );
+      setIsRecoveryLoading(false);
+      return;
+    }
+    try {
+      const values = await persistence.reload();
+      if (hydrationGeneration.current !== generation) return;
+      const persistedData = (values?.ENABLING_KERBEROS || initialState) as State;
+      const needsReentry = containsReentryMarker(persistedData);
+      setReentryRequired(needsReentry);
+      const currentWizardUtilities = stepWizardUtilitiesRef.current;
       if (
         !isEmpty(
           get(persistedData, "kerberosWizardSteps", {})
@@ -104,89 +141,103 @@ export const KerberosWizardProvider: React.FC<{
           payload: persistedData,
         });
       }
-      if (get(persistedData, "activeStep", "")) {
+      if (needsReentry || get(persistedData, "activeStep", "")) {
         try {
-          const activeStepName = get(persistedData, "activeStep");
-          setCurrStepData({
+          const activeStepName = needsReentry
+            ? "CONFIGURE_KERBEROS"
+            : get(persistedData, "activeStep");
+          currStepDataRef.current = {
             progressStatus: ClusterProgressStatus.ENABLING_KERBEROS,
             stepName: activeStepName,
-          });
+          };
           let activeStepNumber = Object.keys(
-            stepWizardUtilities.wizardSteps
+            currentWizardUtilities.wizardSteps
           ).find((stepName) => {
             return (
-              stepWizardUtilities.wizardSteps?.[stepName]?.name ===
+              currentWizardUtilities.wizardSteps?.[stepName]?.name ===
               activeStepName
             );
           });
-          stepWizardUtilities.jumpToStep(Number(activeStepNumber), true);
+          if (activeStepNumber !== undefined) {
+            currentWizardUtilities.jumpToStep(Number(activeStepNumber), true);
+          }
         } catch (err) {
           console.error("Error while jumping to step", err);
         }
       } else {
-        stepWizardUtilities.jumpToStep(1, true);
+        currentWizardUtilities.jumpToStep(1, true);
       }
       isDataPersisted.current = true;
     } catch (error) {
-      setRecoveryLoadError(responseErrorMessage(
+      if (hydrationGeneration.current !== generation) return;
+      setRecoveryLoadError(workflowErrorMessage(
         error,
-        "Ambari could not load the Enable Kerberos recovery state.",
+          translate("workflow.persistence.kerberosLoadFailed"),
       ));
     } finally {
-      setIsRecoveryLoading(false);
+      if (hydrationGeneration.current === generation) setIsRecoveryLoading(false);
     }
   }
 
-  async function flushCurrentData() {
-    const payload = JSON.stringify({
-      ENABLING_KERBEROS: JSON.stringify({
-        ...state,
-        activeStep: get(currStepData, "stepName", ""),
-      }),
-      CLUSTER_STATE: JSON.stringify(currStepData),
-    });
+  async function flushCurrentData(
+    stateSnapshot = stateRef.current,
+    stepSnapshot = currStepDataRef.current,
+  ) {
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    const activeStep = get(stepSnapshot, "stepName", "");
     try {
-      await postKerberosWizardPersistData(payload);
+      await persistence.savePersistData({
+        ENABLING_KERBEROS: { ...stateSnapshot, activeStep },
+        CLUSTER_STATE: stepSnapshot,
+      }, activeStep || ClusterProgressStatus.ENABLING_KERBEROS);
+      setReentryRequired(false);
       setPersistenceError("");
     } catch (error) {
       setPersistenceError(responseErrorMessage(
         error,
-        "Ambari could not save the Enable Kerberos recovery state.",
+        translate("workflow.persistence.kerberosSaveFailed"),
       ));
       throw error;
     }
   }
 
   async function flushOnCancel() {
-    await postKerberosWizardPersistData(
-      kerberosWizardPersistenceResetPayload(),
-    );
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    await persistence.release();
     if (onWizardExitReady) {
       onWizardExitReady();
     } else {
-      const returnPath = localStorage.getItem("module06WizardReturnPath");
-      localStorage.removeItem("module06WizardReturnPath");
-      navigate(returnPath || `/main/admin/kerberos/`);
+      navigate(consumeWorkflowReturnPath({
+        clusterId: cluster?.cluster_id,
+        principal: loginName,
+        workflow: "ENABLING_KERBEROS",
+      }, "/main/admin/kerberos/"));
     }
   }
 
   async function flushOnStepChange(nextStep: number) {
     if (nextStep >= 1) {
-      let nextStepDetails = stepWizardUtilities.wizardSteps?.[nextStep];
+      let nextStepDetails = stepWizardUtilitiesRef.current.wizardSteps?.[nextStep];
+      let nextState = stateRef.current;
       if (nextStepDetails?.keysToRemove) {
         nextStepDetails.keysToRemove.forEach((key: string) => {
-          if (state?.kerberosWizardSteps?.[key]) {
-            dispatch({
+          if (nextState?.kerberosWizardSteps?.[key]) {
+            nextState = reducer(nextState, {
               type: ActionTypes.REMOVE_KEY,
               payload: { key },
             });
           }
         });
       }
-      setCurrStepData({
+      if (nextState !== stateRef.current) {
+        dispatch({ type: ActionTypes.SYNC_STATE, payload: nextState });
+      }
+      const nextStepData = {
         progressStatus: ClusterProgressStatus.ENABLING_KERBEROS,
-        stepName: stepWizardUtilities?.wizardSteps?.[nextStep]?.name,
-      });
+        stepName: nextStepDetails?.name,
+      };
+      currStepDataRef.current = nextStepData;
+      await flushCurrentData(nextState, nextStepData);
     }
   }
 
@@ -204,6 +255,8 @@ export const KerberosWizardProvider: React.FC<{
     );
     switch (operation) {
       case "cancel":
+        return flushOnCancel();
+      case "complete":
         return flushOnCancel();
       case "back":
         return flushOnStepChange(Number(activeStep) - 1);
@@ -243,7 +296,7 @@ export const KerberosWizardProvider: React.FC<{
       <Alert variant="danger" className="m-3">
         <div>{recoveryLoadError}</div>
         <Button className="mt-3" onClick={() => void syncUserPersistedData()}>
-          Retry
+          {translate("common.retry")}
         </Button>
       </Alert>
     );
@@ -253,14 +306,19 @@ export const KerberosWizardProvider: React.FC<{
     <EnableKerberosContext.Provider
       value={{ state, dispatch, stepWizardUtilities, flushStateToDb, onExitPopUp }}
     >
+      {reentryRequired && (
+        <Alert variant="warning" className="m-3">
+          {translate("workflow.persistence.reentryRequired")}
+        </Alert>
+      )}
       {persistenceError && (
         <Alert variant="danger" className="m-3">
           <div>{persistenceError}</div>
           <Button
             className="mt-3"
-            onClick={() => void flushCurrentData().catch(() => undefined)}
+            onClick={() => void syncUserPersistedData()}
           >
-            Retry
+            {translate("common.retry")}
           </Button>
         </Alert>
       )}

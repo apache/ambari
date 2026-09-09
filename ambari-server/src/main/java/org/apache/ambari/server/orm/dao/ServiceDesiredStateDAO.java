@@ -21,10 +21,13 @@ package org.apache.ambari.server.orm.dao;
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 
@@ -68,6 +71,33 @@ public class ServiceDesiredStateDAO {
   @Transactional
   public ServiceDesiredStateEntity merge(ServiceDesiredStateEntity serviceDesiredStateEntity) {
     return entityManagerProvider.get().merge(serviceDesiredStateEntity);
+  }
+
+  /** Atomically moves a service and all of its components to one repository version. */
+  @Transactional
+  public void updateDesiredRepositoryVersion(long clusterId, String serviceName,
+      RepositoryVersionEntity repositoryVersion) {
+    EntityManager entityManager = entityManagerProvider.get();
+    ServiceDesiredStateEntityPK id = new ServiceDesiredStateEntityPK();
+    id.setClusterId(clusterId);
+    id.setServiceName(serviceName);
+    ServiceDesiredStateEntity service = entityManager.find(
+        ServiceDesiredStateEntity.class, id, LockModeType.PESSIMISTIC_WRITE);
+    if (service == null) {
+      throw new IllegalStateException("Service desired state no longer exists");
+    }
+    List<ServiceComponentDesiredStateEntity> components = entityManager.createQuery(
+        "SELECT component FROM ServiceComponentDesiredStateEntity component " +
+            "WHERE component.clusterId=:clusterId AND component.serviceName=:serviceName " +
+            "ORDER BY component.componentName",
+        ServiceComponentDesiredStateEntity.class)
+        .setParameter("clusterId", clusterId)
+        .setParameter("serviceName", serviceName)
+        .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+        .getResultList();
+    service.setDesiredRepositoryVersion(repositoryVersion);
+    components.forEach(component -> component.setDesiredRepositoryVersion(repositoryVersion));
+    entityManager.flush();
   }
 
   @Transactional

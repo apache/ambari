@@ -74,4 +74,10 @@ export interface TransformedRepo{
     isEditable?:boolean;
     defaultId:string;
     hasError?:boolean;
+    applicableServices?: any[];
+    components?: any;
+    distribution?: any;
+    mirrorsList?: any;
+    tags?: string[];
+    unique?: boolean;
 }

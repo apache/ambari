@@ -19,6 +19,7 @@
 import React from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Navigate } from "react-router-dom";
+import useClusterPath from "../hooks/useClusterPath";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -54,6 +55,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     hasAuthorization,
     hasPrivilege,
   } = useAuth();
+  const scopedPath = useClusterPath();
 
   // Show loading state
   if (isLoading) {
@@ -79,7 +81,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   }
 
   // Check specific authorization requirement
-  if (requireAuthorization && !hasAuthorization(requireAuthorization)) {
+  if (requireAuthorization && !hasAuthorization(requireAuthorization, clusterName)) {
     onUnauthorized?.();
     return <>{fallback}</>;
   }
@@ -119,6 +121,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = "/login",
 }) => {
   const { isAuthenticated, isLoading } = useAuth();
+  const scopedPath = useClusterPath();
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -135,7 +138,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       requireAuthorization={requireAuthorization}
       requirePrivilege={requirePrivilege}
       clusterName={clusterName}
-      fallback={<Navigate to={redirectTo} replace />}
+      fallback={<Navigate to={scopedPath(redirectTo)} replace />}
     >
       {children}
     </AuthGuard>

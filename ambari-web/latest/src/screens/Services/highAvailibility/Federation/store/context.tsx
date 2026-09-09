@@ -19,6 +19,7 @@
 import React, {
   createContext,
   Dispatch,
+  useContext,
   useEffect,
   useReducer,
   useRef,
@@ -28,15 +29,14 @@ import { Alert, Button } from "react-bootstrap";
 import { get, isEmpty } from "lodash";
 import { State, Action, ActionTypes } from "./types";
 import { reducer, initialState } from "./reducer";
-import ClusterApi from "../../../../../api/clusterApi";
 import { ClusterProgressStatus } from "../../../../../constants";
 import modalManager from "../../../../../store/ModalManager";
 import Spinner from "../../../../../components/Spinner";
-import {
-  parsePersistedValue,
-  persistedPayload,
-} from "../../../../../Utils/persistedSettings";
 import useAuth from "../../../../../hooks/useAuth";
+import useClusterWorkflowPersistence from "../../../../../hooks/useClusterWorkflowPersistence";
+import { AppContext } from "../../../../../store/context";
+import { containsReentryMarker, workflowErrorMessage } from "../../../../../Utils/scopedWorkflow";
+import { translate } from "../../../../../Utils/Utility";
 
 interface EnableNamenodeFederationContextProps {
   state: State;
@@ -59,79 +59,64 @@ export const EnableNamenodeFederationProvider: React.FC<{
   stepWizardUtilities: any;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
-  const { user, hasAuthorization } = useAuth();
-  const workflowOwner = user?.user_name || "";
+  const { navigateCluster } = useContext(AppContext);
+  const { hasAuthorization } = useAuth();
   const canPersist = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const persistence = useClusterWorkflowPersistence("NAMENODE_FEDERATION", {
+    controllerNames: ["nameNodeFederationWizardController"],
+    keys: ["NAMENODE_FEDERATION", "CLUSTER_STATE"],
+  });
   const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [isHydrated, setIsHydrated] = useState(false);
   const [initializationError, setInitializationError] = useState("");
+  const [reentryRequired, setReentryRequired] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const stateRef = useRef<State>(initialState);
   const currStepDataRef = useRef<Record<string, unknown>>({});
-  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
+  const hydrationGeneration = useRef(0);
+  const stepWizardUtilitiesRef = useRef(stepWizardUtilities);
+  stepWizardUtilitiesRef.current = stepWizardUtilities;
 
   const dispatch: Dispatch<Action> = (action) => {
     stateRef.current = reducer(stateRef.current, action);
     reducerDispatch(action);
   };
 
-  const queuePersistence = (operation: () => Promise<void>) => {
-    const queued = persistenceQueue.current
-      .catch(() => undefined)
-      .then(operation);
-    persistenceQueue.current = queued.catch(() => undefined);
-    return queued;
-  };
-
   useEffect(() => {
-    void syncUserPersistedData();
-  }, [retryCount]);
+    const generation = ++hydrationGeneration.current;
+    void syncUserPersistedData(generation);
+    return () => {
+      if (hydrationGeneration.current === generation) hydrationGeneration.current += 1;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canPersist, persistence, retryCount]);
 
-  async function getOptionalPersistedValue(key: string) {
-    try {
-      return await ClusterApi.getPersistData(key);
-    } catch (error: any) {
-      if (error?.response?.status === 404 || error?.status === 404) return null;
-      throw error;
-    }
-  }
-
-  async function syncUserPersistedData() {
+  async function syncUserPersistedData(generation: number) {
     setIsHydrated(false);
     setInitializationError("");
-    if (!canPersist) {
+    if (!canPersist || !persistence) {
       setInitializationError(
-        "NameNode Federation requires permission to persist wizard recovery data.",
+        !canPersist
+          ? translate("workflow.persistence.permissionRequired")
+          : translate("workflow.persistence.explicitCluster"),
       );
       return;
     }
     try {
-      const [workflowResponse, ownerResponse] = await Promise.all([
-        getOptionalPersistedValue("NAMENODE_FEDERATION"),
-        getOptionalPersistedValue("wizard-data"),
-      ]);
-      const persistedData = parsePersistedValue(
-        workflowResponse,
-        initialState,
-      );
-      const owner = parsePersistedValue<Record<string, string>>(
-        ownerResponse,
-        {},
-      );
-      if (
-        !isEmpty(persistedData.enableNamenodeFederationSteps) &&
-        owner.userName &&
-        workflowOwner &&
-        owner.userName !== workflowOwner
-      ) {
-        throw new Error(
-          `This workflow is owned by ${owner.userName}. Ask that user to finish or clear it.`,
-        );
-      }
+      const values = retryCount > 0
+        ? await persistence.reload()
+        : await persistence.getPersistData();
+      if (hydrationGeneration.current !== generation) return;
+      const persistedData = (values?.NAMENODE_FEDERATION || initialState) as State;
+      const currentWizardUtilities = stepWizardUtilitiesRef.current;
+      const needsReentry = containsReentryMarker(persistedData);
+      setReentryRequired(needsReentry);
       if (!isEmpty(persistedData.enableNamenodeFederationSteps)) {
         dispatch({ type: ActionTypes.SYNC_STATE, payload: persistedData });
       }
-      const activeStepName = get(persistedData, "activeStep", "");
+      const activeStepName = needsReentry
+        ? currentWizardUtilities.wizardSteps[1]?.name
+        : get(persistedData, "activeStep", "");
       if (activeStepName) {
         currStepDataRef.current = {
           progressStatus:
@@ -139,24 +124,24 @@ export const EnableNamenodeFederationProvider: React.FC<{
           stepName: activeStepName,
         };
         const activeStepNumber = Object.keys(
-          stepWizardUtilities.wizardSteps,
+          currentWizardUtilities.wizardSteps,
         ).find(
           (stepName) =>
-            stepWizardUtilities.wizardSteps[stepName]?.name === activeStepName,
+            currentWizardUtilities.wizardSteps[stepName]?.name === activeStepName,
         );
         if (activeStepNumber !== undefined) {
-          stepWizardUtilities.jumpToStep(Number(activeStepNumber), true);
+          currentWizardUtilities.jumpToStep(Number(activeStepNumber), true);
         }
       } else {
-        stepWizardUtilities.jumpToStep(0, true);
+        currentWizardUtilities.jumpToStep(0, true);
       }
       setIsHydrated(true);
     } catch (error: any) {
-      setInitializationError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Ambari could not restore the NameNode Federation workflow.",
-      );
+      if (hydrationGeneration.current !== generation) return;
+      setInitializationError(workflowErrorMessage(
+        error,
+        translate("workflow.persistence.haLoadFailed"),
+      ));
     }
   }
 
@@ -164,41 +149,28 @@ export const EnableNamenodeFederationProvider: React.FC<{
     stateSnapshot: State = stateRef.current,
     stepSnapshot: Record<string, unknown> = currStepDataRef.current,
   ) {
-    await ClusterApi.postPersistData(
-      persistedPayload({
-        NAMENODE_FEDERATION: {
-          ...stateSnapshot,
-          activeStep: get(stepSnapshot, "stepName", ""),
-        },
-        CLUSTER_STATE: stepSnapshot,
-        "wizard-data": {
-          userName: workflowOwner,
-          controllerName: "nameNodeFederationWizardController",
-        },
-      }),
-    );
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    const activeStep = get(stepSnapshot, "stepName", "");
+    await persistence.savePersistData({
+      NAMENODE_FEDERATION: { ...stateSnapshot, activeStep },
+      CLUSTER_STATE: stepSnapshot,
+    }, activeStep || ClusterProgressStatus.ENABLING_NAMENODE_FEDERATION);
+    setReentryRequired(false);
   }
 
   async function clearPersistedState() {
-    await queuePersistence(() =>
-      ClusterApi.postPersistData(
-        persistedPayload({
-          NAMENODE_FEDERATION: initialState,
-          CLUSTER_STATE: {},
-          "wizard-data": {},
-        }),
-      ),
-    );
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    await persistence.release();
   }
 
   async function exitWorkflow() {
     if (stepWizardUtilities.activeStep >= 3) {
-      await queuePersistence(() => flushCurrentData());
+      await flushCurrentData();
     } else {
       await clearPersistedState();
     }
     modalManager.hide();
-    window.location.href = "/#/main/services/HDFS/summary";
+    navigateCluster("/main/services/HDFS/summary");
   }
 
   async function flushOnStepChange(nextStep: number | undefined) {
@@ -219,7 +191,7 @@ export const EnableNamenodeFederationProvider: React.FC<{
       stepName: nextStepDetails?.name,
     };
     currStepDataRef.current = nextStepData;
-    await queuePersistence(() => flushCurrentData(nextState, nextStepData));
+    await flushCurrentData(nextState, nextStepData);
   }
 
   async function flushStateToDb(
@@ -249,7 +221,7 @@ export const EnableNamenodeFederationProvider: React.FC<{
         await flushOnStepChange(jumpStep);
         break;
       default:
-        await queuePersistence(() => flushCurrentData());
+        await flushCurrentData();
     }
   }
 
@@ -261,9 +233,9 @@ export const EnableNamenodeFederationProvider: React.FC<{
           size="sm"
           className="ms-3"
           onClick={() => setRetryCount((value) => value + 1)}
-          disabled={!canPersist}
+          disabled={!canPersist || !persistence}
         >
-          Retry
+          {translate("common.retry")}
         </Button>
       </Alert>
     );
@@ -274,6 +246,11 @@ export const EnableNamenodeFederationProvider: React.FC<{
     <EnableNamenodeFederationContext.Provider
       value={{ state, dispatch, stepWizardUtilities, flushStateToDb }}
     >
+      {reentryRequired && (
+        <Alert variant="warning">
+          {translate("workflow.persistence.reentryRequired")}
+        </Alert>
+      )}
       {children}
     </EnableNamenodeFederationContext.Provider>
   );

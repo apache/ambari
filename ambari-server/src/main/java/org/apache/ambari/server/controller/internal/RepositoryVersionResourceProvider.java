@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
@@ -460,7 +461,10 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     for (RepositoryVersionEntity existingRepoVersion : existingRepoVersions) {
       for (RepoOsEntity operatingSystemEntity : existingRepoVersion.getRepoOsEntities()) {
         for (RepoDefinitionEntity repositoryEntity : operatingSystemEntity.getRepoDefinitionEntities()) {
-          if (repositoryEntity.isUnique() && !existingRepoVersion.getId().equals(repositoryVersion.getId())) { // Allow modifying already defined repo version
+          boolean sameVersionIdentity = Objects.equals(existingRepoVersion.getStackId(), repositoryVersion.getStackId())
+              && Objects.equals(existingRepoVersion.getVersion(), repositoryVersion.getVersion());
+          if (repositoryEntity.isUnique() && !sameVersionIdentity
+              && !existingRepoVersion.getId().equals(repositoryVersion.getId())) { // Allow modifying already defined repo version
             existingRepoUrls.add(repositoryEntity.getBaseUrl());
           }
         }

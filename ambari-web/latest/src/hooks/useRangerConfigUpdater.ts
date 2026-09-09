@@ -35,7 +35,7 @@ export const useRangerConfigUpdater = () => {
   } = useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, clusterName, parsedSocketMessages } = useContext(AppContext);
+  const { services, clusterName, parsedSocketMessages, runtimeKey } = useContext(AppContext);
   
   // Early return if RANGER service is not installed
   const isRangerInstalled = services && Array.isArray(services) && 
@@ -323,7 +323,7 @@ export const useRangerConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("RANGER", "ranger", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "RANGER", "ranger", allServiceModels, updateRegistry);
   };
 
   const updateServiceMaintenanceState = (maintenanceState: string) => {

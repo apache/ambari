@@ -37,6 +37,8 @@ App.Repository = DS.Model.extend({
   distribution: DS.attr('string'),
   tags: DS.attr('array'),
   applicable_services: DS.attr('array'),
+  mirrors_list: DS.attr('string'),
+  unique: DS.attr('boolean'),
 
   validation: DS.attr('string', {defaultValue: ''}),
   validationClassName: Em.computed.getByKey('validationClassNameMap', 'validation', ''),

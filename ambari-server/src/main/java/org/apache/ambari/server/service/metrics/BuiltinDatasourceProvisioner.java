@@ -107,6 +107,22 @@ public class BuiltinDatasourceProvisioner {
     }
   }
 
+  boolean isTrustedManagedEndpoint(DatasourceEntity entity, Cluster cluster, String baseUrl) {
+    if (!DATASOURCE_NAME.equals(entity.getName()) || !isManaged(entity)
+        || !"prometheus".equalsIgnoreCase(entity.getPluginType())
+        || baseUrl == null || baseUrl.isBlank()) {
+      return false;
+    }
+    Service service = cluster.getServices().get(SERVICE_NAME);
+    if (service == null) {
+      return false;
+    }
+    Config authConfig = cluster.getDesiredConfigByType("victoriametrics-auth");
+    Map<String, String> auth = authConfig == null ? Map.of() : authConfig.getProperties();
+    String managedEndpoint = endpoint(service, cluster, auth);
+    return managedEndpoint != null && managedEndpoint.equals(baseUrl.trim());
+  }
+
   private boolean isManaged(DatasourceEntity entity) {
     try {
       JsonNode settings = OBJECT_MAPPER.readTree(entity.getSettings());

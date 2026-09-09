@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import { useContext,  useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import AssignMasters from "../../components/AssignMasters";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import { ActionTypes } from "./clusterStore/types";
@@ -31,6 +31,15 @@ import {
   nextAddServiceStep,
   previousAddServiceStep,
 } from "../Services/AddServiceWizard/addServiceNavigation";
+import { AppContext } from "../../store/context";
+import {
+  buildManagedDependencyAdvisorPlan,
+  createManagedDependencyAdvisorRunner,
+  ManagedDependencyAdvisorReviewRequiredError,
+  managedDependencyAdvisorInputKey,
+  type RunWithStackAdvisorRequest,
+} from "./managedDependencyAdvisor";
+import type { ManagedDependencySelections } from "./managedDependencySelection";
 
 function Step5({ wizardName = "clusterCreation" }) {
   const { Context } = useContext(ContextWrapper);
@@ -38,8 +47,11 @@ function Step5({ wizardName = "clusterCreation" }) {
     state,
     dispatch,
     flushStateToDb,
+    withStateCheckpoint,
+    draftId,
     installedHosts,
     installedServices,
+    workflowMaterializedServices = [],
     stepWizardUtilities: {
       handleNextImperitive,
       currentStep,
@@ -47,7 +59,13 @@ function Step5({ wizardName = "clusterCreation" }) {
       jumpToStep,
     },
   } = useContext(Context) as any;
-  const [canProcced, setCanProceed] = useState(wizardName === "addService");
+  const { cluster, runtimeKey } = useContext(AppContext);
+  const [canProcced, setCanProceed] = useState(false);
+  const [addServiceLoadStatus, setAddServiceLoadStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
+  const [addServiceAssignmentsValid, setAddServiceAssignmentsValid] =
+    useState(false);
   const [hasValidationIssues, setHasValidationIssues] = useState(false);
   const [showValidationIssuesModal, setShowValidationIssuesModal] =
     useState(false);
@@ -56,6 +74,106 @@ function Step5({ wizardName = "clusterCreation" }) {
     `${wizardName}Steps.SERVICES.data.services`,
     {}
   );
+  const servicesStepData = get(
+    state,
+    `${wizardName}Steps.SERVICES.data`,
+    {},
+  );
+  const managedDependencies = get(
+    servicesStepData,
+    "managedDependencies",
+    {},
+  ) as ManagedDependencySelections;
+  const hasFreshHBaseSelection = Boolean(
+    servicesData.HBASE?.selected && !servicesData.HBASE?.installed,
+  );
+  const hasManagedDependencies = hasFreshHBaseSelection
+    && Object.values(managedDependencies).some((choice) => choice?.mode === "managed");
+  const advisorInputKey = managedDependencyAdvisorInputKey({
+    hosts: wizardName === "addService"
+      ? installedHosts
+      : get(
+          state,
+          `${wizardName}Steps.${wizardSteps[3].name}.data.hosts`,
+          [],
+        ).filter((host: any) => host.bootStatus === BootStatus.REGISTERED)
+          .map((host: any) => host.name),
+    selections: managedDependencies,
+    services: Object.keys(servicesData).filter(
+      (service) => servicesData[service].selected,
+    ),
+    stack: get(
+      state,
+      `${wizardName}Steps.VERSION.data.selectedVersion.stack_name`,
+      "",
+    ),
+    version: get(
+      state,
+      `${wizardName}Steps.VERSION.data.selectedVersion.stack_version`,
+      "",
+    ),
+  });
+  const advisorScopeKey = JSON.stringify([
+    wizardName === "addService" ? "add-service-advisor" : "cluster-create-advisor",
+    runtimeKey,
+    Number(cluster?.cluster_id) || null,
+    draftId || "missing-draft",
+    workflowMaterializedServices.join("\u0000"),
+    advisorInputKey,
+  ]);
+  const advisorScopeKeyRef = useRef(advisorScopeKey);
+  advisorScopeKeyRef.current = advisorScopeKey;
+  const savedMastersStepData = get(
+    state,
+    `${wizardName}Steps.MASTERS.data`,
+    {},
+  );
+  const savedMasters =
+    savedMastersStepData?.advisorInputKey === advisorInputKey &&
+    Array.isArray(savedMastersStepData?.mastersData)
+      ? savedMastersStepData.mastersData
+      : [];
+
+  useEffect(() => {
+    if (wizardName !== "addService") return;
+    setAddServiceLoadStatus("loading");
+    setAddServiceAssignmentsValid(false);
+  }, [advisorScopeKey, wizardName]);
+
+  const addServiceCanProceed =
+    addServiceLoadStatus === "ready" && addServiceAssignmentsValid;
+  const runWithAdvisorRequest: RunWithStackAdvisorRequest | undefined =
+    hasManagedDependencies
+      ? wizardName === "clusterCreation"
+        ? async (request) => {
+          const capturedScope = advisorScopeKey;
+          if (!draftId || !withStateCheckpoint) {
+            throw new ManagedDependencyAdvisorReviewRequiredError();
+          }
+          return withStateCheckpoint(async (revision) => {
+            if (advisorScopeKeyRef.current !== capturedScope) {
+              throw new ManagedDependencyAdvisorReviewRequiredError();
+            }
+            const plan = buildManagedDependencyAdvisorPlan(
+              { scope: "DRAFT", draft_id: draftId, expected_revision: revision },
+              managedDependencies,
+            );
+            if (!plan) throw new ManagedDependencyAdvisorReviewRequiredError();
+            return request({
+              isCurrent: () => advisorScopeKeyRef.current === capturedScope,
+              properties: { managed_dependency_plan: plan },
+            });
+          });
+        }
+        : createManagedDependencyAdvisorRunner({
+            clusterId: Number(cluster?.cluster_id),
+            managedDependencies,
+            scopeKey: advisorScopeKey,
+            scopeKeyRef: advisorScopeKeyRef,
+            withStateCheckpoint,
+            workflowMaterializedServices,
+          })
+      : undefined;
   
   const step1Data = get(state, `${wizardName}Steps.VERSION.data`, {});
   const services = Object.keys(servicesData).filter((service) => {
@@ -86,10 +204,21 @@ function Step5({ wizardName = "clusterCreation" }) {
         <Card>
           <CardBody>
             <AssignMastersAddable
-            wizardName={wizardName}
+              key={advisorScopeKey}
+              wizardName={wizardName}
              isInstallFlow={true}
               services={services}
               servicesData={servicesData}
+              runWithAdvisorRequest={runWithAdvisorRequest}
+              validateAssignments
+              savedMasters={savedMasters}
+              advisorInputKey={advisorInputKey}
+              onLoadStateChange={({ status }) => {
+                setAddServiceLoadStatus(status);
+              }}
+              onAssignmentValidationChange={(isValid) => {
+                setAddServiceAssignmentsValid(isValid);
+              }}
               dispatch={(data: any) => {
                 dispatch({
                   type: ActionTypes.STORE_INFORMATION,
@@ -104,6 +233,7 @@ function Step5({ wizardName = "clusterCreation" }) {
         </Card>
       ) : (
         <AssignMasters
+          key={advisorScopeKey}
           STACK={step1Data?.selectedVersion?.stack_name}
           VERSION={step1Data?.selectedVersion?.stack_version}
           hostsList={hostsList}
@@ -111,7 +241,10 @@ function Step5({ wizardName = "clusterCreation" }) {
           installedServices={installedServices}
           setCanProceed={setCanProceed}
           parentState={state}
+          advisorInputKey={advisorInputKey}
           setHasValidationIssues={setHasValidationIssues}
+          runWithAdvisorRequest={runWithAdvisorRequest}
+          onReviewManagedDependencies={() => jumpToStep(3)}
           dispatch={(data: any) => {
             dispatch({
               type: ActionTypes.STORE_INFORMATION,
@@ -138,7 +271,9 @@ function Step5({ wizardName = "clusterCreation" }) {
       <WizardFooter
         step={currentStep}
         lifted
-        isNextEnabled={canProcced}
+        isNextEnabled={
+          wizardName === "addService" ? addServiceCanProceed : canProcced
+        }
         onNext={async () => {
           if (wizardName === "addService") {
             const nextStep = nextAddServiceStep(2, addServiceFlow);

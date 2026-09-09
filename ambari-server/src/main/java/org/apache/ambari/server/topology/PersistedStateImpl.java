@@ -18,8 +18,12 @@
 
 package org.apache.ambari.server.topology;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +58,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.persist.Transactional;
 
@@ -113,10 +121,34 @@ public class PersistedStateImpl implements PersistedState {
   }
 
   @Override
+  public TopologyRequestEntity prepareProvisioningIntent(BaseClusterRequest request,
+      Long repositoryVersionId) {
+    TopologyRequestEntity requestEntity = toEntity(request);
+    requestEntity.setRepositoryVersionId(repositoryVersionId);
+    requestEntity.setSpecificationHash(calculateSpecificationHash(requestEntity));
+    requestEntity.setProvisioningState(TopologyRequestEntity.PROVISIONING_STATE_PENDING);
+    return requestEntity;
+  }
+
+  @Override
+  public PersistedTopologyRequest getProvisioningIntent(long clusterId) {
+    TopologyRequestEntity entity = topologyRequestDAO.findProvisionByClusterId(clusterId);
+    if (entity == null) {
+      return null;
+    }
+    return new PersistedTopologyRequest(entity.getId(),
+        new ReplayedTopologyRequest(entity, blueprintFactory), entity.getRepositoryVersionId(),
+        entity.getSpecificationHash(), entity.getProvisioningState());
+  }
+
+  @Override
   public void persistLogicalRequest(LogicalRequest logicalRequest, long topologyRequestId) {
     TopologyRequestEntity topologyRequestEntity = topologyRequestDAO.findById(topologyRequestId);
     TopologyLogicalRequestEntity entity = toEntity(logicalRequest, topologyRequestEntity);
     topologyRequestEntity.setTopologyLogicalRequestEntity(entity);
+    if (TopologyRequest.Type.PROVISION.name().equals(topologyRequestEntity.getAction())) {
+      topologyRequestEntity.setProvisioningState(TopologyRequestEntity.PROVISIONING_STATE_ACTIVE);
+    }
     //todo: how to handle missing topology request entity?
 
     //logicalRequestDAO.create(entity);
@@ -137,8 +169,16 @@ public class PersistedStateImpl implements PersistedState {
     }
     if (logicalRequest != null && logicalRequest.getTopologyHostRequestEntities().isEmpty()) {
       Long topologyRequestId = logicalRequest.getTopologyRequestId();
+      TopologyRequestEntity topologyRequest = logicalRequest.getTopologyRequestEntity();
       topologyLogicalRequestDAO.remove(logicalRequest);
-      topologyRequestDAO.removeByPK(topologyRequestId);
+      if (topologyRequest != null
+          && TopologyRequest.Type.PROVISION.name().equals(topologyRequest.getAction())) {
+        topologyRequest.setTopologyLogicalRequestEntity(null);
+        topologyRequest.setProvisioningState(TopologyRequestEntity.PROVISIONING_STATE_CANCELLED);
+        topologyRequestDAO.merge(topologyRequest);
+      } else {
+        topologyRequestDAO.removeByPK(topologyRequestId);
+      }
     }
   }
 
@@ -184,7 +224,13 @@ public class PersistedStateImpl implements PersistedState {
     Collection<TopologyRequestEntity> entities = topologyRequestDAO.findByClusterId(clusterId);
     for (TopologyRequestEntity entity : entities) {
       if(TopologyRequest.Type.PROVISION == TopologyRequest.Type.valueOf(entity.getAction())) {
+        if (TopologyRequestEntity.PROVISIONING_STATE_CANCELLED.equals(entity.getProvisioningState())) {
+          return null;
+        }
         TopologyLogicalRequestEntity logicalRequestEntity = entity.getTopologyLogicalRequestEntity();
+        if (logicalRequestEntity == null) {
+          return null;
+        }
         TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
         try {
           ClusterTopology clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
@@ -282,6 +328,89 @@ public class PersistedStateImpl implements PersistedState {
     entity.setTopologyHostGroupEntities(hostGroupEntities);
 
     return entity;
+  }
+
+  private String calculateSpecificationHash(TopologyRequestEntity entity) {
+    StringBuilder specification = new StringBuilder();
+    appendHashField(specification, entity.getAction());
+    appendHashField(specification, entity.getBlueprintName());
+    appendHashField(specification, canonicalJson(entity.getClusterProperties()));
+    appendHashField(specification, canonicalJson(entity.getClusterAttributes()));
+    appendHashField(specification, entity.getDescription());
+    appendHashField(specification, entity.getProvisionAction());
+    appendHashField(specification, entity.getRepositoryVersionId());
+
+    List<TopologyHostGroupEntity> hostGroups = new ArrayList<>(entity.getTopologyHostGroupEntities());
+    hostGroups.sort(Comparator.comparing(TopologyHostGroupEntity::getName));
+    for (TopologyHostGroupEntity hostGroup : hostGroups) {
+      appendHashField(specification, hostGroup.getName());
+      appendHashField(specification, canonicalJson(hostGroup.getGroupProperties()));
+      appendHashField(specification, canonicalJson(hostGroup.getGroupAttributes()));
+      List<TopologyHostInfoEntity> hosts = new ArrayList<>(hostGroup.getTopologyHostInfoEntities());
+      hosts.sort(Comparator.comparing(this::hostSpecification));
+      for (TopologyHostInfoEntity host : hosts) {
+        appendHashField(specification, hostSpecification(host));
+      }
+    }
+
+    try {
+      byte[] digest = MessageDigest.getInstance("SHA-256").digest(
+          specification.toString().getBytes(StandardCharsets.UTF_8));
+      StringBuilder result = new StringBuilder(digest.length * 2);
+      for (byte value : digest) {
+        result.append(String.format("%02x", value & 0xff));
+      }
+      return result.toString();
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException("SHA-256 is unavailable", e);
+    }
+  }
+
+  private String hostSpecification(TopologyHostInfoEntity host) {
+    StringBuilder result = new StringBuilder();
+    appendHashField(result, host.getFqdn());
+    appendHashField(result, host.getHostCount());
+    appendHashField(result, host.getPredicate());
+    appendHashField(result, host.getRackInfo());
+    return result.toString();
+  }
+
+  private String canonicalJson(String json) {
+    if (json == null) {
+      return "null";
+    }
+    return canonicalJson(new JsonParser().parse(json));
+  }
+
+  private String canonicalJson(JsonElement element) {
+    if (element.isJsonObject()) {
+      JsonObject object = element.getAsJsonObject();
+      List<String> names = new ArrayList<>();
+      for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+        names.add(entry.getKey());
+      }
+      names.sort(String::compareTo);
+      StringBuilder result = new StringBuilder("{");
+      for (String name : names) {
+        appendHashField(result, name);
+        appendHashField(result, canonicalJson(object.get(name)));
+      }
+      return result.append('}').toString();
+    }
+    if (element.isJsonArray()) {
+      JsonArray array = element.getAsJsonArray();
+      StringBuilder result = new StringBuilder("[");
+      for (JsonElement value : array) {
+        appendHashField(result, canonicalJson(value));
+      }
+      return result.append(']').toString();
+    }
+    return element.toString();
+  }
+
+  private void appendHashField(StringBuilder target, Object value) {
+    String text = String.valueOf(value);
+    target.append(text.length()).append(':').append(text).append(';');
   }
 
   private TopologyLogicalRequestEntity toEntity(LogicalRequest request, TopologyRequestEntity topologyRequestEntity) {

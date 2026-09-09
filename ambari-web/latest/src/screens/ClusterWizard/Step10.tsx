@@ -23,6 +23,7 @@ import { Alert, Card, CardBody } from "react-bootstrap";
 import WizardFooter from "../../components/StepWizard/WizardFooter";
 import ClusterApi from "../../api/clusterApi";
 import { ContextWrapper } from ".";
+import { clusterHashPath } from "../../Utils/clusterRoute";
 
 type Step10Props = {
   wizardName?: string;
@@ -41,6 +42,7 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
   const clusterInfo = useRef<any>([]);
   const installFlag = useRef<boolean>(true);
   const startFlag = useRef<boolean>(true);
+  const isActive = useRef(true);
 
   const getStepData = (stepName: string, dataKey: string) => {
     const stepData = get(state, `${wizardName}Steps.${stepName}.data`, {});
@@ -256,10 +258,14 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
     return startedServices;
   }
   useEffect(() => {
+    isActive.current = true;
     loadRegisteredHosts();
     loadInstalledHosts();
     installFlag.current = loadMasterComponents();
     startFlag.current = loadStartedServices();
+    return () => {
+      isActive.current = false;
+    };
   }, []);
   useEffect(() => {
     const uniqIds = uniq(map(clusterInfo.current, "id"));
@@ -284,19 +290,24 @@ function Step10({ wizardName = "clusterCreation" }: Step10Props) {
 
   const finish = async () => {
     if (isFinishing) return;
+    const createdClusterName = wizardName === "clusterCreation"
+      ? getStepData("NAME", "clusterName")
+      : "";
     setIsFinishing(true);
     setFinishError("");
     try {
       if (wizardName === "clusterCreation") {
-        const clusterName = getStepData("NAME", "clusterName");
-        await ClusterApi.updateCluster(clusterName, {
+        await ClusterApi.updateCluster(createdClusterName, {
           Clusters: { provisioning_state: "INSTALLED" },
         });
       }
+      if (!isActive.current) return;
       await Promise.resolve(flushStateToDb("complete"));
-      if (wizardName === "clusterCreation") {
-        window.location.href = "/#/main/dashboard/metrics";
-        window.location.reload();
+      if (wizardName === "clusterCreation" && isActive.current) {
+        window.location.hash = clusterHashPath(
+          createdClusterName,
+          "/main/dashboard/metrics",
+        ).replace(/^\/#/, "#");
       }
     } catch (error: any) {
       setFinishError(

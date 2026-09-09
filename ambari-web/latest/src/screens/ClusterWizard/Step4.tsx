@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { ChooseServicesApi } from "../../api/chooseServicesApi";
 import Table from "../../components/Table";
-import { cloneDeep, forEach, get, isEmpty, map } from "lodash";
-import { Form } from "react-bootstrap";
+import { cloneDeep, forEach, get, isEmpty } from "lodash";
+import { Alert, Button, Form } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import MissingServiceModal from "../../components/MissingServiceModal";
 import {
   dfsServices,
@@ -41,6 +42,18 @@ import {
   nextAddServiceStep,
 } from "../Services/AddServiceWizard/addServiceNavigation";
 import { filterInstallableStackServices } from "../../Utils/stackMetadata";
+import { consumeAddServiceSelectionIntent } from "../../Utils/workflowSelectionIntent";
+import ManagedDependencySelector, {
+  type DependencyConsumerScope,
+} from "./ManagedDependencySelector";
+import {
+  choiceCanContinue,
+  dependencyTypes,
+  localDependencyDefaults,
+  type ManagedDependencyChoice,
+  type ManagedDependencySelections,
+} from "./managedDependencySelection";
+import type { ManagedDependencyType } from "../../api/serviceDependenciesApi";
 
 type Service = {
   displayName: string;
@@ -57,6 +70,8 @@ type Service = {
   hasMaster?: boolean;
   hasNonMastersWithCustomAssignment?: boolean;
   hasSlave?: boolean;
+  installed?: boolean;
+  canToggle?: boolean;
 };
 
 type ErrorType = {
@@ -64,32 +79,82 @@ type ErrorType = {
   modalType: string;
 };
 
+const isRequiredByAnotherSelectedService = (
+  dependencyType: ManagedDependencyType,
+  candidateServices: { [key: string]: Service },
+) => Object.values(candidateServices).some((service) =>
+  service.selected
+  && service.serviceName !== "HBASE"
+  && service.required?.includes(dependencyType));
+
+const hasFreshHBaseSelection = (candidateServices: { [key: string]: Service }) =>
+  Boolean(candidateServices.HBASE?.selected && !candidateServices.HBASE.installed);
+
 export default function Step4({ wizardName = "clusterCreation" }) {
-  const [, setServicesFromApi] = useState<any>([]);
+  const { t } = useTranslation();
   const [services, setServices] = useState<{ [key: string]: Service }>({});
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
+  const [catalogError, setCatalogError] = useState("");
+  const [catalogLoading, setCatalogLoading] = useState(true);
   const [errorStack, setErrorStack] = useState<ErrorType[]>([]);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [nextDisabled, setNextDisabled] = useState<boolean>(false);
+  const [managedDependencies, setManagedDependencies] =
+    useState<ManagedDependencySelections>({});
+  const [autoSelectedLocalServices, setAutoSelectedLocalServices] =
+    useState<string[]>([]);
+  const servicesRef = useRef(services);
+  const managedDependenciesRef = useRef(managedDependencies);
+  const autoSelectedLocalServicesRef = useRef(autoSelectedLocalServices);
+  const dependencyCheckpointRef = useRef<Promise<number> | null>(null);
   const { Context } = useContext(ContextWrapper);
   const {
     state,
     dispatch,
     flushStateToDb,
+    storeStepDataAndFlush,
+    draftId,
+    getDraftRevision,
+    getWorkflowRevision,
     serviceContextLoading = false,
     handleBackImperitive,
     installedServices: installedServicesProps = [],
+    workflowMaterializedServices = [],
     stepWizardUtilities: { currentStep, handleNextImperitive, jumpToStep },
   }: any = useContext(Context);
-  const { services: servicesContext } = useContext(AppContext);
-  let installedServices = installedServicesProps;
-  if (wizardName !== "clusterCreation") {
-    installedServices = map(servicesContext, "ServiceInfo.service_name");
-  }
-  const stepData = getStepData(state, currentStep.name, "");
+  const {
+    cluster,
+    clusterName,
+    loginName,
+  } = useContext(AppContext);
+  const installedServices = installedServicesProps;
+  const stepData = getStepData(
+    state,
+    currentStep.name,
+    "",
+    `${wizardName}Steps`,
+  );
+  const restoredServicesStepRef = useRef(stepData);
 
   const versionStepData = get(state, `${wizardName}Steps.VERSION.data`, {});
   const version = get(versionStepData, "selectedVersion.stack_version", "");
   const stack = get(versionStepData, "selectedStack.stack_name", "");
+  const numericClusterId = Number(cluster?.cluster_id);
+
+  const updateServices = (nextServices: { [key: string]: Service }) => {
+    servicesRef.current = nextServices;
+    setServices(nextServices);
+  };
+
+  const updateManagedDependencies = (next: ManagedDependencySelections) => {
+    managedDependenciesRef.current = next;
+    setManagedDependencies(next);
+  };
+
+  const updateAutoSelectedLocalServices = (next: string[]) => {
+    autoSelectedLocalServicesRef.current = next;
+    setAutoSelectedLocalServices(next);
+  };
 
   const isDFS = (serviceName: string) => {
     return dfsServices.includes(serviceName);
@@ -108,7 +173,25 @@ export default function Step4({ wizardName = "clusterCreation" }) {
         service.selected = false;
       }
     });
-    setServices(updatedServices);
+    if (!updatedServices.HBASE?.selected) {
+      autoSelectedLocalServicesRef.current.forEach((serviceName) => {
+        if (updatedServices[serviceName]?.installed !== true
+          && !isRequiredByAnotherSelectedService(
+            serviceName as ManagedDependencyType,
+            updatedServices,
+          )) {
+          updatedServices[serviceName].selected = false;
+        }
+      });
+      updateAutoSelectedLocalServices([]);
+      updateManagedDependencies({});
+    } else if (hasFreshHBaseSelection(updatedServices)) {
+      updateManagedDependencies(localDependencyDefaults(managedDependenciesRef.current));
+    } else {
+      updateAutoSelectedLocalServices([]);
+      updateManagedDependencies({});
+    }
+    updateServices(updatedServices);
   };
 
   const isAllServicesSelected = () => {
@@ -137,7 +220,189 @@ export default function Step4({ wizardName = "clusterCreation" }) {
         }
       }
     }
-    setServices(updatedServices);
+    let nextManagedDependencies = managedDependenciesRef.current;
+    let nextAutoSelected = [...autoSelectedLocalServicesRef.current];
+    if (serviceName === "HBASE") {
+      if (updatedServices.HBASE.selected) {
+        nextManagedDependencies = localDependencyDefaults(nextManagedDependencies);
+        dependencyTypes.forEach((dependencyType) => {
+          if (nextManagedDependencies[dependencyType]?.mode !== "local") return;
+          const localService = updatedServices[dependencyType];
+          if (localService && !localService.selected) {
+            localService.selected = true;
+            if (!localService.installed && !nextAutoSelected.includes(dependencyType)) {
+              nextAutoSelected.push(dependencyType);
+            }
+          }
+        });
+      } else {
+        nextAutoSelected.forEach((dependencyType) => {
+          if (updatedServices[dependencyType]?.installed !== true
+            && !isRequiredByAnotherSelectedService(dependencyType, updatedServices)) {
+            updatedServices[dependencyType].selected = false;
+          }
+        });
+        nextAutoSelected = [];
+        nextManagedDependencies = {};
+      }
+    } else if (dependencyTypes.includes(serviceName as ManagedDependencyType)) {
+      nextAutoSelected = nextAutoSelected.filter((item) => item !== serviceName);
+      if (!updatedServices[serviceName].selected && updatedServices.HBASE?.selected
+        && nextManagedDependencies[serviceName as ManagedDependencyType]?.mode === "local") {
+        nextManagedDependencies = {
+          ...nextManagedDependencies,
+          [serviceName]: { mode: "managed" },
+        };
+      }
+    }
+    updateAutoSelectedLocalServices(nextAutoSelected);
+    updateManagedDependencies(nextManagedDependencies);
+    updateServices(updatedServices);
+  };
+
+  const buildServicesStepData = (
+    nextServices: { [key: string]: Service },
+    nextManagedDependencies: ManagedDependencySelections,
+    nextAutoSelected: string[],
+  ) => ({
+    services: nextServices,
+    addServiceFlow: deriveAddServiceFlow(nextServices),
+    managedDependencies: hasFreshHBaseSelection(nextServices)
+      ? localDependencyDefaults(nextManagedDependencies)
+      : {},
+    autoSelectedLocalServices: hasFreshHBaseSelection(nextServices)
+      ? nextAutoSelected
+      : [],
+  });
+
+  const persistServicesStep = async (
+    nextServices: { [key: string]: Service },
+    nextManagedDependencies: ManagedDependencySelections,
+    nextAutoSelected: string[],
+  ) => {
+    const data = buildServicesStepData(
+      nextServices,
+      nextManagedDependencies,
+      nextAutoSelected,
+    );
+    if (storeStepDataAndFlush) {
+      return await storeStepDataAndFlush(currentStep.name, data);
+    }
+    dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: { step: currentStep.name, data },
+    });
+    await Promise.resolve(flushStateToDb("default"));
+    return Number(getDraftRevision?.() || getWorkflowRevision?.() || 0);
+  };
+
+  const checkpointDependencySource = () => {
+    if (dependencyCheckpointRef.current) return dependencyCheckpointRef.current;
+    const pending = persistServicesStep(
+      servicesRef.current,
+      managedDependenciesRef.current,
+      autoSelectedLocalServicesRef.current,
+    );
+    dependencyCheckpointRef.current = pending;
+    const clearPending = () => {
+      if (dependencyCheckpointRef.current === pending) {
+        dependencyCheckpointRef.current = null;
+      }
+    };
+    void pending.then(clearPending, clearPending);
+    return pending;
+  };
+
+  const dependencyConsumer: DependencyConsumerScope | null =
+    wizardName === "clusterCreation"
+      ? (draftId ? {
+          checkpoint: checkpointDependencySource,
+          draftId,
+          kind: "draft",
+        } : null)
+      : (Number.isInteger(numericClusterId) && numericClusterId > 0
+        ? workflowMaterializedServices.includes("HBASE")
+          ? {
+              checkpoint: checkpointDependencySource,
+              clusterId: numericClusterId,
+              clusterName,
+              kind: "service",
+            }
+          : {
+              checkpoint: checkpointDependencySource,
+              clusterId: numericClusterId,
+              kind: "servicePlan",
+            }
+        : null);
+
+  const changeManagedDependency = async (
+    dependencyType: ManagedDependencyType,
+    choice: ManagedDependencyChoice,
+  ) => {
+    const nextServices = cloneDeep(servicesRef.current);
+    const nextManagedDependencies = {
+      ...managedDependenciesRef.current,
+      [dependencyType]: choice,
+    };
+    let nextAutoSelected = [...autoSelectedLocalServicesRef.current];
+    const localService = nextServices[dependencyType];
+    if (choice.mode === "local") {
+      if (localService && !localService.selected) {
+        localService.selected = true;
+        if (!localService.installed && !nextAutoSelected.includes(dependencyType)) {
+          nextAutoSelected.push(dependencyType);
+        }
+      }
+    } else {
+      const wasAutoSelected = nextAutoSelected.includes(dependencyType);
+      if (wasAutoSelected && localService?.installed !== true
+        && !isRequiredByAnotherSelectedService(dependencyType, nextServices)) {
+        localService.selected = false;
+      }
+      nextAutoSelected = nextAutoSelected.filter((item) => item !== dependencyType);
+    }
+    updateServices(nextServices);
+    updateManagedDependencies(nextManagedDependencies);
+    updateAutoSelectedLocalServices(nextAutoSelected);
+    return await persistServicesStep(
+      nextServices,
+      nextManagedDependencies,
+      nextAutoSelected,
+    );
+  };
+
+  const changeManagedDependencyPlan = async (
+    nextManagedDependencies: ManagedDependencySelections,
+  ) => {
+    const nextServices = cloneDeep(servicesRef.current);
+    let nextAutoSelected = [...autoSelectedLocalServicesRef.current];
+    dependencyTypes.forEach((dependencyType) => {
+      const choice = nextManagedDependencies[dependencyType] || { mode: "local" };
+      const localService = nextServices[dependencyType];
+      if (choice.mode === "local") {
+        if (localService && !localService.selected) {
+          localService.selected = true;
+          if (!localService.installed && !nextAutoSelected.includes(dependencyType)) {
+            nextAutoSelected.push(dependencyType);
+          }
+        }
+        return;
+      }
+      const wasAutoSelected = nextAutoSelected.includes(dependencyType);
+      if (wasAutoSelected && localService?.installed !== true
+        && !isRequiredByAnotherSelectedService(dependencyType, nextServices)) {
+        localService.selected = false;
+      }
+      nextAutoSelected = nextAutoSelected.filter((item) => item !== dependencyType);
+    });
+    updateServices(nextServices);
+    updateManagedDependencies(nextManagedDependencies);
+    updateAutoSelectedLocalServices(nextAutoSelected);
+    return persistServicesStep(
+      nextServices,
+      nextManagedDependencies,
+      nextAutoSelected,
+    );
   };
 
   const saveServicesAndContinue = async () => {
@@ -146,7 +411,11 @@ export default function Step4({ wizardName = "clusterCreation" }) {
       type: ActionTypes.STORE_INFORMATION,
       payload: {
         step: currentStep.name,
-        data: { services, addServiceFlow: flow },
+        data: buildServicesStepData(
+          services,
+          managedDependencies,
+          autoSelectedLocalServices,
+        ),
       },
     });
     if (wizardName === "addService") {
@@ -169,9 +438,11 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     fileSystemServiceValidation(selectedServices, newErrorStack);
 
     for (const selectedService of selectedServices) {
+      if (selectedService.installed) continue;
       selectedService?.required?.forEach((requiredService) => {
         dependantServiceValidation(
           selectedServices,
+          selectedService.serviceName,
           requiredService,
           newErrorStack
         );
@@ -190,9 +461,19 @@ export default function Step4({ wizardName = "clusterCreation" }) {
 
   const dependantServiceValidation = (
     selectedServices: Service[],
+    selectedServiceName: string,
     requiredService: string,
     errorStackCopy: ErrorType[]
   ) => {
+    if (selectedServiceName === "HBASE"
+      && hasFreshHBaseSelection(services)
+      && dependencyTypes.includes(requiredService as ManagedDependencyType)
+      && choiceCanContinue(
+        managedDependencies[requiredService as ManagedDependencyType],
+        Boolean(services[requiredService]?.selected),
+      )) {
+      return;
+    }
     if (
       !selectedServices.find(
         (service) => service.serviceName === requiredService
@@ -231,7 +512,12 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     const selectedFileSystems = selectedServices.filter((service) =>
       dfsServices.includes(service.serviceName)
     );
-    if (selectedFileSystems.length === 0) {
+    const managedHdfsSatisfiesHbase = hasFreshHBaseSelection(services)
+      && choiceCanContinue(managedDependencies.HDFS, Boolean(services.HDFS?.selected));
+    const installedHbaseHasAuthoritativeDependency = Boolean(services.HBASE?.installed);
+    if (selectedFileSystems.length === 0
+      && !managedHdfsSatisfiesHbase
+      && !installedHbaseHasAuthoritativeDependency) {
       errorStackCopy.push({
         serviceName: "HDFS",
         modalType: ModalType.MISSING_FILE_SYSTEM,
@@ -298,7 +584,10 @@ export default function Step4({ wizardName = "clusterCreation" }) {
   };
 
   useEffect(() => {
+    let currentRequest = true;
     const fetchServicesData = async () => {
+      setCatalogLoading(true);
+      setCatalogError("");
       try {
         const chooseServices = await ChooseServicesApi.getServices(
           stack,
@@ -308,26 +597,28 @@ export default function Step4({ wizardName = "clusterCreation" }) {
         const installableServices = filterInstallableStackServices(
           get(chooseServices, "items", []),
         );
+        const restoredStep = restoredServicesStepRef.current || {};
+        const restoredServices = restoredStep.services || {};
         installableServices.forEach((service: any) => {
+          const serviceName = service.StackServices.service_name;
+          const restoredService = restoredServices[serviceName];
+          const installed = installedServices.includes(serviceName);
           const components = get(service, "components", []).map(
             (component: any) => component.StackServiceComponents || {},
           );
           const configTypes = get(service, "StackServices.config_types");
-          transformedData[service.StackServices.service_name] = {
+          transformedData[serviceName] = {
             displayName: service.StackServices.display_name,
-            serviceName: service.StackServices.service_name,
+            serviceName,
             serviceType: service.StackServices.service_type,
             version: service.StackServices.service_version,
             comments: service.StackServices.comments,
-            selected: isServiceSelected(service.StackServices.service_name),
+            selected: installed || Boolean(restoredService?.selected)
+              || Boolean(isServiceSelected(serviceName)),
             required: service.StackServices.required_services,
-            isIgnored: false,
-            installed: installedServices.includes(
-              service.StackServices.service_name
-            ),
-            canToggle: canToggleServiceSelection(
-              service.StackServices.service_name
-            ),
+            isIgnored: Boolean(restoredService?.isIgnored),
+            installed,
+            canToggle: canToggleServiceSelection(serviceName),
             isHiddenOnDisplay: excludeServicesOnDisplay.includes(
               service.StackServices.service_name
             ),
@@ -357,15 +648,24 @@ export default function Step4({ wizardName = "clusterCreation" }) {
             return acc;
           }, {} as { [key: string]: Service });
 
-        setServicesFromApi({ ...chooseServices, items: installableServices });
-        setServices(sortedServices);
-        
-        // Handle pre-selection from localStorage (for Add Service from Stack and Versions page)
-        if (wizardName === "addService") {
-          const preselectedService = localStorage.getItem('preselectedService');
+        if (!currentRequest) return;
+        let nextServices = sortedServices;
+        let nextManagedDependencies = hasFreshHBaseSelection(nextServices)
+          ? localDependencyDefaults(restoredStep.managedDependencies || {})
+          : {};
+        let nextAutoSelected = hasFreshHBaseSelection(nextServices)
+          ? restoredStep.autoSelectedLocalServices || []
+          : [];
+
+        // Consume only this tab's verified Add Service launch intent.
+        if (wizardName === "addService" && isEmpty(restoredServices)) {
+          const preselectedService = consumeAddServiceSelectionIntent({
+            clusterId: cluster?.cluster_id,
+            principal: loginName,
+          });
           
-          if (preselectedService && sortedServices[preselectedService]) {
-            const updatedServices = cloneDeep(sortedServices);
+          if (preselectedService && nextServices[preselectedService]) {
+            const updatedServices = cloneDeep(nextServices);
             updatedServices[preselectedService].selected = true;
             
             // Also select any co-selected services
@@ -376,19 +676,47 @@ export default function Step4({ wizardName = "clusterCreation" }) {
                 }
               }
             }
-            
-            setServices(updatedServices);
-            
-            // Clear the localStorage item after using it
-            localStorage.removeItem('preselectedService');
+            if (preselectedService === "HBASE" && !updatedServices.HBASE?.installed) {
+              nextManagedDependencies = localDependencyDefaults({});
+              nextAutoSelected = [];
+              dependencyTypes.forEach((dependencyType) => {
+                if (updatedServices[dependencyType] && !updatedServices[dependencyType].selected) {
+                  updatedServices[dependencyType].selected = true;
+                  if (!updatedServices[dependencyType].installed) {
+                    nextAutoSelected.push(dependencyType);
+                  }
+                }
+              });
+            }
+            nextServices = updatedServices;
           }
         }
-      } catch (error) {
-        console.error("Error fetching services data:", error);
+        updateServices(nextServices);
+        updateManagedDependencies(nextManagedDependencies);
+        updateAutoSelectedLocalServices(nextAutoSelected);
+      } catch (error: any) {
+        if (currentRequest) {
+          setCatalogError(String(
+            error?.response?.data?.message
+            || error?.message
+            || t("installer.step4.catalogLoadFailed"),
+          ));
+        }
+      } finally {
+        if (currentRequest) setCatalogLoading(false);
       }
     };
-    if (!stepData.services&&stack&&version) fetchServicesData();
-  }, [serviceContextLoading,stack,version]);
+    if (!serviceContextLoading && stack && version) void fetchServicesData();
+    return () => {
+      currentRequest = false;
+    };
+  }, [
+    catalogAttempt,
+    serviceContextLoading,
+    stack,
+    version,
+    installedServices.join("\u0000"),
+  ]);
 
 
   useEffect(() => {
@@ -404,18 +732,16 @@ export default function Step4({ wizardName = "clusterCreation" }) {
       return (
         Object.values(services).filter((service) => service.selected === true)
           .length === 0
+        || (hasFreshHBaseSelection(services) && dependencyTypes.some((dependencyType) =>
+          !choiceCanContinue(
+            managedDependencies[dependencyType],
+            Boolean(services[dependencyType]?.selected),
+          )))
       );
     };
 
     setNextDisabled(isNextDisabled());
-  }, [services]);
-
-  useEffect(() => {
-    console.log("Step Data is", stepData);
-    if (!isEmpty(stepData)) {
-      setServices(stepData.services);
-    }
-  }, []);
+  }, [managedDependencies, services]);
 
   const fileSystemColumns = [
     {
@@ -569,8 +895,26 @@ export default function Step4({ wizardName = "clusterCreation" }) {
   };
 
 
-  if (isEmpty(services)) {
+  if (catalogLoading || serviceContextLoading) {
     return <Spinner />;
+  }
+  if (catalogError) {
+    return (
+      <Alert variant="danger">
+        <div>{catalogError}</div>
+        <Button
+          className="mt-2"
+          onClick={() => setCatalogAttempt((attempt) => attempt + 1)}
+          size="sm"
+          variant="outline-danger"
+        >
+          {t("common.retry")}
+        </Button>
+      </Alert>
+    );
+  }
+  if (isEmpty(services)) {
+    return <Alert variant="info">{t("installer.step4.noServices")}</Alert>;
   }
 
   return (
@@ -601,6 +945,14 @@ export default function Step4({ wizardName = "clusterCreation" }) {
             )}
             columns={servicesColumns}
           />
+          {hasFreshHBaseSelection(services) && dependencyConsumer ? (
+            <ManagedDependencySelector
+              consumer={dependencyConsumer}
+              onSelectionChange={changeManagedDependency}
+              onPlanSelectionChange={changeManagedDependencyPlan}
+              selections={localDependencyDefaults(managedDependencies)}
+            />
+          ) : null}
         </div>
         <div></div>
         {errorStack.length > 0 && (

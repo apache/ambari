@@ -17,7 +17,30 @@
  */
 
 export type InstallWizardName = "clusterCreation" | "addHost" | "addService";
-export type InstallationPhase = "INSTALL" | "KEYTABS" | "START" | "COMPLETE";
+export type ManagedDependencyInstallTarget = {
+  serviceName: string;
+  componentName: string;
+  hostName: string;
+};
+
+export type ManagedDependencyInstallIntent = {
+  clusterId: number;
+  clusterName: string;
+  wizardName: InstallWizardName;
+  serviceNames: string[];
+  targets: ManagedDependencyInstallTarget[];
+  intentId: string;
+  state: "READY" | "SUBMITTING" | "SUBMITTED";
+  requestId?: string | number;
+  submissionStartedAt?: number;
+};
+
+export type InstallationPhase =
+  | "WAIT_FOR_PROVIDER_PREPARATION"
+  | "INSTALL"
+  | "KEYTABS"
+  | "START"
+  | "COMPLETE";
 
 export const terminalRequestStatuses = new Set([
   "ABORTED",

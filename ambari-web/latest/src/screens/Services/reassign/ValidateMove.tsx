@@ -17,13 +17,12 @@
  */
 
 
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import useStepWizard from "../../../hooks/useStepWizard";
 import Spinner from "../../../components/Spinner";
 import { ReassignProvider, ReassignContext } from "./store/context";
 import StepWizard from "../../../components/StepWizard";
 import Modal from "../../../components/Modal";
-import ClusterApi from "../../../api/clusterApi";
 import { useParams } from "react-router-dom";
 import { reassignSteps } from "./constants";
 import { ServiceContext } from "../../../store/ServiceContext";
@@ -130,9 +129,11 @@ function getSteps(componentName: string | undefined, hasManualCommands: boolean)
 function MoveWizard({
   componentName,
   hasManualCommands,
+  onCancelReady,
 }: {
   componentName: string | undefined;
   hasManualCommands: boolean;
+  onCancelReady: (cancel: () => Promise<void>) => void;
 }) {
   const stepWizardUtilities = useStepWizard(
     getSteps(componentName, hasManualCommands),
@@ -143,6 +144,7 @@ function MoveWizard({
     <ReassignProvider
       stepWizardUtilities={stepWizardUtilities}
       hasManualCommands={hasManualCommands}
+      onCancelReady={onCancelReady}
     >
       <ComponentNameInitializer componentName={componentName} />
       <StepWizard wizardUtilities={stepWizardUtilities} />
@@ -157,7 +159,7 @@ function ValidateMove({
 }) {
   const { componentName } = useParams();
   const { allModelsLoaded, allServiceModels } = useContext(ServiceContext);
-  const { allHostNames, clusterName, isAppLoaded, serviceComponentInfo } =
+  const { allHostNames, clusterName, isAppLoaded, serviceComponentInfo, navigateCluster } =
     useContext(AppContext);
   const [oozieEligibility, setOozieEligibility] = useState<{
     componentName?: string;
@@ -241,6 +243,7 @@ function ValidateMove({
   const canStartMove =
     !checkingForMovement && !manualCommandsError && validationErrors.length === 0;
   const [showModal, setShowModal] = useState(true);
+  const cancelWorkflowRef = useRef<(() => Promise<void>) | null>(null);
   const getModalBodyContent = () => {
     if (checkingForMovement) {
       return (
@@ -279,6 +282,9 @@ function ValidateMove({
       <MoveWizard
         componentName={componentName}
         hasManualCommands={hasManualCommands}
+        onCancelReady={(cancel) => {
+          cancelWorkflowRef.current = cancel;
+        }}
       />
     );
   };
@@ -288,22 +294,17 @@ function ValidateMove({
         <Modal
           isOpen={showModal}
           onClose={async () => {
-            // Clear persisted data on cancel/close
-            await ClusterApi.postPersistData(
-              JSON.stringify({
-                USER_REDIRECTION_URL: "",
-                REASSIGN_COMPONENT: JSON.stringify({}),
-                CLUSTER_STATE: JSON.stringify({}),
-              })
-            );
+            if (cancelWorkflowRef.current) {
+              await cancelWorkflowRef.current();
+            }
             setShowModal(false);
-            window.location.href = `/#/main/services/${serviceNameProp}/summary`;
+            navigateCluster(`/main/services/${serviceNameProp}/summary`);
           }}
           modalTitle={`Move ${componentName}`}
           modalBody={getModalBodyContent()}
           successCallback={() => {
             setShowModal(false);
-            window.location.href = `/#/main/services/${serviceNameProp}/summary`;
+            navigateCluster(`/main/services/${serviceNameProp}/summary`);
           }}
           options={{
             shouldShowFooter: canStartMove ? false : true,

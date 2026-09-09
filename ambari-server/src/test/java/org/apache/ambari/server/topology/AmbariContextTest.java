@@ -76,6 +76,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.spi.RepositoryType;
@@ -333,12 +334,14 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null);
+    String creationDraftId = "00000000-0000-0000-0000-000000000001";
+    context.createAmbariResources(topology, CLUSTER_NAME, null, null, null, creationDraftId);
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();
     assertEquals(CLUSTER_NAME, clusterRequest.getClusterName());
     assertEquals(String.format("%s-%s", STACK_NAME, STACK_VERSION), clusterRequest.getStackVersion());
+    assertEquals(creationDraftId, clusterRequest.getCreationDraftId());
 
     Collection<ServiceRequest> serviceRequests = serviceRequestCapture.getValue();
     assertEquals(2, serviceRequests.size());
@@ -390,6 +393,42 @@ public class AmbariContextTest {
     assertEquals("STARTED", startProperties.get(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID));
     assertEquals(new EqualsPredicate<>(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, CLUSTER_NAME),
         installPredicateCapture.getValue());
+  }
+
+  @Test
+  public void testServiceCreationReplayRepairsPartialComponentsWithoutMutatingBlueprint() throws Exception {
+    Service existingService = createMock(Service.class);
+    ServiceComponent existingComponent = createNiceMock(ServiceComponent.class);
+    expect(existingService.getServiceComponents()).andReturn(
+        Collections.singletonMap("s1Component1", existingComponent));
+    expect(cluster.getServices()).andReturn(clusterServices).anyTimes();
+
+    Capture<Set<ServiceRequest>> serviceRequests = EasyMock.newCapture();
+    Capture<Set<ServiceComponentRequest>> componentRequests = EasyMock.newCapture();
+    serviceResourceProvider.createServices(capture(serviceRequests));
+    expectLastCall().once();
+    componentResourceProvider.createComponents(capture(componentRequests));
+    expectLastCall().once();
+    expect(serviceResourceProvider.updateResources(anyObject(Request.class), anyObject(Predicate.class)))
+        .andReturn(null).times(2);
+
+    clusterServices.put("service1", existingService);
+    replay(existingService, existingComponent);
+    replayAll();
+    try {
+      context.createAmbariServiceAndComponentResources(topology, CLUSTER_NAME, STACK_ID, 1L);
+
+      assertEquals(Collections.singleton("service2"), serviceRequests.getValue().stream()
+          .map(ServiceRequest::getServiceName).collect(java.util.stream.Collectors.toSet()));
+      assertEquals(ImmutableSet.of("service1/s1Component2", "service2/s2Component1"),
+          componentRequests.getValue().stream()
+              .map(request -> request.getServiceName() + "/" + request.getComponentName())
+              .collect(java.util.stream.Collectors.toSet()));
+      assertEquals(ImmutableSet.of("service1", "service2"), new HashSet<>(blueprintServices));
+      verify(existingService, existingComponent);
+    } finally {
+      clusterServices.remove("service1");
+    }
   }
 
   @Test

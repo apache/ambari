@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,6 +43,8 @@ public class ClusterRequest {
   private List<ConfigurationRequest> configs;
   private ServiceConfigVersionRequest serviceConfigVersionRequest;
   private final Map<String, Object> sessionAttributes;
+  private String creationDraftId;
+  private TopologyRequestEntity topologyProvisioningIntent;
 
 
   // ----- Constructors ------------------------------------------------------
@@ -168,6 +171,24 @@ public class ClusterRequest {
 
   public void setServiceConfigVersionRequest(ServiceConfigVersionRequest serviceConfigVersionRequest) {
     this.serviceConfigVersionRequest = serviceConfigVersionRequest;
+  }
+
+  @ApiModelProperty(name = ClusterResourceProvider.CREATION_DRAFT_ID)
+  public String getCreationDraftId() {
+    return creationDraftId;
+  }
+
+  public void setCreationDraftId(String creationDraftId) {
+    this.creationDraftId = creationDraftId;
+  }
+
+  @ApiModelProperty(hidden = true)
+  public TopologyRequestEntity getTopologyProvisioningIntent() {
+    return topologyProvisioningIntent;
+  }
+
+  public void setTopologyProvisioningIntent(TopologyRequestEntity topologyProvisioningIntent) {
+    this.topologyProvisioningIntent = topologyProvisioningIntent;
   }
 
 }

@@ -46,9 +46,14 @@ import org.apache.ambari.server.controller.internal.ProvisionAction;
                 pkColumnValue = "topology_request_id_seq", initialValue = 0)
 @NamedQueries({
   @NamedQuery(name = "TopologyRequestEntity.findByClusterId", query = "SELECT req FROM TopologyRequestEntity req WHERE req.clusterId = :clusterId"),
+  @NamedQuery(name = "TopologyRequestEntity.findProvisionByClusterId", query = "SELECT req FROM TopologyRequestEntity req WHERE req.clusterId = :clusterId AND req.action = 'PROVISION'"),
   @NamedQuery(name = "TopologyRequestEntity.findProvisionRequests", query = "SELECT req FROM TopologyRequestEntity req WHERE req.action = 'PROVISION'"),
 })
 public class TopologyRequestEntity {
+  public static final String PROVISIONING_STATE_PENDING = "PENDING";
+  public static final String PROVISIONING_STATE_ACTIVE = "ACTIVE";
+  public static final String PROVISIONING_STATE_CANCELLED = "CANCELLED";
+
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "topology_request_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
@@ -85,6 +90,15 @@ public class TopologyRequestEntity {
   @Column(name = "provision_action", length = 255, nullable = true)
   @Enumerated(EnumType.STRING)
   private ProvisionAction provisionAction;
+
+  @Column(name = "repository_version_id", nullable = true)
+  private Long repositoryVersionId;
+
+  @Column(name = "specification_hash", length = 64, nullable = true)
+  private String specificationHash;
+
+  @Column(name = "provisioning_state", length = 32, nullable = true)
+  private String provisioningState;
 
   public Long getId() {
     return id;
@@ -164,6 +178,30 @@ public class TopologyRequestEntity {
 
   public void setProvisionAction(ProvisionAction provisionAction) {
     this.provisionAction = provisionAction;
+  }
+
+  public Long getRepositoryVersionId() {
+    return repositoryVersionId;
+  }
+
+  public void setRepositoryVersionId(Long repositoryVersionId) {
+    this.repositoryVersionId = repositoryVersionId;
+  }
+
+  public String getSpecificationHash() {
+    return specificationHash;
+  }
+
+  public void setSpecificationHash(String specificationHash) {
+    this.specificationHash = specificationHash;
+  }
+
+  public String getProvisioningState() {
+    return provisioningState;
+  }
+
+  public void setProvisioningState(String provisioningState) {
+    this.provisioningState = provisioningState;
   }
 
   @Override

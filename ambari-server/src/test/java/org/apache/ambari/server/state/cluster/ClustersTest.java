@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.fail;
 
+import java.lang.reflect.Field;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,8 +36,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -46,18 +55,25 @@ import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.events.HostRegisteredEvent;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.ScopedWorkflowStateDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ScopedWorkflowStateEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ClusterCreationContext;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -68,6 +84,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Configuration;
@@ -99,7 +116,15 @@ public class ClustersTest {
   @Inject
   private OrmTestHelper helper;
   @Inject
+  private DBAccessor dbAccessor;
+  @Inject
   private HostDAO hostDAO;
+
+  @Inject
+  private ClusterDAO clusterDAO;
+
+  @Inject
+  private ScopedWorkflowStateDAO scopedWorkflowStateDAO;
 
   @Inject
   private TopologyRequestDAO topologyRequestDAO;
@@ -209,6 +234,216 @@ public class ClustersTest {
 
     Assert.assertEquals(c1, clusters.getCluster(c1).getClusterName());
     Assert.assertEquals(securityType, clusters.getCluster(c1).getSecurityType());
+  }
+
+  @Test
+  public void testDraftCreationRecoversCommittedClusterAfterRegistrationFailure() throws Exception {
+    StackId stackId = new StackId("HDP-2.1.1");
+    helper.createStack(stackId);
+    String draftId = "00000000-0000-0000-0000-000000000001";
+    String scopeKey = "scoped:workflow:drafts:7:" + draftId;
+    scopedWorkflowStateDAO.updateWithLock(scopeKey, entity -> {
+      entity.setRevision(1L);
+      entity.setOwnerUserId(7);
+      entity.setOwnerName("creator");
+      entity.setWorkflow("CLUSTER_CREATE");
+      entity.setPhase("REVIEW");
+      entity.setPayload("{}");
+      return entity;
+    });
+    ClusterCreationContext context = new ClusterCreationContext(7, draftId, scopeKey);
+
+    Field clusterFactoryField = ClustersImpl.class.getDeclaredField("clusterFactory");
+    clusterFactoryField.setAccessible(true);
+    ClusterFactory realFactory = (ClusterFactory) clusterFactoryField.get(clusters);
+    clusterFactoryField.set(clusters, (ClusterFactory) entity -> {
+      throw new IllegalStateException("simulated in-memory registration failure");
+    });
+    try {
+      clusters.addCluster("draft-cluster", stackId, SecurityType.NONE, context);
+      fail("Expected the simulated registration failure");
+    } catch (IllegalStateException expected) {
+      Assert.assertTrue(expected.getMessage().contains("registration failure"));
+    } finally {
+      clusterFactoryField.set(clusters, realFactory);
+    }
+
+    ClusterEntity committed = clusterDAO.findByCreationDraft(7, draftId);
+    Assert.assertNotNull(committed);
+    Assert.assertNotNull(committed.getClusterStateEntity());
+    Assert.assertEquals(stackId.getStackName(),
+        committed.getClusterStateEntity().getCurrentStack().getStackName());
+    Assert.assertEquals(stackId.getStackVersion(),
+        committed.getClusterStateEntity().getCurrentStack().getStackVersion());
+    ScopedWorkflowStateEntity committedDraft = scopedWorkflowStateDAO.findByKey(scopeKey);
+    Assert.assertEquals(Long.valueOf(1), committedDraft.getRevision());
+    Assert.assertEquals("REVIEW", committedDraft.getPhase());
+    Assert.assertEquals(committed.getClusterId(), committedDraft.getCreatedClusterId());
+
+    scopedWorkflowStateDAO.updateWithLock(scopeKey, entity -> {
+      entity.setRevision(2L);
+      entity.setPhase("DEPLOYING");
+      return entity;
+    });
+
+    Cluster recovered = clusters.addCluster("draft-cluster", stackId, SecurityType.NONE, context);
+    Cluster retry = clusters.addCluster("draft-cluster", stackId, SecurityType.NONE, context);
+    Assert.assertEquals(committed.getClusterId(), recovered.getClusterId());
+    Assert.assertSame(recovered, retry);
+    Assert.assertEquals(Long.valueOf(2), scopedWorkflowStateDAO.findByKey(scopeKey).getRevision());
+    Assert.assertEquals("DEPLOYING", scopedWorkflowStateDAO.findByKey(scopeKey).getPhase());
+
+    try {
+      clusters.addCluster("different-name", stackId, SecurityType.NONE, context);
+      fail("Expected one draft to remain bound to its original cluster");
+    } catch (DuplicateResourceException expected) {
+      Assert.assertTrue(expected.getMessage().contains("different name, stack, or security type"));
+    }
+    Assert.assertEquals(committed.getClusterId(), clusterDAO.findByCreationDraft(7, draftId).getClusterId());
+
+    String retiredDraftId = "00000000-0000-0000-0000-000000000002";
+    String retiredScopeKey = "scoped:workflow:drafts:7:" + retiredDraftId;
+    scopedWorkflowStateDAO.updateWithLock(retiredScopeKey, entity -> {
+      entity.setRevision(1L);
+      entity.setOwnerUserId(7);
+      entity.setOwnerName("creator");
+      entity.setWorkflow("CLUSTER_CREATE");
+      entity.setPhase("REVIEW");
+      entity.setPayload("{}");
+      return entity;
+    });
+    ClusterCreationContext retiredContext =
+        new ClusterCreationContext(7, retiredDraftId, retiredScopeKey);
+    scopedWorkflowStateDAO.updateWithLock(retiredScopeKey, entity -> {
+      entity.setRevision(2L);
+      entity.setOwnerUserId(null);
+      entity.setOwnerName(null);
+      entity.setWorkflow("IDLE");
+      entity.setPhase("IDLE");
+      return entity;
+    });
+    try {
+      clusters.addCluster("retired-draft-cluster", stackId, SecurityType.NONE, retiredContext);
+      fail("Expected a draft released after validation to fail as a creation conflict");
+    } catch (DuplicateResourceException expected) {
+      Assert.assertTrue(expected.getMessage().contains("not active"));
+    }
+  }
+
+  @Test
+  public void testClusterAndTopologyIntentCommitAtomicallyAndRetryBySpecification() throws Exception {
+    StackId stackId = new StackId("HDP-2.1.1");
+    helper.createStack(stackId);
+    RepositoryVersionEntity repositoryVersion = helper.getOrCreateRepositoryVersion(
+        stackId, stackId.getStackVersion());
+    String draftId = "00000000-0000-0000-0000-000000000010";
+    String scopeKey = "scoped:workflow:drafts:7:" + draftId;
+    scopedWorkflowStateDAO.updateWithLock(scopeKey, entity -> {
+      entity.setRevision(1L);
+      entity.setOwnerUserId(7);
+      entity.setOwnerName("creator");
+      entity.setWorkflow("CLUSTER_CREATE");
+      entity.setPhase("REVIEW");
+      entity.setPayload("{}");
+      return entity;
+    });
+    ClusterCreationContext context = new ClusterCreationContext(7, draftId, scopeKey);
+
+    Cluster created = clusters.addCluster("durable-cluster", stackId, SecurityType.NONE,
+        context, topologyIntent(repositoryVersion.getId(), "same-specification"));
+
+    TopologyRequestEntity committed = topologyRequestDAO.findProvisionByClusterId(
+        created.getClusterId());
+    Assert.assertNotNull(committed);
+    Assert.assertEquals(repositoryVersion.getId(), committed.getRepositoryVersionId());
+    Assert.assertEquals("same-specification", committed.getSpecificationHash());
+    Assert.assertEquals(TopologyRequestEntity.PROVISIONING_STATE_PENDING,
+        committed.getProvisioningState());
+    Assert.assertNotNull(clusterDAO.findById(created.getClusterId()).getClusterStateEntity());
+
+    Cluster retry = clusters.addCluster("durable-cluster", stackId, SecurityType.NONE,
+        context, topologyIntent(repositoryVersion.getId(), "same-specification"));
+    Assert.assertSame(created, retry);
+    try {
+      clusters.addCluster("durable-cluster", stackId, SecurityType.NONE,
+          context, topologyIntent(repositoryVersion.getId(), "changed-specification"));
+      fail("Expected a changed topology retry to be rejected");
+    } catch (DuplicateResourceException expected) {
+      Assert.assertTrue(expected.getMessage().contains("differs from the durable request"));
+    }
+
+    committed.setProvisioningState(TopologyRequestEntity.PROVISIONING_STATE_CANCELLED);
+    topologyRequestDAO.merge(committed);
+    try {
+      clusters.addCluster("durable-cluster", stackId, SecurityType.NONE,
+          context, topologyIntent(repositoryVersion.getId(), "same-specification"));
+      fail("Expected a cancelled durable topology request to remain consumed");
+    } catch (DuplicateResourceException expected) {
+      Assert.assertTrue(expected.getMessage().contains("was cancelled"));
+    }
+
+    try {
+      clusters.addCluster("rolled-back-cluster", stackId, SecurityType.NONE, null,
+          topologyIntent(Long.MAX_VALUE, "invalid-repository"));
+      fail("Expected an invalid repository reference to roll back cluster creation");
+    } catch (RuntimeException expected) {
+      // The repository foreign key is the authoritative failure.
+    }
+    Assert.assertNull(clusterDAO.findByName("rolled-back-cluster"));
+  }
+
+  @Test
+  public void testTopologyIntentHashIsCanonicalAndDoesNotReadTransientCredentials() {
+    Map<String, Map<String, String>> firstProperties = new HashMap<>();
+    firstProperties.put("z-site", Map.of("z", "1"));
+    firstProperties.put("a-site", Map.of("a", "2"));
+    Map<String, Map<String, String>> reorderedProperties = new HashMap<>();
+    reorderedProperties.put("a-site", Map.of("a", "2"));
+    reorderedProperties.put("z-site", Map.of("z", "1"));
+    Map<String, Map<String, String>> changedProperties = new HashMap<>(reorderedProperties);
+    changedProperties.put("z-site", Map.of("z", "changed"));
+
+    ProvisionClusterRequest first = provisioningRequest(firstProperties);
+    ProvisionClusterRequest reordered = provisioningRequest(reorderedProperties);
+    ProvisionClusterRequest changed = provisioningRequest(changedProperties);
+
+    TopologyRequestEntity firstIntent = persistedState.prepareProvisioningIntent(first, 10L);
+    TopologyRequestEntity reorderedIntent = persistedState.prepareProvisioningIntent(reordered, 10L);
+    TopologyRequestEntity changedIntent = persistedState.prepareProvisioningIntent(changed, 10L);
+
+    Assert.assertEquals(firstIntent.getSpecificationHash(), reorderedIntent.getSpecificationHash());
+    Assert.assertFalse(firstIntent.getSpecificationHash().equals(changedIntent.getSpecificationHash()));
+    verify(first, reordered, changed);
+  }
+
+  private ProvisionClusterRequest provisioningRequest(Map<String, Map<String, String>> properties) {
+    ProvisionClusterRequest request = createMock(ProvisionClusterRequest.class);
+    Blueprint blueprint = createMock(Blueprint.class);
+    Configuration configuration = new Configuration(properties, Collections.emptyMap());
+    expect(request.getType()).andReturn(TopologyRequest.Type.PROVISION);
+    expect(request.getBlueprint()).andReturn(blueprint).times(2);
+    expect(blueprint.getName()).andReturn("test-blueprint");
+    expect(request.getConfiguration()).andReturn(configuration).times(2);
+    expect(request.getClusterId()).andReturn(null);
+    expect(request.getDescription()).andReturn("Provision canonical cluster");
+    expect(request.getProvisionAction()).andReturn(null);
+    expect(request.getHostGroupInfo()).andReturn(Collections.emptyMap());
+    replay(request, blueprint);
+    return request;
+  }
+
+  private TopologyRequestEntity topologyIntent(Long repositoryVersionId, String specificationHash) {
+    TopologyRequestEntity intent = new TopologyRequestEntity();
+    intent.setAction(TopologyRequest.Type.PROVISION.name());
+    intent.setBlueprintName("test-blueprint");
+    intent.setClusterProperties("{}");
+    intent.setClusterAttributes("{}");
+    intent.setDescription("Provision durable cluster");
+    intent.setRepositoryVersionId(repositoryVersionId);
+    intent.setSpecificationHash(specificationHash);
+    intent.setProvisioningState(TopologyRequestEntity.PROVISIONING_STATE_PENDING);
+    intent.setTopologyHostGroupEntities(Collections.emptyList());
+    return intent;
   }
 
   @Test
@@ -322,15 +557,23 @@ public class ClustersTest {
     Assert.assertEquals(c3, c4);
     Set<String> hostnames = new HashSet<>();
     hostnames.add(h1);
-    hostnames.add(h2);
+    hostnames.add(h3);
 
-    clusters.mapAndPublishHostsToCluster(hostnames, c2);
+    try {
+      clusters.mapAndPublishHostsToCluster(hostnames, c2);
+      fail("Expected exception for cross-cluster host mapping");
+    } catch (DuplicateResourceException e) {
+      Assert.assertTrue(e.getMessage().contains("already belongs to cluster c1"));
+      Assert.assertTrue(e.getMessage().contains("cannot be mapped to cluster c2"));
+    }
 
-    c = clusters.getClustersForHost(h1);
-    Assert.assertEquals(2, c.size());
+    Assert.assertEquals(1, clusters.getClustersForHost(h1).size());
+    Assert.assertEquals(c1, clusters.getClustersForHost(h1).iterator().next().getClusterName());
+    Assert.assertTrue(clusters.getClustersForHost(h3).isEmpty());
 
-    c = clusters.getClustersForHost(h2);
-    Assert.assertEquals(2, c.size());
+    clusters.mapHostToCluster(h3, c2);
+    Assert.assertEquals(1, clusters.getClustersForHost(h3).size());
+    Assert.assertEquals(c2, clusters.getClustersForHost(h3).iterator().next().getClusterName());
 
 
     // TODO write test for getHostsForCluster
@@ -340,6 +583,283 @@ public class ClustersTest {
     Assert.assertTrue(hostsForC1.containsKey(h2));
     Assert.assertNotNull(hostsForC1.get(h1));
     Assert.assertNotNull(hostsForC1.get(h2));
+  }
+
+  @Test
+  public void testConcurrentClusterHostMappingKeepsDatabaseAndCacheConsistent() throws Exception {
+    String clusterName1 = "concurrent-c1";
+    String clusterName2 = "concurrent-c2";
+    String hostName = "concurrent-host";
+    StackId stackId = new StackId("HDP-0.1");
+    helper.createStack(stackId);
+    clusters.addCluster(clusterName1, stackId);
+    clusters.addCluster(clusterName2, stackId);
+    clusters.addHost(hostName);
+
+    CountDownLatch ready = new CountDownLatch(2);
+    CountDownLatch start = new CountDownLatch(1);
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    try {
+      Future<String> first = executor.submit(() -> mapAfterBarrier(hostName, clusterName1, ready, start));
+      Future<String> second = executor.submit(() -> mapAfterBarrier(hostName, clusterName2, ready, start));
+      Assert.assertTrue("mapping threads did not become ready", ready.await(30, TimeUnit.SECONDS));
+      start.countDown();
+
+      List<String> results = Arrays.asList(first.get(30, TimeUnit.SECONDS), second.get(30, TimeUnit.SECONDS));
+      Assert.assertEquals(1, results.stream().filter(result -> result.startsWith("mapped:")).count());
+      Assert.assertEquals(1, results.stream().filter(result -> result.startsWith("conflict:")).count());
+
+      Set<Cluster> cachedClusters = clusters.getClustersForHost(hostName);
+      Assert.assertEquals(1, cachedClusters.size());
+      HostEntity persistedHost = hostDAO.findByName(hostName);
+      Assert.assertEquals(1, persistedHost.getClusterEntities().size());
+      Assert.assertEquals(cachedClusters.iterator().next().getClusterId(),
+          persistedHost.getClusterEntities().iterator().next().getClusterId());
+
+      long otherClusterId = cachedClusters.iterator().next().getClusterName().equals(clusterName1)
+          ? clusters.getCluster(clusterName2).getClusterId()
+          : clusters.getCluster(clusterName1).getClusterId();
+      try {
+        dbAccessor.executeUpdate(String.format(
+            "INSERT INTO ClusterHostMapping (cluster_id, host_id) VALUES (%d, %d)",
+            otherClusterId, persistedHost.getHostId()));
+        fail("Expected database unique constraint to reject a second host owner");
+      } catch (SQLException e) {
+        Assert.assertTrue(e.getMessage().contains("UQ_CLUSTERHOSTMAPPING_HOST_ID"));
+      }
+
+      resetClusterCache();
+      Set<Cluster> reloadedClusters = clusters.getClustersForHost(hostName);
+      Assert.assertEquals(1, reloadedClusters.size());
+      Assert.assertEquals(persistedHost.getClusterEntities().iterator().next().getClusterId(),
+          reloadedClusters.iterator().next().getClusterId());
+    } finally {
+      start.countDown();
+      executor.shutdownNow();
+    }
+  }
+
+  @Test
+  public void testConcurrentBatchMappingUsesConsistentLockOrder() throws Exception {
+    String clusterName1 = "batch-c1";
+    String clusterName2 = "batch-c2";
+    Set<String> hostNames = new HashSet<>(Arrays.asList("batch-host-1", "batch-host-2"));
+    StackId stackId = new StackId("HDP-0.1");
+    helper.createStack(stackId);
+    clusters.addCluster(clusterName1, stackId);
+    clusters.addCluster(clusterName2, stackId);
+    for (String hostName : hostNames) {
+      clusters.addHost(hostName);
+    }
+
+    CountDownLatch ready = new CountDownLatch(2);
+    CountDownLatch start = new CountDownLatch(1);
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    try {
+      Future<String> first = executor.submit(
+          () -> mapBatchAfterBarrier(hostNames, clusterName1, ready, start));
+      Future<String> second = executor.submit(
+          () -> mapBatchAfterBarrier(hostNames, clusterName2, ready, start));
+      Assert.assertTrue("batch mapping threads did not become ready", ready.await(30, TimeUnit.SECONDS));
+      start.countDown();
+
+      List<String> results = Arrays.asList(first.get(30, TimeUnit.SECONDS), second.get(30, TimeUnit.SECONDS));
+      Assert.assertEquals(1, results.stream().filter(result -> result.startsWith("mapped:")).count());
+      Assert.assertEquals(1, results.stream().filter(result -> result.startsWith("conflict:")).count());
+
+      String owner = null;
+      for (String hostName : hostNames) {
+        Set<Cluster> cachedClusters = clusters.getClustersForHost(hostName);
+        Assert.assertEquals(1, cachedClusters.size());
+        String currentOwner = cachedClusters.iterator().next().getClusterName();
+        if (owner == null) {
+          owner = currentOwner;
+        }
+        Assert.assertEquals(owner, currentOwner);
+        Assert.assertEquals(1, hostDAO.findByName(hostName).getClusterEntities().size());
+      }
+    } finally {
+      start.countDown();
+      executor.shutdownNow();
+    }
+  }
+
+  @Test
+  public void testReassignmentWaitsForUnmapCleanup() throws Exception {
+    String clusterName1 = "cleanup-c1";
+    String clusterName2 = "cleanup-c2";
+    String hostName = "cleanup-host";
+    StackId stackId = new StackId("HDP-0.1");
+    helper.createStack(stackId);
+    clusters.addCluster(clusterName1, stackId);
+    clusters.addCluster(clusterName2, stackId);
+    clusters.addHost(hostName);
+    clusters.mapHostToCluster(hostName, clusterName1);
+
+    HostEntity hostEntity = hostDAO.findByName(hostName);
+    CountDownLatch cleanupEntered = new CountDownLatch(1);
+    CountDownLatch releaseCleanup = new CountDownLatch(1);
+    ConfigGroup blockingConfigGroup = createNiceMock(ConfigGroup.class);
+    expect(blockingConfigGroup.getId()).andReturn(501L).anyTimes();
+    blockingConfigGroup.removeHost(hostEntity.getHostId());
+    org.easymock.EasyMock.expectLastCall().andAnswer(() -> {
+      cleanupEntered.countDown();
+      Assert.assertTrue("unmap cleanup release timed out", releaseCleanup.await(30, TimeUnit.SECONDS));
+      return null;
+    });
+    replay(blockingConfigGroup);
+    clusters.getCluster(clusterName2).addConfigGroup(blockingConfigGroup);
+
+    CountDownLatch mapStarted = new CountDownLatch(1);
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    try {
+      Future<Void> unmap = executor.submit(() -> {
+        clusters.unmapHostFromCluster(hostName, clusterName1);
+        return null;
+      });
+      Assert.assertTrue("unmap did not reach relationship cleanup",
+          cleanupEntered.await(30, TimeUnit.SECONDS));
+
+      Future<Void> remap = executor.submit(() -> {
+        mapStarted.countDown();
+        clusters.mapHostToCluster(hostName, clusterName2);
+        return null;
+      });
+      Assert.assertTrue("remap thread did not start", mapStarted.await(30, TimeUnit.SECONDS));
+      try {
+        remap.get(250, TimeUnit.MILLISECONDS);
+        fail("Remap completed before the previous cluster cleanup finished");
+      } catch (TimeoutException expected) {
+        // The host lock keeps reassignment behind all cleanup for its previous owner.
+      }
+
+      releaseCleanup.countDown();
+      unmap.get(30, TimeUnit.SECONDS);
+      remap.get(30, TimeUnit.SECONDS);
+
+      Set<Cluster> cachedClusters = clusters.getClustersForHost(hostName);
+      Assert.assertEquals(1, cachedClusters.size());
+      Assert.assertEquals(clusterName2, cachedClusters.iterator().next().getClusterName());
+      HostEntity persistedHost = hostDAO.findByName(hostName);
+      Assert.assertEquals(1, persistedHost.getClusterEntities().size());
+      Assert.assertEquals(clusterName2,
+          persistedHost.getClusterEntities().iterator().next().getClusterName());
+      org.easymock.EasyMock.verify(blockingConfigGroup);
+    } finally {
+      releaseCleanup.countDown();
+      executor.shutdownNow();
+    }
+  }
+
+  @Test
+  public void testUnmapDatabaseFailurePreservesMembershipCache() throws Exception {
+    String clusterName = "failed-unmap-cluster";
+    String hostName = "failed-unmap-host";
+    StackId stackId = new StackId("HDP-0.1");
+    helper.createStack(stackId);
+    clusters.addCluster(clusterName, stackId);
+    clusters.addHost(hostName);
+    clusters.mapHostToCluster(hostName, clusterName);
+
+    HostDAO realHostDAO = replaceHostDAOWithFailingRemoval(hostName,
+        clusters.getCluster(clusterName).getClusterId());
+    try {
+      try {
+        clusters.unmapHostFromCluster(hostName, clusterName);
+        fail("Expected unmap persistence failure");
+      } catch (PersistenceException expected) {
+        // Expected.
+      }
+      assertCachedOwner(hostName, clusterName);
+    } finally {
+      setClustersHostDAO(realHostDAO);
+    }
+    Assert.assertEquals(clusterName,
+        hostDAO.findByName(hostName).getClusterEntities().iterator().next().getClusterName());
+  }
+
+  @Test
+  public void testDeleteHostDatabaseFailurePreservesHostAndMembershipCache() throws Exception {
+    String clusterName = "failed-delete-cluster";
+    String hostName = "failed-delete-host";
+    StackId stackId = new StackId("HDP-0.1");
+    helper.createStack(stackId);
+    clusters.addCluster(clusterName, stackId);
+    clusters.addHost(hostName);
+    clusters.mapHostToCluster(hostName, clusterName);
+
+    HostDAO realHostDAO = replaceHostDAOWithFailingRemoval(hostName,
+        clusters.getCluster(clusterName).getClusterId());
+    try {
+      try {
+        clusters.deleteHost(hostName);
+        fail("Expected host deletion persistence failure");
+      } catch (PersistenceException expected) {
+        // Expected.
+      }
+      Assert.assertTrue(clusters.hostExists(hostName));
+      assertCachedOwner(hostName, clusterName);
+    } finally {
+      setClustersHostDAO(realHostDAO);
+    }
+    Assert.assertNotNull(hostDAO.findByName(hostName));
+    Assert.assertEquals(clusterName,
+        hostDAO.findByName(hostName).getClusterEntities().iterator().next().getClusterName());
+  }
+
+  private String mapAfterBarrier(String hostName, String clusterName, CountDownLatch ready,
+      CountDownLatch start) throws Exception {
+    ready.countDown();
+    Assert.assertTrue("mapping start barrier timed out", start.await(30, TimeUnit.SECONDS));
+    try {
+      clusters.mapHostToCluster(hostName, clusterName);
+      return "mapped:" + clusterName;
+    } catch (DuplicateResourceException e) {
+      return "conflict:" + e.getMessage();
+    }
+  }
+
+  private String mapBatchAfterBarrier(Set<String> hostNames, String clusterName, CountDownLatch ready,
+      CountDownLatch start) throws Exception {
+    ready.countDown();
+    Assert.assertTrue("batch mapping start barrier timed out", start.await(30, TimeUnit.SECONDS));
+    try {
+      clusters.mapAndPublishHostsToCluster(hostNames, clusterName);
+      return "mapped:" + clusterName;
+    } catch (DuplicateResourceException e) {
+      return "conflict:" + e.getMessage();
+    }
+  }
+
+  private void resetClusterCache() throws Exception {
+    for (String fieldName : Arrays.asList("clustersByName", "clustersById", "hostsByName", "hostsById",
+        "hostClustersMap", "clusterHostsMap1")) {
+      java.lang.reflect.Field field = ClustersImpl.class.getDeclaredField(fieldName);
+      field.setAccessible(true);
+      field.set(clusters, null);
+    }
+  }
+
+  private HostDAO replaceHostDAOWithFailingRemoval(String hostName, long clusterId) throws Exception {
+    HostDAO failingHostDAO = createMock(HostDAO.class);
+    failingHostDAO.removeClusterMapping(hostName, clusterId);
+    org.easymock.EasyMock.expectLastCall().andThrow(new PersistenceException("injected failure"));
+    replay(failingHostDAO);
+    HostDAO realHostDAO = hostDAO;
+    setClustersHostDAO(failingHostDAO);
+    return realHostDAO;
+  }
+
+  private void setClustersHostDAO(HostDAO replacement) throws Exception {
+    java.lang.reflect.Field field = ClustersImpl.class.getDeclaredField("hostDAO");
+    field.setAccessible(true);
+    field.set(clusters, replacement);
+  }
+
+  private void assertCachedOwner(String hostName, String clusterName) throws Exception {
+    Set<Cluster> cachedClusters = clusters.getClustersForHost(hostName);
+    Assert.assertEquals(1, cachedClusters.size());
+    Assert.assertEquals(clusterName, cachedClusters.iterator().next().getClusterName());
   }
 
   @Test
@@ -490,6 +1010,13 @@ public class ClustersTest {
     Assert.assertEquals(1, topologyRequestDAO.findByClusterId(cluster.getClusterId()).size());
 
     clusters.deleteCluster(c1);
+
+    try {
+      clusters.getClusterById(cluster.getClusterId());
+      fail("Deleted cluster remained addressable by ID");
+    } catch (ClusterNotFoundException expected) {
+      // Expected.
+    }
 
     Assert.assertEquals(2, hostDAO.findAll().size());
     Assert.assertNull(injector.getInstance(HostComponentStateDAO.class).findByIndex(

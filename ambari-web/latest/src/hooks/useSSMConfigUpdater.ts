@@ -32,8 +32,7 @@ export const useSSMConfigUpdater = () => {
     masterSlaveClientsData,
     serviceStatesData,
   } = useContext(ServiceContext);
-  const { services } = useContext(AppContext);
-  const { parsedSocketMessages } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
   //@ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
   //const vdpStackVersion = get(cluster, "version", "").split("-")[1];
@@ -48,7 +47,7 @@ export const useSSMConfigUpdater = () => {
   const fetchSSMMasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
     
-    let ssmComponentsData = cachedServiceApi.getServiceComponentData("SSM");
+    let ssmComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "SSM");
     
     if (!ssmComponentsData) {
       ssmComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -224,7 +223,7 @@ export const useSSMConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("SSM", "ssm", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "SSM", "ssm", allServiceModels, updateRegistry);
   };
   const parseAlertsWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;

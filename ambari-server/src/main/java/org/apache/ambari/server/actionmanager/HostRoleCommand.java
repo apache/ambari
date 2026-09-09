@@ -67,6 +67,7 @@ public class HostRoleCommand {
   private RoleCommand roleCommand;
   private String commandDetail;
   private String customCommandName;
+  private boolean futureCommand;
   private ExecutionCommandWrapper executionCommandWrapper;
   private boolean isBackgroundCommand = false;
   private String opsDisplayName;
@@ -310,6 +311,14 @@ public class HostRoleCommand {
 
   public void setCustomCommandName(String customCommandName) {
     this.customCommandName = customCommandName;
+  }
+
+  public boolean isFutureCommand() {
+    return futureCommand;
+  }
+
+  public void setFutureCommand(boolean futureCommand) {
+    this.futureCommand = futureCommand;
   }
 
   public HostRoleStatus getStatus() {

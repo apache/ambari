@@ -65,7 +65,7 @@ export default function HawqStandbyWizard({ mode }: { mode: HawqStandbyMode }) {
         controllerName={`${mode}HawqStandbyWizardController`}
         progressStatus={storageKey}
         progressStepIndex={mode === "add" ? 3 : 2}
-        summaryUrl="/#/main/services/HAWQ/summary"
+        summaryPath="/main/services/HAWQ/summary"
         stepWizardUtilities={wizardUtilities}
       >
         <StepWizard

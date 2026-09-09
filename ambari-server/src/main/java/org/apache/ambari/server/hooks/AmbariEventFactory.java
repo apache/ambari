@@ -29,5 +29,5 @@ import com.google.inject.name.Named;
 public interface AmbariEventFactory {
 
   @Named("userCreated")
-  AmbariEvent newUserCreatedEvent(HookContext context);
+  AmbariEvent newUserCreatedEvent(HookContext context, long clusterId);
 }

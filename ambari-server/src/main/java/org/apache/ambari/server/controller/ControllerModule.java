@@ -63,6 +63,8 @@ import org.apache.ambari.server.configuration.AmbariServerConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.controller.dependencies.PersistedManagedHBaseKerberosLivePlanProvider;
+import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosLivePlanProvider;
 import org.apache.ambari.server.controller.internal.AlertTargetResourceProvider;
 import org.apache.ambari.server.controller.internal.AuthResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProvider;
@@ -337,6 +339,8 @@ public class ControllerModule extends AbstractModule {
     bind(KerberosDescriptorFactory.class);
     bind(KerberosServiceDescriptorFactory.class);
     bind(KerberosHelper.class).to(KerberosHelperImpl.class);
+    bind(ManagedHBaseKerberosLivePlanProvider.class)
+        .to(PersistedManagedHBaseKerberosLivePlanProvider.class);
 
     bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
     bind(EncryptionService.class).to(AESEncryptionService.class);

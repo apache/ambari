@@ -29,6 +29,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -99,6 +100,9 @@ public class ConfigImpl implements Config {
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
 
+  @Inject
+  private ManagedDependencyConfigPolicy managedDependencyConfigPolicy;
+
   private final AmbariEventPublisher eventPublisher;
 
   @AssistedInject
@@ -139,7 +143,7 @@ public class ConfigImpl implements Config {
 
     this.cluster = cluster;
     this.type = type;
-    this.properties = properties;
+    this.properties = properties == null ? null : new HashMap<>(properties);
     configPropertiesEncryptor.encryptSensitiveData(this);
 
     // only set this if it's non-null
@@ -320,12 +324,15 @@ public class ConfigImpl implements Config {
 
   @Override
   public void setProperties(Map<String, String> properties) {
-    propertyLock.writeLock().lock();
-    try {
-      this.properties = properties;
-    } finally {
-      propertyLock.writeLock().unlock();
-    }
+    executeUnderClusterWriteLock(() -> {
+      validateManagedDependencyMutation(properties);
+      propertyLock.writeLock().lock();
+      try {
+        this.properties = properties == null ? null : new HashMap<>(properties);
+      } finally {
+        propertyLock.writeLock().unlock();
+      }
+    });
   }
 
   @Override
@@ -335,12 +342,17 @@ public class ConfigImpl implements Config {
 
   @Override
   public void updateProperties(Map<String, String> propertiesToUpdate) {
-    propertyLock.writeLock().lock();
-    try {
-      properties.putAll(propertiesToUpdate);
-    } finally {
-      propertyLock.writeLock().unlock();
-    }
+    executeUnderClusterWriteLock(() -> {
+      propertyLock.writeLock().lock();
+      try {
+        Map<String, String> proposed = new HashMap<>(properties);
+        proposed.putAll(propertiesToUpdate);
+        validateManagedDependencyMutation(proposed);
+        properties = proposed;
+      } finally {
+        propertyLock.writeLock().unlock();
+      }
+    });
   }
 
   @Override
@@ -355,13 +367,17 @@ public class ConfigImpl implements Config {
 
   @Override
   public void deleteProperties(List<String> propertyKeysToRemove) {
-    propertyLock.writeLock().lock();
-    try {
-      Set<String> keySet = properties.keySet();
-      keySet.removeAll(propertyKeysToRemove);
-    } finally {
-      propertyLock.writeLock().unlock();
-    }
+    executeUnderClusterWriteLock(() -> {
+      propertyLock.writeLock().lock();
+      try {
+        Map<String, String> proposed = new HashMap<>(properties);
+        proposed.keySet().removeAll(propertyKeysToRemove);
+        validateManagedDependencyMutation(proposed);
+        properties = proposed;
+      } finally {
+        propertyLock.writeLock().unlock();
+      }
+    });
   }
 
   /**
@@ -407,30 +423,39 @@ public class ConfigImpl implements Config {
    * {@inheritDoc}
    */
   @Override
-  @Transactional
   public void save() {
-    ClusterConfigEntity entity = clusterDAO.findConfig(configId);
+    executeUnderClusterWriteLock(() -> {
+      Map<String, String> currentProperties = getProperties();
+      validateManagedDependencyMutation(currentProperties);
+      String serializedProperties = gson.toJson(currentProperties);
+      if (clusterDAO.updateConfigData(configId, serializedProperties)) {
+        LOG.debug("Updating {} version {} with new configurations; a new version will not be created",
+            getType(), getVersion());
 
-    // if the configuration was found, then update it
-    if (null != entity) {
-      ClusterEntity clusterEntity = clusterDAO.findById(entity.getClusterId());
-      LOG.debug("Updating {} version {} with new configurations; a new version will not be created",
-          getType(), getVersion());
+        // re-load the entity associations for the cluster
+        cluster.refresh();
 
-      entity.setData(gson.toJson(getProperties()));
+        // broadcast the change event for the configuration
+        ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
+            getType(), getTag(), getVersion());
 
-      // save the entity, forcing a flush to ensure the refresh picks up the
-      // newest data
-      clusterDAO.merge(clusterEntity, true);
+        eventPublisher.publish(event);
+      }
+    });
+  }
 
-      // re-load the entity associations for the cluster
-      cluster.refresh();
+  private void executeUnderClusterWriteLock(Runnable operation) {
+    if (cluster == null) {
+      operation.run();
+    } else {
+      cluster.executeUnderWriteLock(operation);
+    }
+  }
 
-      // broadcast the change event for the configuration
-      ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),
-          getType(), getTag(), getVersion());
-
-      eventPublisher.publish(event);
+  private void validateManagedDependencyMutation(Map<String, String> proposed) {
+    if (cluster != null && managedDependencyConfigPolicy != null) {
+      managedDependencyConfigPolicy.validateConfigMutation(cluster, type, tag,
+          proposed == null ? Map.of() : proposed);
     }
   }
 }
