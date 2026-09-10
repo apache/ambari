@@ -26,10 +26,13 @@ revision. Sections 5–6 and 8 describe the current remediation and remaining ga
 The three-pass completion audit below records subsequent corrections against the
 original checklist; historical defects are not claims that those fixes are absent.
 
-Current worktree validation: **205 Java tests, 91 frontend tests and 31 Python tests
-passed**. Java compilation passed. Full TypeScript checking still reports 49
-baseline errors (52 at reviewed HEAD, no new normalized diagnostic). Real
-independent clusters, KDC, browser/broker and process-kill acceptance remain open.
+The initial remediation batch passed 205 Java, 91 frontend and 31 Python tests.
+Subsequent packaging corrections made full TypeScript checking and the native RPM
+build pass. The runtime follow-up at the end of this document is the current
+acceptance record: two real three-host Hadoop clusters, distinct-user REST/STOMP
+isolation and actual browser route rejection have passed. Cross-cluster HBase
+installation is still under repair; provider lifecycle and KDC acceptance remain
+open. Runtime results use the recorded RPM plus explicit incremental overlays.
 
 ## 1. Overall conclusion
 
@@ -834,3 +837,431 @@ verify construction defers both heavyweight dependencies; DAO/metadata are test
 providers. Its first run failed because `toInstance` injected members of Mockito
 objects and required unrelated database bindings; the corrected setup uses provider
 bindings. Actual full-container startup is the production-graph evidence.
+
+
+#### Six-node runtime checkpoint and production corrections (2026-09-10)
+
+The isolated Docker project is `ambari-mc-api-675d4b1dcc-a63c939d`. A `mc_api_test`
+(cluster ID 2) owns worker1..3; B `mc_api_b` (ID 3) owns worker4..6. All six Agents
+registered before B creation; the second three were initially unassigned. B was
+created and extended through private API acceptance code, not a deploy add-service
+command. The two clusters have separate Cluster/Host memberships and Hadoop
+service records. Native installation does not by itself prove service health.
+
+| Scenario | Actual result at this checkpoint | Remaining gate |
+| --- | --- | --- |
+| Initial A / API-created B | A request 1 completed (52 logical tasks). B original request 10 aborted; explicit reinstall 21 and start 22 completed. | All-service workload checks remain separate. |
+| Server restart during B start | Request 22 completed across a deliberate Server restart after the heartbeat correction. | Hard kill at each managed transaction boundary is not covered by this single restart. |
+| Distinct users and host isolation | Each CLUSTER.USER sees only its own cluster; foreign reads/writes return 403, foreign scoped request returns 404, duplicate host attachment returns 409. | Revocation during an active workload and all database dialects remain open. |
+| Real STOMP delivery | Concurrent A/B ZooKeeper checks 95/96 completed; each authenticated subscription received only its own request events. A subscription to B task 302 received ERROR. | Broker revocation/reconnect matrix remains open. |
+| Real React route guard | Headless Chrome logged in as mc_a_viewer, rendered A's three hosts and rejected B's explicit route with Cluster access unavailable; no B hosts appeared. | Back/Forward, two-tab switching and complete Add Service browser execution remain open. |
+| B provider preparation for A HBase | Approved HDFS/ZooKeeper snapshot 3 preparations, requests 102/104, completed on B. | Provider preparation is not consumer readiness or HBase health. |
+| Lost launch response | Deliberately discarded the launch response; GET and identical POST recovered deployment fbf55091-113d-49fa-81f9-337054efa4ef without request scanning. | Lost acknowledged installation lineage still requires its separate acceptance case. |
+| HBase installation and recovery | Original deployment and failed request history retained. Request 107 failed in a common hook; request 110 advanced into HBase configuration and failed package-parent ownership validation. Explicit API retries use saved attempt UUIDs. | Cross-cluster HBase START/read-write and lifecycle acceptance remain open while these runtime corrections are exercised. |
+| Kerberos completion | Production callbacks and exact task association have source/focused coverage. | No KDC execution in this unsecured six-node topology; not accepted as runtime verified. |
+
+The following P1 findings extend R3/R5/R6/R9. They were discovered through actual
+production callers and must not be erased by later successful retries:
+
+- **Restart heartbeat baseline:** restored hosts have no current-process heartbeat.
+  The monitor previously declared them lost immediately and aborted active work.
+  It now starts an observation window for the process and retains actual heartbeat
+  timing and already-lost status. `HeartbeatMonitorRecoveryTest` verifies the clock
+  boundary; real request 22 establishes one restart path. Existing deployments also
+  benefit from the bounded startup window; it does not revive an already-lost host.
+- **PostgreSQL persistence contract:** the Boolean field used a SMALLINT production
+  column; queued JPA parent/child inserts also violated real immediate foreign keys.
+  The entity uses numeric storage with a Boolean API, and DAO flushes binding,
+  snapshot/operation and host-result publication in dependency order inside one
+  transaction. Detach deletes children first. Real PostgreSQL binding creation and
+  H2 tests using production FK declarations cover the correction, including rollback
+  of flushed parents. Other database dialects still require their migration gate.
+- **Action publication envelope:** internal dependency identity was present only in
+  stage parameters, merged after ActionDB tried to associate the task. The command
+  helper now copies the reserved envelope before atomic task/lineage publication;
+  a reserved task without identity is rejected in that transaction. Old orphan
+  requests were selected by their exact structured binding UUIDs and canceled through
+  API; their rows were not repaired or associated heuristically. Helper stage tests,
+  ActionDB rollback tests and actual provider tasks cover the production boundary.
+- **Journal operation ownership:** CREATE intentionally retains one operation UUID
+  across prepare-journal, initialize-journal and provision. The Agent treated each
+  changed step hash as UUID misuse. It now validates explicit legal step transitions
+  under the same epoch/snapshot/operation and retains exact-step idempotency. UPDATE
+  provisions through the existing journal on its pinned host, rather than creating
+  a new journal challenge. Filesystem tests cover forward transitions, mismatched
+  identities, replay and old-epoch fencing; provider requests 102/104 exercised UPDATE.
+- **Approved pre-install recovery:** a changed approved provider snapshot stranded a
+  deployment before it published any INSTALL. Retry can adopt current approvals only
+  when all original targets remain INIT and no current/historical request exists.
+  The original plan stays immutable; progress stores current approved binding versions
+  and previous attempts retain their approval lineage. Missing acknowledged request
+  history never qualifies. A mock initially hid `plan_json` being non-updatable;
+  the final regression uses a real deployment DAO, clears the persistence context,
+  reloads, and replays the same retry UUID. This adds no second workflow owner.
+- **Agent/package integration:** ZooKeeper/HBase shell calls used unsupported
+  `environment=` instead of native `env=`; the mock accepted arbitrary keywords.
+  A regression now calls the real shell wrapper while mocking only process execution.
+  Fresh HDFS lacked `/apps`; provider provisioning now creates that controlled parent
+  as the HDFS administrator after root validation and rejects unsafe existing parents.
+  BIGTOP 3.3 HBase overrides its parent package list, so it must explicitly include
+  the matching Hadoop client package (also inherited by 3.4). No local HDFS daemon or
+  service is added by this client package declaration.
+- **Shared hook versus HBase profile ownership:** replacing execution core/hdfs-site
+  with the reduced provider client map removed hook-required local properties and
+  could make shared hooks render provider settings into local Hadoop configuration.
+  Provider maps now remain solely in the immutable bundle and HBase's dedicated
+  profile; common hooks retain consumer-local maps. The HBase entrypoint also takes
+  the package-created configuration parent into its existing root ownership before
+  invoking the protected profile transaction. Symbolic-link parents are rejected;
+  profile ownership checks remain strict. Real filesystem ownership-transition and
+  planner regressions cover these boundaries, in addition to ongoing installation.
+
+Focused commands executed against incrementally compiled classes (not stale
+Surefire output):
+
+```sh
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ServiceDependencyDAOIntegrationTest,AmbariCustomCommandExecutionHelperTest,ManagedDependencyRuntimePlannerTest,ManagedDependencyOperationDispatcherTest org.apache.maven.plugins:maven-surefire-plugin:test
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ServiceDependencyDAOIntegrationTest,ManagedDependencyOperationDispatcherTest,ManagedServiceDependencyCoordinatorTest,ManagedDependencyTaskResultProcessorTest org.apache.maven.plugins:maven-surefire-plugin:test
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ManagedDependencyDeploymentCoordinatorTest,ServiceDependencyDAOIntegrationTest org.apache.maven.plugins:maven-surefire-plugin:test
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ManagedDependencyRuntimePlannerTest,AmbariCustomCommandExecutionHelperTest org.apache.maven.plugins:maven-surefire-plugin:test
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python python3 -B -m unittest discover -s ambari-agent/src/test/python/resource_management -p TestManagedDependency.py -q
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestManaged*DependencyBigtop.py' -q
+```
+
+Results in command order: 57, 58, 44 and 26 Java tests passed; 17 Agent protocol
+and 52 stack Python tests passed. These overlapping runs are not additive totals.
+The 52-test Python run performs the package-parent ownership transition as root;
+that individual test explicitly skips on an unprivileged runner. Expected child
+process rejection traces in the concurrency test do not indicate a suite failure.
+Earlier failed runs and private API receipts remain retained under the external
+runtime-api directory and `/tmp/ambari-runtime-*.log`. Credentials, command payloads
+and browser profiles are excluded from repository evidence. Subsequent acceptance
+updates below supersede only the stated gates, not these historical failures.
+
+
+The next installation attempts exposed further bootstrap dependencies. BIGTOP
+service metadata includes package release (`3.3.6-1`), whereas the installed CLI
+reports upstream software (`3.3.6`). Initial and retry planners now derive that
+expectation from the same approved metadata; the original snapshot and failed
+command remain unchanged. Preparation software/package expectations belong to
+an epoch, while provider configuration/security fingerprints remain snapshot-owned.
+A new epoch requires fresh observation and verification. Same-epoch command
+changes and old-epoch rollback remain rejected by the Agent profile store.
+
+HBase INSTALL now selects its installed stack links before invoking preparation,
+using the existing selector with a process lock and the exact installation or
+repository version. The version probe also exposed BIGTOP's layout defaulting to
+unversioned `/usr/lib` when the isolated profile has no hadoop-env.sh. Binary
+locations now come from stack_select into the HDFS subprocess environment; approved
+provider XML remains isolated, and no local or provider shell configuration is
+copied into the profile. An actual container invocation with those layout variables
+and the managed profile returned Hadoop 3.3.6 successfully.
+
+After a retry's publication failed, the deployment previously cleared its current
+request ID and failed to reuse the prior INSTALL receipt for a subsequent retry.
+It now retrieves that exact ID from its own durable history; the coordinator still
+validates owner and terminal tasks. The missing-lineage UNRESOLVED state does not
+become retryable. The original plan stays immutable, and retry UUID replay does
+not create another epoch. This supplements R3/R5 without a second orchestrator.
+
+Additional executed validation:
+
+```sh
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ManagedDependencyRuntimePlannerTest,ManagedDependencyCommandTest org.apache.maven.plugins:maven-surefire-plugin:test
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ManagedDependencyRuntimePlannerTest,ManagedDependencyDeploymentCoordinatorTest,ManagedServiceDependencyCoordinatorTest,ServiceDependencyDAOIntegrationTest,ManagedDependencyOperationDispatcherTest,ManagedDependencyTaskResultProcessorTest org.apache.maven.plugins:maven-surefire-plugin:test
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ManagedDependencyRuntimePlannerTest org.apache.maven.plugins:maven-surefire-plugin:test
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python:ambari-server/src/main/resources/stacks python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestHbaseBigtop*.py' -q
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestManaged*DependencyBigtop.py' -q
+```
+
+Results: 29, 86 and 10 Java tests passed, respectively; 61 HBase and 53 managed
+stack Python tests passed. The initial HBase suite failed because its PYTHONPATH
+omitted the real stack_advisor module and package expectations lacked the managed
+Hadoop client. The final command supplies the module path and checks the complete
+actual package lists. These overlapping results are not an aggregate count.
+
+
+#### Structured client observations and completed cross-cluster HBase (2026-09-10)
+
+This checkpoint supersedes the unfinished HBase rows above without discarding
+failed receipts. Deployment `fbf55091-113d-49fa-81f9-337054efa4ef` is COMPLETE:
+INSTALL 117, consumer preparation and verification at epoch 11, START 138,
+service check 145/task 602. Both bindings are READY against provider cluster 3;
+consumer cluster 2 retained its original local core-site/hdfs-site. The service
+check ran on worker3 and used actual HBase SDK Put/Get with byte equality.
+
+The original R3/R5/R6/R9 checklist exposed two additional integration defects:
+
+- **P1: human-readable CLI output was treated as authoritative state.** HDFS
+  stat/ACL/count/version parsing could confuse stderr diagnostics with permissions
+  or treat an RPC failure as path absence. `ManagedDependencyClient` now obtains
+  observations and performs bounded mutations through the installed Hadoop SDK;
+  `managed_dependency_client.py` validates a versioned JSON schema, exact command
+  envelope, operation and typed fields. Provider journal steps remain in Python;
+  persistent workflow remains in the Server. Hadoop/HBase versions come from
+  their VersionInfo APIs. ZooKeeper continues using its SDK; its helper now works
+  with the actual HBase Commons CLI 1.2 classpath. The source rule is in AGENTS.md.
+  A foreign or corrupt existing probe is never silently deleted or accepted.
+- **P1: the deployment published an unsupported generic service-check command.**
+  Real `AmbariCustomCommandExecutionHelper.validateAction` rejected SERVICE_CHECK,
+  while mock publication accepted it. The coordinator now uses ActionMetadata's
+  registered command, stores one exact service/request receipt at a time, and
+  resumes remaining checks from the same attempt after restart. Missing check
+  history is UNRESOLVED. HBase smoke checks use unique operation-owned tables and
+  an SDK-written receipt; no substring of shell output establishes success.
+
+Focused validation actually executed after partial javac:
+
+```sh
+mvn -B -pl ambari-agent -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dcommons-cli.version=1.2 -Dtest=ManagedDependencyClientTest,ManagedDependencyZkTest,ZkConnectionTest org.apache.maven.plugins:maven-surefire-plugin:test
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ManagedDependencyDeploymentCoordinatorTest org.apache.maven.plugins:maven-surefire-plugin:test
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestManaged*DependencyBigtop.py' -q
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python:ambari-server/src/main/resources/stacks python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestHbaseBigtop*.py' -q
+```
+
+Results: 10 Agent Java, 20 coordinator Java, 54 managed Python and 61 HBase Python
+passed. Java tests include actual local filesystem IO and a real ZooKeeper server;
+Python tests exercise structured failures, stale/foreign identity, invalid types,
+noise and recovery. Local filesystem tests do not establish DataNode or ACL
+behavior; live epoch-11 verification provides the actual provider-HDFS proof.
+Initial focused runs failed for a generated import typo and missing test imports;
+those were corrected before the passing runs. An earlier javac attempt selected
+embedded dependency sources; `-sourcepath ''` avoids compiling dependency .java
+entries and compiles only the explicitly selected changed sources.
+
+All nine API-submitted service checks completed: A HBase/HDFS/MAPREDUCE2/YARN/ZK
+requests 146/148/149/151/153, and B HDFS/MAPREDUCE2/YARN/ZK 154/156/157/158.
+These are real native commands. They do not imply that every preexisting Hadoop
+service-check implementation has been converted away from textual checks.
+Private acceptance receipts and SHA-256 manifests are under runtime-api, including
+`overlays/structured-client` and `overlays/service-check-publication`. This is the
+previously built RPM plus documented file/class overlays, not a fresh RPM build.
+
+Provider lifecycle acceptance subsequently exposed a separate REST error-boundary
+failure: an unconfirmed STOP was rejected by the domain but surfaced as an empty
+HTTP 500. Centralized structured conflict mapping is being corrected. Confirmed
+stop/restart, detach/data retention and real Kerberos completion remain open.
+
+## User acceptance gate: cluster navigation replacement
+
+The next frontend overlay addresses the reviewed route/context boundary and the
+user-approved default landing behavior. Login restores an interrupted authorized
+cluster route, otherwise the last user-scoped numeric cluster identity resolves
+to its Dashboard. Without a valid preference, one cluster resolves directly and
+multiple clusters require a modal selection; login does not open the cluster
+management directory. The visible top dropdown switches to a target Dashboard and
+links to Admin Cluster Management with an explicit cluster query. Admin validates
+that query, never chooses the first of several API results, and returns Dashboard
+links to the selected cluster. Existing global Admin screens remain accessible
+without cluster selection. Admin logout preserves only valid user-scoped numeric
+navigation preferences. Cluster detail information architecture remains pending
+the user's separate interaction decision.
+
+The user requested file replacement followed by their own validation. New
+regression sources are present but intentionally not executed at this gate; only
+frontend production build commands are run to generate deployment assets. No
+commit, push, or RPM rebuild is authorized until the user accepts this replacement.
+After acceptance, rebuild the RPM and use two completely independent clusters for
+the next deployment scenario: each HBase uses its own local Hadoop and ZooKeeper.
+The existing six-node environment still contains the earlier cross-cluster HBase
+bindings; this frontend overlay does not convert that service topology. Historical
+cross-cluster results above remain historical evidence, not proof of the new local
+HBase acceptance scenario.
+
+Replacement completed on 2026-09-10. Both `npm run build` commands completed with
+exit code 0 in `ambari-web/latest` and
+`ambari-admin/src/main/resources/ui/ambari-admin`. Admin dependencies were installed
+with `npm ci --no-audit --no-fund` from the existing lockfile. Private overlay
+`runtime-api/overlays/cluster-navigation/manifest.json` records source hashes,
+15 deployed assets, and the original/patched Admin View JAR hashes. The main web
+resources, extracted Admin View resources and Admin View JAR were replaced without
+a Server restart. User browser acceptance is pending; tests were not run.
+
+### Admin View 503 follow-up
+
+User acceptance found HTTP 503 on the explicit Admin cluster URL. Replacing the
+View JAR triggered ViewDirectoryWatcher registration. AmbariHandlerList attached
+the already started server SessionCache before the replacement WebAppContext
+started; Jetty AbstractSessionCache.initialize rejected changing its context.
+WebAppContext's default startup handling recorded unavailability without throwing,
+so the new handler was published despite its failed initialization.
+
+AmbariHandlerList now starts the View with its own cache, then attaches the server
+cache, matching the existing initial-startup sharing phase. Handler publication
+follows successful startup; successful replacement removes the old handler, and
+startup exceptions retain the previous mapping. View startup exceptions are no
+longer swallowed. Concurrent registrations use a concurrent handler map. A real
+Jetty lifecycle regression source was added for registration and replacement after
+the server cache has started, but was not executed at this user-owned test gate.
+
+Only AmbariHandlerList and its nested class were compiled with javac --release 17
+using the existing server dependency classpath and deployed in a Server JAR overlay.
+Ambari Server was restarted once; no RPM was built. The reported Admin URL now
+returns HTTP 200 and its response bytes exactly match the built Admin index.html.
+This narrow 503 recovery observation is not browser interaction acceptance. Private
+receipts: runtime-api/overlays/admin-view-session-startup/manifest.json and
+http-recovery.json. Commit, push and RPM remain pending user acceptance.
+
+### Approved Admin management scope implemented
+
+The user approved expanding Admin Cluster Management to six entries and requested
+replacement followed by personal acceptance. Cluster Overview is the Admin landing
+page, with all authorized clusters, installation/host health, host/service counts,
+Stack version, Dashboard, Manage, and low-frequency rename/export/delete actions.
+Create Cluster resumes owner-visible backend draft UUIDs or opens a new wizard.
+Host Resources shows registered ownership and launches the selected cluster's Add
+Host workflow. Cluster Permissions lists user/group grants, grants a selected role,
+and revokes exact grant IDs with server read-back. The details page has five tabs
+for basic information, services/hosts, permissions, request history and config/export.
+Versions/repositories and remote registrations keep existing capabilities.
+
+This follow-up addresses the review's frontend route/ownership and recoverability
+requirements without introducing another installation orchestrator. API path
+segments are encoded, authenticated authorization resources scope actions, stale
+reads are dropped, and writes are reconciled against exact grants or cluster IDs.
+Existing Add Host/Add Service/install workflows own mutations and recovery. The
+operation viewer accepts the exact request ID from Admin history. User acceptance
+of these interactions and the later two-independent-cluster local-HBase deployment
+are pending; the current runtime topology has not been converted.
+
+Admin management replacement builds completed with exit code 0: `npm run build`
+in `ambari-admin/src/main/resources/ui/ambari-admin` and in `ambari-web/latest`.
+No test runner or browser acceptance was executed. Private overlay
+`runtime-api/overlays/admin-cluster-management/manifest.json` records source and
+artifact hashes, 15 replaced frontend assets, and original/patched Admin View JARs.
+The Server was stopped before replacing the View JAR and started afterward, avoiding
+live ViewDirectoryWatcher replacement. No commit, push, or RPM rebuild occurred.
+The user can inspect Admin root at
+`/views/ADMIN_VIEW/3.1.0.0/INSTANCE/latest/#/clusters`.
+
+### Chrome DevTools MCP functional acceptance (2026-09-10)
+
+The user accepted the expanded UI and authorized agent-driven functional tests,
+then requested a local Chrome DevTools MCP installation. This supersedes the
+historical browser-test deferral above. Chrome DevTools MCP 1.9.0 is installed
+outside the repository and configured in the local Codex user configuration.
+Its stdio initialize, tools/list and browser tools were exercised against Chrome
+on 127.0.0.1:19222. This running session uses a local stdio client; configuration
+alone is not evidence that tools were dynamically loaded into the session.
+
+Live browser checks uncovered three defects that unit-only validation had missed:
+
+1. **Version ownership (original cluster-identity checklist):** the active Admin
+   version list loaded status for the selected cluster but labeled it with
+   `getClusterInfo().items[0]`, and links used unscoped routes. The list now owns a
+   selected-cluster instance, cancels abandoned reads, binds status and links to
+   that exact name, and can display the global repository catalog without a
+   selected cluster. Failed status reads expose an error rather than an install
+   action. The actual Angular version controller and Classic stack/upgrade route,
+   plus baseline 06, were inspected. The deliberate multi-cluster difference is
+   explicit selection and encoded cluster navigation.
+2. **Draft REST transport (recovery / real integration):** the production
+   ContentTypeOverrideFilter discovered class-level paths only. Nested JSON-only
+   draft endpoints received text/plain and returned HTTP 415. Discovery now
+   combines class and method JAX-RS templates using Jersey's own template parser.
+   A real Jetty + Jersey test exercises JSON draft/cluster subpaths and the legacy
+   text/plain root through the production filter. A Jersey resource test without
+   the servlet filter could not detect this integration failure.
+3. **Draft lineage (original review R3 / recovery checklist):** shared step navigation discarded
+   the route query on mount and step changes, causing another draft UUID to be
+   generated. It now retains the query. A real router/hook test covers mount,
+   next, back and existing-cluster wizard context. Classic installer save/load
+   behavior and baseline 07 were inspected. React deliberately uses a backend
+   draft UUID instead of the legacy singleton installer state.
+
+Live MCP evidence (real browser actions plus authoritative API read-back):
+
+| Scenario | Observed result | Limit |
+| --- | --- | --- |
+| Login and navigation | Fresh admin session selected a cluster and entered its Dashboard; top menu opened Admin with the same cluster query | Dashboard metrics are unavailable without a queryable Prometheus source |
+| Cluster/host inventory | Two clusters; six registered hosts; six host links matched API ownership; B filter showed three hosts; unassigned filter showed none | Existing runtime service topology still contains the earlier cross-cluster HBase dependency |
+| Scoped user | Separate browser context for mc_a_viewer listed only mc_api_test, entered its Dashboard and received HTTP 403 for mc_api_b | Full role/group matrix and active-session revocation were not repeated |
+| Permissions | Browser POST created privilege 52 on temporary cluster 52; confirmed removal used DELETE and GET returned an empty grant list | Group inheritance and response-loss fault injection remain separate gates |
+| Rename/delete | Browser rename preserved temporary cluster ID 52; browser delete confirmed HTTP 404; original clusters remained IDs 2 and 3 with three hosts each | Empty-cluster deletion does not prove disk retention or dependent-provider deletion |
+| Running-cluster delete | 22 observed STARTED components; entering the correct name still left Delete disabled | No destructive request was submitted for the running cluster |
+| Request history | Twenty rendered request IDs and states matched the scoped API; links contained exact request IDs | Task detail content and all paging edges were not exhaustively repeated |
+| Versions | A and B showed their own CURRENT status and cluster-specific links; global mode loaded the repository without a guessed cluster | Repository registration/install/upgrade mutations were not run |
+| Create/resume/refresh | Draft beedab5e-a6c9-4e0d-b0dc-424e72b58685 retained its ID through Next, refresh and Admin resume; backend recovered the name mc_draft_browser_check and VERSION phase | Stopped before host provisioning; no spare hosts exist in this topology |
+| Remote registrations | List route loaded and returned its empty state; no browser console error on the inspected Admin routes | No external cluster registration was created |
+
+The saved-installation directory exposes a cluster name only after a cluster has
+been created. Its current "Not named yet" fallback is imprecise for a named but
+uncreated draft; displaying a separate server-provided proposed name remains a UX
+gap. It must not infer cluster identity or reconstruct lineage from that label.
+
+Executed focused validation (working directory is the named frontend, or repository
+root for Maven):
+
+```text
+# ambari-admin/src/main/resources/ui/ambari-admin: 12 passed
+npx --no-install vitest run src/tests/stackVersions.test.tsx src/tests/clusterManagement.test.tsx src/tests/navigation.test.ts
+# ambari-web/latest: 29 passed
+npx --no-install vitest run src/hooks/useStepWizard.navigation.test.tsx src/AppLoader.test.tsx src/screens/Directories/ClusterTasksRoute.test.tsx src/screens/Authentication/AdminViewRedirect.test.ts src/Utils/authNavigation.test.ts
+# ambari-web/latest: 3 passed, including the two navigation cases above
+npx --no-install vitest run src/hooks/useStepWizard.test.ts src/hooks/useStepWizard.navigation.test.tsx
+# repository root: 7 passed
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ContentTypeOverrideFilterTest,AmbariHandlerListTest org.apache.maven.plugins:maven-surefire-plugin:test
+# both frontends: exit 0
+npm run build
+# repository root: exit 0
+git diff --check
+```
+
+Java production/test sources were first compiled with `javac --release 17
+-sourcepath ''` against existing target classes and the private runtime dependency
+classpath. Exact expanded argument arrays are retained in the private acceptance
+record. This was partial compilation, not a clean full Maven build. Admin's current
+`npm run build` invokes `tsc` without `-b`, so its successful exit is not a full
+project-reference type-check claim. Main React runs `tsc -b` before Vite.
+
+The initial React batch failed five cases because test DOMs were not cleaned up;
+explicit cleanup corrected the test isolation. The first real View lifecycle test
+failed because its ViewConfig fixture was missing; supplying the normal configuration
+allowed actual Jetty startup/replacement to run. Final counts above reflect reruns.
+One accidental Vitest invocation at repository root had no local Vitest and failed;
+the documented frontend-directory invocation was then run successfully.
+
+Private evidence: runtime-api/admin-management-acceptance and
+runtime-api/overlays/admin-mcp-functional-fixes/manifest.json. Three compiled filter
+classes, Admin assets/View JAR and main frontend assets were replaced. HTTP 200 and
+SHA-256 were checked for all 15 frontend files. A temporary nested asset copy caused
+a brief main-script 404 during replacement; the paths were corrected and only the
+verified duplicate files were removed. The temporary cluster was deleted and both
+created test drafts were released to IDLE. No RPM was rebuilt or commit published.
+This does not close the next packaged two-independent-cluster/local-HBase acceptance,
+real KDC callback, or broader restart/response-loss/failure-injection gates.
+
+## 2026-09-10 publication validation checkpoint
+
+The user accepted the UI, authorized functional testing, and then explicitly
+authorized committing, pushing to the existing review branch, rebuilding Ambari
+RPMs and redeploying. Earlier manual-approval gates above are historical.
+Publication does not establish packaged acceptance of two independent clusters.
+That deployment must give each HBase only its own cluster's HDFS and ZooKeeper.
+
+All changed and new Agent/Server Java sources were partially compiled against the
+local runtime dependency classpaths with `javac --release 17 -sourcepath ''`.
+The DAO integration fixture initially failed compilation because its deployment
+coordinator constructor lacked the newly required ActionMetadata; it now obtains
+the real metadata from the test injector. Production and test compilation then
+exited zero. This remains incremental compilation, not a clean reactor build.
+
+Additional pre-publication commands, executed from the repository root:
+
+```text
+# 62 passed
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python:ambari-server/src/main/resources/stacks python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestHbaseBigtop*.py' -q
+# 54 passed
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestManaged*DependencyBigtop.py' -q
+# 10 passed
+mvn -B -pl ambari-agent -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dcommons-cli.version=1.2 -Dtest=ManagedDependencyClientTest,ManagedDependencyZkTest,ZkConnectionTest org.apache.maven.plugins:maven-surefire-plugin:test
+# 109 passed; BaseServiceTest is abstract and contributes no standalone case
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ManagedDependencyRuntimePlannerTest,ManagedDependencyDeploymentCoordinatorTest,ManagedServiceDependencyCoordinatorTest,ManagedDependencyLifecyclePolicyTest,ServiceDependencyDAOIntegrationTest,ManagedDependencyOperationDispatcherTest,ManagedDependencyTaskResultProcessorTest,BaseServiceTest,DeleteHandlerTest,ContentTypeOverrideFilterTest,AmbariHandlerListTest org.apache.maven.plugins:maven-surefire-plugin:test
+# 1 passed; concrete subclass executes the shared BaseServiceTest contract
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ClusterServiceTest org.apache.maven.plugins:maven-surefire-plugin:test
+```
+
+The previously recorded frontend cases and builds were already run after their
+last source changes. The Java batch includes the earlier seven filter/View cases;
+counts must not add those twice. Runtime KDC, broader failure injection and the
+new clean RPM deployment remain unverified at this publication checkpoint.

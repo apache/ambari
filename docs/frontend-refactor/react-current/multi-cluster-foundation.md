@@ -44,7 +44,7 @@ success and browser-owned deployment behavior.
 
 | Area | Current React behavior | Intentional difference and remaining gate |
 | --- | --- | --- |
-| Routes | Operational screens live below `/clusters/:clusterName/main/*`; `/clusters` and `/services` are global directories. One authorized cluster resolves a legacy `/main/*` link; multiple clusters show a chooser that preserves a validated continuation. | Classic and the prior React shell selected the first returned cluster. Direct, Back/Forward, forbidden, and two-tab browser behavior still requires runtime capture. |
+| Routes | Operational screens live below `/clusters/:clusterName/main/*`; `/clusters` and `/services` are global directories. An interrupted login restores its authorized cluster route. Direct login and legacy `/main/*` links use the current user's last numeric cluster ID, revalidated against the API list and authorization; otherwise a sole cluster is selected or a modal preserves the validated continuation. Login does not open the management directory. | Classic and the prior React shell selected the first returned cluster. Direct, Back/Forward, forbidden, and two-tab browser behavior still requires runtime capture. |
 | Runtime identity | The application scope key distinguishes global scope from a named cluster and includes the authenticated user. Cluster providers remount at the route boundary; caches, async loaders, navigation callbacks, and browser event projection carry generation and cluster identity checks. | Late REST, polling, navigation, and websocket updates are discarded before reducer/cache mutation. Server delivery remains the confidentiality boundary. |
 | Authorization | Runtime authorization records retain resource type/name. AMBARI grants are global; CLUSTER grants match the explicit route target. A cluster administrator is not promoted to Ambari administrator. Task-view policy is evaluated for the row/route cluster. | Classic-compatible global behavior is retained only for actual AMBARI-scoped authority. Selected role combinations pass focused tests; the live multi-user matrix remains pending. |
 | Directories | `/clusters` shows authorized deployments and owner-only creation drafts. `/services` fetches services and HBase dependency summaries through one four-request limiter, cancels queued old generations, keeps usable rows on partial enrichment failure, and stores filters/sort/page in the URL. Desktop and narrow layouts expose owning cluster, provider owners, readable phases, and direct overview/dependencies/config/task links. | Service deployments remain independent rows; opening one establishes URL scope instead of changing a global selection. Provider HDFS/ZooKeeper pages list only server-authorized named HBase consumers and preserve the remaining consumers as an anonymous count. Lifecycle mutations remain separately gated. |
@@ -71,3 +71,67 @@ The runtime follow-up repairs them without excluding tests from compilation;
 unhandled error were not relabelled as passing. See the linked plan for exact
 commands and mock boundaries. Browser/network, real services, real KDC and full
 packaged-build acceptance remain open.
+
+## Approved navigation follow-up
+
+The user-approved interaction restores the installed cluster Dashboard by default,
+matching Classic AUTH-006 and SHELL-003 without its global cluster selection. A
+user-scoped local preference stores only a numeric cluster ID; runtime ownership
+continues to come from the explicit route. Interrupted paths are tab-local session
+storage, consumed after login. Removed or revoked preferences prompt selection.
+The visible cluster dropdown lists authorized API results and exposes Admin Cluster
+Management only to the existing Admin rename authority. Admin receives the selected
+cluster in its document query, validates it against the API list, and returns its
+Dashboard using an encoded cluster route. Direct Admin access with several clusters
+requires selection instead of silently choosing the first API item. The user subsequently approved the Admin management structure described below.
+
+Regression sources were updated for continuation, rename, principal separation,
+revocation, and Admin URL propagation. The user requested manual acceptance after
+file replacement; these new tests and browser acceptance have not been run. Only
+the two frontend production builds are required for this replacement. Commit and
+RPM rebuilding must wait for the user's acceptance. Subsequent deployment acceptance
+will use two independent clusters with HBase using local Hadoop and ZooKeeper.
+
+## Admin cluster management expansion
+
+The approved Admin menu now has Cluster Overview, Create Cluster, Host Resources,
+Cluster Permissions, Versions & Repositories, and Remote Clusters. Admin root opens
+the global overview. Cluster Details uses explicit document-query cluster context
+and URL-selected Basic Information, Services & Hosts, Access Permissions, Operation
+History, and Configuration & Export tabs. Global inventories do not filter by the
+selected operational cluster. Registration, installation, Add Host and Add Service
+continue through existing wizard callers and durable draft IDs. Host Resources
+opens the target's Add Host wizard; it does not implement a second host-assignment
+workflow. Existing registered-host ownership checks remain the backend boundary.
+
+New reads use a cancelable resource hook that drops previous-scope responses and
+rejects malformed collections. Authorization comes from the authenticated HTTP User
+header and the user's actual authorization resources, matching AMBARI or explicit
+CLUSTER scope. Cluster grants use POST and exact privilege-ID DELETE, followed by
+GET reconciliation; they never replace the entire cluster grant collection. Rename
+reconciliation uses numeric cluster ID. Deletion shows impact, checks current and
+desired component states, re-reads target identity, calls the existing guarded API,
+and confirms 404 before completion. No native lifecycle constraints are bypassed.
+
+Operation history shows exact request IDs and links into the existing cluster task
+viewer; the task route now accepts a validated positive integer request ID. Remote registration retains its existing implementation. The version list now
+binds status/navigation to the explicitly selected cluster and also loads the
+global catalog without a default cluster. Side navigation
+expansion is keyboard-operable, and collapsed entries navigate to their routes.
+The actual Angular Cluster controller/privilege APIs, Classic installation and Add
+Host controllers, and Ember installation/host/permission baselines were inspected.
+
+Regression sources cover resource-scope cancellation, malformed collections,
+cluster/global authorization boundaries, lost grant response reconciliation, and
+exact task links. The user subsequently accepted the UI and authorized functional testing. The
+Chrome DevTools MCP acceptance section in the remediation review records the
+executed tests, real browser/API checks, three runtime fixes and remaining gaps.
+
+
+Chrome DevTools MCP found and verified fixes for selected-cluster version ownership,
+production JSON-filter handling of nested workflow endpoints, and preservation of
+the draft query through wizard navigation. These are not mock-only claims: browser
+Next, refresh and Admin resume recovered one exact persisted draft. Read-back also
+verified temporary-cluster grant creation/removal, stable-ID rename and deletion.
+The former manual-only acceptance gate is historical; packaged independent-cluster
+HBase and the broader integration matrix remain unverified at this checkpoint.

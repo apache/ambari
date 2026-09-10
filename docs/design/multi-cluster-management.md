@@ -346,6 +346,12 @@ authorization was issued, or missing/corrupt state after initialization, cannot
 obtain a replacement authorization. Exact retries retain their operation identity;
 this challenge exchange is not a public capability or a substitute for RBAC.
 
+CREATE keeps one operation UUID across PREPARE, INITIALIZE and PROVISION; each
+step has its own immutable request hash. The Agent permits only the explicit
+INITIALIZED-to-PROVISION transition within that epoch and snapshot. UPDATE starts
+PROVISION in a new epoch on the pinned journal host; it does not initialize a
+second journal. The existing operation dispatcher owns these steps.
+
 Provider namespace markers bind stable service identity, paths and ownership.
 Changing an approved client snapshot must not change that namespace identity or
 make its marker conflicting merely because configuration fingerprints changed.
@@ -400,10 +406,26 @@ configuration from the selected profile. The server checks software compatibilit
 against trusted stack/VDF metadata and persists that task's immutable observation.
 Subsequent verification must match the observation and its preparation lineage,
 and recheck the package and configuration around the real connectivity probes.
+The installed client SDK supplies file metadata, ACL entries, directory emptiness,
+read/write results and software versions through a versioned machine-readable
+response. Agent adapters validate required field types and the exact operation
+and command envelope; diagnostics never establish success or path absence.
+The helper is stateless. Provider mutations remain guarded by the existing journal,
+and no CLI output parser or second workflow is introduced behind the adapter.
 Copying an observed package string into an expected field is not itself evidence
 of compatibility. Preparation does not establish readiness. A normal START that
 renders configuration reuses the current approved plan and existing readiness;
 it cannot manufacture a new installation observation or operation generation.
+
+The approved snapshot owns provider configuration, repository compatibility and
+security fingerprints. A preparation epoch owns its concrete package/software
+expectations and observations. A new authorized retry can regenerate those
+expectations from the same approved metadata, but it must repeat observation and
+verification; it cannot reuse readiness. BIGTOP's numeric package release suffix
+is separate from the upstream software version printed by the executable. The
+Agent resolves binary layout from the installed local stack while reading provider
+XML solely from the HBase profile; it does not source another cluster's shell
+configuration. HBase selects its installed client links before preparation runs.
 
 New-cluster provider discovery and preview occur before the consumer Cluster row
 exists. They use the authenticated user's explicit creation draft and its resolved
@@ -511,13 +533,15 @@ are checked before reads, including cache access, and auto-completion requires
 the same configuration-read authority as the normal configuration API. Ordinary
 unmanaged advice may still address another supported Stack release.
 
-Provider core-site/hdfs-site values belong to HBase-specific execution
-configuration and protected client profiles. They must not overwrite a consumer
-cluster's local HDFS configuration when local HDFS is retained for Hive or another
-service. Ordinary desired configuration contains the consumer-owned HBase
-root/WAL/user/znode/principal values. Server-owned HBASE command decoration supplies
-the approved provider client maps before agent parameter resolution. Consumer-local
-Kerberos mappings remain separately approved and preserve local service mappings.
+Provider core-site/hdfs-site values belong to the immutable HBase command bundle
+and protected HBase client profiles. The common execution configuration must keep
+consumer-local core-site/hdfs-site: shared stack hooks read those maps and can
+write the host's shared Hadoop configuration directory. Neither desired config
+nor common hook config may become the provider's reduced client map. Ordinary
+desired configuration contains the consumer-owned HBase root/WAL/user/znode/principal
+values. The HBase script materializes the approved provider maps into its dedicated
+profile. Consumer-local Kerberos mappings remain separately approved and preserve
+local service mappings.
 
 Managed ZooKeeper namespaces use `/ambari-managed-hbase/<binding_uuid>` as a
 consumer-owned container, with HBase rooted at its `/hbase` child. The provider
@@ -544,6 +568,15 @@ approved binding is distinct from unrestricted provider configuration access;
 provider details and dependency discovery remain subject to their own permissions.
 
 ## Creation identity and recovery
+
+Managed HBase deployment records retain one immutable initial plan and exact
+request history. Only a never-published INSTALL with every target still INIT may
+adopt newly approved binding versions in a new attempt; progress stores that
+attempt's approvals, and history retains the previous ones. A failed request
+publication after a prior INSTALL preserves that exact historical receipt for the
+next explicit retry. The request owner and all terminal tasks are revalidated by
+the dependency coordinator. An acknowledged missing request remains unresolved;
+request scanning and replacement based on timing or names are not recovery paths.
 
 Creation submits `Clusters/creation_draft_id` and records that UUID together with
 the authenticated creator's stable user ID in the same transaction as the Cluster
@@ -626,6 +659,12 @@ The current source implementation and executable validation are tracked in the
 ManagedDependencyDeploymentCoordinator owns INSTALL, dependency readiness, START
 and service checks. ManagedServiceDependencyCoordinator owns binding operations;
 ActionManager owns actual tasks, and publication/lineage share the transaction.
+Service checks use the registered ActionMetadata command for each service and
+persist one exact request per service in the current attempt's history. Completion
+of that request advances to the next service; a Server restart resumes this history,
+and missing check lineage is unresolved. The common REST boundary maps managed
+domain failures to their declared HTTP status and structured code, including
+ordinary service/host-component operations; callers never parse exception prose.
 Task and STOMP notifications are delivered only after commit. React retains draft
 inputs, immutable operation IDs and acknowledgement of an observed deployment,
 and renders backend state. An acknowledged deployment that disappears requires
