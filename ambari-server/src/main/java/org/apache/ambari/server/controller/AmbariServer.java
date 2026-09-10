@@ -562,7 +562,7 @@ public class AmbariServer {
           StateRecoveryManager.class);
 
       recoveryManager.doWork();
-      injector.getInstance(ManagedDependencyOperationDispatcher.class).recoverOutstanding();
+      injector.getInstance(ManagedDependencyOperationDispatcher.class).startRecovery();
       /*
        * Start the server after controller state is recovered.
        */
@@ -902,6 +902,7 @@ public class AmbariServer {
   }
 
   public void stop() throws Exception {
+    injector.getInstance(ManagedDependencyOperationDispatcher.class).stopRecovery();
     if (server == null) {
       LOG.info("Ambari Server stopped before the embedded server was initialized");
     } else {

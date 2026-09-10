@@ -69,6 +69,9 @@ public class ManagedDependencyRuntimePlanner {
   private Provider<EntityManager> entityManagerProvider;
 
   @Inject
+  private ManagedDependencyBlueprintPlan blueprintPlan;
+
+  @Inject
   public ManagedDependencyRuntimePlanner(ServiceDependencyDAO dependencyDAO,
       ManagedDependencyDescriptorResolver descriptorResolver,
       ManagedServiceDependencyCoordinator coordinator,
@@ -97,6 +100,7 @@ public class ManagedDependencyRuntimePlanner {
             && roleCommand != RoleCommand.RESTART) {
       return;
     }
+    if (blueprintPlan != null) blueprintPlan.requireBindings(cluster.getClusterId());
     List<ServiceDependencyBindingEntity> bindings = new ArrayList<>(
         dependencyDAO.findByConsumer(cluster.getClusterId(), "HBASE"));
     if (bindings.isEmpty()) {
@@ -239,7 +243,7 @@ public class ManagedDependencyRuntimePlanner {
     for (ServiceDependencyBindingEntity binding : bindings) {
       if (!"APPROVED".equals(binding.getSnapshotApproval())
           || binding.getProviderPreparationHash() == null
-          || !Set.of("PROVIDER_PREPARED", "CONSUMER_VERIFYING", "READY")
+          || !Set.of("PROVIDER_PREPARED", "CONSUMER_CREDENTIALS_REQUIRED", "CONSUMER_VERIFYING", "READY")
               .contains(binding.getProvisioningPhase())
           || !Set.of("PROVISIONING", "READY").contains(binding.getState())) {
         throw new AmbariException("Managed dependency provider preparation is not complete");
@@ -329,8 +333,26 @@ public class ManagedDependencyRuntimePlanner {
     }
   }
 
-  /** Associates the canonical per-host preparation owner in the Ambari action transaction. */
+  /** Associates reserved commands and canonical preparation tasks in the action transaction. */
   public void associatePreparationTask(HostRoleCommand task) throws AmbariException {
+    if (task == null || task.getExecutionCommandWrapper() == null
+        || task.getRoleCommand() != RoleCommand.INSTALL && task.getRoleCommand() != RoleCommand.CUSTOM_COMMAND) return;
+    org.apache.ambari.server.agent.ExecutionCommand execution = task.getExecutionCommandWrapper().getExecutionCommand();
+    if (execution.getCommandParams() == null) return;
+    String rawCommand = execution.getCommandParams()
+        .get(ManagedDependencyOperationDispatcher.COMMAND_PARAMETER);
+    if (rawCommand != null) {
+      ManagedDependencyCommand command = StageUtils.getGson().fromJson(
+          rawCommand, ManagedDependencyCommand.class);
+      ServiceDependencyHostResultEntity expected = ManagedDependencyOperationDispatcher.commandEntity(
+          command, ManagedDependencyType.valueOf(command.parameters().get("provider.service")),
+          task.getHostId(), task.getRole().name());
+      if (!dependencyDAO.associatePreparationTask(expected, task.getRole().name(),
+          task.getRequestId(), task.getStageId(), task.getTaskId())) {
+        throw new AmbariException("The task does not own its reserved dependency command");
+      }
+      return;
+    }
     if (task.getRoleCommand() != RoleCommand.INSTALL) {
       return;
     }
@@ -878,7 +900,8 @@ public class ManagedDependencyRuntimePlanner {
     if (source == null) {
       source = dependencyDAO.findHostResults(binding.getBindingId(),
               binding.getDesiredSnapshotVersion()).stream()
-          .filter(result -> kind.equals(result.getCheckKind()))
+          .filter(result -> kind.equals(result.getCheckKind())
+              && Objects.equals(result.getHostId(), hostId))
           .max(Comparator.comparing(ServiceDependencyHostResultEntity::getOperationEpoch))
           .orElse(null);
     }

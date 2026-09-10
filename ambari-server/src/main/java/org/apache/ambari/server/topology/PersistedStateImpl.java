@@ -234,6 +234,7 @@ public class PersistedStateImpl implements PersistedState {
         TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
         try {
           ClusterTopology clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
+          if (entity.getProvisionAction() != null) clusterTopology.setProvisionAction(entity.getProvisionAction());
           Long logicalId = logicalRequestEntity.getId();
           return logicalRequestFactory.createRequest(logicalId, replayedRequest, clusterTopology, logicalRequestEntity);
         } catch (InvalidTopologyException e) {
@@ -309,6 +310,8 @@ public class PersistedStateImpl implements PersistedState {
     entity.setAction(request.getType().name());
     if (request.getBlueprint() != null) {
       entity.setBlueprintName(request.getBlueprint().getName());
+      entity.setManagedDependencyTypes(org.apache.ambari.server.controller.dependencies.ManagedDependencyBlueprintPlan
+          .serialize(request.getBlueprint()));
     }
 
     entity.setClusterAttributes(attributesAsString(request.getConfiguration().getAttributes()));
@@ -339,6 +342,10 @@ public class PersistedStateImpl implements PersistedState {
     appendHashField(specification, entity.getDescription());
     appendHashField(specification, entity.getProvisionAction());
     appendHashField(specification, entity.getRepositoryVersionId());
+    // Preserve historical hashes for local-only requests.
+    if (entity.getManagedDependencyTypes() != null && !entity.getManagedDependencyTypes().isEmpty()) {
+      appendHashField(specification, entity.getManagedDependencyTypes());
+    }
 
     List<TopologyHostGroupEntity> hostGroups = new ArrayList<>(entity.getTopologyHostGroupEntities());
     hostGroups.sort(Comparator.comparing(TopologyHostGroupEntity::getName));
@@ -531,6 +538,11 @@ public class PersistedStateImpl implements PersistedState {
         blueprint = blueprintFactory.getBlueprint(entity.getBlueprintName());
       } catch (NoSuchStackException e) {
         throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
+      }
+      if (entity.getManagedDependencyTypes() != null
+          && !entity.getManagedDependencyTypes().equals(
+              org.apache.ambari.server.controller.dependencies.ManagedDependencyBlueprintPlan.serialize(blueprint))) {
+        throw new IllegalStateException("The Blueprint dependency requirements changed after provisioning was persisted");
       }
       configuration = createConfiguration(entity.getClusterProperties(), entity.getClusterAttributes());
       configuration.setParentConfiguration(blueprint.getConfiguration());

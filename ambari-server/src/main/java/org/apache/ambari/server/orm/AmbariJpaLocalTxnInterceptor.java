@@ -90,6 +90,8 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
       };
 
   private static final ThreadLocal<Boolean> s_transactionActive = new ThreadLocal<>();
+  private static final ThreadLocal<LinkedList<Runnable>> s_afterCommit =
+      ThreadLocal.withInitial(LinkedList::new);
 
   /**
    * Used to ensure that methods which rely on the completion of
@@ -132,6 +134,7 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
       return methodInvocation.proceed();
     }
 
+    boolean committed = false;
     try {
       // this is the outer-most transactional, begin a transaction
       final EntityTransaction txn = em.getTransaction();
@@ -146,6 +149,7 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
         // commit transaction only if rollback didn't occur
         if (rollbackIfNecessary(transactional, e, txn)) {
           txn.commit();
+          committed = true;
         }
 
         detailedLogForPersistenceError(e);
@@ -166,6 +170,7 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
       // interferes with the advised method's throwing semantics)
       try {
         txn.commit();
+        committed = true;
       } catch (Exception e) {
         detailedLogForPersistenceError(e);
         throw e;
@@ -183,13 +188,33 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
       // unlock all lock areas for this transaction
       unlockTransaction();
       s_transactionActive.remove();
+      LinkedList<Runnable> notifications = s_afterCommit.get();
+      s_afterCommit.remove();
+      if (committed) {
+        for (Runnable notification : notifications) {
+          try {
+            notification.run();
+          } catch (RuntimeException e) {
+            LOG.error("A committed transaction notification failed", e);
+          }
+        }
+      }
     }
   }
 
   /**
-   * Returns whether the current thread is inside the outermost transaction
-   * interceptor invocation.
+   * Delivers a notification after the outermost commit, or immediately outside a transaction.
+   * Rollback discards queued notifications; notification failure cannot undo a committed transaction.
    */
+  public static void afterCommit(Runnable notification) {
+    if (isTransactionActive()) {
+      s_afterCommit.get().add(notification);
+    } else {
+      notification.run();
+    }
+  }
+
+  /** Returns whether the current thread is inside the outermost transaction interceptor. */
   public static boolean isTransactionActive() {
     return Boolean.TRUE.equals(s_transactionActive.get());
   }

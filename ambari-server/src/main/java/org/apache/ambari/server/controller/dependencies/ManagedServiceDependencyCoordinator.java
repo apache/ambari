@@ -80,6 +80,9 @@ public class ManagedServiceDependencyCoordinator {
   public static final int PREVIEW_SCHEMA_VERSION = ManagedDependencySnapshot.CURRENT_SCHEMA_VERSION;
   private static final String CONSUMER_SERVICE = "HBASE";
 
+  @Inject
+  private com.google.inject.Provider<ManagedDependencyTaskResultProcessor> taskResults;
+
   private final ManagedDependencyDescriptorResolver resolver;
   private final ServiceDependencyDAO dependencyDAO;
   private final PersistKeyValueImpl persistKeyValue;
@@ -87,6 +90,7 @@ public class ManagedServiceDependencyCoordinator {
   private final ManagedDependencyLifecyclePolicy lifecyclePolicy;
   private com.google.inject.Provider<ManagedDependencyOperationDispatcher> operationDispatcher;
   private com.google.inject.Provider<ManagedDependencyRuntimePlanner> runtimePlanner;
+  @Inject private com.google.inject.Provider<org.apache.ambari.server.actionmanager.ActionManager> actions;
 
   @Inject
   public ManagedServiceDependencyCoordinator(ManagedDependencyDescriptorResolver resolver,
@@ -96,7 +100,7 @@ public class ManagedServiceDependencyCoordinator {
     this.dependencyDAO = dependencyDAO;
     this.persistKeyValue = persistKeyValue;
     this.lifecyclePolicy = lifecyclePolicy;
-    validator = new ManagedDependencySnapshotValidator(false);
+    validator = new ManagedDependencySnapshotValidator(true);
   }
 
   /** Compatibility constructor for focused unit tests and non-Guice callers. */
@@ -661,9 +665,11 @@ public class ManagedServiceDependencyCoordinator {
         throw new ManagedDependencyIntegrationException(409, "DEPENDENCY_PREVIEW_STALE",
             "Provider or consumer facts changed after preview; review the dependency again.");
       }
-      resolver.validateEffectiveConsumerConfig(consumerCluster, snapshot);
       snapshots.put(request.type(), snapshot);
       namespaces.add(snapshot.namespace());
+    }
+    for (ManagedDependencySnapshot snapshot : snapshots.values()) {
+      resolver.validateEffectiveConsumerConfig(consumerCluster, snapshot);
     }
     return snapshots;
   }
@@ -1024,69 +1030,148 @@ public class ManagedServiceDependencyCoordinator {
         visible.getProviderClusterId(), visible.getProviderServiceName()), type, true);
     RetryExecution execution = withClusterReadLocks(consumer, provider, () -> retryLocked(
         consumer, bindingId, request));
-    if (execution.transition().command() != null && operationDispatcher != null) {
-      operationDispatcher.get().dispatchSafely(execution.transition().command());
+    if (operationDispatcher != null) {
+      for (ServiceDependencyHostResultEntity command : execution.commands()) {
+        operationDispatcher.get().dispatchSafely(command);
+      }
     }
     return execution.response();
   }
 
   private RetryExecution retryLocked(Cluster consumer, UUID bindingId,
       LifecycleRequest request) {
+    return retryLocked(consumer, bindingId, request, null);
+  }
+
+  /** Only the deployment owner invokes this path with its persisted failed request identity. */
+  void retryInstallation(String clusterName, long failedRequestId, UUID attemptId) {
+    Cluster consumer = exactConsumer(clusterName, "HBASE", ReadLevel.MODIFY);
+    List<org.apache.ambari.server.actionmanager.HostRoleCommand> tasks = actions.get().getRequestTasks(failedRequestId);
+    if (tasks.isEmpty() || tasks.stream().anyMatch(task -> task.getRequestId() != failedRequestId
+        || !Long.toString(consumer.getClusterId()).equals(task.getExecutionCommandWrapper().getExecutionCommand().getClusterId())
+        || !task.getStatus().isCompletedState())) {
+      throw lifecycleConflict("DEPLOYMENT_TASK_LINEAGE_MISSING", "The failed installation request is unavailable or incomplete.");
+    }
+    List<org.apache.ambari.server.actionmanager.HostRoleCommand> failedInstalls = tasks.stream()
+        .filter(task -> task.getRoleCommand() == org.apache.ambari.server.RoleCommand.INSTALL
+            && task.getStatus() != org.apache.ambari.server.actionmanager.HostRoleStatus.COMPLETED
+            && "HBASE".equals(task.getExecutionCommandWrapper().getExecutionCommand().getServiceName())).toList();
+    if (failedInstalls.isEmpty()) return;
+    for (ServiceDependencyBindingEntity binding : dependencyDAO.findByConsumer(consumer.getClusterId(), "HBASE")) {
+      authorizeProviderParent(new ProviderReference(binding.getProviderClusterId(), binding.getProviderServiceName()),
+          ManagedDependencyType.valueOf(binding.getDependencyType()), true);
+      UUID operation = UUID.nameUUIDFromBytes((attemptId + ":install:" + binding.getBindingId())
+          .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+      retryLocked(consumer, UUID.fromString(binding.getBindingId()),
+          new LifecycleRequest(operation, binding.getRowVersion()), failedInstalls);
+    }
+    // The common reconciler dispatches ready intents after the deployment transaction commits.
+    // AWAITING_INSTALL intents belong exclusively to the next INSTALL publication.
+  }
+
+  private RetryExecution retryLocked(Cluster consumer, UUID bindingId, LifecycleRequest request,
+      List<org.apache.ambari.server.actionmanager.HostRoleCommand> failedInstalls) {
     ServiceDependencyBindingEntity binding = exactOwnedBinding(consumer.getClusterId(), bindingId);
     ServiceDependencyOperationEntity operation = lifecycleOperation(binding, request,
-        "RETRY", lifecycleRequestHash(consumer.getClusterId(), bindingId, request, "RETRY"));
+        "RETRY", lifecycleRequestHash(consumer.getClusterId(), bindingId, request,
+            failedInstalls == null ? "RETRY" : "REINSTALL"));
     boolean exactCommittedRetry = Objects.equals(binding.getActiveOperationId(),
         operation.getOperationId()) && Objects.equals(binding.getOperationEpoch(),
             operation.getOperationEpoch());
-    ServiceDependencyHostResultEntity retryCommand = null;
+    List<ServiceDependencyHostResultEntity> retryCommands;
     if (!exactCommittedRetry) {
-      if (runtimePlanner == null || binding.getActionHostId() == null) {
-        throw new ManagedDependencyIntegrationException(409,
-            "DEPENDENCY_RETRY_REQUIRES_PREPARATION_PLAN",
-            "A dependency retry requires an executable HBase preparation plan.");
-      }
-      try {
-        ManagedDependencyRuntimePlanner.RetryPreparationPlan plan = runtimePlanner.get()
-            .buildRetryPreparationPlan(consumer.getClusterId(), binding.getActionHostId(), bindingId);
-        ManagedDependencyCommand source = plan.bundle().preparationCommands().stream()
-            .filter(command -> bindingId.equals(command.envelope().bindingId()))
-            .findFirst().orElseThrow(() -> new AmbariException(
-                "The retry preparation plan has no target command"));
-        ServiceDependencySnapshotEntity snapshotEntity = dependencyDAO.findSnapshot(
-            binding.getBindingId(), binding.getDesiredSnapshotVersion());
-        ManagedDependencySnapshot snapshot = readSnapshot(snapshotEntity);
-        String packageName = source.parameters().get("client.package.name");
-        String softwareVersion = source.parameters().get("client.software.semantic.version");
-        String identityFingerprint = source.parameters().get("identity.fingerprint");
-        ManagedDependencyCommand rebuilt = ManagedDependencyCommand.prepareConsumer(snapshot,
-            request.operationId(), operation.getOperationEpoch(), binding.getActionHostId(),
-            packageName, softwareVersion, identityFingerprint);
-        retryCommand = ManagedDependencyOperationDispatcher.commandEntity(rebuilt,
-            ManagedDependencyType.valueOf(binding.getDependencyType()), binding.getActionHostId(),
-            plan.componentName());
-      } catch (AmbariException | RuntimeException e) {
-        throw new ManagedDependencyIntegrationException(409,
-            "DEPENDENCY_RETRY_REQUIRES_PREPARATION_PLAN",
-            "The current dependency state has no executable HBase preparation plan.", e);
-      }
+      retryCommands = retryPreparationCommands(binding, request.operationId(), operation.getOperationEpoch());
     } else {
-      retryCommand = dependencyDAO.findHostResults(binding.getBindingId(),
+      retryCommands = dependencyDAO.findHostResults(binding.getBindingId(),
           binding.getDesiredSnapshotVersion(), binding.getOperationEpoch()).stream()
           .filter(command -> command.getCheckKind().equals(
               "PREPARE_" + binding.getDependencyType() + "_CONSUMER"))
-          .findFirst().orElse(null);
+          .toList();
     }
     try {
-      LifecycleTransition transition = dependencyDAO.startRetry(binding.getBindingId(),
-          request.expectedRowVersion(), operation, retryCommand, authenticatedUserId());
+      if (failedInstalls != null && !exactCommittedRetry) {
+        for (ServiceDependencyHostResultEntity command : retryCommands) {
+          if (failedInstalls.stream().anyMatch(task -> Objects.equals(command.getHostId(), task.getHostId())
+              && command.getComponentName().equals(task.getRole().name()))) {
+            command.setState("AWAITING_INSTALL");
+          }
+        }
+      }
+      LifecycleTransition transition = failedInstalls == null
+          ? dependencyDAO.startConsumerRetry(binding.getBindingId(), request.expectedRowVersion(), operation,
+              retryCommands, authenticatedUserId())
+          : dependencyDAO.startConsumerReinstallation(binding.getBindingId(), request.expectedRowVersion(), operation,
+              retryCommands, authenticatedUserId());
       ServiceDependencySnapshotEntity snapshot = dependencyDAO.findSnapshot(
           binding.getBindingId(), transition.operation().getTargetSnapshotVersion());
       return new RetryExecution(bindingResponse(transition.binding(), snapshot, transition.operation()),
-          transition);
+          transition, retryCommands);
     } catch (StaleApprovalException e) {
       throw new ManagedDependencyIntegrationException(409, "DEPENDENCY_OPERATION_STALE",
           "The dependency changed or is not retryable; reload its current status.", e);
     }
+  }
+
+  private List<ServiceDependencyHostResultEntity> retryPreparationCommands(
+      ServiceDependencyBindingEntity binding, UUID operationId, long epoch) {
+    if (runtimePlanner == null) {
+      throw new ManagedDependencyIntegrationException(409, "DEPENDENCY_RETRY_REQUIRES_PREPARATION_PLAN",
+          "A dependency retry requires an executable HBase preparation plan.");
+    }
+    try {
+      Map<String, Object> readiness = readinessSummary(binding);
+      @SuppressWarnings("unchecked")
+      List<Long> hosts = (List<Long>) readiness.get("required_daemon_host_ids");
+      if (!Boolean.TRUE.equals(readiness.get("topology_current")) || hosts == null || hosts.isEmpty()
+          || Boolean.TRUE.equals(readiness.get("active_command"))) {
+        throw new AmbariException("The current consumer topology is not retryable");
+      }
+      ManagedDependencySnapshot snapshot = readSnapshot(dependencyDAO.findSnapshot(
+          binding.getBindingId(), binding.getDesiredSnapshotVersion()));
+      List<ServiceDependencyHostResultEntity> commands = new ArrayList<>();
+      for (long hostId : hosts) {
+        ManagedDependencyRuntimePlanner.RetryPreparationPlan plan = runtimePlanner.get()
+            .buildRetryPreparationPlan(binding.getConsumerClusterId(), hostId,
+                UUID.fromString(binding.getBindingId()));
+        ManagedDependencyCommand source = plan.bundle().preparationCommands().stream()
+            .filter(command -> binding.getBindingId().equals(command.envelope().bindingId().toString()))
+            .findFirst().orElseThrow(() -> new AmbariException("The consumer preparation profile is missing"));
+        ManagedDependencyCommand command = ManagedDependencyCommand.prepareConsumer(snapshot, operationId,
+            epoch, hostId, source.parameters().get("client.package.name"),
+            source.parameters().get("client.software.semantic.version"),
+            source.parameters().get("identity.fingerprint"));
+        commands.add(ManagedDependencyOperationDispatcher.commandEntity(command,
+            ManagedDependencyType.valueOf(binding.getDependencyType()), hostId, plan.componentName()));
+      }
+      return commands;
+    } catch (AmbariException | RuntimeException e) {
+      throw new ManagedDependencyIntegrationException(409, "DEPENDENCY_RETRY_REQUIRES_PREPARATION_PLAN",
+          "The current dependency has no executable consumer preparation plan.", e);
+    }
+  }
+
+  public Map<String, Object> verifyManualCredentials(String clusterName, String serviceName,
+      UUID bindingId, long expectedEpoch) {
+    Cluster consumer = exactConsumer(clusterName, serviceName, ReadLevel.MODIFY);
+    ServiceDependencyBindingEntity binding = exactOwnedBinding(consumer.getClusterId(), bindingId);
+    if (!Objects.equals(binding.getOperationEpoch(), expectedEpoch)) {
+      throw lifecycleConflict("DEPENDENCY_OPERATION_STALE", "Reload the current credential operation.");
+    }
+    Cluster provider = authorizeProviderParent(new ProviderReference(binding.getProviderClusterId(),
+        binding.getProviderServiceName()), ManagedDependencyType.valueOf(binding.getDependencyType()), false);
+    return withClusterReadLocks(consumer, provider, () -> {
+      validateDispatchState(binding);
+      @SuppressWarnings("unchecked")
+      List<Long> hosts = (List<Long>) readinessSummary(binding).get("required_daemon_host_ids");
+      try {
+        for (long hostId : hosts) {
+          taskResults.get().verifyManualCredentials(binding.getBindingId(), expectedEpoch, hostId);
+        }
+      } catch (AmbariException e) {
+        throw lifecycleConflict("DEPENDENCY_CREDENTIALS_NOT_READY", "Manual credential verification is not ready.", e);
+      }
+      return get(clusterName, serviceName, bindingId);
+    });
   }
 
   public Map<String, Object> detach(String clusterName, String serviceName, UUID bindingId,
@@ -1170,13 +1255,18 @@ public class ManagedServiceDependencyCoordinator {
       throw badRequest("INVALID_DEPENDENCY_ACTION",
           "Only STOP and RESTART impact are supported.");
     }
-    List<ServiceDependencyBindingEntity> bindings = dependencyDAO.findByProvider(
-        provider.getClusterId(), serviceName);
-    return Map.of(
-        "action", effectiveAction,
-        "dependent_count", bindings.size(),
-        "impact_revision", lifecyclePolicy.impactRevision(provider.getClusterId(), serviceName),
-        "requires_confirmation", !bindings.isEmpty());
+    return provider.executeUnderWriteLockUntilTransactionCompletion(() -> {
+      List<ServiceDependencyBindingEntity> current = dependencyDAO.findByProvider(provider.getClusterId(), serviceName);
+      Map<String, Object> projection = dependents(clusterName, serviceName);
+      Map<String, Object> result = new LinkedHashMap<>(projection);
+      result.put("provider_cluster_id", provider.getClusterId());
+      result.put("service_name", serviceName);
+      result.put("action", effectiveAction);
+      result.put("dependent_count", current.size());
+      result.put("impact_revision", lifecyclePolicy.impactRevision(provider.getClusterId(), serviceName, current));
+      result.put("requires_confirmation", !current.isEmpty());
+      return result;
+    });
   }
 
   private Map<String, Object> candidate(ConsumerReference reference, Consumer consumer,
@@ -1974,6 +2064,12 @@ public class ManagedServiceDependencyCoordinator {
     result.put("all_current_daemons_verified",
         !required.isEmpty() && verified.equals(required));
     result.put("active_command", activeCommand);
+    result.put("manual_credentials", !required.isEmpty() && required.stream().allMatch(hostId -> {
+      ServiceDependencyHostResultEntity preparation = preparations.get(hostId);
+      ManagedDependencyCredentialManager.Plan plan = preparation == null ? null
+          : ManagedDependencyCredentialManager.plan(preparation);
+      return plan != null && plan.manual();
+    }));
     result.put("preparation_requests", preparationRequests);
     return result;
   }
@@ -2043,6 +2139,14 @@ public class ManagedServiceDependencyCoordinator {
     boolean retryCandidate = trustedCurrent && "FAILED".equals(binding.getState())
         && Boolean.TRUE.equals(binding.getFailureRetryable()) && providerPrepared;
     boolean retryAllowed = false;
+    if (retryCandidate && !activeCommand) {
+      try {
+        retryAllowed = !retryPreparationCommands(binding,
+            UUID.fromString(binding.getActiveOperationId()), binding.getOperationEpoch() + 1).isEmpty();
+      } catch (ManagedDependencyIntegrationException e) {
+        retryAllowed = false;
+      }
+    }
     boolean installAllowed = trustedCurrent && !activeCommand
         && (providerPrepared || reconcilingZooKeeper)
         && ("PROVISIONING".equals(binding.getState())
@@ -2120,6 +2224,8 @@ public class ManagedServiceDependencyCoordinator {
     result.put("install_or_configure_allowed", installAllowed);
     result.put("credential_status", credentialStatus);
     result.put("credentials_required", credentialsRequired);
+    result.put("manual_credentials_allowed", credentialsRequired
+        && Boolean.TRUE.equals(readiness.get("manual_credentials")));
     result.put("start_or_restart_allowed", startAllowed);
     result.put("retry_allowed", retryAllowed);
     result.put("detach_allowed", detachAllowed);
@@ -2509,6 +2615,7 @@ public class ManagedServiceDependencyCoordinator {
   private record UpdateExecution(Map<String, Object> response, LifecycleTransition transition) {
   }
 
-  private record RetryExecution(Map<String, Object> response, LifecycleTransition transition) {
+  private record RetryExecution(Map<String, Object> response, LifecycleTransition transition,
+      List<ServiceDependencyHostResultEntity> commands) {
   }
 }

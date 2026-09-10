@@ -83,6 +83,8 @@ class ManagedServiceDependencyCoordinatorTest {
     resolver = mock(ManagedDependencyDescriptorResolver.class);
     dependencyDAO = mock(ServiceDependencyDAO.class);
     persistKeyValue = mock(PersistKeyValueImpl.class);
+    StageUtils.setConfiguration(mock(org.apache.ambari.server.configuration.Configuration.class));
+    StageUtils.setTopologyManager(mock(org.apache.ambari.server.topology.TopologyManager.class));
     coordinator = new ManagedServiceDependencyCoordinator(resolver, dependencyDAO, persistKeyValue);
   }
 
@@ -101,7 +103,7 @@ class ManagedServiceDependencyCoordinatorTest {
 
     SecurityContextHolder.getContext().setAuthentication(
         TestAuthenticationFactory.createClusterAdministrator("alice", 202L));
-    assertThrows(AuthorizationException.class, () -> coordinator.candidates(
+    assertForbidden(() -> coordinator.candidates(
         ConsumerReference.servicePlan(11L, 7L), ManagedDependencyType.HDFS));
     verify(resolver, never()).resolveServicePlan(11L, 7L);
 
@@ -123,7 +125,7 @@ class ManagedServiceDependencyCoordinatorTest {
     SecurityContextHolder.getContext().setAuthentication(
         TestAuthenticationFactory.createClusterAdministrator("alice", 101L));
 
-    assertThrows(AuthorizationException.class, () -> coordinator.preview(
+    assertForbidden(() -> coordinator.preview(
         ConsumerReference.servicePlan(11L, 7L), ManagedDependencyType.HDFS,
         new ProviderReference(22L, "HDFS")));
     verify(resolver, never()).resolveProvider(
@@ -170,7 +172,7 @@ class ManagedServiceDependencyCoordinatorTest {
     ManagedDependencyDescriptorResolverTest resolverTest =
         new ManagedDependencyDescriptorResolverTest();
     ManagedDependencyDescriptorResolverTest.ProducerFixture fixture =
-        resolverTest.new ProducerFixture(true);
+        resolverTest.new ProducerFixture(true, "3.3.0");
     fixture.consumerServices.put("HBASE", fixture.hbase);
     fixture.consumerServices.put("ZOOKEEPER", fixture.zookeeper);
 
@@ -206,7 +208,7 @@ class ManagedServiceDependencyCoordinatorTest {
     assertEquals(items.get(0).get("consumer_descriptor_fingerprint"),
         items.get(1).get("consumer_descriptor_fingerprint"));
     for (Map<String, Object> item : items) {
-      assertEquals(true, item.get("compatible"));
+      assertEquals(true, item.get("compatible"), String.valueOf(item.get("errors")));
       assertNotNull(item.get("consumer_descriptor_fingerprint"));
       assertNotNull(item.get("provider_fingerprint"));
       assertNotNull(item.get("snapshot_fingerprint"));
@@ -221,7 +223,7 @@ class ManagedServiceDependencyCoordinatorTest {
     ManagedDependencyDescriptorResolverTest resolverTest =
         new ManagedDependencyDescriptorResolverTest();
     ManagedDependencyDescriptorResolverTest.ProducerFixture fixture =
-        resolverTest.new ProducerFixture(true);
+        resolverTest.new ProducerFixture(true, "3.3.0");
     fixture.consumerServices.put("HBASE", fixture.hbase);
     fixture.consumerServices.put("ZOOKEEPER", fixture.zookeeper);
     ManagedDependencyDescriptorResolver realResolver = spy(fixture.resolver);
@@ -295,7 +297,7 @@ class ManagedServiceDependencyCoordinatorTest {
         PREVIEW_SCHEMA_VERSION,
         UUID.fromString("43222222-2222-4222-8222-222222222222"), null);
 
-    assertThrows(AuthorizationException.class, () -> coordinator.preview(
+    assertForbidden(() -> coordinator.preview(
         ConsumerReference.service(11L), List.of(
             new ManagedServiceDependencyCoordinator.PreviewSelection(
                 ManagedDependencyType.HDFS, new ProviderReference(22L, "HDFS"), hdfs.bindingId()),
@@ -305,8 +307,7 @@ class ManagedServiceDependencyCoordinatorTest {
     verify(dependencyDAO, never()).findBinding(any(String.class));
     verify(dependencyDAO, never()).findFence(any(String.class));
 
-    assertThrows(AuthorizationException.class,
-        () -> coordinator.create("consumer", "HBASE", List.of(hdfs, zooKeeper)));
+    assertForbidden(() -> coordinator.create("consumer", "HBASE", List.of(hdfs, zooKeeper)));
     verify(dependencyDAO, never()).createBatch(any());
   }
 
@@ -340,7 +341,7 @@ class ManagedServiceDependencyCoordinatorTest {
     ManagedDependencyDescriptorResolverTest resolverTest =
         new ManagedDependencyDescriptorResolverTest();
     ManagedDependencyDescriptorResolverTest.ProducerFixture fixture =
-        resolverTest.new ProducerFixture(true);
+        resolverTest.new ProducerFixture(true, "3.3.0");
     fixture.consumerServices.put("HBASE", fixture.hbase);
     fixture.consumerServices.put("ZOOKEEPER", fixture.zookeeper);
     when(fixture.hbase.getServiceComponents()).thenReturn(Map.of());
@@ -364,8 +365,8 @@ class ManagedServiceDependencyCoordinatorTest {
     binding.setOperationEpoch(2L);
     binding.setActiveOperationId(updateOperationId.toString());
     ServiceDependencySnapshotEntity original = snapshot(bindingId, hash('a'), hash('b'));
-    original.setConsumerFingerprint(hash('a'));
-    original.setProviderFingerprint(hash('b'));
+    original.setConsumerFingerprint(hash('b'));
+    original.setProviderFingerprint(hash('a'));
     original.setSnapshotFingerprint(hash('c'));
     ServiceDependencySnapshotEntity current = snapshot(bindingId, 2L, hash('d'), hash('e'));
     ServiceDependencyOperationEntity createOperation = operation(
@@ -402,7 +403,7 @@ class ManagedServiceDependencyCoordinatorTest {
     ManagedDependencyDescriptorResolverTest resolverTest =
         new ManagedDependencyDescriptorResolverTest();
     ManagedDependencyDescriptorResolverTest.ProducerFixture fixture =
-        resolverTest.new ProducerFixture(true);
+        resolverTest.new ProducerFixture(true, "3.3.0");
     fixture.consumerServices.clear();
     fixture.consumerServices.put("HBASE", fixture.hbase);
     ManagedDependencyDescriptorResolver realResolver = spy(fixture.resolver);
@@ -438,8 +439,10 @@ class ManagedServiceDependencyCoordinatorTest {
     Cluster providerCluster = cluster(22L, 202L, "provider", Map.of("HDFS", mock(Service.class)));
     Consumer draft = new Consumer("DRAFT", draftId, null, null, "HBASE",
         ConsumerLifecycle.DRAFT, consumer(11L).version(),
-        ManagedDependencySecurityMode.INSECURE, "", consumer(11L).identity(),
-        ManagedDependencyIdentity.Plan.forCreationDraft(7, draftId));
+        ManagedDependencySecurityMode.INSECURE, "", new ManagedDependencyIdentity(
+            ManagedDependencyIdentity.Plan.forCreationDraft(7, draftId).plannedShortUser(),
+            new TreeSet<>(), false, ManagedDependencyIdentity.Plan.forCreationDraft(7, draftId).plannedShortUser(),
+            true, "0700", false), ManagedDependencyIdentity.Plan.forCreationDraft(7, draftId));
     when(resolver.cluster(22L)).thenReturn(providerCluster);
     when(resolver.resolveDraft(draftId, 7L)).thenReturn(draft);
     when(resolver.resolveProvider(new ManagedDependencyServiceKey(22L, "HDFS")))
@@ -874,6 +877,7 @@ class ManagedServiceDependencyCoordinatorTest {
         bindingId, currentOperationId, "UPDATE", 2L, 2L);
     Cluster consumerCluster = cluster(11L, 101L, "consumer", Map.of("HBASE", mock(Service.class)));
     when(resolver.cluster("consumer")).thenReturn(consumerCluster);
+    doReturn(cluster(22L, 202L, "provider", Map.of("HDFS", mock(Service.class)))).when(resolver).cluster(22L);
     when(dependencyDAO.findOperation(createOperationId.toString())).thenReturn(creation);
     when(dependencyDAO.findOperation(currentOperationId.toString())).thenReturn(currentOperation);
     when(dependencyDAO.findBinding(bindingId.toString())).thenReturn(binding);
@@ -910,6 +914,12 @@ class ManagedServiceDependencyCoordinatorTest {
   private void executeReadOperations(Cluster cluster) {
     when(cluster.executeUnderReadLock(any())).thenAnswer(invocation ->
         ((Supplier<Object>) invocation.getArgument(0)).get());
+  }
+
+  private void assertForbidden(org.junit.jupiter.api.function.Executable operation) {
+    ManagedDependencyIntegrationException error = assertThrows(ManagedDependencyIntegrationException.class, operation);
+    assertEquals(403, error.getStatus());
+    assertEquals("DEPENDENCY_AUTHORIZATION_FAILED", error.getCode());
   }
 
   private Consumer consumer(long clusterId) {

@@ -51,7 +51,7 @@ class ManagedServiceDependencyServiceTest {
     coordinator = mock(ManagedServiceDependencyCoordinator.class);
     Field field = ManagedServiceDependencyService.class.getDeclaredField("coordinator");
     field.setAccessible(true);
-    field.set(null, coordinator);
+    field.set(null, (com.google.inject.Provider<ManagedServiceDependencyCoordinator>) () -> coordinator);
     service = new ManagedServiceDependencyService("consumer", "HBASE");
   }
 

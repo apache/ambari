@@ -76,6 +76,11 @@ class KerberosClient(Script):
           keytab_file_path
         )
         curr_content["keytabs"] = keytabs
+        identities = list(curr_content.get("keytabIdentities") or [])
+        identity = {"principal": principal.replace("_HOST", params.hostname), "keytab": keytab_file_path}
+        if identity not in identities:
+          identities.append(identity)
+        curr_content["keytabIdentities"] = identities
         self.put_structured_out(curr_content)
 
     write_keytab_file(params, output_hook)

@@ -75,7 +75,12 @@ public class ManagedDependencyLifecyclePolicy {
    * value; dependent names never become part of the confirmation contract.
    */
   public String impactRevision(long providerClusterId, String serviceName) {
-    String canonical = dependencyDAO.findByProvider(providerClusterId, serviceName).stream()
+    return impactRevision(providerClusterId, serviceName, dependencyDAO.findByProvider(providerClusterId, serviceName));
+  }
+
+  public String impactRevision(long providerClusterId, String serviceName,
+      List<ServiceDependencyBindingEntity> bindings) {
+    String canonical = bindings.stream()
         .map(binding -> binding.getBindingId() + ":" + binding.getRowVersion() + ":"
             + binding.getState())
         .sorted()

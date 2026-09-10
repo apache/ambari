@@ -47,6 +47,13 @@ public class RegisterWithConfigGroupTask extends TopologyHostTask {
     clusterTopology.getAmbariContext().registerHostWithConfigGroup(hostRequest.getHostName(), clusterTopology,
       hostRequest.getHostgroupName());
 
+    if (clusterTopology.getProvisionAction()
+        == org.apache.ambari.server.controller.internal.ProvisionAction.PREPARE_ONLY) {
+      clusterTopology.getAmbariContext().getPersistedTopologyState().setHostRequestStatus(
+          hostRequest.getId(), org.apache.ambari.server.actionmanager.HostRoleStatus.COMPLETED, null);
+      hostRequest.setStatus(org.apache.ambari.server.actionmanager.HostRoleStatus.COMPLETED);
+    }
+
     LOG.info("HostRequest: Exiting CONFIGURE task for host: {}", hostRequest.getHostName());
   }
 }

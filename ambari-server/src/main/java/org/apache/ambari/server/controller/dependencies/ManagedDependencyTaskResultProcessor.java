@@ -61,6 +61,9 @@ import com.google.inject.Singleton;
 /** Accepts managed-dependency evidence only from the exact persisted Ambari task payload. */
 @Singleton
 public class ManagedDependencyTaskResultProcessor {
+  @Inject
+  private ManagedDependencyCredentialManager credentialManager;
+
   private static final Logger LOG = LoggerFactory.getLogger(ManagedDependencyTaskResultProcessor.class);
   private static final String RESULT_KEY = "managedDependencyResult";
   private static final String PREPARATION_RESULTS_KEY = "managedDependencyPreparationResults";
@@ -96,8 +99,18 @@ public class ManagedDependencyTaskResultProcessor {
    */
   public void dispatchVerificationAfterCredentials(String bindingId, long expectedOperationEpoch,
       long hostId, long credentialRequestId, Set<Long> credentialTaskIds) throws AmbariException {
-    if (actionManager == null || credentialRequestId <= 0 || credentialTaskIds == null
-        || credentialTaskIds.isEmpty() || credentialTaskIds.stream().anyMatch(id -> id == null || id <= 0)) {
+    dispatchVerificationAfterCredentials(bindingId, expectedOperationEpoch, hostId,
+        credentialRequestId, credentialTaskIds, false);
+  }
+
+  public void verifyManualCredentials(String bindingId, long epoch, long hostId) throws AmbariException {
+    dispatchVerificationAfterCredentials(bindingId, epoch, hostId, 0, Set.of(), true);
+  }
+
+  private void dispatchVerificationAfterCredentials(String bindingId, long expectedOperationEpoch,
+      long hostId, long credentialRequestId, Set<Long> credentialTaskIds, boolean manual) throws AmbariException {
+    if (!manual && (actionManager == null || credentialRequestId <= 0 || credentialTaskIds == null
+        || credentialTaskIds.isEmpty() || credentialTaskIds.stream().anyMatch(id -> id == null || id <= 0))) {
       throw new AmbariException("The secure managed dependency credential task evidence is missing");
     }
     ServiceDependencyBindingEntity binding = dependencyDAO.findBinding(bindingId);
@@ -105,10 +118,11 @@ public class ManagedDependencyTaskResultProcessor {
         || binding.getActiveOperationId() == null
         || binding.getConsumerClusterId() == null
         || !"PROVISIONING".equals(binding.getState())
-        || !"CONSUMER_CREDENTIALS_REQUIRED".equals(binding.getProvisioningPhase())) {
+        || !Set.of("CONSUMER_CREDENTIALS_REQUIRED", "CONSUMER_VERIFYING")
+            .contains(binding.getProvisioningPhase())) {
       throw new AmbariException("The managed dependency binding is missing or stale");
     }
-    List<HostRoleCommand> tasks = actionManager.get().getRequestTasks(credentialRequestId);
+    List<HostRoleCommand> tasks = manual ? List.of() : actionManager.get().getRequestTasks(credentialRequestId);
     Set<Long> matchedTaskIds = new HashSet<>();
     for (HostRoleCommand task : tasks) {
       if (!credentialTaskIds.contains(task.getTaskId())) {
@@ -143,6 +157,17 @@ public class ManagedDependencyTaskResultProcessor {
         || !Objects.equals(binding.getActiveOperationId(), preparation.getOperationId())
         || !Objects.equals(binding.getOperationEpoch(), preparation.getOperationEpoch())) {
       throw new AmbariException("The secure managed dependency preparation is not current");
+    }
+    if (credentialManager == null) {
+      throw new AmbariException("The credential producer association is unavailable");
+    }
+    if (manual) {
+      ManagedDependencyCredentialManager.Plan plan = ManagedDependencyCredentialManager.plan(preparation);
+      if (plan == null || !plan.manual()) {
+        throw new AmbariException("Manual credential verification is not enabled for this preparation");
+      }
+    } else {
+      credentialManager.requireCompleted(preparation, credentialRequestId, credentialTaskIds);
     }
     ServiceDependencySnapshotEntity snapshotEntity = dependencyDAO.findSnapshot(bindingId,
         binding.getDesiredSnapshotVersion());
@@ -204,6 +229,9 @@ public class ManagedDependencyTaskResultProcessor {
           .get(ManagedDependencyOperationDispatcher.COMMAND_PARAMETER);
       String rawBundle = execution.getCommandParams()
           .get(ManagedDependencyRuntimePlanner.BUNDLE_PARAMETER);
+      if (credentialManager != null && ManagedDependencyCredentialManager.isKeytabTask(hostRoleCommand)) {
+        credentialManager.taskCompleted(hostRoleCommand);
+      }
       if (rawCommand != null && rawBundle != null && taskIsPreparation(hostRoleCommand, rawCommand)) {
         processPreparationResults(report, authenticatedHostName, hostRoleCommand, rawBundle,
             rawCommand);

@@ -474,6 +474,38 @@ class ManagedDependencyRuntimePlannerTest {
     assertTrue(preparationAssociated.get());
   }
 
+  @Test
+  void retryUsesTheExactConsumerHostProfileAndNeverTheProviderPin() throws Exception {
+    ServiceDependencyDAO dao = mock(ServiceDependencyDAO.class);
+    ManagedDependencyDescriptorResolver resolver = mock(ManagedDependencyDescriptorResolver.class);
+    ManagedDependencyRuntimePlanner planner = new ManagedDependencyRuntimePlanner(dao, resolver,
+        mock(ManagedServiceDependencyCoordinator.class));
+    ServiceDependencyBindingEntity binding = binding();
+    binding.setActionHostId(99L);
+    binding.setSnapshotApproval("APPROVED");
+    binding.setProviderPreparationHash(HASH);
+    binding.setActiveOperationId(OPERATION_ID.toString());
+    when(dao.findByConsumer(11L, "HBASE")).thenReturn(List.of(binding));
+    var currentOperation = new org.apache.ambari.server.orm.entities.ServiceDependencyOperationEntity();
+    currentOperation.setOperationId(OPERATION_ID.toString()); currentOperation.setOperationEpoch(3L);
+    when(dao.findOperation(OPERATION_ID.toString())).thenReturn(currentOperation);
+    var persisted = new ServiceDependencySnapshotEntity();
+    persisted.setSnapshotJson(StageUtils.getGson().toJson(snapshot()));
+    when(dao.findSnapshot(BINDING_ID.toString(), 1L)).thenReturn(persisted);
+    Cluster cluster = cluster(componentHost(41L, "consumer-a"), componentHost(42L, "consumer-b"));
+    when(resolver.cluster(11L)).thenReturn(cluster);
+    var first = completedPreparation(41L, "1.rpm"); first.setOperationEpoch(1L);
+    var second = completedPreparation(42L, "1.deb"); second.setOperationEpoch(2L);
+    when(dao.findHostResults(BINDING_ID.toString(), 1L)).thenReturn(List.of(first, second));
+    var retry = planner.buildRetryPreparationPlan(11L, 41L, BINDING_ID);
+    assertEquals(41L, retry.bundle().hostId());
+    assertEquals("HBASE_REGIONSERVER", retry.componentName());
+    assertEquals(3L, retry.bundle().preparationCommands().get(0).envelope().epoch());
+    assertThrows(AmbariException.class, () -> planner.buildRetryPreparationPlan(11L, 99L, BINDING_ID));
+    when(dao.findHostResults(BINDING_ID.toString(), 1L)).thenReturn(List.of(second));
+    assertThrows(AmbariException.class, () -> planner.buildRetryPreparationPlan(11L, 41L, BINDING_ID));
+  }
+
   private ManagedDependencyCommand preparation(long hostId) {
     return ManagedDependencyCommand.prepareConsumer(snapshot(), OPERATION_ID, 3L, hostId,
         "hadoop_3_3_0_0_1-client", "3.3.0", HASH);

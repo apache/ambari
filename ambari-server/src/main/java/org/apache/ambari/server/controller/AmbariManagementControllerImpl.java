@@ -94,6 +94,7 @@ import jakarta.persistence.RollbackException;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyOperationDispatcher;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -3338,6 +3339,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
           componentFilter.add(scHost.getServiceComponentName());
           hostFilter.add(scHost.getHostName());
+          if ("HBASE".equals(serviceName) && managedDependencyRuntimePlanner.hasManagedLifecycleStages(
+              requestStages.getStages())) {
+            hostsToForceKerberosOperations.add(scHost.getHostName());
+          }
         }
 
         try {
@@ -4295,6 +4300,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     if (stages != null && !stages.isEmpty()) {
       requestStageContainer.addStages(stages);
+    }
+
+    if (cluster != null && cluster.getSecurityType() == SecurityType.KERBEROS
+        && ManagedDependencyOperationDispatcher.isInternalDispatch()
+        && ManagedDependencyOperationDispatcher.isPreparationCommand(actionRequest.getCommandName())) {
+      injector.getInstance(org.apache.ambari.server.controller.dependencies.ManagedDependencyCredentialManager.class)
+          .createRetryCredentials(cluster, actionRequest, requestStageContainer, kerberosHelper, users);
     }
 
     // If the request is to perform the Kerberos service check, delete the test-specific principal

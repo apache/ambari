@@ -333,7 +333,7 @@ public class ServiceDependencyDAOIntegrationTest {
 
   @Test
   public void testMixedBulkDeletionPrevalidatesEveryServiceBeforeMutation() throws Exception {
-    providerCluster.addService("TEZ", repository);
+    providerCluster.addService("FLUME", repository);
     UUID bindingId = UUID.fromString("00000000-0000-4000-8000-000000000111");
     UUID operationId = UUID.fromString("00000000-0000-4000-8000-000000000112");
     publishBinding(bindingId, operationId);
@@ -346,14 +346,14 @@ public class ServiceDependencyDAOIntegrationTest {
     }
 
     assertTrue(providerCluster.getServices().containsKey("HDFS"));
-    assertTrue(providerCluster.getServices().containsKey("TEZ"));
+    assertTrue(providerCluster.getServices().containsKey("FLUME"));
   }
 
   @Test
   public void testDeletionWriteBoundaryBlocksConcurrentBindingPublication() throws Exception {
     UUID bindingId = UUID.fromString("00000000-0000-4000-0000-000000000131");
     UUID operationId = UUID.fromString("00000000-0000-4000-0000-000000000132");
-    providerCluster.addService("TEZ", repository);
+    providerCluster.addService("FLUME", repository);
     ServiceDependencyBindingEntity binding = binding(bindingId, operationId);
     ServiceDependencySnapshotEntity snapshot = snapshot(bindingId);
     ServiceDependencyOperationEntity operation = operation(bindingId, operationId);
@@ -376,7 +376,10 @@ public class ServiceDependencyDAOIntegrationTest {
         }
         return null;
       });
-      assertTrue(deletionEntered.await(30, TimeUnit.SECONDS));
+      if (!deletionEntered.await(5, TimeUnit.SECONDS)) {
+        deletion.get(1, TimeUnit.SECONDS);
+        fail("Deletion did not reach its transaction barrier");
+      }
 
       Future<?> publication = executor.submit(() -> {
         publicationStarted.countDown();
@@ -400,7 +403,7 @@ public class ServiceDependencyDAOIntegrationTest {
         assertTrue(hasCause(expected, ServiceDependencyDAO.StaleApprovalException.class));
       }
       assertFalse(providerCluster.getServices().containsKey("HDFS"));
-      assertFalse(providerCluster.getServices().containsKey("TEZ"));
+      assertFalse(providerCluster.getServices().containsKey("FLUME"));
       assertTrue(dependencyDAO.findAllBindings().isEmpty());
     } finally {
       releaseDeletion.countDown();
@@ -584,21 +587,11 @@ public class ServiceDependencyDAOIntegrationTest {
     CountDownLatch publicationEntered = new CountDownLatch(1);
     CountDownLatch releasePublication = new CountDownLatch(1);
     CountDownLatch writerStarted = new CountDownLatch(1);
-    taskEventPublisher.register(new Object() {
-      @Subscribe
-      public void onTaskCreate(TaskCreateEvent event) {
-        if (event.getHostRoleCommands().stream()
-            .anyMatch(command -> command.getRequestId() == scenario.request().getRequestId())) {
-          publicationEntered.countDown();
-          await(releasePublication);
-        }
-      }
-    });
-
     ExecutorService executor = Executors.newFixedThreadPool(2);
     try {
       Future<?> publication = executor.submit(() -> {
-        actionDBAccessor.persistActions(scenario.request());
+        injector.getInstance(PublicationTransactionBarrier.class).persistAndWait(
+            scenario.request(), publicationEntered, releasePublication);
         return null;
       });
       assertTrue(publicationEntered.await(30, TimeUnit.SECONDS));
@@ -721,6 +714,10 @@ public class ServiceDependencyDAOIntegrationTest {
     assertEquals("FAILED", failed.getState());
     assertEquals("VERIFY_FAILED", failed.getFailureCode());
 
+  }
+
+  @Test
+  public void testLateVerificationFailureCannotBeHiddenByEarlierHostSuccess() {
     UUID reverseBindingId = UUID.fromString("00000000-0000-4000-8000-000000000051");
     UUID reverseOperationId = UUID.fromString("00000000-0000-4000-8000-000000000052");
     createVerificationScenario(reverseBindingId, reverseOperationId, 51L, 52L);
@@ -854,6 +851,46 @@ public class ServiceDependencyDAOIntegrationTest {
   }
 
   @Test
+  public void testReinstallationOwnsReplacementTasksAndRetainsPriorEpochHistory() {
+    UUID bindingId = UUID.randomUUID();
+    UUID originalOperation = UUID.randomUUID();
+    UUID retryOperation = UUID.randomUUID();
+    createVerificationScenario(bindingId, originalOperation, 41L, 42L);
+    completeVerification(bindingId, 41L, true, Set.of(41L, 42L));
+    completeVerification(bindingId, 42L, true, Set.of(41L, 42L));
+    ServiceDependencyBindingEntity binding = dependencyDAO.findBinding(bindingId.toString());
+    long originalVersion = binding.getRowVersion();
+    ServiceDependencyOperationEntity retry = operation(bindingId, retryOperation);
+    retry.setOperationKind("RETRY"); retry.setOperationEpoch(2L);
+    ServiceDependencyHostResultEntity install = command(bindingId, retryOperation, 1L, 41L,
+        "PREPARE_HDFS_CONSUMER", "HBASE_REGIONSERVER");
+    install.setOperationEpoch(2L); install.setState("AWAITING_INSTALL");
+    ServiceDependencyHostResultEntity preparation = command(bindingId, retryOperation, 1L, 42L,
+        "PREPARE_HDFS_CONSUMER", "HBASE_REGIONSERVER");
+    preparation.setOperationEpoch(2L);
+    List<ServiceDependencyHostResultEntity> intents = List.of(install, preparation);
+
+    assertTrue(dependencyDAO.startConsumerReinstallation(bindingId.toString(), originalVersion,
+        retry, intents, 7).created());
+    assertEquals(List.of(42L), dependencyDAO.findOutstandingCommands(0, 256).stream()
+        .map(ServiceDependencyHostResultEntity::getHostId).toList());
+    assertThrows(ServiceDependencyDAO.StaleApprovalException.class,
+        () -> dependencyDAO.claimCommandDispatch(id(install)));
+    // Ordinary INSTALL planning reuses the frozen intent and records the replacement task once.
+    dependencyDAO.planCommands(intents);
+    assertTrue(dependencyDAO.associatePreparationTask(install, "HBASE_REGIONSERVER", 999L, 1L, 999L));
+    assertFalse(dependencyDAO.startConsumerReinstallation(bindingId.toString(), originalVersion,
+        retry, intents, 7).created());
+    assertThrows(ServiceDependencyDAO.StaleApprovalException.class,
+        () -> dependencyDAO.associatePreparationTask(install, "HBASE_REGIONSERVER", 1000L, 1L, 1000L));
+    assertEquals(Long.valueOf(999L), dependencyDAO.findHostResult(bindingId.toString(), 1L, 2L,
+        41L, "HDFS", "PREPARE_HDFS_CONSUMER").getAmbariTaskId());
+    assertEquals(Long.valueOf(142L), dependencyDAO.findHostResult(bindingId.toString(), 1L, 1L,
+        41L, "HDFS", "PREPARE_HDFS_CONSUMER").getAmbariTaskId());
+    assertEquals(hash('p'), dependencyDAO.findBinding(bindingId.toString()).getProviderPreparationHash());
+  }
+
+  @Test
   public void testSuccessfulDetachRetainsReplayFenceAndReleasesServiceReferences()
       throws Exception {
     UUID bindingId = UUID.fromString("00000000-0000-4000-8000-0000000000c1");
@@ -899,6 +936,67 @@ public class ServiceDependencyDAOIntegrationTest {
     assertTrue(dependencyDAO.findByConsumer(consumerCluster.getClusterId(), "HBASE").isEmpty());
     consumerCluster.deleteService("HBASE", new DeleteHostComponentStatusMetaData());
     assertFalse(consumerCluster.getServices().containsKey("HBASE"));
+  }
+
+  @Test
+  public void testDeploymentAndTaskPublicationCommitAndReplayAsOneTransaction() throws Exception {
+    verifyDeploymentPublication(false);
+  }
+
+  @Test
+  public void testDeploymentPublicationFailureRollsBackTaskAndLineageTogether() throws Exception {
+    verifyDeploymentPublication(true);
+  }
+
+  private void verifyDeploymentPublication(boolean reject) throws Exception {
+    UUID bindingId = UUID.randomUUID();
+    ManagedDependencySnapshot snapshot = dispatchSnapshot(bindingId);
+    consumerCluster.addDesiredConfig("admin", Set.of(hbaseSite(snapshot, "deployment"), hbaseEnv(snapshot, "deployment")));
+    DispatchScenario scenario = dispatchScenario(bindingId, UUID.randomUUID(), snapshot, reject ? 981L : 982L);
+    ServiceDependencyDeploymentDAO deployments = injector.getInstance(ServiceDependencyDeploymentDAO.class);
+    var deployment = new org.apache.ambari.server.orm.entities.ServiceDependencyDeploymentEntity();
+    deployment.setDeploymentId(UUID.randomUUID().toString());
+    deployment.setClusterId(consumerCluster.getClusterId());
+    deployment.setOwnerUserId(1);
+    deployment.setPlanJson("{\"target\":\"HBASE_MASTER\"}");
+    deployment.setProgressJson("{}");
+    deployment.setState("NEW");
+    deployment.setRowVersion(0L);
+    deployment.setCreateTimestamp(1L);
+    deployment.setUpdateTimestamp(1L);
+    deployments.create(deployment);
+    TaskPublicationRecorder recorder = new TaskPublicationRecorder();
+    taskEventPublisher.register(recorder);
+    try {
+      ServiceDependencyDeploymentDAO.Mutation publication = current -> {
+        actionDBAccessor.persistActions(scenario.request());
+        current.setProgressJson("{\"requestId\":" + scenario.request().getRequestId() + "}");
+        current.setState("INSTALLING");
+        if (reject) throw new AmbariException("Injected failure after action publication");
+      };
+      if (reject) {
+        assertThrows(AmbariException.class, () -> deployments.mutate(deployment.getDeploymentId(), publication));
+        assertEquals("NEW", deployments.find(deployment.getDeploymentId()).getState());
+        assertTrue(hostRoleCommandDAO.findByRequest(scenario.request().getRequestId(), true).isEmpty());
+        org.junit.Assert.assertNull(dependencyDAO.findHostResult(bindingId.toString(), 1L, 1L,
+            scenario.hostId(), "HDFS", "PREPARE_HDFS_CONSUMER").getAmbariTaskId());
+        assertEquals(0, recorder.count);
+      } else {
+        deployments.mutate(deployment.getDeploymentId(), publication);
+        assertEquals(1, hostRoleCommandDAO.findByRequest(scenario.request().getRequestId(), true).size());
+        assertEquals(Long.valueOf(scenario.request().getRequestId()), dependencyDAO.findHostResult(
+            bindingId.toString(), 1L, 1L, scenario.hostId(), "HDFS", "PREPARE_HDFS_CONSUMER").getAmbariRequestId());
+        assertEquals("INSTALLING", deployments.create(deployment).getState());
+        assertEquals(1, recorder.count);
+      }
+    } finally {
+      // This test owns the injector and event bus; teardown discards both.
+    }
+  }
+
+  public static class TaskPublicationRecorder {
+    int count;
+    @Subscribe public void created(TaskCreateEvent event) { count++; }
   }
 
   private ManagedDependencySnapshot dispatchSnapshot(UUID bindingId) throws Exception {
@@ -1332,7 +1430,8 @@ public class ServiceDependencyDAOIntegrationTest {
   }
 
   private String hash(char digit) {
-    return "sha256:" + String.valueOf(digit).repeat(64);
+    return "sha256:" + (Character.digit(digit, 16) >= 0 ? String.valueOf(digit).repeat(64)
+        : String.format("%02x", (int) digit).repeat(32));
   }
 
   public static class ReplayMutation {
@@ -1394,6 +1493,19 @@ public class ServiceDependencyDAOIntegrationTest {
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new AssertionError("Interrupted while holding the live-plan read transaction", e);
+      }
+    }
+  }
+
+  public static class PublicationTransactionBarrier {
+    @Inject private ActionDBAccessorImpl actions;
+
+    @Transactional
+    public void persistAndWait(Request request, CountDownLatch entered, CountDownLatch release) throws Exception {
+      actions.persistActions(request);
+      entered.countDown();
+      if (!release.await(30, TimeUnit.SECONDS)) {
+        throw new AssertionError("Timed out while holding the action publication transaction");
       }
     }
   }

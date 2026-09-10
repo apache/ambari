@@ -31,8 +31,9 @@ import jakarta.persistence.Table;
 @Table(name = "service_dependency_host_result")
 @NamedQueries({
     @NamedQuery(name = "ServiceDependencyHostResultEntity.findOutstanding", query =
-        "SELECT result FROM ServiceDependencyHostResultEntity result "
-            + "WHERE result.state IN ('INTENT', 'SCHEDULING', 'DISPATCHED') "
+        "SELECT result FROM ServiceDependencyHostResultEntity result, ServiceDependencyBindingEntity binding "
+            + "WHERE result.bindingId=binding.bindingId AND result.operationId=binding.activeOperationId "
+            + "AND result.operationEpoch=binding.operationEpoch AND result.state IN ('INTENT', 'SCHEDULING', 'DISPATCHED') "
             + "ORDER BY result.checkTimestamp, result.bindingId, result.hostId"),
     @NamedQuery(name = "ServiceDependencyHostResultEntity.findByTask", query =
         "SELECT result FROM ServiceDependencyHostResultEntity result "
@@ -75,6 +76,10 @@ public class ServiceDependencyHostResultEntity {
   @Lob
   @Column(name = "command_json", nullable = false, updatable = false)
   private String commandJson;
+
+  @Lob
+  @Column(name = "credential_plan_json")
+  private String credentialPlanJson;
 
   @Column(name = "ambari_request_id")
   private Long ambariRequestId;
@@ -152,6 +157,8 @@ public class ServiceDependencyHostResultEntity {
   public void setComponentName(String value) { componentName = value; }
   public String getCommandRequestHash() { return commandRequestHash; }
   public void setCommandRequestHash(String value) { commandRequestHash = value; }
+  public String getCredentialPlanJson() { return credentialPlanJson; }
+  public void setCredentialPlanJson(String value) { credentialPlanJson = value; }
   public String getCommandJson() { return commandJson; }
   public void setCommandJson(String value) { commandJson = value; }
   public Long getAmbariRequestId() { return ambariRequestId; }

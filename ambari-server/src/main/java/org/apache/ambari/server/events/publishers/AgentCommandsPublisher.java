@@ -40,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyCredentialManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.AgentCommand;
@@ -73,6 +74,9 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class AgentCommandsPublisher {
+  @Inject
+  private ManagedDependencyCredentialManager managedDependencyCredentialManager;
+
   private static final Logger LOG = LoggerFactory.getLogger(AgentCommandsPublisher.class);
 
   @Inject
@@ -237,6 +241,9 @@ public class AgentCommandsPublisher {
     KerberosCommandParameterProcessor processor = KerberosCommandParameterProcessor.getInstance(command, clusters, ec, kerberosKeytabController);
     if (processor != null) {
       ec.setKerberosCommandParams(processor.process(targetHost, desiredConfigs));
+      if (SET_KEYTAB.equalsIgnoreCase(command)) {
+        managedDependencyCredentialManager.beforeSend(ec, clusters.getHost(targetHost).getHostId());
+      }
     }
   }
 

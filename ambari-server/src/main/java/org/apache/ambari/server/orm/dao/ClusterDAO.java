@@ -590,6 +590,9 @@ public class ClusterDAO {
 
   @Transactional
   public void remove(ClusterEntity clusterEntity) {
+    entityManagerProvider.get().createQuery(
+        "DELETE FROM ServiceDependencyDeploymentEntity d WHERE d.clusterId=:clusterId")
+        .setParameter("clusterId", clusterEntity.getClusterId()).executeUpdate();
     entityManagerProvider.get().remove(clusterEntity);
   }
 

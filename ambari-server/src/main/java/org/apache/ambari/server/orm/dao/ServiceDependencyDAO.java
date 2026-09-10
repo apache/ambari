@@ -95,10 +95,86 @@ public class ServiceDependencyDAO {
   }
 
   @RequiresSession
+  public List<ServiceDependencyHostResultEntity> findPreparationsByRequest(long requestId) {
+    return entityManagerProvider.get().createQuery(
+        "SELECT r FROM ServiceDependencyHostResultEntity r WHERE r.ambariRequestId=:requestId "
+            + "AND r.checkKind IN ('PREPARE_HDFS_CONSUMER','PREPARE_ZOOKEEPER_CONSUMER')",
+        ServiceDependencyHostResultEntity.class).setParameter("requestId", requestId).getResultList();
+  }
+
+  @RequiresSession
+  public List<ServiceDependencyHostResultEntity> findAwaitingCredentials(int offset, int limit) {
+    return entityManagerProvider.get().createQuery(
+        "SELECT r FROM ServiceDependencyHostResultEntity r, ServiceDependencyBindingEntity b "
+            + "WHERE r.bindingId=b.bindingId AND r.operationEpoch=b.operationEpoch "
+            + "AND r.operationId=b.activeOperationId AND r.state='SUCCEEDED' "
+            + "AND r.credentialPlanJson IS NOT NULL AND b.state='PROVISIONING' AND b.provisioningPhase IN ('CONSUMER_CREDENTIALS_REQUIRED','CONSUMER_VERIFYING') "
+            + "ORDER BY r.bindingId, r.hostId", ServiceDependencyHostResultEntity.class)
+        .setFirstResult(offset).setMaxResults(limit).getResultList();
+  }
+
+  @Transactional
+  public void failCredentials(ServiceDependencyHostResultEntityPK id) {
+    EntityManager em = entityManagerProvider.get();
+    ServiceDependencyBindingEntity binding = em.find(ServiceDependencyBindingEntity.class,
+        id.getBindingId(), LockModeType.PESSIMISTIC_WRITE);
+    if (binding == null || !Objects.equals(binding.getOperationEpoch(), id.getOperationEpoch())
+        || !Objects.equals(binding.getDesiredSnapshotVersion(), id.getSnapshotVersion())) {
+      return;
+    }
+    binding.setState("FAILED");
+    binding.setProvisioningPhase("CONSUMER_CREDENTIALS_REQUIRED");
+    binding.setFailureCode("DEPENDENCY_CREDENTIAL_TASK_FAILED");
+    binding.setFailurePhase("CONSUMER_CREDENTIALS_REQUIRED");
+    binding.setFailureMessage("The owned credential task did not complete successfully.");
+    binding.setFailureRetryable(true);
+    binding.setUpdateTimestamp(System.currentTimeMillis());
+    ServiceDependencyOperationEntity operation = em.find(ServiceDependencyOperationEntity.class,
+        binding.getActiveOperationId(), LockModeType.PESSIMISTIC_WRITE);
+    operation.setState("FAILED");
+    operation.setFailureCode(binding.getFailureCode());
+    operation.setFailureMessage(binding.getFailureMessage());
+    operation.setUpdateTimestamp(binding.getUpdateTimestamp());
+    em.flush();
+  }
+
+  /** The producer freezes credential identity before send; later callbacks cannot replace it. */
+  @Transactional
+  public void recordCredentialPlan(ServiceDependencyHostResultEntityPK id,
+      String expectedPlan, String plan) {
+    EntityManager em = entityManagerProvider.get();
+    ServiceDependencyBindingEntity binding = em.find(ServiceDependencyBindingEntity.class,
+        id.getBindingId(), LockModeType.PESSIMISTIC_WRITE);
+    ServiceDependencyHostResultEntity preparation = em.find(ServiceDependencyHostResultEntity.class,
+        id, LockModeType.PESSIMISTIC_WRITE);
+    if (binding == null || preparation == null
+        || !Objects.equals(binding.getOperationEpoch(), preparation.getOperationEpoch())
+        || !Objects.equals(binding.getActiveOperationId(), preparation.getOperationId())
+        || !Objects.equals(binding.getDesiredSnapshotVersion(), preparation.getSnapshotVersion())) {
+      throw new StaleApprovalException("The credential producer no longer owns its preparation");
+    }
+    if (Objects.equals(preparation.getCredentialPlanJson(), plan)) {
+      return;
+    }
+    if (!Objects.equals(preparation.getCredentialPlanJson(), expectedPlan)) {
+      throw new StaleApprovalException("The credential plan is already owned by another producer");
+    }
+    preparation.setCredentialPlanJson(plan);
+    em.flush();
+  }
+
+  @RequiresSession
   public List<ServiceDependencyHostResultEntity> findOutstandingCommands() {
     return entityManagerProvider.get().createNamedQuery(
         "ServiceDependencyHostResultEntity.findOutstanding",
         ServiceDependencyHostResultEntity.class).getResultList();
+  }
+
+  @RequiresSession
+  public List<ServiceDependencyHostResultEntity> findOutstandingCommands(int offset, int limit) {
+    return entityManagerProvider.get().createNamedQuery(
+        "ServiceDependencyHostResultEntity.findOutstanding", ServiceDependencyHostResultEntity.class)
+        .setFirstResult(offset).setMaxResults(limit).getResultList();
   }
 
   @RequiresSession
@@ -547,7 +623,7 @@ public class ServiceDependencyDAO {
         .setParameter("serviceName", expected.getConsumerServiceName())
         .setParameter("dependencyType", expected.getDependencyType())
         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
-        .setMaxResults(1).getResultList();
+        .getResultList();
     return rows.isEmpty() ? null : rows.get(0);
   }
 
@@ -680,6 +756,28 @@ public class ServiceDependencyDAO {
   public LifecycleTransition startRetry(String bindingId, long expectedRowVersion,
       ServiceDependencyOperationEntity requested, ServiceDependencyHostResultEntity retryCommand,
       int userId) {
+    return startConsumerRetry(bindingId, expectedRowVersion, requested,
+        retryCommand == null ? List.of() : List.of(retryCommand), userId);
+  }
+
+  @Transactional
+  public LifecycleTransition startConsumerRetry(String bindingId, long expectedRowVersion,
+      ServiceDependencyOperationEntity requested, List<ServiceDependencyHostResultEntity> retryCommands,
+      int userId) {
+    return startConsumerRetry(bindingId, expectedRowVersion, requested, retryCommands, userId, false);
+  }
+
+  /** A durable failed INSTALL owns publication of its replacement preparation tasks. */
+  @Transactional
+  public LifecycleTransition startConsumerReinstallation(String bindingId, long expectedRowVersion,
+      ServiceDependencyOperationEntity requested, List<ServiceDependencyHostResultEntity> commands, int userId) {
+    return startConsumerRetry(bindingId, expectedRowVersion, requested, commands, userId, true);
+  }
+
+  private LifecycleTransition startConsumerRetry(String bindingId, long expectedRowVersion,
+      ServiceDependencyOperationEntity requested, List<ServiceDependencyHostResultEntity> retryCommands,
+      int userId, boolean reinstall) {
+    ServiceDependencyHostResultEntity retryCommand = retryCommands.isEmpty() ? null : retryCommands.get(0);
     EntityManager entityManager = entityManagerProvider.get();
     ServiceDependencyBindingEntity binding = entityManager.find(
         ServiceDependencyBindingEntity.class, bindingId, LockModeType.PESSIMISTIC_WRITE);
@@ -694,28 +792,33 @@ public class ServiceDependencyDAO {
       ServiceDependencyHostResultEntity command = retryCommand == null ? null
           : entityManager.find(ServiceDependencyHostResultEntity.class, commandId(retryCommand),
               LockModeType.PESSIMISTIC_READ);
-      if (retryCommand != null && command == null) {
-        throw new StaleApprovalException("The retry preparation intent is missing");
+      for (ServiceDependencyHostResultEntity expected : retryCommands) {
+        ServiceDependencyHostResultEntity persisted = entityManager.find(ServiceDependencyHostResultEntity.class,
+            commandId(expected), LockModeType.PESSIMISTIC_READ);
+        if (!sameImmutableCommand(expected, persisted)) {
+          throw new StaleApprovalException("The retry preparation intent is missing or changed");
+        }
       }
       return new LifecycleTransition(binding, existing, command, false);
     }
     if (!Objects.equals(binding.getRowVersion(), expectedRowVersion)) {
       throw new StaleApprovalException("The managed dependency changed after it was read");
     }
-    if (!"FAILED".equals(binding.getState()) || !Boolean.TRUE.equals(binding.getFailureRetryable())) {
-      throw new StaleApprovalException("The managed dependency is not in a retryable failed state");
+    if (reinstall ? !Set.of("PROVISIONING", "READY", "FAILED").contains(binding.getState())
+        : !"FAILED".equals(binding.getState()) || !Boolean.TRUE.equals(binding.getFailureRetryable())) {
+      throw new StaleApprovalException("The managed dependency is not in a retryable state");
     }
     if (binding.getProviderPreparationHash() == null) {
       throw new StaleApprovalException(
           "Provider preparation cannot be retried under a new identity without fencing review");
     }
     requireNextLifecycleOperation(binding, requested, "RETRY", binding.getDesiredSnapshotVersion());
-    if (retryCommand != null) {
-      validateRetryPreparationIntent(binding, requested, retryCommand);
+    for (ServiceDependencyHostResultEntity command : retryCommands) {
+      validateRetryPreparationIntent(binding, requested, command);
     }
     entityManager.persist(requested);
-    if (retryCommand != null) {
-      entityManager.persist(retryCommand);
+    for (ServiceDependencyHostResultEntity command : retryCommands) {
+      entityManager.persist(command);
     }
     binding.setOperationEpoch(requested.getOperationEpoch());
     binding.setActiveOperationId(requested.getOperationId());
@@ -956,7 +1059,7 @@ public class ServiceDependencyDAO {
     return command;
   }
 
-  /** Associates a canonical HBase INSTALL task before the action transaction is published. */
+  /** Associates a reserved command or canonical HBase INSTALL task in the action transaction. */
   @Transactional
   public boolean associatePreparationTask(ServiceDependencyHostResultEntity expected,
       String actualComponentName, long requestId, long stageId, long taskId) {
@@ -987,6 +1090,7 @@ public class ServiceDependencyDAO {
     command.setState("DISPATCHED");
     command.setCheckTimestamp(System.currentTimeMillis());
     operation.setAmbariRequestId(requestId);
+    operation.setState("DISPATCHED");
     binding.setActiveRequestId(requestId);
     binding.setUpdateTimestamp(System.currentTimeMillis());
     entityManager.flush();
@@ -1038,7 +1142,12 @@ public class ServiceDependencyDAO {
     ServiceDependencyHostResultEntity command = entityManager.find(
         ServiceDependencyHostResultEntity.class, id, LockModeType.PESSIMISTIC_WRITE);
     requireCurrentCommandOwner(binding, operation, command);
-    if ("SUCCEEDED".equals(command.getState())) {
+    if (command.getAmbariTaskId() != null) {
+      if (!Objects.equals(command.getAmbariRequestId(), requestId)
+          || !Objects.equals(command.getAmbariStageId(), stageId)
+          || !Objects.equals(command.getAmbariTaskId(), taskId)) {
+        throw new StaleApprovalException("A different task already owns this command");
+      }
       return;
     }
     if (!"SCHEDULING".equals(command.getState()) && !"DISPATCHED".equals(command.getState())) {
@@ -1426,7 +1535,10 @@ public class ServiceDependencyDAO {
         || !Objects.equals(operation.getBindingId(), command.getBindingId())
         || !Objects.equals(operation.getOperationEpoch(), command.getOperationEpoch())
         || !Objects.equals(operation.getTargetSnapshotVersion(), command.getSnapshotVersion())
-        || "DETACHING".equals(binding.getState()) || "RETIRED".equals(binding.getState())) {
+        || ("DETACHING".equals(binding.getState())
+            && !("DETACH".equals(operation.getOperationKind())
+                && "INVALIDATE_BINDING_EPOCH".equals(command.getCheckKind())))
+        || "RETIRED".equals(binding.getState())) {
       throw new StaleApprovalException("The dependency command no longer owns the active operation");
     }
   }

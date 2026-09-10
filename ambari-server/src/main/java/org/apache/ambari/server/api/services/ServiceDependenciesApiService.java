@@ -37,12 +37,13 @@ import org.apache.ambari.server.controller.dependencies.ManagedServiceDependency
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 @StaticallyInject
 @Path("/service-dependencies")
 public class ServiceDependenciesApiService {
   @Inject
-  private static ManagedServiceDependencyCoordinator coordinator;
+  private static Provider<ManagedServiceDependencyCoordinator> coordinator;
 
   @GET
   @Path("/candidates")
@@ -72,7 +73,7 @@ public class ServiceDependenciesApiService {
       } else {
         throw new IllegalArgumentException("consumer_scope must be draft or service_plan");
       }
-      return Map.of("items", coordinator.candidates(consumer,
+      return Map.of("items", coordinator.get().candidates(consumer,
           ManagedDependencyApiSupport.type(dependencyType)));
     });
   }
@@ -96,7 +97,7 @@ public class ServiceDependenciesApiService {
         for (JsonNode selection : root.get("selections")) {
           selections.add(ManagedDependencyApiSupport.previewSelection(selection));
         }
-        return coordinator.preview(consumerReference(consumer), selections);
+        return coordinator.get().preview(consumerReference(consumer), selections);
       }
       JsonNode consumer = ManagedDependencyApiSupport.requiredObject(root, "consumer",
           Set.of("scope", "draft_id", "cluster_id", "expected_revision"));
@@ -105,7 +106,7 @@ public class ServiceDependenciesApiService {
           Set.of("cluster_id", "service_name"));
       ManagedDependencyType type = ManagedDependencyApiSupport.type(
           ManagedDependencyApiSupport.text(root, "dependency_type"));
-      return coordinator.preview(consumerReference, type,
+      return coordinator.get().preview(consumerReference, type,
           ManagedDependencyApiSupport.provider(provider),
           ManagedDependencyApiSupport.optionalUuid(root, "binding_id"));
     });

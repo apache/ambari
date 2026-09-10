@@ -35,6 +35,7 @@ import jakarta.persistence.EntityManager;
 import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyCredentialManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
@@ -133,7 +134,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   Configuration configuration;
 
   @Inject
-  ManagedDependencyRuntimePlanner managedDependencyRuntimePlanner;
+  Provider<ManagedDependencyRuntimePlanner> managedDependencyRuntimePlanner;
+
+  @Inject
+  ManagedDependencyCredentialManager managedDependencyCredentialManager;
 
   @Inject
   ActionPersistenceTransaction actionPersistenceTransaction;
@@ -349,7 +353,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Transactional(rollbackOn = {RuntimeException.class, AmbariException.class})
   public void persistActions(Request request) throws AmbariException {
     try {
-      managedDependencyRuntimePlanner.executeWithPreparationParentLocks(request,
+      managedDependencyRuntimePlanner.get().executeWithPreparationParentLocks(request,
           () -> actionPersistenceTransaction.persist(this, request));
     } catch (AmbariException e) {
       markCurrentTransactionRollbackOnly();
@@ -410,9 +414,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         hostRoleCommandEntities.add(hostRoleCommandEntity);
 
         hostRoleCommand.setTaskId(hostRoleCommandEntity.getTaskId());
-        managedDependencyRuntimePlanner.applyDeferredCustomLifecycleState(hostRoleCommand);
-        managedDependencyRuntimePlanner.planPreparationCommands(hostRoleCommand);
-        managedDependencyRuntimePlanner.associatePreparationTask(hostRoleCommand);
+        managedDependencyRuntimePlanner.get().applyDeferredCustomLifecycleState(hostRoleCommand);
+        managedDependencyRuntimePlanner.get().planPreparationCommands(hostRoleCommand);
+        managedDependencyRuntimePlanner.get().associatePreparationTask(hostRoleCommand);
 
         String prefix = "";
         String output = "output-" + hostRoleCommandEntity.getTaskId() + ".txt";
@@ -471,6 +475,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       stageEntity.setHostRoleCommands(hostRoleCommandEntities);
       stageEntity = stageDAO.merge(stageEntity);
     }
+
+    managedDependencyCredentialManager.associate(requestId, hostRoleCommands);
 
     requestEntity.setStages(stageEntities);
     requestDAO.merge(requestEntity);

@@ -1377,8 +1377,8 @@ public class ClusterImpl implements Cluster {
       deleteService(service, deleteMetaData);
       STOMPComponentsDeleteHandler.processDeleteByMetaDataException(deleteMetaData);
     }
-    STOMPComponentsDeleteHandler.processDeleteCluster(getClusterId());
     services.clear();
+    STOMPComponentsDeleteHandler.processDeleteCluster(getClusterId());
   }
 
   @Override

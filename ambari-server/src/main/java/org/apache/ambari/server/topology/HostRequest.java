@@ -238,6 +238,9 @@ public class HostRequest implements Comparable<HostRequest> {
     // high level topology tasks such as INSTALL, START, ...
     topologyTasks.add(new PersistHostResourcesTask(topology, this));
     topologyTasks.add(new RegisterWithConfigGroupTask(topology, this));
+    if (topology.getProvisionAction() == org.apache.ambari.server.controller.internal.ProvisionAction.PREPARE_ONLY) {
+      return;
+    }
 
     InstallHostTask installTask = new InstallHostTask(topology, this, skipFailure);
     topologyTasks.add(installTask);
@@ -304,6 +307,9 @@ public class HostRequest implements Comparable<HostRequest> {
   private void createTasksForReplay(TopologyHostRequestEntity entity) {
     topologyTasks.add(new PersistHostResourcesTask(topology, this));
     topologyTasks.add(new RegisterWithConfigGroupTask(topology, this));
+    if (topology.getProvisionAction() == org.apache.ambari.server.controller.internal.ProvisionAction.PREPARE_ONLY) {
+      return;
+    }
     InstallHostTask installTask = new InstallHostTask(topology, this, skipFailure);
     topologyTasks.add(installTask);
     logicalTaskMap.put(installTask, new HashMap<>());

@@ -558,7 +558,21 @@ CREATE TABLE service_dependency_operation (
   CONSTRAINT PK_service_dependency_operation PRIMARY KEY (operation_id),
   CONSTRAINT FK_svc_dep_operation_binding FOREIGN KEY (binding_id) REFERENCES service_dependency_binding (binding_id));
 
+CREATE TABLE service_dependency_deployment (
+  deployment_id VARCHAR(36) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  owner_user_id INTEGER NOT NULL,
+  plan_json LONGTEXT NOT NULL,
+  progress_json LONGTEXT NOT NULL,
+  state VARCHAR(32) NOT NULL,
+  row_version BIGINT NOT NULL,
+  create_timestamp BIGINT NOT NULL,
+  update_timestamp BIGINT NOT NULL,
+  CONSTRAINT PK_svc_dep_deployment PRIMARY KEY (deployment_id),
+  CONSTRAINT FK_svc_dep_deploy_cluster FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id));
+
 CREATE TABLE service_dependency_host_result (
+  credential_plan_json LONGTEXT,
   binding_id VARCHAR(36) NOT NULL, snapshot_version BIGINT NOT NULL, host_id BIGINT NOT NULL,
   dependency_type VARCHAR(32) NOT NULL, check_kind VARCHAR(64) NOT NULL,
   operation_epoch BIGINT NOT NULL, operation_id VARCHAR(36) NOT NULL, component_name VARCHAR(255),
@@ -918,6 +932,7 @@ CREATE TABLE topology_request (
   cluster_attributes LONGTEXT,
   description VARCHAR(1024),
   provision_action VARCHAR(255),
+  managed_dependency_types VARCHAR(32),
   repository_version_id BIGINT,
   specification_hash VARCHAR(64),
   provisioning_state VARCHAR(32),

@@ -40,6 +40,7 @@ public class ServiceDependencySchemaUpgradeTest {
   public void setUp() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    injector.getInstance(org.apache.ambari.server.orm.OrmTestHelper.class).createCluster("schema-consumer");
     dbAccessor = injector.getInstance(DBAccessor.class);
     upgrade = new ServiceDependencySchemaUpgrade(dbAccessor);
     dropDependencyTables();

@@ -76,7 +76,7 @@ class ManagedDependencyOperationDispatcherTest {
     HostRoleCommand secondTask = completedTask();
     ServiceDependencyHostResultEntity first = dispatched("binding-a", 101L);
     ServiceDependencyHostResultEntity second = dispatched("binding-b", 102L);
-    when(dao.findOutstandingCommands()).thenReturn(List.of(first, second));
+    when(dao.findOutstandingCommands(0, 256)).thenReturn(List.of(first, second));
     when(actionManager.getTaskById(101L)).thenReturn(firstTask);
     when(actionManager.getTaskById(102L)).thenReturn(secondTask);
     doThrow(new IllegalStateException("first callback is temporarily unavailable"))
@@ -88,6 +88,14 @@ class ManagedDependencyOperationDispatcherTest {
         provider(mock(ManagedServiceDependencyCoordinator.class)),
         provider(actionManager), provider(processor));
 
+    com.google.inject.Guice.createInjector(new com.google.inject.AbstractModule() {
+      @Override protected void configure() {
+        bind(ManagedDependencyCredentialManager.class).toInstance(mock(ManagedDependencyCredentialManager.class));
+        bind(ManagedDependencyDeploymentCoordinator.class).toInstance(mock(ManagedDependencyDeploymentCoordinator.class));
+        bind(org.apache.ambari.server.events.publishers.TaskEventPublisher.class)
+            .toInstance(mock(org.apache.ambari.server.events.publishers.TaskEventPublisher.class));
+      }
+    }).injectMembers(dispatcher);
     dispatcher.recoverOutstanding();
 
     verify(processor).recover(firstTask);
@@ -105,7 +113,7 @@ class ManagedDependencyOperationDispatcherTest {
         "binding-hdfs", 201L, "PREPARE_HDFS_CONSUMER");
     ServiceDependencyHostResultEntity zooKeeper = dispatched(
         "binding-zookeeper", 201L, "PREPARE_ZOOKEEPER_CONSUMER");
-    when(dao.findOutstandingCommands()).thenReturn(List.of(hdfs, zooKeeper));
+    when(dao.findOutstandingCommands(0, 256)).thenReturn(List.of(hdfs, zooKeeper));
     when(actionManager.getTaskById(201L)).thenReturn(installTask);
     ManagedDependencyOperationDispatcher dispatcher = new ManagedDependencyOperationDispatcher(
         dao, mock(Clusters.class), provider(mock(AmbariManagementController.class)),
@@ -113,6 +121,14 @@ class ManagedDependencyOperationDispatcherTest {
         provider(mock(ManagedServiceDependencyCoordinator.class)),
         provider(actionManager), provider(processor));
 
+    com.google.inject.Guice.createInjector(new com.google.inject.AbstractModule() {
+      @Override protected void configure() {
+        bind(ManagedDependencyCredentialManager.class).toInstance(mock(ManagedDependencyCredentialManager.class));
+        bind(ManagedDependencyDeploymentCoordinator.class).toInstance(mock(ManagedDependencyDeploymentCoordinator.class));
+        bind(org.apache.ambari.server.events.publishers.TaskEventPublisher.class)
+            .toInstance(mock(org.apache.ambari.server.events.publishers.TaskEventPublisher.class));
+      }
+    }).injectMembers(dispatcher);
     dispatcher.recoverOutstanding();
 
     verify(processor, times(1)).recover(installTask);

@@ -616,7 +616,7 @@ class ManagedDependencyCommandTest {
     return secureSnapshot(ManagedDependencyType.HDFS, BINDING_ID, false);
   }
 
-  private ManagedDependencySnapshot secureSnapshot(ManagedDependencyType type,
+  ManagedDependencySnapshot secureSnapshot(ManagedDependencyType type,
       UUID bindingId, boolean includeUnrelatedRule) {
     ManagedDependencySnapshot insecure = snapshot(type, bindingId);
     ManagedDependencyIdentity identity = new ManagedDependencyIdentity(

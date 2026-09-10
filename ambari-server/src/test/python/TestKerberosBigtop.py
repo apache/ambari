@@ -62,6 +62,11 @@ KERBEROS_CHECK = load_module(
 )
 
 
+def setUpModule():
+  from resource_management.core.logger import Logger
+  Logger.initialize_logger()
+
+
 class TestKerberosInputContract(unittest.TestCase):
   def test_boolean_values_are_parsed_instead_of_using_string_truthiness(self):
     self.assertTrue(KERBEROS_UTILS.as_bool(True, "setting"))
@@ -274,6 +279,29 @@ class TestKerberosClientContract(unittest.TestCase):
         )
         helper.assert_called_once()
     self.assertEqual(3, self.env.set_params.call_count)
+
+  def test_set_keytab_output_preserves_same_principal_at_multiple_paths(self):
+    params = SimpleNamespace(kerberos_command_params=[], hostname="host.example.com")
+    records = [("svc/_HOST@REALM", "/etc/security/keytabs/master.keytab"),
+               ("svc/_HOST@REALM", "/etc/security/keytabs/region.keytab")]
+    outputs = []
+    def write(params, hook):
+      for principal, path in records + records:
+        hook(principal, path)
+    def publish(value):
+      outputs.append(value)
+      Script.structuredOut = value
+    with patch.dict(sys.modules, {"params": params}), \
+      patch.object(Script, "structuredOut", {}), \
+      patch.object(KERBEROS_UTILS, "validate_keytab_records"), \
+      patch.object(KERBEROS_CLIENT, "write_keytab_file", side_effect=write), \
+      patch.object(self.client, "put_structured_out", side_effect=publish):
+      self.client.set_keytab(self.env)
+    self.assertEqual([
+      {"principal": "svc/host.example.com@REALM", "keytab": path}
+      for _, path in records
+    ], outputs[-1]["keytabIdentities"])
+    self.assertEqual(records[-1][1], outputs[-1]["keytabs"]["svc/host.example.com@REALM"])
 
 
 class TestKerberosServiceCheckContract(unittest.TestCase):

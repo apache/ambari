@@ -25,11 +25,12 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 @StaticallyInject
 public class ManagedServiceDependentsService {
   @Inject
-  private static ManagedServiceDependencyCoordinator coordinator;
+  private static Provider<ManagedServiceDependencyCoordinator> coordinator;
 
   private final String clusterName;
   private final String serviceName;
@@ -44,7 +45,7 @@ public class ManagedServiceDependentsService {
   @GET
   public Response get(@QueryParam("action") String action) {
     return ManagedDependencyApiSupport.invoke(() -> impact
-        ? coordinator.impact(clusterName, serviceName, action)
-        : coordinator.dependents(clusterName, serviceName));
+        ? coordinator.get().impact(clusterName, serviceName, action)
+        : coordinator.get().dependents(clusterName, serviceName));
   }
 }

@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,6 +91,12 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurati
 import org.junit.jupiter.api.Test;
 
 class ManagedDependencyDescriptorResolverTest {
+  @org.junit.jupiter.api.BeforeEach
+  void initializeCommandContext() {
+    org.apache.ambari.server.utils.StageUtils.setTopologyManager(mock(org.apache.ambari.server.topology.TopologyManager.class));
+    org.apache.ambari.server.utils.StageUtils.setConfiguration(mock(org.apache.ambari.server.configuration.Configuration.class));
+  }
+
   private static final String STOCK_TEMPLATE_RESOURCE =
       "/stacks/BIGTOP/3.2.0/services/KERBEROS/properties/krb5_conf.j2";
   private static final String STOCK_TEMPLATE = loadStockTemplate();
@@ -101,6 +108,7 @@ class ManagedDependencyDescriptorResolverTest {
   void freshInitConsumerMayHaveUnknownPackageVersionButInstalledConsumerMayNot() {
     RepositoryVersionEntity repository = mock(RepositoryVersionEntity.class);
     when(repository.getId()).thenReturn(31L);
+    when(repository.getParentId()).thenReturn(null);
     when(repository.getVersion()).thenReturn("3.3.0-1");
     ServiceComponentHost host = mock(ServiceComponentHost.class);
     when(host.getUpgradeState()).thenReturn(UpgradeState.NONE);
@@ -163,14 +171,14 @@ class ManagedDependencyDescriptorResolverTest {
     when(cluster.getService("HDFS")).thenReturn(hdfs);
     when(cluster.getConfigGroups()).thenReturn(Map.of());
     when(clusters.getClusterById(41L)).thenReturn(cluster);
-    when(cluster.getDesiredConfigByType("core-site")).thenReturn(config(Map.of(
+    doReturn(config(Map.of(
         "hadoop.security.auth_to_local", "RULE:[1:$1@$0](hbase@EXAMPLE.COM)s/.*/hbase/",
-        "hadoop.security.auth_to_local.mechanism", "hadoop")));
-    when(cluster.getDesiredConfigByType("kerberos-env")).thenReturn(config(Map.of(
-        "realm", "EXAMPLE.COM", "manage_auth_to_local", "true")));
-    when(cluster.getDesiredConfigByType("krb5-conf")).thenReturn(config(Map.of(
+        "hadoop.security.auth_to_local.mechanism", "hadoop"))).when(cluster).getDesiredConfigByType("core-site");
+    doReturn(config(Map.of(
+        "realm", "EXAMPLE.COM", "manage_auth_to_local", "true"))).when(cluster).getDesiredConfigByType("kerberos-env");
+    doReturn(config(Map.of(
         "manage_krb5_conf", "true", "realm", "EXAMPLE.COM", "conf_dir", "/etc",
-        "content", STOCK_TEMPLATE)));
+        "content", STOCK_TEMPLATE))).when(cluster).getDesiredConfigByType("krb5-conf");
     when(metaInfo.getServiceProperties("BIGTOP", "3.2.0", "KERBEROS"))
         .thenReturn(Set.of(stockTemplateProperty()));
 
@@ -202,11 +210,11 @@ class ManagedDependencyDescriptorResolverTest {
     when(cluster.getSecurityType()).thenReturn(SecurityType.KERBEROS);
     when(cluster.getService("HDFS")).thenReturn(hdfs);
     when(cluster.getConfigGroups()).thenReturn(Map.of());
-    when(cluster.getDesiredConfigByType("core-site")).thenReturn(config(Map.of()));
-    when(cluster.getDesiredConfigByType("kerberos-env")).thenReturn(config(Map.of(
-        "realm", "EXAMPLE.COM")));
-    when(cluster.getDesiredConfigByType("krb5-conf")).thenReturn(config(Map.of(
-        "content", STOCK_TEMPLATE)));
+    doReturn(config(Map.of())).when(cluster).getDesiredConfigByType("core-site");
+    doReturn(config(Map.of(
+        "realm", "EXAMPLE.COM"))).when(cluster).getDesiredConfigByType("kerberos-env");
+    doReturn(config(Map.of(
+        "content", STOCK_TEMPLATE))).when(cluster).getDesiredConfigByType("krb5-conf");
     when(metaInfo.getServiceProperties("BIGTOP", "3.2.0", "KERBEROS"))
         .thenReturn(Set.of(stockTemplateProperty()));
 
@@ -216,13 +224,13 @@ class ManagedDependencyDescriptorResolverTest {
     assertNull(source.krb5ConfRealm());
     assertEquals("/etc", source.krb5ConfDirectory());
 
-    when(cluster.getDesiredConfigByType("krb5-conf")).thenReturn(config(Map.of(
-        "content", STOCK_TEMPLATE, "realm", "")));
+    doReturn(config(Map.of(
+        "content", STOCK_TEMPLATE, "realm", ""))).when(cluster).getDesiredConfigByType("krb5-conf");
     PolicySource blankRealm = scopedResolver.resolveHdfsPolicySource(cluster, hdfsProvider(42L));
     assertEquals("", blankRealm.krb5ConfRealm());
 
-    when(cluster.getDesiredConfigByType("kerberos-env")).thenReturn(config(Map.of(
-        "realm", "EXAMPLE.COM", "manage_auth_to_local", "sometimes")));
+    doReturn(config(Map.of(
+        "realm", "EXAMPLE.COM", "manage_auth_to_local", "sometimes"))).when(cluster).getDesiredConfigByType("kerberos-env");
     ManagedDependencyIntegrationException error = assertThrows(
         ManagedDependencyIntegrationException.class,
         () -> scopedResolver.resolveHdfsPolicySource(cluster, hdfsProvider(42L)));
@@ -306,6 +314,7 @@ class ManagedDependencyDescriptorResolverTest {
     when(hbase.getDesiredState()).thenReturn(State.INIT);
     when(hbase.getServiceComponents()).thenReturn(Map.of());
     when(repository.getId()).thenReturn(31L);
+    when(repository.getParentId()).thenReturn(null);
     when(repository.getVersion()).thenReturn("3.3.0-1");
     when(repository.isResolved()).thenReturn(true);
     when(repositoryVersionDAO.findByPK(31L)).thenReturn(repository);
@@ -529,8 +538,8 @@ class ManagedDependencyDescriptorResolverTest {
     when(cluster.getSecurityType()).thenReturn(SecurityType.KERBEROS);
     when(cluster.getService("HBASE")).thenReturn(hbase);
     when(cluster.getServices()).thenReturn(Map.of("HBASE", hbase));
-    when(cluster.getDesiredConfigByType("kerberos-env")).thenReturn(config(Map.of(
-        "realm", "EXAMPLE.COM")));
+    doReturn(config(Map.of(
+        "realm", "EXAMPLE.COM"))).when(cluster).getDesiredConfigByType("kerberos-env");
     return cluster;
   }
 
@@ -573,7 +582,7 @@ class ManagedDependencyDescriptorResolverTest {
         UUID.fromString("22222222-2222-4222-8222-222222222222");
 
     private final boolean includeZooKeeper;
-    private final StackId stack = new StackId("BIGTOP", "3.2.0");
+    private final StackId stack;
     final Map<String, Service> consumerServices = new TreeMap<>();
     final Service hbase = mock(Service.class);
     final Service zookeeper = mock(Service.class);
@@ -584,20 +593,25 @@ class ManagedDependencyDescriptorResolverTest {
     final ManagedDependencyDescriptorResolver resolver;
 
     ProducerFixture(boolean includeZooKeeper) throws Exception {
+      this(includeZooKeeper, "3.2.0");
+    }
+
+    ProducerFixture(boolean includeZooKeeper, String stackVersion) throws Exception {
+      this.stack = new StackId("BIGTOP", stackVersion);
       this.includeZooKeeper = includeZooKeeper;
       AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
       ServiceInfo hbaseInfo = serviceInfo("HBASE", "2.4.17",
           "HBASE_CLIENT", "HBASE_MASTER", "HBASE_REGIONSERVER", "HBASE_THRIFT");
-      ServiceInfo hdfsInfo = serviceInfo("HDFS", "3.2.0",
+      ServiceInfo hdfsInfo = serviceInfo("HDFS", stack.getStackVersion(),
           "HDFS_CLIENT", "NAMENODE", "DATANODE");
-      ServiceInfo zooKeeperInfo = serviceInfo("ZOOKEEPER", "3.2.0",
+      ServiceInfo zooKeeperInfo = serviceInfo("ZOOKEEPER", stack.getStackVersion(),
           "ZOOKEEPER_CLIENT", "ZOOKEEPER_SERVER");
       KerberosDescriptor descriptor = compositeDescriptor();
-      when(metaInfo.getService("BIGTOP", "3.2.0", "HBASE")).thenReturn(hbaseInfo);
-      when(metaInfo.getService("BIGTOP", "3.2.0", "HDFS")).thenReturn(hdfsInfo);
-      when(metaInfo.getService("BIGTOP", "3.2.0", "ZOOKEEPER")).thenReturn(zooKeeperInfo);
-      when(metaInfo.getKerberosDescriptor("BIGTOP", "3.2.0", false)).thenReturn(descriptor);
-      when(metaInfo.getServiceProperties("BIGTOP", "3.2.0", "KERBEROS"))
+      when(metaInfo.getService("BIGTOP", stack.getStackVersion(), "HBASE")).thenReturn(hbaseInfo);
+      when(metaInfo.getService("BIGTOP", stack.getStackVersion(), "HDFS")).thenReturn(hdfsInfo);
+      when(metaInfo.getService("BIGTOP", stack.getStackVersion(), "ZOOKEEPER")).thenReturn(zooKeeperInfo);
+      when(metaInfo.getKerberosDescriptor("BIGTOP", stack.getStackVersion(), false)).thenReturn(descriptor);
+      when(metaInfo.getServiceProperties("BIGTOP", stack.getStackVersion(), "KERBEROS"))
           .thenReturn(Set.of(stockTemplateProperty()));
 
       configureHelper(metaInfo);
@@ -640,13 +654,13 @@ class ManagedDependencyDescriptorResolverTest {
     private Cluster providerCluster() throws Exception {
       RepositoryVersionEntity repository = mock(RepositoryVersionEntity.class);
       when(repository.getId()).thenReturn(1L);
-      when(repository.getVersion()).thenReturn("3.2.0-1");
+      when(repository.getVersion()).thenReturn((stack.getStackVersion() + "-1"));
       when(repository.isResolved()).thenReturn(true);
       ServiceComponentHost host = mock(ServiceComponentHost.class);
       when(host.getUpgradeState()).thenReturn(UpgradeState.NONE);
       when(host.getState()).thenReturn(State.INSTALLED);
       when(host.getDesiredState()).thenReturn(State.INSTALLED);
-      when(host.getVersion()).thenReturn("3.2.0-1");
+      when(host.getVersion()).thenReturn((stack.getStackVersion() + "-1"));
       ServiceComponent client = mock(ServiceComponent.class);
       when(client.getDesiredRepositoryVersion()).thenReturn(repository);
       when(client.isVersionAdvertised()).thenReturn(true);
@@ -658,6 +672,7 @@ class ManagedDependencyDescriptorResolverTest {
       when(hdfs.getServiceComponents()).thenReturn(Map.of("HDFS_CLIENT", client));
       Cluster provider = mock(Cluster.class);
       when(provider.getClusterId()).thenReturn(PROVIDER_CLUSTER_ID);
+      when(provider.getClusterName()).thenReturn("hdfs-provider");
       when(provider.getResourceId()).thenReturn(202L);
       when(provider.getDesiredStackVersion()).thenReturn(stack);
       when(provider.getCurrentStackVersion()).thenReturn(stack);
@@ -666,28 +681,30 @@ class ManagedDependencyDescriptorResolverTest {
       when(provider.getService("HDFS")).thenReturn(hdfs);
       when(provider.getServices()).thenReturn(Map.of("HDFS", hdfs));
       when(provider.getConfigGroups()).thenReturn(Map.of());
-      when(provider.getDesiredConfigByType("core-site")).thenReturn(config(Map.of(
+      doReturn(config(Map.of(
           "fs.defaultFS", "hdfs://nn.example.test:8020",
-          "hadoop.security.auth_to_local", "DEFAULT")));
-      when(provider.getDesiredConfigByType("hdfs-site")).thenReturn(config(Map.of()));
-      when(provider.getDesiredConfigByType("kerberos-env")).thenReturn(config(Map.of(
-          "realm", REALM, "manage_auth_to_local", "true")));
-      when(provider.getDesiredConfigByType("krb5-conf")).thenReturn(config(Map.of(
+          "hadoop.security.authentication", "kerberos",
+          "hadoop.security.auth_to_local", "DEFAULT"))).when(provider).getDesiredConfigByType("core-site");
+      doReturn(config(Map.of("dfs.namenode.kerberos.principal", "nn/_HOST@" + REALM,
+          "dfs.datanode.kerberos.principal", "dn/_HOST@" + REALM))).when(provider).getDesiredConfigByType("hdfs-site");
+      doReturn(config(Map.of(
+          "realm", REALM, "manage_auth_to_local", "true"))).when(provider).getDesiredConfigByType("kerberos-env");
+      doReturn(config(Map.of(
           "manage_krb5_conf", "true", "realm", REALM, "conf_dir", "/etc",
-          "content", STOCK_TEMPLATE)));
+          "content", STOCK_TEMPLATE))).when(provider).getDesiredConfigByType("krb5-conf");
       return provider;
     }
 
     private Cluster zooKeeperProvider() throws Exception {
       RepositoryVersionEntity repository = mock(RepositoryVersionEntity.class);
       when(repository.getId()).thenReturn(1L);
-      when(repository.getVersion()).thenReturn("3.2.0-1");
+      when(repository.getVersion()).thenReturn((stack.getStackVersion() + "-1"));
       when(repository.isResolved()).thenReturn(true);
       ServiceComponentHost host = mock(ServiceComponentHost.class);
       when(host.getUpgradeState()).thenReturn(UpgradeState.NONE);
       when(host.getState()).thenReturn(State.STARTED);
       when(host.getDesiredState()).thenReturn(State.STARTED);
-      when(host.getVersion()).thenReturn("3.2.0-1");
+      when(host.getVersion()).thenReturn((stack.getStackVersion() + "-1"));
       ServiceComponent server = mock(ServiceComponent.class);
       when(server.getName()).thenReturn("ZOOKEEPER_SERVER");
       when(server.getDesiredRepositoryVersion()).thenReturn(repository);
@@ -701,6 +718,7 @@ class ManagedDependencyDescriptorResolverTest {
           Map.of("ZOOKEEPER_SERVER", server));
       Cluster provider = mock(Cluster.class);
       when(provider.getClusterId()).thenReturn(ZOOKEEPER_CLUSTER_ID);
+      when(provider.getClusterName()).thenReturn("zookeeper-provider");
       when(provider.getResourceId()).thenReturn(303L);
       when(provider.getDesiredStackVersion()).thenReturn(stack);
       when(provider.getCurrentStackVersion()).thenReturn(stack);
@@ -709,19 +727,19 @@ class ManagedDependencyDescriptorResolverTest {
       when(provider.getService("ZOOKEEPER")).thenReturn(zookeeperService);
       when(provider.getServices()).thenReturn(Map.of("ZOOKEEPER", zookeeperService));
       when(provider.getConfigGroups()).thenReturn(Map.of());
-      when(provider.getDesiredConfigByType("zoo.cfg")).thenReturn(config(Map.of(
+      doReturn(config(Map.of(
           "clientPort", "2181",
           "kerberos.removeHostFromPrincipal", "true",
           "kerberos.removeRealmFromPrincipal", "true",
           "security.auth_to_local", "DEFAULT",
           "authProvider.1",
-              "org.apache.zookeeper.server.auth.SASLAuthenticationProvider")));
-      when(provider.getDesiredConfigByType("hbase-site")).thenReturn(config(Map.of(
-          "zookeeper.znode.parent", "/hbase")));
-      when(provider.getDesiredConfigByType("zookeeper-env")).thenReturn(config(Map.of(
-          "zookeeper_principal_name", "zookeeper/_HOST@" + REALM)));
-      when(provider.getDesiredConfigByType("kerberos-env")).thenReturn(config(Map.of(
-          "realm", REALM)));
+              "org.apache.zookeeper.server.auth.SASLAuthenticationProvider"))).when(provider).getDesiredConfigByType("zoo.cfg");
+      doReturn(config(Map.of(
+          "zookeeper.znode.parent", "/hbase"))).when(provider).getDesiredConfigByType("hbase-site");
+      doReturn(config(Map.of(
+          "zookeeper_principal_name", "zookeeper/_HOST@" + REALM))).when(provider).getDesiredConfigByType("zookeeper-env");
+      doReturn(config(Map.of(
+          "realm", REALM))).when(provider).getDesiredConfigByType("kerberos-env");
       return provider;
     }
 
@@ -740,6 +758,12 @@ class ManagedDependencyDescriptorResolverTest {
       when(zookeeper.getServiceComponents()).thenReturn(Map.of(
           "ZOOKEEPER_CLIENT", mock(ServiceComponent.class),
           "ZOOKEEPER_SERVER", mock(ServiceComponent.class)));
+      for (Service service : List.of(localHdfs, hbase, zookeeper)) {
+        service.getServiceComponents().forEach((name, component) -> {
+          when(component.getName()).thenReturn(name);
+          when(component.isClientComponent()).thenReturn(name.endsWith("_CLIENT"));
+        });
+      }
       when(consumerCluster.getClusterId()).thenReturn(CONSUMER_CLUSTER_ID);
       when(consumerCluster.getResourceId()).thenReturn(101L);
       when(consumerCluster.getClusterName()).thenReturn("consumer-a");
@@ -749,10 +773,10 @@ class ManagedDependencyDescriptorResolverTest {
       when(consumerCluster.getSecurityType()).thenReturn(SecurityType.KERBEROS);
       when(consumerCluster.getServices()).thenReturn(consumerServices);
       when(consumerCluster.getHosts()).thenReturn(List.of());
-      when(consumerCluster.getDesiredConfigByType("krb5-conf")).thenReturn(config(Map.of(
-          "realm", REALM)));
-      when(consumerCluster.getDesiredConfigByType("kerberos-env")).thenReturn(config(
-          consumerConfigurations().get("kerberos-env")));
+      doReturn(config(Map.of(
+          "realm", REALM))).when(consumerCluster).getDesiredConfigByType("krb5-conf");
+      doReturn(config(
+          consumerConfigurations().get("kerberos-env"))).when(consumerCluster).getDesiredConfigByType("kerberos-env");
     }
 
     private ServiceInfo serviceInfo(String serviceName, String version, String clientName,
@@ -823,8 +847,8 @@ class ManagedDependencyDescriptorResolverTest {
       ManagedDependencyIdentity identity = new ManagedDependencyIdentity(user,
           new TreeSet<>(Set.of(user + "/_HOST@" + REALM)), false, user, true, "0700", true);
       ManagedDependencyVersion version = new ManagedDependencyVersion(
-          "BIGTOP", "3.2.0", true, "2.4.17",
-          new TreeMap<>(Map.of("distribution", "3.2.0-1")), new TreeSet<>(Set.of("STANDARD_RPC_CLIENT")), 1L, List.of());
+          "BIGTOP", stack.getStackVersion(), true, "2.4.17",
+          new TreeMap<>(Map.of("distribution", (stack.getStackVersion() + "-1"))), new TreeSet<>(Set.of("STANDARD_RPC_CLIENT")), 1L, List.of());
       return new Consumer(source, null, CONSUMER_CLUSTER_ID, "consumer-a", "HBASE", lifecycle,
           version, ManagedDependencySecurityMode.KERBEROS, REALM, identity, plan);
     }

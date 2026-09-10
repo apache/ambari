@@ -27,6 +27,16 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.apache.ambari.server.events.TaskUpdateEvent;
+import org.apache.ambari.server.events.publishers.TaskEventPublisher;
+
+import com.google.common.eventbus.Subscribe;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -61,8 +71,8 @@ import com.google.inject.Singleton;
 
 /**
  * Dispatches only server-persisted managed dependency operations. Agent-side
- * effects are idempotent by the command envelope, so an INTENT whose action
- * response was lost can be dispatched again without changing its identity.
+ * effects are idempotent by the command envelope. Task creation associates the
+ * intent in the same transaction, so a lost response cannot publish a second task.
  */
 @Singleton
 public class ManagedDependencyOperationDispatcher {
@@ -70,6 +80,17 @@ public class ManagedDependencyOperationDispatcher {
   public static final String COMMAND_PARAMETER = "managed_dependency_command";
 
   private static final Logger LOG = LoggerFactory.getLogger(ManagedDependencyOperationDispatcher.class);
+
+  private volatile ScheduledExecutorService recoveryExecutor;
+  private final java.util.concurrent.locks.ReentrantLock recoveryLock = new java.util.concurrent.locks.ReentrantLock();
+  private final AtomicBoolean recoveryQueued = new AtomicBoolean();
+  private int recoveryOffset;
+  private int credentialRecoveryOffset;
+  @Inject
+  private ManagedDependencyCredentialManager credentialManager;
+  @Inject
+  private Provider<ManagedDependencyDeploymentCoordinator> deploymentCoordinator;
+  private static final int RECOVERY_BATCH_SIZE = 256;
 
   private final ServiceDependencyDAO dependencyDAO;
   private final Clusters clusters;
@@ -121,11 +142,68 @@ public class ManagedDependencyOperationDispatcher {
     }
   }
 
-  /** Called from server recovery after ORM initialization. */
+  @Inject
+  void registerTaskObserver(TaskEventPublisher publisher) {
+    publisher.register(this);
+  }
+
+  /** Starts bounded reconciliation after ORM and normal task recovery are ready. */
+  public synchronized void startRecovery() {
+    if (recoveryExecutor != null) {
+      return;
+    }
+    recoveryExecutor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+      Thread thread = new Thread(runnable, "managed-dependency-recovery");
+      thread.setDaemon(true);
+      return thread;
+    });
+    recoveryExecutor.scheduleWithFixedDelay(this::recoverOutstanding, 0, 5, TimeUnit.SECONDS);
+  }
+
+  public synchronized void stopRecovery() {
+    if (recoveryExecutor != null) {
+      recoveryExecutor.shutdownNow();
+      recoveryExecutor = null;
+    }
+  }
+
+  @Subscribe
+  public synchronized void taskUpdated(TaskUpdateEvent event) {
+    if (recoveryExecutor != null && event.getHostRoleCommands().stream()
+        .anyMatch(task -> task.getStatus().isCompletedState())
+        && recoveryQueued.compareAndSet(false, true)) {
+      recoveryExecutor.execute(() -> {
+        try {
+          recoverOutstanding();
+        } finally {
+          recoveryQueued.set(false);
+        }
+      });
+    }
+  }
+
+  /** Reconciles one bounded page; periodic scans cover missed/early task events. */
   public void recoverOutstanding() {
+    if (!recoveryLock.tryLock()) return;
     try {
+      List<ServiceDependencyHostResultEntity> credentials = dependencyDAO.findAwaitingCredentials(
+          credentialRecoveryOffset, RECOVERY_BATCH_SIZE);
+      credentialRecoveryOffset = credentials.size() < RECOVERY_BATCH_SIZE ? 0
+          : credentialRecoveryOffset + credentials.size();
+      for (ServiceDependencyHostResultEntity preparation : credentials) {
+        try {
+          credentialManager.recover(preparation);
+        } catch (RuntimeException e) {
+          LOG.warn("Managed dependency credential recovery is deferred: binding={}, reason={}",
+              preparation.getBindingId(), e.getClass().getSimpleName());
+        }
+      }
+      deploymentCoordinator.get().recoverOutstanding();
       Set<Long> recoveredTaskIds = new HashSet<>();
-      for (ServiceDependencyHostResultEntity command : dependencyDAO.findOutstandingCommands()) {
+      List<ServiceDependencyHostResultEntity> outstanding = dependencyDAO.findOutstandingCommands(
+          recoveryOffset, RECOVERY_BATCH_SIZE);
+      recoveryOffset = outstanding.size() < RECOVERY_BATCH_SIZE ? 0 : recoveryOffset + outstanding.size();
+      for (ServiceDependencyHostResultEntity command : outstanding) {
         try {
           if (("INTENT".equals(command.getState()) || "SCHEDULING".equals(command.getState()))
               && (isProviderCommand(command.getCheckKind())
@@ -148,7 +226,10 @@ public class ManagedDependencyOperationDispatcher {
     } catch (RuntimeException e) {
       LOG.warn("Managed dependency recovery scan is deferred: reason={}",
           e.getClass().getSimpleName());
+    } finally {
+      recoveryLock.unlock();
     }
+
   }
 
   public void dispatchSafely(ServiceDependencyHostResultEntity command) {
@@ -293,8 +374,14 @@ public class ManagedDependencyOperationDispatcher {
           Map.of(RequestResourceProvider.CONTEXT,
               "Managed dependency " + binding.getDependencyType() + " " + command.getCheckKind()));
       ShortTaskStatus task = exactTask(response, host.getHostName(), component);
-      dependencyDAO.markCommandDispatched(id(command), response.getRequestId(),
-          task.getStageId(), task.getTaskId());
+      ServiceDependencyHostResultEntity published = dependencyDAO.findHostResult(
+          command.getBindingId(), command.getSnapshotVersion(), command.getOperationEpoch(),
+          command.getHostId(), command.getDependencyType(), command.getCheckKind());
+      if (published == null || !Objects.equals(published.getAmbariRequestId(), response.getRequestId())
+          || !Objects.equals(published.getAmbariStageId(), task.getStageId())
+          || !Objects.equals(published.getAmbariTaskId(), task.getTaskId())) {
+        throw new IllegalStateException("Action publication did not associate its dependency task");
+      }
     } finally {
       SecurityContextHolder.getContext().setAuthentication(saved);
     }
@@ -307,7 +394,7 @@ public class ManagedDependencyOperationDispatcher {
       case PROVISION_HDFS_NAMESPACE, PROVISION_ZOOKEEPER_NAMESPACE ->
           Set.of("PROVIDER_PROVISIONING");
       case PREPARE_HDFS_CONSUMER, PREPARE_ZOOKEEPER_CONSUMER ->
-          Set.of("PROVIDER_PREPARED", "CONSUMER_VERIFYING");
+          Set.of("PROVIDER_PREPARED", "CONSUMER_CREDENTIALS_REQUIRED", "CONSUMER_VERIFYING");
       case VERIFY_HDFS_CONSUMER, VERIFY_ZOOKEEPER_CONSUMER ->
           Set.of("CONSUMER_CREDENTIALS_REQUIRED", "CONSUMER_VERIFYING", "READY");
       case INVALIDATE_BINDING_EPOCH -> Set.of("DETACHING");

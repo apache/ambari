@@ -50,7 +50,7 @@ class ServiceDependenciesApiServiceTest {
     coordinator = mock(ManagedServiceDependencyCoordinator.class);
     Field field = ServiceDependenciesApiService.class.getDeclaredField("coordinator");
     field.setAccessible(true);
-    field.set(null, coordinator);
+    field.set(null, (com.google.inject.Provider<ManagedServiceDependencyCoordinator>) () -> coordinator);
     service = new ServiceDependenciesApiService();
   }
 

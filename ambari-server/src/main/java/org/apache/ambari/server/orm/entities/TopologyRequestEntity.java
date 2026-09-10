@@ -100,6 +100,12 @@ public class TopologyRequestEntity {
   @Column(name = "provisioning_state", length = 32, nullable = true)
   private String provisioningState;
 
+  @Column(name = "managed_dependency_types", length = 32)
+  private String managedDependencyTypes;
+
+  public String getManagedDependencyTypes() { return managedDependencyTypes; }
+  public void setManagedDependencyTypes(String value) { managedDependencyTypes = value; }
+
   public Long getId() {
     return id;
   }

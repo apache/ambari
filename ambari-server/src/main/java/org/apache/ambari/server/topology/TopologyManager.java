@@ -335,6 +335,11 @@ public class TopologyManager {
       throws InvalidTopologyException, AmbariException {
     ensureInitialized();
 
+    if (!org.apache.ambari.server.controller.dependencies.ManagedDependencyBlueprintPlan
+        .requirements(request.getBlueprint()).isEmpty()
+        && request.getProvisionAction() != org.apache.ambari.server.controller.internal.ProvisionAction.PREPARE_ONLY) {
+      throw new InvalidTopologyException("Managed Blueprints require PREPARE_ONLY; approve live bindings and submit a managed deployment after placement and configuration complete.");
+    }
     final ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     final String clusterName = request.getClusterName();
     final Stack stack = topology.getBlueprint().getStack();

@@ -51,6 +51,19 @@ public class ServiceDependencySchemaUpgrade {
     ensureOperation();
     ensureHostResult();
     ensureFence();
+    ensureDeployment();
+    if (dbAccessor.tableExists("topology_request") && !dbAccessor.tableHasColumn("topology_request", "managed_dependency_types")) {
+      dbAccessor.addColumn("topology_request", string("managed_dependency_types", 32, true));
+    }
+  }
+
+  private void ensureDeployment() throws AmbariException, SQLException {
+    String table = "service_dependency_deployment";
+    createOrVerify(table, List.of(string("deployment_id", 36, false), number("cluster_id", false),
+        integer("owner_user_id", false), lob("plan_json", false), lob("progress_json", false),
+        string("state", 32, false), number("row_version", false),
+        number("create_timestamp", false), number("update_timestamp", false)), "deployment_id");
+    ensureForeignKey(table, "fk_svc_dep_deploy_cluster", "cluster_id", "clusters", "cluster_id");
   }
 
   private void ensureBinding() throws AmbariException, SQLException {
@@ -157,6 +170,7 @@ public class ServiceDependencySchemaUpgrade {
         string("identity_fingerprint", 71, true),
         lob("result_json", true),
         string("result_hash", 71, true),
+        lob("credential_plan_json", true),
         string("preparation_observation_id", 36, true),
         string("preparation_request_hash", 71, true),
         string("preparation_observation_fingerprint", 71, true),
