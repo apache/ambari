@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.Field;
@@ -288,7 +289,7 @@ public class ClustersTest {
 
     Cluster recovered = clusters.addCluster("draft-cluster", stackId, SecurityType.NONE, context);
     Cluster retry = clusters.addCluster("draft-cluster", stackId, SecurityType.NONE, context);
-    Assert.assertEquals(committed.getClusterId(), recovered.getClusterId());
+    Assert.assertEquals(Long.valueOf(committed.getClusterId()), Long.valueOf(recovered.getClusterId()));
     Assert.assertSame(recovered, retry);
     Assert.assertEquals(Long.valueOf(2), scopedWorkflowStateDAO.findByKey(scopeKey).getRevision());
     Assert.assertEquals("DEPLOYING", scopedWorkflowStateDAO.findByKey(scopeKey).getPhase());
@@ -613,8 +614,8 @@ public class ClustersTest {
       Assert.assertEquals(1, cachedClusters.size());
       HostEntity persistedHost = hostDAO.findByName(hostName);
       Assert.assertEquals(1, persistedHost.getClusterEntities().size());
-      Assert.assertEquals(cachedClusters.iterator().next().getClusterId(),
-          persistedHost.getClusterEntities().iterator().next().getClusterId());
+      Assert.assertEquals(Long.valueOf(cachedClusters.iterator().next().getClusterId()),
+          Long.valueOf(persistedHost.getClusterEntities().iterator().next().getClusterId()));
 
       long otherClusterId = cachedClusters.iterator().next().getClusterName().equals(clusterName1)
           ? clusters.getCluster(clusterName2).getClusterId()
@@ -631,8 +632,8 @@ public class ClustersTest {
       resetClusterCache();
       Set<Cluster> reloadedClusters = clusters.getClustersForHost(hostName);
       Assert.assertEquals(1, reloadedClusters.size());
-      Assert.assertEquals(persistedHost.getClusterEntities().iterator().next().getClusterId(),
-          reloadedClusters.iterator().next().getClusterId());
+      Assert.assertEquals(Long.valueOf(persistedHost.getClusterEntities().iterator().next().getClusterId()),
+          Long.valueOf(reloadedClusters.iterator().next().getClusterId()));
     } finally {
       start.countDown();
       executor.shutdownNow();

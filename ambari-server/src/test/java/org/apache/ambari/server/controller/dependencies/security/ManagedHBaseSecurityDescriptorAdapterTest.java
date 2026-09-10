@@ -447,8 +447,8 @@ class ManagedHBaseSecurityDescriptorAdapterTest {
 
   private PolicySource hdfsPolicy(String realm, boolean extraRule) {
     Plan plan = Plan.forExistingCluster(11L);
-    org.apache.ambari.server.state.kerberos.AuthToLocalBuilder rules =
-        new org.apache.ambari.server.state.kerberos.AuthToLocalBuilder(realm, "", false);
+    org.apache.ambari.server.controller.AuthToLocalBuilder rules =
+        new org.apache.ambari.server.controller.AuthToLocalBuilder(realm, "", false);
     rules.addRule(plan.plannedShortUser() + "/_HOST@" + realm,
         plan.plannedShortUser());
     if (extraRule) {

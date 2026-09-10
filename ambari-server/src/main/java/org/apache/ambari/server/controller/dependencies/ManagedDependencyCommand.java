@@ -335,8 +335,10 @@ public record ManagedDependencyCommand(
         parameters.put("expected.consumer.zk.sasl.id",
             snapshot.consumerIdentity().effectiveShortUser());
       }
+      TreeMap<String, String> zooKeeperClient = new TreeMap<>(snapshot.zooKeeperClient());
+      zooKeeperClient.put("zookeeper.znode.parent", snapshot.namespace().znode());
       String configJson = clientConfigJson(
-          Collections.emptySortedMap(), Collections.emptySortedMap(), snapshot.zooKeeperClient());
+          Collections.emptySortedMap(), Collections.emptySortedMap(), zooKeeperClient);
       parameters.put("client.config.json", configJson);
       parameters.put("client.config.fingerprint", sha256(configJson));
     }

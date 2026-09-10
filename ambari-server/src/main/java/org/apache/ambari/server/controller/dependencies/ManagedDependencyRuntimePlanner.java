@@ -467,6 +467,9 @@ public class ManagedDependencyRuntimePlanner {
 
   private void requireTaskCluster(Cluster requestCluster,
       org.apache.ambari.server.agent.ExecutionCommand command) throws AmbariException {
+    if (requestCluster == null) {
+      throw new AmbariException("Managed dependency request cluster does not exist");
+    }
     try {
       if (command.getClusterId() == null
           || Long.parseLong(command.getClusterId()) != requestCluster.getClusterId()) {

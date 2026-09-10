@@ -30,6 +30,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -163,6 +164,6 @@ public class ApiStompEventProjectorTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void rejectsIdentityLessAlertGroupDelete() {
-    new AlertGroupsUpdateEvent(singleton(new AlertGroupUpdate(41L)), UpdateEventType.DELETE);
+    new AlertGroupsUpdateEvent(List.of(new AlertGroupUpdate(41L)), UpdateEventType.DELETE);
   }
 }

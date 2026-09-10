@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.ScopedWorkflowState;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -438,7 +439,7 @@ class ManagedDependencyDescriptorResolverTest {
   }
 
   @Test
-  void typeAwareLiveResolverClassifiesBothCreationOrdersAndInstalledLocal() {
+  void typeAwareLiveResolverClassifiesBothCreationOrdersAndInstalledLocal() throws Exception {
     Clusters clusters = mock(Clusters.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
     RepositoryVersionDAO repositoryVersionDAO = mock(RepositoryVersionDAO.class);
@@ -498,7 +499,7 @@ class ManagedDependencyDescriptorResolverTest {
     return info;
   }
 
-  private Cluster lifecycleCluster(long clusterId, State serviceState, State hostState) {
+  private Cluster lifecycleCluster(long clusterId, State serviceState, State hostState) throws Exception {
     RepositoryVersionEntity repository = mock(RepositoryVersionEntity.class);
     when(repository.getId()).thenReturn(1L);
     when(repository.getVersion()).thenReturn("3.2.0-1");
@@ -547,7 +548,7 @@ class ManagedDependencyDescriptorResolverTest {
   private static Provider zooKeeperProvider(long clusterId) {
     ManagedDependencyVersion version = new ManagedDependencyVersion(
         "BIGTOP", "3.2.0", true, "3.2.0",
-        Map.of("distribution", "3.2.0-1"), Set.of("STANDARD_RPC_CLIENT"), 1L, List.of());
+        new TreeMap<>(Map.of("distribution", "3.2.0-1")), new TreeSet<>(Set.of("STANDARD_RPC_CLIENT")), 1L, List.of());
     ManagedDependencyIdentity identity = new ManagedDependencyIdentity(
         "zookeeper", new TreeSet<>(), false, "", false, "0700", false);
     ManagedDependencyDescriptor.ZooKeeperEndpoint endpoint =
@@ -557,7 +558,7 @@ class ManagedDependencyDescriptorResolverTest {
     return new Provider(new ManagedDependencyServiceKey(clusterId, "ZOOKEEPER"),
         ManagedDependencyType.ZOOKEEPER, version, true, true,
         ManagedDependencySecurityMode.KERBEROS, "EXAMPLE.COM", identity, null, endpoint,
-        Map.of(), Map.of(), Map.of("hbase.zookeeper.quorum", "zk.example.test"),
+        Map.of(), Map.of(), new TreeMap<>(Map.of("hbase.zookeeper.quorum", "zk.example.test")),
         Set.of("hbase.zookeeper.quorum"), Set.of());
   }
 
@@ -636,7 +637,7 @@ class ManagedDependencyDescriptorResolverTest {
           });
     }
 
-    private Cluster providerCluster() {
+    private Cluster providerCluster() throws Exception {
       RepositoryVersionEntity repository = mock(RepositoryVersionEntity.class);
       when(repository.getId()).thenReturn(1L);
       when(repository.getVersion()).thenReturn("3.2.0-1");
@@ -677,7 +678,7 @@ class ManagedDependencyDescriptorResolverTest {
       return provider;
     }
 
-    private Cluster zooKeeperProvider() {
+    private Cluster zooKeeperProvider() throws Exception {
       RepositoryVersionEntity repository = mock(RepositoryVersionEntity.class);
       when(repository.getId()).thenReturn(1L);
       when(repository.getVersion()).thenReturn("3.2.0-1");
@@ -823,7 +824,7 @@ class ManagedDependencyDescriptorResolverTest {
           new TreeSet<>(Set.of(user + "/_HOST@" + REALM)), false, user, true, "0700", true);
       ManagedDependencyVersion version = new ManagedDependencyVersion(
           "BIGTOP", "3.2.0", true, "2.4.17",
-          Map.of("distribution", "3.2.0-1"), Set.of("STANDARD_RPC_CLIENT"), 1L, List.of());
+          new TreeMap<>(Map.of("distribution", "3.2.0-1")), new TreeSet<>(Set.of("STANDARD_RPC_CLIENT")), 1L, List.of());
       return new Consumer(source, null, CONSUMER_CLUSTER_ID, "consumer-a", "HBASE", lifecycle,
           version, ManagedDependencySecurityMode.KERBEROS, REALM, identity, plan);
     }
@@ -907,7 +908,7 @@ class ManagedDependencyDescriptorResolverTest {
         "hdfs", new TreeSet<>(), false, "", false, "0700", false);
     ManagedDependencyVersion version = new ManagedDependencyVersion(
         "BIGTOP", "3.2.0", true, "HDFS-3.2.0",
-        Map.of("repository.version", "3.2.0-1"), Set.of("STANDARD_RPC_CLIENT"),
+        new TreeMap<>(Map.of("repository.version", "3.2.0-1")), new TreeSet<>(Set.of("STANDARD_RPC_CLIENT")),
         1L, List.of());
     return new Provider(new ManagedDependencyServiceKey(clusterId, "HDFS"),
         ManagedDependencyType.HDFS, version, true, true,

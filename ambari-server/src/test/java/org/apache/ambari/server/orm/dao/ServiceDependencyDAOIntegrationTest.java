@@ -48,6 +48,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
@@ -195,7 +196,7 @@ public class ServiceDependencyDAOIntegrationTest {
   }
 
   @Test
-  public void testCreateBatchPersistsReversedProviderPairAndInitialIntentsAtomically() {
+  public void testCreateBatchPersistsReversedProviderPairAndInitialIntentsAtomically() throws Exception {
     providerCluster.addService("ZOOKEEPER", repository);
     UUID hdfsBindingId = UUID.fromString("00000000-0000-4000-8000-000000000201");
     UUID hdfsOperationId = UUID.fromString("00000000-0000-4000-8000-000000000202");
@@ -220,7 +221,7 @@ public class ServiceDependencyDAOIntegrationTest {
   }
 
   @Test
-  public void testStaleSecondBatchGuardLeavesNoRowsOrProviderIntents() {
+  public void testStaleSecondBatchGuardLeavesNoRowsOrProviderIntents() throws Exception {
     providerCluster.addService("ZOOKEEPER", repository);
     UUID hdfsBindingId = UUID.fromString("00000000-0000-4000-8000-000000000211");
     UUID hdfsOperationId = UUID.fromString("00000000-0000-4000-8000-000000000212");
@@ -241,7 +242,7 @@ public class ServiceDependencyDAOIntegrationTest {
   }
 
   @Test
-  public void testExactBatchReplayUsesOriginalTargetsAfterMutableUpdates() {
+  public void testExactBatchReplayUsesOriginalTargetsAfterMutableUpdates() throws Exception {
     providerCluster.addService("ZOOKEEPER", repository);
     String draftKey = "replay-draft:7";
     injector.getInstance(ScopedWorkflowStateDAO.class).updateWithLock(draftKey, draft -> {
@@ -293,7 +294,7 @@ public class ServiceDependencyDAOIntegrationTest {
   }
 
   @Test
-  public void testPartialAndMismatchedBatchReplayCannotCreateOrRewritePeers() {
+  public void testPartialAndMismatchedBatchReplayCannotCreateOrRewritePeers() throws Exception {
     providerCluster.addService("ZOOKEEPER", repository);
     UUID hdfsBindingId = UUID.fromString("00000000-0000-4000-8000-000000000231");
     UUID hdfsOperationId = UUID.fromString("00000000-0000-4000-8000-000000000232");
@@ -681,7 +682,7 @@ public class ServiceDependencyDAOIntegrationTest {
     ManagedDependencyCommandBundle mismatchedBundle = ManagedDependencyCommandBundle.of(
         differentHostId, managedSnapshot.consumerIdentity().effectiveShortUser(), hash('i'),
         List.of(mismatchedCommand));
-    scenario.request().getStages().get(0).getOrderedHostRoleCommands().get(0)
+    scenario.request().getStages().iterator().next().getOrderedHostRoleCommands().get(0)
         .getExecutionCommandWrapper().getExecutionCommand().setCommandParams(Map.of(
             ManagedDependencyRuntimePlanner.BUNDLE_PARAMETER,
             StageUtils.getGson().toJson(mismatchedBundle)));
@@ -1293,10 +1294,10 @@ public class ServiceDependencyDAOIntegrationTest {
     entity.setClientFeaturesHash(hash('d'));
     entity.setSecurityPolicyHash(hash('e'));
     ManagedDependencyVersion version = new ManagedDependencyVersion(
-        "HDP", "2.0.6", true, "2.0.6", Map.of(),
-        Set.of("STANDARD_RPC_CLIENT"), repository.getId(), List.of());
+        "HDP", "2.0.6", true, "2.0.6", new TreeMap<>(),
+        new TreeSet<>(Set.of("STANDARD_RPC_CLIENT")), repository.getId(), List.of());
     ManagedDependencyIdentity identity = new ManagedDependencyIdentity(
-        "hbase_mc_cb", Set.of(), false, "hbase_mc_cb", true, "0700", false);
+        "hbase_mc_cb", new TreeSet<>(), false, "hbase_mc_cb", true, "0700", false);
     ManagedDependencyNamespace namespace = type == ManagedDependencyType.HDFS
         ? ManagedDependencyNamespace.hdfs(bindingId, "hdfs://provider")
         : ManagedDependencyNamespace.zooKeeper(bindingId);

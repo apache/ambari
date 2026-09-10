@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -97,7 +98,8 @@ class ManagedDependencyRuntimePlannerTest {
 
     assertEquals("hdfs://provider", execution.get("core-site").get("fs.defaultFS"));
     assertEquals(Map.of("fs.defaultFS", "hdfs://provider"), execution.get("core-site"));
-    assertEquals(Map.of(), execution.get("hdfs-site"));
+    assertEquals(Map.of("dfs.client.socket-timeout", "60000"),
+        execution.get("hdfs-site"));
     assertEquals("hdfs://local", localDesired.get("core-site").get("fs.defaultFS"));
     assertEquals("retained", localDesired.get("core-site").get("local.only"));
     assertEquals(Map.of("dfs.nameservices", "local-ha"), localDesired.get("hdfs-site"));
@@ -138,8 +140,9 @@ class ManagedDependencyRuntimePlannerTest {
   void startAcceptsPerHostPackageVersionsOnlyWithExactPreparationLineage() throws Exception {
     ServiceDependencyDAO dao = mock(ServiceDependencyDAO.class);
     ManagedDependencyDescriptorResolver resolver = mock(ManagedDependencyDescriptorResolver.class);
+    ManagedServiceDependencyCoordinator coordinator = mock(ManagedServiceDependencyCoordinator.class);
     ManagedDependencyRuntimePlanner planner = new ManagedDependencyRuntimePlanner(
-        dao, resolver, mock(ManagedServiceDependencyCoordinator.class));
+        dao, resolver, coordinator);
     ManagedDependencySnapshot snapshot = snapshot();
     ServiceDependencyBindingEntity binding = binding();
     ServiceDependencySnapshotEntity snapshotEntity = new ServiceDependencySnapshotEntity();
@@ -162,9 +165,9 @@ class ManagedDependencyRuntimePlannerTest {
     when(dao.findSnapshot(BINDING_ID.toString(), 1L)).thenReturn(snapshotEntity);
     when(dao.findHostResults(BINDING_ID.toString(), 1L))
         .thenReturn(List.of(verification41, verification42));
-    when(dao.findHostResult(BINDING_ID.toString(), 1L, 1L, 41L, "HDFS",
+    when(dao.findHostResult(BINDING_ID.toString(), 1L, 3L, 41L, "HDFS",
         "PREPARE_HDFS_CONSUMER")).thenReturn(preparation41);
-    when(dao.findHostResult(BINDING_ID.toString(), 1L, 1L, 42L, "HDFS",
+    when(dao.findHostResult(BINDING_ID.toString(), 1L, 3L, 42L, "HDFS",
         "PREPARE_HDFS_CONSUMER")).thenReturn(preparation42);
     Map<String, String> parameters = new TreeMap<>();
     Map<String, Map<String, String>> configurations = new TreeMap<>();
@@ -178,6 +181,8 @@ class ManagedDependencyRuntimePlannerTest {
 
     when(dao.findHostResults(BINDING_ID.toString(), 1L))
         .thenReturn(List.of(verification41));
+    doThrow(new AmbariException("dependency verification is incomplete"))
+        .when(coordinator).validateConsumerStart(any(), anyLong());
     assertThrows(AmbariException.class, () -> planner.augmentHostCommand(
         cluster, host41, RoleCommand.START, new TreeMap<>(), new TreeMap<>(),
         new HashSet<>(), null));
@@ -205,6 +210,7 @@ class ManagedDependencyRuntimePlannerTest {
         41L, "hbase_mc_cb", HASH, List.of(command)));
     ExecutionCommand execution = mock(ExecutionCommand.class);
     when(execution.getClusterId()).thenReturn("11");
+    when(execution.getServiceName()).thenReturn("HBASE");
     when(execution.getCommandParams()).thenReturn(Map.of(
         ManagedDependencyRuntimePlanner.BUNDLE_PARAMETER, bundle));
     ExecutionCommandWrapper wrapper = mock(ExecutionCommandWrapper.class);
@@ -583,19 +589,28 @@ class ManagedDependencyRuntimePlannerTest {
         lock.writeLock().unlock();
       }
     }).when(cluster).executeUnderWriteLock(org.mockito.ArgumentMatchers.any());
-  }
-
-  @SuppressWarnings("unchecked")
-  private void executeWriteThroughTransaction(Cluster cluster, ReentrantReadWriteLock lock) {
-    when(cluster.executeUnderWriteLockUntilTransactionCompletion(
-        org.mockito.ArgumentMatchers.any())).thenAnswer(invocation -> {
+    doAnswer(invocation -> {
       lock.writeLock().lock();
       try {
         return ((Supplier<Object>) invocation.getArgument(0)).get();
       } finally {
         lock.writeLock().unlock();
       }
-    });
+    }).when(cluster).executeUnderWriteLockUntilTransactionCompletion(
+        org.mockito.ArgumentMatchers.any());
+  }
+
+  @SuppressWarnings("unchecked")
+  private void executeWriteThroughTransaction(Cluster cluster, ReentrantReadWriteLock lock) {
+    doAnswer(invocation -> {
+      lock.writeLock().lock();
+      try {
+        return ((Supplier<Object>) invocation.getArgument(0)).get();
+      } finally {
+        lock.writeLock().unlock();
+      }
+    }).when(cluster).executeUnderWriteLockUntilTransactionCompletion(
+        org.mockito.ArgumentMatchers.any());
   }
 
   private void await(CountDownLatch latch) {

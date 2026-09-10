@@ -54,6 +54,7 @@ import org.apache.ambari.server.api.services.stackadvisor.recommendations.Recomm
 import org.apache.ambari.server.controller.KerberosHelper.KerberosDescriptorType;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyIntegrationException;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyType;
+import org.apache.ambari.server.controller.dependencies.ManagedHBaseConsumerLocalMapping;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosCalculation;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosDescriptorOverlay;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosLivePlan;
