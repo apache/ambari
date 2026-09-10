@@ -235,8 +235,9 @@ public class HeartBeatHandler {
   }
 
   public void handleCommandReportStatus(List<CommandReport> reports, String hostname) throws AmbariException {
-    heartbeatProcessor.processCommandReports(reports, hostname, System.currentTimeMillis());
-    heartbeatProcessor.processHostStatus(null, reports, hostname);
+    List<CommandReport> acceptedReports =
+        heartbeatProcessor.processCommandReports(reports, hostname, System.currentTimeMillis());
+    heartbeatProcessor.processHostStatus(null, acceptedReports, hostname);
   }
 
   public void handleHostReportStatus(HostStatusReport hostStatusReport, String hostname) throws AmbariException {
