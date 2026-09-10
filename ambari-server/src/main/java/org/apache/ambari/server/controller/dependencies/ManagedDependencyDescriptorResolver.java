@@ -117,14 +117,15 @@ public class ManagedDependencyDescriptorResolver implements ManagedDependencyDes
   private final RepositoryVersionDAO repositoryVersionDAO;
   private final ServiceDependencyDAO dependencyDAO;
   private final PersistKeyValueImpl persistKeyValue;
-  private final AmbariManagementController managementController;
-  private final ManagedHBaseSecurityDescriptorAdapter securityAdapter;
+  private final com.google.inject.Provider<AmbariManagementController> managementController;
+  private final com.google.inject.Provider<ManagedHBaseSecurityDescriptorAdapter> securityAdapter;
 
   @Inject
   public ManagedDependencyDescriptorResolver(Clusters clusters, AmbariMetaInfo metaInfo,
       RepositoryVersionDAO repositoryVersionDAO, ServiceDependencyDAO dependencyDAO,
-      PersistKeyValueImpl persistKeyValue, AmbariManagementController managementController,
-      ManagedHBaseSecurityDescriptorAdapter securityAdapter) {
+      PersistKeyValueImpl persistKeyValue,
+      com.google.inject.Provider<AmbariManagementController> managementController,
+      com.google.inject.Provider<ManagedHBaseSecurityDescriptorAdapter> securityAdapter) {
     this.clusters = clusters;
     this.metaInfo = metaInfo;
     this.repositoryVersionDAO = repositoryVersionDAO;
@@ -527,6 +528,10 @@ public class ManagedDependencyDescriptorResolver implements ManagedDependencyDes
           "The consumer descriptor does not match the stable active cluster stack.");
     }
     try {
+      // Command helpers depend on this resolver through the runtime planner.
+      // Resolve their controller and Kerberos adapter only for a live calculation.
+      AmbariManagementController managementController = this.managementController.get();
+      ManagedHBaseSecurityDescriptorAdapter securityAdapter = this.securityAdapter.get();
       KerberosHelper kerberosHelper = managementController.getKerberosHelper();
       if (kerberosHelper == null || managementController.getConfigHelper() == null) {
         throw invalid("DEPENDENCY_SECURITY_PROOF_MISSING",

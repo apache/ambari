@@ -105,6 +105,28 @@ class ManagedDependencyDescriptorResolverTest {
       new ManagedDependencyDescriptorResolver(null, null, null, null, null);
 
   @Test
+  void constructingResolverDoesNotConstructCommandControllerOrKerberosAdapter() {
+    var injector = com.google.inject.Guice.createInjector(new com.google.inject.AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(Clusters.class).toProvider(() -> mock(Clusters.class));
+        bind(AmbariMetaInfo.class).toProvider(() -> mock(AmbariMetaInfo.class));
+        bind(RepositoryVersionDAO.class).toProvider(() -> mock(RepositoryVersionDAO.class));
+        bind(ServiceDependencyDAO.class).toProvider(() -> mock(ServiceDependencyDAO.class));
+        bind(PersistKeyValueImpl.class).toProvider(() -> mock(PersistKeyValueImpl.class));
+        bind(AmbariManagementController.class).toProvider(() -> {
+          throw new AssertionError("Controller must be resolved only during security calculation");
+        });
+        bind(ManagedHBaseSecurityDescriptorAdapter.class).toProvider(() -> {
+          throw new AssertionError("Kerberos adapter must be resolved only during security calculation");
+        });
+      }
+    });
+    org.junit.jupiter.api.Assertions.assertNotNull(
+        injector.getInstance(ManagedDependencyDescriptorResolver.class));
+  }
+
+  @Test
   void freshInitConsumerMayHaveUnknownPackageVersionButInstalledConsumerMayNot() {
     RepositoryVersionEntity repository = mock(RepositoryVersionEntity.class);
     when(repository.getId()).thenReturn(31L);
@@ -637,7 +659,7 @@ class ManagedDependencyDescriptorResolverTest {
       ManagedHBaseSecurityDescriptorAdapter adapter =
           new ManagedHBaseSecurityDescriptorAdapter(helper);
       resolver = new ManagedDependencyDescriptorResolver(clusters, metaInfo, null, null,
-          persistKeyValue, controller, adapter);
+          persistKeyValue, () -> controller, () -> adapter);
     }
 
     private void configureHelper(AmbariMetaInfo metaInfo) throws Exception {

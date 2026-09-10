@@ -794,3 +794,43 @@ React list-key warnings. The initial broader invocation did not finish cleanly
 because of the unstable Step 6 mock and is not counted as a pass. Live six-host
 installation, server authorization, runtime component checks and KDC acceptance
 remain open until corresponding runtime evidence is recorded below.
+
+#### Live startup correction (2026-09-10)
+
+Native Maven and all three RPM identity checks passed for source `5b18f54533dd`.
+Deploy's first publication failure was a false negative: the real Server RPM file
+inventory has 2,235 paths / 166,182 bytes, while its command runner retained only
+the last 64 KiB. Reading machine data through the complete binary result fixes
+that check. Metrics additionally required the upstream dotted `package.release`
+property. These are deploy-tool corrections; neither bypasses artifact validation.
+
+The six-node installation exposed a **P1 production startup defect** missed by the
+prior mocked-controller integration setup. Constructing the dependency dispatcher
+created runtime planner → descriptor resolver → management controller → command
+helper → runtime planner. Guice could not proxy the unfinished concrete planner;
+Server never opened port 8080. The resolver now lazily obtains the controller and
+Kerberos adapter only when performing an authorized security calculation. Both
+edges matter because the adapter's Kerberos helper also references the controller.
+This preserves the existing workflow owners and removes premature construction;
+there is no new orchestration abstraction or security bypass.
+
+Only `ManagedDependencyDescriptorResolver.java` was compiled with `javac --release
+17`, using the existing verified local classpath `/tmp/ambari-review-java-cp`.
+Its three resulting class entries replaced the corresponding entries in the
+container's Server JAR; the RPM was not rebuilt. Original and patched JAR digests
+are recorded in the private runtime overlay manifest. The real packaged Server
+then started successfully. Acceptance after this point concerns **the RPM plus
+this explicit overlay**, not an unchanged RPM. The disposable cluster uses
+non-Kerberos security; successful startup does not establish KDC acceptance.
+
+The changed test source was compiled with the same classpath. Executed regression:
+
+```sh
+mvn -B -pl ambari-server -Denforcer.skip=true -DskipSurefireTests=false -Dtestcase.groups= -Dsurefire.argLine= -Dtest=ManagedDependencyDescriptorResolverTest,ManagedServiceDependencyCoordinatorTest org.apache.maven.plugins:maven-surefire-plugin:test
+```
+
+Result: 34 tests, zero failures/errors/skips. The added test uses real Guice to
+verify construction defers both heavyweight dependencies; DAO/metadata are test
+providers. Its first run failed because `toInstance` injected members of Mockito
+objects and required unrelated database bindings; the corrected setup uses provider
+bindings. Actual full-container startup is the production-graph evidence.
