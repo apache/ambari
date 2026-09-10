@@ -1265,3 +1265,116 @@ The previously recorded frontend cases and builds were already run after their
 last source changes. The Java batch includes the earlier seven filter/View cases;
 counts must not add those twice. Runtime KDC, broader failure injection and the
 new clean RPM deployment remain unverified at this publication checkpoint.
+
+## 2026-09-10 independent-cluster RPM acceptance and partial corrections
+
+The nine-topic publication was verified on origin/AMBARI-26654-multicluster-final
+at a245919fdb1aba4ebaa987fde747e319a4dbbe88. Deploy's exact-commit workflow built
+new native Ambari RPMs, reused the pinned stable Hadoop image, and completed a
+six-node deployment on port 18081. The earlier port 18080 deployment was retained.
+The six Agent packages and the Server package were queried through RPM's explicit
+NAME/VERSION/RELEASE fields and matched release 1789033924.gita245919fdb1a.
+
+The initial API inventory proved that only worker1..3 belonged to mc_local_a;
+worker4..6 were registered and unassigned. API blueprint request 10 created
+mc_local_b on worker4..6. Ordinary ADD_SERVICE requests 19 and 23 installed HBase
+in A and B; exact service checks 22 and 26 completed SDK Put/Get verification.
+No add-service command was added to deploy. Different scoped users received 403
+for foreign-cluster reads and writes; a duplicate host attachment received 409
+and request 10 under the wrong cluster received 404.
+
+The effective HBase client configuration was obtained through the installed Java
+SDK, writing bounded JSON receipts with exact operation UUIDs. The roots resolve
+to hdfs://mc-local-a/apps/hbase/data and hdfs://mc-local-b/apps/hbase/data; HBase
+cluster UUIDs differ. Hadoop HA RPC hosts and ZooKeeper bootstrap hosts resolve
+only to each cluster's own nodes. The current ZooKeeper bootstrap configuration
+is localhost on each HBase host, where a local member of the appropriate ensemble
+runs. This verifies ownership, not loss of that individual bootstrap endpoint.
+
+The first private configuration probe incorrectly demanded a fully qualified
+REST hbase.rootdir and an empty dependencies response. A path without a URI scheme
+legitimately uses fs.defaultFS; the dependencies resource returns unbound per-type
+summaries even without binding rows. The corrected probe checks effective SDK
+configuration, exact service-host membership and absence of binding IDs. The
+HDFS summary remains conservatively unknown for this unqualified configuration;
+it is not used as proof of local ownership. An initial diagnostic probe also used
+a filesystem utility method absent from this HBase version; it was replaced with
+Hadoop Path/FileSystem APIs before obtaining the successful JSON observations.
+
+Chrome DevTools MCP exercised the packaged UI: select a cluster at first login,
+enter its Dashboard, open Admin through the cluster menu with the same cluster
+query, open B's Dashboard from the overview and reload without losing B's scope.
+The metrics panels still have no configured Prometheus target; no metrics
+availability claim is made.
+
+Two real lifecycle defects were found and corrected with partial file replacement,
+as the user requested. No intermediate RPM build was performed for these fixes.
+
+### P1: Registry DNS supervisor can recreate a stopped child
+
+Source: ambari-server/src/main/resources/stacks/BIGTOP/3.2.0/services/YARN/package/scripts/service.py:88; regression: ambari-server/src/test/python/TestYarnBigtopLifecycle.py:822.
+
+B's stop request 27/task 126 remained IN_PROGRESS after its stop script returned.
+A /proc observation found an orphan yarn-owned jsvc process. The YARN service
+helper stopped the daemon before its root supervisor, allowing a replacement child
+to outlive the supervisor. The supervisor now stops before its daemon; exact PID,
+UID, command-token and process-start identity checks remain in safe_process. The
+regression models a supervisor which replaces a stopped child and verifies no
+process remains. All 192 TestYarnBigtop cases passed. Seven installed/cache script
+copies were replaced and SHA-256 verified. Request 27 was explicitly aborted and
+retained; retry 28 completed, and A's HBase check 29 completed while B was stopped.
+After a successful B restart, a fresh stop cycle 33 completed with no surviving
+jsvc process and A's HBase check 34 completed during that outage. This second
+cycle covers the live supervisor case, beyond cleanup of the original orphan.
+
+### P1: Common hook assumes absent HBase configuration on unrelated commands
+
+Source: ambari-server/src/main/resources/stack-hooks/before-ANY/scripts/params.py:221 and shared_initialization.py:68; regression: ambari-server/src/test/python/stacks/stack-hooks/before-ANY/test_before_any.py:37.
+
+B's restart request 30 failed client INSTALL tasks 159..162 on worker5. The
+before-ANY hook saw HBase masters in clusterHostInfo and initialized an HBase
+directory using an UnknownConfiguration user, although those commands did not
+carry hbase-env. Service-specific user initialization now uses the current
+command's configuration scope. Generic user/group initialization still uses the
+server-provided identities, and HBase initialization still runs when its
+configuration is supplied. This removes the cluster-wide inventory inference
+without inventing a default HBase user or copying unrelated service credentials.
+
+The hook regression executes the real params and hook with absent/present HBase
+configuration while the cluster inventory contains a remote HBase master. The
+existing resource test's OS-distribution fixture was extended to cover assertions
+as well as script execution, avoiding unrelated filesystem-mock exhaustion. Two
+hook test methods passed, including both scope subcases. Fourteen installed/cache
+script copies were replaced and hashed. Recovery request 31 completed all tasks,
+and B's HBase check 32 completed. Request 30 remains recorded as FAILED.
+
+Executed commands (repository root):
+
+```text
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python:ambari-server/src/main/resources/stacks python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestYarnBigtop*.py' -q
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python:ambari-server/src/test/python:ambari-server/src/main/resources/stacks python3 -B -m unittest discover -s ambari-server/src/test/python/stacks/stack-hooks/before-ANY -p 'test_before_any.py' -q
+```
+
+The deploy command was run from the deploy checkout:
+
+```text
+.venv/bin/ambari-test run --profile .ambari-test/multicluster-local-a245919fdb/profile.yml --repository /jialiangc/bigdata/prjs/ambari-multicluster --commit a245919fdb1aba4ebaa987fde747e319a4dbbe88 --output json
+```
+
+Private evidence is under runtime-api/independent-a245919fdb: initial inventory,
+API operation receipts, SDK JSON, local-dependencies.json, isolation-result.json,
+browser-navigation.json and the registry-dns-overlay / hook-scope-overlay
+manifests. The second complete lifecycle cycle passed: stop request 33 (22 tasks),
+A read/write check 34, restart request 35 (35 tasks), and B read/write check 36.
+Ambari Server was then restarted; cluster IDs 2/3, six host memberships and exact
+completed requests 19/22/23/26 were retained. The six authorization/ownership
+assertions passed again. Actual browser reauthentication returned directly to B's
+Dashboard with cluster ID 3. Private commands were run with deploy's .venv/bin/python:
+acceptance.py inspect/create-b/isolation, the sequential ops.add_service calls in
+add-hbase.log, probe_sdk.py, verify_local.py, lifecycle-after-hook-fix.log's
+change_services/check_hbase/verify_outage sequence, and restart_server.py.
+
+At this source publication checkpoint both partial corrections have passed their
+focused tests and live recovery checks. A final native RPM containing them is the
+remaining packaging gate. Real KDC callbacks and broader response-loss fault
+injection remain outside this non-Kerberos independent-cluster run.
