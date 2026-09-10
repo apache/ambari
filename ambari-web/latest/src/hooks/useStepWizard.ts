@@ -62,7 +62,10 @@ const useStepWizard = (steps: any, initialActiveStep = 0, onCancel?: any) => {
   const location = useLocation();
   useEffect(() => {
     if (stepNumber) {
-      navigate(location.pathname.replace(/step\d+/g, `step${activeStep}`));
+      navigate({
+        pathname: location.pathname.replace(/step\d+/g, `step${activeStep}`),
+        search: location.search,
+      });
     }
   }, [activeStep]);
 
