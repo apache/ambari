@@ -97,6 +97,7 @@ export default function RemoteClusters() {
   }
   return (
     <>
+      <p className="text-muted">Remote registrations connect external clusters. Clusters installed and managed by this Ambari server are listed under Cluster Overview.</p>
       <div className="d-flex justify-content-end pb-3">
         <DefaultButton
           onClick={() => {

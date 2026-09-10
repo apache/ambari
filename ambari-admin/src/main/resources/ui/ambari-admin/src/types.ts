@@ -27,6 +27,7 @@ interface ClusterInfoType {
 };
 
 interface HostCluster{
+    cluster_id?: number;
     cluster_name: string;
     provisioning_state: string;
 }
