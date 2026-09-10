@@ -16,13 +16,16 @@
  * limitations under the License.
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { recalledClusterId, rememberCluster, savePreferredPath } from "./Utils/authNavigation";
 import ClusterApi from "./api/clusterApi";
-import { LegacyMainRedirect, RouteTracker } from "./AppLoader";
+import { LandingRoute, LegacyMainRedirect, RouteTracker } from "./AppLoader";
 import { AppContext } from "./store/context";
+
+afterEach(cleanup);
 
 vi.mock("./api/clusterApi", () => ({
   default: {
@@ -32,7 +35,9 @@ vi.mock("./api/clusterApi", () => ({
 }));
 vi.mock("./hooks/useAuth", () => ({
   useAuth: () => ({
-    canAccessCluster: () => true,
+    user: { user_name: "navigation-user" },
+    authorizations: [{ authorization_id: "AMBARI.RENAME_CLUSTER" }],
+    canAccessCluster: (name: string) => name !== "forbidden",
     hasAuthorization: () => true,
     hasGlobalAuthorization: () => true,
   }),
@@ -57,7 +62,7 @@ function LocationProbe() {
   return <div data-testid="location">{location.pathname}{location.search}</div>;
 }
 
-function renderLegacyRedirect(clusters: string[]) {
+function renderLegacyRedirect(clusters: string[], entry = "/main/hosts?page=2") {
   const value = {
     availableClusters: clusters.map((cluster_name, index) => ({
       Clusters: { cluster_id: index + 1, cluster_name },
@@ -65,8 +70,9 @@ function renderLegacyRedirect(clusters: string[]) {
   } as unknown as ComponentProps<typeof AppContext.Provider>["value"];
   return render(
     <AppContext.Provider value={value}>
-      <MemoryRouter initialEntries={["/main/hosts?page=2"]}>
+      <MemoryRouter initialEntries={[entry]}>
         <Routes>
+          <Route path="/" element={<LandingRoute />} />
           <Route path="/main/*" element={<LegacyMainRedirect />} />
           <Route path="*" element={<LocationProbe />} />
         </Routes>
@@ -87,6 +93,7 @@ describe("RouteTracker preferred path", () => {
 });
 
 describe("legacy main route selection", () => {
+  beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
   it("preserves the suffix and query for exactly one authorized cluster", async () => {
     renderLegacyRedirect(["east / prod"]);
     expect((await screen.findByTestId("location")).textContent)
@@ -95,7 +102,41 @@ describe("legacy main route selection", () => {
 
   it("requires a chooser when more than one cluster is available", async () => {
     renderLegacyRedirect(["alpha", "beta"]);
+    expect(await screen.findByRole("dialog")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "beta" }));
     expect((await screen.findByTestId("location")).textContent)
-      .toBe("/clusters?continue=%2Fmain%2Fhosts%3Fpage%3D2");
+      .toBe("/clusters/beta/main/hosts?page=2");
+    expect(recalledClusterId("navigation-user")).toBe(2);
   });
+  it("restores the last authorized cluster dashboard on direct login", async () => {
+    rememberCluster("navigation-user", 2);
+    renderLegacyRedirect(["alpha", "beta"], "/");
+    expect((await screen.findByTestId("location")).textContent)
+      .toBe("/clusters/beta/main/dashboard/metrics");
+  });
+
+  it("returns to the exact interrupted cluster route before using a preference", async () => {
+    rememberCluster("navigation-user", 1);
+    savePreferredPath("/clusters/beta/main/hosts?page=3");
+    renderLegacyRedirect(["alpha", "beta"], "/");
+    expect((await screen.findByTestId("location")).textContent)
+      .toBe("/clusters/beta/main/hosts?page=3");
+  });
+
+  it("resolves a remembered numeric identity after a cluster rename", async () => {
+    rememberCluster("navigation-user", 2);
+    renderLegacyRedirect(["alpha", "renamed / cluster"]);
+    expect((await screen.findByTestId("location")).textContent)
+      .toBe("/clusters/renamed%20%2F%20cluster/main/hosts?page=2");
+  });
+
+  it("does not restore another user's preference or a revoked cluster", async () => {
+    rememberCluster("another-user", 1);
+    rememberCluster("navigation-user", 3);
+    savePreferredPath("/clusters/forbidden/main/hosts");
+    renderLegacyRedirect(["alpha", "beta", "forbidden"], "/");
+    expect(await screen.findByRole("dialog")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "forbidden" })).toBeNull();
+  });
+
 });

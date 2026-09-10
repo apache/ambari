@@ -17,11 +17,11 @@
  */
 
 import { useContext, useState, useEffect } from "react";
+import ClusterSwitchMenu from "./ClusterSwitchMenu";
 import UserSettingsModal from "./UserSettingsModal";
 import {
   Container,
   Navbar,
-  Nav,
   Dropdown,
   DropdownDivider,
   Badge,
@@ -202,7 +202,7 @@ export default function NavBar({
       ? [
           {
             label: t("app.manageAmbari"),
-            callback: () => void redirectToAdminView(),
+            callback: () => void redirectToAdminView("", clusterName),
           },
         ]
       : []),
@@ -287,14 +287,7 @@ export default function NavBar({
               </>
             ) : null}
             <div style={{ width: "10px" }}></div>
-            <Nav.Link
-              aria-label={clusterName ? `Choose cluster. Current cluster: ${clusterName}` : undefined}
-              className="navbar-text navbar-size me-4"
-              disabled={!clusterName}
-              onClick={clusterName ? () => navigate("/clusters") : undefined}
-            >
-              {clusterName ? `Cluster: ${clusterName}` : ""}
-            </Nav.Link>
+            <ClusterSwitchMenu />
             <div style={{ width: "20px" }}></div>
             {!clusterNavigation || !canOpenBackgroundOperations ? null : (
               <div

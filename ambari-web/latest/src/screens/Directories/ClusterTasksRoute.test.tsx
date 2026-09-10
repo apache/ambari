@@ -15,21 +15,25 @@
  * limitations under the License.
  */
 
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+afterEach(cleanup);
 
 const mocks = vi.hoisted(() => ({
   canViewClusterTasks: vi.fn(),
+  receivedRequestId: vi.fn(),
 }));
 
 vi.mock("../../hooks/useAuth", () => ({
   useAuth: () => ({ canViewClusterTasks: mocks.canViewClusterTasks }),
 }));
 vi.mock("../BackgroundOperations", () => ({
-  default: ({ onClose }: { onClose: () => void }) => (
-    <button onClick={onClose} type="button">Close tasks</button>
-  ),
+  default: ({ onClose, requestId }: { onClose: () => void; requestId?: number }) => {
+    mocks.receivedRequestId(requestId);
+    return <button onClick={onClose} type="button">Close tasks</button>;
+  },
 }));
 
 import ClusterTasksRoute from "./ClusterTasksRoute";
@@ -75,4 +79,9 @@ describe("cluster task route", () => {
     expect(screen.getByText("Overview")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Close tasks" })).toBeNull();
   });
+  it("opens the exact request linked from Admin operation history", () => {
+    renderRoute("/clusters/alpha/main/requests?requestId=42");
+    expect(mocks.receivedRequestId).toHaveBeenLastCalledWith(42);
+  });
+
 });

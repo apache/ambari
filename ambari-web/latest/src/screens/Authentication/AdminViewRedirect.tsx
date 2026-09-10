@@ -36,7 +36,7 @@ export default function AdminViewRedirect() {
         }
         const page = new URLSearchParams(location.search).get("page");
         window.location.replace(
-          adminViewUrl(version, page, window.location.pathname),
+          adminViewUrl(version, page, window.location.pathname, new URLSearchParams(location.search).get("cluster")),
         );
       } catch {
         setFailed(true);

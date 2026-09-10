@@ -25,6 +25,8 @@ export default function ClusterTasksRoute() {
   const navigate = useNavigate();
   const location = useLocation();
   const { clusterName = "" } = useParams();
+  const requestedId = new URLSearchParams(location.search).get("requestId");
+  const requestId = requestedId !== null && /^\d+$/.test(requestedId) && Number.isSafeInteger(Number(requestedId)) && Number(requestedId) > 0 ? Number(requestedId) : undefined;
   const { canViewClusterTasks } = useAuth();
   if (!clusterName) {
     return <Navigate to="/clusters" replace />;
@@ -36,6 +38,8 @@ export default function ClusterTasksRoute() {
     || clusterPath(clusterName, "/main/dashboard/metrics");
   return (
     <BackgroundOperations
+      key={requestId || "all"}
+      requestId={requestId}
       clusterName={clusterName}
       isExplicitClick
       isOpen
