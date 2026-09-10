@@ -1472,3 +1472,44 @@ boundaries, live missing-lineage corruption and the complete broker revocation
 matrix remain open. This is acceptance of the requested independent local-HBase
 topology and current corrections, not closure of every original security and
 fault-injection scenario.
+
+
+## AMBARI-26656 upstream submission
+
+The requested new issue is [AMBARI-26656](https://issues.apache.org/jira/browse/AMBARI-26656).
+Its submission branch preserves the 27 remediation topic commits while rebasing
+onto upstream trunk `8051a841cf03673260fd025d6b9eeee68d98e0c4` after #4208 merged.
+Only the new submission branch uses the new issue key; the original review branch,
+immutable source references and packaged deployment remain available unchanged.
+
+Before this documentation addition, the submission tree differed from original
+review HEAD `a6f4bc093bac30359a00a75e2c6587c78a4202e2` only by the seven upstream
+baseline corrections. The stable patch ID of that delta matched the delta from
+original baseline a62fe4959d to upstream trunk:
+`73fc08ab0508d6032c23bda709014d579356a316`. Rebase completed without conflicts.
+The affected YARN and Hive tests were executed in the submission worktree:
+
+```text
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python:ambari-server/src/main/resources/stacks python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestYarnBigtop*.py' -q
+PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=ambari-common/src/main/python:ambari-server/src/main/resources/stacks python3 -B -m unittest discover -s ambari-server/src/test/python -p 'TestHiveChecksBigtop.py' -q
+```
+
+Results: 195 YARN and 22 Hive tests passed; diff --check against trunk passed.
+The final RPM/runtime results above still identify their actual pre-rebase source;
+no full RPM rebuild or full test-suite execution is claimed for this submission
+branch. The upstream changes have focused coverage rather than new deployment
+coverage.
+
+Chrome DevTools MCP captured the final RPM environment's Admin cluster overview
+and six-host ownership page after entering Admin from A's cluster menu. Both
+screenshots are public JIRA attachments, verified anonymously by content type and
+SHA-256 against the captured PNGs. They document UI presentation; API and SDK
+receipts above establish installation and dependency ownership.
+
+- [Two installed clusters with local HBase](https://issues.apache.org/jira/secure/attachment/13084395/cluster-overview.png)
+- [Six hosts assigned to two independent clusters](https://issues.apache.org/jira/secure/attachment/13084396/host-ownership.png)
+
+The PR is created with the repository's dev-support/ambari-ai/ambari_ai.py tool,
+using an explicit --files selection for this publication record. Screenshots are
+hosted as issue attachments, not committed binary artifacts. Remaining runtime
+gates in section 5 continue to apply.
