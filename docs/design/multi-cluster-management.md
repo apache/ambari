@@ -17,10 +17,11 @@ limitations under the License.
 
 # Unified multi-cluster management
 
-Status: Foundation and directory source checkpoints accepted; managed dependency
-dispatch, recovery and security integration in progress. Executed validation is
-pending the final integrated gate.
-Detailed interaction contract: [multi-cluster-interactions.md](multi-cluster-interactions.md).
+Status: Target design, not an implementation acceptance statement. Current code
+findings, test results and implementation order are maintained in
+[multi-cluster-review-and-remediation.md](multi-cluster-review-and-remediation.md).
+The interaction contract is consolidated below; historical worker checkpoints
+are not product requirements or current execution instructions.
 Baseline: PR 4208, commit `a62fe4959dc948210d844295a097a3311321dea6`.
 
 ## Product and identity
@@ -78,38 +79,222 @@ a global selected-cluster preference.
    provider configuration or administrative credentials. Unsupported security or
    version combinations are explicit validation errors before provisioning.
 
-## Interaction flow
+## Interaction requirements
 
-The landing page lists authorized clusters with installation state and recovery
-entry points. A service-type view lists deployments with cluster and dependency
-columns. Search/filter state may be encoded in query parameters. Each row has
-explicit deployment links; operation dialogs repeat the cluster and service.
-Cluster-scoped hosts, alerts and tasks remain available inside each cluster.
-Unified views must either provide explicit filtering or link to these real
-scoped views; they cannot imply that unimplemented bulk operations work.
+### Finding and comparing deployments
 
-Create Cluster starts a distinct draft. Review shows the target name, selected
-repositories, exclusive host allocation and dependencies. Failed preparation or
-installation shows the failed action and a retry/resume entry for that target.
-Refresh restores only the matching draft/cluster. Completing or cancelling one
-flow cannot clear another cluster's operation state.
+Offer two discoverable global destinations: Clusters and Services. Both retain
+search and filter choices in the URL so Back returns to the same comparison.
+Service type is a filter, not a global cluster switch. Opening a deployment uses
+an explicit cluster route and leaves other tabs independent.
 
-Ordinary cluster creation must persist a creation request/draft UUID and
-server-verified creator identity atomically with the Cluster row. This lets a
-client recover from a lost create response without assuming that an existing
-same-name cluster belongs to its draft. Subsequent configuration writes cannot
-serve as ownership proof because a crash may occur before those writes. Existing
-clusters with no creation identity remain valid; they are not implicitly adopted
-by a new draft. The same owned draft/name resolves the same numeric Cluster ID,
-while a conflicting identity produces a useful conflict. Exact optional API
-field names and persistence methods are reviewed before the wizard consumes them.
+Cluster rows show the name, stack/version, install or operation state, and
+available scoped entry points. Create Cluster appears only for global cluster
+creation authority. An incomplete cluster offers Resume with its actual state.
+Do not show a misleading healthy state when status has not loaded.
 
-Provider selection shows authorized compatible services and owner clusters.
-Binding preview describes endpoint/config versions, independent data/znode
-paths, authorization requirements and affected consumers. Updates use an
-explicit preview/apply sequence; a provider change marks prior snapshots stale.
-Unavailable, forbidden, incompatible and provisioning-failed states must be
-recognizable and have appropriate retry/recovery behavior.
+Service rows identify the service deployment and owning cluster together.
+For HBase, show storage and ZooKeeper providers, including the owner cluster and
+binding state. Configuration and tasks are direct real links. Lifecycle actions
+use the existing authorized workflow, with the target cluster/service repeated
+in the dialog and progress view. No decorative controls or implicit multi-cluster
+bulk restart. A failure loading one cluster's deployments leaves other authorized
+results usable and identifies the failed scope with a targeted Retry action.
+
+Desktop uses the existing dense table, sorting and pagination. At narrow widths,
+keep deployment identity, status and primary action readable; secondary details
+may stack. Do not require horizontal scrolling to identify the target or recover
+from an error. Controls need visible labels, keyboard focus and accessible names.
+
+### Staying oriented inside a cluster
+
+Display an explicit cluster identity in the operational shell, with a clear
+return to the global cluster/service directory. Preserve existing cluster-level
+service, host, alert, configuration and background-task screens. Navigation,
+config saves, restart links and task drawers must retain the route's cluster.
+A chooser for an old unscoped link explains which destination will open after
+selection and retains that destination. A forbidden or removed target shows a
+useful access/not-found state; it never silently opens a different cluster.
+
+Keep global Ambari administration and Views distinct from deployment context.
+A cluster administrator must not see controls implying global authority.
+
+### Creating and recovering a cluster
+
+Start a distinct draft with its own URL and persistence identity. The wizard
+shows the target cluster name and current step throughout. Preserve entered data
+when validation fails. Report a field-specific name collision before mutation,
+with clear Change name and authorized Open existing cluster choices.
+
+The cluster directory lists the signed-in user's unfinished creation drafts and
+offers explicit Resume links, including after a browser restart. Creating another
+cluster starts a fresh draft. Restore blocks editing until its scope and revision
+are loaded; a conflict discards queued obsolete writes before reloading. Missing
+credentials identify the affected step and field and prevent the relevant operation
+until re-entered, while non-secret edits remain available.
+
+Review presents hosts, repositories and dependencies for the new target. Do not
+ask users to approve implicit deletion or global cleanup: creation does not do
+those operations. Shared repository settings must not be overwritten incidentally.
+Selection and review preserve existing validation semantics while making errors
+and corrective actions understandable.
+
+During preparation/installation, show the actual current operation and completed
+progress. Failure identifies the failed operation, what has already succeeded,
+and whether Retry or Resume is available. Retry reconciles uncertain server
+responses and does not repeat another cluster's work. Refresh returns to the
+same target and step. Cancel/leave behavior describes actual retained draft or
+running operation state without unnecessary repeated confirmation dialogs.
+
+Save the exact host-assignment intent before submitting it. After an interrupted
+response, read the current component assignments and retry only missing targets.
+An existing machine may receive a new service component. If the user changes a
+placement that has already been submitted, offer Restore and review saved
+assignments using the actual original values; do not require the user to guess
+the previous hosts or leave a replacement beside an old assignment.
+
+Keep manual master placement when retrying a failed validation or returning to
+the assignment page with unchanged inputs. A validation retry checks the current
+placement; it does not request a new initial layout. Saved placements are tied to
+the draft or cluster, stack, selected services and hosts, and reviewed provider
+plan. A change to those inputs invalidates old advice and delayed responses,
+including changes within the same draft. Saving an unchanged checkpoint must not
+itself cause repeated recommendation requests.
+
+Use confirmation for real destructive or disruptive lifecycle actions when
+needed. The text identifies the exact affected deployment and dependency impact.
+Avoid vague errors, repetitive inputs and confirmations for reversible filtering
+or navigation. Screen-reader announcements and focus placement should make
+validation errors and progress changes discoverable without stealing focus.
+
+### Managed provider selection and updates
+
+When HBase is selected in the service-selection step, show separate Storage
+and ZooKeeper choices. Preserve the existing local-service default; choosing
+an existing managed provider opens an authorized searchable provider list and
+releases local daemon services selected only to satisfy HBase. Preserve services
+explicitly selected by the user or needed by another local consumer, and explain
+why those remain. Client packages remain part of the HBase install plan. Do not force the user to select another
+full Hadoop deployment to satisfy the old local dependency checklist.
+
+Provider choices are saved with the draft. Changing a choice invalidates its old
+preview and late responses without discarding unrelated service configuration.
+The configuration step shows approved shared client settings as managed values,
+with a link back to provider selection. Ordinary HBase settings remain editable.
+The review step repeats the owning cluster, provider, private paths and planned
+HBase identity before any binding is materialized.
+
+Add Service previews a new HBase deployment against the current saved service
+plan before a HBASE record exists. Adding another service beside an installed
+HBase deployment preserves its existing dependency ownership and does not open
+a new provider selection flow. A changed provider can make a previously listed
+choice incompatible; show the returned reason beside the selection and provide
+a way to review it again or choose another provider.
+
+The existing cluster creation wizard creates an unsecured cluster. The initial
+secure managed-dependency flow adds HBase to an already Kerberized cluster,
+using its authoritative realm and security settings. Final approval follows
+HBase and desired-configuration creation; provider preparation, client install,
+credential handling and connection verification precede Start. A secure draft
+without a usable security plan remains explicitly incomplete.
+
+Discover only authorized providers. Show owner cluster, service, compatible
+version/security status and current availability. Unsupported choices explain
+the reason before submission. A provider is a managed service identity, never
+just a free-text URI. Explain that HBase uses the provider directly and that the
+provider retains its own lifecycle; omit internal implementation machinery.
+
+Preview shows the selected provider, independent HBase root/WAL and ZooKeeper
+namespace, configuration version and planned preparation. Preparing directories
+runs with provider-local authority. Ready means the required preparation and
+validation completed; unknown connectivity is not equivalent to ready.
+
+The HBase service page exposes a Dependencies tab with one storage and one
+ZooKeeper card. Each shows its actual local or managed provider, preparation
+and host-validation progress, and applicable Review changes or Retry actions.
+Global HBase rows link directly to this tab. Show unverified connectivity, failed
+verification and readiness as distinct states. A pending ownership handoff offers
+the server-authorized verification action, without calling it a completed setup
+or repeatedly recreating provider namespaces. Provider HDFS/ZooKeeper pages show
+their dependents with the same authorization rules as the server. Consumer
+progress exposes safe binding summaries; opening provider task details still
+requires permission for that provider cluster.
+
+Translate server phases into a short progress sequence: Review settings,
+Prepare provider, Install clients, Check connections, Ready to start. Provider
+preparation alone never fills the final step. ZooKeeper ownership reconciliation
+appears as Confirm ZooKeeper access within connection checks. An unknown
+execution outcome explains that the existing operation must be checked before
+retrying; it does not invite creation of a replacement binding. Show the failed
+stage and the next server-supported action together. Unknown response states
+have a neutral unavailable status, never a green success badge. Keep protocol
+hashes, epochs and journal terminology out of the main progress view.
+
+The installation page has two explicit dependency gates. After approval, it waits
+for provider preparation before installing consumer clients. After installation
+and any required credential distribution, it waits for all current HBase daemon
+hosts to finish connection checks before starting the selected services. The
+page preserves its planned binding identities and progress on refresh, and
+resumes the same server operations. Approval alone does not advance installation.
+Recovery identifies the original creation attempt separately from the current
+operation. An update or retry does not make a successfully created binding appear
+missing, and the progress page always describes the current desired snapshot.
+A failed status read offers Reload status; an operation failure offers only the
+server-supported recovery action for that stage. Show completed hosts, pending
+hosts and the failed connection check without requiring provider-task privileges.
+Manual credential distribution is an explicit resumable step. An install-only
+choice remains visibly incomplete for readiness and never reports successful
+connection checks that did not run.
+
+An installed local HBase deployment cannot silently adopt a new managed root.
+Explain the unsupported data-migration case before submission. Removing a
+managed HBase deployment preserves its provider data; removing a binding must
+not silently reactivate old local defaults or make the consumer startable.
+
+Changed provider configuration marks bindings stale and offers a deliberate
+preview/update flow. Failed provisioning keeps its identity and provides a safe
+retry path. Provider deletion is blocked while active dependencies exist. Provider
+stop or restart shows affected consumers and requires deliberate confirmation of
+the current impact; changed impact requires a fresh preview. Removing a consumer
+preserves provider services and stored data.
+
+### Lifecycle confirmation and recovery detail
+
+Use the existing Stop or Restart dialog for dependency impact, with the exact
+provider service and cluster in its title. Load impact inside that dialog; disable
+the action until the current result is available. Show affected deployments the
+user may read and a count for the remaining dependents. A failed read keeps the
+dialog open with Retry. A stale confirmation refreshes the impact and asks for a
+new explicit click; it never automatically submits the newly expanded operation.
+Do not stack a second confirmation dialog for the same action. Use action-specific
+button labels and preserve keyboard focus on retry. Capture the original route
+and principal scope for the entire dialog and submission lifetime.
+
+After acceptance, link directly to the exact cluster operation and show its current
+progress. Closing a progress view leaves the server operation running and does not
+repeat it when reopened. A recoverable submission failure preserves the dialog's
+selection; an unknown outcome first reconciles the existing operation. Bulk actions
+show one combined impact before any member is changed. Local consumer Stop stays
+available even when its provider is stale or unavailable.
+
+The dependency deployment view uses four understandable stages: Prepare provider,
+Install HBase clients, Prepare credentials when required, and Verify connections.
+Completed work stays visible during retries. Expand host details only when useful;
+show the failed check and next available recovery action without exposing provider
+administrator tasks, raw policy rules or internal hashes. An unavailable dependency
+has a direct route to its review/recovery view; a disabled Start button explains the
+current blocking stage. Desktop and mobile use the same operation identity and
+recovery choices.
+
+### UX evidence gate
+
+Review actual implementation and browser evidence at 1440px and 375px.
+Exercise comparison -> deployment -> config/tasks -> Back, legacy link selection,
+forbidden target, incomplete-cluster resume, partial list failure, failed wizard
+retry, two tabs, and stale/unavailable dependency handling. Capture network or
+behavior assertions for the selected cluster, not screenshots alone. Record any
+runtime blockers separately from component tests. Acceptance requires functional
+navigation and recovery as well as readable layout.
 
 ## Dependency security and lifecycle decisions
 
@@ -422,79 +607,34 @@ VictoriaMetrics can ignore extra filters on label APIs through
 metadata isolation by itself. See the [VictoriaMetrics documentation](https://docs.victoriametrics.com/victoriametrics/index.html).
 Actual source, effective version and isolated query evidence remain review gates.
 
-## Dependency-ordered execution and ownership
+## Implementation and acceptance
 
-- Stage 0: separate Sol evidence for server foundations, frontend foundations,
-  and managed service dependencies; Astra inspects critical sources and freezes
-  contracts before source implementation.
-- Stage 1: server isolation and membership; frontend routing/context and safe
-  creation. Independent writers own disjoint files. Security/interface changes
-  require an Astra checkpoint before releasing consumers.
-- Stage 2: unified browsing and real deployment navigation; desktop/mobile and
-  asynchronous isolation evidence. API dependencies must already be accepted.
-- Stage 3: persistence/API, provider-side provisioning, stack client integration,
-  and dependency UX in dependency order. No unreviewed contract consumers.
-- Stage 4: integration, recovery, RBAC, lifecycle and browser validation followed
-  by an Astra review of actual diff and evidence against the pinned baseline.
+The implementation sequence, current blockers and acceptance matrix live in the
+[review and remediation plan](multi-cluster-review-and-remediation.md). This
+design specifies required behavior; a contract or historical source checkpoint
+does not prove that its production callers, persistence or recovery exist.
 
-Each worker supplies midpoint source/test diffs and fixes ordinary implementation
-issues. By the user's latest instruction, all compilation and test execution
-are deferred until all source implementation is integrated. Interim Astra PASS
-or REWORK concerns code/contracts and permits further implementation only;
-execution remains pending. The final combined gate compiles and executes the
-focused/integration/runtime checks, with targeted correction and rerun for
-failures. Completion statements alone are not evidence. The user later selected Luna with xhigh reasoning for execution. At most three
-workers execute concurrently and one writer owns each shared file. Full logs remain outside tracked source.
+The feature is tracked as AMBARI-26654. Complete coherent planned changes before unified compilation and focused validation.
+Record the exact revision, commands, failures and environment limits. Publishing
+a branch does not establish acceptance, and historical publication authorizations
+are not instructions to publish subsequent work.
 
-Final local validation uses the deploy project's documented prebuilt images and
-build caches where available. Run necessary focused regressions and isolated
-deployment/browser scenarios after integration; do not run full unit suites
-locally. Broader suites remain for future submission CI, which has not run here.
+## Remediated implementation boundary
 
-## Acceptance matrix
+The current source implementation and executable validation are tracked in the
+[review and remediation ledger](multi-cluster-review-and-remediation.md).
+ManagedDependencyDeploymentCoordinator owns INSTALL, dependency readiness, START
+and service checks. ManagedServiceDependencyCoordinator owns binding operations;
+ActionManager owns actual tasks, and publication/lineage share the transaction.
+Task and STOMP notifications are delivered only after commit. React retains draft
+inputs, immutable operation IDs and acknowledgement of an observed deployment,
+and renders backend state. An acknowledged deployment that disappears requires
+record recovery. Wizard checkpoints preserve the whole step through reducer and
+sanitizer; current binding capabilities and mutation grants govern deployment retry.
 
-| Scenario | Required evidence | Status |
-| --- | --- | --- |
-| Create B preserves A and repository records | API/wizard tests; retry after partial B creation | Pending |
-| Several HBase deployments have real scoped actions | Route/action tests and browser evidence | Pending |
-| Tabs, delayed responses, polling and events isolate state | Adversarial asynchronous tests | Pending |
-| Cluster RBAC covers lists, direct calls, events and dependencies | Server permission denial tests | Pending |
-| One host cannot join two clusters | Concurrent database/write-path test and reload | Pending |
-| A/HBASE uses B/HDFS without local HDFS servers | Isolated provisioning/runtime evidence | Pending |
-| Consumer removal preserves providers and data | Lifecycle and provisioning regression tests | Pending |
-| Provider version/stale/error/retry behavior | Binding API/stack/UX regression evidence | Pending |
-| Existing single-cluster installation migrates safely | Schema and legacy route regression tests | Pending |
-| Desktop/mobile recovery and dependency navigation work | Browser captures and action/network assertions | Pending |
-
-## Submission and validation plan
-
-The feature is tracked by [AMBARI-26654](https://issues.apache.org/jira/browse/AMBARI-26654).
-At the user's explicit request, four source-reference commits were published to
-[the contributor reference branch](https://github.com/JiaLiangC/ambari/tree/AMBARI-26654-multicluster-reference)
-at `8bf556b6ce94b350b3c3b12e15a7882d07bd19f7`. That fixed reference predates later
-integration corrections and has not been compiled or tested.
-
-The user subsequently requested prompt batch submission of completed work,
-superseding the earlier topic-splitting plan for continuation changes. Reviewed
-source batches accumulate on `AMBARI-26654-multicluster` in an isolated continuation
-worktree. Unfinished source remains in the pinned writer worktree. Each batch uses
-the same JIRA key, includes its focused regression source and records outstanding
-validation. Compilation and focused execution remain deferred until all source is
-integrated, as explicitly requested; publication does not establish test success.
-
-Atomic one/two-binding DAO creation and immutable CREATE replay have passed source
-review. Secure descriptor resolution now calculates the complete approved provider
-selection against the owned workflow revision and selected plus installed services.
-Their focused regression sources are included; execution remains deferred.
-
-Complete dependency-plan API/advisor integration has also passed source review: all
-provider parents are authorized before binding lookup, secure selections share one
-authoritative calculation, and creation preserves exact operation replay. Binding
-status includes current preparation request/task lineage for deployment recovery.
-
-The remaining work covers executable lifecycle retry/update and credential gates,
-completed deployment recovery and operation interactions, and integration evidence.
-No pull request, merge or deployment to existing live environments is authorized.
-Isolated local deployment and focused validation are authorized after source
-integration, using the deploy project's documented prebuilt images and reusable
-build outputs.
+Managed Blueprints use PREPARE_ONLY to materialize resources and freeze external
+dependency requirements. Live preview/approval and deployment then use the same
+binding APIs as Add Service. This is a deliberate two-step contract; an unattended
+single Blueprint POST is not implemented. Same-realm Kerberos is subject to the
+full identity, mapping and credential proof chain; cross-realm remains unsupported.
+The passing focused tests do not close the real-service/browser/KDC acceptance gate.
