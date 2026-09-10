@@ -120,9 +120,15 @@ public class ManagedDependencyOperationDispatcher {
   public ServiceDependencyHostResultEntity initialProviderCommand(
       ServiceDependencyBindingEntity binding, ManagedDependencySnapshot snapshot,
       ServiceDependencyOperationEntity operation) {
-    long hostId = selectProviderActionHost(binding);
-    ManagedDependencyCommand command = ManagedDependencyCommand.prepareJournal(snapshot,
-        java.util.UUID.fromString(operation.getOperationId()), operation.getOperationEpoch(), hostId);
+    boolean update = "UPDATE".equals(operation.getOperationKind());
+    if (update && binding.getActionHostId() == null) {
+      throw new IllegalStateException("Provider update requires its existing journal action host");
+    }
+    long hostId = update ? binding.getActionHostId() : selectProviderActionHost(binding);
+    UUID operationId = UUID.fromString(operation.getOperationId());
+    ManagedDependencyCommand command = update
+        ? ManagedDependencyCommand.provision(snapshot, operationId, operation.getOperationEpoch(), hostId)
+        : ManagedDependencyCommand.prepareJournal(snapshot, operationId, operation.getOperationEpoch(), hostId);
     return commandEntity(command, snapshot.type(), hostId,
         providerComponent(binding.getDependencyType()));
   }

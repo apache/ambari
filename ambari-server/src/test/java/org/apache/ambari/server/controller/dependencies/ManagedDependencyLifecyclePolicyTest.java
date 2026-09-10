@@ -38,6 +38,33 @@ import org.junit.jupiter.api.Test;
 class ManagedDependencyLifecyclePolicyTest {
 
   @Test
+  void detachRequiresObservedStopAndNoPendingStartIntent() throws Exception {
+    Cluster consumer = cluster(11L);
+    var service = mock(org.apache.ambari.server.state.Service.class);
+    var component = mock(org.apache.ambari.server.state.ServiceComponent.class);
+    var host = mock(org.apache.ambari.server.state.ServiceComponentHost.class);
+    when(consumer.getService("HBASE")).thenReturn(service);
+    when(service.getServiceComponents()).thenReturn(Map.of("HBASE_MASTER", component));
+    when(component.getServiceComponentHosts()).thenReturn(Map.of("host-a", host));
+    var policy = new ManagedDependencyLifecyclePolicy(mock(ServiceDependencyDAO.class));
+    var stopped = org.apache.ambari.server.state.State.INSTALLED;
+    for (var actual : List.of(org.apache.ambari.server.state.State.STARTED,
+        org.apache.ambari.server.state.State.STARTING, org.apache.ambari.server.state.State.STOPPING,
+        org.apache.ambari.server.state.State.UNKNOWN)) {
+      when(host.getState()).thenReturn(actual); when(host.getDesiredState()).thenReturn(stopped);
+      assertFalse(policy.consumerDetachAllowed(consumer));
+      assertEquals("DEPENDENCY_CONSUMER_MUST_BE_STOPPED", assertThrows(
+          ManagedDependencyIntegrationException.class, () -> policy.validateConsumerDetach(consumer)).getCode());
+    }
+    when(host.getState()).thenReturn(stopped);
+    when(host.getDesiredState()).thenReturn(org.apache.ambari.server.state.State.STARTED);
+    assertFalse(policy.consumerDetachAllowed(consumer));
+    when(host.getDesiredState()).thenReturn(stopped);
+    assertTrue(policy.consumerDetachAllowed(consumer));
+    assertDoesNotThrow(() -> policy.validateConsumerDetach(consumer));
+  }
+
+  @Test
   void providerDeletionRequiresEveryDependentToDetach() {
     ServiceDependencyDAO dao = mock(ServiceDependencyDAO.class);
     Cluster cluster = cluster(11L);

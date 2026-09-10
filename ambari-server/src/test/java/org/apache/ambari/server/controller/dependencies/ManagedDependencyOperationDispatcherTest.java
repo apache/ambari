@@ -67,6 +67,29 @@ import com.google.inject.Provider;
 class ManagedDependencyOperationDispatcherTest {
 
   @Test
+  void updateReusesThePinnedJournalHostAndStartsProvisioning() {
+    UUID bindingId = UUID.randomUUID();
+    UUID operationId = UUID.randomUUID();
+    ServiceDependencyBindingEntity binding = new ServiceDependencyBindingEntity();
+    binding.setDependencyType("HDFS");
+    binding.setActionHostId(41L);
+    var operation = new org.apache.ambari.server.orm.entities.ServiceDependencyOperationEntity();
+    operation.setOperationId(operationId.toString());
+    operation.setOperationKind("UPDATE");
+    operation.setOperationEpoch(2L);
+    Clusters clusters = mock(Clusters.class);
+    var dispatcher = new ManagedDependencyOperationDispatcher(mock(ServiceDependencyDAO.class), clusters,
+        provider(mock(AmbariManagementController.class)), mock(ManagedDependencyRuntimePlanner.class),
+        provider(mock(ManagedServiceDependencyCoordinator.class)), provider(mock(ActionManager.class)),
+        provider(mock(ManagedDependencyTaskResultProcessor.class)));
+    var command = dispatcher.initialProviderCommand(binding, snapshot(bindingId), operation);
+    org.junit.jupiter.api.Assertions.assertEquals("PROVISION_HDFS_NAMESPACE", command.getCheckKind());
+    org.junit.jupiter.api.Assertions.assertEquals(41L, command.getHostId());
+    org.junit.jupiter.api.Assertions.assertEquals(operationId.toString(), command.getOperationId());
+    org.mockito.Mockito.verifyNoInteractions(clusters);
+  }
+
+  @Test
   void oneFailedRecoveredCallbackDoesNotBlockAnotherBinding() {
     ServiceDependencyDAO dao = mock(ServiceDependencyDAO.class);
     ActionManager actionManager = mock(ActionManager.class);

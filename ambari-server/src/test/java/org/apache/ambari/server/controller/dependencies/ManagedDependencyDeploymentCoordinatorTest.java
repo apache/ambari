@@ -98,9 +98,60 @@ class ManagedDependencyDeploymentCoordinatorTest {
 
   @AfterEach void clearAuthentication() { SecurityContextHolder.clearContext(); }
 
+  @Test void providerUpdateBeforeFirstInstallRetainsOldApprovalAndResumesSameDeployment() {
+    request("FAILED", "INSTALL", null, 11L, HostRoleStatus.FAILED);
+    when(host.getState()).thenReturn(State.INIT);
+    binding.setDesiredSnapshotVersion(2L);
+    binding.setOperationEpoch(2L);
+    binding.setSnapshotApproval("APPROVED");
+    assertTrue((Boolean) engine.get("consumer", id).get("retry_allowed"));
+    UUID retryId = UUID.randomUUID();
+    engine.retry("consumer", id, retryId);
+    assertEquals("NEW", row.getState());
+    assertTrue(row.getPlanJson().contains("\"snapshotVersion\":1"));
+    assertTrue(row.getProgressJson().contains("\"approvedBindings\":[{\"bindingId\":\"" + binding.getBindingId()
+        + "\",\"snapshotVersion\":2"));
+    assertTrue(row.getProgressJson().contains("\"snapshotVersion\":1"));
+    String retained = row.getProgressJson();
+    newEngine().retry("consumer", id, retryId);
+    assertEquals(retained, row.getProgressJson());
+    verifyNoInteractions(providers, controller);
+  }
+
+  @Test void onlyUninstalledBindingApprovalChangesCanResolveWithoutRequestLineage() {
+    request("UNRESOLVED", "INSTALL", null, 11L, HostRoleStatus.FAILED);
+    when(host.getState()).thenReturn(State.INIT);
+    binding.setDesiredSnapshotVersion(2L);
+    binding.setSnapshotApproval("APPROVED");
+    row.setProgressJson(row.getProgressJson().replace("\"phase\":\"INSTALL\"",
+        "\"phase\":\"INSTALL\",\"failureCode\":\"DEPLOYMENT_REQUEST_LINEAGE_MISSING\""));
+    assertFalse((Boolean) engine.get("consumer", id).get("retry_allowed"));
+    row.setProgressJson(row.getProgressJson().replace("DEPLOYMENT_REQUEST_LINEAGE_MISSING",
+        "DEPLOYMENT_BINDING_LINEAGE_CHANGED"));
+    assertTrue((Boolean) engine.get("consumer", id).get("retry_allowed"));
+    engine.retry("consumer", id, UUID.randomUUID());
+    assertEquals("NEW", row.getState());
+    assertTrue(row.getProgressJson().contains("\"snapshotVersion\":2"));
+  }
+
+  @Test void updatedApprovalCannotReplaceAnInstallationWithMissingCurrentRequestLineage() {
+    request("FAILED", "INSTALL", null, 11L, HostRoleStatus.FAILED);
+    when(host.getState()).thenReturn(State.INIT);
+    binding.setDesiredSnapshotVersion(2L);
+    binding.setSnapshotApproval("APPROVED");
+    row.setProgressJson(row.getProgressJson().replace("\"history\":[]",
+        "\"history\":[{\"attemptId\":\"" + id + "\",\"phase\":\"INSTALL\",\"requestId\":101,\"targets\":[]}]"));
+    assertFalse((Boolean) engine.get("consumer", id).get("retry_allowed"));
+    assertThrows(ManagedDependencyIntegrationException.class, () -> engine.retry("consumer", id, UUID.randomUUID()));
+    assertTrue(row.getPlanJson().contains("\"snapshotVersion\":1"));
+  }
+
   private ManagedDependencyDeploymentCoordinator newEngine() {
+    var metadata = new org.apache.ambari.server.metadata.ActionMetadata();
+    metadata.addServiceCheckAction("HBASE");
+    metadata.addServiceCheckAction("ZOOKEEPER");
     return new ManagedDependencyDeploymentCoordinator(deployments, dependencies, clusters, users,
-        () -> actions, () -> controller, providers, () -> bindings);
+        () -> actions, () -> controller, providers, () -> bindings, metadata);
   }
 
   private void request(String state, String phase, Long requestId, long ownerCluster, HostRoleStatus status) {
@@ -108,6 +159,12 @@ class ManagedDependencyDeploymentCoordinatorTest {
     row.setProgressJson(StageUtils.getGson().toJson(Map.of("attemptId", id.toString(), "phase", phase,
         "history", List.of(), "requestId", requestId == null ? 0L : requestId)));
     if (requestId == null) row.setProgressJson(row.getProgressJson().replace("\"requestId\":0", "\"requestId\":null"));
+    if ("CHECKS".equals(phase) && requestId != null) {
+      row.setProgressJson(row.getProgressJson().replace("\"history\":[]",
+          "\"history\":[{\"attemptId\":\"" + id + "\",\"phase\":\"CHECKS\",\"requestId\":"
+              + requestId + ",\"targets\":[{\"serviceName\":\"HBASE\",\"componentName\":\"HBASE_MASTER\","
+              + "\"hostName\":\"consumer-host\",\"hostId\":41}]}]"));
+    }
     Request request = mock(Request.class); when(request.getClusterId()).thenReturn(ownerCluster);
     when(actions.getRequests(List.of(requestId == null ? 0L : requestId))).thenReturn(List.of(request));
     HostRoleCommand task = mock(HostRoleCommand.class); when(task.getStatus()).thenReturn(status);
@@ -155,6 +212,81 @@ class ManagedDependencyDeploymentCoordinatorTest {
     when(host.getState()).thenReturn(State.STARTED);
     newEngine().recoverOutstanding(); assertEquals("COMPLETE", row.getState());
     assertTrue((Boolean) engine.get("consumer", id).get("completed"));
+  }
+
+  @Test void completedStartPublishesTheRegisteredServiceCheck() throws Exception {
+    request("STARTING", "START", 102L, 11L, HostRoleStatus.COMPLETED);
+    when(host.getState()).thenReturn(State.STARTED);
+    var response = mock(org.apache.ambari.server.controller.RequestStatusResponse.class);
+    when(response.getRequestId()).thenReturn(103L);
+    when(response.getTasks()).thenReturn(List.of(mock(org.apache.ambari.server.controller.ShortTaskStatus.class)));
+    when(controller.createAction(any(), any())).thenReturn(response);
+    engine.recoverOutstanding();
+    var request = org.mockito.ArgumentCaptor.forClass(org.apache.ambari.server.controller.ExecuteActionRequest.class);
+    verify(controller).createAction(request.capture(), any());
+    assertEquals("HBASE_SERVICE_CHECK", request.getValue().getCommandName());
+    assertEquals("HBASE", request.getValue().getResourceFilters().get(0).getServiceName());
+    assertEquals("CHECKING", row.getState());
+    assertTrue(row.getProgressJson().contains("\"requestId\":103"));
+  }
+
+  @Test void serviceChecksResumeByExactServiceReceiptAcrossCoordinatorRestart() throws Exception {
+    request("STARTING", "START", 102L, 11L, HostRoleStatus.COMPLETED);
+    when(host.getState()).thenReturn(State.STARTED);
+    Service zk = mock(Service.class);
+    ServiceComponent zkComponent = mock(ServiceComponent.class);
+    when(consumer.getService("ZOOKEEPER")).thenReturn(zk);
+    when(zk.getServiceComponent("ZOOKEEPER_SERVER")).thenReturn(zkComponent);
+    when(zkComponent.getServiceComponentHost("consumer-host")).thenReturn(host);
+    var plan = com.google.gson.JsonParser.parseString(row.getPlanJson()).getAsJsonObject();
+    plan.getAsJsonArray("targets").add(com.google.gson.JsonParser.parseString(StageUtils.getGson().toJson(
+        new Target("ZOOKEEPER", "ZOOKEEPER_SERVER", "consumer-host", 41L))));
+    row.setPlanJson(plan.toString());
+    var first = mock(org.apache.ambari.server.controller.RequestStatusResponse.class);
+    var second = mock(org.apache.ambari.server.controller.RequestStatusResponse.class);
+    when(first.getRequestId()).thenReturn(103L); when(second.getRequestId()).thenReturn(104L);
+    var task = mock(org.apache.ambari.server.controller.ShortTaskStatus.class);
+    when(first.getTasks()).thenReturn(List.of(task)); when(second.getTasks()).thenReturn(List.of(task));
+    when(controller.createAction(any(), any())).thenReturn(first, second);
+    engine.recoverOutstanding();
+    for (long requestId : List.of(103L, 104L)) {
+      Request owned = mock(Request.class); when(owned.getClusterId()).thenReturn(11L);
+      when(actions.getRequests(List.of(requestId))).thenReturn(List.of(owned));
+      HostRoleCommand completed = mock(HostRoleCommand.class);
+      when(completed.getStatus()).thenReturn(HostRoleStatus.COMPLETED);
+      when(actions.getRequestTasks(requestId)).thenReturn(List.of(completed));
+      newEngine().recoverOutstanding();
+    }
+    var requests = org.mockito.ArgumentCaptor.forClass(org.apache.ambari.server.controller.ExecuteActionRequest.class);
+    verify(controller, times(2)).createAction(requests.capture(), any());
+    assertEquals(List.of("HBASE_SERVICE_CHECK", "ZOOKEEPER_QUORUM_SERVICE_CHECK"),
+        requests.getAllValues().stream().map(org.apache.ambari.server.controller.ExecuteActionRequest::getCommandName).toList());
+    assertEquals("COMPLETE", row.getState());
+    assertTrue(row.getProgressJson().contains("\"requestId\":103"));
+    assertTrue(row.getProgressJson().contains("\"requestId\":104"));
+  }
+
+  @Test void missingServiceCheckHistoryCannotBeReconstructedFromCurrentRequest() {
+    request("CHECKING", "CHECKS", 103L, 11L, HostRoleStatus.COMPLETED);
+    var progress = com.google.gson.JsonParser.parseString(row.getProgressJson()).getAsJsonObject();
+    progress.add("history", new com.google.gson.JsonArray());
+    row.setProgressJson(progress.toString());
+    when(host.getState()).thenReturn(State.STARTED);
+    engine.recoverOutstanding();
+    assertEquals("UNRESOLVED", row.getState());
+    verifyNoInteractions(controller);
+  }
+
+  @Test void failedRetryPublicationRetainsTheOriginalInstallationReceipt() throws Exception {
+    request("FAILED", "INSTALL", null, 11L, HostRoleStatus.FAILED);
+    row.setProgressJson(row.getProgressJson().replace("\"history\":[]",
+        "\"history\":[{\"attemptId\":\"" + id + "\",\"phase\":\"INSTALL\",\"requestId\":101,\"targets\":[]}]"));
+    UUID attempt = UUID.randomUUID();
+    engine.retry("consumer", id, attempt);
+    newEngine().retry("consumer", id, attempt);
+    verify(bindings, times(1)).retryInstallation("consumer", 101L, attempt);
+    assertTrue(row.getProgressJson().contains("\"requestId\":101"));
+    assertEquals("NEW", row.getState());
   }
 
   @Test void failedBindingBeforeInstallationRetriesPreparationBeforePublishingInstall() {

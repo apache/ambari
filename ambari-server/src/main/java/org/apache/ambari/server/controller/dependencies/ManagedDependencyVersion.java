@@ -58,6 +58,15 @@ public record ManagedDependencyVersion(
         && resolvedVersions.equals(other.resolvedVersions);
   }
 
+  /** BIGTOP service metadata appends the package release to the upstream version. */
+  public static String clientSoftwareVersion(String stackName, String serviceVersion) {
+    Objects.requireNonNull(serviceVersion, "serviceVersion");
+    if ("BIGTOP".equals(stackName) && serviceVersion.matches("[0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+")) {
+      return serviceVersion.substring(0, serviceVersion.lastIndexOf('-'));
+    }
+    return serviceVersion;
+  }
+
   public Compatibility compatibility() {
     return new Compatibility(stackName, stackVersion, active, serviceVersion,
         resolvedVersions, clientFeatures);

@@ -1185,8 +1185,10 @@ public class ManagedServiceDependencyCoordinator {
     ManagedDependencyType type = ManagedDependencyType.valueOf(visible.getDependencyType());
     Cluster provider = authorizeProviderParent(new ProviderReference(
         visible.getProviderClusterId(), visible.getProviderServiceName()), type, true);
-    return withClusterReadLocks(consumer, provider, () -> detachLocked(
-        consumer.getClusterId(), bindingId, request));
+    return withClusterReadLocks(consumer, provider, () -> {
+      lifecyclePolicy.validateConsumerDetach(consumer);
+      return detachLocked(consumer.getClusterId(), bindingId, request);
+    });
   }
 
   private Map<String, Object> detachLocked(long consumerClusterId, UUID bindingId,
@@ -2167,7 +2169,8 @@ public class ManagedServiceDependencyCoordinator {
         && Set.of("PROVISIONING", "READY", "FAILED", "STALE", "FENCING_UNCERTAIN", "DETACHING")
             .contains(binding.getState())
         && (!"DETACHING".equals(binding.getState()) || retryDetach)
-        && binding.getActionHostId() != null && !activeCommand;
+        && binding.getActionHostId() != null && !activeCommand
+        && lifecyclePolicy.consumerDetachAllowed(resolver.cluster(binding.getConsumerClusterId()));
     List<String> actions = new ArrayList<>();
     if (installAllowed) {
       actions.add("INSTALL_OR_CONFIGURE");

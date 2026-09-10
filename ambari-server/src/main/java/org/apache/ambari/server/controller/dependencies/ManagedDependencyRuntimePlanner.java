@@ -180,10 +180,9 @@ public class ManagedDependencyRuntimePlanner {
       Map<String, Map<String, String>> client = clientConfig(command);
       merge(commandConfigurations, "hbase-site", client.get("zooKeeperClient"));
       if (command.name() == ManagedDependencyCommand.CommandName.PREPARE_HDFS_CONSUMER) {
-        replace(commandConfigurations, "core-site", client.get("coreSite"));
-        replace(commandConfigurations, "hdfs-site", client.get("hdfsSite"));
-        configurationTypeOverrides.add("core-site");
-        configurationTypeOverrides.add("hdfs-site");
+        // Common stack hooks also consume these configurations and may write the
+        // local Hadoop client directory. Provider core/hdfs maps belong only to
+        // the immutable bundle and the HBase script's dedicated client profile.
         merge(commandConfigurations, "hbase-site", Map.of(
             "hbase.rootdir", command.parameters().get("expected.namespace.root.uri"),
             "hbase.wal.dir", command.parameters().get("expected.namespace.wal.uri")));
@@ -218,11 +217,6 @@ public class ManagedDependencyRuntimePlanner {
     configurations.computeIfAbsent(type, ignored -> new TreeMap<>()).putAll(values);
   }
 
-  private void replace(Map<String, Map<String, String>> configurations,
-      String type, Map<String, String> values) {
-    configurations.put(type, values == null ? new TreeMap<>() : new TreeMap<>(values));
-  }
-
   private List<ManagedDependencyCommand> planPreparations(Cluster cluster,
       ServiceComponentHost host,
       Map<String, String> commandParameters, String repositoryVersion,
@@ -252,9 +246,7 @@ public class ManagedDependencyRuntimePlanner {
       ManagedDependencySnapshot snapshot = snapshot(snapshotEntity);
       ServiceDependencyOperationEntity operation = operation(binding);
       String packageName = packageName(packages, binding.getDependencyType(), repositoryVersion);
-      String clientVersion = ManagedDependencyType.HDFS.name().equals(binding.getDependencyType())
-          ? snapshot.providerVersion().serviceVersion()
-          : snapshotEntity.getConsumerServiceVersion();
+      String clientVersion = clientSoftwareVersion(snapshotEntity, snapshot);
       String identityFingerprint = identityFingerprint(snapshot);
       ManagedDependencyCommand command = ManagedDependencyCommand.prepareConsumer(snapshot,
           UUID.fromString(operation.getOperationId()), operation.getOperationEpoch(),
@@ -262,6 +254,14 @@ public class ManagedDependencyRuntimePlanner {
       commands.add(command);
     }
     return commands;
+  }
+
+  private String clientSoftwareVersion(ServiceDependencySnapshotEntity entity,
+      ManagedDependencySnapshot snapshot) {
+    String metadataVersion = snapshot.type() == ManagedDependencyType.HDFS
+        ? snapshot.providerVersion().serviceVersion() : entity.getConsumerServiceVersion();
+    return ManagedDependencyVersion.clientSoftwareVersion(
+        snapshot.providerVersion().stackName(), metadataVersion);
   }
 
   /** Persists computed preparation intents only inside the action publication transaction. */
@@ -847,11 +847,13 @@ public class ManagedDependencyRuntimePlanner {
         throw new AmbariException("The managed dependency retry profile is stale");
       }
       if (binding == target) {
-        ManagedDependencySnapshot currentSnapshot = snapshot(snapshotEntity(binding));
+        ServiceDependencySnapshotEntity entity = snapshotEntity(binding);
+        ManagedDependencySnapshot currentSnapshot = snapshot(entity);
         ServiceDependencyOperationEntity currentOperation = operation(binding);
         command = ManagedDependencyCommand.prepareConsumer(currentSnapshot,
             UUID.fromString(currentOperation.getOperationId()), currentOperation.getOperationEpoch(),
-            hostId, source.packageName(), source.softwareVersion(), identityFingerprint(currentSnapshot));
+            hostId, source.packageName(), clientSoftwareVersion(entity, currentSnapshot),
+            identityFingerprint(currentSnapshot));
       }
       commands.add(command);
     }

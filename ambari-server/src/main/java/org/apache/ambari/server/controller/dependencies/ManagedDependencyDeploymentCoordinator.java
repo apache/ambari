@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO;
 import org.apache.ambari.server.orm.dao.ServiceDependencyDeploymentDAO;
 import org.apache.ambari.server.orm.entities.ServiceDependencyBindingEntity;
@@ -77,13 +78,14 @@ public class ManagedDependencyDeploymentCoordinator {
   private final Provider<AmbariManagementController> controller;
   private final ResourceProviderFactory resourceProviders;
   private final Provider<ManagedServiceDependencyCoordinator> bindings;
+  private final ActionMetadata actionMetadata;
   private int recoveryOffset;
 
   @Inject
   public ManagedDependencyDeploymentCoordinator(ServiceDependencyDeploymentDAO deployments,
       ServiceDependencyDAO dependencies, Clusters clusters, Users users, Provider<ActionManager> actions,
       Provider<AmbariManagementController> controller, ResourceProviderFactory resourceProviders,
-      Provider<ManagedServiceDependencyCoordinator> bindings) {
+      Provider<ManagedServiceDependencyCoordinator> bindings, ActionMetadata actionMetadata) {
     this.deployments = deployments;
     this.dependencies = dependencies;
     this.clusters = clusters;
@@ -92,6 +94,7 @@ public class ManagedDependencyDeploymentCoordinator {
     this.controller = controller;
     this.resourceProviders = resourceProviders;
     this.bindings = bindings;
+    this.actionMetadata = actionMetadata;
   }
 
   public Map<String, Object> launch(String clusterName, UUID id, List<Target> proposed, boolean installOnly) {
@@ -109,7 +112,7 @@ public class ManagedDependencyDeploymentCoordinator {
     value.setClusterId(cluster.getClusterId());
     value.setOwnerUserId(AuthorizationHelper.getAuthenticatedId());
     value.setPlanJson(StageUtils.getGson().toJson(new Plan(targets, versions, installOnly)));
-    value.setProgressJson(StageUtils.getGson().toJson(new Progress(id.toString(), null, "INSTALL", List.of(), null)));
+    value.setProgressJson(StageUtils.getGson().toJson(new Progress(id.toString(), null, "INSTALL", List.of(), null, null)));
     value.setState("NEW");
     value.setRowVersion(0L);
     value.setCreateTimestamp(now);
@@ -149,11 +152,12 @@ public class ManagedDependencyDeploymentCoordinator {
               .anyMatch(attempt -> attempt.attemptId().equals(attemptId.toString()))) {
             return;
           }
-          if (!retryable(value, bindings.get().list(clusterName, "HBASE"))) {
+          if (!retryable(cluster, value, bindings.get().list(clusterName, "HBASE"))) {
             throw conflict("DEPLOYMENT_NOT_RETRYABLE", "Reconcile the current deployment before retrying.");
           }
-          if ("INSTALL".equals(previous.phase()) && previous.requestId() != null) {
-            bindings.get().retryInstallation(clusterName, previous.requestId(), attemptId);
+          Long installationRequest = installationRetryRequest(previous);
+          if (installationRequest != null) {
+            bindings.get().retryInstallation(clusterName, installationRequest, attemptId);
           } else {
             for (ServiceDependencyBindingEntity binding : dependencies.findByConsumer(value.getClusterId(), "HBASE")) {
               if ("FAILED".equals(binding.getState())) {
@@ -164,10 +168,21 @@ public class ManagedDependencyDeploymentCoordinator {
               }
             }
           }
+          List<Attempt> history = new ArrayList<>(previous.history());
+          List<BindingVersion> approved = previous.approvedBindings();
+          if (uninstalledPlan(cluster, value)) {
+            Plan oldPlan = plan(value);
+            history.add(new Attempt(previous.attemptId(), previous.phase(), null,
+                oldPlan.targets(), oldPlan.bindings()));
+            approved = dependencies.findByConsumer(value.getClusterId(), "HBASE").stream()
+                .map(binding -> new BindingVersion(binding.getBindingId(), binding.getDesiredSnapshotVersion(),
+                    binding.getOperationEpoch()))
+                .sorted(Comparator.comparing(BindingVersion::bindingId)).toList();
+          }
           value.setState(Set.of("START", "CHECKS", "DEPENDENCIES").contains(previous.phase())
               ? "WAIT_DEPENDENCIES" : "NEW");
           value.setProgressJson(StageUtils.getGson().toJson(new Progress(attemptId.toString(), null,
-              previous.phase(), previous.history(), null)));
+              previous.phase(), List.copyOf(history), null, approved)));
         }));
       } catch (AmbariException e) {
         throw conflict("DEPLOYMENT_RETRY_FAILED", "The deployment could not be retried; reload its current state.");
@@ -198,7 +213,13 @@ public class ManagedDependencyDeploymentCoordinator {
           }
         });
       } catch (RuntimeException | AmbariException e) {
-        LOG.warn("Deployment reconciliation deferred: id={}, reason={}", value.getDeploymentId(), e.getClass().getSimpleName());
+        Throwable cause = e;
+        for (int depth = 0; depth < 8 && cause.getCause() != null; depth++) cause = cause.getCause();
+        // Throwable messages can contain command/configuration values. Stack
+        // locations identify the failed production boundary without exposing them.
+        LOG.warn("Deployment reconciliation deferred: id={}, reason={}, cause={}, locations={}",
+            value.getDeploymentId(), e.getClass().getSimpleName(), cause.getClass().getSimpleName(),
+            java.util.Arrays.stream(cause.getStackTrace()).limit(12).toList());
         try {
           deployments.mutate(value.getDeploymentId(), current -> {
             // A committed request remains authoritative even if the caller lost its result.
@@ -243,6 +264,13 @@ public class ManagedDependencyDeploymentCoordinator {
         setFailure(value, "DEPLOYMENT_REQUEST_LINEAGE_MISSING");
         return;
       }
+      if ("CHECKING".equals(value.getState()) && progress.history().stream().filter(attempt ->
+          progress.attemptId().equals(attempt.attemptId()) && "CHECKS".equals(attempt.phase())
+              && progress.requestId().equals(attempt.requestId()) && !attempt.targets().isEmpty()).count() != 1) {
+        value.setState("UNRESOLVED");
+        setFailure(value, "DEPLOYMENT_CHECK_LINEAGE_MISSING");
+        return;
+      }
       var requests = actions.get().getRequests(List.of(progress.requestId()));
       if (requests.size() != 1 || !Objects.equals(requests.get(0).getClusterId(), cluster.getClusterId())) {
         value.setState("UNRESOLVED");
@@ -263,11 +291,7 @@ public class ManagedDependencyDeploymentCoordinator {
         fail(value, "DEPLOYMENT_TASK_FAILED");
         return;
       }
-      if ("CHECKING".equals(value.getState())) {
-        value.setState("COMPLETE");
-        return;
-      }
-      if ("STARTING".equals(value.getState())) {
+      if (Set.of("STARTING", "CHECKING").contains(value.getState())) {
         publishChecks(cluster, value);
         return;
       }
@@ -303,7 +327,7 @@ public class ManagedDependencyDeploymentCoordinator {
       if (currentBindings.stream().anyMatch(binding -> Set.of("FAILED", "STALE", "FENCING_UNCERTAIN").contains(binding.getState()))) {
         Progress current = progress(value);
         value.setProgressJson(StageUtils.getGson().toJson(new Progress(current.attemptId(), current.requestId(),
-            "DEPENDENCIES", current.history(), null)));
+            "DEPENDENCIES", current.history(), null, current.approvedBindings())));
         fail(value, "DEPLOYMENT_DEPENDENCY_FAILED");
         return;
       }
@@ -343,9 +367,9 @@ public class ManagedDependencyDeploymentCoordinator {
       }
     }
     List<Attempt> history = new ArrayList<>(previous.history());
-    history.add(new Attempt(previous.attemptId(), phase, requestId, pending));
+    history.add(new Attempt(previous.attemptId(), phase, requestId, pending, plan.bindings()));
     value.setProgressJson(StageUtils.getGson().toJson(new Progress(previous.attemptId(), requestId,
-        phase, List.copyOf(history), null)));
+        phase, List.copyOf(history), null, previous.approvedBindings())));
     if (start && requestId == null) {
       publishChecks(cluster, value);
       return;
@@ -356,28 +380,41 @@ public class ManagedDependencyDeploymentCoordinator {
   }
 
   private void publishChecks(Cluster cluster, ServiceDependencyDeploymentEntity value) throws AmbariException {
-    List<org.apache.ambari.server.controller.internal.RequestResourceFilter> filters = new ArrayList<>();
-    for (String service : plan(value).targets().stream().filter(target -> {
+    Plan plan = plan(value);
+    Progress previous = progress(value);
+    // CHECKING reaches this method only after its exact request and tasks completed.
+    // Retain one request per service in this attempt's history; restart resumes the
+    // next service without scanning unrelated requests or replaying earlier checks.
+    Set<String> checked = previous.history().stream()
+        .filter(attempt -> previous.attemptId().equals(attempt.attemptId())
+            && "CHECKS".equals(attempt.phase()) && attempt.requestId() != null)
+        .flatMap(attempt -> attempt.targets().stream()).map(Target::serviceName)
+        .collect(java.util.stream.Collectors.toSet());
+    String service = plan.targets().stream().filter(target -> {
       try { return !cluster.getService(target.serviceName()).getServiceComponent(target.componentName()).isClientComponent(); }
       catch (AmbariException e) { throw new IllegalStateException(e); }
-    }).map(Target::serviceName).distinct().sorted().toList()) {
-      filters.add(new org.apache.ambari.server.controller.internal.RequestResourceFilter(service, null, null));
-    }
-    if (filters.isEmpty()) {
+    }).map(Target::serviceName).distinct().sorted().filter(name -> !checked.contains(name))
+        .findFirst().orElse(null);
+    if (service == null) {
       value.setState("COMPLETE");
       return;
     }
+    String command = actionMetadata.getServiceCheckAction(service);
+    if (command == null) {
+      throw new AmbariException("The deployment service has no registered service check");
+    }
+    var filter = new org.apache.ambari.server.controller.internal.RequestResourceFilter(service, null, null);
     var response = controller.get().createAction(new org.apache.ambari.server.controller.ExecuteActionRequest(
-        cluster.getClusterName(), "SERVICE_CHECK", null, filters, null, Map.of(), true),
-        Map.of("context", "Check managed deployment services"));
+        cluster.getClusterName(), command, null, List.of(filter), null, Map.of(), true),
+        Map.of("context", "Check managed deployment service " + service));
     if (response == null || response.getRequestId() <= 0 || response.getTasks() == null || response.getTasks().isEmpty()) {
       throw new AmbariException("The service checks did not publish an owned request");
     }
-    Progress previous = progress(value);
     List<Attempt> history = new ArrayList<>(previous.history());
-    history.add(new Attempt(previous.attemptId(), "CHECKS", response.getRequestId(), plan(value).targets()));
+    history.add(new Attempt(previous.attemptId(), "CHECKS", response.getRequestId(),
+        plan.targets().stream().filter(target -> service.equals(target.serviceName())).toList(), plan.bindings()));
     value.setProgressJson(StageUtils.getGson().toJson(new Progress(previous.attemptId(), response.getRequestId(),
-        "CHECKS", List.copyOf(history), null)));
+        "CHECKS", List.copyOf(history), null, previous.approvedBindings())));
     value.setState("CHECKING");
   }
 
@@ -430,7 +467,7 @@ public class ManagedDependencyDeploymentCoordinator {
     result.put("history", progress.history());
     List<Map<String, Object>> summaries = bindings.get().list(cluster.getClusterName(), "HBASE");
     result.put("bindings", summaries);
-    result.put("retry_allowed", retryable(value, summaries)
+    result.put("retry_allowed", retryable(cluster, value, summaries)
         && Objects.equals(value.getOwnerUserId(), AuthorizationHelper.getAuthenticatedId())
         && canModify(cluster));
     result.put("completed", "COMPLETE".equals(value.getState()));
@@ -439,16 +476,22 @@ public class ManagedDependencyDeploymentCoordinator {
   }
 
   /** The same persisted phase and binding capabilities govern both presentation and mutation. */
-  private boolean retryable(ServiceDependencyDeploymentEntity value, List<Map<String, Object>> summaries) {
-    if (!"FAILED".equals(value.getState())) return false;
+  private boolean retryable(Cluster cluster, ServiceDependencyDeploymentEntity value, List<Map<String, Object>> summaries) {
     Progress previous = progress(value);
-    boolean reinstall = "INSTALL".equals(previous.phase()) && previous.requestId() != null;
+    if (!"FAILED".equals(value.getState())
+        && !("UNRESOLVED".equals(value.getState())
+            && "DEPLOYMENT_BINDING_LINEAGE_CHANGED".equals(previous.failureCode())
+            && uninstalledPlan(cluster, value))) return false;
+    boolean reinstall = installationRetryRequest(previous) != null;
+    boolean refreshApproval = uninstalledPlan(cluster, value);
     List<ServiceDependencyBindingEntity> current = dependencies.findByConsumer(value.getClusterId(), "HBASE");
     if (current.size() != plan(value).bindings().size()) return false;
     for (BindingVersion expected : plan(value).bindings()) {
       ServiceDependencyBindingEntity binding = current.stream()
           .filter(candidate -> expected.bindingId().equals(candidate.getBindingId())).findFirst().orElse(null);
-      if (binding == null || !Objects.equals(binding.getDesiredSnapshotVersion(), expected.snapshotVersion())
+      if (binding == null
+          || (!Objects.equals(binding.getDesiredSnapshotVersion(), expected.snapshotVersion()) && !refreshApproval)
+          || (refreshApproval && !"APPROVED".equals(binding.getSnapshotApproval()))
           || !Set.of("PROVISIONING", "READY", "FAILED").contains(binding.getState())
           || binding.getProviderPreparationHash() == null) return false;
       if ("FAILED".equals(binding.getState()) && !reinstall) {
@@ -459,6 +502,34 @@ public class ManagedDependencyDeploymentCoordinator {
       }
     }
     return true;
+  }
+
+  /** A failed publication retains the last INSTALL receipt in this deployment's history. */
+  private Long installationRetryRequest(Progress progress) {
+    if (!"INSTALL".equals(progress.phase())) return null;
+    if (progress.requestId() != null) return progress.requestId();
+    for (int index = progress.history().size() - 1; index >= 0; index--) {
+      Attempt attempt = progress.history().get(index);
+      if ("INSTALL".equals(attempt.phase()) && attempt.requestId() != null) return attempt.requestId();
+    }
+    return null;
+  }
+
+  /** Only a never-published installation can accept newly approved provider snapshots. */
+  private boolean uninstalledPlan(Cluster cluster, ServiceDependencyDeploymentEntity value) {
+    Progress previous = progress(value);
+    if (!"INSTALL".equals(previous.phase()) || previous.requestId() != null
+        || previous.history().stream().anyMatch(attempt -> attempt.requestId() != null)) return false;
+    try {
+      for (Target target : plan(value).targets()) {
+        ServiceComponentHost host = cluster.getService(target.serviceName())
+            .getServiceComponent(target.componentName()).getServiceComponentHost(target.hostName());
+        if (host.getHost().getHostId() != target.hostId() || host.getState() != State.INIT) return false;
+      }
+      return true;
+    } catch (AmbariException e) {
+      return false;
+    }
   }
 
   private Cluster cluster(String name, boolean modify) {
@@ -522,7 +593,9 @@ public class ManagedDependencyDeploymentCoordinator {
   }
 
   private static Plan plan(ServiceDependencyDeploymentEntity value) {
-    return StageUtils.getGson().fromJson(value.getPlanJson(), Plan.class);
+    Plan original = StageUtils.getGson().fromJson(value.getPlanJson(), Plan.class);
+    List<BindingVersion> approved = progress(value).approvedBindings();
+    return approved == null ? original : new Plan(original.targets(), approved, original.installOnly());
   }
 
   private static Progress progress(ServiceDependencyDeploymentEntity value) {
@@ -537,7 +610,7 @@ public class ManagedDependencyDeploymentCoordinator {
   private void setFailure(ServiceDependencyDeploymentEntity value, String code) {
     Progress previous = progress(value);
     value.setProgressJson(StageUtils.getGson().toJson(new Progress(previous.attemptId(), previous.requestId(),
-        previous.phase(), previous.history(), code)));
+        previous.phase(), previous.history(), code, previous.approvedBindings())));
   }
 
   private static ManagedDependencyIntegrationException conflict(String code, String message) {
@@ -547,6 +620,8 @@ public class ManagedDependencyDeploymentCoordinator {
   public record Target(String serviceName, String componentName, String hostName, long hostId) { }
   private record BindingVersion(String bindingId, long snapshotVersion, long initialEpoch) { }
   private record Plan(List<Target> targets, List<BindingVersion> bindings, boolean installOnly) { }
-  private record Attempt(String attemptId, String phase, Long requestId, List<Target> targets) { }
-  private record Progress(String attemptId, Long requestId, String phase, List<Attempt> history, String failureCode) { }
+  private record Attempt(String attemptId, String phase, Long requestId, List<Target> targets,
+      List<BindingVersion> bindings) { }
+  private record Progress(String attemptId, Long requestId, String phase, List<Attempt> history, String failureCode,
+      List<BindingVersion> approvedBindings) { }
 }

@@ -79,7 +79,17 @@ class ManagedDependencyRuntimePlannerTest {
   private static final String HASH = "sha256:" + "a".repeat(64);
 
   @Test
-  void providerClientMapsReplaceOnlyManagedHbaseExecutionConfiguration() throws Exception {
+  void bigtopClientSoftwareVersionExcludesPackageReleaseButRetainsPrerelease() {
+    assertEquals("3.3.6", ManagedDependencyVersion.clientSoftwareVersion("BIGTOP", "3.3.6-1"));
+    assertEquals("2.6.3", ManagedDependencyVersion.clientSoftwareVersion("BIGTOP", "2.6.3-12"));
+    assertEquals("2.6.3", ManagedDependencyVersion.clientSoftwareVersion("BIGTOP", "2.6.3"));
+    assertEquals("2.6.3-SNAPSHOT",
+        ManagedDependencyVersion.clientSoftwareVersion("BIGTOP", "2.6.3-SNAPSHOT"));
+    assertEquals("2.6.3-1", ManagedDependencyVersion.clientSoftwareVersion("OTHER", "2.6.3-1"));
+  }
+
+  @Test
+  void providerClientMapsRemainInBundleWithoutChangingCommonHookConfiguration() throws Exception {
     ManagedDependencyRuntimePlanner planner = new ManagedDependencyRuntimePlanner(
         mock(ServiceDependencyDAO.class), mock(ManagedDependencyDescriptorResolver.class),
         mock(ManagedServiceDependencyCoordinator.class));
@@ -89,21 +99,21 @@ class ManagedDependencyRuntimePlannerTest {
     Map<String, Map<String, String>> localDesired = new TreeMap<>();
     localDesired.put("core-site", new TreeMap<>(Map.of(
         "fs.defaultFS", "hdfs://local", "local.only", "retained")));
-    localDesired.put("hdfs-site", new TreeMap<>(Map.of("dfs.nameservices", "local-ha")));
+    localDesired.put("hdfs-site", new TreeMap<>(Map.of(
+        "dfs.nameservices", "local-ha", "dfs.cluster.administrators", " hadoop")));
     Map<String, Map<String, String>> execution = deepCopy(localDesired);
     execution.put("hbase-site", new TreeMap<>(Map.of("unrelated", "retained")));
     Set<String> replacements = new HashSet<>();
 
     planner.decoratePersistedCommandConfigurations(41L, bundle, execution, replacements);
 
-    assertEquals("hdfs://provider", execution.get("core-site").get("fs.defaultFS"));
-    assertEquals(Map.of("fs.defaultFS", "hdfs://provider"), execution.get("core-site"));
-    assertEquals(Map.of("dfs.client.socket-timeout", "60000"),
-        execution.get("hdfs-site"));
+    assertEquals(localDesired.get("core-site"), execution.get("core-site"));
+    assertEquals(localDesired.get("hdfs-site"), execution.get("hdfs-site"));
+    assertEquals(" hadoop", execution.get("hdfs-site").get("dfs.cluster.administrators"));
     assertEquals("hdfs://local", localDesired.get("core-site").get("fs.defaultFS"));
     assertEquals("retained", localDesired.get("core-site").get("local.only"));
-    assertEquals(Map.of("dfs.nameservices", "local-ha"), localDesired.get("hdfs-site"));
-    assertEquals(Set.of("core-site", "hdfs-site"), replacements);
+    assertEquals(Set.of(), replacements);
+    assertTrue(preparation.parameters().get("client.config.json").contains("hdfs://provider"));
     assertEquals("hdfs://provider/apps/ambari-managed/hbase/" + BINDING_ID + "/root",
         execution.get("hbase-site").get("hbase.rootdir"));
     assertEquals("retained", execution.get("hbase-site").get("unrelated"));
@@ -176,8 +186,10 @@ class ManagedDependencyRuntimePlannerTest {
     planner.augmentHostCommand(cluster, host41, RoleCommand.START, parameters,
         configurations, replacements, null);
 
-    assertEquals(Set.of("core-site", "hdfs-site"), replacements);
-    assertEquals("hdfs://provider", configurations.get("core-site").get("fs.defaultFS"));
+    assertEquals(Set.of(), replacements);
+    assertFalse(configurations.containsKey("core-site"));
+    assertTrue(parameters.get(ManagedDependencyRuntimePlanner.BUNDLE_PARAMETER)
+        .contains("hdfs://provider"));
 
     when(dao.findHostResults(BINDING_ID.toString(), 1L))
         .thenReturn(List.of(verification41));
@@ -495,12 +507,17 @@ class ManagedDependencyRuntimePlannerTest {
     Cluster cluster = cluster(componentHost(41L, "consumer-a"), componentHost(42L, "consumer-b"));
     when(resolver.cluster(11L)).thenReturn(cluster);
     var first = completedPreparation(41L, "1.rpm"); first.setOperationEpoch(1L);
+    first.setCommandJson(StageUtils.getGson().toJson(ManagedDependencyCommand.prepareConsumer(
+        snapshot(), OPERATION_ID, 1L, 41L, "hadoop_3_3_0_0_1-client", "3.3.0-1", HASH)));
     var second = completedPreparation(42L, "1.deb"); second.setOperationEpoch(2L);
     when(dao.findHostResults(BINDING_ID.toString(), 1L)).thenReturn(List.of(first, second));
     var retry = planner.buildRetryPreparationPlan(11L, 41L, BINDING_ID);
     assertEquals(41L, retry.bundle().hostId());
     assertEquals("HBASE_REGIONSERVER", retry.componentName());
     assertEquals(3L, retry.bundle().preparationCommands().get(0).envelope().epoch());
+    assertEquals("3.3.0", retry.bundle().preparationCommands().get(0).parameters()
+        .get("client.software.semantic.version"));
+    assertTrue(first.getCommandJson().contains("3.3.0-1"));
     assertThrows(AmbariException.class, () -> planner.buildRetryPreparationPlan(11L, 99L, BINDING_ID));
     when(dao.findHostResults(BINDING_ID.toString(), 1L)).thenReturn(List.of(second));
     assertThrows(AmbariException.class, () -> planner.buildRetryPreparationPlan(11L, 41L, BINDING_ID));

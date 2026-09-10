@@ -35,7 +35,11 @@ import java.util.Set;
 
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO;
 import org.apache.ambari.server.orm.entities.ServiceDependencyBindingEntity;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -383,6 +387,37 @@ public class ManagedDependencyLifecyclePolicy {
       String revision) {
     private String key() {
       return providerClusterId + "|" + serviceName + "|" + action;
+    }
+  }
+
+  /** A detached running consumer would evade the provider's reference protection. */
+  public boolean consumerDetachAllowed(Cluster consumer) {
+    Set<State> stopped = Set.of(State.INIT, State.INSTALLED, State.INSTALL_FAILED,
+        State.UNINSTALLED, State.DISABLED);
+    try {
+      for (ServiceComponent component : consumer.getService(CONSUMER_SERVICE).getServiceComponents().values()) {
+        if (component.isClientComponent()) {
+          continue;
+        }
+        for (ServiceComponentHost host : component.getServiceComponentHosts().values()) {
+          if (host.getState() == null || host.getDesiredState() == null
+              || !stopped.contains(host.getState()) || !stopped.contains(host.getDesiredState())) {
+            return false;
+          }
+        }
+      }
+      return true;
+    } catch (AmbariException | RuntimeException e) {
+      // A missing or rebuilding topology cannot establish that daemons are stopped.
+      return false;
+    }
+  }
+
+  /** Call under the consumer lifecycle lock, before publishing the provider fence. */
+  public void validateConsumerDetach(Cluster consumer) {
+    if (!consumerDetachAllowed(consumer)) {
+      throw conflict("DEPENDENCY_CONSUMER_MUST_BE_STOPPED",
+          "Stop every HBase daemon and complete pending lifecycle work before detaching its provider.");
     }
   }
 

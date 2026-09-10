@@ -929,7 +929,7 @@ public class ServiceDependencyDAO {
     // the current snapshot. Keep the binding's existing namespace columns intact.
     binding.setProviderPreparationHash(null);
     binding.setState("PROVISIONING");
-    binding.setProvisioningPhase("PROVIDER_PREPARING");
+    binding.setProvisioningPhase("PROVIDER_PROVISIONING");
     binding.setFailureCode(null);
     binding.setFailurePhase(null);
     binding.setFailureMessage(null);
@@ -1680,7 +1680,8 @@ public class ServiceDependencyDAO {
         || command.getCheckKind() == null || command.getCommandRequestHash() == null
         || command.getCommandRequestHash().isBlank() || command.getCommandJson() == null
         || command.getCommandJson().isBlank() || command.getRequiredPackageHash() == null
-        || command.getRequiredPackageHash().isBlank() || !isProviderCommand(command.getCheckKind())) {
+        || command.getRequiredPackageHash().isBlank()
+        || !Objects.equals(command.getCheckKind(), "PROVISION_" + binding.getDependencyType() + "_NAMESPACE")) {
       throw new IllegalArgumentException("The update initial command is not a provider intent");
     }
   }

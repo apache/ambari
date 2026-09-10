@@ -261,6 +261,7 @@ public class ServiceDependencyDAOIntegrationTest {
     operation.setOperationEpoch(2L);
     operation.setTargetSnapshotVersion(2L);
     var intent = providerIntent(bindingId, operationId, 951L, ManagedDependencyType.HDFS);
+    intent.setCheckKind("PROVISION_HDFS_NAMESPACE");
     intent.setSnapshotVersion(2L);
     intent.setOperationEpoch(2L);
     var facts = new ServiceDependencyDAO.UpdateFacts(1L, previous.getProviderFingerprint(),
@@ -271,8 +272,9 @@ public class ServiceDependencyDAOIntegrationTest {
     assertTrue(transition.created());
     injector.getInstance(EntityManager.class).clear();
     assertEquals(Long.valueOf(2L), dependencyDAO.findBinding(bindingId.toString()).getDesiredSnapshotVersion());
+    assertEquals("PROVIDER_PROVISIONING", dependencyDAO.findBinding(bindingId.toString()).getProvisioningPhase());
     assertEquals(operationId.toString(), dependencyDAO.findHostResult(
-        bindingId.toString(), 2L, 2L, 951L, "HDFS", "PREPARE_BINDING_JOURNAL").getOperationId());
+        bindingId.toString(), 2L, 2L, 951L, "HDFS", "PROVISION_HDFS_NAMESPACE").getOperationId());
   }
 
   @Test
@@ -1060,6 +1062,51 @@ public class ServiceDependencyDAOIntegrationTest {
     assertEquals("INTENT", dependencyDAO.findHostResult(bindingId.toString(), 1L, 1L,
         scenario.hostId(), "HDFS", "PREPARE_HDFS_CONSUMER").getState());
     org.junit.Assert.assertNull(injector.getInstance(RequestDAO.class).findByPK(983L));
+  }
+
+  @Test
+  public void testUninstalledDeploymentApprovalSurvivesRealPersistenceAndReload() throws Exception {
+    consumerService.addServiceComponent("HBASE_MASTER").addServiceComponentHost(MANAGED_HOST);
+    var binding = binding(UUID.randomUUID(), UUID.randomUUID());
+    binding.setProviderPreparationHash(hash('p'));
+    binding.setSnapshotApproval("APPROVED");
+    var dependencyRows = mock(ServiceDependencyDAO.class);
+    when(dependencyRows.findByConsumer(consumerCluster.getClusterId(), "HBASE")).thenReturn(List.of(binding));
+    var coordinator = mock(org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.class);
+    when(coordinator.list(consumerCluster.getClusterName(), "HBASE")).thenReturn(List.of(
+        Map.of("binding_id", binding.getBindingId(), "capabilities", Map.of("install_or_configure_allowed", true))));
+    var deployments = injector.getInstance(ServiceDependencyDeploymentDAO.class);
+    var engine = new org.apache.ambari.server.controller.dependencies.ManagedDependencyDeploymentCoordinator(
+        deployments, dependencyRows, clusters, mock(org.apache.ambari.server.security.authorization.Users.class),
+        () -> mock(org.apache.ambari.server.actionmanager.ActionManager.class),
+        () -> mock(org.apache.ambari.server.controller.AmbariManagementController.class),
+        mock(org.apache.ambari.server.controller.ResourceProviderFactory.class), () -> coordinator,
+        injector.getInstance(org.apache.ambari.server.metadata.ActionMetadata.class));
+    UUID id = UUID.randomUUID();
+    var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
+    var saved = context.getAuthentication();
+    context.setAuthentication(org.apache.ambari.server.security.TestAuthenticationFactory.createAdministrator(7, "alice"));
+    try {
+      engine.launch(consumerCluster.getClusterName(), id, List.of(
+          new org.apache.ambari.server.controller.dependencies.ManagedDependencyDeploymentCoordinator.Target(
+              "HBASE", "HBASE_MASTER", MANAGED_HOST, clusters.getHost(MANAGED_HOST).getHostId())), false);
+      deployments.mutate(id.toString(), row -> row.setState("FAILED"));
+      binding.setDesiredSnapshotVersion(2L);
+      binding.setOperationEpoch(2L);
+      UUID attempt = UUID.randomUUID();
+      engine.retry(consumerCluster.getClusterName(), id, attempt);
+      injector.getInstance(EntityManager.class).clear();
+      var reloaded = deployments.find(id.toString());
+      assertEquals("NEW", reloaded.getState());
+      assertTrue(reloaded.getPlanJson().contains("\"snapshotVersion\":1"));
+      assertTrue(reloaded.getProgressJson().contains("\"snapshotVersion\":1"));
+      assertTrue(reloaded.getProgressJson().contains("\"approvedBindings\":[{\"bindingId\":\"" + binding.getBindingId()
+          + "\",\"snapshotVersion\":2"));
+      engine.retry(consumerCluster.getClusterName(), id, attempt);
+      assertEquals(reloaded.getProgressJson(), deployments.find(id.toString()).getProgressJson());
+    } finally {
+      context.setAuthentication(saved);
+    }
   }
 
   @Test
