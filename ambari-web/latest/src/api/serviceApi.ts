@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { set } from "lodash";
 import { ambariApi } from "./config/axiosConfig";
 
@@ -50,7 +51,7 @@ export const ServiceApi = {
     //   serviceName
     // );
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/services/${serviceName}`,
+      url: `/clusters/${apiPathSegment(clusterName)}/services/${apiPathSegment(serviceName)}`,
       method: "GET",
     });
     return response;
@@ -66,7 +67,7 @@ export const ServiceApi = {
     signal?: AbortSignal,
   ): Promise<ServicesListResponse> {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,ServiceInfo/desired_repository_version_id,components/ServiceComponentInfo/component_name&minimal_response=true`,
+      url: `/clusters/${apiPathSegment(clusterName)}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state,ServiceInfo/desired_repository_version_id,components/ServiceComponentInfo/component_name&minimal_response=true`,
       method: "GET",
       signal,
     });
@@ -75,7 +76,7 @@ export const ServiceApi = {
 
   serviceComponents: async function (clusterName: string, serviceName: string) {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/services/${serviceName}/components`,
+      url: `/clusters/${apiPathSegment(clusterName)}/services/${apiPathSegment(serviceName)}/components`,
       method: "GET",
     });
     return response;
@@ -89,7 +90,7 @@ export const ServiceApi = {
     context: string
   ) {
     return ambariApi.request({
-      url: `/clusters/${clusterName}/hosts/${hostName}/host_components/FLUME_HANDLER`,
+      url: `/clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components/FLUME_HANDLER`,
       method: "PUT",
       data: {
         RequestInfo: {
@@ -116,7 +117,7 @@ export const ServiceApi = {
     serviceName: string,
     componentName: string
   ) {
-    const url = `/clusters/${clusterName}/services?ServiceInfo/service_name=${serviceName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/services?ServiceInfo/service_name=${serviceName}`;
     const response = await ambariApi.request({
       url,
       method: "POST",
@@ -138,7 +139,7 @@ export const ServiceApi = {
     data: any,
     urlParams: string
   ) {
-    const url = `/clusters/${clusterName}/services?${urlParams}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/services?${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -169,7 +170,7 @@ export const ServiceApi = {
   },
 
   getAllServiceComponents: async (clusterName: string, fields: string) => {
-    const url = `/clusters/${clusterName}/components?fields=${fields}&_=${Date.now()}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/components?fields=${fields}&_=${Date.now()}`;
     const response = await ambariApi.request({url: url,
       method: "GET",
     });
@@ -193,7 +194,7 @@ export const ServiceApi = {
   },
   // @ts-ignore
   isServiceCheckSupported: async function (clusterName: string, serviceName: string, stackName: string, stackVersion) {
-    const url = `/stacks/${stackName}/versions/${stackVersion}/services/${serviceName}?fields=StackServices/service_check_supported`;
+    const url = `/stacks/${stackName}/versions/${stackVersion}/services/${apiPathSegment(serviceName)}?fields=StackServices/service_check_supported`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -201,7 +202,7 @@ export const ServiceApi = {
     return response;
   },
   removeService: async function (clusterName: string, serviceName: string, serviceToDeleteNow: string, servicesToDeleteNext: any) {
-    const url = `/clusters/${clusterName}/services/${serviceName}`
+    const url = `/clusters/${apiPathSegment(clusterName)}/services/${apiPathSegment(serviceName)}`
     const response =  await ambariApi.request({
       url: url,
       method: "DELETE",
@@ -225,7 +226,7 @@ export const ServiceApi = {
    * @returns Response containing service and component details
    */
   getServiceComponentDetails: async function (stackName: string, stackVersion: string, serviceName: string) {
-    const url = `/stacks/${stackName}/versions/${stackVersion}/services/${serviceName}?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,components/dependencies/Dependencies/service_name,artifacts/Artifacts/artifact_name`;
+    const url = `/stacks/${stackName}/versions/${stackVersion}/services/${apiPathSegment(serviceName)}?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,components/dependencies/Dependencies/service_name,artifacts/Artifacts/artifact_name`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",

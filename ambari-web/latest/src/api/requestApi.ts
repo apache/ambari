@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { set } from "lodash";
 import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
 export const RequestApi = {
     getRequestStatus: async function (clusterName: string,requestId:string) {
-        const url = `/clusters/${clusterName}/requests/${requestId}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true`;
+        const url = `/clusters/${apiPathSegment(clusterName)}/requests/${apiPathSegment(requestId)}?fields=*,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/command_detail,tasks/Tasks/ops_display_name,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true`;
         const response = await supressErrorAmbariApi.request({
             url: url,
             method: "GET",
@@ -28,7 +29,7 @@ export const RequestApi = {
         return response.data;
     },
     getRequests: async function (clusterName: string) {
-        const url = `/clusters/${clusterName}/requests/?to=end&page_size=100&fields=Requests/id,Requests/request_context,Requests/request_status,Requests/start_time,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true`;
+        const url = `/clusters/${apiPathSegment(clusterName)}/requests/?to=end&page_size=100&fields=Requests/id,Requests/request_context,Requests/request_status,Requests/start_time,tasks/Tasks/request_id,tasks/Tasks/command,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,tasks/Tasks/status&minimal_response=true`;
         const response = await supressErrorAmbariApi.request({
             url: url,
             method: "GET",
@@ -36,7 +37,7 @@ export const RequestApi = {
         return response.data;
     },
      getRunningRequests: async function (clusterName: string) {
-        const url = `/clusters/${clusterName}/requests/?page_size=20&fields=Requests/request_status&Requests/request_status.in(IN_PROGRESS)`;
+        const url = `/clusters/${apiPathSegment(clusterName)}/requests/?page_size=20&fields=Requests/request_status&Requests/request_status.in(IN_PROGRESS)`;
         const response = await ambariApi.request({
             url: url,
             method: "GET",
@@ -44,7 +45,7 @@ export const RequestApi = {
         return response.data;
     },
     stopServices: async function (clusterName:string, stopServicesdata: object) {
-        const url = `clusters/${clusterName}/services`;
+        const url = `clusters/${apiPathSegment(clusterName)}/services`;
         const response = await ambariApi.request({
           url: url,
           method: "PUT",
@@ -57,7 +58,7 @@ export const RequestApi = {
         return response.data;
     },
     startServices: async function (clusterName: string, payload: any, params: string, method="PUT"){
-      const url = `/clusters/${clusterName}/services?params/${params}`;
+      const url = `/clusters/${apiPathSegment(clusterName)}/services?params/${params}`;
       const response = await ambariApi.request({
         url: url, 
         method: method, 
@@ -69,7 +70,7 @@ export const RequestApi = {
       return response.data;
     },
     performRequests: async function (clusterName: string, payload: any, method="PUT") {
-      const url = `/clusters/${clusterName}/services?ServiceInfo/state=INSTALLED&ServiceInfo/service_name=KERBEROS`
+      const url = `/clusters/${apiPathSegment(clusterName)}/services?ServiceInfo/state=INSTALLED&ServiceInfo/service_name=KERBEROS`
       const response = await ambariApi.request({
         url: url, 
         method: method,
@@ -82,7 +83,7 @@ export const RequestApi = {
       return response.data;
     },
     postRequest: async function (clusterName: string, payload: any, method="POST") {
-      const url = `/clusters/${clusterName}/requests`
+      const url = `/clusters/${apiPathSegment(clusterName)}/requests`
       const response = await ambariApi.request({
         url: url,
         method: method,
@@ -92,7 +93,7 @@ export const RequestApi = {
       return response.data;
     },
     getServices: async function (clusterName: string, payload: any, params: string, method="PUT"){
-      const url =   `/clusters/${clusterName}/services?${params}`
+      const url =   `/clusters/${apiPathSegment(clusterName)}/services?${params}`
       const response = await ambariApi.request({
         url: url,
         method: method,
@@ -104,7 +105,7 @@ export const RequestApi = {
       return response.data;
     },
     getServicesWithStatus: async function (clusterName: string, payload: any, params: string, method="PUT"){
-      const url =   `/clusters/${clusterName}/services?${params}`
+      const url =   `/clusters/${apiPathSegment(clusterName)}/services?${params}`
       const response = await ambariApi.request({
         url: url,
         method: method,
@@ -120,7 +121,7 @@ export const RequestApi = {
       return response.data;
     },
     preparingOperations: async function (clusterName: string, payload: any, params="") {
-      let url = `/clusters/${clusterName}`;
+      let url = `/clusters/${apiPathSegment(clusterName)}`;
       if(params !== "") 
         url = `${url}?${params}`
       const response = await ambariApi.request({
@@ -135,7 +136,7 @@ export const RequestApi = {
       return response.data;
     },
     regenerateKeytabs: async function (clusterName: string, payload: any, params: string) {
-      const url = `/clusters/${clusterName}?${params}`;
+      const url = `/clusters/${apiPathSegment(clusterName)}?${params}`;
       const response = await ambariApi.request({
         url: url,
         method: "PUT",
@@ -148,7 +149,7 @@ export const RequestApi = {
       return response.data;
     },
     kerberosDescriptor: async function (clusterName: string, payload: any) {
-      const url = `/clusters/${clusterName}/artifacts/kerberos_descriptor`;
+      const url = `/clusters/${apiPathSegment(clusterName)}/artifacts/kerberos_descriptor`;
       const response = await ambariApi.request({
         url: url,
         method: "POST",
@@ -164,7 +165,7 @@ export const RequestApi = {
       requestId: string,
       taskId: string
     ) {
-      const url = `/clusters/${clusterName}/requests/${requestId}/tasks/${taskId}`;
+      const url = `/clusters/${apiPathSegment(clusterName)}/requests/${apiPathSegment(requestId)}/tasks/${apiPathSegment(taskId)}`;
       const response = await ambariApi.request({
         url: url,
         method: "GET",
@@ -172,7 +173,7 @@ export const RequestApi = {
       return response.data;
     },
     installPackages: async function (clusterName: string, payload: any) {
-      const url = `/clusters/${clusterName}/stack_versions`
+      const url = `/clusters/${apiPathSegment(clusterName)}/stack_versions`
       const response = await ambariApi.request({
         url: url,
         method: "POST",
@@ -184,7 +185,7 @@ export const RequestApi = {
       return response.data
     }, 
     getTaskId : async function (requestId: string) {
-      const url = `/requests/${requestId}/tasks/?`;
+      const url = `/requests/${apiPathSegment(requestId)}/tasks/?`;
       const response = await ambariApi.request({
         url: url,
         method: "GET",
@@ -192,7 +193,7 @@ export const RequestApi = {
       return response.data;
     },
     getTaskStatus: async function (requestID:string,taskId: string) {
-      const url = `requests/${requestID}/tasks/${taskId}?`;
+      const url = `requests/${apiPathSegment(requestID)}/tasks/${apiPathSegment(taskId)}?`;
       const response = await ambariApi.request({
         url: url,
         method: "GET",

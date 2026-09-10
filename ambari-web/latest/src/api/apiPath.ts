@@ -16,20 +16,8 @@
  * limitations under the License.
  */
 
-import { apiPathSegment } from "./apiPath";
-import { ambariApi } from "./config/axiosConfig";
-
-const componentApi = {
-
-  editComponent: async function (clusterName:string,data:any) {
-    const url = `/clusters/${apiPathSegment(clusterName)}/components`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "PUT",
-      data
-    });
-    return response.data;
-  },
-};
-
-export default componentApi;
+/** Encode a raw resource identity once, at the API path boundary. */
+export function apiPathSegment(value: string | number): string {
+  return encodeURIComponent(String(value)).replace(/[!'()*]/g,
+    character => `%${character.charCodeAt(0).toString(16).toUpperCase()}`);
+}

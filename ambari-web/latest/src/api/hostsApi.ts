@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { set } from "lodash";
 import { ambariApi } from "./config/axiosConfig";
 import { buildHostSuggestionPredicate } from "../Utils/hosts";
 
 export const HostsApi = {
   getAllHosts: async function (clusterName: string) {
-    const url = `clusters/${clusterName}/hosts`;
+    const url = `clusters/${apiPathSegment(clusterName)}/hosts`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -34,7 +35,7 @@ export const HostsApi = {
     fields: string,
     data: any
   ) {
-    const url = `clusters/${clusterName}/hosts?fields=${fields}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/hosts?fields=${fields}`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -58,7 +59,7 @@ export const HostsApi = {
     return response;
   },
   updateHost: async function (clusterName: string, data: any) {
-    const url = `clusters/${clusterName}/hosts`;
+    const url = `clusters/${apiPathSegment(clusterName)}/hosts`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -86,7 +87,7 @@ export const HostsApi = {
     const componentQuery = componentNames
       .map((name) => `ServiceComponentInfo/component_name=${name}`)
       .join("|");
-    const url = `/clusters/${clusterName}/components/?${componentQuery}|ServiceComponentInfo/category.in(MASTER,CLIENT)&fields=${fields}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/components/?${componentQuery}|ServiceComponentInfo/category.in(MASTER,CLIENT)&fields=${fields}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -94,7 +95,7 @@ export const HostsApi = {
     return response.data;
   },
   getClusterComponents: async function (clusterName: string, fields: string) {
-    const url = `clusters/${clusterName}/components/?fields=${fields}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/components/?fields=${fields}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -111,7 +112,7 @@ export const HostsApi = {
     return response.data;
   },
   getRequestStatus: async function (requestID: number, fields: string) {
-    const url = `requests/${requestID}?fields=${fields}`;
+    const url = `requests/${apiPathSegment(requestID)}?fields=${fields}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -124,7 +125,7 @@ export const HostsApi = {
     componentName: string,
     data: any
   ) {
-    const url = `clusters/${clusterName}/hosts/${hostName}/host_components/${componentName}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components/${apiPathSegment(componentName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -138,7 +139,7 @@ export const HostsApi = {
     urlParams: string,
     data: any
   ) {
-    const url = `clusters/${clusterName}/hosts/${hostName}/host_components?${urlParams}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components?${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -147,7 +148,7 @@ export const HostsApi = {
     return response.data;
   },
   getHostStatus: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}/hosts?fields=Hosts/host_state,host_components/HostRoles/state`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts?fields=Hosts/host_state,host_components/HostRoles/state`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -155,7 +156,7 @@ export const HostsApi = {
     return response.data;
   },
   getNnCheckPointTime: async function (clusterName: string, hostName: string) {
-    const url = `/clusters/${clusterName}/hosts/${hostName}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/HAState,metrics/dfs/FSNamesystem/LastCheckpointTime`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components/NAMENODE?fields=metrics/dfs/FSNamesystem/HAState,metrics/dfs/FSNamesystem/LastCheckpointTime`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -168,7 +169,7 @@ export const HostsApi = {
     componentName: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/hosts/${hostName}/host_components/${componentName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components/${apiPathSegment(componentName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -220,7 +221,7 @@ export const HostsApi = {
     hostName: string,
     componentName: string
   ) {
-    const url = `/clusters/${clusterName}/hosts/${hostName}/host_components/${componentName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components/${apiPathSegment(componentName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "DELETE",
@@ -229,7 +230,7 @@ export const HostsApi = {
     return response.data;
   },
   deleteHostComponents: async function (data: any, clusterName: string) {
-    const url = `/clusters/${clusterName}/host_components`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/host_components`;
     const response = await ambariApi.request({
       url: url,
       method: "DELETE",
@@ -238,7 +239,7 @@ export const HostsApi = {
     return response;
   },
   clusterRequests: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}/requests`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/requests`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -259,7 +260,7 @@ export const HostsApi = {
     clusterName: string,
     fields: string
   ) {
-    const url = `/clusters/${clusterName}/hosts?${fields}&minimal_response=true`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts?${fields}&minimal_response=true`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -268,7 +269,7 @@ export const HostsApi = {
   },
   getHostsBulkOperations: async function (clusterName: string, data: any) {
     const url =
-      `/clusters/${clusterName}/hosts?fields=Hosts/host_name,Hosts/host_state,Hosts/maintenance_state,` +
+      `/clusters/${apiPathSegment(clusterName)}/hosts?fields=Hosts/host_name,Hosts/host_state,Hosts/maintenance_state,` +
       "host_components/HostRoles/state,host_components/HostRoles/maintenance_state," +
       "Hosts/total_mem,stack_versions/HostStackVersions,stack_versions/repository_versions/RepositoryVersions/repository_version," +
       "stack_versions/repository_versions/RepositoryVersions/id," +
@@ -291,7 +292,7 @@ export const HostsApi = {
     fields: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/hosts?${fields}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts?${fields}`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -309,7 +310,7 @@ export const HostsApi = {
     componentName: string,
     hostNames: string
   ) {
-    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=${componentName}&HostRoles/host_name.in(${hostNames})&fields=HostRoles/host_name&minimal_response=true`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/host_components?HostRoles/component_name=${componentName}&HostRoles/host_name.in(${hostNames})&fields=HostRoles/host_name&minimal_response=true`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -320,7 +321,7 @@ export const HostsApi = {
     clusterName: string,
     hostNames: string
   ) {
-    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/maintenance_state=OFF&HostRoles/desired_admin_state=INSERVICE&HostRoles/host_name.in(${hostNames})`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/maintenance_state=OFF&HostRoles/desired_admin_state=INSERVICE&HostRoles/host_name.in(${hostNames})`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -328,7 +329,7 @@ export const HostsApi = {
     return response.data;
   },
   getResgionServerInService: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/desired_admin_state=INSERVICE&fields=HostRoles/host_name&minimal_response=true`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/host_components?HostRoles/component_name=HBASE_REGIONSERVER&HostRoles/desired_admin_state=INSERVICE&fields=HostRoles/host_name&minimal_response=true`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -340,7 +341,7 @@ export const HostsApi = {
     urlParams: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/hosts?${urlParams}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts?${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "DELETE",
@@ -354,7 +355,7 @@ export const HostsApi = {
   },
   batchRequest: async function (clusterName: string, data: any) {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/request_schedules`,
+      url: `/clusters/${apiPathSegment(clusterName)}/request_schedules`,
       method: "POST",
       data: JSON.stringify([
         {
@@ -381,7 +382,7 @@ export const HostsApi = {
     hostName: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/hosts?Hosts/host_name=${hostName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts?Hosts/host_name=${hostName}`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -396,7 +397,7 @@ export const HostsApi = {
     urlParams: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/hosts/${hostName}/host_components/${componentName}?${urlParams}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components/${apiPathSegment(componentName)}?${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -408,7 +409,7 @@ export const HostsApi = {
     clusterName: string,
     urlParams: string
   ) {
-    const url = `/clusters/${clusterName}/${urlParams}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -420,7 +421,7 @@ export const HostsApi = {
     serviceName: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/services?ServiceInfo/service_name=${serviceName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/services?ServiceInfo/service_name=${serviceName}`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -429,7 +430,7 @@ export const HostsApi = {
     return response.data;
   },
   reAssignLoadConfigs: async function (clusterName: string, urlParams: string) {
-    const url = `/clusters/${clusterName}/configurations?${urlParams}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/configurations?${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -437,7 +438,7 @@ export const HostsApi = {
     return response.data;
   },
   configTags: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}?fields=Clusters/desired_configs`;
+    const url = `/clusters/${apiPathSegment(clusterName)}?fields=Clusters/desired_configs`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -448,7 +449,7 @@ export const HostsApi = {
     clusterName: string,
     urlParams: string
   ) {
-    const url = `/clusters/${clusterName}/configurations?${urlParams}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/configurations?${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -463,7 +464,7 @@ export const HostsApi = {
     return response.data;
   },
   commonServiceConfigurations: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -476,7 +477,7 @@ export const HostsApi = {
     return response.data;
   },
   commonServiceConfigurationsMove: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -491,7 +492,7 @@ export const HostsApi = {
     data: any
   ) {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/services/${serviceName}`,
+      url: `/clusters/${apiPathSegment(clusterName)}/services/${apiPathSegment(serviceName)}`,
       method: "PUT",
       data: JSON.stringify({
         RequestInfo: {
@@ -511,7 +512,7 @@ export const HostsApi = {
     serviceName: string,
     componentName: string
   ) {
-    const url = `/clusters/${clusterName}/services/${serviceName}/components/${componentName}/?fields=ServiceComponentInfo,host_components/HostRoles/state`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/services/${apiPathSegment(serviceName)}/components/${apiPathSegment(componentName)}/?fields=ServiceComponentInfo,host_components/HostRoles/state`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -522,7 +523,7 @@ export const HostsApi = {
     clusterName: string,
     hostNames: string
   ) {
-    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in(${hostNames})&fields=metrics/dfs/namenode/LiveNodes`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/host_components?HostRoles/component_name=NAMENODE&HostRoles/host_name.in(${hostNames})&fields=metrics/dfs/namenode/LiveNodes`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -533,7 +534,7 @@ export const HostsApi = {
     clusterName: string,
     hostName: string
   ) {
-    const url = `/clusters/${clusterName}/host_components?HostRoles/component_name=HBASE_MASTER&HostRoles/host_name=${hostName}&fields=metrics/hbase/master/liveRegionServersHosts,metrics/hbase/master/deadRegionServersHosts&minimal_response=true`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/host_components?HostRoles/component_name=HBASE_MASTER&HostRoles/host_name=${hostName}&fields=metrics/hbase/master/liveRegionServersHosts,metrics/hbase/master/deadRegionServersHosts&minimal_response=true`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -545,7 +546,7 @@ export const HostsApi = {
     hostName: string,
     componentName: string
   ) {
-    const url = `/clusters/${clusterName}/hosts/${hostName}/host_components/${componentName}/?fields=HostRoles/desired_admin_state`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components/${apiPathSegment(componentName)}/?fields=HostRoles/desired_admin_state`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -553,7 +554,7 @@ export const HostsApi = {
     return response.data;
   },
   decommissionSlave: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}/requests`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/requests`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -586,7 +587,7 @@ export const HostsApi = {
     clusterName: string,
     hostName: string
   ) {
-    const url = `/clusters/${clusterName}?regenerate_keytabs=all&regenerate_hosts=${hostName}&config_update_policy=none`;
+    const url = `/clusters/${apiPathSegment(clusterName)}?regenerate_keytabs=all&regenerate_hosts=${hostName}&config_update_policy=none`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -608,7 +609,7 @@ export const HostsApi = {
     urlParams: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}/hosts/${hostName}/host_components/${componentName}?${urlParams}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}/host_components/${apiPathSegment(componentName)}?${urlParams}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -617,7 +618,7 @@ export const HostsApi = {
     return response.data;
   },
   deleteHost: async function (clusterName: string, hostName: string) {
-    const url = `/clusters/${clusterName}/hosts/${hostName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/hosts/${apiPathSegment(hostName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "DELETE",
@@ -649,7 +650,7 @@ export const HostsApi = {
     return response.data;
   },
   executeCustomCommand: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}/requests`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/requests`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -670,7 +671,7 @@ export const HostsApi = {
     return response.data;
   },
   transitionToObserver: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}/requests`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/requests`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",
@@ -700,7 +701,7 @@ export const HostsApi = {
     return response.data;
   },
   transitionToStandby: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}/requests`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/requests`;
     const response = await ambariApi.request({
       url: url,
       method: "POST",

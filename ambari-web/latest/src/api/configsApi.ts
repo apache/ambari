@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { AxiosResponse } from "axios";
 import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
 import { set } from "lodash";
@@ -61,7 +62,7 @@ const ConfigsApi = {
   },
 
   getConfigValues: async function (clusterName: string, services: string) {
-    const url = `clusters/${clusterName}/configurations/service_config_versions?service_name.in(${services})&is_current=true&fields=*`;
+    const url = `clusters/${apiPathSegment(clusterName)}/configurations/service_config_versions?service_name.in(${services})&is_current=true&fields=*`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -74,7 +75,7 @@ const ConfigsApi = {
     services: string,
     version: string
   ) {
-    const url = `clusters/${clusterName}/configurations/service_config_versions?(service_name=${services}&service_config_version.in(${version}))`;
+    const url = `clusters/${apiPathSegment(clusterName)}/configurations/service_config_versions?(service_name=${services}&service_config_version.in(${version}))`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -88,7 +89,7 @@ const ConfigsApi = {
     version1: string,
     version2: string
   ) {
-    const url = `clusters/${clusterName}/configurations/service_config_versions?(service_name=${serviceName}%26service_config_version.in(${version1},${version2}))`;
+    const url = `clusters/${apiPathSegment(clusterName)}/configurations/service_config_versions?(service_name=${serviceName}%26service_config_version.in(${version1},${version2}))`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -109,7 +110,7 @@ const ConfigsApi = {
     return response.data;
   },
   loadConfigTags: async (clusterName: string) => {
-    const url = `/clusters/${clusterName}?fields=Clusters/desired_configs`;
+    const url = `/clusters/${apiPathSegment(clusterName)}?fields=Clusters/desired_configs`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -117,7 +118,7 @@ const ConfigsApi = {
     return response.data;
   },
   reassignLoadConfigs: async (clusterName: string, urlParams: string) => {
-    const url = `/clusters/${clusterName}/configurations?${urlParams}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/configurations?${urlParams}`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -125,7 +126,7 @@ const ConfigsApi = {
     return response.data;
   },
   updateConfigTags: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}?fields=Clusters/desired_configs`;
+    const url = `/clusters/${apiPathSegment(clusterName)}?fields=Clusters/desired_configs`;
     const { data } = await ambariApi.request({
       url,
       method: "GET",
@@ -140,7 +141,7 @@ const ConfigsApi = {
     return tags;
   },
   getConfigsByTags: async function (clusterName: string, params: string) {
-    const url = `/clusters/${clusterName}/configurations?${params}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/configurations?${params}`;
     const { data } = await ambariApi.request({
       url,
       method: "GET",
@@ -148,7 +149,7 @@ const ConfigsApi = {
     return data;
   },
    getConfigsByTagsForService: async function (clusterName: string, params: string) {
-    const url = `/clusters/${clusterName}/configurations?${params}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/configurations?${params}`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -156,7 +157,7 @@ const ConfigsApi = {
     return response
   },
   updateServiceConfigurations: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",
@@ -172,7 +173,7 @@ const ConfigsApi = {
     clusterName: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",
@@ -196,7 +197,7 @@ const ConfigsApi = {
     return data;
   },
   getConfigGroups: async function (clusterName: string, serviceName: string) {
-    const url = `clusters/${clusterName}/config_groups?ConfigGroup/tag.in(${serviceName})&fields=*`;
+    const url = `clusters/${apiPathSegment(clusterName)}/config_groups?ConfigGroup/tag.in(${serviceName})&fields=*`;
     const { data } = await ambariApi.request({
       url,
       method: "GET",
@@ -204,7 +205,7 @@ const ConfigsApi = {
     return data;
   },
   createNewConfigGroup: async function (clusterName: string, payload: any) {
-    const url = `clusters/${clusterName}/config_groups`;
+    const url = `clusters/${apiPathSegment(clusterName)}/config_groups`;
     const { data } = await ambariApi.request({
       url,
       method: "POST",
@@ -213,7 +214,7 @@ const ConfigsApi = {
     return data;
   },
   saveConfigs: async function (clusterName: string, payload: any) {
-    const url = `clusters/${clusterName}`;
+    const url = `clusters/${apiPathSegment(clusterName)}`;
     const { data } = await ambariApi.request({
       url,
       method: "PUT",
@@ -226,7 +227,7 @@ const ConfigsApi = {
     groupId: string,
     payload: any
   ) {
-    const url = `clusters/${clusterName}/config_groups/${groupId}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/config_groups/${groupId}`;
     const { data } = await ambariApi.request({
       url,
       method: "PUT",
@@ -237,7 +238,7 @@ const ConfigsApi = {
   getDesiredConfigsInfo: async (
     clusterName: string
   ): Promise<AxiosResponse> => {
-    const url = `/clusters/${clusterName}?fields=Clusters/desired_configs&_=${Date.now()}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}?fields=Clusters/desired_configs&_=${Date.now()}`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -252,7 +253,7 @@ const ConfigsApi = {
     clusterName: string
   ): Promise<AxiosResponse> => {
     const url =
-      `/clusters/${clusterName}/configurations?(type=ranger-hdfs-plugin-properties&tag=${hdfsTagVersion})|` +
+      `/clusters/${apiPathSegment(clusterName)}/configurations?(type=ranger-hdfs-plugin-properties&tag=${hdfsTagVersion})|` +
       `(type=ranger-yarn-plugin-properties&tag=${yarnTagVersion})|` +
       `(type=hive-env&tag=${hiveTagVersion})|` +
       `(type=ranger-hbase-plugin-properties&tag=${hbaseTagVersion})&_=${Date.now()}`;
@@ -280,7 +281,7 @@ const ConfigsApi = {
     clusterName: string,
     payload: any
   ) {
-    const url = `/clusters/${clusterName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",
@@ -294,7 +295,7 @@ const ConfigsApi = {
   ): Promise<AxiosResponse> {
     const serviceConfigFields =
       "service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note,stack_id,is_cluster_compatible";
-    const url = `clusters/${clusterName}/configurations/service_config_versions?service_name=${serviceName}&fields=${serviceConfigFields}&sortBy=service_config_version.desc&minimal_response=true&_=${Date.now()}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/configurations/service_config_versions?service_name=${serviceName}&fields=${serviceConfigFields}&sortBy=service_config_version.desc&minimal_response=true&_=${Date.now()}`;
     const response = await ambariApi.request({
       url,
       method: "GET",

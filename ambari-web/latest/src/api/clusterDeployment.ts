@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 const ClusterDeploymentApi = {
     createCluster:async function createCluster(clusterName:string,data:any){{
-        const url=`/clusters/${clusterName}`;
+        const url=`/clusters/${apiPathSegment(clusterName)}`;
         const response=await ambariApi.request({
             url,
             method:"POST",
@@ -28,7 +29,7 @@ const ClusterDeploymentApi = {
         return response.data
     }},
     createSelectedServices:async function createCluster(clusterName:string,data:any){{
-        const url=`/clusters/${clusterName}/services`;
+        const url=`/clusters/${apiPathSegment(clusterName)}/services`;
         return  ambariApi.request({
             url,
             method:"POST",
@@ -36,7 +37,7 @@ const ClusterDeploymentApi = {
         })
     }},
     addRequestToCreateComponent:async function addRequestToCreateComponent(clusterName:string,serviceName:string,data:any){{
-        const url=`/clusters/${clusterName}/services?ServiceInfo/service_name=${serviceName}`
+        const url=`/clusters/${apiPathSegment(clusterName)}/services?ServiceInfo/service_name=${serviceName}`
         const response=await ambariApi.request({
             url,
             method:"POST",
@@ -45,7 +46,7 @@ const ClusterDeploymentApi = {
         return response.data
     }},
     registerHostToCluster:async function registerHostToCluster(clusterName:string,data:any){{
-        const url=`/clusters/${clusterName}/hosts`
+        const url=`/clusters/${apiPathSegment(clusterName)}/hosts`
         const response=await ambariApi.request({
             url,
             method:"POST",
@@ -54,7 +55,7 @@ const ClusterDeploymentApi = {
         return response.data
     }},
     applyClusterConfigs: async function(clusterName:string, applyConfigsPaylpoad: any) {
-        const url = `/clusters/${clusterName}`;
+        const url = `/clusters/${apiPathSegment(clusterName)}`;
         return ambariApi.request({
           url: url,
           method: "PUT",
