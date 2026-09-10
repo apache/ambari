@@ -22,6 +22,7 @@ import json
 from pathlib import Path
 import socket
 import sys
+import tempfile
 from types import ModuleType, SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, call, patch
@@ -79,6 +80,7 @@ class TestHbaseDecommissionWorkflow(unittest.TestCase):
   def _params(self, security_enabled=False):
     return SimpleNamespace(
       hbase_cmd="/usr/lib/hbase/bin/hbase",
+      hbase_home="/usr/lib/hbase",
       hbase_conf_dir="/etc/hbase/conf",
       hbase_user="hbase",
       user_group="hadoop",
@@ -137,7 +139,7 @@ class TestHbaseDecommissionWorkflow(unittest.TestCase):
         "rs1.example.com",
       ),
       user="hbase",
-      environment=environment,
+      environment={**environment, "HBASE_HOME": "/usr/lib/hbase"},
       logoutput=True,
       timeout=540,
       timeout_kill_strategy=(
@@ -191,6 +193,7 @@ class TestHbaseServiceCheckWorkflow(unittest.TestCase):
   def _params(self, security_enabled=False):
     return SimpleNamespace(
       hbase_cmd="/usr/lib/hbase/bin/hbase",
+      hbase_home="/usr/lib/hbase",
       hbase_conf_dir="/etc/hbase/conf",
       security_enabled=security_enabled,
       user_group="hadoop",
@@ -218,13 +221,14 @@ class TestHbaseServiceCheckWorkflow(unittest.TestCase):
         "/tmp/check.hbase",
       ),
       user="ambari-qa",
+      env={"HBASE_HOME": "/usr/lib/hbase"},
       timeout=60,
       timeout_kill_strategy=SERVICE_CHECK.TerminateStrategy.KILL_PROCESS_GROUP,
       tries=3,
       try_sleep=5,
     )
 
-  def test_secure_check_passes_only_private_cache_environment(self):
+  def test_secure_check_preserves_private_cache_and_selects_hbase_home(self):
     params = self._params(security_enabled=True)
     cache = MagicMock()
     cache.environment = {"KRB5CCNAME": "FILE:/tmp/smoke-cache"}
@@ -250,7 +254,8 @@ class TestHbaseServiceCheckWorkflow(unittest.TestCase):
       "ambari-qa@EXAMPLE.COM",
       timeout=30,
     )
-    self.assertEqual(cache.environment, checked_call.call_args.kwargs["env"])
+    self.assertEqual({**cache.environment, "HBASE_HOME": "/usr/lib/hbase"},
+                     checked_call.call_args.kwargs["env"])
     cache_factory.return_value.__exit__.assert_called_once()
 
   def test_ruby_quote_neutralizes_shell_file_injection(self):
@@ -300,8 +305,50 @@ class TestHbaseServiceCheckWorkflow(unittest.TestCase):
       for positional, keywords in file_resource.call_args_list
       if keywords.get("action") == "delete"
     ]
-    self.assertEqual(3, len(deleted_files))
-    self.assertEqual(3, len(set(deleted_files)))
+    self.assertEqual(4, len(deleted_files))
+    self.assertEqual(4, len(set(deleted_files)))
+
+  def test_service_check_requires_exact_sdk_receipt_even_when_logs_contain_the_value(self):
+    for variant in ("valid", "missing", "foreign", "false", "malformed"):
+      with self.subTest(variant=variant), tempfile.TemporaryDirectory() as temporary:
+        params = self._params()
+        params.exec_tmp_dir = temporary
+        params.hbase_user = "hbase"
+        params.smoke_test_user = "ambari-qa"
+        params.smokeuser_permissions = "RWXCA"
+        params.service_check_data = "value"
+        params.smoke_user_keytab = ""
+        params.smokeuser_principal = ""
+
+        def file_resource(path, **options):
+          path = Path(path)
+          if options.get("action") == "delete":
+            path.unlink(missing_ok=True)
+          else:
+            path.write_text(options["content"])
+
+        def run(*arguments, **options):
+          if Path(arguments[2]).name.startswith("hbase-check-") and variant != "missing":
+            target = next(Path(temporary).glob("hbase-result-*.json"))
+            operation = target.stem.removeprefix("hbase-result-")
+            receipt = {"schemaVersion": 1, "operationId": operation,
+                       "table": "ambari_smoke_" + operation, "readWriteVerified": True}
+            if variant == "foreign":
+              receipt["operationId"] = "another-operation"
+            if variant == "false":
+              receipt["readWriteVerified"] = "true"
+            target.write_text("not-json" if variant == "malformed" else json.dumps(receipt))
+          return "value SUCCESS"
+
+        with patch.dict(sys.modules, {"params": params}), patch.object(SERVICE_CHECK, "File", file_resource), \
+             patch.object(SERVICE_CHECK, "run_hbase_shell", run):
+          check = object.__new__(SERVICE_CHECK.HbaseServiceCheckDefault)
+          if variant == "valid":
+            check.service_check(MagicMock())
+          else:
+            with self.assertRaisesRegex(Fail, "no valid client API"):
+              check.service_check(MagicMock())
+        self.assertEqual([], list(Path(temporary).iterdir()))
 
 
 class TestHbasePackageContract(unittest.TestCase):
@@ -319,6 +366,7 @@ class TestHbasePackageContract(unittest.TestCase):
     self.assertEqual(
       {
         "hbase_${stack_version}": None,
+        "hadoop_${stack_version}-client": None,
         "phoenix": "should_install_phoenix",
         "ranger_${stack_version}-hbase-plugin": "should_install_ranger_hbase_plugin",
       },
@@ -327,6 +375,7 @@ class TestHbasePackageContract(unittest.TestCase):
     self.assertEqual(
       {
         "hbase-${stack_version}": None,
+        "hadoop-${stack_version}-client": None,
         "phoenix-${stack_version}": "should_install_phoenix",
         "ranger-${stack_version}-hbase-plugin": "should_install_ranger_hbase_plugin",
       },
@@ -346,6 +395,7 @@ class TestHbasePackageContract(unittest.TestCase):
     self.assertEqual(
       {
         "hbase_${stack_version}": None,
+        "hadoop_${stack_version}-client": None,
         "phoenix_${stack_version}": "should_install_phoenix",
         "ranger_${stack_version}-hbase-plugin": "should_install_ranger_hbase_plugin",
       },
@@ -354,6 +404,7 @@ class TestHbasePackageContract(unittest.TestCase):
     self.assertEqual(
       {
         "hbase-${stack_version}": None,
+        "hadoop-${stack_version}-client": None,
         "phoenix-${stack_version}": "should_install_phoenix",
         "ranger-${stack_version}-hbase-plugin": "should_install_ranger_hbase_plugin",
       },
@@ -369,7 +420,7 @@ class TestHbasePackageContract(unittest.TestCase):
     )
     self.assertNotIn("phoenix", stack_packages["BIGTOP"]["conf-select"])
 
-  def test_install_selects_packaged_phoenix_leaves_after_package_install(self):
+  def test_install_selects_hbase_and_phoenix_before_runtime_preparation(self):
     for component_script in (
       "hbase_client.py",
       "hbase_master.py",
@@ -382,10 +433,10 @@ class TestHbasePackageContract(unittest.TestCase):
         install_end = source.index("\n  def ", install_start + 1)
         install = source[install_start:install_end]
         self.assertIn("self.install_packages(env)", install)
-        self.assertIn("upgrade.select_phoenix_packages(params)", install)
+        self.assertIn("upgrade.select_hbase_packages(params)", install)
         self.assertLess(
           install.index("self.install_packages(env)"),
-          install.index("upgrade.select_phoenix_packages(params)"),
+          install.index("upgrade.select_hbase_packages(params)"),
         )
 
     env_content = (HBASE / "configuration/hbase-env.xml").read_text(
@@ -470,6 +521,18 @@ class TestHbaseUpgradeWorkflow(unittest.TestCase):
       self.assertRaisesRegex(Fail, "base selection failed"):
       UPGRADE.select_hbase_packages(params)
     select.assert_not_called()
+
+  def test_fresh_install_hbase_selection_uses_repository_version(self):
+    params = SimpleNamespace(
+      version=None,
+      repository_version="3.3.0",
+      phoenix_enabled=False,
+      stack_select_lock_file="/tmp/stack_select_lock_file",
+      is_parallel_execution_enabled=False,
+    )
+    with patch.object(UPGRADE.stack_select, "select_packages") as select_packages:
+      UPGRADE.select_hbase_packages(params)
+    select_packages.assert_called_once_with("3.3.0")
 
   def test_fresh_install_phoenix_selection_uses_repository_version(self):
     params = SimpleNamespace(

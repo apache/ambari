@@ -36,17 +36,26 @@ from managed_hbase_dependency import managed_hbase_configuration_guard
 
 # name is 'master', 'regionserver', 'thrift', or 'client'
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-@managed_hbase_configuration_guard
-def hbase(name=None, managed_configuration=None):
+def hbase(name=None):
   import params
 
   if name not in ("master", "regionserver", "thrift", "client"):
     raise Fail(f"Unsupported HBase configuration role: {name}")
 
+  # The RPM initially assigns this directory to hbase. Establish Ambari's
+  # configuration ownership before validating or creating a managed profile.
+  if os.path.islink(params.etc_prefix_dir):
+    raise Fail("The HBase configuration parent must not be a symbolic link")
+  Directory(params.etc_prefix_dir, owner="root", group="root", mode=0o755)
+  return _configure_hbase(name)
+
+
+@managed_hbase_configuration_guard
+def _configure_hbase(name=None, managed_configuration=None):
+  import params
+
   # ensure that matching LZO libraries are installed for HBase
   lzo_utils.install_lzo_if_needed()
-
-  Directory(params.etc_prefix_dir, owner="root", group="root", mode=0o755)
 
   Directory(
     params.hbase_conf_dir,

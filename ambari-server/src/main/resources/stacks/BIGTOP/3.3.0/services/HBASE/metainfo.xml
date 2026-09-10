@@ -29,6 +29,9 @@
               <name>hbase_${stack_version}</name>
             </package>
             <package>
+              <name>hadoop_${stack_version}-client</name>
+            </package>
+            <package>
               <name>phoenix_${stack_version}</name>
               <condition>should_install_phoenix</condition>
             </package>
@@ -43,6 +46,9 @@
           <packages>
             <package>
               <name>hbase-${stack_version}</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-client</name>
             </package>
             <package>
               <name>phoenix-${stack_version}</name>

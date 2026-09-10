@@ -33,7 +33,7 @@ class HbaseThrift(Script):
 
     env.set_params(params)
     self.install_packages(env)
-    upgrade.select_phoenix_packages(params)
+    upgrade.select_hbase_packages(params)
     from managed_hbase_dependency import managed_dependency_requested
 
     if managed_dependency_requested():
