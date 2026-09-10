@@ -250,7 +250,7 @@ public class DeleteHandlerTest {
   }  
 
   @Test
-  public void testManagedDependencyConflictIsReturnedAsConflict() throws Exception {
+  public void testManagedDependencyConflictReachesTheCommonRestBoundary() throws Exception {
     ResourceInstance resource = createNiceMock(ResourceInstance.class);
     RequestBody body = createNiceMock(RequestBody.class);
     PersistenceManager pm = createStrictMock(PersistenceManager.class);
@@ -258,11 +258,10 @@ public class DeleteHandlerTest {
         409, "DEPENDENCY_PROVIDER_DELETE_BLOCKED", "Detach every dependent first."));
     replay(resource, body, pm);
 
-    Result result = new TestDeleteHandler(pm).persist(resource, body);
-
-    assertEquals(ResultStatus.STATUS.CONFLICT, result.getStatus().getStatus());
-    assertEquals("DEPENDENCY_PROVIDER_DELETE_BLOCKED: Detach every dependent first.",
-        result.getStatus().getMessage());
+    ManagedDependencyIntegrationException error = org.junit.Assert.assertThrows(
+        ManagedDependencyIntegrationException.class, () -> new TestDeleteHandler(pm).persist(resource, body));
+    assertEquals(409, error.getStatus());
+    assertEquals("DEPENDENCY_PROVIDER_DELETE_BLOCKED", error.getCode());
     verify(resource, body, pm);
   }
 

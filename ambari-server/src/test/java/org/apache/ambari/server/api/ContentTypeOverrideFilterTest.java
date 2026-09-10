@@ -84,4 +84,54 @@ public class ContentTypeOverrideFilterTest extends EasyMockSupport {
 
         verifyAll();
     }
+    @Test
+    public void testNestedJsonEndpointThroughLiveServletFilterAndJersey() throws Exception {
+        org.eclipse.jetty.server.Server server = new org.eclipse.jetty.server.Server(0);
+        org.eclipse.jetty.ee10.servlet.ServletContextHandler context =
+            new org.eclipse.jetty.ee10.servlet.ServletContextHandler();
+        context.setContextPath("/");
+        context.addFilter(ContentTypeOverrideFilter.class, "/api/v1/*",
+            java.util.EnumSet.of(jakarta.servlet.DispatcherType.REQUEST));
+        context.addServlet(new org.eclipse.jetty.ee10.servlet.ServletHolder(
+            new org.glassfish.jersey.servlet.ServletContainer(
+                new org.glassfish.jersey.server.ResourceConfig().register(JsonProbe.class))), "/api/v1/*");
+        server.setHandler(context);
+        try {
+            server.start();
+            int port = ((org.eclipse.jetty.server.ServerConnector) server.getConnectors()[0]).getLocalPort();
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            // PersistKeyValueService supplies the production annotation discovered by the filter.
+            for (String path : java.util.List.of("/persist", "/persist/scopes/drafts/test-draft", "/persist/scopes/clusters/42")) {
+                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder(
+                    java.net.URI.create("http://127.0.0.1:" + port + "/api/v1" + path))
+                    .header("Content-Type", "application/json")
+                    .PUT(java.net.http.HttpRequest.BodyPublishers.ofString("{\"revision\":1}")).build();
+                java.net.http.HttpResponse<String> response = client.send(request,
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
+                org.junit.Assert.assertEquals(200, response.statusCode());
+                org.junit.Assert.assertEquals("{\"revision\":1}", response.body());
+            }
+        } finally {
+            server.stop();
+        }
+    }
+
+    @jakarta.ws.rs.Path("/persist")
+    public static class JsonProbe {
+        @jakarta.ws.rs.PUT
+        @jakarta.ws.rs.Consumes("text/plain")
+        @jakarta.ws.rs.Produces("application/json")
+        public String legacyUpdate(String body) {
+            return body;
+        }
+
+        @jakarta.ws.rs.PUT
+        @jakarta.ws.rs.Path("scopes/{scopeType}/{scopeId}")
+        @jakarta.ws.rs.Consumes("application/json")
+        @jakarta.ws.rs.Produces("application/json")
+        public String update(String body) {
+            return body;
+        }
+    }
+
 }

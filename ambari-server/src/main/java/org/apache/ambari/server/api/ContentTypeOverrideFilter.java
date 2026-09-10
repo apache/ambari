@@ -42,6 +42,7 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.glassfish.jersey.uri.UriTemplate;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;
@@ -151,7 +152,6 @@ public class ContentTypeOverrideFilter implements Filter {
             ClassPath classPath = ClassPath.from(ClassLoader.getSystemClassLoader());
             ImmutableSet<ClassPath.ClassInfo> classes = classPath.getTopLevelClassesRecursive("org.apache.ambari.server.api");
 
-            restart:
             for (ClassPath.ClassInfo classInfo: classes) {
                 Class<?> clazz = classInfo.load();
                 if (clazz.isAnnotationPresent(Path.class)) {
@@ -161,8 +161,14 @@ public class ContentTypeOverrideFilter implements Filter {
                             Consumes consumesAnnotation = method.getAnnotation(Consumes.class);
                             for (String consume : consumesAnnotation.value()) {
                                 if (MediaType.APPLICATION_JSON.equals(consume)) {
-                                    excludedUrls.add(Pattern.compile(path.value()));
-                                    continue restart;
+                                    Path methodPath = method.getAnnotation(Path.class);
+                                    String resourcePath = path.value();
+                                    if (methodPath != null) {
+                                        resourcePath = resourcePath.replaceAll("/+$", "") + "/"
+                                            + methodPath.value().replaceAll("^/+", "");
+                                    }
+                                    // Use the same path-template syntax as Jersey, including parameters.
+                                    excludedUrls.add(Pattern.compile(new UriTemplate(resourcePath).getPattern().getRegex()));
                                 }
                             }
                         }
@@ -180,7 +186,7 @@ public class ContentTypeOverrideFilter implements Filter {
     }
 
     private boolean isUrlExcluded(String pathInfo) {
-        return excludedUrls.stream().anyMatch(p -> p.matcher(pathInfo).matches());
+        return pathInfo != null && excludedUrls.stream().anyMatch(p -> p.matcher(pathInfo).matches());
     }
 
     @Override

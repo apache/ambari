@@ -26,7 +26,6 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.services.ResultMetadata;
 import org.apache.ambari.server.api.services.ResultStatus;
-import org.apache.ambari.server.controller.dependencies.ManagedDependencyIntegrationException;
 import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -56,9 +55,7 @@ public class DeleteHandler extends BaseManagementHandler implements RequestHandl
         }
       } catch (AuthorizationException e) {
         result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
-      } catch (ManagedDependencyIntegrationException e) {
-        result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.CONFLICT,
-            e.getCode() + ": " + e.getMessage()));
+
       } catch (SystemException e) {
         result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e));
       } catch (NoSuchParentResourceException e) {

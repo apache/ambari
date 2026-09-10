@@ -303,7 +303,7 @@ final class ManagedDependencyApiSupport {
     }
   }
 
-  private static Response error(int status, String code, String message) {
+  static Response error(int status, String code, String message) {
     Map<String, Object> response = new LinkedHashMap<>();
     response.put("code", code);
     response.put("message", message);
