@@ -26,11 +26,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import jakarta.inject.Provider;
 
@@ -45,11 +48,13 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.eclipse.jetty.ee10.servlet.ErrorHandler;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.session.SessionCache;
 import org.eclipse.jetty.session.SessionIdManager;
 import org.eclipse.jetty.util.Callback;
@@ -87,7 +92,7 @@ public class AmbariHandlerListTest {
   private AmbariHandlerList getAmbariHandlerList(WebAppContext ctx) {
     AmbariHandlerList list = new AmbariHandlerList();
     //doNothing().when(sessionHandler).setSessionIdManager(sessionIdManager);
-    when(sessionHandler.getSessionCache()).thenReturn(sessionCache);
+    lenient().when(sessionHandler.getSessionCache()).thenReturn(sessionCache);
     list.webAppContextProvider = new HandlerProvider(ctx);
     list.ambariViewsSecurityHeaderFilter = ambariViewsSecurityHeaderFilter;
     list.persistFilter = persistFilter;
@@ -103,7 +108,7 @@ public class AmbariHandlerListTest {
   public void testAddViewInstance() throws Exception {
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
 
-    when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
+    lenient().when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
 
     final boolean showErrorStacks = true;
     when(configuration.isServerShowErrorStacks()).thenReturn(showErrorStacks);
@@ -142,9 +147,9 @@ public class AmbariHandlerListTest {
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
 
     // Stub required for handlerList.addViewInstance to work
-    when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
+    lenient().when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
 
-    when(sessionHandler.getSessionCache()).thenReturn(sessionCache);
+    lenient().when(sessionHandler.getSessionCache()).thenReturn(sessionCache);
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
     handlerList.addViewInstance(viewInstanceEntity);
@@ -154,13 +159,12 @@ public class AmbariHandlerListTest {
     handlerList.removeViewInstance(viewInstanceEntity);
     assertTrue(handlerList.getHandlers().isEmpty());
 
-    verify(handler).getSessionHandler();
   }
 
   @Test
   public void testAddViewInstanceRollsBackAfterStartFailureAndCanRetry() throws Exception {
     ViewInstanceEntity viewInstanceEntity = ViewInstanceEntityTest.getViewInstanceEntity();
-    when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
+    lenient().when(handler.getSessionHandler()).thenReturn(mock(SessionHandler.class));
     doThrow(new Exception("start failed")).doNothing().when(handler).start();
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
@@ -176,6 +180,48 @@ public class AmbariHandlerListTest {
 
     handlerList.addViewInstance(viewInstanceEntity);
     assertTrue(handlerList.getHandlers().contains(handler));
+  }
+
+  @Test
+  public void testLiveViewReloadDoesNotReinitializeServerSessionCache() throws Exception {
+    Path archive = Files.createTempDirectory("ambari-view-session-startup");
+    Server server = new Server();
+    SessionHandler serverSessions = new SessionHandler();
+    ServletContextHandler mainContext = new ServletContextHandler();
+    mainContext.setContextPath("/");
+    mainContext.setSessionHandler(serverSessions);
+    WebAppContext first = new WebAppContext();
+    AmbariHandlerList handlerList = getAmbariHandlerList(first);
+    handlerList.sessionHandler = serverSessions;
+    handlerList.addHandler(mainContext);
+    server.setHandler(handlerList);
+    ViewEntity view = mock(ViewEntity.class);
+    when(view.getArchive()).thenReturn(archive.toString());
+    when(view.getClassLoader()).thenReturn(getClass().getClassLoader());
+    when(view.getConfiguration()).thenReturn(new org.apache.ambari.server.view.configuration.ViewConfig());
+    ViewInstanceEntity instance = mock(ViewInstanceEntity.class);
+    when(instance.getViewEntity()).thenReturn(view);
+    when(instance.getContextPath()).thenReturn("/views/SESSION_TEST/1/INSTANCE");
+    try {
+      server.start();
+      SessionCache sharedCache = serverSessions.getSessionCache();
+      assertTrue(sharedCache.isStarted());
+      handlerList.addViewInstance(instance);
+      assertTrue(first.isAvailable());
+      assertSame(sharedCache, first.getSessionHandler().getSessionCache());
+
+      WebAppContext replacement = new WebAppContext();
+      handlerList.webAppContextProvider = new HandlerProvider(replacement);
+      handlerList.addViewInstance(instance);
+      assertTrue(replacement.isAvailable());
+      assertSame(sharedCache, replacement.getSessionHandler().getSessionCache());
+      assertTrue(sharedCache.isStarted());
+      assertTrue(!handlerList.getHandlers().contains(first));
+    } finally {
+      server.stop();
+      // Jetty owns any work files beneath the temporary archive.
+      archive.toFile().deleteOnExit();
+    }
   }
 
   @Test

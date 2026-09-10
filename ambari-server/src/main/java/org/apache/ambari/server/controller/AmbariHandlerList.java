@@ -18,7 +18,7 @@
 package org.apache.ambari.server.controller;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -116,7 +116,7 @@ public class AmbariHandlerList extends Handler.Sequence implements ViewInstanceH
   /**
    * Mapping of view instance entities to handlers.
    */
-  private final Map<ViewInstanceEntity, WebAppContext> viewHandlerMap = new HashMap<>();
+  private final Map<ViewInstanceEntity, WebAppContext> viewHandlerMap = new ConcurrentHashMap<>();
 
   /**
    * The non-view handlers.
@@ -174,12 +174,21 @@ public class AmbariHandlerList extends Handler.Sequence implements ViewInstanceH
   @Override
   public void addViewInstance(ViewInstanceEntity viewInstanceDefinition) throws SystemException {
     WebAppContext handler = getHandler(viewInstanceDefinition);
-    WebAppContext previousHandler = viewHandlerMap.put(viewInstanceDefinition, handler);
+    WebAppContext previousHandler = viewHandlerMap.get(viewInstanceDefinition);
     try {
-      handler.getSessionHandler().setSessionCache(sessionHandler.getSessionCache());
       super.addHandler(handler);
-      if (isRunning() && !handler.isRunning()) {
-        handler.start();
+      if (isRunning()) {
+        if (!handler.isRunning()) {
+          handler.start();
+        }
+        // Jetty initializes a cache with the owning context during startup.
+        // Attach the server-owned cache only after the view's own startup,
+        // matching shareSessionCacheToViews during initial server startup.
+        handler.getSessionHandler().setSessionCache(sessionHandler.getSessionCache());
+      }
+      viewHandlerMap.put(viewInstanceDefinition, handler);
+      if (previousHandler != null) {
+        super.removeHandler(previousHandler);
       }
     } catch (Exception e) {
       super.removeHandler(handler);
@@ -244,6 +253,9 @@ public class AmbariHandlerList extends Handler.Sequence implements ViewInstanceH
     ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
     WebAppContext webAppContext = webAppContextProvider.get();
 
+    // WebAppContext otherwise records startup failure but returns from start(),
+    // which would publish an unavailable handler and discard the working view.
+    webAppContext.setThrowUnavailableOnStartupException(true);
     webAppContext.setWar(viewDefinition.getArchive());
     webAppContext.setContextPath(viewInstanceDefinition.getContextPath());
     webAppContext.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
