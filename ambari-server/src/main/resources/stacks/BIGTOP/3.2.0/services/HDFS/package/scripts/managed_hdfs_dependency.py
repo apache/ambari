@@ -18,10 +18,12 @@ limitations under the License.
 """
 
 import json
+import os
+
+from resource_management.libraries.functions.managed_dependency_client import observe_client
 from urllib.parse import urlsplit, urlunsplit
 
 from resource_management.core import shell
-from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.managed_dependency import (
   INITIALIZE_BINDING_JOURNAL,
   INVALIDATE_BINDING_EPOCH,
@@ -30,9 +32,6 @@ from resource_management.libraries.functions.managed_dependency import (
   ManagedDependencyFailure,
   ManagedDependencyJournal,
   parse_managed_dependency_command,
-)
-from resource_management.libraries.functions.private_temporary_file import (
-  private_temporary_file,
 )
 from resource_management.libraries.script.script import Script
 
@@ -143,6 +142,7 @@ class ManagedHdfsNamespaceProvisioner:
     self.environment = None
 
   def provision(self, command, progress):
+    self.command = command
     parameters = command.parameters
     root_uri = parameters["namespace.root.uri"]
     wal_uri = parameters["namespace.wal.uri"]
@@ -184,7 +184,10 @@ class ManagedHdfsNamespaceProvisioner:
       ),
     ) as self.environment:
       self._validate_provider_ancestor(self._uri(root_uri, "/"))
-      self._validate_provider_ancestor(self._uri(root_uri, "/apps"))
+      apps_uri = self._uri(root_uri, "/apps")
+      if self._stat(apps_uri) is None:
+        self._mkdir(apps_uri, "0755")
+      self._validate_provider_ancestor(apps_uri)
       self._ensure_provider_directory(managed_uri, "0711")
       self._ensure_provider_directory(hbase_uri, "0711")
       self._ensure_provider_directory(marker_root_uri, "0700")
@@ -306,9 +309,9 @@ class ManagedHdfsNamespaceProvisioner:
         "A partial managed HDFS binding directory contains unexpected data",
       )
     if provider_owned_transition:
-      self._require_success(("dfs", "-chown", f"{owner}:{group}", path))
+      self._observe("SET_OWNER", path, owner=owner, group=group)
     if mode == "0750":
-      self._require_success(("dfs", "-chmod", "0750", path))
+      self._observe("SET_PERMISSION", path, mode=0o750)
     observed = self._stat(path)
     if observed != expected:
       raise ManagedDependencyFailure(
@@ -319,28 +322,10 @@ class ManagedHdfsNamespaceProvisioner:
 
   def _mkdir(self, path, mode):
     self._reject_default_acl(self._parent_uri(path))
-    umask = {"0711": "066", "0750": "027"}.get(mode, "077")
-    self._require_success(
-      ("dfs", f"-Dfs.permissions.umask-mode={umask}", "-mkdir", path)
-    )
+    self._observe("MKDIR", path, mode=int(mode, 8))
 
   def _directory_is_empty(self, path):
-    code, output = self._run(("dfs", "-count", "-q", path))
-    if code != 0:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_PROVIDER_ACTION_FAILED", "Could not inspect a partial HDFS namespace"
-      )
-    fields = output.strip().split()
-    if len(fields) < 4:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_PROVIDER_ACTION_FAILED", "HDFS returned an invalid namespace count"
-      )
-    try:
-      return int(fields[-4]) == 1 and int(fields[-3]) == 0 and int(fields[-2]) == 0
-    except ValueError as error:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_PROVIDER_ACTION_FAILED", "HDFS returned an invalid namespace count"
-      ) from error
+    return self._observe("COUNT", path)["empty"]
 
   def _read_marker(self, path):
     observed = self._stat(path)
@@ -355,50 +340,21 @@ class ManagedHdfsNamespaceProvisioner:
         "DEPENDENCY_NAMESPACE_CONFLICT", "HDFS binding marker is not provider-private"
       )
     self._validate_acl(path, "0600")
-    code, output = self._run(("dfs", "-cat", path))
-    if code != 0 or len(output.encode("utf-8")) > 8192:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_NAMESPACE_CONFLICT", "HDFS binding marker cannot be read safely"
-      )
-    try:
-      marker = json.loads(output)
-    except (TypeError, ValueError, json.JSONDecodeError) as error:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_NAMESPACE_CONFLICT", "HDFS binding marker is invalid"
-      ) from error
-    if not isinstance(marker, dict):
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_NAMESPACE_CONFLICT", "HDFS binding marker is invalid"
-      )
-    return marker
+    return self._observe("READ_MARKER", path)["marker"]
 
   def _write_marker(self, path, marker):
-    content = json.dumps(marker, sort_keys=True, separators=(",", ":")) + "\n"
-    with private_temporary_file(
-      content,
-      owner=self.params.hdfs_user,
-      group=self.params.user_group,
-      temp_dir=self.params.tmp_dir,
-      prefix="ambari-hdfs-binding-",
-    ) as local_path:
-      self._require_success(
-        ("dfs", "-Dfs.permissions.umask-mode=077", "-put", local_path, path)
-      )
+    self._observe("WRITE_MARKER", path, marker=marker)
     if self._read_marker(path) != marker:
       raise ManagedDependencyFailure(
         "DEPENDENCY_NAMESPACE_CONFLICT", "HDFS binding marker was not stored exactly"
       )
 
   def _stat(self, path):
-    code, output = self._run(("dfs", "-stat", "%F|%u|%g|0%a", path))
-    if code != 0:
+    observed = self._observe("STAT", path)
+    if not observed["exists"]:
       return None
-    fields = output.strip().split("|")
-    if len(fields) != 4 or any(not field for field in fields):
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_PROVIDER_ACTION_FAILED", "HDFS returned invalid namespace metadata"
-      )
-    return tuple(fields)
+    return ({"DIRECTORY": "directory", "FILE": "regular file", "SYMLINK": "symlink"}[observed["type"]],
+            observed["owner"], observed["group"], format(observed["mode"], "04o"))
 
   @staticmethod
   def _parent_uri(path):
@@ -407,73 +363,28 @@ class ManagedHdfsNamespaceProvisioner:
     return urlunsplit((parsed.scheme, parsed.netloc, parent_path, "", ""))
 
   def _validate_acl(self, path, mode):
-    entries = self._acl_entries(path)
-    expected = {
-      "user::" + _permission_triplet(mode[1]),
-      "group::" + _permission_triplet(mode[2]),
-      "other::" + _permission_triplet(mode[3]),
-    }
-    if entries != expected:
+    # Hadoop reports only extended entries here; base permissions come from FileStatus.
+    if self._observe("ACL", path)["entries"]:
       raise ManagedDependencyFailure(
         "DEPENDENCY_NAMESPACE_CONFLICT",
-        "Managed HDFS path has extended, default, or unexpected ACL entries",
+        "Managed HDFS path has extended or default ACL entries",
       )
 
   def _reject_default_acl(self, path):
-    entries = self._acl_entries(path)
-    if any(entry.startswith("default:") for entry in entries):
+    if any(entry["scope"] == "DEFAULT" for entry in self._observe("ACL", path)["entries"]):
       raise ManagedDependencyFailure(
         "DEPENDENCY_NAMESPACE_CONFLICT",
         "HDFS parent has a default ACL that can override private child permissions",
       )
 
-  def _acl_entries(self, path):
-    code, output = self._run(("dfs", "-getfacl", path))
-    if code != 0:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_PROVIDER_ACTION_FAILED", "Could not inspect HDFS ACLs"
-      )
-    entries = {
-      line.strip()
-      for line in output.splitlines()
-      if line.strip() and not line.lstrip().startswith("#")
-    }
-    if not entries:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_PROVIDER_ACTION_FAILED", "HDFS returned an empty ACL"
-      )
-    return entries
-
-  def _require_success(self, arguments):
-    code, _output = self._run(arguments)
-    if code != 0:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_PROVIDER_ACTION_FAILED", "HDFS provider operation failed"
-      )
-
-  def _run(self, arguments):
-    command = ("hdfs", "--config", self.params.hadoop_conf_dir) + tuple(arguments)
-    try:
-      return self.call(
-        command,
-        user=self.params.hdfs_user,
-        path=[self.params.hadoop_bin_dir],
-        env=self.environment,
-        timeout=120,
-        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
-        shell=False,
-        quiet=True,
-      )
-    except Exception as error:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_PROVIDER_ACTION_FAILED",
-        "The bounded HDFS provider command could not complete",
-      ) from error
-
-
-def _permission_triplet(digit):
-  value = int(digit, 8)
-  return "".join(
-    character if value & bit else "-"
-    for character, bit in (("r", 4), ("w", 2), ("x", 1))
-  )
+  def _observe(self, operation, path, **payload):
+    result = observe_client(self.call, os.path.join(self.params.hadoop_bin_dir, "hdfs"),
+      self.params.hadoop_conf_dir, self.command, operation, {"path": path, **payload},
+      self.params.hdfs_user, self.environment, timeout=120,
+      error_code="DEPENDENCY_PROVIDER_ACTION_FAILED")
+    confirmation = {"MKDIR": "created", "SET_OWNER": "applied", "SET_PERMISSION": "applied",
+                    "WRITE_MARKER": "written"}.get(operation)
+    if confirmation and result[confirmation] is not True:
+      raise ManagedDependencyFailure("DEPENDENCY_PROVIDER_ACTION_FAILED",
+                                     "The client did not confirm the provider mutation")
+    return result

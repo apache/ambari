@@ -122,6 +122,16 @@ class TestManagedZookeeperDependencyBigtop(unittest.TestCase):
     self.assertEqual("true", facts["namespace.znode.exists"])
     self.progress.checkpoint.assert_called_once_with("zookeeper-namespace-prepared")
 
+  def test_provider_invokes_the_real_shell_api_with_supported_environment_arguments(self):
+    output = ('{"connected":true,"namespaceExists":true,'
+      '"parentAclPolicy":"INSECURE_PROVIDER_PREPARED",'
+      '"subtreeAclPolicy":"INSECURE_BINDING_SCOPED"}')
+    with patch.object(MODULE.shell, "_call_wrapper", return_value=(0, output)) as process:
+      facts = MODULE.ManagedZooKeeperNamespaceProvisioner(self.params).provision(
+        zookeeper_command(), self.progress)
+    self.assertEqual("true", facts["namespace.znode.exists"])
+    self.assertEqual(self.params.java64_home, process.call_args.kwargs["env"]["JAVA_HOME"])
+
   def test_quorum_mismatch_fails_before_helper_execution(self):
     call = MagicMock()
     provisioner = MODULE.ManagedZooKeeperNamespaceProvisioner(self.params, call)
@@ -185,7 +195,7 @@ class TestManagedZookeeperDependencyBigtop(unittest.TestCase):
     )
     self.assertEqual("true", facts["provider.handoff.acknowledged"])
     self.assertTrue(all(options["user"] == self.params.zk_user for _, options in calls))
-    self.assertTrue(all("KRB5CCNAME" in options["environment"] for _, options in calls))
+    self.assertTrue(all("KRB5CCNAME" in options["env"] for _, options in calls))
 
   def test_lost_secure_create_response_requires_consumer_reconciliation(self):
     def call(arguments, **unused_options):

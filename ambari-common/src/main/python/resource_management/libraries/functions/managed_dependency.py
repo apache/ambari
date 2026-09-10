@@ -761,6 +761,7 @@ class ManagedDependencyJournal:
         pending["challenge"] != command.parameters["initialization.challenge"]
         or pending["prepareRequestHash"]
         != command.parameters["initialization.prepare.request.hash"]
+        or pending["prepareOperationId"] != command.operation_id
       ):
         raise ManagedDependencyFailure(
           "DEPENDENCY_FENCING_UNCERTAIN",
@@ -807,7 +808,21 @@ class ManagedDependencyJournal:
         )
       self._validate_journal_identity(command, journal)
       same_operation = journal["lastOperationId"] == command.operation_id
-      if same_operation and journal["lastRequestHash"] != command.request_hash:
+      same_step = same_operation and journal["lastCommandName"] == command.name
+      # One backend operation owns initialize and provision. Immutable hashes
+      # identify individual commands; only the initialized-to-provision transition
+      # may advance to another command under the same operation and epoch.
+      initial_provision = (
+        same_operation
+        and journal["status"] == "INITIALIZED"
+        and journal["lastCommandName"] == INITIALIZE_BINDING_JOURNAL
+        and command.name in {PROVISION_HDFS_NAMESPACE, PROVISION_ZOOKEEPER_NAMESPACE}
+        and command.epoch == journal["highestEpoch"]
+        and command.snapshot_version == journal["snapshotVersion"]
+      )
+      if same_operation and not initial_provision and (
+        not same_step or journal["lastRequestHash"] != command.request_hash
+      ):
         raise ManagedDependencyFailure(
           "DEPENDENCY_OPERATION_STALE",
           "Operation UUID was reused with different immutable content",
@@ -815,7 +830,7 @@ class ManagedDependencyJournal:
       if journal["tombstoned"]:
         if (
           command.name == INVALIDATE_BINDING_EPOCH
-          and same_operation
+          and same_step
           and journal["status"] == "SUCCEEDED"
         ):
           return dict(journal["resultFacts"])
@@ -826,17 +841,15 @@ class ManagedDependencyJournal:
         raise ManagedDependencyFailure(
           "DEPENDENCY_OPERATION_STALE", "Provider command epoch is retired"
         )
-      if same_operation and journal["status"] == "SUCCEEDED":
+      if same_step and journal["status"] == "SUCCEEDED":
         return dict(journal["resultFacts"])
-      if not same_operation and (
-        command.epoch == journal["highestEpoch"] and journal["status"] != "INITIALIZED"
-      ):
+      if not same_operation and command.epoch == journal["highestEpoch"]:
         raise ManagedDependencyFailure(
           "DEPENDENCY_OPERATION_STALE",
           "A different operation already owns this binding epoch",
         )
 
-      if not same_operation:
+      if not same_step:
         journal["completedSteps"] = []
         journal["resultFacts"] = {}
       journal.update(

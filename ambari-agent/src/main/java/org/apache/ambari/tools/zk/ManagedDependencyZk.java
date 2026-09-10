@@ -23,7 +23,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.zookeeper.CreateMode;
@@ -46,7 +46,8 @@ public final class ManagedDependencyZk {
   }
 
   public static void main(String[] args) throws Exception {
-    CommandLine command = new DefaultParser().parse(options(), args);
+    // HBase's client classpath can supply Commons CLI 1.2 before this helper JAR.
+    CommandLine command = new GnuParser().parse(options(), args);
     String result = execute(command);
     System.out.println(result);
   }
@@ -309,19 +310,22 @@ public final class ManagedDependencyZk {
         .addOption(required("b", "binding-id", "binding UUID"))
         .addOption(required("i", "provider-cluster-id", "provider cluster ID"))
         .addOption(required("u", "owner-user", "consumer short user"))
-        .addOption(Option.builder("l").longOpt("ledger").hasArg()
-            .argName("ledger").desc("provider-only binding ledger znode").build())
-        .addOption(Option.builder("a").longOpt("provider-sasl-id").hasArg()
-            .argName("provider-sasl-id").desc("provider ZooKeeper SASL authorization ID").build())
-        .addOption(Option.builder("s").longOpt("consumer-sasl-id").hasArg()
-            .argName("consumer-sasl-id").desc("consumer ZooKeeper SASL authorization ID").build())
-        .addOption(Option.builder("r").longOpt("probe-id").hasArg()
-            .argName("probe-id").desc("VERIFY operation UUID").build());
+        .addOption(optional("l", "ledger", "provider-only binding ledger znode"))
+        .addOption(optional("a", "provider-sasl-id", "provider ZooKeeper SASL authorization ID"))
+        .addOption(optional("s", "consumer-sasl-id", "consumer ZooKeeper SASL authorization ID"))
+        .addOption(optional("r", "probe-id", "VERIFY operation UUID"));
   }
 
   private static Option required(String shortName, String longName, String description) {
-    return Option.builder(shortName).longOpt(longName).hasArg().required()
-        .argName(longName).desc(description).build();
+    Option option = optional(shortName, longName, description);
+    option.setRequired(true);
+    return option;
+  }
+
+  private static Option optional(String shortName, String longName, String description) {
+    Option option = new Option(shortName, longName, true, description);
+    option.setArgName(longName);
+    return option;
   }
 
   record Request(String operation, String connectionString, String container, String znode,

@@ -51,8 +51,9 @@ from resource_management.libraries.functions.managed_dependency import (
 
 BINDING_ID = "59646bd5-39eb-414e-a07e-f5469d369687"
 PREPARE_OPERATION_ID = "43d3dad3-d0b0-4ba2-a9ae-2ccf7ab758f2"
-INITIALIZE_OPERATION_ID = "cb5b2b96-ed50-47fb-aad0-628835ad72b5"
-PROVISION_OPERATION_ID = "eeb6a351-b27a-4233-b7ae-86f2a4f5d149"
+# The production coordinator retains one operation UUID across all CREATE steps.
+INITIALIZE_OPERATION_ID = PREPARE_OPERATION_ID
+PROVISION_OPERATION_ID = PREPARE_OPERATION_ID
 AUTHORIZATION_ID = "3db076d6-ff66-4460-90b5-5b7d2f2b81af"
 INVALIDATE_OPERATION_ID = "dc023422-627b-452f-a0e3-ae536dcf42b4"
 IDENTITY_HASH = "sha256:427bca797fe223f7a612abe0292533df9a97eda718746863a056e186736846bb"
@@ -398,6 +399,43 @@ class TestManagedDependency(unittest.TestCase):
       journal.initialize(initialize)
     with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_FENCING_UNCERTAIN"):
       journal.execute(provision, first_provider_mutation)
+
+  def test_initialized_epoch_rejects_a_different_operation_without_mutation(self):
+    journal = self._initialized_journal()
+    command = parsed_command(PROVISION_HDFS_NAMESPACE, hdfs_provision_parameters(),
+      operation_id=INVALIDATE_OPERATION_ID)
+    with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_OPERATION_STALE"):
+      journal.execute(command, lambda unused: self.fail("foreign operation mutated"))
+
+  def test_initial_provision_cannot_change_snapshot_or_epoch_under_one_operation(self):
+    journal = self._initialized_journal()
+    for field, value in (("epoch", 2), ("snapshotVersion", 8)):
+      payload = command_payload(PROVISION_HDFS_NAMESPACE, hdfs_provision_parameters(),
+        operation_id=PROVISION_OPERATION_ID)
+      payload["envelope"][field] = value
+      rehash(payload)
+      command = parse_managed_dependency_command(payload, PROVISION_HDFS_NAMESPACE)
+      with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_OPERATION_STALE"):
+        journal.execute(command, lambda unused: self.fail("changed identity mutated"))
+
+  def test_update_uses_existing_journal_and_replays_only_its_exact_command(self):
+    journal = self._initialized_journal()
+    first = parsed_command(PROVISION_HDFS_NAMESPACE, hdfs_provision_parameters(),
+      operation_id=PROVISION_OPERATION_ID)
+    journal.execute(first, lambda unused: {"applied": "first"})
+    update = parsed_command(PROVISION_HDFS_NAMESPACE, hdfs_provision_parameters(),
+      operation_id=INVALIDATE_OPERATION_ID, epoch=2)
+    self.assertEqual({"applied": "update"}, journal.execute(update, lambda unused: {"applied": "update"}))
+    self.assertEqual({"applied": "update"}, journal.execute(update, lambda unused: self.fail("replayed")))
+    changed = command_payload(PROVISION_HDFS_NAMESPACE, hdfs_provision_parameters(),
+      operation_id=INVALIDATE_OPERATION_ID, epoch=2)
+    changed["parameters"]["snapshot.fingerprint"] = PROVIDER_HASH
+    rehash(changed)
+    with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_OPERATION_STALE"):
+      journal.execute(parse_managed_dependency_command(changed, PROVISION_HDFS_NAMESPACE),
+        lambda unused: self.fail("changed command mutated"))
+    with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_OPERATION_STALE"):
+      journal.execute(first, lambda unused: self.fail("retired epoch mutated"))
 
   def test_symlink_lock_file_is_rejected(self):
     os.mkdir(self.state_root, 0o700)

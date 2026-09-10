@@ -21,7 +21,6 @@ import grp
 from contextlib import contextmanager
 import fcntl
 from functools import wraps
-import hashlib
 import json
 import os
 import pwd
@@ -29,10 +28,12 @@ import re
 import secrets
 import shutil
 import stat
+import subprocess
 import tempfile
 import xml.etree.ElementTree as ElementTree
 
 from ambari_commons.repo_manager import ManagerFactory
+from resource_management.libraries.functions.managed_dependency_client import observe_client
 from resource_management.core import shell
 from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.libraries.functions.managed_dependency import (
@@ -576,11 +577,12 @@ class ManagedHBaseClientConfigStore:
           "The requested managed dependency snapshot is older than the active profile",
         )
       if candidate["snapshotVersion"] == selected["snapshotVersion"]:
+        # A snapshot owns provider configuration and security. Exact package and
+        # software expectations belong to a preparation epoch; a new authorized
+        # retry must observe them again before the server can restore readiness.
         immutable_config = (
           "clientConfigFingerprint",
-          "clientPackageName",
           "clientSoftwareKind",
-          "clientSoftwareSemanticVersion",
           "snapshotFingerprint",
         ) + tuple(sorted(security_fields))
         if any(candidate[field] != selected[field] for field in immutable_config):
@@ -823,13 +825,14 @@ class ManagedHBaseConsumerVerifier:
         try:
           code, output = self.call(
             tuple(arguments),
+            stderr=subprocess.PIPE,
             user=command.parameters["consumer.user"],
-            environment=environment,
+            env=environment,
             shell=False,
             quiet=True,
             timeout=COMMAND_TIMEOUT_SECONDS,
             timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
-          )
+          )[:2]
         except Exception as error:
           raise ManagedDependencyFailure(
             "DEPENDENCY_ZOOKEEPER_SESSION_FAILED",
@@ -1085,58 +1088,16 @@ class ManagedHBaseConsumerVerifier:
 
   def _verify_client_software(self, command):
     kind = command.parameters["client.software.kind"]
-    if kind == "HADOOP_CLIENT":
-      self.store._active_profile_path()
-      arguments = (
-        os.path.join(self.params.hadoop_bin_dir, "hdfs"),
-        "--config",
-        os.path.join(self.store.profile_root, "active"),
-        "version",
-      )
-      label = "Hadoop"
-    else:
-      arguments = (
-        self.params.hbase_cmd,
-        "--config",
-        self.params.hbase_conf_dir,
-        "version",
-      )
-      label = "HBase"
-    try:
-      code, output = self.call(
-        arguments,
-        user=command.parameters["consumer.user"],
-        environment={"JAVA_HOME": self.params.java64_home},
-        shell=False,
-        timeout=COMMAND_TIMEOUT_SECONDS,
-        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
-        quiet=True,
-      )
-    except Exception as error:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_CLIENT_PACKAGE_MISMATCH",
-        "The installed managed dependency client software version could not be inspected",
-      ) from error
-    if not isinstance(output, str) or len(output.encode("utf-8")) > 64 * 1024:
-      matches = []
-    else:
-      prefix = label + " "
-      matches = [
-        line[len(prefix) :]
-        for line in output.splitlines()
-        if line.startswith(prefix)
-        and CLIENT_SOFTWARE_VERSION.fullmatch(line[len(prefix) :]) is not None
-      ]
-    if (
-      code != 0
-      or len(matches) != 1
-      or matches[0] != command.parameters["client.software.semantic.version"]
-    ):
+    facts = self._observe_client(command, {}, "VERSION", {"kind": kind},
+                                 "DEPENDENCY_CLIENT_PACKAGE_MISMATCH")
+    observed = facts["version"]
+    if (facts["kind"] != kind or CLIENT_SOFTWARE_VERSION.fullmatch(observed) is None
+        or observed != command.parameters["client.software.semantic.version"]):
       raise ManagedDependencyFailure(
         "DEPENDENCY_CLIENT_PACKAGE_MISMATCH",
         "The installed managed dependency client software version is incompatible",
       )
-    return matches[0]
+    return observed
 
   def _verify_selected_config(self, command):
     actual = self.store.read_selected_config(command.provider_service)
@@ -1149,155 +1110,64 @@ class ManagedHBaseConsumerVerifier:
     return fingerprint
 
   def _verify_hdfs_directory(self, command, uri, environment):
-    code, output = self._hdfs(
-      command,
-      environment,
-      "DEPENDENCY_NAMENODE_RPC_FAILED",
-      "NameNode RPC could not inspect a managed HBase namespace",
-      "dfs",
-      "-stat",
-      "%u:%g:%a",
-      uri,
-    )
-    if code != 0:
-      raise ManagedDependencyFailure(
-        "DEPENDENCY_NAMENODE_RPC_FAILED",
-        "NameNode RPC could not inspect a managed HBase namespace",
-      )
-    expected = ":".join(
-      (
-        command.parameters["consumer.user"],
-        command.parameters["expected.owner.group"],
-        command.parameters["expected.directory.mode"].lstrip("0"),
-      )
-    )
-    if output.strip() != expected:
+    observed = self._observe_client(command, environment, "STAT", {"path": uri},
+                                    "DEPENDENCY_NAMENODE_RPC_FAILED")
+    expected = {"exists": True, "type": "DIRECTORY",
+                "owner": command.parameters["consumer.user"],
+                "group": command.parameters["expected.owner.group"],
+                "mode": int(command.parameters["expected.directory.mode"], 8)}
+    if observed != expected:
       raise ManagedDependencyFailure(
         "DEPENDENCY_AUTHORIZATION_FAILED",
         "Managed HBase namespace ownership or mode does not match the snapshot",
       )
+    acl = self._observe_client(command, environment, "ACL", {"path": uri},
+                               "DEPENDENCY_NAMENODE_RPC_FAILED")
+    if acl["entries"]:
+      raise ManagedDependencyFailure("DEPENDENCY_AUTHORIZATION_FAILED",
+                                     "Managed HBase namespace has extended or default ACLs")
 
   def _probe_hdfs(self, command, environment):
-    root_uri = command.parameters["expected.namespace.root.uri"].rstrip("/")
-    remote = root_uri + "/.ambari-managed-probe-" + command.operation_id
-    expected = hashlib.sha256(command.request_hash.encode("utf-8")).digest()
-    content = (expected * ((PROBE_BYTES // len(expected)) + 1))[:PROBE_BYTES]
-    local_directory = tempfile.mkdtemp(prefix="ambari-hbase-probe-", dir=self.params.tmp_dir)
-    account = pwd.getpwnam(command.parameters["consumer.user"])
-    os.chown(local_directory, account.pw_uid, account.pw_gid)
-    os.chmod(local_directory, 0o700)
-    source = os.path.join(local_directory, "source")
-    destination = os.path.join(local_directory, "destination")
-    with open(source, "xb") as stream:
-      stream.write(content)
-      stream.flush()
-      os.fsync(stream.fileno())
-    os.chown(source, account.pw_uid, account.pw_gid)
-    os.chmod(source, 0o600)
-    failure = None
-    try:
-      exists, unused = self._hdfs(
-        command,
-        environment,
-        "DEPENDENCY_NAMENODE_RPC_FAILED",
-        "NameNode RPC could not inspect the bounded DataNode probe path",
-        "dfs",
-        "-test",
-        "-e",
-        remote,
-      )
-      if exists not in (0, 1):
-        raise ManagedDependencyFailure(
-          "DEPENDENCY_NAMENODE_RPC_FAILED",
-          "NameNode RPC could not inspect the bounded DataNode probe path",
-        )
-      if exists == 1:
-        code, unused = self._hdfs(
-          command,
-          environment,
-          "DEPENDENCY_DATANODE_READ_WRITE_FAILED",
-          "The nonempty managed HBase DataNode probe could not be written",
-          "dfs",
-          "-put",
-          source,
-          remote,
-        )
-        if code != 0:
-          raise ManagedDependencyFailure(
-            "DEPENDENCY_DATANODE_READ_WRITE_FAILED",
-            "The nonempty managed HBase DataNode probe could not be written",
-          )
-      code, unused = self._hdfs(
-        command,
-        environment,
-        "DEPENDENCY_DATANODE_READ_WRITE_FAILED",
-        "The nonempty managed HBase DataNode probe could not be read",
-        "dfs",
-        "-get",
-        remote,
-        destination,
-      )
-      if code != 0:
-        raise ManagedDependencyFailure(
-          "DEPENDENCY_DATANODE_READ_WRITE_FAILED",
-          "The nonempty managed HBase DataNode probe could not be read",
-        )
-      with open(destination, "rb") as stream:
-        observed = stream.read(PROBE_BYTES + 1)
-      if observed != content:
-        raise ManagedDependencyFailure(
-          "DEPENDENCY_DATA_INTEGRITY_FAILED",
-          "The managed HBase DataNode probe content did not match",
-        )
-    except ManagedDependencyFailure as error:
-      failure = error
-    finally:
-      code, unused = self._hdfs(
-        command,
-        environment,
-        "DEPENDENCY_PROBE_CLEANUP_FAILED",
-        "The bounded managed HBase DataNode probe could not be removed",
-        "dfs",
-        "-rm",
-        "-f",
-        remote,
-      )
-      shutil.rmtree(local_directory, ignore_errors=True)
-      if code != 0:
-        raise ManagedDependencyFailure(
-          "DEPENDENCY_PROBE_CLEANUP_FAILED",
-          "The bounded managed HBase DataNode probe could not be removed",
-        )
-    if failure is not None:
-      raise failure
+    observed = self._observe_client(command, environment, "PROBE",
+      {"path": command.parameters["expected.namespace.root.uri"]},
+      "DEPENDENCY_DATANODE_READ_WRITE_FAILED")
+    if observed != {"readWriteVerified": True, "bytes": PROBE_BYTES, "cleaned": True}:
+      raise ManagedDependencyFailure("DEPENDENCY_DATANODE_READ_WRITE_FAILED",
+                                     "The client did not prove a complete nonempty read/write probe")
 
-  def _hdfs(self, command, environment, error_code, error_message, *arguments):
-    executable = os.path.join(self.params.hadoop_bin_dir, "hdfs")
-    try:
-      return self.call(
-        (executable, "--config", os.path.join(self.store.profile_root, "active"))
-        + arguments,
-        user=command.parameters["consumer.user"],
-        environment=environment,
-        shell=False,
-        timeout=COMMAND_TIMEOUT_SECONDS,
-        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
-        quiet=True,
-      )
-    except Exception as error:
-      raise ManagedDependencyFailure(error_code, error_message) from error
+  def _hadoop_environment(self, environment):
+    # The isolated provider profile intentionally has no local hadoop-env.sh.
+    # Resolve binary layout from the installed stack, separately from cluster XML.
+    return {
+      "JAVA_HOME": self.params.java64_home,
+      "HADOOP_HOME": self.params.hadoop_home,
+      "HADOOP_COMMON_HOME": self.params.hadoop_home,
+      "HADOOP_HDFS_HOME": self.params.hadoop_hdfs_home,
+      **environment,
+    }
+
+  def _observe_client(self, command, environment, operation, payload, error_code):
+    hadoop = command.parameters["client.software.kind"] == "HADOOP_CLIENT"
+    config = os.path.join(self.store.profile_root, "active") if hadoop else self.params.hbase_conf_dir
+    executable = os.path.join(self.params.hadoop_bin_dir, "hdfs") if hadoop else self.params.hbase_cmd
+    environment = self._hadoop_environment(environment) if hadoop else {
+      **environment, "JAVA_HOME": self.params.java64_home, "HBASE_HOME": self.params.hbase_home}
+    return observe_client(self.call, executable, config, command, operation, payload,
+                          command.parameters["consumer.user"], environment,
+                          error_code=error_code)
 
   def _hbase_classpath(self, command, environment):
     try:
       code, output = self.call(
         (self.params.hbase_cmd, "--config", self.params.hbase_conf_dir, "classpath"),
         user=command.parameters["consumer.user"],
-        environment=environment,
+        env={**environment, "HBASE_HOME": self.params.hbase_home},
+        stderr=subprocess.PIPE,
         shell=False,
         timeout=COMMAND_TIMEOUT_SECONDS,
         timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
         quiet=True,
-      )
+      )[:2]
     except Exception as error:
       raise ManagedDependencyFailure(
         "DEPENDENCY_CLIENT_PACKAGE_MISMATCH",

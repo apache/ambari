@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from contextlib import contextmanager
+import json
 import importlib.util
 from pathlib import Path
 import sys
@@ -92,9 +93,7 @@ class TestManagedHdfsDependencyBigtop(unittest.TestCase):
     provisioner = MANAGED_HDFS.ManagedHdfsNamespaceProvisioner(
       self.params, self.hdfs
     )
-    with patch.object(
-      MANAGED_HDFS, "private_temporary_file", self.hdfs.private_file
-    ):
+    with self.subTest("structured provider observations"):
       facts = provisioner.provision(command, self.progress)
       mutations_after_first_attempt = tuple(self.hdfs.mutations)
       retry_facts = provisioner.provision(command, MagicMock())
@@ -126,9 +125,7 @@ class TestManagedHdfsDependencyBigtop(unittest.TestCase):
       self.params, self.hdfs
     )
 
-    with patch.object(
-      MANAGED_HDFS, "private_temporary_file", self.hdfs.private_file
-    ), self.assertRaisesRegex(
+    with self.assertRaisesRegex(
       ManagedDependencyFailure, "DEPENDENCY_NAMESPACE_CONFLICT"
     ):
       provisioner.provision(command, self.progress)
@@ -138,19 +135,24 @@ class TestManagedHdfsDependencyBigtop(unittest.TestCase):
     )
     self.assertFalse(
       any(
-        arguments[1] == "-chown" and arguments[-1] == BASE
+        arguments[0] == "SET_OWNER" and arguments[-1] == BASE
         for arguments in self.hdfs.mutations
       )
     )
+
+  def test_fresh_hdfs_creates_the_missing_provider_owned_apps_parent(self):
+    del self.hdfs.nodes[AUTHORITY + "/apps"]
+    provisioner = MANAGED_HDFS.ManagedHdfsNamespaceProvisioner(self.params, self.hdfs)
+    with self.subTest("structured provider observations"):
+      provisioner.provision(hdfs_command(), self.progress)
+    self.assertEqual(("directory", "hdfs", "hadoop", "0755"), self.hdfs.nodes[AUTHORITY + "/apps"])
 
   def test_snapshot_and_provider_fingerprint_updates_reuse_immutable_namespace(self):
     first = hdfs_command()
     provisioner = MANAGED_HDFS.ManagedHdfsNamespaceProvisioner(
       self.params, self.hdfs
     )
-    with patch.object(
-      MANAGED_HDFS, "private_temporary_file", self.hdfs.private_file
-    ):
+    with self.subTest("structured provider observations"):
       provisioner.provision(first, self.progress)
       mutations_after_first_attempt = tuple(self.hdfs.mutations)
       updated = hdfs_command(
@@ -170,9 +172,7 @@ class TestManagedHdfsDependencyBigtop(unittest.TestCase):
     provisioner = MANAGED_HDFS.ManagedHdfsNamespaceProvisioner(
       self.params, self.hdfs
     )
-    with patch.object(
-      MANAGED_HDFS, "private_temporary_file", self.hdfs.private_file
-    ):
+    with self.subTest("structured provider observations"):
       provisioner.provision(command, self.progress)
     self.hdfs.acls[BASE + "/wal"] = {
       "user::rwx",
@@ -269,7 +269,7 @@ class TestManagedHdfsDependencyBigtop(unittest.TestCase):
     with self.assertRaisesRegex(
       ManagedDependencyFailure, "DEPENDENCY_PROVIDER_ACTION_FAILED"
     ) as failure:
-      provisioner._run(("dfs", "-stat", "%F", AUTHORITY + "/apps"))
+      provisioner.provision(hdfs_command(), self.progress)
     self.assertNotIn("raw provider command detail", failure.exception.sanitized_message)
 
   def test_empty_mkdir_interruption_recovers_but_nonempty_partial_path_fails(self):
@@ -278,9 +278,7 @@ class TestManagedHdfsDependencyBigtop(unittest.TestCase):
       self.params, self.hdfs
     )
     self.hdfs.fail_chown_once = BASE
-    with patch.object(
-      MANAGED_HDFS, "private_temporary_file", self.hdfs.private_file
-    ):
+    with self.subTest("structured provider observations"):
       with self.assertRaisesRegex(
         ManagedDependencyFailure, "DEPENDENCY_PROVIDER_ACTION_FAILED"
       ):
@@ -313,63 +311,56 @@ class FakeHdfs:
     self.nodes = {}
     self.nodes[AUTHORITY + "/"] = ("directory", "hdfs", "hadoop", "0755")
     self.nodes[AUTHORITY + "/apps"] = ("directory", "hdfs", "hadoop", "0755")
-    self.temporary_content = None
-
-  @contextmanager
-  def private_file(self, content, **unused_options):
-    self.temporary_content = content
-    try:
-      yield "/tmp/ambari-hdfs-binding-test"
-    finally:
-      self.temporary_content = None
 
   def __call__(self, command, **options):
     self.calls.append((command, options))
-    arguments = command[3:]
-    action_index = 2 if arguments[1].startswith("-D") else 1
-    action = arguments[action_index]
-    path = arguments[-1]
-    if action == "-stat":
+    operation, identity, payload = command[-4], json.loads(command[-2]), json.loads(command[-1])
+    path = payload["path"]
+    response = {"schemaVersion": 1, "identity": identity, "operation": operation, "status": "SUCCEEDED"}
+    if operation == "STAT":
       observed = self.nodes.get(path)
-      if observed is None:
-        return 1, "not found"
-      return 0, "|".join(observed)
-    if action == "-cat":
-      return (0, self.contents[path]) if path in self.contents else (1, "not found")
-    if action == "-count":
-      directory_count, file_count, content_size = self.counts.get(path, (1, 0, 0))
-      return (
-        0,
-        "none inf none inf "
-        f"{directory_count} {file_count} {content_size} {path}",
-      )
-    if action == "-getfacl":
+      result = {"exists": False} if observed is None else {
+        "exists": True, "type": "DIRECTORY" if observed[0] == "directory" else "FILE",
+        "owner": observed[1], "group": observed[2], "mode": int(observed[3], 8)}
+    elif operation == "READ_MARKER":
+      result = {"marker": json.loads(self.contents[path])}
+    elif operation == "COUNT":
+      result = {"empty": self.counts.get(path, (1, 0, 0)) == (1, 0, 0)}
+    elif operation == "ACL":
+      result = {"entries": []}
       entries = self.acls.get(path, acl_for_mode(self.nodes[path][3]))
-      return 0, "\n".join((f"# file: {path}", *sorted(entries)))
-
-    self.mutations.append(arguments)
-    if action == "-mkdir":
-      umask = arguments[1].rsplit("=", 1)[1]
-      mode = {"066": "0711", "077": "0700", "027": "0750"}[umask]
-      self.nodes[path] = ("directory", "hdfs", "hadoop", mode)
-      return 0, ""
-    if action == "-chown":
-      if self.fail_chown_once == path:
-        self.fail_chown_once = None
-        return 1, "injected interruption"
-      owner, group = arguments[action_index + 1].split(":", 1)
-      file_type, unused_owner, unused_group, mode = self.nodes[path]
-      self.nodes[path] = (file_type, owner, group, mode)
-      return 0, ""
-    if action == "-chmod":
-      file_type, owner, group, unused_mode = self.nodes[path]
-      self.nodes[path] = (file_type, owner, group, arguments[action_index + 1])
-      return 0, ""
-    if action == "-put":
-      self.nodes[path] = ("regular file", "hdfs", "hadoop", "0600")
-      self.contents[path] = self.temporary_content
-      return 0, ""
-    raise AssertionError(f"Unexpected HDFS command: {arguments}")
+      for entry in entries - acl_for_mode(self.nodes[path][3]):
+        parts = entry.split(":")
+        default = parts[0] == "default"
+        if default:
+          parts = parts[1:]
+        result["entries"].append({"scope": "DEFAULT" if default else "ACCESS",
+          "type": parts[0].upper(), "name": parts[1], "permission": 7})
+    else:
+      self.mutations.append((operation, path))
+      if operation == "MKDIR":
+        self.nodes[path] = ("directory", "hdfs", "hadoop", format(payload["mode"], "04o"))
+        result = {"created": True}
+      elif operation == "SET_OWNER":
+        if self.fail_chown_once == path:
+          self.fail_chown_once = None
+          response.update(status="FAILED", errorCode="DEPENDENCY_CLIENT_OBSERVATION_FAILED")
+          return 0, json.dumps(response), "diagnostic noise"
+        file_type, _, _, mode = self.nodes[path]
+        self.nodes[path] = (file_type, payload["owner"], payload["group"], mode)
+        result = {"applied": True}
+      elif operation == "SET_PERMISSION":
+        file_type, owner, group, _ = self.nodes[path]
+        self.nodes[path] = (file_type, owner, group, format(payload["mode"], "04o"))
+        result = {"applied": True}
+      elif operation == "WRITE_MARKER":
+        self.nodes[path] = ("regular file", "hdfs", "hadoop", "0600")
+        self.contents[path] = json.dumps(payload["marker"], separators=(",", ":"))
+        result = {"written": True}
+      else:
+        raise AssertionError("Unexpected structured operation: " + operation)
+    response["result"] = result
+    return 0, json.dumps(response), "diagnostic noise"
 
 
 def hdfs_command(

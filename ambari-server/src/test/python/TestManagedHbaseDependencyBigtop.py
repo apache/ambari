@@ -31,6 +31,8 @@ from types import SimpleNamespace
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
+from resource_management.core.environment import Environment
+from resource_management.core.exceptions import Fail
 
 from resource_management.libraries.functions.managed_dependency import (
   PREPARE_HDFS_CONSUMER,
@@ -107,7 +109,10 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
     self.params = SimpleNamespace(
       config={"configurations": {"hbase-site": hbase_site()}},
       hadoop_bin_dir="/usr/bin",
+      hadoop_home="/usr/bigtop/3.3.0/usr/lib/hadoop",
+      hadoop_hdfs_home="/usr/bigtop/3.3.0/usr/lib/hadoop-hdfs",
       hbase_cmd="/usr/lib/hbase/bin/hbase",
+      hbase_home="/usr/lib/hbase",
       hbase_conf_dir=self.hbase_conf,
       hbase_user=self.user,
       java64_home="/usr/lib/jvm/java",
@@ -117,6 +122,44 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
 
   def tearDown(self):
     shutil.rmtree(self.temporary)
+
+  @unittest.skipUnless(os.geteuid() == 0, "Package ownership transition requires root")
+  def test_package_parent_is_owned_before_managed_profile_validation(self):
+    specification = importlib.util.spec_from_file_location(
+      "managed_hbase_configuration_entry", SCRIPT.with_name("hbase.py")
+    )
+    configuration = importlib.util.module_from_spec(specification)
+    with patch.dict(sys.modules, {"managed_hbase_dependency": MODULE}):
+      specification.loader.exec_module(configuration)
+    self.params.etc_prefix_dir = self.service_root
+    os.chown(self.service_root, 65534, 65534)
+    store = MODULE.ManagedHBaseClientConfigStore(
+      self.profile_root, self.hbase_conf, self.group
+    )
+    bundle = parsed_bundle(self.user)
+    with self.assertRaisesRegex(ManagedDependencyFailure, "unsafe ownership"):
+      store.select(bundle, hbase_site())
+
+    def configure(role):
+      self.assertEqual("master", role)
+      return store.select(bundle, hbase_site())
+
+    with Environment(tmp_dir=self.temporary), patch.dict(
+      sys.modules, {"params": self.params}
+    ), patch.object(configuration, "_configure_hbase", side_effect=configure):
+      selected = configuration.hbase("master")
+    self.assertTrue(os.path.isfile(os.path.join(selected, "manifest.json")))
+    self.assertEqual(0, os.stat(self.service_root).st_uid)
+
+    alias = os.path.join(self.temporary, "unsafe-parent")
+    os.symlink(self.service_root, alias)
+    self.params.etc_prefix_dir = alias
+    with Environment(tmp_dir=self.temporary), patch.dict(
+      sys.modules, {"params": self.params}
+    ), patch.object(configuration, "_configure_hbase") as configure:
+      with self.assertRaisesRegex(Fail, "must not be a symbolic link"):
+        configuration.hbase("master")
+      configure.assert_not_called()
 
   def test_versioned_bundle_renders_exact_configs_and_rejects_stale_selection(self):
     bundle = parsed_bundle(self.user)
@@ -176,10 +219,7 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
       "master",
       role_command="INSTALL",
       profile_root=self.profile_root,
-      call=lambda arguments, **options: (
-        0,
-        "Hadoop 3.3.0\n" if arguments[0].endswith("/hdfs") else "HBase 2.4.13\n",
-      ),
+      call=version_observation,
       package_manager=FakePackageManager(),
     )
 
@@ -338,10 +378,7 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
     MODULE.report_managed_dependency_preparation(
       hdfs_success, self.params, hdfs_recovered, "master", role_command="INSTALL",
       profile_root=self.profile_root,
-      call=lambda arguments, **options: (
-        0,
-        "Hadoop 3.3.0\n" if arguments[0].endswith("/hdfs") else "HBase 2.4.13\n",
-      ),
+      call=version_observation,
       package_manager=FakePackageManager(),
     )
     self.assertEqual(
@@ -371,10 +408,7 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
     MODULE.report_managed_dependency_preparation(
       zookeeper_success, self.params, zookeeper_recovered, "master", role_command="INSTALL",
       profile_root=self.profile_root,
-      call=lambda arguments, **options: (
-        0,
-        "Hadoop 3.3.0\n" if arguments[0].endswith("/hdfs") else "HBase 2.4.13\n",
-      ),
+      call=version_observation,
       package_manager=FakePackageManager(),
     )
     self.assertEqual(
@@ -417,6 +451,39 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
       store.select(changed, hbase_site())
     with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_OPERATION_STALE"):
       store.select(original, hbase_site())
+
+  def test_software_plan_changes_require_a_new_epoch_and_keep_snapshot_content(self):
+    original = parsed_bundle(self.user)
+    commands = list(original.commands)
+    commands[0] = command_with_parameters(
+      commands[0], {"client.software.semantic.version": "3.3.0-1"}
+    )
+    previous = parse_managed_dependency_bundle({
+      "schemaVersion": 1,
+      "hostId": original.host_id,
+      "consumerUser": original.consumer_user,
+      "identityFingerprint": original.identity_fingerprint,
+      "commands": [{"name": c.name, "envelope": c.envelope, "parameters": c.parameters}
+                   for c in commands],
+      "immutableBundleHash": managed_dependency_bundle_hash(
+        1, original.host_id, original.consumer_user, original.identity_fingerprint, commands
+      ),
+    })
+    store = MODULE.ManagedHBaseClientConfigStore(
+      self.profile_root, self.hbase_conf, self.group
+    )
+    store.select(previous, hbase_site())
+    with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_OPERATION_STALE"):
+      store.select(original, hbase_site())
+    current = parsed_bundle(
+      self.user, hdfs_epoch=2,
+      hdfs_operation="9ef36739-2f8d-4932-a07e-b181a1af22b9",
+    )
+    selected = store.select(current, hbase_site())
+    with open(os.path.join(selected, "manifest.json"), encoding="utf-8") as stream:
+      self.assertEqual("3.3.0", json.load(stream)["commands"]["HDFS"]["clientSoftwareSemanticVersion"])
+    with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_OPERATION_STALE"):
+      store.select(previous, hbase_site())
 
   def test_secure_profile_persists_exact_security_lineage_and_rejects_mapping_change(self):
     bundle = parsed_bundle(self.user, security_mode="KERBEROS")
@@ -724,9 +791,7 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
     script = MagicMock()
 
     def version_call(arguments, **unused_options):
-      if arguments[0].endswith("/hdfs"):
-        return 0, "Hadoop 3.3.0\n"
-      return 0, "HBase 2.4.13\n"
+      return version_observation(arguments)
 
     MODULE.report_managed_dependency_preparation(
       script,
@@ -781,7 +846,8 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
       sys.modules,
       {"params": self.params, "managed_hbase_dependency": MODULE},
     ), patch.object(client, "install_packages"), patch.object(
-      CLIENT_MODULE.upgrade, "select_phoenix_packages"
+      CLIENT_MODULE.upgrade, "select_hbase_packages",
+      side_effect=lambda *unused: order.append("select")
     ), patch.object(
       CLIENT_MODULE,
       "hbase",
@@ -793,7 +859,7 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
 
     render.assert_called_once_with(name="client")
     report.assert_called_once_with(client, self.params, bundle, "client")
-    self.assertEqual(["render", "report"], order)
+    self.assertEqual(["select", "render", "report"], order)
 
   def test_hbase_client_local_configure_preserves_none_bundle(self):
     client = CLIENT_MODULE.HbaseClient()
@@ -869,12 +935,44 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
         os.path.join(self.params.hadoop_bin_dir, "hdfs"),
         "--config",
         os.path.join(self.profile_root, "active"),
-        "version",
       ),
-      hdfs.calls[0][0],
+      hdfs.calls[0][0][:3],
     )
     self.assertTrue(all(options["user"] == self.user for _, options in hdfs.calls))
     self.assertTrue(all(options["shell"] is False for _, options in hdfs.calls))
+    self.assertTrue(all(options["env"]["HADOOP_COMMON_HOME"] == self.params.hadoop_home
+                        for _, options in hdfs.calls))
+    self.assertTrue(all(options["env"]["HADOOP_HDFS_HOME"] == self.params.hadoop_hdfs_home
+                        for _, options in hdfs.calls))
+
+  def test_structured_observations_reject_noise_stale_identity_and_wrong_types(self):
+    bundle = parsed_bundle(self.user)
+    MODULE.ManagedHBaseClientConfigStore(
+      self.profile_root, self.hbase_conf, self.group
+    ).select(bundle, hbase_site())
+    command = verification_for(bundle, "HDFS")
+    mutations = [
+      lambda value: value.update(identity={**value["identity"], "epoch": 999}),
+      lambda value: value.update(identity={**value["identity"], "epoch": True}),
+      lambda value: value.update(identity={**value["identity"], "bindingId": ZK_BINDING}),
+      lambda value: value.update(schemaVersion=True),
+      lambda value: value.pop("result"),
+      lambda value: value["result"].update(version=True),
+      lambda value: value.update(status="COMPLETED"),
+    ]
+    for mutation in mutations:
+      with self.subTest(mutation=mutation):
+        def call(arguments, **unused_options):
+          code, output = version_observation(arguments)
+          value = json.loads(output)
+          mutation(value)
+          return code, json.dumps(value), "Hadoop 3.3.0 success"
+        with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_CLIENT_PACKAGE_MISMATCH"):
+          self._verifier(call).verify_hdfs(command)
+    for output in ("Hadoop 3.3.0", "SUCCESS", "{}", "null"):
+      with self.subTest(output=output):
+        with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_CLIENT_PACKAGE_MISMATCH"):
+          self._verifier(lambda *args, **kwargs: (0, output, "")).verify_hdfs(command)
 
   def test_strict_verification_rejects_wrong_preparation_lineage_before_probe(self):
     bundle = parsed_bundle(self.user)
@@ -912,7 +1010,7 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
 
     call.assert_not_called()
 
-  def test_verification_rejects_non_object_active_manifest_as_stale(self):
+  def test_verification_rejects_non_object_active_manifest_as_corrupt_config(self):
     bundle = parsed_bundle(self.user)
     store = MODULE.ManagedHBaseClientConfigStore(
       self.profile_root, self.hbase_conf, self.group
@@ -923,7 +1021,7 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
     call = MagicMock()
 
     with self.assertRaisesRegex(
-      ManagedDependencyFailure, "DEPENDENCY_OPERATION_STALE"
+      ManagedDependencyFailure, "DEPENDENCY_CLIENT_CONFIG_MISMATCH"
     ):
       self._verifier(call).verify_hdfs(verification_for(bundle, "HDFS"))
 
@@ -977,8 +1075,8 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
       self._verifier(cleanup).verify_hdfs(command)
 
     def timeout(arguments, **unused_options):
-      if arguments[-1] == "version":
-        return 0, "Hadoop 3.3.0\n"
+      if "VERSION" in arguments:
+        return version_observation(arguments)
       raise TimeoutError("raw command detail must not escape")
 
     with self.assertRaisesRegex(ManagedDependencyFailure, "DEPENDENCY_NAMENODE_RPC_FAILED"):
@@ -993,8 +1091,8 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
 
     def call(arguments, **options):
       calls.append((arguments, options))
-      if arguments[-1] == "version":
-        return 0, "HBase 2.4.13\n"
+      if "VERSION" in arguments:
+        return version_observation(arguments)
       if arguments[-1] == "classpath":
         return 0, "/usr/lib/hbase/lib/*"
       return 0, '{"connected":true,"privateZnodeVerified":true}\n'
@@ -1007,8 +1105,8 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
     ).verify_zookeeper(verification_for(bundle, "ZOOKEEPER"))
 
     self.assertEqual(
-      (self.params.hbase_cmd, "--config", self.hbase_conf, "version"),
-      calls[0][0],
+      (self.params.hbase_cmd, "--config", self.hbase_conf),
+      calls[0][0][:3],
     )
     java_arguments, options = calls[2]
     self.assertTrue(java_arguments[2].startswith("/usr/lib/hbase/lib/*"))
@@ -1027,8 +1125,8 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
     def call(arguments, **unused_options):
       nonlocal calls
       calls += 1
-      if arguments[-1] == "version":
-        return 0, "HBase 2.4.13\n"
+      if "VERSION" in arguments:
+        return version_observation(arguments)
       if arguments[-1] == "classpath":
         return 0, "/usr/lib/hbase/lib/*"
       raise TimeoutError("raw command detail must not escape")
@@ -1069,9 +1167,9 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
       (self.params.kinit_path_local, self.params.master_keytab_path, self.params.master_jaas_princ),
       cache.kinit_arguments,
     )
-    self.assertTrue(
-      all(options["environment"]["KRB5CCNAME"] == "FILE:/private/cache" for _, options in hdfs.calls)
-    )
+    data_calls = [options for arguments, options in hdfs.calls if "VERSION" not in arguments]
+    self.assertTrue(data_calls)
+    self.assertTrue(all(options["env"]["KRB5CCNAME"] == "FILE:/private/cache" for options in data_calls))
 
   def test_secure_zookeeper_proves_exact_sasl_acl_and_sibling_denial(self):
     bundle = parsed_bundle(self.user, security_mode="KERBEROS")
@@ -1083,8 +1181,8 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
 
     def call(arguments, **options):
       calls.append((arguments, options))
-      if arguments[-1] == "version":
-        return 0, "HBase 2.4.13\n"
+      if "VERSION" in arguments:
+        return version_observation(arguments)
       if arguments[-1] == "classpath":
         return 0, "/usr/lib/hbase/lib/*"
       return 0, json.dumps(
@@ -1112,7 +1210,7 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
     self.assertEqual("VERIFY_SECURE", java_arguments[java_arguments.index("--operation") + 1])
     self.assertEqual(self.user,
                      java_arguments[java_arguments.index("--consumer-sasl-id") + 1])
-    self.assertEqual("FILE:/private/cache", options["environment"]["KRB5CCNAME"])
+    self.assertEqual("FILE:/private/cache", options["env"]["KRB5CCNAME"])
     self.assertEqual("true", facts["container.acl.verified"])
     self.assertEqual("true", facts["sibling.authority.denied"])
 
@@ -1314,6 +1412,19 @@ class ChangingPackageManager(FakePackageManager):
     return "3.3.0-2"
 
 
+def client_observation(arguments, facts=None, error=None):
+  response = {"schemaVersion": 1, "identity": json.loads(arguments[-2]),
+              "operation": arguments[-4], "status": "FAILED" if error else "SUCCEEDED"}
+  response.update({"errorCode": error} if error else {"result": facts})
+  return 0, json.dumps(response)
+
+
+def version_observation(arguments, version=None, **unused_options):
+  kind = json.loads(arguments[-1])["kind"]
+  return client_observation(arguments, {"kind": kind,
+    "version": version or ("3.3.0" if kind == "HADOOP_CLIENT" else "2.4.13")})
+
+
 class FakeHdfs:
   def __init__(
     self,
@@ -1337,35 +1448,33 @@ class FakeHdfs:
 
   def __call__(self, arguments, **options):
     self.calls.append((arguments, options))
-    if arguments[-1] == "version":
+    result = self._execute(arguments)
+    if options.get("stderr") == MODULE.subprocess.PIPE:
+      return (*result, "A client diagnostic on stderr\n")
+    return result
+
+  def _execute(self, arguments):
+    operation = arguments[-4]
+    if operation == "VERSION":
       self.version_calls += 1
       version = "3.3.1" if self.change_software_version and self.version_calls > 1 else "3.3.0"
-      return 0, "Hadoop " + version + "\n"
-    operation = arguments[arguments.index("dfs") + 1 :]
-    if operation[0] == "-stat":
+      return version_observation(arguments, version=version)
+    if operation == "STAT":
       if self.fail_stat:
-        return 1, ""
-      return 0, f"{self.user}:{self.group}:700"
-    if operation[:2] == ("-test", "-e"):
-      return (0 if operation[2] in self.remote_files else 1), ""
-    if operation[0] == "-put":
-      with open(operation[1], "rb") as stream:
-        self.remote_files[operation[2]] = stream.read()
-      self.upload_size = len(self.remote_files[operation[2]])
-      return 0, ""
-    if operation[0] == "-get":
-      content = self.remote_files[operation[1]]
+        return client_observation(arguments, error="DEPENDENCY_CLIENT_OBSERVATION_FAILED")
+      return client_observation(arguments, {"exists": True, "type": "DIRECTORY",
+        "owner": self.user, "group": self.group, "mode": 0o700})
+    if operation == "ACL":
+      return client_observation(arguments, {"entries": []})
+    if operation == "PROBE":
       if self.corrupt_read:
-        content = b"corrupt"
-      with open(operation[2], "wb") as stream:
-        stream.write(content)
-      return 0, ""
-    if operation[:2] == ("-rm", "-f"):
+        return client_observation(arguments, error="DEPENDENCY_DATA_INTEGRITY_FAILED")
       if self.fail_cleanup:
-        return 1, ""
-      self.remote_files.pop(operation[2], None)
-      return 0, ""
-    raise AssertionError("unexpected HDFS invocation: " + repr(operation))
+        return client_observation(arguments, error="DEPENDENCY_PROBE_CLEANUP_FAILED")
+      self.upload_size = MODULE.PROBE_BYTES
+      return client_observation(arguments,
+        {"readWriteVerified": True, "bytes": MODULE.PROBE_BYTES, "cleaned": True})
+    raise AssertionError("unexpected client operation: " + repr(operation))
 
 
 class _BlockingHdfs(FakeHdfs):
@@ -1376,10 +1485,8 @@ class _BlockingHdfs(FakeHdfs):
     self.blocked = False
 
   def __call__(self, arguments, **options):
-    if arguments[-1] == "version":
-      return super().__call__(arguments, **options)
-    operation = arguments[arguments.index("dfs") + 1 :]
-    if operation[0] == "-stat" and not self.blocked:
+    operation = arguments[-4]
+    if operation == "STAT" and not self.blocked:
       self.blocked = True
       self.entered.set()
       if not self.release.wait(5):

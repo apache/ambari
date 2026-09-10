@@ -158,7 +158,7 @@ class ManagedZooKeeperNamespaceProvisioner:
           command.parameters["owner.user"],
         ),
         user=self.params.zk_user,
-        environment={"JAVA_HOME": self.params.java64_home},
+        env={"JAVA_HOME": self.params.java64_home},
         shell=False,
         quiet=True,
         timeout=60,
@@ -299,7 +299,7 @@ class ManagedZooKeeperNamespaceProvisioner:
       code, output = self.call(
         arguments,
         user=self.params.zk_user,
-        environment=environment,
+        env=environment,
         shell=False,
         quiet=True,
         timeout=60,
