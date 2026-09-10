@@ -71,11 +71,6 @@ const sanitizeValue = (
   sensitiveContext = false,
   seen = new WeakSet<object>(),
 ): any => {
-  if (Array.isArray(value)) {
-    return sensitiveContext
-      ? []
-      : value.map((item) => sanitizeValue(item, false, seen)).filter((item) => item !== undefined);
-  }
   if (value == null || typeof value !== "object") {
     return sensitiveContext ? undefined : value;
   }
@@ -83,6 +78,13 @@ const sanitizeValue = (
     return undefined;
   }
   seen.add(value);
+  if (Array.isArray(value)) {
+    const sanitized = sensitiveContext
+      ? []
+      : value.map((item) => sanitizeValue(item, false, seen)).filter((item) => item !== undefined);
+    seen.delete(value);
+    return sanitized;
+  }
 
   const mapSensitive = sensitiveContext || isSensitiveProperty(value);
   const sanitized: Record<string, any> = {};
@@ -102,6 +104,8 @@ const sanitizeValue = (
     else redacted = true;
   });
   if (redacted) sanitized.requires_reentry = true;
+  // Only ancestor references are cycles; shared intent/config objects must survive each path.
+  seen.delete(value);
   return sanitized;
 };
 

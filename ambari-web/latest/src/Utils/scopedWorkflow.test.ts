@@ -16,6 +16,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
+import "../i18n";
 import {
   ClusterWorkflowPersistence,
   ScopedWorkflowSession,
@@ -32,6 +33,30 @@ import {
 } from "./scopedWorkflow";
 
 describe("scoped workflow persistence", () => {
+  it("preserves shared intent references while sanitizing every credential occurrence", () => {
+    const intent = { intentId: "deployment-id", targets: [{ hostName: "host-a" }] };
+    const credential = { name: "password", value: "test-only-sensitive-value" };
+    const values = sanitizeWorkflowValues({ intent, handoff: { intent },
+      config: credential, reviewedConfig: credential });
+    expect(values.intent).toEqual(intent);
+    expect(values.handoff.intent).toEqual(intent);
+    expect(values.handoff.requires_reentry).toBeUndefined();
+    expect(values.config.value).toBeUndefined();
+    expect(values.reviewedConfig.value).toBeUndefined();
+    expect(JSON.stringify(values)).not.toContain("test-only-sensitive-value");
+  });
+
+  it("terminates object and array cycles without discarding non-cyclic siblings", () => {
+    const object: any = { hostName: "host-a" };
+    object.self = object;
+    const array: any[] = [object];
+    array.push(array);
+    const values = sanitizeWorkflowValues({ array, copy: object });
+    expect(values.array).toEqual([{ hostName: "host-a", requires_reentry: true }]);
+    expect(values.copy).toEqual({ hostName: "host-a", requires_reentry: true });
+    expect(() => JSON.stringify(values)).not.toThrow();
+  });
+
   it("does not start a workflow mutation until its checkpoint succeeds", async () => {
     let resolveCheckpoint: () => void = () => undefined;
     const checkpoint = vi.fn(() => new Promise<void>((resolve) => {
@@ -341,7 +366,7 @@ describe("scoped workflow persistence", () => {
     });
   });
 
-  it("blocks unresolved recovery but keeps a re-entered credential in runtime memory", async () => {
+  it("requires reload after blocked recovery and keeps the re-entered credential in runtime memory", async () => {
     const recoveredValues = {
       ENABLING_KERBEROS: {
         config: { propertyName: "admin_password", requires_reentry: true },
@@ -373,6 +398,9 @@ describe("scoped workflow persistence", () => {
     await expect(persistence.savePersistData({ activeStep: "CONFIGURE_KERBEROS" }))
       .rejects.toBeInstanceOf(WorkflowReentryRequiredError);
     expect(api.put).not.toHaveBeenCalled();
+    await expect(persistence.savePersistData({ activeStep: "CONFIGURE_KERBEROS" }))
+      .rejects.toBeInstanceOf(WorkflowQueueInvalidatedError);
+    await persistence.reload();
 
     await persistence.savePersistData({
       ENABLING_KERBEROS: {
