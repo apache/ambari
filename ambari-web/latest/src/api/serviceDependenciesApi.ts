@@ -18,6 +18,22 @@
 
 import { ambariApi } from "./config/axiosConfig";
 
+export type ManagedDeployment = {
+  deployment_id: string;
+  cluster_id: number;
+  state: string;
+  phase: string;
+  request_id: number | null;
+  attempt_id: string;
+  failure_code: string | null;
+  targets: Array<{ serviceName: string; componentName: string; hostName: string; hostId: number }>;
+  history: Array<{ attemptId: string; phase: string; requestId: number | null }>;
+  bindings: ManagedDependencyBindingSummary[];
+  retry_allowed: boolean;
+  completed: boolean;
+  install_only: boolean;
+};
+
 export type ManagedDependencyType = "HDFS" | "ZOOKEEPER";
 export type ManagedDependencyOwnership = "managed" | "local" | "unmanaged" | "unknown";
 export type ManagedDependencyBindingPhase =
@@ -156,6 +172,7 @@ export type ManagedDependencyCapabilities = {
   install_or_configure_allowed: boolean;
   credential_status: "NOT_REQUIRED" | "REQUIRED" | "ISSUED" | "UNKNOWN";
   credentials_required: boolean;
+  manual_credentials_allowed?: boolean;
   start_or_restart_allowed: boolean;
   retry_allowed: boolean;
   detach_allowed: boolean;
@@ -248,8 +265,26 @@ export type ManagedDependentsResponse = {
   items: ManagedDependent[];
 };
 
+export type ManagedDependencyUpdatePreview = {
+  binding_id: string;
+  row_version: number;
+  current_snapshot_version: number;
+  next_snapshot_version: number;
+  snapshot_approval: string;
+  provider_fingerprint: string;
+  consumer_descriptor_fingerprint: string;
+  snapshot_fingerprint: string;
+  old_client_config: Record<string, Record<string, string>>;
+  new_client_config: Record<string, Record<string, string>>;
+  new_snapshot: ManagedDependencySnapshotSummary;
+};
+
 export type ManagedDependencyImpact = {
-  action: "STOP";
+  action: "STOP" | "RESTART";
+  provider_cluster_id: number;
+  service_name: string;
+  items?: Array<{ consumer_cluster_name: string; consumer_service_name: string }>;
+  hidden_dependent_count?: number;
   dependent_count: number;
   impact_revision: string;
   requires_confirmation: boolean;
@@ -447,6 +482,65 @@ export const ServiceDependenciesApi = {
       { signal },
     )).data,
 
+  launchDeployment: async (
+    clusterName: string,
+    deploymentId: string,
+    targets: Array<{ serviceName: string; componentName: string; hostName: string }>,
+    installOnly: boolean,
+    signal?: AbortSignal,
+  ) => (await ambariApi.post<ManagedDeployment>(
+    `${serviceDependencyPath(clusterName)}/deployments/${encodeURIComponent(deploymentId)}`,
+    { targets, install_only: installOnly }, { signal },
+  )).data,
+
+  getDeployment: async (clusterName: string, deploymentId: string, signal?: AbortSignal) =>
+    (await ambariApi.get<ManagedDeployment>(
+      `${serviceDependencyPath(clusterName)}/deployments/${encodeURIComponent(deploymentId)}`, { signal },
+    )).data,
+
+  retryDeployment: async (clusterName: string, deploymentId: string, operationId: string, signal?: AbortSignal) =>
+    (await ambariApi.post<ManagedDeployment>(
+      `${serviceDependencyPath(clusterName)}/deployments/${encodeURIComponent(deploymentId)}/actions/retry`,
+      { operation_id: operationId }, { signal },
+    )).data,
+
+  verifyCredentials: async (clusterName: string, bindingId: string, epoch: number, signal?: AbortSignal) =>
+    (await ambariApi.post<ManagedDependencyBinding>(
+      `${serviceDependencyPath(clusterName)}/${encodeURIComponent(bindingId)}/actions/verify-credentials`,
+      { expected_epoch: epoch }, { signal },
+    )).data,
+
+  previewUpdate: async (clusterName: string, bindingId: string, signal?: AbortSignal) =>
+    (await ambariApi.get<ManagedDependencyUpdatePreview>(
+      `${serviceDependencyPath(clusterName)}/${encodeURIComponent(bindingId)}/preview-update`, { signal },
+    )).data,
+
+  update: async (clusterName: string, preview: ManagedDependencyUpdatePreview, operationId: string) =>
+    (await ambariApi.post<ManagedDependencyBinding>(
+      `${serviceDependencyPath(clusterName)}/${encodeURIComponent(preview.binding_id)}/actions/update`, {
+        operation_id: operationId,
+        expected_row_version: preview.row_version,
+        expected_snapshot_version: preview.current_snapshot_version,
+        expected_provider_fingerprint: preview.provider_fingerprint,
+        expected_consumer_descriptor_fingerprint: preview.consumer_descriptor_fingerprint,
+        expected_snapshot_fingerprint: preview.snapshot_fingerprint,
+        expected_snapshot_approval: preview.snapshot_approval,
+        preview_schema_version: preview.new_snapshot.schema_version,
+      },
+    )).data,
+
+  retry: async (clusterName: string, bindingId: string, rowVersion: number, operationId: string) =>
+    (await ambariApi.post<ManagedDependencyBinding>(
+      `${serviceDependencyPath(clusterName)}/${encodeURIComponent(bindingId)}/actions/retry`,
+      { operation_id: operationId, expected_row_version: rowVersion },
+    )).data,
+
+  detach: async (clusterName: string, bindingId: string, rowVersion: number, operationId: string) =>
+    (await ambariApi.delete<ManagedDependencyBinding>(
+      `${serviceDependencyPath(clusterName)}/${encodeURIComponent(bindingId)}`,
+      { data: { operation_id: operationId, expected_row_version: rowVersion } },
+    )).data,
+
   getDependents: async (
     clusterName: string,
     serviceName: string,
@@ -460,9 +554,10 @@ export const ServiceDependenciesApi = {
     clusterName: string,
     serviceName: string,
     signal?: AbortSignal,
+    action: "STOP" | "RESTART" = "STOP",
   ) => (await ambariApi.get<ManagedDependencyImpact>(
     `${providerServicePath(clusterName, serviceName)}/dependency-impact`,
-    { params: { action: "STOP" }, signal },
+    { params: { action }, signal },
   )).data,
 };
 

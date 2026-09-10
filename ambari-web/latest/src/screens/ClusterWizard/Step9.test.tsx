@@ -24,285 +24,147 @@ import { ContextWrapper } from ".";
 import "../../i18n";
 
 const mocks = vi.hoisted(() => ({
-  dispatch: vi.fn(),
-  flushStateToDb: vi.fn(),
-  getManagedDependency: vi.fn(),
-  getRequests: vi.fn(),
-  getRequestStatus: vi.fn(),
-  updateHostComponents: vi.fn(),
-  updateService: vi.fn(),
+  dispatch: vi.fn(), flush: vi.fn(), next: vi.fn(), get: vi.fn(), launch: vi.fn(), retry: vi.fn(),
+  scan: vi.fn(), update: vi.fn(), start: vi.fn(), status: vi.fn(),
 }));
-
-vi.mock("../../api/requestApi", () => ({
-  RequestApi: {
-    getRequests: mocks.getRequests,
-    getRequestStatus: mocks.getRequestStatus,
-  },
-}));
-vi.mock("../../api/hostsApi", () => ({
-  HostsApi: {
-    updateHostComponents: mocks.updateHostComponents,
-  },
-}));
-vi.mock("../../api/serviceApi", () => ({
-  ServiceApi: { ambariService: vi.fn(), updateService: mocks.updateService },
-}));
-vi.mock("../../api/serviceDependenciesApi", () => ({
-  default: { get: mocks.getManagedDependency },
-}));
+vi.mock("../../api/serviceDependenciesApi", () => ({ default: {
+  getDeployment: mocks.get, launchDeployment: mocks.launch, retryDeployment: mocks.retry,
+} }));
+vi.mock("../../api/requestApi", () => ({ RequestApi: { getRequests: mocks.scan, getRequestStatus: mocks.status } }));
+vi.mock("../../api/hostsApi", () => ({ HostsApi: { updateHostComponents: mocks.update } }));
+vi.mock("../../api/serviceApi", () => ({ ServiceApi: { updateService: mocks.start } }));
+vi.mock("../BackgroundOperations", () => ({ default: () => null }));
+vi.mock("react-router-dom", () => ({ useBlocker: () => ({ state: "unblocked" }) }));
 vi.mock("../../components/StepWizard/WizardFooter", () => ({
-  default: () => null,
+  default: ({ isNextEnabled, onNext, sideItems }: any) => <>{sideItems}<button disabled={!isNextEnabled} onClick={onNext}>Continue</button></>,
 }));
-vi.mock("../BackgroundOperations", () => ({
-  default: () => null,
-}));
-vi.mock("react-router-dom", () => ({
-  useBlocker: () => ({ state: "unblocked" }),
-}));
-
 import Step9 from "./Step9";
+import { reducer } from "./clusterStore/reducer";
+import { projectClusterCreationValues } from "../../Utils/scopedWorkflow";
 
-const binding = (providerPrepared: boolean) => ({
-  binding_id: "11111111-1111-4111-8111-111111111111",
-  consumer: { cluster_id: 27, service_name: "HBASE" },
-  dependency_type: "HDFS" as const,
-  desired_snapshot_version: 1,
-  operation_epoch: 3,
-  ownership: "managed" as const,
-  readiness: {
-    topology_current: true,
-    required_daemon_host_ids: ["101"],
-    prepared_daemon_host_ids: providerPrepared ? ["101"] : [],
-    verified_daemon_host_ids: providerPrepared ? ["101"] : [],
-    all_current_daemons_prepared: providerPrepared,
-    all_current_daemons_verified: providerPrepared,
-    active_command: false,
-    preparation_requests: [{
-      binding_id: "11111111-1111-4111-8111-111111111111",
-      operation_id: "33333333-3333-4333-8333-333333333333",
-      epoch: 3,
-      snapshot_version: 1,
-      host_id: 101,
-      component_name: "HBASE_MASTER",
-      request_id: 70,
-      task_id: 701,
-      state: "SUCCEEDED",
-    }],
-  },
-  capabilities: {
-    provider_prepared: providerPrepared,
-    install_or_configure_allowed: providerPrepared,
-    credential_status: "NOT_REQUIRED" as const,
-    credentials_required: false,
-    start_or_restart_allowed: false,
-    retry_allowed: false,
-    detach_allowed: false,
-    allowed_actions: providerPrepared ? ["INSTALL_OR_CONFIGURE"] : [],
-    next_action: providerPrepared
-      ? "INSTALL_OR_CONFIGURE"
-      : "WAIT_FOR_PROVIDER_PREPARATION",
-  },
-});
-
-const installIntent = {
-  clusterId: 27,
-  clusterName: "cluster1",
-  wizardName: "clusterCreation" as const,
-  serviceNames: ["HBASE"],
-  targets: [{
-    serviceName: "HBASE",
-    componentName: "HBASE_MASTER",
-    hostName: "host-a",
-  }],
-  intentId: "22222222-2222-4222-8222-222222222222",
-  state: "READY" as const,
-};
-
-function renderStep(
-  intent = installIntent,
-) {
-  const state = {
-    clusterCreationSteps: {
-      NAME: { data: { clusterName: "cluster1" } },
-      SERVICES: { data: { services: { HBASE: { selected: true, installed: false } } } },
-      HOST_STATUS: { data: { hosts: [{ name: "host-a", bootStatus: "REGISTERED" }] } },
-      REVIEW: { data: { clusterStatus: { status: "PENDING" } } },
-      INSTALL_START_TEST: {
-        data: {
-          clusterStatus: { status: "PENDING" },
-          phase: "WAIT_FOR_PROVIDER_PREPARATION",
-          managedDependencyInstallIntent: intent,
-          managedDependencyHandoff: {
-            phase: "WAIT_FOR_PROVIDER_PREPARATION",
-            clusterId: 27,
-            clusterName: "cluster1",
-            consumerServiceName: "HBASE",
-            installIntent: intent,
-            items: [{
-              bindingId: "11111111-1111-4111-8111-111111111111",
-              dependencyType: "HDFS",
-              operationId: "33333333-3333-4333-8333-333333333333",
-            }],
-          },
-          hostInfo: [],
-        },
-      },
-    },
-  };
-  const contextValue = {
-    state,
-    dispatch: mocks.dispatch,
-    flushStateToDb: mocks.flushStateToDb,
-    stepWizardUtilities: {
-      currentStep: { name: "INSTALL_START_TEST" },
-      handleNextImperitive: vi.fn(),
-    },
-  };
-  const WizardContext = createContext(contextValue);
-  return render(
-    <AppContext.Provider
-      value={{
-        clusterName: "cluster1",
-        isKerberosEnabled: false,
-        supports: { skipComponentStartAfterInstall: false },
-      } as never}
-    >
-      <ContextWrapper.Provider value={{ Context: WizardContext }}>
-        <WizardContext.Provider value={contextValue}>
-          <Step9 wizardName="clusterCreation" />
-        </WizardContext.Provider>
-      </ContextWrapper.Provider>
-    </AppContext.Provider>,
-  );
+const intent = { intentId: "22222222-2222-4222-8222-222222222222", clusterId: 27,
+  clusterName: "cluster1", wizardName: "clusterCreation", serviceNames: ["HBASE"], state: "READY",
+  targets: [{ serviceName: "HBASE", componentName: "HBASE_MASTER", hostName: "host-a" }] };
+const progress = (state = "WAIT_DEPENDENCIES", extra = {}) => ({ deployment_id: intent.intentId,
+  cluster_id: 27, state, phase: "INSTALL", request_id: 91, attempt_id: intent.intentId,
+  history: [{ attemptId: intent.intentId, phase: "INSTALL", requestId: 91 }], targets: intent.targets,
+  bindings: [], completed: state === "COMPLETE", install_only: state === "INSTALL_ONLY", retry_allowed: false, ...extra });
+function show(saved: any = {}, legacy = false) {
+  const value = { state: { clusterCreationSteps: {
+    NAME: { data: { clusterName: "cluster1" } },
+    REVIEW: { data: { clusterStatus: { status: "PENDING" } } },
+    INSTALL_START_TEST: { data: legacy ? saved : { managedDependencyInstallIntent: intent,
+      managedDependencyHandoff: { clusterId: 27, installIntent: intent, items: [{}] }, ...saved } },
+  } }, dispatch: mocks.dispatch, flushStateToDb: mocks.flush,
+    stepWizardUtilities: { currentStep: { name: "INSTALL_START_TEST" }, handleNextImperitive: mocks.next } };
+  const Context = createContext(value);
+  return render(<AppContext.Provider value={{ clusterName: "cluster1", supports: {}, isKerberosEnabled: false } as any}>
+    <ContextWrapper.Provider value={{ Context }}><Context.Provider value={value}><Step9 /></Context.Provider></ContextWrapper.Provider>
+  </AppContext.Provider>);
 }
+beforeEach(() => { vi.resetAllMocks(); mocks.flush.mockResolvedValue(undefined); mocks.get.mockResolvedValue(progress()); });
+afterEach(cleanup);
 
-describe("managed dependency installation handoff", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.flushStateToDb.mockResolvedValue(undefined);
-    mocks.getRequestStatus.mockResolvedValue({ Requests: { request_status: "IN_PROGRESS" }, tasks: [] });
-    mocks.getManagedDependency.mockResolvedValue(binding(false));
-    mocks.getRequests.mockResolvedValue({ items: [] });
-    mocks.updateHostComponents.mockResolvedValue({ Requests: { id: 91 } });
+describe("durable managed deployment handoff", () => {
+  it("renders exact persisted deployment and waits for verification without scheduling or scanning", async () => {
+    show();
+    await screen.findByText("Checking dependency connections");
+    expect(mocks.get).toHaveBeenCalledWith("cluster1", intent.intentId, expect.any(AbortSignal));
+    expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(true);
+    expect(mocks.scan).not.toHaveBeenCalled(); expect(mocks.update).not.toHaveBeenCalled(); expect(mocks.start).not.toHaveBeenCalled();
   });
-
-  afterEach(cleanup);
-
-  it("refreshes provider readiness and submits the exact workflow host-component target", async () => {
-    renderStep();
-    await waitFor(() => expect(mocks.getManagedDependency).toHaveBeenCalledWith(
-      "cluster1",
-      "11111111-1111-4111-8111-111111111111",
-    ));
-    expect(mocks.updateService).not.toHaveBeenCalled();
-
-    mocks.getManagedDependency.mockResolvedValue(binding(true));
-    fireEvent.click(screen.getByRole("button", { name: "Reload dependency status" }));
-
-    await waitFor(() => expect(mocks.updateHostComponents).toHaveBeenCalledWith(
-      "cluster1",
-      expect.stringContaining("HostRoles/component_name=HBASE_MASTER"),
-      expect.objectContaining({
-        HostRoles: { state: "INSTALLED" },
-        level: "HOST_COMPONENT",
-      }),
-    ));
-    expect(mocks.updateHostComponents.mock.calls[0][1]).not.toContain("host-b");
-    expect(mocks.flushStateToDb.mock.invocationCallOrder[0])
-      .toBeLessThan(mocks.updateHostComponents.mock.invocationCallOrder[0]);
-    expect(mocks.updateService).not.toHaveBeenCalled();
+  it("flushes the immutable launch ID before submission and recovers a lost response by GET", async () => {
+    mocks.get.mockRejectedValueOnce({ response: { status: 404 } });
+    mocks.launch.mockRejectedValueOnce(new Error("Connection lost"));
+    show();
+    await screen.findByText("Connection lost");
+    expect(mocks.flush.mock.invocationCallOrder[0]).toBeLessThan(mocks.launch.mock.invocationCallOrder[0]);
+    expect(mocks.launch).toHaveBeenCalledWith("cluster1", intent.intentId, intent.targets, false, expect.any(AbortSignal));
+    fireEvent.click(screen.getByText("Reload status"));
+    await screen.findByText("Checking dependency connections");
+    expect(mocks.launch).toHaveBeenCalledTimes(1);
   });
-
-  it("keeps a lost install submission durable and never issues a second PUT", async () => {
-    mocks.getManagedDependency.mockResolvedValue(binding(true));
-    mocks.updateHostComponents.mockResolvedValue({});
-    renderStep();
-
-    expect(await screen.findByText(/submission outcome is unknown/)).toBeTruthy();
-    expect(mocks.updateHostComponents).toHaveBeenCalledOnce();
-    expect(mocks.dispatch.mock.calls.some(([action]) =>
-      action.payload?.data?.managedDependencyInstallIntent?.state === "SUBMITTING",
-    )).toBe(true);
-
-    fireEvent.click(screen.getByRole("button", { name: "Reload dependency status" }));
-    await waitFor(() => expect(mocks.getManagedDependency).toHaveBeenCalledTimes(2));
-    expect(mocks.updateHostComponents).toHaveBeenCalledOnce();
+  it("fails closed for legacy submitted intent without backend lineage", async () => {
+    mocks.get.mockRejectedValue({ response: { status: 404 } });
+    show({ managedDependencyInstallIntent: { ...intent, state: "SUBMITTING" } });
+    await screen.findByText(/predates durable deployment tracking/);
+    expect(mocks.launch).not.toHaveBeenCalled(); expect(mocks.scan).not.toHaveBeenCalled();
   });
-
-  it("recovers a lost install response from current preparation lineage and exact request targets", async () => {
-    const prepResponse = {
-      Requests: { id: 70, request_status: "COMPLETED" },
-      tasks: [{ Tasks: {
-        id: 701,
-        request_id: 70,
-        role: "HBASE_MASTER",
-        host_name: "host-a",
-        status: "COMPLETED",
-      } }],
-    };
-    const installResponse = {
-      Requests: { id: 91, request_status: "IN_PROGRESS" },
-      tasks: [{ Tasks: {
-        id: 901,
-        request_id: 91,
-        role: "HBASE_MASTER",
-        host_name: "host-a",
-        status: "IN_PROGRESS",
-      } }],
-    };
-    mocks.getManagedDependency.mockResolvedValue(binding(true));
-    mocks.getRequestStatus.mockImplementation(async (_cluster: string, requestId: string) =>
-      requestId === "70" ? prepResponse : installResponse);
-    mocks.getRequests.mockResolvedValue({
-      items: [{
-        Requests: {
-          id: 91,
-          request_context: "Install Services",
-          request_status: "IN_PROGRESS",
-          start_time: new Date().toISOString(),
-        },
-        tasks: installResponse.tasks,
-      }],
+  it("rejects another cluster's response", async () => {
+    mocks.get.mockResolvedValue(progress("COMPLETE", { cluster_id: 99 })); show();
+    await screen.findByText("Ambari returned a different deployment identity.");
+    expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(true);
+  });
+  it("keeps summary disabled until service checks finish", async () => {
+    mocks.get.mockResolvedValue(progress("CHECKING")); show();
+    await screen.findByText("Running service checks"); expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(true);
+    mocks.get.mockResolvedValue(progress("COMPLETE")); fireEvent.click(screen.getByText("Reload status"));
+    await waitFor(() => expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(false));
+    fireEvent.click(screen.getByText("Continue")); await waitFor(() => expect(mocks.next).toHaveBeenCalled());
+    expect(mocks.dispatch).toHaveBeenCalledWith(expect.objectContaining({ payload: expect.objectContaining({ data:
+      expect.objectContaining({ hostInfo: [expect.objectContaining({ name: "host-a", status: "success" })] }) }) }));
+  });
+  it("resumes the same retry intent after a lost response", async () => {
+    mocks.get.mockResolvedValue(progress("FAILED", { retry_allowed: true }));
+    mocks.retry.mockRejectedValue(new Error("Retry response lost")); show();
+    fireEvent.click(await screen.findByText("Retry failed deployment")); await screen.findByText("Retry response lost");
+    const id = mocks.retry.mock.calls[0][2];
+    fireEvent.click(screen.getByText("Retry failed deployment")); await waitFor(() => expect(mocks.retry).toHaveBeenCalledTimes(2));
+    expect(mocks.retry.mock.calls[1][2]).toBe(id);
+  });
+  it("restores install-only completion without a Start request", async () => {
+    mocks.get.mockResolvedValue(progress("INSTALL_ONLY", { request_id: null })); show({ managedDeploymentVersion: 1 });
+    await waitFor(() => expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(false)); expect(mocks.start).not.toHaveBeenCalled();
+  });
+  it("never recreates an acknowledged deployment that disappears after completion", async () => {
+    mocks.get.mockResolvedValueOnce(progress("COMPLETE"));
+    show();
+    await waitFor(() => expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(false));
+    expect(mocks.dispatch).toHaveBeenCalledWith(expect.objectContaining({ payload: expect.objectContaining({
+      data: expect.objectContaining({ managedDeploymentAcknowledged: true }),
+    }) }));
+    mocks.get.mockRejectedValue({ response: { status: 404 } });
+    fireEvent.click(screen.getByText("Reload status"));
+    await screen.findByText(/previously confirmed deployment is missing/);
+    expect(mocks.launch).not.toHaveBeenCalled();
+    expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(true);
+  });
+  it("preserves acknowledged deployment ownership after a browser refresh", async () => {
+    mocks.get.mockRejectedValue({ response: { status: 404 } });
+    show({ managedDeploymentVersion: 1, managedDeploymentAcknowledged: true });
+    await screen.findByText(/previously confirmed deployment is missing/);
+    expect(mocks.launch).not.toHaveBeenCalled();
+  });
+  it("invalidates cached completion when revalidation returns another cluster", async () => {
+    mocks.get.mockResolvedValueOnce(progress("COMPLETE"));
+    show();
+    await waitFor(() => expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(false));
+    mocks.get.mockResolvedValue(progress("COMPLETE", { cluster_id: 99 }));
+    fireEvent.click(screen.getByText("Reload status"));
+    await screen.findByText("Ambari returned a different deployment identity.");
+    expect((screen.getByText("Continue") as HTMLButtonElement).disabled).toBe(true);
+    expect(mocks.next).not.toHaveBeenCalled();
+  });
+  it("retains the entire handoff through the real reducer, persistence projection, retry and refresh", async () => {
+    let state: any = { clusterCreationSteps: {} };
+    let saved: any;
+    mocks.dispatch.mockImplementation(action => { state = reducer(state, action); });
+    mocks.flush.mockImplementation(async () => {
+      saved = projectClusterCreationValues({ state }).state.clusterCreationSteps.INSTALL_START_TEST.data;
     });
-    renderStep({
-      ...installIntent,
-      state: "SUBMITTING",
-      submissionStartedAt: Date.now() - 1000,
-    });
-
-    await waitFor(() => expect(mocks.getRequests).toHaveBeenCalledWith("cluster1"));
-    expect(mocks.updateHostComponents).not.toHaveBeenCalled();
-    expect(mocks.dispatch.mock.calls.some(([action]) =>
-      action.payload?.data?.managedDependencyInstallIntent?.state === "SUBMITTED"
-      && action.payload?.data?.managedDependencyInstallIntent?.requestId === 91,
-    )).toBe(true);
-  });
-
-  it("rejects a lost submission when the current binding lineage is stale", async () => {
-    mocks.getManagedDependency.mockResolvedValue({ ...binding(true), operation_epoch: 4 });
-    renderStep({ ...installIntent, state: "SUBMITTING" });
-
-    expect(await screen.findByText(/different cluster or service/)).toBeTruthy();
-    expect(mocks.getRequests).not.toHaveBeenCalled();
-    expect(mocks.updateHostComponents).not.toHaveBeenCalled();
-  });
-
-  it("rejects a recovered request containing a foreign target", async () => {
-    const prepResponse = {
-      Requests: { id: 70 },
-      tasks: [{ Tasks: { id: 701, request_id: 70, role: "HBASE_MASTER", host_name: "host-a", status: "COMPLETED" } }],
-    };
-    mocks.getManagedDependency.mockResolvedValue(binding(true));
-    mocks.getRequestStatus.mockResolvedValue(prepResponse);
-    mocks.getRequests.mockResolvedValue({
-      items: [{
-        Requests: { id: 91, request_context: "Install Services", request_status: "IN_PROGRESS" },
-        tasks: [{ Tasks: { id: 902, request_id: 91, role: "HBASE_MASTER", host_name: "host-b", status: "IN_PROGRESS" } }],
-      }],
-    });
-    renderStep({ ...installIntent, state: "SUBMITTING" });
-
-    expect(await screen.findByText(/submission outcome is unknown/)).toBeTruthy();
-    expect(mocks.updateHostComponents).not.toHaveBeenCalled();
+    mocks.get.mockResolvedValue(progress("FAILED", { retry_allowed: true }));
+    mocks.retry.mockRejectedValue(new Error("Retry response lost"));
+    show();
+    fireEvent.click(await screen.findByText("Retry failed deployment"));
+    await screen.findByText("Retry response lost");
+    expect(saved.managedDependencyInstallIntent).toEqual(intent);
+    expect(saved.managedDependencyHandoff.installIntent).toEqual(intent);
+    expect(saved.managedDeploymentAcknowledged).toBe(true);
+    expect(saved.managedDeploymentRetryId).toBe(mocks.retry.mock.calls[0][2]);
+    cleanup();
+    mocks.get.mockRejectedValue({ response: { status: 404 } });
+    show(saved);
+    await screen.findByText(/previously confirmed deployment is missing/);
+    expect(mocks.launch).not.toHaveBeenCalled();
   });
 });

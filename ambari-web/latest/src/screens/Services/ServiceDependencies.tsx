@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import DependencyActions from "./DependencyActions";
 import { useContext, useEffect, useRef, useState } from "react";
 import { Alert, Badge, Button, Spinner } from "react-bootstrap";
 import { Link, useLocation } from "react-router-dom";
@@ -42,7 +43,11 @@ const dependencyPhaseVariant = (phase?: string) => {
   }
 };
 
-export function DependencyCard({ binding }: { binding: ManagedDependencyBindingSummary }) {
+export function DependencyCard({ binding, clusterName, onChanged }: {
+  binding: ManagedDependencyBindingSummary;
+  clusterName?: string;
+  onChanged?: () => void;
+}) {
   const { t } = useTranslation();
   const hasDrift = binding.desired_snapshot_version != null
     && binding.applied_snapshot_version != null
@@ -118,11 +123,11 @@ export function DependencyCard({ binding }: { binding: ManagedDependencyBindingS
       {binding.failure_message ? (
         <Alert className="mt-3 mb-0 py-2" variant="danger">
           {binding.failure_message}
-          {binding.failure_retryable ? (
-            <div className="small mt-1">{t("serviceDependencies.retryLater")}</div>
-          ) : null}
+
         </Alert>
       ) : null}
+      {clusterName && onChanged ? <DependencyActions key={`${clusterName}:${binding.binding_id}`}
+        clusterName={clusterName} binding={binding} onChanged={onChanged} /> : null}
     </article>
   );
 }
@@ -138,6 +143,8 @@ export default function ServiceDependencies() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [loadedScope, setLoadedScope] = useState("");
+  const scope = JSON.stringify([clusterName, runtimeKey]);
   const generationRef = useRef(0);
 
   useEffect(() => {
@@ -152,14 +159,19 @@ export default function ServiceDependencies() {
       setError(t("serviceDependencies.explicitCluster"));
       return () => controller.abort();
     }
-    void ServiceDependenciesApi.list(clusterName, controller.signal).then(
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const load = () => ServiceDependenciesApi.list(clusterName, controller.signal).then(
       (items) => {
         if (controller.signal.aborted || generation !== generationRef.current) return;
+        setLoadedScope(scope);
+        setError(null);
         setBindings(items);
+        timer = setTimeout(() => void load(), 5000);
         setLoading(false);
       },
       (requestError: any) => {
         if (controller.signal.aborted || generation !== generationRef.current) return;
+        setLoadedScope(scope);
         setError(String(
           requestError?.response?.data?.message
             || requestError?.message
@@ -168,13 +180,15 @@ export default function ServiceDependencies() {
         setLoading(false);
       },
     );
+    void load();
     return () => {
+      clearTimeout(timer);
       controller.abort();
       if (generationRef.current === generation) generationRef.current += 1;
     };
   }, [clusterName, retryCount, runtimeKey, t]);
 
-  if (loading) {
+  if (loading || clusterName && loadedScope !== scope) {
     return (
       <div aria-live="polite" className="py-4 text-center">
         <Spinner animation="border" className="me-2" size="sm" />
@@ -208,7 +222,7 @@ export default function ServiceDependencies() {
       <div className="row g-3">
         {bindings.map((binding) => (
           <div className="col-12 col-xl-6" key={binding.dependency_type}>
-            <DependencyCard binding={binding} />
+            <DependencyCard binding={binding} clusterName={clusterName} onChanged={() => setRetryCount(value => value + 1)} />
           </div>
         ))}
       </div>

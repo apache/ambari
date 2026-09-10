@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ComponentProps } from "react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useLayoutEffect, type ComponentProps } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../../i18n";
 import { AppContext } from "../../store/context";
 import type { ManagedDependencyBindingPhase } from "../../api/serviceDependenciesApi";
+
+afterEach(cleanup);
+vi.mock("../../store/UserContext", () => ({ useUserContext: () => ({ hasAuthorization: () => false }) }));
 
 const mocks = vi.hoisted(() => ({ list: vi.fn() }));
 vi.mock("../../api/serviceDependenciesApi", () => ({ default: mocks }));
@@ -135,6 +138,28 @@ describe("HBase dependencies", () => {
 
     expect(await screen.findByText("Local cluster service")).toBeTruthy();
     expect(mocks.list).toHaveBeenNthCalledWith(2, "analytics", expect.any(AbortSignal));
+  });
+
+  it("does not commit cached provider rows under a different cluster before effects run", async () => {
+    mocks.list.mockResolvedValueOnce([{ dependency_type: "HDFS", ownership: "managed", provider: {
+      cluster_id: 9, cluster_name: "alpha-provider", service_name: "HDFS",
+    } }]).mockImplementation(() => new Promise(() => {}));
+    const commits: string[] = [];
+    function CommitProbe({ clusterName }: { clusterName: string }) {
+      useLayoutEffect(() => { commits.push(`${clusterName}:${document.body.textContent}`); }, [clusterName]);
+      return null;
+    }
+    const tree = (clusterName: string) => <MemoryRouter>
+      <AppContext.Provider value={{ clusterName, runtimeKey: clusterName } as any}>
+        <ServiceDependencies /><CommitProbe clusterName={clusterName} />
+      </AppContext.Provider>
+    </MemoryRouter>;
+    const view = render(tree("alpha"));
+    await screen.findByText("alpha-provider / HDFS");
+    view.rerender(tree("beta"));
+    const betaCommit = commits.find(commit => commit.startsWith("beta:"));
+    expect(betaCommit).toBeDefined();
+    expect(betaCommit).not.toContain("alpha-provider");
   });
 
   it("offers the validated global directory return path", async () => {

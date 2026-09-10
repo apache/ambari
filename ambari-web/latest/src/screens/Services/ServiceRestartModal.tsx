@@ -34,6 +34,8 @@ type ServiceRestartConfig = {
 type ServiceRestartModalProps = {
   isOpen: boolean;
   serviceDisplayName: string;
+  clusterName?: string;
+  impactContent?: import("react").ReactNode;
   scope: ServiceRestartScope;
   componentCount: number;
   blocked: boolean;
@@ -52,6 +54,8 @@ const SCOPE_LABELS: Record<ServiceRestartScope, string> = {
 export default function ServiceRestartModal({
   isOpen,
   serviceDisplayName,
+  clusterName,
+  impactContent,
   scope,
   componentCount,
   blocked,
@@ -121,9 +125,10 @@ export default function ServiceRestartModal({
     <Modal
       isOpen={isOpen}
       onClose={isSubmitting ? () => undefined : onClose}
-      modalTitle={`Configure Restart ${serviceDisplayName}`}
+      modalTitle={`Configure Restart ${clusterName ? `${clusterName} / ` : ""}${serviceDisplayName}`}
       modalBody={(
         <>
+          {impactContent}
           <Alert variant="info">
             Restart {componentCount} {SCOPE_LABELS[scope]} for {serviceDisplayName}.
           </Alert>

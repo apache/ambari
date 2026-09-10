@@ -29,18 +29,15 @@ import { ViewLevel } from "../../constants";
 import { RequestApi } from "../../api/requestApi";
 import { HostsApi } from "../../api/hostsApi";
 import { ServiceApi } from "../../api/serviceApi";
-import ServiceDependenciesApi, {
-  type ManagedDependencyBinding,
-  type ManagedDependencyPreparationRequest,
-} from "../../api/serviceDependenciesApi";
+import ManagedDeploymentProgress from "./ManagedDeploymentProgress";
 import { ActionTypes } from "./clusterStore/types";
 import {
   canEnterSummary,
+  clientOnlyTargetsInstalled,
   canRetryInstallation,
   failedTaskStatuses,
   InstallWizardName,
   InstallationPhase,
-  type ManagedDependencyInstallIntent,
   mergeInstallTasks,
   requestFailed,
   requestFinished,
@@ -71,37 +68,9 @@ function phaseLabel(phase: InstallationPhase): string {
   }
 }
 
-type ManagedDependencyHandoff = {
-  phase: "WAIT_FOR_PROVIDER_PREPARATION";
-  clusterId?: number;
-  clusterName?: string;
-  consumerServiceName?: "HBASE";
-  installIntent?: ManagedDependencyInstallIntent;
-  items: Array<{
-    bindingId: string;
-    dependencyType: "HDFS" | "ZOOKEEPER";
-    operationId: string;
-  }>;
-};
-
-const sanctionedInstallAuxiliaryCommands = new Set([
-  "EXECUTE",
-  "INSTALL_PACKAGES",
-  "SERVICE_CHECK",
-]);
-const terminalPreparationStates = new Set(["SUCCEEDED", "COMPLETED", "SUCCESS"]);
-
 const taskData = (task: any) => task?.Tasks || task || {};
 
-const requestTaskId = (task: any) => taskData(task).id ?? taskData(task).task_id;
-
-const installTargetKey = (target: {
-  serviceName: string;
-  componentName: string;
-  hostName: string;
-}) => `${target.serviceName}:${target.componentName}:${target.hostName}`;
-
-function Step9({ wizardName = "clusterCreation" }: Step9Props) {
+function LegacyStep9({ wizardName = "clusterCreation" }: Step9Props) {
   const { t } = useTranslation();
   const { Context } = useContext(ContextWrapper);
   const {
@@ -121,23 +90,13 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
   const clusterName = getStepData("NAME", "clusterName") || "";
   const reviewStatus = getStepData("REVIEW", "clusterStatus") || {};
   const restoredInstall = getStepData("INSTALL_START_TEST") || {};
-  const managedDependencyHandoff = (
-    restoredInstall.managedDependencyHandoff
-    || getStepData("REVIEW", "managedDependencyHandoff")
-  ) as ManagedDependencyHandoff | undefined;
-  const managedDependencyInstallIntent = (
-    restoredInstall.managedDependencyInstallIntent
-    || managedDependencyHandoff?.installIntent
-    || getStepData("REVIEW", "managedDependencyInstallIntent")
-  ) as ManagedDependencyInstallIntent | undefined;
   const initialStatus = restoredInstall.clusterStatus || reviewStatus;
-  const initialRequestId = initialStatus.requestId ?? managedDependencyInstallIntent?.requestId;
+  const initialRequestId = initialStatus.requestId;
   const restoredStatus = initialRequestId != null && initialStatus.requestId == null
     ? { ...initialStatus, requestId: initialRequestId }
     : initialStatus;
   const initialPhase: InstallationPhase = restoredInstall.phase
     || restoredStatus.phase
-    || managedDependencyHandoff?.phase
     || (restoredStatus.status === "STARTED" ? "COMPLETE" : "INSTALL");
   const initialTerminal = canEnterSummary(wizardName, restoredStatus.status || "");
   const registeredHosts = (getStepData("HOST_STATUS", "hosts") || [])
@@ -167,39 +126,14 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
   const [selectedRequestId, setSelectedRequestId] = useState<
     string | number | null
   >(null);
-  const [managedDependencyBindings, setManagedDependencyBindings] = useState<
-    ManagedDependencyBinding[]
-  >([]);
-  const [managedDependencyPollError, setManagedDependencyPollError] = useState("");
-
   const active = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const managedDependencyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestInFlight = useRef(false);
-  const managedDependencyPollInFlight = useRef(false);
-  const managedInstallStarted = useRef(
-    managedDependencyInstallIntent?.state === "SUBMITTING"
-    || managedDependencyInstallIntent?.state === "SUBMITTED",
-  );
-  const managedDependencyHandoffRef = useRef(managedDependencyHandoff);
-  const managedDependencyInstallIntentRef = useRef(managedDependencyInstallIntent);
-  const managedDependencyScopeKey = JSON.stringify([
-    managedDependencyHandoff?.clusterId,
-    managedDependencyHandoff?.clusterName,
-    managedDependencyHandoff?.consumerServiceName,
-    managedDependencyHandoff?.items || [],
-    managedDependencyInstallIntent?.intentId,
-    managedDependencyInstallIntent?.serviceNames || [],
-    managedDependencyInstallIntent?.targets || [],
-  ]);
-  const managedDependencyScopeKeyRef = useRef(managedDependencyScopeKey);
-  managedDependencyScopeKeyRef.current = managedDependencyScopeKey;
   const hostsRef = useRef<any[]>(initialHosts);
   const clusterStatusRef = useRef<any>(restoredStatus);
   const phaseRef = useRef<InstallationPhase>(initialPhase);
   const requestIdRef = useRef<string | number | undefined>(initialRequestId);
 
-  managedDependencyHandoffRef.current = managedDependencyHandoff;
 
   const blocker = useBlocker(({ currentLocation, nextLocation }) =>
     working && currentLocation.pathname !== nextLocation.pathname,
@@ -219,12 +153,6 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
           hostInfo: nextHosts,
           clusterStatus: nextStatus,
           phase: nextPhase,
-          ...(managedDependencyHandoffRef.current
-            ? { managedDependencyHandoff: managedDependencyHandoffRef.current }
-            : {}),
-          ...(managedDependencyInstallIntentRef.current
-            ? { managedDependencyInstallIntent: managedDependencyInstallIntentRef.current }
-            : {}),
           ...extraData,
         },
       },
@@ -369,427 +297,6 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
   ).filter((service: any) => service.selected && !service.installed)
     .map((service: any) => service.serviceName);
 
-  const managedInstallServices = () =>
-    managedDependencyInstallIntentRef.current?.serviceNames?.length
-      ? managedDependencyInstallIntentRef.current.serviceNames
-      : selectedServices();
-
-  const validateManagedDependencyBinding = (
-    binding: ManagedDependencyBinding,
-    item: ManagedDependencyHandoff["items"][number],
-    handoff: ManagedDependencyHandoff,
-  ) => {
-    const expectedClusterId = handoff.clusterId
-      ?? managedDependencyInstallIntentRef.current?.clusterId;
-    const expectedServiceName = handoff.consumerServiceName || "HBASE";
-    if (binding.binding_id !== item.bindingId
-      || binding.dependency_type !== item.dependencyType
-      || !binding.consumer
-      || binding.consumer.cluster_id !== expectedClusterId
-      || binding.consumer.service_name !== expectedServiceName) {
-      throw new Error(t("installer.step9.dependencyBindingMismatch"));
-    }
-  };
-
-  const expectedManagedInstallTargets = (intent: ManagedDependencyInstallIntent) => {
-    const targets = new Map<string, ManagedDependencyInstallIntent["targets"][number]>();
-    intent.targets.forEach((target) => targets.set(installTargetKey(target), target));
-    return targets;
-  };
-
-  const targetForTask = (
-    task: any,
-    intent: ManagedDependencyInstallIntent,
-    allowAuxiliary = true,
-  ) => {
-    const data = taskData(task);
-    const componentName = data.component_name || data.componentName || data.role;
-    const hostName = data.host_name || data.hostName;
-    if (!componentName || !hostName) {
-      const command = String(data.command || "").toUpperCase();
-      if (allowAuxiliary && sanctionedInstallAuxiliaryCommands.has(command)) return null;
-      throw new Error(t("installer.step9.installTargetMismatch"));
-    }
-    const serviceName = data.service_name || data.serviceName;
-    const matches = intent.targets.filter((target) =>
-      target.componentName === componentName
-      && target.hostName === hostName
-      && (!serviceName || target.serviceName === serviceName));
-    if (matches.length !== 1) {
-      throw new Error(t("installer.step9.installTargetMismatch"));
-    }
-    return matches[0];
-  };
-
-  const validateManagedInstallRequestTargets = (response: any) => {
-    const intent = managedDependencyInstallIntentRef.current;
-    if (!intent) return;
-    const expectedTargets = expectedManagedInstallTargets(intent);
-    if (!expectedTargets.size || !Array.isArray(response?.tasks) || !response.tasks.length) {
-      throw new Error(t("installer.step9.installTargetMismatch"));
-    }
-    const responseRequestId = response.Requests?.id ?? response.Requests?.request_id;
-    if (responseRequestId == null) {
-      throw new Error(t("installer.step9.installTargetMismatch"));
-    }
-    const seen = new Set<string>();
-    response.tasks.forEach((task: any) => {
-      const target = targetForTask(task, intent);
-      if (!target) return;
-      const key = installTargetKey(target);
-      if (seen.has(key)) throw new Error(t("installer.step9.installTargetMismatch"));
-      seen.add(key);
-      const data = taskData(task);
-      const taskRequestId = data.request_id ?? data.requestId;
-      if (requestTaskId(task) == null || taskRequestId == null
-        || String(taskRequestId) !== String(responseRequestId)) {
-        throw new Error(t("installer.step9.installTargetMismatch"));
-      }
-    });
-    if (seen.size !== expectedTargets.size
-      || Array.from(expectedTargets.keys()).some((key) => !seen.has(key))) {
-      throw new Error(t("installer.step9.installTargetMismatch"));
-    }
-  };
-
-  const reconcilePreparationLineage = async (
-    bindings: ManagedDependencyBinding[],
-    handoff: ManagedDependencyHandoff,
-    intent: ManagedDependencyInstallIntent,
-    capturedScope: string,
-  ) => {
-    const expectedTargets = expectedManagedInstallTargets(intent);
-    if (!expectedTargets.size) {
-      throw new Error(t("installer.step9.installTargetMismatch"));
-    }
-    const coveredTargets = new Set<string>();
-    const preparationRequestIds = new Set<string>();
-    for (let index = 0; index < handoff.items.length; index += 1) {
-      const item = handoff.items[index];
-      const binding = bindings[index];
-      const readiness = binding.readiness;
-      const rows = readiness?.preparation_requests;
-      if (!Array.isArray(rows)) {
-        throw new Error(t("installer.step9.dependencyBindingMismatch"));
-      }
-      const bindingRows = rows.filter((row) => row.binding_id === item.bindingId);
-      const currentRows = bindingRows.filter((row) => row.operation_id === item.operationId);
-      const currentEpoch = binding.operation_epoch ?? binding.operation?.epoch;
-      const currentSnapshot = binding.desired_snapshot_version;
-      if (!Number.isInteger(currentEpoch) || !Number.isInteger(currentSnapshot)
-        || !currentRows.length || bindingRows.length !== currentRows.length) {
-        throw new Error(t("installer.step9.dependencyBindingMismatch"));
-      }
-      const itemCoveredTargets = new Set<string>();
-      for (const row of currentRows as ManagedDependencyPreparationRequest[]) {
-        if (row.epoch !== currentEpoch || row.snapshot_version !== currentSnapshot
-          || !terminalPreparationStates.has(String(row.state).toUpperCase())
-          || row.request_id == null || row.task_id == null) {
-          throw new Error(t("installer.step9.dependencyBindingMismatch"));
-        }
-        preparationRequestIds.add(String(row.request_id));
-        const response = await RequestApi.getRequestStatus(
-          handoff.clusterName || clusterName,
-          String(row.request_id),
-        );
-        if (!active.current || managedDependencyScopeKeyRef.current !== capturedScope) {
-          return null;
-        }
-        const responseRequestId = response?.Requests?.id ?? response?.Requests?.request_id;
-        if (responseRequestId == null || String(responseRequestId) !== String(row.request_id)) {
-          throw new Error(t("installer.step9.dependencyBindingMismatch"));
-        }
-        const matchingTasks = (response?.tasks || []).filter((task: any) =>
-          String(requestTaskId(task)) === String(row.task_id));
-        if (matchingTasks.length !== 1) {
-          throw new Error(t("installer.step9.dependencyBindingMismatch"));
-        }
-        const task = taskData(matchingTasks[0]);
-        const componentName = task.component_name || task.componentName || task.role;
-        const hostName = task.host_name || task.hostName;
-        const taskHostId = task.host_id ?? task.hostId;
-        if (componentName !== row.component_name
-          || !hostName
-          || (taskHostId != null && String(taskHostId) !== String(row.host_id))) {
-          throw new Error(t("installer.step9.dependencyBindingMismatch"));
-        }
-        const candidates = intent.targets.filter((target) =>
-          target.componentName === componentName && target.hostName === hostName);
-        const taskServiceName = task.service_name || task.serviceName;
-        const target = candidates.length === 1
-          ? candidates[0]
-          : candidates.filter((candidate) => candidate.serviceName === taskServiceName)[0];
-        if (!target || (taskServiceName && target.serviceName !== taskServiceName)) {
-          throw new Error(t("installer.step9.installTargetMismatch"));
-        }
-        const key = installTargetKey(target);
-        if (!expectedTargets.has(key) || itemCoveredTargets.has(key)) {
-          throw new Error(t("installer.step9.installTargetMismatch"));
-        }
-        itemCoveredTargets.add(key);
-        coveredTargets.add(key);
-      }
-      if (itemCoveredTargets.size !== expectedTargets.size) {
-        throw new Error(t("installer.step9.installTargetMismatch"));
-      }
-    }
-    if (coveredTargets.size !== expectedTargets.size
-      || Array.from(expectedTargets.keys()).some((key) => !coveredTargets.has(key))) {
-      throw new Error(t("installer.step9.installTargetMismatch"));
-    }
-    return preparationRequestIds;
-  };
-
-  const reconcileLostInstallSubmission = async (
-    bindings: ManagedDependencyBinding[],
-    handoff: ManagedDependencyHandoff,
-    intent: ManagedDependencyInstallIntent,
-    capturedScope: string,
-  ) => {
-    const preparationRequestIds = await reconcilePreparationLineage(
-      bindings,
-      handoff,
-      intent,
-      capturedScope,
-    );
-    if (!preparationRequestIds
-      || !active.current
-      || managedDependencyScopeKeyRef.current !== capturedScope) return;
-    const response = await RequestApi.getRequests(handoff.clusterName || clusterName);
-    if (!active.current || managedDependencyScopeKeyRef.current !== capturedScope) return;
-    const requests = Array.isArray(response?.items) ? response.items : [];
-    const candidates = requests.filter((request: any) => {
-      const requestId = request?.Requests?.id ?? request?.Requests?.request_id;
-      if (requestId == null || preparationRequestIds.has(String(requestId))
-        || request?.Requests?.request_context !== "Install Services") return false;
-      if (intent.submissionStartedAt != null) {
-        const rawStart = request?.Requests?.start_time;
-        const startedAt = typeof rawStart === "number"
-          ? rawStart
-          : Date.parse(String(rawStart || ""));
-        if (!Number.isFinite(startedAt) || startedAt < intent.submissionStartedAt) return false;
-      }
-      try {
-        validateManagedInstallRequestTargets(request);
-        return true;
-      } catch {
-        return false;
-      }
-    });
-    if (candidates.length !== 1) {
-      throw new Error(t("installer.step9.installSubmissionUnknown"));
-    }
-    const requestId = candidates[0].Requests?.id ?? candidates[0].Requests?.request_id;
-    if (requestId == null) {
-      throw new Error(t("installer.step9.installSubmissionUnknown"));
-    }
-    const submittedIntent = { ...intent, state: "SUBMITTED" as const, requestId };
-    const submittedHandoff = {
-      ...handoff,
-      installIntent: submittedIntent,
-    };
-    managedDependencyInstallIntentRef.current = submittedIntent;
-    managedDependencyHandoffRef.current = submittedHandoff;
-    await setRequest(requestId, "INSTALL", "PENDING", {
-      managedDependencyInstallIntent: submittedIntent,
-      managedDependencyHandoff: submittedHandoff,
-    });
-  };
-
-  const managedDependencyNextAction = (binding: ManagedDependencyBinding) => {
-    const nextAction = binding.capabilities?.next_action || binding.next_action;
-    switch (nextAction) {
-      case "WAIT_FOR_PROVIDER_PREPARATION":
-        return t("installer.step9.providerPreparationWaiting");
-      case "INSTALL_OR_CONFIGURE":
-        return t("installer.step9.providerPreparationReady");
-      default:
-        return t("installer.step9.providerStatusUnavailable");
-    }
-  };
-
-  const managedDependencyInstallAllowed = (binding: ManagedDependencyBinding) =>
-    binding.capabilities?.install_or_configure_allowed === true
-    && binding.capabilities.allowed_actions?.includes("INSTALL_OR_CONFIGURE") === true;
-
-  const scheduleManagedDependencyPoll = (delay = 0) => {
-    if (!active.current || !managedDependencyHandoffRef.current?.items.length) return;
-    if (managedDependencyTimer.current) clearTimeout(managedDependencyTimer.current);
-    managedDependencyTimer.current = setTimeout(
-      () => void pollManagedDependencies(),
-      delay,
-    );
-  };
-
-  const launchManagedInstall = async () => {
-    if (managedInstallStarted.current) return;
-    const capturedScope = managedDependencyScopeKeyRef.current;
-    const intent = managedDependencyInstallIntentRef.current;
-    const serviceNames = intent?.serviceNames?.length
-      ? intent.serviceNames
-      : managedInstallServices();
-    if (!serviceNames.length) {
-      throw new Error(t("installer.step9.noSelectedService"));
-    }
-    if (intent && intent.clusterName !== clusterName) {
-      throw new Error(t("installer.step9.dependencyBindingMismatch"));
-    }
-    const targetGroups = new Map<string, {
-      serviceName: string;
-      componentName: string;
-      hostNames: string[];
-    }>();
-    (intent?.targets || []).forEach((target) => {
-      const groupKey = `${target.serviceName}:${target.componentName}`;
-      const group = targetGroups.get(groupKey) || {
-        serviceName: target.serviceName,
-        componentName: target.componentName,
-        hostNames: [],
-      };
-      if (!group.hostNames.includes(target.hostName)) group.hostNames.push(target.hostName);
-      targetGroups.set(groupKey, group);
-    });
-    const exactTargetQuery = Array.from(targetGroups.values()).map((group) =>
-      `(HostRoles/service_name=${group.serviceName}`
-      + `&HostRoles/component_name=${group.componentName}`
-      + `&HostRoles/host_name.in(${group.hostNames.join(",")})`
-      + "&HostRoles/state=INIT)").join("|");
-    if (intent && !exactTargetQuery) {
-      throw new Error(t("installer.step9.installTargetMismatch"));
-    }
-    managedInstallStarted.current = true;
-    const submittingIntent = intent
-      ? {
-        ...intent,
-        state: "SUBMITTING" as const,
-        submissionStartedAt: intent.submissionStartedAt || Date.now(),
-      }
-      : undefined;
-    const submittingHandoff = submittingIntent && managedDependencyHandoffRef.current
-      ? { ...managedDependencyHandoffRef.current, installIntent: submittingIntent }
-      : managedDependencyHandoffRef.current;
-    if (submittingIntent) {
-      managedDependencyInstallIntentRef.current = submittingIntent;
-      managedDependencyHandoffRef.current = submittingHandoff;
-      try {
-        persist(
-          hostsRef.current,
-          clusterStatusRef.current,
-          "WAIT_FOR_PROVIDER_PREPARATION",
-          {
-            managedDependencyInstallIntent: submittingIntent,
-            managedDependencyHandoff: submittingHandoff,
-          },
-        );
-        await Promise.resolve(flushStateToDb(
-          "checkpoint",
-          -1,
-          wizardCheckpoint(wizardName, "INSTALLING"),
-        ));
-        if (!active.current || managedDependencyScopeKeyRef.current !== capturedScope) return;
-      } catch (error) {
-        managedInstallStarted.current = false;
-        managedDependencyInstallIntentRef.current = intent;
-        managedDependencyHandoffRef.current = managedDependencyHandoff;
-        throw error;
-      }
-    }
-    const urlParams = `ServiceInfo/service_name.in(${serviceNames.join(",")})`;
-    let response: any;
-    try {
-      response = intent
-        ? await HostsApi.updateHostComponents(
-          clusterName,
-          exactTargetQuery,
-          {
-            context: "Install Services",
-            HostRoles: { state: "INSTALLED" },
-            level: "HOST_COMPONENT",
-            query: exactTargetQuery,
-          },
-        )
-        : await ServiceApi.updateService(
-          clusterName,
-          {
-            context: "Install Services",
-            ServiceInfo: { state: "INSTALLED" },
-          },
-          urlParams,
-        );
-    } catch (error) {
-      throw error;
-    }
-    if (!active.current || managedDependencyScopeKeyRef.current !== capturedScope) return;
-    const requestId = requestIdFrom(response);
-    if (requestId == null) {
-      setManagedDependencyPollError(t("installer.step9.installSubmissionUnknown"));
-      setWorking(false);
-      return;
-    }
-    if (submittingIntent) {
-      const submittedIntent = {
-        ...submittingIntent,
-        state: "SUBMITTED" as const,
-        requestId,
-      };
-      managedDependencyInstallIntentRef.current = submittedIntent;
-      const submittedHandoff = managedDependencyHandoffRef.current
-        ? { ...managedDependencyHandoffRef.current, installIntent: submittedIntent }
-        : managedDependencyHandoffRef.current;
-      managedDependencyHandoffRef.current = submittedHandoff;
-      await setRequest(requestId, "INSTALL", "PENDING", {
-        managedDependencyInstallIntent: submittedIntent,
-        managedDependencyHandoff: submittedHandoff,
-      });
-    } else {
-      await setRequest(requestId, "INSTALL", "PENDING");
-    }
-  };
-
-  async function pollManagedDependencies() {
-    const handoff = managedDependencyHandoffRef.current;
-    const capturedScope = managedDependencyScopeKeyRef.current;
-    if (!active.current || !handoff?.items.length || managedDependencyPollInFlight.current) return;
-    managedDependencyPollInFlight.current = true;
-    setManagedDependencyPollError("");
-    try {
-      const dependencyClusterName = handoff.clusterName || clusterName;
-      const bindings = await Promise.all(handoff.items.map(({ bindingId }) =>
-        ServiceDependenciesApi.get(dependencyClusterName, bindingId)));
-      if (!active.current || managedDependencyScopeKeyRef.current !== capturedScope) return;
-      bindings.forEach((binding, index) =>
-        validateManagedDependencyBinding(binding, handoff.items[index], handoff));
-      if (managedDependencyScopeKeyRef.current !== capturedScope) return;
-      setManagedDependencyBindings(bindings);
-      const intent = managedDependencyInstallIntentRef.current;
-      if (intent?.state === "SUBMITTING" && intent.requestId == null) {
-        await reconcileLostInstallSubmission(bindings, handoff, intent, capturedScope);
-        return;
-      }
-      if (intent?.state === "SUBMITTED" && intent.requestId != null) {
-        await setRequest(intent.requestId, "INSTALL", "PENDING", {
-          managedDependencyInstallIntent: intent,
-          managedDependencyHandoff: handoff,
-        });
-        return;
-      }
-      const blocked = bindings.find((binding) => !managedDependencyInstallAllowed(binding));
-      if (blocked) {
-        setWorking(true);
-        scheduleManagedDependencyPoll(3000);
-        return;
-      }
-      await launchManagedInstall();
-    } catch (error: any) {
-      if (active.current) {
-        setManagedDependencyPollError(errorMessage(error));
-        setWorking(false);
-      }
-    } finally {
-      managedDependencyPollInFlight.current = false;
-    }
-  }
-
   const launchStart = async () => {
     if (supports.skipComponentStartAfterInstall) {
       await completeSuccess("START_SKIPPED");
@@ -827,8 +334,14 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
       if (!active.current) return;
       const requestId = requestIdFrom(response);
       if (requestId == null) {
-        await completeSuccess();
-        return;
+        const current = await HostsApi.getClusterComponents(clusterName,
+          "ServiceComponentInfo/cluster_name,ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,ServiceComponentInfo/category,host_components/HostRoles");
+        if (!active.current) return;
+        if (clientOnlyTargetsInstalled(clusterName, serviceNames, current?.items)) {
+          await completeSuccess();
+          return;
+        }
+        throw new Error("Ambari did not return a Start request ID. Reload the exact operation before continuing.");
       }
       await setRequest(requestId, "START", "INSTALLED");
     } catch (error: any) {
@@ -911,7 +424,6 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
       );
       if (!active.current || requestIdRef.current !== currentRequestId) return;
       const currentPhase = phaseRef.current;
-      if (currentPhase === "INSTALL") validateManagedInstallRequestTargets(response);
       const tasks = (response.tasks || []).map((task: any) => ({
         ...task,
         Tasks: { ...task.Tasks, request_id: currentRequestId },
@@ -942,16 +454,29 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
     setWorking(true);
     setOperationError("");
     try {
-      const response = await HostsApi.updateHostComponents(
-        clusterName,
-        "HostRoles/desired_state=INSTALLED&HostRoles/state!=INSTALLED",
-        {
-          context: "Retry Install Components",
-          HostRoles: { state: "INSTALLED" },
-          level: "HOST_COMPONENT",
-          query: "HostRoles/desired_state=INSTALLED&HostRoles/state!=INSTALLED",
-        },
-      );
+      const failedRequestId = requestIdRef.current;
+      if (failedRequestId == null) throw new Error("The failed installation request ID is missing.");
+      const failedRequest = await RequestApi.getRequestStatus(clusterName, String(failedRequestId));
+      const targets = new Map<string, { host: string; component: string }>();
+      for (const task of failedRequest.tasks || []) {
+        const data = taskData(task);
+        if (data.command !== "INSTALL" || !failedTaskStatuses.has(data.status)) continue;
+        if (data.request_id != null && String(data.request_id) !== String(failedRequestId)) {
+          throw new Error("The failed task does not belong to this installation request.");
+        }
+        if (!data.host_name || !data.role) throw new Error("The failed task target is missing.");
+        targets.set(JSON.stringify([data.host_name, data.role]), { host: data.host_name, component: data.role });
+      }
+      if (!targets.size) throw new Error("This request has no failed installation targets to retry.");
+      const query = [...targets.values()].map(({ host, component }) =>
+        `(HostRoles/host_name=${encodeURIComponent(host)}&HostRoles/component_name=${encodeURIComponent(component)})`,
+      ).join("|");
+      const response = await HostsApi.updateHostComponents(clusterName, query, {
+        context: "Retry Install Components",
+        HostRoles: { state: "INSTALLED" },
+        level: "HOST_COMPONENT",
+        query,
+      });
       const requestId = requestIdFrom(response);
       if (requestId == null) {
         throw new Error("Ambari did not return a retry request ID.");
@@ -964,11 +489,7 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
 
   useEffect(() => {
     active.current = true;
-    if (!initialTerminal
-      && initialPhase === "WAIT_FOR_PROVIDER_PREPARATION"
-      && managedDependencyHandoffRef.current?.items.length) {
-      void pollManagedDependencies();
-    } else if (!initialTerminal && requestIdRef.current != null) {
+    if (!initialTerminal && requestIdRef.current != null) {
       schedulePoll();
     } else if (!initialTerminal) {
       setPollError(
@@ -979,7 +500,6 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
     return () => {
       active.current = false;
       if (timer.current) clearTimeout(timer.current);
-      if (managedDependencyTimer.current) clearTimeout(managedDependencyTimer.current);
     };
   }, []);
 
@@ -1041,28 +561,6 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
               Retry Poll
             </Button>
           ) : null}
-        </Alert>
-      ) : null}
-      {initialPhase === "WAIT_FOR_PROVIDER_PREPARATION"
-        && managedDependencyHandoff?.items.length ? (
-        <Alert variant={managedDependencyPollError ? "danger" : "info"}>
-          <div>
-            {managedDependencyPollError
-              || (managedDependencyBindings.length
-              ? managedDependencyBindings.map(managedDependencyNextAction).join("; ")
-                : t("installer.step9.providerPreparationWaiting"))}
-          </div>
-          <Button
-            className="mt-2"
-            size="sm"
-            variant={managedDependencyPollError ? "outline-danger" : "outline-secondary"}
-            onClick={() => {
-              setWorking(true);
-              scheduleManagedDependencyPoll();
-            }}
-          >
-            {t("installer.step9.reloadDependencyStatus")}
-          </Button>
         </Alert>
       ) : null}
       {operationError ? <Alert variant="danger">{operationError}</Alert> : null}
@@ -1152,6 +650,21 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
       />
     </>
   );
+}
+
+function Step9({ wizardName = "clusterCreation" }: Step9Props) {
+  const { Context } = useContext(ContextWrapper);
+  const { state }: any = useContext(Context);
+  const steps = state?.[`${wizardName}Steps`] || {};
+  const review = steps.REVIEW?.data || {};
+  const restored = steps.INSTALL_START_TEST?.data || {};
+  const handoff = restored.managedDependencyHandoff || review.managedDependencyHandoff;
+  if (handoff?.items?.length) {
+    const intent = restored.managedDependencyInstallIntent || handoff.installIntent || review.managedDependencyInstallIntent;
+    return <ManagedDeploymentProgress key={`${wizardName}:${steps.NAME?.data?.clusterName || ""}:${handoff.clusterId}:${intent?.intentId || ""}`}
+      wizardName={wizardName} />;
+  }
+  return <LegacyStep9 key={`${wizardName}:${steps.NAME?.data?.clusterName || ""}`} wizardName={wizardName} />;
 }
 
 export default Step9;
