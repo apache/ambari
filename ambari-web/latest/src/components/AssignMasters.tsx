@@ -292,7 +292,8 @@ export default function AssignMasters({
             : responseErrorMessage(error, t("managedDependencies.advisorFailed")),
           reviewRequired: error instanceof ManagedDependencyAdvisorReviewRequiredError
             || stackAdvisorNeedsProviderReview(error)
-            || Boolean(prepared?.properties.managed_dependency_plan),
+            || hasManagedAdvisorDependency(prepared, "HDFS")
+            || hasManagedAdvisorDependency(prepared, "ZOOKEEPER"),
         });
       } finally {
         if (isCurrent(prepared)) setLoading(false);
@@ -391,7 +392,8 @@ export default function AssignMasters({
         kind: "validation",
         message: responseErrorMessage(error, t("managedDependencies.advisorFailed")),
         reviewRequired: stackAdvisorNeedsProviderReview(error)
-          || Boolean(prepared?.properties.managed_dependency_plan),
+          || hasManagedAdvisorDependency(prepared, "HDFS")
+            || hasManagedAdvisorDependency(prepared, "ZOOKEEPER"),
       });
     }
   };

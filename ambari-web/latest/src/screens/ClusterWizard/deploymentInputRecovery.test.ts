@@ -89,7 +89,7 @@ describe("deployment input recovery", () => {
 
   it("uses a stable sanitized digest when insecure HTTP omits subtle and randomUUID", async () => {
     const source = () => ({
-      getRandomValues: (bytes) => {
+      getRandomValues: (bytes: Uint8Array) => {
         bytes.fill(7);
         return bytes;
       },

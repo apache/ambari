@@ -75,7 +75,6 @@ export function ServiceIndexRedirect() {
   const { services, clusterName } = useContext(AppContext);
   const navigate = useNavigate();
   const scopedPath = useClusterPath();
-  const [installerPath] = useState(() => clusterDraftPath());
 
   useEffect(() => {
     if (!clusterName || !services?.length) {

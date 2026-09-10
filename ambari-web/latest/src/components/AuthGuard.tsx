@@ -55,7 +55,6 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
     hasAuthorization,
     hasPrivilege,
   } = useAuth();
-  const scopedPath = useClusterPath();
 
   // Show loading state
   if (isLoading) {

@@ -28,7 +28,6 @@ import {
   relatedServicesMap,
   serviceToConfigSiteMap,
 } from "./constants";
-import ClusterApi from "../../../api/clusterApi";
 import { ServiceContext } from "../../../store/ServiceContext";
 import { AppContext } from "../../../store/context";
 import { cloneDeep, filter, find, get, isEmpty, map } from "lodash";

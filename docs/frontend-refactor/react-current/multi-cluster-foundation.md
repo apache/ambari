@@ -64,9 +64,10 @@ exact create reconciliation, repository reuse/conflict, Classic tab and volatile
 credential isolation, and unsupported metrics metadata with rapid datasource
 changes. The final remediation selection ran ten frontend files and 91 tests,
 all passing. Backend focused validation ran 205 Java tests, including real H2/Guice
-publication/rollback and migration; Python selections passed 31 tests. Full
-TypeScript checking still fails with 49 diagnostics (52 at the reviewed HEAD,
-no new normalized diagnostics). The earlier broad selection's 19 failures and one
+publication/rollback and migration; Python selections passed 31 tests. The subsequent deploy build exposed those TypeScript diagnostics as a packaging blocker.
+The runtime follow-up repairs them without excluding tests from compilation;
+`npx --no-install tsc -b` now passes. The affected build/recovery selection adds
+51 plus 7 passing tests, including generation-scoped Add Service reloads. The earlier broad selection's 19 failures and one
 unhandled error were not relabelled as passing. See the linked plan for exact
 commands and mock boundaries. Browser/network, real services, real KDC and full
 packaged-build acceptance remain open.

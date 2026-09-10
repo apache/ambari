@@ -80,7 +80,7 @@ type ErrorType = {
 };
 
 const isRequiredByAnotherSelectedService = (
-  dependencyType: ManagedDependencyType,
+  dependencyType: string,
   candidateServices: { [key: string]: Service },
 ) => Object.values(candidateServices).some((service) =>
   service.selected

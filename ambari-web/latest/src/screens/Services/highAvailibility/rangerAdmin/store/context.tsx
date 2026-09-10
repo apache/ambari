@@ -207,7 +207,7 @@ export const EnableHighAvailibilityProvider: React.FC<{
     stepSnapshot = currentStepRef.current,
   ) {
     if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
-    const activeStep = get(stepSnapshot, "stepName", "");
+    const activeStep = typeof stepSnapshot.stepName === "string" ? stepSnapshot.stepName : "";
     await persistence.savePersistData({
       [RANGER_ADMIN_HA_PERSIST_KEY]: { ...stateSnapshot, activeStep },
       CLUSTER_STATE: stepSnapshot,

@@ -29,7 +29,7 @@ import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constan
 export const useSqoopConfigUpdater = () => {
   const { polledHostComponentsData, masterSlaveClientsData, serviceStatesData } =
     useContext(ServiceContext);
-  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
+  const { parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
   //@ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
 

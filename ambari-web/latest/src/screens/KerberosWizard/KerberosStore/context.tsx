@@ -184,7 +184,7 @@ export const KerberosWizardProvider: React.FC<{
     stepSnapshot = currStepDataRef.current,
   ) {
     if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
-    const activeStep = get(stepSnapshot, "stepName", "");
+    const activeStep = typeof stepSnapshot.stepName === "string" ? stepSnapshot.stepName : "";
     try {
       await persistence.savePersistData({
         ENABLING_KERBEROS: { ...stateSnapshot, activeStep },

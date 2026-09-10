@@ -750,3 +750,47 @@ are included with the corresponding implementation. Validation totals above cove
 the combined source tree; individual intermediate checkouts were not separately
 built. Git history records the final commit IDs. Publication does not close the
 remaining runtime acceptance gates.
+
+### Packaged runtime follow-up: topology and build preflight (2026-09-10)
+
+The user requested a native deploy-tool build and live installation, then refined
+acceptance to six registered agents: install cluster A on three hosts, leave three
+unassigned, and create independent Hadoop cluster B on those remaining hosts via
+API. A single cluster with an added service is insufficient for this gate.
+
+The exact-commit build of `675d4b1dcc657e89448f5d96c7d8a50efcc89810` failed in
+`ambari-web`'s real `npm run build` TypeScript phase; no RPM from that run was
+accepted. Its deploy build run was
+`ambari-675d4b1dcc65-a635f42f-101c3f6e-4d1869d1`. The previously documented type
+errors are therefore a packaging blocker, not merely optional diagnostics.
+The follow-up fixes restore typed workflow records and step names, remove unused
+bindings, type the existing test fixtures/spies, and declare the user-event test
+dependency. Tests remain in TypeScript compilation; type checking is not skipped.
+
+Executing the affected recovery tests also exposed an Add Service retry defect:
+resetting a boolean hydration flag and immediately restoring it can be batched
+into one React render. Service loading had already been cleared but its effect
+never restarted, leaving an endless spinner. Hydration now records persistence
+identity plus recovery generation; each accepted snapshot restarts its dependent
+reads. This preserves the Classic Add Service controller's explicit service/host
+reloads while retaining React's cluster-scoped stale-response rejection.
+
+Initial test failures also included missing translation initialization, leaked DOM
+between master-assignment tests, a mock returning unstable hook arrays (an infinite
+render loop), and exact save-count assertions that ignored queued user edits.
+The repaired tests verify current placement, saved CAS revisions and suppression of
+stale mutations. They do not substitute mock success for a live server result.
+
+Executed from `ambari-web/latest`:
+
+```bash
+npx --no-install tsc -b
+npx --no-install vitest run --maxWorkers=2 src/components/AssignMasters.test.tsx src/screens/ClusterWizard/ManagedDependencySelector.test.tsx src/screens/ClusterWizard/ManagedDependencySettings.test.tsx src/screens/ClusterWizard/Step6.test.tsx src/screens/ClusterWizard/Step7/RestAllTabs.test.tsx src/screens/ClusterWizard/deploymentInputRecovery.test.ts src/screens/ClusterWizard/managedDependencyAdvisor.test.ts src/screens/Services/AddServiceWizard/wizardDataStore/context.test.tsx src/screens/KerberosWizard/KerberosStore/context.test.tsx
+npx --no-install vitest run --maxWorkers=1 src/screens/Services/highAvailibility/resourceManager/store/context.test.tsx src/screens/Services/highAvailibility/rangerAdmin/store/context.test.tsx
+```
+
+Results: TypeScript passes; 51 plus 7 focused tests pass. Step 6 still emits existing
+React list-key warnings. The initial broader invocation did not finish cleanly
+because of the unstable Step 6 mock and is not counted as a pass. Live six-host
+installation, server authorization, runtime component checks and KDC acceptance
+remain open until corresponding runtime evidence is recorded below.

@@ -63,7 +63,6 @@ import RepoModal from "../../../components/RepoModal";
 import { initialOptions, initialUpgradeMethods, showAlertModal, translate, getUpgradeRequestStatus, translateWithVariables } from "../../../Utils/Utility";
 import stringUtilsObj from "../../../Utils/StringUtilsObj";
 import { redirectToAdminView } from "../../../Utils/adminViewRedirect";
-import ClusterApi from "../../../api/clusterApi";
 import { useAuth } from "../../../hooks/useAuth";
 import { HostsApi } from "../../../api/hostsApi";
 import useClusterWorkflowPersistence from "../../../hooks/useClusterWorkflowPersistence";

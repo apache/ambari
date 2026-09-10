@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import "../../../i18n";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ComponentProps, isValidElement, useContext } from "react";
 import { MemoryRouter } from "react-router-dom";

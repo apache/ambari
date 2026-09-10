@@ -150,7 +150,7 @@ function Step5({ wizardName = "clusterCreation" }) {
           if (!draftId || !withStateCheckpoint) {
             throw new ManagedDependencyAdvisorReviewRequiredError();
           }
-          return withStateCheckpoint(async (revision) => {
+          return withStateCheckpoint(async (revision: number) => {
             if (advisorScopeKeyRef.current !== capturedScope) {
               throw new ManagedDependencyAdvisorReviewRequiredError();
             }

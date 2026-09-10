@@ -85,7 +85,7 @@ export default function useClusterWorkflowPersistence(
           const values = Object.fromEntries(
             keys.map((key, index) => [
               key,
-              parsePersistedValue(legacyValues[index], {}),
+              parsePersistedValue<Record<string, unknown>>(legacyValues[index], {}),
             ]),
           );
           const clusterState = values.CLUSTER_STATE || {};

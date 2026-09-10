@@ -35,14 +35,14 @@ vi.mock("../../api/serviceDependenciesApi", () => ({
 }));
 
 import ManagedDependencySelector from "./ManagedDependencySelector";
-import type { ManagedDependencyCandidate } from "../../api/serviceDependenciesApi";
+import type { ManagedDependencyCandidate, ManagedDependencyPreview } from "../../api/serviceDependenciesApi";
 import type { ManagedDependencySelections } from "./managedDependencySelection";
 
 const candidate = (
   clusterId: number,
   clusterName: string,
   serviceName: "HDFS" | "ZOOKEEPER",
-): ManagedDependencyCandidate => ({
+): ManagedDependencyCandidate & { service_name: "HDFS" | "ZOOKEEPER" } => ({
   cluster_id: clusterId,
   cluster_name: clusterName,
   compatible: true,
@@ -61,7 +61,7 @@ const candidate = (
   },
 });
 
-const preview = (provider: ManagedDependencyCandidate) => ({
+const preview = (provider: ManagedDependencyCandidate & { service_name: "HDFS" | "ZOOKEEPER" }): ManagedDependencyPreview => ({
   binding_id: "00000000-0000-4000-8000-000000000001",
   compatible: true,
   consumer: {
@@ -275,7 +275,6 @@ describe("managed dependency selector", () => {
   });
 
   it("keeps an incomplete secure draft editable without reporting it compatible", async () => {
-    const provider = candidate(41, "storage-east", "HDFS");
     const onSelectionChange = vi.fn();
     mocks.previewDraft.mockRejectedValue({
       response: { data: {
@@ -371,7 +370,7 @@ describe("managed dependency selector", () => {
     const driftedProvider = {
       ...provider,
       version: {
-        ...provider.version,
+        ...provider.version!,
         resolved_versions: { distribution: "3.3.7" },
         service_version: "3.3.7",
       },

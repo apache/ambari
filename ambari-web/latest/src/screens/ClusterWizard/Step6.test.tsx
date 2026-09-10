@@ -16,9 +16,10 @@
  * limitations under the License.
  */
 
+import "../../i18n";
 import { createContext, type ContextType } from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../store/context";
 import { ContextWrapper } from ".";
 
@@ -34,8 +35,8 @@ vi.mock("../../api/validations", () => ({
   default: { validateMapping: mocks.validateMapping },
 }));
 
-vi.mock("./hooks/useServiceComponents", () => ({
-  default: () => ({
+vi.mock("./hooks/useServiceComponents", () => {
+  const result = {
     ComponentCategory: { CLIENT: "CLIENT", MASTER: "MASTER", SLAVE: "SLAVE" },
     allServiceComponentsList: [
       {
@@ -58,8 +59,9 @@ vi.mock("./hooks/useServiceComponents", () => ({
     STACK: "BIGTOP",
     VERSION: "3.3.0",
     services: ["HDFS"],
-  }),
-}));
+  };
+  return { default: () => result };
+});
 
 vi.mock("../../hooks/usePagination", () => ({
   default: (items: unknown[]) => ({
@@ -146,6 +148,7 @@ const renderStep = () => {
 };
 
 describe("Step 6 placement validation", () => {
+  afterEach(cleanup);
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.validateMapping.mockRejectedValueOnce(new Error("placement unavailable"));
@@ -155,14 +158,14 @@ describe("Step 6 placement validation", () => {
     renderStep();
 
     expect(await screen.findByText("placement unavailable")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Next" })).toHaveProperty("disabled", true);
 
     mocks.validateMapping.mockResolvedValueOnce({ resources: [{ items: [] }] });
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
     await waitFor(() => expect(mocks.validateMapping).toHaveBeenCalledTimes(2));
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Next" })).not.toBeDisabled(),
+      expect(screen.getByRole("button", { name: "Next" })).toHaveProperty("disabled", false),
     );
     expect(mocks.validateMapping.mock.calls[1][2]).toMatchObject({
       hosts: ["host-a"],

@@ -28,7 +28,7 @@ describe("managed dependency settings", () => {
       selections={{
         HDFS: {
           mode: "managed",
-          provider: { cluster_id: 9, cluster_name: "provider-a", service_name: "HDFS" },
+          provider: { cluster_id: 9, cluster_name: "provider-a", service_name: "HDFS", compatible: true, errors: [] },
           preview: {
             binding_id: "11111111-1111-4111-8111-111111111111",
             client_config: { "core-site": { "fs.defaultFS": "hdfs://provider-a" } },

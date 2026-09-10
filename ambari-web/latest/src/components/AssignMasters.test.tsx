@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import "../i18n";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ManagedDependencyAdvisorPlan } from "../api/serviceDependenciesApi";
 
 const mocks = vi.hoisted(() => ({
@@ -164,6 +165,7 @@ const renderAssignments = ({
 };
 
 describe("Assign Masters managed dependency advice", () => {
+  afterEach(cleanup);
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getCpuInfo.mockResolvedValue({
@@ -235,10 +237,10 @@ describe("Assign Masters managed dependency advice", () => {
     const onReview = vi.fn();
     renderAssignments({ onReview });
 
-    expect(await screen.findByText("Reload the saved provider plan.")).toBeInTheDocument();
+    expect(await screen.findByText("Reload the saved provider plan.")).toBeTruthy();
     await user.click(screen.getByRole("button", { name: "Review provider settings" }));
     expect(onReview).toHaveBeenCalledOnce();
-    expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Retry" })).toHaveProperty("disabled", false);
   });
 
   it("retries validation for the edited placement without requesting new recommendations", async () => {
@@ -265,7 +267,7 @@ describe("Assign Masters managed dependency advice", () => {
     await user.type(hostSelect, "host2.example.com{enter}");
 
     expect(await screen.findByText("The edited placement is temporarily stale."))
-      .toBeInTheDocument();
+      .toBeTruthy();
     expect(mocks.postRecommendations).toHaveBeenCalledTimes(2);
     expect(dispatch.mock.calls.some(([value]) => value.mastersData?.some(
       (host: any) => host.host_name === "host2.example.com"
@@ -313,12 +315,13 @@ describe("Assign Masters managed dependency advice", () => {
     const hostSelect = screen.getByRole("combobox");
     await user.click(hostSelect);
     await user.type(hostSelect, "host2.example.com{enter}");
-    expect(await screen.findByText("Review this placement.")).toBeInTheDocument();
+    expect(await screen.findByText("Review this placement.")).toBeTruthy();
 
-    await user.click(hostSelect);
-    await user.type(hostSelect, "host1.example.com{enter}");
+    const updatedHostSelect = screen.getByRole("combobox");
+    await user.click(updatedHostSelect);
+    await user.type(updatedHostSelect, "host1.example.com{enter}");
     await waitFor(() => expect(screen.queryByText("Review this placement."))
-      .not.toBeInTheDocument());
+      .toBeNull());
     expect(mocks.postRecommendations).toHaveBeenCalledTimes(2);
     expect(setCanProceed).toHaveBeenLastCalledWith(true);
   });

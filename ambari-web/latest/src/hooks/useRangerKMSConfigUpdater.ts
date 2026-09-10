@@ -27,7 +27,7 @@ import { Categories } from "../enums/Categories";
 import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constants";
 
 export const useRangerKMSConfigUpdater = () => {
-  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
+  const { parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
   const { polledHostComponentsData, masterSlaveClientsData, serviceStatesData } =
     useContext(ServiceContext);
   //@ts-ignore

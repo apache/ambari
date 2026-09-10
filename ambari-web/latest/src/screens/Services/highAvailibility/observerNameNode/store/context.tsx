@@ -154,7 +154,7 @@ export const AddObserverNamenodeProvider: React.FC<{
     stepSnapshot = currStepDataRef.current,
   ) {
     if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
-    const activeStep = get(stepSnapshot, "stepName", "");
+    const activeStep = typeof stepSnapshot.stepName === "string" ? stepSnapshot.stepName : "";
     await persistence.savePersistData({
       OBSERVER_NAMENODE: { ...stateSnapshot, activeStep },
       CLUSTER_STATE: stepSnapshot,

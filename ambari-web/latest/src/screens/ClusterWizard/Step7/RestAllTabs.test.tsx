@@ -21,6 +21,7 @@ import { useState, type ContextType } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../../store/context";
 import RestAllTabs from "./RestAllTabs";
+import type { ConfigPropertiesType } from "../../CommonConfigs/types";
 import {
   createManagedDependencyAdvisorRunner,
 } from "../managedDependencyAdvisor";
@@ -173,8 +174,11 @@ describe("RestAllTabs managed advisor chain", () => {
       }),
     );
     const scopeKeyRef = { current: "scope-1" };
-    const withStateCheckpoint = vi.fn(async (request: (revision: number) => Promise<unknown>) =>
-      request(37));
+    const checkpointCalls = vi.fn();
+    const withStateCheckpoint = async <T,>(request: (revision: number) => Promise<T>) => {
+      checkpointCalls(request);
+      return request(37);
+    };
     const managedDependencies = {
       HDFS: {
         mode: "managed" as const,
@@ -192,10 +196,10 @@ describe("RestAllTabs managed advisor chain", () => {
         },
       },
     };
-    const checkpointConfigProperties = vi.fn(async (snapshot: unknown) => snapshot);
+    const checkpointConfigProperties = vi.fn(async (snapshot: ConfigPropertiesType) => snapshot);
     const onConfigEdit = vi.fn();
     const recommendationStates: Array<{ pending: boolean; error: string | null }> = [];
-    let retryRecommendation = () => undefined;
+    let retryRecommendation: () => void = () => undefined;
 
     function RestAllTabsHarness() {
       const [scopeKey, setScopeKey] = useState("scope-1");
@@ -244,7 +248,7 @@ describe("RestAllTabs managed advisor chain", () => {
             clusterName: "cluster-a",
             allHostNames: ["host-a"],
             services: [],
-          } as ContextType<typeof AppContext>
+          } as unknown as ContextType<typeof AppContext>
         }
       >
         <RestAllTabsHarness />
@@ -274,7 +278,7 @@ describe("RestAllTabs managed advisor chain", () => {
         "hbase.rootdir"
       ].value,
     ).toBe("hdfs://host-b:8020/hbase");
-    expect(withStateCheckpoint).toHaveBeenCalledWith(expect.any(Function));
+    expect(checkpointCalls).toHaveBeenCalledWith(expect.any(Function));
     expect(mocks.getRecommendations).toHaveBeenCalledWith(
       "BIGTOP",
       "3.3.0",
