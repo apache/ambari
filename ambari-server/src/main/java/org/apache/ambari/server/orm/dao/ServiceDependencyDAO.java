@@ -436,16 +436,27 @@ public class ServiceDependencyDAO {
         throw new StaleApprovalException("A detached binding UUID cannot be reused");
       }
     }
+    // These entities carry scalar identities, not JPA relationships. Publish each
+    // parent level before its dependents; flush preserves the enclosing atomic
+    // transaction and does not commit a partially created plan.
+    for (CreationItem item : lockOrder) {
+      if (item.initialCommand() != null) {
+        item.binding().setActionHostId(item.initialCommand().getHostId());
+      }
+      entityManager.persist(item.binding());
+    }
+    entityManager.flush();
+    for (CreationItem item : lockOrder) {
+      entityManager.persist(item.snapshot());
+      entityManager.persist(item.operation());
+    }
+    entityManager.flush();
     List<CreationResult> created = new java.util.ArrayList<>();
     for (CreationItem item : lockOrder) {
       ServiceDependencyBindingEntity binding = item.binding();
       ServiceDependencyOperationEntity operation = item.operation();
-      entityManager.persist(binding);
-      entityManager.persist(item.snapshot());
-      entityManager.persist(operation);
       ServiceDependencyHostResultEntity initialCommand = item.initialCommand();
       if (initialCommand != null) {
-        binding.setActionHostId(initialCommand.getHostId());
         entityManager.persist(initialCommand);
       }
       created.add(new CreationResult(binding, item.snapshot(), operation, initialCommand, true));
@@ -817,6 +828,7 @@ public class ServiceDependencyDAO {
       validateRetryPreparationIntent(binding, requested, command);
     }
     entityManager.persist(requested);
+    entityManager.flush();
     for (ServiceDependencyHostResultEntity command : retryCommands) {
       entityManager.persist(command);
     }
@@ -902,6 +914,7 @@ public class ServiceDependencyDAO {
     }
     entityManager.persist(requestedSnapshot);
     entityManager.persist(requested);
+    entityManager.flush();
     if (initialCommand != null) {
       binding.setActionHostId(initialCommand.getHostId());
       entityManager.persist(initialCommand);
@@ -972,6 +985,7 @@ public class ServiceDependencyDAO {
       throw new StaleApprovalException("The detach command does not match the active provider fence");
     }
     entityManager.persist(requested);
+    entityManager.flush();
     entityManager.persist(invalidation);
     binding.setOperationEpoch(requested.getOperationEpoch());
     binding.setActiveOperationId(requested.getOperationId());
@@ -1425,6 +1439,8 @@ public class ServiceDependencyDAO {
         .setParameter("bindingId", binding.getBindingId()).getResultList()) {
       entityManager.remove(result);
     }
+    // Retire the same ownership tree in reverse order before deleting its root.
+    entityManager.flush();
     for (ServiceDependencyOperationEntity operation : entityManager.createNamedQuery(
         "ServiceDependencyOperationEntity.findByBinding", ServiceDependencyOperationEntity.class)
         .setParameter("bindingId", binding.getBindingId()).getResultList()) {
@@ -1436,6 +1452,7 @@ public class ServiceDependencyDAO {
         .setParameter("bindingId", binding.getBindingId()).getResultList()) {
       entityManager.remove(historical);
     }
+    entityManager.flush();
     entityManager.remove(binding);
   }
 

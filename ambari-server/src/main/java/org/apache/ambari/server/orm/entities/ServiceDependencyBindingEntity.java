@@ -125,7 +125,7 @@ public class ServiceDependencyBindingEntity {
   private String failureMessage;
 
   @Column(name = "failure_retryable", nullable = false)
-  private Boolean failureRetryable = false;
+  private Short failureRetryable = 0;
 
   @Column(name = "created_by_user_id", nullable = false, updatable = false)
   private Integer createdByUserId;
@@ -203,8 +203,8 @@ public class ServiceDependencyBindingEntity {
   public void setFailurePhase(String value) { failurePhase = value; }
   public String getFailureMessage() { return failureMessage; }
   public void setFailureMessage(String value) { failureMessage = value; }
-  public Boolean getFailureRetryable() { return failureRetryable; }
-  public void setFailureRetryable(Boolean value) { failureRetryable = value; }
+  public Boolean getFailureRetryable() { return failureRetryable == null ? null : failureRetryable != 0; }
+  public void setFailureRetryable(Boolean value) { failureRetryable = value == null ? null : (short) (value ? 1 : 0); }
   public Integer getCreatedByUserId() { return createdByUserId; }
   public void setCreatedByUserId(Integer value) { createdByUserId = value; }
   public Integer getUpdatedByUserId() { return updatedByUserId; }

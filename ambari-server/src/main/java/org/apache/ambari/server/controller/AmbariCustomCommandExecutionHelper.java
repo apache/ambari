@@ -463,6 +463,17 @@ public class AmbariCustomCommandExecutionHelper {
           commandParams.put(key, additionalCommandParams.get(key));
         }
       }
+      // Managed task ownership must be visible during action publication, before
+      // the scheduler merges stage parameters into the agent command.
+      Map<String, String> actionParameters = actionExecutionContext.getParameters();
+      if (actionParameters != null) {
+        for (String key : List.of(ManagedDependencyOperationDispatcher.COMMAND_PARAMETER,
+            ManagedDependencyRuntimePlanner.BUNDLE_PARAMETER)) {
+          if (actionParameters.containsKey(key)) {
+            commandParams.put(key, actionParameters.get(key));
+          }
+        }
+      }
       ManagedDependencyLifecyclePolicy.copyParametersForTarget(requestParams, commandParams,
           cluster.getClusterId(), serviceName, commandName);
       commandParams.put(CUSTOM_COMMAND, commandName);

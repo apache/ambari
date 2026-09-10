@@ -28,6 +28,7 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,9 +44,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.PersistenceException;
 
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.AmbariException;
@@ -145,6 +148,7 @@ public class ServiceDependencyDAOIntegrationTest {
           }
         }));
     injector.getInstance(GuiceJpaInitializer.class);
+    installDependencyOwnershipConstraints();
     helper = injector.getInstance(OrmTestHelper.class);
     dependencyDAO = injector.getInstance(ServiceDependencyDAO.class);
     actionDBAccessor = injector.getInstance(ActionDBAccessorImpl.class);
@@ -170,6 +174,105 @@ public class ServiceDependencyDAOIntegrationTest {
   @After
   public void tearDown() throws Exception {
     H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
+  }
+
+  private void installDependencyOwnershipConstraints() throws Exception {
+    // Scalar JPA IDs do not generate these production foreign keys. Reuse the
+    // actual DDL so creation, retry and detach exercise the ownership graph.
+    String ddl;
+    try (var stream = getClass().getResourceAsStream("/Ambari-DDL-Postgres-CREATE.sql")) {
+      assertNotNull(stream);
+      ddl = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+    }
+    assertEquals(4, injector.getInstance(DependencySchemaInstaller.class).install(ddl));
+  }
+
+  public static class DependencySchemaInstaller {
+    @Inject private com.google.inject.Provider<EntityManager> entityManagers;
+
+    @Transactional
+    public int install(String ddl) {
+      var tables = Pattern.compile("CREATE TABLE (service_dependency_\\w+) \\((.*?)\\);",
+          Pattern.DOTALL).matcher(ddl);
+      int count = 0;
+      while (tables.find()) {
+        var constraints = Pattern.compile(
+            "CONSTRAINT (FK_svc_dep_\\w+) FOREIGN KEY \\([^)]*\\) REFERENCES "
+                + "service_dependency_\\w+ \\([^)]*\\)").matcher(tables.group(2));
+        while (constraints.find()) {
+          entityManagers.get().createNativeQuery("ALTER TABLE " + tables.group(1) + " ADD "
+              + constraints.group()).executeUpdate();
+          count++;
+        }
+      }
+      return count;
+    }
+  }
+
+  @Test
+  public void testCommandInsertFailureRollsBackBothFlushedParents() throws Exception {
+    providerCluster.addService("ZOOKEEPER", repository);
+    CreationItem hdfs = creationItem(UUID.randomUUID(), UUID.randomUUID(),
+        ManagedDependencyType.HDFS, 941L, batchGuard());
+    CreationItem zooKeeper = creationItem(UUID.randomUUID(), UUID.randomUUID(),
+        ManagedDependencyType.ZOOKEEPER, 942L, batchGuard());
+    zooKeeper.initialCommand().setState(null);
+
+    assertThrows(PersistenceException.class,
+        () -> dependencyDAO.createBatch(List.of(hdfs, zooKeeper)));
+    injector.getInstance(EntityManager.class).clear();
+    assertTrue(dependencyDAO.findAllBindings().isEmpty());
+    assertTrue(dependencyDAO.findOperations(hdfs.binding().getBindingId()).isEmpty());
+    assertTrue(dependencyDAO.findOperations(zooKeeper.binding().getBindingId()).isEmpty());
+    assertTrue(dependencyDAO.findOutstandingCommands().isEmpty());
+    assertEquals(0L, injector.getInstance(EntityManager.class).createQuery(
+        "SELECT COUNT(snapshot) FROM ServiceDependencySnapshotEntity snapshot", Long.class)
+        .getSingleResult().longValue());
+  }
+
+  @Test
+  public void testRetryabilityUsesTheNumericSchemaColumn() {
+    UUID bindingId = UUID.fromString("00000000-0000-4000-8000-000000000901");
+    UUID operationId = UUID.fromString("00000000-0000-4000-8000-000000000902");
+    publishBinding(bindingId, operationId);
+    EntityManager em = injector.getInstance(EntityManager.class);
+    String sql = "SELECT failure_retryable FROM service_dependency_binding WHERE binding_id = ?1";
+    assertEquals(0, ((Number) em.createNativeQuery(sql)
+        .setParameter(1, bindingId.toString()).getSingleResult()).intValue());
+    dependencyDAO.failCredentials(new ServiceDependencyHostResultEntityPK(
+        bindingId.toString(), 1L, 1L, 1L, "HDFS", "PREPARE_HDFS_CONSUMER"));
+    assertEquals(1, ((Number) em.createNativeQuery(sql)
+        .setParameter(1, bindingId.toString()).getSingleResult()).intValue());
+    em.clear();
+    assertEquals(Boolean.TRUE, dependencyDAO.findBinding(bindingId.toString()).getFailureRetryable());
+  }
+
+  @Test
+  public void testUpdatePublishesSnapshotAndOperationBeforeProviderIntent() {
+    UUID bindingId = UUID.randomUUID();
+    publishBinding(bindingId, UUID.randomUUID());
+    var current = dependencyDAO.findBinding(bindingId.toString());
+    var previous = snapshot(bindingId);
+    var updated = snapshot(bindingId);
+    updated.setSnapshotVersion(2L);
+    UUID operationId = UUID.randomUUID();
+    var operation = operation(bindingId, operationId);
+    operation.setOperationKind("UPDATE");
+    operation.setOperationEpoch(2L);
+    operation.setTargetSnapshotVersion(2L);
+    var intent = providerIntent(bindingId, operationId, 951L, ManagedDependencyType.HDFS);
+    intent.setSnapshotVersion(2L);
+    intent.setOperationEpoch(2L);
+    var facts = new ServiceDependencyDAO.UpdateFacts(1L, previous.getProviderFingerprint(),
+        previous.getConsumerFingerprint(), previous.getSnapshotFingerprint(), current.getSnapshotApproval());
+
+    var transition = dependencyDAO.startUpdate(bindingId.toString(), current.getRowVersion(),
+        facts, updated, operation, intent, 1);
+    assertTrue(transition.created());
+    injector.getInstance(EntityManager.class).clear();
+    assertEquals(Long.valueOf(2L), dependencyDAO.findBinding(bindingId.toString()).getDesiredSnapshotVersion());
+    assertEquals(operationId.toString(), dependencyDAO.findHostResult(
+        bindingId.toString(), 2L, 2L, 951L, "HDFS", "PREPARE_BINDING_JOURNAL").getOperationId());
   }
 
   @Test
@@ -941,6 +1044,22 @@ public class ServiceDependencyDAOIntegrationTest {
   @Test
   public void testDeploymentAndTaskPublicationCommitAndReplayAsOneTransaction() throws Exception {
     verifyDeploymentPublication(false);
+  }
+
+  @Test
+  public void testReservedTaskWithoutOperationIdentityCannotCommitAnOrphanRequest() throws Exception {
+    UUID bindingId = UUID.randomUUID();
+    ManagedDependencySnapshot snapshot = dispatchSnapshot(bindingId);
+    consumerCluster.addDesiredConfig("admin", Set.of(hbaseSite(snapshot, "orphan"), hbaseEnv(snapshot, "orphan")));
+    DispatchScenario scenario = dispatchScenario(bindingId, UUID.randomUUID(), snapshot, 983L);
+    scenario.request().getStages().iterator().next().getOrderedHostRoleCommands().get(0)
+        .setCustomCommandName("PREPARE_BINDING_JOURNAL");
+
+    assertThrows(AmbariException.class, () -> actionDBAccessor.persistActions(scenario.request()));
+    assertTrue(hostRoleCommandDAO.findByRequest(983L, true).isEmpty());
+    assertEquals("INTENT", dependencyDAO.findHostResult(bindingId.toString(), 1L, 1L,
+        scenario.hostId(), "HDFS", "PREPARE_HDFS_CONSUMER").getState());
+    org.junit.Assert.assertNull(injector.getInstance(RequestDAO.class).findByPK(983L));
   }
 
   @Test

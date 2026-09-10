@@ -338,9 +338,12 @@ public class ManagedDependencyRuntimePlanner {
     if (task == null || task.getExecutionCommandWrapper() == null
         || task.getRoleCommand() != RoleCommand.INSTALL && task.getRoleCommand() != RoleCommand.CUSTOM_COMMAND) return;
     org.apache.ambari.server.agent.ExecutionCommand execution = task.getExecutionCommandWrapper().getExecutionCommand();
-    if (execution.getCommandParams() == null) return;
-    String rawCommand = execution.getCommandParams()
+    String rawCommand = execution.getCommandParams() == null ? null : execution.getCommandParams()
         .get(ManagedDependencyOperationDispatcher.COMMAND_PARAMETER);
+    if (rawCommand == null && ManagedDependencyOperationDispatcher.isReservedCommand(task.getCustomCommandName())) {
+      throw new AmbariException("A reserved dependency task cannot be published without its operation identity");
+    }
+    if (execution.getCommandParams() == null) return;
     if (rawCommand != null) {
       ManagedDependencyCommand command = StageUtils.getGson().fromJson(
           rawCommand, ManagedDependencyCommand.class);
