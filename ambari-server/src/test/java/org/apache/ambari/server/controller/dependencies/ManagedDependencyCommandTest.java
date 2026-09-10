@@ -490,7 +490,7 @@ class ManagedDependencyCommandTest {
 
     assertEquals(List.of(LOW_BIT_BINDING_ID, HIGH_BIT_BINDING_ID),
         bundle.preparationBindingIds());
-    assertEquals("sha256:1cdc7d2691963e519c4353d3d920b1cf2b7680f07e5239c5535388d99a4fa6a6",
+    assertEquals("sha256:f3ee1267cd79aa9f80faeac9efe4d7bc36bfa2fbf07b19a0ddda605ee9e9f719",
         bundle.immutableBundleHash());
   }
 
@@ -602,7 +602,8 @@ class ManagedDependencyCommandTest {
             ? new TreeMap<>(Map.of("fs.defaultFS", "hdfs://nn.example.test:8020"))
             : new TreeMap<>(),
         new TreeMap<>(), type == ManagedDependencyType.ZOOKEEPER
-            ? new TreeMap<>(Map.of("hbase.zookeeper.quorum", "zk1.example.test"))
+            ? new TreeMap<>(Map.of("hbase.zookeeper.property.clientPort", "2181",
+                "hbase.zookeeper.quorum", "zk1.example.test"))
             : new TreeMap<>(),
         CONSUMER_HASH, PROVIDER_HASH, snapshotHash);
   }
