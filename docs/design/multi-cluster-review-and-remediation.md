@@ -28,11 +28,16 @@ original checklist; historical defects are not claims that those fixes are absen
 
 The initial remediation batch passed 205 Java, 91 frontend and 31 Python tests.
 Subsequent packaging corrections made full TypeScript checking and the native RPM
-build pass. The runtime follow-up at the end of this document is the current
-acceptance record: two real three-host Hadoop clusters, distinct-user REST/STOMP
-isolation and actual browser route rejection have passed. Cross-cluster HBase
-installation is still under repair; provider lifecycle and KDC acceptance remain
-open. Runtime results use the recorded RPM plus explicit incremental overlays.
+build pass. The final packaged acceptance record below is current: native RPMs
+from `1ab17a10ea333e35d9952666d57d8f4383762103` manage two independent three-host
+clusters on port 18081; API-added HBase uses each cluster's own HDFS/ZooKeeper.
+Package metadata, 21 runtime file hashes, SDK observations, service checks and
+scoped REST denials passed without overlays in this final deployment. Earlier
+port 18080 evidence established cross-cluster HBase read/write, real STOMP
+isolation and browser route rejection. Earlier incremental lifecycle corrections
+passed before packaging; their failed request history remains below. Managed
+provider lifecycle, KDC execution and broader crash/response-loss gates remain
+open. These checkpoints have distinct deployments and must not be conflated.
 
 ## 1. Overall conclusion
 
@@ -299,21 +304,22 @@ permissions, host ownership and secure inputs; preserve local-only defaults.
 
 ## 5. Acceptance scenarios and remaining runtime gates
 
-The current behavior column below describes the remediated worktree, not the
-reviewed HEAD. Passing focused tests do not close the runtime gates.
+The current behavior column describes the remediation, not the initial reviewed
+HEAD. Runtime coverage is updated through the final packaged acceptance below;
+earlier port 18080 and partial-overlay observations retain their narrower scope.
 
 | Scenario | Current code behavior | Required behavior | Current blocker | Minimum remaining change/action | Test |
 | --- | --- | --- | --- | --- | --- |
-| Two independent clusters and different users | Agent reports are filtered before effects; REST request/deployment ownership and route/RBAC guards are enforced | No cross-cluster reads, writes or subscriptions | No two-user HTTP/broker deployment executed | Provision two isolated clusters/users; run current endpoints and real subscriptions | Denied reads/writes/subscriptions, mixed agent reports, revocation |
-| A/HBase uses B/HDFS/ZooKeeper | Durable deployment waits for both bindings; same-realm proof validation and credential production are connected | Private namespaces and actual client operations without unintended local daemons | No live HDFS/ZK/KDC available in this validation run | Run supported BIGTOP 3.3.0 service setup; apply preview and approve exact bindings | Actual read/write, SASL, keytab and service checks |
+| Two independent clusters and different users | Final RPM: disjoint three-host clusters, four foreign GET/PUT denials (403), duplicate host denial (409), foreign request denial (404); earlier live STOMP delivery/denial passed | No cross-cluster reads, writes or subscriptions | Active permission revocation, malicious agent reports and full broker reconnect matrix not run live | Exercise those boundaries against the existing topology | Exact API/task/session identities and negative subscriptions |
+| A/HBase uses B/HDFS/ZooKeeper | Earlier port 18080 deployment reached COMPLETE with two READY bindings and actual SDK Put/Get; final port 18081 separately proves local dependencies for both clusters | Private namespaces and actual client operations without unintended local daemons | Real Kerberos/SASL and managed provider lifecycle remain open | Add a KDC to the managed topology and exercise exact credential/lifecycle operations | Actual read/write, SASL, keytab and service checks |
 | Provider stop/restart/delete; consumer detach/delete | Existing dialogs submit exact impact revisions; binding actions use backend capabilities; H2 detach/deletion guards pass | Preserve provider/data and fence invalid consumer use | Live rolling restart and storage retention not executed | Run lifecycle matrix with current endpoints and browser | Stop/restart confirmation, stale revision, delete denial, retained data after detach |
-| Installation failure/retry/refresh/server restart | Backend owns UUID, exact targets, request history and retry epochs; bounded recovery reloads rows | Resume failed targets once across process restart | Tests recreate coordinator and use H2 transactions, but do not kill a live server/agent | Inject crash at each publication boundary; restart same database | INSTALL/credential/VERIFY/START/check failures, cohosted daemons and multiple bindings |
-| Request response lost | GET/replay exact UUID; request/association commit together; notifications wait for commit | Recover same committed work without duplicate scheduling | Real proxy drop and process kill not run | Drop HTTP response after commit and retry same UUID | Frontend transport tests, H2 atomicity plus live fault injection |
+| Installation failure/retry/refresh/server restart | Live failed requests retained; explicit retries, installer draft refresh, Server restart during earlier B startup and post-fix restart persistence passed | Resume failed targets once across process restart | Hard kill at every managed publication boundary and in-flight credential recovery not run | Inject failures at the remaining transaction/dispatch boundaries | INSTALL/credential/VERIFY/START/check failures and exact persisted epochs |
+| Request response lost | Earlier live discarded launch response recovered the same deployment UUID through GET/identical POST; request/association commit together | Recover same committed work without duplicate scheduling | Proxy-level drops and process kills across all publication boundaries not run | Extend the live fault matrix beyond the demonstrated discarded response | Exact UUID/request comparison, H2 atomicity and live proxy fault injection |
 | Credential completion | Actual SET_KEYTAB publication/result processor and periodic recovery use exact plan/task/epoch/principal/path; manual verification is explicit | Advance only with current producer evidence and real credentials | No KDC/distribution execution; agent helper is mocked in Python tests | Execute real producer/agent callback with same-principal multiple paths | Wrong task/epoch/path, partial failure, manual mode and restart |
 | Missing installation lineage | UNRESOLVED fences missing or foreign request/task/binding associations; an acknowledged deployment returning 404 cannot be relaunched; browser does not scan | Never guess success or silently publish replacement | No automatic repair of genuinely missing historical identity | Restore authoritative persisted records through an audited recovery procedure; do not infer by time/name | Current negative tests; live retention/corruption experiment |
-| React route and realtime isolation | Actual route guard, API segment encoding and cluster scope remain; managed page checks deployment ID and cluster ID | No stale A data/actions on B during route changes or reconnect | Browser/network/broker matrix remains unexecuted | Two sessions/tabs, delayed REST, route changes, reconnect and permission revocation | Current route/RBAC/transport tests plus browser capture |
+| React route and realtime isolation | Actual browser rejects a foreign route; real scoped STOMP events passed; MCP exercised Dashboard/Admin context, refresh, reauthentication and management actions | No stale A data/actions on B during route changes or reconnect | Full delayed-response/two-tab/revocation/reconnect matrix remains open; not repeated on final RPM | Exercise remaining concurrent transitions with exact API and event identities | Current route/RBAC/transport tests plus browser and broker capture |
 | Blueprint and Add Service | PREPARE_ONLY freezes required types and prepares resources; live approval/deployment uses the same resolver as Add Service | Same approved dependency constraints and no unintended provider daemon creation | Explicit two-step Blueprint flow; no unattended one-POST deployment or secure live Blueprint test | Exercise documented handoff; automation must persist the returned deployment UUID | Real validator/HostRequest/frozen-requirement tests, then live Blueprint provisioning |
-| Actual integration versus mocks | Fresh Guice/H2 tests exercise transaction rollback, locks, task association, detach and migration | Real distributed effects and recovery match persisted state | No real agents/services/browser; TypeScript baseline errors remain | Execute runtime matrix and separately repair baseline frontend typing | 205 Java, 91 frontend, 31 Python focused tests; full lifecycle and live acceptance still open |
+| Actual integration versus mocks | Real six-node Agents/Hadoop/HBase, SDK operations, scoped users, browser and broker observations now supplement Guice/H2 and focused tests; native RPM and frontend builds passed | Real distributed effects and recovery match persisted state | Full test suite, all database dialects, KDC and remaining fault matrix not run; Admin build does not imply full project-reference type checking | Run the specific remaining environments and boundaries, preserving checkpoint-specific evidence | Final packaged API receipts plus the focused commands and runtime records below |
 
 ## 6. Small target architecture and execution order
 
@@ -1378,3 +1384,91 @@ At this source publication checkpoint both partial corrections have passed their
 focused tests and live recovery checks. A final native RPM containing them is the
 remaining packaging gate. Real KDC callbacks and broader response-loss fault
 injection remain outside this non-Kerberos independent-cluster run.
+
+
+## 2026-09-10 final packaged independent-cluster acceptance
+
+The final native RPM build and replacement deployment completed for source
+`1ab17a10ea333e35d9952666d57d8f4383762103`, release
+`1789036336.git1ab17a10ea33`. The build run is
+`ambari-1ab17a10ea33-a2ee2c10-101c3f6e-b19ff82f`, with one build attempt. Workflow
+`test-1ab17a10ea33-63415cdd13-b19ff82f` completed. Port 18081 serves this new
+deployment; port 18080 retains the earlier managed cross-cluster environment.
+No Ambari source overlays were applied to the final deployment. This acceptance
+record is a documentation-only follow-up to the packaged source commit.
+
+The six installed Agent packages and one Server package matched the explicit RPM
+NAME/VERSION/RELEASE query fields. SHA-256 checks matched all 21 copies of the
+three corrected scripts against Git source: Server resources and all six Agent
+caches. This closes the packaging gate above without treating the earlier overlay
+run as evidence of the final installed artifacts.
+
+The new final-acceptance process exited zero and recorded status `completed` only
+after the following structured API/SDK assertions completed:
+
+| Final deployment observation | Actual result |
+| --- | --- |
+| Initial topology | Six registered hosts; A owns worker1..3; worker4..6 are unassigned |
+| API-created B | Request 10 completed; B owns worker4..6; A membership unchanged |
+| API-added HBase A | Install/start request 19 and SDK service check 22 completed; all associated tasks COMPLETED |
+| API-added HBase B | Install/start request 23 and SDK service check 26 completed; all associated tasks COMPLETED |
+| A effective HBase storage | hdfs://mc-local-a/apps/hbase/data; HBase UUID 09601447-2116-4170-9689-d1f48d49f320 |
+| B effective HBase storage | hdfs://mc-local-b/apps/hbase/data; HBase UUID 805f53d4-f48f-491e-9600-e5faf77e6baf |
+| Dependency ownership | A NameNodes worker1/2 and ZooKeeper members worker1..3; B NameNodes worker4/5 and ZooKeeper members worker4..6; bootstrap resolves within each cluster; neither has a managed binding |
+| Different users | Each cluster viewer's foreign GET and PUT returned 403: four negative assertions |
+| Host/request ownership | Duplicate host attachment returned 409; B request 10 addressed under A returned 404 |
+| Component health | Each cluster has 22 daemon components STARTED and 13 client components INSTALLED across HBASE/HDFS/MAPREDUCE2/YARN/ZOOKEEPER |
+
+Request numbers happen to repeat the first disposable deployment. The new
+lifecycle plan ID is `613b72261e8a3867c5bbfaee09a706af7d21b0b59f02186d84198c6170492f9e`;
+the new SDK operation and HBase cluster UUIDs distinguish the final observations.
+No timestamp or global request scan was used to associate installation work.
+The localhost ZooKeeper bootstrap limitation and conservative unbound HDFS
+summary described above remain; the SDK and actual host membership prove the
+local dependency selection, not an individual bootstrap endpoint's failover.
+
+Commands actually executed from the deploy checkout (private absolute script
+paths retained so the evidence can be reproduced in this workspace):
+
+```text
+.venv/bin/ambari-test run --profile .ambari-test/multicluster-local-a245919fdb/profile.yml --repository /jialiangc/bigdata/prjs/ambari-multicluster --commit 1ab17a10ea333e35d9952666d57d8f4383762103 --output json
+.venv/bin/python /jialiangc/bigdata/prjs/.codex-runs/ambari-multicluster/runtime-api/independent-final-1ab17a10ea/final_acceptance.py
+.venv/bin/python /jialiangc/bigdata/prjs/.codex-runs/ambari-multicluster/runtime-api/independent-final-1ab17a10ea/verify_packages.py
+```
+
+The first replacement deployment failed its post-teardown TCP port probe. The
+probe used an exclusive bind, which can reject a port with no active listener
+during TIME_WAIT. A real Linux socket regression reproduced that false conflict;
+the exact kernel TCP state at the original deployment failure was not captured.
+Deploy now uses `socket.create_server` for platform reuse policy and an actual
+listening socket, so an existing listener remains rejected. The ownership stays
+in deploy's readiness probe; no log matching, manual lifecycle-state editing or
+Ambari change was introduced. The regression failed before the fix; all 16
+`tests/test_deployment_doctor.py` cases passed afterward using:
+
+```text
+.venv/bin/python -m pytest tests/test_deployment_doctor.py -q
+```
+
+Deploy commit `1b9f3ae507aba9e019add2f3e88d5ffa4d8d0526` was pushed to
+`origin/AMBARI-26643`. Retrying the same exact-commit workflow reused the verified
+RPM build above (attempt count remained one) and completed the replacement.
+Original failure receipts remain alongside the successful recovery receipts.
+
+Private final evidence is in `runtime-api/independent-final-1ab17a10ea` under the
+external run directory: workflow-result.json, initial-inventory.json,
+create-b-result.json, both add-hbase receipts, isolation-result.json, both SDK
+receipts, local-dependencies.json, component-health.json,
+packaged-artifact-verification.json and final-acceptance-state.json. Credentials
+remain outside the repository and this document.
+
+Review reconciliation: the overview and section 5 now distinguish demonstrated
+runtime behavior from the original unexecuted gates. The earlier two full B
+stop/start cycles, A reads/writes during B outage, and Server restart persistence
+passed after partial fixes and before this packaging run; they were not repeated
+on the final deployment. The final package contains those exact verified fixes.
+Managed provider stop/delete/detach retention, real KDC callbacks, all crash/drop
+boundaries, live missing-lineage corruption and the complete broker revocation
+matrix remain open. This is acceptance of the requested independent local-HBase
+topology and current corrections, not closure of every original security and
+fault-injection scenario.
