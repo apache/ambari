@@ -29,7 +29,7 @@ import React, {
 import { State, Action, ActionTypes } from "./types";
 import { reducer, initialState } from "./reducer";
 import { AppContext } from "../../../../store/context";
-import { forEach, get, isEmpty, isEqual, map } from "lodash";
+import { forEach, get, isEmpty, isEqual } from "lodash";
 import VersionsApi from "../../../../api/versionsApi";
 import { HostsApi } from "../../../../api/hostsApi";
 import { getAllComponents } from "../../../Hosts/utils";
@@ -126,7 +126,6 @@ export const AddServiceProvider: React.FC<{
   const [installedServicesLoaded, setInstalledServicesLoaded] = useState(false);
   const [serviceContextLoading, setServiceContextLoading] = useState(true);
   const [currStepData, setCurrStepData] = useState({});
-  const [isHydrated, setIsHydrated] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
   const [errorGeneration, setErrorGeneration] = useState(-1);
   const [reentryRequired, setReentryRequired] = useState(false);
@@ -143,7 +142,10 @@ export const AddServiceProvider: React.FC<{
     controllerNames: ["addServiceController"],
     keys: ["ADD_SERVICE", "CLUSTER_STATE"],
   });
-  const [hydratedPersistence, setHydratedPersistence] = useState<typeof persistence>(null);
+  const [hydratedScope, setHydratedScope] = useState<{
+    persistence: typeof persistence;
+    generation: number;
+  } | null>(null);
 
   const isDataPersisted = useRef(false);
   const isCancelled = useRef(false);
@@ -154,7 +156,8 @@ export const AddServiceProvider: React.FC<{
   const workflowQueueRef = useRef(new WorkflowMutationQueue());
   const persistenceRef = useRef<typeof persistence>(null);
   const explicitlyPersistedStateRef = useRef<State | null>(null);
-  const hasCurrentHydration = isHydrated && hydratedPersistence === persistence;
+  const hasCurrentHydration = hydratedScope?.persistence === persistence
+    && hydratedScope?.generation === scopeGeneration.current;
 
   const dispatch: Dispatch<Action> = (action) => {
     stateRef.current = reducer(stateRef.current, action);
@@ -292,7 +295,7 @@ export const AddServiceProvider: React.FC<{
       void getAlreadyInstalledServices(generation).catch((error) =>
         handleInitializationError(error, generation));
     }
-  }, [clusterName, hasCurrentHydration]);
+  }, [clusterName, hasCurrentHydration, hydratedScope]);
 
   useEffect(() => {
     const generation = scopeGeneration.current + 1;
@@ -320,7 +323,7 @@ export const AddServiceProvider: React.FC<{
     if (hasCurrentHydration && clusterName && !state.addServiceSteps?.NAME) {
       setClusterName();
     }
-  }, [clusterName, hasCurrentHydration, state.addServiceSteps?.NAME]);
+  }, [clusterName, hasCurrentHydration, hydratedScope, state.addServiceSteps?.NAME]);
 
   useEffect(() => {
     if (
@@ -333,7 +336,7 @@ export const AddServiceProvider: React.FC<{
       void getHostComponents(generation).catch((error) =>
         handleInitializationError(error, generation));
     }
-  }, [clusterName, hasCurrentHydration, serviceComponentInfo]);
+  }, [clusterName, hasCurrentHydration, hydratedScope, serviceComponentInfo]);
 
   useEffect(() => {
     if (hasCurrentHydration && clusterName && !state.addServiceSteps?.VERSION) {
@@ -344,7 +347,7 @@ export const AddServiceProvider: React.FC<{
     } else if (hasCurrentHydration) {
       setServiceContextLoading(false);
     }
-  }, [clusterName, hasCurrentHydration, state.addServiceSteps?.VERSION]);
+  }, [clusterName, hasCurrentHydration, hydratedScope, state.addServiceSteps?.VERSION]);
 
   useEffect(() => {
     if (isDataPersisted.current && !reentryRequired) {
@@ -360,7 +363,7 @@ export const AddServiceProvider: React.FC<{
 
   useEffect(() => {
     if (hasCurrentHydration) isDataPersisted.current = true;
-  }, [hasCurrentHydration]);
+  }, [hasCurrentHydration, hydratedScope]);
 
   const handleInitializationError = (error: any, generation = scopeGeneration.current) => {
     if (generation !== scopeGeneration.current) return;
@@ -381,7 +384,7 @@ export const AddServiceProvider: React.FC<{
       || persistenceRef.current !== persistenceSnapshot) return;
     setInitializationError(null);
     setErrorGeneration(-1);
-    setIsHydrated(false);
+    setHydratedScope(null);
     isDataPersisted.current = false;
     isCancelled.current = false;
     try {
@@ -426,8 +429,7 @@ export const AddServiceProvider: React.FC<{
       currStepDataRef.current = restoredStepData;
       setCurrStepData(restoredStepData);
       stepWizardUtilities.jumpToStep(activeStep, true);
-      setHydratedPersistence(persistenceSnapshot);
-      setIsHydrated(true);
+      setHydratedScope({ persistence: persistenceSnapshot, generation });
     } catch (error: any) {
       handleInitializationError(error, generation);
     }

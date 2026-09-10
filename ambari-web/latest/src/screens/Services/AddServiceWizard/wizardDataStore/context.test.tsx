@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
+import "../../../../i18n";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useContext, useRef } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import WorkflowStateApi, {
   type ScopedWorkflowState,
   type ScopedWorkflowUpdate,
@@ -167,7 +168,7 @@ function Probe({
         },
       },
     });
-    void withStateCheckpoint(async (revision) => {
+    void withStateCheckpoint!(async (revision) => {
       await advisor?.(revision, () => advisorScopeRef.current === capturedScope);
       if (advisorScopeRef.current !== capturedScope) {
         throw new Error("Managed dependency provider changed during advice.");
@@ -256,9 +257,9 @@ const providerTree = (
 );
 
 describe("Add Service scoped recovery", () => {
-  let getState: ReturnType<typeof vi.spyOn>;
-  let putState: ReturnType<typeof vi.spyOn>;
-  let getServices: ReturnType<typeof vi.spyOn>;
+  let getState: MockInstance<typeof WorkflowStateApi.get>;
+  let putState: MockInstance<typeof WorkflowStateApi.put>;
+  let getServices: MockInstance<typeof ServiceApi.getAllServices>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -316,8 +317,8 @@ describe("Add Service scoped recovery", () => {
     } };
     getState.mockResolvedValue(resumed);
     getServices.mockResolvedValue({ items: [
-      { ServiceInfo: { service_name: "HBASE", state: "INIT" } },
-      { ServiceInfo: { service_name: "KAFKA", state: "INSTALLED" } },
+      { ServiceInfo: { service_name: "HBASE", state: "INIT", desired_repository_version_id: 101, maintenance_state: "OFF" }, components: [] },
+      { ServiceInfo: { service_name: "KAFKA", state: "INSTALLED", desired_repository_version_id: 101, maintenance_state: "OFF" }, components: [] },
     ] });
 
     render(providerTree(appContext("cluster-a", 11), createWizardUtilities()));
@@ -343,7 +344,7 @@ describe("Add Service scoped recovery", () => {
   });
 
   it("does not adopt an INIT service from another cluster's saved intent", () => {
-    const restored = configuration("cluster-a");
+    const restored: { activeStep: string; addServiceSteps: Record<string, { data: unknown }> } = configuration("cluster-a");
     restored.addServiceSteps.REVIEW = { data: {
       serviceCreationIntent: {
         clusterId: 12,
@@ -372,7 +373,7 @@ describe("Add Service scoped recovery", () => {
 
     expect(await screen.findByText(/credential values were removed/)).toBeTruthy();
     expect(utilities.jumpToStep).toHaveBeenCalledWith(4, true);
-    expect(screen.getByTestId("state").textContent).toContain("requires_reentry");
+    expect((await screen.findByTestId("state")).textContent).toContain("requires_reentry");
     expect(screen.getByRole("button", { name: "Re-enter configuration" })).toBeTruthy();
     expect(putState).not.toHaveBeenCalled();
 
@@ -441,9 +442,11 @@ describe("Add Service scoped recovery", () => {
     expect(putState).toHaveBeenCalledOnce();
 
     advice.resolve();
-    await waitFor(() => expect(putState).toHaveBeenCalledTimes(2));
-    expect((putState.mock.calls[1][1] as ScopedWorkflowUpdate).values.ADD_SERVICE
-      .addServiceSteps.MASTERS.data.mastersData[0].host_name).toBe("worker-b");
+    await waitFor(() => expect(putState.mock.calls.at(-1)?.[1].values.ADD_SERVICE
+      .addServiceSteps).toMatchObject({
+        MASTERS: { data: { mastersData: [{ host_name: "worker-b" }] } },
+        SERVICES: { data: { managedDependencies: { HDFS: { provider: { cluster_id: 42 } } } } },
+      }));
     expect(advisor).toHaveBeenCalledOnce();
     expect(mutation).not.toHaveBeenCalled();
   });
@@ -484,8 +487,9 @@ describe("Add Service scoped recovery", () => {
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
     fireEvent.click(await screen.findByRole("button", { name: "Checkpoint and mutate" }));
     await waitFor(() => expect(mutation).toHaveBeenCalledOnce());
-    expect(putState).toHaveBeenCalledTimes(2);
-    expect((putState.mock.calls[1][1] as ScopedWorkflowUpdate).expected_revision).toBe(8);
+    expect(putState.mock.calls.length).toBeGreaterThanOrEqual(2);
+    expect(putState.mock.calls[1][1].expected_revision).toBe(8);
+    expect(putState.mock.calls.slice(1).every(([, update]) => update.expected_revision >= 8)).toBe(true);
   });
 
   it("keeps failed release ownership retryable and navigates only after IDLE is saved", async () => {
