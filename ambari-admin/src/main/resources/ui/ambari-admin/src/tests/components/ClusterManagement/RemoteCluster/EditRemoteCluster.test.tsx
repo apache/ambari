@@ -65,14 +65,23 @@ describe("EditRemoteCluster component", () => {
   beforeEach(() => {
     mockToastErrorMessage = "";
     mockToastSuccessMessage = "";
+    RemoteClusterApi.getRemoteClusterByName = async () =>
+      mockClusterDataForEdit;
   });
 
-  it("renders without crashing", () => {
+  it("renders without crashing", async () => {
     renderEditRemoteCluster();
+
+    await waitFor(() => {
+      expect(getClusterNameInput()).toHaveValue(
+        mockClusterDataForEdit.ClusterInfo.name
+      );
+    });
   });
 
-  it("shows loading spinner when data is being fetched.", async () => {
-    RemoteClusterApi.getRemoteClusterByName = async () => [];
+  it("shows loading spinner when data is being fetched.", () => {
+    RemoteClusterApi.getRemoteClusterByName = () =>
+      new Promise<never>(() => undefined);
     renderEditRemoteCluster();
 
     const spinner = screen.getByTestId("admin-spinner");
@@ -84,13 +93,14 @@ describe("EditRemoteCluster component", () => {
       mockClusterDataForEdit;
     renderEditRemoteCluster();
 
-    await waitFor(() => {});
-    expect(getClusterNameInput()).toHaveValue(
-      mockClusterDataForEdit.ClusterInfo.name
-    );
-    expect(getclusterUrlInput()).toHaveValue(
-      mockClusterDataForEdit.ClusterInfo.url
-    );
+    await waitFor(() => {
+      expect(getClusterNameInput()).toHaveValue(
+        mockClusterDataForEdit.ClusterInfo.name
+      );
+      expect(getclusterUrlInput()).toHaveValue(
+        mockClusterDataForEdit.ClusterInfo.url
+      );
+    });
   });
 
   it("should redirect to /remoteCluster on clicking cancel button", async () => {
@@ -105,12 +115,10 @@ describe("EditRemoteCluster component", () => {
       </AppContent.Provider>
     );
 
-    await waitFor(() => {});
-    const cancelButton = screen.getByRole("button", { name: /cancel/i });
+    const cancelButton = await screen.findByRole("button", { name: /cancel/i });
     expect(cancelButton).toBeInTheDocument();
 
     fireEvent.click(cancelButton);
-    await waitFor(() => {});
 
     await waitFor(() => {
       expect(history.location.pathname).toBe("/remoteClusters");

@@ -83,7 +83,6 @@ describe("RegisterRemoteCluster component", () => {
     expect(cancelButton).toBeInTheDocument();
 
     fireEvent.click(cancelButton);
-    await waitFor(() => {});
 
     await waitFor(() => {
       expect(window.location.hash).toBe("#/remoteClusters");

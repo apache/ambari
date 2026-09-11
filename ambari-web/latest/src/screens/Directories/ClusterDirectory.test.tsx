@@ -97,8 +97,8 @@ describe("global cluster directory", () => {
     }]);
     renderDirectory();
 
-    expect(await screen.findByRole("heading", { name: "Resume installations" })).toBeTruthy();
-    expect(screen.getByText("recoverable")).toBeTruthy();
+    expect(await screen.findByText("recoverable")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Resume installations" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Resume" }).getAttribute("href"))
       .toBe("/installer/step0?draft=2e97ec6a-c03d-4c52-b910-1a58ae50f390");
     expect(screen.queryByText(/2e97ec6a/)).toBeNull();

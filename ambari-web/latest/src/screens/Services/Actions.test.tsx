@@ -496,7 +496,9 @@ describe("service actions", () => {
       expect(mocks.actionRequestRebalanceHDFS).toHaveBeenCalledTimes(2),
     );
     expect(mocks.modalShow).toHaveBeenCalledOnce();
-    expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull(),
+    );
   });
 
   it("keeps the service restart dialog open and permits retry after failure", async () => {
@@ -521,7 +523,9 @@ describe("service actions", () => {
     fireEvent.click(retryButton);
 
     await waitFor(() => expect(mocks.actionRequest).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull(),
+    );
   });
 
   it.each([
@@ -560,7 +564,9 @@ describe("service actions", () => {
 
     await waitFor(() => expect(mocks.actionRequest).toHaveBeenCalledTimes(2));
     expect(mocks.modalShow).toHaveBeenCalledOnce();
-    expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull(),
+    );
   });
 
   it("locks the service restart entry for an active component restart", () => {
