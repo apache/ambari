@@ -2379,7 +2379,7 @@ class DefaultStackAdvisor(StackAdvisor):
       (
         component
         for component in componentsList
-        if component["component_name"] == componentName
+        if component.get("component_name") == componentName
       ),
       None,
     )
@@ -2389,7 +2389,7 @@ class DefaultStackAdvisor(StackAdvisor):
         (
           component
           for component in componentsList
-          if component["component_type"] == "HCFS_CLIENT"
+          if component.get("component_type") == "HCFS_CLIENT"
         ),
         None,
       )

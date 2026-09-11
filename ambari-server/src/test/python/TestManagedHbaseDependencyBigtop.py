@@ -1331,6 +1331,10 @@ class TestManagedHbaseDependencyBigtop(unittest.TestCase):
 
   def _configure_secure_role(self, user=None):
     user = user or self.user
+    test_account = pwd.getpwuid(os.geteuid())
+    account_patch = patch.object(MODULE.pwd, "getpwnam", return_value=test_account)
+    account_patch.start()
+    self.addCleanup(account_patch.stop)
     principal = f"{user}/host.example.test@EXAMPLE.COM"
     keytab = os.path.join(self.temporary, "hbase-master.keytab")
     jaas = os.path.join(self.hbase_conf, "hbase_master_jaas.conf")
