@@ -902,7 +902,9 @@ public class AmbariServer {
   }
 
   public void stop() throws Exception {
-    injector.getInstance(ManagedDependencyOperationDispatcher.class).stopRecovery();
+    if (injector != null) {
+      injector.getInstance(ManagedDependencyOperationDispatcher.class).stopRecovery();
+    }
     if (server == null) {
       LOG.info("Ambari Server stopped before the embedded server was initialized");
     } else {

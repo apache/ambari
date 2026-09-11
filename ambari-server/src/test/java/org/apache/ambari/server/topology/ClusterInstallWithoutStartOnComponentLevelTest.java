@@ -346,7 +346,8 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) eq("1"), anyLong());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME),
+        (SecurityType) isNull(), (String) eq("1"), anyLong(), (String) isNull(), eq(request));
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
@@ -367,7 +368,7 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
     expect(hostRoleCommand.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommand.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
     expect(hostRoleCommand.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
-    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+    expect(hostRoleCommand.getStatus()).andReturn(HostRoleStatus.PENDING).atLeastOnce();
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
     expectLastCall().times(3);
@@ -381,7 +382,9 @@ public class ClusterInstallWithoutStartOnComponentLevelTest extends EasyMockSupp
 
     persistedTopologyRequest = new PersistedTopologyRequest(1, request);
     expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).once();
-    expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).once();
+    expect(persistedState.getProvisioningIntent(anyLong()))
+        .andReturn(persistedTopologyRequest).once();
+    expect(persistedState.getProvisionRequest(anyLong())).andReturn(null).once();
     persistedState.persistLogicalRequest((LogicalRequest) anyObject(), anyLong());
     expectLastCall().once();
 

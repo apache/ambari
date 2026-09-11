@@ -64,13 +64,13 @@ import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariSessionManager;
-import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
-import org.apache.ambari.server.controller.dependencies.ManagedDependencyLifecyclePolicy;
 import org.apache.ambari.server.controller.ClusterResponse;
 import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyLifecyclePolicy;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
@@ -616,6 +616,7 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public void deleteConfigGroup(Long id) throws AmbariException {
+    String clusterName;
     clusterGlobalLock.writeLock().lock();
     try {
       ConfigGroup configGroup = clusterConfigGroups.get(id);
@@ -628,11 +629,14 @@ public class ClusterImpl implements Cluster {
 
       configGroup.delete();
       clusterConfigGroups.remove(id);
-
-      configHelper.updateAgentConfigs(Collections.singleton(configGroup.getClusterName()));
+      clusterName = configGroup.getClusterName();
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
+
+    // Agent config recomputation reads cluster configs on worker threads. Do not wait for those
+    // workers while holding the cluster write lock they need to acquire for those reads.
+    configHelper.updateAgentConfigs(Collections.singleton(clusterName));
   }
 
   public ServiceComponentHost getServiceComponentHost(String serviceName,

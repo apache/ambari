@@ -80,9 +80,9 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.serveraction.kerberos.KDCType;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.host.HostImpl;
@@ -867,8 +867,11 @@ public class TopologyManager {
 
     if (removedTopology != null) {
       Set<String> removedHostNames = new HashSet<>();
-      for (HostGroupInfo hostGroupInfo : removedTopology.getHostGroupInfo().values()) {
-        removedHostNames.addAll(hostGroupInfo.getHostNames());
+      Map<String, HostGroupInfo> removedHostGroups = removedTopology.getHostGroupInfo();
+      if (removedHostGroups != null) {
+        for (HostGroupInfo hostGroupInfo : removedHostGroups.values()) {
+          removedHostNames.addAll(hostGroupInfo.getHostNames());
+        }
       }
       synchronized (hostsToIgnore) {
         hostsToIgnore.removeAll(removedHostNames);

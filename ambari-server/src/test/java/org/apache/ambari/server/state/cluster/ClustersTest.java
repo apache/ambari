@@ -21,6 +21,7 @@ package org.apache.ambari.server.state.cluster;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.fail;
@@ -60,16 +61,16 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.ScopedWorkflowStateDAO;
 import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ScopedWorkflowStateEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.state.AgentVersion;
@@ -387,8 +388,8 @@ public class ClustersTest {
       clusters.addCluster("rolled-back-cluster", stackId, SecurityType.NONE, null,
           topologyIntent(Long.MAX_VALUE, "invalid-repository"));
       fail("Expected an invalid repository reference to roll back cluster creation");
-    } catch (RuntimeException expected) {
-      // The repository foreign key is the authoritative failure.
+    } catch (DuplicateResourceException expected) {
+      Assert.assertTrue(expected.getMessage().contains("repository version"));
     }
     Assert.assertNull(clusterDAO.findByName("rolled-back-cluster"));
   }
@@ -422,8 +423,9 @@ public class ClustersTest {
     Blueprint blueprint = createMock(Blueprint.class);
     Configuration configuration = new Configuration(properties, Collections.emptyMap());
     expect(request.getType()).andReturn(TopologyRequest.Type.PROVISION);
-    expect(request.getBlueprint()).andReturn(blueprint).times(2);
+    expect(request.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(blueprint.getName()).andReturn("test-blueprint");
+    expect(blueprint.getSetting()).andReturn(null).anyTimes();
     expect(request.getConfiguration()).andReturn(configuration).times(2);
     expect(request.getClusterId()).andReturn(null);
     expect(request.getDescription()).andReturn("Provision canonical cluster");
@@ -843,6 +845,7 @@ public class ClustersTest {
 
   private HostDAO replaceHostDAOWithFailingRemoval(String hostName, long clusterId) throws Exception {
     HostDAO failingHostDAO = createMock(HostDAO.class);
+    expect(failingHostDAO.findByName(hostName)).andReturn(hostDAO.findByName(hostName)).anyTimes();
     failingHostDAO.removeClusterMapping(hostName, clusterId);
     org.easymock.EasyMock.expectLastCall().andThrow(new PersistenceException("injected failure"));
     replay(failingHostDAO);
@@ -1177,7 +1180,26 @@ public class ClustersTest {
   private static class MockModule implements Module {
     @Override
     public void configure(Binder binder) {
-      binder.bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
+      TopologyManager topologyManager = createNiceMock(TopologyManager.class);
+      try {
+        topologyManager.deleteCluster(org.easymock.EasyMock.anyString(),
+            org.easymock.EasyMock.anyLong(),
+            org.easymock.EasyMock.anyObject(TopologyManager.LifecycleOperation.class));
+        expectLastCall().andAnswer(() -> {
+          ((TopologyManager.LifecycleOperation) org.easymock.EasyMock.getCurrentArguments()[2]).delete();
+          return null;
+        }).anyTimes();
+        topologyManager.executeWithLifecycleReadLock(
+            org.easymock.EasyMock.anyObject(TopologyManager.LifecycleOperation.class));
+        expectLastCall().andAnswer(() -> {
+          ((TopologyManager.LifecycleOperation) org.easymock.EasyMock.getCurrentArguments()[0]).delete();
+          return null;
+        }).anyTimes();
+      } catch (AmbariException e) {
+        throw new IllegalStateException(e);
+      }
+      replay(topologyManager);
+      binder.bind(TopologyManager.class).toInstance(topologyManager);
     }
   }
 }

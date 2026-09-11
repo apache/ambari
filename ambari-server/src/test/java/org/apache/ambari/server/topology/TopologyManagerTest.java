@@ -68,13 +68,14 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
 import org.apache.ambari.server.events.ClusterProvisionStartedEvent;
 import org.apache.ambari.server.events.ClusterProvisionedEvent;
-import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.SettingDAO;
 import org.apache.ambari.server.orm.entities.SettingEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -394,6 +395,7 @@ public class TopologyManagerTest {
     expect(configureClusterTask.getTimeout()).andReturn(1000L).anyTimes();
     expect(configureClusterTask.getRepeatDelay()).andReturn(50L).anyTimes();
     expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture).anyTimes();
+    expect(mockFuture.cancel(true)).andReturn(true).anyTimes();
 
     expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).anyTimes();
     expect(persistedState.getProvisioningIntent(CLUSTER_ID)).andReturn(persistedTopologyRequest).anyTimes();
@@ -754,6 +756,7 @@ public class TopologyManagerTest {
     allRequests.put(interruptedTopology, Collections.emptyList());
     expect(persistedState.getAllRequests()).andReturn(allRequests).anyTimes();
     expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(null).anyTimes();
+    expect(logicalRequest.isFinished()).andReturn(false).anyTimes();
     ambariContext.createAmbariServiceAndComponentResources(interruptedTopology, CLUSTER_NAME,
         new StackId(STACK_NAME, STACK_VERSION), 99L);
     expectLastCall().andAnswer(() -> {
@@ -761,13 +764,13 @@ public class TopologyManagerTest {
           instanceof InternalAuthenticationToken);
       return null;
     });
-    expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(false);
+    expect(ambariContext.isTopologyResolved(CLUSTER_ID)).andReturn(true);
 
-    Authentication clusterAOnlyCaller = EasyMock.createNiceMock(Authentication.class);
-    expect(clusterAOnlyCaller.getName()).andReturn("cluster-a-admin").anyTimes();
+    Authentication clusterAOnlyCaller =
+        TestAuthenticationFactory.createClusterAdministrator("cluster-a-admin", 99L);
 
     replayAll();
-    EasyMock.replay(interruptedTopology, clusterAOnlyCaller);
+    EasyMock.replay(interruptedTopology);
 
     SecurityContextHolder.getContext().setAuthentication(clusterAOnlyCaller);
     try {
@@ -778,7 +781,7 @@ public class TopologyManagerTest {
     } finally {
       SecurityContextHolder.clearContext();
     }
-    EasyMock.verify(interruptedTopology, clusterAOnlyCaller);
+    EasyMock.verify(interruptedTopology);
   }
 
   @Test
@@ -1076,7 +1079,6 @@ public class TopologyManagerTest {
   @Test
   public void testProvisionCluster_DifferentExistingQuickLinkProfileIsRejected() throws Exception {
     expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).anyTimes();
-    expect(persistedState.getProvisionRequest(CLUSTER_ID)).andReturn(null);
 
     // request has a quicklinks profile
     expect(request.getQuickLinksProfileJson()).andReturn(SAMPLE_QUICKLINKS_PROFILE_2).anyTimes();
