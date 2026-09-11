@@ -119,7 +119,8 @@ pipeline {
 
         stage('Ambari Java Tests') {
             steps {
-                sh 'mvn -am test -pl ambari-server,ambari-funtest -DskipPythonTests -DskipFunctionalTests=false -Dmaven.artifact.threads=10 -Drat.skip -DskipAdminWebTests=true -DskipUiBuild=true'
+                // Isolated forks keep static state and embedded databases from leaking between test classes.
+                sh 'mvn -B -am test -pl ambari-server,ambari-funtest -DforkCount=8 -DreuseForks=false -DskipPythonTests -DskipFunctionalTests=false -Dmaven.artifact.threads=10 -Drat.skip -DskipAdminWebTests=true -DskipUiBuild=true'
             }
         }
 
