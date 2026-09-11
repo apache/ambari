@@ -387,7 +387,7 @@ public final class ManagedHdfsAuthToLocalVerifier {
 
   private void requireRuleRealm(String value, int index) {
     if (!REALM.matcher(value).matches()) {
-      throw unsupportedRule(index, "realm expression");
+      throw unsupportedRule(index, "realm expression " + value);
     }
   }
 

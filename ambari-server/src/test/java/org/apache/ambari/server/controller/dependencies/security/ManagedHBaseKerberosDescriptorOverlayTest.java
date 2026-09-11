@@ -247,7 +247,8 @@ class ManagedHBaseKerberosDescriptorOverlayTest {
   }
 
   private KerberosDescriptor hbaseDescriptor() throws IOException {
-    String path = "stacks/BIGTOP/3.2.0/services/HBASE/kerberos.json";
+    String path =
+        "managed-dependency-fixtures/stacks/BIGTOP/3.2.0/services/HBASE/kerberos.json";
     try (InputStream input = Objects.requireNonNull(
         getClass().getClassLoader().getResourceAsStream(path), path)) {
       try {

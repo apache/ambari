@@ -44,8 +44,7 @@ import org.apache.ambari.server.controller.dependencies.ManagedDependencyDescrip
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyDescriptor.Provider;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyDescriptor.ZooKeeperEndpoint;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosOverlaySpec;
-import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosOverlaySpec
-    .ManagedBindingSnapshotRef;
+import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosOverlaySpec.ManagedBindingSnapshotRef;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseSecurityDescriptorAdapter;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHdfsAuthToLocalVerifier;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHdfsAuthToLocalVerifier.PolicySource;
@@ -57,8 +56,8 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -70,9 +69,9 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

@@ -309,7 +309,8 @@ class ManagedHdfsAuthToLocalVerifierTest {
   }
 
   private String activeStockTemplate() throws IOException {
-    String path = "stacks/BIGTOP/3.2.0/services/KERBEROS/properties/krb5_conf.j2";
+    String path =
+        "managed-dependency-fixtures/stacks/BIGTOP/3.2.0/services/KERBEROS/properties/krb5_conf.j2";
     try (InputStream input = Objects.requireNonNull(
         getClass().getClassLoader().getResourceAsStream(path), path)) {
       return new String(input.readAllBytes(), StandardCharsets.UTF_8);

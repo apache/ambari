@@ -249,7 +249,7 @@ public class KerberosHelperImpl implements KerberosHelper {
   @Inject
   private StackAdvisorHelper stackAdvisorHelper;
 
-  @Inject
+  @Inject(optional = true)
   private ManagedHBaseKerberosLivePlanProvider managedHBaseKerberosLivePlanProvider;
 
   @Override
@@ -499,7 +499,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     return getServiceConfigurationUpdates(cluster, existingConfigurations, installedServices,
         serviceFilter, previouslyExistingServices, kerberosEnabled, applyStackAdvisorUpdates,
-        kerberosDescriptor, kerberosDetails.getDefaultRealm(), true);
+        kerberosDescriptor, kerberosDetails.getDefaultRealm(), true, null);
   }
 
   @Override
@@ -536,7 +536,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         rawUserDescriptor, overlaySpec);
     Map<String, Map<String, String>> updates = getServiceConfigurationUpdates(cluster,
         deepCopy(existingConfigurations), services, null, Collections.emptySet(), true,
-        applyStackAdvisorUpdates, managedDescriptor, actualRealm, false);
+        applyStackAdvisorUpdates, managedDescriptor, actualRealm, false, overlaySpec);
     Map<String, Map<String, String>> calculated = deepCopy(existingConfigurations);
     mergeConfigurationMaps(calculated, updates);
     SealedConfigurations sealed = overlay.sealCalculatedConfigurations(calculated, overlaySpec);
@@ -555,7 +555,8 @@ public class KerberosHelperImpl implements KerberosHelper {
       boolean applyStackAdvisorUpdates,
       KerberosDescriptor kerberosDescriptor,
       String realm,
-      boolean enforceApprovedLivePlan) throws AmbariException {
+      boolean enforceApprovedLivePlan,
+      @Nullable ManagedHBaseKerberosOverlaySpec managedOverlaySpec) throws AmbariException {
     Map<String, Map<String, String>> kerberosConfigurations = new HashMap<>();
 
     Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
@@ -615,7 +616,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     setAuthToLocalRules(cluster, kerberosDescriptor, realm, installedServices, configurations,
-        kerberosConfigurations, false, enforceApprovedLivePlan);
+        kerberosConfigurations, false, enforceApprovedLivePlan, managedOverlaySpec);
 
     return (applyStackAdvisorUpdates)
       ? (enforceApprovedLivePlan
@@ -764,14 +765,6 @@ public class KerberosHelperImpl implements KerberosHelper {
     Map<String, String> coreSite = kerberosConfigurations.get("core-site");
     return coreSite != null && !StringUtils.isBlank(
         coreSite.get("hadoop.security.auth_to_local"));
-  }
-
-  private boolean hasManagedHBaseIdentity(@Nullable KerberosDescriptor descriptor) {
-    KerberosServiceDescriptor hbase = descriptor == null ? null : descriptor.getService("HBASE");
-    KerberosConfigurationDescriptor hbaseEnv =
-        hbase == null ? null : hbase.getConfiguration("hbase-env");
-    String hbaseUser = hbaseEnv == null ? null : hbaseEnv.getProperty("hbase_user");
-    return hbaseUser != null && hbaseUser.startsWith("hbase_mc_");
   }
 
   /**
@@ -1389,7 +1382,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                                   boolean includePreconfigureData)
     throws AmbariException {
     setAuthToLocalRules(cluster, kerberosDescriptor, realm, installedServices,
-        existingConfigurations, kerberosConfigurations, includePreconfigureData, true);
+        existingConfigurations, kerberosConfigurations, includePreconfigureData, true, null);
   }
 
   private void setAuthToLocalRules(Cluster cluster,
@@ -1398,8 +1391,21 @@ public class KerberosHelperImpl implements KerberosHelper {
                                    Map<String, Map<String, String>> existingConfigurations,
                                    Map<String, Map<String, String>> kerberosConfigurations,
                                    boolean includePreconfigureData,
-                                   boolean enforceApprovedLivePlan)
+                                   boolean enforceApprovedLivePlan,
+                                   @Nullable ManagedHBaseKerberosOverlaySpec managedOverlaySpec)
     throws AmbariException {
+
+    Optional<ManagedHBaseKerberosLivePlan> livePlan = enforceApprovedLivePlan
+        ? approvedLivePlan(cluster) : Optional.empty();
+    ManagedHBaseKerberosOverlaySpec activeManagedOverlay = managedOverlaySpec != null
+        ? managedOverlaySpec : livePlan.map(ManagedHBaseKerberosLivePlan::overlaySpec).orElse(null);
+    KerberosDescriptor authToLocalDescriptor = kerberosDescriptor;
+    if (kerberosDescriptor != null && activeManagedOverlay != null
+        && activeManagedOverlay.hasManagedHdfs() && !installedServices.containsKey("HDFS")) {
+      authToLocalDescriptor = new KerberosDescriptorFactory()
+          .createInstance(kerberosDescriptor.toMap());
+      authToLocalDescriptor.removeIdentity("hdfs");
+    }
 
     boolean processAuthToLocalRules = true;
     Map<String, String> kerberosEnvProperties = existingConfigurations.get(KERBEROS_ENV);
@@ -1407,7 +1413,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       processAuthToLocalRules = Boolean.valueOf(kerberosEnvProperties.get(MANAGE_AUTH_TO_LOCAL_RULES));
     }
 
-    if (kerberosDescriptor != null && processAuthToLocalRules) {
+    if (authToLocalDescriptor != null && processAuthToLocalRules) {
 
       Set<String> authToLocalProperties;
       Set<String> authToLocalPropertiesToSet = new HashSet<>();
@@ -1417,7 +1423,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       boolean caseInsensitiveUser = Boolean.valueOf(existingConfigurations.get(KERBEROS_ENV).get(CASE_INSENSITIVE_USERNAME_RULES));
 
       // Additional realms that need to be handled according to the Kerberos Descriptor
-      String additionalRealms = kerberosDescriptor.getProperty("additional_realms");
+      String additionalRealms = authToLocalDescriptor.getProperty("additional_realms");
 
       // Create the context to use for filtering Kerberos Identities based on the state of the cluster
       Map<String, Object> filterContext = new HashMap<>();
@@ -1429,21 +1435,29 @@ public class KerberosHelperImpl implements KerberosHelper {
       // Add in the default configurations for the services that need to be preconfigured. These
       // configurations may be needed while calculating the auth-to-local rules.
       Map<String, Map<String, String>> replacements = (includePreconfigureData)
-        ? addConfigurationsForPreProcessedServices(deepCopy(existingConfigurations), cluster, kerberosDescriptor, false)
+        ? addConfigurationsForPreProcessedServices(deepCopy(existingConfigurations), cluster,
+            authToLocalDescriptor, false)
         : existingConfigurations;
+      if (activeManagedOverlay != null) {
+        replacements = deepCopy(replacements);
+        replacements.computeIfAbsent("", ignored -> new HashMap<>())
+            .put("realm", activeManagedOverlay.realm());
+      }
 
       // Process top-level identities
-      addIdentities(authToLocalBuilder, kerberosDescriptor.getIdentities(true, filterContext), null, replacements);
+      addIdentities(authToLocalBuilder,
+          authToLocalDescriptor.getIdentities(true, filterContext), null, replacements);
 
       // Determine which properties need to be set
-      authToLocalProperties = kerberosDescriptor.getAuthToLocalProperties();
+      authToLocalProperties = authToLocalDescriptor.getAuthToLocalProperties();
       if (authToLocalProperties != null) {
         authToLocalPropertiesToSet.addAll(authToLocalProperties);
       }
 
       // Iterate through the services in the Kerberos descriptor. If a found service is installed
       // or marked to be preconfigured, add the relevant data to the auth-to-local rules.
-      Map<String, KerberosServiceDescriptor> serviceDescriptors = kerberosDescriptor.getServices();
+      Map<String, KerberosServiceDescriptor> serviceDescriptors =
+          authToLocalDescriptor.getServices();
       if (serviceDescriptors != null) {
         final boolean includeAllComponents = Boolean.valueOf(kerberosEnvProperties.get(INCLUDE_ALL_COMPONENTS_IN_AUTH_TO_LOCAL_RULES));
         for (KerberosServiceDescriptor serviceDescriptor : serviceDescriptors.values()) {
@@ -1538,13 +1552,9 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
 
     if (enforceApprovedLivePlan) {
-      Optional<ManagedHBaseKerberosLivePlan> livePlan = approvedLivePlan(cluster);
       if (livePlan.isPresent()) {
         sealApprovedLiveConfigurations(existingConfigurations, kerberosConfigurations,
             kerberosDescriptor, livePlan.get());
-      } else if (hasManagedHBaseIdentity(kerberosDescriptor)) {
-        throw new AmbariException(
-            "A managed HBase descriptor has no approved persisted security plan");
       }
     }
   }
@@ -1670,15 +1680,21 @@ public class KerberosHelperImpl implements KerberosHelper {
             || kerberosDescriptorType == KerberosDescriptorType.COMPOSITE)
         ? (userDescriptor == null ? getKerberosDescriptorUpdates(cluster) : userDescriptor)
         : null;
-    KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(kerberosDescriptorType, cluster,
-            stackId, includePreconfigureData, effectiveUserDescriptor);
-
+    KerberosDescriptor kerberosDescriptor;
     if (kerberosDescriptorType == KerberosDescriptorType.COMPOSITE) {
       Optional<ManagedHBaseKerberosLivePlan> livePlan = approvedLivePlan(cluster);
       if (livePlan.isPresent()) {
+        KerberosDescriptor stackDescriptor = getKerberosDescriptor(
+            KerberosDescriptorType.STACK, cluster, stackId, includePreconfigureData, null);
         kerberosDescriptor = new ManagedHBaseKerberosDescriptorOverlay().applyCopy(
-            kerberosDescriptor, effectiveUserDescriptor, livePlan.get().overlaySpec());
+            stackDescriptor, effectiveUserDescriptor, livePlan.get().overlaySpec());
+      } else {
+        kerberosDescriptor = getKerberosDescriptor(kerberosDescriptorType, cluster,
+            stackId, includePreconfigureData, effectiveUserDescriptor);
       }
+    } else {
+      kerberosDescriptor = getKerberosDescriptor(kerberosDescriptorType, cluster,
+          stackId, includePreconfigureData, effectiveUserDescriptor);
     }
 
     if (evaluateWhenClauses) {
@@ -2058,9 +2074,6 @@ public class KerberosHelperImpl implements KerberosHelper {
       }
       sealApprovedLiveConfigurations(calculatedConfigurations, new HashMap<>(),
           kerberosDescriptor, livePlan.get());
-    } else if (hasManagedHBaseIdentity(kerberosDescriptor)) {
-      throw new AmbariException(
-          "A managed HBase descriptor has no approved persisted security plan");
     }
   }
 
@@ -3659,18 +3672,16 @@ public class KerberosHelperImpl implements KerberosHelper {
    * </li>
    * <li>
    * If the stack-level Kerberos descriptor is <code>null</code> and the user-supplied Kerberos
-   * descriptor is <code>non-null</code>, return a detached copy of the user-supplied Kerberos
-   * descriptor.
+   * descriptor is <code>non-null</code>, return the user-supplied Kerberos descriptor.
    * </li>
    * <li>
    * If the stack-level Kerberos descriptor is <code>non-null</code> and the user-supplied
-   * Kerberos descriptor is <code>null</code>, return a detached copy of the stack-level Kerberos
-   * descriptor.
+   * Kerberos descriptor is <code>null</code>, return the stack-level Kerberos descriptor.
    * </li>
    * <li>
    * If neither the stack-level nor the user-supplied Kerberos descriptors are <code>null</code>,
-   * return a detached copy of the stack-level Kerberos descriptor updated using data from a
-   * detached copy of the user-supplied Kerberos descriptor.
+   * return the stack-level Kerberos descriptor updated using data from the user-supplied
+   * Kerberos descriptor.
    * </li>
    * </ul>
    *
@@ -3679,20 +3690,18 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @return a KerberosDescriptor
    */
   private KerberosDescriptor combineKerberosDescriptors(KerberosDescriptor stackDescriptor, KerberosDescriptor userDescriptor) {
-    KerberosDescriptorFactory copyFactory = new KerberosDescriptorFactory();
+    KerberosDescriptor kerberosDescriptor;
     if (stackDescriptor == null) {
       if (userDescriptor == null) {
         return new KerberosDescriptor();  // return an empty Kerberos descriptor since we have no data
       } else {
-        return copyFactory.createInstance(userDescriptor.toMap());
+        kerberosDescriptor = userDescriptor;
       }
-    }
-
-    KerberosDescriptor kerberosDescriptor =
-        copyFactory.createInstance(stackDescriptor.toMap());
-    if (userDescriptor != null) {
-      kerberosDescriptor.update(
-          copyFactory.createInstance(userDescriptor.toMap()));
+    } else {
+      if (userDescriptor != null) {
+        stackDescriptor.update(userDescriptor);
+      }
+      kerberosDescriptor = stackDescriptor;
     }
     return kerberosDescriptor;
   }

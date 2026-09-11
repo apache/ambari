@@ -42,9 +42,9 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.PersistKeyValueImpl;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.ScopedWorkflowState;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -66,8 +66,9 @@ import org.apache.ambari.server.orm.dao.ServiceDependencyDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyBindingEntity;
-import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -87,7 +88,6 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
-import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.junit.jupiter.api.Test;
 
 class ManagedDependencyDescriptorResolverTest {
@@ -98,7 +98,7 @@ class ManagedDependencyDescriptorResolverTest {
   }
 
   private static final String STOCK_TEMPLATE_RESOURCE =
-      "/stacks/BIGTOP/3.2.0/services/KERBEROS/properties/krb5_conf.j2";
+      "/managed-dependency-fixtures/stacks/BIGTOP/3.2.0/services/KERBEROS/properties/krb5_conf.j2";
   private static final String STOCK_TEMPLATE = loadStockTemplate();
 
   private final ManagedDependencyDescriptorResolver resolver =
@@ -280,7 +280,7 @@ class ManagedDependencyDescriptorResolverTest {
   @Test
   void bigtopKrb5MetadataUsesTheFileBackedStockTemplate() {
     String metadata = loadResource(
-        "/stacks/BIGTOP/3.2.0/services/KERBEROS/configuration/krb5-conf.xml");
+        "/managed-dependency-fixtures/stacks/BIGTOP/3.2.0/services/KERBEROS/configuration/krb5-conf.xml");
     assertTrue(metadata.contains("<name>content</name>"));
     assertTrue(metadata.contains("<property-type>VALUE_FROM_PROPERTY_FILE</property-type>"));
     assertTrue(metadata.contains("<property-file-name>krb5_conf.j2</property-file-name>"));
@@ -570,9 +570,9 @@ class ManagedDependencyDescriptorResolverTest {
     KerberosDescriptor root = descriptorFactory.createInstance(loadResource(
         "/kerberos/test_kerberos_descriptor_simple.json"));
     root.update(descriptorFactory.createInstance(loadResource(
-        "/stacks/BIGTOP/3.2.0/services/HBASE/kerberos.json")));
+        "/managed-dependency-fixtures/stacks/BIGTOP/3.2.0/services/HBASE/kerberos.json")));
     root.update(descriptorFactory.createInstance(loadResource(
-        "/stacks/BIGTOP/3.2.0/services/ZOOKEEPER/kerberos.json")));
+        "/managed-dependency-fixtures/stacks/BIGTOP/3.2.0/services/ZOOKEEPER/kerberos.json")));
     return root;
   }
 

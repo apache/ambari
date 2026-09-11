@@ -61,10 +61,14 @@ public record ManagedHBaseConsumerLocalMapping(
     canonicalRules = requireCanonicalRules(canonicalRules);
     proof = Objects.requireNonNull(proof, "proof");
 
-    ConsumerLocalMappingProof actualProof = new ManagedHdfsAuthToLocalVerifier()
-        .proveConsumerLocalMappings(canonicalRules,
-            new ConsumerLocalMappingInput(realm, proof.effectiveShortUser(),
-                rolePrincipalPattern, headlessPrincipal, smokePrincipal, smokeShortUser));
+    ConsumerLocalMappingProof actualProof;
+    try {
+      actualProof = new ManagedHdfsAuthToLocalVerifier().proveConsumerLocalMappings(
+          canonicalRules, new ConsumerLocalMappingInput(realm, proof.effectiveShortUser(),
+              rolePrincipalPattern, headlessPrincipal, smokePrincipal, smokeShortUser));
+    } catch (ManagedDependencyIntegrationException e) {
+      throw new IllegalArgumentException("consumer mapping proof is invalid", e);
+    }
     if (!actualProof.equals(proof)) {
       throw new IllegalArgumentException("consumer mapping proof does not match its rules and identities");
     }

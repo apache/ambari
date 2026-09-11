@@ -491,7 +491,8 @@ class ManagedHBaseSecurityDescriptorAdapterTest {
 
   private KerberosDescriptor compositeDescriptor() throws IOException, AmbariException {
     KerberosDescriptor root = load("kerberos/test_kerberos_descriptor_simple.json");
-    root.update(load("stacks/BIGTOP/3.2.0/services/HBASE/kerberos.json"));
+    root.update(load(
+        "managed-dependency-fixtures/stacks/BIGTOP/3.2.0/services/HBASE/kerberos.json"));
     return root;
   }
 

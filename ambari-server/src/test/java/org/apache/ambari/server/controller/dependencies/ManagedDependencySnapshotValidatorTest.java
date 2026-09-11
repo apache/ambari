@@ -39,9 +39,9 @@ import org.apache.ambari.server.controller.dependencies.ManagedDependencyDescrip
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyDescriptor.HdfsEndpoint;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyDescriptor.Provider;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyDescriptor.ZooKeeperEndpoint;
-import org.apache.ambari.server.controller.dependencies.ManagedDependencySnapshotValidator.ValidationResult;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyIdentity.Allocation;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyIdentity.Plan;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencySnapshotValidator.ValidationResult;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosDescriptorOverlay.SealedConfigurations;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosOverlaySpec;
 import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosOverlaySpec.ManagedBindingSnapshotRef;
