@@ -152,7 +152,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     if (wizardName === "addService") {
       const nextStep = nextAddServiceStep(1, flow);
       await Promise.resolve(flushStateToDb("jump", nextStep));
-      jumpToStep(nextStep);
+      jumpToStep(nextStep, true);
     } else {
       await Promise.resolve(flushStateToDb("next"));
       handleNextImperitive();
