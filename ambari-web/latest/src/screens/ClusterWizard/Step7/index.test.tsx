@@ -229,6 +229,7 @@ vi.mock("../../../components/StepWizard/WizardFooter", () => ({
 }));
 
 import Step7, {
+  addAlertNotificationProperties,
   findNextEnabledConfigurationTab,
   findPreviousEnabledConfigurationTab,
 } from ".";
@@ -787,5 +788,25 @@ describe("Step 7 Theme fallback", () => {
       services: ["HDFS"],
       user_context: { operation: "ClusterCreate" },
     });
+  });
+});
+
+describe("addAlertNotificationProperties", () => {
+  it("marks every visible MISC > Notifications field as optional by default", () => {
+    const result = addAlertNotificationProperties("clusterCreation", {});
+
+    const notificationProperties = result.MISC.Notifications.properties;
+    const visibleFieldNames = ["mail.smtp.host", "mail.smtp.port", "mail.smtp.from", "ambari.dispatch.recipients"];
+
+    visibleFieldNames.forEach((propertyName) => {
+      expect(notificationProperties[propertyName].propertyAttributes.empty_value_valid).toBe(true);
+      expect(notificationProperties[propertyName].value).toBe("");
+    });
+  });
+
+  it("does not add a Notifications category for the add service wizard", () => {
+    const result = addAlertNotificationProperties("addService", {});
+
+    expect(result.MISC).toBeUndefined();
   });
 });

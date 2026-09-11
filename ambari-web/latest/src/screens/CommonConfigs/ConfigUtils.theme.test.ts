@@ -23,9 +23,11 @@ import {
   getThemePlacementProperty,
   setTabErrorCounts,
   updateVisibilityForDependsOn,
+  validateInput,
 } from "./ConfigUtils";
 import { ConfigPropertiesType } from "./types";
 import { normalizeDefaultThemeResponse } from "./themeEngine";
+import { alert_notifications } from "../../data/configs/alert_notifications";
 
 type Placement = {
   config: string;
@@ -603,6 +605,63 @@ describe("Service Theme config visibility", () => {
     expect(restored.SVC["type-a"].properties.shared.isEditable).toBe(false);
     expect("isOverridable" in restored.SVC["type-a"].properties.shared).toBe(
       false,
+    );
+  });
+});
+
+describe("MISC > Notifications properties default to optional (matches classic's untoggled default)", () => {
+  // Mirrors ambari-web/classic/app/data/configs/alert_notification.js, where every field is
+  // hardcoded isRequired:false and notification_configs_view.js only flips that when the user
+  // opts in via createNotification (not ported here) - see data/configs/alert_notifications.ts.
+  const visibleNotificationFields = alert_notifications.filter(
+    (property) => property.isVisible,
+  );
+
+  it("has at least one visible SMTP/notification field to guard", () => {
+    expect(visibleNotificationFields.length).toBeGreaterThan(0);
+  });
+
+  it.each(visibleNotificationFields.map((property) => [property.name, property]))(
+    "%s is not required when left empty",
+    (_name, property: any) => {
+      const wizardProperty = {
+        propertyName: property.name,
+        propertyDisplayname: property.displayName || "",
+        propertyValue: "",
+        previousValue: "",
+        value: property.displayType === "checkbox" ? "false" : "",
+        isVisible: true,
+        isHidden: false,
+        isEditable: true,
+        propertyAttributes: {
+          type: property.displayType || "string",
+          overridable: false,
+          empty_value_valid: !property.isRequired,
+        },
+      };
+
+      expect(validateInput(wizardProperty, "")).toBe("");
+    },
+  );
+
+  it("would have blocked the wizard before empty_value_valid was wired up from isRequired", () => {
+    const propertyMissingEmptyValueValid = {
+      propertyName: "mail.smtp.host",
+      propertyDisplayname: "SMTP Host",
+      propertyValue: "",
+      previousValue: "",
+      value: "",
+      isVisible: true,
+      isHidden: false,
+      isEditable: true,
+      propertyAttributes: {
+        type: "host",
+        overridable: false,
+      },
+    };
+
+    expect(validateInput(propertyMissingEmptyValueValid, "")).toBe(
+      "This is required",
     );
   });
 });
