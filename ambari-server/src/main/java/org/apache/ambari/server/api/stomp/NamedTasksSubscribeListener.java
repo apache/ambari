@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.api.stomp;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
@@ -31,8 +33,17 @@ import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 public class NamedTasksSubscribeListener {
   private static Logger LOG = LoggerFactory.getLogger(NamedTasksSubscribeListener.class);
 
-  @Autowired
-  private NamedTasksSubscriptions namedTasksSubscriptions;
+  private final NamedTasksSubscriptions namedTasksSubscriptions;
+  private final ApiStompSessionRegistry sessionRegistry;
+  private final ApiStompAuthorizationService authorizationService;
+
+  public NamedTasksSubscribeListener(NamedTasksSubscriptions namedTasksSubscriptions,
+                                     ApiStompSessionRegistry sessionRegistry,
+                                     ApiStompAuthorizationService authorizationService) {
+    this.namedTasksSubscriptions = namedTasksSubscriptions;
+    this.sessionRegistry = sessionRegistry;
+    this.authorizationService = authorizationService;
+  }
 
   @EventListener
   public void subscribe(SessionSubscribeEvent sse)
@@ -41,8 +52,11 @@ public class NamedTasksSubscribeListener {
     String sessionId  = (String) msgHeaders.get("simpSessionId");
     String destination  = (String) msgHeaders.get("simpDestination");
     String id  = (String) msgHeaders.get("simpSubscriptionId");
-    if (sessionId != null && destination != null && id != null) {
-      namedTasksSubscriptions.addDestination(sessionId, destination, id);
+    Optional<Long> taskId = namedTasksSubscriptions.matchDestination(destination);
+    Optional<Authentication> authentication = sessionRegistry.currentAuthentication(sessionId);
+    if (id != null && taskId.isPresent() && authentication.isPresent()
+        && authorizationService.canViewTask(authentication.get(), taskId.get(), null)) {
+      namedTasksSubscriptions.addTaskId(sessionId, taskId.get(), id);
     }
     LOG.debug(String.format("API subscribe was arrived with sessionId = %s, destination = %s and id = %s",
         sessionId, destination, id));
@@ -68,6 +82,7 @@ public class NamedTasksSubscribeListener {
     String sessionId  = (String) msgHeaders.get("simpSessionId");
     if (sessionId != null) {
       namedTasksSubscriptions.removeSession(sessionId);
+      sessionRegistry.remove(sessionId);
     }
     LOG.debug(String.format("API disconnect was arrived with sessionId = %s",
         sessionId));

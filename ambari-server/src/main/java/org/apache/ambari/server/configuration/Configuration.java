@@ -2464,6 +2464,10 @@ public class Configuration {
   public static final ConfigurationProperty<String> POST_USER_CREATION_HOOK = new ConfigurationProperty<>(
       "ambari.post.user.creation.hook", "/var/lib/ambari-server/resources/scripts/post-user-creation-hook.sh");
 
+  @Markdown(description = "The cluster targeted by the post user creation hook. This is required when more than one cluster exists.")
+  public static final ConfigurationProperty<String> POST_USER_CREATION_HOOK_CLUSTER_NAME = new ConfigurationProperty<>(
+      "ambari.post.user.creation.hook.cluster.name", "");
+
   /**
    * PropertyConfigurator checks log4j.properties file change every LOG4JMONITOR_DELAY milliseconds.
    */

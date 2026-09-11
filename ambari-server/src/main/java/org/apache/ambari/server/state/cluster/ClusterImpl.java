@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -68,6 +69,8 @@ import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.RootService;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyLifecyclePolicy;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.DeleteHostComponentStatusMetaData;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
@@ -83,6 +86,7 @@ import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -289,6 +293,12 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private HostLevelParamsHolder hostLevelParamsHolder;
+
+  @Inject
+  private ManagedDependencyConfigPolicy managedDependencyConfigPolicy;
+
+  @Inject
+  private ManagedDependencyLifecyclePolicy managedDependencyLifecyclePolicy;
 
   /**
    * Data access object used for looking up stacks from the database.
@@ -503,13 +513,15 @@ public class ClusterImpl implements Cluster {
     LOG.debug("Adding a new Config group, clusterName = {}, groupName = {}, tag = {} with hosts {}",
       getClusterName(), configGroup.getName(), configGroup.getTag(), hostList);
 
-    if (clusterConfigGroups.containsKey(configGroup.getId())) {
-      // The loadConfigGroups will load all groups to memory
-      LOG.debug("Config group already exists, clusterName = {}, groupName = {}, groupId = {}, tag = {}",
-        getClusterName(), configGroup.getName(), configGroup.getId(), configGroup.getTag());
-    } else {
-      clusterConfigGroups.put(configGroup.getId(), configGroup);
-    }
+    executeUnderWriteLock(() -> {
+      if (clusterConfigGroups.containsKey(configGroup.getId())) {
+        // The loadConfigGroups will load all groups to memory
+        LOG.debug("Config group already exists, clusterName = {}, groupName = {}, groupId = {}, tag = {}",
+          getClusterName(), configGroup.getName(), configGroup.getId(), configGroup.getTag());
+      } else {
+        clusterConfigGroups.put(configGroup.getId(), configGroup);
+      }
+    });
   }
 
   @Override
@@ -604,18 +616,27 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public void deleteConfigGroup(Long id) throws AmbariException {
-    ConfigGroup configGroup = clusterConfigGroups.get(id);
-    if (configGroup == null) {
-      throw new ConfigGroupNotFoundException(getClusterName(), id.toString());
+    String clusterName;
+    clusterGlobalLock.writeLock().lock();
+    try {
+      ConfigGroup configGroup = clusterConfigGroups.get(id);
+      if (configGroup == null) {
+        throw new ConfigGroupNotFoundException(getClusterName(), id.toString());
+      }
+
+      LOG.debug("Deleting Config group, clusterName = {}, groupName = {}, groupId = {}, tag = {}",
+        getClusterName(), configGroup.getName(), configGroup.getId(), configGroup.getTag());
+
+      configGroup.delete();
+      clusterConfigGroups.remove(id);
+      clusterName = configGroup.getClusterName();
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
     }
 
-    LOG.debug("Deleting Config group, clusterName = {}, groupName = {}, groupId = {}, tag = {}",
-      getClusterName(), configGroup.getName(), configGroup.getId(), configGroup.getTag());
-
-    configGroup.delete();
-    clusterConfigGroups.remove(id);
-
-    configHelper.updateAgentConfigs(Collections.singleton(configGroup.getClusterName()));
+    // Agent config recomputation reads cluster configs on worker threads. Do not wait for those
+    // workers while holding the cluster write lock they need to acquire for those reads.
+    configHelper.updateAgentConfigs(Collections.singleton(clusterName));
   }
 
   public ServiceComponentHost getServiceComponentHost(String serviceName,
@@ -1049,9 +1070,11 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public void setSecurityType(SecurityType securityType) {
-    ClusterEntity clusterEntity = getClusterEntity();
-    clusterEntity.setSecurityType(securityType);
-    clusterDAO.merge(clusterEntity);
+    executeUnderWriteLock(() -> {
+      ClusterEntity clusterEntity = getClusterEntity();
+      clusterEntity.setSecurityType(securityType);
+      clusterDAO.merge(clusterEntity);
+    });
   }
 
   /**
@@ -1339,29 +1362,27 @@ public class ClusterImpl implements Cluster {
   @Override
   @Transactional
   public void deleteAllServices() throws AmbariException {
-    clusterGlobalLock.writeLock().lock();
-    try {
-      LOG.info("Deleting all services for cluster" + ", clusterName="
+    lockForTransactionalDeletion();
+    LOG.info("Deleting all services for cluster" + ", clusterName="
         + getClusterName());
-      for (Service service : services.values()) {
-        if (!service.canBeRemoved()) {
-          throw new AmbariException(
-              "Found non removable service when trying to"
-                  + " all services from cluster" + ", clusterName="
-                  + getClusterName() + ", serviceName=" + service.getName());
-        }
+    for (Service service : services.values()) {
+      if (!service.canBeRemoved()) {
+        throw new AmbariException(
+            "Found non removable service when trying to"
+                + " all services from cluster" + ", clusterName="
+                + getClusterName() + ", serviceName=" + service.getName());
       }
-
-      DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
-      for (Service service : services.values()) {
-        deleteService(service, deleteMetaData);
-        STOMPComponentsDeleteHandler.processDeleteByMetaDataException(deleteMetaData);
-      }
-      STOMPComponentsDeleteHandler.processDeleteCluster(getClusterId());
-      services.clear();
-    } finally {
-      clusterGlobalLock.writeLock().unlock();
     }
+
+    managedDependencyLifecyclePolicy.validateServiceDeletion(this, services.keySet());
+
+    DeleteHostComponentStatusMetaData deleteMetaData = new DeleteHostComponentStatusMetaData();
+    for (Service service : services.values()) {
+      deleteService(service, deleteMetaData);
+      STOMPComponentsDeleteHandler.processDeleteByMetaDataException(deleteMetaData);
+    }
+    services.clear();
+    STOMPComponentsDeleteHandler.processDeleteCluster(getClusterId());
   }
 
   @Override
@@ -1393,8 +1414,11 @@ public class ClusterImpl implements Cluster {
             + ", serviceName=" + service.getName()));
         return;
       }
+      managedDependencyLifecyclePolicy.validateServiceDeletion(this, Set.of(serviceName));
       deleteService(service, deleteMetaData);
-      services.remove(serviceName);
+      if (deleteMetaData.getAmbariException() == null) {
+        services.remove(serviceName);
+      }
 
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -1452,19 +1476,26 @@ public class ClusterImpl implements Cluster {
   @Override
   @Transactional
   public void delete() throws AmbariException {
-    clusterGlobalLock.writeLock().lock();
-    try {
-      refresh();
-      deleteAllServices();
-      deleteAllClusterConfigs();
-      resetHostVersions();
+    lockForTransactionalDeletion();
+    refresh();
+    deleteAllServices();
+    deleteAllClusterConfigs();
+    resetHostVersions();
 
-      refresh(); // update one-to-many clusterServiceEntities
-      removeEntities();
-      allConfigs.clear();
-    } finally {
-      clusterGlobalLock.writeLock().unlock();
+    refresh(); // update one-to-many clusterServiceEntities
+    removeEntities();
+    allConfigs.clear();
+  }
+
+  private void lockForTransactionalDeletion() {
+    // A manually begun JPA transaction bypasses the local transaction
+    // interceptor. Reject it rather than acquiring a lock that would be
+    // released lexically before the caller's transaction commits.
+    if (!AmbariJpaLocalTxnInterceptor.isTransactionActive()) {
+      throw new IllegalStateException("Cluster deletion must execute through the transaction interceptor");
     }
+    AmbariJpaLocalTxnInterceptor.holdLockUntilTransactionCompletion(
+        clusterGlobalLock.writeLock());
   }
 
   @Transactional
@@ -1519,6 +1550,8 @@ public class ClusterImpl implements Cluster {
           configIterator.remove();
         }
       }
+
+      managedDependencyConfigPolicy.validateDesiredConfigs(this, configs);
 
       ServiceConfigVersionResponse serviceConfigVersionResponse = applyConfigs(
           configs, user, serviceConfigVersionNote);
@@ -3021,5 +3054,41 @@ public class ClusterImpl implements Cluster {
 
     return new ClusterInformation(getClusterName(), securityType == SecurityType.KERBEROS,
         configurations, topology, clusterServiceVersions);
+  }
+
+  @Override
+  public <T> T executeUnderReadLock(Supplier<T> operation) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      return operation.get();
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void executeUnderWriteLock(Runnable operation) {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      operation.run();
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  @Override
+  public <T> T executeUnderWriteLockUntilTransactionCompletion(
+      Supplier<T> operation) {
+    clusterGlobalLock.writeLock().lock();
+    boolean transactionLock = AmbariJpaLocalTxnInterceptor.isTransactionActive();
+    try {
+      if (transactionLock) {
+        AmbariJpaLocalTxnInterceptor.holdLockUntilTransactionCompletion(
+            clusterGlobalLock.writeLock());
+      }
+      return operation.get();
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
   }
 }

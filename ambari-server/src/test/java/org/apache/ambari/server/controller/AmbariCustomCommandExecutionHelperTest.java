@@ -38,6 +38,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandRepository;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
@@ -74,6 +75,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
@@ -732,6 +734,80 @@ public class AmbariCustomCommandExecutionHelperTest {
     ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<>(), null);
 
     EasyMock.verify(configHelper, stage, execCmdWrapper, execCmd);
+  }
+
+  @Test
+  public void testManagedRestartDefersDesiredStateUntilWholeRequestIsAccepted() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+    ServiceComponentHost target = cluster.getService("HBASE").getServiceComponent(
+        "HBASE_REGIONSERVER").getServiceComponentHost("c1-c6401");
+    Assert.assertEquals(State.INIT, target.getDesiredState());
+
+    AmbariCustomCommandExecutionHelper helper =
+        injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+    Stage stage = injector.getInstance(StageFactory.class).createNew(
+        1L, "/tmp", "c1", cluster.getClusterId(), "managed restart", "{}", "{}");
+    ActionExecutionContext context = new ActionExecutionContext("c1", "RESTART",
+        Arrays.asList(
+            new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER",
+                Collections.singletonList("c1-c6401")),
+            new RequestResourceFilter("HBASE", "HBASE_REGIONSERVER",
+                Collections.emptyList())));
+
+    EasyMock.replay(configHelper);
+    try {
+      helper.addExecutionCommandsToStage(context, stage, new HashMap<>(), null);
+      Assert.fail("Expected the later empty filter to reject the request");
+    } catch (AmbariException expected) {
+      // The first task was built before the later filter failed.
+    }
+
+    Assert.assertNotNull(stage.getHostRoleCommand("c1-c6401", "HBASE_REGIONSERVER"));
+    Assert.assertEquals(State.INIT, target.getDesiredState());
+  }
+
+  @Test
+  public void testManagedOperationIdentityIsPresentBeforeStageParametersAreMerged() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+    Stage stage = injector.getInstance(StageFactory.class).createNew(
+        1L, "/tmp", "c1", cluster.getClusterId(), "provider intent", "{}", "{}");
+    String key = org.apache.ambari.server.controller.dependencies.ManagedDependencyOperationDispatcher.COMMAND_PARAMETER;
+    String envelope = "{\"operation_id\":\"persisted-operation\"}";
+    ActionExecutionContext context = new ActionExecutionContext("c1", "PREPARE_BINDING_JOURNAL",
+        List.of(new RequestResourceFilter("YARN", "NODEMANAGER", List.of("c1-c6401"))),
+        Map.of(key, envelope));
+    // Test metadata does not declare the provider command; use the existing
+    // future-command path while exercising the real task builder.
+    context.setIsFutureCommand(true);
+    var saved = SecurityContextHolder.getContext().getAuthentication();
+    var token = new org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken(
+        org.apache.ambari.server.controller.dependencies.ManagedDependencyOperationDispatcher.INTERNAL_AUTH_TOKEN);
+    token.setAuthenticated(true);
+    SecurityContextHolder.getContext().setAuthentication(token);
+    EasyMock.replay(configHelper);
+    try {
+      injector.getInstance(AmbariCustomCommandExecutionHelper.class)
+          .addExecutionCommandsToStage(context, stage, new HashMap<>(), null);
+      Assert.assertEquals(envelope, stage.getHostRoleCommand("c1-c6401", "NODEMANAGER")
+          .getExecutionCommandWrapper().getExecutionCommand().getCommandParams().get(key));
+    } finally {
+      SecurityContextHolder.getContext().setAuthentication(saved);
+    }
+  }
+
+  @Test
+  public void testExternalActionCannotSmuggleManagedIdentityThroughStageParameters() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+    Stage stage = injector.getInstance(StageFactory.class).createNew(
+        1L, "/tmp", "c1", cluster.getClusterId(), "external command", "{}", "{}");
+    ActionExecutionContext context = new ActionExecutionContext("c1", "RESTART",
+        List.of(new RequestResourceFilter("YARN", "NODEMANAGER", List.of("c1-c6401"))),
+        Map.of(org.apache.ambari.server.controller.dependencies.ManagedDependencyOperationDispatcher.COMMAND_PARAMETER,
+            "{\"operation_id\":\"forged\"}"));
+    EasyMock.replay(configHelper);
+    org.junit.Assert.assertThrows(AmbariException.class, () ->
+        injector.getInstance(AmbariCustomCommandExecutionHelper.class)
+            .addExecutionCommandsToStage(context, stage, new HashMap<>(), null));
   }
 
   private void createClusterFixture(String clusterName, StackId stackId,

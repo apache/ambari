@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 
 const ConfigGroupApi = {
   getHostsInfoUsingClusterName: async (clusterName: string, fields: string) => {
-    const url = `clusters/${clusterName}/hosts?fields=${fields}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/hosts?fields=${fields}`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -40,7 +41,7 @@ const ConfigGroupApi = {
     serviceName: string,
     fields: string
   ) => {
-    const url = `clusters/${clusterName}/config_groups?ConfigGroup/tag=${serviceName}&fields=${fields}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/config_groups?ConfigGroup/tag=${serviceName}&fields=${fields}`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -48,7 +49,7 @@ const ConfigGroupApi = {
     return response.data;
   },
   getDesiredConfigsInfo: async (clusterName: string, configString: string) => {
-    const url = `clusters/${clusterName}/configurations?${configString}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/configurations?${configString}`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -56,7 +57,7 @@ const ConfigGroupApi = {
     return response.data;
   },
   addConfigGroup: async (clusterName: string, data: any) => {
-    const url = `clusters/${clusterName}/config_groups`;
+    const url = `clusters/${apiPathSegment(clusterName)}/config_groups`;
     const response = await ambariApi.request({
       url,
       method: "POST",
@@ -65,7 +66,7 @@ const ConfigGroupApi = {
     return response.data;
   },
   removeConfigGroup: async (clusterName: string, configGroupId: string) => {
-    const url = `clusters/${clusterName}/config_groups/${configGroupId}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/config_groups/${configGroupId}`;
     const response = await ambariApi.request({
       url,
       method: "DELETE",
@@ -85,7 +86,7 @@ const ConfigGroupApi = {
     clusterName: string,
     fields: string
   ) => {
-    const url = `clusters/${clusterName}/config_groups?fields=${fields}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/config_groups?fields=${fields}`;
     const response = await ambariApi.request({
       url,
       method: "GET",

@@ -50,7 +50,17 @@ def prestart(env):
 
 
 def select_hbase_packages(params):
-  stack_select.select_packages(params.version)
+  version = getattr(params, "version", None) or getattr(
+    params, "repository_version", None
+  )
+  if not version:
+    raise Fail("HBase package selection requires a stack version")
+  with FcntlBasedProcessLock(
+    params.stack_select_lock_file,
+    enabled=params.is_parallel_execution_enabled,
+    skip_fcntl_failures=True,
+  ):
+    stack_select.select_packages(version)
   select_phoenix_packages(params)
 
 
@@ -115,6 +125,7 @@ def _hbase_status_output(params, command_file):
     return shell.checked_call(
       command,
       user=params.hbase_user,
+      env={"HBASE_HOME": params.hbase_home},
       timeout=60,
       timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )[1]
@@ -136,7 +147,7 @@ def _hbase_status_output(params, command_file):
     return shell.checked_call(
       command,
       user=params.hbase_user,
-      env=kerberos_cache.environment,
+      env={**kerberos_cache.environment, "HBASE_HOME": params.hbase_home},
       timeout=60,
       timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
     )[1]

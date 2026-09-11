@@ -25,12 +25,13 @@ import Spinner from "../../../../components/Spinner";
 import StepWizard from "../../../../components/StepWizard";
 import useStepWizard from "../../../../hooks/useStepWizard";
 import useAuth from "../../../../hooks/useAuth";
+import useClusterWorkflowPersistence from "../../../../hooks/useClusterWorkflowPersistence";
 import { parsePersistedValue } from "../../../../Utils/persistedSettings";
 import wizardSteps from "./wizardSteps";
 import {
-  clearRangerAdminHaPersistedState,
   EnableHighAvailibilityProvider,
   EnableHighAvailibilityRangerAdminContext,
+  RANGER_ADMIN_HA_PERSIST_KEY,
 } from "./store/context";
 import {
   evaluateRangerAdminEnablement,
@@ -54,7 +55,7 @@ function responseErrorMessage(error: unknown) {
 }
 
 function ValidateEnablement() {
-  const { clusterName, clusterState, allHostNames } = useContext(AppContext);
+  const { clusterName, clusterState, allHostNames, navigateCluster } = useContext(AppContext);
   const { hasAuthorization } = useAuth();
   const stepWizardUtilities = useStepWizard(wizardSteps, 1);
   const [canStartEnablement, setCanStartEnablement] = useState(false);
@@ -65,6 +66,10 @@ function ValidateEnablement() {
   const [retryCount, setRetryCount] = useState(0);
   const canEnableHa = hasAuthorization("SERVICE.ENABLE_HA");
   const canPersist = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const workflowPersistence = useClusterWorkflowPersistence(RANGER_ADMIN_HA_PERSIST_KEY, {
+    controllerNames: ["rAHighAvailabilityWizardController"],
+    keys: [RANGER_ADMIN_HA_PERSIST_KEY, "CLUSTER_STATE"],
+  });
   const restoredClusterState = parsePersistedValue<Record<string, unknown>>(
     clusterState,
     {},
@@ -131,10 +136,13 @@ function ValidateEnablement() {
 
   async function closeWizard(preserveWorkflow: boolean) {
     if (!preserveWorkflow) {
-      await clearRangerAdminHaPersistedState();
+      if (!workflowPersistence) {
+        throw new Error("Ranger Admin HA requires an explicit cluster target.");
+      }
+      await workflowPersistence.release();
     }
     setShowModal(false);
-    window.location.href = "/#/main/services/RANGER/summary";
+    navigateCluster("/main/services/RANGER/summary");
   }
 
   const requestClose = () => {

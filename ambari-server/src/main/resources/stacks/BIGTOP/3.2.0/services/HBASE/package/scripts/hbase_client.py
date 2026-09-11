@@ -33,14 +33,16 @@ class HbaseClient(Script):
 
     env.set_params(params)
     self.install_packages(env)
-    upgrade.select_phoenix_packages(params)
+    upgrade.select_hbase_packages(params)
     self.configure(env)
 
   def configure(self, env):
     import params
+    from managed_hbase_dependency import report_managed_dependency_preparation
 
     env.set_params(params)
-    hbase(name="client")
+    bundle = hbase(name="client")
+    report_managed_dependency_preparation(self, params, bundle, "client")
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

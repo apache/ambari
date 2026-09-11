@@ -99,6 +99,14 @@ vi.mock("../Hosts/hooks/useComponentAddDelete", () => ({
 vi.mock("../../hooks/useKDCSessionState", () => ({
   default: () => ({ getKDCSessionState: vi.fn() }),
 }));
+vi.mock("./useDependencyImpact", () => ({
+  default: () => ({
+    blocked: false,
+    content: null,
+    handleFailure: vi.fn(),
+    parameters: {},
+  }),
+}));
 vi.mock("../../hooks/useServiceDeletion", () => ({
   useServiceDeletion: () => ({ deleteService: vi.fn() }),
 }));
@@ -445,7 +453,7 @@ describe("service actions", () => {
       "No components outside maintenance mode are available for this restart.",
     )).not.toBeNull();
     expect(mocks.actionRequestRebalanceHDFS).not.toHaveBeenCalled();
-    expect(screen.getByText("Configure Restart HDFS")).not.toBeNull();
+    expect(screen.getByText("Configure Restart c1 / HDFS")).not.toBeNull();
   });
 
   it.each([
@@ -488,7 +496,9 @@ describe("service actions", () => {
       expect(mocks.actionRequestRebalanceHDFS).toHaveBeenCalledTimes(2),
     );
     expect(mocks.modalShow).toHaveBeenCalledOnce();
-    expect(screen.queryByText("Configure Restart HDFS")).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull(),
+    );
   });
 
   it("keeps the service restart dialog open and permits retry after failure", async () => {
@@ -513,7 +523,9 @@ describe("service actions", () => {
     fireEvent.click(retryButton);
 
     await waitFor(() => expect(mocks.actionRequest).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText("Configure Restart HDFS")).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull(),
+    );
   });
 
   it.each([
@@ -552,7 +564,9 @@ describe("service actions", () => {
 
     await waitFor(() => expect(mocks.actionRequest).toHaveBeenCalledTimes(2));
     expect(mocks.modalShow).toHaveBeenCalledOnce();
-    expect(screen.queryByText("Configure Restart HDFS")).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByText("Configure Restart c1 / HDFS")).toBeNull(),
+    );
   });
 
   it("locks the service restart entry for an active component restart", () => {

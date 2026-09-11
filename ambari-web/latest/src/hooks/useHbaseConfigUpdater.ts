@@ -37,7 +37,7 @@ export const useHbaseConfigUpdater = () => {
   } = useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, parsedSocketMessages } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
 
   // Early return if HBASE service is not installed
   const isHbaseInstalled = services && Array.isArray(services) &&
@@ -51,7 +51,7 @@ export const useHbaseConfigUpdater = () => {
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
 
   const fetchHbaseMasterSlaveClientsData = async () => {
-    let hbaseComponentsData = cachedServiceApi.getServiceComponentData("HBASE");
+    let hbaseComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "HBASE");
     
     if (!hbaseComponentsData) {
       hbaseComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -254,7 +254,7 @@ export const useHbaseConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("HBASE", "hbase", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "HBASE", "hbase", allServiceModels, updateRegistry);
   };
   const parseAlertsWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;

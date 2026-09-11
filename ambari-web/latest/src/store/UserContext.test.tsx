@@ -179,4 +179,123 @@ describe("user session lifecycle", () => {
     });
     expect(currentContext.isClusterUser()).toBe(true);
   });
+
+  it("evaluates task visibility by cluster with administrator precedence", async () => {
+    mocks.authenticate.mockResolvedValue({});
+    mocks.handleSuccessfulLogin.mockResolvedValue({
+      data: {
+        Users: user,
+        privileges: [
+          { PrivilegeInfo: { permission_name: "CLUSTER.USER", type: "CLUSTER", cluster_name: "alpha" } },
+          { PrivilegeInfo: { permission_name: "CLUSTER.ADMINISTRATOR", type: "CLUSTER", cluster_name: "beta" } },
+          { PrivilegeInfo: { permission_name: "CLUSTER.USER", type: "CLUSTER", cluster_name: "gamma" } },
+          { PrivilegeInfo: { permission_name: "SERVICE.ADMINISTRATOR", type: "CLUSTER", cluster_name: "gamma" } },
+        ],
+      },
+    });
+    mocks.loadAuthorizationsCallback.mockResolvedValue({
+      data: {
+        items: ["alpha", "beta", "gamma"].map((clusterName) => ({
+          AuthorizationInfo: {
+            authorization_id: "CLUSTER.VIEW_STATUS_INFO",
+            resource_type: "CLUSTER",
+            cluster_name: clusterName,
+          },
+        })),
+      },
+    });
+    await renderProvider();
+    await act(async () => {
+      expect(await currentContext.login("operator/name", "secret")).toBe(true);
+    });
+
+    expect(currentContext.canViewClusterTasks("alpha")).toBe(false);
+    expect(currentContext.canViewClusterTasks("beta")).toBe(true);
+    expect(currentContext.canViewClusterTasks("gamma")).toBe(true);
+
+    mocks.handleSuccessfulLogin.mockResolvedValue({
+      data: {
+        Users: user,
+        privileges: [{ PrivilegeInfo: {
+          permission_name: "AMBARI.ADMINISTRATOR",
+          type: "AMBARI",
+        } }],
+      },
+    });
+    mocks.loadAuthorizationsCallback.mockResolvedValue({ data: { items: [] } });
+    await act(async () => {
+      expect(await currentContext.login("operator/name", "secret")).toBe(true);
+    });
+    expect(currentContext.canViewClusterTasks("alpha")).toBe(true);
+  });
+
+  it("keeps authorization scope when clusters grant the same role IDs", async () => {
+    mocks.authenticate.mockResolvedValue({});
+    mocks.handleSuccessfulLogin.mockResolvedValue({
+      data: {
+        Users: user,
+        privileges: [{
+          PrivilegeInfo: {
+            permission_name: "CLUSTER.ADMINISTRATOR",
+            permission_label: "Cluster Administrator",
+            type: "CLUSTER",
+            cluster_name: "alpha",
+          },
+        }, {
+          PrivilegeInfo: {
+            permission_name: "AMBARI.VIEW_STATUS",
+            permission_label: "View Ambari Status",
+            type: "AMBARI",
+          },
+        }],
+      },
+    });
+    mocks.loadAuthorizationsCallback.mockResolvedValue({
+      data: {
+        items: [
+          { AuthorizationInfo: {
+            authorization_id: "CLUSTER.ADMINISTRATOR",
+            authorization_name: "Cluster administrator",
+            resource_type: "CLUSTER",
+            cluster_name: "alpha",
+          } },
+          { AuthorizationInfo: {
+            authorization_id: "AMBARI.MANAGE_SETTINGS",
+            authorization_name: "Manage settings",
+            resource_type: "AMBARI",
+          } },
+          { AuthorizationInfo: {
+            authorization_id: "CLUSTER.VIEW_METRICS",
+            authorization_name: "Unscoped record",
+            resource_type: "CLUSTER",
+          } },
+        ],
+      },
+    });
+    await renderProvider();
+    await act(async () => {
+      expect(await currentContext.login("operator/name", "secret")).toBe(true);
+    });
+
+    expect(currentContext.hasClusterAuthorization("alpha", "CLUSTER.ADMINISTRATOR")).toBe(true);
+    expect(currentContext.hasClusterAuthorization("beta", "CLUSTER.ADMINISTRATOR")).toBe(false);
+    expect(currentContext.hasClusterAuthorization("alpha", "AMBARI.MANAGE_SETTINGS")).toBe(true);
+    expect(currentContext.hasClusterAuthorization("alpha", "CLUSTER.VIEW_METRICS")).toBe(false);
+    expect(currentContext.canAccessCluster("alpha")).toBe(true);
+    expect(currentContext.canAccessCluster("beta")).toBe(false);
+    expect(currentContext.isAdmin()).toBe(false);
+    expect(currentContext.isOperator("alpha")).toBe(true);
+    expect(currentContext.isOperator("beta")).toBe(false);
+    expect(currentContext.hasPrivilege("CLUSTER.ADMINISTRATOR", "alpha")).toBe(true);
+    expect(currentContext.hasPrivilege("Cluster Administrator", "alpha")).toBe(false);
+    expect(currentContext.hasPrivilege("CLUSTER.ADMINISTRATOR", "beta")).toBe(false);
+    expect(currentContext.hasPrivilege("CLUSTER.ADMINISTRATOR")).toBe(false);
+    expect(currentContext.hasGlobalPrivilege("AMBARI.VIEW_STATUS")).toBe(true);
+
+    const persistedSession = JSON.parse(db.getItem("ambari") || "{}");
+    expect(persistedSession.app.auth[0]).toMatchObject({
+      resource_type: "CLUSTER",
+      cluster_name: "alpha",
+    });
+  });
 });

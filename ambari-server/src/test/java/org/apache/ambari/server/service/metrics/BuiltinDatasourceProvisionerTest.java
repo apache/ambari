@@ -147,4 +147,54 @@ public class BuiltinDatasourceProvisionerTest {
     verify(datasourceDAO, never()).merge(org.mockito.ArgumentMatchers.any(DatasourceEntity.class));
     verify(datasourceDAO, never()).create(org.mockito.ArgumentMatchers.any(DatasourceEntity.class));
   }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testTrustRequiresManagedMarkerLiveServiceAndDerivedEndpoint() throws Exception {
+    DatasourceDAO datasourceDAO = mock(DatasourceDAO.class);
+    Provider<Clusters> clustersProvider = mock(Provider.class);
+    Cluster cluster = mock(Cluster.class);
+    Service service = mock(Service.class);
+    ServiceComponent server = mock(ServiceComponent.class);
+    Config metricsConfig = mock(Config.class);
+    when(cluster.getServices()).thenReturn(Map.of("VICTORIAMETRICS", service));
+    when(cluster.getDesiredConfigByType("victoriametrics")).thenReturn(metricsConfig);
+    when(metricsConfig.getProperties()).thenReturn(Map.of("deployment_mode", "single"));
+    when(service.getServiceComponents()).thenReturn(Map.of("VICTORIAMETRICS_SERVER", server));
+    when(server.getServiceComponentHosts()).thenReturn(
+        Map.of("metrics-west.example.test", mock(ServiceComponentHost.class)));
+    BuiltinDatasourceProvisioner provisioner =
+        new BuiltinDatasourceProvisioner(datasourceDAO, clustersProvider);
+    DatasourceEntity datasource = managedDatasource();
+
+    Assert.assertTrue(provisioner.isTrustedManagedEndpoint(
+        datasource, cluster, "http://metrics-west.example.test:8428"));
+    Assert.assertFalse(provisioner.isTrustedManagedEndpoint(
+        datasource, cluster, "http://custom.example.test:8428"));
+
+    datasource.setSettings("{\"managed\":false,\"provider\":\"victoriametrics\"}");
+    Assert.assertFalse(provisioner.isTrustedManagedEndpoint(
+        datasource, cluster, "http://metrics-west.example.test:8428"));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testTrustRejectsMarkerWhenVictoriaMetricsServiceIsAbsent() {
+    Provider<Clusters> clustersProvider = mock(Provider.class);
+    Cluster cluster = mock(Cluster.class);
+    when(cluster.getServices()).thenReturn(Map.of());
+    BuiltinDatasourceProvisioner provisioner =
+        new BuiltinDatasourceProvisioner(mock(DatasourceDAO.class), clustersProvider);
+
+    Assert.assertFalse(provisioner.isTrustedManagedEndpoint(
+        managedDatasource(), cluster, "http://metrics-west.example.test:8428"));
+  }
+
+  private DatasourceEntity managedDatasource() {
+    DatasourceEntity datasource = new DatasourceEntity();
+    datasource.setName("Ambari VictoriaMetrics");
+    datasource.setPluginType("prometheus");
+    datasource.setSettings("{\"managed\":true,\"provider\":\"victoriametrics\"}");
+    return datasource;
+  }
 }

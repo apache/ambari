@@ -23,10 +23,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.topology.TopologyManager;
@@ -138,12 +140,8 @@ public class ActionManager {
       return;
     }
 
-    Collections.sort(reports, new Comparator<CommandReport>() {
-      @Override
-      public int compare(CommandReport o1, CommandReport o2) {
-        return (int) (o1.getTaskId()-o2.getTaskId());
-      }
-    });
+    reports = getValidTaskReports(hostname, reports, commands);
+    reports.sort(Comparator.comparingLong(CommandReport::getTaskId));
     List<CommandReport> reportsToProcess = new ArrayList<>();
     //persist the action response into the db.
     for (CommandReport report : reports) {
@@ -166,7 +164,79 @@ public class ActionManager {
       reportsToProcess.add(report);
     }
 
-    db.updateHostRoleStates(reportsToProcess);
+    if (!reportsToProcess.isEmpty()) {
+      db.updateHostRoleStates(reportsToProcess);
+    }
+  }
+
+  /**
+   * Validates agent-supplied identities before reports reach any state machine.
+   * The hostname must come from the authenticated agent session. Task, stage and
+   * execution-command identities come from persisted server commands, not from
+   * the report's cluster envelope. The returned list does not modify the input.
+   */
+  public List<CommandReport> getValidTaskReports(String hostname, List<CommandReport> reports,
+      Map<Long, HostRoleCommand> commands) {
+    List<CommandReport> accepted = new ArrayList<>();
+    if (reports == null) {
+      return accepted;
+    }
+    for (CommandReport report : reports) {
+      if (report == null) {
+        continue;
+      }
+      HostRoleCommand command = commands.get(report.getTaskId());
+      if (isValidTaskReport(hostname, report, command)) {
+        accepted.add(report);
+      } else {
+        // Do not log untrusted output or serialized execution commands (secrets).
+        LOG.warn("Rejected agent report for task {}: identity or status does not match the persisted task",
+            report.getTaskId());
+      }
+    }
+    return accepted;
+  }
+
+  private boolean isValidTaskReport(String hostname, CommandReport report, HostRoleCommand command) {
+    if (command == null || hostname == null || !hostname.equals(command.getHostName())
+        || command.getTaskId() != report.getTaskId()
+        || command.getRole() == null || !command.getRole().name().equals(report.getRole())
+        || command.getRoleCommand() == null
+        || !command.getRoleCommand().name().equals(report.getRoleCommand())
+        || !StageUtils.getActionId(command.getRequestId(), command.getStageId()).equals(report.getActionId())) {
+      return false;
+    }
+    try {
+      HostRoleStatus status = HostRoleStatus.valueOf(report.getStatus());
+      long clusterId = Long.parseLong(report.getClusterId());
+      Stage stage = getAction(command.getRequestId(), command.getStageId());
+      if (stage == null || stage.getClusterId() != clusterId) {
+        return false;
+      }
+      // Read the stored command without expanding or refreshing configurations.
+      // This also works when a task is loaded after a server restart.
+      ExecutionCommand execution = StageUtils.getGson().fromJson(
+          command.getExecutionCommandWrapper().getJson(), ExecutionCommand.class);
+      if (execution == null || !Long.toString(clusterId).equals(execution.getClusterId())
+          || !Objects.equals(agentServiceName(execution.getServiceName()),
+              agentServiceName(report.getServiceName()))) {
+        return false;
+      }
+      String customCommand = execution.getCommandParams() == null ? null
+          : execution.getCommandParams().get("custom_command");
+      // The agent adds customCommand to execution results, not progress templates.
+      return (report.getCustomCommand() == null && status != HostRoleStatus.COMPLETED)
+          || Objects.equals(customCommand, report.getCustomCommand());
+    } catch (RuntimeException ex) {
+      // Missing/corrupt persisted identity and malformed input both fail closed.
+      // Continue validating siblings; never emit configuration or report secrets.
+      return false;
+    }
+  }
+
+  private static String agentServiceName(String serviceName) {
+    // ActionQueue uses the literal "null" for commands with no service scope.
+    return serviceName == null ? "null" : serviceName;
   }
 
   /**

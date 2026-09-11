@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
@@ -53,6 +54,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.UpdateConfigurationPolicy;
+import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosLivePlanProvider;
 import org.apache.ambari.server.events.AgentConfigsUpdateEvent;
 import org.apache.ambari.server.hooks.HookContextFactory;
 import org.apache.ambari.server.hooks.HookService;
@@ -201,6 +203,8 @@ public class AbstractPrepareKerberosServerActionTest extends EasyMockSupport {
       @Override
       protected void configure() {
         bind(AmbariMetaInfo.class).toInstance(createNiceMock(AmbariMetaInfo.class));
+        bind(ManagedHBaseKerberosLivePlanProvider.class)
+            .toInstance(cluster -> Optional.empty());
         bind(KerberosHelper.class).to(KerberosHelperImpl.class);
         bind(KerberosIdentityDataFileWriterFactory.class).toInstance(createNiceMock(KerberosIdentityDataFileWriterFactory.class));
         bind(KerberosConfigDataFileWriterFactory.class).toInstance(createNiceMock(KerberosConfigDataFileWriterFactory.class));

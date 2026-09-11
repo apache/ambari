@@ -35,7 +35,7 @@ import { ServiceApi } from "../../../api/serviceApi";
 
 
 function Step6() {
-  const { clusterName, services } = useContext(AppContext);
+  const { clusterName, services, navigateCluster } = useContext(AppContext);
   const {
     state,
     dispatch,
@@ -580,7 +580,7 @@ function Step6() {
           } else {
             // If this is the last step, complete the wizard and redirect
             flushStateToDb("complete");
-            window.location.href = `/#/main/services/${serviceName}/summary`;
+            navigateCluster(`/main/services/${serviceName}/summary`);
           }
         }}
         onCancel={() => {

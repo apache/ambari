@@ -109,7 +109,7 @@ export default function RouterFederationWizard() {
       controllerName="routerFederationWizardController"
       progressStatus="ENABLING_ROUTER_FEDERATION"
       progressStepIndex={3}
-      summaryUrl="/#/main/services/HDFS/summary"
+      summaryPath="/main/services/HDFS/summary"
       stepWizardUtilities={wizardUtilities}
     >
       <StepWizard

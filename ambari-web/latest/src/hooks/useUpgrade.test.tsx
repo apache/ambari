@@ -20,9 +20,9 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ComponentProps, PropsWithChildren } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import VersionsApi from "../api/versionsApi";
-import ClusterApi from "../api/clusterApi";
 import { AppContext } from "../store/context";
 import { useUpgrade } from "./useUpgrade";
+import type { ClusterWorkflowPersistence } from "../Utils/scopedWorkflow";
 
 vi.mock("../api/versionsApi", () => ({
   default: {
@@ -32,10 +32,6 @@ vi.mock("../api/versionsApi", () => ({
     setUpgradeItemState: vi.fn(),
   },
 }));
-vi.mock("../api/clusterApi", () => ({
-  default: { postPersistData: vi.fn() },
-}));
-
 const contextSpies = {
   setUpgradeState: vi.fn(),
   setCurrentStackVersion: vi.fn(),
@@ -101,9 +97,13 @@ const failedUpgrade = {
 };
 
 describe("useUpgrade read-only loading", () => {
+  const workflowPersistence = {
+    savePersistData: vi.fn().mockResolvedValue({}),
+    release: vi.fn().mockResolvedValue({}),
+  } as unknown as ClusterWorkflowPersistence;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(ClusterApi.postPersistData).mockResolvedValue({});
   });
 
   it("shows an initial load failure and retries without mutating active-upgrade state", async () => {
@@ -122,13 +122,14 @@ describe("useUpgrade read-only loading", () => {
     expect(result.current.groups).toEqual([]);
     expect(contextSpies.setUpgradeState).not.toHaveBeenCalled();
     expect(contextSpies.setUpgradeIsFinalizeItem).not.toHaveBeenCalled();
-    expect(ClusterApi.postPersistData).not.toHaveBeenCalled();
+    expect(workflowPersistence.savePersistData).not.toHaveBeenCalled();
+    expect(workflowPersistence.release).not.toHaveBeenCalled();
   });
 
   it("restarts polling after retrying an item from a terminal request", async () => {
     vi.mocked(VersionsApi.getUpgradeOperations).mockResolvedValue(failedUpgrade as never);
     vi.mocked(VersionsApi.setUpgradeItemState).mockResolvedValue({} as never);
-    const { result } = renderHook(() => useUpgrade(17, false), { wrapper });
+    const { result } = renderHook(() => useUpgrade(17, false, workflowPersistence), { wrapper });
 
     await waitFor(() => expect(result.current.currUpgradeItem?.UpgradeItem.stage_id).toBe(3));
     const callsBeforeRetry = vi.mocked(VersionsApi.getUpgradeOperations).mock.calls.length;

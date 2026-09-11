@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Link } from "react-router-dom";
 import { MouseEventHandler, useState } from "react";
 import { Dropdown } from "react-bootstrap";
 import SidebarItem from "./SidebarItem";
@@ -41,12 +42,14 @@ const SidebarItemCollapsed = ({
       return (
         <Dropdown
           drop="end"
+          show={showDropdown}
+          onToggle={setShowDropdown}
           className="collapsed-sidebar-item"
           onMouseLeave={() => setShowDropdown(false)}
           onMouseOver={() => setShowDropdown(true)}
           // style={{ width: "166px" }}
         >
-          <Dropdown.Toggle as="div" className="main-style" id="dropdown-basic">
+          <Dropdown.Toggle variant="link" className="main-style" id={`collapsed-${ele.id}`} aria-label={String(ele.name)}>
             <div
               className={`d-flex justify-content-between ${
                 ele.className
@@ -85,24 +88,11 @@ const SidebarItemCollapsed = ({
         </Dropdown>
       );
     } else {
-      return (
-        <div
-          className={`d-flex justify-content-between ${
-            ele.className
-          } sideitem align-items-center ${isSelected ? "selected-item" : ""}`}
-          style={{
-            ...(ele.style as any),
-            cursor: "pointer",
-            padding: "10px 5px 10px 20px",
-            position: "relative",
-          }}
-          onClick={() => {
-            setSelectedOption(ele.id);
-          }}
-        >
-          <div style={{ fontSize: 20 }}>{ele.icon}</div>
-        </div>
-      );
+      return <Link to={ele.path} title={typeof ele.name === "string" ? ele.name : "Ambari"}
+        className={`d-flex justify-content-center sideitem ${isSelected ? "selected-item" : ""}`}
+        style={{ ...ele.style, padding: "10px 5px", fontSize: 20 }}
+        onClick={() => setSelectedOption(ele.id)}>{ele.icon}</Link>;
+
     }
   };
 

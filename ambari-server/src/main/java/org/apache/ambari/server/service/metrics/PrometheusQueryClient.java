@@ -60,6 +60,10 @@ public class PrometheusQueryClient {
   private static final int MAX_REQUEST_BYTES = 8 * 1024 * 1024;
   private static final Set<String> BLOCKED_HEADERS = Set.of(
       "connection", "content-length", "expect", "host", "transfer-encoding", "upgrade");
+  private static final Set<String> CLIENT_SCOPE_PARAMETERS = Set.of(
+      "extra_label", "extra_filters", "extra_filters[]");
+  private static final Set<String> SCOPED_QUERY_ENDPOINTS = Set.of(
+      "api/v1/query", "api/v1/query_range");
 
   private final DatasourceService datasourceService;
   private final ObjectMapper objectMapper = new ObjectMapper();
@@ -113,6 +117,15 @@ public class PrometheusQueryClient {
   private JsonNode execute(long datasourceId, String endpoint, Map<String, List<String>> parameters,
       String method, String body, String contentType, boolean requirePrometheus)
       throws AmbariException, AuthorizationException, PrometheusClientException {
+    DatasourceEntity datasource = datasourceService.requireQueryable(datasourceId);
+    if (requirePrometheus && !"prometheus".equalsIgnoreCase(datasource.getPluginType())
+        && !"prometheus".equalsIgnoreCase(datasource.getCategory())) {
+      throw new IllegalArgumentException("Datasource is not a Prometheus datasource");
+    }
+    if (!requirePrometheus) {
+      datasourceService.verifyGlobalMetricsAccess();
+    }
+
     byte[] requestBody = null;
     if ("POST".equals(method)) {
       requestBody = (body == null ? "" : body).getBytes(StandardCharsets.UTF_8);
@@ -123,20 +136,16 @@ public class PrometheusQueryClient {
       throw new IllegalArgumentException("Datasource proxy supports only GET and POST");
     }
 
-    DatasourceEntity datasource = datasourceService.requireQueryable(datasourceId);
-    if (requirePrometheus && !"prometheus".equalsIgnoreCase(datasource.getPluginType())
-        && !"prometheus".equalsIgnoreCase(datasource.getCategory())) {
-      throw new IllegalArgumentException("Datasource is not a Prometheus datasource");
-    }
-
     JsonNode http = datasourceService.resolveHttp(datasource);
-    JsonNode auth = datasourceService.resolveAuth(datasource);
     String baseUrl = http.path("url").asText(null);
     if ((baseUrl == null || baseUrl.isBlank()) && http.path("urls").isArray()
         && !http.path("urls").isEmpty()) {
       baseUrl = http.path("urls").get(0).asText(null);
     }
-    URI target = buildUri(baseUrl, endpoint, parameters);
+    Map<String, List<String>> effectiveParameters = requirePrometheus
+        ? applyMetricsScope(datasource, baseUrl, endpoint, method, parameters) : parameters;
+    URI target = buildUri(baseUrl, endpoint, effectiveParameters);
+    JsonNode auth = datasourceService.resolveAuth(datasource);
     int timeoutMillis = boundedTimeout(http.path("timeout").asInt(DEFAULT_TIMEOUT_MILLIS));
 
     HttpRequest.Builder request = HttpRequest.newBuilder(target)
@@ -212,6 +221,36 @@ public class PrometheusQueryClient {
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException("Datasource URL is invalid", e);
     }
+  }
+
+  Map<String, List<String>> scopedParameters(Map<String, List<String>> parameters, long clusterId) {
+    Map<String, List<String>> scoped = new LinkedHashMap<>();
+    if (parameters != null) {
+      parameters.forEach((name, values) -> {
+        if (name != null && !CLIENT_SCOPE_PARAMETERS.contains(name.toLowerCase(Locale.ROOT))) {
+          scoped.put(name, values == null ? null : new ArrayList<>(values));
+        }
+      });
+    }
+    scoped.put("extra_label", List.of("ambari_cluster_id=" + clusterId));
+    return scoped;
+  }
+
+  Map<String, List<String>> applyMetricsScope(DatasourceEntity datasource, String baseUrl,
+      String endpoint, String method, Map<String, List<String>> parameters) throws AmbariException {
+    if (datasourceService.hasGlobalMetricsAccess()) {
+      return parameters;
+    }
+    if (!"GET".equals(method) || !SCOPED_QUERY_ENDPOINTS.contains(normalizeEndpoint(endpoint))) {
+      throw new MetricsScopeException(
+          "This metrics operation is unavailable for cluster-scoped access");
+    }
+    long clusterId = datasourceService.requireManagedMetricsClusterId(datasource, baseUrl);
+    return scopedParameters(parameters, clusterId);
+  }
+
+  private String normalizeEndpoint(String endpoint) {
+    return endpoint != null && endpoint.startsWith("/") ? endpoint.substring(1) : endpoint;
   }
 
   private String encodeParameters(Map<String, List<String>> parameters) {

@@ -23,14 +23,14 @@ import React, {
   useState,
 } from "react";
 import { Alert, Button } from "react-bootstrap";
-import ClusterApi from "../../../../api/clusterApi";
 import Spinner from "../../../../components/Spinner";
 import useAuth from "../../../../hooks/useAuth";
+import useClusterNavigate from "../../../../hooks/useClusterNavigate";
+import useClusterWorkflowPersistence from "../../../../hooks/useClusterWorkflowPersistence";
 import modalManager from "../../../../store/ModalManager";
-import { parsePersistedValue } from "../../../../Utils/persistedSettings";
+import { containsReentryMarker, workflowErrorMessage } from "../../../../Utils/scopedWorkflow";
+import { translate } from "../../../../Utils/Utility";
 import {
-  buildWorkflowClearPayload,
-  buildWorkflowPersistencePayload,
   emptyWorkflowState,
   PersistedWorkflowState,
   removeWorkflowSteps,
@@ -64,7 +64,7 @@ interface PersistedWorkflowProviderProps {
   controllerName: string;
   progressStatus: string;
   progressStepIndex: number;
-  summaryUrl: string;
+  summaryPath: string;
   stepWizardUtilities: any;
   children: React.ReactNode;
 }
@@ -74,26 +74,27 @@ export function PersistedWorkflowProvider({
   controllerName,
   progressStatus,
   progressStepIndex,
-  summaryUrl,
+  summaryPath,
   stepWizardUtilities,
   children,
 }: PersistedWorkflowProviderProps) {
-  const { user, hasAuthorization } = useAuth();
-  const owner = user?.user_name || "";
+  const { hasAuthorization } = useAuth();
+  const navigate = useClusterNavigate();
   const canPersist = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const persistence = useClusterWorkflowPersistence(storageKey, {
+    controllerNames: [controllerName],
+    keys: [storageKey, "CLUSTER_STATE"],
+  });
   const [state, setState] = useState(emptyWorkflowState);
   const [isHydrated, setIsHydrated] = useState(false);
   const [initializationError, setInitializationError] = useState("");
+  const [reentryRequired, setReentryRequired] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const stateRef = useRef(emptyWorkflowState());
   const activeStepRef = useRef("");
-  const queueRef = useRef<Promise<void>>(Promise.resolve());
-
-  const queue = (operation: () => Promise<void>) => {
-    const queued = queueRef.current.catch(() => undefined).then(operation);
-    queueRef.current = queued.catch(() => undefined);
-    return queued;
-  };
+  const hydrationGeneration = useRef(0);
+  const stepWizardUtilitiesRef = useRef(stepWizardUtilities);
+  stepWizardUtilitiesRef.current = stepWizardUtilities;
 
   const storeStep = (stepName: string, data: Record<string, unknown>) => {
     stateRef.current = storeWorkflowStep(stateRef.current, stepName, data);
@@ -101,8 +102,56 @@ export function PersistedWorkflowProvider({
   };
 
   useEffect(() => {
-    void hydrate();
-  }, [retryCount]);
+    const generation = ++hydrationGeneration.current;
+    setIsHydrated(false);
+    setInitializationError("");
+    if (!canPersist || !persistence) {
+      setInitializationError(
+        !canPersist
+          ? translate("workflow.persistence.permissionRequired")
+          : translate("workflow.persistence.explicitCluster"),
+      );
+      return;
+    }
+    const load = retryCount > 0
+      ? persistence.reload()
+      : persistence.getPersistData();
+    void load.then((values) => {
+      if (hydrationGeneration.current !== generation) return;
+      const restored = (values?.[storageKey] || emptyWorkflowState()) as PersistedWorkflowState;
+      const needsReentry = containsReentryMarker(restored);
+      setReentryRequired(needsReentry);
+      stateRef.current = { ...restored, steps: restored.steps || {} };
+      setState(stateRef.current);
+      const currentWizardUtilities = stepWizardUtilitiesRef.current;
+      activeStepRef.current = needsReentry
+        ? currentWizardUtilities.wizardSteps[1]?.name || ""
+        : restored.activeStep || "";
+      if (activeStepRef.current) {
+        const restoredStep = Object.keys(currentWizardUtilities.wizardSteps).find(
+          (stepNumber) =>
+            currentWizardUtilities.wizardSteps[stepNumber]?.name === activeStepRef.current,
+        );
+        if (restoredStep !== undefined) {
+          currentWizardUtilities.jumpToStep(Number(restoredStep), true);
+        }
+      } else {
+        currentWizardUtilities.jumpToStep(0, true);
+      }
+      setIsHydrated(true);
+    }, (error) => {
+      if (hydrationGeneration.current !== generation) return;
+      setInitializationError(workflowErrorMessage(
+        error,
+        translate("workflow.persistence.restoreFailed"),
+      ));
+    });
+    return () => {
+      if (hydrationGeneration.current === generation) {
+        hydrationGeneration.current += 1;
+      }
+    };
+  }, [canPersist, persistence, retryCount, storageKey]);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -113,89 +162,18 @@ export function PersistedWorkflowProvider({
     return () => window.removeEventListener("beforeunload", warnBeforeUnload);
   }, [isHydrated]);
 
-  async function optionalPersistedValue(key: string) {
-    try {
-      return await ClusterApi.getPersistData(key);
-    } catch (error: any) {
-      if (error?.response?.status === 404 || error?.status === 404) return null;
-      throw error;
-    }
-  }
-
-  async function hydrate() {
-    setIsHydrated(false);
-    setInitializationError("");
-    if (!canPersist) {
-      setInitializationError(
-        "This workflow requires permission to persist recovery checkpoints.",
-      );
-      return;
-    }
-    try {
-      const [stateResponse, ownerResponse] = await Promise.all([
-        optionalPersistedValue(storageKey),
-        optionalPersistedValue("wizard-data"),
-      ]);
-      const restored = parsePersistedValue<PersistedWorkflowState>(
-        stateResponse,
-        emptyWorkflowState(),
-      );
-      const restoredOwner = parsePersistedValue<Record<string, string>>(
-        ownerResponse,
-        {},
-      );
-      if (
-        Object.keys(restored.steps || {}).length &&
-        restoredOwner.userName &&
-        owner &&
-        restoredOwner.userName !== owner
-      ) {
-        throw new Error(
-          `This workflow is owned by ${restoredOwner.userName}. Ask that user to finish or clear it.`,
-        );
-      }
-      stateRef.current = { ...restored, steps: restored.steps || {} };
-      setState(stateRef.current);
-      activeStepRef.current = restored.activeStep || "";
-      if (restored.activeStep) {
-        const restoredStep = Object.keys(stepWizardUtilities.wizardSteps).find(
-          (stepNumber) =>
-            stepWizardUtilities.wizardSteps[stepNumber]?.name ===
-            restored.activeStep,
-        );
-        if (restoredStep !== undefined) {
-          stepWizardUtilities.jumpToStep(Number(restoredStep), true);
-        }
-      } else {
-        stepWizardUtilities.jumpToStep(0, true);
-      }
-      setIsHydrated(true);
-    } catch (error: any) {
-      setInitializationError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Ambari could not restore this workflow.",
-      );
-    }
-  }
-
   async function writeState(activeStep = activeStepRef.current) {
-    await ClusterApi.postPersistData(
-      buildWorkflowPersistencePayload({
-        storageKey,
-        state: stateRef.current,
-        activeStep,
-        progressStatus,
-        owner,
-        controllerName,
-      }),
-    );
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    await persistence.savePersistData({
+      [storageKey]: { ...stateRef.current, activeStep },
+      CLUSTER_STATE: { progressStatus, stepName: activeStep },
+    }, activeStep || progressStatus);
+    setReentryRequired(false);
   }
 
   async function clearState() {
-    await queue(() =>
-      ClusterApi.postPersistData(buildWorkflowClearPayload(storageKey)),
-    );
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    await persistence.release();
     stateRef.current = emptyWorkflowState();
     setState(stateRef.current);
     activeStepRef.current = "";
@@ -212,7 +190,7 @@ export function PersistedWorkflowProvider({
       setState(stateRef.current);
     }
     activeStepRef.current = step?.name || "";
-    await queue(() => writeState(activeStepRef.current));
+    await writeState(activeStepRef.current);
   }
 
   async function persist(
@@ -234,15 +212,15 @@ export function PersistedWorkflowProvider({
         break;
       case "cancel":
         if (stepWizardUtilities.activeStep >= progressStepIndex) {
-          await queue(() => writeState());
+          await writeState();
         } else {
           await clearState();
         }
         modalManager.hide();
-        window.location.href = summaryUrl;
+        navigate(summaryPath);
         break;
       default:
-        await queue(() => writeState());
+        await writeState();
     }
   }
 
@@ -256,7 +234,7 @@ export function PersistedWorkflowProvider({
           disabled={!canPersist}
           onClick={() => setRetryCount((value) => value + 1)}
         >
-          Retry
+          {translate("common.retry")}
         </Button>
       </Alert>
     );
@@ -267,6 +245,11 @@ export function PersistedWorkflowProvider({
     <PersistedWorkflowContext.Provider
       value={{ state, stepWizardUtilities, storeStep, persist }}
     >
+      {reentryRequired && (
+        <Alert variant="warning">
+          {translate("workflow.persistence.reentryRequired")}
+        </Alert>
+      )}
       {children}
     </PersistedWorkflowContext.Provider>
   );

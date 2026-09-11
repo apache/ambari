@@ -86,12 +86,14 @@ def _daemon_environment(spec, params):
 
 
 def _stop_registry_dns_processes(params, status_params, keep_pid_file=None):
+  # Stop the jsvc supervisor before its daemon. Otherwise it can replace a
+  # terminated child and leave the replacement orphaned when the wrapper exits.
   processes = (
     (
-      status_params.yarn_registry_dns_pid_file,
-      params.yarn_user,
-      params.yarn_user,
-      False,
+      status_params.yarn_registry_dns_wrapper_pid_file,
+      status_params.root_user,
+      status_params.root_user,
+      True,
     ),
     (
       status_params.yarn_registry_dns_secure_pid_file,
@@ -100,10 +102,10 @@ def _stop_registry_dns_processes(params, status_params, keep_pid_file=None):
       True,
     ),
     (
-      status_params.yarn_registry_dns_wrapper_pid_file,
-      status_params.root_user,
-      status_params.root_user,
-      True,
+      status_params.yarn_registry_dns_pid_file,
+      params.yarn_user,
+      params.yarn_user,
+      False,
     ),
   )
   cleanup_errors = []

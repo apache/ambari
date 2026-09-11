@@ -19,6 +19,7 @@
 import React, {
   createContext,
   Dispatch,
+  useContext,
   useEffect,
   useReducer,
   useRef,
@@ -28,15 +29,14 @@ import { Alert, Button } from "react-bootstrap";
 import { get, isEmpty } from "lodash";
 import { State, Action, ActionTypes } from "./types";
 import { reducer, initialState } from "./reducer";
-import ClusterApi from "../../../../../api/clusterApi";
 import { ClusterProgressStatus } from "../../../../../constants";
 import modalManager from "../../../../../store/ModalManager";
 import Spinner from "../../../../../components/Spinner";
-import {
-  parsePersistedValue,
-  persistedPayload,
-} from "../../../../../Utils/persistedSettings";
 import useAuth from "../../../../../hooks/useAuth";
+import useClusterWorkflowPersistence from "../../../../../hooks/useClusterWorkflowPersistence";
+import { AppContext } from "../../../../../store/context";
+import { containsReentryMarker, workflowErrorMessage } from "../../../../../Utils/scopedWorkflow";
+import { translate } from "../../../../../Utils/Utility";
 
 interface ManageJournalNodesContextProps {
   state: State;
@@ -56,46 +56,61 @@ export const ManageJournalNodesProvider: React.FC<{
   stepWizardUtilities: any;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
-  const { user } = useAuth();
-  const workflowOwner = user?.user_name || "";
+  const { navigateCluster } = useContext(AppContext);
+  const { hasAuthorization } = useAuth();
+  const canPersist = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
+  const persistence = useClusterWorkflowPersistence("MANAGE_JOURNALNODES", {
+    controllerNames: ["manageJournalNodeWizardController"],
+    keys: ["MANAGE_JOURNALNODES", "CLUSTER_STATE"],
+  });
   const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [isHydrated, setIsHydrated] = useState(false);
   const [initializationError, setInitializationError] = useState("");
+  const [reentryRequired, setReentryRequired] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const stateRef = useRef<State>(initialState);
   const currStepDataRef = useRef<Record<string, any>>({});
-  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
+  const hydrationGeneration = useRef(0);
+  const stepWizardUtilitiesRef = useRef(stepWizardUtilities);
+  stepWizardUtilitiesRef.current = stepWizardUtilities;
 
   const dispatch: Dispatch<Action> = (action) => {
     stateRef.current = reducer(stateRef.current, action);
     reducerDispatch(action);
   };
 
-  const queuePersistence = (operation: () => Promise<void>) => {
-    const nextOperation = persistenceQueue.current
-      .catch(() => undefined)
-      .then(operation);
-    persistenceQueue.current = nextOperation.catch(() => undefined);
-    return nextOperation;
-  };
-
   useEffect(() => {
-    void syncUserPersistedData();
-  }, [retryCount]);
+    const generation = ++hydrationGeneration.current;
+    void syncUserPersistedData(generation);
+    return () => {
+      if (hydrationGeneration.current === generation) {
+        hydrationGeneration.current += 1;
+      }
+    };
+    // The latest wizard utilities are read through a ref so step navigation does not rehydrate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canPersist, persistence, retryCount]);
 
-  async function syncUserPersistedData() {
+  async function syncUserPersistedData(generation: number) {
     setIsHydrated(false);
     setInitializationError("");
+    if (!canPersist || !persistence) {
+      setInitializationError(
+        !canPersist
+          ? translate("workflow.persistence.permissionRequired")
+          : translate("workflow.persistence.explicitCluster"),
+      );
+      return;
+    }
     try {
-      let response: unknown = initialState;
-      try {
-        response = await ClusterApi.getPersistData("MANAGE_JOURNALNODES");
-      } catch (error: any) {
-        if (error?.response?.status !== 404 && error?.status !== 404) {
-          throw error;
-        }
-      }
-      const persistedData = parsePersistedValue(response, initialState);
+      const values = retryCount > 0
+        ? await persistence.reload()
+        : await persistence.getPersistData();
+      if (hydrationGeneration.current !== generation) return;
+      const persistedData = (values?.MANAGE_JOURNALNODES || initialState) as State;
+      const needsReentry = containsReentryMarker(persistedData);
+      setReentryRequired(needsReentry);
+      const currentWizardUtilities = stepWizardUtilitiesRef.current;
       if (!isEmpty(get(persistedData, "manageJournalNodesSteps", {}))) {
         dispatch({ type: ActionTypes.SYNC_STATE, payload: persistedData });
       }
@@ -104,8 +119,10 @@ export const ManageJournalNodesProvider: React.FC<{
         "manageJournalNodesSteps.REVIEW.data.isDeleteOnly",
         false,
       );
-      stepWizardUtilities.setStepsHidden([2, 4], isDeleteOnly);
-      const activeStepName = get(persistedData, "activeStep", "");
+      currentWizardUtilities.setStepsHidden([2, 4], isDeleteOnly);
+      const activeStepName = needsReentry
+        ? currentWizardUtilities.wizardSteps[1]?.name
+        : get(persistedData, "activeStep", "");
       if (activeStepName) {
         const restoredStepData = {
           progressStatus: ClusterProgressStatus.MANAGING_JOURNALNODES,
@@ -113,26 +130,27 @@ export const ManageJournalNodesProvider: React.FC<{
         };
         currStepDataRef.current = restoredStepData;
         const activeStepNumber = Object.keys(
-          stepWizardUtilities.wizardSteps,
+          currentWizardUtilities.wizardSteps,
         ).find(
           (stepName) =>
-            stepWizardUtilities.wizardSteps[stepName]?.name === activeStepName,
+            currentWizardUtilities.wizardSteps[stepName]?.name === activeStepName,
         );
         if (activeStepNumber !== undefined) {
           let restoredStep = Number(activeStepNumber);
           if (isDeleteOnly && restoredStep === 2) restoredStep = 3;
           if (isDeleteOnly && restoredStep === 4) restoredStep = 5;
-          stepWizardUtilities.jumpToStep(restoredStep, true);
+          currentWizardUtilities.jumpToStep(restoredStep, true);
         }
       } else {
-        stepWizardUtilities.jumpToStep(0, true);
+        currentWizardUtilities.jumpToStep(0, true);
       }
       setIsHydrated(true);
     } catch (error: any) {
-      setInitializationError(
-        error?.response?.data?.message ||
-          "Ambari could not restore the Manage JournalNodes workflow.",
-      );
+      if (hydrationGeneration.current !== generation) return;
+      setInitializationError(workflowErrorMessage(
+        error,
+        translate("workflow.persistence.haLoadFailed"),
+      ));
     }
   }
 
@@ -140,38 +158,28 @@ export const ManageJournalNodesProvider: React.FC<{
     stateSnapshot: State = stateRef.current,
     stepSnapshot: Record<string, any> = currStepDataRef.current,
   ) {
-    await ClusterApi.postPersistData(
-      persistedPayload({
-        MANAGE_JOURNALNODES: {
-          ...stateSnapshot,
-          activeStep: get(stepSnapshot, "stepName", ""),
-        },
-        CLUSTER_STATE: stepSnapshot,
-        "wizard-data": { userName: workflowOwner },
-      }),
-    );
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    const activeStep = get(stepSnapshot, "stepName", "");
+    await persistence.savePersistData({
+      MANAGE_JOURNALNODES: { ...stateSnapshot, activeStep },
+      CLUSTER_STATE: stepSnapshot,
+    }, activeStep || ClusterProgressStatus.MANAGING_JOURNALNODES);
+    setReentryRequired(false);
   }
 
   async function clearPersistedState() {
-    await queuePersistence(() =>
-      ClusterApi.postPersistData(
-        persistedPayload({
-          MANAGE_JOURNALNODES: initialState,
-          CLUSTER_STATE: {},
-          "wizard-data": {},
-        }),
-      ),
-    );
+    if (!persistence) throw new Error(translate("workflow.persistence.explicitCluster"));
+    await persistence.release();
   }
 
   async function flushOnCancel() {
     if (stepWizardUtilities.activeStep >= 3) {
-      await queuePersistence(() => flushCurrentData());
+      await flushCurrentData();
     } else {
       await clearPersistedState();
     }
     modalManager.hide();
-    window.location.href = "/#/main/services/HDFS/summary";
+    navigateCluster("/main/services/HDFS/summary");
   }
 
   async function flushOnStepChange(nextStep: number | undefined) {
@@ -192,7 +200,7 @@ export const ManageJournalNodesProvider: React.FC<{
       stepName: nextStepDetails?.name,
     };
     currStepDataRef.current = nextStepData;
-    await queuePersistence(() => flushCurrentData(nextState, nextStepData));
+    await flushCurrentData(nextState, nextStepData);
   }
 
   async function flushStateToDb(
@@ -216,7 +224,7 @@ export const ManageJournalNodesProvider: React.FC<{
         await flushOnStepChange(jumpStep);
         break;
       default:
-        await queuePersistence(() => flushCurrentData());
+        await flushCurrentData();
     }
   }
 
@@ -228,8 +236,9 @@ export const ManageJournalNodesProvider: React.FC<{
           size="sm"
           className="ms-3"
           onClick={() => setRetryCount((value) => value + 1)}
+          disabled={!canPersist || !persistence}
         >
-          Retry
+          {translate("common.retry")}
         </Button>
       </Alert>
     );
@@ -240,6 +249,11 @@ export const ManageJournalNodesProvider: React.FC<{
     <ManageJournalNodesContext.Provider
       value={{ state, dispatch, stepWizardUtilities, flushStateToDb }}
     >
+      {reentryRequired && (
+        <Alert variant="warning">
+          {translate("workflow.persistence.reentryRequired")}
+        </Alert>
+      )}
       {children}
     </ManageJournalNodesContext.Provider>
   );

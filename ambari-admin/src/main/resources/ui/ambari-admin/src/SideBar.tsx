@@ -17,6 +17,7 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Collapse } from "react-bootstrap";
+import { useLocation, matchPath } from "react-router-dom";
 import SideItem from "./SideItem";
 import { useContext, useEffect, useState } from "react";
 import { SideItemLabels } from "./SideItemList";
@@ -39,6 +40,7 @@ type SideBarProps = {
 };
 
 const SideBar = ({ clusterExists, isSidebarCollapsed,setIsSidebarCollapsed }: SideBarProps) => {
+  const location = useLocation();
   const SideItemList: SideItem[] = getSideItemList(clusterExists ?? false);
   const [openOptions, setOpenOptions] = useState<string[]>([
     SideItemLabels.CLUSTERMANAGEMENT,
@@ -49,15 +51,14 @@ const SideBar = ({ clusterExists, isSidebarCollapsed,setIsSidebarCollapsed }: Si
   };
 
   useEffect(() => {
-    const currentHash = window.location.hash;
-    const currentPath = currentHash.replace("#", "");
+    const currentPath = location.pathname;
     const matchedRoute = RoutesList.find(
-      (route: any) => route.path === currentPath
+      (route: any) => matchPath(currentPath, { path: route.path, exact: true })
     );
     if (matchedRoute) {
       setSelectedOption(matchedRoute.name);
     }
-  }, []);
+  }, [location.pathname]);
 
   const handleSideItemClick = (itemId: string) => {
     if (isElementOpen(itemId)) {
@@ -91,7 +92,7 @@ const SideBar = ({ clusterExists, isSidebarCollapsed,setIsSidebarCollapsed }: Si
                       {ele.children.map((child) => {
                         return (
                           <SidebarItem
-                            isSelected={selectedOption === child.id}
+                            isSelected={selectedOption === child.id || (child.id === SideItemLabels.CLUSTEROVERVIEW && location.pathname === "/clusterInformation")}
                             ele={child}
                             key={child.id}
                             onClick={() => {

@@ -167,7 +167,7 @@ export default function GetStartedKerberos() {
       <WizardFooter
         isNextEnabled={nextEnabled}
         step={currentStep}
-        onNext={() => {
+        onNext={async () => {
           if(isValid()) {
             dispatch({
               type: ActionTypes.STORE_INFORMATION,
@@ -176,8 +176,8 @@ export default function GetStartedKerberos() {
                 data: { selectedKdcPlan, preconditions },
               }
             })
-            flushStateToDb("next");
-            handleNextImperitive();
+            await flushStateToDb("next");
+            await handleNextImperitive();
           }
         }}
         onBack={() => {}}

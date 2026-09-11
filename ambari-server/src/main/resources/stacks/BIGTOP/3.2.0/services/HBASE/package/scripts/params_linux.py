@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 import status_params
+import os
 import re
 
 from functions import (
@@ -86,6 +87,8 @@ stack_supports_ranger_audit_db = check_stack_feature(
 
 # hadoop default parameters
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
+hadoop_home = stack_select.get_hadoop_dir("home")
+hadoop_hdfs_home = stack_select.get_hadoop_dir("hdfs_home")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 hbase_cmd = "/usr/lib/hbase/bin/hbase"
@@ -278,12 +281,25 @@ hbase_env_sh_template = config["configurations"]["hbase-env"]["content"]
 hbase_hdfs_root_dir = config["configurations"]["hbase-site"]["hbase.rootdir"]
 # for create_hdfs_directory
 hostname = config["agentLevelParams"]["hostname"]
-hdfs_user_keytab = config["configurations"]["hadoop-env"]["hdfs_user_keytab"]
-hdfs_user = config["configurations"]["hadoop-env"]["hdfs_user"]
-hdfs_principal_name = config["configurations"]["hadoop-env"]["hdfs_principal_name"]
-
-hdfs_site = config["configurations"]["hdfs-site"]
-default_fs = config["configurations"]["core-site"]["fs.defaultFS"]
+managed_dependency_commands = default(
+  "/commandParams/managed_dependency_commands", None
+)
+managed_dependency_active = bool(managed_dependency_commands) or os.path.lexists(
+  "/etc/hbase/conf-managed/active"
+)
+hadoop_env = config["configurations"].get("hadoop-env", {})
+if managed_dependency_active:
+  hdfs_user_keytab = hadoop_env.get("hdfs_user_keytab")
+  hdfs_user = hadoop_env.get("hdfs_user", "hdfs")
+  hdfs_principal_name = hadoop_env.get("hdfs_principal_name")
+  hdfs_site = config["configurations"].get("hdfs-site", {})
+  default_fs = config["configurations"].get("core-site", {}).get("fs.defaultFS", "")
+else:
+  hdfs_user_keytab = hadoop_env["hdfs_user_keytab"]
+  hdfs_user = hadoop_env["hdfs_user"]
+  hdfs_principal_name = hadoop_env["hdfs_principal_name"]
+  hdfs_site = config["configurations"]["hdfs-site"]
+  default_fs = config["configurations"]["core-site"]["fs.defaultFS"]
 
 dfs_type = default("/clusterLevelParams/dfs_type", "")
 
@@ -319,9 +335,9 @@ hbase_zookeeper_property_clientPort = config["configurations"]["hbase-site"][
 hbase_security_authentication = config["configurations"]["hbase-site"][
   "hbase.security.authentication"
 ]
-hadoop_security_authentication = config["configurations"]["core-site"][
-  "hadoop.security.authentication"
-]
+hadoop_security_authentication = config["configurations"].get("core-site", {}).get(
+  "hadoop.security.authentication", "simple"
+)
 
 # ranger hbase plugin section start
 

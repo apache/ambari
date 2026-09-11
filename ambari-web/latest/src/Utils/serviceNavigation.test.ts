@@ -54,6 +54,29 @@ describe("service navigation", () => {
     ).toEqual({ selectedService: "YARN", selectedTab: "configs" });
   });
 
+  it("keeps the HBase Dependencies deep link deterministic", () => {
+    expect(resolveServiceNavigation({
+      ...options,
+      availableTabs: { HBASE: ["summary", "configs", "metrics", "dependencies"] },
+      installedServices: ["HBASE"],
+      requestedService: "HBASE",
+      requestedTab: "dependencies",
+    })).toEqual({ selectedService: "HBASE", selectedTab: "dependencies" });
+  });
+
+  it("keeps provider Dependents links on HDFS and ZooKeeper", () => {
+    expect(resolveServiceNavigation({
+      ...options,
+      availableTabs: {
+        HDFS: ["summary", "configs", "metrics", "dependents"],
+        ZOOKEEPER: ["summary", "configs", "dependents"],
+      },
+      installedServices: ["HDFS", "ZOOKEEPER"],
+      requestedService: "ZOOKEEPER",
+      requestedTab: "dependents",
+    })).toEqual({ selectedService: "ZOOKEEPER", selectedTab: "dependents" });
+  });
+
   it("converges invalid and unauthorized tabs to Summary", () => {
     expect(
       resolveServiceNavigation({

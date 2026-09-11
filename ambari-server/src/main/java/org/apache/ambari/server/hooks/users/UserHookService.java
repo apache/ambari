@@ -45,6 +45,7 @@ import org.apache.ambari.server.serveraction.users.PostUserCreationHookServerAct
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +109,8 @@ public class UserHookService implements HookService {
 
     PostUserCreationHookContext hookCtx = validateHookInput(hookContext);
 
-    if (!checkUserHookPrerequisites()) {
+    if (!configuration.isUserHookEnabled()) {
+      LOGGER.warn("Post user creation hook disabled.");
       LOGGER.warn("Prerequisites for user hook are not satisfied. Hook not triggered");
       return false;
     }
@@ -118,7 +120,14 @@ public class UserHookService implements HookService {
       return false;
     }
 
-    UserCreatedEvent userCreatedEvent = (UserCreatedEvent) eventFactory.newUserCreatedEvent(hookCtx);
+    Cluster targetCluster = resolveTargetCluster();
+    if (targetCluster == null) {
+      LOGGER.warn("Prerequisites for user hook are not satisfied. Hook not triggered");
+      return false;
+    }
+
+    UserCreatedEvent userCreatedEvent = (UserCreatedEvent) eventFactory.newUserCreatedEvent(
+        hookCtx, targetCluster.getClusterId());
 
     LOGGER.info("Triggering user hook for user: {}", hookContext);
     ambariEventPublisher.publish(userCreatedEvent);
@@ -131,8 +140,16 @@ public class UserHookService implements HookService {
     LOGGER.info("Preparing hook execution for event: {}", event);
 
     try {
+      Cluster cluster;
+      try {
+        cluster = clusters.getClusterById(event.getClusterId());
+      } catch (AmbariException e) {
+        LOGGER.warn("Post user creation hook target cluster ID {} is no longer available. Hook not triggered.",
+            event.getClusterId());
+        return;
+      }
+      ClusterData clsData = getClusterData(cluster);
       RequestStageContainer requestStageContainer = new RequestStageContainer(actionManager.getNextRequestId(), null, requestFactory, actionManager);
-      ClusterData clsData = getClusterData();
 
       PostUserCreationHookContext ctx = (PostUserCreationHookContext) event.getContext();
 
@@ -186,19 +203,30 @@ public class UserHookService implements HookService {
     return configuration.getServerTempDir() + File.separator + inputFileName;
   }
 
-  private boolean checkUserHookPrerequisites() {
-
-    if (!configuration.isUserHookEnabled()) {
-      LOGGER.warn("Post user creation hook disabled.");
-      return false;
-    }
-
-    if (clusters.getClusters().isEmpty()) {
+  private Cluster resolveTargetCluster() {
+    Map<String, Cluster> availableClusters = clusters.getClusters();
+    if (availableClusters.isEmpty()) {
       LOGGER.warn("There's no cluster found. Post user creation hook won't be executed.");
-      return false;
+      return null;
     }
 
-    return true;
+    String configuredClusterName = StringUtils.trimToNull(
+        configuration.getProperty(Configuration.POST_USER_CREATION_HOOK_CLUSTER_NAME));
+    if (configuredClusterName != null) {
+      Cluster configuredCluster = availableClusters.get(configuredClusterName);
+      if (configuredCluster == null) {
+        LOGGER.warn("Configured post user creation hook cluster '{}' does not exist. Hook not triggered.",
+            configuredClusterName);
+      }
+      return configuredCluster;
+    }
+
+    if (availableClusters.size() != 1) {
+      LOGGER.warn("Post user creation hook cluster must be configured when {} clusters exist. Hook not triggered.",
+          availableClusters.size());
+      return null;
+    }
+    return availableClusters.values().iterator().next();
   }
 
   private PostUserCreationHookContext validateHookInput(HookContext hookContext) {
@@ -206,15 +234,10 @@ public class UserHookService implements HookService {
     return (PostUserCreationHookContext) hookContext;
   }
 
-  private ClusterData getClusterData() {
+  private ClusterData getClusterData(Cluster cluster) {
     //default value for unsecure clusters
     String keyTab = "NA";
     String principal = "NA";
-
-    // cluster data is needed multiple times during the stage creation, cached it locally ...
-    Map.Entry<String, Cluster> clustersMapEntry = clusters.getClusters().entrySet().iterator().next();
-
-    Cluster cluster = clustersMapEntry.getValue();
 
     switch (cluster.getSecurityType()) {
       case KERBEROS:

@@ -33,6 +33,15 @@ export function latestAmbariUrl(
   return `${ambariApplicationRoot(documentPath)}latest/#${normalizedRoute}`;
 }
 
+export function latestClusterDashboardUrl(
+  clusterName: string | undefined,
+  documentPath = window.location.pathname,
+): string {
+  return latestAmbariUrl(clusterName
+    ? `/clusters/${encodeURIComponent(clusterName)}/main/dashboard/metrics`
+    : "/", documentPath);
+}
+
 export function latestViewInstanceUrl(
   viewName: string,
   version: string,
@@ -54,4 +63,15 @@ export function latestShortViewUrl(
     .map((segment) => encodeURIComponent(segment))
     .join("/");
   return latestAmbariUrl(`/main/view/${route}`, documentPath);
+}
+
+export function adminClusterUrl(clusterName: string, route = "/clusterInformation"): string {
+  const target = new URL(window.location.href);
+  target.searchParams.set("cluster", clusterName);
+  target.hash = route;
+  return target.href;
+}
+
+export function clusterOperationUrl(clusterName: string, route: string): string {
+  return latestAmbariUrl(`/clusters/${encodeURIComponent(clusterName)}${route}`);
 }

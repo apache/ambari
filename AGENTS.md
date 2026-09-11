@@ -56,6 +56,31 @@ include:
 - Do not claim a test passed unless the command was actually run successfully.
   Report skipped tests and existing failures explicitly.
 
+## Reliable State And Result Checks
+
+- Do not infer business state, readiness, success, failure, permissions,
+  ownership, versions, or operation lineage by matching log messages, parsing
+  human-readable CLI output, searching for keywords, or using fuzzy strings.
+  This rule applies to production code, deployment tooling, acceptance scripts,
+  and tests. Logs and human-readable output are diagnostic evidence only.
+- Use authoritative API fields, typed client results, documented status or
+  error codes, and exact persistent identifiers. Exact comparisons of enum
+  values or identifiers defined by a machine-readable contract are valid;
+  inferring their meaning from arbitrary text is not.
+- When a client library is needed, expose its typed observations through a
+  defined, versioned machine-readable schema. Validate the schema, required
+  fields, types, and operation identity before consuming the result. Wrapping
+  parsed CLI text in JSON does not satisfy this requirement.
+- A successful process exit alone does not prove a business operation
+  completed. Confirm the authoritative result and its request/task or
+  binding/operation/epoch lineage before advancing persistent workflow state.
+  Missing, malformed, ambiguous, or mismatched results must not become success;
+  preserve an explicit failure or unresolved state for recovery.
+- Regression tests must exercise structured observations and failure paths,
+  including diagnostic noise, missing or invalid results, and stale or foreign
+  operation identities. Do not prove correctness only by mocking expected
+  output strings or checking that a command was invoked.
+
 ## Frontend Refactor Baseline
 
 `docs/frontend-refactor` is temporary working material for the migration from

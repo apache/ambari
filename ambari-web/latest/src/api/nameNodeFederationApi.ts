@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { set } from "lodash";
 import { ambariApi } from "./config/axiosConfig";
 
 const nameNodeFederationApi = {
     formatNameNode : async function(clusterName: string, payload: any) {
-        const url = `/clusters/${clusterName}/requests`
+        const url = `/clusters/${apiPathSegment(clusterName)}/requests`
         const response = await ambariApi.request({
             url: url,
             method: "POST",
@@ -32,7 +33,7 @@ const nameNodeFederationApi = {
     },
 
     formatZKFC : async function(clusterName: string, payload: any) {
-        const url = `/clusters/${clusterName}/requests`
+        const url = `/clusters/${apiPathSegment(clusterName)}/requests`
         const response = await ambariApi.request({
             url: url,
             method: "POST",
@@ -42,7 +43,7 @@ const nameNodeFederationApi = {
         return response.data;
     },
     bootStrapNameNode : async function(clusterName: string, payload: any) {
-        const url = `/clusters/${clusterName}/requests`
+        const url = `/clusters/${apiPathSegment(clusterName)}/requests`
         const response = await ambariApi.request({
             url: url,
             method: "POST",

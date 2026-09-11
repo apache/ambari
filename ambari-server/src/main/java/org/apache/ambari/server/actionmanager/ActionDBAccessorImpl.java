@@ -30,6 +30,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import jakarta.persistence.EntityManager;
+
 import org.apache.ambari.annotations.TransactionalLock;
 import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.annotations.TransactionalLock.LockType;
@@ -42,6 +44,8 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
 import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyCredentialManager;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyRuntimePlanner;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostsRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
@@ -79,6 +83,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
@@ -127,6 +132,18 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Inject
   Configuration configuration;
+
+  @Inject
+  Provider<ManagedDependencyRuntimePlanner> managedDependencyRuntimePlanner;
+
+  @Inject
+  ManagedDependencyCredentialManager managedDependencyCredentialManager;
+
+  @Inject
+  ActionPersistenceTransaction actionPersistenceTransaction;
+
+  @Inject
+  Provider<EntityManager> entityManagerProvider;
 
   @Inject
   AmbariEventPublisher ambariEventPublisher;
@@ -333,9 +350,28 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
-  @Transactional
-  @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+  @Transactional(rollbackOn = {RuntimeException.class, AmbariException.class})
   public void persistActions(Request request) throws AmbariException {
+    try {
+      managedDependencyRuntimePlanner.get().executeWithPreparationParentLocks(request,
+          () -> actionPersistenceTransaction.persist(this, request));
+    } catch (AmbariException e) {
+      markCurrentTransactionRollbackOnly();
+      throw e;
+    }
+  }
+
+  private void markCurrentTransactionRollbackOnly() {
+    if (entityManagerProvider == null) {
+      return;
+    }
+    EntityManager entityManager = entityManagerProvider.get();
+    if (entityManager.getTransaction().isActive()) {
+      entityManager.getTransaction().setRollbackOnly();
+    }
+  }
+
+  void persistActionsInTransaction(Request request) throws AmbariException {
 
     RequestEntity requestEntity = request.constructNewPersistenceEntity();
 
@@ -378,6 +414,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         hostRoleCommandEntities.add(hostRoleCommandEntity);
 
         hostRoleCommand.setTaskId(hostRoleCommandEntity.getTaskId());
+        managedDependencyRuntimePlanner.get().applyDeferredCustomLifecycleState(hostRoleCommand);
+        managedDependencyRuntimePlanner.get().planPreparationCommands(hostRoleCommand);
+        managedDependencyRuntimePlanner.get().associatePreparationTask(hostRoleCommand);
 
         String prefix = "";
         String output = "output-" + hostRoleCommandEntity.getTaskId() + ".txt";
@@ -437,6 +476,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       stageEntity = stageDAO.merge(stageEntity);
     }
 
+    managedDependencyCredentialManager.associate(requestId, hostRoleCommands);
+
     requestEntity.setStages(stageEntities);
     requestDAO.merge(requestEntity);
 
@@ -454,6 +495,29 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
               "request id: {}, command name: {}",
           requestEntity.getRequestId(),
           requestEntity.getCommandName());
+    }
+  }
+
+  /** Starts action publication after the caller's managed dependency parent locks are held. */
+  @Singleton
+  public static class ActionPersistenceTransaction {
+    @Inject
+    private Provider<EntityManager> entityManagerProvider;
+
+    @Transactional(rollbackOn = {RuntimeException.class, AmbariException.class})
+    @TransactionalLock(lockArea = LockArea.HRC_STATUS_CACHE, lockType = LockType.WRITE)
+    public void persist(ActionDBAccessorImpl accessor, Request request) throws AmbariException {
+      try {
+        accessor.persistActionsInTransaction(request);
+      } catch (AmbariException e) {
+        if (entityManagerProvider != null) {
+          EntityManager entityManager = entityManagerProvider.get();
+          if (entityManager.getTransaction().isActive()) {
+            entityManager.getTransaction().setRollbackOnly();
+          }
+        }
+        throw e;
+      }
     }
   }
 

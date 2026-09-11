@@ -32,7 +32,7 @@ import Modal from '../../components/Modal';
 import {AppContext} from '../../store/context';
 import { processData, filterAlerts, sortAlerts } from './alertUtils';
 import '../../styles/app.scss';
-import {Link} from "react-router-dom";
+import ScopedLink from "../../components/ScopedLink";
 import {SortingState} from "@tanstack/react-table";
 import MenuBar from './MenuBar'
 import {formatAlertStatusDisplay} from "./alertStatus";
@@ -408,12 +408,12 @@ const Alerts = () => {
                 return aLabel.localeCompare(bLabel);
             },
             cell: ({ row }: { row: AlertRow }) => (
-                <Link
+                <ScopedLink
                     to={`/main/alerts/${row.original.alert_definition_id}`}
                     className="custom-link"
                 >
                     {row.original.label}
-                </Link>
+                </ScopedLink>
             )
         },
         {

@@ -202,6 +202,12 @@ public class PrometheusScrapeContractTest {
         advisor.contains("External remote-write storage must deduplicate samples"));
     assertTrue("Storage and scrape replication must be distinguished in managed documentation",
         storageConfig.contains("Replicated VMAGENT scrapes instead use the managed scrape interval"));
+    assertTrue("Stored samples must carry the immutable numeric Ambari cluster identity",
+        template.contains("ambari_cluster_id: {{ yaml_cluster_id }}"));
+    assertTrue("The numeric identity must come from the server command, not the mutable cluster name",
+        params.contains("yaml_cluster_id = json.dumps(str(config[\"clusterId\"]))"));
+    assertTrue("Exporter labels must not override server-owned discovery labels",
+        template.contains("honor_labels: false"));
   }
 
   @Test

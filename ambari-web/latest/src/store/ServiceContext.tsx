@@ -141,7 +141,12 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   const [masterSlaveClientsData, setMasterSlaveClientsData] = useState<any>({});
   const [serviceStatesData, setServiceStatesData] = useState<Map<string, any>>(new Map());
 
-  const { clusterName, parsedSocketMessages, alertSummary: socketAlertSummary } = useContext(AppContext);
+  const {
+    clusterName,
+    parsedSocketMessages,
+    alertSummary: socketAlertSummary,
+    runtimeKey,
+  } = useContext(AppContext);
 
   // Boot-fetched summary from AlertsContext; prefer the synchronous socket summary when available.
   // socketAlertSummary is set in the same render cycle as the socket arrival (context.tsx handler),
@@ -180,7 +185,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
           updated.set(serviceName, { ...data, alertsCount: 0, hasCriticalAlerts: false });
         }
       });
-      centralizedServiceStateApi.setDerivedServiceStates(updated);
+      centralizedServiceStateApi.setDerivedServiceStates(runtimeKey, updated);
       return updated;
     });
   }, [alertSummary, alertDefinitions]);
@@ -295,11 +300,11 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
       const responseData =
         polledData?.items?.length
           ? polledData
-          : cachedServiceApi.getAllComponentData();
+          : cachedServiceApi.getAllComponentData(runtimeKey);
 
       if (!responseData?.items?.length) {
         // If no data yet, fetch it once (will be cached for subsequent calls)
-        await cachedServiceApi.fetchAllServiceComponents(clusterName);
+        await cachedServiceApi.fetchAllServiceComponents(clusterName, runtimeKey);
         return;
       }
 
@@ -429,7 +434,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
               hasCriticalAlerts: alertData.hasCriticalAlerts,
             });
           });
-          centralizedServiceStateApi.setDerivedServiceStates(updated);
+          centralizedServiceStateApi.setDerivedServiceStates(runtimeKey, updated);
           return updated;
         });
       } catch (error) {
@@ -487,7 +492,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
           hasCriticalAlerts: alertData.hasCriticalAlerts,
         });
       });
-      centralizedServiceStateApi.setDerivedServiceStates(updated);
+      centralizedServiceStateApi.setDerivedServiceStates(runtimeKey, updated);
       return updated;
     });
   };
@@ -496,16 +501,16 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
   // calling fetchAllServiceComponents directly) returns fresh data.
   // This ensures state updates flow regardless of which code path initiated the fetch.
   useEffect(() => {
-    const unsubscribe = cachedServiceApi.subscribe(processComponentsData);
+    const unsubscribe = cachedServiceApi.subscribe(runtimeKey, processComponentsData);
     return () => unsubscribe();
-  }, []);
+  }, [clusterName, runtimeKey]);
 
   const pollServiceComponents = async () => {
     const currentClusterName = clusterNameRef.current;
     if (!currentClusterName || !allModelsLoaded) return;
 
     // fetchAllServiceComponents notifies subscribers internally - state will be updated via processComponentsData
-    await cachedServiceApi.fetchAllServiceComponents(currentClusterName);
+    await cachedServiceApi.fetchAllServiceComponents(currentClusterName, runtimeKey);
   };
 
   // Eager first fetch - fires immediately when clusterName becomes available
@@ -553,7 +558,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
       const updated = new Map(prev);
       const existing = updated.get(service_name) || { serviceName: service_name, state: 'INSTALLED', maintenance_state: 'OFF', alertsCount: 0, hasCriticalAlerts: false };
       updated.set(service_name, { ...existing, maintenance_state });
-      centralizedServiceStateApi.setDerivedServiceStates(updated);
+      centralizedServiceStateApi.setDerivedServiceStates(runtimeKey, updated);
       return updated;
     });
 
@@ -656,7 +661,7 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
           const updated = new Map(prev);
           const existing = updated.get(service_name) || { serviceName: service_name, state: 'INSTALLED', maintenance_state: 'OFF', alertsCount: 0, hasCriticalAlerts: false };
           updated.set(service_name, { ...existing, state });
-          centralizedServiceStateApi.setDerivedServiceStates(updated);
+          centralizedServiceStateApi.setDerivedServiceStates(runtimeKey, updated);
           return updated;
         });
       }

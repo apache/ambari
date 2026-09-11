@@ -37,7 +37,7 @@ import Spinner from "../../components/Spinner";
 import { pluralize } from "../../Utils/Utility";
 import modalManager from "../../store/ModalManager";
 import { AlertsModal } from "./ServiceAlerts";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import { useHostsFilterNavigation } from "../Hosts/hostsFilterNavigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Tooltip from "../../components/Tooltip";
@@ -85,7 +85,7 @@ function HDFSSummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["hdfs"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -357,7 +357,7 @@ function HBASESummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["hbase"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -491,7 +491,7 @@ function RANGERSummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["ranger"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -749,7 +749,7 @@ function ZOOKEEPERSummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["zk"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -919,7 +919,7 @@ function KYUUBISummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["kyuubi"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -1092,7 +1092,7 @@ function TRINOGATEWAYSummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["trino_gateway"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -1270,7 +1270,7 @@ function MAPREDUCE2Summary({ alerts }: { alerts: any }) {
     allServiceModels?.["mapreduce2"] || {}
   );
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -1611,7 +1611,7 @@ function SPARK3Summary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["spark3"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -1803,7 +1803,7 @@ function RANGER_KMSSummary({ alerts }: { alerts: any }) {
     allServiceModels?.["ranger_kms"] || {}
   );
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
 
   useEffect(() => {
     if (allServiceModels["ranger_kms"]) {
@@ -1959,7 +1959,7 @@ function TRINOSummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["trino"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -2130,7 +2130,7 @@ function SSMSummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["ssm"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -2285,7 +2285,7 @@ function YARNSummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["yarn"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -2647,7 +2647,7 @@ function HIVESummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["hive"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -2995,7 +2995,7 @@ function PINOTSummary({ alerts }: { alerts: any }) {
 
   const stringifiedModel = JSON.stringify(allServiceModels?.["pinot"] || {});
 
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
 
   useEffect(() => {
@@ -3216,7 +3216,7 @@ export function GenericServiceSummary({
   alerts: any[];
 }) {
   const { masterSlaveClientsData } = useContext(ServiceContext);
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { goToHostsFilteredByComponent } = useHostsFilterNavigation();
   const components = Array.isArray(masterSlaveClientsData)
     ? masterSlaveClientsData.filter(

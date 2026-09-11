@@ -18,6 +18,10 @@
 
 import Config from "../../CommonConfigs/Config";
 import { ConfigPropertiesType } from "../../CommonConfigs/types";
+import type {
+  EnhancedConfigRecommendationState,
+} from "../../../hooks/useEnhancedConfigs";
+import type { RunWithStackAdvisorRequest } from "../managedDependencyAdvisor";
 
 type RestAllTabsProps = {
   themes: Object;
@@ -35,6 +39,15 @@ type RestAllTabsProps = {
   selectedService?: string;
   onServiceChange?: (serviceName: string) => void;
   conditionServices?: string[];
+  runWithAdvisorRequest?: RunWithStackAdvisorRequest;
+  advisorScopeKey?: string;
+  checkpointConfigProperties?: (
+    configProperties: ConfigPropertiesType,
+  ) => Promise<unknown>;
+  onConfigEdit?: () => void;
+  onRecommendationStateChange?: (
+    state: EnhancedConfigRecommendationState,
+  ) => void;
 };
 
 export default function RestAllTabs({
@@ -53,6 +66,11 @@ export default function RestAllTabs({
   selectedService,
   onServiceChange,
   conditionServices,
+  runWithAdvisorRequest,
+  advisorScopeKey,
+  checkpointConfigProperties,
+  onConfigEdit,
+  onRecommendationStateChange,
 }: RestAllTabsProps) {
   return (
     <>
@@ -73,6 +91,11 @@ export default function RestAllTabs({
         validationErrors={validationErrors}
         selectedService={selectedService}
         onServiceChange={onServiceChange}
+        runWithAdvisorRequest={runWithAdvisorRequest}
+        advisorScopeKey={advisorScopeKey}
+        checkpointConfigProperties={checkpointConfigProperties}
+        onConfigEdit={onConfigEdit}
+        onRecommendationStateChange={onRecommendationStateChange}
       />
     </>
   );

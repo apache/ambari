@@ -1692,6 +1692,7 @@ public class TestActionScheduler {
 
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getFirstStageInProgressPerRequest()).thenReturn(firstStageInProgress);
+    when(db.getStage("1-1")).thenReturn(stages.get(0));
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
@@ -2179,7 +2180,9 @@ public class TestActionScheduler {
     report.setStdOut("");
     report.setStatus(status.toString());
     report.setRole(role.toString());
+    report.setRoleCommand(RoleCommand.UPGRADE.toString());
     report.setServiceName(service.toString());
+    report.setClusterId("1");
     report.setActionId(actionId);
     report.setTaskId(taskId);
     return report;
@@ -2199,7 +2202,10 @@ public class TestActionScheduler {
         clusterName, serviceName, false, false);
     stage.getExecutionCommandWrapper(hostname,
         role.toString()).getExecutionCommand();
-    stage.getOrderedHostRoleCommands().get(0).setTaskId(taskId);
+    HostRoleCommand command = stage.getOrderedHostRoleCommands().get(0);
+    command.setRequestId(stage.getRequestId());
+    command.setStageId(stage.getStageId());
+    command.setTaskId(taskId);
     return stage;
   }
 

@@ -46,6 +46,7 @@ import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReport;
 import org.apache.ambari.server.agent.stomp.dto.ComponentVersionReports;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyTaskResultProcessor;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -148,6 +149,9 @@ public class HeartbeatProcessor extends AbstractService{
   Provider<MetadataHolder> metadataHolder;
 
   @Inject
+  ManagedDependencyTaskResultProcessor managedDependencyTaskResultProcessor;
+
+  @Inject
   public HeartbeatProcessor(Clusters clusterFsm, ActionManager am, HeartbeatMonitor heartbeatMonitor,
                             Injector injector) {
     injector.injectMembers(this);
@@ -227,9 +231,9 @@ public class HeartbeatProcessor extends AbstractService{
 
     //process status reports before command reports to prevent status override immediately after task finish
     processStatusReports(heartbeat);
-    processCommandReports(heartbeat, now);
+    List<CommandReport> acceptedReports = processCommandReports(heartbeat, now);
     //host status calculation are based on task and status reports, should be performed last
-    processHostStatus(heartbeat);
+    processHostStatus(heartbeat.getComponentStatus(), acceptedReports, heartbeat.getHostname());
   }
 
 
@@ -327,19 +331,25 @@ public class HeartbeatProcessor extends AbstractService{
    * @param now       cached current time
    * @throws AmbariException
    */
-  protected void processCommandReports(HeartBeat heartbeat, long now) throws AmbariException {
-    processCommandReports(heartbeat.getReports(), heartbeat.getHostname(), now);
+  protected List<CommandReport> processCommandReports(HeartBeat heartbeat, long now) throws AmbariException {
+    return processCommandReports(heartbeat.getReports(), heartbeat.getHostname(), now);
   }
 
-  protected void processCommandReports(List<CommandReport> reports, String hostName, Long now)
+  protected List<CommandReport> processCommandReports(List<CommandReport> reports, String hostName, Long now)
       throws AmbariException {
 
+    if (reports == null) {
+      return new ArrayList<>();
+    }
     // Cache HostRoleCommand entities because we will need them few times
     List<Long> taskIds = new ArrayList<>();
     for (CommandReport report : reports) {
-      taskIds.add(report.getTaskId());
+      if (report != null) {
+        taskIds.add(report.getTaskId());
+      }
     }
     Map<Long, HostRoleCommand> commands = actionManager.getTasksMap(taskIds);
+    reports = actionManager.getValidTaskReports(hostName, reports, commands);
 
     for (CommandReport report : reports) {
 
@@ -546,6 +556,10 @@ public class HeartbeatProcessor extends AbstractService{
 
     //Update state machines from reports
     actionManager.processTaskResponse(hostName, reports, commands);
+    for (CommandReport report : reports) {
+      managedDependencyTaskResultProcessor.process(report, hostName, commands.get(report.getTaskId()));
+    }
+    return reports;
   }
 
   /**

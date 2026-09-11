@@ -50,8 +50,8 @@ This table records the state before Module 04 implementation. A feature is not c
 | Final status | Count |
 | --- | ---: |
 | `STATICALLY_ALIGNED` | 26 |
-| `IMPROVED_PARTIAL` | 21 |
-| `UNCHANGED_PARTIAL` | 11 |
+| `IMPROVED_PARTIAL` | 22 |
+| `UNCHANGED_PARTIAL` | 10 |
 | `CROSS_MODULE_BOUNDARY` | 2 |
 | `MISSING` | 0 |
 | Total | 60 |
@@ -106,10 +106,10 @@ The written Ember baseline overstates `SVC-ALL-004`: the global action does not 
 | `CFG-GROUP-004` | `STATICALLY_ALIGNED` | Hosts can move directly between non-default groups, with atomic local state and two-phase clear/set server ordering, including swaps. |
 | `CFG-GROUP-005` | `STATICALLY_ALIGNED` | Delete returns hosts to Default locally, clears server membership before DELETE, and preserves the modal with an error for Retry. |
 | `CFG-GROUP-006` | `STATICALLY_ALIGNED` | Group properties and edit entry preserve the selected config group and version through the shared history selection path; focused history evidence covers group/version resolution. |
-| `SVC-ADD-001` | `IMPROVED_PARTIAL` | Entry and direct route now enforce permission, feature flag, upgrade, and conflicting-wizard policy; dependency/conflict validation remains broad. |
+| `SVC-ADD-001` | `IMPROVED_PARTIAL` | Entry and direct route enforce permission, feature flag, upgrade, and conflicting-wizard policy. A freshly selected HBase can retain dependencies needed by other services while choosing authorized HDFS and ZooKeeper providers. An already installed HBase keeps its authoritative existing dependency state and does not enter a new service plan. Final binding creation and lifecycle handling remain pending. |
 | `SVC-ADD-002` | `UNCHANGED_PARTIAL` | Master cardinality, resource, installed-component, and ineligible-host matrices remain incomplete. |
 | `SVC-ADD-003` | `UNCHANGED_PARTIAL` | Slave/client retention and host eligibility remain incomplete. |
-| `SVC-ADD-004` | `UNCHANGED_PARTIAL` | Config recommendations, credentials, database/account tabs, and recovery remain incomplete. |
+| `SVC-ADD-004` | `IMPROVED_PARTIAL` | Provider choices and reviewed preview data persist through the scoped Add Service workflow with exact revision checkpoints and stale-response isolation. Recovery rebuilds the full catalog with live installed identities before overlaying saved fresh choices, so partial legacy state cannot start a plan for installed HBase. Config recommendations, credentials, final provider reconciliation, and runtime recovery remain incomplete. |
 | `SVC-ADD-005` | `UNCHANGED_PARTIAL` | Review completeness and no-mutation acceptance remain outstanding. |
 | `SVC-ADD-006` | `IMPROVED_PARTIAL` | Direct route ownership is guarded and persisted cleanup is corrected; exact deploy ordering and partial-failure recovery remain runtime-required. |
 | `SVC-ADD-007` | `STATICALLY_ALIGNED` | Add Service completion no longer writes Installer-only `Clusters.provisioning_state=INSTALLED`; Cluster Creation behavior is preserved. |
@@ -211,7 +211,8 @@ The primary Module 04 implementation surface is:
 - Quick Links: `screens/Services/ServiceQuicklinks.tsx`, `OptimizedServiceQuicklinks.tsx`, `hooks/useLazyQuicklinks.ts`, and `api/quicklinksApi.ts`.
 - Service Configs: `screens/ServiceConfigs/index.tsx`, `screens/CommonConfigs/*`, `screens/ConfigVersions/*`, `hooks/useConfigSaver.tsx`, `hooks/useConfigs.ts`, `hooks/useConfigsTags.ts`, `hooks/useEnhancedConfigs.ts`, `api/configsApi.ts`, and `api/serviceConfigApi.ts`.
 - Config Groups: `screens/ConfigGroups/*`, `Utils/configGroupUtils.ts`, and `api/configGroupApi.ts`.
-- Add Service: `screens/Services/AddServiceWizard/*`, `screens/Services/AddWizardUrlMapping.tsx`, and shared Cluster Wizard step components.
+- Add Service: `screens/Services/AddServiceWizard/*`, `screens/Services/AddWizardUrlMapping.tsx`, shared Cluster Wizard step components, `screens/ClusterWizard/ManagedDependencySelector.tsx`, and `screens/ClusterWizard/managedDependencySelection.ts`.
+- HBase provider state: `api/serviceDependenciesApi.ts`, `screens/Services/ServiceDependencies.tsx`, `screens/Services/ServiceDependents.tsx`, the HBase Dependencies tab, and the HDFS/ZooKeeper Dependents tabs in `screens/Services/ServiceDashboard.tsx`.
 - Reassign Master: `screens/Services/reassign/*`, move initializers, and `api/serviceApi.ts`.
 - Shared state, routes, permissions, and requests: `store/ServiceContext.tsx`, application routing, `api/servicesApi.ts`, `api/actionsApi.ts`, and permission utilities.
 
@@ -236,6 +237,10 @@ Files under `screens/Hosts`, including `HostConfigs.tsx`, `actions.tsx`, `suppor
 | `POST /api/v1/clusters/{cluster}/services?ServiceInfo/service_name={service}` | `createComponent()` has the correct collection URL and body but omits `method`, so it can default to GET | Send POST with the component body used by classic `common.create_component` |
 | `GET /api/v1/clusters/{cluster}?fields=Clusters/desired_configs...` | `ConfigsApi.getDesiredConfigsInfo()` has a trailing backtick | Use the exact desired-config query URL |
 | `GET ...?format=client_config_tar` with `HostRoles/component_name={scope}` | Current-service all-client download uses component scope | Use `CLUSTER` for all services, `SERVICE` for all clients of one service, and `SERVICE_COMPONENT` for one client component |
+| `GET /service-dependencies/candidates` and `POST /service-dependencies/preview` | Classic has no managed-provider workflow | For cluster creation, send the draft UUID and exact persisted revision. For Add Service before HBase exists, send the verified numeric consumer cluster and exact `ADD_SERVICE` revision using `SERVICE_PLAN`. Retain only an authorized selected provider and reviewed preview, and treat known version/security planning responses as incomplete rather than compatible. |
+| `GET /clusters/{cluster}/services/HBASE/dependencies` | Classic assumes local service ownership | Show HDFS and ZooKeeper ownership, provider cluster/service/version/security, safe namespace data, and friendly deployment phase within the explicit HBase cluster scope |
+| `GET /clusters/{cluster}/services/{HDFS|ZOOKEEPER}/dependents` | Classic has no reverse managed-provider view | Show only server-authorized named HBase consumers. Preserve consumers outside the viewer's cluster scope as an anonymous count and discard late results when the provider route or principal changes. |
+| `GET /clusters/{cluster}/services/{HDFS|ZOOKEEPER}/dependency-impact?action=STOP` | Classic evaluates only the selected local service | Keep the provider identity, dependent count, and impact revision typed for the separately gated lifecycle confirmation; the read-only Dependents view does not imply or trigger an action. |
 
 The default-group save contract is replacement-oriented: once a config type is changed, its submitted `properties` object must contain every property in that type, including unchanged values. `properties_attributes` must preserve final and related attributes. Non-default config-group saves retain the classic parallel, non-atomic server behavior, but the React lifecycle must await all started promises and report every failure deterministically.
 
@@ -356,6 +361,9 @@ Direct route entry must enforce the same permissions, feature flags, service/com
 | The all-services menu opens only for `SERVICE.START_STOP` or `SERVICE.ADD_DELETE_SERVICES`, even though Download and Run All Service Check have their own inner permissions | Preserve the outer-menu quirk for compatibility; the inner entries retain `CLUSTER.VIEW_CONFIGS` and `SERVICE.RUN_SERVICE_CHECK` respectively |
 | Add Service completion does not set cluster provisioning state | Remove the Installer-only mutation from Add Service completion |
 | Classic Add Service deploy route cannot be left through normal wizard navigation | Preserve route ownership and persisted recovery while still allowing deliberate cleanup on completion/cancel |
+| Classic automatically selects local HDFS and ZooKeeper dependencies for HBase | Keep local dependencies as the default. React may replace either HBase dependency with an authorized managed provider while preserving local services selected independently or required by another selected service. This is an intentional multi-cluster extension. |
+| Classic has no provider preview state before Add Service Review | Persist the selected provider and authoritative preview after a successful scoped CAS. Do not persist candidate lists, infer compatibility from client metadata, or expose create/retry/detach actions before their server lifecycle is integrated. |
+| Classic service pages expose Summary and Configs but no reverse managed-provider relationship | Add a read-only Dependents tab to HDFS and ZooKeeper. This is an intentional multi-cluster extension; consumer names come only from the scoped server response and hidden consumers stay anonymous. |
 | Classic Reassign validates component-specific placement and has a narrow DB-test rollback | Do not enable mutation until topology validation passes; after DB-test failure only, remove target components, reconfigure the database service, and restart affected services. |
 | Oozie Reassign shows embedded database copy commands only for Derby | Read current Oozie config before building the wizard; external databases omit those steps and a failed config read blocks entry with Retry |
 | A malformed classic response can leave some polling views busy | React must terminate busy state and provide retry for every create/read/poll failure |

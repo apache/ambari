@@ -37,20 +37,30 @@ public class STOMPUpdateListener {
   private DefaultMessageEmitter defaultMessageEmitter;
 
   private final Set<STOMPEvent.Type> typesToProcess;
+  private final boolean apiListener;
 
   public STOMPUpdateListener(Injector injector, Set<STOMPEvent.Type> typesToProcess) {
+    this(injector, typesToProcess, false);
+  }
+
+  public STOMPUpdateListener(Injector injector, Set<STOMPEvent.Type> typesToProcess, boolean apiListener) {
     STOMPUpdatePublisher STOMPUpdatePublisher =
       injector.getInstance(STOMPUpdatePublisher.class);
     STOMPUpdatePublisher.registerAgent(this);
     STOMPUpdatePublisher.registerAPI(this);
     this.typesToProcess = typesToProcess == null ? Collections.emptySet() : typesToProcess;
+    this.apiListener = apiListener;
   }
 
   @Subscribe
   @AllowConcurrentEvents
   public void onUpdateEvent(STOMPEvent event) throws AmbariException, InterruptedException {
     if (typesToProcess.contains(event.getType())) {
-      defaultMessageEmitter.emitMessage(event);
+      if (apiListener) {
+        defaultMessageEmitter.emitApiMessage(event);
+      } else {
+        defaultMessageEmitter.emitMessage(event);
+      }
     }
   }
 }

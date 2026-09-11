@@ -52,7 +52,7 @@ function Step4() {
   >([]);
   const [workflowError, setWorkflowError] = useState("");
   const [isCompleting, setIsCompleting] = useState(false);
-  const { clusterName, services, ambariProperties } = useContext(AppContext);
+  const { clusterName, services, ambariProperties, navigateCluster } = useContext(AppContext);
   const { allServiceModels } = useContext(ServiceContext);
   const {
     state,
@@ -191,7 +191,7 @@ function Step4() {
     setWorkflowError("");
     try {
       await flushStateToDb("complete");
-      window.location.href = "/#/main/services/RANGER/summary";
+      navigateCluster("/main/services/RANGER/summary");
     } catch (error) {
       setWorkflowError(
         responseErrorMessage(

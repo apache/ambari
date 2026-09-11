@@ -240,6 +240,7 @@ var files = [
   'test/utils/date/timezone_test',
   'test/utils/data_manipulation_test',
   'test/utils/db_test',
+  'test/utils/scoped_workflow_persistence_test',
   'test/utils/ember_computed_test',
   'test/utils/ember_reopen_test',
   'test/utils/errors/assertions_test',

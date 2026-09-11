@@ -109,9 +109,9 @@ function Step2() {
         onCancel={()=>{
           flushStateToDb("cancel");
         }}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
       />
     </>

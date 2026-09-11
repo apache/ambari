@@ -47,6 +47,11 @@ public class TestAuthenticationFactory {
     return createAmbariUserAuthentication(1, name, Collections.singleton(createAdministratorGrantedAuthority()));
   }
 
+  public static Authentication createAdministrator(int userId, String name) {
+    return createAmbariUserAuthentication(userId, name,
+        Collections.singleton(createAdministratorGrantedAuthority()));
+  }
+
   public static Authentication createClusterAdministrator() {
     return createClusterAdministrator("clusterAdmin", 4L);
   }
@@ -57,6 +62,11 @@ public class TestAuthenticationFactory {
 
   public static Authentication createClusterAdministrator(String name, Long clusterResourceId) {
     return createAmbariUserAuthentication(1, name, Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
+  }
+
+  public static Authentication createClusterAdministrator(int userId, String name, Long clusterResourceId) {
+    return createAmbariUserAuthentication(userId, name,
+        Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createClusterOperator(String name, Long clusterResourceId) {

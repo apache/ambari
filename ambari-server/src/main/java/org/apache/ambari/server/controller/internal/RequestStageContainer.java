@@ -68,6 +68,10 @@ public class RequestStageContainer {
 
   private String clusterHostInfo = null;
 
+  private final List<PersistenceAction> prePersistActions = new ArrayList<>();
+
+  private PersistenceHandler persistenceHandler;
+
   /**
    * Logger
    */
@@ -156,6 +160,20 @@ public class RequestStageContainer {
     requestContext = context;
   }
 
+  /** Adds a state update that must run immediately before action publication. */
+  public void addPrePersistAction(PersistenceAction action) {
+    if (action != null) {
+      prePersistActions.add(action);
+    }
+  }
+
+  /** Installs the optional transaction/lock boundary used by managed lifecycle requests. */
+  public void setPersistenceHandler(PersistenceHandler handler) {
+    if (persistenceHandler == null) {
+      persistenceHandler = handler;
+    }
+  }
+
   /**
    * Determine the projected state for a host component from the existing stages.
    *
@@ -225,9 +243,29 @@ public class RequestStageContainer {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Triggering Action Manager, request={}", request);
         }
-        actionManager.sendActions(request, actionRequest);
+        PersistenceAction publication = persistedRequest -> {
+          for (PersistenceAction prePersistAction : prePersistActions) {
+            prePersistAction.run(persistedRequest);
+          }
+          actionManager.sendActions(persistedRequest, actionRequest);
+        };
+        if (persistenceHandler == null) {
+          publication.run(request);
+        } else {
+          persistenceHandler.persist(request, publication);
+        }
       }
     }
+  }
+
+  @FunctionalInterface
+  public interface PersistenceAction {
+    void run(Request request) throws AmbariException;
+  }
+
+  @FunctionalInterface
+  public interface PersistenceHandler {
+    void persist(Request request, PersistenceAction publication) throws AmbariException;
   }
 
   /**

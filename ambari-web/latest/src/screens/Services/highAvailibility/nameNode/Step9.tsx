@@ -52,7 +52,7 @@ function Step9() {
     showCancel,
     stepWizardUtilities: { currentStep },
   } = useContext(EnableHighAvailibilityContext);
-  const { clusterName, services } = useContext(AppContext);
+  const { clusterName, services, navigateCluster } = useContext(AppContext);
   const { serviceModels, masterSlaveClientsData }: any =
     useContext(ServiceContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
@@ -299,8 +299,7 @@ function Step9() {
     setCompletionError("");
     try {
       await flushStateToDb("complete");
-      window.location.href = "#/main/services/HDFS/summary";
-      window.location.reload();
+      navigateCluster("/main/services/HDFS/summary");
     } catch (error: any) {
       setCompletionError(
         error?.response?.data?.message ||

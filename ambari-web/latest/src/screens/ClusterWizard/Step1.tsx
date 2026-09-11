@@ -54,6 +54,7 @@ import {
   faUndo,
 } from "@fortawesome/free-solid-svg-icons";
 import VersionsApi from "../../api/versionsApi";
+import { repositorySelectionRequiresDeferredWrite } from "./repositoryVersionResolution";
 import toast from "react-hot-toast";
 import AddVersionModal, {
   VersionDefinitionSource,
@@ -71,6 +72,7 @@ import { ContextWrapper } from ".";
 import { AppContext } from "../../store/context";
 import { isJdkCompatible } from "./versionSelection";
 import { copyRepositoryCredentials } from "../../Utils/repositoryCredentials";
+import { clearResolvedReentryMarkers } from "../../Utils/scopedWorkflow";
 
 enum RepositoryType {
   PUBLIC = "public",
@@ -353,6 +355,12 @@ export default function Step1({ wizardName = "clusterCreation" }) {
                 || repo.Repositories.default_base_url
                 || "",
               name: repo?.Repositories?.repo_name,
+              applicableServices: repo?.Repositories?.applicable_services || [],
+              components: repo?.Repositories?.components,
+              distribution: repo?.Repositories?.distribution,
+              mirrorsList: repo?.Repositories?.mirrors_list,
+              tags: repo?.Repositories?.tags,
+              unique: repo?.Repositories?.unique,
               defaultUrl:
                 repo.Repositories.default_base_url
                 || repo.Repositories.base_url
@@ -793,6 +801,12 @@ export default function Step1({ wizardName = "clusterCreation" }) {
                 defaultId: repo?.Repositories?.repo_id,
                 baseUrl: repo?.Repositories?.base_url,
                 name: repo?.Repositories?.repo_name,
+                applicableServices: repo?.Repositories?.applicable_services || [],
+                components: repo?.Repositories?.components,
+                distribution: repo?.Repositories?.distribution,
+                mirrorsList: repo?.Repositories?.mirrors_list,
+                tags: repo?.Repositories?.tags,
+                unique: repo?.Repositories?.unique,
                 defaultUrl: repo?.Repositories?.default_base_url || "",
               };
             }),
@@ -850,21 +864,23 @@ export default function Step1({ wizardName = "clusterCreation" }) {
     const allAddedOs = operatingSystemsCopy?.[selectedVersion.id]?.filter(
       (oSystem) => oSystem.isAdded,
     ) || [];
-    const versionUpdatePromises = allAddedOs.flatMap((oSystem) =>
-      oSystem.repos.map((repo) => VersionsApi.updateOSInfo(
-        selectedStack.stack_name,
-        selectedStack.stack_version,
-        oSystem.os,
-        repo.id,
-        {
-          Repositories: {
-            base_url: repo.baseUrl,
-            repo_name: repo.name,
-            verify_base_url: !skipValidation && !redhatSatellite,
-          },
-        },
-      )),
-    );
+    const versionUpdatePromises = repositorySelectionRequiresDeferredWrite(wizardName)
+      ? []
+      : allAddedOs.flatMap((oSystem) =>
+          oSystem.repos.map((repo) => VersionsApi.updateOSInfo(
+            selectedStack.stack_name,
+            selectedStack.stack_version,
+            oSystem.os,
+            repo.id,
+            {
+              Repositories: {
+                base_url: repo.baseUrl,
+                repo_name: repo.name,
+                verify_base_url: !skipValidation && !redhatSatellite,
+              },
+            },
+          )),
+        );
 
     try {
       await Promise.all(versionUpdatePromises);
@@ -878,7 +894,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
 
     dispatch({
       type: ActionTypes.STORE_INFORMATION,
-      payload: {
+      payload: clearResolvedReentryMarkers({
         step: currentStep.name,
         data: {
           selectedVersion,
@@ -890,7 +906,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
           addedVersions,
           versionDefinitionSource,
         },
-      },
+      }),
     });
     await Promise.resolve(flushStateToDb("next"));
     handleNextImperitive();

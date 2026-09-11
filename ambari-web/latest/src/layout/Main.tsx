@@ -33,7 +33,7 @@ export default function MainLayout() {
   const { isClusterInstalled } = useContext(AppContext);
   const location = useLocation();
   const viewOnly = isViewOnlyUser(authorizations);
-  const viewRoute = location.pathname.startsWith("/main/view");
+  const viewRoute = location.pathname.includes("/main/view");
   if (viewOnly && !viewRoute) {
     return <Navigate to="/main/view" replace />;
   }

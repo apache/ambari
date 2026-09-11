@@ -17,6 +17,7 @@ global:
   scrape_interval: {{ scrape_interval }}
   scrape_timeout: {{ scrape_timeout }}
   external_labels:
+    ambari_cluster_id: {{ yaml_cluster_id }}
     ambari_cluster: {{ yaml_cluster_name }}
 
 scrape_configs:

@@ -30,12 +30,9 @@ import {
 import StepWizard from "../../../../components/StepWizard";
 import { AppContext } from "../../../../store/context";
 import useAuth from "../../../../hooks/useAuth";
+import useClusterWorkflowPersistence from "../../../../hooks/useClusterWorkflowPersistence";
 import { ClusterProgressStatus } from "../../../../constants";
-import ClusterApi from "../../../../api/clusterApi";
-import {
-  parsePersistedValue,
-  persistedPayload,
-} from "../../../../Utils/persistedSettings";
+import { parsePersistedValue } from "../../../../Utils/persistedSettings";
 import rmHaApi from "./rmHaApi";
 import {
   flattenClusterTopology,
@@ -44,10 +41,9 @@ import {
   responseErrorMessage,
   RM_HA_ENABLEMENT_MESSAGES,
 } from "./rmHaUtils";
-import { initialState } from "./store/reducer";
 
 function ValidateEnablement() {
-  const { services, clusterName, clusterState } = useContext(AppContext);
+  const { services, clusterName, clusterState, navigateCluster } = useContext(AppContext);
   const { hasAuthorization } = useAuth();
   const stepWizardUtilities = useStepWizard(wizardSteps, 1);
   const [canStartEnablement, setCanStartEnablement] = useState(false);
@@ -62,6 +58,10 @@ function ValidateEnablement() {
   const canPersist = hasAuthorization(
     "CLUSTER.MANAGE_USER_PERSISTED_DATA",
   );
+  const workflowPersistence = useClusterWorkflowPersistence("HIGH_AVAILIBILITY_RM_HA", {
+    controllerNames: ["rMHighAvailabilityWizardController"],
+    keys: ["HIGH_AVAILIBILITY_RM_HA", "CLUSTER_STATE"],
+  });
   const restoredClusterState = parsePersistedValue<Record<string, unknown>>(
     clusterState,
     {},
@@ -146,16 +146,13 @@ function ValidateEnablement() {
     setCloseError("");
     try {
       if (!preserveWorkflow) {
-        await ClusterApi.postPersistData(
-          persistedPayload({
-            HIGH_AVAILIBILITY_RM_HA: initialState,
-            CLUSTER_STATE: {},
-            "wizard-data": {},
-          }),
-        );
+        if (!workflowPersistence) {
+          throw new Error("ResourceManager HA requires an explicit cluster target.");
+        }
+        await workflowPersistence.release();
       }
       setShowModal(false);
-      window.location.href = "/#/main/services/YARN/summary";
+      navigateCluster("/main/services/YARN/summary");
     } catch (error) {
       setCloseError(
         responseErrorMessage(

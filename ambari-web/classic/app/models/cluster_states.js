@@ -17,6 +17,7 @@
  */
 var App = require('app');
 var LZString = require('utils/lz-string');
+var scopedWorkflowPersistence = require('utils/scoped_workflow_persistence');
 App.clusterStatus = Em.Object.create(App.Persist, {
 
   /**
@@ -110,13 +111,29 @@ App.clusterStatus = Em.Object.create(App.Persist, {
    * @method updateFromServer
    */
   updateFromServer: function (overrideLocaldb) {
-    this.set('additionalData', {
-      user: App.db.getUser(),
-      login: App.db.getLoginName(),
-      auth: App.db.getAuth(),
-      overrideLocaldb: !overrideLocaldb
+    var self = this;
+    this.setProperties({
+      clusterName: App.get('clusterName') || '',
+      clusterState: this.get('wizardControllerName') === 'installerController' ? 'CLUSTER_NOT_CREATED_1' : 'DEFAULT',
+      localdb: null
     });
-    return this.getUserPref(this.get('key'));
+    var request = scopedWorkflowPersistence.loadCurrent(this.get('wizardControllerName')).then(function (state) {
+      var response = state && state.values && state.values.CLUSTER_CURRENT_STATUS;
+      self.getUserPrefSuccessCallback(response, null, {
+        data: {
+          user: App.db.getUser(),
+          login: App.db.getLoginName(),
+          auth: App.db.getAuth(),
+          overrideLocaldb: !overrideLocaldb
+        }
+      });
+      return response;
+    }, function (error) {
+      self.getUserPrefErrorCallback(error || {}, null, error && error.message);
+      return $.Deferred().reject(error).promise();
+    });
+    request.complete = request.always;
+    return request;
   },
 
   /**
@@ -143,6 +160,10 @@ App.clusterStatus = Em.Object.create(App.Persist, {
       }
       if (response.localdb && !$.isEmptyObject(response.localdb)) {
         this.set('localdb', response.localdb);
+        if (App.db.getWorkflowStorageScope()) {
+          App.db.restoreWorkflowSnapshot(response.localdb);
+          return;
+        }
         // restore HAWizard data if process was started
         var isHAWizardStarted = App.isAuthorized('SERVICE.ENABLE_HA') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
         // restore Kerberos Wizard is started
@@ -178,13 +199,37 @@ App.clusterStatus = Em.Object.create(App.Persist, {
       // default status already set
       return;
     }
-    App.ModalPopup.show({
-      header: Em.I18n.t('common.error'),
-      secondary: false,
-      bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile('<p>{{t common.update.error}}</p>')
-      })
+    var self = this;
+    App.showConfirmationPopup(
+      function () {
+        self.retryPersistence();
+      },
+      request.message || error || Em.I18n.t('common.update.error'),
+      null,
+      Em.I18n.t('workflow.persistence.retryHeader'),
+      Em.I18n.t('common.retry'),
+      'warning'
+    );
+  },
+
+  retryPersistence: function () {
+    var self = this;
+    var request = scopedWorkflowPersistence.retryLoad().then(function (state) {
+      self.getUserPrefSuccessCallback(state && state.values && state.values.CLUSTER_CURRENT_STATUS, null, {
+        data: {
+          user: App.db.getUser(),
+          login: App.db.getLoginName(),
+          auth: App.db.getAuth(),
+          overrideLocaldb: false
+        }
+      });
+      return state;
+    }, function (error) {
+      self.getUserPrefErrorCallback(error || {}, null, error && error.message);
+      return $.Deferred().reject(error).promise();
     });
+    request.complete = request.always;
+    return request;
   },
 
   /**
@@ -204,9 +249,6 @@ App.clusterStatus = Em.Object.create(App.Persist, {
    */
   setClusterStatus: function (newValue, opt) {
     if (App.get('testMode')) return false;
-    var user = App.db.getUser();
-    var auth = App.db.getAuth();
-    var login = App.db.getLoginName();
     var val = {clusterName: this.get('clusterName')};
     if (newValue) {
       App.db.cleanTmp();
@@ -226,39 +268,18 @@ App.clusterStatus = Em.Object.create(App.Persist, {
       }
 
       if (newValue.localdb) {
-        if (newValue.localdb.app && newValue.localdb.app.user)
-          delete newValue.localdb.app.user;
-        if (newValue.localdb.app && newValue.localdb.app.auth)
-          delete newValue.localdb.app.auth;
-        if (newValue.localdb.app && newValue.localdb.app.loginName)
-          delete newValue.localdb.app.loginName;
-        if (newValue.localdb.app && newValue.localdb.app.tables)
-          delete newValue.localdb.app.tables;
-        if (newValue.localdb.app && newValue.localdb.app.authenticated)
-          delete newValue.localdb.app.authenticated;
         this.set('localdb', newValue.localdb);
-        val.localdb = newValue.localdb;
-      } else {
-        delete App.db.data.app.user;
-        delete App.db.data.app.auth;
-        delete App.db.data.app.loginName;
-        delete App.db.data.app.tables;
-        delete App.db.data.app.authenticated;
-        val.localdb = App.db.data;
-        App.db.setUser(user);
-        App.db.setAuth(auth);
-        App.db.setLoginName(login);
       }
+      val.localdb = App.db.getWorkflowSnapshot();
       if (!$.mocho) {
-        // compress val
-        val = LZString.compressToBase64(JSON.stringify(val));
-        this.postUserPref(this.get('key'), val)
+        scopedWorkflowPersistence.saveStatus(val)
             .done(function () {
               !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback.call(opt.sender || this, opt.successCallbackData);
             })
-            .fail(function () {
+            .fail(function (error) {
+              this.postUserPrefErrorCallback(error || {}, null, error && error.message);
               !!opt && Em.typeOf(opt.errorCallback) === 'function' && opt.errorCallback.call(opt.sender || this, opt.errorCallbackData);
-            })
+            }.bind(this))
             .always(function () {
               !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback.call(opt.sender || this, opt.alwaysCallbackData);
             });
@@ -275,13 +296,21 @@ App.clusterStatus = Em.Object.create(App.Persist, {
    * @method postUserPrefErrorCallback
    */
   postUserPrefErrorCallback: function (request, ajaxOptions, error) {
-    var msg = '', doc;
+    var self = this;
+    var msg = error || request.message || Em.get(request, 'responseJSON.message') || '';
+    var doc;
     try {
-      msg = 'Error ' + (request.status) + ' ';
+      msg = msg || 'Error ' + (request.status) + ' ';
       doc = $.parseXML(request.responseText);
       msg += $(doc).find("body p").text();
     } catch (e) {
-      msg += JSON.parse(request.responseText).message;
+      if (!msg && request.responseText) {
+        try {
+          msg = JSON.parse(request.responseText).message;
+        } catch (ignore) {
+          msg = request.responseText;
+        }
+      }
     }
 
     if (this.get('persistErrorModal')) {
@@ -295,11 +324,21 @@ App.clusterStatus = Em.Object.create(App.Persist, {
 
     var modal = App.ModalPopup.show({
       header: Em.I18n.t('common.error'),
-      secondary: false,
+      primary: Em.I18n.t('common.retry'),
+      secondary: Em.I18n.t('common.cancel'),
       response: msg,
       bodyClass: Em.View.extend({
         template: Em.Handlebars.compile('<p>{{t common.persist.error}} {{response}}</p>')
-      })
+      }),
+      onPrimary: function () {
+        this.hide();
+        self.set('persistErrorModal', null);
+        self.retryPersistence();
+      },
+      onSecondary: function () {
+        this.hide();
+        self.set('persistErrorModal', null);
+      }
     });
     this.set('persistErrorModal', modal);
   }

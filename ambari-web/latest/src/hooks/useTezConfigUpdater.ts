@@ -28,7 +28,7 @@ import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constan
 
 export const useTezConfigUpdater = () => {
   // @ts-ignore
-  const { services, clusterName, parsedSocketMessages } = useContext(AppContext);
+  const { services, clusterName, parsedSocketMessages, runtimeKey } = useContext(AppContext);
   
   // Early return if TEZ service is not installed
   const isTezInstalled = services && Array.isArray(services) && 
@@ -46,7 +46,7 @@ export const useTezConfigUpdater = () => {
   const fetchTezMasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
     
-    let tezComponentsData = cachedServiceApi.getServiceComponentData("TEZ");
+    let tezComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "TEZ");
     
     if (!tezComponentsData) {
       tezComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -110,7 +110,7 @@ export const useTezConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("TEZ", "tez", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "TEZ", "tez", allServiceModels, updateRegistry);
   };
 
   const parseAlertsWebSocketMessages = async () => {

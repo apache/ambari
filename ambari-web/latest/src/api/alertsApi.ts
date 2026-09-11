@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 
 export const AlertsApi = {
@@ -24,7 +25,7 @@ export const AlertsApi = {
       fields: string,
       time:number
   ) => {
-    const url = `clusters/${clusterName}/alert_groups?fields=${fields}&_=${time}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/alert_groups?fields=${fields}&_=${time}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -36,7 +37,7 @@ export const AlertsApi = {
       clusterName: string,
       time: number
   ) {
-    const url = `clusters/${clusterName}/alerts?format=groupedSummary&_=${time}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/alerts?format=groupedSummary&_=${time}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -47,7 +48,7 @@ export const AlertsApi = {
       clusterName: string,
   ) {
     const fields=`Alert/component_name,Alert/definition_id,Alert/definition_name,Alert/host_name,Alert/id,Alert/instance,Alert/label,Alert/latest_timestamp,Alert/maintenance_state,Alert/original_timestamp,Alert/scope,Alert/service_name,Alert/state,Alert/text,Alert/repeat_tolerance,Alert/repeat_tolerance_remaining&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&from=0&page_size=100`
-    let url = `clusters/${clusterName}/alerts?fields=${fields}`;
+    let url = `clusters/${apiPathSegment(clusterName)}/alerts?fields=${fields}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -61,7 +62,7 @@ export const AlertsApi = {
       hostName?: string,
       componentName?:string
   ) {
-    let url = `clusters/${clusterName}/alerts?fields=*&_=${time}`;
+    let url = `clusters/${apiPathSegment(clusterName)}/alerts?fields=*&_=${time}`;
     if (hostName) {
       url += `&Alert/host_name=${hostName}`;
     }
@@ -95,7 +96,7 @@ export const AlertsApi = {
       alert_id: string,
     time: number
 ) {
-  const url = `clusters/${clusterName}/alerts?fields=*&Alert/definition_id=${alert_id}&_=${time}`;
+  const url = `clusters/${apiPathSegment(clusterName)}/alerts?fields=*&Alert/definition_id=${alert_id}&_=${time}`;
   const response = await ambariApi.request({
     url: url,
     method: "GET",
@@ -106,7 +107,7 @@ export const AlertsApi = {
       clusterName: string,
       fields: string,
       time: number){
-    const url = `clusters/${clusterName}/alert_definitions?fields=${fields}&_=${time}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/alert_definitions?fields=${fields}&_=${time}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -173,7 +174,7 @@ export const AlertsApi = {
         fields: string,
         time: number=Date.now())
     {
-        const url = `clusters/${clusterName}/alerts?fields=${fields}&_=${time}`;
+        const url = `clusters/${apiPathSegment(clusterName)}/alerts?fields=${fields}&_=${time}`;
         const response = await ambariApi.request({
             url: url,
             method: "GET",
@@ -184,7 +185,7 @@ export const AlertsApi = {
     clusterName: string,
     time: number=Date.now())
 {
-    const url = `clusters/${clusterName}/alerts?format=groupedSummary&_=${time}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/alerts?format=groupedSummary&_=${time}`;
     const response = await ambariApi.request({
         url: url,
         method: "GET",
@@ -196,7 +197,7 @@ export const AlertsApi = {
     clusterName: string,
     time: number=Date.now())
 {
-    const url = `clusters/${clusterName}/alerts?format=groupedSummary&Alert/maintenance_state.in(OFF)&_=${time}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/alerts?format=groupedSummary&Alert/maintenance_state.in(OFF)&_=${time}`;
     const response = await ambariApi.request({
         url: url,
         method: "GET",
@@ -208,7 +209,7 @@ export const AlertsApi = {
     clusterName: string,
     time: number = Date.now()
   ) {
-  const url = `clusters/${clusterName}/alert_groups?fields=*&_=${time}`;
+  const url = `clusters/${apiPathSegment(clusterName)}/alert_groups?fields=*&_=${time}`;
   const response = await ambariApi.request({
     url: url,
     method: "GET",
@@ -221,7 +222,7 @@ createAlertGroup: async function (
   groupData: { AlertGroup: { name: string; definitions: number[]; targets: number[] } },
 ) {
   const response = await ambariApi.request({
-    url: `clusters/${clusterName}/alert_groups`,
+    url: `clusters/${apiPathSegment(clusterName)}/alert_groups`,
     method: "POST",
     data: groupData,
   });
@@ -232,7 +233,7 @@ deleteAlertGroup: async function (
     clusterName: string,
     groupId: number
 ) {
-  const url = `clusters/${clusterName}/alert_groups/${groupId}`;
+  const url = `clusters/${apiPathSegment(clusterName)}/alert_groups/${groupId}`;
   const response = await ambariApi.request({
     url: url,
     method: "DELETE"
@@ -300,7 +301,7 @@ updateAlertDefinitionState: async function (
     definitionId: number | string,
     enabled: boolean
 ) {
-    const url = `clusters/${clusterName}/alert_definitions/${definitionId}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/alert_definitions/${definitionId}`;
     const payload = {
       "AlertDefinition/enabled": enabled
     };
@@ -319,7 +320,7 @@ updateAlertDefinitionState: async function (
     definitionId: number | string,
     data: { [key: string]: any }
   ) {
-    const url = `clusters/${clusterName}/alert_definitions/${definitionId}`;
+    const url = `clusters/${apiPathSegment(clusterName)}/alert_definitions/${definitionId}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",
@@ -335,7 +336,7 @@ updateAlertGroup: async function (
   groupData: { AlertGroup: { name: string; definitions: number[]; targets: number[] } },
 ) {
   const response = await ambariApi.request({
-    url: `clusters/${clusterName}/alert_groups/${groupId}`,
+    url: `clusters/${apiPathSegment(clusterName)}/alert_groups/${groupId}`,
     method: "PUT",
     data: groupData,
   });
@@ -347,7 +348,7 @@ updateAlertGroup: async function (
     clusterName: string,
     configType: string = 'cluster-env'
   ) {
-    const url = `clusters/${clusterName}/configurations?type=${configType}&fields=*`;
+    const url = `clusters/${apiPathSegment(clusterName)}/configurations?type=${configType}&fields=*`;
     const response = await ambariApi.request({
       url: url,
       method: "GET"
@@ -376,7 +377,7 @@ updateAlertGroup: async function (
       alerts_repeat_tolerance: alertRepeatTolerance.toString()
     };
 
-    const url = `clusters/${clusterName}`;
+    const url = `clusters/${apiPathSegment(clusterName)}`;
     const data = {
       Clusters: {
         desired_config: {

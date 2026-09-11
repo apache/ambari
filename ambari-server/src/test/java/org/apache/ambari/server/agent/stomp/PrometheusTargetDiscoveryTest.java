@@ -68,9 +68,11 @@ public class PrometheusTargetDiscoveryTest {
     assertEquals(2, groups.size());
     assertEquals("worker1.example.com:9101", groups.get(0).path("targets").get(0).asText());
     assertEquals("/metrics", groups.get(0).path("labels").path("__metrics_path__").asText());
+    assertEquals("11", groups.get(0).path("labels").path("ambari_cluster_id").asText());
     assertEquals("/metrics/components/c11-hdfs-datanode",
         groups.get(1).path("labels").path("__metrics_path__").asText());
     assertEquals("DATANODE", groups.get(1).path("labels").path("component").asText());
+    assertEquals("11", groups.get(1).path("labels").path("ambari_cluster_id").asText());
     verify(clusters, cluster, host, telemetryHolder);
   }
 

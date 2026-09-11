@@ -46,6 +46,7 @@ import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
 import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
@@ -263,6 +264,8 @@ public class HostUpdateHelperTest {
         bind(MpackManagerFactory.class).toInstance(easyMockSupport.createNiceMock(MpackManagerFactory.class));
         bind(AmbariMetaInfo.class).toInstance(EasyMock.createNiceMock(AmbariMetaInfo.class));
         bind(AgentConfigsHolder.class).toInstance(EasyMock.createNiceMock(AgentConfigsHolder.class));
+        bind(ManagedDependencyConfigPolicy.class).toInstance(
+            createNiceMock(ManagedDependencyConfigPolicy.class));
 
         install(new FactoryModuleBuilder().implement(Config.class, ConfigImpl.class).build(ConfigFactory.class));
       }
@@ -284,6 +287,11 @@ public class HostUpdateHelperTest {
 
     expect(mockClusters.getCluster("cl1")).andReturn(mockCluster).once();
     expect(mockCluster.getClusterId()).andReturn(1L).anyTimes();
+    mockCluster.executeUnderWriteLock(EasyMock.anyObject(Runnable.class));
+    expectLastCall().andAnswer(() -> {
+      ((Runnable) EasyMock.getCurrentArguments()[0]).run();
+      return null;
+    }).anyTimes();
 
     Host host = easyMockSupport.createNiceMock(Host.class);
     expect(mockCluster.getHost(anyString())).andReturn(host).anyTimes();
@@ -291,7 +299,6 @@ public class HostUpdateHelperTest {
 
     expect(mockClusterEntity1.getClusterConfigEntities()).andReturn(clusterConfigEntities1).atLeastOnce();
 
-    expect(mockClusterConfigEntity1.getClusterId()).andReturn(1L).atLeastOnce();
     expect(mockClusterConfigEntity1.getConfigId()).andReturn(1L).atLeastOnce();
     expect(mockClusterConfigEntity1.getStack()).andReturn(mockStackEntity).atLeastOnce();
     expect(mockClusterConfigEntity1.getData()).andReturn("{\"testProperty1\" : \"testValue_host1\", " +
@@ -300,23 +307,20 @@ public class HostUpdateHelperTest {
     expect(mockClusterConfigEntity1.getTag()).andReturn("testTag1").atLeastOnce();
     expect(mockClusterConfigEntity1.getType()).andReturn("testType1").atLeastOnce();
     expect(mockClusterConfigEntity1.getVersion()).andReturn(1L).atLeastOnce();
-    expect(mockClusterDAO.findConfig(1L)).andReturn(mockClusterConfigEntity1).atLeastOnce();
 
-    expect(mockClusterConfigEntity2.getClusterId()).andReturn(1L).atLeastOnce();
     expect(mockClusterConfigEntity2.getConfigId()).andReturn(2L).anyTimes();
     expect(mockClusterConfigEntity2.getStack()).andReturn(mockStackEntity).atLeastOnce();
     expect(mockClusterConfigEntity2.getData()).andReturn("{\"testProperty5\" : \"test_host1_test_HOST5_test_host11_test_host55\"}").atLeastOnce();
     expect(mockClusterConfigEntity2.getTag()).andReturn("testTag2").atLeastOnce();
     expect(mockClusterConfigEntity2.getType()).andReturn("testType2").atLeastOnce();
     expect(mockClusterConfigEntity2.getVersion()).andReturn(2L).atLeastOnce();
-    expect(mockClusterDAO.findConfig(2L)).andReturn(mockClusterConfigEntity2).atLeastOnce();
 
     Capture<String> dataCapture = EasyMock.newCapture();
-    mockClusterConfigEntity1.setData(EasyMock.capture(dataCapture));
-    expectLastCall();
-
-    mockClusterConfigEntity2.setData("{\"testProperty5\":\"test_host5_test_host1_test_host55_test_host11\"}");
-    expectLastCall();
+    expect(mockClusterDAO.updateConfigData(EasyMock.eq(1L), EasyMock.capture(dataCapture)))
+        .andReturn(true);
+    expect(mockClusterDAO.updateConfigData(2L,
+        "{\"testProperty5\":\"test_host5_test_host1_test_host55_test_host11\"}"))
+        .andReturn(true);
 
     HostUpdateHelper hostUpdateHelper = new HostUpdateHelper(null, null, mockInjector);
 
@@ -581,4 +585,3 @@ public class HostUpdateHelperTest {
 
 
 }
-

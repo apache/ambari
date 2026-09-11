@@ -54,6 +54,7 @@ public class ConfigureClusterTask implements Callable<Boolean> {
   private final AmbariEventPublisher ambariEventPublisher;
   private final Map<String, Integer> previousHostCounts = Maps.newHashMap();
   private final Set<String> missingHostGroups = Sets.newHashSet();
+  private long configurationGeneration;
 
   @AssistedInject
   public ConfigureClusterTask(@Assisted ClusterTopology topology, @Assisted ClusterConfigurationRequest configRequest,
@@ -104,6 +105,10 @@ public class ConfigureClusterTask implements Callable<Boolean> {
 
   public long getRepeatDelay() {
     return REPEAT_DELAY;
+  }
+
+  public void setConfigurationGeneration(long configurationGeneration) {
+    this.configurationGeneration = configurationGeneration;
   }
 
   /**
@@ -162,7 +167,8 @@ public class ConfigureClusterTask implements Callable<Boolean> {
   private void notifyListeners() throws AmbariException {
     long clusterId = topology.getClusterId();
     String clusterName = topology.getAmbariContext().getClusterName(clusterId);
-    ambariEventPublisher.publish(new ClusterConfigFinishedEvent(clusterId, clusterName));
+    ambariEventPublisher.publish(new ClusterConfigFinishedEvent(
+        clusterId, clusterName, configurationGeneration));
   }
 
 }

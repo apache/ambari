@@ -101,3 +101,11 @@ export function selectLandingPath({
 export function hasVersionConflict(clientVersion: string, serverVersion: string): boolean {
   return Boolean(clientVersion && serverVersion && clientVersion !== serverVersion);
 }
+
+export function canViewClusterTasksForRole(
+  isAmbariAdministrator: boolean,
+  clusterPermissionNames: string[],
+): boolean {
+  if (isAmbariAdministrator) return true;
+  return clusterPermissionNames.some((permissionName) => permissionName !== "CLUSTER.USER");
+}

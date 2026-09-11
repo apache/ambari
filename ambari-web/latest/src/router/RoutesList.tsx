@@ -18,7 +18,12 @@
 
 import { ReactNode } from "react";
 import { Navigate, Outlet, RouteObject } from "react-router-dom";
-import { AuthenticatedApplication, LandingRoute } from "../AppLoader";
+import {
+  AuthenticatedApplication,
+  ClusterChooser,
+  LandingRoute,
+  LegacyMainRedirect,
+} from "../AppLoader";
 import { ProtectedRoute } from "../components/AuthGuard";
 import AdminRouteGuard from "../components/AdminRouteGuard";
 import InstallerLayout from "../layout/Installer";
@@ -63,6 +68,12 @@ import Datasources from "../screens/Monitoring/Datasources";
 import Explorer from "../screens/Monitoring/Explorer";
 import Targets from "../screens/Monitoring/Targets";
 import SharedCharts from "../screens/Monitoring/SharedCharts";
+import ScopedNavigate from "../components/ScopedNavigate";
+import ViewsLayout from "../layout/Views";
+import { ViewInstancesProvider } from "../screens/Views/ViewInstancesContext";
+import GlobalDirectoryLayout from "../screens/Directories/GlobalDirectoryLayout";
+import ServiceDirectory from "../screens/Directories/ServiceDirectory";
+import ClusterTasksRoute from "../screens/Directories/ClusterTasksRoute";
 
 export const HaPersistenceRouteGuard = ({ children }: { children: ReactNode }) => {
   return (
@@ -86,6 +97,17 @@ const RoutesList: RouteObject[] = [
         element: <AuthenticatedApplication />,
         children: [
           { index: true, element: <LandingRoute /> },
+          {
+            element: (
+              <ViewInstancesProvider>
+                <GlobalDirectoryLayout />
+              </ViewInstancesProvider>
+            ),
+            children: [
+              { path: "clusters", element: <ClusterChooser /> },
+              { path: "services", element: <ServiceDirectory /> },
+            ],
+          },
           {
             path: "adminView",
             element: (
@@ -131,7 +153,7 @@ const RoutesList: RouteObject[] = [
             ],
           },
           {
-            path: "main",
+            path: "clusters/:clusterName/main",
             element: <MainLayout />,
             children: [
               {
@@ -171,11 +193,11 @@ const RoutesList: RouteObject[] = [
                   },
                   {
                     path: "heatmaps",
-                    element: <Navigate to="/main/dashboard/metrics" replace />,
+                    element: <ScopedNavigate to="/main/dashboard/metrics" replace />,
                   },
                   {
                     path: "*",
-                    element: <Navigate to="/main/dashboard/metrics" replace />,
+                    element: <ScopedNavigate to="/main/dashboard/metrics" replace />,
                   },
                 ],
               },
@@ -215,6 +237,7 @@ const RoutesList: RouteObject[] = [
                 ],
               },
               { path: "actions", element: <Actions serviceName="HDFS" /> },
+              { path: "requests", element: <ClusterTasksRoute /> },
               {
                 path: "services",
                 element: <Outlet />,
@@ -479,6 +502,16 @@ const RoutesList: RouteObject[] = [
                   },
                 ],
               },
+            ],
+          },
+          {
+            path: "main",
+            element: (
+              <ViewInstancesProvider>
+                <ViewsLayout />
+              </ViewInstancesProvider>
+            ),
+            children: [
               { path: "views", element: <ViewsListPage /> },
               { path: "views/:viewName/:viewVersion/:instanceName/*", element: <ViewDetails /> },
               { path: "view", element: <ViewsListPage /> },
@@ -486,6 +519,7 @@ const RoutesList: RouteObject[] = [
               { path: "view/:viewName", element: <Navigate to="/main/view" replace /> },
             ],
           },
+          { path: "main/*", element: <LegacyMainRedirect /> },
         ],
       },
       { path: "*", element: <Navigate to="/" replace /> },

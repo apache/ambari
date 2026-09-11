@@ -22,6 +22,7 @@ import { useAuth } from '../hooks/useAuth';
 import useAuthorizationPolicy from '../hooks/useAuthorizationPolicy';
 import { useContext } from 'react';
 import { AppContext } from '../store/context';
+import useClusterPath from '../hooks/useClusterPath';
 
 interface AdminRouteGuardProps {
   children: React.ReactNode;
@@ -40,6 +41,7 @@ export const AdminRouteGuard: React.FC<AdminRouteGuardProps> = ({ children }) =>
   const { isAuthenticated } = useAuth();
   const { isAuthorized } = useAuthorizationPolicy();
   const { upgradeState } = useContext(AppContext);
+  const scopedPath = useClusterPath();
   
   // Check if user is authenticated
   if (!isAuthenticated) {
@@ -62,7 +64,7 @@ export const AdminRouteGuard: React.FC<AdminRouteGuardProps> = ({ children }) =>
   
   // If user doesn't have admin permissions and no upgrade is running, redirect to dashboard
   if (!hasAnyAdminPermission && !upgradeInProgress && !upgradeHolding) {
-    return <Navigate to="/main/dashboard/metrics" replace />;
+    return <Navigate to={scopedPath("/main/dashboard/metrics")} replace />;
   }
   
   // User has permission or upgrade is running, allow access

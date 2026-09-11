@@ -41,13 +41,13 @@ describe("Admin View version selection", () => {
 
   it("preserves root and proxy-prefixed application paths", () => {
     expect(adminViewUrl("2.10.0.0", null, "/"))
-      .toBe("/views/ADMIN_VIEW/2.10.0.0/INSTANCE/#/");
+      .toBe("/views/ADMIN_VIEW/2.10.0.0/INSTANCE/latest/#/");
     expect(adminViewUrl("2.10.0.0", "stackVersions", "/ambari/index.html"))
-      .toBe("/ambari/views/ADMIN_VIEW/2.10.0.0/INSTANCE/#/stackVersions");
+      .toBe("/ambari/views/ADMIN_VIEW/2.10.0.0/INSTANCE/latest/#/stackVersions");
     expect(adminViewUrl("2.10.0.0", null, "/latest/"))
-      .toBe("/views/ADMIN_VIEW/2.10.0.0/INSTANCE/#/");
+      .toBe("/views/ADMIN_VIEW/2.10.0.0/INSTANCE/latest/#/");
     expect(adminViewUrl("2.10.0.0", null, "/gateway/ambari/latest/index.html"))
-      .toBe("/gateway/ambari/views/ADMIN_VIEW/2.10.0.0/INSTANCE/#/");
+      .toBe("/gateway/ambari/views/ADMIN_VIEW/2.10.0.0/INSTANCE/latest/#/");
   });
 
   it("derives Classic and Admin View URLs from the deployment root", () => {
@@ -57,4 +57,9 @@ describe("Admin View version selection", () => {
     expect(classicExperienceUrl("/gateway/ambari/latest/index.html"))
       .toBe("/gateway/ambari/#/");
   });
+  it("carries the current cluster through the Admin View document URL", () => {
+    expect(adminViewUrl("3.1.0.0", "clusterInformation", "/latest/", "east / prod"))
+      .toBe("/views/ADMIN_VIEW/3.1.0.0/INSTANCE/latest/?cluster=east%20%2F%20prod#/clusterInformation");
+  });
+
 });

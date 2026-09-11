@@ -28,7 +28,7 @@ import {componentFinishStates, maintenanceStates} from "../screens/Hosts/constan
 
 export const useMapReduce2ConfigUpdater = () => {
   // @ts-ignore
-  const { services, parsedSocketMessages, clusterName } = useContext(AppContext);
+  const { services, parsedSocketMessages, clusterName, runtimeKey } = useContext(AppContext);
   
   // Early return if MAPREDUCE2 service is not installed
   const isMapReduce2Installed = services && Array.isArray(services) && 
@@ -48,7 +48,7 @@ export const useMapReduce2ConfigUpdater = () => {
   //const vdpStackVersion = get(cluster, "version", "").split("-")[1];
 
   const fetchMR2MasterSlaveClientsData = async () => {
-    let mr2ComponentsData = cachedServiceApi.getServiceComponentData("MAPREDUCE2");
+    let mr2ComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "MAPREDUCE2");
     
     if (!mr2ComponentsData) {
       mr2ComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -186,7 +186,7 @@ export const useMapReduce2ConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("MAPREDUCE2", "mapreduce2", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "MAPREDUCE2", "mapreduce2", allServiceModels, updateRegistry);
   };
   const parseAlertsWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;

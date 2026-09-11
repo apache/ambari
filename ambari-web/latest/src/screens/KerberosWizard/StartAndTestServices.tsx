@@ -25,11 +25,9 @@ import { Alert } from "react-bootstrap";
 import { translate } from "../../Utils/Utility";
 import { ActionTypes } from "./KerberosStore/types";
 import { get } from "lodash";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import OperationsProgress from "../../components/OperationsProgress";
 import { ProgressStatus } from "../../constants";
-import { kerberosWizardPersistenceResetPayload } from "../../Utils/kerberosWizard";
-import { postKerberosWizardPersistData } from "../../Utils/kerberosWizardPersistence";
 import { responseErrorMessage } from "../../Utils/httpError";
 
 function StartAndTestServices() {
@@ -37,6 +35,7 @@ function StartAndTestServices() {
   const {
     state,
     dispatch,
+    flushStateToDb,
     stepWizardUtilities: { wizardSteps, currentStep},
   } = useContext(EnableKerberosContext);
 
@@ -47,7 +46,7 @@ function StartAndTestServices() {
   const [isCompleting, setIsCompleting] = useState(false);
   const [completionError, setCompletionError] = useState("");
   const { clusterName, ambariProperties } = useContext(AppContext);
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   
   useEffect(()=>{
     if(completionStatus){
@@ -123,9 +122,7 @@ function StartAndTestServices() {
     setIsCompleting(true);
     setCompletionError("");
     try {
-      await postKerberosWizardPersistData(
-        kerberosWizardPersistenceResetPayload(),
-      );
+      await flushStateToDb("complete");
       navigate(`/main/admin/kerberos/`);
       window.location.reload();
     } catch (error) {

@@ -79,7 +79,7 @@ export function Step4() {
     flushStateToDb,
     stepWizardUtilities: { currentStep },
   } = useContext(EnableNamenodeFederationContext);
-  const { clusterName, services } = useContext(AppContext);
+  const { clusterName, services, navigateCluster } = useContext(AppContext);
   const { serviceModels, masterSlaveClientsData }: any =
     useContext(ServiceContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
@@ -324,7 +324,7 @@ export function Step4() {
           setWorkflowError("");
           try {
             await flushStateToDb("complete");
-            window.location.href = "/#/main/services/HDFS/summary";
+            navigateCluster("/main/services/HDFS/summary");
           } catch (error: any) {
             setWorkflowError(
               errorMessage(error, "Ambari could not clear the completed workflow."),

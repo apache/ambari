@@ -15,8 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it, beforeEach, expect} from "vitest";
-import {render, screen, waitFor} from "@testing-library/react";
+import { describe, it, beforeEach, expect, vi} from "vitest";
+import {fireEvent, render, screen, waitFor} from "@testing-library/react";
 import {Router} from "react-router-dom";
 import AppContent from "../../../src/context/AppContext";
 import "@testing-library/jest-dom/vitest";
@@ -131,7 +131,7 @@ describe('Cluster is Installed', () => {
     });
   });
 
-  it('should call the download methods the correct number of times', () => {
+  it('downloads the loaded blueprint as blueprint.json', async () => {
     render(
         <Router history={createMemoryHistory()}>
           <AppContent.Provider value={mockData}>
@@ -139,43 +139,24 @@ describe('Cluster is Installed', () => {
           </AppContent.Provider>
         </Router>
     );
-    // Save original methods
-    const originalCreateElement = document.createElement;
-    const originalAppendChild = document.body.appendChild;
+    const downloadButton = await screen.findByRole('button', {name: /download/i});
+    await waitFor(() => expect(downloadButton).not.toBeDisabled());
 
-    // Setup our mock methods with counters
-    let createElementCounter = 0;
-    let setAttributeCounter = 0;
-    let appendChildCounter = 0;
-    let clickCounter = 0;
-    let removeCounter = 0;
+    const anchor = document.createElement('a');
+    const click = vi.spyOn(anchor, 'click').mockImplementation(() => undefined);
+    const remove = vi.spyOn(anchor, 'remove').mockImplementation(() => undefined);
+    const originalCreateElement = document.createElement.bind(document);
+    const createElement = vi.spyOn(document, 'createElement').mockImplementation((tagName, options) =>
+      tagName.toLowerCase() === 'a' ? anchor : originalCreateElement(tagName, options));
+    const appendChild = vi.spyOn(document.body, 'appendChild');
 
-    // Mock the relevant methods to increment counters
-    document.createElement = (() => {
-      createElementCounter++;
-      return {
-        setAttribute: () => setAttributeCounter++,
-        click: () => clickCounter++,
-        remove: () => removeCounter++
-      };
-    }) as any;
+    fireEvent.click(downloadButton);
 
-    document.body.appendChild = (() => appendChildCounter++) as any;
-
-    // Simulate click event on the download button
-    const downloadButton = screen.getByText(/Download/i);
-    console.log("download button is ", downloadButton);
-    downloadButton.click();
-
-    // Check that the methods were called
-    expect(createElementCounter).toBe(1);
-    expect(setAttributeCounter).toBe(2);
-    expect(appendChildCounter).toBe(1);
-    expect(clickCounter).toBe(1);
-    expect(removeCounter).toBe(1);
-
-    // Restore original methods
-    document.createElement = originalCreateElement;
-    document.body.appendChild = originalAppendChild;
+    expect(createElement).toHaveBeenCalledWith('a');
+    expect(anchor.getAttribute('download')).toBe('blueprint.json');
+    expect(anchor.getAttribute('href')).toContain('data:text/json;charset=utf-8,');
+    expect(appendChild).toHaveBeenCalledWith(anchor);
+    expect(click).toHaveBeenCalledOnce();
+    expect(remove).toHaveBeenCalledOnce();
   });
 });

@@ -29,7 +29,10 @@ import Spinner from "../../../components/Spinner";
 import ComboSearch from "../../../components/ComboSearch";
 import Paginator from "../../../components/Paginator";
 import Table from "../../../components/Table";
-import { latestAmbariUrl } from "../../../utils/navigation";
+import { clusterOperationUrl } from "../../../utils/navigation";
+import { errorMessage } from "../../../api/clusterManagement";
+import { useManagement } from "../../../context/ManagementContext";
+import { ClusterSelect, LoadError } from "../ManagementShared";
 
 enum RepoStatus {
   CURRENT = "CURRENT",
@@ -37,16 +40,24 @@ enum RepoStatus {
 }
 
 const StackVersionsList = () => {
+  const { cluster } = useContext(AppContent);
+  return <ScopedStackVersionsList key={cluster.cluster_name || ""} />;
+};
+
+const ScopedStackVersionsList = () => {
   const [repos, setRepos] = useState<
     unknown[] | ((prevState: never[]) => never[])
   >([]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [revision, setRevision] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const { can } = useManagement();
   const [showFilters, setShowFilters] = useState(false);
   const [filteredRepos, setFilteredRepos] = useState<
     unknown[] | ((prevState: never[]) => never[])
   >([]);
-  const [clusterInformation, setClusterInformation] = useState({});
   const {
     cluster: { cluster_name: clusterName },
     setSelectedOption,
@@ -60,15 +71,14 @@ const StackVersionsList = () => {
     setItemsPerPage,
   } = usePagination(filteredRepos);
   useEffect(() => {
+    const controller = new AbortController();
     setSelectedOption("Versions");
     async function getReposData() {
       setLoading(true);
       let tempRepos: unknown[] | ((prevState: never[]) => never[]) = [];
-      const allRepos = await VersionsApi.getRepos();
-
-      const clusterData = await VersionsApi.getClusterInfo();
-      const clusterInfo = clusterData.items?.[0];
-      setClusterInformation(clusterInfo);
+      setError("");
+      const allRepos = await VersionsApi.getRepos(controller.signal);
+      if (!Array.isArray(allRepos?.items)) throw new Error("Invalid repository collection");
       const data = allRepos.items;
       for (const stack of data) {
         const stackVersions = stack.versions;
@@ -77,10 +87,10 @@ const StackVersionsList = () => {
         }
       }
       for (const repo of tempRepos as any) {
-        const stackVersion = await VersionsApi.versionsList(
-          repo.RepositoryVersions.id,
-          clusterName
-        );
+        const stackVersion = clusterName ? await VersionsApi.versionsList(
+          String(repo.RepositoryVersions.id), clusterName, controller.signal
+        ) : { items: [] };
+        if (!Array.isArray(stackVersion?.items)) throw new Error("Invalid cluster version collection");
         const repoStackVersion = stackVersion?.items?.[0];
         repo.isPatch = repo.RepositoryVersions.type === "PATCH";
         repo.isMaint = repo.RepositoryVersions.type === "MAINT";
@@ -100,15 +110,22 @@ const StackVersionsList = () => {
         repo.cluster =
           repo.status === RepoStatus.CURRENT ||
           repo.status === RepoStatus.INSTALLED
-            ? clusterInfo?.Clusters?.cluster_name
+            ? clusterName
             : "";
       }
-      setLoading(false);
+      if (controller.signal.aborted) return;
       setRepos(tempRepos);
       setFilteredRepos(tempRepos);
     }
-    if (clusterName) getReposData();
-  }, [clusterName]);
+    void getReposData().catch((failure) => {
+      if (!controller.signal.aborted) {
+        setRepos([]);
+        setFilteredRepos([]);
+        setError(errorMessage(failure));
+      }
+    }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [clusterName, revision, setSelectedOption]);
   const columns = [
     {
       header: "Stack",
@@ -152,7 +169,7 @@ const StackVersionsList = () => {
         ) : (
           <a
             className="custom-link"
-            href={latestAmbariUrl("/main/admin/stack/versions")}
+            href={clusterOperationUrl(row.original.cluster, "/main/admin/stack/versions")}
           >
             {row.original.cluster}
           </a>
@@ -181,6 +198,7 @@ const StackVersionsList = () => {
             );
           }
         }
+        if (!clusterName) return <span>Select a cluster to view installation status</span>;
         return (
           <Dropdown>
             <Dropdown.Toggle
@@ -188,6 +206,7 @@ const StackVersionsList = () => {
               variant="light"
               size="sm"
               style={{ fontSize: 12 }}
+              disabled={!can("CLUSTER.UPGRADE_DOWNGRADE_STACK", clusterName)}
             >
               INSTALL ON
             </Dropdown.Toggle>
@@ -196,12 +215,11 @@ const StackVersionsList = () => {
                 <div
                   onClick={() => {
                     window.location.replace(
-                      latestAmbariUrl("/main/admin/stack/versions")
+                      clusterOperationUrl(clusterName, "/main/admin/stack/versions")
                     );
                   }}
                 >
-                  {((clusterInformation as any)?.Clusters
-                    ?.cluster_name as string) || ""}
+                  {clusterName}
                 </div>
               </Dropdown.Item>
             </Dropdown.Menu>
@@ -219,7 +237,7 @@ const StackVersionsList = () => {
             <Form.Check
               inline
               className="hiddencheckbox"
-              disabled={row.original.cluster}
+              disabled={Boolean(row.original.cluster) || saving || !can("AMBARI.MANAGE_STACK_VERSIONS")}
               label=""
               onChange={(e) => {
                 toggleHiddenFor(row.original, e.target.checked);
@@ -235,19 +253,15 @@ const StackVersionsList = () => {
   ];
 
   const toggleHiddenFor = async (repo: any, checked: boolean) => {
-    const repoIndex = (repos as any[]).findIndex(
-      (repository) =>
-        repository.RepositoryVersions.id === repo.RepositoryVersions.id
-    );
-    const newRepos: any[] = [...(repos as any[])];
-    newRepos[repoIndex].RepositoryVersions.hidden = checked;
-    setRepos(newRepos);
-    await VersionsApi.saveRepoVersions(
-      repo.stackName,
-      repo.RepositoryVersions.repository_version,
-      repo.RepositoryVersions.id,
-      { RepositoryVersions: { hidden: checked } }
-    );
+    setSaving(true);
+    try {
+      await VersionsApi.saveRepoVersions(
+        repo.RepositoryVersions.stack_name, repo.RepositoryVersions.stack_version,
+        repo.RepositoryVersions.id, { RepositoryVersions: { hidden: checked } }
+      );
+      setRevision((value) => value + 1);
+    } catch (failure) { setError(errorMessage(failure)); }
+    finally { setSaving(false); }
   };
 
   if (loading) {
@@ -255,6 +269,8 @@ const StackVersionsList = () => {
   }
   return (
     <div>
+      <ClusterSelect route="/stackVersions" />
+      <LoadError error={error} retry={() => setRevision((value) => value + 1)} />
       <div className="d-flex w-100 justify-content-end">
         <DefaultButton
           onClick={() => {
@@ -264,9 +280,9 @@ const StackVersionsList = () => {
         >
           <FontAwesomeIcon className="text-muted" icon={faFilter} />
         </DefaultButton>
-        <Link to="/stackVersions/create">
+        {can("AMBARI.MANAGE_STACK_VERSIONS") && <Link to="/stackVersions/create">
           <DefaultButton className="ms-3">REGISTER VERSION</DefaultButton>
-        </Link>
+        </Link>}
       </div>
 
       {showFilters ? (

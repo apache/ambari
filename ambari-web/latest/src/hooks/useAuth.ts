@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+import { useCallback } from "react";
+import { useParams } from "react-router-dom";
 import { useUserContext } from '../store/UserContext';
 
 /**
@@ -23,7 +25,30 @@ import { useUserContext } from '../store/UserContext';
  */
 export const useAuth = () => {
   const context = useUserContext();
-  
+  const { clusterName: routeClusterName } = useParams();
+  const havePermissions = useCallback(
+    (authRoles: string, clusterName = routeClusterName) => (
+      context.havePermissions(authRoles, clusterName)
+    ),
+    [context, routeClusterName],
+  );
+  const hasAuthorization = useCallback(
+    (authId: string, clusterName = routeClusterName) => (
+      context.hasAuthorization(authId, clusterName)
+    ),
+    [context, routeClusterName],
+  );
+  const isOperator = useCallback(
+    (clusterName = routeClusterName) => context.isOperator(clusterName),
+    [context, routeClusterName],
+  );
+  const hasPrivilege = useCallback(
+    (permissionName: string, clusterName = routeClusterName) => (
+      context.hasPrivilege(permissionName, clusterName)
+    ),
+    [context, routeClusterName],
+  );
+
   return {
     // User data
     user: context.user,
@@ -38,11 +63,16 @@ export const useAuth = () => {
     viewPrivileges: context.viewPrivileges,
     
     // Helper methods
-    havePermissions: context.havePermissions,
-    hasAuthorization: context.hasAuthorization,
-    hasPrivilege: context.hasPrivilege,
+    havePermissions,
+    hasAuthorization,
+    hasGlobalAuthorization: context.hasGlobalAuthorization,
+    hasClusterAuthorization: context.hasClusterAuthorization,
+    canAccessCluster: context.canAccessCluster,
+    hasGlobalPrivilege: context.hasGlobalPrivilege,
+    hasPrivilege,
+    canViewClusterTasks: context.canViewClusterTasks,
     isAdmin: context.isAdmin,
-    isOperator: context.isOperator,
+    isOperator,
     isClusterUser: context.isClusterUser,
     
     // Actions

@@ -721,6 +721,7 @@ class CustomServiceOrchestrator(object):
       del command_dict["clusterHostInfo"]
 
     command = Utils.update_nested(Utils.get_mutable_copy(command_dict), command_header)
+    self._apply_configuration_type_overrides(command, command_header)
 
     # topology needs to be decompressed if and only if it originates from command header
     if "clusterHostInfo" in command_header and command_header["clusterHostInfo"]:
@@ -729,6 +730,31 @@ class CustomServiceOrchestrator(object):
       )
 
     return command
+
+  @staticmethod
+  def _apply_configuration_type_overrides(command, command_header):
+    override_types = command_header.get("configurationTypeOverrides", [])
+    if not override_types:
+      return
+    command_params = command_header.get("commandParams", {})
+    if (
+      command_header.get("serviceName") != "HBASE"
+      or not command_params.get("managed_dependency_commands")
+    ):
+      raise AgentException(
+        "Configuration type replacement is reserved for managed HBase dependency commands"
+      )
+    allowed = {"core-site", "hdfs-site"}
+    if not isinstance(override_types, list) or not set(override_types).issubset(allowed):
+      raise AgentException("Managed HBase configuration type replacement is invalid")
+    command_configurations = command_header.get("configurations", {})
+    for config_type in override_types:
+      replacement = command_configurations.get(config_type)
+      if not isinstance(replacement, dict):
+        raise AgentException(
+          f"Managed HBase replacement for {config_type} is missing"
+        )
+      command["configurations"][config_type] = Utils.get_mutable_copy(replacement)
 
   def requestComponentStatus(self, command_header, command_name="STATUS"):
     """

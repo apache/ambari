@@ -29,7 +29,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+
+import jakarta.persistence.PersistenceException;
 
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
@@ -55,6 +58,8 @@ import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.stack.RepoUtil;
@@ -82,6 +87,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -93,6 +99,7 @@ import com.google.inject.Provider;
 public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(VersionDefinitionResourceProvider.class);
+  private static final Gson GSON = new Gson();
 
   public static final String VERSION_DEF                             = "VersionDefinition";
   public static final String VERSION_DEF_BASE64_PROPERTY             = "version_base64";
@@ -224,6 +231,14 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     final String definitionName = (String) properties.get(VERSION_DEF_AVAILABLE_DEFINITION);
     final Set<String> validations = new HashSet<>();
     final boolean dryRun = request.isDryRunRequest();
+    final boolean hasInitialOperatingSystems =
+        properties.containsKey(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+
+    if (hasInitialOperatingSystems && !AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+        RoleAuthorization.AMBARI_EDIT_STACK_REPOS)) {
+      throw new AuthorizationException(
+          "The authenticated user does not have authorization to set initial stack repositories");
+    }
 
     final boolean skipUrlCheck;
     if (null != request.getRequestInfoProperties()) {
@@ -264,6 +279,18 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
         toRepositoryVersionEntity(holder);
 
+        if (hasInitialOperatingSystems) {
+          applyInitialOperatingSystems(holder.entity,
+              properties.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID));
+        }
+
+        if (StringUtils.isNotBlank(ObjectUtils.toString(properties.get(VERSION_DEF_DISPLAY_NAME)))) {
+          holder.xml.release.display = properties.get(VERSION_DEF_DISPLAY_NAME).toString();
+          holder.entity.setDisplayName(properties.get(VERSION_DEF_DISPLAY_NAME).toString());
+          // This entity value is temporary until the packages report their resolved version.
+          holder.entity.setVersion(properties.get(VERSION_DEF_DISPLAY_NAME).toString());
+        }
+
         try {
           RepositoryVersionResourceProvider.validateRepositoryVersion(s_repoVersionDAO,
               s_metaInfo.get(), holder.entity, skipUrlCheck);
@@ -281,16 +308,28 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       }
     });
 
-    if (StringUtils.isNotBlank(ObjectUtils.toString(properties.get(VERSION_DEF_DISPLAY_NAME)))) {
-      xmlHolder.xml.release.display = properties.get(VERSION_DEF_DISPLAY_NAME).toString();
-      xmlHolder.entity.setDisplayName(properties.get(VERSION_DEF_DISPLAY_NAME).toString());
-      // !!! also set the version string to the name for uniqueness reasons.  this is
-      // getting replaced during install packages anyway.  this is just for the entity, the
-      // VDF should stay the same.
-      xmlHolder.entity.setVersion(properties.get(VERSION_DEF_DISPLAY_NAME).toString());
+    RepositoryVersionEntity existingByDisplay =
+        s_repoVersionDAO.findByDisplayName(xmlHolder.entity.getDisplayName());
+    RepositoryVersionEntity existingByVersion =
+        s_repoVersionDAO.findByStackAndVersion(xmlHolder.entity.getStack(), xmlHolder.entity.getVersion());
+    RepositoryVersionEntity reusable = null;
+    if (!dryRun && hasInitialOperatingSystems
+        && (existingByDisplay != null || existingByVersion != null)) {
+      if (existingByDisplay != null && existingByVersion != null
+          && !Objects.equals(existingByDisplay.getId(), existingByVersion.getId())) {
+        throw new ResourceAlreadyExistsException(
+            "The requested display name and stack version identify different repository versions");
+      }
+      RepositoryVersionEntity existing = existingByDisplay != null ? existingByDisplay : existingByVersion;
+      if (!sameInitialRepositoryDefinition(existing, xmlHolder.entity)) {
+        throw new ResourceAlreadyExistsException(String.format(
+            "Repository version %s already exists with different initial repository settings.",
+            existing.getDisplayName()));
+      }
+      reusable = existing;
     }
 
-    if (s_repoVersionDAO.findByDisplayName(xmlHolder.entity.getDisplayName()) != null) {
+    if (reusable == null && existingByDisplay != null) {
       String err = String.format("Repository version with name %s already exists.",
           xmlHolder.entity.getDisplayName());
 
@@ -301,7 +340,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
       }
     }
 
-    if (s_repoVersionDAO.findByStackAndVersion(xmlHolder.entity.getStack(), xmlHolder.entity.getVersion()) != null) {
+    if (reusable == null && existingByVersion != null) {
       String err = String.format("Repository version for stack %s and version %s already exists.",
               xmlHolder.entity.getStackId(), xmlHolder.entity.getVersion());
 
@@ -343,16 +382,146 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
 
       addSubresources(res, xmlHolder.entity);
     } else {
+      RepositoryVersionEntity result = reusable;
+      boolean created = false;
+      if (result == null) {
+        try {
+          persistRepositoryVersion(xmlHolder.entity);
+          result = xmlHolder.entity;
+          created = true;
+        } catch (PersistenceException e) {
+          RepositoryVersionEntity concurrent = findExistingRepositoryVersion(xmlHolder.entity);
+          if (!hasInitialOperatingSystems || concurrent == null) {
+            throw e;
+          }
+          if (!sameInitialRepositoryDefinition(concurrent, xmlHolder.entity)) {
+            throw new ResourceAlreadyExistsException(String.format(
+                "Repository version %s was created concurrently with different initial repository settings.",
+                xmlHolder.entity.getDisplayName()));
+          }
+          result = concurrent;
+        }
+      }
 
-      s_repoVersionDAO.create(xmlHolder.entity);
-
-      res = toResource(xmlHolder.entity, Collections.emptySet());
-      notifyCreate(Resource.Type.VersionDefinition, request);
+      res = toResource(result, Collections.emptySet());
+      if (created) {
+        notifyCreate(Resource.Type.VersionDefinition, request);
+      }
     }
 
     RequestStatusImpl status = new RequestStatusImpl(null, Collections.singleton(res));
 
     return status;
+  }
+
+  private void applyInitialOperatingSystems(RepositoryVersionEntity entity, Object operatingSystems)
+      throws AmbariException {
+    try {
+      List<RepoOsEntity> repoOperatingSystems =
+          s_repoVersionHelper.get().parseOperatingSystems(GSON.toJson(operatingSystems));
+      validateInitialOperatingSystems(repoOperatingSystems);
+      entity.addRepoOsEntities(repoOperatingSystems);
+    } catch (Exception e) {
+      if (e instanceof AmbariException) {
+        throw (AmbariException) e;
+      }
+      throw new AmbariException("Json structure for initial operating systems is incorrect", e);
+    }
+  }
+
+  private void validateInitialOperatingSystems(List<RepoOsEntity> operatingSystems)
+      throws AmbariException {
+    Set<String> families = new HashSet<>();
+    for (RepoOsEntity operatingSystem : operatingSystems) {
+      if (!families.add(operatingSystem.getFamily())) {
+        throw new AmbariException(String.format(
+            "Operating system type %s is specified more than once", operatingSystem.getFamily()));
+      }
+      if (operatingSystem.getRepoDefinitionEntities().isEmpty()) {
+        throw new AmbariException(String.format(
+            "Operating system type %s must define at least one repository", operatingSystem.getFamily()));
+      }
+      Set<String> repositoryIds = new HashSet<>();
+      for (RepoDefinitionEntity repository : operatingSystem.getRepoDefinitionEntities()) {
+        if (!repositoryIds.add(repository.getRepoID())) {
+          throw new AmbariException(String.format(
+              "Repository ID %s is specified more than once for operating system type %s",
+              repository.getRepoID(), operatingSystem.getFamily()));
+        }
+      }
+    }
+  }
+
+  void persistRepositoryVersion(RepositoryVersionEntity entity) {
+    s_repoVersionDAO.create(entity);
+  }
+
+  private RepositoryVersionEntity findExistingRepositoryVersion(RepositoryVersionEntity requested) {
+    RepositoryVersionEntity byDisplay = s_repoVersionDAO.findByDisplayName(requested.getDisplayName());
+    RepositoryVersionEntity byVersion =
+        s_repoVersionDAO.findByStackAndVersion(requested.getStack(), requested.getVersion());
+    if (byDisplay != null && byVersion != null && !Objects.equals(byDisplay.getId(), byVersion.getId())) {
+      return null;
+    }
+    return byDisplay != null ? byDisplay : byVersion;
+  }
+
+  private boolean sameInitialRepositoryDefinition(RepositoryVersionEntity existing,
+      RepositoryVersionEntity requested) {
+    return Objects.equals(existing.getStackId(), requested.getStackId())
+        && Objects.equals(existing.getVersion(), normalizedVersion(requested))
+        && Objects.equals(existing.getDisplayName(), requested.getDisplayName())
+        && Objects.equals(existing.getType(), requested.getType())
+        && Objects.equals(existing.getVersionXml(), requested.getVersionXml())
+        && Objects.equals(existing.getVersionXsd(), requested.getVersionXsd())
+        && Objects.equals(repositorySettingsFingerprint(existing),
+            repositorySettingsFingerprint(requested));
+  }
+
+  private String normalizedVersion(RepositoryVersionEntity entity) {
+    String version = entity.getVersion();
+    String stackName = entity.getStackName();
+    return version != null && version.startsWith(stackName + "-")
+        ? version.substring(stackName.length() + 1) : version;
+  }
+
+  private List<String> repositorySettingsFingerprint(RepositoryVersionEntity entity) {
+    List<String> operatingSystems = new ArrayList<>();
+    for (RepoOsEntity os : entity.getRepoOsEntities()) {
+      List<String> repositories = new ArrayList<>();
+      for (RepoDefinitionEntity repository : os.getRepoDefinitionEntities()) {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("base_url", repository.getBaseUrl());
+        node.put("repo_id", repository.getRepoID());
+        node.put("repo_name", repository.getRepoName());
+        node.put("distribution", repository.getDistribution());
+        node.put("components", repository.getComponents());
+        node.put("mirrors", repository.getMirrors());
+        node.put("unique", repository.isUnique());
+        List<String> applicableServices = repository.getApplicableServices() == null
+            ? new ArrayList<>() : new ArrayList<>(repository.getApplicableServices());
+        Collections.sort(applicableServices);
+        ArrayNode applicableServicesNode = node.putArray("applicable_services");
+        applicableServices.forEach(value -> applicableServicesNode.add(value));
+        List<String> tags = new ArrayList<>();
+        if (repository.getTags() != null) {
+          repository.getTags().forEach(tag -> tags.add(tag.name()));
+        }
+        Collections.sort(tags);
+        ArrayNode tagsNode = node.putArray("tags");
+        tags.forEach(value -> tagsNode.add(value));
+        repositories.add(node.toString());
+      }
+      Collections.sort(repositories);
+      ObjectNode osNode = JsonNodeFactory.instance.objectNode();
+      osNode.put("family", os.getFamily());
+      osNode.put("ambari_managed", os.isAmbariManaged());
+      ArrayNode repositoriesNode = osNode.putArray("repositories");
+      repositories.forEach(value -> repositoriesNode.add(value));
+      operatingSystems.add(osNode.toString());
+    }
+    Collections.sort(operatingSystems);
+    return operatingSystems;
   }
 
   @Override

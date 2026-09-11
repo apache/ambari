@@ -28,6 +28,8 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext, AppProvider } from "./context";
 
+let currentNavigateCluster: (to: string) => void = () => undefined;
+
 const mocks = vi.hoisted(() => ({
   activateClient: vi.fn(),
   deactivateClient: vi.fn(),
@@ -92,7 +94,9 @@ function ContextProbe() {
     isAppLoaded,
     retryInitialization,
     serverClock,
+    navigateCluster,
   } = useContext(AppContext);
+  currentNavigateCluster = navigateCluster;
 
   return (
     <div>
@@ -105,12 +109,12 @@ function ContextProbe() {
   );
 }
 
-function installedClusterResponse() {
+function installedClusterResponse(clusterName = "view-cluster") {
   return {
     items: [{
       Clusters: {
         cluster_id: 1,
-        cluster_name: "view-cluster",
+        cluster_name: clusterName,
         provisioning_state: "INSTALLED",
         security_type: "NONE",
         version: "HDP-3.1",
@@ -122,6 +126,7 @@ function installedClusterResponse() {
 describe("View-only application initialization", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    currentNavigateCluster = () => undefined;
     mocks.getPersistData.mockResolvedValue({});
   });
 
@@ -136,7 +141,7 @@ describe("View-only application initialization", () => {
     mocks.loadAmbariProperties.mockReturnValue(ambariProperties.promise);
     mocks.getClusterData.mockReturnValue(clusterData.promise);
 
-    render(<AppProvider><ContextProbe /></AppProvider>);
+    render(<AppProvider requestedClusterName="view-cluster"><ContextProbe /></AppProvider>);
 
     expect(screen.getByTestId("app-loaded").textContent).toBe("false");
     await waitFor(() => expect(mocks.loadAmbariProperties).toHaveBeenCalledOnce());
@@ -176,7 +181,7 @@ describe("View-only application initialization", () => {
       .mockRejectedValueOnce({ response: { data: { message: "Cluster identity unavailable" } } })
       .mockResolvedValueOnce(installedClusterResponse());
 
-    render(<AppProvider><ContextProbe /></AppProvider>);
+    render(<AppProvider requestedClusterName="view-cluster"><ContextProbe /></AppProvider>);
 
     await waitFor(() => expect(
       screen.getByTestId("initialization-error").textContent,
@@ -187,5 +192,58 @@ describe("View-only application initialization", () => {
     await waitFor(() => expect(mocks.getClusterData).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(screen.getByTestId("app-loaded").textContent).toBe("true"));
     expect(screen.getByTestId("cluster-name").textContent).toBe("view-cluster");
+  });
+
+  it("drops a global directory response after entering a cluster named global", async () => {
+    const globalDirectory = deferred<{ items: any[] }>();
+    mocks.loadAmbariProperties.mockResolvedValue({
+      RootServiceComponents: { component_version: "3.0.0", properties: {} },
+    });
+    mocks.getClusterData
+      .mockReturnValueOnce(globalDirectory.promise)
+      .mockResolvedValueOnce(installedClusterResponse("global"));
+
+    const view = render(<AppProvider key="global-shell"><ContextProbe /></AppProvider>);
+    await waitFor(() => expect(mocks.getClusterData).toHaveBeenCalledWith(undefined));
+    view.rerender(
+      <AppProvider key="cluster-global" requestedClusterName="global"><ContextProbe /></AppProvider>,
+    );
+    await waitFor(() => expect(mocks.getClusterData).toHaveBeenCalledWith("global"));
+    await waitFor(() => expect(screen.getByTestId("cluster-name").textContent).toBe("global"));
+
+    await act(async () => globalDirectory.resolve({
+      items: [installedClusterResponse("other").items[0]],
+    }));
+    expect(screen.getByTestId("cluster-name").textContent).toBe("global");
+    expect(screen.getByTestId("app-loaded").textContent).toBe("true");
+
+  });
+
+  it("suppresses an alpha completion after its provider is replaced by beta", async () => {
+    mocks.loadAmbariProperties.mockResolvedValue({
+      RootServiceComponents: { component_version: "3.0.0", properties: {} },
+    });
+    mocks.getClusterData
+      .mockResolvedValueOnce(installedClusterResponse("alpha"))
+      .mockResolvedValueOnce(installedClusterResponse("beta"));
+
+    const view = render(
+      <AppProvider key="alpha-runtime" requestedClusterName="alpha">
+        <ContextProbe />
+      </AppProvider>,
+    );
+    await waitFor(() => expect(screen.getByTestId("cluster-name").textContent).toBe("alpha"));
+    const staleAlphaNavigate = currentNavigateCluster;
+
+    view.rerender(
+      <AppProvider key="beta-runtime" requestedClusterName="beta">
+        <ContextProbe />
+      </AppProvider>,
+    );
+    await waitFor(() => expect(screen.getByTestId("cluster-name").textContent).toBe("beta"));
+    window.location.hash = "#/clusters/beta/main/dashboard/metrics";
+
+    act(() => staleAlphaNavigate("/main/hosts"));
+    expect(window.location.hash).toBe("#/clusters/beta/main/dashboard/metrics");
   });
 });

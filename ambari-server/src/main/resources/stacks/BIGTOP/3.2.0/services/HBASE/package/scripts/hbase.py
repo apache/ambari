@@ -31,6 +31,7 @@ from resource_management.core.source import Template, InlineTemplate
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.exceptions import Fail
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from managed_hbase_dependency import managed_hbase_configuration_guard
 
 
 # name is 'master', 'regionserver', 'thrift', or 'client'
@@ -41,10 +42,20 @@ def hbase(name=None):
   if name not in ("master", "regionserver", "thrift", "client"):
     raise Fail(f"Unsupported HBase configuration role: {name}")
 
+  # The RPM initially assigns this directory to hbase. Establish Ambari's
+  # configuration ownership before validating or creating a managed profile.
+  if os.path.islink(params.etc_prefix_dir):
+    raise Fail("The HBase configuration parent must not be a symbolic link")
+  Directory(params.etc_prefix_dir, owner="root", group="root", mode=0o755)
+  return _configure_hbase(name)
+
+
+@managed_hbase_configuration_guard
+def _configure_hbase(name=None, managed_configuration=None):
+  import params
+
   # ensure that matching LZO libraries are installed for HBase
   lzo_utils.install_lzo_if_needed()
-
-  Directory(params.etc_prefix_dir, owner="root", group="root", mode=0o755)
 
   Directory(
     params.hbase_conf_dir,
@@ -88,8 +99,13 @@ def hbase(name=None):
     mode=0o644,
   )
 
-  File(format("{params.hbase_conf_dir}/hdfs-site.xml"), action="delete")
-  File(format("{params.hbase_conf_dir}/core-site.xml"), action="delete")
+  managed_bundle = managed_configuration.apply()
+  managed_hdfs = (
+    managed_bundle is not None and managed_bundle.command_for("HDFS") is not None
+  )
+  if not managed_hdfs:
+    File(format("{params.hbase_conf_dir}/hdfs-site.xml"), action="delete")
+    File(format("{params.hbase_conf_dir}/core-site.xml"), action="delete")
 
   if "hbase-policy" in params.config["configurations"]:
     XmlConfig(
@@ -182,7 +198,7 @@ def hbase(name=None):
       group=params.user_group,
       owner="root",
     )
-  if name == "master":
+  if name == "master" and not managed_hdfs:
     params.HdfsResource(
       params.hbase_hdfs_root_dir,
       type="directory",
@@ -198,6 +214,8 @@ def hbase(name=None):
         mode=0o755,
       )
     params.HdfsResource(None, action="execute")
+
+  return managed_bundle
 
 def hbase_TemplateConfig(name, tag=None):
   import params

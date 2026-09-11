@@ -16,11 +16,20 @@
  * limitations under the License.
  */
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { AppContext } from "../store/context";
 
 const apiMocks = vi.hoisted(() => ({
   getHostComponentsDetails: vi.fn(),
+  postRecommendations: vi.fn(),
 }));
 
 vi.mock("../api/hostsApi", () => ({
@@ -29,10 +38,53 @@ vi.mock("../api/hostsApi", () => ({
   },
 }));
 
+vi.mock("../api/assignMastersApi", () => ({
+  default: {
+    postRecommendations: apiMocks.postRecommendations,
+  },
+}));
+
 vi.mock("../screens/ClusterWizard/hooks/useHostComponents", () => ({
   default: () => ({
-    hostComponents: [{ ServiceComponentInfo: { component_name: "RANGER_ADMIN" } }],
-    serviceComponents: [],
+    hostComponents: [{
+      ServiceComponentInfo: {
+        component_name: "NAMENODE",
+        service_name: "HDFS",
+      },
+      host_components: [{
+        HostRoles: {
+          component_name: "NAMENODE",
+          service_name: "HDFS",
+          host_name: "host-a",
+          display_name: "NameNode",
+        },
+      }],
+    }],
+    serviceComponents: [
+      {
+        StackServices: { service_name: "HDFS" },
+        components: [{
+          StackServiceComponents: {
+            component_name: "NAMENODE",
+            service_name: "HDFS",
+            is_master: true,
+            cardinality: "1",
+          },
+        }],
+      },
+      {
+        StackServices: { service_name: "HBASE" },
+        components: [{
+          StackServiceComponents: {
+            component_name: "HBASE_MASTER",
+            service_name: "HBASE",
+            is_master: true,
+            cardinality: "1-3",
+            isMasterWithMultipleInstances: true,
+          },
+        }],
+      },
+    ],
     isLoading: false,
   }),
 }));
@@ -43,6 +95,7 @@ import {
   buildAssignmentRecommendationRequest,
   canRemoveAdditionalMaster,
   recommendationDocumentFromResponse,
+  restoreSavedMasterAssignments,
   sortAssignmentHosts,
   validateMasterAssignments,
 } from "./AssignMastersAddable";
@@ -66,6 +119,7 @@ describe("master assignment validation", () => {
   afterEach(() => {
     cleanup();
     apiMocks.getHostComponentsDetails.mockReset();
+    apiMocks.postRecommendations.mockReset();
   });
 
   it("requires at least one assignment", () => {
@@ -286,6 +340,412 @@ describe("master assignment validation", () => {
     });
   });
 
+  it("restores persisted placement only by component occurrence", () => {
+    const restored = restoreSavedMasterAssignments(
+      [
+        { component_name: "RANGER_ADMIN", selectedHost: "host-a" },
+        { component_name: "RANGER_ADMIN", selectedHost: "host-a" },
+        { component_name: "NAMENODE", selectedHost: "host-a" },
+      ],
+      [{
+        host_name: "host-b",
+        masterServices: [
+          { component: "RANGER_ADMIN", hostName: "host-b", isInstalled: false },
+          { component: "RANGER_ADMIN", hostName: "host-c", isInstalled: false },
+        ],
+      }],
+    );
+
+    expect(restored.map((assignment) => assignment.selectedHost)).toEqual([
+      "host-b",
+      "host-c",
+      "host-a",
+    ]);
+  });
+
+  it("keeps installed topology authoritative while restoring extra fresh rows", () => {
+    const restored = restoreSavedMasterAssignments(
+      [
+        {
+          component_name: "NAMENODE",
+          selectedHost: "host-a",
+          isInstalled: true,
+        },
+        {
+          component_name: "HBASE_MASTER",
+          selectedHost: "host-a",
+          isInstalled: false,
+        },
+      ],
+      [{
+        host_name: "host-b",
+        masterServices: [{
+          component: "NAMENODE",
+          hostName: "host-c",
+          isInstalled: false,
+        }, {
+          component: "HBASE_MASTER",
+          hostName: "host-b",
+          isInstalled: true,
+        }, {
+          component: "HBASE_MASTER",
+          hostName: "host-c",
+          isInstalled: true,
+        }],
+      }],
+      {
+        availableHosts: ["host-a", "host-b", "host-c"],
+        maxAssignmentsByComponent: (componentName) =>
+          componentName === "HBASE_MASTER" ? 3 : 1,
+      },
+    );
+
+    expect(restored).toEqual([
+      expect.objectContaining({
+        component_name: "NAMENODE",
+        selectedHost: "host-a",
+        isInstalled: true,
+      }),
+      expect.objectContaining({
+        component_name: "HBASE_MASTER",
+        selectedHost: "host-b",
+        isInstalled: false,
+      }),
+      expect.objectContaining({
+        component_name: "HBASE_MASTER",
+        selectedHost: "host-c",
+        isInstalled: false,
+      }),
+    ]);
+  });
+
+  it("does not append saved rows when only installed rows provide a template", () => {
+    const restored = restoreSavedMasterAssignments(
+      [{
+        component_name: "ZOOKEEPER_SERVER",
+        selectedHost: "host-a",
+        isInstalled: true,
+      }],
+      [{
+        host_name: "host-a",
+        masterServices: [{
+          component: "ZOOKEEPER_SERVER",
+          hostName: "host-a",
+          isInstalled: true,
+        }, {
+          component: "ZOOKEEPER_SERVER",
+          hostName: "host-b",
+          isInstalled: false,
+        }],
+      }],
+      {
+        availableHosts: ["host-a", "host-b"],
+        maxAssignmentsByComponent: () => 3,
+      },
+    );
+
+    expect(restored).toEqual([
+      expect.objectContaining({
+        component_name: "ZOOKEEPER_SERVER",
+        selectedHost: "host-a",
+        isInstalled: true,
+      }),
+    ]);
+  });
+
+  it("runs Add Service HBASE recommendations through the real child and preserves retry state", async () => {
+    const recommendationResponse = {
+      resources: [{
+        recommendations: {
+          blueprint: {
+            host_groups: [{
+              name: "group-1",
+              components: [
+                { name: "NAMENODE" },
+                { name: "HBASE_MASTER" },
+              ],
+            }],
+          },
+          blueprint_cluster_binding: {
+            host_groups: [{
+              name: "group-1",
+              hosts: [{ fqdn: "host-a" }],
+            }],
+          },
+        },
+      }],
+    };
+    apiMocks.getHostComponentsDetails.mockResolvedValue({
+      items: [
+        {
+          Hosts: {
+            host_name: "host-a",
+            maintenance_state: "OFF",
+            cpu_count: 4,
+            total_mem: 8192,
+          },
+        },
+        {
+          Hosts: {
+            host_name: "host-b",
+            maintenance_state: "OFF",
+            cpu_count: 2,
+            total_mem: 4096,
+          },
+        },
+        {
+          Hosts: {
+            host_name: "host-c",
+            maintenance_state: "OFF",
+            cpu_count: 2,
+            total_mem: 4096,
+          },
+        },
+      ],
+    });
+    apiMocks.postRecommendations
+      .mockRejectedValueOnce(new Error("Advisor unavailable"))
+      .mockResolvedValue(recommendationResponse);
+    const onLoadStateChange = vi.fn();
+    const onAssignmentValidationChange = vi.fn();
+    const dispatch = vi.fn();
+    const runWithAdvisorRequest = vi.fn(async (request: any) =>
+      request({
+        isCurrent: () => true,
+        properties: {
+          managed_dependency_plan: {
+            consumer: { expected_revision: 17, scope: "SERVICE_PLAN" },
+          },
+        },
+      }),
+    );
+
+    const rendered = render(
+      <AppContext.Provider
+        value={{
+          clusterName: "cluster-a",
+          cluster: { stack: "HDP", versionNum: "3.1" },
+        } as never}
+      >
+        <AssignMastersAddable
+          services={["HDFS", "HBASE"]}
+          isInstallFlow
+          wizardName="addService"
+          servicesData={{
+            HDFS: { selected: true, installed: true },
+            HBASE: { selected: true, installed: false },
+          }}
+          dispatch={dispatch}
+          validateAssignments
+          onLoadStateChange={onLoadStateChange}
+          onAssignmentValidationChange={onAssignmentValidationChange}
+          runWithAdvisorRequest={runWithAdvisorRequest}
+          savedMasters={[{
+            host_name: "host-b",
+            masterServices: [{
+              component: "HBASE_MASTER",
+              hostName: "host-b",
+              isInstalled: false,
+            }, {
+              component: "HBASE_MASTER",
+              hostName: "host-c",
+              isInstalled: false,
+            }],
+          }]}
+          advisorInputKey="input-a"
+        />
+      </AppContext.Provider>,
+    );
+
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Advisor unavailable",
+    );
+    await waitFor(() => {
+      expect(onLoadStateChange).toHaveBeenLastCalledWith({
+        status: "error",
+        error: "Advisor unavailable",
+      });
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() => {
+      expect(apiMocks.postRecommendations).toHaveBeenCalledTimes(3);
+      expect(onLoadStateChange).toHaveBeenLastCalledWith({ status: "ready" });
+    });
+
+    expect(runWithAdvisorRequest).toHaveBeenCalledTimes(2);
+    expect(apiMocks.postRecommendations.mock.calls[1][0]).toEqual(
+      expect.objectContaining({
+        managed_dependency_plan: {
+          consumer: { expected_revision: 17, scope: "SERVICE_PLAN" },
+        },
+      }),
+    );
+    expect(apiMocks.postRecommendations.mock.calls[2][0]).toEqual(
+      expect.objectContaining({
+        managed_dependency_plan: {
+          consumer: { expected_revision: 17, scope: "SERVICE_PLAN" },
+        },
+      }),
+    );
+    expect(onAssignmentValidationChange).toHaveBeenLastCalledWith(true, []);
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        advisorInputKey: "input-a",
+        mastersData: expect.arrayContaining([
+          expect.objectContaining({
+            host_name: "host-a",
+            masterServices: expect.arrayContaining([
+              expect.objectContaining({
+                component: "NAMENODE",
+                selectedHost: "host-a",
+                isInstalled: true,
+              }),
+            ]),
+          }),
+          expect.objectContaining({
+            host_name: "host-b",
+            masterServices: expect.arrayContaining([
+              expect.objectContaining({
+                component: "HBASE_MASTER",
+                selectedHost: "host-b",
+              }),
+            ]),
+          }),
+          expect.objectContaining({
+            host_name: "host-c",
+            masterServices: expect.arrayContaining([
+              expect.objectContaining({
+                component: "HBASE_MASTER",
+                selectedHost: "host-c",
+              }),
+            ]),
+          }),
+        ]),
+      }),
+    );
+
+    dispatch.mockClear();
+    rendered.rerender(
+      <AppContext.Provider
+        value={{
+          clusterName: "cluster-a",
+          cluster: { stack: "HDP", versionNum: "3.1" },
+        } as never}
+      >
+        <AssignMastersAddable
+          key="same-input-remount"
+          services={["HDFS", "HBASE"]}
+          isInstallFlow
+          wizardName="addService"
+          servicesData={{
+            HDFS: { selected: true, installed: true },
+            HBASE: { selected: true, installed: false },
+          }}
+          dispatch={dispatch}
+          validateAssignments
+          onLoadStateChange={onLoadStateChange}
+          onAssignmentValidationChange={onAssignmentValidationChange}
+          runWithAdvisorRequest={runWithAdvisorRequest}
+          savedMasters={[{
+            host_name: "host-b",
+            masterServices: [{
+              component: "HBASE_MASTER",
+              hostName: "host-b",
+              isInstalled: false,
+            }, {
+              component: "HBASE_MASTER",
+              hostName: "host-c",
+              isInstalled: false,
+            }],
+          }]}
+          advisorInputKey="input-a"
+        />
+      </AppContext.Provider>,
+    );
+    await waitFor(() => {
+      expect(apiMocks.postRecommendations).toHaveBeenCalledTimes(5);
+    });
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        advisorInputKey: "input-a",
+        mastersData: expect.arrayContaining([
+          expect.objectContaining({
+            host_name: "host-b",
+            masterServices: expect.arrayContaining([
+              expect.objectContaining({
+                component: "HBASE_MASTER",
+                selectedHost: "host-b",
+              }),
+            ]),
+          }),
+          expect.objectContaining({
+            host_name: "host-c",
+            masterServices: expect.arrayContaining([
+              expect.objectContaining({
+                component: "HBASE_MASTER",
+                selectedHost: "host-c",
+              }),
+            ]),
+          }),
+        ]),
+      }),
+    );
+
+    dispatch.mockClear();
+    rendered.rerender(
+      <AppContext.Provider
+        value={{
+          clusterName: "cluster-a",
+          cluster: { stack: "HDP", versionNum: "3.1" },
+        } as never}
+      >
+        <AssignMastersAddable
+          key="changed-input-remount"
+          services={["HDFS", "HBASE"]}
+          isInstallFlow
+          wizardName="addService"
+          servicesData={{
+            HDFS: { selected: true, installed: true },
+            HBASE: { selected: true, installed: false },
+          }}
+          dispatch={dispatch}
+          validateAssignments
+          onLoadStateChange={onLoadStateChange}
+          onAssignmentValidationChange={onAssignmentValidationChange}
+          runWithAdvisorRequest={runWithAdvisorRequest}
+          savedMasters={[]}
+          advisorInputKey="input-b"
+        />
+      </AppContext.Provider>,
+    );
+    await waitFor(() => {
+      expect(apiMocks.postRecommendations).toHaveBeenCalledTimes(7);
+    });
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        advisorInputKey: "input-b",
+        mastersData: expect.arrayContaining([
+          expect.objectContaining({
+            host_name: "host-a",
+            masterServices: expect.arrayContaining([
+              expect.objectContaining({
+                component: "NAMENODE",
+                selectedHost: "host-a",
+                isInstalled: true,
+              }),
+              expect.objectContaining({
+                component: "HBASE_MASTER",
+                selectedHost: "host-a",
+                isInstalled: false,
+              }),
+            ]),
+          }),
+        ]),
+      }),
+    );
+  });
+
   it("reports host loading failures and offers retry", async () => {
     apiMocks.getHostComponentsDetails.mockRejectedValue(
       new Error("Host API unavailable"),
@@ -314,5 +774,112 @@ describe("master assignment validation", () => {
     await waitFor(() => {
       expect(apiMocks.getHostComponentsDetails).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it("ignores a delayed recommendation after the advisor input changes", async () => {
+    let resolveFirstRecommendation!: (response: unknown) => void;
+    const firstRecommendation = new Promise((resolve) => {
+      resolveFirstRecommendation = resolve;
+    });
+    const recommendationResponse = {
+      resources: [{
+        recommendations: {
+          blueprint: {
+            host_groups: [{
+              name: "group-1",
+              components: [
+                { name: "NAMENODE" },
+                { name: "HBASE_MASTER" },
+              ],
+            }],
+          },
+          blueprint_cluster_binding: {
+            host_groups: [{
+              name: "group-1",
+              hosts: [{ fqdn: "host-a" }],
+            }],
+          },
+        },
+      }],
+    };
+    apiMocks.getHostComponentsDetails.mockResolvedValue({
+      items: [{
+        Hosts: {
+          host_name: "host-a",
+          maintenance_state: "OFF",
+          cpu_count: 4,
+          total_mem: 8192,
+        },
+      }],
+    });
+    let recommendationCall = 0;
+    apiMocks.postRecommendations.mockImplementation(() => {
+      recommendationCall += 1;
+      return recommendationCall === 1
+        ? firstRecommendation
+        : Promise.resolve(recommendationResponse);
+    });
+    const dispatch = vi.fn();
+    const onLoadStateChange = vi.fn();
+
+    const rendered = render(
+      <AppContext.Provider
+        value={{
+          clusterName: "cluster-a",
+          cluster: { stack: "HDP", versionNum: "3.1" },
+        } as never}
+      >
+        <AssignMastersAddable
+          services={["HDFS", "HBASE"]}
+          isInstallFlow
+          wizardName="addService"
+          servicesData={{
+            HDFS: { selected: true, installed: true },
+            HBASE: { selected: true, installed: false },
+          }}
+          dispatch={dispatch}
+          onLoadStateChange={onLoadStateChange}
+          advisorInputKey="input-a"
+        />
+      </AppContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(apiMocks.postRecommendations).toHaveBeenCalledOnce();
+    });
+    rendered.rerender(
+      <AppContext.Provider
+        value={{
+          clusterName: "cluster-a",
+          cluster: { stack: "HDP", versionNum: "3.1" },
+        } as never}
+      >
+        <AssignMastersAddable
+          services={["HDFS", "HBASE"]}
+          isInstallFlow
+          wizardName="addService"
+          servicesData={{
+            HDFS: { selected: true, installed: true },
+            HBASE: { selected: true, installed: false },
+          }}
+          dispatch={dispatch}
+          onLoadStateChange={onLoadStateChange}
+          advisorInputKey="input-b"
+        />
+      </AppContext.Provider>,
+    );
+
+    await act(async () => {
+      resolveFirstRecommendation(recommendationResponse);
+    });
+    await waitFor(() => {
+      expect(apiMocks.postRecommendations).toHaveBeenCalledTimes(3);
+    });
+    expect(dispatch.mock.calls.every(([payload]) => payload.advisorInputKey !== "input-a")).toBe(
+      true,
+    );
+    expect(
+      onLoadStateChange.mock.calls.some(([state]) => state.status === "error"),
+    ).toBe(false);
   });
 });

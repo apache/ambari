@@ -18,7 +18,7 @@
 
 package org.apache.ambari.server.events;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.ambari.server.agent.stomp.dto.AlertGroupUpdate;
@@ -37,19 +37,34 @@ public class AlertGroupsUpdateEvent extends STOMPEvent {
 
   public AlertGroupsUpdateEvent(List<AlertGroupUpdate> groups, UpdateEventType type) {
     super(Type.ALERT_GROUP);
+    if (type == UpdateEventType.DELETE) {
+      validateDeletedGroups(groups);
+    }
     this.groups = groups;
     this.type = type;
   }
 
-  public static AlertGroupsUpdateEvent deleteAlertGroupsUpdateEvent(List<Long> alertGroupIdsToDelete) {
-    List<AlertGroupUpdate> alertGroupUpdates = new ArrayList<>(alertGroupIdsToDelete.size());
-    for (Long alertGroupIdToDelete : alertGroupIdsToDelete) {
-      alertGroupUpdates.add(new AlertGroupUpdate(alertGroupIdToDelete));
+  public static AlertGroupsUpdateEvent deleteAlertGroupsUpdateEvent(AlertGroupUpdate... groups) {
+    return new AlertGroupsUpdateEvent(
+        groups == null ? null : Arrays.asList(groups), UpdateEventType.DELETE);
+  }
+
+  private static void validateDeletedGroups(List<AlertGroupUpdate> groups) {
+    if (groups == null || groups.isEmpty()) {
+      throw new IllegalArgumentException("Deleted alert groups require both group and cluster IDs");
     }
-    return new AlertGroupsUpdateEvent(alertGroupUpdates, UpdateEventType.DELETE);
+    for (AlertGroupUpdate group : groups) {
+      if (group == null || group.getId() == null || group.getClusterId() == null) {
+        throw new IllegalArgumentException("Deleted alert groups require both group and cluster IDs");
+      }
+    }
   }
 
   public List<AlertGroupUpdate> getGroups() {
     return groups;
+  }
+
+  public UpdateEventType getUpdateType() {
+    return type;
   }
 }

@@ -239,7 +239,7 @@ public class SNMPDispatcherTest {
 
   @Test
   public void testDispatch_successful_v3() throws Exception {
-    SNMPDispatcher dispatcher = new SNMPDispatcher(DEFAULT_SNMP_PORT);
+    SNMPDispatcher dispatcher = spy(new SNMPDispatcher(DEFAULT_SNMP_PORT));
     Notification notification = new Notification();
     notification.Callback = mock(DispatchCallback.class);
     notification.CallbackIds = new ArrayList<>();
@@ -260,6 +260,7 @@ public class SNMPDispatcherTest {
     Recipient recipient = new Recipient();
     recipient.Identifier = "192.168.0.2";
     notification.Recipients = Arrays.asList(recipient);
+    doNothing().when(dispatcher).sendTraps(notification, SNMPDispatcher.SnmpVersion.SNMPv3);
     dispatcher.dispatch(notification);
     verify(notification.Callback, never()).onFailure(notification.CallbackIds);
     verify(notification.Callback).onSuccess(notification.CallbackIds);

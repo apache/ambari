@@ -16,6 +16,10 @@
  * limitations under the License.
  */
 
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+import "../i18n";
+
 class MemoryStorage implements Storage {
   private values = new Map<string, string>();
 
@@ -51,4 +55,10 @@ Object.defineProperty(globalThis, "localStorage", {
 Object.defineProperty(globalThis, "sessionStorage", {
   configurable: true,
   value: new MemoryStorage(),
+});
+
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  sessionStorage.clear();
 });

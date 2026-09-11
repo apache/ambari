@@ -21,8 +21,8 @@ import routes from "./RoutesList.tsx";
 export default function Routes() {
   return (
     <Switch>
-      {routes.map(({ path, Element }, key) => (
-        <Route path={path} key={key} render={() => <Element />}></Route>
+      {routes.map(({ path, exact, Element }, key) => (
+        <Route exact={exact} path={path} key={key} render={() => <Element />}></Route>
       ))}
     </Switch>
   );

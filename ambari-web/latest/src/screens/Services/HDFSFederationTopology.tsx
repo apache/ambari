@@ -18,7 +18,7 @@
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Col, Row } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import ScopedLink from "../../components/ScopedLink";
 import { lowerCase, startCase } from "lodash";
 import { statusIconMap } from "./constants";
 
@@ -121,9 +121,9 @@ export default function HDFSFederationTopology({
                 : "NameNode";
               return (
                 <Col md={4} key={hostName}>
-                  <Link to={`/main/hosts/${hostName}/summary`} className="custom-link fs-12">
+                  <ScopedLink to={`/main/hosts/${hostName}/summary`} className="custom-link fs-12">
                     {hostName}
-                  </Link>
+                  </ScopedLink>
                   <ComponentStatus component={nameNode} label={nameNodeRole} />
                   <ComponentStatus component={zkfc} label="ZKFailoverController" />
                 </Col>

@@ -18,7 +18,7 @@
 
 import { useContext, useEffect, useMemo, useState } from "react";
 import { Alert, Button, Card } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import ScopedLink from "../../components/ScopedLink";
 import HostLogsApi from "../../api/hostLogsApi";
 import Spinner from "../../components/Spinner";
 import { ServiceContext } from "../../store/ServiceContext";
@@ -114,12 +114,12 @@ export default function HostLogMetrics({ hostName }: { hostName: string }) {
             {rows.filter((row) => row.available).map((row) => (
               <div className="col-md-6" key={row.serviceName}>
                 <div className="border p-3 h-100">
-                  <Link
+                  <ScopedLink
                     to={`/main/hosts/${encodeURIComponent(hostName)}/logs?service_name=${encodeURIComponent(row.serviceName)}`}
                     className="fw-semibold"
                   >
                     {row.serviceDisplayName}
-                  </Link>
+                  </ScopedLink>
                   <div className="d-flex flex-wrap gap-2 mt-3">
                     {HOST_LOG_LEVELS.map((level) => (
                       <span

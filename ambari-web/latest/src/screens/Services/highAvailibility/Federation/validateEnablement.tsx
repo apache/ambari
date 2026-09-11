@@ -28,15 +28,17 @@ import {
   EnableNamenodeFederationProvider,
 } from "./store/context";
 import StepWizard from "../../../../components/StepWizard";
-import ClusterApi from "../../../../api/clusterApi";
 import { LocalStorageOps } from "../../../../Utils/LocalStorageOps";
 import { AppContext } from "../../../../store/context";
 import { messages } from "../../../messages";
 import { ServiceContext } from "../../../../store/ServiceContext";
+import {
+  clusterHashPath,
+} from "../../../../Utils/clusterRoute";
 import { Alert, Button } from "react-bootstrap";
 
 function ValidateEnablement() {
-  const { services, allHostNames } = useContext(AppContext);
+  const { clusterName, services, allHostNames, navigateCluster } = useContext(AppContext);
   const { masterSlaveClientsData, allModelsLoaded, allServiceModels } =
     useContext(ServiceContext);
   const {
@@ -207,24 +209,19 @@ function ValidateEnablement() {
       {showModal ? (
         <Modal
           isOpen={showModal}
-          onClose={async () => {
-            await ClusterApi.postPersistData(
-              JSON.stringify({
-                USER_REDIRECTION_URL: "",
-              })
-            );
+          onClose={() => {
             setShowModal(false);
             LocalStorageOps.setItem(
               "lastVisitedURL",
-              "/#/main/services/HDFS/summary"
+              clusterHashPath(clusterName, "/main/services/HDFS/summary")
             );
-            window.location.href = "/#/main/services/HDFS/summary";
+            navigateCluster("/main/services/HDFS/summary");
           }}
           modalTitle={get(messages, "admin.nameNodeFederation.button.enable")}
           modalBody={getModalBodyContent()}
           successCallback={() => {
             setShowModal(false);
-            window.location.href = "/#/main/services/HDFS/summary";
+            navigateCluster("/main/services/HDFS/summary");
           }}
           options={{
             shouldShowFooter:

@@ -280,6 +280,7 @@ component_data_dirs = {
 data_dirs = component_data_dirs.get(role, [])
 
 # JSON string literals are valid YAML scalars and safely quote generated values.
+yaml_cluster_id = json.dumps(str(config["clusterId"]))
 yaml_cluster_name = json.dumps(cluster_name)
 yaml_ambari_sd_url = json.dumps(ambari_sd_url)
 yaml_ambari_sd_username = json.dumps(ambari_sd_username)
