@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { webcrypto } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
   clearDeploymentSignatureScope,
@@ -29,15 +30,15 @@ describe("deployment input recovery", () => {
     const first = await deploymentInputSignature({
       b: 2,
       a: { d: 4, c: 3 },
-    });
+    }, webcrypto);
     const reordered = await deploymentInputSignature({
       a: { c: 3, d: 4 },
       b: 2,
-    });
+    }, webcrypto);
     expect(first).toBe(reordered);
     expect(first).toMatch(/^sha256:[a-f0-9]{64}$/);
-    expect(await deploymentInputSignature([{ host: "a" }, { host: "b" }]))
-      .not.toBe(await deploymentInputSignature([{ host: "b" }, { host: "a" }]));
+    expect(await deploymentInputSignature([{ host: "a" }, { host: "b" }], webcrypto))
+      .not.toBe(await deploymentInputSignature([{ host: "b" }, { host: "a" }], webcrypto));
   });
 
   it("replays ordinary config but identifies changed materialization topology", async () => {
