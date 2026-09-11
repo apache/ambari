@@ -2532,7 +2532,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     if (wizardName === "addService") {
       const nextStep = nextAddServiceStep(4, addServiceFlow);
       await Promise.resolve(flushStateToDb("jump", nextStep));
-      jumpToStep(nextStep);
+      jumpToStep(nextStep, true);
     } else {
       await Promise.resolve(flushStateToDb("next"));
       handleNextImperitive();

@@ -446,7 +446,7 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
     if (wizardName === "addService") {
       const nextStep = nextAddServiceStep(3, addServiceFlow);
       await Promise.resolve(flushStateToDb("jump", nextStep));
-      jumpToStep(nextStep);
+      jumpToStep(nextStep, true);
     } else {
       await Promise.resolve(flushStateToDb("next"));
       handleNextImperitive();

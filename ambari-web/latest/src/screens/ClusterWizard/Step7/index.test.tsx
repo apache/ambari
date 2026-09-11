@@ -749,7 +749,7 @@ describe("Step 7 Theme fallback", () => {
     expect(mocks.dispatch.mock.invocationCallOrder.at(-1)).toBeLessThan(
       mocks.flushStateToDb.mock.invocationCallOrder[0]
     );
-    expect(mocks.jumpToStep).toHaveBeenCalledWith(5);
+    expect(mocks.jumpToStep).toHaveBeenCalledWith(5, true);
   });
 
   it("loads installed and newly selected Add Service context while recommending only new services", async () => {

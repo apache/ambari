@@ -143,7 +143,7 @@ function Step5({ wizardName = "clusterCreation" }) {
           if (wizardName === "addService") {
             const nextStep = nextAddServiceStep(2, addServiceFlow);
             await Promise.resolve(flushStateToDb("jump", nextStep));
-            jumpToStep(nextStep);
+            jumpToStep(nextStep, true);
           } else if (hasValidationIssues) {
             setShowValidationIssuesModal(true);
           } else {
