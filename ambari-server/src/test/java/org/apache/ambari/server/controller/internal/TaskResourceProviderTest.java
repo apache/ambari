@@ -246,7 +246,7 @@ public class TaskResourceProviderTest {
     expect(amc.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).once();
     expect(cluster.getResourceId()).andReturn(11L).once();
-    expect(cluster.getClusterName()).andReturn("c1").times(2);
+    expect(cluster.getClusterName()).andReturn("c1");
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     // replay
@@ -468,10 +468,13 @@ public class TaskResourceProviderTest {
     TaskResourceProvider.s_topologyManager = topologyManager;
 
     Predicate predicate = new PredicateBuilder()
-        .property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100")
-        .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("10")
-        .or().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("200")
-        .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("20")
+        .begin()
+          .property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100")
+          .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("10")
+        .end().or().begin()
+          .property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("200")
+          .and().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("20")
+        .end()
         .toPredicate();
     Request request = PropertyHelper.getReadRequest(Set.of(TaskResourceProvider.TASK_ID_PROPERTY_ID));
     HostRoleCommandEntity persistedTask = createTask(1L, 100L, 1L, 10L);

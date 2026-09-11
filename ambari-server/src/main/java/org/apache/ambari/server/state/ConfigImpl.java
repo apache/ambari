@@ -28,8 +28,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.Nullable;
 
-import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
+import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.ClusterDAO;

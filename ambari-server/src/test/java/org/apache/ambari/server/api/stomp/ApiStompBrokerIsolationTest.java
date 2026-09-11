@@ -38,11 +38,11 @@ import org.apache.ambari.server.events.AlertUpdateEvent;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.junit.Test;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.broker.SimpleBrokerMessageHandler;
-import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.support.ExecutorSubscribableChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.security.core.Authentication;
@@ -78,6 +78,9 @@ public class ApiStompBrokerIsolationTest {
         inbound, outbound, brokerChannel, singletonList("/events"));
     broker.start();
     try {
+      inbound.send(connect("session-a"));
+      inbound.send(connect("session-b"));
+      deliveries.clear();
       inbound.send(subscription("session-a", "subscription-a"));
       inbound.send(subscription("session-b", "subscription-b"));
 
@@ -111,6 +114,12 @@ public class ApiStompBrokerIsolationTest {
     accessor.setSessionId(sessionId);
     accessor.setSubscriptionId(subscriptionId);
     accessor.setDestination("/events/alerts");
+    return MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
+  }
+
+  private Message<?> connect(String sessionId) {
+    SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create(SimpMessageType.CONNECT);
+    accessor.setSessionId(sessionId);
     return MessageBuilder.createMessage(new byte[0], accessor.getMessageHeaders());
   }
 

@@ -40,7 +40,6 @@ import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
 
-import org.apache.ambari.server.controller.dependencies.ManagedDependencyCredentialManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.AmbariRuntimeException;
 import org.apache.ambari.server.agent.AgentCommand;
@@ -48,6 +47,7 @@ import org.apache.ambari.server.agent.CancelCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.agent.stomp.AgentConfigsHolder;
 import org.apache.ambari.server.agent.stomp.dto.ExecutionCommandsCluster;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyCredentialManager;
 import org.apache.ambari.server.events.ExecutionCommandEvent;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReader;

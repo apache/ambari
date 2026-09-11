@@ -772,6 +772,7 @@
             --add-opens java.base/java.util=ALL-UNNAMED
             --add-opens java.base/java.util.regex=ALL-UNNAMED
             --add-opens java.base/java.util.concurrent=ALL-UNNAMED
+            --add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED
             --add-opens java.base/java.net=ALL-UNNAMED
             --add-opens java.base/java.util.stream=ALL-UNNAMED
             --add-opens java.base/java.math=ALL-UNNAMED
@@ -1001,6 +1002,21 @@
         </excludes>
       </resource>
     </resources>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+      </testResource>
+      <testResource>
+        <directory>src/main/resources</directory>
+        <targetPath>managed-dependency-fixtures</targetPath>
+        <includes>
+          <include>stacks/BIGTOP/3.2.0/services/HBASE/kerberos.json</include>
+          <include>stacks/BIGTOP/3.2.0/services/ZOOKEEPER/kerberos.json</include>
+          <include>stacks/BIGTOP/3.2.0/services/KERBEROS/configuration/krb5-conf.xml</include>
+          <include>stacks/BIGTOP/3.2.0/services/KERBEROS/properties/krb5_conf.j2</include>
+        </includes>
+      </testResource>
+    </testResources>
   </build>
   <profiles>
     <profile>

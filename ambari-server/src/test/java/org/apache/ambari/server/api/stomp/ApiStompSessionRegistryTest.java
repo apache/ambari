@@ -33,6 +33,7 @@ import java.util.Map;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.User;
@@ -154,6 +155,7 @@ public class ApiStompSessionRegistryTest {
     entity.setUserId(id);
     entity.setUserName(name);
     entity.setActive(true);
+    entity.setPrincipal(new PrincipalEntity());
     return entity;
   }
 }

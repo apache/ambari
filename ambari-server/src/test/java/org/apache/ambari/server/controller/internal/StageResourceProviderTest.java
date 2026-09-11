@@ -87,6 +87,7 @@ public class StageResourceProviderTest {
     dao = createStrictMock(StageDAO.class);
     clusters = createStrictMock(Clusters.class);
     cluster = createStrictMock(Cluster.class);
+    EasyMock.checkOrder(cluster, false);
     expect(cluster.getResourceId()).andReturn(1L).anyTimes();
     hrcDao = createStrictMock(HostRoleCommandDAO.class);
     topologyManager = EasyMock.createNiceMock(TopologyManager.class);

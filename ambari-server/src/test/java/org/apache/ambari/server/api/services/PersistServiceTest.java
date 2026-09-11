@@ -75,6 +75,7 @@ public class PersistServiceTest extends RandomPortJerseyTest {
   @Override
   @Before
   public void setUp() throws Exception {
+    SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_GLOBAL);
     super.setUp();
     injector = Guice.createInjector(new InMemoryDefaultTestModule(), new MockModule());
     injector.getInstance(GuiceJpaInitializer.class);
@@ -88,9 +89,13 @@ public class PersistServiceTest extends RandomPortJerseyTest {
   @Override
   @After
   public void tearDown() throws Exception {
-    super.tearDown();
-    SecurityContextHolder.clearContext();
-    H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
+    try {
+      super.tearDown();
+      H2DatabaseCleaner.clearDatabaseAndStopPersistenceService(injector);
+    } finally {
+      SecurityContextHolder.clearContext();
+      SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);
+    }
   }
 
   @Override

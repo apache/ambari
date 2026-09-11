@@ -40,9 +40,9 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 
+import org.glassfish.jersey.uri.UriTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.glassfish.jersey.uri.UriTemplate;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.ClassPath;

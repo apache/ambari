@@ -58,9 +58,9 @@ import org.apache.ambari.server.state.ClusterCreationContext;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.StageUtils;
 
+import com.google.gson.JsonParseException;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.gson.JsonParseException;
 
 @Singleton
 public class PersistKeyValueImpl {

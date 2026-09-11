@@ -21,8 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -103,7 +103,7 @@ public class StompWebSocketConfigurationTest {
     when(registry.addEndpoint("/v1")).thenReturn(endpoint);
     when(endpoint.setHandshakeHandler(any(DefaultHandshakeHandler.class))).thenReturn(endpoint);
     when(endpoint.setAllowedOrigins()).thenReturn(endpoint);
-    when(endpoint.addInterceptors(any(HandshakeInterceptor[].class))).thenReturn(endpoint);
+    when(endpoint.addInterceptors(any(HandshakeInterceptor.class))).thenReturn(endpoint);
     when(endpoint.withSockJS()).thenReturn(sockJs);
     when(sockJs.setHeartbeatTime(0L)).thenReturn(sockJs);
 

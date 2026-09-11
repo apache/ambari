@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
 import org.apache.ambari.server.controller.internal.ConfigurationResourceProvider;
 import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -53,7 +54,6 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.controller.dependencies.ManagedDependencyConfigPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

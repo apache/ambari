@@ -236,6 +236,7 @@ public class AmbariManagementControllerImplTest {
     expect(repositoryVersionB.getStackId()).andReturn(stackId);
     expect(serviceB.getName()).andReturn("HDFS").anyTimes();
     expect(serviceB.isCredentialStoreEnabled()).andReturn(true);
+    expect(serviceInfo.getName()).andReturn("HDFS").times(2);
     expect(localMetaInfo.getService("HDP", "3.1", "HDFS")).andReturn(serviceInfo).times(2);
     expect(localConfigHelper.getCredentialStoreEnabledProperties(stackId, serviceA)).andReturn(credentialsA);
     expect(localConfigHelper.getCredentialStoreEnabledProperties(stackId, serviceB)).andReturn(credentialsB);

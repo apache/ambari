@@ -56,6 +56,8 @@ public class CredentialUtilTest {
    * Redirect System.err to a stream.
    */
   private final ByteArrayOutputStream err = new ByteArrayOutputStream();
+  private PrintStream originalOut;
+  private PrintStream originalErr;
 
   /**
    * CRUD command verbs
@@ -219,6 +221,8 @@ public class CredentialUtilTest {
    */
   @Before
   public void setupStreams() {
+    originalOut = System.out;
+    originalErr = System.err;
     System.setOut(new PrintStream(out));
     System.setErr(new PrintStream(err));
   }
@@ -228,8 +232,8 @@ public class CredentialUtilTest {
    */
   @After
   public void teardownStreams() {
-    System.setOut(null);
-    System.setErr(null);
+    System.setOut(originalOut);
+    System.setErr(originalErr);
   }
 
   /**
