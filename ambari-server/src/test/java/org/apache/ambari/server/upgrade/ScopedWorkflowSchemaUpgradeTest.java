@@ -43,7 +43,7 @@ public class ScopedWorkflowSchemaUpgradeTest {
     injector.getInstance(GuiceJpaInitializer.class);
     dbAccessor = injector.getInstance(DBAccessor.class);
     upgrade = new ScopedWorkflowSchemaUpgrade(dbAccessor);
-    dbAccessor.executeQuery("DROP TABLE scoped_workflow_state");
+    dbAccessor.executeQuery("DROP TABLE IF EXISTS scoped_workflow_state");
   }
 
   @After

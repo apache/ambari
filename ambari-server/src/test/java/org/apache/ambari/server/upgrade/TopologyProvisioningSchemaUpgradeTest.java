@@ -43,6 +43,16 @@ public class TopologyProvisioningSchemaUpgradeTest {
     injector.getInstance(GuiceJpaInitializer.class);
     dbAccessor = injector.getInstance(DBAccessor.class);
     upgrade = new TopologyProvisioningSchemaUpgrade(dbAccessor);
+    dbAccessor.executeQuery("DROP TABLE IF EXISTS topology_request");
+    dbAccessor.executeQuery("DROP TABLE IF EXISTS repo_version");
+    dbAccessor.executeQuery("CREATE TABLE repo_version ("
+        + "repo_version_id BIGINT NOT NULL, "
+        + "CONSTRAINT PK_repo_version PRIMARY KEY (repo_version_id))");
+    dbAccessor.executeQuery("CREATE TABLE topology_request ("
+        + "id BIGINT NOT NULL, action VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, "
+        + "bp_name VARCHAR(100) NOT NULL, cluster_properties VARCHAR(3000), "
+        + "cluster_attributes VARCHAR(3000), description VARCHAR(1024), "
+        + "provision_action VARCHAR(255), CONSTRAINT PK_topology_request PRIMARY KEY (id))");
   }
 
   @After
@@ -52,11 +62,6 @@ public class TopologyProvisioningSchemaUpgradeTest {
 
   @Test
   public void testMigrationAddsDurableIntentColumnsAndRepositoryForeignKey() throws Exception {
-    dbAccessor.executeQuery("ALTER TABLE topology_request DROP CONSTRAINT FK_topology_request_repo_ver");
-    dbAccessor.executeQuery("ALTER TABLE topology_request DROP COLUMN repository_version_id");
-    dbAccessor.executeQuery("ALTER TABLE topology_request DROP COLUMN specification_hash");
-    dbAccessor.executeQuery("ALTER TABLE topology_request DROP COLUMN provisioning_state");
-
     upgrade.execute();
     upgrade.execute();
 

@@ -45,8 +45,6 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ScopedWorkflowStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceDependencyBindingEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyFenceEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyHostResultEntity;
@@ -54,6 +52,8 @@ import org.apache.ambari.server.orm.entities.ServiceDependencyHostResultEntityPK
 import org.apache.ambari.server.orm.entities.ServiceDependencyOperationEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencySnapshotEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencySnapshotEntityPK;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.utils.StageUtils;
 
 import com.google.inject.Inject;

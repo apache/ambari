@@ -554,7 +554,7 @@ CREATE TABLE service_dependency_operation (
   target_snapshot_version BIGINT NOT NULL, request_hash VARCHAR(71) NOT NULL,
   state VARCHAR(32) NOT NULL, ambari_request_id BIGINT, failure_code VARCHAR(128),
   failure_message VARCHAR(1024), create_timestamp BIGINT NOT NULL, update_timestamp BIGINT NOT NULL,
-  CONSTRAINT PK_service_dependency_operation PRIMARY KEY CLUSTERED (operation_id),
+  CONSTRAINT PK_svc_dep_operation PRIMARY KEY CLUSTERED (operation_id),
   CONSTRAINT FK_svc_dep_operation_binding FOREIGN KEY (binding_id) REFERENCES service_dependency_binding (binding_id)
   );
 
@@ -585,7 +585,7 @@ CREATE TABLE service_dependency_host_result (
   package_name VARCHAR(128), package_version VARCHAR(512), client_software_version VARCHAR(128),
   state VARCHAR(32) NOT NULL, check_timestamp BIGINT NOT NULL, failure_code VARCHAR(128),
   failure_message VARCHAR(1024),
-  CONSTRAINT PK_service_dependency_host_result PRIMARY KEY CLUSTERED (binding_id, snapshot_version, operation_epoch, host_id, dependency_type, check_kind),
+  CONSTRAINT PK_svc_dep_host_result PRIMARY KEY CLUSTERED (binding_id, snapshot_version, operation_epoch, host_id, dependency_type, check_kind),
   CONSTRAINT FK_svc_dep_host_snapshot FOREIGN KEY (binding_id, snapshot_version) REFERENCES service_dependency_snapshot (binding_id, snapshot_version),
   CONSTRAINT FK_svc_dep_host_operation FOREIGN KEY (operation_id) REFERENCES service_dependency_operation (operation_id),
   CONSTRAINT FK_svc_dep_host FOREIGN KEY (host_id) REFERENCES hosts (host_id)

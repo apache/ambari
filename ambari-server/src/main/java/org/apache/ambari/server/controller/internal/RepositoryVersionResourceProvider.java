@@ -461,8 +461,9 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
     for (RepositoryVersionEntity existingRepoVersion : existingRepoVersions) {
       for (RepoOsEntity operatingSystemEntity : existingRepoVersion.getRepoOsEntities()) {
         for (RepoDefinitionEntity repositoryEntity : operatingSystemEntity.getRepoDefinitionEntities()) {
-          boolean sameVersionIdentity = Objects.equals(existingRepoVersion.getStackId(), repositoryVersion.getStackId())
-              && Objects.equals(existingRepoVersion.getVersion(), repositoryVersion.getVersion());
+          boolean sameVersionIdentity = Objects.equals(existingRepoVersion.getStackId(),
+              repositoryVersion.getStackId()) && Objects.equals(existingRepoVersion.getVersion(),
+              repositoryVersion.getVersion());
           if (repositoryEntity.isUnique() && !sameVersionIdentity
               && !existingRepoVersion.getId().equals(repositoryVersion.getId())) { // Allow modifying already defined repo version
             existingRepoUrls.add(repositoryEntity.getBaseUrl());

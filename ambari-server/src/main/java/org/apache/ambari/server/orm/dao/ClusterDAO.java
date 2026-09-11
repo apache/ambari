@@ -35,6 +35,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ScopedWorkflowStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
@@ -417,6 +418,12 @@ public class ClusterDAO {
       ClusterEntity cluster, TopologyRequestEntity requestedIntent) {
     if (requestedIntent == null) {
       return;
+    }
+    Long repositoryVersionId = requestedIntent.getRepositoryVersionId();
+    if (repositoryVersionId != null
+        && entityManager.find(RepositoryVersionEntity.class, repositoryVersionId) == null) {
+      throw new IllegalStateException(
+          "The repository version for the provisioning request does not exist");
     }
     TypedQuery<TopologyRequestEntity> query = entityManager.createNamedQuery(
         "TopologyRequestEntity.findProvisionByClusterId", TopologyRequestEntity.class);

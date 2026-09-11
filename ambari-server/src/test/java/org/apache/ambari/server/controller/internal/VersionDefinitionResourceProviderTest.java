@@ -630,19 +630,15 @@ public class VersionDefinitionResourceProviderTest {
     Assert.assertNotNull(res.getPropertyValue("VersionDefinition/validation"));
 
     Set<String> validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
-    Assert.assertEquals(3, validation.size());
+    Assert.assertEquals(2, validation.size());
 
     validation = (Set<String>) res.getPropertyValue("VersionDefinition/validation");
-    Assert.assertEquals(3, validation.size());
+    Assert.assertEquals(2, validation.size());
 
-    boolean found = false;
     for (String reason : validation) {
-      if (reason.contains("http://baseurl1")) {
-        found = true;
-      }
+      Assert.assertFalse("An exact retry must not report its own URL as a duplicate",
+          reason.contains("http://baseurl1"));
     }
-
-    Assert.assertTrue("URL validation should be checked", found);
 
 
     // !!! test url validation

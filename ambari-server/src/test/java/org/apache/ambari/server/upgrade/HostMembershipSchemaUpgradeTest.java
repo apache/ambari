@@ -48,7 +48,7 @@ public class HostMembershipSchemaUpgradeTest {
     dbAccessor = injector.getInstance(DBAccessor.class);
     upgrade = new HostMembershipSchemaUpgrade(dbAccessor);
 
-    dbAccessor.executeQuery("DROP TABLE ClusterHostMapping");
+    dbAccessor.executeQuery("DROP TABLE IF EXISTS ClusterHostMapping");
     dbAccessor.executeQuery("CREATE TABLE ClusterHostMapping (" +
         "cluster_id BIGINT NOT NULL, host_id BIGINT NOT NULL, " +
         "CONSTRAINT PK_ClusterHostMapping PRIMARY KEY (cluster_id, host_id))");

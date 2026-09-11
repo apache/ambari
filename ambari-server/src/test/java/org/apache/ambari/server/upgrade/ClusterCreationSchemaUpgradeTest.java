@@ -47,8 +47,16 @@ public class ClusterCreationSchemaUpgradeTest {
     injector.getInstance(GuiceJpaInitializer.class);
     dbAccessor = injector.getInstance(DBAccessor.class);
     upgrade = new ClusterCreationSchemaUpgrade(dbAccessor);
-    dbAccessor.executeQuery("DROP INDEX uq_clusters_creation_draft");
     dbAccessor.executeQuery("SET REFERENTIAL_INTEGRITY FALSE");
+    dbAccessor.executeQuery("DROP TABLE IF EXISTS clusters CASCADE");
+    dbAccessor.executeQuery("CREATE TABLE clusters ("
+        + "cluster_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, upgrade_id BIGINT, "
+        + "creator_user_id INTEGER, creation_draft_id VARCHAR(36), "
+        + "cluster_info VARCHAR(255) NOT NULL, cluster_name VARCHAR(100) NOT NULL UNIQUE, "
+        + "provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT', "
+        + "security_type VARCHAR(32) NOT NULL DEFAULT 'NONE', "
+        + "desired_cluster_state VARCHAR(255) NOT NULL, desired_stack_id BIGINT NOT NULL, "
+        + "CONSTRAINT PK_clusters PRIMARY KEY (cluster_id))");
   }
 
   @After

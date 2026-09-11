@@ -50,8 +50,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceException;
 
-import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
@@ -83,7 +83,6 @@ import org.apache.ambari.server.events.publishers.TaskEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.ScopedWorkflowStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO.CommandCompletion;
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO.CreationBatchResult;
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO.CreationGuard;
@@ -93,13 +92,13 @@ import org.apache.ambari.server.orm.dao.ServiceDependencyDAO.LifecycleTransition
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO.RepositoryGuard;
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO.ServiceVersionGuard;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ScopedWorkflowStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyBindingEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyFenceEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyHostResultEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyHostResultEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceDependencyOperationEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencySnapshotEntity;
-import org.apache.ambari.server.orm.entities.ScopedWorkflowStateEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -200,6 +199,8 @@ public class ServiceDependencyDAOIntegrationTest {
             "CONSTRAINT (FK_svc_dep_\\w+) FOREIGN KEY \\([^)]*\\) REFERENCES "
                 + "service_dependency_\\w+ \\([^)]*\\)").matcher(tables.group(2));
         while (constraints.find()) {
+          entityManagers.get().createNativeQuery("ALTER TABLE " + tables.group(1)
+              + " DROP CONSTRAINT IF EXISTS " + constraints.group(1)).executeUpdate();
           entityManagers.get().createNativeQuery("ALTER TABLE " + tables.group(1) + " ADD "
               + constraints.group()).executeUpdate();
           count++;
@@ -1080,8 +1081,8 @@ public class ServiceDependencyDAOIntegrationTest {
         deployments, dependencyRows, clusters, mock(org.apache.ambari.server.security.authorization.Users.class),
         () -> mock(org.apache.ambari.server.actionmanager.ActionManager.class),
         () -> mock(org.apache.ambari.server.controller.AmbariManagementController.class),
-        mock(org.apache.ambari.server.controller.ResourceProviderFactory.class), () -> coordinator,
-        injector.getInstance(org.apache.ambari.server.metadata.ActionMetadata.class));
+        () -> coordinator, injector.getInstance(org.apache.ambari.server.metadata.ActionMetadata.class));
+    engine.setResourceProviderFactory(mock(org.apache.ambari.server.controller.ResourceProviderFactory.class));
     UUID id = UUID.randomUUID();
     var context = org.springframework.security.core.context.SecurityContextHolder.getContext();
     var saved = context.getAuthentication();
