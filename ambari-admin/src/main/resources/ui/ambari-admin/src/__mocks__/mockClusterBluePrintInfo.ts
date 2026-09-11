@@ -15,5 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const mockClusterBluePrintInfo = {};
+const mockClusterBluePrintInfo = {
+  configurations: [],
+  host_groups: [],
+};
 export default mockClusterBluePrintInfo;

@@ -187,6 +187,7 @@ export const ClusterCreationProvider: React.FC<{
       const persistedState = persisted.workflow === "CLUSTER_CREATE"
         ? get(persisted, "values.state", initialState)
         : initialState;
+      explicitlyPersistedStateRef.current = persistedState;
       dispatch({
         type: ActionTypes.SYNC_STATE,
         payload: persistedState?.clusterCreationSteps ? persistedState : initialState,

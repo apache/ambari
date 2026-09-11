@@ -305,7 +305,8 @@ describe("global service directory", () => {
     renderDirectory();
 
     expect(await screen.findByRole("link", { name: "HBASE" })).toBeTruthy();
-    expect(await screen.findByText(/alpha.*Services could not be loaded/s)).toBeTruthy();
+    expect((await screen.findAllByRole("alert")).some((alert) =>
+      alert.textContent?.includes("alpha: Services could not be loaded."))).toBe(true);
     fireEvent.click(screen.getByRole("button", { name: "Retry services for alpha" }));
 
     expect(await screen.findByRole("link", { name: "HDFS" })).toBeTruthy();

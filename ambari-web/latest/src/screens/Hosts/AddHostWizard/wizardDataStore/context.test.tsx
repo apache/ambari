@@ -20,7 +20,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { useContext } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../../../store/context";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 
 const mocks = vi.hoisted(() => ({
   getPersistData: vi.fn(),
@@ -29,13 +29,15 @@ const mocks = vi.hoisted(() => ({
   savePersistData: vi.fn(),
 }));
 
+const persistence = {
+  getPersistData: mocks.getPersistData,
+  reload: mocks.reload,
+  release: mocks.release,
+  savePersistData: mocks.savePersistData,
+};
+
 vi.mock("../../../../hooks/useClusterWorkflowPersistence", () => ({
-  default: () => ({
-    getPersistData: mocks.getPersistData,
-    reload: mocks.reload,
-    release: mocks.release,
-    savePersistData: mocks.savePersistData,
-  }),
+  default: () => persistence,
 }));
 
 import { AddHostContext, AddHostProvider } from "./context";
@@ -77,19 +79,29 @@ function LocationProbe() {
   return <div data-testid="location">{location.pathname}</div>;
 }
 
+function AppContextHarness({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+  return (
+    <AppContext.Provider value={{
+      clusterName: "",
+      navigateCluster: navigate,
+      serviceComponentInfo: [],
+      services: [],
+    } as any}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
 function renderProvider() {
   return render(
     <MemoryRouter initialEntries={["/main/host/add/step1"]}>
-      <AppContext.Provider value={{
-        clusterName: "",
-        serviceComponentInfo: [],
-        services: [],
-      } as any}>
+      <AppContextHarness>
         <AddHostProvider stepWizardUtilities={wizardUtilities}>
           <PersistenceProbe />
           <LocationProbe />
         </AddHostProvider>
-      </AppContext.Provider>
+      </AppContextHarness>
     </MemoryRouter>,
   );
 }

@@ -1997,6 +1997,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
 
   const reconcileManagedDependencyMaterializations = async (generation: number) => {
     let changed = false;
+    const recoveredDependencyTypes = new Set<ManagedDependencyType>();
     for (const record of Object.values(managedDependencyMaterializations.current)) {
       if (!record || !managedDependencyAttempts(record).length) continue;
       const { targetClusterId, targetClusterName } = targetClusterIdentity();
@@ -2006,6 +2007,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       const recovered = await reconcileMaterializationRecord(record, generation);
       const operationKey = `create-managed-dependency-${record.dependencyType}-${record.bindingId}`;
       if (recovered) {
+        recoveredDependencyTypes.add(record.dependencyType);
         const choice = managedDependencies[record.dependencyType];
         if (!choice?.preview
           || !managedDependencyAttemptMatchesPreview(recovered.attempt, choice.preview)) {
@@ -2034,6 +2036,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       });
       assertCurrentDeployment(generation);
     }
+    return recoveredDependencyTypes;
   };
 
   const pauseForManagedDependencyReview = async (
@@ -2083,6 +2086,12 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       response = await ServiceDependenciesApi.previewPlan({ consumer, selections });
     } catch (error: any) {
       assertCurrentDeployment(generation);
+      if (isBindingIdUnavailable(error)) {
+        const recoveredDependencyTypes =
+          await reconcileManagedDependencyMaterializations(generation);
+        if (reviewed.every(({ dependencyType }) =>
+          recoveredDependencyTypes.has(dependencyType))) return;
+      }
       throw error;
     }
     assertCurrentDeployment(generation);

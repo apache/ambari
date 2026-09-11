@@ -43,6 +43,7 @@ const mocks = vi.hoisted(() => ({
   getServices: vi.fn(),
   handleBackImperitive: vi.fn(),
   handleNextImperitive: vi.fn(),
+  jumpToStep: vi.fn(),
   kerberosMode: {
     error: "",
     isLoaded: true,
@@ -437,7 +438,7 @@ function renderStep({
         currentStep: { name: "REVIEW" },
         handleBackImperitive: mocks.handleBackImperitive,
         handleNextImperitive: mocks.handleNextImperitive,
-        jumpToStep: vi.fn(),
+        jumpToStep: mocks.jumpToStep,
       },
     };
     return (
@@ -476,7 +477,10 @@ describe("cluster deployment Review", () => {
     });
     mocks.getVersionDefinitions.mockResolvedValue({ items: [] });
     mocks.getServices.mockResolvedValue({
-      items: [{ StackServices: { service_name: "HDFS" }, components: [] }],
+      items: [
+        { StackServices: { service_name: "HDFS" }, components: [] },
+        { StackServices: { service_name: "HBASE" }, components: [] },
+      ],
     });
     mocks.postVersionDefinitionFile.mockResolvedValue({
       resources: [{
@@ -592,8 +596,8 @@ describe("cluster deployment Review", () => {
         }),
       ]),
     );
-    expect(mocks.applyClusterConfigs.mock.invocationCallOrder[0])
-      .toBeLessThan(mocks.previewManagedDependencyPlan.mock.invocationCallOrder[0]);
+    expect(mocks.previewManagedDependencyPlan.mock.invocationCallOrder[0])
+      .toBeLessThan(mocks.applyClusterConfigs.mock.invocationCallOrder[0]);
     expect(mocks.previewManagedDependencyPlan).toHaveBeenCalledWith(
       expect.objectContaining({
         consumer: expect.objectContaining({ scope: "DRAFT" }),
@@ -700,6 +704,43 @@ describe("cluster deployment Review", () => {
       [expect.objectContaining({ operation_id: OPERATION_ID })],
     );
     expect(mocks.getManagedDependency).toHaveBeenCalledTimes(3);
+  });
+
+  it("continues when batch preview finds the exact persisted binding", async () => {
+    const missing = { response: { status: 404 } };
+    const recoveredBinding = {
+      ...managedHdfsBinding,
+      operation: { ...managedHdfsBinding.operation, operation_id: OLD_OPERATION_ID },
+      creation_attempt: {
+        ...managedHdfsBinding.creation_attempt,
+        operation_id: OLD_OPERATION_ID,
+      },
+    };
+    mocks.getCreationDraftCluster.mockResolvedValue({
+      cluster_id: 72,
+      cluster_name: "cluster1",
+    });
+    mocks.getManagedDependency
+      .mockRejectedValueOnce(missing)
+      .mockResolvedValueOnce(recoveredBinding);
+    mocks.previewManagedDependencyPlan.mockRejectedValueOnce({
+      response: { data: { code: "BINDING_ID_UNAVAILABLE" }, status: 409 },
+    });
+    renderStep({ steps: managedAttemptSteps() });
+
+    fireEvent.click(await screen.findByRole("button", { name: "DEPLOY" }));
+
+    expect(await screen.findByText(/Provider preparation has started/)).toBeTruthy();
+    expect(mocks.getManagedDependency).toHaveBeenNthCalledWith(
+      2,
+      "cluster1",
+      BINDING_ID,
+    );
+    expect(mocks.createManagedDependencyPlan).toHaveBeenCalledWith(
+      "cluster1",
+      [expect.objectContaining({ operation_id: OLD_OPERATION_ID })],
+    );
+    expect(mocks.updateService).not.toHaveBeenCalled();
   });
 
   it("shows an older winning attempt whose semantic fingerprints differ", async () => {
@@ -871,15 +912,13 @@ describe("cluster deployment Review", () => {
         step: "MASTERS",
       }),
     })));
+    await waitFor(() => expect(mocks.jumpToStep).toHaveBeenCalledWith(5));
     expect(mocks.handleNextImperitive).not.toHaveBeenCalled();
     expect(mocks.applyClusterConfigs).not.toHaveBeenCalled();
     expect(mocks.registerHostToCluster).not.toHaveBeenCalled();
     expect(mocks.createSelectedServices).not.toHaveBeenCalled();
     expect(mocks.addRequestToCreateComponent).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "DEPLOY" }));
-    await waitFor(() => expect(mocks.handleNextImperitive).toHaveBeenCalledOnce());
-    expect(mocks.registerHostToCluster).not.toHaveBeenCalled();
   });
 
   it("skips exact components and host assignments after a pre-checkpoint response loss", async () => {

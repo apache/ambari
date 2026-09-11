@@ -42,11 +42,15 @@ export default function useClusterNavigate(): NavigateFunction {
       return navigate(to);
     }
     if (typeof to === "string") {
-      return navigate(scopedPath(to), options);
+      const path = scopedPath(to);
+      return options === undefined ? navigate(path) : navigate(path, options);
     }
-    return navigate({
+    const scopedTarget = {
       ...to,
       pathname: to.pathname ? scopedPath(to.pathname) : to.pathname,
-    }, options);
+    };
+    return options === undefined
+      ? navigate(scopedTarget)
+      : navigate(scopedTarget, options);
   }) as NavigateFunction, [navigate, scopedPath]);
 }

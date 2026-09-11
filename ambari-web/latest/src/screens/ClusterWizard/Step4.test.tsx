@@ -28,9 +28,8 @@ const mocks = vi.hoisted(() => ({
   getDraftCandidates: vi.fn(),
   getServiceCandidates: vi.fn(),
   getServicePlanCandidates: vi.fn(),
-  previewDraft: vi.fn(),
+  previewPlan: vi.fn(),
   previewService: vi.fn(),
-  previewServicePlan: vi.fn(),
   onCancel: undefined as undefined | (() => unknown),
   onNext: undefined as undefined | (() => unknown),
   isNextEnabled: false,
@@ -44,9 +43,8 @@ vi.mock("../../api/serviceDependenciesApi", () => ({
     getDraftCandidates: mocks.getDraftCandidates,
     getServiceCandidates: mocks.getServiceCandidates,
     getServicePlanCandidates: mocks.getServicePlanCandidates,
-    previewDraft: mocks.previewDraft,
+    previewPlan: mocks.previewPlan,
     previewService: mocks.previewService,
-    previewServicePlan: mocks.previewServicePlan,
   },
 }));
 vi.mock("../../components/Table", () => ({
@@ -215,7 +213,7 @@ describe("Choose Services stack metadata", () => {
         service_name: "HDFS",
       }] : [],
     ));
-    mocks.previewDraft.mockResolvedValue({
+    mocks.previewPlan.mockResolvedValue({ items: [{
       binding_id: "00000000-0000-4000-8000-000000000001",
       compatible: true,
       consumer: { lifecycle: "DRAFT", planned_hbase_user: "hbase", scope: "DRAFT", service_name: "HBASE" },
@@ -223,7 +221,7 @@ describe("Choose Services stack metadata", () => {
       errors: [],
       preview_schema_version: 1,
       provider: { cluster_id: 41, cluster_name: "storage-east", service_name: "HDFS" },
-    });
+    }] });
     const storeStepDataAndFlush = vi.fn()
       .mockResolvedValueOnce(8)
       .mockResolvedValueOnce(9)
@@ -237,10 +235,16 @@ describe("Choose Services stack metadata", () => {
     fireEvent.click(await screen.findByText("HBase"));
     fireEvent.click(await screen.findByRole("radio", { name: "storage-east / HDFS" }));
 
-    await waitFor(() => expect(mocks.previewDraft).toHaveBeenCalledWith(expect.objectContaining({
-      draftId: "00000000-0000-4000-8000-000000000010",
-      expectedRevision: 9,
-      provider: { cluster_id: 41, service_name: "HDFS" },
+    await waitFor(() => expect(mocks.previewPlan).toHaveBeenCalledWith(expect.objectContaining({
+      consumer: {
+        scope: "DRAFT",
+        draft_id: "00000000-0000-4000-8000-000000000010",
+        expected_revision: 9,
+      },
+      selections: [expect.objectContaining({
+        dependency_type: "HDFS",
+        provider: { cluster_id: 41, service_name: "HDFS" },
+      })],
     })));
     const savedChoice = (storeStepDataAndFlush.mock.calls[1][1] as any).managedDependencies.HDFS;
     expect(savedChoice.mode).toBe("managed");
@@ -269,12 +273,15 @@ describe("Choose Services stack metadata", () => {
         service_name: "HDFS",
       }] : [],
     ));
-    mocks.previewDraft.mockResolvedValue({
+    mocks.previewPlan.mockResolvedValue({ items: [{
+      binding_id: "00000000-0000-4000-8000-000000000001",
       compatible: true,
+      consumer: { lifecycle: "DRAFT", planned_hbase_user: "hbase", scope: "DRAFT", service_name: "HBASE" },
       dependency_type: "HDFS",
       errors: [],
+      preview_schema_version: 1,
       provider: { cluster_id: 41, cluster_name: "storage-east", service_name: "HDFS" },
-    });
+    }] });
     const storeStepDataAndFlush = vi.fn().mockResolvedValue(4);
     renderStep("clusterCreation", vi.fn(), {
       draftId: "00000000-0000-4000-8000-000000000010",
@@ -309,13 +316,15 @@ describe("Choose Services stack metadata", () => {
         service_name: "HDFS",
       }] : [],
     ));
-    mocks.previewServicePlan.mockResolvedValue({
+    mocks.previewPlan.mockResolvedValue({ items: [{
+      binding_id: "00000000-0000-4000-8000-000000000001",
       compatible: true,
       consumer: { cluster_id: 27, lifecycle: "ADD_SERVICE_PLAN", scope: "SERVICE_PLAN", service_name: "HBASE" },
       dependency_type: "HDFS",
       errors: [],
+      preview_schema_version: 1,
       provider: { cluster_id: 41, cluster_name: "storage-east", service_name: "HDFS" },
-    });
+    }] });
     const storeStepDataAndFlush = vi.fn()
       .mockResolvedValueOnce(12)
       .mockResolvedValueOnce(13)
@@ -328,10 +337,16 @@ describe("Choose Services stack metadata", () => {
     fireEvent.click(await screen.findByText("HBase"));
     fireEvent.click(await screen.findByRole("radio", { name: "storage-east / HDFS" }));
 
-    await waitFor(() => expect(mocks.previewServicePlan).toHaveBeenCalledWith(expect.objectContaining({
-      clusterId: 27,
-      expectedRevision: 13,
-      provider: { cluster_id: 41, service_name: "HDFS" },
+    await waitFor(() => expect(mocks.previewPlan).toHaveBeenCalledWith(expect.objectContaining({
+      consumer: {
+        scope: "SERVICE_PLAN",
+        cluster_id: 27,
+        expected_revision: 13,
+      },
+      selections: [expect.objectContaining({
+        dependency_type: "HDFS",
+        provider: { cluster_id: 41, service_name: "HDFS" },
+      })],
     })));
     expect(mocks.getServicePlanCandidates).toHaveBeenCalledWith(expect.objectContaining({
       clusterId: 27,

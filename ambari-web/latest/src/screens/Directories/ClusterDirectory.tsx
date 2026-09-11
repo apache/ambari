@@ -138,10 +138,10 @@ export default function ClusterDirectory() {
           <p className="text-body-secondary mb-0">{t("directory.clustersSubtitle")}</p>
         </div>
         {canCreateCluster ? (
-          <Button as={Link as any} to={createPath} size="sm">
+          <Link className="btn btn-primary btn-sm" to={createPath}>
             <FontAwesomeIcon icon={faPlus} className="me-2" />
             {t("directory.createCluster")}
-          </Button>
+          </Link>
         ) : null}
       </div>
 
@@ -179,14 +179,12 @@ export default function ClusterDirectory() {
                       {t(clusterCreationDraftPhaseKey(draft.phase))}
                     </span>
                   </div>
-                  <Button
-                    as={Link as any}
-                    size="sm"
+                  <Link
+                    className="btn btn-outline-primary btn-sm"
                     to={clusterDraftPath(draft.draft_id)}
-                    variant="outline-primary"
                   >
                     {t("common.resume")}
-                  </Button>
+                  </Link>
                 </div>
               ))}
             </div>
