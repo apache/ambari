@@ -28,8 +28,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;

@@ -30,17 +30,19 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 
-import org.apache.ambari.server.controller.dependencies.ManagedDependencyDeploymentCoordinator;
-import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyDeploymentCoordinator;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyType;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ConsumerReference;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.PreviewSelection;
+import org.apache.ambari.server.utils.StageUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
+import io.swagger.annotations.ApiOperation;
 
 @StaticallyInject
 public class ManagedServiceDependencyService {
@@ -59,6 +61,7 @@ public class ManagedServiceDependencyService {
   }
 
   @GET
+  @ApiOperation(value = "Lists managed dependencies for a service")
   public Response list() {
     return ManagedDependencyApiSupport.invoke(
         () -> Map.of("items", coordinator.get().list(clusterName, serviceName)));
@@ -66,6 +69,7 @@ public class ManagedServiceDependencyService {
 
   @GET
   @Path("/candidates")
+  @ApiOperation(value = "Lists candidate providers for a managed dependency")
   public Response candidates(@QueryParam("type") String dependencyType) {
     return ManagedDependencyApiSupport.invoke(() -> {
       long clusterId = coordinator.get().consumerClusterId(clusterName, serviceName);
@@ -76,6 +80,7 @@ public class ManagedServiceDependencyService {
 
   @POST
   @Path("/preview")
+  @ApiOperation(value = "Previews a managed dependency")
   public Response preview(String body) {
     return ManagedDependencyApiSupport.invoke(() -> {
       JsonNode root = ManagedDependencyApiSupport.body(body,
@@ -105,6 +110,7 @@ public class ManagedServiceDependencyService {
   }
 
   @POST
+  @ApiOperation(value = "Creates a managed dependency")
   public Response create(String body) {
     return ManagedDependencyApiSupport.accepted(() -> {
       List<org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.CreateRequest>
@@ -117,6 +123,7 @@ public class ManagedServiceDependencyService {
 
   @POST
   @Path("/deployments/{deploymentId}")
+  @ApiOperation(value = "Launches a managed dependency deployment")
   public Response launchDeployment(@PathParam("deploymentId") String deploymentId, String body) {
     return ManagedDependencyApiSupport.accepted(() -> {
       coordinator.get().consumerClusterId(clusterName, serviceName);
@@ -148,6 +155,7 @@ public class ManagedServiceDependencyService {
 
   @GET
   @Path("/deployments/{deploymentId}")
+  @ApiOperation(value = "Returns a managed dependency deployment")
   public Response getDeployment(@PathParam("deploymentId") String deploymentId) {
     return ManagedDependencyApiSupport.invoke(() -> {
       coordinator.get().consumerClusterId(clusterName, serviceName);
@@ -157,6 +165,7 @@ public class ManagedServiceDependencyService {
 
   @POST
   @Path("/deployments/{deploymentId}/actions/retry")
+  @ApiOperation(value = "Retries a managed dependency deployment")
   public Response retryDeployment(@PathParam("deploymentId") String deploymentId, String body) {
     return ManagedDependencyApiSupport.accepted(() -> {
       coordinator.get().consumerClusterId(clusterName, serviceName);
@@ -168,6 +177,7 @@ public class ManagedServiceDependencyService {
 
   @POST
   @Path("/{bindingId}/actions/verify-credentials")
+  @ApiOperation(value = "Verifies managed dependency credentials")
   public Response verifyCredentials(@PathParam("bindingId") String bindingId, String body) {
     return ManagedDependencyApiSupport.accepted(() -> {
       JsonNode root = ManagedDependencyApiSupport.body(body, Set.of("expected_epoch"));
@@ -181,6 +191,7 @@ public class ManagedServiceDependencyService {
 
   @GET
   @Path("/{bindingId}")
+  @ApiOperation(value = "Returns a managed dependency")
   public Response get(@PathParam("bindingId") String bindingId) {
     return ManagedDependencyApiSupport.invoke(() -> coordinator.get().get(clusterName, serviceName,
         ManagedDependencyApiSupport.uuid(bindingId)));
@@ -188,6 +199,7 @@ public class ManagedServiceDependencyService {
 
   @GET
   @Path("/{bindingId}/preview-update")
+  @ApiOperation(value = "Previews a managed dependency update")
   public Response previewUpdate(@PathParam("bindingId") String bindingId) {
     return ManagedDependencyApiSupport.invoke(() -> coordinator.get().previewUpdate(
         clusterName, serviceName, ManagedDependencyApiSupport.uuid(bindingId)));
@@ -195,6 +207,7 @@ public class ManagedServiceDependencyService {
 
   @POST
   @Path("/{bindingId}/actions/update")
+  @ApiOperation(value = "Updates a managed dependency")
   public Response update(@PathParam("bindingId") String bindingId, String body) {
     return ManagedDependencyApiSupport.accepted(() -> coordinator.get().update(
         clusterName, serviceName, ManagedDependencyApiSupport.uuid(bindingId),
@@ -203,6 +216,7 @@ public class ManagedServiceDependencyService {
 
   @POST
   @Path("/{bindingId}/actions/retry")
+  @ApiOperation(value = "Retries a managed dependency operation")
   public Response retry(@PathParam("bindingId") String bindingId, String body) {
     return ManagedDependencyApiSupport.accepted(() -> coordinator.get().retry(
         clusterName, serviceName, ManagedDependencyApiSupport.uuid(bindingId),
@@ -211,6 +225,7 @@ public class ManagedServiceDependencyService {
 
   @DELETE
   @Path("/{bindingId}")
+  @ApiOperation(value = "Detaches a managed dependency")
   public Response detach(@PathParam("bindingId") String bindingId, String body) {
     return ManagedDependencyApiSupport.accepted(() -> coordinator.get().detach(
         clusterName, serviceName, ManagedDependencyApiSupport.uuid(bindingId),

@@ -25,17 +25,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
-import java.util.function.Supplier;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.ambari.server.events.TaskUpdateEvent;
-import org.apache.ambari.server.events.publishers.TaskEventPublisher;
-
-import com.google.common.eventbus.Subscribe;
+import java.util.function.Supplier;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -46,6 +40,8 @@ import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestResourceProvider;
+import org.apache.ambari.server.events.TaskUpdateEvent;
+import org.apache.ambari.server.events.publishers.TaskEventPublisher;
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO;
 import org.apache.ambari.server.orm.entities.ServiceDependencyBindingEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyHostResultEntity;
@@ -65,6 +61,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;

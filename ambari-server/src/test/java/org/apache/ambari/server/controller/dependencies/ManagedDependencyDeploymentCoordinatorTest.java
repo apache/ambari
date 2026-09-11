@@ -17,24 +17,50 @@
  */
 package org.apache.ambari.server.controller.dependencies;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import org.apache.ambari.server.actionmanager.*;
-import org.apache.ambari.server.controller.*;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.actionmanager.Request;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyDeploymentCoordinator.Target;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.orm.dao.ServiceDependencyDAO;
+import org.apache.ambari.server.orm.dao.ServiceDependencyDeploymentDAO;
+import org.apache.ambari.server.orm.entities.ServiceDependencyBindingEntity;
+import org.apache.ambari.server.orm.entities.ServiceDependencyDeploymentEntity;
+import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.security.authorization.*;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.User;
+import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.utils.StageUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -150,8 +176,10 @@ class ManagedDependencyDeploymentCoordinatorTest {
     var metadata = new org.apache.ambari.server.metadata.ActionMetadata();
     metadata.addServiceCheckAction("HBASE");
     metadata.addServiceCheckAction("ZOOKEEPER");
-    return new ManagedDependencyDeploymentCoordinator(deployments, dependencies, clusters, users,
-        () -> actions, () -> controller, providers, () -> bindings, metadata);
+    var result = new ManagedDependencyDeploymentCoordinator(deployments, dependencies, clusters, users,
+        () -> actions, () -> controller, () -> bindings, metadata);
+    result.setResourceProviderFactory(providers);
+    return result;
   }
 
   private void request(String state, String phase, Long requestId, long ownerCluster, HostRoleStatus status) {

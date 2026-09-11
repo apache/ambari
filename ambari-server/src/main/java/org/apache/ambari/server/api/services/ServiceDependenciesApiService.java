@@ -32,12 +32,13 @@ import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.dependencies.ManagedDependencyType;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ConsumerReference;
-import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ProviderReference;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.PreviewSelection;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+
+import io.swagger.annotations.ApiOperation;
 
 @StaticallyInject
 @Path("/service-dependencies")
@@ -47,6 +48,7 @@ public class ServiceDependenciesApiService {
 
   @GET
   @Path("/candidates")
+  @ApiOperation(value = "Lists candidate providers for a managed dependency")
   public Response candidates(@QueryParam("consumer_scope") String consumerScope,
       @QueryParam("draft_id") String draftId,
       @QueryParam("expected_draft_revision") String revision,
@@ -80,6 +82,7 @@ public class ServiceDependenciesApiService {
 
   @POST
   @Path("/preview")
+  @ApiOperation(value = "Previews a managed dependency")
   public Response preview(String body) {
     return ManagedDependencyApiSupport.invoke(() -> {
       JsonNode root = ManagedDependencyApiSupport.body(body,

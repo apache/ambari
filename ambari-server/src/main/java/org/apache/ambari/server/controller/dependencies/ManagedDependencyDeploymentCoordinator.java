@@ -76,25 +76,29 @@ public class ManagedDependencyDeploymentCoordinator {
   private final Users users;
   private final Provider<ActionManager> actions;
   private final Provider<AmbariManagementController> controller;
-  private final ResourceProviderFactory resourceProviders;
   private final Provider<ManagedServiceDependencyCoordinator> bindings;
   private final ActionMetadata actionMetadata;
+  private ResourceProviderFactory resourceProviders;
   private int recoveryOffset;
 
   @Inject
   public ManagedDependencyDeploymentCoordinator(ServiceDependencyDeploymentDAO deployments,
       ServiceDependencyDAO dependencies, Clusters clusters, Users users, Provider<ActionManager> actions,
-      Provider<AmbariManagementController> controller, ResourceProviderFactory resourceProviders,
-      Provider<ManagedServiceDependencyCoordinator> bindings, ActionMetadata actionMetadata) {
+      Provider<AmbariManagementController> controller, Provider<ManagedServiceDependencyCoordinator> bindings,
+      ActionMetadata actionMetadata) {
     this.deployments = deployments;
     this.dependencies = dependencies;
     this.clusters = clusters;
     this.users = users;
     this.actions = actions;
     this.controller = controller;
-    this.resourceProviders = resourceProviders;
     this.bindings = bindings;
     this.actionMetadata = actionMetadata;
+  }
+
+  @Inject(optional = true)
+  public void setResourceProviderFactory(ResourceProviderFactory resourceProviders) {
+    this.resourceProviders = resourceProviders;
   }
 
   public Map<String, Object> launch(String clusterName, UUID id, List<Target> proposed, boolean installOnly) {
@@ -346,6 +350,9 @@ public class ManagedDependencyDeploymentCoordinator {
     String phase = start ? "START" : "INSTALL";
     Long requestId = null;
     if (!pending.isEmpty()) {
+      if (resourceProviders == null) {
+        throw new AmbariException("The managed deployment resource provider is unavailable");
+      }
       Predicate[] targets = pending.stream().map(target -> new PredicateBuilder()
           .property("HostRoles/cluster_name").equals(cluster.getClusterName()).and()
           .property("HostRoles/service_name").equals(target.serviceName()).and()

@@ -28,6 +28,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -401,7 +402,8 @@ public class StackAdvisorCommandTest {
     String snapshotFingerprint = "sha256:" + "3".repeat(64);
     ManagedServiceDependencyCoordinator coordinator = mock(ManagedServiceDependencyCoordinator.class);
     ProviderReference provider = new ProviderReference(41L, "HDFS");
-    when(coordinator.authorizeAdvisorSelections(ConsumerReference.service(27L), any(List.class)))
+    when(coordinator.authorizeAdvisorSelections(eq(ConsumerReference.service(27L)),
+        any(List.class)))
         .thenReturn(List.of(new AdvisorSelection(
             bindingId, ManagedDependencyType.HDFS, 27L, "HBASE", 41L, "HDFS", 2,
             "BIGTOP", "3.2.0", providerFingerprint, consumerFingerprint, snapshotFingerprint)));

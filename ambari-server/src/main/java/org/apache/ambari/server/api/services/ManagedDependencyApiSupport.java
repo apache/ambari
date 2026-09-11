@@ -18,10 +18,10 @@
 package org.apache.ambari.server.api.services;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -36,9 +36,9 @@ import org.apache.ambari.server.controller.dependencies.ManagedDependencyType;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.CreateRequest;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.DraftReference;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.LifecycleRequest;
-import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.UpdateRequest;
-import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ProviderReference;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.PreviewSelection;
+import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ProviderReference;
+import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.UpdateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

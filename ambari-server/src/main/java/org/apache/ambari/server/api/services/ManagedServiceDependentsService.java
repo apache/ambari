@@ -27,6 +27,8 @@ import org.apache.ambari.server.controller.dependencies.ManagedServiceDependency
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+import io.swagger.annotations.ApiOperation;
+
 @StaticallyInject
 public class ManagedServiceDependentsService {
   @Inject
@@ -43,6 +45,7 @@ public class ManagedServiceDependentsService {
   }
 
   @GET
+  @ApiOperation(value = "Returns dependents or dependency impact for a service")
   public Response get(@QueryParam("action") String action) {
     return ManagedDependencyApiSupport.invoke(() -> impact
         ? coordinator.get().impact(clusterName, serviceName, action)

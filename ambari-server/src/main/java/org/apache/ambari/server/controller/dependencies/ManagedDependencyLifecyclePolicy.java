@@ -25,17 +25,17 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HexFormat;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.dao.ServiceDependencyDAO;
 import org.apache.ambari.server.orm.entities.ServiceDependencyBindingEntity;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -43,7 +43,6 @@ import org.apache.ambari.server.state.State;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 

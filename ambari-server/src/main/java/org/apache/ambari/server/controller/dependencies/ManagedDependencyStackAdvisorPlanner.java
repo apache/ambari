@@ -30,9 +30,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.AdvisorSelection;
+import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.AdvisorSelectionRequest;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ConsumerReference;
 import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.ProviderReference;
-import org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.AdvisorSelectionRequest;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

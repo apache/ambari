@@ -17,12 +17,12 @@
  */
 package org.apache.ambari.server.controller.dependencies;
 
+import static org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.PREVIEW_SCHEMA_VERSION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.apache.ambari.server.controller.dependencies.ManagedServiceDependencyCoordinator.PREVIEW_SCHEMA_VERSION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -62,7 +62,6 @@ import org.apache.ambari.server.orm.entities.ServiceDependencyHostResultEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencyOperationEntity;
 import org.apache.ambari.server.orm.entities.ServiceDependencySnapshotEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
