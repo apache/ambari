@@ -57,6 +57,8 @@ class ConfigDictionary(dict):
       return UnknownConfiguration(name)
 
     value = ensure_decrypted(value)
+    if isinstance(value, bytes):
+      value = value.decode('utf-8')
 
     if value == "true":
       value = True
@@ -66,23 +68,64 @@ class ConfigDictionary(dict):
     return value
 
 
-class UnknownConfiguration:
+class UnknownConfiguration(object):
   """
-  Lazy failing for unknown configs.
+  Lazy failing for unknown config keys,
+  supports nested attribute/item access like Python 2,
+  but fails when used as a real value.
+  Supports when accessed via the subscript operator ([]), attribute access (.),
+  type conversion (str(), int()), or boolean context. It can be extended in future to support other use cases.
   """
 
   def __init__(self, name):
     self.name = name
 
-  def __getattr__(self, name):
+  def __getitem__(self, key):
+    # Keep chaining returning self for nested keys
+    return self
+
+  def __getattr__(self, attr):
+    # Keep chaining returning self for nested attrs
+    if attr.startswith('__') and attr.endswith('__'):
+      # Allow special Python internals to avoid breaking introspection
+      raise AttributeError(attr)
+    return self
+
+  # When used in boolean context, raise error
+  def __bool__(self):
+    # raise Fail(
+    #    f"Configuration parameter '{self.name}' was not found in configurations dictionary!"
+    # )
+    return False
+
+  __nonzero__ = __bool__  # Python 2 compatibility
+
+  # When converted to string, raise error
+  def __str__(self):
     raise Fail(
-      "Configuration parameter '"
-      + self.name
-      + "' was not found in configurations dictionary!"
+      f"Configuration parameter '{self.name}' was not found in configurations dictionary!"
     )
 
-  def __getitem__(self, name):
-    """
-    Allow []
-    """
-    return self
+  def __repr__(self):
+    return f"<UnknownConfiguration {self.name}>"
+
+  # When called as a function, raise error
+  def __call__(self, *args, **kwargs):
+    raise Fail(
+      f"Configuration parameter '{self.name}' was not found in configurations dictionary!"
+    )
+
+  # Add other conversions as needed (int, float, etc.):
+
+  def __int__(self):
+    raise Fail(
+      f"Configuration parameter '{self.name}' was not found in configurations dictionary!"
+    )
+
+  def __float__(self):
+    raise Fail(
+      f"Configuration parameter '{self.name}' was not found in configurations dictionary!"
+    )
+
+  def __contains__(self, item):
+    return False
