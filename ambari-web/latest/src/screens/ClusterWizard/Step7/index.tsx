@@ -167,6 +167,72 @@ export const findInitialConfigurationTab = (disabledTabs: string[]) => {
   return "allConfigurations";
 };
 
+/**
+ * Add alert notification properties
+ * Note: In add service wizard, notification properties should not be added (matching Ember.js behavior)
+ */
+export const addAlertNotificationProperties = (
+  wizardName: string,
+  updatedConfigProperties: ConfigPropertiesType,
+): ConfigPropertiesType => {
+  // Skip adding notification properties in add service wizard
+  // This matches Ember.js behavior where Notifications category is removed from MISC in addServiceController
+  if (wizardName === "addService") {
+    return updatedConfigProperties;
+  }
+
+  // Create a deep clone to avoid modifying the original
+  const result = cloneDeep(updatedConfigProperties);
+
+  alert_notifications.forEach((property) => {
+    const {
+      serviceName,
+      name,
+      category,
+      displayName,
+      displayType,
+      filename,
+      isVisible,
+      isRequired,
+    } = property;
+
+    if (!result[serviceName]) {
+      result[serviceName] = {};
+    }
+    if (!result[serviceName][category]) {
+      result[serviceName][category] = {
+        errors: 0,
+        properties: {},
+      };
+    }
+
+    if (isVisible) {
+      result[serviceName][category].properties[name] = {
+        propertyName: name,
+        propertyDisplayname: displayName || "",
+        propertyValue: "",
+        propertyAttributes: {
+          type: displayType || "string",
+          overridable: false,
+          // Mirrors classic's alert_notification.js: every Notifications field is
+          // optional until notification_configs_view.js's opt-in toggle flips it
+          // (that toggle isn't ported here, so these stay permanently optional).
+          empty_value_valid: !isRequired,
+        },
+        previousValue: "",
+        value: displayType === "checkbox" ? "false" : "",
+        final: "false",
+        savedFinal: "false",
+        fileName: filename,
+        type: filename,
+        isEditable: true,
+      };
+    }
+  });
+
+  return result;
+};
+
 const preserveEditedConfigValues = (
   nextConfigs: ConfigPropertiesType,
   currentConfigs: ConfigPropertiesType,
@@ -1570,66 +1636,6 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
   };
 
   /**
-   * Add alert notification properties
-   * Note: In add service wizard, notification properties should not be added (matching Ember.js behavior)
-   */
-  const addAlertNotificationProperties = (
-    updatedConfigProperties: ConfigPropertiesType
-  ) => {
-    // Skip adding notification properties in add service wizard
-    // This matches Ember.js behavior where Notifications category is removed from MISC in addServiceController
-    if (wizardName === "addService") {
-      return updatedConfigProperties;
-    }
-
-    // Create a deep clone to avoid modifying the original
-    const result = cloneDeep(updatedConfigProperties);
-
-    alert_notifications.forEach((property) => {
-      const {
-        serviceName,
-        name,
-        category,
-        displayName,
-        displayType,
-        filename,
-        isVisible,
-      } = property;
-
-      if (!result[serviceName]) {
-        result[serviceName] = {};
-      }
-      if (!result[serviceName][category]) {
-        result[serviceName][category] = {
-          errors: 0,
-          properties: {},
-        };
-      }
-
-      if (isVisible) {
-        result[serviceName][category].properties[name] = {
-          propertyName: name,
-          propertyDisplayname: displayName || "",
-          propertyValue: "",
-          propertyAttributes: {
-            type: displayType || "string",
-            overridable: false,
-          },
-          previousValue: "",
-          value: displayType === "checkbox" ? "false" : "",
-          final: "false",
-          savedFinal: "false",
-          fileName: filename,
-          type: filename,
-          isEditable: true,
-        };
-      }
-    });
-
-    return result;
-  };
-
-  /**
    * Process stack level configurations
    */
   const processStackLevelConfigurations = async (
@@ -2327,7 +2333,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
       updatedConfigProperties = addServiceConfigCategories(configPropertiesCopy, updatedConfigProperties);
       updatedConfigProperties = organizePropertiesByCategories(configPropertiesCopy, updatedConfigProperties);
       updatedConfigProperties = addRemainingProperties(configPropertiesCopy, updatedConfigProperties);
-      updatedConfigProperties = addAlertNotificationProperties(updatedConfigProperties);
+      updatedConfigProperties = addAlertNotificationProperties(wizardName, updatedConfigProperties);
       updatedConfigProperties = await processStackLevelConfigurations(updatedConfigProperties);
       updatedConfigProperties = onLoadOverrides(updatedConfigProperties);
       updatedConfigProperties = initializeValues(updatedConfigProperties);
@@ -2526,7 +2532,7 @@ export default function Step7({ wizardName = "clusterCreation" }: PropTypes) {
     if (wizardName === "addService") {
       const nextStep = nextAddServiceStep(4, addServiceFlow);
       await Promise.resolve(flushStateToDb("jump", nextStep));
-      jumpToStep(nextStep);
+      jumpToStep(nextStep, true);
     } else {
       await Promise.resolve(flushStateToDb("next"));
       handleNextImperitive();

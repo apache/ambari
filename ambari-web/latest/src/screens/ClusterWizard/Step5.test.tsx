@@ -17,8 +17,8 @@
  */
 
 import { createContext } from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ContextWrapper } from ".";
 
 const mocks = vi.hoisted(() => ({
@@ -51,6 +51,7 @@ describe("Assign Masters validation", () => {
     vi.clearAllMocks();
     mocks.flushStateToDb.mockResolvedValue(undefined);
   });
+  afterEach(() => cleanup());
 
   it("requires Continue Anyway before advancing with matching issues", async () => {
     const value = {
@@ -102,6 +103,42 @@ describe("Assign Masters validation", () => {
     await waitFor(() => {
       expect(mocks.flushStateToDb).toHaveBeenCalledWith("next");
       expect(mocks.handleNextImperitive).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("jumps forward with isImperitiveJump=true when advancing the Add Service wizard (AMBARI-26657)", async () => {
+    const jumpToStep = vi.fn();
+    const value = {
+      state: {
+        addServiceSteps: {
+          SERVICES: { data: { services: {}, addServiceFlow: {} } },
+        },
+      },
+      dispatch: vi.fn(),
+      flushStateToDb: mocks.flushStateToDb,
+      installedHosts: [],
+      installedServices: [],
+      stepWizardUtilities: {
+        currentStep: { canGoBack: true, name: "MASTERS" },
+        handleNextImperitive: mocks.handleNextImperitive,
+        handleBackImperitive: vi.fn(),
+        jumpToStep,
+      },
+    };
+    const WizardContext = createContext(value);
+
+    render(
+      <ContextWrapper.Provider value={{ Context: WizardContext }}>
+        <WizardContext.Provider value={value}>
+          <Step5 wizardName="addService" />
+        </WizardContext.Provider>
+      </ContextWrapper.Provider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "NEXT" }));
+
+    await waitFor(() => {
+      expect(jumpToStep).toHaveBeenCalledWith(3, true);
     });
   });
 });

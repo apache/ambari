@@ -193,7 +193,21 @@ export default function Step1({ wizardName = "clusterCreation" }) {
         }
         const definitions: VersionDefinitionResponse =
           await VersionsApi.getVersionDefinitions(stackName);
-        const sortedItems = [...(definitions.items || [])].sort((a: any, b: any) => {
+        // Ambari's /version_definitions advertises the same repository_version
+        // twice for a stack line that already has one: once as the generic
+        // "<stack>-<stack_version>" default (stack_default=true) and once as
+        // the more specific "<stack>-<stack_version>-<repository_version>"
+        // alias (stack_default=false) - both resolve to the same install.
+        // Keep one tab per repository_version, preferring the default entry.
+        const dedupedByRepoVersion = new Map<string, any>();
+        (definitions.items || []).forEach((item: any) => {
+          const key = item.VersionDefinition.repository_version || item.VersionDefinition.id;
+          const existing = dedupedByRepoVersion.get(key);
+          if (!existing || (item.VersionDefinition.stack_default && !existing.VersionDefinition.stack_default)) {
+            dedupedByRepoVersion.set(key, item);
+          }
+        });
+        const sortedItems = Array.from(dedupedByRepoVersion.values()).sort((a: any, b: any) => {
           const versionA = parseFloat(a.VersionDefinition.id.split("-")[1]);
           const versionB = parseFloat(b.VersionDefinition.id.split("-")[1]);
 
