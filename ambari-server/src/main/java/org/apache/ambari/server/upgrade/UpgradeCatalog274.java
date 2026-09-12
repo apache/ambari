@@ -31,7 +31,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 /**
- * The {@link UpgradeCatalog274} upgrades Ambari from 2.7.2 to 2.7.4.
+ * The {@link UpgradeCatalog274} upgrades Ambari from 2.7.3 to 2.7.4.
  */
 public class UpgradeCatalog274 extends AbstractUpgradeCatalog {
 
@@ -48,7 +48,7 @@ public class UpgradeCatalog274 extends AbstractUpgradeCatalog {
 
   @Override
   public String getSourceVersion() {
-    return "2.7.2";
+    return "2.7.3";
   }
 
   /**
@@ -86,7 +86,7 @@ public class UpgradeCatalog274 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    // no actions needed
+    addNewConfigurationsFromXml();
   }
 
 
