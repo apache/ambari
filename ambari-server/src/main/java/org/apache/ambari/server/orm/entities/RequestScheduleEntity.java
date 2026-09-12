@@ -41,7 +41,10 @@ import jakarta.persistence.TableGenerator;
     "SELECT reqSchedule FROM RequestScheduleEntity reqSchedule"),
   @NamedQuery(name = "reqScheduleByStatus", query =
     "SELECT reqSchedule FROM RequestScheduleEntity reqSchedule " +
-      "WHERE reqSchedule.status=:status")
+      "WHERE reqSchedule.status=:status"),
+  @NamedQuery(name = "RequestScheduleEntity.findAllReqScheduleIdsInClusterBeforeDate", query =
+      "SELECT reqSchedule.scheduleId FROM RequestScheduleEntity reqSchedule WHERE reqSchedule.clusterId = :clusterId AND reqSchedule.updateTimestamp <= :beforeDate"),
+  @NamedQuery(name = "RequestScheduleEntity.removeByScheduleIds", query = "DELETE FROM RequestScheduleEntity reqSchedule WHERE reqSchedule.scheduleId IN :scheduleIds")
 })
 @TableGenerator(name = "schedule_id_generator",
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
