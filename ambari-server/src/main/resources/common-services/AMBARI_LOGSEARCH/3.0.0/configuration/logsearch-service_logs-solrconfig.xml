@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<!-- This is a special config file for properties used to monitor status of the service -->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>logsearch_service_logs_max_retention</name>
+    <value>7</value>
+    <display-name>Max retention</display-name>
+    <description>Days to retain the service logs in Solr</description>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_service_logs_merge_factor</name>
+    <value>5</value>
+    <display-name>Merge factor</display-name>
+    <description>The mergeFactor value tells Lucene how many segments of equal size to build before merging them into a
+      single segment. High value merge factor (e.g. 25) improves indexing speed, but slows down searching. Low value
+      (e.g. 5) improves searching, but slows down indexing.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- solrconfig.xml -->
+  <property>
+    <name>content</name>
+    <display-name>solrconfig template</display-name>
+    <description>This is the jinja template for solrconfig.xml file for service logs</description>
+    <value/>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>service_logs-solrconfig.xml.j2</property-file-name>
+      <property-file-type>xml</property-file-type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>
