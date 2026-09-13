@@ -78,7 +78,7 @@ requests, and cross-user recovery.
 | Feature ID | Status | React implementation and evidence |
 | --- | --- | --- |
 | RMHA-ENTRY-001 | `MATCH` | `Services/Actions.tsx` and `resourceManager/index.tsx` expose the YARN action only with `SERVICE.ENABLE_HA` and persisted-data authorization; `RoutesList.tsx` repeats both guards. |
-| RMHA-ENTRY-002 | `MATCH` | `resourceManager/index.tsx` disables while topology loads or fails, on one host, missing RM, `INIT`, or `INSTALL_FAILED`, while a stopped installed RM remains clickable for the combined validation dialog. Covered by `resourceManager/index.test.tsx`. |
+| RMHA-ENTRY-002 | `MATCH` | `resourceManager/index.tsx` disables while topology loads or fails, on one host, missing RM, `INIT`, or `INSTALL_FAILED`, while a stopped installed RM remains clickable for the combined validation dialog. `resourceManager/index.test.tsx` controls topology completion, flushes the dropdown event-handler effect, and verifies that loading blocks clicks and readiness permits exactly one navigation. |
 | RMHA-ENTRY-003 | `MATCH` | `getRmHaEnablementErrors` aggregates STARTED RM, three ZooKeeper Server, and three-host failures. `ValidateEnablement.tsx` displays all results and `rmHaUtils.test.ts` covers aggregation. |
 | RMHA-ENTRY-004 | `MATCH` | Live component topology hides fresh entry when more than one RM exists; React exposes no misleading Disable action. Entry and route tests cover hidden and mapped-route states. |
 | RMHA-ENTRY-005 | `MATCH` | `Hosts/utils.tsx#isMasterAddableOnlyOnHA` excludes `RESOURCEMANAGER` from ordinary Add Component; only this wizard installs it. |

@@ -19,11 +19,11 @@
 import {
   act,
   cleanup,
-  fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { AppContext } from "../../../../store/context";
@@ -208,14 +208,21 @@ describe("ResourceManager HA service action", () => {
   });
 
   it("navigates to the first wizard step when the enabled action is clicked", async () => {
-    mocks.getClusterComponents.mockResolvedValue(
-      componentResponse(["STARTED"]),
-    );
+    const user = userEvent.setup();
+    const request = deferred<ReturnType<typeof componentResponse>>();
+    mocks.getClusterComponents.mockReturnValue(request.promise);
     renderAction();
-    await waitFor(() => expectEnabled(getAction()));
 
-    fireEvent.click(getAction());
+    expectDisabled(getAction());
+    await user.click(getAction());
+    expect(mocks.navigate).not.toHaveBeenCalled();
 
+    // Flush the topology update and the dropdown's committed event handler.
+    await act(async () => request.resolve(componentResponse(["STARTED"])));
+    expectEnabled(getAction());
+    await user.click(getAction());
+
+    expect(mocks.navigate).toHaveBeenCalledTimes(1);
     expect(mocks.navigate).toHaveBeenCalledWith(
       "/main/services/highAvailability/ResourceManager/enable/step1",
     );
