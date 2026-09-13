@@ -170,7 +170,7 @@ pipeline {
                         sh 'flock "$HOME/.m2/.frontend-install.lock" mvn -B -f contrib/views/capacity-scheduler/pom.xml com.github.eirslett:frontend-maven-plugin:1.11.0:install-node-and-npm@install-node-and-npm'
                         dir('contrib/views/capacity-scheduler/src/main/resources/ui') {
                             sh './node/node ./node/node_modules/npm/bin/npm-cli.js ci --no-audit --no-fund'
-                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js test -- --maxWorkers=4'
+                            sh './node/node ./node/node_modules/npm/bin/npm-cli.js test -- --minWorkers=1 --maxWorkers=4'
                             sh './node/node ./node/node_modules/npm/bin/npm-cli.js run build'
                         }
                     }
