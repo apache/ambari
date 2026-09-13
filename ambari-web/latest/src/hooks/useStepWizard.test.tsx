@@ -16,8 +16,11 @@
  * limitations under the License.
  */
 
+import { act, renderHook } from "@testing-library/react";
+import type { PropsWithChildren } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import {
+import useStepWizard, {
   getAdjacentVisibleStep,
   getVisibleStepNumbers,
 } from "./useStepWizard";
@@ -46,5 +49,41 @@ describe("step wizard navigation", () => {
     expect(getAdjacentVisibleStep(steps, 1, 1)).toBe(3);
     expect(getAdjacentVisibleStep(steps, 5, -1)).toBe(3);
     expect(getAdjacentVisibleStep(steps, 2, 1)).toBe(3);
+  });
+});
+
+describe("jumpToStep forward-jump gating (AMBARI-26657)", () => {
+  function wrapper({ children }: PropsWithChildren) {
+    return <MemoryRouter>{children}</MemoryRouter>;
+  }
+
+  const threeSteps = () => ({
+    0: step(),
+    1: step(),
+    2: step(),
+  });
+
+  it("does not advance on a forward jump called without isImperitiveJump", () => {
+    const { result } = renderHook(() => useStepWizard(threeSteps(), 0), {
+      wrapper,
+    });
+
+    act(() => {
+      result.current.jumpToStep(2);
+    });
+
+    expect(result.current.activeStep).toBe(0);
+  });
+
+  it("advances on a forward jump called with isImperitiveJump=true", () => {
+    const { result } = renderHook(() => useStepWizard(threeSteps(), 0), {
+      wrapper,
+    });
+
+    act(() => {
+      result.current.jumpToStep(2, true);
+    });
+
+    expect(result.current.activeStep).toBe(2);
   });
 });
