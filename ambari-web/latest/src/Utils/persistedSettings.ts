@@ -31,6 +31,36 @@ export function parsePersistedValue<T>(value: unknown, fallback: T): T {
   }
 }
 
+/**
+ * GET /persist serializes Map<String, String>, so every value comes back as the
+ * raw string it was stored as - anything written with JSON.stringify stays
+ * encoded. (GET /persist/<key> returns that lone value as the whole body, which
+ * axios parses for us, which is why the per-key reads never needed this.) Decode
+ * a single value, leaving anything that was never JSON - USER_REDIRECTION_URL,
+ * for instance - as the plain string it is.
+ */
+export function decodePersistedValue(value: unknown): unknown {
+  if (typeof value !== "string") {
+    return value;
+  }
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+/** Decode every value of the aggregate GET /persist response. */
+export function decodePersistedMap(data: unknown): unknown {
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    return data;
+  }
+  return Object.fromEntries(
+    Object.entries(data as Record<string, unknown>)
+      .map(([key, value]) => [key, decodePersistedValue(value)]),
+  );
+}
+
 export function persistedPayload(values: Record<string, unknown>): Record<string, string> {
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => [key, JSON.stringify(value)]),
