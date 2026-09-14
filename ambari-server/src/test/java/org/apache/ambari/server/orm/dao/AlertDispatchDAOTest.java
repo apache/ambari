@@ -60,6 +60,7 @@ import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
@@ -115,7 +116,10 @@ public class AlertDispatchDAOTest {
     // !!! need a synchronous op for testing
     EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
 
-    m_cluster = m_clusters.getClusterById(m_helper.createCluster());
+    StackId stackId = new StackId("HDP", "2.0.6");
+    m_helper.createStack(stackId);
+    m_clusters.addCluster("alert-dispatch-test", stackId);
+    m_cluster = m_clusters.getCluster("alert-dispatch-test");
     m_helper.initializeClusterWithStack(m_cluster);
   }
 
