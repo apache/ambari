@@ -53,12 +53,19 @@ export function clusterProvisioningRedirect({
     }
   }
   if (
-    clusterName
-    && clusterInstalled === false
+    clusterInstalled === false
     && pathname.startsWith("/main")
     && !pathname.startsWith("/main/view")
   ) {
-    return canAddDeleteClusters ? "/installer/step0" : "/main/view";
+    if (!canAddDeleteClusters) {
+      return "/main/view";
+    }
+    // A cluster that exists but is not INSTALLED has an installer session to resume.
+    // With no cluster at all there is nothing to resume, so defer to the landing
+    // decision, which sends the user to the admin view to create one. Previously this
+    // whole branch required a cluster name, so a user with no cluster could sit in the
+    // main UI with nothing to show.
+    return clusterName ? "/installer/step0" : "/";
   }
   return null;
 }

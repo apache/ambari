@@ -89,6 +89,21 @@ describe("application landing policy", () => {
       clusterName: "c1",
       pathname: "/installer/step3",
     }, "/main/view"],
+    // Mid-install the wizard must be left alone. The cluster is only created near the
+    // end of the wizard, so an authorized user sits in /installer with no cluster at
+    // all for most of it - that must not be redirected anywhere.
+    [{
+      canAddDeleteClusters: true,
+      clusterInstalled: false,
+      clusterName: undefined,
+      pathname: "/installer/step3",
+    }, null],
+    [{
+      canAddDeleteClusters: true,
+      clusterInstalled: false,
+      clusterName: "c1",
+      pathname: "/installer/step3",
+    }, null],
     [{
       canAddDeleteClusters: true,
       clusterInstalled: false,
@@ -112,6 +127,40 @@ describe("application landing policy", () => {
       clusterInstalled: false,
       clusterName: "c1",
       pathname: "/main/views/TEZ/1.0/INSTANCE",
+    }, null],
+    // No cluster created yet: the main UI has nothing to show, so the user must be
+    // sent back to the landing decision rather than left sitting in it.
+    [{
+      canAddDeleteClusters: true,
+      clusterInstalled: false,
+      clusterName: undefined,
+      pathname: "/main/dashboard/metrics",
+    }, "/"],
+    [{
+      canAddDeleteClusters: true,
+      clusterInstalled: false,
+      clusterName: "",
+      pathname: "/main/dashboard/metrics",
+    }, "/"],
+    [{
+      canAddDeleteClusters: false,
+      clusterInstalled: false,
+      clusterName: undefined,
+      pathname: "/main/dashboard/metrics",
+    }, "/main/view"],
+    // Views stay reachable with no cluster, so the redirect cannot ping-pong.
+    [{
+      canAddDeleteClusters: true,
+      clusterInstalled: false,
+      clusterName: undefined,
+      pathname: "/main/view",
+    }, null],
+    // Still nothing to do while the cluster state is unknown.
+    [{
+      canAddDeleteClusters: true,
+      clusterInstalled: undefined,
+      clusterName: undefined,
+      pathname: "/main/dashboard/metrics",
     }, null],
   ])("applies the incomplete-cluster Views/Installer policy", (input, expected) => {
     expect(clusterProvisioningRedirect(input)).toBe(expected);
