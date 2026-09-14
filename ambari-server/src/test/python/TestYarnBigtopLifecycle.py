@@ -793,12 +793,12 @@ class TestRegistryDnsContract(unittest.TestCase):
     self.assertEqual(
       [
         call(
-          self.status.yarn_registry_dns_pid_file,
-          "yarn",
+          self.status.yarn_registry_dns_wrapper_pid_file,
+          "root",
           "registrydns",
-          "yarn",
+          "root",
           "hadoop",
-          False,
+          True,
         ),
         call(
           self.status.yarn_registry_dns_secure_pid_file,
@@ -809,16 +809,30 @@ class TestRegistryDnsContract(unittest.TestCase):
           True,
         ),
         call(
-          self.status.yarn_registry_dns_wrapper_pid_file,
-          "root",
+          self.status.yarn_registry_dns_pid_file,
+          "yarn",
           "registrydns",
-          "root",
+          "yarn",
           "hadoop",
-          True,
+          False,
         ),
       ],
       stop.call_args_list,
     )
+
+  def test_stop_cannot_leave_a_child_respawned_by_the_supervisor(self):
+    running = {"supervisor": True, "daemon": True}
+
+    def terminate(pid_file, *args):
+      if pid_file == self.status.yarn_registry_dns_wrapper_pid_file:
+        running["supervisor"] = False
+      elif pid_file == self.status.yarn_registry_dns_secure_pid_file:
+        running["daemon"] = running["supervisor"]
+
+    with patch.object(YARN_PROCESS_UTILS, "stop_process", side_effect=terminate):
+      YARN_SERVICE._stop_registry_dns_processes(self.params, self.status)
+
+    self.assertEqual({"supervisor": False, "daemon": False}, running)
 
   def test_current_mode_pid_is_preserved_during_transition_cleanup(self):
     with patch.object(YARN_PROCESS_UTILS, "stop_process") as stop:

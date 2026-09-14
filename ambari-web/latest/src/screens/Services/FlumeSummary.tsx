@@ -61,6 +61,7 @@ function FlumeSummary() {
   const {
     backgroundOperations,
     clusterName,
+    runtimeKey,
   } = useContext(AppContext);
   const { masterSlaveClientsData } = useContext(ServiceContext);
   const { isAuthorized } = useAuthorizationPolicy();
@@ -133,7 +134,7 @@ function FlumeSummary() {
           />
         );
       } else {
-        await cachedServiceApi.fetchAllServiceComponents(clusterName);
+        await cachedServiceApi.fetchAllServiceComponents(clusterName, runtimeKey);
         removePendingAgent(agent.id);
       }
     } catch (error) {
@@ -181,7 +182,7 @@ function FlumeSummary() {
           [pending.agent.id]: { ...pending, refreshing: true },
         }));
         void cachedServiceApi
-          .fetchAllServiceComponents(clusterName)
+          .fetchAllServiceComponents(clusterName, runtimeKey)
           .finally(() => removePendingAgent(pending.agent.id));
       } else {
         removePendingAgent(pending.agent.id);

@@ -128,6 +128,11 @@ describe('App.WizardStep8Controller', function () {
 
   beforeEach(function () {
     installerStep8Controller = getController();
+    sinon.stub(App.scopedWorkflowPersistence, 'getCreationDraftId').returns('11111111-1111-4111-8111-111111111111');
+  });
+
+  afterEach(function () {
+    App.scopedWorkflowPersistence.getCreationDraftId.restore();
   });
 
   App.TestAliases.testAsComputedFilterBy(getController(), 'installedServices', 'content.services', 'isInstalled', true);
@@ -997,32 +1002,164 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
-  describe('#deleteClusters', function() {
-
-    describe('should call App.ajax.send for each provided clusterName', function() {
-      var clusterNames = ['h1', 'h2', 'h3'];
-      var args;
-      beforeEach(function () {
-        installerStep8Controller.deleteClusters(clusterNames);
-        args = testHelpers.filterAjaxRequests('name', 'common.delete.cluster');
-      });
-
-      it('args', function () {
-        expect(args).to.have.property('length').equal(clusterNames.length);
-      });
-
-      clusterNames.forEach(function(n, i) {
-        it(n, function () {
-          expect(args[i][0].data).to.eql({name: n, isLast: i === clusterNames.length - 1});
-        });
-      });
+  describe('#submitProceed cluster protection', function () {
+    beforeEach(function () {
+      installerStep8Controller.set('content', Em.Object.create({
+        controllerName: 'installerController',
+        cluster: {name: 'target-cluster'}
+      }));
+      sinon.stub(installerStep8Controller, 'getExistingClusterNames').returns($.Deferred().resolve().promise());
+      sinon.stub(installerStep8Controller, 'getExistingVersions', Em.K);
+      sinon.stub(installerStep8Controller, 'showClusterNameCollisionPopup', Em.K);
     });
 
-    it('should clear cluster delete error popup body views', function () {
-      installerStep8Controller.deleteClusters([]);
-      expect(installerStep8Controller.get('clusterDeleteErrorViews')).to.eql([]);
+    afterEach(function () {
+      installerStep8Controller.getExistingClusterNames.restore();
+      installerStep8Controller.getExistingVersions.restore();
+      installerStep8Controller.showClusterNameCollisionPopup.restore();
     });
 
+    it('keeps unrelated clusters and starts deployment', function () {
+      installerStep8Controller.set('clusterNames', Em.A(['existing-cluster']));
+
+      installerStep8Controller.submitProceed();
+
+      expect(installerStep8Controller.getExistingVersions.calledOnce).to.be.true;
+      expect(installerStep8Controller.showClusterNameCollisionPopup.called).to.be.false;
+    });
+
+    it('blocks an exact target collision without starting deployment', function () {
+      installerStep8Controller.set('clusterNames', Em.A(['existing-cluster', 'target-cluster']));
+
+      installerStep8Controller.submitProceed();
+
+      expect(installerStep8Controller.getExistingVersions.called).to.be.false;
+      expect(installerStep8Controller.showClusterNameCollisionPopup.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#areRepositoryDefinitionsCompatible', function () {
+    var definition = function (managed, baseUrl, unique) {
+      return [{
+        OperatingSystems: {
+          ambari_managed_repositories: managed,
+          os_type: 'redhat8'
+        },
+        repositories: [{
+          Repositories: {
+            applicable_services: [],
+            base_url: baseUrl,
+            components: null,
+            distribution: null,
+            mirrors_list: null,
+            repo_id: 'HDP',
+            repo_name: 'HDP',
+            tags: [],
+            unique: unique !== false
+          }
+        }]
+      }];
+    };
+
+    it('reuses identical effective repository settings', function () {
+      expect(installerStep8Controller.areRepositoryDefinitionsCompatible(
+        definition(true, 'https://repo.example/hdp'),
+        definition(true, 'https://repo.example/hdp')
+      )).to.be.true;
+    });
+
+    it('does not reuse a different URL or Satellite ownership mode', function () {
+      expect(installerStep8Controller.areRepositoryDefinitionsCompatible(
+        definition(true, 'https://repo.example/hdp'),
+        definition(false, 'https://repo.example/hdp')
+      )).to.be.false;
+      expect(installerStep8Controller.areRepositoryDefinitionsCompatible(
+        definition(true, 'https://repo.example/hdp'),
+        definition(true, 'https://other.example/hdp')
+      )).to.be.false;
+    });
+
+    it('does not reuse a repository with a different unique flag', function () {
+      expect(installerStep8Controller.areRepositoryDefinitionsCompatible(
+        definition(true, 'https://repo.example/hdp', true),
+        definition(true, 'https://repo.example/hdp', false)
+      )).to.be.false;
+    });
+  });
+
+  describe('#startDeploy atomic repository creation', function () {
+    var installerController;
+    var selectedStack;
+
+    beforeEach(function () {
+      selectedStack = Em.Object.create({isSelected: true});
+      installerController = {
+        getSelectedRepoVersionData: sinon.stub().returns({
+          isXMLdata: true,
+          data: '<repository-version/>'
+        }),
+        postVersionDefinitionFileStep8: sinon.stub().returns(
+          $.Deferred().resolve({id: 101, stackName: 'HDP', stackVersion: '3.0'}).promise()
+        ),
+        prepareInitialRepoForSaving: sinon.stub().returns({
+          operating_systems: [{
+            'OperatingSystems/os_type': 'redhat8',
+            repositories: []
+          }]
+        }),
+        updateRepoOSInfo: sinon.spy()
+      };
+      installerStep8Controller.set('content.controllerName', 'installerController');
+      sinon.stub(App.router, 'get').withArgs('installerController').returns(installerController);
+      sinon.stub(App.Stack, 'find').returns(Em.A([selectedStack]));
+      sinon.stub(installerStep8Controller, '_startDeploy');
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+      App.Stack.find.restore();
+      installerStep8Controller._startDeploy.restore();
+    });
+
+    it('publishes repository settings before visibility and omits the shared PUT', function () {
+      installerStep8Controller.startDeploy();
+
+      expect(installerController.postVersionDefinitionFileStep8.calledWith(
+        true,
+        '<repository-version/>',
+        [{
+          'OperatingSystems/os_type': 'redhat8',
+          repositories: []
+        }]
+      )).to.be.true;
+      expect(selectedStack.get('versionInfoId')).to.equal(101);
+      expect(installerController.updateRepoOSInfo.called).to.be.false;
+      expect(installerStep8Controller._startDeploy.calledOnce).to.be.true;
+    });
+  });
+
+  describe('#getExistingVersions', function () {
+    var stack;
+
+    beforeEach(function () {
+      stack = Em.Object.create({
+        isSelected: true,
+        stackName: 'HDP'
+      });
+      sinon.stub(App.Stack, 'find').returns(Em.A([stack]));
+    });
+
+    afterEach(function () {
+      App.Stack.find.restore();
+    });
+
+    it('loads repository definitions only for the selected stack', function () {
+      installerStep8Controller.getExistingVersions();
+
+      var args = testHelpers.findAjaxRequest('name', 'wizard.stacks_versions_definitions');
+      expect(args).exists;
+      expect(args[0].data).to.eql({stackName: 'HDP'});
+    });
   });
 
   describe('#ajaxQueueFinished', function() {
@@ -1161,7 +1298,12 @@ describe('App.WizardStep8Controller', function () {
         App.set('currentStackVersion', 'HDP-2.3');
         installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: true}}});
         var data = {
-          data: JSON.stringify({ "Clusters": {"version": 'HDPLocal-2.3'}})
+          data: JSON.stringify({
+            "Clusters": {
+              "version": 'HDPLocal-2.3',
+              "creation_draft_id": '11111111-1111-4111-8111-111111111111'
+            }
+          })
         };
         installerStep8Controller.createCluster();
         expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.equal(data.data);
@@ -1171,10 +1313,28 @@ describe('App.WizardStep8Controller', function () {
         App.set('currentStackVersion', 'HDP-2.3');
         installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: false}}});
         var data = {
-          data: JSON.stringify({ "Clusters": {"version": 'HDP-2.3'}})
+          data: JSON.stringify({
+            "Clusters": {
+              "version": 'HDP-2.3',
+              "creation_draft_id": '11111111-1111-4111-8111-111111111111'
+            }
+          })
         };
         installerStep8Controller.createCluster();
         expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data.data).to.eql(data.data);
+      });
+
+      it('does not enqueue cluster creation without a verified draft identity', function () {
+        App.scopedWorkflowPersistence.getCreationDraftId.restore();
+        sinon.stub(App.scopedWorkflowPersistence, 'getCreationDraftId').returns(null);
+        sinon.stub(App, 'showAlertPopup');
+        installerStep8Controller.reopen({content: {controllerName: 'installerController', installOptions: {localRepo: false}}});
+
+        installerStep8Controller.createCluster();
+
+        expect(installerStep8Controller.addRequestToAjaxQueue.called).to.be.false;
+        expect(App.showAlertPopup.calledOnce).to.be.true;
+        App.showAlertPopup.restore();
       });
     });
 
@@ -1819,126 +1979,6 @@ describe('App.WizardStep8Controller', function () {
 
       });
 
-    });
-
-  });
-
-  App.TestAliases.testAsComputedEqualProperties(getController(), 'isAllClusterDeleteRequestsCompleted', 'clusterDeleteRequestsCompleted', 'clusterNames.length');
-
-  describe('#deleteClusterSuccessCallback', function () {
-
-    beforeEach(function () {
-      sinon.stub(installerStep8Controller, 'showDeleteClustersErrorPopup', Em.K);
-      sinon.stub(installerStep8Controller, 'getExistingVersions', Em.K);
-      installerStep8Controller.setProperties({
-        clusterDeleteRequestsCompleted: 0,
-        clusterNames: ['c0', 'c1'],
-        clusterDeleteErrorViews: []
-      });
-      installerStep8Controller.deleteClusterSuccessCallback();
-    });
-
-    afterEach(function () {
-      installerStep8Controller.showDeleteClustersErrorPopup.restore();
-      installerStep8Controller.getExistingVersions.restore();
-    });
-
-    describe('no failed requests', function () {
-      it('before Delete Cluster request', function () {
-        expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(1);
-        expect(installerStep8Controller.showDeleteClustersErrorPopup.called).to.be.false;
-        expect(installerStep8Controller.getExistingVersions.called).to.be.false;
-      });
-      it('after Delete Cluster request', function () {
-        installerStep8Controller.deleteClusterSuccessCallback();
-        expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(2);
-        expect(installerStep8Controller.showDeleteClustersErrorPopup.called).to.be.false;
-        expect(installerStep8Controller.getExistingVersions.calledOnce).to.be.true;
-      });
-    });
-
-    it('one request failed', function () {
-      installerStep8Controller.deleteClusterErrorCallback({}, null, null, {});
-      expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(2);
-      expect(installerStep8Controller.showDeleteClustersErrorPopup.calledOnce).to.be.true;
-      expect(installerStep8Controller.getExistingVersions.called).to.be.false;
-    });
-
-  });
-
-  describe('#deleteClusterErrorCallback', function () {
-
-    var request = {
-        status: 500,
-        responseText: '{"message":"Internal Server Error"}'
-      },
-      ajaxOptions = 'error',
-      error = 'Internal Server Error',
-      opt = {
-        url: 'api/v1/clusters/c0',
-        type: 'DELETE'
-      };
-
-    beforeEach(function () {
-      installerStep8Controller.setProperties({
-        clusterDeleteRequestsCompleted: 0,
-        clusterNames: ['c0', 'c1'],
-        clusterDeleteErrorViews: []
-      });
-      sinon.stub(installerStep8Controller, 'showDeleteClustersErrorPopup', Em.K);
-      installerStep8Controller.deleteClusterErrorCallback(request, ajaxOptions, error, opt);
-    });
-
-    afterEach(function () {
-      installerStep8Controller.showDeleteClustersErrorPopup.restore();
-    });
-
-    describe('should show error popup only if all requests are completed', function () {
-      it('Before Delete Cluster request fail', function () {
-        expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(1);
-        expect(installerStep8Controller.showDeleteClustersErrorPopup.called).to.be.false;
-      });
-      it('After Delete Cluster request is failed', function () {
-        installerStep8Controller.deleteClusterErrorCallback(request, ajaxOptions, error, opt);
-        expect(installerStep8Controller.get('clusterDeleteRequestsCompleted')).to.equal(2);
-        expect(installerStep8Controller.showDeleteClustersErrorPopup.calledOnce).to.be.true;
-      });
-    });
-
-    describe('should create error popup body view', function () {
-      it('One failed request', function () {
-        expect(installerStep8Controller.get('clusterDeleteErrorViews')).to.have.length(1);
-      });
-      it('failed request url is valid', function () {
-        expect(installerStep8Controller.get('clusterDeleteErrorViews.firstObject.url')).to.equal('api/v1/clusters/c0');
-      });
-      it('failed request type is valid', function () {
-        expect(installerStep8Controller.get('clusterDeleteErrorViews.firstObject.type')).to.equal('DELETE');
-      });
-      it('failed request status is valid', function () {
-        expect(installerStep8Controller.get('clusterDeleteErrorViews.firstObject.status')).to.equal(500);
-      });
-      it('failed request message is valid', function () {
-        expect(installerStep8Controller.get('clusterDeleteErrorViews.firstObject.message')).to.equal('Internal Server Error');
-      });
-    });
-
-  });
-
-  describe('#showDeleteClustersErrorPopup', function () {
-
-    beforeEach(function () {
-      installerStep8Controller.setProperties({
-        isSubmitDisabled: true,
-        isBackBtnDisabled: true
-      });
-      installerStep8Controller.showDeleteClustersErrorPopup();
-    });
-
-    it('should show error popup and unlock navigation', function () {
-      expect(installerStep8Controller.get('isSubmitDisabled')).to.be.false;
-      expect(installerStep8Controller.get('isBackBtnDisabled')).to.be.false;
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
 
   });

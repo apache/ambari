@@ -36,6 +36,7 @@ import jakarta.ws.rs.core.UriInfo;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.service.metrics.MetricsScopeException;
 import org.apache.ambari.server.service.metrics.PrometheusClientException;
 import org.apache.ambari.server.service.metrics.PrometheusQueryClient;
 import org.slf4j.Logger;
@@ -191,6 +192,9 @@ public class PrometheusApiService {
           }
           itemResult.put("status", "success");
           itemResult.set("result", prometheusResult(response));
+        } catch (AuthorizationException | MetricsScopeException accessException) {
+          return error(accessException,
+              range ? "Prometheus range batch failed" : "Prometheus instant batch failed");
         } catch (Exception itemException) {
           itemResult.put("status", "error");
           itemResult.put("errorType", itemException.getClass().getSimpleName());
@@ -278,10 +282,16 @@ public class PrometheusApiService {
     return value.asText();
   }
 
-  private Response error(Exception exception, String operation) {
+  Response error(Exception exception, String operation) {
     int status = Response.Status.BAD_GATEWAY.getStatusCode();
     String message = operation;
-    if (exception instanceof AuthorizationException) {
+    if (exception instanceof MetricsScopeException) {
+      ObjectNode body = OBJECT_MAPPER.createObjectNode();
+      body.put("code", MetricsScopeException.CODE);
+      body.put("message", exception.getMessage() == null ? operation : exception.getMessage());
+      LOG.warn("{}: {}", operation, MetricsScopeException.CODE);
+      return json(Response.status(422), body);
+    } else if (exception instanceof AuthorizationException) {
       status = Response.Status.FORBIDDEN.getStatusCode();
       message = exception.getMessage();
     } else if (exception instanceof IllegalArgumentException || exception instanceof IllegalStateException

@@ -115,6 +115,7 @@ public abstract class BaseServiceTest {
       testMethod(testInvocation);
       testMethod_bodyParseException(testInvocation);
       testMethod_resultInErrorState(testInvocation);
+      testMethod_dependencyConflict(testInvocation);
     }
   }
 
@@ -137,6 +138,21 @@ public abstract class BaseServiceTest {
 
     assertEquals(serializedResult, r.getEntity());
     assertEquals(testMethod.getStatusCode(), r.getStatus());
+    verifyAndResetMocks();
+  }
+
+  private void testMethod_dependencyConflict(ServiceTestInvocation invocation) throws Exception {
+    expect(bodyParser.parse(invocation.getBody())).andReturn(Collections.singleton(requestBody));
+    assertCreateRequest(invocation);
+    expect(request.process()).andThrow(
+        new org.apache.ambari.server.controller.dependencies.ManagedDependencyIntegrationException(
+            409, "DEPENDENCY_IMPACT_CONFIRMATION_REQUIRED", "Review provider impact."));
+    replayMocks();
+    Response response = invocation.invoke();
+    assertEquals(409, response.getStatus());
+    assertEquals(jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE, response.getMediaType());
+    assertEquals(Map.of("code", "DEPENDENCY_IMPACT_CONFIRMATION_REQUIRED",
+        "message", "Review provider impact."), response.getEntity());
     verifyAndResetMocks();
   }
 

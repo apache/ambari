@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.service.metrics;
 
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -26,8 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.orm.entities.DatasourceEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.InOrder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -90,6 +94,75 @@ public class PrometheusQueryClientTest {
     } catch (IllegalArgumentException expected) {
       Assert.assertTrue(expected.getMessage().contains("not a Prometheus datasource"));
     }
+  }
+
+  @Test
+  public void testScopedQueryReplacesEveryClientScopeParameterWithClusterId() throws Exception {
+    DatasourceService datasourceService = mock(DatasourceService.class);
+    DatasourceEntity datasource = datasource("prometheus");
+    when(datasourceService.requireManagedMetricsClusterId(
+        datasource, "http://managed.example.test:8428")).thenReturn(42L);
+    PrometheusQueryClient client = new PrometheusQueryClient(datasourceService);
+
+    Map<String, List<String>> scoped = client.applyMetricsScope(datasource,
+        "http://managed.example.test:8428", "/api/v1/query", "GET", Map.of(
+            "query", List.of("up"),
+            "extra_label", List.of("ambari_cluster_id=7"),
+            "EXTRA_FILTERS", List.of("{cluster=~\".*\"}"),
+            "extra_filters[]", List.of("{ambari_cluster_id!=\"42\"}")));
+
+    Assert.assertEquals(List.of("up"), scoped.get("query"));
+    Assert.assertEquals(List.of("ambari_cluster_id=42"), scoped.get("extra_label"));
+    Assert.assertFalse(scoped.containsKey("EXTRA_FILTERS"));
+    Assert.assertFalse(scoped.containsKey("extra_filters[]"));
+  }
+
+  @Test
+  public void testScopedMetadataAndPostQueriesAreUnsupported() throws Exception {
+    DatasourceService datasourceService = mock(DatasourceService.class);
+    PrometheusQueryClient client = new PrometheusQueryClient(datasourceService);
+    DatasourceEntity datasource = datasource("prometheus");
+
+    assertUnsupported(() -> client.applyMetricsScope(datasource, "http://managed.example.test:8428",
+        "api/v1/labels", "GET", Map.of()));
+    assertUnsupported(() -> client.applyMetricsScope(datasource, "http://managed.example.test:8428",
+        "api/v1/query", "POST", Map.of()));
+  }
+
+  @Test
+  public void testGenericProxyAuthorizesDatasourceBeforeGlobalAccess() throws Exception {
+    DatasourceService datasourceService = mock(DatasourceService.class);
+    DatasourceEntity datasource = datasource("prometheus");
+    when(datasourceService.requireQueryable(7L)).thenReturn(datasource);
+    org.mockito.Mockito.doThrow(new AuthorizationException("global access required"))
+        .when(datasourceService).verifyGlobalMetricsAccess();
+    PrometheusQueryClient client = new PrometheusQueryClient(datasourceService);
+
+    try {
+      client.proxy(7L, "api/v1/query", Map.of(), "GET", null, null);
+      Assert.fail("Expected generic proxy access to require global authority");
+    } catch (AuthorizationException expected) {
+      Assert.assertEquals("global access required", expected.getMessage());
+    }
+
+    InOrder authorizationOrder = inOrder(datasourceService);
+    authorizationOrder.verify(datasourceService).requireQueryable(7L);
+    authorizationOrder.verify(datasourceService).verifyGlobalMetricsAccess();
+    verify(datasourceService, org.mockito.Mockito.never()).resolveHttp(datasource);
+  }
+
+  private void assertUnsupported(CheckedAction action) throws Exception {
+    try {
+      action.run();
+      Assert.fail("Expected cluster-scoped metrics operation to be unsupported");
+    } catch (MetricsScopeException expected) {
+      Assert.assertTrue(expected.getMessage().contains("cluster-scoped"));
+    }
+  }
+
+  @FunctionalInterface
+  private interface CheckedAction {
+    void run() throws Exception;
   }
 
   private DatasourceEntity datasource(String pluginType) {

@@ -23,10 +23,10 @@ import { AppContext } from "../../store/context";
 
 const mocks = vi.hoisted(() => ({
   fetchBackgroundOperationsSnapshot: vi.fn(),
+  canViewClusterTasks: vi.fn(),
   getRequestById: vi.fn(),
   getRequests: vi.fn(),
   hasAuthorization: vi.fn(),
-  isClusterUser: vi.fn(),
   toastError: vi.fn(),
   updateRequest: vi.fn(),
 }));
@@ -41,7 +41,7 @@ vi.mock("../../api/clusterApi", () => ({
 vi.mock("../../hooks/useAuth", () => ({
   useAuth: () => ({
     hasAuthorization: mocks.hasAuthorization,
-    isClusterUser: mocks.isClusterUser,
+    canViewClusterTasks: mocks.canViewClusterTasks,
   }),
 }));
 vi.mock("react-hot-toast", () => ({
@@ -171,7 +171,7 @@ describe("Background Operations permissions and abort recovery", () => {
       items: [runningRequest],
       itemTotal: 30,
     }));
-    mocks.isClusterUser.mockReturnValue(false);
+    mocks.canViewClusterTasks.mockReturnValue(true);
   });
 
   afterEach(() => cleanup());
@@ -251,9 +251,9 @@ describe("Background Operations permissions and abort recovery", () => {
     expect(screen.getByRole("button", { name: "Confirm abort" }).hasAttribute("disabled")).toBe(false);
   });
 
-  it("closes without loading requests for a cluster user", async () => {
+  it("closes without loading requests when the scoped role cannot view tasks", async () => {
     const onClose = vi.fn();
-    mocks.isClusterUser.mockReturnValue(true);
+    mocks.canViewClusterTasks.mockReturnValue(false);
     renderOperations(onClose);
 
     await waitFor(() => expect(onClose).toHaveBeenCalled());

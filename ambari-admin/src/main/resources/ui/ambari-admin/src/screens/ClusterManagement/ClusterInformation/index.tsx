@@ -16,18 +16,21 @@
  * limitations under the License.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useManagement } from "../../../context/ManagementContext";
 import { useEffect, useState } from "react";
-import {Form, OverlayTrigger, Tooltip} from "react-bootstrap";
+import {Button, Form, OverlayTrigger, Tooltip} from "react-bootstrap";
 import DefaultButton from "../../../components/DefaultButton";
 import AppContent from "../../../context/AppContext";
 import ClusterApi from "../../../api/clusterApi";
 import Spinner from "../../../components/Spinner";
 import toast from "react-hot-toast";
-import { cloneDeep } from "lodash";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { useContext } from "react";
 
 export default function ClusterInformation() {
+  const { can } = useManagement();
+  const [loadError, setLoadError] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [infoData, setInfoData] = useState({});
   const [loading, setLoading] = useState(false);
   const {
@@ -38,14 +41,13 @@ export default function ClusterInformation() {
   const [clusterNameInput, setClusterNameInput] = useState(clusterName);
   const [clusterNameError, setClusterNameError] = useState("");
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  console.log("Clutser is", cluster);
-  const { clusterExists, setSelectedOption } = useContext(AppContent);
+  const { setSelectedOption, availableClusters, selectCluster } = useContext(AppContent);
   const [showTooltip, setShowTooltip] = useState(false);
   const handleFocus = () => setShowTooltip(true);
   const handleBlur = () => setShowTooltip(false);
 
   useEffect(() => {
-    setSelectedOption("Cluster Information");
+    setSelectedOption("Cluster Details");
   }, []);
 
   useEffect(() => {
@@ -68,15 +70,20 @@ export default function ClusterInformation() {
     }
   }, [clusterNameInput]);
 
-  async function getClusterInfoData(requiredClusterName: string = clusterName) {
-    setLoading(true);
-    const data = await ClusterApi.blueprintInfo(requiredClusterName);
-    setInfoData(data as any);
-    setLoading(false);
-  }
-
   useEffect(() => {
-    if (clusterName) getClusterInfoData();
+    if (!clusterName) return;
+    let active = true;
+    setInfoData({});
+    setLoadError(false);
+    setLoading(true);
+    ClusterApi.blueprintInfo(clusterName).then((data) => {
+      if (active) setInfoData(data);
+    }).catch(() => {
+      if (active) { setLoadError(true); toast.error("Could not load the cluster blueprint"); }
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, [clusterName]);
 
   function downloadBlueprint() {
@@ -96,20 +103,38 @@ export default function ClusterInformation() {
   };
 
   const saveNewClusterName = async () => {
+    setSaving(true);
     try {
-      await ClusterApi.updateClusterName(clusterName, clusterNameInput);
-      const clusterInfoCopy = cloneDeep(cluster);
-      clusterInfoCopy.cluster_name = clusterNameInput;
-      setClusterInfo(clusterInfoCopy);
-    } catch (err) {
-      console.log("Error is", err);
-      toast.error("Could not update cluster name");
+      try { await ClusterApi.updateClusterName(clusterName, clusterNameInput); }
+      catch { /* Reconcile a possibly lost response by stable cluster identity. */ }
+      const current = await ClusterApi.hostClustersInfo();
+      const renamed = current.items?.find((item: { Clusters: { cluster_id: number; cluster_name: string } }) =>
+        item.Clusters.cluster_id === cluster.cluster_id && item.Clusters.cluster_name === clusterNameInput);
+      if (!renamed) throw new Error("Cluster rename could not be confirmed");
+      setClusterInfo({ ...cluster, ...renamed.Clusters });
+    } catch {
+      toast.error("Could not confirm the cluster name change. Refresh cluster overview before retrying.");
     } finally {
+      setSaving(false);
       setShowConfirmationModal(false);
     }
   };
 
-  return clusterExists ? (
+  if (!clusterName && availableClusters?.length > 1) {
+    return <div>
+      <h4>Choose a cluster</h4>
+      <p>Select a cluster to view its details or return to its Dashboard.</p>
+      <div className="d-flex flex-wrap gap-2">
+        {availableClusters.map((item: { cluster_id: number; cluster_name: string }) => (
+          <Button key={item.cluster_id} variant="outline-primary" onClick={() => selectCluster(item.cluster_name)}>
+            {item.cluster_name}
+          </Button>
+        ))}
+      </div>
+    </div>;
+  }
+
+  return clusterName ? (
     <div>
       <ConfirmationModal
         successCallback={saveNewClusterName}
@@ -122,7 +147,8 @@ export default function ClusterInformation() {
       />
       <Form
         className="p-2 m-2 d-flex flex-column"
-        onSubmit={() => {
+        onSubmit={(event) => {
+          event.preventDefault();
           if (!clusterNameError && clusterNameInput !== clusterName)
             setShowConfirmationModal(true);
         }}
@@ -144,6 +170,7 @@ export default function ClusterInformation() {
               >
                 <Form.Control
                     type="input"
+                disabled={!can("AMBARI.RENAME_CLUSTER") || saving}
                 value={clusterNameInput}
                 placeholder="ClusterName"
                 className="me-2"
@@ -156,11 +183,11 @@ export default function ClusterInformation() {
                 <div className="text-danger">{clusterNameError}</div>
               )}
             </div>
-            {clusterNameInput !== clusterName && (
+            {can("AMBARI.RENAME_CLUSTER") && clusterNameInput !== clusterName && (
               <DefaultButton
                 type="submit"
                 variant="primary"
-                disabled={clusterNameError || clusterNameInput.length > 80}
+                disabled={saving || clusterNameError || clusterNameInput.length > 80}
               >
                 Save
               </DefaultButton>
@@ -172,6 +199,7 @@ export default function ClusterInformation() {
           <DefaultButton
             variant="primary"
             className="pull-right"
+            disabled={loading || loadError || !Object.keys(infoData).length}
             onClick={downloadBlueprint}
           >
             Download

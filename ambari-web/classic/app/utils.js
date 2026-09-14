@@ -22,6 +22,7 @@
 require('utils/errors/assertions');
 require('utils/base64');
 require('utils/db');
+require('utils/scoped_workflow_persistence');
 require('utils/helper');
 require('utils/config');
 require('utils/configs/theme/theme');

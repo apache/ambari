@@ -17,7 +17,8 @@
  */
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {useEffect, useState} from "react";
+import AppContent from "./context/AppContext";
+import {useContext, useEffect, useState} from "react";
 import {
   Container,
   Navbar,
@@ -40,6 +41,7 @@ type NavBarProps = {
 };
 
 export default function NavBar({ subPath, clusterName }: NavBarProps) {
+  const { availableClusters, selectCluster } = useContext(AppContent);
   const [showAmbariAboutModal, setShowAmbariAboutModal] = useState(false);
   const [loginUserName, setLoginUserName] = useState("");
   const [ambariLsVal, setAmbariLsVal] = useState(null);
@@ -81,9 +83,19 @@ export default function NavBar({ subPath, clusterName }: NavBarProps) {
             </div>
           </Navbar.Brand>
           <div className="d-flex align-items-center ">
-            <Nav.Link className="navbar-text navbar-size">
-              {clusterName}
-            </Nav.Link>
+            <Dropdown>
+              <Dropdown.Toggle variant="outline-secondary" title="Select the cluster to manage">
+                {clusterName ? `Cluster: ${clusterName}` : "Choose a cluster"}
+              </Dropdown.Toggle>
+              <Dropdown.Menu align="end">
+                {(availableClusters || []).map((item: { cluster_id: number; cluster_name: string }) => (
+                  <Dropdown.Item key={item.cluster_id} active={item.cluster_name === clusterName}
+                    onClick={() => selectCluster(item.cluster_name)}>
+                    {item.cluster_name === clusterName ? "✓ " : ""}{item.cluster_name}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
             <Dropdown>
               <Dropdown.Toggle
                 variant="transparent"

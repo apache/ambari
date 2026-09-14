@@ -154,6 +154,17 @@ public class ProvisionClusterRequestTest {
   }
 
   @Test
+  public void testCreationDraftIdentityIsParsed() throws Exception {
+    String draftId = "00000000-0000-0000-0000-000000000001";
+    Map<String, Object> properties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    properties.put(ClusterResourceProvider.CLUSTER_CREATION_DRAFT_ID_PROPERTY_ID, draftId);
+
+    ProvisionClusterRequest request = new ProvisionClusterRequest(properties, null);
+
+    assertEquals(draftId, request.getCreationDraftId());
+  }
+
+  @Test
   public void testHostCountSpecified() throws Exception {
     // reset host resource provider expectations to none since we are not specifying a host predicate
     reset(hostResourceProvider);

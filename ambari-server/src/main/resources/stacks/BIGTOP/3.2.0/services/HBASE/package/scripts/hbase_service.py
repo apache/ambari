@@ -157,7 +157,7 @@ def hbase_service(name, action=None, extra_args=()):
       Execute(
         command,
         user=params.hbase_user,
-        environment={"JAVA_HOME": params.java64_home},
+        environment={"JAVA_HOME": params.java64_home, "HBASE_HOME": params.hbase_home},
         logoutput=True,
         timeout=60,
         timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,

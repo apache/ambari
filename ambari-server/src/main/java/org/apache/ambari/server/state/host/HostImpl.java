@@ -299,6 +299,10 @@ public class HostImpl implements Host {
 
     // persist the host
     if (null == hostEntity.getHostId()) {
+      if (hostEntity.getClusterEntities() != null && hostEntity.getClusterEntities().size() > 1) {
+        throw new IllegalArgumentException(String.format(
+            "Host %s cannot be created with more than one cluster mapping", hostEntity.getHostName()));
+      }
       persistEntities(hostEntity);
 
       for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
@@ -1028,12 +1032,6 @@ public class HostImpl implements Host {
   @Transactional
   void persistEntities(HostEntity hostEntity) {
     hostDAO.create(hostEntity);
-    if (!hostEntity.getClusterEntities().isEmpty()) {
-      for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
-        clusterEntity.getHostEntities().add(hostEntity);
-        clusterDAO.merge(clusterEntity);
-      }
-    }
   }
 
   @Override
@@ -1351,5 +1349,3 @@ public class HostImpl implements Host {
     return true;
   }
 }
-
-

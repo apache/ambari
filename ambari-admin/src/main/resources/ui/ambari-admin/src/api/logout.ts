@@ -15,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { clearClientSession } from "../utils/session";
 import {encryptData, decryptData, getFromLocalStorage, parseJSONData, setInLocalStorage} from "./Utility.ts";
 import {adminApi} from "./configs/axiosConfig.ts";
 import { AxiosError } from 'axios';
@@ -44,7 +45,7 @@ const signOut = async () => {
             method: 'GET',
             headers: headers
         });
-        localStorage.clear();
+        clearClientSession();
         window.location.replace(latestAmbariUrl("/login"));
     } catch (error) {
         const axiosError = error as AxiosError;

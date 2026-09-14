@@ -18,6 +18,7 @@
 
 var App = require('app');
 var LZString = require('utils/lz-string');
+var scopedWorkflowPersistence = require('utils/scoped_workflow_persistence');
 require('models/cluster_states');
 
 var status = App.clusterStatus,
@@ -76,6 +77,72 @@ describe('App.clusterStatus', function () {
           expect(status.get(key)).to.equal(response2[key]);
         });
       });
+    });
+  });
+
+  describe('#updateFromServer scoped recovery', function () {
+    beforeEach(function () {
+      scopedWorkflowPersistence.clearForTests();
+      App.db.cleanUp();
+      App.db.setLoginName('alice');
+      sinon.stub(App.router, 'get').withArgs('loginName').returns('alice');
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+      if (App.ajax.send.restore) {
+        App.ajax.send.restore();
+      }
+      scopedWorkflowPersistence.clearForTests();
+      App.db.cleanUp();
+    });
+
+    it('keeps the adjusted re-entry step and ignores inactive namespaces', function () {
+      sinon.stub(App.ajax, 'send', function (options) {
+        if (options.name === 'cluster.load_cluster_name') {
+          return $.Deferred().resolve({
+            items: [{Clusters: {cluster_id: 7, cluster_name: 'c1'}}]
+          }).promise();
+        }
+        if (options.name === 'persist.scoped.get') {
+          return $.Deferred().resolve({
+            revision: 3,
+            owner: 'alice',
+            workflow: 'ENABLING_KERBEROS',
+            phase: 'ADD_SECURITY_STEP_3',
+            values: {
+              wizardData: {
+                userName: 'alice',
+                controllerName: 'kerberosWizardController'
+              },
+              CLUSTER_CURRENT_STATUS: {
+                clusterName: 'c1',
+                clusterState: 'ADD_SECURITY_STEP_3',
+                wizardControllerName: 'kerberosWizardController',
+                localdb: {
+                  KerberosWizard: {
+                    currentStep: 7,
+                    serviceConfigProperties: [{
+                      name: 'admin_password',
+                      requires_reentry: true
+                    }]
+                  },
+                  AddService: {currentStep: 9}
+                }
+              }
+            }
+          }).promise();
+        }
+        return $.Deferred().reject({status: 404}).promise();
+      });
+      status.set('wizardControllerName', 'kerberosWizardController');
+
+      status.updateFromServer(false);
+
+      expect(App.db.get('KerberosWizard', 'currentStep')).to.equal(2);
+      expect(App.db.get('AddService', 'currentStep')).to.be.undefined;
+      expect(status.get('localdb').KerberosWizard.currentStep).to.equal(2);
+      expect(status.get('localdb').AddService).to.be.undefined;
     });
   });
 

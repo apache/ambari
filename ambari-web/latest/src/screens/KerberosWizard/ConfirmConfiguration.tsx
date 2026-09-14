@@ -116,9 +116,9 @@ export default function ConfirmConfiguration() {
       <WizardFooter
         isNextEnabled={nextEnabled}
         step={currentStep}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onBack={() => {
           flushStateToDb("back");

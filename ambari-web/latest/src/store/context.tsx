@@ -21,6 +21,7 @@ import React, {
   Dispatch,
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
   useState,
@@ -48,6 +49,13 @@ import {
   createStompTransport,
   shouldFallbackToSockJs,
 } from "../Utils/stompTransport";
+import { projectClusterEvent } from "../Utils/clusterEvents";
+import { createRuntimeKey } from "../Utils/runtimeIdentity";
+import { cachedServiceApi } from "../api/cachedServiceApi";
+import { centralizedServiceStateApi } from "../api/centralizedServiceStateApi";
+import { serviceCache } from "../Utils/cacheUtils";
+import { clusterHashPath } from "../Utils/clusterRoute";
+import WorkflowStateApi from "../api/workflowStateApi";
 // import {LocalStorageOps} from "../Utils/LocalStorageOps";
 
 interface AppContextProps {
@@ -57,6 +65,9 @@ interface AppContextProps {
   isSocketConnected: boolean;
   parsedSocketMessages: any[];
   clusterName: string;
+  runtimeKey: string;
+  navigateCluster: (to: string) => void;
+  availableClusters: any[];
   services: any[];
   cluster: any;
   isAppLoaded: boolean;
@@ -88,7 +99,6 @@ interface AppContextProps {
   setUpgradeAssociatedVersion?: (version: string) => void;
   upgradeIsFinalizeItem: boolean;
   setUpgradeIsFinalizeItem: (isFinalize: boolean) => void;
-  userUrl?: string;
   sessionsValidated: boolean;
   sessionExists: boolean;
   clusterState: any;
@@ -141,6 +151,9 @@ export const AppContext = createContext<AppContextProps>({
   isSocketConnected: false,
   parsedSocketMessages: [],
   clusterName: "",
+  runtimeKey: JSON.stringify(["anonymous", "global", 0]),
+  navigateCluster: () => undefined,
+  availableClusters: [],
   services: [],
   cluster: {},
   isAppLoaded: false,
@@ -208,8 +221,12 @@ export const AppContext = createContext<AppContextProps>({
   alertSummary: null,
 });
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
+export const AppProvider: React.FC<{
+  children: React.ReactNode;
+  requestedClusterName?: string;
+}> = ({
   children,
+  requestedClusterName,
 }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
@@ -220,6 +237,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [parsedSocketMessages, setParsedSocketMessages] = useState<any[]>([]);
   const [alertSummary, setAlertSummary] = useState<{ alerts_summary_grouped: any[] } | null>(null);
   const [clusterName, setClusterName] = useState<string>("");
+  const [availableClusters, setAvailableClusters] = useState<any[]>([]);
   const [isKerberosEnabled, setIsKerberosEnabled] = useState(false);
   const [cluster, setCluster] = useState<any>({});
   const [isClusterInstalled, setIsClusterInstalled] = useState<boolean|undefined>(undefined);
@@ -242,15 +260,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [supports, setSupports] = useState(DEFAULT_SUPPORTS);
   const [wizardUser, setWizardUser] = useState("");
   const [clusterState, setClusterState] = useState({});
-  const [userUrl, setUserUrl] = useState("");
   const { authorizations, user } = useAuth();
   const loginName = user?.user_name;
+  const runtimeKey = useMemo(
+    () => createRuntimeKey(loginName || "", requestedClusterName),
+    [loginName, requestedClusterName],
+  );
+  const runtimeKeyRef = useRef(runtimeKey);
+  const providerActiveRef = useRef(true);
+  const navigateCluster = useCallback((to: string) => {
+    if (!providerActiveRef.current || !requestedClusterName) return;
+    window.location.hash = clusterHashPath(requestedClusterName, to)
+      .replace(/^\/#/, "#");
+  }, [requestedClusterName]);
+  runtimeKeyRef.current = runtimeKey;
   const isOnlyViewUser = authorizations.length === 0
     || (authorizations.length === 1
       && authorizations[0].authorization_id === "VIEW.USE");
   const useSockJs = useRef(typeof WebSocket === "undefined");
   const hasConnectedSocket = useRef(false);
   const backgroundFetchPromise = useRef<{
+    runtimeKey: string;
     pageSize: number;
     promise: Promise<BackgroundRequestPage>;
   } | null>(null);
@@ -270,9 +300,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [stackVersion, setStackVersion] = useState<any>(undefined);
   const [stackVersionList, setStackVersionList] = useState<any[]>([]);
 
-  const fetchStackVersionList = async () => {
+  useEffect(() => {
+    providerActiveRef.current = true;
+    return () => {
+      providerActiveRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => () => {
+    serviceCache.clearPrefix(`${runtimeKey}:`);
+    if (requestedClusterName) {
+      cachedServiceApi.clear(runtimeKey);
+      centralizedServiceStateApi.clearCache(runtimeKey);
+    }
+  }, [requestedClusterName, runtimeKey]);
+
+  const fetchStackVersionList = async (requestRuntimeKey = runtimeKey) => {
     try {
       const response = await VersionsApi.getServices(clusterName);
+      if (runtimeKeyRef.current !== requestRuntimeKey) return;
       setStackVersion(response);
       const items = get(response, "items", []);
       const list: any[] = [];
@@ -345,8 +391,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setBackgroundOperationsPageSize(requestedPageSize);
     }
 
+    const requestRuntimeKey = runtimeKey;
     const activeRequest = backgroundFetchPromise.current;
-    if (activeRequest) {
+    if (activeRequest?.runtimeKey === requestRuntimeKey) {
       const response = await activeRequest.promise;
       return backgroundOperationsPageSizeRef.current > activeRequest.pageSize
         ? fetchBackgroundOperations(backgroundOperationsPageSizeRef.current)
@@ -355,12 +402,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const pageSize = backgroundOperationsPageSizeRef.current;
     const requestEntry = {
+      runtimeKey: requestRuntimeKey,
       pageSize,
       promise: Promise.resolve({ items: [] } as BackgroundRequestPage),
     };
     const operation = ClusterApi.getRequests(clusterName, pageSize).then((response) => {
       const page = response as BackgroundRequestPage;
-      updateBackgroundOperations(page.items);
+      if (runtimeKeyRef.current === requestRuntimeKey) {
+        updateBackgroundOperations(page.items);
+      }
       return page;
     });
     requestEntry.promise = operation.finally(() => {
@@ -376,6 +426,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [
     clusterName,
     isClusterInstalled,
+    runtimeKey,
     setBackgroundOperationsPageSize,
     updateBackgroundOperations,
   ]);
@@ -386,49 +437,77 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     return ["IN_PROGRESS", "QUEUED", "PENDING"].includes(status);
   }).length;
 
-  const fetchClusterServices = async () => {
+  const fetchClusterServices = async (requestRuntimeKey = runtimeKey) => {
     if (!isClusterInstalled) {
       return;
     }
 
     try {
       const clusterServices = await ChooseServicesApi.servicesList(clusterName);
-      setServices(clusterServices.items);
-      setAppLoaded(true);
+      if (runtimeKeyRef.current === requestRuntimeKey) {
+        setServices(clusterServices.items);
+        setAppLoaded(true);
+      }
     } catch (err) {
-      setServices([]);
-      setInitializationError("Ambari could not load the installed cluster services.");
+      if (runtimeKeyRef.current === requestRuntimeKey) {
+        setServices([]);
+        setInitializationError("Ambari could not load the installed cluster services.");
+      }
     }
   };
 
-  const fetchClusterState = async () => {
+  const fetchClusterState = async (requestRuntimeKey = runtimeKey) => {
+    const clusterId = Number(cluster?.cluster_id);
+    if (!Number.isInteger(clusterId) || clusterId <= 0) {
+      if (runtimeKeyRef.current === requestRuntimeKey) {
+        setClusterState({});
+        setWizardUser("");
+      }
+      return;
+    }
     try {
-      const state = await ClusterApi.getPersistData("CLUSTER_STATE");
-      setClusterState(state);
+      const scopedState = await WorkflowStateApi.get({
+        type: "clusters",
+        id: String(clusterId),
+      });
+      if (runtimeKeyRef.current !== requestRuntimeKey) return;
+      const values = scopedState.values || {};
+      setClusterState(values.CLUSTER_STATE || {});
+      setWizardUser(scopedState.owner || "");
+      setIsPatchUpgrade(parsePersistedValue(values.isPatchUpgrade, false));
+      setUpgradeIsFinalizeItem(parsePersistedValue(values.upgradeIsFinalizeItem, false));
+      setUpgradeVersionDisplayName(parsePersistedValue(values.upgradeVersionDisplayName, ""));
     } catch (error) {
-      console.error("Failed to fetch cluster state:", error);
+      if (runtimeKeyRef.current === requestRuntimeKey) {
+        setClusterState({});
+        setWizardUser("");
+        console.error("Failed to fetch cluster workflow state:", error);
+      }
     }
   };
 
   useEffect(() => {
-    if (!isOnlyViewUser) {
-      void fetchClusterState();
+    if (!isOnlyViewUser) void fetchClusterState(runtimeKey);
+    else {
+      setClusterState({});
+      setWizardUser("");
     }
-  }, [isOnlyViewUser]);
+  }, [cluster?.cluster_id, isOnlyViewUser, runtimeKey]);
 
   useEffect(() => {
     if (isOnlyViewUser) {
       return;
     }
     if (clusterName && isClusterInstalled) {
-      fetchClusterServices();
-      fetchAllHostNames();
-      fetchUpgradeStates();
-      fetchStackVersionList();
+      const requestRuntimeKey = runtimeKey;
+      fetchClusterServices(requestRuntimeKey);
+      fetchAllHostNames(requestRuntimeKey);
+      fetchUpgradeStates(requestRuntimeKey);
+      fetchStackVersionList(requestRuntimeKey);
     } else if (!isUndefined(isClusterInstalled) && !isClusterInstalled) {
       setAppLoaded(true);
     }
-  }, [clusterName, isClusterInstalled, isOnlyViewUser, initializationAttempt]);
+  }, [clusterName, isClusterInstalled, isOnlyViewUser, initializationAttempt, runtimeKey]);
 
   useEffect(() => {
     async function fetchStackConfigs() {
@@ -442,6 +521,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           serviceNames
         );
         const stackConfigs = mapStackConfigProperties(response);
+        if (runtimeKeyRef.current !== runtimeKey) return;
         setStackConfigurations(stackConfigs);
 
         // Extract service_check_supported map (static stack property, like Ember's App.services.supportsServiceCheck)
@@ -459,25 +539,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     }
     fetchStackConfigs();
-  }, [services, cluster]);
+  }, [services, cluster, runtimeKey]);
 
-  const fetchClusterData = async () => {
-      const clusterData = await ClusterApi.getClusterData();
+  const fetchClusterData = async (requestRuntimeKey = runtimeKey) => {
+      const clusterData = await ClusterApi.getClusterData(requestedClusterName);
+      if (runtimeKeyRef.current !== requestRuntimeKey) return;
+      const items = clusterData?.items || [];
+      setAvailableClusters(items);
+      if (!requestedClusterName) {
+        setCluster({});
+        setClusterName("");
+        setIsClusterInstalled(undefined);
+        setAppLoaded(true);
+        return;
+      }
+      const requestedItem = items.find(
+        (item: any) => item?.Clusters?.cluster_name === requestedClusterName,
+      );
+      if (!requestedItem) {
+        throw new Error(`Cluster ${requestedClusterName} was not found.`);
+      }
       set(
-        clusterData,
-        "items.[0].Clusters.stack",
-        get(clusterData, "items.[0].Clusters.version", "")?.split("-")[0]
+        requestedItem,
+        "Clusters.stack",
+        get(requestedItem, "Clusters.version", "")?.split("-")[0]
       );
       set(
-        clusterData,
-        "items[0].Clusters.versionNum",
-        get(clusterData, "items.[0].Clusters.version", "")?.split("-")[1]
+        requestedItem,
+        "Clusters.versionNum",
+        get(requestedItem, "Clusters.version", "")?.split("-")[1]
       );
-      const clusterInfo = clusterData?.items[0]?.Clusters;
+      const clusterInfo = requestedItem.Clusters;
       setCluster(clusterInfo || {});
       setClusterName(clusterInfo?.cluster_name || "");
       setIsKerberosEnabled(
-        clusterData?.items?.[0]?.Clusters?.security_type === "KERBEROS"
+        clusterInfo?.security_type === "KERBEROS"
       );
 
       const isInstalled = clusterInfo?.provisioning_state === "INSTALLED";
@@ -495,7 +591,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const fetchAllHostNames = async () => {
+  const fetchAllHostNames = async (requestRuntimeKey = runtimeKey) => {
     if (!isClusterInstalled) {
       return;
     }
@@ -503,7 +599,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const data = await ClusterApi.getHosts(clusterName);
       const hostNames = data.items.map((item: any) => item.Hosts.host_name);
-      setAllHostNames(hostNames);
+      if (runtimeKeyRef.current === requestRuntimeKey) {
+        setAllHostNames(hostNames);
+      }
     } catch (error) {}
   };
   const getAmbariProperties = async () => {
@@ -513,13 +611,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setServerClock(response?.RootServiceComponents?.server_clock ?? null);
   };
 
-  const fetchUpgradeStates = async () => {
+  const fetchUpgradeStates = async (requestRuntimeKey = runtimeKey) => {
     if (!isClusterInstalled) {
       return;
     }
 
     try {
       const response = await ClusterApi.getUpgradeState(clusterName);
+      if (runtimeKeyRef.current !== requestRuntimeKey) return;
       // response would have items get the last item.
       const lastItemIndex = response?.items?.length - 1;
       const upgradeState = get(
@@ -555,36 +654,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setUpgradeSuspend(upgradeSuspend);
       setUpgradeAssociatedVersion(hasActiveUpgrade ? associatedVersion : "");
 
-      const persistedUpgradeState = await Promise.allSettled([
-        ClusterApi.getPersistData("isPatchUpgrade"),
-        ClusterApi.getPersistData("upgradeIsFinalizeItem"),
-        ClusterApi.getPersistData("upgradeVersionDisplayName"),
-        ClusterApi.getPersistData("wizard-data"),
-      ]);
-      const [isPatch, isFinalizeItem, upgradeVersionDisplayName, wizardData] = persistedUpgradeState;
-      if (isPatch.status === "fulfilled") {
-        setIsPatchUpgrade(parsePersistedValue(isPatch.value, false));
-      }
-      if (isFinalizeItem.status === "fulfilled") {
-        setUpgradeIsFinalizeItem(parsePersistedValue(isFinalizeItem.value, false));
-      }
-      if (upgradeVersionDisplayName.status === "fulfilled") {
-        setUpgradeVersionDisplayName(parsePersistedValue(upgradeVersionDisplayName.value, ""));
-      }
-      if (wizardData.status === "fulfilled") {
-        setWizardUser(parsePersistedValue<{ userName?: string }>(wizardData.value, {}).userName || "");
-      }
     } catch (error) {
       console.error("Failed to fetch upgrade state:", error);
     }
   };
-
-  async function getUserUrl() {
-    const persistedData = await ClusterApi.getPersistData(
-      "USER_REDIRECTION_URL"
-    );
-    setUserUrl(persistedData);
-  }
 
   async function getUserSettings() {
     try {
@@ -618,26 +691,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setInitializationError(null);
       const supportsKey = `user-pref-${loginName || ""}-supports`;
       try {
-        const [savedSupports, wizardData] = await Promise.all([
+        const [savedSupports] = await Promise.all([
           ClusterApi.getPersistData(supportsKey).catch(() => null),
-          isOnlyViewUser
-            ? Promise.resolve(null)
-            : ClusterApi.getPersistData("wizard-data").catch(() => null),
         ]);
         setSupports({
           ...DEFAULT_SUPPORTS,
           ...parsePersistedValue(savedSupports, {}),
         });
-        setWizardUser(parsePersistedValue<{ userName?: string }>(wizardData, {}).userName || "");
-
         await getAmbariProperties();
-        await fetchClusterData();
+        await fetchClusterData(runtimeKey);
         if (isOnlyViewUser) {
           setAppLoaded(true);
           return;
         }
-
-        await getUserUrl().catch(() => undefined);
       } catch (error: any) {
         setInitializationError(
           error?.response?.data?.message || "Ambari could not initialize the application shell.",
@@ -645,7 +711,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     }
     void moveAppToReadyState();
-  }, [initializationAttempt, isOnlyViewUser, loginName]);
+  }, [initializationAttempt, isOnlyViewUser, loginName, requestedClusterName, runtimeKey]);
 
   useEffect(() => {
     if (!isOnlyViewUser && !isEmpty(cluster) && cluster?.versionNum && cluster?.stack) {
@@ -660,7 +726,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [isOnlyViewUser, loginName]);
 
   useEffect(() => {
-    const message = parsedSocketMessages[0];
+      const message = parsedSocketMessages[0];
     if (!message) return;
 
     if (get(message, "destination") === "/events/upgrade") {
@@ -678,14 +744,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           setUpgradeSuspend(suspended);
         }
       }
-      fetchUpgradeStates();
-      fetchStackVersionList();
+      fetchUpgradeStates(runtimeKey);
+      fetchStackVersionList(runtimeKey);
     }
 
-  }, [parsedSocketMessages]);
+  }, [parsedSocketMessages, runtimeKey]);
 
   useEffect(() => {
-    if (isOnlyViewUser) {
+    if (isOnlyViewUser || !clusterName || cluster?.cluster_id == null) {
       return;
     }
     let active = true;
@@ -711,8 +777,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       destinations.forEach((destination) => {
         client.subscribe(destination, (message) => {
           try {
-            const parsedMessage = JSON.parse(message.body);
-            parsedMessage.destination = destination;
+            const rawMessage = JSON.parse(message.body);
+            const parsedMessage = projectClusterEvent(rawMessage, destination, {
+              cluster_id: cluster.cluster_id,
+              cluster_name: clusterName,
+            });
+            if (!parsedMessage || runtimeKeyRef.current !== runtimeKey) return;
             if (destination === "/events/requests") {
               setBackgroundOperations((current) => (
                 upsertRequestEvent(
@@ -725,8 +795,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             // Mirrors Ember's alertSummaryMapper: update summary synchronously in the same
             // render cycle so sidebar alert counts reflect the socket push immediately.
             if (parsedMessage.summaries) {
-              const clusterId = parsedMessage.clusterId || Object.keys(parsedMessage.summaries)[0];
-              const clusterSummaries = parsedMessage.summaries[clusterId];
+              const clusterSummaries = parsedMessage.summaries[String(cluster.cluster_id)];
               if (clusterSummaries) {
                 setAlertSummary({ alerts_summary_grouped: Object.values(clusterSummaries) });
               }
@@ -773,7 +842,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       client.onWebSocketError = () => undefined;
       void client.deactivate();
     };
-  }, [client, fetchBackgroundOperations, isOnlyViewUser]);
+  }, [client, cluster?.cluster_id, clusterName, fetchBackgroundOperations, isOnlyViewUser, runtimeKey]);
 
   // Ember.js upgrade computed properties - implementing the same logic as ui/app/app.js
   const upgradeInit = upgradeState === "NOT_REQUIRED";
@@ -797,6 +866,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         isSocketConnected,
         parsedSocketMessages,
         clusterName,
+        runtimeKey,
+        navigateCluster,
+        availableClusters,
         cluster,
         isAppLoaded,
         initializationError,
@@ -826,7 +898,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setUpgradeVersionDisplayName,
         upgradeAssociatedVersion,
         setUpgradeAssociatedVersion,
-        userUrl,
         sessionExists: true,
         sessionsValidated: true,
         clusterState,

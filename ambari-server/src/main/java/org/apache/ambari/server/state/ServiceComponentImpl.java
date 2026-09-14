@@ -402,16 +402,18 @@ public class ServiceComponentImpl implements ServiceComponent {
    */
   @Override
   public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
-    ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
-        desiredStateEntityId);
+    service.getCluster().executeUnderWriteLock(() -> {
+      ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
+          desiredStateEntityId);
 
-    if (desiredStateEntity != null) {
-      desiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
-      desiredStateEntity = serviceComponentDesiredStateDAO.merge(desiredStateEntity);
-    } else {
-      LOG.warn("Setting a member on an entity object that may have been "
-          + "previously deleted, serviceName = " + (service != null ? service.getName() : ""));
-    }
+      if (desiredStateEntity != null) {
+        desiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
+        serviceComponentDesiredStateDAO.merge(desiredStateEntity);
+      } else {
+        LOG.warn("Setting a member on an entity object that may have been "
+            + "previously deleted, serviceName = " + (service != null ? service.getName() : ""));
+      }
+    });
   }
 
   /**

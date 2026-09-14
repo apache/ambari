@@ -735,7 +735,7 @@ const taskLabels: Record<string, string> = {
 };
 
 export function HawqProgressStep() {
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, navigateCluster } = useContext(AppContext);
   const { serviceModels } = useContext(ServiceContext);
   const { mode, capabilities } = useContext(HawqStandbyContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
@@ -869,7 +869,7 @@ export function HawqProgressStep() {
           setIsCompleting(true);
           try {
             await persist("complete");
-            window.location.href = "/#/main/services/HAWQ/summary";
+            navigateCluster("/main/services/HAWQ/summary");
           } catch (caught) {
             setError(errorMessage(caught, "Ambari could not clear the completed workflow."));
             setIsCompleting(false);

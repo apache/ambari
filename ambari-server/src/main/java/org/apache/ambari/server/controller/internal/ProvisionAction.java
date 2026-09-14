@@ -25,6 +25,13 @@ import org.apache.ambari.server.topology.ProvisionStep;
 import com.google.common.collect.ImmutableList;
 
 public enum ProvisionAction {
+  /** Persist placement and configuration; deployment is submitted separately after binding approval. */
+  PREPARE_ONLY {
+    @Override
+    public List<ProvisionStep> getSteps() {
+      return ImmutableList.of();
+    }
+  },
   INSTALL_ONLY {
     @Override
     public List<ProvisionStep> getSteps() {

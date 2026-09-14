@@ -17,7 +17,30 @@
  */
 
 export type InstallWizardName = "clusterCreation" | "addHost" | "addService";
-export type InstallationPhase = "INSTALL" | "KEYTABS" | "START" | "COMPLETE";
+export type ManagedDependencyInstallTarget = {
+  serviceName: string;
+  componentName: string;
+  hostName: string;
+};
+
+export type ManagedDependencyInstallIntent = {
+  clusterId: number;
+  clusterName: string;
+  wizardName: InstallWizardName;
+  serviceNames: string[];
+  targets: ManagedDependencyInstallTarget[];
+  intentId: string;
+  state: "READY" | "SUBMITTING" | "SUBMITTED";
+  requestId?: string | number;
+  submissionStartedAt?: number;
+};
+
+export type InstallationPhase =
+  | "WAIT_FOR_PROVIDER_PREPARATION"
+  | "INSTALL"
+  | "KEYTABS"
+  | "START"
+  | "COMPLETE";
 
 export const terminalRequestStatuses = new Set([
   "ABORTED",
@@ -114,4 +137,21 @@ export function wizardCheckpoint(
       ? "INSTALLING_3"
       : "INSTALLED_4";
   return `${prefix}_${suffix}`;
+}
+
+/** A client-only Start may produce no task; completion still requires actual owned host state. */
+export function clientOnlyTargetsInstalled(clusterName: string, serviceNames: string[], components: any[]): boolean {
+  if (!serviceNames.length || !Array.isArray(components)) return false;
+  return serviceNames.every(serviceName => {
+    const selected = components.filter(component => component.ServiceComponentInfo?.service_name === serviceName);
+    return selected.length > 0 && selected.every(component => {
+      const info = component.ServiceComponentInfo;
+      return info.cluster_name === clusterName && info.category === "CLIENT"
+        && Array.isArray(component.host_components) && component.host_components.length > 0
+        && component.host_components.every((host: any) => host.HostRoles?.cluster_name === clusterName
+          && host.HostRoles.service_name === serviceName
+          && host.HostRoles.component_name === info.component_name
+          && ["INSTALLED", "STARTED"].includes(host.HostRoles.state));
+    });
+  });
 }

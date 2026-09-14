@@ -37,6 +37,7 @@ import org.apache.ambari.server.api.services.serializers.CsvSerializer;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.audit.request.RequestAuditLogger;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyIntegrationException;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.eclipse.jetty.util.ajax.JSON;
@@ -175,6 +176,13 @@ public abstract class BaseService {
       result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
       LOG.error("Bad request received: " + e.getMessage());
       requestAuditLogger.log(request, result);
+    } catch (ManagedDependencyIntegrationException e) {
+      ResultStatus.STATUS status = java.util.Arrays.stream(ResultStatus.STATUS.values())
+          .filter(candidate -> candidate.getStatus() == e.getStatus()).findFirst()
+          .orElse(ResultStatus.STATUS.SERVER_ERROR);
+      requestAuditLogger.log(request, new ResultImpl(new ResultStatus(status, e.getMessage())));
+      RetryHelper.clearAffectedClusters();
+      return ManagedDependencyApiSupport.error(e.getStatus(), e.getCode(), e.getMessage());
     } catch (Throwable t) {
       requestAuditLogger.log(request, new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, t.getMessage())));
       throw t;

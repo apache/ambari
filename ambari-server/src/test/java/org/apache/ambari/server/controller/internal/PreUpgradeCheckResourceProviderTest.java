@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import jakarta.persistence.EntityManager;
@@ -51,6 +52,7 @@ import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
+import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosLivePlanProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -344,6 +346,8 @@ public class PreUpgradeCheckResourceProviderTest extends EasyMockSupport {
         bind(Clusters.class).toProvider(clusterProvider);
         bind(UpgradeCheckRegistry.class).toProvider(UpgradeCheckRegistryProvider.class);
         bind(UpgradeHelper.class).toProvider(upgradeHelperProvider);
+        bind(ManagedHBaseKerberosLivePlanProvider.class)
+            .toInstance(cluster -> Optional.empty());
         bind(KerberosHelper.class).to(KerberosHelperImpl.class);
         bind(KerberosIdentityDataFileWriterFactory.class).toInstance(createNiceMock(KerberosIdentityDataFileWriterFactory.class));
         bind(KerberosConfigDataFileWriterFactory.class).toInstance(createNiceMock(KerberosConfigDataFileWriterFactory.class));

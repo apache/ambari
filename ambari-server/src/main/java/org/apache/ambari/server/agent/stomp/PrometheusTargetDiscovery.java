@@ -101,7 +101,7 @@ public class PrometheusTargetDiscovery {
     ArrayNode groups = JsonNodeFactory.instance.arrayNode();
     for (HostAssignment hostAssignment : assignments) {
       String address = renderAddress(hostAssignment.host.getHostName());
-      groups.add(targetGroup(address, "/metrics", cluster.getClusterName(),
+      groups.add(targetGroup(address, "/metrics", cluster.getClusterId(), cluster.getClusterName(),
           hostAssignment.host.getHostName(), null, null, "host"));
 
       JsonNode targets = hostAssignment.event.getAssignment().path("targets");
@@ -114,7 +114,7 @@ public class PrometheusTargetDiscovery {
           continue;
         }
         String routeId = target.path("id").asText();
-        groups.add(targetGroup(address, "/metrics/components/" + routeId,
+        groups.add(targetGroup(address, "/metrics/components/" + routeId, cluster.getClusterId(),
             cluster.getClusterName(), hostAssignment.host.getHostName(),
             target.path("service").asText(), target.path("component").asText(),
             "component"));
@@ -129,12 +129,14 @@ public class PrometheusTargetDiscovery {
     }
   }
 
-  private ObjectNode targetGroup(String address, String metricsPath, String clusterName,
-      String hostName, String serviceName, String componentName, String targetType) {
+  private ObjectNode targetGroup(String address, String metricsPath, long clusterId,
+      String clusterName, String hostName, String serviceName, String componentName,
+      String targetType) {
     ObjectNode group = JsonNodeFactory.instance.objectNode();
     group.putArray("targets").add(address);
     ObjectNode labels = group.putObject("labels");
     labels.put("__metrics_path__", metricsPath);
+    labels.put("ambari_cluster_id", Long.toString(clusterId));
     labels.put("cluster", clusterName);
     labels.put("host", hostName);
     labels.put("ambari_target", targetType);

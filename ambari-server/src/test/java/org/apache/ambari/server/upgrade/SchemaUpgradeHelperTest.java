@@ -19,6 +19,10 @@ package org.apache.ambari.server.upgrade;
 
 import java.lang.reflect.Method;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -160,6 +164,218 @@ public class SchemaUpgradeHelperTest {
 
     Assert.assertTrue(verifyPassed);
     Assert.assertFalse(failToVerify);
+  }
+
+  @Test
+  public void testSameVersionUpgradeRunsOnlyAdditiveMembershipSchema() throws Exception {
+    List<UpgradeCatalog> upgradePath = schemaUpgradeHelper.getUpgradePath("0.3.0", "0.3.0");
+    Assert.assertTrue(upgradePath.isEmpty());
+
+    List<String> executionOrder = new ArrayList<>();
+    RecordingHostMembershipSchemaUpgrade membershipUpgrade =
+        new RecordingHostMembershipSchemaUpgrade(executionOrder);
+    RecordingScopedWorkflowSchemaUpgrade workflowUpgrade =
+        new RecordingScopedWorkflowSchemaUpgrade(executionOrder);
+    RecordingClusterCreationSchemaUpgrade creationUpgrade =
+        new RecordingClusterCreationSchemaUpgrade(executionOrder);
+    RecordingTopologyProvisioningSchemaUpgrade topologyUpgrade =
+        new RecordingTopologyProvisioningSchemaUpgrade(executionOrder);
+    RecordingServiceDependencySchemaUpgrade dependencyUpgrade =
+        new RecordingServiceDependencySchemaUpgrade(executionOrder);
+    SchemaUpgradeHelper helper = new SchemaUpgradeHelper(Collections.emptySet(), null, null, null,
+        membershipUpgrade, workflowUpgrade, creationUpgrade, topologyUpgrade, dependencyUpgrade);
+
+    helper.executeUpgradeAndEnsureAdditiveSchema(upgradePath);
+
+    Assert.assertEquals(List.of("host-membership", "scoped-workflow", "cluster-creation",
+        "topology-provisioning", "service-dependency"), executionOrder);
+  }
+
+  @Test
+  public void testVersionedDdlRunsBeforeAdditiveMembershipSchema() throws Exception {
+    List<String> executionOrder = new ArrayList<>();
+    UpgradeCatalog versionedCatalog = new RecordingUpgradeCatalog(executionOrder);
+    RecordingHostMembershipSchemaUpgrade membershipUpgrade =
+        new RecordingHostMembershipSchemaUpgrade(executionOrder);
+    RecordingScopedWorkflowSchemaUpgrade workflowUpgrade =
+        new RecordingScopedWorkflowSchemaUpgrade(executionOrder);
+    RecordingClusterCreationSchemaUpgrade creationUpgrade =
+        new RecordingClusterCreationSchemaUpgrade(executionOrder);
+    RecordingTopologyProvisioningSchemaUpgrade topologyUpgrade =
+        new RecordingTopologyProvisioningSchemaUpgrade(executionOrder);
+    RecordingServiceDependencySchemaUpgrade dependencyUpgrade =
+        new RecordingServiceDependencySchemaUpgrade(executionOrder);
+    SchemaUpgradeHelper helper = new SchemaUpgradeHelper(Collections.emptySet(), null, null, null,
+        membershipUpgrade, workflowUpgrade, creationUpgrade, topologyUpgrade, dependencyUpgrade);
+
+    helper.executeUpgradeAndEnsureAdditiveSchema(Collections.singletonList(versionedCatalog));
+
+    Assert.assertEquals(List.of("versioned-ddl", "host-membership", "scoped-workflow", "cluster-creation",
+        "topology-provisioning", "service-dependency"), executionOrder);
+  }
+
+  @Test
+  public void testSameVersionUpgradeSkipsUnrelatedPostUpgradeMaintenance() throws Exception {
+    RecordingSchemaUpgradeHelper helper = new RecordingSchemaUpgradeHelper();
+
+    helper.executePostUpgradeMaintenance(Collections.emptyList());
+
+    Assert.assertFalse(helper.uiStateReset);
+    Assert.assertFalse(helper.rcaCleanup);
+
+    helper.executePostUpgradeMaintenance(Collections.singletonList(new RecordingUpgradeCatalog(new ArrayList<>())));
+
+    Assert.assertTrue(helper.uiStateReset);
+    Assert.assertTrue(helper.rcaCleanup);
+  }
+
+  private static class RecordingHostMembershipSchemaUpgrade extends HostMembershipSchemaUpgrade {
+    private final List<String> executionOrder;
+
+    RecordingHostMembershipSchemaUpgrade(List<String> executionOrder) {
+      super(null);
+      this.executionOrder = executionOrder;
+    }
+
+    @Override
+    public void execute() {
+      executionOrder.add("host-membership");
+    }
+  }
+
+  private static class RecordingScopedWorkflowSchemaUpgrade extends ScopedWorkflowSchemaUpgrade {
+    private final List<String> executionOrder;
+
+    RecordingScopedWorkflowSchemaUpgrade(List<String> executionOrder) {
+      super(null);
+      this.executionOrder = executionOrder;
+    }
+
+    @Override
+    public void execute() {
+      executionOrder.add("scoped-workflow");
+    }
+  }
+
+  private static class RecordingClusterCreationSchemaUpgrade extends ClusterCreationSchemaUpgrade {
+    private final List<String> executionOrder;
+
+    RecordingClusterCreationSchemaUpgrade(List<String> executionOrder) {
+      super(null);
+      this.executionOrder = executionOrder;
+    }
+
+    @Override
+    public void execute() {
+      executionOrder.add("cluster-creation");
+    }
+  }
+
+  private static class RecordingTopologyProvisioningSchemaUpgrade
+      extends TopologyProvisioningSchemaUpgrade {
+    private final List<String> executionOrder;
+
+    RecordingTopologyProvisioningSchemaUpgrade(List<String> executionOrder) {
+      super(null);
+      this.executionOrder = executionOrder;
+    }
+
+    @Override
+    public void execute() {
+      executionOrder.add("topology-provisioning");
+    }
+  }
+
+  private static class RecordingServiceDependencySchemaUpgrade
+      extends ServiceDependencySchemaUpgrade {
+    private final List<String> executionOrder;
+
+    RecordingServiceDependencySchemaUpgrade(List<String> executionOrder) {
+      super(null);
+      this.executionOrder = executionOrder;
+    }
+
+    @Override
+    public void execute() {
+      executionOrder.add("service-dependency");
+    }
+  }
+
+  private static class RecordingSchemaUpgradeHelper extends SchemaUpgradeHelper {
+    private boolean uiStateReset;
+    private boolean rcaCleanup;
+
+    RecordingSchemaUpgradeHelper() {
+      super(Collections.emptySet(), null, null, null,
+          new RecordingHostMembershipSchemaUpgrade(new ArrayList<>()),
+          new RecordingScopedWorkflowSchemaUpgrade(new ArrayList<>()),
+          new RecordingClusterCreationSchemaUpgrade(new ArrayList<>()),
+          new RecordingTopologyProvisioningSchemaUpgrade(new ArrayList<>()),
+          new RecordingServiceDependencySchemaUpgrade(new ArrayList<>()));
+    }
+
+    @Override
+    public void resetUIState() {
+      uiStateReset = true;
+    }
+
+    @Override
+    public void cleanUpRCATables() {
+      rcaCleanup = true;
+    }
+  }
+
+  private static class RecordingUpgradeCatalog implements UpgradeCatalog {
+    private final List<String> executionOrder;
+
+    RecordingUpgradeCatalog(List<String> executionOrder) {
+      this.executionOrder = executionOrder;
+    }
+
+    @Override
+    public void upgradeSchema() {
+      executionOrder.add("versioned-ddl");
+    }
+
+    @Override
+    public void preUpgradeData() {
+    }
+
+    @Override
+    public void upgradeData() {
+    }
+
+    @Override
+    public void setConfigUpdatesFileName(String ambariUpgradeConfigUpdatesFileName) {
+    }
+
+    @Override
+    public boolean isFinal() {
+      return false;
+    }
+
+    @Override
+    public void onPostUpgrade() {
+    }
+
+    @Override
+    public String getTargetVersion() {
+      return "0.3.0";
+    }
+
+    @Override
+    public String getSourceVersion() {
+      return "0.2.0";
+    }
+
+    @Override
+    public void updateDatabaseSchemaVersion() {
+    }
+
+    @Override
+    public Map<String, String> getUpgradeJsonOutput() {
+      return Collections.emptyMap();
+    }
   }
 
 }

@@ -65,7 +65,7 @@ def setup_users():
     )
     pass
 
-  if params.has_hbase_masters:
+  if params.has_hbase_configuration:
     Directory(
       params.hbase_tmp_dir,
       owner=params.hbase_user,

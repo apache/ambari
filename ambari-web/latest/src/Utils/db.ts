@@ -182,7 +182,7 @@ interface DbData {
       this.setDb(data);
     }
 
-    setSession(loginName: string, user: unknown, authorizations: string[]): void {
+    setSession(loginName: string, user: unknown, authorizations: unknown[]): void {
       const data = this.getDb() || this.getInitialData();
       data.app = {
         ...data.app,

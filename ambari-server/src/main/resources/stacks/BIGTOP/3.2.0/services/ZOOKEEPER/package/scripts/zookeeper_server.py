@@ -39,6 +39,38 @@ from zookeeper_service import zookeeper_service
 
 
 class ZookeeperServer(Script):
+  def prepare_binding_journal(self, env):
+    from managed_zookeeper_dependency import execute_managed_zookeeper_command
+    from resource_management.libraries.functions.managed_dependency import (
+      PREPARE_BINDING_JOURNAL,
+    )
+
+    execute_managed_zookeeper_command(self, env, PREPARE_BINDING_JOURNAL)
+
+  def initialize_binding_journal(self, env):
+    from managed_zookeeper_dependency import execute_managed_zookeeper_command
+    from resource_management.libraries.functions.managed_dependency import (
+      INITIALIZE_BINDING_JOURNAL,
+    )
+
+    execute_managed_zookeeper_command(self, env, INITIALIZE_BINDING_JOURNAL)
+
+  def provision_zookeeper_namespace(self, env):
+    from managed_zookeeper_dependency import execute_managed_zookeeper_command
+    from resource_management.libraries.functions.managed_dependency import (
+      PROVISION_ZOOKEEPER_NAMESPACE,
+    )
+
+    execute_managed_zookeeper_command(self, env, PROVISION_ZOOKEEPER_NAMESPACE)
+
+  def invalidate_binding_epoch(self, env):
+    from managed_zookeeper_dependency import execute_managed_zookeeper_command
+    from resource_management.libraries.functions.managed_dependency import (
+      INVALIDATE_BINDING_EPOCH,
+    )
+
+    execute_managed_zookeeper_command(self, env, INVALIDATE_BINDING_EPOCH)
+
   def configure(self, env, upgrade_type=None):
     import params
 

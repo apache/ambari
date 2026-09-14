@@ -1431,7 +1431,7 @@ public class ClusterTest {
       is(expectedServiceConfigResponses));
   }
 
-  @Test
+  @Test(timeout = 30000)
   public void testAllServiceConfigVersionsWithDeletedConfigGroups() throws Exception {
     // Given
     createDefaultCluster();

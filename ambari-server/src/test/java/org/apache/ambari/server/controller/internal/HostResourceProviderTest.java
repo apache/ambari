@@ -46,6 +46,7 @@ import java.util.UUID;
 import jakarta.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
@@ -975,6 +976,41 @@ public class HostResourceProviderTest extends EasyMockSupport {
   @Test
   public void testUpdateResourcesAsClusterAdministrator() throws Exception {
     testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testUpdateHostDoesNotSwallowCrossClusterConflict() throws Exception {
+    Injector injector = createInjector();
+    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Cluster requestedCluster = createNiceMock(Cluster.class);
+    Cluster existingCluster = createNiceMock(Cluster.class);
+    Host host = createNiceMock(Host.class);
+    HostRequest request = new HostRequest("Host100", "Cluster100");
+    DuplicateResourceException conflict = new DuplicateResourceException(
+        "Host Host100 already belongs to cluster OtherCluster and cannot be mapped to cluster Cluster100");
+
+    expect(managementController.getClusters()).andReturn(clusters);
+    expect(clusters.getHost("Host100")).andReturn(host);
+    expect(clusters.getCluster("Cluster100")).andReturn(requestedCluster);
+    expect(requestedCluster.getClusterId()).andReturn(2L);
+    expect(requestedCluster.getResourceId()).andReturn(4L);
+    expect(host.getHostId()).andReturn(10L);
+    expect(host.getHostName()).andReturn("Host100").anyTimes();
+    clusters.mapAndPublishHostsToCluster(Collections.singleton("Host100"), "Cluster100");
+    expectLastCall().andThrow(conflict);
+    expect(clusters.getClustersForHost("Host100")).andReturn(Collections.singleton(existingCluster));
+    expect(existingCluster.getClusterName()).andReturn("OtherCluster");
+    replayAll();
+
+    try {
+      updateHosts(managementController, Collections.singleton(request));
+      Assert.fail("Expected the cross-cluster conflict to be propagated");
+    } catch (DuplicateResourceException e) {
+      Assert.assertSame(conflict, e);
+    }
+
+    verifyAll();
   }
 
   @Test(expected = AuthorizationException.class)

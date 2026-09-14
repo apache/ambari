@@ -25,14 +25,16 @@ import useStepWizard from "../../../../hooks/useStepWizard";
 import wizardSteps from "./wizardSteps";
 import { AddObserverNamenodeProvider } from "./store/context";
 import StepWizard from "../../../../components/StepWizard";
-import ClusterApi from "../../../../api/clusterApi";
 import { LocalStorageOps } from "../../../../Utils/LocalStorageOps";
 import { AppContext } from "../../../../store/context";
 import { messages } from "../../../messages";
 import { ServiceContext } from "../../../../store/ServiceContext";
+import {
+  clusterHashPath,
+} from "../../../../Utils/clusterRoute";
 
 function ValidateEnablement() {
-  const { services } = useContext(AppContext);
+  const { clusterName, services, navigateCluster } = useContext(AppContext);
   const { masterSlaveClientsData } = useContext(ServiceContext);
   const { hostComponents: serviceHostComponents, serviceComponents } =
     useHostComponents(map(services, "ServiceInfo.service_name"));
@@ -127,24 +129,19 @@ function ValidateEnablement() {
       {showModal ? (
         <Modal
           isOpen={showModal}
-          onClose={async () => {
-            await ClusterApi.postPersistData(
-              JSON.stringify({
-                USER_REDIRECTION_URL: "",
-              })
-            );
+          onClose={() => {
             setShowModal(false);
             LocalStorageOps.setItem(
               "lastVisitedURL",
-              "/#/main/services/HDFS/summary"
+              clusterHashPath(clusterName, "/main/services/HDFS/summary")
             );
-            window.location.href = "/#/main/services/HDFS/summary";
+            navigateCluster("/main/services/HDFS/summary");
           }}
           modalTitle={get(messages, "admin.observerNameNode.button.enable")}
           modalBody={getModalBodyContent()}
           successCallback={() => {
             setShowModal(false);
-            window.location.href = "/#/main/services/HDFS/summary";
+            navigateCluster("/main/services/HDFS/summary");
           }}
           options={{
             shouldShowFooter:

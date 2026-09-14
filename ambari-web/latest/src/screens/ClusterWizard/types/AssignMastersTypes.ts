@@ -26,6 +26,9 @@ export interface AssignMastersProps {
   dispatch: any;
   installedServices?: string[];
   parentState?:any;
+  advisorInputKey?: string;
+  onReviewManagedDependencies?: () => void;
+  runWithAdvisorRequest?: import("../managedDependencyAdvisor").RunWithStackAdvisorRequest;
 }
 
 export interface Host {

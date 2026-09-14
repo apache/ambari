@@ -78,6 +78,9 @@ public class NamedTasksSubscriptionsTest {
     assertTrue(taskIdOpt.isPresent());
     assertEquals(1L, taskIdOpt.get().longValue());
     assertFalse(tasksSubscriptions.matchDestination("/events/topologies").isPresent());
+    assertFalse(tasksSubscriptions.matchDestination("/events/tasks/1/extra").isPresent());
+    assertFalse(tasksSubscriptions.matchDestination("/prefix/events/tasks/1").isPresent());
+    assertFalse(tasksSubscriptions.matchDestination("/events/tasks/*").isPresent());
   }
 
   @Test

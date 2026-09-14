@@ -18,6 +18,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  canViewClusterTasksForRole,
   clusterNavigationEnabled,
   clusterProvisioningRedirect,
   hasVersionConflict,
@@ -27,6 +28,16 @@ import {
 } from "./authPolicy";
 
 describe("application landing policy", () => {
+  it("uses the effective role in the requested cluster for task visibility", () => {
+    expect(canViewClusterTasksForRole(true, [])).toBe(true);
+    expect(canViewClusterTasksForRole(false, ["CLUSTER.USER"])).toBe(false);
+    expect(canViewClusterTasksForRole(false, ["CLUSTER.ADMINISTRATOR"])).toBe(true);
+    expect(canViewClusterTasksForRole(
+      false,
+      ["CLUSTER.USER", "SERVICE.ADMINISTRATOR"],
+    )).toBe(true);
+  });
+
   it.each([
     [{ clusterInstalled: true, clusterName: "c1", viewOnly: false }, "/main/dashboard/metrics"],
     [{

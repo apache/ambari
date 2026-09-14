@@ -90,11 +90,10 @@ function BackgroundOperations({
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [loadError, setLoadError] = useState("");
   const [isAborting, setIsAborting] = useState(false);
-  const { isClusterUser } = useAuth();
+  const { canViewClusterTasks } = useAuth();
   const { isAuthorized } = useAuthorizationPolicy();
   const canAbortRequests = isAuthorized("SERVICE.START_STOP");
   const canManageBackgroundSettings = isAuthorized("AMBARI.MANAGE_SETTINGS");
-  const isBackgroundOperationsRestricted = isClusterUser();
   const {
     clusterName: cName,
     userBgPreferences,
@@ -108,6 +107,7 @@ function BackgroundOperations({
     parsedSocketMessages,
     isClusterInstalled,
   } = useContext(AppContext);
+  const isBackgroundOperationsRestricted = !canViewClusterTasks(clusterName || cName);
   const shouldHideAutomaticPopup = !shouldShowBackgroundOperations(
     userBgPreferences,
     isExplicitClick,

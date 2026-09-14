@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -379,16 +378,9 @@ public class ServiceImpl implements Service {
    * {@inheritDoc}
    */
   @Override
-  @Transactional
   public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
-    ServiceDesiredStateEntity serviceDesiredStateEntity = getServiceDesiredStateEntity();
-    serviceDesiredStateEntity.setDesiredRepositoryVersion(repositoryVersionEntity);
-    serviceDesiredStateDAO.merge(serviceDesiredStateEntity);
-
-    Collection<ServiceComponent> components = getServiceComponents().values();
-    for (ServiceComponent component : components) {
-      component.setDesiredRepositoryVersion(repositoryVersionEntity);
-    }
+    cluster.executeUnderWriteLock(() -> serviceDesiredStateDAO.updateDesiredRepositoryVersion(
+        cluster.getClusterId(), getName(), repositoryVersionEntity));
   }
 
   /**

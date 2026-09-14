@@ -38,6 +38,7 @@ import {
 } from "../utils";
 import PanelRenderer from "./PanelRenderer";
 import type { DashboardPanelResult } from "./data/panelData";
+import { clusterPath } from "../../../Utils/clusterRoute";
 
 interface DashboardPanelProps {
   panel: Panel;
@@ -243,7 +244,7 @@ export default function DashboardPanel({
         configs,
       }]);
       if (!ids.length) throw new Error("The server did not return a chart share ID");
-      const route = `/main/monitoring/shared-charts/${ids.join(",")}`;
+      const route = clusterPath(clusterName, `/main/monitoring/shared-charts/${ids.join(",")}`);
       window.open(`${window.location.origin}${window.location.pathname}#${route}`, "_blank", "noopener,noreferrer");
     } catch (caught: unknown) {
       toast.error(caught instanceof Error ? caught.message : "Unable to share chart");

@@ -17,19 +17,21 @@
  */
 import { adminApi } from "./configs/axiosConfig";
 const VersionsApi = {
-  versionsList: async function (repoVersion: string,clusterName:string) {
-    const url = `/clusters/${clusterName}/stack_versions?fields=*&ClusterStackVersions/repository_version=${repoVersion}`;
+  versionsList: async function (repoVersion: string, clusterName: string, signal?: AbortSignal) {
+    const url = `/clusters/${encodeURIComponent(clusterName)}/stack_versions?fields=*&ClusterStackVersions/repository_version=${encodeURIComponent(repoVersion)}`;
     const response = await adminApi.request({
       url: url,
       method: "GET",
+      signal,
     });
     return response.data;
   },
-  getRepos: async function () {
+  getRepos: async function (signal?: AbortSignal) {
     const url = `/stacks?fields=versions/repository_versions/RepositoryVersions`;
     const response = await adminApi.request({
       url: url,
       method: "GET",
+      signal,
     });
     return response.data;
   },

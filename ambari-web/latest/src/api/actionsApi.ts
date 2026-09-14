@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 
 export const ActionsApi = {
@@ -25,7 +26,7 @@ export const ActionsApi = {
     payloadData: object
   ) {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/services/${serviceName}`,
+      url: `/clusters/${apiPathSegment(clusterName)}/services/${apiPathSegment(serviceName)}`,
       method: "PUT",
       data: payloadData,
     });
@@ -36,7 +37,7 @@ export const ActionsApi = {
     serviceName: string,
     payloadData: { requestInfo: string; passive_state: string }
   ) {
-    const url = `/clusters/${clusterName}/services/${serviceName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/services/${apiPathSegment(serviceName)}`;
     const payload = {
       RequestInfo: {
         context: payloadData.requestInfo,
@@ -56,7 +57,7 @@ export const ActionsApi = {
   },
   actionRequest: async function (clusterName: string, payloadData: any) {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/request_schedules`,
+      url: `/clusters/${apiPathSegment(clusterName)}/request_schedules`,
       method: "POST",
       data: payloadData
     });
@@ -64,7 +65,7 @@ export const ActionsApi = {
   },
   actionRequestRebalanceHDFS: async function (clusterName: string, payloadData: object) {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/requests`,
+      url: `/clusters/${apiPathSegment(clusterName)}/requests`,
       method: "POST",
       data: payloadData
     });
@@ -72,7 +73,7 @@ export const ActionsApi = {
   },
   submitActionRequest: async function (clusterName: string, payloadData: object) {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/requests`,
+      url: `/clusters/${apiPathSegment(clusterName)}/requests`,
       method: "POST",
       data: payloadData
     });
@@ -80,7 +81,7 @@ export const ActionsApi = {
   },
   regenerateKeytabsForService: async function (clusterName: string, serviceName: string, payloadData: any) {
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}?regenerate_keytabs=all&regenerate_components=${serviceName}&config_update_policy=none`,
+      url: `/clusters/${apiPathSegment(clusterName)}?regenerate_keytabs=all&regenerate_components=${serviceName}&config_update_policy=none`,
       method: "PUT",
       data: payloadData,
     });

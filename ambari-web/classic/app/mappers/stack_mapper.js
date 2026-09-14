@@ -90,7 +90,8 @@ App.stackMapper = App.QuickDataMapper.create({
     components: 'components',
     distribution: 'distribution',
     tags: 'tags',
-    applicable_services: 'applicable_services'
+    applicable_services: 'applicable_services',
+    unique: 'unique'
   },
   
   map: function(json) {

@@ -30,44 +30,17 @@ export enum SideItemLabels {
   LOGO = "logo",
   DASHBOARD = "dashboard",
   CLUSTERMANAGEMENT = "Cluster Management",
-  CLUSTERINFORMATION = "Cluster Information",
+  CLUSTERINFORMATION = "Cluster Details",
+  CLUSTEROVERVIEW = "Cluster Overview",
+  CREATECLUSTER = "Create Cluster",
+  HOSTRESOURCES = "Host Resources",
+  CLUSTERPERMISSIONS = "Cluster Permissions",
   VERSIONS = "Versions",
   REMOTECLUSTERS = "Remote Clusters",
   USERS = "Users",
   VIEWS = "Views",
 }
-// START GENAI@CHATGPT4
-const getSideItemList = (clusterExists: boolean): SideItem[] => {
-  const baseList: SideItem[] = [...SideItemList];
-
-  const clusterMgmtItem = baseList.find(
-      (item) => item.id === SideItemLabels.CLUSTERMANAGEMENT
-  );
-
-  if (clusterMgmtItem) {
-    const versionsChildIndex = clusterMgmtItem.children.findIndex(child => child.id === SideItemLabels.VERSIONS);
-
-    if (clusterExists) {
-      // If cluster exists, add the VERSIONS child to CLUSTERMANAGEMENT
-      if (versionsChildIndex === -1) {
-        clusterMgmtItem.children.push({
-          id: SideItemLabels.VERSIONS,
-          icon: null,
-          name: "Versions",
-          path: "/stackVersions",
-          children: [],
-        });
-      }
-    } else {
-      // If cluster does not exist, remove the VERSIONS child from CLUSTERMANAGEMENT
-      if (versionsChildIndex !== -1) {
-        clusterMgmtItem.children.splice(versionsChildIndex, 1);
-      }
-    }
-  }
-
-  return baseList;
-};
+const getSideItemList = (_clusterExists: boolean): SideItem[] => SideItemList;
 
 const SideItemList: SideItem[] = [
   {
@@ -93,16 +66,19 @@ const SideItemList: SideItem[] = [
     name: "Cluster Management",
     children: [
       {
-        id: SideItemLabels.CLUSTERINFORMATION,
+        id: SideItemLabels.CLUSTEROVERVIEW,
         icon: null,
-        name: "Cluster Information",
-        path: "/clusterInformation",
+        name: "Cluster Overview",
+        path: "/clusters",
         children: [],
       },
+      { id: SideItemLabels.CREATECLUSTER, icon: null, name: "Create Cluster", path: "/clusters/create", children: [] },
+      { id: SideItemLabels.HOSTRESOURCES, icon: null, name: "Host Resources", path: "/hostResources", children: [] },
+      { id: SideItemLabels.CLUSTERPERMISSIONS, icon: null, name: "Cluster Permissions", path: "/clusterPermissions", children: [] },
       {
         id: SideItemLabels.VERSIONS,
         icon: null,
-        name: "Versions",
+        name: "Versions & Repositories",
         path: "/stackVersions",
         children: [],
       },

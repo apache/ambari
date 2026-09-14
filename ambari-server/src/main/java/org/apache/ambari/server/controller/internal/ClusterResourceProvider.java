@@ -87,6 +87,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String HEALTH_REPORT = "health_report";
   public static final String CREDENTIAL_STORE_PROPERTIES = "credential_store_properties";
   public static final String REPO_VERSION = "repository_version";
+  public static final String CREATION_DRAFT_ID = "creation_draft_id";
   public static final String CLUSTER_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_ID;
   public static final String CLUSTER_NAME_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CLUSTER_NAME;
   public static final String CLUSTER_VERSION_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + VERSION;
@@ -97,6 +98,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String CLUSTER_TOTAL_HOSTS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + TOTAL_HOSTS;
   public static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + HEALTH_REPORT;
   public static final String CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CREDENTIAL_STORE_PROPERTIES;
+  public static final String CLUSTER_CREATION_DRAFT_ID_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + CREATION_DRAFT_ID;
   public static final String CLUSTER_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters","state");
 
   static final String BLUEPRINT = "blueprint";
@@ -151,6 +153,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     .add(CLUSTER_TOTAL_HOSTS_PROPERTY_ID)
     .add(CLUSTER_HEALTH_REPORT_PROPERTY_ID)
     .add(CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID)
+    .add(CLUSTER_CREATION_DRAFT_ID_PROPERTY_ID)
     .add(BLUEPRINT)
     .add(SESSION_ATTRIBUTES)
     .add(SECURITY)
@@ -419,6 +422,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         (String) properties.get(CLUSTER_VERSION_PROPERTY_ID),
         null,
         getSessionAttributes(properties));
+    cr.setCreationDraftId((String) properties.get(CLUSTER_CREATION_DRAFT_ID_PROPERTY_ID));
 
     List<ConfigurationRequest> configRequests = getConfigurationRequests(RESPONSE_KEY, properties);
     if (!configRequests.isEmpty()) {
@@ -577,4 +581,3 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   }
 
 }
-

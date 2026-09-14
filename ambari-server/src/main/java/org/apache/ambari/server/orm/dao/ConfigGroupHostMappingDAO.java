@@ -288,6 +288,19 @@ public class ConfigGroupHostMappingDAO {
 
   }
 
+  /** Removes committed mappings for a group from the in-memory lookup cache. */
+  public void evictGroupFromCache(final Long groupId) {
+    populateCache();
+    gl.writeLock().lock();
+    try {
+      for (Set<ConfigGroupHostMapping> setByHost : configGroupHostMappingByHost.values()) {
+        setByHost.removeIf(mapping -> mapping.getConfigGroupId().equals(groupId));
+      }
+    } finally {
+      gl.writeLock().unlock();
+    }
+  }
+
   @Transactional
   public void removeAllByHost(Long hostId) {
     TypedQuery<String> query = entityManagerProvider.get().createQuery

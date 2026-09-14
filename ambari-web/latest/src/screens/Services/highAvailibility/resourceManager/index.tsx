@@ -20,7 +20,8 @@ import { Dropdown } from "react-bootstrap";
 import { ServiceActionEnums } from "../../../../enums/ServiceActionEnums";
 import { useContext, useEffect, useState } from "react";
 import ValidateEnablement from "./ValidateEnablement";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
+import useClusterNavigate from "../../../../hooks/useClusterNavigate";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSitemap } from "@fortawesome/free-solid-svg-icons";
 import useAuth from "../../../../hooks/useAuth";
@@ -40,7 +41,7 @@ function EnableHighAvailibilityResourceManger({
 }) {
   const { clusterName, allHostNames } = useContext(AppContext);
   const { componentName } = useParams();
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const location = useLocation();
   const { hasAuthorization } = useAuth();
   const hasWorkflowPermissions =

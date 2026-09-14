@@ -73,6 +73,10 @@ import {
   getThemePlacementProperty,
 } from "./ConfigUtils";
 import useEnhancedConfigs from "../../hooks/useEnhancedConfigs";
+import type {
+  EnhancedConfigRecommendationState,
+} from "../../hooks/useEnhancedConfigs";
+import type { RunWithStackAdvisorRequest } from "../ClusterWizard/managedDependencyAdvisor";
 import OverlayBackdrop from "../../components/OverlayBackdrop";
 import {
   widgetValueByConfigAttributes,
@@ -219,6 +223,15 @@ type ConfigProps = {
   onServiceChange?: (serviceName: string) => void;
   configsLoading?: boolean;
   allThemes?: boolean;
+  runWithAdvisorRequest?: RunWithStackAdvisorRequest;
+  advisorScopeKey?: string;
+  checkpointConfigProperties?: (
+    configProperties: ConfigPropertiesType,
+  ) => Promise<unknown>;
+  onConfigEdit?: () => void;
+  onRecommendationStateChange?: (
+    state: EnhancedConfigRecommendationState,
+  ) => void;
 };
 
 interface PropertyFilter {
@@ -254,6 +267,11 @@ export default function Config({
   onServiceChange,
   configsLoading = false,
   allThemes = false,
+  runWithAdvisorRequest,
+  advisorScopeKey,
+  checkpointConfigProperties,
+  onConfigEdit,
+  onRecommendationStateChange,
 }: ConfigProps) {
   const [chosenService, setChosenService] = useState<string>(
     selectedService || "",
@@ -342,17 +360,52 @@ export default function Config({
     processingConfig,
     recommendedChanges,
     setRecommendedChanges,
+    recommendationsInProgress,
+    recommendationError,
+    retryLastRecommendation,
   } = useEnhancedConfigs(
     setConfigProperties,
     chosenService,
     installedServices ?? [],
     recommendationsDataToSend,
-    installer ? "clusterCreation" : "serviceConfigs",
+    wizardName || (installer ? "clusterCreation" : "serviceConfigs"),
     stack,
     stackVersion,
     hosts,
     applyCurrentThemeState,
+    runWithAdvisorRequest,
+    advisorScopeKey,
+    checkpointConfigProperties,
   );
+
+  useEffect(() => {
+    onRecommendationStateChange?.({
+      pending: recommendationsInProgress || processingConfig,
+      error: recommendationError,
+      retry: retryLastRecommendation,
+    });
+  }, [
+    onRecommendationStateChange,
+    recommendationsInProgress,
+    processingConfig,
+    recommendationError,
+    retryLastRecommendation,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      onRecommendationStateChange?.({
+        pending: false,
+        error: null,
+        retry: () => undefined,
+      });
+    };
+  }, [onRecommendationStateChange]);
+
+  const commitConfigProperties = (nextConfigs: ConfigPropertiesType) => {
+    onConfigEdit?.();
+    setConfigProperties(nextConfigs);
+  };
 
   const handleRecommendationChange = (
     propertyName: string,
@@ -419,7 +472,7 @@ export default function Config({
 
       if (propertyFound) {
         newConfigs = applyCurrentThemeState(newConfigs);
-        setConfigProperties(newConfigs);
+        commitConfigProperties(newConfigs);
       }
     }
 
@@ -635,7 +688,7 @@ export default function Config({
       property.propertyName
     ].value = property.previousValue;
     newConfigs = applyCurrentThemeState(newConfigs);
-    setConfigProperties(newConfigs);
+    commitConfigProperties(newConfigs);
   };
 
   const setToDefault = (configType: string, property: PropertyType) => {
@@ -644,7 +697,7 @@ export default function Config({
       property.propertyName
     ].value = formatPropertyValue(property, property.propertyValue);
     newConfigs = applyCurrentThemeState(newConfigs);
-    setConfigProperties(newConfigs);
+    commitConfigProperties(newConfigs);
   };
 
   const evaluateDependsOn = (dependsOn: any): boolean => {
@@ -1540,7 +1593,7 @@ export default function Config({
     newConfigs = applyCurrentThemeState(newConfigs);
     // Remove global validation - only validate the changed property above
 
-    setConfigProperties(newConfigs);
+    commitConfigProperties(newConfigs);
     if (requestRecommendations) {
       onValueUpdate(
         newConfigs[chosenService][configType].properties[property.propertyName],
@@ -1641,7 +1694,7 @@ export default function Config({
     newConfigs = applyCurrentThemeState(newConfigs);
     // Remove global validation - only validate the changed property above
 
-    setConfigProperties(newConfigs);
+    commitConfigProperties(newConfigs);
   };
 
   function getValidationNotificationsBody() {
@@ -3158,7 +3211,7 @@ export default function Config({
                                                                                               "true"
                                                                                                 ? "false"
                                                                                                 : "true";
-                                                                                            setConfigProperties(
+                                                                                            commitConfigProperties(
                                                                                               configsCopy,
                                                                                             );
                                                                                           }}
@@ -3255,7 +3308,7 @@ export default function Config({
                                                                                                   },
                                                                                                 );
 
-                                                                                                setConfigProperties(
+                                                                                                commitConfigProperties(
                                                                                                   configsCopy,
                                                                                                 );
                                                                                               }
@@ -3468,7 +3521,7 @@ export default function Config({
                                                                                                           "true"
                                                                                                             ? "false"
                                                                                                             : "true";
-                                                                                                        setConfigProperties(
+                                                                                                        commitConfigProperties(
                                                                                                           configsCopy,
                                                                                                         );
                                                                                                       }}
@@ -3501,7 +3554,7 @@ export default function Config({
                                                                                                       validateAllProperties(
                                                                                                         configsCopy,
                                                                                                       );
-                                                                                                    setConfigProperties(
+                                                                                                    commitConfigProperties(
                                                                                                       validatedConfigs,
                                                                                                     );
                                                                                                   }}

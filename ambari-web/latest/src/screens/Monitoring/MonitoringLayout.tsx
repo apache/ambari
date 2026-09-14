@@ -17,8 +17,10 @@
  */
 
 import { Nav } from "react-bootstrap";
-import { Navigate, NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import useClusterPath from "../../hooks/useClusterPath";
+import ScopedNavigate from "../../components/ScopedNavigate";
 import "./monitoring.scss";
 
 const links = [
@@ -36,11 +38,12 @@ export function MonitoringIndexRedirect() {
       ? "/main/monitoring/targets"
       : "/main/dashboard/metrics";
 
-  return <Navigate to={destination} replace />;
+  return <ScopedNavigate to={destination} replace />;
 }
 
 export default function MonitoringLayout() {
   const { hasAuthorization } = useAuth();
+  const scopedPath = useClusterPath();
 
   return (
     <div className="monitoring-shell">
@@ -51,7 +54,7 @@ export default function MonitoringLayout() {
         </div>
         <Nav className="monitoring-nav" variant="underline">
           {links.filter(([, , permission]) => hasAuthorization(permission)).map(([label, to]) => (
-            <NavLink key={to} className="nav-link" to={to}>
+            <NavLink key={to} className="nav-link" to={scopedPath(to)}>
               {label}
             </NavLink>
           ))}

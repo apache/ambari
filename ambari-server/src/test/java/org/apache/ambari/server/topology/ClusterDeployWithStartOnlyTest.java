@@ -344,7 +344,8 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), eq("1"), anyLong());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME),
+        (SecurityType) isNull(), eq("1"), anyLong(), (String) isNull(), eq(request));
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
@@ -368,12 +369,12 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(hostRoleCommandInstallComponent3.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
     expect(hostRoleCommandInstallComponent3.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
-    expect(hostRoleCommandInstallComponent3.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+    expect(hostRoleCommandInstallComponent3.getStatus()).andReturn(HostRoleStatus.PENDING).atLeastOnce();
 
     expect(hostRoleCommandInstallComponent4.getTaskId()).andReturn(2L).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
-    expect(hostRoleCommandInstallComponent4.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+    expect(hostRoleCommandInstallComponent4.getStatus()).andReturn(HostRoleStatus.PENDING).atLeastOnce();
 
     expect(ambariContext.createAmbariTask(anyLong(), anyLong(), eq("component1"),
       anyString(), eq(AmbariContext.TaskType.START), anyBoolean())).andReturn(hostRoleCommandStartComponent1).times
@@ -384,12 +385,12 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
     expect(hostRoleCommandStartComponent1.getTaskId()).andReturn(3L).anyTimes();
     expect(hostRoleCommandStartComponent1.getRoleCommand()).andReturn(RoleCommand.START).atLeastOnce();
     expect(hostRoleCommandStartComponent1.getRole()).andReturn(Role.DATANODE).atLeastOnce();
-    expect(hostRoleCommandStartComponent1.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+    expect(hostRoleCommandStartComponent1.getStatus()).andReturn(HostRoleStatus.PENDING).atLeastOnce();
 
     expect(hostRoleCommandStartComponent2.getTaskId()).andReturn(4L).anyTimes();
     expect(hostRoleCommandStartComponent2.getRoleCommand()).andReturn(RoleCommand.START).atLeastOnce();
     expect(hostRoleCommandStartComponent2.getRole()).andReturn(Role.NAMENODE).atLeastOnce();
-    expect(hostRoleCommandStartComponent2.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+    expect(hostRoleCommandStartComponent2.getStatus()).andReturn(HostRoleStatus.PENDING).atLeastOnce();
 
 
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
@@ -404,7 +405,9 @@ public class ClusterDeployWithStartOnlyTest extends EasyMockSupport {
 
     persistedTopologyRequest = new PersistedTopologyRequest(1, request);
     expect(persistedState.getAllRequests()).andReturn(Collections.emptyMap()).once();
-    expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).once();
+    expect(persistedState.getProvisioningIntent(anyLong()))
+        .andReturn(persistedTopologyRequest).once();
+    expect(persistedState.getProvisionRequest(anyLong())).andReturn(null).once();
     persistedState.persistLogicalRequest((LogicalRequest) anyObject(), anyLong());
     expectLastCall().once();
 

@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,10 +31,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
@@ -42,10 +45,18 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.St
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyIntegrationException;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.PlanRequest;
+import org.apache.ambari.server.controller.dependencies.ManagedDependencyStackAdvisorPlanner.TrustedPlan;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.ChangedConfigInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -109,6 +120,8 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   private static AmbariMetaInfo ambariMetaInfo;
   protected static final String USER_CONTEXT_OPERATION_PROPERTY = "user_context/operation";
   protected static final String USER_CONTEXT_OPERATION_DETAILS_PROPERTY = "user_context/operation_details";
+  protected static final String MANAGED_DEPENDENCY_PLAN_PROPERTY = "managed_dependency_plan";
+  private static ManagedDependencyStackAdvisorPlanner managedDependencyPlanner;
 
   @Inject
   public static void init(StackAdvisorHelper instance, Configuration serverConfig, Clusters clusters,
@@ -117,6 +130,12 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     configuration = serverConfig;
     StackAdvisorResourceProvider.clusters = clusters;
     StackAdvisorResourceProvider.ambariMetaInfo = ambariMetaInfo;
+  }
+
+  public static void init(StackAdvisorHelper instance, Configuration serverConfig, Clusters clusters,
+      AmbariMetaInfo ambariMetaInfo, ManagedDependencyStackAdvisorPlanner dependencyPlanner) {
+    init(instance, serverConfig, clusters, ambariMetaInfo);
+    managedDependencyPlanner = dependencyPlanner;
   }
 
   protected StackAdvisorResourceProvider(Resource.Type type, Set<String> propertyIds, Map<Type, String> keyPropertyIds,
@@ -129,6 +148,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   @SuppressWarnings("unchecked")
   protected StackAdvisorRequest prepareStackAdvisorRequest(Request request) {
     try {
+      Map<String, Object> requestProperties = requestProperties(request);
       String clusterIdProperty = (String) getRequestProperty(request, CLUSTER_ID_PROPERTY);
       Long clusterId = clusterIdProperty == null ? null : Long.valueOf(clusterIdProperty);
 
@@ -141,6 +161,22 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
       String stackVersion = (String) getRequestProperty(request, STACK_VERSION_PROPERTY_ID);
       StackAdvisorRequestType requestType = StackAdvisorRequestType
           .fromString((String) getRequestProperty(request, getRequestTypePropertyId()));
+
+      PlanRequest managedPlanRequest = ManagedDependencyStackAdvisorPlanner.parse(requestProperties);
+      Set<String> explicitHosts = collectExplicitHosts(requestProperties);
+      Cluster targetCluster = authorizeTarget(clusterId, managedPlanRequest, explicitHosts);
+      if (targetCluster != null) {
+        clusterId = targetCluster.getClusterId();
+        if (managedPlanRequest != null) {
+          StackId targetStack = targetCluster.getDesiredStackVersion();
+          if (targetStack == null || !targetStack.getStackName().equals(stackName)
+              || !targetStack.getStackVersion().equals(stackVersion)) {
+            throw new ManagedDependencyIntegrationException(409, "ADVISOR_TARGET_STACK_MISMATCH",
+                "The advisor stack does not match the selected cluster");
+          }
+        }
+      }
+      authorizeHosts(explicitHosts, targetCluster);
 
       List<String> hosts;
       List<String> services;
@@ -157,7 +193,8 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
               String.format("Incomplete request, clusterId and/or serviceName are not valid, clusterId=%s, serviceName=%s",
                   clusterId, serviceName));
         }
-        Cluster cluster = clusters.getCluster(clusterId);
+        Cluster cluster = targetCluster;
+        authorizeClusterConfigurationView(cluster);
         List<Host> hostObjects = new ArrayList<>(cluster.getHosts());
         Map<String, Service> serviceObjects = cluster.getServices();
 
@@ -198,6 +235,7 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         configurations = calculateConfigurations(request);
         configGroups = calculateConfigGroups(request);
       }
+      authorizeHosts(new LinkedHashSet<>(hosts), targetCluster);
       Map<String, String> userContext = readUserContext(request);
       Boolean gplLicenseAccepted = configuration.getGplLicenseAccepted();
       List<ChangedConfigInfo> changedConfigurations =
@@ -206,6 +244,16 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
       String configsResponseProperty = (String) getRequestProperty(request, CONFIGS_RESPONSE_PROPERTY);
       Boolean configsResponse = configsResponseProperty == null ? false : Boolean.valueOf(configsResponseProperty);
+
+      TrustedPlan managedDependencyPlan = null;
+      if (managedPlanRequest != null) {
+        if (managedDependencyPlanner == null) {
+          throw new ManagedDependencyIntegrationException(503, "ADVISOR_PLAN_UNAVAILABLE",
+              "Managed dependency planning is temporarily unavailable");
+        }
+        managedDependencyPlan = managedDependencyPlanner.authorize(managedPlanRequest, clusterId,
+            stackName, stackVersion, services);
+      }
 
       return StackAdvisorRequestBuilder.
         forStack(stackName, stackVersion).ofType(requestType).forHosts(hosts).
@@ -219,13 +267,196 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         withGPLLicenseAccepted(gplLicenseAccepted).
         withClusterId(clusterId).
         withServiceName(serviceName).
-        withConfigsResponse(configsResponse).build();
+        withConfigsResponse(configsResponse).
+        withManagedDependencyPlan(managedDependencyPlan).build();
+    } catch (WebApplicationException e) {
+      throw e;
+    } catch (ManagedDependencyIntegrationException e) {
+      throw advisorError(e.getStatus(), e.getCode(), e.getMessage());
+    } catch (AuthorizationException e) {
+      throw advisorError(Status.FORBIDDEN.getStatusCode(), "ADVISOR_AUTHORIZATION_FAILED",
+          "The authenticated user is not authorized for this advisor request");
     } catch (Exception e) {
-      LOG.warn("Error occurred during preparation of stack advisor request", e);
-      Response response = Response.status(Status.BAD_REQUEST)
-          .entity(String.format("Request body is not correct, error: %s", e.getMessage())).build();
-      throw new WebApplicationException(response);
+      LOG.warn("Stack advisor request preparation failed: {}", e.getClass().getName());
+      throw advisorError(Status.BAD_REQUEST.getStatusCode(), "INVALID_STACK_ADVISOR_REQUEST",
+          "The stack advisor request body is invalid");
     }
+  }
+
+  private Cluster authorizeTarget(Long clusterId, PlanRequest managedPlan,
+      Set<String> explicitHosts) throws AmbariException, AuthorizationException {
+    Long plannedClusterId = managedPlan == null ? null : managedPlan.consumer().clusterId();
+    if (managedPlan != null && managedPlan.consumer().scope()
+        == ManagedDependencyStackAdvisorPlanner.ConsumerScope.DRAFT) {
+      if (clusterId != null) {
+        throw new ManagedDependencyIntegrationException(409, "DEPENDENCY_CONSUMER_MISMATCH",
+            "A dependency draft cannot target an existing cluster");
+      }
+      AuthorizationHelper.verifyAuthorization(ResourceType.AMBARI, null,
+          Set.of(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS));
+      return null;
+    }
+    if (plannedClusterId != null && !plannedClusterId.equals(clusterId)) {
+      throw new ManagedDependencyIntegrationException(409, "DEPENDENCY_CONSUMER_MISMATCH",
+          "The advisor target does not match the managed dependency consumer");
+    }
+
+    if (clusterId != null) {
+      Cluster cluster;
+      try {
+        cluster = clusters.getCluster(clusterId);
+      } catch (ClusterNotFoundException e) {
+        throw new ManagedDependencyIntegrationException(404, "ADVISOR_TARGET_NOT_FOUND",
+            "The selected advisor cluster was not found");
+      }
+      authorizeClusterView(cluster);
+      return cluster;
+    }
+
+    Set<Cluster> mappedClusters = new LinkedHashSet<>();
+    for (String hostName : explicitHosts) {
+      if (!clusters.hostExists(hostName)) {
+        continue;
+      }
+      Set<Cluster> hostClusters = clusters.getClustersForHost(hostName);
+      for (Cluster cluster : hostClusters) {
+        authorizeClusterView(cluster);
+        mappedClusters.add(cluster);
+      }
+    }
+    if (mappedClusters.size() > 1) {
+      throw new AuthorizationException("Advisor hosts do not share one authorized cluster");
+    }
+    if (mappedClusters.size() == 1) {
+      return mappedClusters.iterator().next();
+    }
+    AuthorizationHelper.verifyAuthorization(ResourceType.AMBARI, null,
+        Set.of(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS));
+    return null;
+  }
+
+  private void authorizeClusterView(Cluster cluster) throws AuthorizationException {
+    AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, cluster.getResourceId(),
+        RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
+  }
+
+  private void authorizeClusterConfigurationView(Cluster cluster) throws AuthorizationException {
+    AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER, cluster.getResourceId(),
+        Set.of(RoleAuthorization.CLUSTER_VIEW_CONFIGS));
+  }
+
+  private void authorizeHosts(Set<String> hostNames, Cluster targetCluster)
+      throws AmbariException, AuthorizationException {
+    boolean mayAddHosts = false;
+    for (String hostName : hostNames) {
+      if (hostName == null || hostName.isBlank() || !clusters.hostExists(hostName)) {
+        throw new ManagedDependencyIntegrationException(400, "INVALID_ADVISOR_HOST",
+            "The advisor request contains an unknown host");
+      }
+      Set<Cluster> mappedClusters = clusters.getClustersForHost(hostName);
+      if (targetCluster == null) {
+        if (!mappedClusters.isEmpty()) {
+          throw new AuthorizationException("A creation advisor request cannot use an assigned host");
+        }
+      } else if (mappedClusters.isEmpty()) {
+        if (!mayAddHosts) {
+          AuthorizationHelper.verifyAuthorization(ResourceType.CLUSTER,
+              targetCluster.getResourceId(), Set.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+          mayAddHosts = true;
+        }
+      } else if (mappedClusters.size() != 1
+          || mappedClusters.iterator().next().getClusterId() != targetCluster.getClusterId()) {
+        throw new AuthorizationException("An advisor host belongs to another cluster");
+      }
+    }
+  }
+
+  private Set<String> collectExplicitHosts(Map<String, Object> properties) {
+    Set<String> result = new LinkedHashSet<>();
+    addStringCollection(result, properties.get(HOST_PROPERTY));
+    addNestedHosts(result, properties.get(BINDING_HOST_GROUPS_PROPERTY),
+        BINDING_HOST_GROUPS_HOSTS_PROPERTY, BINDING_HOST_GROUPS_HOSTS_NAME_PROPERTY);
+    Object configGroups = properties.get(CONFIG_GROUPS_PROPERTY);
+    if (configGroups != null) {
+      if (!(configGroups instanceof Collection<?> groups)) {
+        throw new IllegalArgumentException("config_groups must be an array");
+      }
+      for (Object rawGroup : groups) {
+        if (!(rawGroup instanceof Map<?, ?> group)) {
+          throw new IllegalArgumentException("config_groups entries must be objects");
+        }
+        addStringCollection(result, group.get(CONFIG_GROUPS_HOSTS_PROPERTY));
+      }
+    }
+    return result;
+  }
+
+  private void addNestedHosts(Set<String> result, Object rawGroups, String hostsField,
+      String hostNameField) {
+    if (rawGroups == null) {
+      return;
+    }
+    if (!(rawGroups instanceof Collection<?> groups)) {
+      throw new IllegalArgumentException("host groups must be an array");
+    }
+    for (Object rawGroup : groups) {
+      if (!(rawGroup instanceof Map<?, ?> group)) {
+        throw new IllegalArgumentException("host group entries must be objects");
+      }
+      Object rawHosts = group.get(hostsField);
+      if (rawHosts == null) {
+        continue;
+      }
+      if (!(rawHosts instanceof Collection<?> hosts)) {
+        throw new IllegalArgumentException("host group hosts must be an array");
+      }
+      for (Object rawHost : hosts) {
+        if (!(rawHost instanceof Map<?, ?> host)) {
+          throw new IllegalArgumentException("host entries must be objects");
+        }
+        addHost(result, host.get(hostNameField));
+      }
+    }
+  }
+
+  private void addStringCollection(Set<String> result, Object rawValues) {
+    if (rawValues == null) {
+      return;
+    }
+    if (!(rawValues instanceof Collection<?> values)) {
+      throw new IllegalArgumentException("hosts must be an array");
+    }
+    for (Object value : values) {
+      addHost(result, value);
+    }
+  }
+
+  private void addHost(Set<String> result, Object rawHost) {
+    if (!(rawHost instanceof String host) || host.isBlank()) {
+      throw new IllegalArgumentException("host names must be non-empty strings");
+    }
+    result.add(host);
+  }
+
+  private Map<String, Object> requestProperties(Request request) {
+    Map<String, Object> properties = new HashMap<>();
+    for (Map<String, Object> propertySet : request.getProperties()) {
+      for (Map.Entry<String, Object> entry : propertySet.entrySet()) {
+        Object previous = properties.putIfAbsent(entry.getKey(), entry.getValue());
+        if (previous != null && !previous.equals(entry.getValue())) {
+          throw new IllegalArgumentException("Duplicate stack advisor request property");
+        }
+      }
+    }
+    return properties;
+  }
+
+  private WebApplicationException advisorError(int status, String code, String message) {
+    Response response = Response.status(status)
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .entity(Map.of("code", code, "message", message))
+        .build();
+    return new WebApplicationException(response);
   }
 
   /**

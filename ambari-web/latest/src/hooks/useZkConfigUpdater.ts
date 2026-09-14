@@ -31,7 +31,7 @@ export const useZkConfigUpdater = () => {
     useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, clusterName, parsedSocketMessages } = useContext(AppContext);
+  const { services, clusterName, parsedSocketMessages, runtimeKey } = useContext(AppContext);
   
   // Early return if ZOOKEEPER service is not installed
   const isZookeeperInstalled = services && Array.isArray(services) && 
@@ -45,7 +45,7 @@ export const useZkConfigUpdater = () => {
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
 
   const fetchZkMasterSlaveClientsData = async () => {
-    let zkComponentsData = cachedServiceApi.getServiceComponentData("ZOOKEEPER");
+    let zkComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "ZOOKEEPER");
     
     if (!zkComponentsData) {
       zkComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -152,7 +152,7 @@ export const useZkConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("ZOOKEEPER", "zk", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "ZOOKEEPER", "zk", allServiceModels, updateRegistry);
   };
 
   const parseAlertsWebSocketMessages = async () => {

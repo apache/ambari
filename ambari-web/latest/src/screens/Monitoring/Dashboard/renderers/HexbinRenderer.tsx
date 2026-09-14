@@ -25,6 +25,8 @@ import {
   panelValueText,
   type DashboardPanelResult,
 } from "../data/panelData";
+import { useParams } from "react-router-dom";
+import { clusterPath, normalizeLegacyMainPath } from "../../../../Utils/clusterRoute";
 
 interface HexbinRendererProps {
   panel: DashboardPanel;
@@ -52,15 +54,21 @@ const interpolateColor = (colors: string[], ratio: number) => {
   return `rgb(${left.map((channel, channelIndex) => Math.round(channel + (right[channelIndex] - channel) * offset)).join(", ")})`;
 };
 
-const panelLink = (template: unknown, labels: Record<string, string>) => {
-  if (typeof template !== "string" || !template.startsWith("/main/")) return undefined;
-  const route = template
+const panelLink = (
+  template: unknown,
+  labels: Record<string, string>,
+  clusterName?: string,
+) => {
+  if (!clusterName || typeof template !== "string") return undefined;
+  const route = normalizeLegacyMainPath(template
     .replace(/\$\{__field\.labels\.([^}]+)}/g, (_match, label: string) => encodeURIComponent(labels[label] || ""))
-    .replace(/\$\{([^}]+)}/g, (_match, label: string) => encodeURIComponent(labels[label] || ""));
-  return `${window.location.origin}${window.location.pathname}#${route}`;
+    .replace(/\$\{([^}]+)}/g, (_match, label: string) => encodeURIComponent(labels[label] || "")));
+  if (!route) return undefined;
+  return `${window.location.origin}${window.location.pathname}#${clusterPath(clusterName, route)}`;
 };
 
 export default function HexbinRenderer({ panel, results }: HexbinRendererProps) {
+  const { clusterName } = useParams();
   const custom = panelCustomOptions(panel);
   const calculation = String(custom.calc || "lastNotNull");
   const values = results.map((result) => ({ result, value: calculatePanelValue(result, calculation) }));
@@ -85,7 +93,7 @@ export default function HexbinRenderer({ panel, results }: HexbinRendererProps) 
         const backgroundColor = thresholdColors
           ? panelValueColor(panel, value) || interpolateColor(colors, ratio)
           : interpolateColor(colors, ratio);
-        const href = panelLink(custom.detailUrl, result.metric);
+        const href = panelLink(custom.detailUrl, result.metric, clusterName);
         const content = <>
           {textMode !== "name" && <strong>{valueText}</strong>}
           {textMode !== "value" && <span>{result.displayName}</span>}

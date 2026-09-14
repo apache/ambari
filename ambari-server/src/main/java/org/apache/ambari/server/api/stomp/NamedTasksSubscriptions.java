@@ -27,7 +27,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.events.listeners.tasks.TaskStatusListener;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +39,6 @@ public class NamedTasksSubscriptions {
   private static Logger LOG = LoggerFactory.getLogger(NamedTasksSubscriptions.class);
 
   private ConcurrentHashMap<String, List<SubscriptionId>> taskIds = new ConcurrentHashMap<>();
-  private final String subscriptionPrefix = "/events/tasks/";
   private final Lock taskIdsLock = new ReentrantLock();
 
   private Provider<TaskStatusListener> taskStatusListenerProvider;
@@ -121,11 +119,7 @@ public class NamedTasksSubscriptions {
   }
 
   public Optional<Long> matchDestination(String destination) {
-    Optional<Long> taskIdOpt = Optional.of(StringUtils.substringAfter(destination, subscriptionPrefix))
-        .filter(StringUtils::isNotEmpty)
-        .filter(StringUtils::isNumeric)
-        .map(Long::parseLong);
-    return taskIdOpt;
+    return ApiStompDestinations.taskId(destination);
   }
 
   public void addDestination(String sessionId, String destination, String id) {

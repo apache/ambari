@@ -1906,6 +1906,12 @@ public class BlueprintConfigurationProcessor {
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology) {
 
+      // Resource preparation does not invent local endpoints for declared remote providers.
+      if (topology.getProvisionAction() == ProvisionAction.PREPARE_ONLY
+          && org.apache.ambari.server.controller.dependencies.ManagedDependencyBlueprintPlan
+              .externalOnlyComponent(topology.getBlueprint(), component)) {
+        return origValue;
+      }
       String replacedValue = super.updateForClusterCreate(propertyName, origValue, properties, topology);
       // %HOSTGROUP% token replacement happened
       if (!Objects.equals(origValue, replacedValue)) {
@@ -2351,6 +2357,12 @@ public class BlueprintConfigurationProcessor {
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology) {
+
+      if (topology.getProvisionAction() == ProvisionAction.PREPARE_ONLY
+          && org.apache.ambari.server.controller.dependencies.ManagedDependencyBlueprintPlan
+              .externalOnlyComponent(topology.getBlueprint(), component)) {
+        return origValue;
+      }
 
       if (!origValue.contains("%HOSTGROUP") && (!origValue.contains(LOCALHOST))) {
         // this property must contain FQDNs specified directly by the user

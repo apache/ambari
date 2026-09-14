@@ -25,17 +25,15 @@ import { AppContext } from "../../../../store/context";
 const mocks = vi.hoisted(() => ({
   getHosts: vi.fn(),
   getClusterComponents: vi.fn(),
-  postPersistData: vi.fn(),
+  release: vi.fn(),
   hasAuthorization: vi.fn(),
 }));
 
 vi.mock("../../../../hooks/useAuth", () => ({
   default: () => ({ hasAuthorization: mocks.hasAuthorization }),
 }));
-vi.mock("../../../../api/clusterApi", () => ({
-  default: {
-    postPersistData: mocks.postPersistData,
-  },
+vi.mock("../../../../hooks/useClusterWorkflowPersistence", () => ({
+  default: () => ({ release: mocks.release }),
 }));
 vi.mock("./rmHaApi", () => ({
   default: {
@@ -76,7 +74,7 @@ describe("ResourceManager HA top-level close", () => {
   afterEach(() => cleanup());
 
   it("keeps the wizard open and exposes checkpoint cleanup failure", async () => {
-    mocks.postPersistData.mockRejectedValue(
+    mocks.release.mockRejectedValue(
       new Error("RM persisted state is unavailable"),
     );
     const contextValue = {
@@ -99,6 +97,6 @@ describe("ResourceManager HA top-level close", () => {
       "RM persisted state is unavailable",
     );
     expect(screen.getByRole("button", { name: "Close outer wizard" })).toBeTruthy();
-    expect(mocks.postPersistData).toHaveBeenCalledOnce();
+    expect(mocks.release).toHaveBeenCalledOnce();
   });
 });

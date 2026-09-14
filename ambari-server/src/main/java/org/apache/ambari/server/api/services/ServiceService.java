@@ -70,6 +70,24 @@ public class ServiceService extends BaseService {
     m_clusterName = clusterName;
   }
 
+  @Path("{serviceName}/dependencies")
+  public ManagedServiceDependencyService getManagedDependencies(
+      @PathParam("serviceName") String serviceName) {
+    return new ManagedServiceDependencyService(m_clusterName, serviceName);
+  }
+
+  @Path("{serviceName}/dependents")
+  public ManagedServiceDependentsService getManagedDependents(
+      @PathParam("serviceName") String serviceName) {
+    return new ManagedServiceDependentsService(m_clusterName, serviceName, false);
+  }
+
+  @Path("{serviceName}/dependency-impact")
+  public ManagedServiceDependentsService getManagedDependencyImpact(
+      @PathParam("serviceName") String serviceName) {
+    return new ManagedServiceDependentsService(m_clusterName, serviceName, true);
+  }
+
   /**
    * Handles URL: /clusters/{clusterID}/services/{serviceID}
    * Get a specific service.

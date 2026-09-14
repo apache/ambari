@@ -63,7 +63,7 @@ def _execute_hbase_shell(params, command_file, environment=None):
   Execute(
     tuple(command),
     user=params.hbase_user,
-    environment=environment,
+    environment={**(environment or {}), "HBASE_HOME": params.hbase_home},
     logoutput=True,
     timeout=120,
     timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
@@ -88,7 +88,7 @@ def _move_regions(params, host, operation, environment=None):
   Execute(
     tuple(command),
     user=params.hbase_user,
-    environment=environment,
+    environment={**(environment or {}), "HBASE_HOME": params.hbase_home},
     logoutput=True,
     timeout=params.hbase_region_mover_timeout,
     timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,

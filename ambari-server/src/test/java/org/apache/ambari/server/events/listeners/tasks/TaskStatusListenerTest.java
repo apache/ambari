@@ -37,6 +37,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.api.stomp.NamedTasksSubscriptions;
 import org.apache.ambari.server.events.NamedTaskUpdateEvent;
+import org.apache.ambari.server.events.RequestUpdateEvent;
 import org.apache.ambari.server.events.TaskCreateEvent;
 import org.apache.ambari.server.events.TaskUpdateEvent;
 import org.apache.ambari.server.events.publishers.STOMPUpdatePublisher;
@@ -48,6 +49,8 @@ import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -101,6 +104,7 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     RequestEntity requestEntity = createNiceMock(RequestEntity.class);
     STOMPUpdatePublisher statePublisher = createNiceMock(STOMPUpdatePublisher.class);
     NamedTasksSubscriptions namedTasksSubscriptions = createNiceMock(NamedTasksSubscriptions.class);
+    Clusters clusters = createNiceMock(Clusters.class);
     EasyMock.expect(stageEntity.getStatus()).andReturn(hostRoleStatus).anyTimes();;
     EasyMock.expect(stageEntity.getDisplayStatus()).andReturn(hostRoleStatus).anyTimes();
     EasyMock.expect(stageEntity.isSkippable()).andReturn(Boolean.FALSE).anyTimes();;
@@ -119,10 +123,11 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     EasyMock.replay(requestDAO);
     EasyMock.replay(statePublisher);
     EasyMock.replay(namedTasksSubscriptions);
+    EasyMock.replay(clusters);
 
     TaskCreateEvent event = new TaskCreateEvent(hostRoleCommands);
     TaskStatusListener listener = new TaskStatusListener(publisher, stageDAO, requestDAO, statePublisher,
-        namedTasksSubscriptions);
+        namedTasksSubscriptions, clusters);
 
     Assert.assertTrue(listener.getActiveTasksMap().isEmpty());
     Assert.assertTrue(listener.getActiveStageMap().isEmpty());
@@ -215,13 +220,15 @@ public class TaskStatusListenerTest extends EasyMockSupport {
 
     StageDAO stageDAO = createNiceMock(StageDAO.class);
     RequestDAO requestDAO = createNiceMock(RequestDAO.class);
+    Clusters clusters = createNiceMock(Clusters.class);
 
     EasyMock.replay(stageDAO);
     EasyMock.replay(requestDAO);
+    EasyMock.replay(clusters);
     EasyMock.replay(stompUpdatePublisher);
 
     TaskStatusListener listener = new TaskStatusListener(publisher, stageDAO, requestDAO, stompUpdatePublisher,
-        namedTasksSubscriptions);
+        namedTasksSubscriptions, clusters);
 
     expect(taskStatusListenerProvider.get()).andReturn(listener);
 
@@ -253,6 +260,87 @@ public class TaskStatusListenerTest extends EasyMockSupport {
     Assert.assertEquals(outputLog, capturedEvent.getOutLog());
 
     verifyAll();
+  }
+
+  @Test
+  public void testRequestUpdateIncludesResolvedClusterName() throws Exception {
+    long taskId = 41L;
+    long requestId = 31L;
+    long clusterId = 7L;
+    String clusterName = "cluster-one";
+
+    ServiceComponentHostEvent serviceComponentHostEvent = createNiceMock(ServiceComponentHostEvent.class);
+    HostDAO hostDAO = createNiceMock(HostDAO.class);
+    StageDAO stageDAO = createNiceMock(StageDAO.class);
+    RequestDAO requestDAO = createNiceMock(RequestDAO.class);
+    NamedTasksSubscriptions namedTasksSubscriptions = createNiceMock(NamedTasksSubscriptions.class);
+    Clusters clusters = createMock(Clusters.class);
+    Cluster cluster = createMock(Cluster.class);
+    STOMPUpdatePublisher stompUpdatePublisher = createStrictMock(STOMPUpdatePublisher.class);
+    Capture<RequestUpdateEvent> eventCapture = Capture.newInstance();
+
+    expect(clusters.getCluster(clusterId)).andReturn(cluster);
+    expect(cluster.getClusterName()).andReturn(clusterName);
+    stompUpdatePublisher.publish(capture(eventCapture));
+    expectLastCall();
+    replayAll();
+
+    TaskStatusListener listener = new TaskStatusListener(publisher, stageDAO, requestDAO, stompUpdatePublisher,
+        namedTasksSubscriptions, clusters);
+    listener.getActiveRequestMap().put(requestId, listener.new ActiveRequest(
+        HostRoleStatus.PENDING, HostRoleStatus.PENDING, Collections.emptySet(), clusterId));
+
+    HostRoleCommand activeCommand = createCommand(serviceComponentHostEvent, hostDAO, taskId, requestId,
+        HostRoleStatus.PENDING);
+    listener.getActiveTasksMap().put(taskId, activeCommand);
+    listener.onTaskUpdateEvent(new TaskUpdateEvent(Collections.singletonList(
+        createCommand(serviceComponentHostEvent, hostDAO, taskId, requestId, HostRoleStatus.IN_PROGRESS))));
+
+    Assert.assertEquals(clusterName, eventCapture.getValue().getClusterName());
+    Assert.assertEquals(Long.valueOf(requestId), eventCapture.getValue().getRequestId());
+    verifyAll();
+  }
+
+  @Test
+  public void testRequestUpdateIsDroppedWhenClusterCannotBeResolved() throws Exception {
+    long taskId = 41L;
+    long requestId = 31L;
+    long clusterId = 7L;
+
+    ServiceComponentHostEvent serviceComponentHostEvent = createNiceMock(ServiceComponentHostEvent.class);
+    HostDAO hostDAO = createNiceMock(HostDAO.class);
+    StageDAO stageDAO = createNiceMock(StageDAO.class);
+    RequestDAO requestDAO = createNiceMock(RequestDAO.class);
+    NamedTasksSubscriptions namedTasksSubscriptions = createNiceMock(NamedTasksSubscriptions.class);
+    Clusters clusters = createMock(Clusters.class);
+    STOMPUpdatePublisher stompUpdatePublisher = createStrictMock(STOMPUpdatePublisher.class);
+
+    expect(clusters.getCluster(clusterId)).andThrow(new ClusterNotFoundException(clusterId));
+    replayAll();
+
+    TaskStatusListener listener = new TaskStatusListener(publisher, stageDAO, requestDAO, stompUpdatePublisher,
+        namedTasksSubscriptions, clusters);
+    listener.getActiveRequestMap().put(requestId, listener.new ActiveRequest(
+        HostRoleStatus.PENDING, HostRoleStatus.PENDING, Collections.emptySet(), clusterId));
+
+    HostRoleCommand activeCommand = createCommand(serviceComponentHostEvent, hostDAO, taskId, requestId,
+        HostRoleStatus.PENDING);
+    listener.getActiveTasksMap().put(taskId, activeCommand);
+    listener.onTaskUpdateEvent(new TaskUpdateEvent(Collections.singletonList(
+        createCommand(serviceComponentHostEvent, hostDAO, taskId, requestId, HostRoleStatus.IN_PROGRESS))));
+
+    verifyAll();
+  }
+
+  private HostRoleCommand createCommand(ServiceComponentHostEvent serviceComponentHostEvent, HostDAO hostDAO,
+                                        long taskId, long requestId, HostRoleStatus status) {
+    HostRoleCommand command = new HostRoleCommand("hostName", Role.DATANODE, serviceComponentHostEvent,
+        RoleCommand.EXECUTE, hostDAO, executionCommandDAO, ecwFactory);
+    command.setStatus(status);
+    command.setRequestId(requestId);
+    command.setStageId(3L);
+    command.setTaskId(taskId);
+    return command;
   }
 
 }

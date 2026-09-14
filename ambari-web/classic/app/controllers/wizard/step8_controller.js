@@ -164,30 +164,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   clusterNames: [],
 
   /**
-   * Number of completed cluster delete requests
-   * @type {number}
-   */
-  clusterDeleteRequestsCompleted: 0,
-
-  /**
-   * Number of existing repo_versions
-   * @type {number}
-   */
-  existingRepositoryVersions: 0,
-
-  /**
-   * Indicates if all cluster delete requests are completed
-   * @type {boolean}
-   */
-  isAllClusterDeleteRequestsCompleted: Em.computed.equalProperties('clusterDeleteRequestsCompleted', 'clusterNames.length'),
-
-  /**
-   * Error popup body views for clusters that couldn't be deleted
-   * @type {App.AjaxDefaultErrorPopupBodyView[]}
-   */
-  clusterDeleteErrorViews: [],
-
-  /**
    * Clear current step data
    * @method clearStep
    */
@@ -200,8 +176,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.set('ajaxQueueLength', 0);
     this.set('ajaxRequestsQueue', App.ajaxQueue.create());
     this.set('ajaxRequestsQueue.finishedCallback', this.ajaxQueueFinished);
-    this.get('clusterDeleteErrorViews').clear();
-    this.set('clusterDeleteRequestsCompleted', 0);
   },
 
   /**
@@ -659,8 +633,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   submitProceed: function () {
     var self = this;
-    this.set('clusterDeleteRequestsCompleted', 0);
-    this.get('clusterDeleteErrorViews').clear();
     if (this.get('isAddHost')) {
       App.router.get('addHostController').setLowerStepsDisable(4);
     }
@@ -694,13 +666,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       default:
         break;
     }
-    // delete any existing clusters to start from a clean slate
-    // before creating a new cluster in install wizard
-    // TODO: modify for multi-cluster support
     this.getExistingClusterNames().then(function () {
       var clusterNames = self.get('clusterNames');
-      if (self.get('isInstaller') && !App.get('testMode') && clusterNames.length) {
-        self.deleteClusters(clusterNames);
+      if (self.get('isInstaller') && clusterNames.contains(self.get('clusterName'))) {
+        self.showClusterNameCollisionPopup();
       } else {
         self.getExistingVersions();
       }
@@ -742,75 +711,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   },
 
   /**
-   * Delete cluster by name
-   * One request for one cluster!
-   * @param {string[]} clusterNames
-   * @method deleteClusters
+   * Refuse to adopt or delete an existing cluster with the requested name.
+   * @method showClusterNameCollisionPopup
    */
-  deleteClusters: function (clusterNames) {
-    this.get('clusterDeleteErrorViews').clear();
-    clusterNames.forEach(function (clusterName, index) {
-      App.ajax.send({
-        name: 'common.delete.cluster',
-        sender: this,
-        data: {
-          name: clusterName,
-          isLast: index === clusterNames.length - 1
-        },
-        success: 'deleteClusterSuccessCallback',
-        error: 'deleteClusterErrorCallback'
-      });
-    }, this);
-
-  },
-
-  /**
-   * Method to execute after successful cluster deletion
-   * @method deleteClusterSuccessCallback
-   */
-  deleteClusterSuccessCallback: function () {
-    this.incrementProperty('clusterDeleteRequestsCompleted');
-    if (this.get('isAllClusterDeleteRequestsCompleted')) {
-      if (this.get('clusterDeleteErrorViews.length')) {
-        this.showDeleteClustersErrorPopup();
-      } else {
-        this.getExistingVersions();
-      }
-    }
-  },
-
-  /**
-   * Method to execute after failed cluster deletion
-   * @param {object} request
-   * @param {string} ajaxOptions
-   * @param {string} error
-   * @param {object} opt
-   * @method deleteClusterErrorCallback
-   */
-  deleteClusterErrorCallback: function (request, ajaxOptions, error, opt) {
-    this.incrementProperty('clusterDeleteRequestsCompleted');
-    try {
-      var json = JSON.parse(request.responseText);
-      var message = json.message;
-    } catch (err) {
-    }
-    this.get('clusterDeleteErrorViews').pushObject(App.AjaxDefaultErrorPopupBodyView.create({
-      url: opt.url,
-      type: opt.type,
-      status: request.status,
-      message: message
-    }));
-    if (this.get('isAllClusterDeleteRequestsCompleted')) {
-      this.showDeleteClustersErrorPopup();
-    }
-  },
-
-  /**
-   * Show error popup if cluster deletion failed
-   * @method showDeleteClustersErrorPopup
-   */
-  showDeleteClustersErrorPopup: function () {
-    var self = this;
+  showClusterNameCollisionPopup: function () {
     this.setProperties({
       isSubmitDisabled: false,
       isBackBtnDisabled: false
@@ -821,66 +725,124 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       onPrimary: function () {
         this.hide();
       },
-      bodyClass: Em.ContainerView.extend({
-        childViews: self.get('clusterDeleteErrorViews')
-      })
+      body: Em.I18n.t('installer.step8.clusterNameCollision').format(this.get('clusterName'))
     });
   },
 
   /**
-   * Get existing repo_versions
+   * Load repository definitions so an installed definition can be reused safely.
    * @method getExistingVersions
    */
   getExistingVersions: function () {
+    var selectedStack = App.Stack.find().findProperty('isSelected', true);
+    if (!selectedStack) {
+      this.startDeploy();
+      return null;
+    }
     return App.ajax.send({
-      name: 'wizard.get_version_definitions',
+      name: 'wizard.stacks_versions_definitions',
       sender: this,
+      data: {
+        stackName: selectedStack.get('stackName')
+      },
       success: 'getExistingVersionsSuccessCallback'
     });
   },
 
-  /**
-   * @param {Object} data
-   * @method getExistingVersionsSuccessCallback
-   */
-  getExistingVersionsSuccessCallback: function (data) {
-    if (this.get('isInstaller') && !App.get('testMode') && data.items.length) {
-      this.set('existingRepositoryVersions', data.items.length);
-      this.deleteExistingVersions(data.items);
-    } else {
-      this.startDeploy();
-    }
-  },
-
-  /**
-   * Delete existing repo_versions
-   * @param {Array} versions
-   * @method deleteExistingVersions
-   */
-  deleteExistingVersions: function (versions) {
-    versions.forEach(function (version) {
-      App.ajax.send({
-        name: 'wizard.delete_repository_versions',
-        sender: this,
-        data: {
-          id: version.VersionDefinition.id,
-          stackName: version.VersionDefinition.stack_name,
-          stackVersion: version.VersionDefinition.stack_version
-        },
-        success: 'deleteExistingVersionsSuccessCallback'
+  normalizeRepositoryMetadata: function (value) {
+    if (Em.isArray(value)) {
+      return value.map(this.normalizeRepositoryMetadata, this).sort(function (left, right) {
+        return JSON.stringify(left).localeCompare(JSON.stringify(right));
       });
-    }, this);
+    }
+    if (value && typeof value === 'object') {
+      var normalized = {};
+      Object.keys(value).sort().forEach(function (key) {
+        normalized[key] = this.normalizeRepositoryMetadata(value[key]);
+      }, this);
+      return normalized;
+    }
+    return Em.isNone(value) ? null : value;
   },
 
-  /**
-   * Method to execute after successful version deletion
-   * @method deleteExistingVersionsSuccessCallback
-   */
-  deleteExistingVersionsSuccessCallback: function () {
-    this.decrementProperty('existingRepositoryVersions');
-    if (this.get('existingRepositoryVersions') === 0) {
+  normalizeRepositoryDefinition: function (operatingSystems) {
+    var self = this;
+    return (operatingSystems || []).map(function (operatingSystem) {
+      var os = operatingSystem.OperatingSystems || {};
+      return {
+        ambariManagedRepositories: os.ambari_managed_repositories !== false,
+        osType: os.os_type || '',
+        repositories: (operatingSystem.repositories || []).map(function (repository) {
+          var repo = repository.Repositories || {};
+          return {
+            applicableServices: self.normalizeRepositoryMetadata(repo.applicable_services || []),
+            baseUrl: (repo.base_url || '').trim(),
+            components: self.normalizeRepositoryMetadata(repo.components),
+            distribution: self.normalizeRepositoryMetadata(repo.distribution),
+            mirrorsList: self.normalizeRepositoryMetadata(repo.mirrors_list),
+            repoId: (repo.repo_id || '').trim(),
+            repoName: (repo.repo_name || '').trim(),
+            tags: self.normalizeRepositoryMetadata(repo.tags || []),
+            unique: repo.unique === true
+          };
+        }).sort(function (left, right) {
+          return left.repoId.localeCompare(right.repoId);
+        })
+      };
+    }).sort(function (left, right) {
+      return left.osType.localeCompare(right.osType);
+    });
+  },
+
+  areRepositoryDefinitionsCompatible: function (existing, desired) {
+    return JSON.stringify(this.normalizeRepositoryDefinition(existing)) ===
+      JSON.stringify(this.normalizeRepositoryDefinition(desired));
+  },
+
+  getExistingVersionsSuccessCallback: function (data) {
+    if (!this.get('isInstaller')) {
       this.startDeploy();
+      return;
     }
+    var selectedStack = App.Stack.find().findProperty('isSelected', true);
+    if (!selectedStack) {
+      this.startDeploy();
+      return;
+    }
+    var existing = (data.items || []).find(function (item) {
+      var definition = item.VersionDefinition || {};
+      return /^\d+$/.test(String(definition.id)) &&
+        definition.stack_name === selectedStack.get('stackName') &&
+        definition.stack_version === selectedStack.get('stackVersion') &&
+        definition.repository_version === selectedStack.get('repositoryVersion');
+    });
+    if (!existing) {
+      this.startDeploy();
+      return;
+    }
+    var installerController = App.router.get('installerController');
+    var desired = installerController.prepareRepoForSaving(selectedStack).operating_systems;
+    if (this.areRepositoryDefinitionsCompatible(existing.operating_systems, desired)) {
+      selectedStack.set('versionInfoId', existing.VersionDefinition.id);
+      this._startDeploy();
+    } else {
+      this.showRepositoryVersionConflictPopup(selectedStack.get('displayName'));
+    }
+  },
+
+  showRepositoryVersionConflictPopup: function (displayName) {
+    this.setProperties({
+      isSubmitDisabled: false,
+      isBackBtnDisabled: false
+    });
+    App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      onPrimary: function () {
+        this.hide();
+      },
+      body: Em.I18n.t('installer.step8.repositoryVersionConflict').format(displayName)
+    });
   },
 
   /**
@@ -921,15 +883,18 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       var versionData = installerController.getSelectedRepoVersionData();
       if (versionData) {
         var self = this;
-        installerController.postVersionDefinitionFileStep8(versionData.isXMLdata, versionData.data).done(function (versionInfo) {
+        var selectedStack = App.Stack.find().findProperty('isSelected', true);
+        var initialOperatingSystems = installerController.prepareInitialRepoForSaving(selectedStack).operating_systems;
+        installerController.postVersionDefinitionFileStep8(
+          versionData.isXMLdata,
+          versionData.data,
+          initialOperatingSystems
+        ).done(function (versionInfo) {
           if (versionInfo.id && versionInfo.stackName && versionInfo.stackVersion) {
-            var selectedStack = App.Stack.find().findProperty('isSelected', true);
             if (selectedStack) {
               selectedStack.set('versionInfoId', versionInfo.id);
             }
-            installerController.updateRepoOSInfo(versionInfo, selectedStack).done(function() {
-              self._startDeploy();
-            });
+            self._startDeploy();
           }
         });
       } else {
@@ -943,6 +908,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method startDeploy
    */
   _startDeploy: function () {
+    if (this.get('isInstaller') && !App.scopedWorkflowPersistence.getCreationDraftId()) {
+      App.showAlertPopup(
+        Em.I18n.t('common.error'),
+        'Cluster creation requires a verified recovery draft. Reload the installer before retrying.'
+      );
+      return;
+    }
     this.createCluster();
     this.createSelectedServices();
     if (!this.get('isAddHost')) {
@@ -987,11 +959,24 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   createCluster: function () {
     if (!this.get('isInstaller')) return;
+    var creationDraftId = App.scopedWorkflowPersistence.getCreationDraftId();
+    if (!creationDraftId) {
+      App.showAlertPopup(
+        Em.I18n.t('common.error'),
+        'Cluster creation requires a verified recovery draft. Reload the installer before retrying.'
+      );
+      return;
+    }
     var stackVersion = this.get('content.installOptions.localRepo') ? App.currentStackVersion.replace(/(-\d+(\.\d)*)/ig, "Local$&") : App.currentStackVersion;
     this.addRequestToAjaxQueue({
       name: 'wizard.step8.create_cluster',
       data: {
-        data: JSON.stringify({ "Clusters": {"version": stackVersion}})
+        data: JSON.stringify({
+          "Clusters": {
+            "version": stackVersion,
+            "creation_draft_id": creationDraftId
+          }
+        })
       },
       success: 'createClusterSuccess'
     });

@@ -55,6 +55,7 @@ public class DeleteHandler extends BaseManagementHandler implements RequestHandl
         }
       } catch (AuthorizationException e) {
         result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
+
       } catch (SystemException e) {
         result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e));
       } catch (NoSuchParentResourceException e) {

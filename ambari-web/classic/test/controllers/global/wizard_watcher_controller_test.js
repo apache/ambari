@@ -19,6 +19,7 @@
 
 var App = require('app');
 require('controllers/global/wizard_watcher_controller');
+var scopedWorkflowPersistence = require('utils/scoped_workflow_persistence');
 
 var controller;
 
@@ -95,45 +96,66 @@ describe('App.wizardWatcherController', function () {
 
   describe("#setUser()", function() {
     beforeEach(function () {
-      sinon.stub(controller, 'postUserPref', Em.K);
+      sinon.stub(scopedWorkflowPersistence, 'setUser').returns($.Deferred().resolve().promise());
       sinon.stub(App.router, 'get').returns('admin');
     });
     afterEach(function () {
-      controller.postUserPref.restore();
+      scopedWorkflowPersistence.setUser.restore();
       App.router.get.restore();
     });
-    it("post user pref", function() {
+    it("claims the scoped workflow", function() {
       controller.setUser('ctrl1');
-      expect(controller.postUserPref.calledWith(controller.get('PREF_KEY'), {
-        userName: 'admin',
-        controllerName: 'ctrl1'
-      })).to.be.true;
+      expect(scopedWorkflowPersistence.setUser.calledWith('ctrl1')).to.be.true;
+      expect(controller.get('wizardUser')).to.equal('admin');
+      expect(controller.get('controllerName')).to.equal('ctrl1');
     });
   });
 
   describe("#resetUser()", function() {
     beforeEach(function () {
-      sinon.stub(controller, 'postUserPref', Em.K);
+      sinon.stub(scopedWorkflowPersistence, 'release').returns($.Deferred().resolve().promise());
     });
     afterEach(function () {
-      controller.postUserPref.restore();
+      scopedWorkflowPersistence.release.restore();
     });
-    it("post user pref", function() {
-      controller.resetUser('ctrl1');
-      expect(controller.postUserPref.calledWith(controller.get('PREF_KEY'), null)).to.be.true;
+    it("releases scoped workflow ownership", function() {
+      controller.setProperties({wizardUser: 'admin', controllerName: 'ctrl1'});
+      controller.resetUser();
+      expect(scopedWorkflowPersistence.release.calledOnce).to.be.true;
+      expect(controller.get('wizardUser')).to.be.null;
+      expect(controller.get('controllerName')).to.be.null;
+    });
+    it("retains scoped workflow ownership when release fails", function() {
+      scopedWorkflowPersistence.release.restore();
+      sinon.stub(scopedWorkflowPersistence, 'release').returns($.Deferred().reject({
+        code: 'WORKFLOW_VERSION_CONFLICT',
+        message: 'changed'
+      }).promise());
+      sinon.stub(App, 'showConfirmationPopup');
+      controller.setProperties({wizardUser: 'admin', controllerName: 'ctrl1'});
+
+      controller.resetUser();
+
+      expect(controller.get('wizardUser')).to.equal('admin');
+      expect(controller.get('controllerName')).to.equal('ctrl1');
+      App.showConfirmationPopup.restore();
     });
   });
 
   describe("#getUser()", function() {
     beforeEach(function () {
-      sinon.stub(controller, 'getUserPref', Em.K);
+      sinon.stub(scopedWorkflowPersistence, 'loadCurrent').returns($.Deferred().resolve({
+        values: {wizardData: {userName: 'admin', controllerName: 'ctrl1'}}
+      }).promise());
     });
     afterEach(function () {
-      controller.getUserPref.restore();
+      scopedWorkflowPersistence.loadCurrent.restore();
     });
-    it("get user pref", function() {
-      controller.getUser('ctrl1');
-      expect(controller.getUserPref.calledWith(controller.get('PREF_KEY'))).to.be.true;
+    it("loads scoped workflow ownership", function() {
+      controller.getUser();
+      expect(scopedWorkflowPersistence.loadCurrent.calledOnce).to.be.true;
+      expect(controller.get('wizardUser')).to.equal('admin');
+      expect(controller.get('controllerName')).to.equal('ctrl1');
     });
   });
 
@@ -152,14 +174,36 @@ describe('App.wizardWatcherController', function () {
 
   describe("#getUserPrefErrorCallback()", function() {
     beforeEach(function () {
-      sinon.stub(controller, 'resetUser', Em.K);
+      sinon.stub(App, 'showConfirmationPopup');
     });
     afterEach(function () {
-      controller.resetUser.restore();
+      App.showConfirmationPopup.restore();
     });
-    it("reset wizard-data", function() {
-      controller.getUserPrefErrorCallback();
-      expect(controller.resetUser.calledOnce).to.be.true;
+    it("shows one recovery error without releasing another tab's workflow", function() {
+      controller.setProperties({wizardUser: 'admin', controllerName: 'ctrl1'});
+      controller.getUserPrefErrorCallback({code: 'WORKFLOW_VERSION_CONFLICT', message: 'changed'});
+      controller.getUserPrefErrorCallback({code: 'WORKFLOW_VERSION_CONFLICT', message: 'changed'});
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(controller.get('wizardUser')).to.equal('admin');
+      expect(controller.get('controllerName')).to.equal('ctrl1');
+    });
+  });
+
+  describe("#retryPersistence()", function () {
+    beforeEach(function () {
+      sinon.stub(scopedWorkflowPersistence, 'retryLoad').returns($.Deferred().resolve({
+        values: {wizardData: {userName: 'admin', controllerName: 'ctrl1'}}
+      }).promise());
+    });
+    afterEach(function () {
+      scopedWorkflowPersistence.retryLoad.restore();
+    });
+    it("reloads the authoritative scoped workflow", function () {
+      controller.retryPersistence();
+
+      expect(scopedWorkflowPersistence.retryLoad.calledOnce).to.be.true;
+      expect(controller.get('wizardUser')).to.equal('admin');
+      expect(controller.get('controllerName')).to.equal('ctrl1');
     });
   });
 });

@@ -26,13 +26,13 @@ function useStackServices() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryAttempt, setRetryAttempt] = useState(0);
-  const { isClusterInstalled } = useContext(AppContext);
+  const { clusterName, isClusterInstalled, runtimeKey } = useContext(AppContext);
 
   useEffect(() => {
     let active = true;
 
     const fetchServices = async () => {
-      if (!isClusterInstalled) {
+      if (!clusterName || !isClusterInstalled) {
         setLoading(false);
         return;
       }
@@ -40,7 +40,6 @@ function useStackServices() {
       setLoading(true);
       setError(null);
       try {
-        const clusterName = await ClusterApi.getClusterName();
         const clusterDetails = await ClusterApi.getDesiredClusterConfigs(
           clusterName,
           "Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id",
@@ -72,7 +71,7 @@ function useStackServices() {
     return () => {
       active = false;
     };
-  }, [isClusterInstalled, retryAttempt]);
+  }, [clusterName, isClusterInstalled, retryAttempt, runtimeKey]);
 
   return {
     services,

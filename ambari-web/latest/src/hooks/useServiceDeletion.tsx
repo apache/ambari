@@ -59,7 +59,7 @@ export function useServiceDeletion(
   stackServicesFromHook: any,
   stackDataWithDependencies: any
 ) {
-  const { clusterName, cluster, services, allHostNames } =
+  const { clusterName, cluster, services, allHostNames, navigateCluster } =
     useContext(AppContext);
   const { serviceModels } = useContext(ServiceContext);
   const vdpStackVersion = get(cluster, "version", "").split("-")[1];
@@ -204,7 +204,7 @@ export function useServiceDeletion(
             onClick={() => {
               modalManager.hide();
               // Navigate to Kerberos admin page
-              window.location.href = "/#/main/admin/kerberos";
+              navigateCluster("/main/admin/kerberos");
             }}
           >
             GO TO KERBEROS

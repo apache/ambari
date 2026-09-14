@@ -57,6 +57,7 @@ import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ServiceComponentRequest;
 import org.apache.ambari.server.controller.ServiceRequest;
 import org.apache.ambari.server.controller.internal.AbstractResourceProvider;
+import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
@@ -75,6 +76,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -84,6 +86,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
@@ -209,6 +212,18 @@ public class AmbariContext {
 
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
                                     String repoVersionString, Long repoVersionId) {
+    createAmbariResources(topology, clusterName, securityType, repoVersionString, repoVersionId, null, null);
+  }
+
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
+                                    String repoVersionString, Long repoVersionId, String creationDraftId) {
+    createAmbariResources(topology, clusterName, securityType, repoVersionString, repoVersionId,
+        creationDraftId, null);
+  }
+
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType,
+      String repoVersionString, Long repoVersionId, String creationDraftId,
+      BaseClusterRequest provisioningRequest) {
     Stack stack = topology.getBlueprint().getStack();
     StackId stackId = new StackId(stack.getName(), stack.getVersion());
 
@@ -306,13 +321,28 @@ public class AmbariContext {
           repoVersion));
     }
 
-    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
+    TopologyRequestEntity provisioningIntent = provisioningRequest == null ? null
+        : persistedState.prepareProvisioningIntent(provisioningRequest, repoVersion.getId());
+    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType,
+        creationDraftId, provisioningIntent);
     createAmbariServiceAndComponentResources(topology, clusterName, stackId, repoVersion.getId());
   }
 
   public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
+    createAmbariClusterResource(clusterName, stackName, stackVersion, securityType, null);
+  }
+
+  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion,
+      SecurityType securityType, String creationDraftId) {
+    createAmbariClusterResource(clusterName, stackName, stackVersion, securityType, creationDraftId, null);
+  }
+
+  private void createAmbariClusterResource(String clusterName, String stackName, String stackVersion,
+      SecurityType securityType, String creationDraftId, TopologyRequestEntity provisioningIntent) {
     String stackInfo = String.format("%s-%s", stackName, stackVersion);
     final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
+    clusterRequest.setCreationDraftId(creationDraftId);
+    clusterRequest.setTopologyProvisioningIntent(provisioningIntent);
 
     try {
       RetryHelper.executeWithRetry(new Callable<Object>() {
@@ -335,28 +365,42 @@ public class AmbariContext {
 
   public void createAmbariServiceAndComponentResources(ClusterTopology topology, String clusterName,
       StackId stackId, Long repositoryVersionId) {
-    Collection<String> services = topology.getBlueprint().getServices();
-
+    Map<String, Service> existingServices;
     try {
       Cluster cluster = getController().getClusters().getCluster(clusterName);
-      services.removeAll(cluster.getServices().keySet());
+      existingServices = cluster.getServices();
     } catch (AmbariException e) {
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }
+
     Set<ServiceRequest> serviceRequests = new HashSet<>();
     Set<ServiceComponentRequest> componentRequests = new HashSet<>();
-    for (String service : services) {
+    for (String service : new HashSet<>(topology.getBlueprint().getServices())) {
       String credentialStoreEnabled = topology.getBlueprint().getCredentialStoreEnabled(service);
-      serviceRequests.add(new ServiceRequest(clusterName, service, repositoryVersionId, null, credentialStoreEnabled));
+      Service existingService = existingServices.get(service);
+      if (existingService == null) {
+        serviceRequests.add(new ServiceRequest(
+            clusterName, service, repositoryVersionId, null, credentialStoreEnabled));
+      }
+      Set<String> existingComponentNames = existingService == null
+          ? Collections.emptySet()
+          : existingService.getServiceComponents().keySet();
 
       for (String component : topology.getBlueprint().getComponents(service)) {
-        String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
-        componentRequests.add(new ServiceComponentRequest(clusterName, service, component, null, recoveryEnabled));
+        if (!existingComponentNames.contains(component)) {
+          String recoveryEnabled = topology.getBlueprint().getRecoveryEnabled(service, component);
+          componentRequests.add(new ServiceComponentRequest(
+              clusterName, service, component, null, recoveryEnabled));
+        }
       }
     }
     try {
-      getServiceResourceProvider().createServices(serviceRequests);
-      getComponentResourceProvider().createComponents(componentRequests);
+      if (!serviceRequests.isEmpty()) {
+        getServiceResourceProvider().createServices(serviceRequests);
+      }
+      if (!componentRequests.isEmpty()) {
+        getComponentResourceProvider().createComponents(componentRequests);
+      }
     } catch (AmbariException | AuthorizationException e) {
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }

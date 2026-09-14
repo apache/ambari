@@ -207,9 +207,9 @@ export default function StopServices() {
       <WizardFooter
         isNextEnabled={nextEnabled}
         step={currentStep}
-        onNext={() => {
-          flushStateToDb("next");
-          handleNextImperitive();
+        onNext={async () => {
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
         onCancel={() => {
           onExitPopUp(false, false);

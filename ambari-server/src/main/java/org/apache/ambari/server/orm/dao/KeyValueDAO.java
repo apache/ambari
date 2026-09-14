@@ -19,8 +19,10 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.Collection;
+import java.util.function.UnaryOperator;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
@@ -64,6 +66,28 @@ public class KeyValueDAO {
   @Transactional
   public KeyValueEntity merge(KeyValueEntity keyValueEntity) {
     return entityManagerProvider.get().merge(keyValueEntity);
+  }
+
+  /**
+   * Atomically transforms one persisted value while holding a database row lock.
+   * A newly inserted key is flushed here so a concurrent creator observes the
+   * uniqueness failure before this transaction returns.
+   */
+  @Transactional
+  public String updateValueWithLock(String key, UnaryOperator<String> update) {
+    EntityManager entityManager = entityManagerProvider.get();
+    KeyValueEntity entity = entityManager.find(KeyValueEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+    String value = update.apply(entity == null ? null : entity.getValue());
+    if (entity == null) {
+      entity = new KeyValueEntity();
+      entity.setKey(key);
+      entity.setValue(value);
+      entityManager.persist(entity);
+    } else {
+      entity.setValue(value);
+    }
+    entityManager.flush();
+    return value;
   }
 
   @Transactional

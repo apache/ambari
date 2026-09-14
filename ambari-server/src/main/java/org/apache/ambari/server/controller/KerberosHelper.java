@@ -28,6 +28,8 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosCalculation;
+import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosOverlaySpec;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.orm.entities.KerberosKeytabPrincipalEntity;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
@@ -362,6 +364,30 @@ public interface KerberosHelper {
                                                                   Set<String> previouslyExistingServices,
                                                                   boolean kerberosEnabled,
                                                                   boolean applyStackAdvisorUpdates)
+      throws KerberosInvalidConfigurationException, AmbariException;
+
+  /**
+   * Calculates a managed HBase Kerberos descriptor and consumer-local mapping without persisting
+   * configurations or creating credentials. The descriptor and service/component snapshot are
+   * authoritative, request-local inputs supplied by the managed dependency coordinator.
+   *
+   * @param cluster target consumer cluster
+   * @param rawEffectiveComposite detached stack plus user composite before the managed overlay
+   * @param rawUserDescriptor raw user descriptor used to reject controlled-value conflicts
+   * @param existingConfigurations copied consumer cluster configurations
+   * @param plannedServices immutable current plus prospective service/component snapshot
+   * @param overlaySpec approved managed HBase identity and namespace facts
+   * @param applyStackAdvisorUpdates whether to apply ordinary Kerberos advisor recommendations
+   * @return detached descriptor, immutable sealed configurations and proven consumer mapping
+   */
+  ManagedHBaseKerberosCalculation calculateManagedHBaseKerberosConfiguration(
+      Cluster cluster,
+      KerberosDescriptor rawEffectiveComposite,
+      @Nullable KerberosDescriptor rawUserDescriptor,
+      Map<String, Map<String, String>> existingConfigurations,
+      Map<String, Set<String>> plannedServices,
+      ManagedHBaseKerberosOverlaySpec overlaySpec,
+      boolean applyStackAdvisorUpdates)
       throws KerberosInvalidConfigurationException, AmbariException;
 
   /**

@@ -1462,6 +1462,8 @@ public class TestHeartbeatHandler {
   private List<Map<String, String>> testInjectKeytabSetKeytab(String targetHost) throws Exception {
 
     ExecutionCommand executionCommand = new ExecutionCommand();
+    clusters.addHost(targetHost);
+    executionCommand.setRequestAndStage(1, 1);
 
     Map<String, String> hlp = new HashMap<>();
     hlp.put("custom_command", SET_KEYTAB);
@@ -1495,6 +1497,7 @@ public class TestHeartbeatHandler {
   private List<Map<String, String>> testInjectKeytabRemoveKeytab(String targetHost) throws Exception {
 
     ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setRequestAndStage(1, 1);
 
     Map<String, String> hlp = new HashMap<>();
     hlp.put("custom_command", "REMOVE_KEYTAB");

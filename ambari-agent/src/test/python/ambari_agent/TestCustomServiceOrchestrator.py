@@ -103,6 +103,65 @@ class TestCustomServiceOrchestrator(TestCase):
     self.test_directory.cleanup()
     sys.stdout = sys.__stdout__
 
+  def test_managed_hbase_configuration_replaces_only_command_scoped_types(self):
+    cached = {
+      "configurations": {
+        "core-site": {"fs.defaultFS": "hdfs://local", "local.only": "retained"},
+        "hdfs-site": {"dfs.nameservices": "local-ha"},
+        "hbase-site": {"unrelated": "retained"},
+      }
+    }
+    orchestrator = CustomServiceOrchestrator.__new__(CustomServiceOrchestrator)
+    orchestrator.configuration_builder = MagicMock()
+    orchestrator.configuration_builder.get_configuration.return_value = cached
+    managed_header = {
+      "clusterId": 11,
+      "serviceName": "HBASE",
+      "role": "HBASE_MASTER",
+      "configurationTypeOverrides": ["core-site", "hdfs-site"],
+      "commandParams": {"managed_dependency_commands": "persisted-bundle"},
+      "configurations": {
+        "core-site": {"fs.defaultFS": "hdfs://provider"},
+        "hdfs-site": {},
+      },
+    }
+
+    managed = orchestrator.generate_command(managed_header)
+
+    self.assertEqual(
+      {"fs.defaultFS": "hdfs://provider"}, managed["configurations"]["core-site"]
+    )
+    self.assertEqual(
+      {},
+      managed["configurations"]["hdfs-site"],
+    )
+    self.assertEqual(
+      {"unrelated": "retained"}, managed["configurations"]["hbase-site"]
+    )
+    self.assertEqual("hdfs://local", cached["configurations"]["core-site"]["fs.defaultFS"])
+
+    ordinary = orchestrator.generate_command(
+      {"clusterId": 11, "serviceName": "HIVE", "role": "HIVE_SERVER"}
+    )
+    self.assertEqual(
+      {"fs.defaultFS": "hdfs://local", "local.only": "retained"},
+      ordinary["configurations"]["core-site"],
+    )
+    self.assertEqual(
+      {"dfs.nameservices": "local-ha"}, ordinary["configurations"]["hdfs-site"]
+    )
+
+  def test_configuration_type_replacement_rejects_unmanaged_command(self):
+    with self.assertRaisesRegex(AgentException, "reserved for managed HBase"):
+      CustomServiceOrchestrator._apply_configuration_type_overrides(
+        {"configurations": {"core-site": {"fs.defaultFS": "hdfs://local"}}},
+        {
+          "serviceName": "HBASE",
+          "configurationTypeOverrides": ["core-site"],
+          "configurations": {"core-site": {"fs.defaultFS": "hdfs://provider"}},
+        },
+      )
+
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch("ambari_agent.hostname.public_hostname")
   @patch.object(FileCache, "__init__")

@@ -25,6 +25,7 @@ import {
   SESSION_EXPIRED_EVENT,
 } from "../Utils/authNavigation";
 import { Authorization, Privilege, User, UserContextType } from "../types/auth";
+import { canViewClusterTasksForRole } from "../Utils/authPolicy";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -76,14 +77,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     items.forEach((privilege) => {
       if (privilege.type === "CLUSTER" && privilege.cluster_name) {
         clusters[privilege.cluster_name] ??= [];
-        clusters[privilege.cluster_name].push(privilege.permission_label);
+        clusters[privilege.cluster_name].push(privilege.permission_name);
       } else if (privilege.type === "VIEW" && privilege.instance_name) {
         views[privilege.instance_name] ??= {
           privileges: [],
           version: privilege.version || "",
           view_name: privilege.view_name || "",
         };
-        views[privilege.instance_name].privileges.push(privilege.permission_label);
+        views[privilege.instance_name].privileges.push(privilege.permission_name);
       }
     });
 
@@ -124,10 +125,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPrivileges(mappedPrivileges);
     setAuthorizations(mappedAuthorizations);
     parsePrivileges(mappedPrivileges);
-    const authorizationIds = mappedAuthorizations.map(
-      (authorization: Authorization) => authorization.authorization_id,
-    );
-    db.setSession(userData.user_name, userData, authorizationIds);
+    db.setSession(userData.user_name, userData, mappedAuthorizations);
     setLoginMessage(message);
     setIsAuthenticated(true);
     resetExternalRedirectCount();
@@ -199,39 +197,96 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [loadSession, user]);
 
-  const havePermissions = useCallback((authorizationIds: string): boolean => {
-    const requested = authorizationIds.split(",").map((value) => value.trim());
-    return requested.some((id) => authorizations.some(
-      (authorization) => authorization.authorization_id === id,
-    ));
-  }, [authorizations]);
+  const isAmbariAdministrator = useCallback(() => privileges.some(
+    (privilege) => privilege.type === "AMBARI"
+      && privilege.permission_name === "AMBARI.ADMINISTRATOR",
+  ), [privileges]);
 
-  const hasAuthorization = useCallback((authorizationId: string): boolean => {
-    if (authorizationId === "HOST.ADD_DELETE_COMPONENTS") {
-      return havePermissions(authorizationId) || havePermissions("CLUSTER.ADMINISTRATOR");
-    }
-    return havePermissions(authorizationId);
+  const hasGlobalAuthorization = useCallback((authorizationId: string): boolean => (
+    isAmbariAdministrator() || authorizations.some((authorization) => (
+      authorization.resource_type === "AMBARI"
+      && authorization.authorization_id === authorizationId
+    ))
+  ), [authorizations, isAmbariAdministrator]);
+
+  const hasClusterAuthorization = useCallback((
+    clusterName: string,
+    authorizationId: string,
+  ): boolean => (
+    hasGlobalAuthorization(authorizationId) || authorizations.some((authorization) => (
+      authorization.resource_type === "CLUSTER"
+      && authorization.cluster_name === clusterName
+      && (
+        authorization.authorization_id === authorizationId
+        || (
+          authorizationId === "HOST.ADD_DELETE_COMPONENTS"
+          && authorization.authorization_id === "CLUSTER.ADMINISTRATOR"
+        )
+      )
+    ))
+  ), [authorizations, hasGlobalAuthorization]);
+
+  const canAccessCluster = useCallback((clusterName: string): boolean => (
+    isAmbariAdministrator() || authorizations.some((authorization) => (
+      authorization.resource_type === "CLUSTER"
+      && authorization.cluster_name === clusterName
+    ))
+  ), [authorizations, isAmbariAdministrator]);
+
+  const havePermissions = useCallback((
+    authorizationIds: string,
+    clusterName?: string,
+  ): boolean => {
+    const requested = authorizationIds.split(",").map((value) => value.trim());
+    return requested.some((id) => clusterName
+      ? hasClusterAuthorization(clusterName, id)
+      : hasGlobalAuthorization(id));
+  }, [hasClusterAuthorization, hasGlobalAuthorization]);
+
+  const hasAuthorization = useCallback((
+    authorizationId: string,
+    clusterName?: string,
+  ): boolean => {
+    return havePermissions(authorizationId, clusterName);
   }, [havePermissions]);
 
-  const hasPrivilege = useCallback((permissionName: string, clusterName?: string): boolean => {
-    if (clusterName) {
-      return clusterPrivileges[clusterName]?.includes(permissionName) || false;
-    }
-    return Object.values(clusterPrivileges).some((items) => items.includes(permissionName));
-  }, [clusterPrivileges]);
+  const hasGlobalPrivilege = useCallback((permissionName: string): boolean => (
+    isAmbariAdministrator() || privileges.some((privilege) => (
+      privilege.type === "AMBARI" && privilege.permission_name === permissionName
+    ))
+  ), [isAmbariAdministrator, privileges]);
+  const hasPrivilege = useCallback((permissionName: string, clusterName?: string): boolean => (
+    clusterName
+      ? hasGlobalPrivilege(permissionName)
+        || clusterPrivileges[clusterName]?.includes(permissionName)
+        || false
+      : hasGlobalPrivilege(permissionName)
+  ), [clusterPrivileges, hasGlobalPrivilege]);
 
-  const isAdmin = useCallback(() => privileges.some(
-    (privilege) => privilege.permission_name === "AMBARI.ADMINISTRATOR",
-  ) || hasAuthorization("CLUSTER.ADMINISTRATOR"), [hasAuthorization, privileges]);
+  const canViewClusterTasks = useCallback((clusterName: string): boolean => {
+    const hasStatusAuthorization = [
+      "CLUSTER.VIEW_STATUS_INFO",
+      "HOST.VIEW_STATUS_INFO",
+      "SERVICE.VIEW_STATUS_INFO",
+    ].some((authorizationId) => hasClusterAuthorization(clusterName, authorizationId));
+    return hasStatusAuthorization && canViewClusterTasksForRole(
+      isAmbariAdministrator(),
+      clusterPrivileges[clusterName] || [],
+    );
+  }, [clusterPrivileges, hasClusterAuthorization, isAmbariAdministrator]);
+
+  const isAdmin = isAmbariAdministrator;
   const isOperator = useCallback(
-    () => hasAuthorization("CLUSTER.ADMINISTRATOR"),
-    [hasAuthorization],
+    (clusterName?: string) => Boolean(
+      clusterName && hasClusterAuthorization(clusterName, "CLUSTER.ADMINISTRATOR"),
+    ),
+    [hasClusterAuthorization],
   );
   const isClusterUser = useCallback(
     () => privileges.length === 1 && privileges[0].permission_name === "CLUSTER.USER",
     [privileges],
   );
-  const isClusterOperator = useCallback(() => isOperator() && !privileges.some(
+  const isClusterOperator = useCallback((clusterName?: string) => isOperator(clusterName) && !privileges.some(
     (privilege) => privilege.permission_name === "AMBARI.ADMINISTRATOR",
   ), [isOperator, privileges]);
 
@@ -261,7 +316,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       viewPrivileges,
       havePermissions,
       hasAuthorization,
+      hasGlobalAuthorization,
+      hasClusterAuthorization,
+      canAccessCluster,
+      hasGlobalPrivilege,
       hasPrivilege,
+      canViewClusterTasks,
       isAdmin,
       isOperator,
       isClusterUser,

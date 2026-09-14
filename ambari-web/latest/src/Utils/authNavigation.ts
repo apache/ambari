@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-import { LocalStorageOps } from "./LocalStorageOps";
-
 const PREFERRED_PATH_KEY = "lastVisitedURL";
 const REDIRECT_COUNT_KEY = "ambari.jwtRedirectCount";
 const MAX_EXTERNAL_REDIRECTS = 3;
@@ -58,18 +56,39 @@ export function normalizeInternalPath(value?: string | null): string | null {
 export function savePreferredPath(path: string): void {
   const normalized = normalizeInternalPath(path);
   if (normalized) {
-    LocalStorageOps.setItem(PREFERRED_PATH_KEY, normalized);
+    sessionStorage.setItem(PREFERRED_PATH_KEY, normalized);
   }
 }
 
 export function consumePreferredPath(): string | null {
-  const normalized = normalizeInternalPath(LocalStorageOps.getItem(PREFERRED_PATH_KEY));
+  const normalized = normalizeInternalPath(sessionStorage.getItem(PREFERRED_PATH_KEY));
+  sessionStorage.removeItem(PREFERRED_PATH_KEY);
   localStorage.removeItem(PREFERRED_PATH_KEY);
   return normalized;
 }
 
 export function peekPreferredPath(): string | null {
-  return normalizeInternalPath(LocalStorageOps.getItem(PREFERRED_PATH_KEY));
+  return normalizeInternalPath(sessionStorage.getItem(PREFERRED_PATH_KEY));
+}
+
+// This is a user preference, never an authority for runtime cluster ownership.
+export function rememberCluster(userName: string | undefined, clusterId: unknown): void {
+  if (!userName || typeof clusterId !== "number" || !Number.isSafeInteger(clusterId) || clusterId <= 0) return;
+  try {
+    localStorage.setItem(`ambari.navigation.v1:${encodeURIComponent(userName)}`, JSON.stringify(clusterId));
+  } catch {
+    // Browser storage can be disabled; explicit route navigation still works.
+  }
+}
+
+export function recalledClusterId(userName: string | undefined): number | null {
+  if (!userName) return null;
+  try {
+    const value = JSON.parse(localStorage.getItem(`ambari.navigation.v1:${encodeURIComponent(userName)}`) || "null");
+    return typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 export function resetExternalRedirectCount(): void {

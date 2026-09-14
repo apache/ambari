@@ -100,8 +100,8 @@ function Step1() {
               //   },
               },
             });
-            flushStateToDb("next");
-            handleNextImperitive();
+            await flushStateToDb("next");
+            await handleNextImperitive();
           } catch (error) {
             setIsNavigating(false);
           }

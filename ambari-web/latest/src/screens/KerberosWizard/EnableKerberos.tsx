@@ -35,23 +35,23 @@ import {
   useBeforeUnload,
   useBlocker,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import { discardChanges } from "./KerberosStore/context";
 import UpgradeGuard from "../../components/UpgradeGuard";
 import ManageKdcCredentials from "../Kerberos/manageKdcCredentials";
 import credentialsUtils from "../../Utils/credentialsUtils";
 import useKerberosMode from "../../hooks/useKerberosMode";
 import { useAuth, useAuthorization } from "../../hooks/useAuth";
+import useClusterWorkflowPersistence from "../../hooks/useClusterWorkflowPersistence";
 import { responseErrorMessage } from "../../Utils/httpError";
 import {
   failedPreKerberizeChecks,
-  kerberosWizardPersistenceResetPayload,
   kerberosWizardRecoveryPath,
   kerberosWizardStartPayload,
   shouldBlockKerberosWizardNavigation,
 } from "../../Utils/kerberosWizard";
-import { postKerberosWizardPersistData } from "../../Utils/kerberosWizardPersistence";
+import { consumeWorkflowReturnPath } from "../../Utils/workflowReturnPath";
 
 export default function EnableKerberos() {
   const [isKerberosEnabled, setIsKerberosEnabled] = useState(false);
@@ -83,8 +83,12 @@ export default function EnableKerberos() {
   const allowWizardExit = useRef(false);
   const disableRouteStarted = useRef(false);
 
-  const { clusterName, clusterState, services, supports } = useContext(AppContext);
+  const { cluster, clusterName, clusterState, services, supports } = useContext(AppContext);
   const { user } = useAuth();
+  const workflowPersistence = useClusterWorkflowPersistence("ENABLING_KERBEROS", {
+    controllerNames: ["kerberosWizardController"],
+    keys: ["ENABLING_KERBEROS", "CLUSTER_STATE"],
+  });
   const canDownloadCsv = useAuthorization("CLUSTER.UPGRADE_DOWNGRADE_STACK");
   const {
     isLoaded: isKerberosModeLoaded,
@@ -92,7 +96,7 @@ export default function EnableKerberos() {
     loadError: kerberosModeError,
     retry: retryKerberosMode,
   } = useKerberosMode();
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const location = useLocation();
   const isEnableWizardRoute = location.pathname.includes("/kerberos/enable/");
   const blocker = useBlocker(({ currentLocation, nextLocation }) =>
@@ -104,15 +108,18 @@ export default function EnableKerberos() {
   );
 
   const finishWizardExit = () => {
-    const returnPath = localStorage.getItem("module06WizardReturnPath");
-    localStorage.removeItem("module06WizardReturnPath");
+    const returnPath = consumeWorkflowReturnPath({
+      clusterId: cluster?.cluster_id,
+      principal: user?.user_name,
+      workflow: "ENABLING_KERBEROS",
+    }, "/main/admin/kerberos/");
     allowWizardExit.current = true;
     setConfirmQuitWizardModal(false);
     setEnableKerberosModal(false);
     if (blocker.state === "blocked") {
       blocker.proceed();
     } else {
-      navigate(returnPath || "/main/admin/kerberos/", { replace: true });
+      navigate(returnPath, { replace: true });
     }
   };
 
@@ -220,8 +227,12 @@ export default function EnableKerberos() {
       return;
     }
     try {
-      await postKerberosWizardPersistData(
+      if (!workflowPersistence) {
+        throw new Error("Enable Kerberos requires an explicit cluster target.");
+      }
+      await workflowPersistence.savePersistData(
         kerberosWizardStartPayload(user.user_name),
+        "GET_STARTED",
       );
       setDisableKerberosModal(false);
       navigate(`/main/admin/kerberos/enable/step1`);
@@ -608,9 +619,10 @@ export default function EnableKerberos() {
             if (!location.pathname.endsWith("/step8")) {
               await discardChanges(clusterName);
             }
-            await postKerberosWizardPersistData(
-              kerberosWizardPersistenceResetPayload(),
-            );
+            if (!workflowPersistence) {
+              throw new Error("Enable Kerberos requires an explicit cluster target.");
+            }
+            await workflowPersistence.release();
             finishWizardExit();
           } catch (error) {
             setWizardExitError(responseErrorMessage(

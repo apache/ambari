@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 
 // The quicklinks config is immutable stack metadata (link templates, port/host
@@ -37,7 +38,7 @@ export const QuicklinksApi = {
         if (pending) {
             return pending;
         }
-        const url = `/stacks/${stackName}/versions/${stackVersion}/services/${serviceName}/quicklinks?QuickLinkInfo/default=true&fields=*`;
+        const url = `/stacks/${stackName}/versions/${stackVersion}/services/${apiPathSegment(serviceName)}/quicklinks?QuickLinkInfo/default=true&fields=*`;
         const promise = ambariApi
             .request({ url, method: "GET" })
             .then((response) => {
@@ -52,7 +53,7 @@ export const QuicklinksApi = {
     },
     getPublicHostNames: async (clusterName: string, hostNames: string[]) => {
         const hosts = hostNames.map(encodeURIComponent).join(",");
-        const url = `/clusters/${clusterName}/hosts?Hosts/host_name.in(${hosts})&fields=Hosts/public_host_name&minimal_response=true`;
+        const url = `/clusters/${apiPathSegment(clusterName)}/hosts?Hosts/host_name.in(${hosts})&fields=Hosts/public_host_name&minimal_response=true`;
         const response = await ambariApi.request({
             url,
             method: "GET",

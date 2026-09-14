@@ -19,14 +19,15 @@
 import { Col, Row, Tab, Tabs } from "react-bootstrap";
 import EmbeddedDashboards from "../Monitoring/EmbeddedDashboards";
 import DashboardConfigHistory from "./ConfigHistory";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 
 const dashboardTabs = ["metrics", "confighistory"];
 
 function Dashboard({ tabName: tabNameProp }: { tabName?: string }) {
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { tabName: tabNameParam } = useParams<{ tabName: string }>();
   const { hasAuthorization } = useAuth();
   const canViewMetrics = hasAuthorization("CLUSTER.VIEW_METRICS");

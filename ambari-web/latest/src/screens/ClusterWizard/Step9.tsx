@@ -18,6 +18,7 @@
 
 import { useContext, useEffect, useRef, useState } from "react";
 import { Alert, Button, ProgressBar, Spinner, Table } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
 import { get } from "lodash";
 import { useBlocker } from "react-router-dom";
 import { AppContext } from "../../store/context";
@@ -28,9 +29,11 @@ import { ViewLevel } from "../../constants";
 import { RequestApi } from "../../api/requestApi";
 import { HostsApi } from "../../api/hostsApi";
 import { ServiceApi } from "../../api/serviceApi";
+import ManagedDeploymentProgress from "./ManagedDeploymentProgress";
 import { ActionTypes } from "./clusterStore/types";
 import {
   canEnterSummary,
+  clientOnlyTargetsInstalled,
   canRetryInstallation,
   failedTaskStatuses,
   InstallWizardName,
@@ -57,6 +60,7 @@ function errorMessage(error: any): string {
 
 function phaseLabel(phase: InstallationPhase): string {
   switch (phase) {
+    case "WAIT_FOR_PROVIDER_PREPARATION": return "Waiting for provider preparation";
     case "INSTALL": return "Installing services and components";
     case "KEYTABS": return "Regenerating Kerberos keytabs";
     case "START": return "Starting services and running service checks";
@@ -64,7 +68,10 @@ function phaseLabel(phase: InstallationPhase): string {
   }
 }
 
-function Step9({ wizardName = "clusterCreation" }: Step9Props) {
+const taskData = (task: any) => task?.Tasks || task || {};
+
+function LegacyStep9({ wizardName = "clusterCreation" }: Step9Props) {
+  const { t } = useTranslation();
   const { Context } = useContext(ContextWrapper);
   const {
     state,
@@ -84,45 +91,49 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
   const reviewStatus = getStepData("REVIEW", "clusterStatus") || {};
   const restoredInstall = getStepData("INSTALL_START_TEST") || {};
   const initialStatus = restoredInstall.clusterStatus || reviewStatus;
+  const initialRequestId = initialStatus.requestId;
+  const restoredStatus = initialRequestId != null && initialStatus.requestId == null
+    ? { ...initialStatus, requestId: initialRequestId }
+    : initialStatus;
   const initialPhase: InstallationPhase = restoredInstall.phase
-    || initialStatus.phase
-    || (initialStatus.status === "STARTED" ? "COMPLETE" : "INSTALL");
-  const initialTerminal = canEnterSummary(wizardName, initialStatus.status || "");
+    || restoredStatus.phase
+    || (restoredStatus.status === "STARTED" ? "COMPLETE" : "INSTALL");
+  const initialTerminal = canEnterSummary(wizardName, restoredStatus.status || "");
   const registeredHosts = (getStepData("HOST_STATUS", "hosts") || [])
     .filter((host: any) => host.bootStatus === "REGISTERED");
   const initialHosts = restoredInstall.hostInfo?.length
     ? restoredInstall.hostInfo
     : registeredHosts.map((host: any) => ({
       name: host.name,
-      status: initialStatus.status === "STARTED" ? "success" : "pending",
-      progress: initialStatus.status === "STARTED" ? 100 : 0,
-      message: initialStatus.status === "STARTED"
+      status: restoredStatus.status === "STARTED" ? "success" : "pending",
+      progress: restoredStatus.status === "STARTED" ? 100 : 0,
+      message: restoredStatus.status === "STARTED"
         ? "Install and start completed"
         : "Waiting",
       logTasks: [],
     }));
 
   const [hosts, setHosts] = useState<any[]>(initialHosts);
-  const [clusterStatus, setClusterStatus] = useState<any>(initialStatus);
+  const [clusterStatus, setClusterStatus] = useState<any>(restoredStatus);
   const [phase, setPhase] = useState<InstallationPhase>(initialPhase);
   const [working, setWorking] = useState(!initialTerminal);
   const [terminal, setTerminal] = useState(initialTerminal);
   const [pollError, setPollError] = useState("");
   const [operationError, setOperationError] = useState(
-    initialStatus.operationError || "",
+    restoredStatus.operationError || "",
   );
   const [selectedHost, setSelectedHost] = useState("");
   const [selectedRequestId, setSelectedRequestId] = useState<
     string | number | null
   >(null);
-
   const active = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const requestInFlight = useRef(false);
   const hostsRef = useRef<any[]>(initialHosts);
-  const clusterStatusRef = useRef<any>(initialStatus);
+  const clusterStatusRef = useRef<any>(restoredStatus);
   const phaseRef = useRef<InstallationPhase>(initialPhase);
-  const requestIdRef = useRef<string | number | undefined>(initialStatus.requestId);
+  const requestIdRef = useRef<string | number | undefined>(initialRequestId);
+
 
   const blocker = useBlocker(({ currentLocation, nextLocation }) =>
     working && currentLocation.pathname !== nextLocation.pathname,
@@ -132,6 +143,7 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
     nextHosts: any[],
     nextStatus: any,
     nextPhase: InstallationPhase,
+    extraData: Record<string, unknown> = {},
   ) => {
     dispatch({
       type: ActionTypes.STORE_INFORMATION,
@@ -141,6 +153,7 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
           hostInfo: nextHosts,
           clusterStatus: nextStatus,
           phase: nextPhase,
+          ...extraData,
         },
       },
     });
@@ -171,6 +184,7 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
     requestId: string | number,
     nextPhase: InstallationPhase,
     status: string,
+    extraData: Record<string, unknown> = {},
   ) => {
     const nextStatus = {
       ...clusterStatusRef.current,
@@ -189,6 +203,9 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
     setTerminal(false);
     setWorking(true);
     updateDeploymentState(nextStatus, nextPhase);
+    if (Object.keys(extraData).length) {
+      persist(hostsRef.current, nextStatus, nextPhase, extraData);
+    }
     await Promise.resolve(flushStateToDb(
       "checkpoint",
       -1,
@@ -317,8 +334,14 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
       if (!active.current) return;
       const requestId = requestIdFrom(response);
       if (requestId == null) {
-        await completeSuccess();
-        return;
+        const current = await HostsApi.getClusterComponents(clusterName,
+          "ServiceComponentInfo/cluster_name,ServiceComponentInfo/service_name,ServiceComponentInfo/component_name,ServiceComponentInfo/category,host_components/HostRoles");
+        if (!active.current) return;
+        if (clientOnlyTargetsInstalled(clusterName, serviceNames, current?.items)) {
+          await completeSuccess();
+          return;
+        }
+        throw new Error("Ambari did not return a Start request ID. Reload the exact operation before continuing.");
       }
       await setRequest(requestId, "START", "INSTALLED");
     } catch (error: any) {
@@ -431,16 +454,29 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
     setWorking(true);
     setOperationError("");
     try {
-      const response = await HostsApi.updateHostComponents(
-        clusterName,
-        "HostRoles/desired_state=INSTALLED&HostRoles/state!=INSTALLED",
-        {
-          context: "Retry Install Components",
-          HostRoles: { state: "INSTALLED" },
-          level: "HOST_COMPONENT",
-          query: "HostRoles/desired_state=INSTALLED&HostRoles/state!=INSTALLED",
-        },
-      );
+      const failedRequestId = requestIdRef.current;
+      if (failedRequestId == null) throw new Error("The failed installation request ID is missing.");
+      const failedRequest = await RequestApi.getRequestStatus(clusterName, String(failedRequestId));
+      const targets = new Map<string, { host: string; component: string }>();
+      for (const task of failedRequest.tasks || []) {
+        const data = taskData(task);
+        if (data.command !== "INSTALL" || !failedTaskStatuses.has(data.status)) continue;
+        if (data.request_id != null && String(data.request_id) !== String(failedRequestId)) {
+          throw new Error("The failed task does not belong to this installation request.");
+        }
+        if (!data.host_name || !data.role) throw new Error("The failed task target is missing.");
+        targets.set(JSON.stringify([data.host_name, data.role]), { host: data.host_name, component: data.role });
+      }
+      if (!targets.size) throw new Error("This request has no failed installation targets to retry.");
+      const query = [...targets.values()].map(({ host, component }) =>
+        `(HostRoles/host_name=${encodeURIComponent(host)}&HostRoles/component_name=${encodeURIComponent(component)})`,
+      ).join("|");
+      const response = await HostsApi.updateHostComponents(clusterName, query, {
+        context: "Retry Install Components",
+        HostRoles: { state: "INSTALLED" },
+        level: "HOST_COMPONENT",
+        query,
+      });
       const requestId = requestIdFrom(response);
       if (requestId == null) {
         throw new Error("Ambari did not return a retry request ID.");
@@ -541,7 +577,9 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
       </div>
       <div className="mt-2 text-muted d-flex align-items-center gap-2">
         {working ? <Spinner animation="border" size="sm" /> : null}
-        {phaseLabel(phase)}
+        {phase === "WAIT_FOR_PROVIDER_PREPARATION"
+          ? t("installer.step9.providerPreparationWaiting")
+          : phaseLabel(phase)}
       </div>
 
       <Table responsive hover className="mt-3 mb-5">
@@ -612,6 +650,21 @@ function Step9({ wizardName = "clusterCreation" }: Step9Props) {
       />
     </>
   );
+}
+
+function Step9({ wizardName = "clusterCreation" }: Step9Props) {
+  const { Context } = useContext(ContextWrapper);
+  const { state }: any = useContext(Context);
+  const steps = state?.[`${wizardName}Steps`] || {};
+  const review = steps.REVIEW?.data || {};
+  const restored = steps.INSTALL_START_TEST?.data || {};
+  const handoff = restored.managedDependencyHandoff || review.managedDependencyHandoff;
+  if (handoff?.items?.length) {
+    const intent = restored.managedDependencyInstallIntent || handoff.installIntent || review.managedDependencyInstallIntent;
+    return <ManagedDeploymentProgress key={`${wizardName}:${steps.NAME?.data?.clusterName || ""}:${handoff.clusterId}:${intent?.intentId || ""}`}
+      wizardName={wizardName} />;
+  }
+  return <LegacyStep9 key={`${wizardName}:${steps.NAME?.data?.clusterName || ""}`} wizardName={wizardName} />;
 }
 
 export default Step9;

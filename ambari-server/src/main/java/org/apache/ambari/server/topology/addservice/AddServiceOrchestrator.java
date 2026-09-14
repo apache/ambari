@@ -159,8 +159,11 @@ public class AddServiceOrchestrator {
     resourceProviders.createServices(request);
     resourceProviders.createComponents(request);
 
-    resourceProviders.updateServiceDesiredState(request, State.INSTALLED);
-    resourceProviders.updateServiceDesiredState(request, State.STARTED);
+    if (request.getRequest().getProvisionAction()
+        != org.apache.ambari.server.controller.internal.ProvisionAction.PREPARE_ONLY) {
+      resourceProviders.updateServiceDesiredState(request, State.INSTALLED);
+      resourceProviders.updateServiceDesiredState(request, State.STARTED);
+    }
 
     resourceProviders.createHostComponents(request);
 
@@ -196,6 +199,8 @@ public class AddServiceOrchestrator {
   private void createHostTasks(AddServiceInfo request) {
     LOG.info("Creating host tasks for {}", request);
 
+    if (request.getRequest().getProvisionAction()
+        == org.apache.ambari.server.controller.internal.ProvisionAction.PREPARE_ONLY) return;
     ProvisionActionPredicateBuilder predicates = new ProvisionActionPredicateBuilder(request);
     for (ProvisionStep step : ProvisionStep.values()) {
       predicates.getPredicate(step).ifPresent(predicate ->

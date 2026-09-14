@@ -23,10 +23,12 @@ import Spinner from "../../../components/Spinner";
 import Table from "../../../components/Table";
 import { Alert, Badge, Button, Form, InputGroup } from "react-bootstrap";
 import { AppContext } from "../../../store/context";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../../hooks/useClusterNavigate";
 import { useAuth } from "../../../hooks/useAuth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { saveWorkflowReturnPath } from "../../../Utils/workflowReturnPath";
+import { saveAddServiceSelectionIntent } from "../../../Utils/workflowSelectionIntent";
 
 interface Service {
   name: string;
@@ -59,8 +61,9 @@ export default function ListStack() {
     supports,
     upgradeIsRunning,
     isNonWizardUser,
+    loginName,
   } = useContext(AppContext);
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
 
   // Authorization hooks - implementing Ember.js service authorization patterns
   const { hasAuthorization } = useAuth();
@@ -261,12 +264,21 @@ export default function ListStack() {
               if (!canOpenAddService) {
                 return;
               }
-              localStorage.setItem("module06WizardReturnPath", "/main/admin/stack/services");
+              saveWorkflowReturnPath({
+                clusterId: cluster?.cluster_id,
+                principal: loginName,
+                workflow: serviceName === "KERBEROS"
+                  ? "ENABLING_KERBEROS"
+                  : "ADD_SERVICE",
+              }, "/main/admin/stack/services");
               if (serviceName === "KERBEROS") {
                 navigate("/main/admin/kerberos/enable/step1");
                 return;
               }
-              localStorage.setItem("preselectedService", serviceName);
+              saveAddServiceSelectionIntent({
+                clusterId: cluster?.cluster_id,
+                principal: loginName,
+              }, serviceName);
               navigate("/main/service/add/step1");
             }}
             title={!canOpenAddService ? "Adding this service is not available in the current permission, feature, or upgrade state." : ""}

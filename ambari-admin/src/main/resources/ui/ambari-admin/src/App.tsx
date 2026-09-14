@@ -15,42 +15,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { clearClientSession } from "./utils/session";
 import Routes from "./router/Routes";
 import { SideItemLabels } from "./SideItemList";
 import SideBar from "./SideBar";
-import { Container, Card } from "react-bootstrap";
+import { Container, Card, Alert, Button } from "react-bootstrap";
 import { useEffect, useState } from "react";
+import { ManagementProvider } from "./context/ManagementContext";
 import NavBar from "./NavBar";
 import AppContent from "./context/AppContext";
 import { HostCluster } from "./types";
 import { get } from "lodash";
 import { Toaster } from "react-hot-toast";
-import { HashRouter, Route } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 import ClusterApi from "./api/clusterApi";
 import Spinner from "./components/Spinner";
-import InstallClusterButton from "./components/InstallClusterButton.tsx";
-import { Form } from "react-bootstrap";
-import ClusterInformationNavigate from "./components/ClusterInformationNavigate.tsx";
 import usePolling from "./hooks/usePolling.ts";
 import clusterApi from "./api/clusterApi";
 import InactivityTimeout from "./InactivityTimeout.tsx";
-import InstallBox from "./assets/img/install-box.svg"
 import { latestAmbariUrl } from "./utils/navigation.ts";
 
 function App() {
   const [clusterInfo, setClusterInfo] = useState<HostCluster>(
     {} as HostCluster
   );
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [availableClusters, setAvailableClusters] = useState<HostCluster[]>([]);
+  const [clusterError, setClusterError] = useState("");
+  const [clusterLoadAttempt, setClusterLoadAttempt] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string>(
-    SideItemLabels.CLUSTERINFORMATION
+    SideItemLabels.CLUSTEROVERVIEW
   );
   const [rbacData, setRbacData] = useState({});
   const [ambariVersion, setAmbariVersion] = useState<string>("");
   const [permissionLabelList, setPermissionLabelList] = useState<string[]>([]);
   const [clusterExists, setClusterExists] = useState(false);
   const [clusterInfoLoading, setClusterInfoLoading] = useState(true);
-  const [isInstallWizardLaunched, setInstallWizardLaunched] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [userSessiontTimeout, setUserSessiontTimeout] = useState<number>();
 
@@ -71,58 +71,71 @@ function App() {
 
   async function pollNoopUserTimeout() {
     try {
-      const response = await clusterApi.noopPolling();
-      if (response.status === 403) {
-        localStorage.clear();
+      await clusterApi.noopPolling();
+    } catch (error) {
+      if ((error as { response?: { status?: number } }).response?.status === 401) {
+        clearClientSession();
         window.location.replace(latestAmbariUrl("/login"));
       }
-    } catch (error) {
-      console.error("Error in noop polling", error);
-      localStorage.clear();
-      window.location.replace(latestAmbariUrl("/login"));
     }
   }
+
   usePolling(pollNoopUserTimeout, 10000);
 
   useEffect(() => {
-    async function getClusterInfoData() {
+    let active = true;
+    async function loadClusters() {
       setLoading(true);
-      const data = await ClusterApi.hostClustersInfo();
-      const hostClusterInfo = get(data, "items[0].Clusters", "");
-      setClusterInfo(hostClusterInfo);
-      setLoading(false);
-    }
-    getClusterInfoData();
-  }, []);
-
-  useEffect(() => {
-    async function checkClusterExists() {
-      console.log("checking cluster exists");
-      const response = await ClusterApi.clusterInfo(
-        "Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id"
-      );
-      if (
-        response &&
-        response.items &&
-        response.items.length > 0 &&
-        response.items[0].Clusters.provisioning_state === "INSTALLED"
-      ) {
-        setClusterExists(true);
+      setClusterError("");
+      try {
+        const data = await ClusterApi.hostClustersInfo();
+        if (!Array.isArray(data?.items)) throw new Error("Invalid cluster response");
+        const clusters: HostCluster[] = data.items.map((item: { Clusters: HostCluster }) => item.Clusters);
+        const requestedName = new URLSearchParams(window.location.search).get("cluster");
+        const selected = requestedName
+          ? clusters.find((item) => item.cluster_name === requestedName)
+          : clusters.length === 1 ? clusters[0] : undefined;
+        if (requestedName && !selected) throw new Error("Cluster access unavailable");
+        if (!active) return;
+        setAvailableClusters(clusters);
+        setClusterInfo(selected || {} as HostCluster);
+        setClusterExists(selected?.provisioning_state === "INSTALLED");
         setClusterInfoLoading(false);
-      } else {
-        setClusterExists(false);
-        setClusterInfoLoading(true);
+      } catch {
+        if (active) setClusterError("Unable to load the selected cluster. It may be unavailable or your access may have changed.");
+      } finally {
+        if (active) setLoading(false);
       }
     }
-    checkClusterExists();
-  }, []);
+    void loadClusters();
+    return () => { active = false; };
+  }, [clusterLoadAttempt]);
+
+  const selectCluster = (clusterName: string) => {
+    const target = new URL(window.location.href);
+    target.searchParams.set("cluster", clusterName);
+    target.hash = "/clusterInformation";
+    window.location.assign(target.href);
+  };
+
+  const updateClusterInfo = (next: HostCluster) => {
+    setClusterInfo(next);
+    setAvailableClusters((items) => items.map((item) => item.cluster_id === next.cluster_id ? next : item));
+    const target = new URL(window.location.href);
+    target.searchParams.set("cluster", next.cluster_name);
+    window.history.replaceState(null, "", target.href);
+  };
 
   if (loading) {
     return <Spinner />;
   }
-  const handleRedirectToInstallCluster = () => {
-    setInstallWizardLaunched(true);
-  };
+  if (clusterError) {
+    return <Alert variant="danger" className="m-4">
+      <p>{clusterError}</p>
+      <Button onClick={() => setClusterLoadAttempt((value) => value + 1)}>Retry</Button>
+      <Button variant="link" href={latestAmbariUrl("/")}>Return to Ambari</Button>
+    </Alert>;
+  }
   return (
     <HashRouter>
       <AppContent.Provider
@@ -130,7 +143,9 @@ function App() {
           selectedOption,
           setSelectedOption,
           cluster: clusterInfo,
-          setClusterInfo,
+          setClusterInfo: updateClusterInfo,
+          availableClusters,
+          selectCluster,
           rbacData,
           setRbacData,
           permissionLabelList,
@@ -141,6 +156,7 @@ function App() {
           setAmbariVersion,
         }}
       >
+        <ManagementProvider>
         <Toaster />
         <div className="d-flex h-100" style={{ maxHeight: "100vh" }}>
           <SideBar
@@ -164,50 +180,12 @@ function App() {
               subPath={selectedOption}
               clusterName={get(clusterInfo, "cluster_name", "")}
             />
-            <Container className="mt-4">
-                {clusterInfoLoading && !isInstallWizardLaunched && !clusterExists &&
-                (window.location.hash.endsWith('/clusterInformation') || window.location.hash.endsWith('/')) ? (
-                    <>
-                        <Card.Title className="text-center text-dark mt-4">
-                            Welcome to Apache Ambari
-                        </Card.Title>
-                        <Card.Text className="text-center text-muted mb-10 mt-3">
-                            Provision a cluster, manage who can access the cluster, and customize views for Ambari users.
-                        </Card.Text>
-                    </>
-                ) : null}
-              <Card className="p-4 rounded-0">
-                  {clusterInfoLoading && !isInstallWizardLaunched && !clusterExists &&
-                  (window.location.hash.endsWith('/clusterInformation') || window.location.hash.endsWith('/')) ? (
-                  <Form.Group className="d-flex flex-column justify-content-center align-items-center text-center">
-                    <Card.Title>Create a Cluster</Card.Title>
-                    <Card.Text className="text-muted">
-                      Use the Install Wizard to select services and configure
-                      your cluster
-                    </Card.Text>
-                    <Card.Img
-                      variant="middle"
-                      src={InstallBox}
-                      width="100"
-                      height="100"
-                      alt="Install Box"
-                    />
-                    <InstallClusterButton
-                      onButtonClick={handleRedirectToInstallCluster}
-                      setInstallWizardLaunched={setInstallWizardLaunched}
-                    />
-                  </Form.Group>
-                ) : null}
-                <Route path="/clusterInformation">
-                  <ClusterInformationNavigate
-                    setInstallWizardLaunched={setInstallWizardLaunched}
-                  />
-                </Route>
-                <Routes />
-              </Card>
+            <Container fluid className="mt-4 px-4">
+              <Card className="p-4 rounded-0"><Routes /></Card>
             </Container>
           </div>
         </div>
+        </ManagementProvider>
       </AppContent.Provider>
       <InactivityTimeout timeout={userSessiontTimeout ?? 900} />
     </HashRouter>

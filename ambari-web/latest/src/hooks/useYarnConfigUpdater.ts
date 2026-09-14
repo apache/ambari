@@ -34,7 +34,7 @@ export const useYarnConfigUpdater = () => {
   } = useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, parsedSocketMessages } = useContext(AppContext);
+  const { clusterName, parsedSocketMessages, runtimeKey, services } = useContext(AppContext);
 
   // Early return if YARN service is not installed
   const isYarnInstalled = services && Array.isArray(services) &&
@@ -49,7 +49,7 @@ export const useYarnConfigUpdater = () => {
   const hasResourceManagerHAEnabledUseEffectRunOnce = useRef(false);
 
   const fetchYARNMasterSlaveClientsData = async () => {
-    let yarnComponentsData = cachedServiceApi.getServiceComponentData("YARN");
+    let yarnComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "YARN");
     
     if (!yarnComponentsData) {
       yarnComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -262,7 +262,7 @@ export const useYarnConfigUpdater = () => {
 
   //@ts-ignore
   const isRMAEnabled = async () => {
-    const yarnComponentsData = cachedServiceApi.getServiceComponentData("YARN");
+    const yarnComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "YARN");
     
     if (!yarnComponentsData) {
       return;
@@ -306,7 +306,7 @@ export const useYarnConfigUpdater = () => {
     const serviceName = "YARN";
     
     // Use centralized service state API instead of individual call
-    const serviceStateData = centralizedServiceStateApi.getServiceStateData(serviceName);
+    const serviceStateData = centralizedServiceStateApi.getServiceStateData(runtimeKey, serviceName);
     
     if (!serviceStateData) return;
 

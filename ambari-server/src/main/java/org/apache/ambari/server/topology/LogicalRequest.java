@@ -411,6 +411,10 @@ public class LogicalRequest extends Request {
    * @return true if all the tasks in the logical request are in completed state, false otherwise
    */
   public boolean isFinished() {
+    if (topology.getProvisionAction() == org.apache.ambari.server.controller.internal.ProvisionAction.PREPARE_ONLY) {
+      return topology.getAmbariContext().isTopologyResolved(topology.getClusterId())
+          && getHostRequests().stream().allMatch(host -> host.getHostName() != null && host.getStatus().isCompletedState());
+    }
     for (ShortTaskStatus ts : getRequestStatus().getTasks()) {
       if (!HostRoleStatus.valueOf(ts.getStatus()).isCompletedState()) {
         return false;
@@ -423,6 +427,9 @@ public class LogicalRequest extends Request {
    * Returns if all the tasks in the logical request have completed state.
    */
   public boolean isSuccessful() {
+    if (topology.getProvisionAction() == org.apache.ambari.server.controller.internal.ProvisionAction.PREPARE_ONLY) {
+      return isFinished() && getHostRequests().stream().allMatch(host -> host.getStatus() == HostRoleStatus.COMPLETED);
+    }
     for (ShortTaskStatus ts : getRequestStatus().getTasks()) {
       if (HostRoleStatus.valueOf(ts.getStatus()) != HostRoleStatus.COMPLETED) {
         return false;

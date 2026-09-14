@@ -26,12 +26,30 @@ interface ServiceStateData {
   hasCriticalAlerts: boolean;
 }
 
-class CentralizedServiceStateApi {
-  private cache: Map<string, ServiceStateData> = new Map();
-  private lastFetchTime: number = 0;
+interface ClusterServiceStateEntry {
+  cache: Map<string, ServiceStateData>;
+  lastFetchTime: number;
+  subscribers: Array<(data: Map<string, ServiceStateData>) => void>;
+  pendingRequest: Promise<Map<string, ServiceStateData>> | null;
+}
+
+export class CentralizedServiceStateApi {
   private readonly CACHE_DURATION = 5000; // 5 seconds cache
-  private subscribers: ((data: Map<string, ServiceStateData>) => void)[] = [];
-  private pendingRequest: Promise<Map<string, ServiceStateData>> | null = null;
+  private entries = new Map<string, ClusterServiceStateEntry>();
+
+  private entry(runtimeKey: string): ClusterServiceStateEntry {
+    let entry = this.entries.get(runtimeKey);
+    if (!entry) {
+      entry = {
+        cache: new Map(),
+        lastFetchTime: 0,
+        subscribers: [],
+        pendingRequest: null,
+      };
+      this.entries.set(runtimeKey, entry);
+    }
+    return entry;
+  }
 
   /**
    * Calculate alert counts per service from alert summary and definitions (EmberJS pattern)
@@ -93,27 +111,30 @@ class CentralizedServiceStateApi {
    */
   async fetchAllServiceStatesAndAlerts(
     clusterName: string,
+    runtimeKey: string,
     alertSummary?: { alerts_summary_grouped: any[] },
     alertDefinitions?: any[]
   ): Promise<Map<string, ServiceStateData>> {
     const now = Date.now();
+    const entry = this.entry(runtimeKey);
 
     // Return cached data if still fresh
-    if (now - this.lastFetchTime < this.CACHE_DURATION && this.cache.size > 0) {
-      return this.cache;
+    if (now - entry.lastFetchTime < this.CACHE_DURATION && entry.cache.size > 0) {
+      return entry.cache;
     }
 
     // REQUEST DEDUPLICATION: If a request is already pending, return that promise
-    if (this.pendingRequest) {
-      return this.pendingRequest;
+    if (entry.pendingRequest) {
+      return entry.pendingRequest;
     }
 
     const executeRequest = async (): Promise<Map<string, ServiceStateData>> => {
       try {
         const response = await ambariApi.request({
-          url: `/clusters/${clusterName}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state&minimal_response=true`,
+          url: `/clusters/${encodeURIComponent(clusterName)}/services?fields=ServiceInfo/state,ServiceInfo/maintenance_state&minimal_response=true`,
           method: "GET",
         });
+        if (this.entries.get(runtimeKey) !== entry) return new Map();
 
         const newCache = new Map<string, ServiceStateData>();
 
@@ -135,46 +156,47 @@ class CentralizedServiceStateApi {
           });
         });
 
-        this.cache = newCache;
-        this.lastFetchTime = now;
+        entry.cache = newCache;
+        entry.lastFetchTime = now;
 
         // Notify subscribers
-        this.notifySubscribers();
+        this.notifySubscribers(entry);
 
-        return this.cache;
+        return entry.cache;
       } catch (error) {
         console.error('Error fetching service states:', error);
         // Return existing cache on error
-        return this.cache;
+        return entry.cache;
       } finally {
         // Clear pending request when done
-        this.pendingRequest = null;
+        if (this.entries.get(runtimeKey) === entry) entry.pendingRequest = null;
       }
     };
 
     // Set and execute pending request
-    this.pendingRequest = executeRequest();
-    return this.pendingRequest;
+    entry.pendingRequest = executeRequest();
+    return entry.pendingRequest;
   }
 
   /**
    * Get service state data for a specific service
    */
-  getServiceStateData(serviceName: string): ServiceStateData | null {
-    return this.cache.get(serviceName) || null;
+  getServiceStateData(runtimeKey: string, serviceName: string): ServiceStateData | null {
+    return this.entry(runtimeKey).cache.get(serviceName) || null;
   }
 
   /**
    * Subscribe to service state updates
    */
-  subscribe(callback: (data: Map<string, ServiceStateData>) => void): () => void {
-    this.subscribers.push(callback);
+  subscribe(runtimeKey: string, callback: (data: Map<string, ServiceStateData>) => void): () => void {
+    const entry = this.entry(runtimeKey);
+    entry.subscribers.push(callback);
     
     // Return unsubscribe function
     return () => {
-      const index = this.subscribers.indexOf(callback);
+      const index = entry.subscribers.indexOf(callback);
       if (index > -1) {
-        this.subscribers.splice(index, 1);
+        entry.subscribers.splice(index, 1);
       }
     };
   }
@@ -182,26 +204,27 @@ class CentralizedServiceStateApi {
   /**
    * Notify all subscribers of data updates
    */
-  private notifySubscribers(): void {
-    this.subscribers.forEach(callback => callback(this.cache));
+  private notifySubscribers(entry: ClusterServiceStateEntry): void {
+    entry.subscribers.forEach(callback => callback(entry.cache));
   }
 
   /**
    * Set service state data directly from derived components data.
    * Allows ServiceContext to populate the cache without a separate /services API call.
    */
-  setDerivedServiceStates(data: Map<string, ServiceStateData>): void {
-    this.cache = data;
-    this.lastFetchTime = Date.now();
-    this.notifySubscribers();
+  setDerivedServiceStates(runtimeKey: string, data: Map<string, ServiceStateData>): void {
+    const entry = this.entry(runtimeKey);
+    entry.cache = data;
+    entry.lastFetchTime = Date.now();
+    this.notifySubscribers(entry);
   }
 
   /**
    * Clear cache (useful for testing or forced refresh)
    */
-  clearCache(): void {
-    this.cache.clear();
-    this.lastFetchTime = 0;
+  clearCache(runtimeKey?: string): void {
+    if (runtimeKey) this.entries.delete(runtimeKey);
+    else this.entries.clear();
   }
 }
 

@@ -22,18 +22,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getPersistData: vi.fn(),
-  postPersistData: vi.fn(),
+  reload: vi.fn(),
+  release: vi.fn(),
+  savePersistData: vi.fn(),
   modalHide: vi.fn(),
 }));
 
-vi.mock("../../../../../api/clusterApi", () => ({
-  default: {
-    getPersistData: mocks.getPersistData,
-    postPersistData: mocks.postPersistData,
-  },
+vi.mock("../../../../../hooks/useClusterWorkflowPersistence", () => ({
+  default: () => mocks,
 }));
 vi.mock("../../../../../hooks/useAuth", () => ({
-  default: () => ({ user: { user_name: "rm-ha-owner" } }),
+  default: () => ({ hasAuthorization: () => true }),
 }));
 vi.mock("../../../../../store/ModalManager", () => ({
   default: { hide: mocks.modalHide },
@@ -43,6 +42,7 @@ import {
   EnableHighAvailibilityContext,
   EnableHighAvailibilityProvider,
 } from "./context";
+import { ClusterProgressStatus } from "../../../../../constants";
 
 function StateProbe() {
   const { state, flushStateToDb } = useContext(
@@ -82,23 +82,25 @@ function renderProvider(activeStep = 1) {
 describe("ResourceManager HA workflow persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.postPersistData.mockResolvedValue({});
+    mocks.getPersistData.mockResolvedValue({});
+    mocks.reload.mockResolvedValue({});
+    mocks.release.mockResolvedValue(undefined);
+    mocks.savePersistData.mockResolvedValue(undefined);
   });
 
   afterEach(() => cleanup());
 
   it("treats a missing checkpoint as a fresh Step 1 workflow", async () => {
-    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
     const { jumpToStep } = renderProvider();
 
     expect(await screen.findByTestId("state")).toBeTruthy();
     expect(jumpToStep).toHaveBeenCalledWith(1, true);
-    expect(mocks.postPersistData).not.toHaveBeenCalled();
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
   });
 
   it("hydrates Step 4 request IDs before rendering children", async () => {
     mocks.getPersistData.mockResolvedValue(
-      JSON.stringify({
+      { HIGH_AVAILIBILITY_RM_HA: {
         activeStep: "CONFIGURE_COMPONENTS",
         enableHighAvailibilitySteps: {
           CONFIGURE_COMPONENTS: {
@@ -116,7 +118,7 @@ describe("ResourceManager HA workflow persistence", () => {
             },
           },
         },
-      }),
+      } },
     );
     const { jumpToStep } = renderProvider();
 
@@ -124,33 +126,27 @@ describe("ResourceManager HA workflow persistence", () => {
     expect(screen.getByTestId("state").textContent).toContain(
       '"requestId":71',
     );
-    expect(mocks.postPersistData).not.toHaveBeenCalled();
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
   });
 
-  it("persists the workflow owner with each recoverable checkpoint", async () => {
-    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
+  it("persists each recoverable checkpoint in the scoped workflow", async () => {
     renderProvider();
 
     fireEvent.click(await screen.findByRole("button", { name: "Persist" }));
 
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledOnce());
-    expect(mocks.postPersistData.mock.calls[0][0]["wizard-data"]).toBe(
-      JSON.stringify({ userName: "rm-ha-owner" }),
-    );
+    await waitFor(() => expect(mocks.savePersistData).toHaveBeenCalledOnce());
+    expect(mocks.savePersistData).toHaveBeenCalledWith({
+      HIGH_AVAILIBILITY_RM_HA: expect.objectContaining({ activeStep: "" }),
+      CLUSTER_STATE: {},
+    }, ClusterProgressStatus.ENABLING_RM_HA);
   });
 
-  it("clears workflow state and owner only after completion", async () => {
-    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
+  it("releases the scoped workflow only after completion", async () => {
     renderProvider(4);
 
     fireEvent.click(await screen.findByRole("button", { name: "Complete" }));
 
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledOnce());
-    const payload = mocks.postPersistData.mock.calls[0][0];
-    expect(payload.HIGH_AVAILIBILITY_RM_HA).toBe(
-      JSON.stringify({ enableHighAvailibilitySteps: {} }),
-    );
-    expect(payload.CLUSTER_STATE).toBe(JSON.stringify({}));
-    expect(payload["wizard-data"]).toBe(JSON.stringify({}));
+    await waitFor(() => expect(mocks.release).toHaveBeenCalledOnce());
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
   });
 });

@@ -312,7 +312,7 @@ interface RouterOperation {
 }
 
 export function RouterStep4() {
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, navigateCluster } = useContext(AppContext);
   const { serviceModels }: any = useContext(ServiceContext);
   const { getKDCSessionState } = useKDCSessionState(() => {});
   const {
@@ -394,7 +394,7 @@ export function RouterStep4() {
           setIsCompleting(true);
           try {
             await persist("complete");
-            window.location.href = "/#/main/services/HDFS/summary";
+            navigateCluster("/main/services/HDFS/summary");
           } catch (caught) {
             setError(navigationError(caught));
             setIsCompleting(false);

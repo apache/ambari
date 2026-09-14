@@ -20,6 +20,7 @@ import { describe, expect, it } from "vitest";
 import {
   ambariApplicationRoot,
   latestAmbariUrl,
+  latestClusterDashboardUrl,
   latestShortViewUrl,
   latestViewInstanceUrl,
 } from "../utils/navigation";
@@ -46,4 +47,11 @@ describe("Ambari experience navigation", () => {
     expect(latestShortViewUrl("CAPACITY-SCHEDULER", "queue editor", path))
       .toBe("/latest/#/main/view/CAPACITY-SCHEDULER/queue%20editor");
   });
+  it("returns from Admin to the explicit cluster dashboard", () => {
+    expect(latestClusterDashboardUrl("east / prod", "/gateway/ambari/views/ADMIN_VIEW/3/INSTANCE/latest/"))
+      .toBe("/gateway/ambari/latest/#/clusters/east%20%2F%20prod/main/dashboard/metrics");
+    expect(latestClusterDashboardUrl(undefined, "/views/ADMIN_VIEW/3/INSTANCE/latest/"))
+      .toBe("/latest/#/");
+  });
+
 });

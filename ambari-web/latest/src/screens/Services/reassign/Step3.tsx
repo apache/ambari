@@ -1021,11 +1021,11 @@ function Step3() {
           flushStateToDb("back");
           jumpToStep(2);
         }}
-        onNext={() => {
+        onNext={async () => {
           // Save configuration data to state before proceeding
           saveConfigDataToState();
-          flushStateToDb("next");
-          handleNextImperitive();
+          await flushStateToDb("next");
+          await handleNextImperitive();
         }}
       />
     </>

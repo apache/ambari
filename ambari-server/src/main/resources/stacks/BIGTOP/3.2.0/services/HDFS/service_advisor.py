@@ -406,10 +406,6 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     if namenodeHosts is not None and len(namenodeHosts):
       nameNodeCores = int(namenodeHosts[0]["Hosts"]["cpu_count"])
     putHdfsSiteProperty("dfs.namenode.handler.count", 25 * nameNodeCores)
-    if 25 * nameNodeCores > 200:
-      putHdfsSitePropertyAttribute(
-        "dfs.namenode.handler.count", "maximum", 25 * nameNodeCores
-      )
 
     servicesList = self.getServiceNames(services)
     if ("ranger-hdfs-plugin-properties" in services["configurations"]) and (

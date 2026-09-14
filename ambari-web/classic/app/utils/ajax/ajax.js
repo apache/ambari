@@ -2092,9 +2092,6 @@ var urls = {
       }
     }
   },
-  'wizard.get_version_definitions': {
-    'real': '/version_definitions'
-  },
   'wizard.delete_repository_versions': {
     'real': '/stacks/{stackName}/versions/{stackVersion}/repository_versions/{id}',
     'type': 'DELETE'
@@ -2351,6 +2348,22 @@ var urls = {
       return {
         data: JSON.stringify(data.keyValuePair)
       }
+    }
+  },
+  'persist.scoped.get': {
+    'real': '/persist/scopes/{scopeType}/{scopeId}',
+    'mock': '',
+    'type': 'GET'
+  },
+  'persist.scoped.put': {
+    'real': '/persist/scopes/{scopeType}/{scopeId}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        contentType: 'application/json',
+        data: JSON.stringify(data.workflowState)
+      };
     }
   },
 

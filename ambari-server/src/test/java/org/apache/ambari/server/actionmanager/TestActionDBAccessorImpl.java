@@ -139,9 +139,12 @@ public class TestActionDBAccessorImpl {
     db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
     List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
-    cr.setTaskId(1);
+    cr.setTaskId(stage.getHostRoleCommand(hostname, "HBASE_MASTER").getTaskId());
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setRole("HBASE_MASTER");
+    cr.setRoleCommand(RoleCommand.START.name());
+    cr.setServiceName("HBASE");
+    cr.setClusterId("1");
     cr.setStatus("COMPLETED");
     cr.setStdErr("");
     cr.setStdOut("");
@@ -167,15 +170,18 @@ public class TestActionDBAccessorImpl {
     db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
     List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
-    cr.setTaskId(1);
+    cr.setTaskId(stage.getHostRoleCommand(hostname, "HBASE_MASTER").getTaskId());
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setRole("HBASE_MASTER");
+    cr.setRoleCommand(RoleCommand.START.name());
+    cr.setServiceName("HBASE");
+    cr.setClusterId("1");
     cr.setStatus("COMPLETED");
     cr.setStdErr("");
     cr.setStdOut("");
     cr.setExitCode(0);
     reports.add(cr);
-    am.processTaskResponse(hostname, reports, CommandUtils.convertToTaskIdCommandMap(stage.getOrderedHostRoleCommands()));
+    db.updateHostRoleStates(reports);
     assertEquals(0,
             am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
     assertEquals("HostRoleStatus should remain ABORTED " +

@@ -20,6 +20,7 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 var validator = require('utils/validator');
+var misc = require('utils/misc');
 
 App.InstallerController = App.WizardController.extend(App.Persist, {
 
@@ -650,15 +651,25 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   /*
    * Post version definition file (.xml) to server in step 8
    */
-  postVersionDefinitionFileStep8: function (isXMLdata, data) {
+  postVersionDefinitionFileStep8: function (isXMLdata, data, operatingSystems) {
     var dfd = $.Deferred();
+    if (operatingSystems) {
+      data = isXMLdata ? {
+        VersionDefinition: {
+          version_base64: misc.utf8ToB64(data)
+        }
+      } : $.extend(true, {}, data);
+      data.operating_systems = operatingSystems;
+      isXMLdata = false;
+    }
     var name = isXMLdata == true? 'wizard.step8.post_version_definition_file.xml' : 'wizard.step8.post_version_definition_file';
     App.ajax.send({
       name: name,
       sender: this,
       data: {
         dfd: dfd,
-        data: data
+        data: data,
+        preserveVersionDefinition: Boolean(operatingSystems)
       },
       success: 'postVersionDefinitionFileStep8SuccessCallback',
       error: 'postVersionDefinitionFileErrorCallback'
@@ -692,7 +703,9 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         body = json.message;
       } catch (err) {}
     }
-    App.db.setLocalRepoVDFData(undefined);
+    if (!params.preserveVersionDefinition) {
+      App.db.setLocalRepoVDFData(undefined);
+    }
     App.showAlertPopup(header, body);
   },
 
@@ -857,16 +870,26 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
         });
         os.get('repositories').forEach(function (repository) {
           if (!(repository.get('isGPL') && _.isEmpty(repository.get('baseUrl')))) {
-            repoVersion.operating_systems[k].repositories.push({
-              "Repositories": {
-                "base_url": repository.get('baseUrl'),
-                "repo_id": repository.get('repoId'),
-                "repo_name": repository.get('repoName'),
-                "components": repository.get('components'),
-                "tags": repository.get('tags'),
-                "distribution": repository.get('distribution'),
-                "applicable_services" : repository.get('applicable_services')
+            var repositoryData = {
+              "base_url": repository.get('baseUrl'),
+              "repo_id": repository.get('repoId'),
+              "repo_name": repository.get('repoName')
+            };
+            [
+              ['components', 'components'],
+              ['tags', 'tags'],
+              ['distribution', 'distribution'],
+              ['applicable_services', 'applicable_services'],
+              ['mirrors_list', 'mirrors_list'],
+              ['unique', 'unique']
+            ].forEach(function (property) {
+              var value = repository.get(property[1]);
+              if (!Em.isNone(value)) {
+                repositoryData[property[0]] = value;
               }
+            });
+            repoVersion.operating_systems[k].repositories.push({
+              "Repositories": repositoryData
             });
           }
         });
@@ -874,6 +897,44 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
       }
     });
     return repoVersion;
+  },
+
+  /**
+   * Build the flattened repository wire shape accepted during atomic VDF creation.
+   * @param {Em.Object} repo
+   * @returns {{operating_systems: Array}}
+   */
+  prepareInitialRepoForSaving: function(repo) {
+    var prepared = this.prepareRepoForSaving(repo);
+    return {
+      operating_systems: prepared.operating_systems.map(function (operatingSystem) {
+        return {
+          "OperatingSystems/ambari_managed_repositories":
+            operatingSystem.OperatingSystems.ambari_managed_repositories,
+          "OperatingSystems/os_type": operatingSystem.OperatingSystems.os_type,
+          "repositories": operatingSystem.repositories.map(function (repository) {
+            var source = repository.Repositories;
+            var target = {
+              "Repositories/applicable_services": source.applicable_services,
+              "Repositories/base_url": source.base_url,
+              "Repositories/components": source.components,
+              "Repositories/distribution": source.distribution,
+              "Repositories/mirrors_list": source.mirrors_list,
+              "Repositories/repo_id": source.repo_id,
+              "Repositories/repo_name": source.repo_name,
+              "Repositories/tags": source.tags,
+              "Repositories/unique": source.unique
+            };
+            Object.keys(target).forEach(function (key) {
+              if (Em.isNone(target[key])) {
+                delete target[key];
+              }
+            });
+            return target;
+          })
+        };
+      })
+    };
   },
 
   /**

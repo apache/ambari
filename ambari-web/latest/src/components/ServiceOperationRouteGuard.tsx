@@ -17,8 +17,8 @@
  */
 
 import { ReactNode, useContext } from "react";
-import { Navigate } from "react-router-dom";
 import { AppContext } from "../store/context";
+import ScopedNavigate from "./ScopedNavigate";
 
 export default function ServiceOperationRouteGuard({
   children,
@@ -38,7 +38,7 @@ export default function ServiceOperationRouteGuard({
   );
 
   return operationIsBlocked ? (
-    <Navigate to="/main/dashboard/metrics" replace />
+    <ScopedNavigate to="/main/dashboard/metrics" replace />
   ) : (
     children
   );

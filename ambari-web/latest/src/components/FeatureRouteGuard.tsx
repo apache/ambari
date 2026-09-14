@@ -17,8 +17,8 @@
  */
 
 import { ReactNode, useContext } from "react";
-import { Navigate } from "react-router-dom";
 import { AppContext } from "../store/context";
+import ScopedNavigate from "./ScopedNavigate";
 
 export default function FeatureRouteGuard({
   children,
@@ -30,5 +30,5 @@ export default function FeatureRouteGuard({
   const { supports } = useContext(AppContext);
   return supports[feature]
     ? children
-    : <Navigate to="/main/dashboard/metrics" replace />;
+    : <ScopedNavigate to="/main/dashboard/metrics" replace />;
 }

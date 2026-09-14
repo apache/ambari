@@ -56,6 +56,10 @@ public class STOMPUpdatePublisher {
   }
 
   public void publish(STOMPEvent event) {
+    org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor.afterCommit(() -> publishCommitted(event));
+  }
+
+  private void publishCommitted(STOMPEvent event) {
     if (DefaultMessageEmitter.DEFAULT_AGENT_EVENT_TYPES.contains(event.getType())) {
       publishAgent(event);
     } else if (DefaultMessageEmitter.DEFAULT_API_EVENT_TYPES.contains(event.getType())) {

@@ -35,7 +35,7 @@ export const useSpark3ConfigUpdater =  () => {
   } = useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, clusterName, parsedSocketMessages } = useContext(AppContext);
+  const { services, clusterName, parsedSocketMessages, runtimeKey } = useContext(AppContext);
   
   // Early return if SPARK3 service is not installed
   const isSpark3Installed = services && Array.isArray(services) && 
@@ -52,7 +52,7 @@ export const useSpark3ConfigUpdater =  () => {
   const fetchSpark3MasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
     
-    let spark3ComponentsData = cachedServiceApi.getServiceComponentData("SPARK3");
+    let spark3ComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "SPARK3");
     
     if (!spark3ComponentsData) {
       spark3ComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -278,7 +278,7 @@ export const useSpark3ConfigUpdater =  () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("SPARK3", "spark3", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "SPARK3", "spark3", allServiceModels, updateRegistry);
   };
   const parseAlertsWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;

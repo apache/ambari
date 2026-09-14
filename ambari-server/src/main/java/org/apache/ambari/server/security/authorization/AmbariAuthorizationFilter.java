@@ -75,6 +75,8 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_VIEWS_ALL_PATTERN = API_VERSION_PREFIX + "/views.*";
   private static final String API_AUTH_PATTERN = API_VERSION_PREFIX + "/auth";
   private static final String API_PERSIST_ALL_PATTERN = API_VERSION_PREFIX + "/persist.*";
+  private static final String API_SERVICE_DEPENDENCIES_ALL_PATTERN =
+      API_VERSION_PREFIX + "/service-dependencies.*";
   private static final String API_LDAP_SYNC_EVENTS_ALL_PATTERN = API_VERSION_PREFIX + "/ldap_sync_events.*";
   private static final String API_CREDENTIALS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/credentials.*";
   private static final String API_CREDENTIALS_AMBARI_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/credentials/ambari\\..*";
@@ -356,6 +358,7 @@ public class AmbariAuthorizationFilter implements Filter {
         requestURI.matches(API_HOSTS_ALL_PATTERN) ||
         requestURI.matches(API_ALERT_TARGETS_ALL_PATTERN) ||
         requestURI.matches(API_PERSIST_ALL_PATTERN) ||
+        requestURI.matches(API_SERVICE_DEPENDENCIES_ALL_PATTERN) ||
         requestURI.matches(API_CLUSTERS_UPGRADES_PATTERN);
   }
 

@@ -33,6 +33,8 @@ import {
   panelValueColor,
   type DashboardPanelResult,
 } from "../data/panelData";
+import { useParams } from "react-router-dom";
+import { clusterPath, normalizeLegacyMainPath } from "../../../../Utils/clusterRoute";
 
 interface TableRendererProps {
   panel: DashboardPanel;
@@ -64,15 +66,21 @@ const compareValues = (left: unknown, right: unknown) => {
 
 const targetLabel = (target: DashboardTarget) => target.legend || target.refId;
 
-const safePanelLink = (template: unknown, labels: Record<string, string>) => {
-  if (typeof template !== "string" || !template.startsWith("/main/")) return undefined;
-  const route = template
+const safePanelLink = (
+  template: unknown,
+  labels: Record<string, string>,
+  clusterName?: string,
+) => {
+  if (!clusterName || typeof template !== "string") return undefined;
+  const route = normalizeLegacyMainPath(template
     .replace(/\$\{__field\.labels\.([^}]+)}/g, (_match, label: string) => encodeURIComponent(labels[label] || ""))
-    .replace(/\$\{([^}]+)}/g, (_match, label: string) => encodeURIComponent(labels[label] || ""));
-  return `${window.location.origin}${window.location.pathname}#${route}`;
+    .replace(/\$\{([^}]+)}/g, (_match, label: string) => encodeURIComponent(labels[label] || "")));
+  if (!route) return undefined;
+  return `${window.location.origin}${window.location.pathname}#${clusterPath(clusterName, route)}`;
 };
 
 export default function TableRenderer({ panel, results }: TableRendererProps) {
+  const { clusterName } = useParams();
   const custom = panelCustomOptions(panel);
   const calculation = String(custom.calc || "lastNotNull");
   const aggregationDimension = typeof custom.aggrDimension === "string" ? custom.aggrDimension : "";
@@ -187,7 +195,7 @@ export default function TableRenderer({ panel, results }: TableRendererProps) {
             {primaryLink && <th aria-label="Actions" />}
           </tr></thead>}
           <tbody>{wideRows.map((row) => {
-            const href = safePanelLink(primaryLink?.url, row.labels);
+            const href = safePanelLink(primaryLink?.url, row.labels, clusterName);
             return <tr key={row.key}>
               <td className={wrapText ? "dashboard-table-wrap-text" : ""}>{row.key}</td>
               {targetColumns.map((target) => {

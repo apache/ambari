@@ -18,7 +18,8 @@
 
 import { DropdownItem } from "react-bootstrap";
 import { useContext, useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
+import useClusterNavigate from "../../../hooks/useClusterNavigate";
 import ValidateMove from "./ValidateMove";
 import { ServiceContext } from "../../../store/ServiceContext";
 import { AppContext } from "../../../store/context";
@@ -43,7 +44,7 @@ function ReassignComponent({
   const [allMasters, setAllMasters] = useState<string[]>([]);
   const { componentName } = useParams<{ componentName: string }>();
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
 
   useEffect(() => {
     if (location.pathname.includes("reassign")) {

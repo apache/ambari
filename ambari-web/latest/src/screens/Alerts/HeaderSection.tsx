@@ -17,7 +17,7 @@
  */
 
 import { forwardRef, useContext, useEffect, useImperativeHandle, useState } from 'react';
-import { Link } from "react-router-dom";
+import ScopedLink from "../../components/ScopedLink";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPencil, faArrowLeft, faBriefcase } from "@fortawesome/free-solid-svg-icons";
 import { Button, Form, Row, Col } from 'react-bootstrap';
@@ -190,9 +190,9 @@ const HeaderSection = forwardRef<AlertEditorHandle, HeaderSectionProps>(({
                                 </Button>
                             </Col>
                             <Col className="mt-2">
-                                <Link to={`/main/alerts`} className="custom-link">
+                                <ScopedLink to={`/main/alerts`} className="custom-link">
                                     <FontAwesomeIcon size={'lg'} icon={faArrowLeft} /> Back
-                                </Link>
+                                </ScopedLink>
                             </Col>
                         </>
                     ) : (
@@ -209,9 +209,9 @@ const HeaderSection = forwardRef<AlertEditorHandle, HeaderSectionProps>(({
                                     />
                                 )}
                             </h2>
-                            <Link to={`/main/alerts`} className="custom-link">
+                            <ScopedLink to={`/main/alerts`} className="custom-link">
                                 <FontAwesomeIcon size={'lg'} icon={faArrowLeft} /> Back
-                            </Link>
+                            </ScopedLink>
                         </Row>
                     )}
                 </Row>

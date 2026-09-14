@@ -65,6 +65,12 @@ from resource_management.libraries.functions.namenode_ha_utils import (
   get_hdfs_cluster_id_from_jmx,
 )
 from hdfs_kerberos import hdfs_kerberos_environment
+from resource_management.libraries.functions.managed_dependency import (
+  INITIALIZE_BINDING_JOURNAL,
+  INVALIDATE_BINDING_EPOCH,
+  PREPARE_BINDING_JOURNAL,
+  PROVISION_HDFS_NAMESPACE,
+)
 
 # The hash algorithm to use to generate digests/hashes
 HASH_ALGORITHM = hashlib.sha224
@@ -111,6 +117,26 @@ class NameNode(Script):
     hdfs("namenode")
     hdfs_binary = self.get_hdfs_binary()
     namenode(action="configure", hdfs_binary=hdfs_binary, env=env)
+
+  def prepare_binding_journal(self, env):
+    from managed_hdfs_dependency import execute_managed_hdfs_command
+
+    execute_managed_hdfs_command(self, env, PREPARE_BINDING_JOURNAL)
+
+  def initialize_binding_journal(self, env):
+    from managed_hdfs_dependency import execute_managed_hdfs_command
+
+    execute_managed_hdfs_command(self, env, INITIALIZE_BINDING_JOURNAL)
+
+  def provision_hdfs_namespace(self, env):
+    from managed_hdfs_dependency import execute_managed_hdfs_command
+
+    execute_managed_hdfs_command(self, env, PROVISION_HDFS_NAMESPACE)
+
+  def invalidate_binding_epoch(self, env):
+    from managed_hdfs_dependency import execute_managed_hdfs_command
+
+    execute_managed_hdfs_command(self, env, INVALIDATE_BINDING_EPOCH)
 
   def save_configs(self, env):
     import params

@@ -1506,11 +1506,9 @@ class MAPREDUCE2Recommender(YARNRecommender):
       for property_name in required_yarn_properties
       if property_name not in yarn_site
     ]
-    service_configurations = (services or {}).get("configurations", {})
-    if missing_yarn_properties and "yarn-site" not in service_configurations:
-      # Config-page requests contain only the types relevant to that page. Rebuild
-      # the YARN allocation dependency when MAPREDUCE2 runs before YARN, while
-      # retaining strict validation for an explicitly supplied yarn-site.
+    if missing_yarn_properties:
+      # Config-page requests can carry only part of yarn-site. Rebuild the YARN
+      # allocation dependency while putProperty preserves supplied user values.
       self.calculateYarnAllocationSizes(configurations, services, hosts)
       yarn_site = dict(self.getServicesSiteProperties(services, "yarn-site") or {})
       yarn_site.update(

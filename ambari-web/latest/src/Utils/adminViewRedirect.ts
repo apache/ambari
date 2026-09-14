@@ -16,8 +16,11 @@
  * limitations under the License.
  */
 
-export async function redirectToAdminView(adminPage = "") {
-  const suffix = adminPage ? `?page=${encodeURIComponent(adminPage)}` : "";
+export async function redirectToAdminView(adminPage = "", clusterName?: string) {
+  const query = new URLSearchParams();
+  if (adminPage) query.set("page", adminPage);
+  if (clusterName) query.set("cluster", clusterName);
+  const suffix = query.size ? `?${query}` : "";
   window.location.hash = `/adminView${suffix}`;
 }
 
@@ -68,8 +71,10 @@ export function adminViewUrl(
   version: string,
   page: string | null,
   documentPath: string,
+  clusterName?: string | null,
 ): string {
   const applicationRoot = applicationRootFromDocumentPath(documentPath);
   const adminHash = page ? `#/${encodeURIComponent(page)}` : "#/";
-  return `${applicationRoot}views/ADMIN_VIEW/${encodeURIComponent(version)}/INSTANCE/${adminHash}`;
+  const target = clusterName ? `latest/?cluster=${encodeURIComponent(clusterName)}` : "latest/";
+  return `${applicationRoot}views/ADMIN_VIEW/${encodeURIComponent(version)}/INSTANCE/${target}${adminHash}`;
 }

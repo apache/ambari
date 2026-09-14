@@ -27,7 +27,7 @@ import CopyButton from '../../components/CopyButton';
 import Paginator from "../../components/Paginator";
 import usePagination from '../../hooks/usePagination';
 import { SortingState } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
+import ScopedLink from "../../components/ScopedLink";
 import LastStatusChanged from "../../components/LastStatusChanged";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBriefcase } from '@fortawesome/free-solid-svg-icons';
@@ -193,12 +193,12 @@ const AlertInstancesTable = ({ clusterName, alert_id, definitionName, refreshTri
                 if (serviceName) {
                     // Link to the service page - following the same pattern as Ember
                     return (
-                        <Link 
+                        <ScopedLink
                             to={`/main/services/${serviceName}/summary`}
                             className="custom-link"
                         >
                             {serviceName}
-                        </Link>
+                        </ScopedLink>
                     );
                 }
                 return serviceName;
@@ -212,12 +212,12 @@ const AlertInstancesTable = ({ clusterName, alert_id, definitionName, refreshTri
                 if (hostName) {
                     // Link to the host alerts page - following the same pattern as Ember
                     return (
-                        <Link 
+                        <ScopedLink
                             to={`/main/hosts/${hostName}/alerts`}
                             className="custom-link"
                         >
                             {hostName}
-                        </Link>
+                        </ScopedLink>
                     );
                 }
                 return hostName;

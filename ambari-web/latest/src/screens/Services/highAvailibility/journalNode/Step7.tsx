@@ -30,7 +30,7 @@ import { mergeSavedOperations } from "../haWorkflowUtils";
 import { Alert } from "react-bootstrap";
 
 function Step7() {
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, navigateCluster } = useContext(AppContext);
   const [completionStatus, setCompletionStatus] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [completionError, setCompletionError] = useState("");
@@ -66,7 +66,7 @@ function Step7() {
     try {
       await flushStateToDb("complete");
       modalManager.hide();
-      window.location.href = "/#/main/services/HDFS/summary";
+      navigateCluster("/main/services/HDFS/summary");
     } catch (error: unknown) {
       const persistenceError = error as {
         message?: string;

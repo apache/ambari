@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
 
 const pathSegment = (value: string) => encodeURIComponent(value);
@@ -35,7 +36,7 @@ const KerberosApi = {
   },
 
   getKerberosDescriptorArtifact: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}/artifacts/kerberos_descriptor?fields=artifact_data`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/artifacts/kerberos_descriptor?fields=artifact_data`;
     const response = await supressErrorAmbariApi.request({
       url,
       method: "GET",

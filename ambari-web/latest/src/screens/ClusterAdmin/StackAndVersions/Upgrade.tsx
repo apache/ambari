@@ -44,9 +44,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGears, faQuestionCircle } from "@fortawesome/free-solid-svg-icons";
 import { iconMapping } from "./ListVersion";
 import Tooltip from "../../../components/Tooltip";
-import ClusterApi from "../../../api/clusterApi";
 import { waitForUpgradeStatus } from "./upgradeUtils";
-import { persistedPayload } from "../../../Utils/persistedSettings";
+import useClusterWorkflowPersistence from "../../../hooks/useClusterWorkflowPersistence";
 
 type upgradeProps = {
   upgradeId: number;
@@ -55,6 +54,15 @@ type upgradeProps = {
 };
 
 export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeProps): JSX.Element {
+  const workflowPersistence = useClusterWorkflowPersistence("UPGRADE", {
+    keys: [
+      "versionOperations",
+      "isPatchUpgrade",
+      "upgradeIsFinalizeItem",
+      "upgradeVersionDisplayName",
+      "CLUSTER_STATE",
+    ],
+  });
   const {
     data,
     groups,
@@ -74,7 +82,7 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     resumePolling,
     retryFetch,
     retryFailureDetails,
-  } = useUpgrade(upgradeId, onlyView);
+  } = useUpgrade(upgradeId, onlyView, workflowPersistence);
 
   const [showDetails, setShowDetails] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(false);
@@ -203,6 +211,13 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
     }
 
     try {
+      if (!workflowPersistence) {
+        throw new Error("Downgrade requires an explicit cluster target.");
+      }
+      await workflowPersistence.savePersistData(
+        { upgradeIsFinalizeItem: false },
+        "STARTING_DOWNGRADE",
+      );
       const response = await VersionsApi.getUpgradeId(payload, clusterName);
       const downgradeId = response?.resources[0]?.Upgrade?.request_id;
       if (!downgradeId) {
@@ -211,11 +226,14 @@ export default function Upgrade({ upgradeId, onlyView=false, onClose }: upgradeP
       setUpgradeId(downgradeId);
       setUpgradeState("PENDING");
       setUpgradeModal(false);
-      await ClusterApi.postPersistData(
-        persistedPayload({ upgradeIsFinalizeItem: false }),
-      ).catch(() => {
+      try {
+        await workflowPersistence.savePersistData(
+          { upgradeIsFinalizeItem: false },
+          "DOWNGRADE_STARTED",
+        );
+      } catch {
         toast.error("The downgrade started, but its browser state could not be persisted");
-      });
+      }
       
       modalManager.show(<Upgrade upgradeId={downgradeId} />);
       window.location.reload();

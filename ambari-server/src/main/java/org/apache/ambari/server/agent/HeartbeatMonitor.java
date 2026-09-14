@@ -84,9 +84,18 @@ public class HeartbeatMonitor implements Runnable {
   private final AmbariEventPublisher ambariEventPublisher;
   private final HostLevelParamsHolder hostLevelParamsHolder;
   private final RecoveryTopologyManager recoveryTopologyManager;
+  private final java.util.function.LongSupplier clock;
+  private volatile long monitoringStartedAt;
 
   public HeartbeatMonitor(Clusters clusters, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
+    this(clusters, am, threadWakeupInterval, injector, System::currentTimeMillis);
+  }
+
+  HeartbeatMonitor(Clusters clusters, ActionManager am, int threadWakeupInterval,
+      Injector injector, java.util.function.LongSupplier clock) {
+    this.clock = clock;
+    monitoringStartedAt = clock.getAsLong();
     this.clusters = clusters;
     actionManager = am;
     this.threadWakeupInterval = threadWakeupInterval;
@@ -107,6 +116,7 @@ public class HeartbeatMonitor implements Runnable {
   }
 
   public void start() {
+    monitoringStartedAt = clock.getAsLong();
     monitorThread = new Thread(this, "ambari-hearbeat-monitor");
     monitorThread.start();
   }
@@ -144,9 +154,9 @@ public class HeartbeatMonitor implements Runnable {
   //Go through all the nodes, check for last heartbeat or any waiting state
   //If heartbeat is lost, update node clusters state, purge the action queue
   //notify action manager for node failure.
-  private void doWork() throws InvalidStateTransitionException, AmbariException {
+  void doWork() throws InvalidStateTransitionException, AmbariException {
     List<Host> allHosts = clusters.getHosts();
-    long now = System.currentTimeMillis();
+    long now = clock.getAsLong();
     for (Host hostObj : allHosts) {
       if (hostObj.getState() == HostState.HEARTBEAT_LOST) {
         //do not check if host already known be lost
@@ -161,7 +171,9 @@ public class HeartbeatMonitor implements Runnable {
       } catch (AmbariException e) {
         LOG.warn("Exception in getting host object; Is it fatal?", e);
       }
-      if (lastHeartbeat + 2 * threadWakeupInterval < now) {
+      // Heartbeat timestamps are process-local. A restarted monitor must observe
+      // the existing timeout window before declaring an unreconnected host lost.
+      if (Math.max(lastHeartbeat, monitoringStartedAt) + 2L * threadWakeupInterval < now) {
         handleHeartbeatLost(hostId);
       }
       if (hostState == HostState.WAITING_FOR_HOST_STATUS_UPDATES) {

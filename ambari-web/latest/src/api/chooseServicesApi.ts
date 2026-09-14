@@ -16,11 +16,12 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 
 export const ChooseServicesApi = {
   serviceDetails: async function (serviceName: string, clusterName: string) {
-    const url = `/clusters/${clusterName}/services/${serviceName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/services/${apiPathSegment(serviceName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -28,7 +29,7 @@ export const ChooseServicesApi = {
     return response.data;
   },
   servicesList: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}/services`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/services`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",

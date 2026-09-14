@@ -522,8 +522,11 @@ public class HeartbeatProcessorTest {
     List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
-    cr.setTaskId(1);
+    cr.setTaskId(stage.getHostRoleCommand(DummyHostname1, HBASE_MASTER).getTaskId());
     cr.setRole(HBASE_MASTER);
+    cr.setRoleCommand(RoleCommand.START.name());
+    cr.setServiceName("HBASE");
+    cr.setClusterId(Long.toString(stage.getClusterId()));
     cr.setStatus("COMPLETED");
     cr.setStdErr("");
     cr.setStdOut("");
@@ -1156,10 +1159,9 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = actionManagerTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManagerWithReportValidation();
     expect(am.getTasks(EasyMock.<List<Long>>anyObject())).andReturn(
         Collections.singletonList(command)).anyTimes();
-    replay(am);
 
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
 
@@ -1188,6 +1190,10 @@ public class HeartbeatProcessorTest {
 
     List<CommandReport> reports = new ArrayList<>();
     reports.add(cmdReport);
+    expect(am.getValidTaskReports(EasyMock.eq(DummyHostname1), EasyMock.eq(reports),
+        EasyMock.anyObject(Map.class)))
+        .andReturn(reports).times(2);
+    replay(am);
     hb.setReports(reports);
     hb.setTimestamp(0L);
     hb.setResponseId(0);

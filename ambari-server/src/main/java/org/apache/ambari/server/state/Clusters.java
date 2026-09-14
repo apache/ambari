@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 
 /**
  * Single entity that tracks all clusters and hosts that are managed
@@ -51,7 +52,14 @@ public interface Clusters {
    * @throws AmbariException
    */
   void addCluster(String clusterName, StackId stackId, SecurityType securityType)
-    throws AmbariException;
+      throws AmbariException;
+
+  Cluster addCluster(String clusterName, StackId stackId, SecurityType securityType,
+      ClusterCreationContext creationContext) throws AmbariException;
+
+  Cluster addCluster(String clusterName, StackId stackId, SecurityType securityType,
+      ClusterCreationContext creationContext, TopologyRequestEntity provisioningIntent)
+      throws AmbariException;
 
   /**
    * Gets the Cluster given the cluster name
@@ -74,6 +82,14 @@ public interface Clusters {
    * @return <code>Map</code> of clusters with cluster name as key
    */
   Map<String, Cluster> getClusters();
+
+  /** Executes a small cluster-registry operation while cluster creation/deletion is excluded. */
+  void executeWithClusterWriteLock(ClusterLifecycleOperation operation) throws AmbariException;
+
+  @FunctionalInterface
+  interface ClusterLifecycleOperation {
+    void execute() throws AmbariException;
+  }
 
   /**
    * Get all hosts being tracked by the Ambari server
@@ -142,7 +158,7 @@ public interface Clusters {
 
   /**
    * Map host to the given cluster.
-   * A host can belong to multiple clusters
+   * A host can belong to at most one cluster.
    * @param hostname
    * @param clusterName
    * @throws AmbariException

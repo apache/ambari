@@ -360,12 +360,7 @@ public class RepositoryVersionResourceProviderTest {
     entity3.setVersion("1.1");
     entity3.addRepoOsEntities(osEntities);
 
-    try {
-      RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity3);
-      Assert.fail("Expected exception");
-    } catch (AmbariException e) {
-      // expected
-    }
+    RepositoryVersionResourceProvider.validateRepositoryVersion(repositoryVersionDAO, info, entity3);
 
     entity3.addRepoOsEntities(osEntities);
     repoOsEntity.setAmbariManaged(false);

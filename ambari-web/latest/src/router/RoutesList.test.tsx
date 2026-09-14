@@ -17,13 +17,15 @@
  */
 
 import { isValidElement, ReactElement } from "react";
-import { Navigate, RouteObject } from "react-router-dom";
+import { RouteObject } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { ProtectedRoute } from "../components/AuthGuard";
 import FeatureRouteGuard from "../components/FeatureRouteGuard";
 import ServiceOperationRouteGuard from "../components/ServiceOperationRouteGuard";
 import { ServiceIndexRedirect } from "../screens/Services/ServiceDashboard";
 import RoutesList, { HaPersistenceRouteGuard } from "./RoutesList";
+import ScopedNavigate from "../components/ScopedNavigate";
+import { ViewInstancesProvider } from "../screens/Views/ViewInstancesContext";
 
 function child(route: RouteObject, path?: string) {
   const result = route.children?.find((candidate) => candidate.path === path);
@@ -56,7 +58,7 @@ describe("installation route contracts", () => {
   const root = RoutesList[0];
   const authenticated = child(root);
   const installer = child(authenticated, "installer");
-  const main = child(authenticated, "main");
+  const main = child(authenticated, "clusters/:clusterName/main");
 
   it("protects Installer and Add Host with their mutation permissions and operation guard", () => {
     const installerRoute = element(child(installer, ":stepNumber"));
@@ -98,13 +100,15 @@ describe("Ambari View routes", () => {
     expect(paths).toContain("views/:viewName/:viewVersion/:instanceName/*");
     expect(paths).toContain("view");
     expect(paths).toContain("view/:viewName/:shortName/*");
+    expect(paths).toContain("clusters/:clusterName/main");
+    expect(paths).toContain("main/*");
   });
 });
 
 describe("operational authorization routes", () => {
   const root = RoutesList[0];
   const authenticated = child(root);
-  const main = child(authenticated, "main");
+  const main = child(authenticated, "clusters/:clusterName/main");
   const admin = child(main, "admin");
 
   it("protects Experimental and Alert creation from runtime operation locks", () => {
@@ -139,19 +143,33 @@ describe("service routes", () => {
   it("redirects the Services index to an installed service", () => {
     const root = RoutesList[0];
     const authenticated = child(root);
-    const main = child(authenticated, "main");
+    const main = child(authenticated, "clusters/:clusterName/main");
     const services = child(main, "services");
     const indexRoute = services.children?.find((route) => route.index);
 
     expect(indexRoute).toBeDefined();
     expect(element(indexRoute as RouteObject).type).toBe(ServiceIndexRedirect);
   });
+
+  it("registers global service discovery and cluster-scoped task navigation", () => {
+    const root = RoutesList[0];
+    const authenticated = child(root);
+    const directory = authenticated.children?.find((route) =>
+      route.children?.some((candidate) => candidate.path === "services"));
+    const main = child(authenticated, "clusters/:clusterName/main");
+
+    expect(directory).toBeDefined();
+    expect(element(directory as RouteObject).type).toBe(ViewInstancesProvider);
+    expect(child(directory as RouteObject, "clusters")).toBeDefined();
+    expect(child(directory as RouteObject, "services")).toBeDefined();
+    expect(child(main, "requests")).toBeDefined();
+  });
 });
 
 describe("monitoring route contracts", () => {
   const root = RoutesList[0];
   const authenticated = child(root);
-  const main = child(authenticated, "main");
+  const main = child(authenticated, "clusters/:clusterName/main");
   const dashboard = child(main, "dashboard");
   const monitoring = child(main, "monitoring");
 
@@ -163,7 +181,7 @@ describe("monitoring route contracts", () => {
 
     for (const path of ["heatmaps", "*"]) {
       const redirect = element(child(dashboard, path));
-      expect(redirect.type).toBe(Navigate);
+      expect(redirect.type).toBe(ScopedNavigate);
       expect(redirect.props.to).toBe("/main/dashboard/metrics");
       expect(redirect.props.replace).toBe(true);
     }
@@ -190,7 +208,7 @@ describe("monitoring route contracts", () => {
 describe("HA route contracts", () => {
   const root = RoutesList[0];
   const authenticated = child(root);
-  const main = child(authenticated, "main");
+  const main = child(authenticated, "clusters/:clusterName/main");
   const services = child(main, "services");
 
   it.each([

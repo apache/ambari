@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 
 export const ServicesApi = {
@@ -31,7 +32,7 @@ export const ServicesApi = {
     clusterName: string,
     data: any
   ) {
-    const url = `/clusters/${clusterName}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",

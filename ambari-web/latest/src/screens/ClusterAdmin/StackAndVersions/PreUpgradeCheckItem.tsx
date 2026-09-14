@@ -18,7 +18,7 @@
 
 import { useContext, useState } from "react";
 import { Alert, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../../hooks/useClusterNavigate";
 import VersionsApi from "../../../api/versionsApi";
 import useKDCSessionState from "../../../hooks/useKDCSessionState";
 import { AppContext } from "../../../store/context";
@@ -58,7 +58,7 @@ export default function PreUpgradeCheckItem({
   } = useContext(AppContext);
   const { hasAuthorization } = useAuth();
   const { getKDCSessionState } = useKDCSessionState(null);
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const [requestKey, setRequestKey] = useState("");
   const [error, setError] = useState<string | null>(null);
   const canRepair = hasAuthorization("CLUSTER.UPGRADE_DOWNGRADE_STACK") && !isNonWizardUser;

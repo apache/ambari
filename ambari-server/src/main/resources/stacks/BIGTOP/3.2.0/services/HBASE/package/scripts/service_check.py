@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import json
 import os
 import uuid
 
@@ -48,6 +49,45 @@ def drop_table_commands(table):
   )
 
 
+def read_write_commands(table, value, result_file, operation_id):
+  # JRuby calls the installed HBase Java SDK. Shell output is diagnostic only.
+  return (
+    "require 'json'\n"
+    "java_import org.apache.hadoop.hbase.HBaseConfiguration\n"
+    "java_import org.apache.hadoop.hbase.TableName\n"
+    "java_import org.apache.hadoop.hbase.client.ConnectionFactory\n"
+    "java_import org.apache.hadoop.hbase.client.TableDescriptorBuilder\n"
+    "java_import org.apache.hadoop.hbase.client.ColumnFamilyDescriptorBuilder\n"
+    "java_import org.apache.hadoop.hbase.client.Put\n"
+    "java_import org.apache.hadoop.hbase.client.Get\n"
+    "java_import org.apache.hadoop.hbase.util.Bytes\n"
+    "connection = ConnectionFactory.createConnection(HBaseConfiguration.create)\n"
+    "admin = connection.getAdmin\n"
+    f"name = TableName.valueOf({ruby_quote(table)})\n"
+    "family = Bytes.toBytes('family')\n"
+    "column = Bytes.toBytes('col01')\n"
+    "row = Bytes.toBytes('row01')\n"
+    f"expected = Bytes.toBytes({ruby_quote(value)})\n"
+    "client = nil\n"
+    "begin\n"
+    "  descriptor = TableDescriptorBuilder.newBuilder(name)\n"
+    "  descriptor.setColumnFamily(ColumnFamilyDescriptorBuilder.of(family))\n"
+    "  admin.createTable(descriptor.build) unless admin.tableExists(name)\n"
+    "  client = connection.getTable(name)\n"
+    "  client.put(Put.new(row).addColumn(family, column, expected))\n"
+    "  actual = client.get(Get.new(row).addColumn(family, column)).getValue(family, column)\n"
+    "  raise 'HBase SDK read/write mismatch' unless java.util.Arrays.equals(expected, actual)\n"
+    f"  receipt = {{'schemaVersion' => 1, 'operationId' => {ruby_quote(operation_id)}, "
+    f"'table' => {ruby_quote(table)}, 'readWriteVerified' => true}}\n"
+    f"  File.write({ruby_quote(result_file)}, JSON.generate(receipt))\n"
+    "ensure\n"
+    "  client.close unless client.nil?\n"
+    "  admin.close\n"
+    "  connection.close\n"
+    "end\nexit\n"
+  )
+
+
 def run_hbase_shell(
   params,
   user,
@@ -69,6 +109,7 @@ def run_hbase_shell(
     return shell.checked_call(
       command,
       user=user,
+      env={"HBASE_HOME": params.hbase_home},
       timeout=60,
       timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       tries=tries,
@@ -89,7 +130,7 @@ def run_hbase_shell(
     return shell.checked_call(
       command,
       user=user,
-      env=kerberos_cache.environment,
+      env={**kerberos_cache.environment, "HBASE_HOME": params.hbase_home},
       timeout=60,
       timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,
       tries=tries,
@@ -108,7 +149,7 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
 
     env.set_params(params)
     unique_id = uuid.uuid4().hex
-    table = "ambarismoketest"
+    table = "ambari_smoke_" + unique_id
     grant_file = os.path.join(
       params.exec_tmp_dir, f"hbase-grant-{unique_id}.hbase"
     )
@@ -118,7 +159,8 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
     cleanup_file = os.path.join(
       params.exec_tmp_dir, f"hbase-cleanup-{unique_id}.hbase"
     )
-    command_files = (grant_file, check_file, cleanup_file)
+    result_file = os.path.join(params.exec_tmp_dir, f"hbase-result-{unique_id}.json")
+    command_files = (grant_file, check_file, cleanup_file, result_file)
 
     primary_error = None
     cleanup_ready = False
@@ -138,14 +180,7 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
         owner=params.smoke_test_user,
         group=params.user_group,
         mode=0o600,
-        content=(
-          drop_table_commands(table)
-          + f"create {ruby_quote(table)}, {ruby_quote('family')}\n"
-          f"put {ruby_quote(table)}, {ruby_quote('row01')}, "
-          f"{ruby_quote('family:col01')}, "
-          f"{ruby_quote(params.service_check_data)}\n"
-          f"scan {ruby_quote(table)}\nexit\n"
-        ),
+        content=read_write_commands(table, params.service_check_data, result_file, unique_id),
       )
       File(
         cleanup_file,
@@ -154,6 +189,8 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
         mode=0o600,
         content=drop_table_commands(table) + "exit\n",
       )
+      File(result_file, owner=params.smoke_test_user, group=params.user_group,
+           mode=0o600, content="{}")
       cleanup_ready = True
 
       if params.security_enabled:
@@ -167,7 +204,7 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
           tries=3,
         )
 
-      output = run_hbase_shell(
+      run_hbase_shell(
         params,
         params.smoke_test_user,
         check_file,
@@ -176,8 +213,17 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
         prefix="ambari-hbase-smoke-",
         tries=3,
       )
-      if str(params.service_check_data) not in str(output):
-        raise Fail("HBase service check did not return the inserted row")
+      with open(result_file, "r", encoding="utf-8") as stream:
+        content = stream.read(8193)
+      try:
+        result = json.loads(content) if len(content) <= 8192 else None
+      except (TypeError, ValueError):
+        result = None
+      if (not isinstance(result, dict) or type(result.get("schemaVersion")) is not int
+          or result != {"schemaVersion": 1, "operationId": unique_id,
+                        "table": table, "readWriteVerified": True}
+          or result.get("readWriteVerified") is not True):
+        raise Fail("HBase service check has no valid client API read/write receipt")
     except Exception as error:
       primary_error = error
 

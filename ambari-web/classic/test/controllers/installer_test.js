@@ -1401,4 +1401,124 @@ describe('App.InstallerController', function () {
       App.router.get.restore();
     });
   });
+
+  describe('#prepareInitialRepoForSaving', function () {
+    it('builds complete flattened operating systems for atomic creation', function () {
+      var stack = Em.Object.create({
+        useRedhatSatellite: false,
+        operatingSystems: Em.A([Em.Object.create({
+          isSelected: true,
+          osType: 'redhat8',
+          repositories: Em.A([Em.Object.create({
+            applicable_services: ['HDFS'],
+            baseUrl: 'https://repo.example/hdp',
+            components: ['NAMENODE'],
+            distribution: 'GA',
+            isGPL: false,
+            mirrors_list: 'https://repo.example/mirrors',
+            repoId: 'HDP',
+            repoName: 'HDP',
+            tags: ['default'],
+            unique: true
+          })])
+        })])
+      });
+
+      expect(installerController.prepareInitialRepoForSaving(stack)).to.eql({
+        operating_systems: [{
+          'OperatingSystems/ambari_managed_repositories': true,
+          'OperatingSystems/os_type': 'redhat8',
+          repositories: [{
+            'Repositories/applicable_services': ['HDFS'],
+            'Repositories/base_url': 'https://repo.example/hdp',
+            'Repositories/components': ['NAMENODE'],
+            'Repositories/distribution': 'GA',
+            'Repositories/mirrors_list': 'https://repo.example/mirrors',
+            'Repositories/repo_id': 'HDP',
+            'Repositories/repo_name': 'HDP',
+            'Repositories/tags': ['default'],
+            'Repositories/unique': true
+          }]
+        }]
+      });
+    });
+
+    it('omits optional metadata that was not present in the repository definition', function () {
+      var stack = Em.Object.create({
+        useRedhatSatellite: false,
+        operatingSystems: Em.A([Em.Object.create({
+          isSelected: true,
+          osType: 'redhat8',
+          repositories: Em.A([Em.Object.create({
+            baseUrl: 'https://repo.example/hdp',
+            isGPL: false,
+            repoId: 'HDP',
+            repoName: 'HDP'
+          })])
+        })])
+      });
+
+      expect(installerController.prepareInitialRepoForSaving(stack)).to.eql({
+        operating_systems: [{
+          'OperatingSystems/ambari_managed_repositories': true,
+          'OperatingSystems/os_type': 'redhat8',
+          repositories: [{
+            'Repositories/base_url': 'https://repo.example/hdp',
+            'Repositories/repo_id': 'HDP',
+            'Repositories/repo_name': 'HDP'
+          }]
+        }]
+      });
+    });
+  });
+
+  describe('#postVersionDefinitionFileStep8', function () {
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send');
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+
+    it('posts XML and initial repositories atomically as JSON', function () {
+      var operatingSystems = [{
+        'OperatingSystems/os_type': 'redhat8',
+        repositories: []
+      }];
+
+      installerController.postVersionDefinitionFileStep8(
+        true,
+        '<repository-version/>',
+        operatingSystems
+      );
+
+      expect(App.ajax.send.calledWithMatch({
+        name: 'wizard.step8.post_version_definition_file',
+        data: {
+          data: {
+            VersionDefinition: {
+              version_base64: window.btoa(unescape(encodeURIComponent('<repository-version/>')))
+            },
+            operating_systems: operatingSystems
+          },
+          preserveVersionDefinition: true
+        }
+      })).to.be.true;
+    });
+
+    it('retains the VDF after an uncertain atomic create response', function () {
+      sinon.stub(App.db, 'setLocalRepoVDFData');
+      installerController.postVersionDefinitionFileErrorCallback(
+        {},
+        {},
+        'error',
+        {},
+        {dfd: $.Deferred(), preserveVersionDefinition: true}
+      );
+
+      expect(App.db.setLocalRepoVDFData.called).to.be.false;
+      App.db.setLocalRepoVDFData.restore();
+    });
+  });
 });

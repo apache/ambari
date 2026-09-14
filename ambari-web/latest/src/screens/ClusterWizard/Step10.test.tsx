@@ -83,6 +83,7 @@ function renderStep(wizardName: "clusterCreation" | "addService") {
 describe("installation Summary completion", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.location.hash = "#/installer/step10";
     mocks.flushStateToDb.mockResolvedValue(undefined);
     mocks.updateCluster.mockResolvedValue({});
   });
@@ -105,5 +106,17 @@ describe("installation Summary completion", () => {
     expect(await screen.findByText("Provisioning update failed")).toBeTruthy();
     expect(mocks.flushStateToDb).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "COMPLETE" }).hasAttribute("disabled")).toBe(false);
+  });
+
+  it("finishes from the installer route using the created cluster identity", async () => {
+    renderStep("clusterCreation");
+    fireEvent.click(screen.getByRole("button", { name: "COMPLETE" }));
+
+    await waitFor(() => expect(window.location.hash)
+      .toBe("#/clusters/cluster1/main/dashboard/metrics"));
+    expect(mocks.updateCluster).toHaveBeenCalledWith("cluster1", {
+      Clusters: { provisioning_state: "INSTALLED" },
+    });
+    expect(mocks.flushStateToDb).toHaveBeenCalledWith("complete");
   });
 });

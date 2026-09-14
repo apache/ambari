@@ -49,7 +49,7 @@ const AlertsContext = createContext<AlertsContextType | undefined>(undefined);
 const UNHEALTHY_ALERTS_POLL_INTERVAL = 10000; // 10 seconds - matching EmberJS
 
 export const AlertsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { clusterName, parsedSocketMessages } = useContext(AppContext);
+  const { cluster, clusterName, parsedSocketMessages } = useContext(AppContext);
   const location = useLocation();
 
   const [alertGroups, setAlertGroups] = useState<any[]>([]);
@@ -187,8 +187,10 @@ export const AlertsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const latestMessage = parsedSocketMessages[0];
 
     if (latestMessage?.destination === '/events/alerts' && latestMessage.summaries) {
-      const clusterId = latestMessage.clusterId || Object.keys(latestMessage.summaries)[0];
-      const clusterSummaries = latestMessage.summaries[clusterId];
+      const clusterId = cluster?.cluster_id;
+      const clusterSummaries = clusterId == null
+        ? undefined
+        : latestMessage.summaries[String(clusterId)];
 
       if (clusterSummaries) {
         const updatedSummary = { alerts_summary_grouped: Object.values(clusterSummaries) };
@@ -198,7 +200,7 @@ export const AlertsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         loadUnhealthyAlertInstances();
       }
     }
-  }, [parsedSocketMessages, loadUnhealthyAlertInstances]);
+  }, [cluster?.cluster_id, parsedSocketMessages, loadUnhealthyAlertInstances]);
 
   const value: AlertsContextType = {
     alertGroups,

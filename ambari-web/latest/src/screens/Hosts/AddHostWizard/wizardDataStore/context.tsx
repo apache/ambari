@@ -27,7 +27,6 @@ import React, {
 } from "react";
 import { State, Action, ActionTypes } from "./types";
 import { reducer, initialState } from "./reducer";
-import ClusterApi from "../../../../api/clusterApi";
 import { AppContext } from "../../../../store/context";
 import { forEach, get, isEmpty } from "lodash";
 import { excludeServicesOnDisplay } from "../../../ClusterWizard/constants";
@@ -36,9 +35,11 @@ import { HostsApi } from "../../../../api/hostsApi";
 import { getAllComponents } from "../../utils";
 import { ClusterProgressStatus } from "../../../../constants";
 import { Alert, Button } from "react-bootstrap";
-import { claimWizard, releaseWizard } from "../../../../Utils/wizardOwnership";
 import { resolveRecoveryStep } from "../../../ClusterWizard/wizardRecovery";
-import { useNavigate } from "react-router-dom";
+import useClusterWorkflowPersistence from "../../../../hooks/useClusterWorkflowPersistence";
+import Spinner from "../../../../components/Spinner";
+import { containsReentryMarker, workflowErrorMessage } from "../../../../Utils/scopedWorkflow";
+import { translate } from "../../../../Utils/Utility";
 
 interface AddHostContextProps {
   state: State;
@@ -59,18 +60,21 @@ export const AddHostProvider: React.FC<{
   stepWizardUtilities: any;
   children: React.ReactNode;
 }> = ({ stepWizardUtilities, children }) => {
-  const navigate = useNavigate();
   const [state, reducerDispatch] = useReducer(reducer, initialState);
   const [currStepData, setCurrStepData] = useState({});
   const [installedHosts, setInstalledHosts] = useState([]);
   const [isHydrated, setIsHydrated] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [reentryRequired, setReentryRequired] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const { clusterName, services, serviceComponentInfo, loginName } =
+  const { clusterName, navigateCluster, services, serviceComponentInfo } =
     useContext(AppContext);
+  const persistence = useClusterWorkflowPersistence("ADD_HOST", {
+    controllerNames: ["addHostController"],
+    keys: ["ADD_HOST", "CLUSTER_STATE"],
+  });
 
   const isDataPersisted = useRef(false);
-  const persistenceQueue = useRef<Promise<void>>(Promise.resolve());
   const stateRef = useRef<State>(initialState);
   const currStepDataRef = useRef<Record<string, any>>({});
 
@@ -80,11 +84,10 @@ export const AddHostProvider: React.FC<{
   };
 
   const queuePersistence = (operation: () => Promise<void>) => {
-    const nextOperation = persistenceQueue.current
-      .catch(() => undefined)
-      .then(operation);
-    persistenceQueue.current = nextOperation.catch(() => undefined);
-    return nextOperation;
+    if (!persistence) {
+      return Promise.reject(new Error(String(translate("workflow.persistence.explicitCluster"))));
+    }
+    return operation();
   };
 
   const getInstalledServices = () => {
@@ -210,7 +213,7 @@ export const AddHostProvider: React.FC<{
 
   useEffect(() => {
     void syncUserPersistedData();
-  }, [retryCount]);
+  }, [persistence, retryCount]);
 
   useEffect(() => {
     if (isHydrated && clusterName && !state.addHostSteps?.NAME) {
@@ -256,10 +259,10 @@ export const AddHostProvider: React.FC<{
   }, [clusterName, isHydrated, serviceComponentInfo, retryCount]);
 
   useEffect(() => {
-    if (isDataPersisted.current) {
+    if (isDataPersisted.current && !reentryRequired) {
       void queuePersistence(() => flushCurrentData(state, currStepData));
     }
-  }, [state.addHostSteps, currStepData]);
+  }, [state.addHostSteps, currStepData, reentryRequired]);
 
   const getHostComponents = async () => {
     const response = await HostsApi.getHostComponentsDetails(
@@ -313,21 +316,33 @@ export const AddHostProvider: React.FC<{
     setInitializationError(null);
     setIsHydrated(false);
     try {
-      const persistedData = await ClusterApi.getPersistData("ADD_HOST");
+      if (!persistence) {
+        throw new Error(String(translate("workflow.persistence.explicitCluster")));
+      }
+      const persistedValues = retryCount > 0
+        ? await persistence.reload()
+        : await persistence.getPersistData();
+      const persistedData = get(persistedValues, "ADD_HOST", {});
+      const needsReentry = containsReentryMarker(persistedData);
+      setReentryRequired(needsReentry);
       if (!isEmpty(get(persistedData, "addHostSteps", {}))) {
         dispatch({
           type: ActionTypes.SYNC_STATE,
           payload: persistedData,
         });
       }
-      const clusterState = await ClusterApi.getPersistData("CLUSTER_STATE");
+      const clusterState = get(persistedValues, "CLUSTER_STATE", {});
       const classicStep = resolveRecoveryStep(
         "addHost",
         get(clusterState, "clusterState"),
       );
-      if (get(persistedData, "activeStep", "") || classicStep !== undefined) {
+      if (get(persistedData, "activeStep", "") || classicStep !== undefined || needsReentry) {
         try {
-          const activeStepName = get(persistedData, "activeStep");
+          const activeStepName = needsReentry
+            ? (containsReentryMarker(get(persistedData, "addHostSteps.HOSTS"))
+              ? "HOSTS"
+              : "CONFIGURATIONS")
+            : get(persistedData, "activeStep");
           const restoredStepData = clusterState && !isEmpty(clusterState)
             ? clusterState
             : {
@@ -345,7 +360,7 @@ export const AddHostProvider: React.FC<{
             );
           });
           stepWizardUtilities.jumpToStep(
-            classicStep ?? Number(storedStep),
+            needsReentry ? Number(storedStep) : classicStep ?? Number(storedStep),
             true,
           );
         } catch (err) {
@@ -354,15 +369,12 @@ export const AddHostProvider: React.FC<{
       } else {
         stepWizardUtilities.jumpToStep(1, true);
       }
-      if (loginName) {
-        await claimWizard(loginName, "addHostController");
-      }
       isDataPersisted.current = true;
       setIsHydrated(true);
     } catch (error: any) {
       isDataPersisted.current = false;
       setInitializationError(
-        error?.response?.data?.message || "Ambari could not restore the Add Host wizard.",
+        workflowErrorMessage(error, translate("workflow.persistence.addHostLoadFailed")),
       );
       setIsHydrated(false);
     }
@@ -372,26 +384,23 @@ export const AddHostProvider: React.FC<{
     stateSnapshot: State = stateRef.current,
     stepSnapshot: Record<string, any> = currStepDataRef.current,
   ) {
-    await ClusterApi.postPersistData(
-      JSON.stringify({
-        ADD_HOST: JSON.stringify({
+    if (!persistence) throw new Error(String(translate("workflow.persistence.explicitCluster")));
+    await persistence.savePersistData({
+        ADD_HOST: {
           ...stateSnapshot,
           activeStep: get(stepSnapshot, "stepName", ""),
-        }),
-        CLUSTER_STATE: JSON.stringify(stepSnapshot),
-      })
-    );
+        },
+        CLUSTER_STATE: stepSnapshot,
+      }, String(get(stepSnapshot, "clusterState") || get(stepSnapshot, "stepName") || "ADD_HOST"));
+    setReentryRequired(false);
   }
 
   async function flushOnCancel() {
-    await queuePersistence(() => ClusterApi.postPersistData(
-      JSON.stringify({
-        ADD_HOST: JSON.stringify(initialState),
-        CLUSTER_STATE: JSON.stringify({}),
-      }),
-    ));
-    await releaseWizard();
-    navigate("/main/hosts", { replace: true });
+    await queuePersistence(async () => {
+      if (!persistence) return;
+      await persistence.release();
+    });
+    navigateCluster("/main/hosts");
   }
 
   async function flushOnStepChange(nextStep: number, clusterState?: string) {
@@ -475,6 +484,11 @@ export const AddHostProvider: React.FC<{
         installedHosts,
       }}
     >
+      {reentryRequired && (
+        <Alert variant="warning" className="m-4">
+          {translate("workflow.persistence.reentryRequired")}
+        </Alert>
+      )}
       {initializationError ? (
         <Alert variant="danger" className="m-4">
           {initializationError}{" "}
@@ -483,9 +497,11 @@ export const AddHostProvider: React.FC<{
             variant="outline-danger"
             onClick={() => setRetryCount((value) => value + 1)}
           >
-            Retry
+            {translate("common.retry")}
           </Button>
         </Alert>
+      ) : !isHydrated ? (
+        <Spinner />
       ) : children}
     </AddHostContext.Provider>
   );

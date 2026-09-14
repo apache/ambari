@@ -15,7 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ClusterInformation from "../screens/ClusterManagement/ClusterInformation";
+import ClusterDetails from "../screens/ClusterManagement/ClusterDetails";
+import ClusterOverview from "../screens/ClusterManagement/ClusterOverview";
+import ClusterCreate from "../screens/ClusterManagement/ClusterCreate";
+import HostResources from "../screens/ClusterManagement/HostResources";
+import ClusterPermissions from "../screens/ClusterManagement/ClusterPermissions";
 import RemoteClusters from "../screens/ClusterManagement/RemoteClusters";
 import RegisterRemoteCluster from "../screens/ClusterManagement/RemoteClusters/RegisterRemoteCluster";
 import EditRemoteCluster from "../screens/ClusterManagement/RemoteClusters/EditRemoteCluster";
@@ -32,6 +36,10 @@ import { Register, VersionsList } from "../screens/ClusterManagement/StackVersio
 
 
 export default [
+  { path: "/clusters/create", exact: true, Element: ClusterCreate, name: "Create Cluster" },
+  { path: "/clusters", exact: true, Element: ClusterOverview, name: "Cluster Overview" },
+  { path: "/hostResources", exact: true, Element: HostResources, name: "Host Resources" },
+  { path: "/clusterPermissions", exact: true, Element: ClusterPermissions, name: "Cluster Permissions" },
   {
     path: "/main/dashboard",
     exact: true,
@@ -47,8 +55,8 @@ export default [
   {
     path: "/clusterInformation",
     exact: true,
-    Element: () => <ClusterInformation />,
-    name: "Cluster Information",
+    Element: () => <ClusterDetails />,
+    name: "Cluster Details",
   },
   {
     path: "/stackVersions/create",
@@ -125,7 +133,7 @@ export default [
   {
     path: '/',
     exact: true,
-    Element: () => <Redirect to="/clusterInformation" />,
+    Element: () => <Redirect to="/clusters" />,
   },
 ];
 

@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import useDependencyImpact from "./useDependencyImpact";
 import { ActionsApi } from "../../api/actionsApi";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../store/context";
@@ -737,8 +738,12 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
     }
   };
 
+  const dependencyImpact = useDependencyImpact(clusterName, serviceName,
+    isRestartAllSelected || serviceRestartScope ? "RESTART" : "STOP",
+    showStopConfirmation || Boolean(serviceRestartScope));
+
   const onStop = async () => {
-    if (serviceActionBlocked) {
+    if (serviceActionBlocked || dependencyImpact.blocked) {
       return;
     }
     setIsStartStopSubmitting(true);
@@ -758,6 +763,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
       }
       const payloadData = {
         RequestInfo: {
+          ...dependencyImpact.parameters,
           context: `_PARSE_.STOP.${serviceName}`,
           operation_level: {
             level: "SERVICE",
@@ -779,6 +785,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
       trackAcceptedServiceRequest(response, "STOPPING");
       setShowStopConfirmation(false);
     } catch (error) {
+      dependencyImpact.handleFailure(error);
       console.error(`Failed to stop ${serviceName}:`, error);
       toast.error(`Failed to stop ${serviceMap[serviceName] || serviceName}.`);
     } finally {
@@ -858,7 +865,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
   };
 
   const onRestartAll = async () => {
-    if (serviceActionBlocked) {
+    if (serviceActionBlocked || dependencyImpact.blocked) {
       return;
     }
     setIsStartStopSubmitting(true);
@@ -881,6 +888,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
 
       const payloadData = {
         RequestInfo: {
+          ...dependencyImpact.parameters,
           command: "RESTART",
           context: `Restart all components for ${serviceName}`,
           operation_level: {
@@ -901,6 +909,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
       setShowStopConfirmation(false);
       setIsRestartAllSelected(false);
     } catch (error) {
+      dependencyImpact.handleFailure(error);
       console.error(`Failed to restart ${serviceName}:`, error);
       toast.error(`Failed to restart ${serviceMap[serviceName] || serviceName}.`);
     } finally {
@@ -931,7 +940,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
     intervalTimeSeconds: number;
     tolerateSize: number;
   }) => {
-    if (!serviceRestartScope || serviceActionBlocked) {
+    if (!serviceRestartScope || serviceActionBlocked || dependencyImpact.blocked) {
       return;
     }
 
@@ -951,6 +960,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
         const payload = buildServiceRestartSchedule({
           clusterName,
           serviceName,
+          dependencyImpactParameters: dependencyImpact.parameters,
           components,
           batchSize,
           intervalTimeSeconds,
@@ -981,6 +991,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
         const payload = buildExpressServiceRestartRequest({
           clusterName,
           serviceName,
+          dependencyImpactParameters: dependencyImpact.parameters,
           scope: serviceRestartScope,
           components,
         });
@@ -997,6 +1008,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
       }
       setServiceRestartScope(null);
     } catch (error) {
+      dependencyImpact.handleFailure(error);
       const message = get(
         error,
         "response.data.message",
@@ -1959,7 +1971,9 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
             serviceRestartGroups,
             serviceRestartScope,
           ).length}
-          blocked={serviceActionBlocked}
+          blocked={serviceActionBlocked || dependencyImpact.blocked}
+          impactContent={dependencyImpact.content}
+          clusterName={clusterName}
           isSubmitting={isServiceRestartSubmitting}
           errorMessage={serviceRestartError}
           onClose={() => {
@@ -2009,9 +2023,10 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
           setShowStopConfirmation(false);
           setIsRestartAllSelected(false);
         }}
-        modalTitle="Confirmation"
+        modalTitle={`${clusterName} / ${serviceMap[serviceName] || serviceName}`}
         modalBody={
           <div>
+            {dependencyImpact.content}
             You are about to{" "}
             {isRestartAllSelected ? "perform restartAll operation for" : "stop"}{" "}
             {serviceMap[serviceName] || serviceName}
@@ -2040,7 +2055,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
         okButtonText={
           isRestartAllSelected ? "CONFIRM RESTART ALL" : "CONFIRM STOP"
         }
-        isOkDisabled={serviceActionBlocked}
+        isOkDisabled={serviceActionBlocked || dependencyImpact.blocked}
         successCallback={isRestartAllSelected ? onRestartAll : onStop}
       />
       <ConfirmationModal

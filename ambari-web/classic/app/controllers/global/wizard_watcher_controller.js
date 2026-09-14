@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var scopedWorkflowPersistence = require('utils/scoped_workflow_persistence');
 
 App.WizardWatcherController = Em.Controller.extend(App.Persist, {
   name: 'wizardWatcherController',
@@ -36,6 +37,10 @@ App.WizardWatcherController = Em.Controller.extend(App.Persist, {
    * @type {string|null}
    */
   controllerName: null,
+
+  lastPersistenceErrorCode: null,
+
+  reentryNoticeShown: false,
 
   /**
    * define whether Wizard is running
@@ -64,9 +69,12 @@ App.WizardWatcherController = Em.Controller.extend(App.Persist, {
    * @returns {$.ajax}
    */
   setUser: function(controllerName) {
-    return this.postUserPref(this.get('PREF_KEY'), {
-      userName: App.router.get('loginName'),
-      controllerName: controllerName
+    var self = this;
+    return scopedWorkflowPersistence.setUser(controllerName).done(function () {
+      self.setProperties({
+        wizardUser: App.router.get('loginName'),
+        controllerName: controllerName
+      });
     });
   },
 
@@ -75,7 +83,24 @@ App.WizardWatcherController = Em.Controller.extend(App.Persist, {
    * @returns {$.ajax}
    */
   resetUser: function() {
-    return this.postUserPref(this.get('PREF_KEY'), null);
+    var self = this;
+    return scopedWorkflowPersistence.release().done(function () {
+      self.setProperties({wizardUser: null, controllerName: null});
+    }).fail(function (error) {
+      self.getUserPrefErrorCallback(error);
+    });
+  },
+
+  retryPersistence: function () {
+    var self = this;
+    this.set('lastPersistenceErrorCode', null);
+    return scopedWorkflowPersistence.retryLoad().then(function (state) {
+      self.getUserPrefSuccessCallback(state && state.values && state.values.wizardData);
+      return state;
+    }, function (error) {
+      self.getUserPrefErrorCallback(error);
+      return $.Deferred().reject(error).promise();
+    });
   },
 
   /**
@@ -83,10 +108,31 @@ App.WizardWatcherController = Em.Controller.extend(App.Persist, {
    * @returns {$.ajax}
    */
   getUser: function() {
-    return this.getUserPref(this.get('PREF_KEY'));
+    var self = this;
+    var request = scopedWorkflowPersistence.loadCurrent().then(function (state) {
+      self.getUserPrefSuccessCallback(state && state.values && state.values.wizardData);
+      return state;
+    }, function (error) {
+      self.getUserPrefErrorCallback(error);
+      return $.Deferred().reject(error).promise();
+    });
+    request.complete = request.always;
+    return request;
   },
 
   getUserPrefSuccessCallback: function(data) {
+    this.set('lastPersistenceErrorCode', null);
+    if (scopedWorkflowPersistence.requiresReentry()) {
+      if (!this.get('reentryNoticeShown')) {
+        this.set('reentryNoticeShown', true);
+        App.showAlertPopup(
+          Em.I18n.t('common.warning'),
+          Em.I18n.t('workflow.persistence.reentryRequired')
+        );
+      }
+    } else {
+      this.set('reentryNoticeShown', false);
+    }
     if (Em.isNone(data)) {
       this.set('wizardUser', null);
       this.set('controllerName', null);
@@ -96,7 +142,21 @@ App.WizardWatcherController = Em.Controller.extend(App.Persist, {
     }
   },
 
-  getUserPrefErrorCallback: function () {
-    this.resetUser();
+  getUserPrefErrorCallback: function (error) {
+    var self = this;
+    var errorCode = scopedWorkflowPersistence.errorCode(error) || 'WORKFLOW_STATE_UNAVAILABLE';
+    if (this.get('lastPersistenceErrorCode') !== errorCode) {
+      this.set('lastPersistenceErrorCode', errorCode);
+      App.showConfirmationPopup(
+        function () {
+          self.retryPersistence();
+        },
+        error && error.message || Em.I18n.t('common.update.error'),
+        null,
+        Em.I18n.t('workflow.persistence.retryHeader'),
+        Em.I18n.t('common.retry'),
+        'warning'
+      );
+    }
   }
 });

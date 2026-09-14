@@ -22,23 +22,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getPersistData: vi.fn(),
-  postPersistData: vi.fn(),
+  reload: vi.fn(),
+  release: vi.fn(),
+  savePersistData: vi.fn(),
 }));
 
-vi.mock("../../../../../api/clusterApi", () => ({
-  default: {
-    getPersistData: mocks.getPersistData,
-    postPersistData: mocks.postPersistData,
-  },
+vi.mock("../../../../../hooks/useClusterWorkflowPersistence", () => ({
+  default: () => mocks,
 }));
 vi.mock("../../../../../hooks/useAuth", () => ({
-  default: () => ({ user: { user_name: "ra-owner" } }),
+  default: () => ({ hasAuthorization: () => true }),
 }));
 
 import {
   EnableHighAvailibilityProvider,
   EnableHighAvailibilityRangerAdminContext,
 } from "./context";
+import { ClusterProgressStatus } from "../../../../../constants";
 
 const jumpToStep = vi.fn();
 const wizardUtilities = {
@@ -76,23 +76,25 @@ function renderProvider() {
 describe("Ranger Admin HA workflow hydration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.postPersistData.mockResolvedValue({});
+    mocks.getPersistData.mockResolvedValue({});
+    mocks.reload.mockResolvedValue({});
+    mocks.release.mockResolvedValue(undefined);
+    mocks.savePersistData.mockResolvedValue(undefined);
   });
 
   afterEach(() => cleanup());
 
   it("treats a missing persisted value as a fresh workflow", async () => {
-    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
     renderProvider();
 
     expect(await screen.findByTestId("state")).toBeTruthy();
     expect(jumpToStep).toHaveBeenCalledWith(1, true);
-    expect(mocks.postPersistData).not.toHaveBeenCalled();
+    expect(mocks.savePersistData).not.toHaveBeenCalled();
   });
 
   it("restores the active step and all additional Ranger Admin hosts", async () => {
     mocks.getPersistData.mockResolvedValue(
-      JSON.stringify({
+      { HIGH_AVAILIBILITY_RANGER_HA: {
         activeStep: "INSTALL_START_TEST",
         enableHighAvailibilityRangerAdminSteps: {
           SELECT_HOSTS: {
@@ -106,7 +108,7 @@ describe("Ranger Admin HA workflow hydration", () => {
             },
           },
         },
-      }),
+      } },
     );
     renderProvider();
 
@@ -114,15 +116,15 @@ describe("Ranger Admin HA workflow hydration", () => {
     expect(screen.getByTestId("state").textContent).toContain("ra3");
   });
 
-  it("persists the owner with each recoverable checkpoint", async () => {
-    mocks.getPersistData.mockRejectedValue({ response: { status: 404 } });
+  it("persists each recoverable checkpoint in the scoped workflow", async () => {
     renderProvider();
 
     fireEvent.click(await screen.findByRole("button", { name: "Persist" }));
 
-    await waitFor(() => expect(mocks.postPersistData).toHaveBeenCalledOnce());
-    expect(mocks.postPersistData.mock.calls[0][0]["wizard-data"]).toBe(
-      JSON.stringify({ userName: "ra-owner" }),
-    );
+    await waitFor(() => expect(mocks.savePersistData).toHaveBeenCalledOnce());
+    expect(mocks.savePersistData).toHaveBeenCalledWith({
+      HIGH_AVAILIBILITY_RANGER_HA: expect.objectContaining({ activeStep: "" }),
+      CLUSTER_STATE: {},
+    }, ClusterProgressStatus.ENABLING_RANGER_ADMIN_HA);
   });
 });

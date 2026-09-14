@@ -225,7 +225,7 @@ public class AmbariSNMPDispatcherTest {
 
     @Test
     public void testDispatch_successful_v3() throws Exception {
-        AmbariSNMPDispatcher dispatcher = new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT);
+        AmbariSNMPDispatcher dispatcher = spy(new AmbariSNMPDispatcher(DEFAULT_SNMP_PORT));
         Notification notification = getAlertNotification(true);
         notification.Callback = mock(DispatchCallback.class);
         notification.CallbackIds = mock(List.class);
@@ -241,6 +241,8 @@ public class AmbariSNMPDispatcherTest {
         Recipient recipient = new Recipient();
         recipient.Identifier = "192.168.0.2";
         notification.Recipients = Arrays.asList(recipient);
+        doNothing().when(dispatcher).sendTraps(notification,
+            AmbariSNMPDispatcher.SnmpVersion.SNMPv3);
         dispatcher.dispatch(notification);
         verify(notification.Callback, never()).onFailure(notification.CallbackIds);
         verify(notification.Callback).onSuccess(notification.CallbackIds);

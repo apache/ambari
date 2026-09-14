@@ -47,4 +47,15 @@ public class ActionManagerTestHelper {
 
     return actionManager;
   }
+
+  /**
+   * Gets an action manager whose task lookup and report validation boundaries
+   * can both be controlled by a focused heartbeat test.
+   */
+  public ActionManager getMockActionManagerWithReportValidation() {
+    return createMockBuilder(ActionManager.class)
+        .addMockedMethods("getTasks", "getValidTaskReports")
+        .withConstructor(actionDBAccessor, injector.getInstance(RequestFactory.class),
+            createNiceMock(ActionScheduler.class)).createMock();
+  }
 }

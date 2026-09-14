@@ -19,11 +19,11 @@
 import {
   act,
   cleanup,
-  fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { AppContext } from "../../../../store/context";
@@ -31,10 +31,14 @@ import { AppContext } from "../../../../store/context";
 const mocks = vi.hoisted(() => ({
   getClusterComponents: vi.fn(),
   hasAuthorization: vi.fn(),
+  navigate: vi.fn(),
 }));
 
 vi.mock("../../../../hooks/useAuth", () => ({
   default: () => ({ hasAuthorization: mocks.hasAuthorization }),
+}));
+vi.mock("../../../../hooks/useClusterNavigate", () => ({
+  default: () => mocks.navigate,
 }));
 vi.mock("./rmHaApi", () => ({
   default: { getClusterComponents: mocks.getClusterComponents },
@@ -204,37 +208,24 @@ describe("ResourceManager HA service action", () => {
   });
 
   it("navigates to the first wizard step when the enabled action is clicked", async () => {
-    mocks.getClusterComponents.mockResolvedValue(
-      componentResponse(["STARTED"]),
-    );
-    render(
-      <MemoryRouter initialEntries={["/main/services/YARN/summary"]}>
-        <AppContext.Provider
-          value={
-            {
-              clusterName: "c1",
-              allHostNames: ["host-1", "host-2", "host-3"],
-            } as never
-          }
-        >
-          <Routes>
-            <Route
-              path="/main/services/YARN/summary"
-              element={<EnableHighAvailibilityResourceManger />}
-            />
-            <Route
-              path="/main/services/highAvailability/ResourceManager/enable/step1"
-              element={<div>ResourceManager wizard route</div>}
-            />
-          </Routes>
-        </AppContext.Provider>
-      </MemoryRouter>,
-    );
-    await waitFor(() => expectEnabled(getAction()));
+    const user = userEvent.setup();
+    const request = deferred<ReturnType<typeof componentResponse>>();
+    mocks.getClusterComponents.mockReturnValue(request.promise);
+    renderAction();
 
-    fireEvent.click(getAction());
+    expectDisabled(getAction());
+    await user.click(getAction());
+    expect(mocks.navigate).not.toHaveBeenCalled();
 
-    expect(await screen.findByText("ResourceManager wizard route")).toBeTruthy();
+    // Flush the topology update and the dropdown's committed event handler.
+    await act(async () => request.resolve(componentResponse(["STARTED"])));
+    expectEnabled(getAction());
+    await user.click(getAction());
+
+    expect(mocks.navigate).toHaveBeenCalledTimes(1);
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      "/main/services/highAvailability/ResourceManager/enable/step1",
+    );
   });
 
   it("renders the validation flow for the mapped ResourceManager route", () => {

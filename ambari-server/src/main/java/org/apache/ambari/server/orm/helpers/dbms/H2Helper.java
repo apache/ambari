@@ -63,13 +63,9 @@ public class H2Helper extends GenericDbmsHelper {
 
   @Override
   public String writeGetTableConstraints(String databaseName, String tableName){
-    StringBuilder statement = new StringBuilder()
-      .append("SELECT")
-        .append(" C.CONSTRAINTNAME AS CONSTRAINT_NAME,")
-        .append(" C.TYPE AS CONSTRAINT_TYPE")
-      .append(" FROM SYS.SYSCONSTRAINTS AS C, SYS.SYSTABLES AS T")
-      .append(" WHERE C.TABLEID = T.TABLEID AND T.TABLENAME = '").append(tableName).append("'");
-    return statement.toString();
+    return "SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS"
+        + " WHERE TABLE_SCHEMA = CURRENT_SCHEMA() AND UPPER(TABLE_NAME) = UPPER('"
+        + tableName.replace("'", "''") + "')";
   }
 
   /**

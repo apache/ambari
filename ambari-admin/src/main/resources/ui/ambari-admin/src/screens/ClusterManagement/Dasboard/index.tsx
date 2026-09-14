@@ -15,9 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { latestAmbariUrl } from "../../../utils/navigation";
+import { latestClusterDashboardUrl } from "../../../utils/navigation";
+
+import { useContext, useEffect } from "react";
+import AppContent from "../../../context/AppContext";
 
 export default function Dashboard() {
-    window.location.replace(latestAmbariUrl("/main/dashboard"));
+    const { cluster } = useContext(AppContent);
+    const clusterName = cluster?.cluster_name;
+    useEffect(() => {
+        window.location.replace(latestClusterDashboardUrl(clusterName));
+    }, [clusterName]);
     return null;
 }

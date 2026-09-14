@@ -108,7 +108,7 @@ public class UserHookServiceTest extends EasyMockSupport {
     usersToGroups.put("testUser", new HashSet<>(Arrays.asList("hdfs", "yarn")));
     hookContext = new PostUserCreationHookContext(usersToGroups);
 
-    userCreatedEvent = new UserCreatedEvent(hookContext);
+    userCreatedEvent = new UserCreatedEvent(hookContext, 1L);
 
     resetAll();
 
@@ -152,8 +152,6 @@ public class UserHookServiceTest extends EasyMockSupport {
   public void shouldServiceQuitWhenCalledWithEmptyContext() {
     // GIVEN
     EasyMock.expect(configurationMock.isUserHookEnabled()).andReturn(Boolean.TRUE);
-    EasyMock.expect(clustersMap.isEmpty()).andReturn(Boolean.FALSE);
-    EasyMock.expect(clustersMock.getClusters()).andReturn(clustersMap);
 
     replayAll();
 
@@ -169,12 +167,16 @@ public class UserHookServiceTest extends EasyMockSupport {
   @Test
   public void shouldServiceTriggerHookWhenPrerequisitesAreSatisfied() {
     // GIVEN
+    Map<String, Cluster> availableClusters = Collections.singletonMap("test-cluster", clusterMock);
     EasyMock.expect(configurationMock.isUserHookEnabled()).andReturn(Boolean.TRUE);
-    EasyMock.expect(clustersMap.isEmpty()).andReturn(Boolean.FALSE);
-    EasyMock.expect(clustersMock.getClusters()).andReturn(clustersMap);
+    EasyMock.expect(configurationMock.getProperty(Configuration.POST_USER_CREATION_HOOK_CLUSTER_NAME))
+        .andReturn("");
+    EasyMock.expect(clustersMock.getClusters()).andReturn(availableClusters);
+    EasyMock.expect(clusterMock.getClusterId()).andReturn(1L);
 
     Capture<HookContext> contextCapture = EasyMock.newCapture();
-    EasyMock.expect(eventFactoryMock.newUserCreatedEvent(EasyMock.capture(contextCapture))).andReturn(userCreatedEvent);
+    EasyMock.expect(eventFactoryMock.newUserCreatedEvent(EasyMock.capture(contextCapture), EasyMock.eq(1L)))
+        .andReturn(userCreatedEvent);
 
     Capture<UserCreatedEvent> userCreatedEventCapture = EasyMock.newCapture();
     ambariEventPublisherMock.publish(EasyMock.capture(userCreatedEventCapture));
@@ -192,11 +194,56 @@ public class UserHookServiceTest extends EasyMockSupport {
   }
 
   @Test
+  public void shouldRequireExplicitTargetWhenMultipleClustersExist() {
+    Map<String, Cluster> availableClusters = new HashMap<>();
+    availableClusters.put("cluster-a", clusterMock);
+    availableClusters.put("cluster-b", createMock(Cluster.class));
+    EasyMock.expect(configurationMock.isUserHookEnabled()).andReturn(Boolean.TRUE);
+    EasyMock.expect(configurationMock.getProperty(Configuration.POST_USER_CREATION_HOOK_CLUSTER_NAME))
+        .andReturn("");
+    EasyMock.expect(clustersMock.getClusters()).andReturn(availableClusters);
+    replayAll();
+
+    Assert.assertFalse(hookService.execute(hookContext));
+  }
+
+  @Test
+  public void shouldStampConfiguredClusterIdOnPublishedEvent() {
+    Cluster clusterB = createMock(Cluster.class);
+    Map<String, Cluster> availableClusters = new HashMap<>();
+    availableClusters.put("cluster-a", clusterMock);
+    availableClusters.put("cluster-b", clusterB);
+    EasyMock.expect(configurationMock.isUserHookEnabled()).andReturn(Boolean.TRUE);
+    EasyMock.expect(configurationMock.getProperty(Configuration.POST_USER_CREATION_HOOK_CLUSTER_NAME))
+        .andReturn("cluster-b");
+    EasyMock.expect(clustersMock.getClusters()).andReturn(availableClusters);
+    EasyMock.expect(clusterB.getClusterId()).andReturn(2L);
+    Capture<Long> clusterIdCapture = EasyMock.newCapture();
+    EasyMock.expect(eventFactoryMock.newUserCreatedEvent(
+        EasyMock.anyObject(HookContext.class), EasyMock.captureLong(clusterIdCapture)))
+        .andReturn(new UserCreatedEvent(hookContext, 2L));
+    ambariEventPublisherMock.publish(EasyMock.anyObject(UserCreatedEvent.class));
+    replayAll();
+
+    Assert.assertTrue(hookService.execute(hookContext));
+    Assert.assertEquals(Long.valueOf(2L), clusterIdCapture.getValue());
+  }
+
+  @Test
+  public void shouldSkipHookWhenConfiguredClusterDoesNotExist() {
+    Map<String, Cluster> availableClusters = Collections.singletonMap("cluster-a", clusterMock);
+    EasyMock.expect(configurationMock.isUserHookEnabled()).andReturn(Boolean.TRUE);
+    EasyMock.expect(configurationMock.getProperty(Configuration.POST_USER_CREATION_HOOK_CLUSTER_NAME))
+        .andReturn("cluster-b");
+    EasyMock.expect(clustersMock.getClusters()).andReturn(availableClusters);
+    replayAll();
+
+    Assert.assertFalse(hookService.execute(hookContext));
+  }
+
+  @Test
   public void shouldCommandParametersBeSet() throws Exception {
     // GIVEN
-    Map<String, Cluster> clsMap = new HashMap<>();
-    clsMap.put("test-cluster", clusterMock);
-
     Map<String, String> configMap = new HashMap<>();
     configMap.put("hdfs_user", "hdfs-test-user");
 
@@ -208,7 +255,7 @@ public class UserHookServiceTest extends EasyMockSupport {
 
 
     EasyMock.expect(actionManagerMock.getNextRequestId()).andReturn(1l);
-    EasyMock.expect(clustersMock.getClusters()).andReturn(clsMap);
+    EasyMock.expect(clustersMock.getClusterById(1L)).andReturn(clusterMock);
     EasyMock.expect(configurationMock.getServerTempDir()).andReturn("/var/lib/ambari-server/tmp").times(2);
     EasyMock.expect(configurationMock.getProperty(Configuration.POST_USER_CREATION_HOOK)).andReturn("/var/lib/ambari-server/resources/scripts/post-user-creation-hook.sh").anyTimes();
     EasyMock.expect(objectMapperMock.writeValueAsString(((PostUserCreationHookContext) userCreatedEvent.getContext()).getUserGroups())).andReturn("{testUser=[hdfs, yarn]}");

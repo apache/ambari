@@ -45,7 +45,12 @@ export interface Privilege {
 export interface Authorization {
   authorization_id: string;
   authorization_name: string;
-  resource_type: string;
+  resource_type: "AMBARI" | "CLUSTER" | "VIEW" | string;
+  cluster_name?: string;
+  view_name?: string;
+  view_version?: string;
+  instance_name?: string;
+  user_name?: string;
 }
 
 export interface UserContextType {
@@ -68,13 +73,18 @@ export interface UserContextType {
   }>;
   
   // Helper methods
-  havePermissions: (authRoles: string) => boolean;
-  hasAuthorization: (authId: string) => boolean;
+  havePermissions: (authRoles: string, clusterName?: string) => boolean;
+  hasAuthorization: (authId: string, clusterName?: string) => boolean;
+  hasGlobalAuthorization: (authId: string) => boolean;
+  hasClusterAuthorization: (clusterName: string, authId: string) => boolean;
+  canAccessCluster: (clusterName: string) => boolean;
+  hasGlobalPrivilege: (permissionName: string) => boolean;
   hasPrivilege: (permissionName: string, clusterName?: string) => boolean;
+  canViewClusterTasks: (clusterName: string) => boolean;
   isAdmin: () => boolean;
-  isOperator: () => boolean;
+  isOperator: (clusterName?: string) => boolean;
   isClusterUser: () => boolean;
-  isClusterOperator: () => boolean;
+  isClusterOperator: (clusterName?: string) => boolean;
   loginError: string | null;
   loginMessage: {
     text: string;

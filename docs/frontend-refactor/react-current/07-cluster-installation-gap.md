@@ -45,15 +45,19 @@ channels.
 | `MISSING` | No user-reachable implementation exists for the Feature ID | 0 |
 | Total |  | 79 |
 
-The confirmed destructive gaps were implemented. Review now checkpoints and
-runs an abort-on-error deployment plan, persists completed operation IDs for
-retry, retains the validated VDF source, synchronizes configuration groups, and
-stores the install request before navigation. Deploy owns a single phase and
-request, serializes polling, restores persisted work, blocks navigation while
-active, and gates Retry and Summary by terminal status. Remaining partial items
-are primarily stack-dependent validation/configuration permutations, detailed
-host reconciliation and task-log ergonomics, and behavior that requires the
-runtime matrix below.
+Review checkpoints and runs an abort-on-error deployment plan, persists
+completed operation IDs for retry, retains a safe descriptor for the validated
+VDF source, synchronizes configuration groups, and stores the install request
+before navigation. Multi-cluster creation intentionally removes Classic's
+delete-all-clusters and delete-all-repository-versions behavior. It resolves the
+exact user-owned draft association before name checks, reuses only an identical
+repository definition, and sends new repository settings atomically with the
+version-definition create request. Deploy owns a single phase and request,
+serializes polling, restores persisted work, blocks navigation while active, and
+gates Retry and Summary by terminal status. Remaining partial items are
+primarily stack-dependent validation/configuration permutations, detailed host
+reconciliation and task-log ergonomics, and behavior that requires the runtime
+matrix below.
 
 ## Complete Wizard State Machines
 
@@ -61,7 +65,7 @@ runtime matrix below.
 
 | State | Forward condition and side effects | Back/cancel condition | Recovery contract | Current React result |
 | --- | --- | --- | --- | --- |
-| 0 Name | Valid name and at least one installable stack; store name, then enter Version | Cancel confirms and navigates to Admin View | `CLUSTER_CURRENT` plus `CLUSTER_STATE.stepName=NAME` | Name validation and persistence-before-navigation align; stack availability is resolved on Version |
+| 0 Name | Valid name and at least one installable stack; store name, then enter Version | Cancel confirms and navigates to Admin View | Draft-scoped `CLUSTER_CREATE` state plus `step.stepName=NAME` | A validated UUID in `?draft=` owns the server checkpoint; hydration completes before editing; stack availability is resolved on Version |
 | 1 Version | Visible version definition selected; repository rows syntactically valid; URL checks pass or are explicitly skipped; JDK warning accepted; persist VDF source and repository edits | Back clears Version and all downstream state | Restore stack, definition, repository source, OS rows, validation result, and flags | Dynamic stack APIs, Public defaults, VDF retention, Satellite, and JDK acceptance are implemented and focused-tested |
 | 2 Install Options | At least one new normalized host; automatic mode has required credentials; suspicious or installed hosts are explicitly accepted | Back clears hosts and downstream state | Restore normalized hosts and registration mode without replaying a mutation | Linux SSH, manual Agent, HDPWIN, and support-derived Agent user branches are implemented |
 | 3 Confirm Hosts | At least one `REGISTERED` host; bootstrap/registration has settled; generic warnings accepted | Back stops timers; remove/retry affects only selected local wizard hosts | Restore request ID, host states/logs, registration deadline, check request, and results | Bootstrap request/deadline and host-check recovery are persisted; generic and independent JDK checks remain separate |
@@ -69,7 +73,7 @@ runtime matrix below.
 | 5 Masters | Advisor result loaded; assignment is cardinality-valid; current matching WARN/ERROR explicitly accepted | Back clears master and later data | Restore recommendation and manual moves; recalculate after service changes | Matching non-installed component issues and Continue Anyway align; React still adds non-metadata placement rules |
 | 6 Slaves/Clients | Required matrix selection valid; server mapping WARN/ERROR explicitly accepted | Back preserves master assignments and clears later data | Restore matrix, hidden components, and accepted validation | Core matrix and validation exist; restoration and dependency permutations are incomplete |
 | 7 Configs | Required values valid; required recommendations applied; dependent changes accepted; external tests pass or are consciously retried | Dirty Back confirms discard | Restore tabs, values, overrides, recommendations, validation, and dynamic assignments | Main config surface and support-gated Pre Install Checks shell exist; complete overrides and dirty-state behavior remain partial |
-| 8 Review | Checkpoint `CLUSTER_DEPLOY_PREP_2`; complete destructive cleanup; non-dry-run VDF; abort-on-error serial resource queue; install request accepted | Back enabled only before successful submission; failures reopen Back/Deploy without rollback | Persist checkpoint and completed resource/request identity | Serial abort-on-error preparation, retry checkpoints, config groups, Print, Blueprint ZIP, and VDF retention are implemented |
+| 8 Review | Checkpoint `CLUSTER_DEPLOY_PREP_2`; reconcile the exact draft-owned cluster; validate name availability; reuse an identical repository definition or atomically create one with OS settings; abort-on-error serial resource queue; install request accepted | Back enabled only before successful submission; failures reopen Back/Deploy without rollback | Persist draft, authoritative cluster ID, and completed resource/request identity | No cluster or shared repository is deleted or mutated; lost create responses reconcile only through the owner-only draft association |
 | 9 Deploy | Install terminal; optionally start/check terminal; only defined terminal states enable Next; write `CLUSTER_INSTALLED_4` | No ordinary Back; only Classic Admin View/Views route exceptions; Retry only `INSTALL FAILED` | Resume current request and phase from server state and persisted request IDs | Phase/request recovery, serialized polling, exact Retry, route blocking, terminal gating, and checkpoints are implemented |
 | 10 Summary | Complete attempts provisioning `INSTALLED`, clears wizard and cluster state, then enters Dashboard | No reachable Back; Cancel is not a second completion path | Restore static summary at `CLUSTER_INSTALLED_4` | New-cluster-only provisioning and retryable completion cleanup are implemented |
 
@@ -108,6 +112,16 @@ Classic maps `ADD_SERVICES_DEPLOY_PREP_2 -> Step 5`, and all of
 static Classic Summary; React must not create a second request on refresh and
 must reconcile the active server request before presenting completion.
 
+React intentionally replaces Classic's shared Add Service browser checkpoint
+with revisioned numeric-cluster state. Hydration hides the editor and clears the
+complete reducer and step snapshot before loading, including when the scoped
+server snapshot is empty. Redacted configuration resumes at Configs, while a
+successful CAS remains required before deployment and before release. Failed
+checkpoints retain retryable ownership, and late reads cannot update a different
+cluster runtime. Stack-launched Add Service and Kerberos returns use one-shot
+session keys scoped by authenticated principal, numeric cluster ID, workflow,
+and browser tab; unsafe or unverifiable destinations use the scoped fallback.
+
 ## Feature Status
 
 ### Modes, Entries, and Recovery
@@ -125,7 +139,7 @@ must reconcile the active server request before presenting completion.
 | `INST-MODE-009` | `STATICALLY_ALIGNED` | Add Host waits for the KDC session and runs keytab regeneration as a persisted deployment phase |
 | `INST-MODE-010` | `STATICALLY_ALIGNED` | Add Service loads real `kdc_type`, validates and POSTs/PUTs the descriptor, prefetches CSV, and exposes Manual ownership |
 | `INST-MODE-011` | `STATICALLY_ALIGNED` | Both new-cluster and Add Host derive HDPWIN from stack state and retain automatic PowerShell bootstrap semantics |
-| `INST-ENTRY-001` | `STATICALLY_ALIGNED` | `/installer/:stepNumber` requires `AMBARI.ADD_DELETE_CLUSTERS` and passes the active-operation guard |
+| `INST-ENTRY-001` | `BEHAVIOR_DIFF` | `/installer/:stepNumber?draft={uuid}` requires `AMBARI.ADD_DELETE_CLUSTERS`; a missing draft starts a fresh UUID and an explicit directory Resume link supplies an existing owned UUID |
 | `INST-ENTRY-002` | `STATICALLY_ALIGNED` | Add Service route has feature, permission, and operation guards |
 | `INST-ENTRY-003` | `STATICALLY_ALIGNED` | Add Host direct entry requires `HOST.ADD_DELETE_HOSTS` and passes the active-operation guard |
 | `INST-FLOW-001` | `PARTIAL` | Landing can select Installer and local persisted step can restore; complete provisioning-state routing is not reconciled here |
@@ -133,7 +147,7 @@ must reconcile the active server request before presenting completion.
 | `INST-FLOW-003` | `STATICALLY_ALIGNED` | All three providers map Classic deployment checkpoints to their actual React Deploy or Summary steps |
 | `INST-FLOW-004` | `PARTIAL` | Cancel serializes owned cleanup before navigation; this accepted React ownership policy intentionally differs from Classic retention |
 | `INST-FLOW-005` | `PARTIAL` | Persistence and deployment handlers lock or await transitions, but a single generic footer-level double-click lock is not yet universal |
-| `INST-FLOW-006` | `STATICALLY_ALIGNED` | Installation providers claim and release their Classic-compatible wizard owner names and reject conflicting operation entry |
+| `INST-FLOW-006` | `BEHAVIOR_DIFF` | New cluster uses revisioned draft-scoped ownership; Add Host and Add Service use revisioned numeric-cluster scope. A verified sole-cluster legacy owner may migrate once; ambiguous state is preserved but not adopted |
 
 ### Steps 0 Through 3
 
@@ -167,7 +181,7 @@ must reconcile the active server request before presenting completion.
 | ID | Current status | Classic behavior versus current React |
 | --- | --- | --- |
 | `INST-4-001` | `PARTIAL` | Installable service list and selection exist; complete filesystem grouping and cancel behavior remain |
-| `INST-4-002` | `PARTIAL` | Required-service prompts exist; transitive and already-installed dependency cases lack focused evidence |
+| `INST-4-002` | `IMPROVED_PARTIAL` | A freshly selected HBase defaults to local HDFS and ZooKeeper, preserves an auto-selected dependency when another selected service still requires it, and can persist authorized managed-provider previews. Installed HBase does not start a new plan. A same-workflow HBase that reached `INIT` remains fresh across refresh only when the persisted creation intent matches the numeric cluster, cluster name, and service; cached selection flags alone cannot adopt an unrelated row. It then switches from the pre-HBase service-plan API to live HBase preview. Step 7 reversibly protects HBase-owned managed settings while preserving local HDFS/Hive configs. Step 8 revalidates the same binding UUID after publishing HBase-owned configuration, persists immutable CREATE attempts, reconciles exact semantic winners, and pauses at provider preparation. Lifecycle completion and broader transitive dependencies remain pending. |
 | `INST-4-003` | `PARTIAL` | Several filesystem/service conflicts are checked; the complete stack-conditional matrix remains |
 | `INST-4-004` | `STATICALLY_ALIGNED` | Choose Services validation remains client-side and does not invent Advisor validation |
 | `INST-5-001` | `PARTIAL` | Advisor recommendations load, but React adds a hard-coded ZooKeeper placement and assumes response topology |
@@ -175,29 +189,61 @@ must reconcile the active server request before presenting completion.
 | `INST-5-003` | `PARTIAL` | Validation discards stale responses, but complete re-entry and dynamic service-change recommendation behavior remains untested |
 | `INST-6-001` | `STATICALLY_ALIGNED` | Host/component matrix, All/None, required, and disabled selections exist |
 | `INST-6-002` | `STATICALLY_ALIGNED` | Master plus slave/client Blueprint and hidden required components are produced |
-| `INST-6-003` | `PARTIAL` | Server validation and Continue Anyway modal exist; exact general/host/component issue mapping needs coverage |
-| `INST-6-004` | `PARTIAL` | Persisted selections are consumed, but refresh/back recommendation preservation is not focused-tested |
+| `INST-6-003` | `PARTIAL` | Server validation and Continue Anyway modal exist; managed HBase placement validation now carries the reviewed plan through the checkpoint runner and keeps transport/provider failures retryable; exact general/host/component issue mapping still needs coverage |
+| `INST-6-004` | `PARTIAL` | Persisted selections are consumed and stale placement responses are scoped out; refresh/back recommendation preservation remains focused source evidence pending execution |
 | `INST-7-001` | `PARTIAL` | Service/theme/category configuration exists; all stack control types and fallback themes remain |
 | `INST-7-002` | `PARTIAL` | Accounts and Credentials are dedicated; complete Database/Directory tab and validation semantics remain |
-| `INST-7-003` | `PARTIAL` | Recommendations, dependencies, and required values exist; rejection/required matrices remain |
+| `INST-7-003` | `PARTIAL` | New-cluster DRAFT and Add Service SERVICE_PLAN recommendations use the queue-held revisioned managed plan, preserve local HDFS/Hive settings, and expose retry/review on failure; rejection/required matrices remain |
 | `INST-7-004` | `PARTIAL` | Shared connection test paths exist; all conditional services and recovery remain |
 | `INST-7-005` | `PARTIAL` | Existing values/overrides are loaded for Add Service; host override/config-group parity is incomplete |
 | `INST-7-006` | `STATICALLY_ALIGNED` | The new-cluster-only `preInstallChecks` flag exposes Classic's placeholder and warns before an unchecked Next |
 | `INST-7-007` | `PARTIAL` | Config-derived assignments are calculated, but Review Blueprint propagation lacks focused evidence |
 | `INST-7-008` | `PARTIAL` | Generic sidebar warning always claims data loss; it does not detect actual dirty configuration state |
 
+### F2 Managed Advisor Caller Checkpoint
+
+The Step6 and Step7 source callers now consume the reviewed schema-2 managed
+dependency selection through `createManagedDependencyAdvisorRunner`. The runner
+holds the existing `withStateCheckpoint` callback around the exact blueprint or
+configuration request, adds the owned DRAFT or SERVICE_PLAN revision and the
+provider/consumer/snapshot fingerprints, and prevents a later autosave from
+overtaking advice. Step6 placement and Step7 configuration validation use local
+request sequences plus semantic scope keys to discard delayed success and error
+responses after host, service, provider, stack, or workflow changes. Step7 keeps
+the edited form mounted on recommendation or validation failure and offers Retry
+and provider review; provider client values remain HBase-private and do not
+replace local HDFS or Hive configuration. The actual Step7 editing path now
+passes the runner, scope, edit-generation callback, and checkpoint callback
+through `RestAllTabs` into `CommonConfigs/Config` and its existing
+`useEnhancedConfigs` instance. A managed config edit is checkpointed before the
+runner obtains its revision, including Add Service sections hidden only for
+display, and child pending/error state disables Step7 Next.
+
+Focused source fixtures are present in
+`screens/ClusterWizard/Step6.test.tsx` and
+`screens/ClusterWizard/Step7/index.test.tsx`. They cover placement failure and
+retry, Add Service SERVICE_PLAN revision/fingerprint carriage, and an initial
+recommendation failure with the configuration surface retained. These fixtures
+remain unexecuted until the integrated frontend gate. The fresh Add Service
+`INIT` versus live `SERVICE` resolver is still a backend contract dependency;
+the caller keeps that outcome recoverable without inferring an installed binding.
+The current Step7 test still mocks `RestAllTabs`; the focused real-child
+transport fixture is authored in
+`screens/ClusterWizard/Step7/RestAllTabs.test.tsx` and remains unexecuted
+evidence until the integrated frontend gate.
+
 ### Review, Deploy, and Summary
 
 | ID | Current status | Classic behavior versus current React |
 | --- | --- | --- |
-| `INST-8-001` | `PARTIAL` | Review shows cluster, hosts, repositories, services, and assignments; complete config and expandable host detail are absent |
+| `INST-8-001` | `PARTIAL` | Review shows cluster, hosts, repositories, services, assignments, and primary managed-provider identity/paths. Technical provider client settings start in an accessible collapsed disclosure; complete ordinary config and expandable host detail are absent. |
 | `INST-8-002` | `STATICALLY_ALIGNED` | Print Review invokes the browser print workflow before deployment locks navigation |
 | `INST-8-003` | `STATICALLY_ALIGNED` | Review prefetches identities for every non-empty KDC type and downloads `kerberos.csv` with visible retry |
 | `INST-8-004` | `STATICALLY_ALIGNED` | Review generates a local ZIP containing `blueprint.json` and `clustertemplate.json` from current assignments and configs |
-| `INST-8-005` | `STATICALLY_ALIGNED` | Cluster inventory and parallel deletion failures stop preparation, remain visible, and retry from reconciled server inventory |
-| `INST-8-008` | `STATICALLY_ALIGNED` | Cluster deletes run as an awaited parallel stage; only a wholly successful stage is checkpointed |
-| `INST-8-009` | `STATICALLY_ALIGNED` | Repository-version inventory/deletion is an awaited stage with visible failure and retry |
-| `INST-8-006` | `STATICALLY_ALIGNED` | Dependency stages run serially, abort on first failed prerequisite, checkpoint completion IDs, and synchronize config groups |
+| `INST-8-005` | `BEHAVIOR_DIFF` | Cluster inventory detects a name collision without mutation; a prior uncertain create is accepted only when the owner-only draft association returns its exact numeric cluster ID |
+| `INST-8-008` | `BEHAVIOR_DIFF` | React and the narrow Classic safety path no longer delete existing clusters during creation |
+| `INST-8-009` | `BEHAVIOR_DIFF` | Existing repository definitions are compared using managed mode and the complete effective repository fields; an identical definition is reused and a conflict remains visible without shared mutation |
+| `INST-8-006` | `STATICALLY_ALIGNED` | Dependency stages run serially, abort on the first failed prerequisite, checkpoint completion IDs, and synchronize config groups. React intentionally adds exact component/host-component reads before duplicate-rejecting POST retries and rechecks route generation after those reads. It stores the original nonsecret assignment plan and each immutable per-component request before mutation; changed materialized placement restores that exact plan for review, while edits made before an assignment operation remain valid. Add Service derives installed state from the actual component selection rather than host membership, so a new component can be added to an existing host without touching unrelated installed components. |
 | `INST-8-007` | `STATICALLY_ALIGNED` | Review reuses the validated XML or URL source and persists repository artifacts before later stages |
 | `INST-9-001` | `STATICALLY_ALIGNED` | Deploy owns explicit install/keytab/start phases, valid queries, request IDs, and serialized polling |
 | `INST-9-002` | `PARTIAL` | Task modal exists, but lazy log loading returns when a task ID exists and there is no Classic copy/new-window parity |
@@ -232,33 +278,34 @@ display labels.
 | 10 | `POST /requests` | `RequestInfo.action=check_host`, check list and host resource filters | Implemented by `useHostChecks` |
 | 11 | `GET /requests/{requestId}` | Request status and host-check structured output fields | Request ID and parsed results persist; complete stack categories remain in runtime acceptance |
 | 12 | `POST /requests` then `GET /requests/{id}` | Separate JDK check with `java_home`, `jdk_location`, and `java_home_check.exit_code` | Implemented as an independent request even when generic Add Host checks are skipped |
-| 13 | `POST {stackVersionUrl}/recommendations` | Hosts, services, Blueprint, bindings, and configuration properties according to step | Present across assignment/config screens; payload permutations need tests |
+| 13 | `POST {stackVersionUrl}/recommendations` | Hosts, services, Blueprint, bindings, configuration properties, explicit numeric target for installed clusters, and an optional authoritative `managed_dependency_plan` | Step 5, Step 6, and Step 7 carry the exact schema-2 UUID and provider/consumer/snapshot fingerprints through the queue-held DRAFT/SERVICE_PLAN request and discard late scoped responses. Installed-service callers remain on their ordinary path. |
 | 14 | `POST {stackVersionUrl}/validations` | Current hosts/services/Blueprint/bindings | Present; Step 5 filters to matching non-installed assignments and exposes Continue Anyway |
+| 15 | `GET /service-dependencies/candidates` then `POST /service-dependencies/preview` | Cluster-create draft UUID or Add Service numeric cluster ID, exact scoped revision, HDFS or ZooKeeper type, and authorized provider cluster ID/service | HBase selection is checkpointed before candidate discovery and provider selection is checkpointed again before preview. Built-in versions can be reviewed without materializing a repository; custom VDF and incomplete Kerberos plans remain visibly incomplete. |
 
 ### Review Submission
 
-Classic writes the `*_DEPLOY_PREP_2` recovery checkpoint before this chain. A
-new-cluster submission then executes stages A through D; Add Host and Add
-Service skip destructive stage A and reuse only their applicable serial
-resources. React must expose a recoverable Review error and must never start the
-install mutation after a resource-stage rejection.
+Classic writes the `*_DEPLOY_PREP_2` recovery checkpoint before this chain.
+React records the equivalent checkpoint through a draft or numeric-cluster
+scoped revisioned state. New-cluster submission executes stages A through D;
+Add Host and Add Service use only their applicable serial resources. React must
+expose a recoverable Review error and must never start the install mutation
+after a resource-stage rejection.
 
 | Stage | Method and URL | Payload/order | Concurrency and failure contract |
 | --- | --- | --- | --- |
-| A1 | `GET /clusters` | None | New cluster only; failure stops and unlocks React Review with Retry |
-| A2 | `DELETE /clusters/{clusterName}` for every item | None | Parallel batch; wait for all; aggregate failures; no rollback |
-| A3 | `GET /version_definitions` | None | Continue only after every cluster DELETE succeeds |
-| A4 | `DELETE /stacks/{stack}/versions/{version}/repository_versions/{id}` | One per definition | Parallel cleanup; wait for all; no rollback; React intentionally replaces Classic's silent lock with a visible retryable failure |
-| B1 | `POST /version_definitions` | Original XML body or `{VersionDefinition:{version_url}}`; no dry-run | Local repository only; source must be identical to the validated source |
-| B2 | `PUT /stacks/{stack}/versions/{version}/repository_versions/{id}` | `{operating_systems:[...]}` and `ambari_managed_repositories` | After B1; record but do not silently lose a failure |
-| C1 | `POST /clusters/{cluster}` | `{Clusters:{version:{stack-version-id}}}` | First abort-on-error serial resource |
+| A1 | `GET /persist/scopes/drafts/{draftId}/cluster` | Owner-only exact cluster association | Runs before collision handling and resumed side effects; 404 cannot authorize same-name adoption |
+| A2 | `GET /clusters` | None | The associated numeric ID may match; every other same-name item is a non-mutating collision |
+| A3 | `GET /version_definitions` | Selected stack definitions and complete OS/repository fields | Compare complete effective repository settings; reuse only an identical materialized definition |
+| B1 | `POST /version_definitions` | Original URL JSON or base64 XML source plus top-level `operating_systems` | Server validates and persists initial repository settings atomically; exact retry reuses the same definition |
+| C1 | `POST /clusters/{cluster}` | `{Clusters:{creation_draft_id,version}}` | Server stamps the owner and commits cluster plus draft association atomically; lost response reconciles through A1 |
 | C2 | `POST /clusters/{cluster}/services` | `[{ServiceInfo:{service_name,desired_repository_version_id}}]` | After cluster creation |
-| C3 | `POST /clusters/{cluster}/services?ServiceInfo/service_name={service}` | `{components:[{ServiceComponentInfo:{component_name}}]}` | One service at a time after C2 |
+| C3 | `GET /clusters/{cluster}/services` then `POST /clusters/{cluster}/services?ServiceInfo/service_name={service}` | `{components:[{ServiceComponentInfo:{component_name}}]}` | One service at a time after C2; exact components left by a lost response are skipped because server duplicate creation is not idempotent |
 | C4 | `POST /clusters/{cluster}/hosts` | Host array | After service/component resources |
-| C5 | `POST /clusters/{cluster}/hosts` | `{RequestInfo:{query},Body:{host_components:[...]}}` | One component association at a time |
+| C5 | `GET /clusters/{cluster}/hosts` then `POST /clusters/{cluster}/hosts` | `{RequestInfo:{query},Body:{host_components:[...]}}` | The exact per-component request is checkpointed before POST. Exact assignments left by a lost response are skipped. An existing master outside the saved target blocks replacement and returns to assignments; slave/client additions are additive and preserve unrelated installed components. |
 | C6 | `PUT /clusters/{cluster}` | Array of `{Clusters:{desired_config:[...]}}` | Configs before installation |
 | C7 | `POST /clusters/{cluster}/config_groups` or `PUT /clusters/{cluster}/config_groups/{id}` | Full group plus host membership payload | Required for created groups and Add Host selected existing groups |
 | C8 | `POST` or `PUT /clusters/{cluster}/artifacts/kerberos_descriptor` | `{artifact_data:{...}}` | Conditional Add Service Kerberos resource; Manual saves before Review use and managed KDC saves in the deployment plan |
+| C9 | Final HBase dependency preview and binding creation | Exact created HBase cluster/service identity plus the selected provider and reviewed fingerprints | Integrated through binding creation. The selected UUID is preserved for preflight and final live preview, HBase-owned values are published without replacing local HDFS client configs, immutable CREATE attempts are checkpointed before POST, and item GET reconciles uncertain responses by operation and snapshot fingerprints. The UI stops at truthful provider preparation until the lifecycle API is integrated. |
 | D | `PUT /clusters/{cluster}/services?...` or `/host_components?...` | Install desired state plus `RequestInfo.context/query` | Only after every applicable C resource succeeds; persist returned request ID before entering Deploy |
 
 ### Deploy Polling and Completion
@@ -294,6 +341,7 @@ wizard reach a terminal state.
 | Stack `HDPWIN` | PowerShell automatic bootstrap | PowerShell automatic bootstrap | Not applicable | Derived from selected/current stack, not a manual toggle |
 | Component metadata | Assignment and step presence | Slave/client eligibility | Filter and conditional step skips | Cardinality, master/slave/client, HA-only, dependencies, installable/installed flags |
 | Security/KDC | Initial configs may enable Kerberos later | KDC session before deploy | Descriptor, KDC type, CSV, and Manual responsibility | KDC/descriptor failures block deploy; CSV failure is visible/retryable but nonblocking like Classic |
+| Managed HBase provider | Optional HDFS/ZooKeeper provider planning starts at Choose Services | Not applicable | Existing cluster version/security can support immediate preview | Draft version or realm gaps remain editable planning issues. No client install, credential issuance, verification, or start mutation may begin before an authoritative live-service preview and binding checkpoint. |
 | HA prerequisites | Selected services/configs can establish HA topology | Existing HA topology limits eligible component changes | Added service may expose HA prerequisites | Advisor/validation and live topology decide eligibility; no extra HA wizard is embedded |
 
 React's authorization helpers correctly implement comma-separated OR behavior
@@ -310,8 +358,9 @@ unguarded Add Host deep link.
 | Bootstrap | One POST; one non-overlapping GET loop; clear timer on Back/unmount | Selected failed hosts only; never retry RUNNING | Persist request ID/deadline/status/log; reconcile before starting a new POST |
 | Registration | One non-overlapping GET loop; clear timer on Back/unmount | Failed manual/automatic registration returns to the correct initial state | Resume remaining deadline and merge other registered Agents |
 | Host checks | Create one request and poll it serially; cancel local polling on exit | Rerun refreshes `last_agent_env`; Add Host skip bypasses generic checks only | Persist request ID/results; JDK remains independent |
-| Advisor/validation | Ignore stale responses after stack/service/assignment change | Retry with current Blueprint | Preserve manual choices; never apply an older response over newer state |
-| Review cleanup | Cluster DELETEs concurrent within batch; version DELETEs concurrent within batch; stages are serial | Explicit stage-level Retry with partial-success disclosure | Do not repeat successful destructive work blindly; reconcile current server resources |
+| Advisor/validation | Capture draft/runtime identity and one immutable schema-2 managed plan across each request chain; ignore stale responses after scope, stack, service, or assignment change | Retry with the current Blueprint; stale provider facts link back to provider review | Preserve manual choices; never apply an older response over newer state or add local ZooKeeper masters for a reviewed managed provider |
+| Managed dependency preview | Abort and invalidate by draft/service runtime, dependency type, and selected provider | Repeat preview only after a successful current-scope checkpoint | Preserve the selected provider and reviewed preview; known custom-version/security gaps return to their editable steps and never imply compatibility |
+| Review identity and repository resolution | Exact draft association, cluster inventory, and repository inventory are serial prerequisites | Retry reloads current server state; exact atomic repository replay is idempotent | Never adopt by name, delete a cluster/repository definition, or issue a create-then-shared-PUT sequence |
 | Resource creation | Strict serial, abort on first error | Rebuild queue from current server/client state; created resources are not rolled back | Show failed resource and retain Review controls; never auto-install after failure |
 | Add Host config group | Must finish before install, correcting Classic fire-and-forget behavior | Retry update without duplicating component resources | Re-read group membership before continuing |
 | Install/start/check | One request poll at a time; stop all timers on unmount | Install Retry only for `INSTALL FAILED`; no start retry is invented | Resume persisted request; reconcile server terminal state before any mutation |
@@ -326,7 +375,7 @@ unguarded Add Host deep link.
 | --- | --- | --- |
 | 1. Routes, pages, controls, navigation | Classic router/three route files/templates; React `RoutesList`, menus, StepWizard and footers | Direct route permission/operation gates, conditional Add Service navigation, persistence-before-navigation, Review controls, and Deploy blockers are implemented; generic double-click locking remains partial |
 | 2. Controller/service/model state | Classic installer/add controllers, persist and watcher; three React providers/reducers | All providers hydrate before writing, maintain synchronous snapshots, serialize persistence, claim ownership, and map Classic checkpoints; runtime cross-window behavior remains to be exercised |
-| 3. API definitions, calls, order | All five generated network inventories plus Classic AJAX registry/callers and React APIs | Dynamic stack/VDF/JDK contracts, serial Review prerequisites, request persistence, and phase polling are implemented and focused-tested; server reconciliation after an unpersisted successful mutation remains a runtime risk |
+| 3. API definitions, calls, order | All five generated network inventories plus Classic AJAX registry/callers and React APIs | Dynamic stack/VDF/JDK contracts, serial Review prerequisites, request persistence, and phase polling are implemented. Exact owner-only draft reconciliation closes the prior unpersisted cluster-create identity gap; runtime fault injection remains required |
 | 4. Modes, permissions, flags | Generated permission/flag inventories, `13-permissions-flags.md`, stack metadata and React AppContext | Installer/Add Host/Add Service gates, HDPWIN, Agent user, Pre Install Checks, start-skip, conditional steps, and KDC branches are wired; stack/service permutations remain in the runtime matrix |
 | 5. Error, retry, refresh, back, interruption, tests | Classic tests and route/controller error paths; React Vitest inventory and error handlers | Focused tests cover route contracts, persistence, VDF/JDK, bootstrap recovery, JDK checks, Review retry/Kerberos/export, deployment phase gates, Add Host, Add Service navigation, and completion; real request/task failures remain runtime acceptance |
 
@@ -358,7 +407,8 @@ evidence.
    matching validation issue filtering, Continue Anyway, manual choices after
    Back/refresh, required/dependent configs, external tests, and dirty Back.
 6. Review tests assert Print, Blueprint ZIP, applicable Kerberos CSV/Manual
-   confirmation, destructive cleanup batches, retained VDF source, exact serial
+   confirmation, zero cluster/repository deletes, exact draft reconciliation,
+   atomic repository payload/replay, retained safe VDF source, exact serial
    resource order, abort on first failure, no install handoff on failure,
    partial-success Retry, config groups, and Kerberos descriptor ordering.
 7. Deploy tests use fake timers and deferred promises to prove one poll at a
@@ -384,7 +434,7 @@ IDs, and screenshots for each scenario.
 | Host checks | New cluster; Add Host regular; Add Host skip | Generic check create/poll failure, JDK failure, repository/disk/THP warning, rerun, refresh | `INST-2-005`, `INST-3-006`, `007` |
 | Service selection | HDFS-compatible filesystem; multiple DFS; Ozone/Spark; Ranger dependencies; service with no masters/slaves/configs | Accept WARNING, reject CRITICAL, Back and change selection, refresh each assignment step | `INST-4-*`, `INST-5-*`, `INST-6-*` |
 | Config customization | Accounts; credentials; database; directories; required/dependent values; override/config group | Advisor failure, DB test failure/retry, dirty Back, dynamic component change, refresh | `INST-7-*` |
-| New-cluster cleanup | Zero/one/multiple existing clusters and version definitions | GET failure, one parallel DELETE failure, partial deletion, refresh and Retry | `INST-8-005`, `008`, `009` |
+| New-cluster identity/repository safety | Zero/one/multiple existing clusters and version definitions; same-name replacement; identical/conflicting repositories | Lost POST response, draft association 404/mismatch, inventory failure, atomic repository create failure, refresh and Retry | `INST-8-005`, `008`, `009` |
 | Resource creation | Minimal stack and multi-service stack | Failure at every serial resource stage, partial prior success, refresh, resubmit without duplicate install | `INST-8-006` |
 | Add Host | Component hosts; client-only; no component; default/non-default config groups | Group PUT failure, install failure/retry, start failure, Kerberos keytab failure, refresh in every phase | `INST-MODE-002`, `009`, all reused IDs |
 | Add Service | Master-only; slave/client-only; config-free; all steps | Conditional skips, descriptor create/update failure, each KDC type, CSV, Manual acknowledgment, install/start failure, refresh | `INST-MODE-003`, `010`, all reused IDs |

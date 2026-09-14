@@ -26,15 +26,15 @@ import { serviceCache } from "../Utils/cacheUtils";
  * @returns Object with service installation status and cache utilities
  */
 export const useServiceCache = (serviceName: string) => {
-  // @ts-ignore
-  const { services } = useContext(AppContext);
+  const { runtimeKey, services } = useContext(AppContext);
   
   // Check if service is installed
   const isServiceInstalled = services && Array.isArray(services) && 
     services.some((service: any) => service.ServiceInfo.service_name === serviceName);
   
   // Cache utilities specific to this service
-  const cacheKey = (key: string) => `${serviceName.toLowerCase()}_${key}`;
+  const cachePrefix = `${runtimeKey}:${serviceName.toLowerCase()}:`;
+  const cacheKey = (key: string) => `${cachePrefix}${key}`;
   
   const getCachedData = <T>(key: string): T | null => {
     return serviceCache.get<T>(cacheKey(key));
@@ -49,10 +49,7 @@ export const useServiceCache = (serviceName: string) => {
   };
   
   const clearServiceCache = (): void => {
-    // Clear all cache entries for this service
-    // Note: This is a simple implementation. In a production system,
-    // you might want to track service-specific keys for more efficient clearing
-    serviceCache.clear();
+    serviceCache.clearPrefix(cachePrefix);
   };
   
   return {

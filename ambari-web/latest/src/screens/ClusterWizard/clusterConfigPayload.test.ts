@@ -19,6 +19,7 @@
 import { describe, expect, it } from "vitest";
 import { ConfigPropertiesType } from "../CommonConfigs/types";
 import { buildClusterConfigurationPayload } from "./clusterConfigPayload";
+import { buildManagedDependencyClientConfig } from "./managedDependencyConfig";
 
 const canonicalProperty = (
   name: string,
@@ -114,5 +115,104 @@ describe("cluster configuration payload", () => {
     expect(result[0].Clusters.desired_config[0].properties).toEqual({
       changed: "new",
     });
+  });
+
+  it("keeps local HDFS desired configs while publishing consumer-owned HBase settings", () => {
+    const configProperties = {
+      HDFS: {
+        General: {
+          errors: 0,
+          properties: {
+            defaultFs: canonicalProperty(
+              "fs.defaultFS",
+              "core-site",
+              "hdfs://local:8020",
+              { serviceName: "HDFS" },
+            ),
+            nameservices: canonicalProperty(
+              "dfs.nameservices",
+              "hdfs-site",
+              "local-ns",
+              { serviceName: "HDFS" },
+            ),
+          },
+        },
+      },
+      HBASE: {
+        General: {
+          errors: 0,
+          properties: {
+            root: canonicalProperty(
+              "hbase.rootdir",
+              "hbase-site",
+              "hdfs://local/apps/hbase",
+              { serviceName: "HBASE" },
+            ),
+          },
+        },
+      },
+      HIVE: {
+        General: {
+          errors: 0,
+          properties: {
+            warehouse: canonicalProperty(
+              "hive.metastore.warehouse.dir",
+              "hive-site",
+              "/warehouse/tablespace/managed/hive",
+            ),
+          },
+        },
+      },
+    } as ConfigPropertiesType;
+
+    const requiredConfigurations = buildManagedDependencyClientConfig({
+      HDFS: {
+        mode: "managed",
+        preview: {
+          binding_id: "11111111-1111-4111-8111-111111111111",
+          client_config: {
+            "core-site": { "fs.defaultFS": "hdfs://provider:8020" },
+            "hdfs-site": { "dfs.nameservices": "provider-ns" },
+            "hbase-site": { "hbase.zookeeper.quorum": "provider-zk" },
+          },
+          compatible: true,
+          consumer: {
+            lifecycle: "INIT",
+            planned_hbase_user: "hbase_a",
+            scope: "DRAFT",
+            service_name: "HBASE",
+          },
+          dependency_type: "HDFS",
+          errors: [],
+          namespace: { root_uri: "hdfs://provider:8020/apps/hbase/a" },
+          preview_schema_version: 1,
+          provider: {
+            cluster_id: 9,
+            cluster_name: "provider-a",
+            service_name: "HDFS",
+          },
+        },
+      },
+    });
+
+    const payload = buildClusterConfigurationPayload({
+      configProperties,
+      includeInstalledChanges: false,
+      installedServices: [],
+      requiredConfigurations,
+    });
+
+    const desiredConfigs = payload.flatMap(({ Clusters }) => Clusters.desired_config);
+    expect(desiredConfigs.find(({ type }) => type === "core-site")?.properties)
+      .toEqual({ "fs.defaultFS": "hdfs://local:8020" });
+    expect(desiredConfigs.find(({ type }) => type === "hdfs-site")?.properties)
+      .toEqual({ "dfs.nameservices": "local-ns" });
+    expect(desiredConfigs.find(({ type }) => type === "hbase-site")?.properties)
+      .toEqual({
+        "hbase.rootdir": "hdfs://provider:8020/apps/hbase/a",
+        "hbase.zookeeper.quorum": "provider-zk",
+      });
+    expect(JSON.stringify(payload)).toContain("hive.metastore.warehouse.dir");
+    expect(JSON.stringify(payload)).not.toContain("provider-ns");
   });
 });

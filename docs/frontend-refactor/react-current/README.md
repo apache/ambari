@@ -19,6 +19,11 @@
 
 This directory records the reviewed React implementation for each legacy module. The module comparison documents are the source for initial matrix status and evidence; matching page, route, component, or endpoint names alone does not establish parity.
 
+The cross-module multi-cluster foundation and unified directory behavior are
+recorded in [multi-cluster-foundation.md](multi-cluster-foundation.md). This
+hand-authored note supplements the legacy module comparisons and does not add or
+change generated Ember feature IDs.
+
 ## Parity Matrix Workflow
 
 Generate the initial matrix after all 14 module comparison documents exist:

@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-import { Alert, Card, Form, Table } from "react-bootstrap";
+import { Alert, Button, Card, Form, Table } from "react-bootstrap";
 import classNames from "classnames";
 import { cloneDeep, get, map } from "lodash";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ValidationsApi from "../../api/validations";
 import Paginator from "../../components/Paginator";
 import usePagination from "../../hooks/usePagination";
@@ -41,6 +42,14 @@ import modalManager from "../../store/ModalManager";
 import Modal from "../../components/Modal";
 import { AppContext } from "../../store/context";
 import { HostsApi } from "../../api/hostsApi";
+import { responseErrorMessage } from "../../Utils/httpError";
+import {
+  createManagedDependencyAdvisorRunner,
+  managedDependencyAdvisorInputKey,
+  stackAdvisorNeedsProviderReview,
+  type RunWithStackAdvisorRequest,
+} from "./managedDependencyAdvisor";
+import type { ManagedDependencySelections } from "./managedDependencySelection";
 
 enum SelectOperations {
   SELECT = "SELECT",
@@ -53,12 +62,21 @@ type Step6Props = {
 
 function Step6({ wizardName = "clusterCreation" }: Step6Props) {
   const { Context } = useContext(ContextWrapper);
-  const { clusterName = "" } = useContext(AppContext);
+  const { t } = useTranslation();
+  const {
+    cluster,
+    clusterName = "",
+    runtimeKey,
+  } = useContext(AppContext);
   const [validationErrors, setValidationErrors] = useState<any[]>([]);
   const {
     dispatch,
     state,
     flushStateToDb,
+    storeStepDataAndFlush,
+    withStateCheckpoint,
+    draftId,
+    workflowMaterializedServices = [],
     stepWizardUtilities: {
       currentStep,
       handleNextImperitive,
@@ -85,11 +103,56 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
   } = useServiceComponents(wizardName, initialServiceComponents);
 
   const [nextEnabled, setNextEnabled] = useState(false);
+  const [validationFailure, setValidationFailure] = useState<{
+    message: string;
+    reviewRequired: boolean;
+  } | null>(null);
+  const validationSequence = useRef(0);
   const addServiceFlow = get(
     state,
     "addServiceSteps.SERVICES.data.addServiceFlow",
     {},
   );
+  const managedDependencies = get(
+    state,
+    `${wizardName}Steps.SERVICES.data.managedDependencies`,
+    {},
+  ) as ManagedDependencySelections;
+  const hasFreshHBaseSelection = Boolean(
+    get(state, `${wizardName}Steps.SERVICES.data.services.HBASE.selected`, false)
+      && !get(state, `${wizardName}Steps.SERVICES.data.services.HBASE.installed`, false),
+  );
+  const hasManagedDependencies = hasFreshHBaseSelection
+    && Object.values(managedDependencies).some((choice) => choice?.mode === "managed");
+  const advisorInputKey = managedDependencyAdvisorInputKey({
+    hosts: Object.keys(hosts),
+    selections: managedDependencies,
+    services,
+    stack: STACK,
+    version: VERSION,
+  });
+  const advisorScopeKey = JSON.stringify([
+    wizardName === "addService" ? "add-service-advisor" : "cluster-create-advisor",
+    runtimeKey,
+    Number(cluster?.cluster_id) || null,
+    draftId || "missing-draft",
+    workflowMaterializedServices.join("\u0000"),
+    advisorInputKey,
+  ]);
+  const advisorScopeKeyRef = useRef(advisorScopeKey);
+  advisorScopeKeyRef.current = advisorScopeKey;
+  const runWithAdvisorRequest: RunWithStackAdvisorRequest | undefined =
+    hasManagedDependencies
+      ? createManagedDependencyAdvisorRunner({
+          clusterId: Number(cluster?.cluster_id),
+          draftId,
+          managedDependencies,
+          scopeKey: advisorScopeKey,
+          scopeKeyRef: advisorScopeKeyRef,
+          withStateCheckpoint,
+          workflowMaterializedServices,
+        })
+      : undefined;
 
   const enableNext = () => {
     setNextEnabled(true);
@@ -317,13 +380,31 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
     
     return Object.keys(servicesData).filter((serviceName) => {
       const service = servicesData[serviceName];
-      return service.selected === true && service.installed === false && service.isIgnored === false;
+      return service.selected === true
+        && service.installed !== true
+        && service.isIgnored !== true;
     });
   };
 
   const validateChange = async () => {
+    const sequence = ++validationSequence.current;
+    const isCurrentValidation = () => sequence === validationSequence.current;
+    setValidationFailure(null);
+    setValidationErrors([]);
+    setNextEnabled(false);
     try {
+      if (runWithAdvisorRequest && storeStepDataAndFlush) {
+        await storeStepDataAndFlush(currentStep.name, {
+          serviceComponents:
+            wizardName === "addHost"
+              ? getAdditionalServiceComponents()
+              : cloneDeep(serviceComponents),
+          allServiceComponentsList,
+        });
+        if (!isCurrentValidation()) return;
+      }
       const validationRequestBody = await getValidationRequestBody();
+      if (!isCurrentValidation()) return;
       
       // For Add Host wizard, include all cluster hosts (existing + new)
       let allHosts = Object.keys(hosts);
@@ -337,17 +418,33 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
         );
         allHosts = [...new Set([...allHosts, ...existingHostNames])];
       }
+      if (!isCurrentValidation()) return;
       
-      const validationResponse = await ValidationsApi.validateMapping(
-        STACK,
-        VERSION,
-        {
-          hosts: allHosts,
-          services,
-          validate: "host_groups",
-          recommendations: validationRequestBody,
-        }
-      );
+      const requestValidation = async ({
+        isCurrent,
+        properties,
+      }: {
+        isCurrent: () => boolean;
+        properties: Record<string, unknown>;
+      }) => {
+        if (!isCurrent()) return null;
+        const response = await ValidationsApi.validateMapping(
+          STACK,
+          VERSION,
+          {
+            hosts: allHosts,
+            services,
+            validate: "host_groups",
+            recommendations: validationRequestBody,
+            ...properties,
+          },
+        );
+        return isCurrent() ? response : null;
+      };
+      const validationResponse = runWithAdvisorRequest
+        ? await runWithAdvisorRequest(requestValidation)
+        : await requestValidation({ isCurrent: () => true, properties: {} });
+      if (!validationResponse || !isCurrentValidation()) return;
       //Based on validation response set this
       const { resources } = validationResponse;
       const [validationItems] = resources;
@@ -410,8 +507,18 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
       } else {
         enableNext();
       }
-    } finally {
-      enableNext();
+    } catch (error) {
+      if (!isCurrentValidation()) return;
+      setValidationErrors([]);
+      setNextEnabled(false);
+      setValidationFailure({
+          message: responseErrorMessage(
+            error,
+            t("managedDependencies.assignmentValidationFailed"),
+        ),
+        reviewRequired: hasManagedDependencies
+          || stackAdvisorNeedsProviderReview(error),
+      });
     }
   };
 
@@ -486,8 +593,11 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
   };
 
   useEffect(() => {
-    validateChange();
-  }, [serviceComponents]);
+    void validateChange();
+    return () => {
+      validationSequence.current += 1;
+    };
+  }, [serviceComponents, advisorScopeKey]);
 
   return (
     <>
@@ -502,6 +612,31 @@ function Step6({ wizardName = "clusterCreation" }: Step6Props) {
             <span className="text-info">✵</span>.
           </small>
         </div>
+        {validationFailure && (
+          <Alert variant="danger" className="mt-3" role="alert">
+            <div className="d-flex justify-content-between align-items-center gap-3">
+              <span>{validationFailure.message}</span>
+              <div className="d-flex gap-2">
+                {validationFailure.reviewRequired && (
+                  <Button
+                    size="sm"
+                    variant="outline-danger"
+                    onClick={() => jumpToStep(wizardName === "addService" ? 1 : 4)}
+                  >
+                    {t("managedDependencies.reviewProviderSettings")}
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline-danger"
+                  onClick={() => void validateChange()}
+                >
+                  {t("common.retry")}
+                </Button>
+              </div>
+            </div>
+          </Alert>
+        )}
         {validationErrors.length > 0 && (
           <Alert variant="warning" className="mt-3">
             <p>Assignment of slave and client components has the following issues:</p>

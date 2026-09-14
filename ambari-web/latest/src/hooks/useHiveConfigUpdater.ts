@@ -29,7 +29,7 @@ import ConfigsApi from "../api/configsApi";
 
 export const useHiveConfigUpdater = () => {
   // @ts-ignore
-  const { services, parsedSocketMessages, clusterName } = useContext(AppContext);
+  const { services, parsedSocketMessages, clusterName, runtimeKey } = useContext(AppContext);
   
   // Early return if HIVE service is not installed
   const isHiveInstalled = services && Array.isArray(services) && 
@@ -51,7 +51,7 @@ export const useHiveConfigUpdater = () => {
       allServiceModels["hive"].hiveServer2JDBCURL = hiveJDBCURL;
     }
     
-    let hiveComponentsData = cachedServiceApi.getServiceComponentData("HIVE");
+    let hiveComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "HIVE");
     
     if (!hiveComponentsData) {
       hiveComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -158,7 +158,7 @@ export const useHiveConfigUpdater = () => {
 
   const updateAlertsAndServiceStateData = async () => {
     // Use centralized service state API instead of individual call
-    updateServiceAlertsAndStateFromCentralizedApi("HIVE", "hive", allServiceModels, updateRegistry);
+    updateServiceAlertsAndStateFromCentralizedApi(runtimeKey, "HIVE", "hive", allServiceModels, updateRegistry);
   };
   const parseAlertsWebSocketMessages = async () => {
     let latestHostOperationMessage = {} as any;

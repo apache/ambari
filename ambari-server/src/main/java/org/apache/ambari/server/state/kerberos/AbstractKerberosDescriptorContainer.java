@@ -764,7 +764,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       for (KerberosIdentityDescriptor identity : identities) {
         list.put(identity.getName(), identity.toMap());
       }
-      map.put(KEY_IDENTITIES, list.values());
+      map.put(KEY_IDENTITIES, new ArrayList<>(list.values()));
     }
 
     if (configurations != null) {
@@ -774,7 +774,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       for (KerberosConfigurationDescriptor configuration : configurations.values()) {
         list.put(configuration.getType(), configuration.toMap());
       }
-      map.put(KEY_CONFIGURATIONS, list.values());
+      map.put(KEY_CONFIGURATIONS, new ArrayList<>(list.values()));
     }
 
     if (authToLocalProperties != null) {

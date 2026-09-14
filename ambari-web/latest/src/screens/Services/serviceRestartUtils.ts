@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "../../api/apiPath";
 import type { BackgroundRequest } from "../../Utils/backgroundOperations";
 
 export type ServiceRestartScope = "ALL" | "MASTERS" | "SLAVES";
@@ -37,6 +38,7 @@ export type ServiceRestartGroups = {
 };
 
 type BuildScheduleOptions = {
+  dependencyImpactParameters?: Record<string, string>;
   clusterName: string;
   serviceName: string;
   components: RestartableServiceComponent[];
@@ -46,6 +48,7 @@ type BuildScheduleOptions = {
 };
 
 type BuildExpressOptions = {
+  dependencyImpactParameters?: Record<string, string>;
   clusterName: string;
   serviceName: string;
   scope: ServiceRestartScope;
@@ -278,13 +281,15 @@ function rollingRequest(
   orderId: number,
   batchNumber: number,
   batchCount: number,
+  dependencyImpactParameters: Record<string, string> = {},
 ) {
   return {
     order_id: orderId,
     type: "POST",
-    uri: `/clusters/${clusterName}/requests`,
+    uri: `/clusters/${apiPathSegment(clusterName)}/requests`,
     RequestBodyInfo: {
       RequestInfo: {
+        ...dependencyImpactParameters,
         context: `_PARSE_.ROLLING-RESTART.${componentNameValue}.${batchNumber}.${batchCount}`,
         command: "RESTART",
       },
@@ -300,6 +305,7 @@ function rollingRequest(
 }
 
 export function buildServiceRestartSchedule({
+  dependencyImpactParameters = {},
   clusterName,
   serviceName,
   components,
@@ -331,6 +337,7 @@ export function buildServiceRestartSchedule({
       orderId++,
       batchNumber,
       masterTotals.get(component.componentName) || 1,
+      dependencyImpactParameters,
     ));
   });
 
@@ -352,6 +359,7 @@ export function buildServiceRestartSchedule({
         orderId++,
         batchNumber,
         batchCount,
+        dependencyImpactParameters,
       ));
     }
   });
@@ -374,6 +382,7 @@ export function buildServiceRestartSchedule({
 }
 
 export function buildExpressServiceRestartRequest({
+  dependencyImpactParameters = {},
   clusterName,
   serviceName,
   scope,
@@ -390,6 +399,7 @@ export function buildExpressServiceRestartRequest({
 
   return {
     RequestInfo: {
+      ...dependencyImpactParameters,
       command: "RESTART",
       context: `_PARSE_.RESTART.${serviceName}.${scope}`,
       operation_level: {

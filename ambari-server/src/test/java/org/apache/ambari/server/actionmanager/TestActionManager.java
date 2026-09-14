@@ -110,9 +110,12 @@ public class TestActionManager {
     db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
     List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
-    cr.setTaskId(1);
+    cr.setTaskId(stage.getHostRoleCommand(hostname, "HBASE_MASTER").getTaskId());
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setRole("HBASE_MASTER");
+    cr.setRoleCommand(RoleCommand.START.name());
+    cr.setServiceName("HBASE");
+    cr.setClusterId("1");
     cr.setStatus("COMPLETED");
     cr.setStdErr("ERROR");
     cr.setStdOut("OUTPUT");
@@ -151,9 +154,12 @@ public class TestActionManager {
     db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
     List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
-    cr.setTaskId(2);
+    cr.setTaskId(stage.getHostRoleCommand(hostname, "HBASE_REGIONSERVER").getTaskId());
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setRole("HBASE_REGIONSERVER");
+    cr.setRoleCommand(RoleCommand.START.name());
+    cr.setServiceName("HBASE");
+    cr.setClusterId("1");
     cr.setStatus("COMPLETED");
     cr.setStdErr("ERROR");
     cr.setStdOut("OUTPUT");
@@ -161,16 +167,20 @@ public class TestActionManager {
     cr.setExitCode(215);
     reports.add(cr);
     CommandReport cr2 = new CommandReport();
-    cr2.setTaskId(1);
+    cr2.setTaskId(stage.getHostRoleCommand(hostname, "HBASE_MASTER").getTaskId());
     cr2.setActionId(StageUtils.getActionId(requestId, stageId));
     cr2.setRole("HBASE_MASTER");
+    cr2.setRoleCommand(RoleCommand.START.name());
+    cr2.setServiceName("HBASE");
+    cr2.setClusterId("1");
     cr2.setStatus("IN_PROGRESS");
     cr2.setStdErr("ERROR");
     cr2.setStdOut("OUTPUT");
     cr2.setStructuredOut("STRUCTURED_OUTPUT");
     cr2.setExitCode(215);
     reports.add(cr2);
-    am.processTaskResponse(hostname, reports, CommandUtils.convertToTaskIdCommandMap(am.getTasks(Arrays.asList(new Long[]{1L, 2L}))));
+    am.processTaskResponse(hostname, reports,
+        CommandUtils.convertToTaskIdCommandMap(stage.getOrderedHostRoleCommands()));
     assertEquals(HostRoleStatus.IN_PROGRESS, am.getAction(requestId, stageId)
         .getHostRoleStatus(hostname, "HBASE_MASTER"));
     assertEquals(HostRoleStatus.PENDING, am.getAction(requestId, stageId)
@@ -188,9 +198,12 @@ public class TestActionManager {
     db.hostRoleScheduled(stage, hostname, "HBASE_MASTER");
     List<CommandReport> reports = new ArrayList<>();
     CommandReport cr = new CommandReport();
-    cr.setTaskId(1);
+    cr.setTaskId(stage.getHostRoleCommand(hostname, "HBASE_MASTER").getTaskId());
     cr.setActionId(StageUtils.getActionId(requestId, stageId));
     cr.setRole("HBASE_MASTER");
+    cr.setRoleCommand(RoleCommand.START.name());
+    cr.setServiceName("HBASE");
+    cr.setClusterId("1");
     cr.setStatus("COMPLETED");
     String errLog = Arrays.toString(new byte[100000]);
     String outLog = Arrays.toString(new byte[110000]);

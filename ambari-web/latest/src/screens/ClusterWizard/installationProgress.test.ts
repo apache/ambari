@@ -19,6 +19,7 @@
 import { describe, expect, it } from "vitest";
 import {
   canEnterSummary,
+  clientOnlyTargetsInstalled,
   canRetryInstallation,
   mergeInstallTasks,
   requestFailed,
@@ -66,4 +67,19 @@ describe("installation progress", () => {
     expect(wizardCheckpoint("addService", "INSTALLED")).toBe("ADD_SERVICES_INSTALLED_4");
     expect(wizardCheckpoint("addService", "STARTING")).toBe("SERVICE_STARTING_3");
   });
+});
+
+it("accepts a client-only no-op only with nonempty, owned, installed host state", () => {
+  const component = {
+    ServiceComponentInfo: { cluster_name: "A", service_name: "PIG", component_name: "PIG", category: "CLIENT" },
+    host_components: [{ HostRoles: { cluster_name: "A", service_name: "PIG", component_name: "PIG", state: "INSTALLED" } }],
+  };
+  expect(clientOnlyTargetsInstalled("A", ["PIG"], [component])).toBe(true);
+  expect(clientOnlyTargetsInstalled("B", ["PIG"], [component])).toBe(false);
+  expect(clientOnlyTargetsInstalled("A", ["PIG"], [])).toBe(false);
+  expect(clientOnlyTargetsInstalled("A", ["PIG"], [{ ...component, host_components: [] }])).toBe(false);
+  expect(clientOnlyTargetsInstalled("A", ["PIG"], [{ ...component,
+    ServiceComponentInfo: { ...component.ServiceComponentInfo, category: "MASTER" } }])).toBe(false);
+  expect(clientOnlyTargetsInstalled("A", ["PIG"], [{ ...component,
+    host_components: [{ HostRoles: { ...component.host_components[0].HostRoles, state: "INSTALL_FAILED" } }] }])).toBe(false);
 });

@@ -227,6 +227,15 @@ public class GenericDbmsHelper implements DbmsHelper {
   public FieldDefinition convertToFieldDefinition(DBAccessor.DBColumnInfo columnInfo) {
     int length = columnInfo.getLength() != null ? columnInfo.getLength() : 0;
     FieldDefinition fieldDefinition = new FieldDefinition(columnInfo.getName(), columnInfo.getType(), length);
+    if (columnInfo.getDbType() != null) {
+      StringWriter type = new StringWriter();
+      try {
+        databasePlatform.printFieldTypeSize(type, fieldDefinition, columnInfo.getDbType(), false);
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not render the explicit database column type", e);
+      }
+      fieldDefinition.setTypeDefinition(type.toString());
+    }
     fieldDefinition.setShouldAllowNull(columnInfo.isNullable());
 
     if (null != columnInfo.getDefaultValue() && isConstraintSupportedAfterNullability()) {

@@ -183,9 +183,9 @@ export default function StartAndTestKerberosClient() {
       <WizardFooter
         isNextEnabled={completionStatus || (hasFailed && ignoreErrors)}
         step={currentStep}
-        onNext={() => {
-            flushStateToDb("next");
-            handleNextImperitive();
+        onNext={async () => {
+            await flushStateToDb("next");
+            await handleNextImperitive();
         }}
         onCancel={() => {
           onExitPopUp(false, false);

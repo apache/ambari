@@ -22,7 +22,7 @@ import Modal from "../../components/Modal";
 import { Col, Row, Stack } from "react-bootstrap";
 import modalManager from "../../store/ModalManager";
 import { formatStatus, timeAgo } from "../../Utils/Utility";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 
 type ServiceAlertsProps = {
   serviceName: string;
@@ -165,7 +165,7 @@ function ServiceAlerts({
   alerts,
   alertsCount,
 }: ServiceAlertsProps) {
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   return (
     <>
       <div className="notification-bell me-3">

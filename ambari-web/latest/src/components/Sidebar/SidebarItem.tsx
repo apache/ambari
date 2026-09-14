@@ -44,6 +44,7 @@ import { serviceNameModelMapping } from "../../constants";
 import RunAllServiceCheck from "./RunAllServiceCheck";
 import { checkNnLastCheckpointTime } from "../../screens/Hosts/actions";
 import { get } from "lodash";
+import useClusterPath from "../../hooks/useClusterPath";
 
 // interface SidebarElement {
 //   id: string;
@@ -83,6 +84,7 @@ const SidebarItem = ({
   hasChildren = false,
 }: SidebarItemProps) => {
   const navigate = useNavigate();
+  const scopedPath = useClusterPath();
   const {
     clusterName,
     services: contextServices,
@@ -260,9 +262,9 @@ const SidebarItem = ({
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // If this is the Cluster Admin item and it's currently closed, navigate to the first admin route
     // Only navigate when opening the menu, not when closing it, and only if not already on an admin page
-    if (ele.id === "cluster_admin" && ele.sideItems && !isOpen && !location.pathname.startsWith("/main/admin")) {
+    if (ele.id === "cluster_admin" && ele.sideItems && !isOpen && !location.pathname.includes("/main/admin")) {
       e.preventDefault();
-      navigate("/main/admin");
+      navigate(scopedPath("/main/admin"));
     }
     // Call the original onClick handler
     if (onClick) {
@@ -272,7 +274,7 @@ const SidebarItem = ({
 
   return (
     <Link
-      to={ele.sideItems ? location.pathname : ele.path}
+      to={ele.sideItems ? location.pathname : scopedPath(ele.path)}
       className="text-decoration-none"
     >
       <div
@@ -313,7 +315,7 @@ const SidebarItem = ({
                 {canAddService && (
                   <Dropdown.Item
                     onClick={() => {
-                      navigate("/main/service/add/step1");
+                      navigate(scopedPath("/main/service/add/step1"));
                     }}
                   >
                     <FontAwesomeIcon icon={faAdd} className="me-1" />

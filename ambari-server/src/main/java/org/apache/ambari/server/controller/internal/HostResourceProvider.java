@@ -762,7 +762,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
         Set<Cluster> clustersForHost = clusters.getClustersForHost(h.getHostName());
         //todo: host can only belong to a single cluster
-        if (clustersForHost != null && clustersForHost.size() != 0) {
+        if (clustersForHost != null && clustersForHost.size() > 1) {
+          throw new AmbariException(String.format(
+              "Host %s has multiple cluster mappings; repair ClusterHostMapping before listing hosts",
+              h.getHostName()));
+        }
+        if (clustersForHost != null && !clustersForHost.isEmpty()) {
           Cluster clusterForHost = clustersForHost.iterator().next();
           r.setClusterName(clusterForHost.getClusterName());
           r.setDesiredHostConfigs(h.getDesiredHostConfigs(clusterForHost, null));
@@ -810,7 +815,11 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
         // table. This is done to detect duplicates during host create. In order to be robust, handle these gracefully.
         clusters.mapAndPublishHostsToCluster(new HashSet<>(Arrays.asList(request.getHostname())), clusterName);
       } catch (DuplicateResourceException e) {
-        // do nothing
+        boolean alreadyInRequestedCluster = clusters.getClustersForHost(request.getHostname()).stream()
+            .anyMatch(existingCluster -> existingCluster.getClusterName().equals(clusterName));
+        if (!alreadyInRequestedCluster) {
+          throw e;
+        }
       }
 
       boolean rackChange = updateHostRackInfoIfChanged(cluster, host, request);

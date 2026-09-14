@@ -17,11 +17,11 @@
  */
 
 import { useContext, useState, useEffect } from "react";
+import ClusterSwitchMenu from "./ClusterSwitchMenu";
 import UserSettingsModal from "./UserSettingsModal";
 import {
   Container,
   Navbar,
-  Nav,
   Dropdown,
   DropdownDivider,
   Badge,
@@ -54,6 +54,7 @@ import { openViewInstance, ViewInstance } from "../Utils/viewUtils";
 import DigitalClock from "./DigitalClock";
 import LanguageSelector from "./LanguageSelector";
 import { useTranslation } from "react-i18next";
+import useClusterPath from "../hooks/useClusterPath";
 
 type NavbarOption = {
   label: string;
@@ -111,6 +112,7 @@ export default function NavBar({
   const [showAmbariAboutModal, setShowAmbariAboutModal] = useState(false);
 
   const navigate = useNavigate();
+  const scopedPath = useClusterPath();
 
   const clusterNavigation = clusterNavigationEnabled(
     clusterControls,
@@ -164,7 +166,7 @@ export default function NavBar({
   };
 
   // Authorization hooks - implementing Ember.js showSettingsPopup authorization pattern
-  const { user, isClusterUser, logout } = useAuth();
+  const { user, canViewClusterTasks, logout } = useAuth();
   const { isAuthorized } = useAuthorizationPolicy();
 
   const handleSignOut = useCallback(async () => {
@@ -178,7 +180,9 @@ export default function NavBar({
   );
   const canSeeSettings = isAuthorized("AMBARI.MANAGE_SETTINGS");
   const canOpenSettings = isAuthorized("CLUSTER.UPGRADE_DOWNGRADE_STACK");
-  const canOpenBackgroundOperations = !isClusterUser();
+  const canOpenBackgroundOperations = Boolean(
+    clusterName && canViewClusterTasks(clusterName),
+  );
   const shouldShowDigitalClock = enableDigitalClock ??
     String(import.meta.env.VITE_ENABLE_DIGITAL_CLOCK || "").toLowerCase() ===
       "true";
@@ -198,7 +202,7 @@ export default function NavBar({
       ? [
           {
             label: t("app.manageAmbari"),
-            callback: () => void redirectToAdminView(),
+            callback: () => void redirectToAdminView("", clusterName),
           },
         ]
       : []),
@@ -239,16 +243,14 @@ export default function NavBar({
             style={{ fontSize: 24 }}
           >
             <div className="navbar-text ms-1 d-flex" style={{ fontSize: 24 }}>
-              <FontAwesomeIcon
-                className="me-1"
-                icon={faHome}
-                style={{
-                  fontSize: 24,
-                  cursor: clusterNavigation ? "pointer" : "default",
-                }}
-                aria-disabled={!clusterNavigation}
-                onClick={clusterNavigation ? () => navigate(homePath) : undefined}
-              />
+              <button
+                aria-label={t("directory.home")}
+                className="btn btn-link text-black me-1 p-0"
+                onClick={() => navigate(clusterNavigation ? scopedPath(homePath) : homePath)}
+                type="button"
+              >
+                <FontAwesomeIcon icon={faHome} style={{ fontSize: 24 }} />
+              </button>
               {hostname && hostMaintenanceState === "ON" ? (
                 <div className="d-flex align-items-center">
                   {subPath.split(hostname).map((part, index) => (
@@ -285,9 +287,7 @@ export default function NavBar({
               </>
             ) : null}
             <div style={{ width: "10px" }}></div>
-            <Nav.Link className="navbar-text navbar-size me-4">
-              {clusterName}
-            </Nav.Link>
+            <ClusterSwitchMenu />
             <div style={{ width: "20px" }}></div>
             {!clusterNavigation || !canOpenBackgroundOperations ? null : (
               <div

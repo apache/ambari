@@ -31,7 +31,8 @@
         "HBASE_CLIENT": {
           "STACK-SELECT-PACKAGE": "hbase-client",
           "INSTALL": [
-            "hbase-client"
+            "hbase-client",
+            "hadoop-client"
           ],
           "PATCH": [
             "hbase-client"
@@ -45,7 +46,8 @@
           "STACK-SELECT-PACKAGE": "hbase-master",
           "INSTALL": [
             "hbase-master",
-            "hbase-client"
+            "hbase-client",
+            "hadoop-client"
           ],
           "PATCH": [
             "hbase-master"
@@ -58,7 +60,8 @@
           "STACK-SELECT-PACKAGE": "hbase-regionserver",
           "INSTALL": [
             "hbase-regionserver",
-            "hbase-client"
+            "hbase-client",
+            "hadoop-client"
           ],
           "PATCH": [
             "hbase-regionserver"
@@ -70,7 +73,9 @@
         "HBASE_THRIFT": {
           "STACK-SELECT-PACKAGE": "hbase-master",
           "INSTALL": [
-            "hbase-master"
+            "hbase-master",
+            "hbase-client",
+            "hadoop-client"
           ],
           "PATCH": [
             "hbase-master"

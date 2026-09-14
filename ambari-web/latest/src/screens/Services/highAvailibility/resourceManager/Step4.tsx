@@ -55,7 +55,7 @@ function Step4() {
     flushStateToDb,
     stepWizardUtilities: { currentStep },
   } = useContext(EnableHighAvailibilityContext);
-  const { clusterName, services, ambariProperties } = useContext(AppContext);
+  const { clusterName, services, ambariProperties, navigateCluster } = useContext(AppContext);
   const { isLoaded: isKdcLoaded, getKDCSessionState } =
     useKDCSessionState(() => {});
   const assignment = getRmHaAssignment(
@@ -130,8 +130,7 @@ function Step4() {
     try {
       await flushStateToDb("complete");
       modalManager.hide();
-      window.location.href = "/#/main/services/YARN/summary";
-      window.location.reload();
+      navigateCluster("/main/services/YARN/summary");
     } catch (error) {
       setWorkflowError(
         responseErrorMessage(

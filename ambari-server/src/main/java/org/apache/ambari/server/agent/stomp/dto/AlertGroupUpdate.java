@@ -66,6 +66,11 @@ public class AlertGroupUpdate {
     this.id = id;
   }
 
+  public AlertGroupUpdate(Long id, Long clusterId) {
+    this.id = id;
+    this.clusterId = clusterId;
+  }
+
   public Long getClusterId() {
     return clusterId;
   }

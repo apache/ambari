@@ -53,6 +53,14 @@ public class TopologyRequestDAO {
   }
 
   @RequiresSession
+  public TopologyRequestEntity findProvisionByClusterId(long clusterId) {
+    TypedQuery<TopologyRequestEntity> query = entityManagerProvider.get()
+        .createNamedQuery("TopologyRequestEntity.findProvisionByClusterId", TopologyRequestEntity.class);
+    query.setParameter("clusterId", clusterId);
+    return daoUtils.selectOne(query);
+  }
+
+  @RequiresSession
   public List<TopologyRequestEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), TopologyRequestEntity.class);
   }
@@ -94,4 +102,3 @@ public class TopologyRequestDAO {
       remove(topologyRequestEntity);
   }
 }
-

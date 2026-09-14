@@ -876,14 +876,15 @@ const deleteHostCall = async (context: any) => {
   const hostName = get(context, "host.hostName", "");
   try {
     await HostsApi.deleteHost(clusterName, hostName);
-    deleteHostCallSuccessCallback();
+    deleteHostCallSuccessCallback(context);
   } catch (error) {
     deleteHostCallErrorCallback(error);
   }
 };
 
-const deleteHostCallSuccessCallback = () => {
-  window.location.href = "#/main/hosts";
+const deleteHostCallSuccessCallback = (context: any) => {
+  const navigateCluster = get(context, "navigateCluster");
+  navigateCluster?.("/main/hosts");
 };
 
 const deleteHostCallErrorCallback = (error: any) => {

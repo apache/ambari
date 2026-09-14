@@ -17,8 +17,8 @@
  */
 
 import React, { useContext } from 'react';
-import { Navigate } from 'react-router-dom';
 import { AppContext } from '../store/context';
+import ScopedNavigate from './ScopedNavigate';
 
 interface UpgradeGuardProps {
   children: React.ReactNode;
@@ -45,7 +45,7 @@ export const UpgradeGuard: React.FC<UpgradeGuardProps> = ({
 
   // If upgrade is blocking, redirect to dashboard
   if (isUpgradeBlocking) {
-    return <Navigate to={redirectTo} replace />;
+    return <ScopedNavigate to={redirectTo} replace />;
   }
 
   return <>{children}</>;

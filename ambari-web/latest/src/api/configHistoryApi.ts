@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 
 const HISTORY_FIELDS = [
@@ -34,7 +35,7 @@ const HISTORY_FIELDS = [
 
 const ConfigHistoryApi = {
   fetchTotal: async (clusterName: string) => {
-    const url = `/clusters/${clusterName}/configurations/service_config_versions?page_size=1&minimal_response=true`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/configurations/service_config_versions?page_size=1&minimal_response=true`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -43,7 +44,7 @@ const ConfigHistoryApi = {
   },
   fetchConfigHistory: async (clusterName: string, parameters: string) => {
     const prefix = parameters ? `${parameters}&` : "";
-    const url = `/clusters/${clusterName}/configurations/service_config_versions?${prefix}fields=${HISTORY_FIELDS}&minimal_response=true`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/configurations/service_config_versions?${prefix}fields=${HISTORY_FIELDS}&minimal_response=true`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -61,7 +62,7 @@ const ConfigHistoryApi = {
       throw new Error(`Unsupported config history suggestion field: ${field}`);
     }
     const response = await ambariApi.request({
-      url: `/clusters/${clusterName}/configurations/service_config_versions`,
+      url: `/clusters/${apiPathSegment(clusterName)}/configurations/service_config_versions`,
       method: "GET",
       params: { fields: field, minimal_response: true },
     });

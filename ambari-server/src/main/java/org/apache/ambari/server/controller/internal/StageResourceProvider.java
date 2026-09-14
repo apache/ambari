@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,18 +45,20 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +72,10 @@ import com.google.common.collect.ImmutableSet;
 public class StageResourceProvider extends AbstractControllerResourceProvider implements ExtendedResourceProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(StageResourceProvider.class);
+  private static final Set<RoleAuthorization> VIEW_AUTHORIZATIONS = EnumSet.of(
+      RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+      RoleAuthorization.HOST_VIEW_STATUS_INFO,
+      RoleAuthorization.SERVICE_VIEW_STATUS_INFO);
 
   /**
    * Used for querying stage resources.
@@ -181,10 +188,21 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     if (iterator.hasNext()) {
 
       Map<String,Object> updateProperties = iterator.next();
+      Set<RoleAuthorization> updateAuthorizations =
+          EnumSet.of(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK);
+      StageQuery query = getStageQuery(predicate);
+      Long requestedClusterId = query.directLookup
+          ? getRequestedClusterId(query.clusterName, updateAuthorizations) : null;
 
       List<StageEntity> entities = dao.findAll(request, predicate);
       for (StageEntity entity : entities) {
+        if (query.directLookup && !query.matchesIdentifiers(entity)) {
+          throw new AuthorizationException("The stage does not belong to the requested parent");
+        }
+        authorizeStage(entity, requestedClusterId, updateAuthorizations, true);
+      }
 
+      for (StageEntity entity : entities) {
         String stageStatus = (String) updateProperties.get(STAGE_STATUS);
         if (stageStatus != null) {
           HostRoleStatus desiredStatus = HostRoleStatus.valueOf(stageStatus);
@@ -216,50 +234,146 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     // !!! poor mans cache.  toResource() shouldn't be calling the db
     // every time, when the request id is likely the same for each stageEntity
     Map<Long, Map<Long, HostRoleCommandStatusSummaryDTO>> cache = new HashMap<>();
+    StageQuery query = getStageQuery(predicate);
+    Long requestedClusterId = query.directLookup
+        ? getRequestedClusterId(query.clusterName, VIEW_AUTHORIZATIONS) : null;
 
     List<StageEntity> entities = dao.findAll(request, predicate);
     for (StageEntity entity : entities) {
-      results.add(StageResourceProvider.toResource(cache, entity, propertyIds));
-    }
-
-    cache.clear();
-
-    // !!! check the id passed to see if it's a LogicalRequest.  This safeguards against
-    // iterating all stages for all requests.  That is a problem when the request
-    // is for an Upgrade, but was pulling the data anyway.
-    Map<String, Object> map = PredicateHelper.getProperties(predicate);
-
-    if (map.containsKey(STAGE_REQUEST_ID)) {
-      Long requestId = NumberUtils.toLong(map.get(STAGE_REQUEST_ID).toString());
-      LogicalRequest lr = topologyManager.getRequest(requestId);
-
-      if (null != lr) {
-        Collection<StageEntity> topologyManagerStages = lr.getStageEntities();
-        // preload summaries as it contains summaries for all stages within this request
-        Map<Long, HostRoleCommandStatusSummaryDTO> summary = topologyManager.getStageSummaries(requestId);
-        cache.put(requestId, summary);
-        for (StageEntity entity : topologyManagerStages) {
-          Resource stageResource = toResource(cache, entity, propertyIds);
-          if (predicate.evaluate(stageResource)) {
-            results.add(stageResource);
-          }
-        }
+      if (query.directLookup && !query.matchesIdentifiers(entity)) {
+        throw new AuthorizationException("The stage does not belong to the requested parent");
       }
-    } else {
-      Collection<StageEntity> topologyManagerStages = topologyManager.getStages();
-      for (StageEntity entity : topologyManagerStages) {
-        if (!cache.containsKey(entity.getRequestId())) {
-          Map<Long, HostRoleCommandStatusSummaryDTO> summary = topologyManager.getStageSummaries(entity.getRequestId());
-          cache.put(entity.getRequestId(), summary);
-        }
-        Resource stageResource = toResource(cache, entity, propertyIds);
-        if (predicate.evaluate(stageResource)) {
+      if (authorizeStage(entity, requestedClusterId, VIEW_AUTHORIZATIONS, query.directLookup)) {
+        Resource stageResource = StageResourceProvider.toResource(cache, entity, propertyIds);
+        if (predicate == null || predicate.evaluate(stageResource)) {
           results.add(stageResource);
         }
       }
     }
 
+    Collection<StageEntity> topologyManagerStages = new LinkedHashSet<>();
+    if (query.requestIds.isEmpty()) {
+      topologyManagerStages.addAll(topologyManager.getStages());
+    } else {
+      for (Long requestId : query.requestIds) {
+        LogicalRequest logicalRequest = topologyManager.getRequest(requestId);
+        if (logicalRequest != null) {
+          topologyManagerStages.addAll(logicalRequest.getStageEntities());
+          cache.put(requestId, topologyManager.getStageSummaries(requestId));
+        }
+      }
+    }
+    for (StageEntity entity : topologyManagerStages) {
+      if (query.directLookup && !query.matchesIdentifiers(entity)) {
+        continue;
+      }
+      if (!authorizeStage(entity, requestedClusterId, VIEW_AUTHORIZATIONS, query.directLookup)) {
+        continue;
+      }
+      if (!cache.containsKey(entity.getRequestId())) {
+        cache.put(entity.getRequestId(), topologyManager.getStageSummaries(entity.getRequestId()));
+      }
+      Resource stageResource = toResource(cache, entity, propertyIds);
+      if (predicate == null || predicate.evaluate(stageResource)) {
+        results.add(stageResource);
+      }
+    }
+
     return results;
+  }
+
+  private Long getRequestedClusterId(String clusterName,
+      Set<RoleAuthorization> authorizations)
+      throws NoSuchParentResourceException, AuthorizationException {
+    if (clusterName == null) {
+      return null;
+    }
+    try {
+      Cluster cluster = clustersProvider.get().getCluster(clusterName);
+      verifyAuthorization(cluster, authorizations);
+      return cluster.getClusterId();
+    } catch (AuthorizationException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new NoSuchParentResourceException("The requested cluster is unavailable", e);
+    }
+  }
+
+  private StageQuery getStageQuery(Predicate predicate) {
+    Set<Long> requestIds = new HashSet<>();
+    Set<Long> stageIds = new HashSet<>();
+    Set<Map<String, Object>> propertyMaps = Collections.emptySet();
+    String clusterName = null;
+    if (predicate != null) {
+      propertyMaps = getPropertyMaps(predicate);
+      for (Map<String, Object> propertyMap : propertyMaps) {
+        addLong(requestIds, propertyMap.get(STAGE_REQUEST_ID), "request ID");
+        addLong(stageIds, propertyMap.get(STAGE_STAGE_ID), "stage ID");
+      }
+    }
+    boolean directLookup = propertyMaps.size() == 1 && !stageIds.isEmpty();
+    if (directLookup) {
+      Object value = propertyMaps.iterator().next().get(STAGE_CLUSTER_NAME);
+      clusterName = value == null ? null : String.valueOf(value);
+    }
+    return new StageQuery(clusterName, requestIds, stageIds, directLookup);
+  }
+
+  private void addLong(Set<Long> values, Object value, String label) {
+    if (value != null) {
+      try {
+        values.add(Long.valueOf(String.valueOf(value)));
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Invalid stage " + label, e);
+      }
+    }
+  }
+
+  private boolean authorizeStage(StageEntity entity, Long requestedClusterId,
+      Set<RoleAuthorization> authorizations, boolean failIfUnauthorized)
+      throws AuthorizationException {
+    Long actualClusterId = entity.getClusterId();
+    if (requestedClusterId != null && !requestedClusterId.equals(actualClusterId)) {
+      if (failIfUnauthorized) {
+        throw new AuthorizationException("The stage does not belong to the requested cluster");
+      }
+      return false;
+    }
+    if (actualClusterId == null || actualClusterId == -1L) {
+      RoleAuthorization ambariAuthorization =
+          authorizations.contains(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK)
+              ? RoleAuthorization.AMBARI_MANAGE_CONFIGURATION
+              : RoleAuthorization.AMBARI_VIEW_STATUS_INFO;
+      boolean authorized = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+          ambariAuthorization);
+      if (!authorized && failIfUnauthorized) {
+        throw new AuthorizationException("The authenticated user is not authorized to access the stage");
+      }
+      return authorized;
+    }
+
+    try {
+      Cluster cluster = clustersProvider.get().getClusterById(actualClusterId);
+      if (AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), authorizations)) {
+        return true;
+      }
+    } catch (Exception e) {
+      if (e instanceof AuthorizationException) {
+        throw (AuthorizationException) e;
+      }
+      throw new AuthorizationException("The stage cluster is unavailable");
+    }
+    if (failIfUnauthorized) {
+      throw new AuthorizationException("The authenticated user is not authorized to access the stage");
+    }
+    return false;
+  }
+
+  private void verifyAuthorization(Cluster cluster, Set<RoleAuthorization> authorizations)
+      throws AuthorizationException {
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), authorizations)) {
+      throw new AuthorizationException("The authenticated user is not authorized to access the cluster");
+    }
   }
 
 
@@ -353,6 +467,26 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_DISPLAY_STATUS, status.getDisplayStatus(), requestedIds);
 
     return resource;
+  }
+
+  private static final class StageQuery {
+    private final String clusterName;
+    private final Set<Long> requestIds;
+    private final Set<Long> stageIds;
+    private final boolean directLookup;
+
+    private StageQuery(String clusterName, Set<Long> requestIds,
+        Set<Long> stageIds, boolean directLookup) {
+      this.clusterName = clusterName;
+      this.requestIds = requestIds;
+      this.stageIds = stageIds;
+      this.directLookup = directLookup;
+    }
+
+    private boolean matchesIdentifiers(StageEntity entity) {
+      return (requestIds.isEmpty() || requestIds.contains(entity.getRequestId()))
+          && (stageIds.isEmpty() || stageIds.contains(entity.getStageId()));
+    }
   }
 
 }

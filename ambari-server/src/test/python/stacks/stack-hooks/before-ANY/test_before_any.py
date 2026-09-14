@@ -27,8 +27,39 @@ import os
 
 
 @patch.object(Hook, "run_custom_hook", new=MagicMock())
+@patch("ambari_commons.os_check.linux_distribution",
+    new=MagicMock(return_value=("Suse", "11", "Final")))
 class TestHookBeforeInstall(RMFTestCase):
   TMP_PATH = "/tmp/hbase-hbase"
+
+  @patch.object(getpass, "getuser", new=MagicMock(return_value="some_user"))
+  @patch("tempfile.mkdtemp", new=MagicMock(return_value="/tmp/jdk_tmp_dir"))
+  def test_hbase_initialization_uses_command_configuration(self):
+    for includes_hbase_configuration in (False, True):
+      with self.subTest(includes_hbase_configuration=includes_hbase_configuration):
+        _, configs_path = self._get_test_paths(RMFTestCase.TARGET_STACK_HOOKS, None)
+        config = self.get_config_file(configs_path, "default.json")
+        config["clusterHostInfo"]["hbase_master_hosts"] = ["another-host.example.org"]
+        if not includes_hbase_configuration:
+          del config["configurations"]["hbase-env"]
+        with patch("os.path.exists", side_effect=lambda path: path == "/etc/hadoop/conf"), \
+            patch("os.path.isfile", side_effect=[False, True, True, True, True]):
+          self.executeScript(
+            "before-ANY/scripts/hook.py",
+            classname="BeforeAnyHook",
+            command="hook",
+            target=RMFTestCase.TARGET_STACK_HOOKS,
+            config_dict=config,
+            call_mocks=itertools.cycle([(0, "1000")]),
+          )
+        directories = [
+          resource for resource in RMFTestCase.env.resource_list
+          if resource.__class__.__name__ == "Directory" and resource.name == self.TMP_PATH
+        ]
+        self.assertEqual(1 if includes_hbase_configuration else 0, len(directories))
+        if directories:
+          self.assertEqual(config["configurations"]["hbase-env"]["hbase_user"],
+              directories[0].arguments["owner"])
 
   @patch("os.path.isfile")
   @patch.object(getpass, "getuser", new=MagicMock(return_value="some_user"))

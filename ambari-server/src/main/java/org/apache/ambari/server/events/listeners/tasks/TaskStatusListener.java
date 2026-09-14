@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -48,6 +49,7 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.StageEntityPK;
+import org.apache.ambari.server.state.Clusters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,13 +101,17 @@ public class TaskStatusListener {
 
   private NamedTasksSubscriptions namedTasksSubscriptions;
 
+  private Clusters clusters;
+
   @Inject
   public TaskStatusListener(TaskEventPublisher taskEventPublisher, StageDAO stageDAO, RequestDAO requestDAO,
-                            STOMPUpdatePublisher STOMPUpdatePublisher, NamedTasksSubscriptions namedTasksSubscriptions) {
+                            STOMPUpdatePublisher STOMPUpdatePublisher, NamedTasksSubscriptions namedTasksSubscriptions,
+                            Clusters clusters) {
     this.stageDAO = stageDAO;
     this.requestDAO = requestDAO;
     this.STOMPUpdatePublisher = STOMPUpdatePublisher;
     this.namedTasksSubscriptions = namedTasksSubscriptions;
+    this.clusters = clusters;
     taskEventPublisher.register(this);
   }
 
@@ -164,13 +170,16 @@ public class TaskStatusListener {
           // Ignore requests not related to any cluster. "requests" topic is used for cluster requests only.
           Long clusterId = activeRequestMap.get(hostRoleCommand.getRequestId()).getClusterId();
           if (clusterId != null && clusterId != -1) {
-            Set<RequestUpdateEvent.HostRoleCommand> hostRoleCommands = new HashSet<>();
-            hostRoleCommands.add(new RequestUpdateEvent.HostRoleCommand(hostRoleCommand.getTaskId(),
-                hostRoleCommand.getRequestId(),
-                hostRoleCommand.getStatus(),
-                hostRoleCommand.getHostName()));
-            requestsToPublish.add(new RequestUpdateEvent(hostRoleCommand.getRequestId(),
-                activeRequestMap.get(hostRoleCommand.getRequestId()).getStatus(), hostRoleCommands));
+            String clusterName = resolveClusterName(clusterId, hostRoleCommand.getRequestId());
+            if (clusterName != null) {
+              Set<RequestUpdateEvent.HostRoleCommand> hostRoleCommands = new HashSet<>();
+              hostRoleCommands.add(new RequestUpdateEvent.HostRoleCommand(hostRoleCommand.getTaskId(),
+                  hostRoleCommand.getRequestId(),
+                  hostRoleCommand.getStatus(),
+                  hostRoleCommand.getHostName()));
+              requestsToPublish.add(new RequestUpdateEvent(hostRoleCommand.getRequestId(),
+                  activeRequestMap.get(hostRoleCommand.getRequestId()).getStatus(), hostRoleCommands, clusterName));
+            }
           } else {
             LOG.debug("No STOMP request update event was fired for host component status change due no cluster related, " +
                     "request id: {}, role: {}, role command: {}, host: {}, task id: {}, old state: {}, new state: {}",
@@ -199,6 +208,21 @@ public class TaskStatusListener {
       LOG.info(String.format("NamedTaskUpdateEvent with id %s will be send", namedTaskUpdateEvent.getId()));
       STOMPUpdatePublisher.publish(namedTaskUpdateEvent);
     }
+  }
+
+  private String resolveClusterName(Long clusterId, Long requestId) {
+    try {
+      String clusterName = clusters.getCluster(clusterId).getClusterName();
+      if (clusterName != null && !clusterName.isEmpty()) {
+        return clusterName;
+      }
+    } catch (AmbariException | RuntimeException exception) {
+      LOG.warn("Skipping STOMP update for request {} because cluster {} cannot be resolved ({})",
+          requestId, clusterId, exception.getClass().getSimpleName());
+      return null;
+    }
+    LOG.warn("Skipping STOMP update for request {} because cluster {} has no name", requestId, clusterId);
+    return null;
   }
 
   /**

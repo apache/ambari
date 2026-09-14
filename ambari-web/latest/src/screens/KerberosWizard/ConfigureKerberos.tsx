@@ -44,6 +44,7 @@ import {
   runKerberosConfiguration,
 } from "../../Utils/kerberosWizard";
 import { responseErrorMessage } from "../../Utils/httpError";
+import { runAfterWorkflowCheckpoint } from "../../Utils/scopedWorkflow";
 
 export default function ConfigureKerberos() {
   const {
@@ -603,13 +604,16 @@ export default function ConfigureKerberos() {
           setIsSubmitting(true);
           setSubmitError("");
           try {
-            await onSubmitConfigureKerberos();
+            await runAfterWorkflowCheckpoint(
+              () => flushStateToDb(),
+              onSubmitConfigureKerberos,
+            );
             if (isManualKdcPlan(kdcType)) {
-              flushStateToDb("jump", 4);
+              await flushStateToDb("jump", 4);
               jumpToStep(4, true);
             } else {
-              flushStateToDb("next");
-              handleNextImperitive();
+              await flushStateToDb("next");
+              await handleNextImperitive();
             }
           } catch (error) {
             setSubmitError(responseErrorMessage(

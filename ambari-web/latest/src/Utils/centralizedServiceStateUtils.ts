@@ -25,13 +25,14 @@ import { cloneDeep, isEqual } from "lodash";
  * This replaces individual ServiceApi.getServiceState() calls across all service updaters
  */
 export const updateServiceAlertsAndStateFromCentralizedApi = (
+  runtimeKey: string,
   serviceName: string,
   serviceModelKey: string,
   allServiceModels: any,
   updateRegistry: Function
 ): boolean => {
   // Use centralized service state API instead of individual call
-  const serviceStateData = centralizedServiceStateApi.getServiceStateData(serviceName);
+  const serviceStateData = centralizedServiceStateApi.getServiceStateData(runtimeKey, serviceName);
   
   if (!serviceStateData || !allServiceModels[serviceModelKey]) {
     return false;

@@ -17,6 +17,7 @@
  */
 
 import axios from "axios";
+import { ambariApplicationRoot } from "../../utils/navigation";
 import { toast } from "react-hot-toast";
 import { get } from "lodash";
 
@@ -26,11 +27,13 @@ const createAxiosInstance = (baseURL: string, headers = {}) => {
     withCredentials: true,
     headers: {
       "Content-Type": "application/json",
+      "X-Requested-By": "ambari-admin",
       ...headers,
     },
   });
 
   instance.interceptors.response.use(undefined, (error) => {
+    if (axios.isCancel(error)) return Promise.reject(error);
     const responseMessage = get(error, "response.data.message", undefined);
     if (responseMessage) {
       toast.error(responseMessage);
@@ -43,4 +46,4 @@ const createAxiosInstance = (baseURL: string, headers = {}) => {
   return instance;
 };
 
-export const adminApi = createAxiosInstance("/api/v1");
+export const adminApi = createAxiosInstance(`${ambariApplicationRoot(window.location.pathname)}api/v1`);

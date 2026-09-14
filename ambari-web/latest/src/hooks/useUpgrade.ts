@@ -24,16 +24,19 @@ import { StackVersion, UpgradeData, UpgradeGroup, UpgradeItem, UpgradeParameters
 import { get, merge, set } from "lodash";
 import { failedStatuses, activeStatuses, getUpgradeRequestStatus } from "../Utils/Utility";
 import { AppContext } from "../store/context";
-import ClusterApi from "../api/clusterApi";
 import {
   isTerminalUpgradeStatus,
   serviceCheckFailureSummary,
   skippedServiceCheckNames,
   slaveComponentFailureDetails,
 } from "../screens/ClusterAdmin/StackAndVersions/upgradeUtils";
-import { persistedPayload } from "../Utils/persistedSettings";
+import type { ClusterWorkflowPersistence } from "../Utils/scopedWorkflow";
 
-export function useUpgrade(upgradeId: number, onlyView: boolean) {
+export function useUpgrade(
+  upgradeId: number,
+  onlyView: boolean,
+  workflowPersistence?: ClusterWorkflowPersistence | null,
+) {
   const [data, setData] = useState<UpgradeData | null>(null);
   const [groups, setGroups] = useState<UpgradeGroup[]>([]);
   const [currUpgradeItem, setCurrUpgradeItem] = useState<UpgradeItem | null>(null);
@@ -45,6 +48,7 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
   const [detailLoadAttempt, setDetailLoadAttempt] = useState(0);
   const failureDetailsCache = useRef(new Map<string, any>());
   const completedUpgradeHandled = useRef(false);
+  const persistedFinalizeItem = useRef<boolean | null>(null);
   const hasLoadedData = useRef(false);
   const [upgradeParameters, setUpgradeParameters] = useState<UpgradeParameters>({
     isDowngrade: false,
@@ -107,6 +111,7 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
   useEffect(() => {
     hasLoadedData.current = false;
     completedUpgradeHandled.current = false;
+    persistedFinalizeItem.current = null;
     failureDetailsCache.current.clear();
   }, [clusterName, upgradeId]);
 
@@ -137,17 +142,23 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
         setCurrentStackVersion(get(data, "Upgrade.associated_version", ""));
         setUpgradeState("NOT_REQUIRED");
         setUpgradeIsFinalizeItem(false);
-        void ClusterApi.postPersistData(persistedPayload({
-          upgradeIsFinalizeItem: false,
-          "wizard-data": {},
-        })).catch(() => {
-          toast.error("The completed upgrade state could not be persisted in this browser");
-        }).finally(() => window.location.reload());
+        void (async () => {
+          try {
+            if (!workflowPersistence) {
+              throw new Error("Upgrade completion requires an explicit cluster target.");
+            }
+            await workflowPersistence.release();
+          } catch {
+            toast.error("The completed upgrade state could not be persisted in this browser");
+          } finally {
+            window.location.reload();
+          }
+        })();
       }
     } else if (isTerminalUpgradeStatus(data.Upgrade?.request_status)) {
       stopPolling();
     }
-  }, [data, onlyView, setCurrentStackVersion, setUpgradeIsFinalizeItem, setUpgradeState, stopPolling]);
+  }, [data, onlyView, setCurrentStackVersion, setUpgradeIsFinalizeItem, setUpgradeState, stopPolling, workflowPersistence]);
 
   useEffect(() => {
     let active = true;
@@ -271,11 +282,20 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
       if (!active) return;
       if (!onlyView) {
         setUpgradeIsFinalizeItem(isFinalizeItem);
-        await ClusterApi.postPersistData(
-          persistedPayload({ upgradeIsFinalizeItem: isFinalizeItem }),
-        ).catch(() => {
-          toast.error("The current upgrade step could not be persisted in this browser");
-        });
+        if (persistedFinalizeItem.current !== isFinalizeItem) {
+          try {
+            if (!workflowPersistence) {
+              throw new Error("Upgrade progress requires an explicit cluster target.");
+            }
+            await workflowPersistence.savePersistData(
+              { upgradeIsFinalizeItem: isFinalizeItem },
+              isFinalizeItem ? "FINALIZE" : "RUNNING",
+            );
+            persistedFinalizeItem.current = isFinalizeItem;
+          } catch {
+            toast.error("The current upgrade step could not be persisted in this browser");
+          }
+        }
       }
 
       setUpgradeParameters((previous) => ({
@@ -319,7 +339,7 @@ export function useUpgrade(upgradeId: number, onlyView: boolean) {
     return () => {
       active = false;
     };
-  }, [clusterName, data, detailLoadAttempt, groups, onlyView, setUpgradeIsFinalizeItem, upgradeId]);
+  }, [clusterName, data, detailLoadAttempt, groups, onlyView, setUpgradeIsFinalizeItem, upgradeId, workflowPersistence]);
 
   const mergeGroups = (
     prevGroups: UpgradeGroup[],

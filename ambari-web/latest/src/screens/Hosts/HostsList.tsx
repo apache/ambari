@@ -46,7 +46,7 @@ import Table from "../../components/Table";
 import bytesToSize from "../../Utils/numberUtils";
 import Modal from "../../components/Modal";
 import Tooltip from "../../components/Tooltip";
-import { Link } from "react-router-dom";
+import ScopedLink from "../../components/ScopedLink";
 import { ComponentStatus, HostStatus } from "./enums";
 import { serviceNameToModelKeyMap, sortByColIdToKeyMapping } from "./constants";
 import NestedDropdown from "../../components/NestedDropdown";
@@ -550,18 +550,18 @@ export default function HostsList() {
     return (
       <div className="d-flex">
         <div className="me-1">{getHostStatusIcon(hostData)}</div>
-        <Link to={`/main/hosts/${hostName}/summary`} className="custom-link">
+        <ScopedLink to={`/main/hosts/${hostName}/summary`} className="custom-link">
           <div className="me-1">{hostName}</div>
-        </Link>
+        </ScopedLink>
         <div className="me-1">
           {alertsCount > 0 ? (
-            <Link to={`/main/hosts/${hostName}/alerts`}>
+            <ScopedLink to={`/main/hosts/${hostName}/alerts`}>
               <Button
                 className={`me-1 ${alertsStyleClass} text-white fs-10 rounded-1 px-1 py-0`}
               >
                 {alertsCount}
               </Button>
-            </Link>
+            </ScopedLink>
           ) : null}
         </div>
         <div className="me-1">
@@ -1123,13 +1123,13 @@ export default function HostsList() {
     if (canAddDeleteHosts) {
       submenu.push({
         label: (
-          <Link
+          <ScopedLink
             to={"/main/host/add/step1"}
             className="text-reset text-decoration-none"
           >
             <FontAwesomeIcon icon={faPlus} className="me-1" />
             {translate("hosts.host.add")}
-          </Link>
+          </ScopedLink>
         ),
       });
     }

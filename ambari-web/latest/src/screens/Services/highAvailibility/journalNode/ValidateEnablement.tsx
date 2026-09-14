@@ -23,17 +23,19 @@ import Spinner from "../../../../components/Spinner";
 import useStepWizard from "../../../../hooks/useStepWizard";
 import wizardSteps from "./wizardSteps";
 import StepWizard from "../../../../components/StepWizard";
-import ClusterApi from "../../../../api/clusterApi";
 import { LocalStorageOps } from "../../../../Utils/LocalStorageOps";
 import { ManageJournalNodesProvider } from "./store/context";
 import { ServiceContext } from "../../../../store/ServiceContext";
 import { AppContext } from "../../../../store/context";
+import {
+  clusterHashPath,
+} from "../../../../Utils/clusterRoute";
 
 function ValidateEnablement() {
   const { allServiceModels } = useContext(ServiceContext);
-  const { allHostNames, supports } = useContext(AppContext);
+  const { clusterName, allHostNames, supports, navigateCluster } = useContext(AppContext);
   const stepWizardUtilities = useStepWizard(wizardSteps, 0, () => {
-    window.location.href = "/#/main/services/HDFS/summary";
+    navigateCluster("/main/services/HDFS/summary");
   });
   const [canStartEnablement, setCanStartEnablement] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -136,24 +138,19 @@ function ValidateEnablement() {
       {showModal ? (
         <Modal
           isOpen={showModal}
-          onClose={async () => {
-            await ClusterApi.postPersistData(
-              JSON.stringify({
-                USER_REDIRECTION_URL: "",
-              })
-            );
+          onClose={() => {
             setShowModal(false);
             LocalStorageOps.setItem(
               "lastVisitedURL",
-              "/#/main/services/HDFS/summary"
+              clusterHashPath(clusterName, "/main/services/HDFS/summary")
             );
-            window.location.href = "/#/main/services/HDFS/summary";
+            navigateCluster("/main/services/HDFS/summary");
           }}
           modalTitle="Manage JournalNodes Wizard"
           modalBody={getModalBodyContent()}
           successCallback={() => {
             setShowModal(false);
-            window.location.href = "/#/main/services/HDFS/summary";
+            navigateCluster("/main/services/HDFS/summary");
           }}
           options={{
             shouldShowFooter:

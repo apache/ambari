@@ -77,8 +77,7 @@ App.LocalStorage = Em.Mixin.create({
    * Usually this function is called on quiting/completing the wizard
    */
   resetDbNamespace: function() {
-    App.db.data[this.get('dbNamespace')] =  {};
-    localStorage.setObject('ambari', App.db.data);
+    App.db.resetWorkflowNamespace(this.get('dbNamespace'));
   }
 
 });

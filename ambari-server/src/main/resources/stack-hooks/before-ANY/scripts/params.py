@@ -218,7 +218,13 @@ mapred_log_dir_prefix = default(
 hadoop_env_sh_template = config["configurations"]["hadoop-env"]["content"]
 
 # users and groups
-hbase_user = config["configurations"]["hbase-env"]["hbase_user"]
+# The command configuration, not cluster-wide role inventory, owns which
+# service-specific user initialization this host can perform.
+has_hbase_configuration = "hbase-env" in config["configurations"]
+hbase_user = (
+  config["configurations"]["hbase-env"]["hbase_user"]
+  if has_hbase_configuration else None
+)
 smoke_user = config["configurations"]["cluster-env"]["smokeuser"]
 tez_user = config["configurations"]["tez-env"]["tez_user"]
 oozie_user = config["configurations"]["oozie-env"]["oozie_user"]
@@ -230,7 +236,6 @@ zeppelin_group = config["configurations"]["zeppelin-env"]["zeppelin_group"]
 user_group = config["configurations"]["cluster-env"]["user_group"]
 
 hdfs_client_hosts = default("/clusterHostInfo/hdfs_client_hosts", [])
-hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
@@ -242,7 +247,6 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 
 has_hdfs_clients = not len(hdfs_client_hosts) == 0
 has_tez = "tez-site" in config["configurations"]
-has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
@@ -328,7 +332,7 @@ fetch_nonlocal_groups = config["configurations"]["cluster-env"]["fetch_nonlocal_
 smoke_user_dirs = format(
   "/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}"
 )
-if has_hbase_masters:
+if has_hbase_configuration:
   hbase_user_dirs = format(
     "/home/{hbase_user},/tmp/{hbase_user},/usr/bin/{hbase_user},/var/log/{hbase_user},{hbase_tmp_dir}"
   )

@@ -1740,13 +1740,9 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    Set<String> hostnames = new HashSet<>();
-    hostnames.add(host1);
-    hostnames.add(host2);
-    hostnames.add(host3);
-    clusters.mapAndPublishHostsToCluster(hostnames, clusterFoo);
-    clusters.mapAndPublishHostsToCluster(hostnames, cluster1);
-    clusters.mapAndPublishHostsToCluster(hostnames, cluster2);
+    clusters.mapAndPublishHostsToCluster(Collections.singleton(host1), clusterFoo);
+    clusters.mapAndPublishHostsToCluster(Collections.singleton(host2), cluster1);
+    clusters.mapAndPublishHostsToCluster(Collections.singleton(host3), cluster2);
     clusters.updateHostMappings(clusters.getHost(host1));
     clusters.updateHostMappings(clusters.getHost(host2));
     clusters.updateHostMappings(clusters.getHost(host3));
@@ -1759,9 +1755,9 @@ public class AmbariManagementControllerTest {
     try {
       set1.clear();
       ServiceComponentHostRequest rInvalid1 =
-          new ServiceComponentHostRequest(clusterFoo, "HDFS", "NAMENODE", host2, null);
+          new ServiceComponentHostRequest(cluster1, "HDFS", "NAMENODE", host2, null);
       ServiceComponentHostRequest rInvalid2 =
-          new ServiceComponentHostRequest(clusterFoo, "HDFS", "NAMENODE", host2, null);
+          new ServiceComponentHostRequest(cluster1, "HDFS", "NAMENODE", host2, null);
       set1.add(rInvalid1);
       set1.add(rInvalid2);
       controller.createHostComponents(set1);
@@ -1792,7 +1788,7 @@ public class AmbariManagementControllerTest {
           new ServiceComponentHostRequest(clusterFoo, "HDFS", "NAMENODE", host1,
               null);
       ServiceComponentHostRequest rInvalid2 =
-          new ServiceComponentHostRequest(clusterFoo, "HDFS", "NAMENODE", host2,
+          new ServiceComponentHostRequest(clusterFoo, "HDFS", "NAMENODE", host1,
               null);
       set1.add(rInvalid1);
       set1.add(rInvalid2);
@@ -1808,21 +1804,21 @@ public class AmbariManagementControllerTest {
 
     set1.clear();
     ServiceComponentHostRequest valid1 =
-        new ServiceComponentHostRequest(cluster1, "HDFS", "NAMENODE", host1,
+        new ServiceComponentHostRequest(cluster1, "HDFS", "NAMENODE", host2,
             null);
     set1.add(valid1);
     controller.createHostComponents(set1);
 
     set1.clear();
     ServiceComponentHostRequest valid2 =
-        new ServiceComponentHostRequest(cluster2, "HDFS", "NAMENODE", host1,
+        new ServiceComponentHostRequest(cluster2, "HDFS", "NAMENODE", host3,
             null);
     set1.add(valid2);
     controller.createHostComponents(set1);
 
     Assert.assertEquals(1, foo.getServiceComponentHosts(host1).size());
-    Assert.assertEquals(1, c1.getServiceComponentHosts(host1).size());
-    Assert.assertEquals(1, c2.getServiceComponentHosts(host1).size());
+    Assert.assertEquals(1, c1.getServiceComponentHosts(host2).size());
+    Assert.assertEquals(1, c2.getServiceComponentHosts(host3).size());
 
   }
 

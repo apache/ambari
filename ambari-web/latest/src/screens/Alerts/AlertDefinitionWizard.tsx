@@ -20,7 +20,8 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { Alert, Button, Col, Container, Form, Row, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFileCode, faGlobe, faLayerGroup, faPlug } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import useClusterNavigate from "../../hooks/useClusterNavigate";
 import { AlertsApi } from "../../api/alertsApi";
 import {
   buildAlertCreationPayload,
@@ -50,7 +51,7 @@ function parseStep(value: string | undefined): number {
 const AlertDefinitionWizard = () => {
   const { clusterName, services, serviceComponentInfo } = useContext(AppContext);
   const { stepNumber } = useParams<{ stepNumber: string }>();
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const step = parseStep(stepNumber);
   const [form, setForm] = useState<AlertCreationForm>({ ...INITIAL_ALERT_CREATION_FORM });
   const [aggregateDefinitions, setAggregateDefinitions] = useState<string[]>([]);

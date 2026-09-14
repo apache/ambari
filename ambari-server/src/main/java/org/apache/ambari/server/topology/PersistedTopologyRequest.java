@@ -25,10 +25,26 @@ package org.apache.ambari.server.topology;
 public class PersistedTopologyRequest {
   private final long id;
   private final TopologyRequest request;
+  private final Long repositoryVersionId;
+  private final String specificationHash;
+  private final String provisioningState;
 
   public PersistedTopologyRequest(long id, TopologyRequest request) {
+    this(id, request, null, null, null);
+  }
+
+  public PersistedTopologyRequest(long id, TopologyRequest request,
+      Long repositoryVersionId, String specificationHash) {
+    this(id, request, repositoryVersionId, specificationHash, null);
+  }
+
+  public PersistedTopologyRequest(long id, TopologyRequest request,
+      Long repositoryVersionId, String specificationHash, String provisioningState) {
     this.id = id;
     this.request = request;
+    this.repositoryVersionId = repositoryVersionId;
+    this.specificationHash = specificationHash;
+    this.provisioningState = provisioningState;
   }
 
   public long getId() {
@@ -37,5 +53,18 @@ public class PersistedTopologyRequest {
 
   public TopologyRequest getRequest() {
     return request;
+  }
+
+  public Long getRepositoryVersionId() {
+    return repositoryVersionId;
+  }
+
+  public String getSpecificationHash() {
+    return specificationHash;
+  }
+
+  public boolean isCancelled() {
+    return org.apache.ambari.server.orm.entities.TopologyRequestEntity.PROVISIONING_STATE_CANCELLED
+        .equals(provisioningState);
   }
 }

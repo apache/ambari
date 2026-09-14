@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,6 +72,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.KerberosHelperImpl;
 import org.apache.ambari.server.controller.RootServiceResponseFactory;
+import org.apache.ambari.server.controller.dependencies.security.ManagedHBaseKerberosLivePlanProvider;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.hooks.AmbariEventFactory;
 import org.apache.ambari.server.hooks.HookContext;
@@ -647,6 +649,8 @@ public class PreconfigureKerberosActionTest extends EasyMockSupport {
         bind(MpackManagerFactory.class).toInstance(createNiceMock(MpackManagerFactory.class));
 
         bind(AmbariManagementController.class).toInstance(createMock(AmbariManagementController.class));
+        bind(ManagedHBaseKerberosLivePlanProvider.class)
+            .toInstance(cluster -> Optional.empty());
         bind(KerberosHelper.class).to(KerberosHelperImpl.class);
         bind(Clusters.class).toInstance(createMock(Clusters.class));
         bind(StackAdvisorHelper.class).toInstance(createMock(StackAdvisorHelper.class));

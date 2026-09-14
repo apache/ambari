@@ -55,6 +55,7 @@ export interface OperatingSystem {
 }
 
 export interface OperatingSystems {
+    ambari_managed_repositories?: boolean
     os_type: string
     stack_name: string
     stack_version: string

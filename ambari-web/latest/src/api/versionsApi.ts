@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 const VersionsApi = {
   versionsList: async function (repoVersion: string, clusterName: string) {
-    const url = `/clusters/${clusterName}/stack_versions?fields=*&ClusterStackVersions/repository_version=${repoVersion}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/stack_versions?fields=*&ClusterStackVersions/repository_version=${repoVersion}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -216,7 +217,7 @@ const VersionsApi = {
     }
   },
   getServices: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}/stack_versions?fields=*,repository_versions/*`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/stack_versions?fields=*,repository_versions/*`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -273,7 +274,7 @@ const VersionsApi = {
     return response.data;
   },
   getAllStacks: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/operating_systems/repositories/*`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/OperatingSystems/*,repository_versions/operating_systems/repositories/*`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -312,7 +313,7 @@ const VersionsApi = {
     toId: string,
     upgradeType: string
   ) {
-    const url = `/clusters/${clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id=${toId}&UpgradeChecks/upgrade_type=${upgradeType}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version_id=${toId}&UpgradeChecks/upgrade_type=${upgradeType}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -405,7 +406,7 @@ const VersionsApi = {
     return response.data;
   },
   getUpgradeId: async function (data: any, clusterName: string) {
-    const url = `/clusters/${clusterName}/upgrades`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades`;
     const response = await ambariApi.request({
       url,
       method: "POST",
@@ -414,7 +415,7 @@ const VersionsApi = {
     return response.data;
   },
   getUpgradeOperations: async function (id: number, clusterName: string) {
-    const url = `/clusters/${clusterName}/upgrades/${id}?upgrade_groups/UpgradeGroup/status!=PENDING&fields=Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,Upgrade/downgrade_allowed,upgrade_groups/UpgradeGroup,Upgrade/*,upgrade_groups/upgrade_items/UpgradeItem/status,upgrade_groups/upgrade_items/UpgradeItem/display_status,upgrade_groups/upgrade_items/UpgradeItem/context,upgrade_groups/upgrade_items/UpgradeItem/group_id,upgrade_groups/upgrade_items/UpgradeItem/progress_percent,upgrade_groups/upgrade_items/UpgradeItem/request_id,upgrade_groups/upgrade_items/UpgradeItem/skippable,upgrade_groups/upgrade_items/UpgradeItem/stage_id,upgrade_groups/upgrade_items/UpgradeItem/text&minimal_response=true`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades/${id}?upgrade_groups/UpgradeGroup/status!=PENDING&fields=Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,Upgrade/downgrade_allowed,upgrade_groups/UpgradeGroup,Upgrade/*,upgrade_groups/upgrade_items/UpgradeItem/status,upgrade_groups/upgrade_items/UpgradeItem/display_status,upgrade_groups/upgrade_items/UpgradeItem/context,upgrade_groups/upgrade_items/UpgradeItem/group_id,upgrade_groups/upgrade_items/UpgradeItem/progress_percent,upgrade_groups/upgrade_items/UpgradeItem/request_id,upgrade_groups/upgrade_items/UpgradeItem/skippable,upgrade_groups/upgrade_items/UpgradeItem/stage_id,upgrade_groups/upgrade_items/UpgradeItem/text&minimal_response=true`;
     const response = await ambariApi.request({
       url,
       method: "GET",
@@ -427,7 +428,7 @@ const VersionsApi = {
     stageId: number,
     clusterName: string
   ) {
-    const url = `/clusters/${clusterName}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}?fields=UpgradeItem/group_id,UpgradeItem/stage_id,tasks/Tasks/command_detail,tasks/Tasks/host_name,tasks/Tasks/role,tasks/Tasks/request_id,tasks/Tasks/stage_id,tasks/Tasks/status,tasks/Tasks/structured_out&minimal_response=true`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}?fields=UpgradeItem/group_id,UpgradeItem/stage_id,tasks/Tasks/command_detail,tasks/Tasks/host_name,tasks/Tasks/role,tasks/Tasks/request_id,tasks/Tasks/stage_id,tasks/Tasks/status,tasks/Tasks/structured_out&minimal_response=true`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -441,7 +442,7 @@ const VersionsApi = {
     taskId: number,
     clusterName: string
   ) {
-    const url = `/clusters/${clusterName}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}/tasks/${taskId}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}/tasks/${apiPathSegment(taskId)}`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",
@@ -449,7 +450,7 @@ const VersionsApi = {
     return response.data;
   },
   setUpgradeItemState: async function (clusterName: string, data: any) {
-    const url = `/clusters/${clusterName}/upgrades/${data.upgradeId}/upgrade_groups/${data.groupId}/upgrade_items/${data.itemId}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades/${data.upgradeId}/upgrade_groups/${data.groupId}/upgrade_items/${data.itemId}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",
@@ -468,7 +469,7 @@ const VersionsApi = {
     clusterName: string
   ) {
     const url =
-      `/clusters/${clusterName}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}?fields=` +
+      `/clusters/${apiPathSegment(clusterName)}/upgrades/${upgradeId}/upgrade_groups/${groupId}/upgrade_items/${stageId}?fields=` +
       [
         "UpgradeItem/group_id",
         "UpgradeItem/stage_id",
@@ -503,7 +504,7 @@ const VersionsApi = {
     return response.data;
   },
   abortUpgrade: async function (clusterName: string, upgradeId: number) {
-    const url = `/clusters/${clusterName}/upgrades/${upgradeId}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades/${upgradeId}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",
@@ -517,7 +518,7 @@ const VersionsApi = {
     return response.data;
   },
   suspendUpgrade: async function (clusterName: string, upgradeId: number) {
-    const url = `/clusters/${clusterName}/upgrades/${upgradeId}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades/${upgradeId}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",
@@ -531,7 +532,7 @@ const VersionsApi = {
     return response.data;
   },
   retryUpgrade: async function (clusterName: string, upgradeId: number) {
-    const url = `/clusters/${clusterName}/upgrades/${upgradeId}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades/${upgradeId}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",
@@ -544,7 +545,7 @@ const VersionsApi = {
     return response.data; 
   },
   getUpgradeHistory: async function (clusterName: string) {
-    const url = `/clusters/${clusterName}/upgrades?fields=Upgrade`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades?fields=Upgrade`;
     const response = await ambariApi.request({
         url,
         method: "GET"
@@ -552,7 +553,7 @@ const VersionsApi = {
     return response.data;
   },
   updateUpgrade: async function (upgradeId: number, data: any, clusterName: string) {
-    const url = `/clusters/${clusterName}/upgrades/${upgradeId}`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/upgrades/${upgradeId}`;
     const response = await ambariApi.request({
       url,
       method: "PUT",

@@ -63,6 +63,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
 
   @Override
   public void validateTopology() throws InvalidTopologyException {
+    org.apache.ambari.server.controller.dependencies.ManagedDependencyBlueprintPlan.requirements(blueprint);
     LOGGER.info("Validating topology for blueprint: [{}]", blueprint.getName());
     Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
     Map<String, Map<String, Collection<DependencyInfo>>> dependenciesValidationIssues = new HashMap<>();
@@ -333,6 +334,10 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
                                                             Cardinality cardinality,
                                                             AutoDeployInfo autoDeploy) {
 
+    if (org.apache.ambari.server.controller.dependencies.ManagedDependencyBlueprintPlan
+        .externalOnlyComponent(blueprint, component)) {
+      return java.util.List.of();
+    }
     Map<String, Map<String, String>> configProperties = blueprint.getConfiguration().getProperties();
     Collection<String> cardinalityFailures = new HashSet<>();
     //todo: don't hard code this HA logic here

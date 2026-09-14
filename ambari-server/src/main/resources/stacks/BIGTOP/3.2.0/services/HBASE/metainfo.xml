@@ -63,6 +63,24 @@
           </logs>
           <customCommands>
             <customCommand>
+              <name>VERIFY_HDFS_CONSUMER</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/hbase_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>VERIFY_ZOOKEEPER_CONSUMER</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/hbase_master.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
               <name>DECOMMISSION</name>
               <commandScript>
                 <script>scripts/hbase_master.py</script>
@@ -96,6 +114,26 @@
               <primary>true</primary>
             </log>
           </logs>
+          <customCommands>
+            <customCommand>
+              <name>VERIFY_HDFS_CONSUMER</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/hbase_regionserver.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>VERIFY_ZOOKEEPER_CONSUMER</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/hbase_regionserver.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
 
         <component>
@@ -122,6 +160,26 @@
               <primary>true</primary>
             </log>
           </logs>
+          <customCommands>
+            <customCommand>
+              <name>VERIFY_HDFS_CONSUMER</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/hbase_thrift.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>VERIFY_ZOOKEEPER_CONSUMER</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/hbase_thrift.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
 
         <component>
@@ -204,6 +262,9 @@
               <name>hbase_${stack_version}</name>
             </package>
             <package>
+              <name>hadoop_${stack_version}-client</name>
+            </package>
+            <package>
               <name>phoenix</name>
               <condition>should_install_phoenix</condition>
             </package>
@@ -218,6 +279,9 @@
           <packages>
             <package>
               <name>hbase-${stack_version}</name>
+            </package>
+            <package>
+              <name>hadoop-${stack_version}-client</name>
             </package>
             <package>
               <name>phoenix-${stack_version}</name>

@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
+import { apiPathSegment } from "./apiPath";
 import { ambariApi } from "./config/axiosConfig";
 
 const componentApi = {
 
   editComponent: async function (clusterName:string,data:any) {
-    const url = `/clusters/${clusterName}/components`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/components`;
     const response = await ambariApi.request({
       url: url,
       method: "PUT",

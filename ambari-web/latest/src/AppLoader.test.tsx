@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-import { render, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ComponentProps } from "react";
-import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { recalledClusterId, rememberCluster, savePreferredPath } from "./Utils/authNavigation";
 import ClusterApi from "./api/clusterApi";
-import { RouteTracker } from "./AppLoader";
+import { LandingRoute, LegacyMainRedirect, RouteTracker } from "./AppLoader";
 import { AppContext } from "./store/context";
 
-const policy = vi.hoisted(() => ({ canPersistRoute: false }));
+afterEach(cleanup);
 
 vi.mock("./api/clusterApi", () => ({
   default: {
@@ -33,10 +34,13 @@ vi.mock("./api/clusterApi", () => ({
   },
 }));
 vi.mock("./hooks/useAuth", () => ({
-  useAuth: () => ({ hasAuthorization: () => true }),
-}));
-vi.mock("./hooks/useAuthorizationPolicy", () => ({
-  default: () => ({ isAuthorized: () => policy.canPersistRoute }),
+  useAuth: () => ({
+    user: { user_name: "navigation-user" },
+    authorizations: [{ authorization_id: "AMBARI.RENAME_CLUSTER" }],
+    canAccessCluster: (name: string) => name !== "forbidden",
+    hasAuthorization: () => true,
+    hasGlobalAuthorization: () => true,
+  }),
 }));
 
 function renderTracker() {
@@ -53,22 +57,86 @@ function renderTracker() {
   );
 }
 
-describe("RouteTracker persistence authorization", () => {
+function LocationProbe() {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname}{location.search}</div>;
+}
+
+function renderLegacyRedirect(clusters: string[], entry = "/main/hosts?page=2") {
+  const value = {
+    availableClusters: clusters.map((cluster_name, index) => ({
+      Clusters: { cluster_id: index + 1, cluster_name },
+    })),
+  } as unknown as ComponentProps<typeof AppContext.Provider>["value"];
+  return render(
+    <AppContext.Provider value={value}>
+      <MemoryRouter initialEntries={[entry]}>
+        <Routes>
+          <Route path="/" element={<LandingRoute />} />
+          <Route path="/main/*" element={<LegacyMainRedirect />} />
+          <Route path="*" element={<LocationProbe />} />
+        </Routes>
+      </MemoryRouter>
+    </AppContext.Provider>,
+  );
+}
+
+describe("RouteTracker preferred path", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    policy.canPersistRoute = false;
   });
 
-  it("does not persist a protected workflow route without mutation access", async () => {
+  it("does not write a cluster workflow route to global server persistence", async () => {
     renderTracker();
     await waitFor(() => expect(ClusterApi.postPersistData).not.toHaveBeenCalled());
   });
+});
 
-  it("persists a protected workflow route for its authorized owner", async () => {
-    policy.canPersistRoute = true;
-    renderTracker();
-    await waitFor(() => expect(ClusterApi.postPersistData).toHaveBeenCalledWith({
-      USER_REDIRECTION_URL: "/main/services/highAvailability/NameNode/enable/step2",
-    }));
+describe("legacy main route selection", () => {
+  beforeEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  it("preserves the suffix and query for exactly one authorized cluster", async () => {
+    renderLegacyRedirect(["east / prod"]);
+    expect((await screen.findByTestId("location")).textContent)
+      .toBe("/clusters/east%20%2F%20prod/main/hosts?page=2");
   });
+
+  it("requires a chooser when more than one cluster is available", async () => {
+    renderLegacyRedirect(["alpha", "beta"]);
+    expect(await screen.findByRole("dialog")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "beta" }));
+    expect((await screen.findByTestId("location")).textContent)
+      .toBe("/clusters/beta/main/hosts?page=2");
+    expect(recalledClusterId("navigation-user")).toBe(2);
+  });
+  it("restores the last authorized cluster dashboard on direct login", async () => {
+    rememberCluster("navigation-user", 2);
+    renderLegacyRedirect(["alpha", "beta"], "/");
+    expect((await screen.findByTestId("location")).textContent)
+      .toBe("/clusters/beta/main/dashboard/metrics");
+  });
+
+  it("returns to the exact interrupted cluster route before using a preference", async () => {
+    rememberCluster("navigation-user", 1);
+    savePreferredPath("/clusters/beta/main/hosts?page=3");
+    renderLegacyRedirect(["alpha", "beta"], "/");
+    expect((await screen.findByTestId("location")).textContent)
+      .toBe("/clusters/beta/main/hosts?page=3");
+  });
+
+  it("resolves a remembered numeric identity after a cluster rename", async () => {
+    rememberCluster("navigation-user", 2);
+    renderLegacyRedirect(["alpha", "renamed / cluster"]);
+    expect((await screen.findByTestId("location")).textContent)
+      .toBe("/clusters/renamed%20%2F%20cluster/main/hosts?page=2");
+  });
+
+  it("does not restore another user's preference or a revoked cluster", async () => {
+    rememberCluster("another-user", 1);
+    rememberCluster("navigation-user", 3);
+    savePreferredPath("/clusters/forbidden/main/hosts");
+    renderLegacyRedirect(["alpha", "beta", "forbidden"], "/");
+    expect(await screen.findByRole("dialog")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "forbidden" })).toBeNull();
+  });
+
 });

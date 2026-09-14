@@ -45,7 +45,7 @@ public class TaskEventPublisher {
    * @param event {@link TaskEvent}
    */
   public void publish(TaskEvent event) {
-    m_eventBus.post(event);
+    org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor.afterCommit(() -> m_eventBus.post(event));
   }
 
   /**

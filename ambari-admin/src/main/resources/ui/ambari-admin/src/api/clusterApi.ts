@@ -29,7 +29,7 @@ const ClusterApi = {
     return response.data;
   },
   hostClustersInfo: async function () {
-    const url = `/clusters?fields=Clusters/provisioning_state`;
+    const url = `/clusters?fields=Clusters/cluster_id,Clusters/cluster_name,Clusters/provisioning_state`;
     const response = await adminApi.request({
       url: url,
       method: "GET",
@@ -48,7 +48,7 @@ const ClusterApi = {
     clusterName: string,
     format: string = "blueprint"
   ) {
-    const url = `/clusters/${clusterName}?format=${format}`;
+    const url = `/clusters/${encodeURIComponent(clusterName)}?format=${format}`;
     const response = await adminApi.request({
       url: url,
       method: "GET",
@@ -56,7 +56,7 @@ const ClusterApi = {
     return response.data;
   },
   updateClusterName: async function (clusterName: string,updatedClusterName:string) {
-    const url = `/clusters/${clusterName}`;
+    const url = `/clusters/${encodeURIComponent(clusterName)}`;
     const response = await adminApi.request({
       url: url,
       method: "PUT",

@@ -41,7 +41,7 @@ export function Step4() {
     flushStateToDb,
     stepWizardUtilities: { currentStep, jumpToStep },
   } = useContext(AddObserverNamenodeContext);
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, navigateCluster } = useContext(AppContext);
   const { serviceModels: allServiceModels }: any = useContext(ServiceContext);
   const [completionStatus, setCompletionStatus] = useState(false);
   const [stepOperations, setStepOperations] = useState<any>([]);
@@ -383,8 +383,7 @@ export function Step4() {
         isNextEnabled={completionStatus}
         onNext={() => {
           flushStateToDb("cancel"); // Clear the wizard state on completion
-          window.location.href = "/#/main/services/HDFS/summary";
-          window.location.reload();
+          navigateCluster("/main/services/HDFS/summary");
         }}
         onBack={() => {
           flushStateToDb("back");

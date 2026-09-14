@@ -106,6 +106,10 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("configurations")
   private Map<String, Map<String, String>> configurations;
 
+  @SerializedName("configurationTypeOverrides")
+  @com.fasterxml.jackson.annotation.JsonProperty("configurationTypeOverrides")
+  private Set<String> configurationTypeOverrides = new HashSet<>();
+
   @SerializedName("forceRefreshConfigTagsBeforeExecution")
   @JsonIgnore
   private boolean overrideConfigs = false;
@@ -328,6 +332,15 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
+  }
+
+  public Set<String> getConfigurationTypeOverrides() {
+    return configurationTypeOverrides;
+  }
+
+  public void setConfigurationTypeOverrides(Set<String> configurationTypeOverrides) {
+    this.configurationTypeOverrides = configurationTypeOverrides == null
+        ? new HashSet<>() : new HashSet<>(configurationTypeOverrides);
   }
 
   /**

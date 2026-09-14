@@ -20,7 +20,7 @@ import { useState } from "react";
 import { Dropdown, Form, Badge, Button } from "react-bootstrap";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
-import { Link } from "react-router-dom";
+import ScopedLink from "./ScopedLink";
 import Table from "./Table";
 import { Notifications } from "../screens/Alerts/types";
 import { ColumnDef } from '@tanstack/react-table';
@@ -66,7 +66,7 @@ const NotificationDropdown = ({ notifications, onFilterChange, alertCounts }: No
         cell: ({ row }) => {
             const typedRow = row.original as Notifications;
             return (
-                <Link
+                <ScopedLink
                     to={`/main/alerts/${typedRow.Alert.definition_id}`}
                     style={{ textDecoration: 'none', color: 'inherit' }}
                 >
@@ -79,7 +79,7 @@ const NotificationDropdown = ({ notifications, onFilterChange, alertCounts }: No
                             {new Date(typedRow.Alert.latest_timestamp).toLocaleString()}
                         </p>
                     </div>
-                </Link>
+                </ScopedLink>
             );
         }
     }
@@ -138,11 +138,11 @@ const NotificationDropdown = ({ notifications, onFilterChange, alertCounts }: No
           <hr className="m-0" />
 
           <div className="notifications-footer p-2 text-end">
-            <Link to="/main/alerts">
+            <ScopedLink to="/main/alerts">
               <Button type="button" className="btn btn-primary">
                 View All
               </Button>
-            </Link>
+            </ScopedLink>
           </div>
         </Dropdown.Menu>
       </Dropdown>

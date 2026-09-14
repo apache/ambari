@@ -21,7 +21,7 @@ import { Alert, Button, Container } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMedkit } from "@fortawesome/free-solid-svg-icons";
 import { ColumnDef, SortingState } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
+import ScopedLink from "../../components/ScopedLink";
 import { AlertsApi } from "../../api/alertsApi";
 import Paginator from "../../components/Paginator";
 import Spinner from "../../components/Spinner";
@@ -136,12 +136,12 @@ const HostAlerts = ({ hostname }: HostAlertsProps) => {
           return <span>{row.original.serviceDisplayName}</span>;
         }
         return (
-          <Link
+          <ScopedLink
             to={`/main/services/${encodeURIComponent(serviceName)}/summary`}
             className="custom-link"
           >
             {row.original.serviceDisplayName}
-          </Link>
+          </ScopedLink>
         );
       },
     },
@@ -149,12 +149,12 @@ const HostAlerts = ({ hostname }: HostAlertsProps) => {
       header: "Alert Definition Name",
       accessorKey: "label",
       cell: ({ row }) => (
-        <Link
+        <ScopedLink
           to={`/main/alerts/${row.original.alert_definition_id}`}
           className="custom-link"
         >
           {row.original.label || ""}
-        </Link>
+        </ScopedLink>
       ),
     },
     {

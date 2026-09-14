@@ -1606,6 +1606,23 @@ class TestHdfsBigtop(unittest.TestCase):
     )
     self.assertIn('datanode_https_address = "dfs.datanode.https.address"', advisor_source)
 
+  def test_namenode_handler_count_has_no_artificial_upper_bound(self):
+    hdfs_site = ET.parse(HDFS / "configuration/hdfs-site.xml")
+    handler_count = next(
+      property_element
+      for property_element in hdfs_site.findall("property")
+      if property_element.findtext("name") == "dfs.namenode.handler.count"
+    )
+    attributes = handler_count.find("value-attributes")
+
+    self.assertEqual("int", attributes.findtext("type"))
+    self.assertEqual("1", attributes.findtext("minimum"))
+    self.assertIsNone(attributes.find("maximum"))
+    advisor_source = (HDFS / "service_advisor.py").read_text(encoding="utf-8")
+    self.assertNotIn(
+      '"dfs.namenode.handler.count", "maximum"', advisor_source
+    )
+
   def test_hdfs_advisor_validates_host_port_authorities(self):
     for authority in (
       "namenode.example.com:8020",

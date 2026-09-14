@@ -31,7 +31,7 @@ const mocks = vi.hoisted(() => ({
   activeStep: 1,
   authorized: true,
   loadRangerAdminComponent: vi.fn(),
-  clearPersistedState: vi.fn(),
+  release: vi.fn(),
 }));
 
 type MockModalProps = {
@@ -57,6 +57,9 @@ vi.mock("../../../../hooks/useStepWizard", () => ({
 vi.mock("../../../../hooks/useAuth", () => ({
   default: () => ({ hasAuthorization: () => mocks.authorized }),
 }));
+vi.mock("../../../../hooks/useClusterWorkflowPersistence", () => ({
+  default: () => ({ release: mocks.release }),
+}));
 vi.mock("./rangerAdminHaApi", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./rangerAdminHaApi")>()),
   rangerAdminEnablementApi: {
@@ -64,7 +67,7 @@ vi.mock("./rangerAdminHaApi", async (importOriginal) => ({
   },
 }));
 vi.mock("./store/context", () => ({
-  clearRangerAdminHaPersistedState: mocks.clearPersistedState,
+  RANGER_ADMIN_HA_PERSIST_KEY: "HIGH_AVAILIBILITY_RANGER_HA",
   EnableHighAvailibilityProvider: ({
     children,
   }: {
@@ -141,7 +144,7 @@ describe("Ranger Admin HA entry validation", () => {
     vi.clearAllMocks();
     mocks.activeStep = 1;
     mocks.authorized = true;
-    mocks.clearPersistedState.mockResolvedValue(undefined);
+    mocks.release.mockResolvedValue(undefined);
   });
 
   afterEach(() => cleanup());
@@ -237,6 +240,6 @@ describe("Ranger Admin HA entry validation", () => {
     await waitFor(() =>
       expect(screen.getByText("Ranger Admin HA is still running")).toBeTruthy(),
     );
-    expect(mocks.clearPersistedState).not.toHaveBeenCalled();
+    expect(mocks.release).not.toHaveBeenCalled();
   });
 });

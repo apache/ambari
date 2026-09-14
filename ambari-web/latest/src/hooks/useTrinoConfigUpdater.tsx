@@ -32,7 +32,7 @@ export const useTrinoConfigUpdater = () => {
     polledHostComponentsData,
     masterSlaveClientsData,
   } = useContext(ServiceContext);
-  const { services,clusterName, parsedSocketMessages } = useContext(AppContext);
+  const { services, clusterName, parsedSocketMessages, runtimeKey } = useContext(AppContext);
   //@ts-ignore
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
   //const vdpStackVersion = get(cluster, "version", "").split("-")[1];
@@ -47,7 +47,7 @@ export const useTrinoConfigUpdater = () => {
   const fetchTrinoMasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
     
-    let trinoComponentsData = cachedServiceApi.getServiceComponentData("TRINO");
+    let trinoComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "TRINO");
     
     if (!trinoComponentsData) {
       trinoComponentsData = Object.values(masterSlaveClientsData).filter(

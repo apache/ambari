@@ -24,7 +24,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useContext } from "react";
 import { Button, Dropdown } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import useClusterNavigate from "../../../hooks/useClusterNavigate";
 import { ServiceActionEnums } from "../../../enums/ServiceActionEnums";
 import { ServiceContext } from "../../../store/ServiceContext";
 import { getHdfsNamespaces } from "./haWorkflowUtils";
@@ -44,7 +44,7 @@ export default function WorkflowActions({
   canPersistWorkflow,
   serviceName,
 }: WorkflowActionsProps) {
-  const navigate = useNavigate();
+  const navigate = useClusterNavigate();
   const { allServiceModels } = useContext(ServiceContext);
   const normalizedServiceName = serviceName.toUpperCase();
   const isHdfs = normalizedServiceName === "HDFS";

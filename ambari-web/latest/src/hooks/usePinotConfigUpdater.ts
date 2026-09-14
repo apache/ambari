@@ -34,7 +34,7 @@ export const usePinotConfigUpdater = () => {
   } = useContext(ServiceContext);
   
   // @ts-ignore
-  const { services, clusterName, parsedSocketMessages } = useContext(AppContext);
+  const { services, clusterName, parsedSocketMessages, runtimeKey } = useContext(AppContext);
   
   // Early return if PINOT service is not installed
   const isPinotInstalled = services && Array.isArray(services) && 
@@ -48,7 +48,7 @@ export const usePinotConfigUpdater = () => {
   const { allServiceModels, updateRegistry } = useContext(ServiceContext);
 
   const fetchPinotMasterSlaveClientsData = async () => {
-    let pinotComponentsData = cachedServiceApi.getServiceComponentData("PINOT");
+    let pinotComponentsData = cachedServiceApi.getServiceComponentData(runtimeKey, "PINOT");
     
     if (!pinotComponentsData) {
       pinotComponentsData = Object.values(masterSlaveClientsData).filter(
@@ -192,7 +192,7 @@ export const usePinotConfigUpdater = () => {
     const serviceName = "PINOT";
     
     // Use centralized service state API instead of individual call
-    const serviceStateData = centralizedServiceStateApi.getServiceStateData(serviceName);
+    const serviceStateData = centralizedServiceStateApi.getServiceStateData(runtimeKey, serviceName);
     
     if (!serviceStateData) return;
 

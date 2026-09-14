@@ -24,6 +24,7 @@ type ClusterConfigPayloadInput = {
   configProperties: ConfigPropertiesType;
   includeInstalledChanges: boolean;
   installedServices: string[];
+  requiredConfigurations?: Record<string, Record<string, string>>;
 };
 
 type CanonicalProperty = ConfigPropertiesType[string][string]["properties"][string];
@@ -53,6 +54,7 @@ export const buildClusterConfigurationPayload = ({
   configProperties,
   includeInstalledChanges,
   installedServices,
+  requiredConfigurations = {},
 }: ClusterConfigPayloadInput) => {
   const payload: Array<{
     Clusters: {
@@ -115,5 +117,39 @@ export const buildClusterConfigurationPayload = ({
     }
   });
 
-  return payload;
+  Object.entries(requiredConfigurations).forEach(([type, requiredProperties]) => {
+    let target: {
+      type: string;
+      properties: Record<string, unknown>;
+      service_config_version_note: string;
+    } | undefined;
+    payload.forEach(({ Clusters }) => {
+      Clusters.desired_config.forEach((desiredConfig) => {
+        if (desiredConfig.type !== type) return;
+        target ||= desiredConfig;
+        Object.keys(requiredProperties).forEach((propertyName) => {
+          delete desiredConfig.properties[propertyName];
+        });
+      });
+    });
+    if (!target) {
+      target = {
+        type,
+        properties: {},
+        service_config_version_note: "Managed HBase dependency configuration",
+      };
+      payload.push({ Clusters: { desired_config: [target] } });
+    }
+    Object.assign(target.properties, requiredProperties);
+  });
+
+  return payload
+    .map(({ Clusters }) => ({
+      Clusters: {
+        desired_config: Clusters.desired_config.filter(
+          ({ properties }) => Object.keys(properties).length > 0,
+        ),
+      },
+    }))
+    .filter(({ Clusters }) => Clusters.desired_config.length > 0);
 };

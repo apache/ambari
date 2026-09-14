@@ -261,6 +261,8 @@ public class AlertGroupResourceProvider extends
         continue;
       }
 
+      AlertGroupUpdate deletedGroup = new AlertGroupUpdate(entity.getGroupId(), entity.getClusterId());
+
       modifyResources(new Command<Void>() {
         @Override
         public Void invoke() throws AmbariException {
@@ -268,6 +270,7 @@ public class AlertGroupResourceProvider extends
           return null;
         }
       });
+      STOMPUpdatePublisher.publish(AlertGroupsUpdateEvent.deleteAlertGroupsUpdateEvent(deletedGroup));
     }
 
     notifyDelete(Resource.Type.AlertGroup, predicate);

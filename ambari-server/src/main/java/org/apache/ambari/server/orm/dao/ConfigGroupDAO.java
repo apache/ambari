@@ -20,11 +20,14 @@ package org.apache.ambari.server.orm.dao;
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -112,6 +115,32 @@ public class ConfigGroupDAO {
   @Transactional
   public void removeByPK(Long id) {
     entityManagerProvider.get().remove(findById(id));
+  }
+
+  /** Removes a configuration group and both mapping sets in one transaction. */
+  @Transactional
+  public boolean removeGroup(Long id) {
+    EntityManager entityManager = entityManagerProvider.get();
+    ConfigGroupEntity entity = entityManager.find(
+        ConfigGroupEntity.class, id, LockModeType.PESSIMISTIC_WRITE);
+    if (entity == null) {
+      return false;
+    }
+    List<ConfigGroupConfigMappingEntity> configMappings = entityManager.createQuery(
+        "SELECT mapping FROM ConfigGroupConfigMappingEntity mapping WHERE mapping.configGroupId=:groupId",
+        ConfigGroupConfigMappingEntity.class)
+        .setParameter("groupId", id)
+        .getResultList();
+    List<ConfigGroupHostMappingEntity> hostMappings = entityManager.createQuery(
+        "SELECT mapping FROM ConfigGroupHostMappingEntity mapping WHERE mapping.configGroupId=:groupId",
+        ConfigGroupHostMappingEntity.class)
+        .setParameter("groupId", id)
+        .getResultList();
+    configMappings.forEach(entityManager::remove);
+    hostMappings.forEach(entityManager::remove);
+    entityManager.remove(entity);
+    entityManager.flush();
+    return true;
   }
 
   @Transactional

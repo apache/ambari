@@ -37,6 +37,44 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>PREPARE_BINDING_JOURNAL</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/zookeeper_server.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>INITIALIZE_BINDING_JOURNAL</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/zookeeper_server.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>PROVISION_ZOOKEEPER_NAMESPACE</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/zookeeper_server.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
+              <name>INVALIDATE_BINDING_EPOCH</name>
+              <hidden>true</hidden>
+              <commandScript>
+                <script>scripts/zookeeper_server.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <logs>
             <log>
               <logId>zookeeper</logId>

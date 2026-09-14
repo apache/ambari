@@ -42,6 +42,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(name = "hosts")
@@ -136,7 +137,8 @@ public class HostEntity implements Comparable<HostEntity> {
   @ManyToMany
   @JoinTable(name = "ClusterHostMapping",
       joinColumns = {@JoinColumn(name = "host_id", referencedColumnName = "host_id")},
-      inverseJoinColumns = {@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")}
+      inverseJoinColumns = {@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")},
+      uniqueConstraints = {@UniqueConstraint(name = "UQ_clusterhostmapping_host_id", columnNames = "host_id")}
   )
   private Collection<ClusterEntity> clusterEntities;
 

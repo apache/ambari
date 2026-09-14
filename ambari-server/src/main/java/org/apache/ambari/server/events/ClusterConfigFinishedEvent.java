@@ -26,12 +26,19 @@ public class ClusterConfigFinishedEvent extends AmbariEvent {
 
   private final long clusterId;
   private final String clusterName;
+  private final long configurationGeneration;
 
 
   public ClusterConfigFinishedEvent(long clusterId, String clusterName) {
+    this(clusterId, clusterName, 0);
+  }
+
+  public ClusterConfigFinishedEvent(long clusterId, String clusterName,
+      long configurationGeneration) {
     super(AmbariEventType.CLUSTER_CONFIG_FINISHED);
     this.clusterId = clusterId;
     this.clusterName = clusterName;
+    this.configurationGeneration = configurationGeneration;
   }
 
   /**
@@ -50,6 +57,10 @@ public class ClusterConfigFinishedEvent extends AmbariEvent {
     return clusterName;
   }
 
+  public long getConfigurationGeneration() {
+    return configurationGeneration;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -58,6 +69,7 @@ public class ClusterConfigFinishedEvent extends AmbariEvent {
     StringBuilder buffer = new StringBuilder("ClusterConfigChangedEvent{");
     buffer.append("clusterId=").append(getClusterId());
     buffer.append("clusterName=").append(getClusterName());
+    buffer.append("configurationGeneration=").append(getConfigurationGeneration());
     buffer.append("}");
     return buffer.toString();
   }

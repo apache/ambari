@@ -24,9 +24,11 @@ import java.util.List;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 
@@ -74,6 +76,15 @@ public class HostDAO {
   }
 
   @RequiresSession
+  public List<String> findClusterNamesByHostName(String hostName) {
+    TypedQuery<String> query = entityManagerProvider.get().createQuery(
+        "SELECT cluster.clusterName FROM HostEntity host JOIN host.clusterEntities cluster " +
+            "WHERE host.hostName = :hostName", String.class);
+    query.setParameter("hostName", hostName);
+    return query.getResultList();
+  }
+
+  @RequiresSession
   public List<HostEntity> findByStage(StageEntity stageEntity) {
     TypedQuery<HostEntity> query = entityManagerProvider.get().createQuery(
         "SELECT host FROM HostEntity host " +
@@ -107,7 +118,59 @@ public class HostDAO {
 
   @Transactional
   public HostEntity merge(HostEntity hostEntity) {
-    return entityManagerProvider.get().merge(hostEntity);
+    return merge(hostEntity, false);
+  }
+
+  @Transactional
+  public HostEntity merge(HostEntity hostEntity, boolean flush) {
+    EntityManager entityManager = entityManagerProvider.get();
+    HostEntity mergedEntity = entityManager.merge(hostEntity);
+    if (flush) {
+      entityManager.flush();
+    }
+    return mergedEntity;
+  }
+
+  @Transactional
+  public void addClusterMapping(String hostName, long clusterId) {
+    EntityManager entityManager = entityManagerProvider.get();
+    HostEntity hostEntity = findByName(hostName);
+    ClusterEntity clusterEntity = entityManager.find(ClusterEntity.class, clusterId);
+    hostEntity.getClusterEntities().add(clusterEntity);
+    clusterEntity.getHostEntities().add(hostEntity);
+    try {
+      entityManager.flush();
+    } catch (PersistenceException e) {
+      hostEntity.getClusterEntities().remove(clusterEntity);
+      clusterEntity.getHostEntities().remove(hostEntity);
+      detachIfManaged(entityManager, hostEntity);
+      detachIfManaged(entityManager, clusterEntity);
+      throw e;
+    }
+  }
+
+  @Transactional
+  public void removeClusterMapping(String hostName, long clusterId) {
+    EntityManager entityManager = entityManagerProvider.get();
+    HostEntity hostEntity = findByName(hostName);
+    ClusterEntity clusterEntity = entityManager.find(ClusterEntity.class, clusterId);
+    hostEntity.getClusterEntities().remove(clusterEntity);
+    clusterEntity.getHostEntities().remove(hostEntity);
+    try {
+      entityManager.flush();
+    } catch (PersistenceException e) {
+      hostEntity.getClusterEntities().add(clusterEntity);
+      clusterEntity.getHostEntities().add(hostEntity);
+      detachIfManaged(entityManager, hostEntity);
+      detachIfManaged(entityManager, clusterEntity);
+      throw e;
+    }
+  }
+
+  private void detachIfManaged(EntityManager entityManager, Object entity) {
+    if (entityManager.contains(entity)) {
+      entityManager.detach(entity);
+    }
   }
 
   @Transactional

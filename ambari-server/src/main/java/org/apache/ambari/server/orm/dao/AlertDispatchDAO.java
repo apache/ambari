@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -550,23 +549,7 @@ public class AlertDispatchDAO {
    */
   @Transactional
   public void remove(AlertGroupEntity alertGroup) {
-    remove(alertGroup, true);
-  }
-
-  /**
-   * Removes the specified alert group from the database.
-   *
-   * @param alertGroup the group to remove.
-   * @param fireEvent should alert group update event to be fired.
-   */
-  @Transactional
-  public void remove(AlertGroupEntity alertGroup, boolean fireEvent) {
     entityManagerProvider.get().remove(merge(alertGroup));
-    if (fireEvent) {
-      AlertGroupsUpdateEvent alertGroupsUpdateEvent = AlertGroupsUpdateEvent.deleteAlertGroupsUpdateEvent(
-          Collections.singletonList(alertGroup.getGroupId()));
-      STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
-    }
   }
 
   /**
@@ -580,11 +563,8 @@ public class AlertDispatchDAO {
   public void removeAllGroups(long clusterId) {
     List<AlertGroupEntity> groups = findAllGroups(clusterId);
     for (AlertGroupEntity group : groups) {
-      remove(group, false);
+      entityManagerProvider.get().remove(merge(group));
     }
-    AlertGroupsUpdateEvent alertGroupsUpdateEvent = AlertGroupsUpdateEvent.deleteAlertGroupsUpdateEvent(
-        groups.stream().map(AlertGroupEntity::getGroupId).collect(Collectors.toList()));
-    STOMPUpdatePublisher.publish(alertGroupsUpdateEvent);
   }
 
   /**
