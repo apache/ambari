@@ -17,7 +17,12 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { parsePersistedValue, persistedPayload } from "./persistedSettings";
+import {
+  decodePersistedMap,
+  decodePersistedValue,
+  parsePersistedValue,
+  persistedPayload,
+} from "./persistedSettings";
 
 describe("persisted settings", () => {
   it("round trips booleans, strings, and objects as JSON values", () => {
@@ -38,5 +43,35 @@ describe("persisted settings", () => {
     expect(parsePersistedValue("", "Browser")).toBe("Browser");
     expect(parsePersistedValue("null", { userName: "" })).toEqual({ userName: "" });
     expect(parsePersistedValue("not-json", "Browser")).toBe("Browser");
+  });
+
+  it("decodes the JSON encoded values of an aggregate GET /persist response", () => {
+    const decoded = decodePersistedMap({
+      CLUSTER_CURRENT: '{"clusterCreationSteps":{"NAME":{"step":"NAME"}}}',
+      CLUSTER_STATE: '{"progressStatus":"PROVISIONING","stepName":"CONFIGURATION"}',
+      "wizard-data": '{"userName":"admin","controllerName":"clusterCreation"}',
+      USER_REDIRECTION_URL: "/main/admin/kerberos",
+    });
+
+    expect(decoded).toEqual({
+      CLUSTER_CURRENT: { clusterCreationSteps: { NAME: { step: "NAME" } } },
+      CLUSTER_STATE: { progressStatus: "PROVISIONING", stepName: "CONFIGURATION" },
+      "wizard-data": { userName: "admin", controllerName: "clusterCreation" },
+      USER_REDIRECTION_URL: "/main/admin/kerberos",
+    });
+  });
+
+  it("leaves already decoded values and non-map responses alone", () => {
+    const state = { stepName: "CONFIGURATION" };
+    expect(decodePersistedValue(state)).toBe(state);
+    expect(decodePersistedValue(undefined)).toBeUndefined();
+    expect(decodePersistedMap(undefined)).toBeUndefined();
+    expect(decodePersistedMap("")).toBe("");
+    expect(decodePersistedMap({ CLUSTER_STATE: state })).toEqual({ CLUSTER_STATE: state });
+  });
+
+  it("keeps decoded values usable by parsePersistedValue", () => {
+    const decoded = decodePersistedValue(persistedPayload({ enabled: false }).enabled);
+    expect(parsePersistedValue(decoded, true)).toBe(false);
   });
 });
