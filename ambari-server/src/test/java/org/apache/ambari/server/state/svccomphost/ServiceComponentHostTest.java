@@ -32,6 +32,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.H2DatabaseCleaner;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.agent.stomp.TelemetryHolder;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -540,6 +541,40 @@ public class ServiceComponentHostTest {
 
     Assert.assertEquals(State.INSTALLING, sch.getState());
     Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
+  }
+
+  /**
+   * TelemetryHolder's only per-component subscription is ServiceComponentInstalledEvent,
+   * which is published while the component is still in INIT - a state the assignment
+   * compiler excludes - so the assignment it produces never contains component targets.
+   * Real state transitions have to refresh it as well, otherwise a freshly installed
+   * cluster gets no component scrape targets until an unrelated config change or a server
+   * restart forces a recompile.
+   *
+   * <p>The cached assignment is dropped immediately before the transition so that what
+   * this asserts is the transition itself repopulating it. It has to be dropped after
+   * createEvent(), because creating a config publishes ClusterConfigChangedEvent, which
+   * TelemetryHolder also refreshes on - the very thing that masks this bug on a real
+   * cluster, where an unrelated config change makes the missing targets appear.
+   */
+  @Test
+  public void testTelemetryIsRefreshedOnComponentStateTransition() throws Exception {
+    TelemetryHolder telemetryHolder = injector.getInstance(TelemetryHolder.class);
+    ServiceComponentHostImpl impl = (ServiceComponentHostImpl)
+        createNewServiceComponentHost(clusterName, "HDFS", "DATANODE", hostName1, false);
+    Long hostId = clusters.getHost(hostName1).getHostId();
+    ServiceComponentHostEvent installEvent =
+        createEvent(impl, 1, ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL);
+
+    Assert.assertEquals(State.INIT, impl.getState());
+    telemetryHolder.onHostRemoved(hostId);
+    Assert.assertNull(telemetryHolder.getData(hostId));
+
+    impl.handleEvent(installEvent);
+
+    Assert.assertEquals(State.INSTALLING, impl.getState());
+    Assert.assertNotNull("A real state transition must refresh the host's telemetry "
+        + "assignment", telemetryHolder.getData(hostId));
   }
 
   @Test

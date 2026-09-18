@@ -109,6 +109,65 @@ public class TelemetryAssignmentCompilerTest {
     assertTrue(event.getProfiles().containsKey(EXPECTED_PROFILE_HASH));
   }
 
+  /**
+   * A component only contributes a scrape target once it has left {@link State#INIT}.
+   * This is what makes subscribing to {@code ServiceComponentInstalledEvent} useless for
+   * telemetry: {@code ServiceComponentHostImpl} publishes that event while persisting the
+   * host component row with desired state INIT, long before the component is installed or
+   * started, so an assignment compiled at that moment carries no component targets at all.
+   * The refresh therefore has to happen on real state transitions instead.
+   */
+  @Test
+  public void testTargetsAppearOnlyAfterComponentLeavesInitState() throws Exception {
+    assertEquals(0, compileTargetCount(State.INIT));
+    assertEquals(1, compileTargetCount(State.INSTALLED));
+    assertEquals(1, compileTargetCount(State.STARTED));
+  }
+
+  private int compileTargetCount(State componentState) throws Exception {
+    File serviceDirectory = temporaryFolder.newFolder("HDFS-" + componentState);
+    File profileDirectory = new File(serviceDirectory, "telemetry-profiles");
+    assertTrue(profileDirectory.mkdir());
+    File profileFile = new File(profileDirectory, "test-profile.json");
+    Files.write(profileFile.toPath(), profileJson().getBytes(StandardCharsets.UTF_8));
+    File descriptorFile = new File(serviceDirectory, "telemetry.json");
+    Files.write(descriptorFile.toPath(), descriptorJson().getBytes(StandardCharsets.UTF_8));
+
+    Clusters clusters = createMock(Clusters.class);
+    Host host = createMock(Host.class);
+    Cluster cluster = createMock(Cluster.class);
+    ServiceComponentHost componentHost = createMock(ServiceComponentHost.class);
+    AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
+    ConfigHelper configHelper = createMock(ConfigHelper.class);
+    ServiceInfo serviceInfo = new ServiceInfo();
+    serviceInfo.setTelemetryFile(descriptorFile);
+
+    expect(clusters.getHostById(7L)).andReturn(host);
+    expect(host.getHostName()).andStubReturn("nn1.example.com");
+    expect(clusters.getClustersForHost("nn1.example.com"))
+        .andReturn(Collections.singleton(cluster));
+    expect(cluster.getClusterId()).andStubReturn(11L);
+    expect(cluster.getClusterName()).andStubReturn("cluster-one");
+    expect(cluster.getDesiredStackVersion()).andReturn(new StackId("BIGTOP", "3.2.0"));
+    expect(cluster.getSecurityType()).andStubReturn(SecurityType.NONE);
+    expect(cluster.getServiceComponentHosts("nn1.example.com"))
+        .andReturn(Collections.singletonList(componentHost));
+    expect(configHelper.getEffectiveConfigProperties("cluster-one", "nn1.example.com"))
+        .andReturn(configurations());
+    expect(componentHost.getState()).andReturn(componentState);
+    expect(componentHost.getServiceName()).andStubReturn("HDFS");
+    expect(componentHost.getServiceComponentName()).andStubReturn("NAMENODE");
+    expect(componentHost.getHostName()).andStubReturn("nn1.example.com");
+    expect(metaInfo.getService("BIGTOP", "3.2.0", "HDFS")).andStubReturn(serviceInfo);
+    replay(clusters, host, cluster, componentHost, metaInfo, configHelper);
+
+    Provider<Clusters> clustersProvider = () -> clusters;
+    TelemetryAssignmentCompiler compiler =
+        new TelemetryAssignmentCompiler(clustersProvider, metaInfo, configHelper);
+
+    return compiler.compile(7L).getAssignment().path("targets").size();
+  }
+
   private Map<String, Map<String, String>> configurations() {
     Map<String, Map<String, String>> configurations = new HashMap<>();
     Map<String, String> hdfsSite = new HashMap<>();
