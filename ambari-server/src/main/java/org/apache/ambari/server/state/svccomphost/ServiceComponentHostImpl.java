@@ -32,6 +32,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
+import org.apache.ambari.server.agent.stomp.TelemetryHolder;
 import org.apache.ambari.server.agent.stomp.TopologyHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -144,6 +145,9 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
   @Inject
   private Provider<HostLevelParamsHolder> m_hostLevelParamsHolder;
+
+  @Inject
+  private Provider<TelemetryHolder> m_telemetryHolder;
 
   /**
    * Used for creating commands to send to the agents when alert definitions are
@@ -1024,6 +1028,13 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         if (statusUpdated) {
           STOMPUpdatePublisher.publish(new HostComponentsUpdateEvent(Collections.singletonList(
               HostComponentUpdate.createHostComponentStatusUpdate(stateEntity, oldState))));
+          // TelemetryHolder only subscribes to ServiceComponentInstalledEvent, which fires
+          // from the host component's constructor with desired state INIT - a state
+          // TelemetryAssignmentCompiler excludes - so the first compiled assignment for a
+          // host never contains component targets. Refresh here instead, on every real
+          // state transition, so scrape targets appear without an unrelated config change.
+          m_telemetryHolder.get().updateData(
+              m_telemetryHolder.get().getCurrentData(getHost().getHostId()));
         }
         if (event.getType().equals(ServiceComponentHostEventType.HOST_SVCCOMP_STARTED)) {
           HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
