@@ -20,6 +20,7 @@ import {
   cloneDeep,
   filter,
   find,
+  get,
   isEmpty,
   isObject,
   lowerCase,
@@ -34,7 +35,7 @@ import { Badge, Col, Row, Stack } from "react-bootstrap";
 import { useContext, useEffect } from "react";
 import { ServiceContext } from "../../store/ServiceContext";
 import Spinner from "../../components/Spinner";
-import { pluralize } from "../../Utils/Utility";
+import { pluralize, translate } from "../../Utils/Utility";
 import modalManager from "../../store/ModalManager";
 import { AlertsModal } from "./ServiceAlerts";
 import useClusterNavigate from "../../hooks/useClusterNavigate";
@@ -73,6 +74,20 @@ const getComponentDisplayName = (componentName: string): string => {
   return componentDisplayNames[componentName] || componentName;
 };
 
+// Mirrors Ember's display_name_advanced; observer is a third HA state.
+const getNameNodeLabel = (haStatus?: string) => {
+  switch ((haStatus || "").toLowerCase()) {
+    case "active":
+      return translate("services.service.summary.nameNode.active");
+    case "standby":
+      return translate("services.service.summary.nameNode.standby");
+    case "observer":
+      return translate("services.service.summary.nameNode.observer");
+    default:
+      return getComponentDisplayName("NAMENODE");
+  }
+};
+
 const TOOLTIP_MESSAGES = {
   GENERAL: {
     MAINTENANCE_MODE: 'Service is in maintenance mode',
@@ -103,6 +118,30 @@ function HDFSSummary({ alerts }: { alerts: any }) {
     if (!hdfsModel) {
       return <Spinner />;
     }
+
+    // Each ZKFC follows the NameNode on its host, as Ember's
+    // getGroupedMasterComponents orders them.
+    const zkfcHostComponents = get(
+      find(slaveComponents, ["componentName", "ZKFC"]),
+      "hostComponents",
+      []
+    );
+    const nameNodeGroupComponents: any[] = [];
+    get(
+      find(masterComponents, ["componentName", "NAMENODE"]),
+      "hostComponents",
+      []
+    ).forEach((hostComponent: any) => {
+      nameNodeGroupComponents.push(hostComponent);
+      const zkfc = find(zkfcHostComponents, (candidate: any) =>
+        get(candidate, "HostRoles.host_name") ===
+        get(hostComponent, "HostRoles.host_name")
+      );
+      if (zkfc) {
+        nameNodeGroupComponents.push(zkfc);
+      }
+    });
+
     return (
       <>
         {isFederated && (
@@ -113,10 +152,7 @@ function HDFSSummary({ alerts }: { alerts: any }) {
           />
         )}
         <Row>
-          {!isFederated && find(masterComponents, [
-            "componentName",
-            "NAMENODE",
-          ])?.hostComponents?.map((hostComponent: any) => {
+          {!isFederated && nameNodeGroupComponents.map((hostComponent: any) => {
             const component = hostComponent.HostRoles.component_name;
             const icon =
               hostComponent.passiveState == "OFF"
@@ -180,7 +216,13 @@ function HDFSSummary({ alerts }: { alerts: any }) {
                         );
                       }}
                     >
-                      {hostComponent.haStatus} NAMENODE
+                      {get(hostComponent, "HostRoles.component_name") === "ZKFC"
+                        ? get(
+                            find(slaveComponents, ["componentName", "ZKFC"]),
+                            "displayName",
+                            "ZKFC"
+                          )
+                        : getNameNodeLabel(hostComponent.haStatus)}
                     </div>
                   </Tooltip>
                 </Stack>
@@ -256,60 +298,6 @@ function HDFSSummary({ alerts }: { alerts: any }) {
                     >
                       SNAMENODE
                     </div>
-                  </Tooltip>
-                </Stack>
-              </Col>
-            );
-          })}
-          {!isFederated && find(slaveComponents, [
-            "componentName",
-            "ZKFC",
-          ])?.hostComponents?.map((hostComponent: any) => {
-            const icon =
-              hostComponent.passiveState == "OFF"
-                ? statusIconMap[lowerCase(hostComponent?.state)]
-                : hostComponent?.passiveState
-                ? statusIconMap["Maintenance"]
-                : null;
-            return (
-              <Col md={2}>
-                <Stack>
-                  <Stack direction="horizontal">
-                    <Tooltip
-                      message={hostComponent?.passiveState ? TOOLTIP_MESSAGES.GENERAL.MAINTENANCE_MODE : TOOLTIP_MESSAGES.GENERAL.COMPONENT_HEALTH}
-                      heading="Component Status"
-                      placement="top"
-                    >
-                      <FontAwesomeIcon
-                        icon={icon?.icon}
-                        className={`me-1 fw-bold fs-12 text-${icon?.color}`}
-                      />
-                    </Tooltip>
-                    <h3 className="text-dark mb-0">
-                      {startCase(hostComponent?.state?.toLowerCase()) ===
-                      "Installed"
-                        ? "Stopped"
-                        : startCase(hostComponent?.state?.toLowerCase())}
-                    </h3>
-                  </Stack>
-
-                  <Tooltip
-                    message={hostComponent.HostRoles.host_name}
-                    placement="top"
-                  >
-                  <div 
-                    className="custom-link text-uppercase fs-12 text-nowrap mt-2"
-                    onClick={() => {
-                      navigate(
-                        `/main/hosts/${hostComponent.HostRoles.host_name}/summary`
-                      );
-                    }}
-                  >
-                    {
-                      find(slaveComponents, ["componentName", "ZKFC"])
-                        ?.displayName
-                    }
-                  </div>
                   </Tooltip>
                 </Stack>
               </Col>

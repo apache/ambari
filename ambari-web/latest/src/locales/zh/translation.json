@@ -2029,6 +2029,7 @@
   "services.service.summary.nameNode": "NameNode Web UI",
   "services.service.summary.nameNode.active": "活动 NameNode",
   "services.service.summary.nameNode.standby": "备用 NameNode",
+  "services.service.summary.nameNode.observer": "观察者 NameNode",
   "services.service.summary.jobTracker": "JobTracker",
   "services.service.summary.jobTrackerWebUI": "JobTracker Web UI",
   "services.service.summary.hbaseMaster": "HBase Master Web UI",

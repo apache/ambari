@@ -82,6 +82,34 @@ export const useHDFSConfigUpdater = () => {
     }
   }, [JSON.stringify(configsData?.items)]);
 
+  // Group by the namespaces the installed NameNodes report, the way Ember's HDFS
+  // masterComponentGroups does. Deriving them from dfs.nameservices instead counts a
+  // declared-but-unpopulated nameservice, which flips the summary into the federated
+  // layout on a cluster that only added an observer NameNode.
+  const buildNameNodeGroups = (nameNodes: any[], nameSpacePath: string) => {
+    const groups: any[] = [];
+    nameNodes.forEach((nameNode: any) => {
+      const nameSpace = get(nameNode, nameSpacePath) || "default";
+      const hostName =
+        get(nameNode, "host_name") || get(nameNode, "HostRoles.host_name");
+      let group = find(groups, ["name", nameSpace]);
+      if (!group) {
+        group = {
+          name: nameSpace,
+          title: nameSpace,
+          hosts: [],
+          components: ["NAMENODE", "ZKFC"],
+          clusterId: "default",
+        };
+        groups.push(group);
+      }
+      if (hostName && !group.hosts.includes(hostName)) {
+        group.hosts.push(hostName);
+      }
+    });
+    return groups;
+  };
+
   function inferNamespace() {
     const hdfsModel = cloneDeep(allServiceModels["hdfs"]);
     const isHAEnabled = hdfsModel?.isNameNodeHaEnabled;
@@ -138,16 +166,10 @@ export const useHDFSConfigUpdater = () => {
               }
             });
 
-            // Create masterComponentGroups for federation detection
-            const masterComponentGroups = nameSpaces
-              .filter((ns: any) => ns && ns.nameSpace && ns.hostNames)
-              .map((ns: any) => ({
-                name: ns.nameSpace,
-                title: ns.nameSpace,
-                hosts: ns.hostNames.filter((host: string) => host), // Filter out null/undefined hosts
-                components: ["NAMENODE", "ZKFC"],
-                clusterId: "default"
-              }));
+            const masterComponentGroups = buildNameNodeGroups(
+              allNameNodes,
+              "haNameSpace"
+            );
 
             hdfsModel.updateConfig({
               namespaces: nameSpaces,
@@ -314,34 +336,51 @@ export const useHDFSConfigUpdater = () => {
     currentConfig[ServiceComponentFields.HDFS.journalNodes] =
       componentHosts("JOURNALNODE");
 
-    // Update masterComponentGroups when master components change
+    // Rebuilt on every poll, so it has to use the same NameNode-derived grouping as
+    // inferNamespace or it reintroduces the nameservice that was just discarded.
     if (isHAEnabled && configsData?.items) {
       const hdfsSiteConfigs = find(configsData?.items, ["type", "hdfs-site"]);
       if (hdfsSiteConfigs) {
         const properties = get(hdfsSiteConfigs, "properties", {});
         const nameSpaceProperty = properties["dfs.nameservices"];
         if (nameSpaceProperty) {
-          const nameSpaces = nameSpaceProperty.split(",");
-          const masterComponentGroups = nameSpaces.map((nameSpace: string) => {
-            const nameNodeIdsProperty = properties[`dfs.ha.namenodes.${nameSpace}`];
-            let hosts: string[] = [];
-            if (nameNodeIdsProperty) {
-              const nameNodeIds = nameNodeIdsProperty.split(",");
-              hosts = nameNodeIds.map((id: any) => {
-                const propertyValue = properties[`dfs.namenode.http-address.${nameSpace}.${id}`];
-                const matches = propertyValue && propertyValue.match(/([\D\d]+)\:\d+$/);
-                return matches && matches[1];
-              }).filter((host: string) => host); // Filter out null/undefined hosts
+          const nameSpaces = nameSpaceProperty
+            .split(",")
+            .map((nameSpace: string) => {
+              const nameNodeIdsProperty = properties[`dfs.ha.namenodes.${nameSpace}`];
+              let hostNames: string[] = [];
+              if (nameNodeIdsProperty) {
+                const nameNodeIds = nameNodeIdsProperty.split(",");
+                hostNames = nameNodeIds.map((id: any) => {
+                  const propertyValue = properties[`dfs.namenode.http-address.${nameSpace}.${id}`];
+                  const matches = propertyValue && propertyValue.match(/([\D\d]+)\:\d+$/);
+                  return matches && matches[1];
+                }).filter((host: string) => host); // Filter out null/undefined hosts
+              }
+              return { nameSpace, hostNames };
+            });
+
+          const nameNodeComponent = masterComponents.find(
+            (comp: any) => comp.componentName === "NAMENODE"
+          );
+          const allNameNodes = map(
+            nameNodeComponent?.hostComponents,
+            "HostRoles"
+          );
+          allNameNodes.forEach((component: any) => {
+            const nameSpaceObject = nameSpaces.find(
+              (ns: any) =>
+                ns && ns.hostNames && ns.hostNames.includes(component.host_name)
+            );
+            if (nameSpaceObject) {
+              set(component, "haNameSpace", nameSpaceObject.nameSpace);
             }
-            return {
-              name: nameSpace,
-              title: nameSpace,
-              hosts: hosts,
-              components: ["NAMENODE", "ZKFC"],
-              clusterId: "default"
-            };
           });
-          currentConfig.federationNamespaces = masterComponentGroups;
+
+          currentConfig.federationNamespaces = buildNameNodeGroups(
+            allNameNodes,
+            "haNameSpace"
+          );
         }
       }
     } else {
