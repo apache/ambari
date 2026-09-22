@@ -104,6 +104,41 @@ function renderComponents(data: any[]) {
   );
 }
 
+function renderHDFSSummary(hdfsModel: any) {
+  return render(
+    <MemoryRouter>
+      <HostsListStateProvider>
+        <ServiceContext.Provider
+          value={
+            {
+              allServiceModels: { hdfs: hdfsModel },
+            } as unknown as ComponentProps<
+              typeof ServiceContext.Provider
+            >["value"]
+          }
+        >
+          <ServiceComponents serviceName="HDFS" alerts={[]} />
+        </ServiceContext.Provider>
+      </HostsListStateProvider>
+    </MemoryRouter>
+  );
+}
+
+function nameNodeHostComponent(hostName: string, haStatus: string) {
+  return {
+    HostRoles: { host_name: hostName, component_name: "NAMENODE" },
+    state: "STARTED",
+    haStatus,
+  };
+}
+
+function zkfcHostComponent(hostName: string) {
+  return {
+    HostRoles: { host_name: hostName, component_name: "ZKFC" },
+    state: "STARTED",
+  };
+}
+
 describe("generic service summary", () => {
   afterEach(cleanup);
 
@@ -121,5 +156,61 @@ describe("generic service summary", () => {
     renderComponents([]);
 
     expect(screen.getByText("No components to display")).toBeTruthy();
+  });
+});
+
+describe("HDFS NameNode/ZKFC summary", () => {
+  afterEach(cleanup);
+
+  it("labels each NameNode by HA state and pairs it with its host's ZKFC", () => {
+    renderHDFSSummary({
+      isNameNodeHaEnabled: true,
+      federationNamespaces: [{ name: "default", title: "default", hosts: [], components: [], clusterId: "default" }],
+      masterComponents: [
+        {
+          componentName: "NAMENODE",
+          hostComponents: [
+            nameNodeHostComponent("nn1.example.com", "active"),
+            nameNodeHostComponent("nn2.example.com", "observer"),
+          ],
+        },
+      ],
+      slaveComponents: [
+        {
+          componentName: "ZKFC",
+          displayName: "ZKFailoverController",
+          hostComponents: [
+            zkfcHostComponent("nn1.example.com"),
+            zkfcHostComponent("nn2.example.com"),
+          ],
+        },
+      ],
+    });
+
+    expect(screen.getByText("Active NameNode")).toBeTruthy();
+    expect(screen.getByText("Observer NameNode")).toBeTruthy();
+    expect(screen.getAllByText("ZKFailoverController")).toHaveLength(2);
+  });
+
+  it("stays out of the federated layout when only one namespace has an installed NameNode", () => {
+    renderHDFSSummary({
+      isNameNodeHaEnabled: true,
+      // A declared-but-unpopulated second namespace must not flip isFederated.
+      federationNamespaces: [
+        { name: "ns1", title: "ns1", hosts: ["nn1.example.com"], components: ["NAMENODE", "ZKFC"], clusterId: "default" },
+      ],
+      masterComponents: [
+        {
+          componentName: "NAMENODE",
+          hostComponents: [nameNodeHostComponent("nn1.example.com", "active")],
+        },
+      ],
+      slaveComponents: [
+        { componentName: "ZKFC", displayName: "ZKFailoverController", hostComponents: [] },
+      ],
+    });
+
+    expect(screen.getByText("Active NameNode")).toBeTruthy();
+    expect(screen.queryByText(/Namespace:/)).toBeNull();
   });
 });
