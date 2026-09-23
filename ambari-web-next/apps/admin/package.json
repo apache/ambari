@@ -1,0 +1,20 @@
+{
+  "name": "ambari-admin",
+  "version": "1.0.0",
+  "description": "Front-end admin app for the Apache Ambari Admin Project",
+  "homepage": "http://ambari.apache.org/",
+  "repository": {
+    "type": "git",
+    "url": "https://gitbox.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "@ambari/ui-shared": "workspace:*"
+  }
+}
