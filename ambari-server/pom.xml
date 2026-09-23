@@ -88,7 +88,7 @@
     <metrics.version>4.2.40</metrics.version>
     <libpam4j.version>1.11</libpam4j.version>
     <jna.version>5.19.1</jna.version>
-    <directory.api.version>2.1.5</directory.api.version>
+    <directory.api.version>2.1.8</directory.api.version>
     <json.schema.validator.version>0.1.10</json.schema.validator.version>
   </properties>
   <build>
