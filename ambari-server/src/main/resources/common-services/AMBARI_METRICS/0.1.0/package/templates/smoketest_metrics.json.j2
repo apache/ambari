@@ -1,0 +1,14 @@
+{
+  "metrics": [
+    {
+      "metricname": "AMBARI_METRICS.SmokeTest.FakeMetric",
+      "appid": "amssmoketestfake",
+      "hostname": "{{hostname}}",
+      "starttime": {{current_time}},
+      "metrics": {
+        "{{current_time}}": {{random1}},
+        "{{current_time + 1000}}": {{current_time}}
+      }
+    }
+  ]
+}

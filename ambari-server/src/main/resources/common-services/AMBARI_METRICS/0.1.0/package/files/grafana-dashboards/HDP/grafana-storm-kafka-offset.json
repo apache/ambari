@@ -1,0 +1,258 @@
+{
+  "id": null,
+  "title": "Storm - Kafka-Offset",
+  "originalTitle": "Storm - Kafka-Offset",
+  "tags": [
+    "storm",
+    "builtin",
+    "2.4.0.0"
+  ],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "hideControls": false,
+  "sharedCrosshair": false,
+  "rows": [
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "25px",
+      "panels": [
+        {
+          "content": "<h4 align=\"center\">Metrics to see the status for the Storm topics on a per partition level. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>\n<h5 align=\"center\">Note: Period ('.') contained topology names are not supported.</h5>",
+          "editable": true,
+          "error": false,
+          "id": 14,
+          "isNew": true,
+          "links": [],
+          "mode": "html",
+          "span": 12,
+          "style": {},
+          "title": "",
+          "type": "text"
+        }
+      ],
+      "title": "New row"
+    },
+    {
+      "collapse": false,
+      "editable": true,
+      "height": "250px",
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": false,
+          "datasource": null,
+          "editable": true,
+          "error": false,
+          "fill": 1,
+          "grid": {
+            "leftLogBase": 1,
+            "leftMax": null,
+            "leftMin": null,
+            "rightLogBase": 1,
+            "rightMax": null,
+            "rightMin": null,
+            "threshold1": null,
+            "threshold1Color": "rgba(216, 200, 27, 0.27)",
+            "threshold2": null,
+            "threshold2Color": "rgba(234, 112, 112, 0.22)"
+          },
+          "id": 15,
+          "isNew": true,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 2,
+          "links": [],
+          "minSpan": 4,
+          "nullPointMode": "connected",
+          "percentage": false,
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "repeat": "partition",
+          "scopedVars": {
+            "partition": {
+              "text": "partition-0",
+              "value": "partition-0",
+              "selected": true
+            }
+          },
+          "seriesOverrides": [],
+          "span": 12,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "aggregator": "avg",
+              "alias": "Kafka Offset",
+              "app": "nimbus",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "hosts": "",
+              "metric": "topology.*.kafka-topic.*.*.latestTimeOffset",
+              "precision": "default",
+              "refId": "B",
+              "sPartition": "partition-0",
+              "sTopic": "myKafkaTopic",
+              "sTopoMetric": "topology.kafka-topology.kafka-topic.myKafkaTopic.partition-0.latestTimeOffset",
+              "sTopology": "kafka-topology",
+              "seriesAggregator": "none",
+              "transform": "none"
+            },
+            {
+              "aggregator": "avg",
+              "alias": "Storm Offset",
+              "app": "nimbus",
+              "downsampleAggregator": "avg",
+              "errors": {},
+              "metric": "topology.*.kafka-topic.*.*.latestCompletedOffset",
+              "precision": "default",
+              "refId": "A",
+              "sComponent": "--acker",
+              "sPartition": "partition-0",
+              "sTopic": "myKafkaTopic",
+              "sTopoMetric": "topology.kafka-topology.kafka-topic.myKafkaTopic.partition-0.latestCompletedOffset",
+              "sTopology": "kafka-topology",
+              "seriesAggregator": "none",
+              "transform": "none"
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "$partition",
+          "tooltip": {
+            "shared": true,
+            "value_type": "cumulative"
+          },
+          "type": "graph",
+          "x-axis": true,
+          "y-axis": true,
+          "y_formats": [
+            "short",
+            "short"
+          ]
+        }
+      ],
+      "title": "New row"
+    }
+  ],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "now": true,
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "2h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "kafka-topology",
+          "value": "kafka-topology"
+        },
+        "datasource": null,
+        "includeAll": false,
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "topologies",
+        "options": [
+        ],
+        "query": "topologies",
+        "refresh": true,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": null,
+        "includeAll": false,
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "topic",
+        "options": [
+          
+        ],
+        "query": "$topologies.stormTopic",
+        "refresh": true,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "allFormat": "glob",
+        "current": {
+          "text": "partition-0",
+          "value": "partition-0"
+        },
+        "datasource": null,
+        "includeAll": true,
+        "multi": true,
+        "multiFormat": "glob",
+        "name": "partition",
+        "options": [
+          {
+            "text": "partition-0",
+            "value": "partition-0",
+            "selected": true
+          }
+        ],
+        "query": "$topic.stormPartition",
+        "refresh": true,
+        "type": "query"
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "refresh": false,
+  "schemaVersion": 8,
+  "version": 23,
+  "links": [
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "tags": [
+        "storm"
+      ],
+      "title": "Storm Dashboards",
+      "type": "dashboards"
+    }
+  ]
+}
