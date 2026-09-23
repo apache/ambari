@@ -1,0 +1,201 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<!-- This is a special config file for properties used to monitor status of the service -->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>logsearch_pid_dir</name>
+    <value>/var/run/ambari-logsearch-portal</value>
+    <description>Log Search Process ID Directory</description>
+    <display-name>Log Search pid dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_log_dir</name>
+    <value>/var/log/ambari-logsearch-portal</value>
+    <description>Log directory for Log Search</description>
+    <display-name>Log Search log dir</display-name>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_user</name>
+    <value>logsearch</value>
+    <property-type>USER</property-type>
+    <description>Log Search user</description>
+    <display-name>Log Search User</display-name>
+    <value-attributes>
+      <type>user</type>
+      <overridable>false</overridable>
+      <user-groups>
+        <property>
+          <type>cluster-env</type>
+          <name>user_group</name>
+        </property>
+      </user-groups>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_app_max_memory</name>
+    <value>1024</value>
+    <description>Max memory for Log Search Portal</description>
+    <display-name>Log Search Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>2048</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_debug_enabled</name>
+    <value>false</value>
+    <display-name>Log Search Debug Enabled</display-name>
+    <description>Enable debug mode for Log Search Server</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_debug_port</name>
+    <value>5005</value>
+    <display-name>Log Search Debug Port</display-name>
+    <description>Debug port for Log Search Server</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_external_solr_kerberos_keytab</name>
+    <value></value>
+    <display-name>Log Search External Solr keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of Log Search e.g. /etc/security/keytabs/logsearch.service.keytab</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_external_solr_kerberos_principal</name>
+    <value></value>
+    <display-name>Log Search External Solr principal</display-name>
+    <description>The service principal for Log Search which will be used to access SolrClient  e.g. logsearch/_HOST@REALM</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_kerberos_service_users</name>
+    <display-name>Log Search service users</display-name>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <description>
+      List of comma separated kerberos service users who can read from logsearch collections if the cluster is
+      secure. (logsearch user supported by default)
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_truststore_location</name>
+    <value>/usr/lib/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
+    <display-name>Log Search trust store location</display-name>
+    <description>Location of the trust store file.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_truststore_type</name>
+    <value>jks</value>
+    <display-name>Log Search trust store type</display-name>
+    <description>Type of the trust store file.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_truststore_password</name>
+    <value>bigdata</value>
+    <display-name>Log Search trust store password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Password to open the trust store file.</description>
+    <value-attributes>
+      <type>password</type>
+      <keystore>true</keystore>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_keystore_location</name>
+    <value>/usr/lib/ambari-logsearch-portal/conf/keys/logsearch.jks</value>
+    <display-name>Log Search key store location</display-name>
+    <description>Location of the key store file.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_keystore_type</name>
+    <value>jks</value>
+    <display-name>Log Search key store type</display-name>
+    <description>Type of the key store file.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_keystore_password</name>
+    <value>bigdata</value>
+    <display-name>Log Search key store password</display-name>
+    <property-type>PASSWORD</property-type>
+    <description>Password to open the key store file.</description>
+    <value-attributes>
+      <type>password</type>
+      <keystore>true</keystore>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_kerberos_keytab</name>
+    <value>/etc/security/keytabs/logsearch.service.keytab</value>
+    <display-name>Log Search keytab</display-name>
+    <description>The path to the Kerberos Keytab file containing service principal of Log Search.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch_kerberos_principal</name>
+    <value>logsearch</value>
+    <display-name>Log Search principal</display-name>
+    <description>The service principal for Log Search which will be used to access SolrClient.</description>
+    <property-type>KERBEROS_PRINCIPAL</property-type>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- logsearch-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>logsearch-env template</display-name>
+    <description>This is the jinja template for logsearch-env.sh file</description>
+    <value/>
+    <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
+    <value-attributes>
+      <property-file-name>logsearch-env.sh.j2</property-file-name>
+      <property-file-type>text</property-file-type>
+    </value-attributes>
+    <on-ambari-upgrade add="true" update="true"/>
+  </property>
+</configuration>
