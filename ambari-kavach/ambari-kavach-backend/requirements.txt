@@ -1,0 +1,9 @@
+# Ambari Kavach Backend Dependencies
+flask>=2.3.0
+flask-cors>=4.0.0
+flask-jwt-extended>=4.5.0
+mysql-connector-python>=8.0.0
+requests>=2.31.0
+bcrypt>=4.0.0
+cryptography>=41.0.0
+apscheduler>=3.10.0
