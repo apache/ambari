@@ -21,6 +21,7 @@ limitations under the License.
 import logging
 import os
 import json
+import uuid
 
 from ambari_agent import hostname
 
@@ -90,6 +91,8 @@ class ConfigurationBuilder:
       self.metadata_cache.get_cluster_indepedent_data().clusterLevelParams
     )
 
+    self._pin_definition_resources(command_dict)
+
     if cluster_id:
       self._apply_java_home_override(command_dict, service_name, component_name)
 
@@ -106,6 +109,28 @@ class ConfigurationBuilder:
       }
     }
     return command_dict
+
+  @staticmethod
+  def _pin_definition_resources(command_dict):
+    global_parameters = command_dict.get("ambariLevelParams", {})
+    snapshot = global_parameters.get("mpack_definition_snapshot")
+    if snapshot is None:
+      return
+    cluster_parameters = command_dict.get("clusterLevelParams")
+    if cluster_parameters is not None and cluster_parameters.get("mpack_definition_snapshot") != snapshot:
+      raise ValueError("Cluster metadata does not match the available definition snapshot")
+    service_parameters = command_dict.get("serviceLevelParams")
+    if service_parameters is not None and service_parameters.get("mpack_definition_snapshot") != snapshot:
+      raise ValueError("Service metadata does not match the available definition snapshot")
+    parameters = dict(command_dict.get("commandParams", {}))
+    for key in ("mpack_definition_snapshot", "mpack_resource_contract", "mpack_resource_references", "resource_archive_digests"):
+      if key not in global_parameters:
+        raise ValueError("Definition resource metadata is incomplete")
+      parameters[key] = global_parameters[key]
+    parameters["mpack_execution_id"] = str(uuid.uuid4())
+    if cluster_parameters is not None and "hooks_folder" in cluster_parameters:
+      parameters["mpack_hooks_folder"] = cluster_parameters["hooks_folder"]
+    command_dict["commandParams"] = parameters
 
   @staticmethod
   def _apply_java_home_override(command_dict, service_name, component_name):

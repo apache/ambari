@@ -64,6 +64,102 @@ class TestFileCache(TestCase):
     fileCache.reset()
     self.assertFalse(fileCache.uptodate_paths)
 
+  @staticmethod
+  def pinned_command(snapshot, path, digest):
+    resolved = "mpacks/" + snapshot + "/" + path
+    return {
+      "commandParams": {
+        "service_package_folder": resolved,
+        "mpack_definition_snapshot": snapshot,
+        "mpack_resource_contract": "MPACK_RESOURCES_V1",
+        "mpack_execution_id": "12345678-1234-1234-1234-123456789abc",
+        "mpack_resource_references": json.dumps({path: resolved}),
+        "resource_archive_digests": json.dumps({resolved: digest}),
+      },
+      "ambariLevelParams": {"jdk_location": "https://localhost/resources"},
+    }
+
+  def test_referenced_generations_coexist_without_cache_update(self):
+    with tempfile.TemporaryDirectory() as cache_root:
+      self.config.set("agent", "cache_dir", cache_root)
+      self.config.set(
+        AmbariConfig.AMBARI_PROPERTIES_CATEGORY,
+        FileCache.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY,
+        "false",
+      )
+      cache = FileCache(self.config)
+      path = "extensions/NGINX/1.0/services/NGINX/package"
+      commands = []
+      for snapshot, script in (("a" * 64, "old script"), ("b" * 64, "new script")):
+        content = io.BytesIO()
+        with zipfile.ZipFile(content, "w") as archive:
+          archive.writestr("scripts/nginx.py", script)
+        digest = hashlib.sha256(content.getvalue()).hexdigest()
+        command = self.pinned_command(snapshot, path, digest)
+        target = os.path.join(cache_root, "mpacks", snapshot, path)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        cache.replace_directory(io.BytesIO(content.getvalue()), target, b"0" * 64, digest)
+        commands.append(command)
+      for command, expected in zip(commands, ("old script", "new script")):
+        directory = cache.get_service_base_dir(command)
+        with open(os.path.join(directory, "scripts", "nginx.py")) as source:
+          self.assertEqual(expected, source.read())
+
+  def test_rejects_foreign_or_missing_pinned_resource_metadata(self):
+    path = "extensions/NGINX/1.0/services/NGINX/package"
+    command = self.pinned_command("a" * 64, path, "c" * 64)
+    cache = FileCache(self.config)
+    command["commandParams"]["mpack_resource_references"] = json.dumps(
+      {path: "mpacks/" + "b" * 64 + "/" + path}
+    )
+    with self.assertRaises(CachingException):
+      cache.get_service_base_dir(command)
+
+    command = self.pinned_command("a" * 64, path, "c" * 64)
+    command["ambariLevelParams"]["resource_archive_digests"] = command["commandParams"].pop(
+      "resource_archive_digests"
+    )
+    with self.assertRaises(CachingException):
+      cache.get_service_base_dir(command)
+
+  def test_verified_cache_is_readable_by_service_accounts_and_repairs_old_modes(self):
+    with tempfile.TemporaryDirectory() as cache_root:
+      self.config.set("agent", "cache_dir", cache_root)
+      cache = FileCache(self.config)
+      path = "extensions/KYUUBI/1.0/services/KYUUBI/package"
+      content = io.BytesIO()
+      with zipfile.ZipFile(content, "w") as archive:
+        archive.writestr("scripts/check.py", "verified service check")
+      payload = content.getvalue()
+      digest = hashlib.sha256(payload).hexdigest()
+      command = self.pinned_command("a" * 64, path, digest)
+      target = os.path.join(cache_root, "mpacks", "a" * 64, path)
+      cache.replace_directory(io.BytesIO(payload), target, b"0" * 64, digest)
+      self.assertEqual(0o755, os.stat(target).st_mode & 0o777)
+      os.chmod(target, 0o700)
+      cache.uptodate_paths[target] = digest
+      cache.fetch_url = MagicMock(side_effect=AssertionError("Verified cache must be reused"))
+      self.assertEqual(target, cache.get_service_base_dir(command))
+      self.assertEqual(0o755, os.stat(target).st_mode & 0o777)
+      self.assertEqual(digest, cache.read_archive_digest(target))
+      with open(os.path.join(target, "scripts", "check.py")) as source:
+        self.assertEqual("verified service check", source.read())
+
+  def test_rejects_duplicate_reference_keys_and_unknown_resources(self):
+    path = "host_scripts"
+    command = self.pinned_command("a" * 64, path, "c" * 64)
+    cache = FileCache(self.config)
+    command["commandParams"]["mpack_resource_references"] = '{"host_scripts":"one","host_scripts":"two"}'
+    with self.assertRaises(CachingException):
+      cache.get_host_scripts_base_dir(command)
+    command["commandParams"]["mpack_resource_references"] = "{}"
+    with self.assertRaises(CachingException):
+      cache.get_host_scripts_base_dir(command)
+
+  def test_explicitly_disabled_stack_hooks_have_no_process_semantics(self):
+    cache = FileCache(self.config)
+    self.assertIsNone(cache.get_hook_base_dir({"clusterLevelParams": {"hooks_folder": ""}}))
+
   @patch.object(FileCache, "provide_directory")
   def test_get_service_base_dir(self, provide_directory_mock):
     provide_directory_mock.return_value = "dummy value"
