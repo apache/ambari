@@ -403,6 +403,8 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
       }
 
       //todo: shouldn't blindly catch Exception, re-evaluate this.
+    } catch (DefinitionConflictException e) {
+      throw e;
     } catch (Exception e) {
       String error = "Exception caught while populating services for extension: " +
           extensionInfo.getName() + "-" + extensionInfo.getVersion();
@@ -488,6 +490,9 @@ public class ExtensionModule extends BaseModule<ExtensionModule, ExtensionInfo> 
    */
   private void addService(ServiceModule service) {
     ServiceInfo serviceInfo = service.getModuleInfo();
+    if (stackContext.isIsolated() && serviceModules.containsKey(service.getId())) {
+      throw new DefinitionConflictException(getId() + "/services/" + service.getId(), serviceModules.get(service.getId()), service);
+    }
     Object previousValue = serviceModules.put(service.getId(), service);
     if (previousValue == null) {
       extensionInfo.getServices().add(serviceInfo);

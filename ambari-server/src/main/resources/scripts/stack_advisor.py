@@ -22,6 +22,8 @@ import os
 import sys
 import traceback
 
+sys.dont_write_bytecode = True
+
 RECOMMEND_COMPONENT_LAYOUT_ACTION = "recommend-component-layout"
 VALIDATE_COMPONENT_LAYOUT_ACTION = "validate-component-layout"
 RECOMMEND_CONFIGURATIONS = "recommend-configurations"
@@ -44,7 +46,7 @@ ALL_ACTIONS = [
 USAGE = f"Usage: <action> <hosts_file> <services_file>\nPossible actions are: {str(ALL_ACTIONS)}\n"
 
 SCRIPT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-STACKS_DIRECTORY = os.path.join(SCRIPT_DIRECTORY, "../stacks")
+STACKS_DIRECTORY = os.environ.get("METADATA_DIR_PATH", os.path.join(SCRIPT_DIRECTORY, "../stacks"))
 STACK_ADVISOR_PATH = os.path.join(STACKS_DIRECTORY, "stack_advisor.py")
 AMBARI_CONFIGURATION_PATH = os.path.join(STACKS_DIRECTORY, "ambari_configuration.py")
 STACK_ADVISOR_DEFAULT_IMPL_CLASS = "DefaultStackAdvisor"

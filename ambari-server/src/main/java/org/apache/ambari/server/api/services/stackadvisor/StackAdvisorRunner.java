@@ -45,6 +45,9 @@ public class StackAdvisorRunner {
   @Inject
   private Configuration configs;
 
+  @Inject
+  private com.google.inject.Provider<org.apache.ambari.server.api.services.AmbariMetaInfo> metadata;
+
   /**
    * Runs stack_advisor.py script in the specified {@code actionDirectory}.
    *
@@ -78,9 +81,11 @@ public class StackAdvisorRunner {
         ProcessBuilder builder = prepareShellCommand(ServiceInfo.ServiceAdvisorType.PYTHON, configs.getStackAdvisorScript(), saCommandType,
             actionDirectory, outputFile,
             errorFile);
-        builder.environment().put("METADATA_DIR_PATH", configs.getProperty(Configuration.METADATA_DIR_PATH));
-        builder.environment().put("BASE_SERVICE_ADVISOR", Paths.get(configs.getProperty(Configuration.METADATA_DIR_PATH), "service_advisor.py").toString());
-        builder.environment().put("BASE_STACK_ADVISOR", Paths.get(configs.getProperty(Configuration.METADATA_DIR_PATH), "stack_advisor.py").toString());
+        String definitionRoot = metadata == null ? configs.getMetadataPath() : metadata.get().getStackRoot().toString();
+        builder.environment().put("METADATA_DIR_PATH", definitionRoot);
+        builder.environment().put("BASE_SERVICE_ADVISOR", Paths.get(definitionRoot, "service_advisor.py").toString());
+        builder.environment().put("BASE_STACK_ADVISOR", Paths.get(definitionRoot, "stack_advisor.py").toString());
+        builder.environment().put("PYTHONDONTWRITEBYTECODE", "1");
         stackAdvisorReturnCode = launchProcess(builder);
         break;
     }

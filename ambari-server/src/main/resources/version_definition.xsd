@@ -91,7 +91,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element name="service" minOccurs="1" maxOccurs="unbounded">
+      <xs:element name="service" minOccurs="0" maxOccurs="unbounded">
         <xs:annotation>
           <xs:documentation>
           A service includes both the name and version represented in the repository.

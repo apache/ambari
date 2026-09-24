@@ -49,8 +49,7 @@ import io.swagger.annotations.ApiResponses;
  * Service for Mpacks Management.
  * Endpoint for Mpack Data
  */
-@Path("/mpacks/")
-@Api(value = "Mpacks", description = "Endpoint for mpack-specific operations")
+@Deprecated
 public class MpacksService extends BaseService {
 
   private static final String MPACK_REQUEST_TYPE = "org.apache.ambari.server.api.services.MpackRequestSwagger";

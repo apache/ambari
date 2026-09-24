@@ -60,6 +60,8 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String UPGRADE_PACKS_PROPERTY_ID = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "upgrade_packs";
   public static final String STACK_MIN_JDK     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "min_jdk";
   public static final String STACK_MAX_JDK     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "max_jdk";
+  public static final String REPOSITORY_VERSION_MODE = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "repository_version_mode";
+  public static final String HOOKS_FOLDER = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "hooks_folder";
   public static final String MPACK_RESOURCE_ID     = RESPONSE_KEY + PropertyHelper.EXTERNAL_PATH_SEP + "id";
 
   public static final Set<String> PROPERTY_IDS = new HashSet<>();
@@ -89,6 +91,8 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
     PROPERTY_IDS.add(UPGRADE_PACKS_PROPERTY_ID);
     PROPERTY_IDS.add(STACK_MIN_JDK);
     PROPERTY_IDS.add(STACK_MAX_JDK);
+    PROPERTY_IDS.add(REPOSITORY_VERSION_MODE);
+    PROPERTY_IDS.add(HOOKS_FOLDER);
 
     // keys
     KEY_PROPERTY_IDS.put(Resource.Type.Mpack, MPACK_RESOURCE_ID);
@@ -177,6 +181,8 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, STACK_MAX_JDK,
               response.getMaxJdk(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_VERSION_MODE, response.getRepositoryVersionMode(), requestedIds);
+      setResourceProperty(resource, HOOKS_FOLDER, response.getHooksFolder(), requestedIds);
 
         resources.add(resource);
       }

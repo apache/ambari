@@ -89,9 +89,31 @@ public class StackAdvisorHelperTest {
         .ofType(requestType).build();
 
     when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenReturn(expected);
-    doReturn(command).when(helper).createValidationCommand("ZOOKEEPER", request);
+    doReturn(command).when(helper).createValidationCommand(null, request);
     ValidationResponse response = helper.validate(request);
     assertEquals(expected, response);
+    Mockito.verify(metaInfo, Mockito.never()).getService(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testValidate_usesExplicitServiceAdvisor() throws Exception {
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getRecommendationsArtifactsRolloverMax()).thenReturn(100);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    ServiceInfo service = mock(ServiceInfo.class);
+    when(metaInfo.getService("GENERIC", "1.0", "NGINX")).thenReturn(service);
+    when(service.getServiceAdvisorType()).thenReturn(ServiceInfo.ServiceAdvisorType.PYTHON);
+    StackAdvisorHelper helper = stackAdvisorHelperSpy(configuration, mock(StackAdvisorRunner.class), metaInfo);
+    StackAdvisorRequest request = StackAdvisorRequestBuilder.forStack("GENERIC", "1.0")
+        .withServiceName("NGINX").ofType(StackAdvisorRequestType.HOST_GROUPS).build();
+    StackAdvisorCommand<ValidationResponse> command = mock(StackAdvisorCommand.class);
+    ValidationResponse expected = mock(ValidationResponse.class);
+    doReturn(command).when(helper).createValidationCommand("NGINX", request);
+    when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenReturn(expected);
+
+    assertEquals(expected, helper.validate(request));
+    Mockito.verify(metaInfo).getService("GENERIC", "1.0", "NGINX");
   }
 
   @Test(expected = StackAdvisorException.class)
@@ -113,7 +135,7 @@ public class StackAdvisorHelperTest {
         .ofType(requestType).build();
 
     when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenThrow(new StackAdvisorException("message"));
-    doReturn(command).when(helper).createValidationCommand("ZOOKEEPER", request);
+    doReturn(command).when(helper).createValidationCommand(null, request);
     helper.validate(request);
 
     fail();
@@ -138,7 +160,7 @@ public class StackAdvisorHelperTest {
         .ofType(requestType).build();
 
     when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenReturn(expected);
-    doReturn(command).when(helper).createRecommendationCommand("ZOOKEEPER", request);
+    doReturn(command).when(helper).createRecommendationCommand(null, request);
     RecommendationResponse response = helper.recommend(request);
 
     assertEquals(expected, response);
@@ -163,7 +185,7 @@ public class StackAdvisorHelperTest {
         .ofType(requestType).build();
 
     when(command.invoke(request, ServiceInfo.ServiceAdvisorType.PYTHON)).thenThrow(new StackAdvisorException("message"));
-    doReturn(command).when(helper).createRecommendationCommand("ZOOKEEPER", request);
+    doReturn(command).when(helper).createRecommendationCommand(null, request);
     helper.recommend(request);
 
     fail("Expected StackAdvisorException to be thrown");
@@ -326,17 +348,13 @@ public class StackAdvisorHelperTest {
     verify(configuration, stackAdvisorRunner, ambariMetaInfo, ambariServerConfigurationHandler);
     reset(ambariMetaInfo);
 
-    ServiceInfo serviceInfo = new ServiceInfo();
-    serviceInfo.setServiceAdvisorType(ServiceInfo.ServiceAdvisorType.PYTHON);
-    expect(ambariMetaInfo.getService(anyString(), anyString(), anyString())).andReturn(serviceInfo).atLeastOnce();
-
     ConfigurationRecommendationCommand command = createMock(ConfigurationRecommendationCommand.class);
 
     StackAdvisorRequest request = StackAdvisorRequestBuilder.
         forStack(null, null).ofType(StackAdvisorRequestType.CONFIGURATIONS).
         build();
 
-    expect(helper.createRecommendationCommand(eq("ZOOKEEPER"), eq(request))).andReturn(command).times(2);
+    expect(helper.createRecommendationCommand(eq((String) null), eq(request))).andReturn(command).times(2);
 
     // populate response with dummy info to check equivalence
     RecommendationResponse response = new RecommendationResponse();

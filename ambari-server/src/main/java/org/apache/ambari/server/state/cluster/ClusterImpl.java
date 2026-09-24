@@ -931,6 +931,7 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public Service addService(String serviceName, RepositoryVersionEntity repositoryVersion) throws AmbariException {
     if (services.containsKey(serviceName)) {
       String message = MessageFormat.format("The {0} service already exists in {1}", serviceName,
@@ -981,6 +982,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation(org.apache.ambari.server.mpack.MpackMutation.Kind.STACK)
   public void setDesiredStackVersion(StackId stackId) throws AmbariException {
     clusterGlobalLock.writeLock().lock();
     try {
@@ -1400,6 +1402,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public void deleteService(String serviceName, DeleteHostComponentStatusMetaData deleteMetaData)
     throws AmbariException {
     clusterGlobalLock.writeLock().lock();
@@ -1523,6 +1526,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation(org.apache.ambari.server.mpack.MpackMutation.Kind.CONFIGURATION)
   public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs, String serviceConfigVersionNote) throws AmbariException {
     if (null == user) {
       throw new NullPointerException("User must be specified.");
@@ -1673,6 +1677,7 @@ public class ClusterImpl implements Cluster {
 
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public ServiceConfigVersionResponse createServiceConfigVersion(
       String serviceName, String user, String note, ConfigGroup configGroup) throws AmbariException {
 
@@ -2823,6 +2828,7 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   @Transactional
+  @org.apache.ambari.server.mpack.MpackMutation(org.apache.ambari.server.mpack.MpackMutation.Kind.STACK)
   public void setUpgradeEntity(UpgradeEntity upgradeEntity) throws AmbariException {
     try {
       ClusterEntity clusterEntity = getClusterEntity();

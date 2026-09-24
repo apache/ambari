@@ -313,6 +313,7 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public ServiceComponent addServiceComponent(String serviceComponentName)
       throws AmbariException {
     ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
@@ -378,6 +379,7 @@ public class ServiceImpl implements Service {
    * {@inheritDoc}
    */
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
     cluster.executeUnderWriteLock(() -> serviceDesiredStateDAO.updateDesiredRepositoryVersion(
         cluster.getClusterId(), getName(), repositoryVersionEntity));
@@ -649,6 +651,7 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public void deleteServiceComponent(String componentName, DeleteHostComponentStatusMetaData deleteMetaData)
       throws AmbariException {
     lock.lock();

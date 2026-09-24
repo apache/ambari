@@ -75,6 +75,10 @@ public class MetadataHolder extends AgentClusterDataHolder<MetadataUpdateEvent> 
     return updateData(ambariManagementController.getAmbariLevelMetadataUpdate());
   }
 
+  public boolean refreshDefinitionSnapshot() throws AmbariException {
+    return updateData(ambariManagementController.getClustersMetadata());
+  }
+
   @Override
   protected boolean handleUpdate(MetadataUpdateEvent update) throws AmbariException {
     boolean changed = false;

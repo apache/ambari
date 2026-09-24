@@ -141,6 +141,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     this.serviceDirectory = serviceDirectory;
     this.isCommonService = isCommonService;
 
+    serviceInfo.addDefinitionResourceRoots(java.util.List.of(serviceDirectory.getAbsolutePath()));
+
     serviceInfo.setMetricsFile(serviceDirectory.getMetricsFile(serviceInfo.getName()));
     serviceInfo.setTelemetryFile(serviceDirectory.getTelemetryFile(serviceInfo.getName()));
     serviceInfo.setAlertsFile(serviceDirectory.getAlertsFile());
@@ -197,6 +199,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
 
     ServiceInfo parent = parentModule.getModuleInfo();
+    serviceInfo.addDefinitionResourceRoots(parent.getDefinitionResourceRoots());
 
     if (serviceInfo.getComment() == null) {
       serviceInfo.setComment(parent.getComment());

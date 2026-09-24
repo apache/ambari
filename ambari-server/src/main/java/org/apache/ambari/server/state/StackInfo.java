@@ -83,6 +83,33 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private Map<String, VersionDefinitionXml> versionDefinitions = new ConcurrentHashMap<>();
   private Set<String> errorSet = new HashSet<>();
   private RepositoryXml repoXml = null;
+  private String hooksFolder;
+
+  public enum RepositoryVersionMode {
+    DISTRIBUTION, INDEPENDENT
+  }
+
+  private RepositoryVersionMode repositoryVersionMode;
+
+  public RepositoryVersionMode getRepositoryVersionMode() {
+    return repositoryVersionMode == null ? RepositoryVersionMode.DISTRIBUTION : repositoryVersionMode;
+  }
+
+  public boolean hasRepositoryVersionMode() {
+    return repositoryVersionMode != null;
+  }
+
+  public void setRepositoryVersionMode(RepositoryVersionMode mode) {
+    repositoryVersionMode = mode;
+  }
+
+  public String getHooksFolder() {
+    return hooksFolder;
+  }
+
+  public void setHooksFolder(String hooksFolder) {
+    this.hooksFolder = hooksFolder;
+  }
 
   private VersionDefinitionXml latestVersion = null;
 
@@ -367,11 +394,14 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
       }
     }
 
-    return new StackVersionResponse(getVersion(),
+    StackVersionResponse response = new StackVersionResponse(getVersion(),
         isActive(), getParentStackVersion(), getConfigTypeAttributes(),
         serviceDescriptorFiles,
         null == upgradePacks ? Collections.emptySet() : upgradePacks.keySet(),
         isValid(), getErrors(), getMinJdk(), getMaxJdk());
+    response.setRepositoryVersionMode(getRepositoryVersionMode().name());
+    response.setHooksFolder(getHooksFolder());
+    return response;
   }
 
   public boolean isActive() {

@@ -95,10 +95,7 @@ public class StackAdvisorHelper {
       throws StackAdvisorException {
       requestId = generateRequestId();
 
-    // TODO, need frontend to pass the Service Name that was modified.
-    // For now, hardcode.
-    // Once fixed, change StackAdvisorHelperTest.java to use the actual service name.
-    String serviceName = "ZOOKEEPER";
+    String serviceName = request.getServiceName();
     ServiceInfo.ServiceAdvisorType serviceAdvisorType = getServiceAdvisorType(request.getStackName(), request.getStackVersion(), serviceName);
     StackAdvisorCommand<ValidationResponse> command = createValidationCommand(serviceName, request);
 
@@ -136,9 +133,7 @@ public class StackAdvisorHelper {
       throws StackAdvisorException, AmbariException {
       requestId = generateRequestId();
 
-    // TODO, need to pass the service Name that was modified.
-    // For now, hardcode
-    String serviceName = "ZOOKEEPER";
+    String serviceName = request.getServiceName();
 
     ServiceInfo.ServiceAdvisorType serviceAdvisorType = getServiceAdvisorType(request.getStackName(), request.getStackVersion(), serviceName);
     StackAdvisorCommand<RecommendationResponse> command = createRecommendationCommand(serviceName, request);
@@ -217,16 +212,21 @@ public class StackAdvisorHelper {
    * @param serviceName Service Name
    * @return Service Advisor type for that Stack, Version, and Service
    */
-  private ServiceInfo.ServiceAdvisorType getServiceAdvisorType(String stackName, String stackVersion, String serviceName) {
+  private ServiceInfo.ServiceAdvisorType getServiceAdvisorType(String stackName, String stackVersion, String serviceName)
+      throws StackAdvisorException {
+    if (serviceName == null || serviceName.isEmpty()) {
+      return ServiceInfo.ServiceAdvisorType.PYTHON;
+    }
     try {
       ServiceInfo service = metaInfo.getService(stackName, stackVersion, serviceName);
       ServiceInfo.ServiceAdvisorType serviceAdvisorType = service.getServiceAdvisorType();
-
+      if (serviceAdvisorType == null) {
+        throw new StackAdvisorException("The requested service has no valid advisor type");
+      }
       return serviceAdvisorType;
     } catch (AmbariException e) {
-      ;
+      throw new StackAdvisorException("The requested advisor service is unavailable in this stack", e);
     }
-    return null;
   }
 
   /**
@@ -243,6 +243,11 @@ public class StackAdvisorHelper {
     configsRecommendationResponse.clear();
     hostInfoCache.remove(hostName);
     LOG.info("Clear stack advisor caches, host: " + hostName);
+  }
+
+  public void clearDefinitionCaches() {
+    configsRecommendationResponse.clear();
+    hostInfoCache.clear();
   }
 
   public void clearCaches(Set<String> hostNames) {

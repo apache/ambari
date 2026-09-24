@@ -55,6 +55,7 @@ public class ResourceManager {
 
   @Inject Configuration configs;
   @Inject Gson gson;
+  @Inject com.google.inject.Provider<org.apache.ambari.server.mpack.MpackSnapshots> mpackSnapshots;
   private FileTime archiveDigestManifestModifiedTime;
   private Object archiveDigestManifestFileKey;
   private long archiveDigestManifestSize = -1;
@@ -65,6 +66,9 @@ public class ResourceManager {
   * @return resource file
   */
   public File getResource(String resourcePath) {
+    if (resourcePath.startsWith("mpacks/")) {
+      return getMpackResource(resourcePath);
+    }
     String resDir = configs.getConfigsMap().get(Configuration.RESOURCES_DIR.getKey());
     String resourcePathIndep = resourcePath.replace("/", File.separator);
     File resourceFile = new File(resDir + File.separator + resourcePathIndep);
@@ -72,6 +76,36 @@ public class ResourceManager {
       LOG.debug("Resource requested from ResourceManager, resourceDir={}, resourcePath={}, fileExists={}", resDir, resourcePathIndep, resourceFile.exists());
     }
     return resourceFile;
+  }
+
+  private File getMpackResource(String resourcePath) {
+    org.apache.ambari.server.mpack.MpackManifest.requirePath(resourcePath);
+    String[] parts = resourcePath.split("/", 3);
+    if (parts.length != 3) {
+      throw new org.apache.ambari.server.mpack.MpackException(
+          org.apache.ambari.server.mpack.MpackException.Code.NOT_FOUND, "Unknown snapshot resource");
+    }
+    org.apache.ambari.server.mpack.MpackSnapshots.Snapshot snapshot = mpackSnapshots.get().load(parts[1]);
+    Path relative = Paths.get(parts[2]);
+    String fileName = relative.getFileName().toString();
+    Path parent = relative.getParent();
+    if (parent == null || !(fileName.equals("archive.zip") || fileName.equals(".hash"))
+        || !snapshot.archiveDigests().containsKey("mpacks/" + snapshot.id() + "/" + parent.toString().replace(File.separator, "/"))) {
+      throw new org.apache.ambari.server.mpack.MpackException(
+          org.apache.ambari.server.mpack.MpackException.Code.NOT_FOUND, "Unknown snapshot archive");
+    }
+    Path root = mpackSnapshots.get().resourceRoot(snapshot.id());
+    Path resource = root.resolve(relative);
+    try {
+      if (!Files.isRegularFile(resource, LinkOption.NOFOLLOW_LINKS) || !resource.toRealPath().startsWith(root.toRealPath())) {
+        throw new org.apache.ambari.server.mpack.MpackException(
+            org.apache.ambari.server.mpack.MpackException.Code.NOT_FOUND, "Snapshot archive is unavailable");
+      }
+      return resource.toFile();
+    } catch (IOException e) {
+      throw new org.apache.ambari.server.mpack.MpackException(
+          org.apache.ambari.server.mpack.MpackException.Code.STORAGE_FAILURE, "Snapshot archive cannot be read");
+    }
   }
 
   /**
