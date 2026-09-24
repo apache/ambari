@@ -17,6 +17,30 @@
 
 # React Services and Configs Comparison
 
+## Generic Package Services: 2026-09-22
+
+The 2026-09-24 live Kyuubi check found that the specialized Summary matched
+the old `KYUUBI` component name and displayed nothing for `KYUUBI_SERVER`.
+It now uses the generic component view, preserving the classic metadata-based
+master/slave/client behavior in `summary.js#setComponentsContent`. A focused
+regression checks the declared Kyuubi component and observed state. The focused
+47-test set and production build passed; assets are deployed, while real
+authenticated-browser validation remains outstanding.
+
+Imported services no longer require a new entry in the built-in model registry.
+Generic models use exact service identities, declared component categories and
+ServiceInfo/realtime service observations; existing specialized models remain in
+place. Client-only behavior is determined from metadata, not the mere presence of
+a model property. The service Actions menu exposes declared host-component commands
+using the existing permission checks, host applicability, confirmation and request
+tracking. Classic's component-command enumeration remains the comparison source;
+the new implementation does not claim support for arbitrary new workflow handlers.
+
+`genericServiceModels.test.ts`, `declaredServiceCommands.test.ts` and the Actions
+regressions provide local evidence. See [mpack corrective verification](../../mpack/corrective-implementation.md)
+for commands/results. Live custom-command execution and full service capability
+parity remain unverified until deployment acceptance.
+
 ## Comparison Scope
 
 | Item | Value |
