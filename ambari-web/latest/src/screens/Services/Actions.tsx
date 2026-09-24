@@ -82,7 +82,8 @@ import AddObserverNamenode from "./highAvailibility/observerNameNode/index";
 import useComponentAddDelete from "../Hosts/hooks/useComponentAddDelete";
 import { useConfigs } from "../../hooks/useConfigs";
 import useStackServices from "../../hooks/useStackServices";
-import { addComponentWithCheck } from "../Hosts/actions";
+import { addComponentWithCheck, executeCustomCommand } from "../Hosts/actions";
+import { declaredServiceCommands } from "../../Utils/declaredServiceCommands";
 import useKDCSessionState from "../../hooks/useKDCSessionState";
 import EnableHighAvailibilityResourceManger from "./highAvailibility/resourceManager/index";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -282,6 +283,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
     || hasActiveComponentRestart;
 
   const [clusterComponents, setClusterComponents] = useState<any>({});
+  const [commandDefinitions, setCommandDefinitions] = useState<any[]>([]);
   const { services: stackServices } = useStackServices();
   const { getConfigByName } = useConfigs([], stackServices as any);
   const { addAndReconfigureComponent } = useComponentAddDelete(
@@ -310,16 +312,15 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
     //setLoading(true);
     const response = await HostsApi.getClusterComponents(
       clusterName,
-      "ServiceComponentInfo/service_name,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,&minimal_response=true"
+      "ServiceComponentInfo/service_name,host_components/HostRoles/component_name,host_components/HostRoles/custom_commands,host_components/HostRoles/display_name,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/stale_configs,host_components/HostRoles/ha_state,host_components/HostRoles/desired_admin_state,&minimal_response=true"
     );
 
     setClusterComponents(response);
   };
 
   const checkIfServiceIsClientOnly = () => {
-    return allServiceModels[
-      serviceNameModelMapping[serviceName]
-    ]?.hasOwnProperty("isClientOnlyService");
+    if (commandDefinitions.length) return commandDefinitions.every(component => component.component_category === "CLIENT");
+    return allServiceModels[serviceNameModelMapping[serviceName]]?.isClientOnlyService === true;
   };
 
   const isServiceClientOnly = checkIfServiceIsClientOnly();
@@ -585,6 +586,7 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
 
       // Process the response to extract components with has_bulk_commands_definition = true
       const components = response.data.components || [];
+      setCommandDefinitions(components.map((component: any) => component.StackServiceComponents).filter(Boolean));
       const supportedComponents: { [key: string]: boolean } = {};
 
       components.forEach((component: any) => {
@@ -2728,6 +2730,10 @@ const ActionsContent = ({ serviceName, className }: ActionsProps) => {
         )}
 
         {/* Refresh Configs for Client-Only Services */}
+        {canRunCustomCommands && declaredServiceCommands(clusterName, serviceName, commandDefinitions, clusterComponents).map(item => (
+          <DropdownItem key={item.key} disabled={serviceActionBlocked}
+            onClick={() => executeCustomCommand(item.command, item.component)}>{item.label}</DropdownItem>
+        ))}
         {isServiceClientOnly && canRunCustomCommands && (
           <DropdownItem onClick={() => refreshClientConfigs()}>
             <FontAwesomeIcon className="text-secondary me-2" icon={faRefresh} />

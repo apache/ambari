@@ -84,7 +84,7 @@ const victoriaMetricsComponents = [
   },
 ];
 
-function renderComponents(data: any[]) {
+function renderComponents(data: any[], serviceName = "VICTORIAMETRICS") {
   return render(
     <MemoryRouter>
       <HostsListStateProvider>
@@ -97,7 +97,7 @@ function renderComponents(data: any[]) {
             >["value"]
           }
         >
-          <ServiceComponents serviceName="VICTORIAMETRICS" alerts={[]} />
+          <ServiceComponents serviceName={serviceName} alerts={[]} />
         </ServiceContext.Provider>
       </HostsListStateProvider>
     </MemoryRouter>
@@ -121,5 +121,20 @@ describe("generic service summary", () => {
     renderComponents([]);
 
     expect(screen.getByText("No components to display")).toBeTruthy();
+  });
+
+  it("renders an imported Kyuubi server using its declared component identity", () => {
+    renderComponents([{
+      ServiceComponentInfo: {
+        category: "MASTER", component_name: "KYUUBI_SERVER", display_name: "Kyuubi Server",
+        service_name: "KYUUBI", started_count: 1, total_count: 1,
+      },
+      host_components: [{ HostRoles: {
+        host_name: "worker4.bigtop.apache.org", maintenance_state: "OFF", state: "STARTED",
+      } }],
+    }], "KYUUBI");
+
+    expect(screen.getByText("Kyuubi Server")).toBeTruthy();
+    expect(screen.getByText("Started")).toBeTruthy();
   });
 });
