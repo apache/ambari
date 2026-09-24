@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambari.apache.org/contracts/mpack/manifest-v1.schema.json",
+  "$comment": "Licensed to the Apache Software Foundation (ASF) under one\nor more contributor license agreements. See the NOTICE file\ndistributed with this work for additional information\nregarding copyright ownership. The ASF licenses this file\nto you under the Apache License, Version 2.0 (the\n\"License\"); you may not use this file except in compliance\nwith the License. You may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.",
+  "title": "Ambari management pack lifecycle manifest, version 1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$comment": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "type": "integer"
+    },
+    "type": {
+      "const": "full-release"
+    },
+    "name": {
+      "$ref": "#/$defs/name"
+    },
+    "version": {
+      "$ref": "#/$defs/version"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      },
+      "minItems": 1
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dependency"
+      }
+    },
+    "hooks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hook"
+      }
+    },
+    "prerequisites": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min_ambari_version": {
+          "$ref": "#/$defs/version"
+        },
+        "max_ambari_version": {
+          "$ref": "#/$defs/version"
+        },
+        "min_stack_versions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/target"
+          }
+        }
+      },
+      "required": []
+    }
+  },
+  "required": [
+    "schema_version",
+    "type",
+    "name",
+    "version",
+    "artifacts"
+  ],
+  "$defs": {
+    "name": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,127}$",
+      "not": {
+        "pattern": "[\\r\\n]"
+      }
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,9})(\\.(0|[1-9][0-9]{0,9})){0,4}$",
+      "not": {
+        "pattern": "[\\r\\n]"
+      }
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "not": {
+        "pattern": "[\\r\\n]"
+      }
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\\\:\\x00-\\x1f\\x7f])[^/]+(?:/[^/]+)*$"
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stack_name": {
+          "$ref": "#/$defs/name"
+        },
+        "stack_version": {
+          "$ref": "#/$defs/version"
+        }
+      },
+      "required": [
+        "stack_name",
+        "stack_version"
+      ]
+    },
+    "addon": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "service_name": {
+          "$ref": "#/$defs/name"
+        },
+        "service_version": {
+          "$ref": "#/$defs/version"
+        },
+        "applicable_stacks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/target"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "service_name",
+        "service_version",
+        "applicable_stacks"
+      ]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "type": {
+          "enum": [
+            "stack-definitions",
+            "service-definitions",
+            "extension-definitions",
+            "stack-addon-service-definitions"
+          ]
+        },
+        "source_dir": {
+          "$ref": "#/$defs/path"
+        },
+        "service_versions_map": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/addon"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "source_dir"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "stack-addon-service-definitions"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "service_versions_map"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "service_versions_map"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/name"
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "min_version": {
+          "$ref": "#/$defs/version"
+        },
+        "max_version": {
+          "$ref": "#/$defs/version"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "version"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "min_version"
+                ]
+              },
+              {
+                "required": [
+                  "max_version"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "anyOf": [
+            {
+              "required": [
+                "min_version"
+              ]
+            },
+            {
+              "required": [
+                "max_version"
+              ]
+            }
+          ],
+          "not": {
+            "required": [
+              "version"
+            ]
+          }
+        }
+      ]
+    },
+    "hook": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "enum": [
+            "before-install",
+            "after-install",
+            "before-upgrade",
+            "after-upgrade",
+            "before-uninstall",
+            "after-uninstall"
+          ]
+        },
+        "type": {
+          "enum": [
+            "python",
+            "shell"
+          ]
+        },
+        "script": {
+          "$ref": "#/$defs/path"
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        },
+        "idempotent": {
+          "type": "boolean"
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["DEFINITIONS", "SERVER"]
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "script",
+        "timeout_seconds",
+        "idempotent"
+      ]
+    }
+  }
+}

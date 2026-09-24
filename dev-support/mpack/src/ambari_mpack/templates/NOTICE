@@ -1,0 +1,15 @@
+Apache Ambari
+Copyright 2011-2013 The Apache Software Foundation
+
+This product includes software developed at The Apache Software
+Foundation (http://www.apache.org/).
+
+Resource management library derived from Kokki, which is under following copyright:
+ 
+Copyright (c) 2009 Samuel Stauffer <samuel@descolada.com>
+All rights reserved.
+
+Jinja2 and MarkupSafe, used by the resource management library:
+
+Copyright 2007 Pallets
+Copyright 2010 Pallets
