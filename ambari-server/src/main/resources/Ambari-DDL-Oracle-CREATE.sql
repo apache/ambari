@@ -17,6 +17,16 @@
 --
 
 ------create tables---------
+CREATE TABLE mpack_record (
+  record_id VARCHAR2(255) NOT NULL,
+  record_kind VARCHAR(32) NOT NULL,
+  revision NUMBER(19) NOT NULL,
+  schema_version NUMBER(10) NOT NULL,
+  payload CLOB NOT NULL,
+  CONSTRAINT PK_mpack_record PRIMARY KEY (record_id)
+);
+CREATE INDEX idx_mpack_record_kind ON mpack_record (record_kind);
+
 CREATE TABLE registries(
  id BIGINT NOT NULL,
  registy_name VARCHAR(255) NOT NULL,

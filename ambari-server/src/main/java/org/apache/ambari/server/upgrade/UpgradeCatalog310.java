@@ -66,6 +66,7 @@ public class UpgradeCatalog310 extends AbstractUpgradeCatalog {
     createBoardPayloadTable();
     createChartShareTable();
     addMonitoringSequences();
+    createMpackRecordTable();
   }
 
   @Override
@@ -180,6 +181,20 @@ public class UpgradeCatalog310 extends AbstractUpgradeCatalog {
     addSequence(DATASOURCE_SEQUENCE, fetchMaxId(DATASOURCE_TABLE, "id") + 1, false);
     addSequence(BOARD_SEQUENCE, fetchMaxId(BOARD_TABLE, "id") + 1, false);
     addSequence(CHART_SHARE_SEQUENCE, fetchMaxId(CHART_SHARE_TABLE, "id") + 1, false);
+  }
+
+  protected void createMpackRecordTable() throws SQLException {
+    if (dbAccessor.tableExists("mpack_record")) {
+      return;
+    }
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<>();
+    columns.add(column("record_id", String.class, 255, null, false));
+    columns.add(column("record_kind", String.class, 32, null, false));
+    columns.add(column("revision", Long.class, null, 0L, false));
+    columns.add(column("schema_version", Integer.class, null, 1, false));
+    columns.add(column("payload", Clob.class, null, null, false));
+    dbAccessor.createTable("mpack_record", columns, "record_id");
+    dbAccessor.createIndex("idx_mpack_record_kind", "mpack_record", "record_kind");
   }
 
   private DBAccessor.DBColumnInfo column(String name, Class<?> type, Integer length,

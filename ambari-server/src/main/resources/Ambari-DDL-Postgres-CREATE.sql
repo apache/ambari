@@ -17,6 +17,16 @@
 --
 
 ------create tables and grant privileges to db user---------
+CREATE TABLE mpack_record (
+  record_id VARCHAR(255) NOT NULL,
+  record_kind VARCHAR(32) NOT NULL,
+  revision BIGINT NOT NULL,
+  schema_version INTEGER NOT NULL,
+  payload TEXT NOT NULL,
+  CONSTRAINT PK_mpack_record PRIMARY KEY (record_id)
+);
+CREATE INDEX idx_mpack_record_kind ON mpack_record (record_kind);
+
 CREATE TABLE registries(
  id BIGINT NOT NULL,
  registy_name VARCHAR(255) NOT NULL,
