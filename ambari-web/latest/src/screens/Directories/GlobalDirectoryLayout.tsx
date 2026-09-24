@@ -22,19 +22,22 @@ import LicenseFooter from "../../components/LicenseFooter";
 import NavBar from "../../components/Navbar";
 import { useViewInstances } from "../Views/ViewInstancesContext";
 import "./directories.scss";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function GlobalDirectoryLayout() {
   const { t } = useTranslation();
   const { instances } = useViewInstances();
   const location = useLocation();
   const isServices = location.pathname === "/services";
+  const isMpacks = location.pathname === "/mpacks";
+  const { isAdmin } = useAuth();
 
   return (
     <div className="d-flex flex-column h-100">
       <NavBar
         clusterControls={false}
         homePath="/clusters"
-        subPath={isServices ? t("directory.services") : t("directory.clusters")}
+        subPath={isMpacks ? t("mpack.title") : isServices ? t("directory.services") : t("directory.clusters")}
         viewsList={instances}
       />
       <Nav className="directory-nav px-3 px-md-4" variant="tabs" aria-label={t("directory.navigation")}>
@@ -44,6 +47,9 @@ export default function GlobalDirectoryLayout() {
         <Nav.Item>
           <Nav.Link as={NavLink} to="/services">{t("directory.services")}</Nav.Link>
         </Nav.Item>
+        {isAdmin() && <Nav.Item>
+          <Nav.Link as={NavLink} to="/mpacks">{t("mpack.title")}</Nav.Link>
+        </Nav.Item>}
       </Nav>
       <div className="directory-scroll flex-grow-1">
         <Outlet />

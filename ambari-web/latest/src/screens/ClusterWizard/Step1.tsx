@@ -73,6 +73,7 @@ import { AppContext } from "../../store/context";
 import { isJdkCompatible } from "./versionSelection";
 import { copyRepositoryCredentials } from "../../Utils/repositoryCredentials";
 import { clearResolvedReentryMarkers } from "../../Utils/scopedWorkflow";
+import useMpackDeployment from "../../hooks/useMpackDeployment";
 
 enum RepositoryType {
   PUBLIC = "public",
@@ -85,6 +86,7 @@ enum OSOperations {
 }
 
 export default function Step1({ wizardName = "clusterCreation" }) {
+  const mpackSelection = useMpackDeployment();
   const [versionDefinitions, setVersionDefinitions] = useState<Item[]>([]);
   const [selectedVersion, setSelectedVersion] = useState<any>({});
   const [networkLost, setNetworkLost] = useState<boolean>(false);
@@ -181,6 +183,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
   useEffect(() => {
     async function getVersionDefinitions() {
       try {
+        if (mpackSelection.error) throw new Error(mpackSelection.error);
         const stateData = get(
           state,
           `${wizardName}Steps.${currentStep.name}.data`,
@@ -188,6 +191,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
         );
         const stacks = await VersionsApi.getStacks();
         const stackName = get(stateData, "selectedStack.stack_name")
+          || mpackSelection.deployment?.stack_name
           || stack
           || get(stacks, "items[0].Stacks.stack_name", "");
         if (!stackName) {
@@ -222,8 +226,11 @@ export default function Step1({ wizardName = "clusterCreation" }) {
         setNetworkIssues(sortedItems);
 
         if (isEmpty(stateData)) {
-          setSelectedStack(sortedItems[0].VersionDefinition);
-          selectNewVersion(sortedItems[0].VersionDefinition);
+          const selected = mpackSelection.deployment ? sortedItems.find(item =>
+            item.VersionDefinition.stack_version === mpackSelection.deployment.stack_version) : sortedItems[0];
+          if (!selected) throw new Error("The imported service environment is no longer available");
+          setSelectedStack(selected.VersionDefinition);
+          selectNewVersion(selected.VersionDefinition);
         }
       } catch (error: any) {
         toast.error(
@@ -234,8 +241,8 @@ export default function Step1({ wizardName = "clusterCreation" }) {
         jumpToStep(0, true);
       }
     }
-    void getVersionDefinitions();
-  }, [wizardName]);
+    if (!mpackSelection.loading) void getVersionDefinitions();
+  }, [wizardName, mpackSelection.loading, mpackSelection.deployment, mpackSelection.error]);
 
   useEffect(() => {
     if (!versionNumber) {

@@ -74,6 +74,7 @@ import { ViewInstancesProvider } from "../screens/Views/ViewInstancesContext";
 import GlobalDirectoryLayout from "../screens/Directories/GlobalDirectoryLayout";
 import ServiceDirectory from "../screens/Directories/ServiceDirectory";
 import ClusterTasksRoute from "../screens/Directories/ClusterTasksRoute";
+import Mpacks from "../screens/Mpacks/Mpacks";
 
 export const HaPersistenceRouteGuard = ({ children }: { children: ReactNode }) => {
   return (
@@ -106,6 +107,7 @@ const RoutesList: RouteObject[] = [
             children: [
               { path: "clusters", element: <ClusterChooser /> },
               { path: "services", element: <ServiceDirectory /> },
+              { path: "mpacks", element: <ProtectedRoute requireAdmin redirectTo="/clusters"><Mpacks /></ProtectedRoute> },
             ],
           },
           {

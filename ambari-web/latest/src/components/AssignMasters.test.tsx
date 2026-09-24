@@ -202,6 +202,31 @@ describe("Assign Masters managed dependency advice", () => {
     ));
   });
 
+  it("does not add a Hadoop master to an ordinary GENERIC deployment", async () => {
+    const genericAdvice = {
+      resources: [{ recommendations: {
+        blueprint: { host_groups: [{ components: [], name: "host-group-1" }] },
+        blueprint_cluster_binding: { host_groups: [{
+          hosts: [{ fqdn: "host1.example.com" }], name: "host-group-1",
+        }] },
+      } }],
+    };
+    mocks.postRecommendations.mockResolvedValue(genericAdvice);
+    mocks.getServices.mockResolvedValue({ items: [] });
+    const dispatch = vi.fn();
+    render(<AssignMasters
+      STACK="GENERIC" VERSION="1.0" services={["NGINX"]}
+      hostsList={["host1.example.com"]} parentState={{ clusterCreationSteps: {} }}
+      dispatch={dispatch} setCanProceed={vi.fn()}
+    />);
+
+    await waitFor(() => expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      hostsData: expect.objectContaining({
+        "host1.example.com": expect.objectContaining({ components: [] }),
+      }),
+    })));
+  });
+
   it("drops a late first response after its draft scope is replaced", async () => {
     let resolveFirst!: (value: typeof recommendation) => void;
     const first = new Promise<typeof recommendation>((resolve) => {

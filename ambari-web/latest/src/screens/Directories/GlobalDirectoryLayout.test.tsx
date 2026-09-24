@@ -29,6 +29,8 @@ const authorizedView = {
 vi.mock("../Views/ViewInstancesContext", () => ({
   useViewInstances: () => ({ instances: [authorizedView] }),
 }));
+const auth = vi.hoisted(() => ({ admin: true }));
+vi.mock("../../hooks/useAuth", () => ({ useAuth: () => ({ isAdmin: () => auth.admin }) }));
 vi.mock("../../components/Navbar", () => ({
   default: ({ homePath, viewsList }: { homePath: string; viewsList: ViewInstance[] }) => (
     <div data-testid="directory-navbar">
@@ -40,6 +42,17 @@ vi.mock("../../components/Navbar", () => ({
 import GlobalDirectoryLayout from "./GlobalDirectoryLayout";
 
 describe("global directory layout", () => {
+  it("exposes management packs to administrators before a cluster exists", () => {
+    auth.admin = true;
+    const { unmount } = render(<MemoryRouter><GlobalDirectoryLayout /></MemoryRouter>);
+    expect(screen.getByRole("link", { name: "Management Packs" }).getAttribute("href")).toBe("/mpacks");
+    unmount();
+    auth.admin = false;
+    const rendered = render(<MemoryRouter><GlobalDirectoryLayout /></MemoryRouter>);
+    expect(screen.queryByRole("link", { name: "Management Packs" })).toBeNull();
+    rendered.unmount();
+    auth.admin = true;
+  });
   it("passes authorized Views to the global navbar and keeps the directory home", () => {
     render(
       <MemoryRouter initialEntries={["/clusters"]}>
