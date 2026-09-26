@@ -215,14 +215,18 @@ public class MpackArchiveStore {
         if (++count > limits.entries()) {
           throw new MpackException(UPLOAD_LIMIT, "Archive has too many entries");
         }
+        boolean directory = type == TarConstants.LF_DIR;
+        if (directory && entry.getSize() != 0) {
+          throw new MpackException(INVALID_ARCHIVE, "Archive directories must not contain data");
+        }
         String name = entry.getName();
         while (name.startsWith("./")) {
           name = name.substring(2);
         }
-        if (entry.isDirectory() && (name.isEmpty() || name.equals("."))) {
+        if (directory && (name.isEmpty() || name.equals("."))) {
           continue;
         }
-        if (entry.isDirectory() && name.endsWith("/")) {
+        if (directory && name.endsWith("/")) {
           name = name.substring(0, name.length() - 1);
         }
         requireArchivePath(name);
@@ -230,7 +234,7 @@ public class MpackArchiveStore {
           throw new MpackException(INVALID_ARCHIVE, "Duplicate archive member");
         }
         Path destination = content.resolve(name);
-        if (entry.isDirectory()) {
+        if (directory) {
           Files.createDirectories(destination);
         } else if (entry.isSymbolicLink() || entry.isLink()) {
           if (entry.getSize() != 0) {

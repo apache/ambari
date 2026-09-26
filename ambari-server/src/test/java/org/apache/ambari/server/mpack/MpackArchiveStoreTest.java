@@ -127,6 +127,24 @@ public class MpackArchiveStoreTest {
   }
 
   @Test
+  public void rejectsDirectoryPayloadsAndFileNamesMasqueradingAsDirectories() throws Exception {
+    for (byte type : new byte[]{TarConstants.LF_DIR, TarConstants.LF_NORMAL, TarConstants.LF_SYMLINK}) {
+      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+      TarArchiveEntry entry = new TarArchiveEntry("payload/", type);
+      entry.setSize(type == TarConstants.LF_DIR ? 512 : 0);
+      entry.setLinkName("../outside");
+      try (GzipCompressorOutputStream gzip = new GzipCompressorOutputStream(bytes)) {
+        byte[] header = new byte[512];
+        entry.writeEntryHeader(header);
+        gzip.write(header);
+        gzip.write(new byte[1024 + (int) entry.getSize()]);
+      }
+      assertEquals(MpackException.Code.INVALID_ARCHIVE, assertThrows(MpackException.class,
+          () -> store.accept(new ByteArrayInputStream(bytes.toByteArray()), null)).getCode());
+    }
+  }
+
+  @Test
   public void verifiesDigestBeforePublishingArchive() throws Exception {
     byte[] bytes = archive(new Member("mpack.json", "{}", null));
     assertEquals(MpackException.Code.DIGEST_MISMATCH,
