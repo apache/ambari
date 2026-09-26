@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.client.Entity;
 
 import org.apache.ambari.server.RandomPortJerseyTest;
 import org.apache.ambari.server.api.GsonJsonProvider;
@@ -93,6 +94,22 @@ public class MpackLifecycleHttpTest extends RandomPortJerseyTest {
       assertTrue(value.path("operations").isArray());
       assertFalse(value.has("_children"));
     }
+  }
+
+  @Test
+  public void restrictedAccessReturnsForbiddenBeforeReadingOrMutatingResources() {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator());
+    try (Response response = target("mpack_capabilities").request().get()) {
+      assertEquals(403, response.getStatus());
+      assertEquals("FORBIDDEN", MpackJson.read(response.readEntity(String.class))
+          .path("error").path("code").textValue());
+    }
+    try (Response response = target("mpack_plans").request().post(Entity.json("{}"))) {
+      assertEquals(403, response.getStatus());
+      assertEquals("FORBIDDEN", MpackJson.read(response.readEntity(String.class))
+          .path("error").path("code").textValue());
+    }
+    org.mockito.Mockito.verifyNoInteractions(lifecycle);
   }
 
   @Test

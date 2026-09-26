@@ -32,6 +32,7 @@ public class MpackExceptionMapper implements ExceptionMapper<MpackException> {
   @Override
   public Response toResponse(MpackException exception) {
     int status = switch (exception.getCode()) {
+      case FORBIDDEN -> 403;
       case NOT_FOUND -> 404;
       case UPLOAD_LIMIT -> 413;
       case STALE_PLAN, IDEMPOTENCY_CONFLICT, OPERATION_CONFLICT, RELEASE_CONFLICT,

@@ -576,8 +576,13 @@ public class MpackLifecycleService {
   }
 
   public static void authorize() throws AuthorizationException {
-    AuthorizationHelper.verifyAuthorization(ResourceType.AMBARI, null,
-        EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    try {
+      AuthorizationHelper.verifyAuthorization(ResourceType.AMBARI, null,
+          EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    } catch (AuthorizationException denied) {
+      throw new MpackException(MpackException.Code.FORBIDDEN,
+          "Management pack administration requires an authenticated Ambari administrator");
+    }
     org.springframework.security.core.Authentication authentication = AuthorizationHelper.getAuthentication();
     boolean administrator = authentication != null && authentication.getAuthorities().stream()
         .filter(authority -> authority instanceof org.apache.ambari.server.security.authorization.AmbariGrantedAuthority)
@@ -587,7 +592,8 @@ public class MpackLifecycleService {
             org.apache.ambari.server.orm.entities.PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME
                 .equals(permission.getPermissionName()));
     if (!administrator || AuthorizationHelper.getAuthenticatedId() < 0) {
-      throw new AuthorizationException("Management pack administration requires an authenticated Ambari administrator");
+      throw new MpackException(MpackException.Code.FORBIDDEN,
+          "Management pack administration requires an authenticated Ambari administrator");
     }
   }
 

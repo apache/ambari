@@ -117,8 +117,8 @@ public class MpackLifecycleServiceTest {
   @Test
   public void clusterAdministratorCannotSubmitGlobalDefinitionChanges() {
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator());
-    assertThrows(org.apache.ambari.server.security.authorization.AuthorizationException.class,
-        () -> service.accept(plan.id(), "submission-1"));
+    assertEquals(MpackException.Code.FORBIDDEN, assertThrows(MpackException.class,
+        () -> service.accept(plan.id(), "submission-1")).getCode());
     verify(catalog, never()).apply(anyList());
     assertNull(runtime.pendingOperation());
   }

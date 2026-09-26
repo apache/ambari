@@ -23,6 +23,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -43,6 +44,23 @@ public class MpackLifecycleStateTest {
       MpackLifecycleState.HookState state, MpackLifecycleState.EffectState effect) {
     return new MpackLifecycleState.HookReceipt(1, owner, DIGEST, DIGEST, "after-install",
         attempt, state, effect, Map.of("resource_identity", "reference"));
+  }
+
+  @Test
+  public void scopePreservesPersistedOrderForPlanDigestAcrossRestarts() {
+    for (List<String> order : List.of(List.of("kyuubi-env", "kyuubi-defaults"),
+        List.of("kyuubi-defaults", "kyuubi-env"))) {
+      String json = "{\"stack_name\":\"BIGTOP\",\"stack_version\":\"3.3.0\","
+          + "\"service_name\":\"KYUUBI\",\"config_types\":" + MpackJson.tree(order) + "}";
+      MpackScope decoded = MpackJson.decode(json, MpackScope.class);
+      assertEquals(order, List.copyOf(decoded.configTypes()));
+      assertEquals(MpackJson.digest(MpackJson.read(json)), MpackJson.digest(MpackJson.tree(decoded)));
+      assertThrows(UnsupportedOperationException.class, () -> decoded.configTypes().add("foreign"));
+      LinkedHashSet<String> source = new LinkedHashSet<>(order);
+      MpackScope scope = new MpackScope("BIGTOP", "3.3.0", "KYUUBI", source);
+      source.clear();
+      assertEquals(order, List.copyOf(scope.configTypes()));
+    }
   }
 
   @Test

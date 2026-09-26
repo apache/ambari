@@ -50,6 +50,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarConstants;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import com.google.inject.Inject;
@@ -206,6 +207,11 @@ public class MpackArchiveStore {
         new BufferedInputStream(Files.newInputStream(archive))))) {
       TarArchiveEntry entry;
       while ((entry = tar.getNextTarEntry()) != null) {
+        byte type = entry.getLinkFlag();
+        if (type != TarConstants.LF_NORMAL && type != TarConstants.LF_OLDNORM
+            && type != TarConstants.LF_DIR && type != TarConstants.LF_SYMLINK && type != TarConstants.LF_LINK) {
+          throw new MpackException(INVALID_ARCHIVE, "Unsupported archive member type");
+        }
         if (++count > limits.entries()) {
           throw new MpackException(UPLOAD_LIMIT, "Archive has too many entries");
         }

@@ -14,19 +14,25 @@
  */
 package org.apache.ambari.server.mpack;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import org.apache.ambari.server.state.StackId;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /** An exact definition consumer, including contexts which have no cluster yet. */
 public record MpackScope(String stackName, String stackVersion, String serviceName,
-    Set<String> configTypes) {
+    @JsonDeserialize(as = LinkedHashSet.class) Set<String> configTypes) {
   public MpackScope {
     MpackManifest.requireName(stackName);
     MpackManifest.requireVersion(stackVersion);
     if (serviceName != null) {
       MpackManifest.requireName(serviceName);
     }
-    configTypes = Set.copyOf(configTypes);
+    // Plan digests include array order; retain it when decoding across JVM restarts.
+    configTypes.forEach(Objects::requireNonNull);
+    configTypes = Collections.unmodifiableSet(new LinkedHashSet<>(configTypes));
   }
 
   public boolean contains(StackId stack, String service) {

@@ -112,6 +112,21 @@ public class MpackArchiveStoreTest {
   }
 
   @Test
+  public void rejectsSpecialTypesEvenWhenLibraryClassifiesTheirNamesAsFilesOrDirectories() throws Exception {
+    for (byte type : new byte[]{TarConstants.LF_FIFO, TarConstants.LF_CHR, TarConstants.LF_BLK, (byte) 'Z'}) {
+      for (String name : List.of("special", "special/")) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (TarArchiveOutputStream tar = new TarArchiveOutputStream(new GzipCompressorOutputStream(bytes))) {
+          tar.putArchiveEntry(new TarArchiveEntry(name, type));
+          tar.closeArchiveEntry();
+        }
+        assertEquals(MpackException.Code.INVALID_ARCHIVE, assertThrows(MpackException.class,
+            () -> store.accept(new ByteArrayInputStream(bytes.toByteArray()), null)).getCode());
+      }
+    }
+  }
+
+  @Test
   public void verifiesDigestBeforePublishingArchive() throws Exception {
     byte[] bytes = archive(new Member("mpack.json", "{}", null));
     assertEquals(MpackException.Code.DIGEST_MISMATCH,
