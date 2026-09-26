@@ -21,11 +21,13 @@ import React from 'react';
 interface LicenseFooterProps {
   isSidebarCollapsed?: boolean;
   hasSidebar?: boolean;
+  fixed?: boolean;
 }
 
 const LicenseFooter: React.FC<LicenseFooterProps> = ({ 
   isSidebarCollapsed = false, 
-  hasSidebar = true 
+  hasSidebar = true,
+  fixed = true
 }) => {
   const getLeftPosition = () => {
     if (!hasSidebar) return '0'; // Full width for installer/wizard
@@ -40,10 +42,11 @@ const LicenseFooter: React.FC<LicenseFooterProps> = ({
         background:hasSidebar?"white":"transparent",
         fontSize: '12px',
         color: '#6c757d',
-        position: 'fixed',
-        bottom: 0,
-        left: getLeftPosition(),
-        right: 0,
+        position: fixed ? 'fixed' : 'static',
+        flexShrink: 0,
+        bottom: fixed ? 0 : undefined,
+        left: fixed ? getLeftPosition() : undefined,
+        right: fixed ? 0 : undefined,
         zIndex: 1000
       }}
     >

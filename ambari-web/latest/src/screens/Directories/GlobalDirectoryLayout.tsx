@@ -54,7 +54,7 @@ export default function GlobalDirectoryLayout() {
       <div className="directory-scroll flex-grow-1">
         <Outlet />
       </div>
-      <LicenseFooter hasSidebar={false} />
+      <LicenseFooter hasSidebar={false} fixed={false} />
     </div>
   );
 }

@@ -17,11 +17,11 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ services: vi.fn(), releases: vi.fn(), bindings: vi.fn(), capabilities: vi.fn(),
   operations: vi.fn(), upload: vi.fn(), plan: vi.fn(), planServices: vi.fn(), submit: vi.fn(),
-  operation: vi.fn(), members: vi.fn(), getPlan: vi.fn(), deployment: vi.fn() }));
+  operation: vi.fn(), members: vi.fn(), getPlan: vi.fn(), deployment: vi.fn(), username: "admin" }));
 vi.mock("../../api/mpackApi", async importOriginal => ({
   ...await importOriginal<typeof import("../../api/mpackApi")>(), default: mocks,
 }));
-vi.mock("../../hooks/useAuth", () => ({ useAuth: () => ({ user: { user_id: 1 } }) }));
+vi.mock("../../hooks/useAuth", () => ({ useAuth: () => ({ user: { user_name: mocks.username } }) }));
 import Mpacks from "./Mpacks";
 const id = "11111111-1111-4111-8111-111111111111";
 const planId = "22222222-2222-4222-8222-222222222222";
@@ -39,6 +39,8 @@ const operation = { schema_version: 1, id, plan_id: planId, plan_digest: digest,
 const mount = (path = "/mpacks") => render(<MemoryRouter initialEntries={[path]}><Mpacks /></MemoryRouter>);
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.username = "admin";
+  localStorage.clear();
   mocks.services.mockResolvedValue({ schema_version: 1, items: [entry], unavailable: [], destinations: [] });
   mocks.releases.mockResolvedValue([]); mocks.bindings.mockResolvedValue([]); mocks.operations.mockResolvedValue([]);
   mocks.capabilities.mockResolvedValue({ target_stack_versions: [{ stack_name: "BASE", stack_version: "1.0" }] });
@@ -51,6 +53,41 @@ async function preview() {
   return screen.findByRole("dialog");
 }
 describe("mpackstore import and service selection", () => {
+  it("restores a verified deployment handoff without waiting for catalog refresh", async () => {
+    mocks.services.mockReturnValue(new Promise(() => {}));
+    mocks.operation.mockResolvedValue({ ...operation, phase: "SUCCEEDED", effective_snapshot: digest });
+    mocks.deployment.mockResolvedValue({ schema_version: 1, operation_id: id, plan_id: planId,
+      effective_snapshot: digest, deployment: plan.deployment, cluster_name: null });
+    mount("/mpacks?operation=" + id);
+    await screen.findByRole("link", { name: "Create cluster" });
+    expect(mocks.deployment).toHaveBeenCalledWith(id);
+  });
+
+  it("rejects a handoff from a foreign plan even when the operation id matches", async () => {
+    mocks.operation.mockResolvedValue({ ...operation, phase: "SUCCEEDED", effective_snapshot: digest });
+    mocks.deployment.mockResolvedValue({ schema_version: 1, operation_id: id, plan_id: id,
+      effective_snapshot: digest, deployment: plan.deployment, cluster_name: null });
+    mount("/mpacks?operation=" + id);
+    await screen.findByText("Management pack deployment identity changed");
+    expect(screen.queryByRole("link", { name: "Create cluster" })).toBeNull();
+  });
+
+  it("does not resume another account's checkpoint or an unowned legacy checkpoint", async () => {
+    const checkpoint = JSON.stringify({ schema_version: 1, plan_id: planId, plan_digest: digest, key: id });
+    localStorage.setItem("ambari.mpack.submission.user.other", checkpoint);
+    localStorage.setItem("ambari.mpack.submission.undefined", checkpoint);
+    mount();
+    await screen.findByLabelText("Queue 1.0");
+    expect(screen.queryByRole("button", { name: "Reconcile operation" })).toBeNull();
+    expect(mocks.submit).not.toHaveBeenCalled();
+    expect(localStorage.getItem("ambari.mpack.submission.user.other")).toBe(checkpoint);
+  });
+
+  it("shows the exact release even when the service has a description", async () => {
+    mount();
+    await screen.findByText("Message service");
+    expect(screen.getByText("example/1.0")).not.toBeNull();
+  });
   it("enables an unambiguous unused definition without an extra plan dialog", async () => {
     mocks.planServices.mockResolvedValue({ ...plan, maintenance_required: false });
     mount(); fireEvent.click(await screen.findByLabelText("Queue 1.0"));
@@ -81,7 +118,7 @@ describe("mpackstore import and service selection", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm change" }));
     await screen.findByText("Preview expired");
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    expect(localStorage.getItem("ambari.mpack.submission.1")).toBeNull();
+    expect(localStorage.getItem("ambari.mpack.submission.user.admin")).toBeNull();
     expect((screen.getByRole("button", { name: "Continue With Selected Services" }) as HTMLButtonElement).disabled).toBe(false);
   });
 
@@ -91,7 +128,7 @@ describe("mpackstore import and service selection", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Confirm change" }));
     await screen.findByText("Connection lost");
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
-    expect(localStorage.getItem("ambari.mpack.submission.1")).not.toBeNull();
+    expect(localStorage.getItem("ambari.mpack.submission.user.admin")).not.toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Reconcile operation" }));
     await waitFor(() => expect(mocks.submit).toHaveBeenCalledTimes(2));
     expect(mocks.submit.mock.calls[1]).toEqual(mocks.submit.mock.calls[0]);

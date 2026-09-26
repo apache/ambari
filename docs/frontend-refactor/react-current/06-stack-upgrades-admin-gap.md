@@ -311,3 +311,21 @@ or fault-injection cluster.
 
 The automated results above are static/local evidence only. They do not replace
 any `RUNTIME_PENDING` row in the live-cluster acceptance matrix.
+
+## Mpack Acceptance Follow-Up (2026-09-26)
+
+The new global mpack workflow has no equivalent Classic upload/selection route.
+Its authentication boundary follows AUTH-002/004 in the Classic auth baseline
+and `app/controllers/login_controller.js`: use the authenticated username.
+The live Users response does not expose `user_id`. Mpack submission recovery
+now uses a username-scoped storage key and remounts when the identity changes;
+unowned legacy checkpoints are not automatically attributed to the current user.
+Service selection also displays the exact package release alongside descriptions
+so multiple definitions with the same service label can be distinguished.
+Focused regression coverage is in `Mpacks.test.tsx`; actual live results belong
+to `docs/mpack/acceptance-results.md` and do not promote other Module 06 cases.
+The verified deployment handoff is loaded before inventory refresh, with exact
+plan and effective-snapshot checks, so a slow catalog cannot hide completed work.
+The global directory shell uses a footer in normal flex flow. This intentionally
+differs from Classic's fixed footer-height compensation in `application.less`:
+the license links wrap on narrow screens and must not overlay the service list.

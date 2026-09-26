@@ -53,11 +53,15 @@ const providedExtensions = (release: MpackRelease) => [...new Set(release.contri
   });
 
 export default function Mpacks() {
-  const { t } = useTranslation();
   const { user } = useAuth();
+  return user?.user_name ? <MpackManagement key={user.user_name} username={user.user_name} /> : null;
+}
+
+function MpackManagement({ username }: { username: string }) {
+  const { t } = useTranslation();
   const [parameters, setParameters] = useSearchParams();
   const operationId = parameters.get("operation");
-  const storageKey = "ambari.mpack.submission." + user?.user_id;
+  const storageKey = "ambari.mpack.submission.user." + encodeURIComponent(username);
   const [releases, setReleases] = useState<MpackRelease[]>([]);
   const [bindings, setBindings] = useState<MpackBinding[]>([]);
   const [operations, setOperations] = useState<MpackOperation[]>([]);
@@ -115,17 +119,21 @@ export default function Mpacks() {
         setOperation(current); setMembers(result);
         const acceptedPlan = await MpackApi.getPlan(current.plan_id);
         if (stopped) return;
+        if (acceptedPlan.digest !== current.plan_digest) throw new Error("Management pack plan identity changed");
         setOperationPlan(acceptedPlan);
         if (isMpackWaiting(current)) timer = setTimeout(poll, 2000);
         else {
+          if (current.phase === "SUCCEEDED" && acceptedPlan.deployment) {
+            const verified = await MpackApi.deployment(current.id);
+            if (verified.plan_id !== current.plan_id || verified.effective_snapshot !== current.effective_snapshot) {
+              throw new Error("Management pack deployment identity changed");
+            }
+            if (!stopped) setHandoff(verified);
+          } else if (!stopped) setHandoff(null);
           const [inventory, history, links, available] = await Promise.all([
             MpackApi.releases(), MpackApi.operations(), MpackApi.bindings(), MpackApi.services(),
           ]);
           if (!stopped) { setReleases(inventory); setOperations(history); setBindings(links); setCatalog(available); }
-          if (current.phase === "SUCCEEDED" && acceptedPlan.deployment) {
-            const verified = await MpackApi.deployment(current.id);
-            if (!stopped) setHandoff(verified);
-          } else if (!stopped) setHandoff(null);
         }
       } catch (failure) {
         if (!stopped) setError(mpackErrorMessage(failure));
@@ -306,7 +314,8 @@ export default function Mpacks() {
                   checked={serviceSelection.includes(item.id)} disabled={busy || !!submission || !compatible}
                   onChange={event => { setDestination(""); setServiceSelection(values => event.target.checked
                     ? [...values, item.id] : values.filter(value => value !== item.id)); }} />
-                <small className="text-muted">{item.description || item.release_id}</small>
+                <small className="text-muted d-block">{item.release_id}</small>
+                {item.description && <small className="text-muted d-block">{item.description}</small>}
               </td><td>{item.stack_name}/{item.stack_version}</td>
               <td>{t(item.enabled ? "mpack.enabled" : "mpack.imported")}</td></tr>;
             })}
