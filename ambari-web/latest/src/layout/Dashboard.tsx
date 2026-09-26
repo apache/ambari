@@ -67,7 +67,21 @@ import { viewRouteBreadcrumb } from "../Utils/viewUtils";
  * @returns {string} The sub-path extracted from the pathname.
  */
 const DashboardLayout = () => {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < 768,
+  );
+  useEffect(() => {
+    let mobile = window.innerWidth < 768;
+    const onResize = () => {
+      const next = window.innerWidth < 768;
+      if (next !== mobile) {
+        mobile = next;
+        setIsSidebarCollapsed(next);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const location = useLocation();
   const { instances: instanceInfoList } = useViewInstances();
   const { clusterName, upgradeId, upgradeState, upgradeDirection, upgradeIsFinalizeItem, runningOperationsCount, cluster, upgradeInProgress, upgradeHolding, upgradeSuspended, parsedSocketMessages } =

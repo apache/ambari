@@ -89,6 +89,7 @@ const SideBar = ({
   const [services, setServices] = useState<
     {
       name: string;
+      serviceName: string;
       state: string;
       alertsCountDisplay?: string;
       noAlerts?: boolean;
@@ -223,8 +224,8 @@ const SideBar = ({
       return {
         ...item,
         children: services.map((service) => ({
-          id: service.name,
-          path: `/main/services/${service?.name?.replace(" ","_")?.toUpperCase()}/summary`,
+          id: service.serviceName,
+          path: `/main/services/${encodeURIComponent(service.serviceName)}/summary`,
           name: (
             <div className="d-flex align-items-center w-100 pe-3">
                 <div

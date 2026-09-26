@@ -43,6 +43,22 @@ parity remain unverified until deployment acceptance.
 
 ## Comparison Scope
 
+The 2026-09-26 mpack expansion exposed a sidebar regression for imported
+services with branded display names. Classic constructs service navigation
+from the exact `content.id` and displays `content.displayName` separately;
+React now uses the exact `ServiceInfo.service_name` for link identity rather
+than uppercasing display text. A focused sidebar regression and authenticated
+Airflow/Celeborn browser checks cover these routes. Narrow viewports default
+to the collapsed sidebar so component and Quick Links content remains readable;
+the user can still expand it. This does not promote unrelated Module 04 gaps.
+The first 390px browser pass exposed an Actions/Configs overlap. The Actions
+control now precedes the tabs in the narrow layout, while retaining its desktop
+position. A second authenticated Airflow/Celeborn browser pass confirmed
+separate control bounds, an operable Actions menu, Configs navigation, and no
+horizontal document overflow. This is scoped navigation evidence, not full
+Service Configs parity.
+
+
 | Item | Value |
 | --- | --- |
 | Ember baseline | `ember-baseline/04-services-configs.md` |
