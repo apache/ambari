@@ -19,7 +19,12 @@
 
 The [2026-09-22 correction](corrective-implementation.md) supersedes the earlier
 global-maintenance and import interaction implementation. Its local verification
-is separate from the still-unexecuted live acceptance ledger.
+is separate from the live acceptance ledger. The
+[2026-09-26 conclusions](conclusion-2026-09-26.md) record passing Rocky operational
+paths and acceptance fixes, including official Kyuubi binaries. The complete
+crash/race, advanced Hadoop and database-upgrade matrices are still unfinished;
+the original requirement statuses below are not wholesale promoted by partial
+deployment evidence.
 
 For a new acceptance session start with [README.md](README.md), execute the
 [acceptance runbook](acceptance-runbook.md), and record actual live results in
@@ -32,10 +37,11 @@ verification. Clarifications must update the design and this ledger before the
 affected behavior is implemented. Implementation difficulty is not permission
 to remove a requirement. Unfinished or unsupported behavior remains visible.
 
-Implementation starts from `116be946fb5f911236db70861631eb4ed95792cc` in the
-`work/mpack-v1-http` worktree. The source workspace is not the implementation
-workspace. Compilation is deferred until implementation is complete, as
-requested. Test results cannot be inferred from source inspection.
+The historical implementation started from
+`116be946fb5f911236db70861631eb4ed95792cc` in `work/mpack-v1-http`. The current
+implementation is `/Users/jialiang/PRJS/ambari-mpack-v1` on `AMBARI-26663`.
+Compilation and live acceptance have since run; use the dated conclusions and
+result ledger for current evidence rather than inferring results from source.
 
 Statuses are `NOT_IMPLEMENTED`, `PARTIAL`, `IMPLEMENTED_UNVERIFIED`, `VERIFIED`,
 and `DEFERRED_BY_SCOPE`.
@@ -66,11 +72,11 @@ to VERIFIED.
 | MP-16 | HTTP resources, permissions, error codes and public API contract | 10.1 | IMPLEMENTED_UNVERIFIED | MpackLifecycleApiService/ExceptionMapper; administrator-only; HTTP contract in http-api.md |
 | MP-17 | HTTP-only CLI with resumable operations and local authoring tools | 10.2, 11 | IMPLEMENTED_UNVERIFIED | dev-support/mpack package; durable submissions without credentials; client/build tests |
 | MP-18 | GENERIC runtime, repository mapping and independent software versions | 9 | IMPLEMENTED_UNVERIFIED | hooksFolder/repositoryVersionMode inheritance; independent repository validation; default VDF accepts empty upgrade manifest |
-| MP-19 | Fresh GENERIC Nginx deployment without Hadoop dependencies | 12, 13 | IMPLEMENTED_UNVERIFIED | ambari-mpacks generic-base/nginx sources; deployment acceptance not run |
-| MP-20 | PostgreSQL isolated backup/restore and failure recovery | 9.1, 13 | IMPLEMENTED_UNVERIFIED | ambari-mpacks postgresql source; instance/archive/table identity checks; deployment acceptance not run |
+| MP-19 | Fresh GENERIC Nginx deployment without Hadoop dependencies | 12, 13 | VERIFIED | Fresh Rocky 8 worker5 deployment; install 59/209 and start 60/210; final health 102/284; see 2026-09-26 conclusions |
+| MP-20 | PostgreSQL isolated backup/restore and failure recovery | 9.1, 13 | PARTIAL | Distinct-instance recovery, typed data comparison and eight unsafe/corrupt-input cases passed; interrupted recovery remains unexecuted |
 | MP-21 | Non-daemon component operation constraints | 9.2 | PARTIAL | Existing CLIENT categories reused; no new example or new operation model; dedicated acceptance outstanding |
 | MP-22 | Reproducible HDFS reference and full supported capability parity | 6, 13 | PARTIAL | Fixed-Git-SHA export/build passed; 640 resources match source, 3 stack metainfo files differ only by hooksFolder; advanced live workflow acceptance outstanding |
-| MP-23 | React management before cluster creation, recovery and deployment handoff | 10.3 | IMPLEMENTED_UNVERIFIED | Global /mpacks admin route; inventory, preview, polling, durable resubmit, recovery; API/assignment/navigation tests |
+| MP-23 | React management before cluster creation, recovery and deployment handoff | 10.3 | PARTIAL | Authenticated import, lost-response recovery, exact service handoff, permissions and mobile layout passed; empty-Server browser context remains unexecuted |
 | MP-24 | Independent third-party repository, bundles and deterministic tooling | 11 | IMPLEMENTED_UNVERIFIED | Separate ambari-mpacks repository; release/profile/tool lock; deterministic Python builder; remote publication not requested |
 | MP-25 | Supported database initialization and upgrade paths | 12 | IMPLEMENTED_UNVERIFIED | mpack_record JPA entity/DAO; seven create DDLs and UpgradeCatalog310; actual database upgrade acceptance outstanding |
 | MP-26 | Aggregate quotas, automatic cleanup and automated coordinated backup/restore | 1.4, 8.6, 8.7 | DEFERRED_BY_SCOPE | User-directed scope freeze; keep all recovery bytes, enforce per-archive bounds, monitor disk; offline database+store backup only |

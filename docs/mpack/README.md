@@ -19,7 +19,12 @@
 
 Start here in a new session. Acceptance must not depend on earlier chat history.
 
-Read the [2026-09-24 stage checkpoint](checkpoint-2026-09-24.md) first. It records
+Read the [2026-09-26 local conclusions](conclusion-2026-09-26.md) and
+[current result ledger](acceptance-results.md) first. The main Rocky operational
+paths have passed, including official Kyuubi binaries; the full acceptance
+matrix remains incomplete. Local commits were created without a PR or push.
+
+The [2026-09-24 stage checkpoint](checkpoint-2026-09-24.md) records
 the deployed Rocky environment, source/artifact identities, completed checks,
 known failures and the user-requested pause after remote pushes without a PR.
 
@@ -44,7 +49,7 @@ acceptance has now started; its current state is in the checkpoint and result le
 | Original workspace, not acceptance source | `/Users/jialiang/PRJS/ambari` |
 | Commit state | AMBARI-26663 topic commits; see checkpoint-2026-09-24.md and Git history |
 | Completed checks | Latest corrective checks: Java compilation and 136 tests, React build and 87 tests, Python tooling 16 and Agent 40 tests, deterministic whole-store build; see corrective-implementation.md |
-| Not completed | Kyuubi SQL, authenticated browser acceptance, recovery/crash tests, HDFS advanced workflows, database upgrades and offline backup/restore |
+| Not completed | Remaining empty-Server browser context, crash/race tests, interrupted recovery, HDFS advanced workflows, database upgrades and coordinated offline restore; see current ledger |
 
 The branch HEAD alone does not identify the uncommitted implementation. Record
 the working-tree changes, including untracked implementation files, before

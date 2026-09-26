@@ -26,7 +26,9 @@ All paths below are relative to `/api/v1`. All endpoints require an
 authenticated Ambari administrator and `AMBARI.MANAGE_STACK_VERSIONS`.
 They are global and do not require a cluster. Responses are JSON with integer
 `schema_version: 1`; collection responses contain `items`. Authentication
-failures retain the existing Ambari authentication/authorization contract.
+failures retain the existing Ambari authentication contract. Authenticated users
+without the required administrator authorization receive HTTP 403 with a
+schema-1 `FORBIDDEN` error envelope; denial does not initialize catalog state.
 
 ## Resources
 
