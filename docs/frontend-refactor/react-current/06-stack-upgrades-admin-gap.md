@@ -329,3 +329,7 @@ plan and effective-snapshot checks, so a slow catalog cannot hide completed work
 The global directory shell uses a footer in normal flex flow. This intentionally
 differs from Classic's fixed footer-height compensation in `application.less`:
 the license links wrap on narrow screens and must not overlay the service list.
+The initial authentication probe uses the existing quiet API client. AUTH-004
+session restoration and authentication redirects still apply; an expected 401
+before local login no longer emits a stale global error toast. Login API and
+session-context regression suites cover the changed boundary.
