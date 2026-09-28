@@ -599,7 +599,7 @@ describe("Ember Service Theme page integration", () => {
     expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
   });
 
-  it.each(["readonly", "host", "env", "forbidden"])("does not enable an empty custom category in %s context", async (context) => {
+  it.each(["readonly", "host", "env", "forbidden"])("hides an empty Advanced tab in %s context", async (context) => {
     const source = configs();
     source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
     source.SVC.site.properties.primary.tabName = "first";
@@ -607,6 +607,44 @@ describe("Ember Service Theme page integration", () => {
     if (context === "readonly") mocks.hasAuthorization.mockReturnValue(false);
     renderConfig(topTabTheme(), source, { hostConfigs: context === "host" });
 
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.queryByRole("tab", { name: "Advanced" })).toBeNull();
+  });
+
+  it("hides Advanced when all configuration files are themed and no custom category exists", async () => {
+    const source = configs();
+    source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
+    source.SVC.site.properties.primary.tabName = "first";
+    renderConfig(topTabTheme(), source);
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.queryByRole("tab", { name: "Advanced" })).toBeNull();
+  });
+
+  it("returns to a file tab when the last Advanced action becomes unavailable", async () => {
+    const source = configs();
+    source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
+    source.SVC.site.properties.primary.tabName = "first";
+    source.SVC["Custom site"] = { errors: 0, properties: {}, canAddProperties: true };
+    const view = renderConfig(topTabTheme(), source);
+    await screen.findByDisplayValue("primary value");
+    fireEvent.click(screen.getByRole("tab", { name: "Advanced" }));
+    expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+    const next = structuredClone(source);
+    next.SVC["Custom site"].canAddProperties = false;
+    view.rerender(configElement(topTabTheme(), next));
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.queryByRole("tab", { name: "Advanced" })).toBeNull();
+  });
+
+  it("retains Advanced when filtering hides an existing unthemed property", async () => {
+    const source = configs();
+    source.SVC.site.properties = {
+      primary: source.SVC.site.properties.primary,
+      secondary: { ...source.SVC.site.properties.secondary, isVisible: false, isHidden: true },
+    };
+    source.SVC.site.properties.primary.tabName = "first";
+    renderConfig(compactTheme([{ config: "site/primary", "subsection-name": "subsection" }],
+      [{ config: "site/primary", widget: { type: "text-field" } }]), source);
     expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
     expect(screen.getByRole("tab", { name: "Advanced" }).getAttribute("aria-disabled")).toBe("true");
   });

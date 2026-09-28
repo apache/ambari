@@ -17,6 +17,24 @@
 
 # React Services and Configs Comparison
 
+## Empty Advanced Navigation: 2026-09-28
+
+For services whose properties are all placed in Theme tabs, Advanced is omitted
+when it has neither an unthemed value nor an allowed custom-property action.
+The complete-file editors remain in Configuration Files. This intentionally
+replaces the misleading disabled Advanced entry seen in Doris and Trino after
+their content migration. Classic service_config_category.hbs still provides the
+baseline for permission-gated Add Property actions; those actions remain reachable
+for empty extensible categories. Existing unthemed fields keep their tab while
+search filters temporarily hide them, and services without a Theme retain the
+Advanced fallback.
+
+Validation: 66 focused Theme and Advanced tests passed; the production build
+passed. Browser checks reproduced disabled Advanced entries before deployment
+and verified their absence afterward in Doris and Trino, along with editable
+file contents and working Basic Settings navigation. No configuration values
+were changed by this acceptance.
+
 ## Content File Migration: 2026-09-28
 
 The selected service's current scalar configuration can be converted to a
