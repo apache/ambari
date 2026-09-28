@@ -62,6 +62,7 @@ import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.ClusterResponse;
@@ -307,6 +308,7 @@ public class ClusterImpl implements Cluster {
   private StackDAO stackDAO;
 
   private volatile Multimap<String, String> serviceConfigTypes;
+  private volatile StackManager serviceConfigDefinitions;
 
   /**
    * Used to publish events relating to cluster CRUD operations and to receive
@@ -380,14 +382,26 @@ public class ClusterImpl implements Cluster {
     this.eventPublisher = eventPublisher;
   }
 
-  private void loadServiceConfigTypes() throws AmbariException {
+  private synchronized void loadServiceConfigTypes() throws AmbariException {
     try {
       serviceConfigTypes = collectServiceConfigTypesMapping();
+      serviceConfigDefinitions = ambariMetaInfo.getStackManager();
     } catch (AmbariException e) {
       LOG.error("Cannot load stack info:", e);
       throw e;
     }
     LOG.info("Service config types loaded: {}", serviceConfigTypes);
+  }
+
+  private synchronized Multimap<String, String> currentServiceConfigTypes() {
+    if (serviceConfigTypes == null || serviceConfigDefinitions != ambariMetaInfo.getStackManager()) {
+      try {
+        loadServiceConfigTypes();
+      } catch (AmbariException error) {
+        throw new IllegalStateException("Cannot resolve configuration ownership for the active definitions", error);
+      }
+    }
+    return serviceConfigTypes;
   }
 
   /**
@@ -1770,7 +1784,7 @@ public class ClusterImpl implements Cluster {
   }
 
   public List<String> serviceNameByConfigType(String configType) {
-    return serviceConfigTypes.entries().stream()
+    return currentServiceConfigTypes().entries().stream()
       .filter(entry -> StringUtils.equals(entry.getValue(), configType))
       .map(entry -> entry.getKey())
       .collect(toList());
@@ -1998,7 +2012,7 @@ public class ClusterImpl implements Cluster {
       // In that case eclipselink will revert changes to cached, if entity has fluchGroup and it
       // needs to be refreshed. Actually we don't need to change same antities in few steps, so i
       // decided to filter out. duplicates and do not change them. It will be better for performance and bug will be fixed.
-      Collection<String> configTypes = serviceConfigTypes.get(serviceName);
+      Collection<String> configTypes = currentServiceConfigTypes().get(serviceName);
       List<ClusterConfigEntity> enabledConfigs = clusterDAO.getEnabledConfigsByTypes(clusterId, configTypes);
       List<ClusterConfigEntity> serviceConfigEntities = serviceConfigEntity.getClusterConfigEntities();
       ArrayList<ClusterConfigEntity> duplicatevalues = new ArrayList<>(serviceConfigEntities);
@@ -2128,7 +2142,7 @@ public class ClusterImpl implements Cluster {
   }
 
   private List<ClusterConfigEntity> getClusterConfigEntitiesByService(String serviceName) {
-    Collection<String> configTypes = serviceConfigTypes.get(serviceName);
+    Collection<String> configTypes = currentServiceConfigTypes().get(serviceName);
     return clusterDAO.getEnabledConfigsByTypes(getClusterId(), new ArrayList<>(configTypes));
   }
 

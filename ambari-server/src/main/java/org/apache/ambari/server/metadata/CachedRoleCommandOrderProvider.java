@@ -23,14 +23,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -48,7 +50,13 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
   @Inject
   private Clusters clusters;
 
-  private Map<Integer, RoleCommandOrder> rcoMap = new ConcurrentHashMap<>();
+  @Inject
+  private Provider<AmbariMetaInfo> ambariMetaInfo;
+
+  private record CacheKey(long clusterId, boolean gluster, boolean nameNodeHa, boolean resourceManagerHa) { }
+
+  private final Map<CacheKey, RoleCommandOrder> rcoMap = new ConcurrentHashMap<>();
+  private StackManager cachedDefinitions;
 
   @Inject
   public CachedRoleCommandOrderProvider() {
@@ -67,7 +75,12 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
   }
 
   @Override
-  public RoleCommandOrder getRoleCommandOrder(Cluster cluster) {
+  public synchronized RoleCommandOrder getRoleCommandOrder(Cluster cluster) {
+    StackManager definitions = ambariMetaInfo.get().getStackManager();
+    if (definitions != cachedDefinitions) {
+      rcoMap.clear();
+      cachedDefinitions = definitions;
+    }
     boolean hasGLUSTERFS = false;
     boolean isNameNodeHAEnabled = false;
     boolean isResourceManagerHAEnabled = false;
@@ -97,12 +110,8 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
     } catch (AmbariException ignored) {
     }
 
-    int clusterCacheId = new HashCodeBuilder()
-      .append(cluster != null ? cluster.getClusterId() : -1)
-      .append(hasGLUSTERFS)
-      .append(isNameNodeHAEnabled)
-      .append(isResourceManagerHAEnabled)
-      .toHashCode();
+    CacheKey clusterCacheId = new CacheKey(cluster != null ? cluster.getClusterId() : -1,
+        hasGLUSTERFS, isNameNodeHAEnabled, isResourceManagerHAEnabled);
 
     RoleCommandOrder rco = rcoMap.get(clusterCacheId);
     if (rco == null) {
@@ -133,7 +142,7 @@ public class CachedRoleCommandOrderProvider implements RoleCommandOrderProvider 
   /**
    * Clear all entries - used after an upgrade
    */
-  public void clearRoleCommandOrderCache() {
+  public synchronized void clearRoleCommandOrderCache() {
     rcoMap.clear();
   }
 }
