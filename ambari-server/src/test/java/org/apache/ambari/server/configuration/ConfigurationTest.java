@@ -112,6 +112,45 @@ public class ConfigurationTest {
   }
 
   /**
+   * A non-numeric or non-positive automatic LDAP sync interval must fall back to the
+   * property default rather than throwing, which would stop the scheduler from starting.
+   */
+  @Test
+  public void testLdapAutoSyncMinutesFallBackToDefaults() {
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.LDAP_SYNC_AUTO_INTERVAL_MINUTES.getKey(), "not-a-number");
+    ambariProperties.setProperty(Configuration.LDAP_SYNC_AUTO_INITIAL_DELAY_MINUTES.getKey(), "0");
+
+    Configuration configuration = new Configuration(ambariProperties);
+
+    assertEquals(60, configuration.getLdapAutoSyncIntervalMinutes());
+    assertEquals(5, configuration.getLdapAutoSyncInitialDelayMinutes());
+  }
+
+  @Test
+  public void testLdapAutoSyncMinutesHonourConfiguredValues() {
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.LDAP_SYNC_AUTO_INTERVAL_MINUTES.getKey(), "15");
+    ambariProperties.setProperty(Configuration.LDAP_SYNC_AUTO_INITIAL_DELAY_MINUTES.getKey(), "1");
+
+    Configuration configuration = new Configuration(ambariProperties);
+
+    assertEquals(15, configuration.getLdapAutoSyncIntervalMinutes());
+    assertEquals(1, configuration.getLdapAutoSyncInitialDelayMinutes());
+  }
+
+  @Test
+  public void testLdapAutoSyncDefaultsAreDisabledAndSafe() {
+    Configuration configuration = new Configuration(new Properties());
+
+    Assert.assertFalse(configuration.isLdapAutoSyncEnabled());
+    Assert.assertFalse(configuration.isLdapAutoSyncPostProcessExistingUsers());
+    assertEquals("existing", configuration.getLdapAutoSyncType());
+    assertEquals(60, configuration.getLdapAutoSyncIntervalMinutes());
+    assertEquals(5, configuration.getLdapAutoSyncInitialDelayMinutes());
+  }
+
+  /**
    * ambari.properties doesn't contain "security.agent.hostname.validate" option
    */
   @Test
