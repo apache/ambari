@@ -17,6 +17,31 @@
 
 # React Services and Configs Comparison
 
+## Native Mpack Configuration: 2026-09-28
+
+Imported definitions can place all predefined fields in Theme tabs while
+retaining extensible configuration types. Empty custom categories now keep
+Advanced and its Add Property action available. Both visibility layers preserve
+modify permission, Host read-only behavior and search filtering. Installed
+Service Configs propagates exact adding_forbidden metadata to the category;
+complete-file editors do not offer an unsupported Add Property action. Existing
+custom values remain available even when adding new values is forbidden.
+
+On the current configuration version, an entirely new configuration type keeps
+its stack defaults visible and pending save. Missing properties of an already
+saved type retain deletion semantics. Historical versions do not acquire new
+defaults and cannot add custom properties. This intentionally extends the old
+static-stack loading behavior to support online definition updates. It is
+covered by current-versus-history and deleted-property regression assertions.
+
+The Classic references reviewed are
+app/templates/common/configs/service_config_category.hbs and the common
+configuration saver, together with baseline SVC-CONFIG-011 and the Service Theme
+metadata contract. Final validation: 251 Vitest files / 1,409 tests passed;
+TypeScript and the production Vite build passed. Browser acceptance covers the
+eight imported service layouts and save/restart/native-readback workflows in
+the independent store's native configuration acceptance record.
+
 ## Generic Package Services: 2026-09-22
 
 The 2026-09-24 live Kyuubi check found that the specialized Summary matched

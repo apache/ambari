@@ -656,13 +656,17 @@ export default function ServiceConfigs({
     Object.keys(configPropertiesCopy).forEach(serviceName => {
       if (isObject(configPropertiesCopy[serviceName])) {
         Object.keys(configPropertiesCopy[serviceName]).forEach(configType => {
-          // if (!!!configType.endsWith("env")) {
+            const metadata = configs?.items?.find(
+              (item: any) => item.StackServices?.service_name === serviceName,
+            )?.StackServices?.config_types?.[configType];
+            const addingForbidden = metadata?.supports?.adding_forbidden;
             configPropertiesCopy[serviceName]["Custom " + configType] = {
               errors: 0,
               properties: {},
               displayName: "Custom " + configType,
+              canAddProperties: addingForbidden !== "true" && addingForbidden !== true &&
+                selectedVersion === defaultVersionNumber,
             };
-          // }
         });
       }
     });
@@ -1039,6 +1043,7 @@ export default function ServiceConfigs({
           result[serviceName][configType] = {
             errors: 0,
             properties: {},
+            canAddProperties: configPropertiesCopy[serviceName][configType].canAddProperties,
             displayName: !configType.includes("Custom")
               ? "Advanced " + configType
               : configType,
@@ -1074,7 +1079,20 @@ export default function ServiceConfigs({
     const result = cloneDeep(configPropertiesCopy);
 
     Object.keys(result).forEach((serviceName) => {
+      const defaultVersions = (propertyValues.items || []).filter(
+        (item: any) => item.service_name === serviceName && item.group_name === "Default",
+      );
+      const existingTypes = new Set<string>(
+        defaultVersions
+          .flatMap((item: any) => (item.configurations || []).map((config: any) => config.type)),
+      );
       Object.keys(result[serviceName]).forEach((configType) => {
+        // A newly introduced config type needs editable defaults on the current version.
+        // Missing properties in an existing type remain deleted, including in history.
+        if (selectedVersion === defaultVersionNumber && defaultVersions.length === 1 &&
+            Array.isArray(defaultVersions[0].configurations) && !existingTypes.has(configType.replace(/^Custom /, ""))) {
+          return;
+        }
         const propertiesToDelete: string[] = [];
 
         Object.keys(result[serviceName][configType].properties).forEach(

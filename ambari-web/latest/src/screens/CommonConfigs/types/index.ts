@@ -130,6 +130,7 @@ export type ConfigPropertiesType = {
     [key: string]: {
       errors: number;
       displayName?: string;
+      canAddProperties?: boolean;
       properties: {
         [key: string]: {
           propertyName: string;

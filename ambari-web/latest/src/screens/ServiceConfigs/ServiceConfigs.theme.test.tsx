@@ -156,6 +156,8 @@ vi.mock("../CommonConfigs/Config", () => ({
         <div data-testid="property-value">{String(property?.value || "")}</div>
         <div data-testid="theme-count">{themeData?.items?.length || 0}</div>
         <div data-testid="all-themes">{String(Boolean(allThemes))}</div>
+        <div data-testid="custom-add-allowed">{String(sections["Custom core-site"]?.canAddProperties)}</div>
+        <div data-testid="property-states">{JSON.stringify(properties.map(property => ({ name: property.propertyName, value: property.value, visible: property.isVisible, found: property.foundInPropertyValues })))}</div>
         <div data-testid="all-properties-read-only">
           {String(properties.every((item) => item.isEditable === false))}
         </div>
@@ -364,6 +366,47 @@ describe("Service Configs Theme loading", () => {
       "3.1",
       "HDFS,YARN"
     );
+  });
+
+  it.each(["true", true])("honors adding_forbidden metadata (%s) for custom categories", async (addingForbidden) => {
+    const metadata = structuredClone(stackConfigurations);
+    Object.assign(metadata.items[0].StackServices, {
+      config_types: { "core-site": { supports: { adding_forbidden: addingForbidden } } },
+    });
+    mocks.getServiceConfigurations.mockResolvedValue(metadata);
+    renderServiceConfigs();
+    await screen.findByText("Theme settings");
+    expect(screen.getByTestId("custom-add-allowed").textContent).toBe("false");
+  });
+
+  it("offers defaults for a new config type while preserving deleted properties in existing types", async () => {
+    const metadata = structuredClone(stackConfigurations);
+    metadata.items[0].configurations.push({
+      StackConfigurations: { ...metadata.items[0].configurations[0].StackConfigurations,
+        property_name: "native.option", type: "native-settings.xml", property_value: "native-default" },
+      dependencies: [],
+    });
+    mocks.getServiceConfigurations.mockResolvedValue(metadata);
+    const values = structuredClone(propertyValues);
+    delete (values.items[0].configurations[0].properties as Record<string, string>)["test.property"];
+    mocks.getConfigValues.mockResolvedValue(values);
+    renderServiceConfigs();
+    await screen.findByText("Theme settings");
+    await waitFor(() => {
+      const states = JSON.parse(screen.getByTestId("property-states").textContent || "[]");
+      expect(states.find((p: { name: string }) => p.name === "native.option")).toMatchObject({ value: "native-default", visible: true, found: false });
+      expect(states.find((p: { name: string }) => p.name === "test.property")).toMatchObject({ value: null, visible: false, found: false });
+    });
+    expect((screen.getByRole("button", { name: "SAVE" }) as HTMLButtonElement).disabled).toBe(false);
+    const historical = structuredClone(values);
+    historical.items[0].service_config_version = 1;
+    mocks.getVersionConfigValues.mockResolvedValue(historical);
+    fireEvent.click(screen.getByRole("button", { name: "Load version 1" }));
+    await waitFor(() => {
+      const states = JSON.parse(screen.getByTestId("property-states").textContent || "[]");
+      expect(states.find((p: { name: string }) => p.name === "native.option")).toMatchObject({ value: null, visible: false });
+      expect(screen.getByTestId("custom-add-allowed").textContent).toBe("false");
+    });
   });
 
   it("keeps stack and custom properties read-only without modify permission", async () => {

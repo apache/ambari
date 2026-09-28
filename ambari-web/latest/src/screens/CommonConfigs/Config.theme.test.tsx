@@ -585,6 +585,32 @@ describe("Ember Service Theme page integration", () => {
     expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
   });
 
+  it("keeps Advanced available for an empty custom category when every property is themed", async () => {
+    const source = configs();
+    source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
+    source.SVC.site.properties.primary.tabName = "first";
+    source.SVC["Custom site"] = { errors: 0, properties: {} };
+    renderConfig(topTabTheme(), source);
+
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    const advanced = screen.getByRole("tab", { name: "Advanced" });
+    expect(advanced.getAttribute("aria-disabled")).not.toBe("true");
+    fireEvent.click(advanced);
+    expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+  });
+
+  it.each(["readonly", "host", "env", "forbidden"])("does not enable an empty custom category in %s context", async (context) => {
+    const source = configs();
+    source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
+    source.SVC.site.properties.primary.tabName = "first";
+    source.SVC[context === "env" ? "Custom service-env" : "Custom site"] = { errors: 0, properties: {}, canAddProperties: context !== "forbidden" };
+    if (context === "readonly") mocks.hasAuthorization.mockReturnValue(false);
+    renderConfig(topTabTheme(), source, { hostConfigs: context === "host" });
+
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Advanced" }).getAttribute("aria-disabled")).toBe("true");
+  });
+
   it("operates visible top-level tabs with the keyboard", async () => {
     renderConfig(topTabTheme());
     const firstTab = await screen.findByRole("tab", {

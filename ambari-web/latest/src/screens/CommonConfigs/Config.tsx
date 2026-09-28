@@ -837,6 +837,11 @@ export default function Config({
           if (config.includes("Custom") && config.endsWith("env")) {
             return false;
           }
+          // Empty custom categories still contain the Add Property action.
+          if (config.startsWith("Custom ") && !hostConfigs && canEditConfigsInContext && !searchString &&
+              configProperties[serviceName][config].canAddProperties !== false) {
+            return true;
+          }
           const currentConfigValue = configProperties[serviceName][config];
           const filteredPropertiesCount = Object.keys(
             currentConfigValue.properties || {},

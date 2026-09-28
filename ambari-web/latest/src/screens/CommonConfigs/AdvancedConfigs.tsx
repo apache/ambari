@@ -794,6 +794,10 @@ function AdvancedConfigs({
       if (config.includes("Custom") && config.endsWith("env")) {
         return false;
       }
+      if (config.startsWith("Custom ") && !hostConfigs && canEditProperties && !searchString &&
+          advancedConfigs[chosenService][config].canAddProperties !== false) {
+        return true;
+      }
       const currentConfigValue = advancedConfigs[chosenService][config];
       const filteredPropertiesCount = Object.keys(currentConfigValue.properties || {}).filter(
         (property) =>
@@ -882,7 +886,7 @@ function AdvancedConfigs({
               // own but the folded-in capacity-scheduler.xml bucket does.
               if (
                 hasNoVisibleProperties &&
-                !config.includes("Custom") &&
+                (!config.includes("Custom") || currentConfigValue.canAddProperties === false) &&
                 !hasCapacitySchedulerProperties
               ) {
                 return null;
@@ -1378,7 +1382,7 @@ function AdvancedConfigs({
                           </Col>
                         </Row>
                       )}
-                    {!hostConfigs && canEditProperties && config.includes("Custom") ? (
+                    {!hostConfigs && canEditProperties && config.includes("Custom") && currentConfigValue.canAddProperties !== false ? (
                       <h4
                         className="text-info ms-2 mt-2"
                         onClick={() => {
