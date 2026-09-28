@@ -17,6 +17,30 @@
 
 # React Services and Configs Comparison
 
+## Content File Migration: 2026-09-28
+
+The selected service's current scalar configuration can be converted to a
+single content property when the metadata explicitly declares a supported
+property-file-type and a content-only configuration type. The draft uses saved
+values, removes obsolete scalar counterparts only on Save, and preserves
+already saved content and historical versions. Other services loaded for
+recommendations are unchanged. Scalar host-group overrides and password-typed
+properties retain the compatible scalar path until explicitly migrated.
+
+Content fields preserve trailing whitespace through the React saver. This is
+an intentional difference from Classic utils/config.js#trimProperty, which
+trims trailing whitespace from ordinary strings. Whole-file properties can
+contain escaped trailing spaces and meaningful blank lines. The Server's
+Blueprint trimming strategy and package renderers preserve them as well.
+
+Coverage includes current values, unknown formats, ambiguous observations,
+history, existing content, passwords, host overrides, service scoping, native
+format serialization and exact save payload whitespace. Live browser acceptance
+saved complete content for all ten service packs, and Nginx's persisted API
+value and rendered file digest matched a document with trailing spaces and
+blank lines. The independent store records the deployment and failure-recovery
+evidence in docs/content-configuration-acceptance.md.
+
 ## Native Mpack Configuration: 2026-09-28
 
 Imported definitions can place all predefined fields in Theme tabs while

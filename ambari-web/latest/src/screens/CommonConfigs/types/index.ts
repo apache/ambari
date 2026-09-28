@@ -139,6 +139,7 @@ export type ConfigPropertiesType = {
           propertyValue: any;
           propertyAttributes: any;
           previousValue: any;
+          contentMigrationPending?: boolean;
           propertyDisplayValue?: string;
           errorMessage?: string;
           value?: any;

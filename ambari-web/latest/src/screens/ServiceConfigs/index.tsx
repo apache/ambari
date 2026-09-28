@@ -67,6 +67,7 @@ import useEnhancedConfigs from "../../hooks/useEnhancedConfigs";
 import useHostComponents from "../ClusterWizard/hooks/useHostComponents";
 import Table from "../../components/Table";
 import useServerValidation from "../../hooks/useServerValidation";
+import { migrateConfigContent } from "../../Utils/contentConfigMigration";
 import { translate } from "../../Utils/Utility";
 import { kyuubi_properties } from "../../data/configs/services/kyuubi_properties";
 import { sqoop_properties } from "../../data/configs/services/sqoop_properties";
@@ -1248,6 +1249,8 @@ export default function ServiceConfigs({
 
     // Remove properties that don't have corresponding values in propertyValues
     configPropertiesCopy = removePropertiesWithoutValues(configPropertiesCopy);
+    configPropertiesCopy = migrateConfigContent(configPropertiesCopy, propertyValues,
+      selectedVersion === defaultVersionNumber, serviceName);
 
     // Create the updated configuration structure with host information
     let updatedConfigProperties =

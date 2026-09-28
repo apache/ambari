@@ -338,8 +338,9 @@ const trimProperty = (property: PropertyType, value: any) => {
     case InputType.HOST:
       rez = value.trim();
       break;
+    case InputType.CONTENT:
     case InputType.PASSWORD:
-      // No trimming for passwords, assuming sensitive data handling
+      // File contents and passwords can contain significant trailing whitespace.
       break;
     default:
       if (
