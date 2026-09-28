@@ -79,6 +79,7 @@ type AdvancedConfigsType = {
   ) => void;
   searchString?: string;
   canEdit?: boolean;
+  expandByDefault?: boolean;
 };
 
 // Map propertyType to InputType for rendering
@@ -129,6 +130,7 @@ function AdvancedConfigs({
   onValueUpdateProp,
   searchString = "",
   canEdit,
+  expandByDefault = false,
 }: AdvancedConfigsType) {
   const [advancedConfigs, setAdvancedConfigs] = useState(configPropertiesData);
   const [configPropertiesLoading] = useState(false);
@@ -177,6 +179,7 @@ function AdvancedConfigs({
     (name) => {
       const displayName =
         advancedConfigs?.[chosenService]?.[name]?.displayName || name;
+      if (expandByDefault) return !displayName.startsWith("Custom ");
       return !displayName.includes("Advanced") &&
         !displayName.includes("CapacityScheduler") &&
         !displayName.includes("Custom");
@@ -817,6 +820,7 @@ function AdvancedConfigs({
     <>
       <OverlayBackdrop isOpen={processingConfig} />
       <Accordion
+        key={JSON.stringify([chosenService, expandByDefault, configSectionNames])}
         alwaysOpen
         defaultActiveKey={defaultOpenSections}
         activeKey={

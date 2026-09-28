@@ -3610,6 +3610,7 @@ export default function Config({
                                         ) : (
                                           <div className="mt-4">
                                             <AdvancedConfigs
+                                              expandByDefault={Object.keys(theme?.[serviceKey]?.tabs || {}).every(name => name === "Advanced")}
                                               chosenService={chosenService}
                                               setTabErrors={setTabErrors}
                                               setConfigProperties={

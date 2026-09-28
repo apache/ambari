@@ -418,8 +418,8 @@ describe("Service Configs Theme loading", () => {
 
     expect(await screen.findByText("Advanced core-site")).toBeTruthy();
     expect(
-      screen.getByText(/No Theme layout is defined for ZOOKEEPER\./),
-    ).toBeTruthy();
+      screen.queryByText(/No Theme layout is defined for ZOOKEEPER\./),
+    ).toBeNull();
     expect(screen.getByTestId("all-themes").textContent).toBe("true");
     expect(mocks.getTheme).toHaveBeenCalledWith("HDP", "3.1", "ZOOKEEPER");
   });
@@ -459,8 +459,8 @@ describe("Service Configs Theme loading", () => {
     renderServiceConfigs();
 
     expect(await screen.findByText("Advanced core-site")).toBeTruthy();
-    expect(screen.getByText(/No Theme layout is defined for HDFS\./)).toBeTruthy();
-    expect(screen.getByText("No default Theme is available for HDFS.")).toBeTruthy();
+    expect(screen.queryByText(/No Theme layout is defined for HDFS\./)).toBeNull();
+    expect(screen.queryByText("No default Theme is available for HDFS.")).toBeNull();
     expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
   });
 

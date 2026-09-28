@@ -58,6 +58,25 @@ separate control bounds, an operable Actions menu, Configs navigation, and no
 horizontal document overflow. This is scoped navigation evidence, not full
 Service Configs parity.
 
+The 2026-09-28 expansion also covers partial component observations: an imported
+MASTER remains visible by its declared name when host details have not arrived,
+with an explicit unavailable state instead of an empty Components section. A
+focused regression supplies the partial response and then the complete host
+observation, checking recovery without inventing a healthy state. This differs
+intentionally from classic's host-only master list to make incomplete reads
+visible. Authenticated browser navigation across all seven imported services
+confirmed their names after cluster and service switches.
+
+Live Configs acceptance on 2026-09-28 found that imported services on an existing
+cluster had desired configs but no service config versions. The Server's cached
+configuration ownership is now refreshed when the immutable definition view
+changes; normal configuration writes create the missing service versions.
+Unthemed services intentionally use expanded property groups and do not report
+an absent Theme as an error. Browser checks display every declared property in
+the five new packs, and an Elasticsearch heap edit saved a new config version
+whose 2G value was verified through the JVM API after restart. This does not
+claim modeling of all upstream advanced properties.
+
 
 | Item | Value |
 | --- | --- |

@@ -64,7 +64,7 @@ vi.mock("../ConfigGroups/ManageConfigGroups", () => ({
   default: () => null,
 }));
 vi.mock("./AdvancedConfigs", () => ({
-  default: () => <div>Advanced configuration fallback</div>,
+  default: ({ expandByDefault }: { expandByDefault?: boolean }) => <div data-expand-default={String(expandByDefault)}>Advanced configuration fallback</div>,
 }));
 vi.mock("./TestConnection", () => ({
   default: (props: Record<string, unknown>) => {
@@ -558,6 +558,7 @@ describe("Ember Service Theme page integration", () => {
     renderConfig(directoriesTheme, configs(), { allThemes: true });
 
     expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+    expect(screen.getByText("Advanced configuration fallback").getAttribute("data-expand-default")).toBe("true");
     expect(screen.queryByRole("tab", { name: "Directories" })).toBeNull();
     expect(screen.queryByText("DATA DIRS")).toBeNull();
     expect(screen.queryByText("LOG DIRS")).toBeNull();

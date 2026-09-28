@@ -128,6 +128,12 @@ describe("Advanced Theme fallback permissions", () => {
 
   afterEach(cleanup);
 
+  it("opens the available properties when no service layout exists", async () => {
+    renderAdvanced({ expandByDefault: true });
+    expect(screen.getByRole("button", { name: /Advanced site/ }).getAttribute("aria-expanded")).toBe("true");
+    expect((await screen.findByDisplayValue("group value")).closest(".accordion-collapse")?.classList.contains("show")).toBe(true);
+  });
+
   it("keeps an installed-service override read-only without modify permission", async () => {
     mocks.hasAuthorization.mockReturnValue(false);
     renderAdvanced();

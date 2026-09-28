@@ -1544,23 +1544,21 @@ export default function ServiceConfigs({
                 />
               </div>
             </div>
-            {themeLoadNotice && (
+            {themeLoadNotice && themeLoadNotice.kind !== "empty" && (
               <Alert
-                variant={themeLoadNotice.kind === "empty" ? "info" : "warning"}
+                variant="warning"
                 className="mx-3 d-flex justify-content-between align-items-center gap-3"
               >
                 <div>
                   <div>
-                    {themeLoadNotice.kind === "empty"
-                      ? `No Theme layout is defined for ${serviceName}.`
-                      : `Theme layout for ${serviceName} could not be loaded.`}
+                    {`Theme layout for ${serviceName} could not be loaded.`}
                     {" "}
                     Configuration properties remain available in the Advanced
                     tab.
                   </div>
                   <small>{themeLoadNotice.message}</small>
                 </div>
-                {themeLoadNotice.kind !== "empty" && (
+                {(
                   <Button
                     size="sm"
                     variant="outline-warning"

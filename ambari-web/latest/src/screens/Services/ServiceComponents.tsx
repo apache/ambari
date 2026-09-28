@@ -3099,6 +3099,23 @@ export function GenericServiceSummary({
         const hostComponents = component.host_components || [];
 
         if (info.category === "MASTER") {
+          if (hostComponents.length === 0) {
+            return [
+              <Col md={3} key={componentName}>
+                <Stack>
+                  <h3 className="text-dark mb-0">
+                    {info.total_count === 0 ? "No hosts assigned" : "Host details unavailable"}
+                  </h3>
+                  <div
+                    className="custom-link text-uppercase fs-12 mt-2"
+                    onClick={() => goToHostsFilteredByComponent(componentName, displayName)}
+                  >
+                    {displayName}
+                  </div>
+                </Stack>
+              </Col>,
+            ];
+          }
           return hostComponents.map((hostComponent: any) => {
             const hostRoles = hostComponent.HostRoles || {};
             const state = hostRoles.state || "UNKNOWN";
