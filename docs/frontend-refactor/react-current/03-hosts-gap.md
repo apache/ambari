@@ -31,6 +31,18 @@ The comparison used the corrected Ember baseline, classic source, React source, 
 
 ## Current Conclusion
 
+### Host alert badge presentation, 2026-09-29
+
+The host-name alert count now uses a single scoped link styled as a 22px badge,
+instead of a button nested inside a link. This avoids the shared 36px button
+height stretching a one-digit count into a narrow red block. Critical counts
+retain precedence over warning-only counts, and zero totals remain hidden.
+Light/dark colors, focus indication, and a localized accessible description
+preserve the host-alert navigation described by `HOST-LIST-005` and Classic
+`app/templates/main/host.hbs`. The change does not close other list-navigation
+or bulk-operation gaps. Focused badge tests cover count/severity, scoped
+destination, semantic navigation, and empty counts.
+
 | Status | Count |
 | --- | ---: |
 | `NEEDS_RUNTIME_VALIDATION` | 46 |
