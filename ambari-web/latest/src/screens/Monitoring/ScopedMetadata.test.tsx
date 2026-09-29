@@ -81,6 +81,29 @@ describe("scoped metrics metadata", () => {
 
   afterEach(() => cleanup());
 
+  it("distinguishes a completed empty query from an unexecuted query", async () => {
+    render(<AppContext.Provider value={{ clusterName: "c1" } as any}><Explorer /></AppContext.Provider>);
+    expect(screen.getByText("Ready to query")).toBeTruthy();
+    await waitFor(() => expect(MetricsApi.listDatasources).toHaveBeenCalled());
+    fireEvent.click(await screen.findByRole("button", { name: "Run query" }));
+    expect(await screen.findByText("Query completed with no matching series")).toBeTruthy();
+    expect(screen.queryByText("Ready to query")).toBeNull();
+  });
+
+  it("aborts a cancelled query and discards its late response", async () => {
+    const pending = deferred<any>();
+    vi.mocked(MetricsApi.queryRange).mockReturnValue(pending.promise);
+    render(<AppContext.Provider value={{ clusterName: "c1" } as any}><Explorer /></AppContext.Provider>);
+    await waitFor(() => expect(screen.getByLabelText("Datasource").getAttribute("value") === "7" || (screen.getByLabelText("Datasource") as HTMLSelectElement).value === "7").toBe(true));
+    fireEvent.click(screen.getByRole("button", { name: "Run query" }));
+    await waitFor(() => expect(MetricsApi.queryRange).toHaveBeenCalledOnce());
+    const signal = vi.mocked(MetricsApi.queryRange).mock.calls[0][5]!;
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(signal.aborted).toBe(true);
+    pending.resolve({ status: "success", data: { result: [{ metric: { host: "late" }, values: [[1, "1"]] }] } });
+    await waitFor(() => expect(screen.queryByText('host="late"')).toBeNull());
+  });
+
   it("keeps Explorer queries available when label discovery is unsupported", async () => {
     render(
       <AppContext.Provider value={{ clusterName: "c1" } as any}>
@@ -178,7 +201,7 @@ describe("scoped metrics metadata", () => {
     await waitFor(() => expect(MetricsApi.labels).toHaveBeenCalledWith(7));
     fireEvent.submit(screen.getByLabelText("PromQL").closest("form") as HTMLFormElement);
     await waitFor(() => expect(MetricsApi.queryRange).toHaveBeenCalledWith(
-      7, "up", expect.any(Number), expect.any(Number), expect.any(Number),
+      7, "up", expect.any(Number), expect.any(Number), expect.any(Number), expect.any(AbortSignal),
     ));
     fireEvent.change(screen.getByLabelText("Datasource"), { target: { value: "8" } });
     await waitFor(() => expect(MetricsApi.labels).toHaveBeenCalledWith(8));
@@ -188,7 +211,7 @@ describe("scoped metrics metadata", () => {
 
     fireEvent.submit(screen.getByLabelText("PromQL").closest("form") as HTMLFormElement);
     await waitFor(() => expect(MetricsApi.queryRange).toHaveBeenCalledWith(
-      8, "up", expect.any(Number), expect.any(Number), expect.any(Number),
+      8, "up", expect.any(Number), expect.any(Number), expect.any(Number), expect.any(AbortSignal),
     ));
     secondQuery.resolve({
       status: "success",

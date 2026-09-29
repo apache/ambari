@@ -76,6 +76,9 @@ const listData = <T>(response: { data?: MetricsEnvelope<unknown> }): T[] => {
 };
 
 export const MetricsApi = {
+  discoverTargets: async (clusterName: string) => (await ambariApi.get<unknown>(
+    `/clusters/${encodeURIComponent(clusterName)}/prometheus_targets`,
+  )).data,
   listDatasources: async (clusterName: string) => listData<Datasource>(await ambariApi.post(
     "/metrics/datasource/list",
     { cluster_name: clusterName },
@@ -120,9 +123,10 @@ export const MetricsApi = {
     datasourceId: number,
     query: string,
     time?: number,
+    signal?: AbortSignal,
   ) => (await supressErrorAmbariApi.get<PrometheusResponse>(
     `/metrics/${datasourceId}/api/v1/query`,
-    { params: { query, time } },
+    { params: { query, time }, signal },
   )).data,
 
   queryRange: async (
@@ -131,9 +135,10 @@ export const MetricsApi = {
     start: number,
     end: number,
     step: number,
+    signal?: AbortSignal,
   ) => (await supressErrorAmbariApi.get<PrometheusResponse>(
     `/metrics/${datasourceId}/api/v1/query_range`,
-    { params: { query, start, end, step } },
+    { params: { query, start, end, step }, signal },
   )).data,
 
   queryInstantBatch: async (

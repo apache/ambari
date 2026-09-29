@@ -26,9 +26,11 @@ interface TimeSeriesRendererProps {
   results: DashboardPanelResult[];
   height?: number;
   graphTooltip?: string;
+  start?: number;
+  end?: number;
 }
 
-export default function TimeSeriesRenderer({ panel, results, height, graphTooltip }: TimeSeriesRendererProps) {
+export default function TimeSeriesRenderer({ panel, results, height, graphTooltip, start, end }: TimeSeriesRendererProps) {
   const { min, max } = panelNumericBounds(panel);
   const custom = panelCustomOptions(panel);
   const scaleDistribution = custom.scaleDistribution && typeof custom.scaleDistribution === "object"
@@ -39,7 +41,10 @@ export default function TimeSeriesRenderer({ panel, results, height, graphToolti
   const tooltip = options.tooltip && typeof options.tooltip === "object" ? options.tooltip as Record<string, unknown> : {};
   return (
     <PrometheusChart
+      key={JSON.stringify(panel.targets)}
       results={results}
+      start={start}
+      end={end}
       unit={getPanelUnit(panel.options)}
       decimals={getPanelDecimals(panel.options)}
       minimum={min}

@@ -130,7 +130,12 @@ describe("DashboardPanel cluster isolation", () => {
       expect.any(AbortSignal),
     ));
 
-    fireEvent.click(screen.getByTitle("Share chart"));
+    fireEvent.click(screen.getByRole("button", { name: "More actions" }));
+    const queryLink = screen.getAllByRole("link", { name: "View query" })[0];
+    const params = new URLSearchParams(queryLink.getAttribute("href")!.split("?")[1]);
+    expect(params.get("query")).toBe('rate(requests_total{cluster="cluster-b"}[120s])');
+    expect(params.get("datasource")).toBe("7");
+    fireEvent.click(await screen.findByTitle("Share chart"));
     await waitFor(() => expect(mocks.createChartShares).toHaveBeenCalled());
     const [shareCluster, shares] = mocks.createChartShares.mock.calls.at(-1) || [];
     const saved = JSON.parse(shares[0].configs);

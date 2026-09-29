@@ -17,7 +17,7 @@
  */
 
 import { useContext, useEffect, useRef, useState } from "react";
-import { Alert, Button, Spinner } from "react-bootstrap";
+import { Alert, Button, Dropdown, Spinner } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
@@ -39,6 +39,7 @@ import {
 import PanelRenderer from "./PanelRenderer";
 import type { DashboardPanelResult } from "./data/panelData";
 import { clusterPath } from "../../../Utils/clusterRoute";
+import { useWorkspaceText } from "../workspace";
 
 interface DashboardPanelProps {
   panel: Panel;
@@ -97,6 +98,7 @@ export default function DashboardPanel({
   graphTooltip,
 }: DashboardPanelProps) {
   const { clusterName } = useContext(AppContext);
+  const text = useWorkspaceText();
   const [results, setResults] = useState<DashboardPanelResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -110,6 +112,15 @@ export default function DashboardPanel({
   const isStatic = type === "row" || type === "text" || type === "iframe";
   const panelCategory = panel.datasourceCate || "prometheus";
   const selectedDatasourceId = resolvePanelDatasourceId(panel, variables, datasources);
+  const queryParameters = new URLSearchParams({
+    datasource: String(selectedDatasourceId || ""),
+    start: String(start), end: String(end),
+    query: replaceDashboardVariables(
+      panel.targets?.find(target => !target.hide)?.expr || "up",
+      withDashboardBuiltIns(variables, clusterName, Math.max(1, Math.ceil((end - start) / 240))),
+    ),
+  });
+  const exploreHref = `#${clusterPath(clusterName, "/main/monitoring/explorer")}?${queryParameters}`;
 
   useEffect(() => {
     const element = panelRef.current;
@@ -266,11 +277,11 @@ export default function DashboardPanel({
 
   return (
     <article ref={panelRef} className={`dashboard-panel dashboard-panel-${type}`}>
-      <header><div><h3>{panel.name || "Untitled panel"}</h3>{panel.description && <span title={panel.description}>Info</span>}</div><div className="d-flex align-items-center gap-2"><small>{type}</small>{allowShare && selectedDatasourceId > 0 && <Button variant="link" size="sm" disabled={sharing} title="Share chart" onClick={() => void share()}><FontAwesomeIcon icon={faShareNodes} /></Button>}</div></header>
+      <header><div><h3>{panel.name || "Untitled panel"}</h3>{panel.description && <span title={panel.description}>Info</span>}</div><Dropdown align="end"><Dropdown.Toggle variant="link" size="sm" className="dashboard-panel-menu" aria-label={text("more")} title={text("more")}>···</Dropdown.Toggle><Dropdown.Menu><Dropdown.Item href={exploreHref}>{text("viewQuery")}</Dropdown.Item>{allowShare && selectedDatasourceId > 0 && <Dropdown.Item disabled={sharing} title="Share chart" onClick={() => void share()}><FontAwesomeIcon icon={faShareNodes} className="me-2" />Share chart</Dropdown.Item>}</Dropdown.Menu></Dropdown></header>
       {loading && <div className="dashboard-panel-loading"><Spinner size="sm" /></div>}
       {error && <Alert variant="warning" className="m-2 py-1 small d-flex justify-content-between align-items-center"><span>{error}</span><Button variant="link" size="sm" className="p-0" onClick={() => setRetryKey((value) => value + 1)}>Retry</Button></Alert>}
-      {!loading && results.length === 0 && !error && inViewport && <div className="monitoring-empty">No data</div>}
-      {results.length > 0 && <PanelRenderer panel={panel} results={results} height={panelHeight} graphTooltip={graphTooltip} />}
+      {!loading && results.length === 0 && !error && inViewport && <div className="monitoring-empty monitoring-panel-empty"><strong>{text("noData")}</strong><p>{text("noDataHelp")}</p><a href={exploreHref}>{text("viewQuery")}</a></div>}
+      {results.length > 0 && <PanelRenderer panel={panel} results={results} height={panelHeight} graphTooltip={graphTooltip} start={start} end={end} />}
     </article>
   );
 }

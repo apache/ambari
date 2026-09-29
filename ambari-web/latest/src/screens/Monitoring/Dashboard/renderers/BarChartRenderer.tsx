@@ -25,13 +25,14 @@ import {
   Tooltip,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
+import { useTheme } from "../../../../store/ThemeContext";
 import type { DashboardPanel } from "../../types";
 import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
 import { calculatePanelValue, panelCustomOptions, panelNumericBounds, type DashboardPanelResult } from "../data/panelData";
 
 ChartJs.register(BarElement, CategoryScale, LinearScale, Legend, Tooltip);
 
-const COLORS = ["#278541", "#1769aa", "#bd6418", "#8a4f9d", "#b33a3a", "#477178"];
+const LIGHT_COLORS = ["#278541", "#1769aa", "#bd6418", "#8a4f9d", "#b33a3a", "#477178"];
 
 interface BarChartRendererProps {
   panel: DashboardPanel;
@@ -40,6 +41,10 @@ interface BarChartRendererProps {
 }
 
 export default function BarChartRenderer({ panel, results, height }: BarChartRendererProps) {
+  const { resolved } = useTheme();
+  const COLORS = resolved === "dark" ? ["#7ee2b8", "#79c0ff", "#e3b341", "#bc8cff", "#ff7b72", "#76e3ea"] : LIGHT_COLORS;
+  const axisColor = resolved === "dark" ? "#afbdcb" : "#637380";
+  const gridColor = resolved === "dark" ? "#303d4a" : "#e8edf2";
   const unit = getPanelUnit(panel.options);
   const decimals = getPanelDecimals(panel.options);
   const { min, max } = panelNumericBounds(panel);
@@ -76,8 +81,8 @@ export default function BarChartRenderer({ panel, results, height }: BarChartRen
             },
           },
           scales: {
-            x: horizontal ? { min, max, ticks: { callback: (value) => formatMetricValue(value, unit, decimals) } } : { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
-            y: horizontal ? { ticks: { autoSkip: true, maxTicksLimit: 12 } } : { min, max, ticks: { callback: (value) => formatMetricValue(value, unit, decimals) } },
+            x: horizontal ? { min, max, grid: { color: gridColor }, ticks: { color: axisColor, callback: (value) => formatMetricValue(value, unit, decimals) } } : { grid: { color: gridColor }, ticks: { color: axisColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+            y: horizontal ? { grid: { color: gridColor }, ticks: { color: axisColor, autoSkip: true, maxTicksLimit: 12 } } : { min, max, grid: { color: gridColor }, ticks: { color: axisColor, callback: (value) => formatMetricValue(value, unit, decimals) } },
           },
         }}
       />
