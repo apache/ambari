@@ -17,8 +17,8 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { Alert, Badge, Button, Form, Modal, Table } from "react-bootstrap";
-import { ArrowClockwise, CloudUpload, Eye, Link45deg, Trash, XCircle } from "react-bootstrap-icons";
+import { Alert, Badge, Button, Form, Modal, Table, Spinner } from "react-bootstrap";
+import { ArrowClockwise, BoxSeam, Check2, CloudUpload, Eye, Link45deg, Search, Trash, XCircle } from "react-bootstrap-icons";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import MpackApi, {
@@ -31,6 +31,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { clusterDraftPath } from "../../Utils/scopedWorkflow";
 import { clusterPath } from "../../Utils/clusterRoute";
 import { createSecureUuid } from "../../Utils/uuid";
+import { chooseServiceVersion, groupServiceCatalog } from "./serviceCatalog";
+import "./mpacks.scss";
 
 type Submission = { schema_version: 1; plan_id: string; plan_digest: string; key: string };
 export function compareVersion(first: string, second: string): number {
@@ -83,6 +85,13 @@ function MpackManagement({ username }: { username: string }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("catalog");
+  const [showImport, setShowImport] = useState(false);
+  const [versionChoices, setVersionChoices] = useState<Record<string, string>>({});
+  const [environment, setEnvironment] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [historyLimit, setHistoryLimit] = useState(10);
+  useEffect(() => { if (operationId) setActiveTab("history"); }, [operationId]);
   const [reload, setReload] = useState(0);
   const generation = useRef(0);
   const [submission, setSubmission] = useState<Submission | null>(() => {
@@ -95,6 +104,7 @@ function MpackManagement({ username }: { username: string }) {
   const refresh = () => setReload((value) => value + 1);
   useEffect(() => {
     let stopped = false;
+    setLoading(true);
     Promise.allSettled([MpackApi.releases(), MpackApi.bindings(), MpackApi.capabilities(), MpackApi.operations(), MpackApi.services()])
       .then(([inventory, links, supported, history, available]) => {
         if (stopped) return;
@@ -105,7 +115,8 @@ function MpackManagement({ username }: { username: string }) {
         if (available.status === "fulfilled") setCatalog(available.value);
         const failed = [inventory, links, supported, history, available].find(item => item.status === "rejected");
         if (failed?.status === "rejected") setError(mpackErrorMessage(failed.reason));
-      }).catch((failure) => { if (!stopped) setError(mpackErrorMessage(failure)); });
+      }).catch((failure) => { if (!stopped) setError(mpackErrorMessage(failure)); })
+      .finally(() => { if (!stopped) setLoading(false); });
     return () => { stopped = true; };
   }, [reload]);
   useEffect(() => {
@@ -186,8 +197,8 @@ function MpackManagement({ username }: { username: string }) {
       }));
     }
     const preview = await MpackApi.plan(mutation);
-    if (mutation.action === "IMPORT") await beginSubmission(preview);
-    else setPlan(preview);
+    if (mutation.action === "IMPORT") { await beginSubmission(preview); setShowImport(false); }
+    else { setPlan(preview); setShowImport(false); }
   });
   const previewRelease = (release: MpackRelease, action: "BIND" | "UNBIND" | "UNINSTALL") => run(async () => {
     const mutation = emptyMutation(action);
@@ -237,31 +248,49 @@ function MpackManagement({ username }: { username: string }) {
     receipt.state === "FAILED" && receipt.effect_state === "NOT_APPLIED");
   const cancelAllowed = operation && !["SUCCEEDED", "FAILED", "CANCELLED"].includes(operation.phase) &&
     Object.values(operation.hooks).every((receipt) => receipt.effect_state === "NOT_APPLIED");
-  const installed = releases.filter((release) => release.installed && release.id.toLowerCase().includes(query.toLowerCase()));
+  const installed = releases.filter((release) => release.installed);
   const selectedServices = catalog?.items.filter(item => serviceSelection.includes(item.id)) || [];
   const serviceTarget = selectedServices[0];
+  const destinationInfo = catalog?.destinations.find(item => String(item.cluster_id) === destination);
+  const serviceGroups = groupServiceCatalog(catalog?.items || []);
+  const environments = [...new Set((catalog?.items || []).map(item => item.stack_name + "/" + item.stack_version))].sort();
+  const filteredGroups = serviceGroups.filter(group => group.entries.some(item =>
+    (!environment || item.stack_name + "/" + item.stack_version === environment)
+    && [item.display_name, item.service_name, item.release_id, item.description || ""].some(value => value.toLowerCase().includes(query.toLowerCase()))));
   const deploymentPath = handoff ? handoff.cluster_name
     ? clusterPath(handoff.cluster_name, "/main/service/add/step1?mpack_operation=" + handoff.operation_id)
     : clusterDraftPath(handoff.operation_id) + "&mpack_operation=" + handoff.operation_id : null;
   const previewServices = () => run(async () => {
+    if (selectedServices.length !== serviceSelection.length || (destination && !destinationInfo)) throw new Error(t("mpackUi.selectionChanged"));
     const prepared = await MpackApi.planServices(serviceSelection, destination ? Number(destination) : null, maintenance);
     if (prepared.maintenance_required || prepared.restart_required) setPlan(prepared);
     else await beginSubmission(prepared);
   });
 
   return (
-    <main className="container-fluid px-3 px-md-4 py-3">
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <h1 className="h4 mb-0">{t("mpack.title")}</h1>
+    <main className="mpack-workspace">
+      <div className="mpack-page-header">
+        <div><div className="mpack-heading"><span className="mpack-brand-icon"><BoxSeam /></span><h1>{t("mpack.title")}</h1></div><p>{t("mpackUi.subtitle")}</p></div>
+        <div className="d-flex gap-2">
         <Button variant="outline-secondary" size="sm" title={t("mpack.refresh")} aria-label={t("mpack.refresh")}
-          disabled={busy} onClick={refresh}><ArrowClockwise /></Button>
+          disabled={busy || loading} onClick={refresh}><ArrowClockwise /></Button>
+        <Button disabled={busy || !!submission} onClick={() => { setUpdateRelease(null); setUpload(null); setShowImport(true); }}><CloudUpload className="me-2" />{t("mpackUi.importBundle")}</Button></div>
       </div>
       {error && <Alert variant="danger" role="alert">{error}</Alert>}
       {submission && <Alert variant="warning">
         {t("mpack.unresolvedSubmission")}{" "}
         <Button size="sm" disabled={busy} onClick={() => void submit(submission)}>{t("mpack.reconcile")}</Button>
       </Alert>}
-      <section className="border-bottom pb-3 mb-3">
+      <div className="mpack-navigation" role="tablist" aria-label={t("mpack.title")} onKeyDown={event => {
+        const tabs = ["catalog", "packages", "history"];
+        const current = tabs.indexOf(activeTab);
+        const index = event.key === "ArrowRight" ? (current + 1) % 3 : event.key === "ArrowLeft" ? (current + 2) % 3 : event.key === "Home" ? 0 : event.key === "End" ? 2 : -1;
+        if (index < 0) return;
+        event.preventDefault(); setActiveTab(tabs[index]); document.getElementById(`mpack-tab-${tabs[index]}`)?.focus();
+      }}>{[["catalog", "catalog", serviceGroups.length], ["packages", "packages", installed.length], ["history", "history", operations.length]].map(([id, label, count]) => <button type="button" role="tab" key={id} id={`mpack-tab-${id}`} tabIndex={activeTab === id ? 0 : -1} aria-controls={`mpack-panel-${id}`} aria-selected={activeTab === id} className={activeTab === id ? "active" : ""} onClick={() => setActiveTab(String(id))}>{t("mpackUi." + label)}<span>{loading ? "…" : count}</span></button>)}</div>
+      <Modal show={showImport} onHide={() => { if (!busy) setShowImport(false); }} size="lg" centered>
+      <Modal.Header closeButton={!busy}><Modal.Title>{t(updateRelease ? "mpack.update" : "mpackUi.importBundle")}</Modal.Title></Modal.Header><Modal.Body>
+      <section className="mpack-import-area">
         <p>{t("mpack.importHelp")}</p>
         <Form.Group controlId="mpack-upload">
           <Form.Label>{updateRelease ? t("mpack.updateArchive", { release: updateRelease }) : t("mpack.archive")}</Form.Label>
@@ -296,32 +325,41 @@ function MpackManagement({ username }: { username: string }) {
           }}>{t("mpack.cancelUpdate")}</Button>}
         </div>
       </section>
-      <section className="mb-4">
-        <h2 className="h5">{t("mpack.availableServices")}</h2>
-        <p>{t("mpack.selectServicesHelp")}</p>
-        <Form.Control aria-label={t("mpack.search")} placeholder={t("mpack.search")} value={query}
-          onChange={event => setQuery(event.target.value)} className="mb-2" />
+      </Modal.Body></Modal>
+      <section id="mpack-panel-catalog" role="tabpanel" aria-labelledby="mpack-tab-catalog" hidden={activeTab !== "catalog"}>
+        <div className="mpack-catalog-toolbar"><div className="mpack-search"><Search aria-hidden="true" /><Form.Control aria-label={t("mpack.search")} placeholder={t("mpack.search")} value={query}
+          onChange={event => setQuery(event.target.value)} /></div><Form.Select className="mpack-environment-filter" aria-label={t("mpack.environment")} value={environment} onChange={event => setEnvironment(event.target.value)}><option value="">{t("mpackUi.allEnvironments")}</option>{environments.map(value => <option key={value} value={value}>{value}</option>)}</Form.Select></div>
         {catalog?.unavailable.map(item => <Alert variant="warning" key={item.release_id}>
           {item.release_id}: {item.message}
         </Alert>)}
-        <Table responsive><thead><tr><th>{t("mpack.service")}</th><th>{t("mpack.environment")}</th>
-          <th>{t("mpack.status")}</th></tr></thead><tbody>
-          {catalog?.items.filter(item => [item.display_name, item.service_name, item.release_id].some(value =>
-            value.toLowerCase().includes(query.toLowerCase()))).map(item => {
-              const compatible = !serviceTarget || item.stack_name === serviceTarget.stack_name && item.stack_version === serviceTarget.stack_version;
-              return <tr key={item.id}><td>
+        <div className="mpack-catalog-layout"><div>
+        <div className="mpack-catalog-caption"><h2>{t("mpack.availableServices")}</h2><span>{t("mpackUi.resultCount", { count: filteredGroups.length })}</span></div>
+        {loading && !catalog ? <div className="mpack-empty" role="status"><Spinner size="sm" /> {t("mpackUi.loading")}</div> : <div className="mpack-service-grid">
+          {filteredGroups.map(group => {
+              const item = group.entries.find(entry => serviceSelection.includes(entry.id)) || group.entries.find(entry => entry.id === versionChoices[group.key]) || group.entries[0];
+              const compatible = (!serviceTarget || item.stack_name === serviceTarget.stack_name && item.stack_version === serviceTarget.stack_version)
+                && (!destinationInfo || item.stack_name === destinationInfo.stack_name && item.stack_version === destinationInfo.stack_version);
+              const checked = serviceSelection.includes(item.id);
+              return <article key={group.key} className={`mpack-service-card ${checked ? "is-selected" : ""} ${!compatible ? "is-incompatible" : ""}`}>
+                <div className="mpack-service-card-header"><span className="mpack-service-symbol" aria-hidden="true">{item.display_name.replace(/^Apache /, "").slice(0, 2)}</span><Badge bg={item.enabled ? "success" : "secondary"}>{t(item.enabled ? "mpack.enabled" : "mpack.imported")}</Badge></div>
+                <div className="mpack-service-title">
                 <Form.Check id={"service-" + item.id} label={item.display_name + " " + item.service_version}
-                  checked={serviceSelection.includes(item.id)} disabled={busy || !!submission || !compatible}
-                  onChange={event => { setDestination(""); setServiceSelection(values => event.target.checked
-                    ? [...values, item.id] : values.filter(value => value !== item.id)); }} />
-                <small className="text-muted d-block">{item.release_id}</small>
-                {item.description && <small className="text-muted d-block">{item.description}</small>}
-              </td><td>{item.stack_name}/{item.stack_version}</td>
-              <td>{t(item.enabled ? "mpack.enabled" : "mpack.imported")}</td></tr>;
+                  checked={checked} disabled={busy || !!submission || !compatible}
+                  onChange={event => { setServiceSelection(values => chooseServiceVersion(values, group, event.target.checked ? item.id : null)); }} />
+                </div>
+                <p className="mpack-service-description">{item.description}</p>
+                <div className="mpack-service-meta"><span>{item.stack_name}/{item.stack_version}</span><span>{t("mpackUi.versionCount", { count: group.entries.length })}</span></div>
+                <Form.Group controlId={`version-${item.id}`} className="mpack-version"><Form.Label>{t("mpackUi.definitionVersion")}</Form.Label><Form.Select size="sm" disabled={busy || !!submission || !compatible} value={item.id} onChange={event => { const id = event.target.value; setVersionChoices(values => ({ ...values, [group.key]: id })); if (checked) setServiceSelection(values => chooseServiceVersion(values, group, id)); }}>{group.entries.map(version => <option key={version.id} value={version.id}>{version.release_id}{version.enabled ? " · " + t("mpack.enabled") : ""}</option>)}</Form.Select></Form.Group>
+                {!compatible && <p className="mpack-compatibility-note">{t("mpackUi.incompatible")}</p>}
+                {!!item.required_services.length && <details className="mpack-dependencies"><summary>{t("mpackUi.dependencies")}</summary>{item.required_services.join(", ")}</details>}
+              </article>;
             })}
-        </tbody></Table>
-        {!catalog?.items.length && <p>{t("mpack.noServices")}</p>}
-        <div className="d-flex flex-wrap gap-3 align-items-end">
+        </div>}
+        {!loading && filteredGroups.length === 0 && <div className="mpack-empty"><BoxSeam size={30} /><h3>{t(catalog?.items.length ? "mpackUi.noMatches" : "mpackUi.emptyTitle")}</h3><p>{t(catalog?.items.length ? "mpackUi.noMatchesHelp" : "mpack.noServices")}</p>{!!catalog?.items.length && <Button variant="outline-secondary" onClick={() => { setQuery(""); setEnvironment(""); }}>{t("mpackUi.clearFilters")}</Button>}</div>}
+        </div><aside className="mpack-selection">
+          <div className="mpack-selection-heading"><h2>{t("mpackUi.selection")}</h2><span>{selectedServices.length}</span></div>
+          {selectedServices.length ? <ul>{selectedServices.map(item => <li key={item.id}><Check2 aria-hidden="true" /><div><strong>{item.display_name}</strong><small>{item.release_id}</small></div><Button variant="link" aria-label={t("mpackUi.removeService", { name: item.display_name })} disabled={busy || !!submission} onClick={() => setServiceSelection(values => values.filter(id => id !== item.id))}><XCircle /></Button></li>)}</ul> : <div className="mpack-selection-empty"><BoxSeam size={28} /><p>{t("mpackUi.selectPrompt")}</p></div>}
+          <p className="mpack-selection-help">{t("mpack.selectServicesHelp")}</p>
           <Form.Group controlId="mpack-destination"><Form.Label>{t("mpack.destination")}</Form.Label>
             <Form.Select value={destination} disabled={busy || !!submission} onChange={event => setDestination(event.target.value)}>
               <option value="">{t("mpack.newEnvironment")}</option>
@@ -330,12 +368,15 @@ function MpackManagement({ username }: { username: string }) {
                   <option key={item.cluster_id} value={item.cluster_id}>{item.cluster_name}</option>)}
             </Form.Select>
           </Form.Group>
-          <Button disabled={busy || !!submission || !serviceSelection.length} onClick={() => void previewServices()}>
+          <Button className="w-100" disabled={busy || !!submission || !selectedServices.length} onClick={() => void previewServices()}>
+            {busy && <Spinner size="sm" className="me-2" />}
             {t("mpack.prepareServices")}
           </Button>
-        </div>
+        </aside></div>
       </section>
-      <details className="mb-4"><summary>{t("mpack.advanced")}</summary>
+      <section className="mpack-inventory" id="mpack-panel-packages" role="tabpanel" aria-labelledby="mpack-tab-packages" hidden={activeTab !== "packages"}>
+      <div className="mpack-section-heading"><h2>{t("mpack.installed")}</h2><p>{t("mpackUi.inventoryHelp")}</p></div>
+      <details className="mpack-advanced"><summary>{t("mpack.advanced")}</summary>
         <Form.Group controlId="mpack-binding-target" className="my-2">
           <Form.Label>{t("mpack.target")}</Form.Label>
           <Form.Select value={target} disabled={busy} onChange={event => setTarget(event.target.value)}>
@@ -345,6 +386,7 @@ function MpackManagement({ username }: { username: string }) {
         </Form.Group>
         <Form.Check id="mpack-maintenance" label={t("mpack.maintenance")} checked={maintenance} disabled={busy}
           onChange={(event) => setMaintenance(event.target.checked)} />
+      </details>
       <section className="mt-3">
         <h2 className="h5">{t("mpack.installed")}</h2>
         <Table responsive size="sm">
@@ -360,7 +402,7 @@ function MpackManagement({ username }: { username: string }) {
               <td><div className="d-flex gap-1">
                 <Button size="sm" variant="outline-secondary" disabled={busy || !!submission}
                   title={t("mpack.update")} aria-label={t("mpack.update") + " " + release.id}
-                  onClick={() => { setUpdateRelease(release.id); setUpload(null); setStoreOnly(false); }}><CloudUpload /></Button>
+                  onClick={() => { setUpdateRelease(release.id); setUpload(null); setStoreOnly(false); setShowImport(true); }}><CloudUpload /></Button>
                 {!!provided.length && <Button size="sm" variant="outline-secondary" disabled={busy || !target || !!submission}
                   title={t("mpack.bind")} aria-label={t("mpack.bind") + " " + release.id}
                   onClick={() => void previewRelease(release, "BIND")}><Link45deg /></Button>}
@@ -375,12 +417,12 @@ function MpackManagement({ username }: { username: string }) {
         </Table>
         {!installed.length && <p>{t("mpack.noReleases")}</p>}
       </section>
-      </details>
-      <section>
-        <h2 className="h5">{t("mpack.operations")}</h2>
+      </section>
+      <section className="mpack-history" id="mpack-panel-history" role="tabpanel" aria-labelledby="mpack-tab-history" hidden={activeTab !== "history"}>
+        <div className="mpack-section-heading"><h2>{t("mpack.operations")}</h2><p>{t("mpackUi.historyHelp")}</p></div>
         <Table responsive size="sm"><thead><tr>
           <th>{t("mpack.operation")}</th><th>{t("mpack.status")}</th><th>{t("mpack.actions")}</th>
-        </tr></thead><tbody>{operations.slice().sort((a, b) => b.updated_at - a.updated_at).map((item) =>
+        </tr></thead><tbody>{operations.slice().sort((a, b) => b.updated_at - a.updated_at).slice(0, historyLimit).map((item) =>
           <tr key={item.id}><td>
             {item.action ? t("mpack.operationTypes." + item.action) : t("mpack.operation")}
             {" "}{(item.service_names?.length ? item.service_names : item.release_ids)?.join(", ")}
@@ -388,6 +430,8 @@ function MpackManagement({ username }: { username: string }) {
           </td><td>{t("mpack.phases." + item.phase)}</td>
             <td><Button size="sm" variant="outline-secondary" title={t("mpack.details")} aria-label={t("mpack.details") + " " + item.id}
               onClick={() => setParameters({ operation: item.id })}><Eye /></Button></td></tr>)}</tbody></Table>
+        {operations.length > historyLimit && <Button variant="outline-secondary" onClick={() => setHistoryLimit(value => value + 10)}>{t("mpackUi.showMore")}</Button>}
+        {!operations.length && !loading && <div className="mpack-empty"><p>{t("mpackUi.noOperations")}</p></div>}
         {operation && <div className="border-top pt-3">
           <h3 className="h6">{operationPlan?.deployment?.service_names.join(", ") || t("mpack.operation")}</h3>
           <small className="text-muted">{operation.id}</small>

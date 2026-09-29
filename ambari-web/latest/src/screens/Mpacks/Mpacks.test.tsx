@@ -53,6 +53,31 @@ async function preview() {
   return screen.findByRole("dialog");
 }
 describe("mpackstore import and service selection", () => {
+  it("groups historical versions and sends only the explicitly chosen provider", async () => {
+    const newer = { ...entry, id: "d".repeat(64), release_id: "example/1.1" };
+    mocks.services.mockResolvedValue({ schema_version: 1, items: [entry, newer], unavailable: [], destinations: [] });
+    mount();
+    expect(await screen.findAllByLabelText("Queue 1.0")).toHaveLength(1);
+    const version = screen.getByLabelText("Package version") as HTMLSelectElement;
+    expect(version.value).toBe(newer.id);
+    fireEvent.click(screen.getByLabelText("Queue 1.0"));
+    fireEvent.change(version, { target: { value: entry.id } });
+    fireEvent.click(screen.getByRole("button", { name: "Continue With Selected Services" }));
+    await waitFor(() => expect(mocks.planServices).toHaveBeenCalledWith([entry.id], null, false));
+  });
+
+  it("shows a recoverable empty search result and filters incompatible destinations", async () => {
+    mocks.services.mockResolvedValue({ schema_version: 1, items: [entry], unavailable: [],
+      destinations: [{ cluster_id: 3, cluster_name: "incompatible", stack_name: "OTHER", stack_version: "1.0" }] });
+    mount();
+    await screen.findByLabelText("Queue 1.0");
+    fireEvent.change(screen.getByLabelText("Deploy To"), { target: { value: "3" } });
+    expect((screen.getByLabelText("Queue 1.0") as HTMLInputElement).disabled).toBe(true);
+    fireEvent.change(screen.getByPlaceholderText("Search services or packages"), { target: { value: "not-found" } });
+    expect(screen.getByText("No matching services")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(screen.getByLabelText("Queue 1.0")).toBeTruthy();
+  });
   it("restores a verified deployment handoff without waiting for catalog refresh", async () => {
     mocks.services.mockReturnValue(new Promise(() => {}));
     mocks.operation.mockResolvedValue({ ...operation, phase: "SUCCEEDED", effective_snapshot: digest });
@@ -101,6 +126,7 @@ describe("mpackstore import and service selection", () => {
       members: [member, { ...member, archive_digest: digest, name: "services" }] });
     mocks.plan.mockImplementation(async value => ({ ...plan, mutation: value, deployment: null }));
     mount();
+    fireEvent.click(screen.getByRole("button", { name: "Import bundle" }));
     fireEvent.change(screen.getByLabelText("Package or bundle archive"), {
       target: { files: [new File(["archive"], "store.tar.gz")] },
     });
