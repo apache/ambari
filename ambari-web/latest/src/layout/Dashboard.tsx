@@ -300,7 +300,7 @@ const DashboardLayout = () => {
 
   return (
     <>
-      <div className="d-flex flex-row h-100">
+      <div className="console-shell d-flex flex-row h-100">
         <ServiceProvider>
           <SideBar
             isSidebarCollapsed={isSidebarCollapsed}
@@ -308,17 +308,9 @@ const DashboardLayout = () => {
           />
           <div
             data-view-scroll-container
-            className={`d-flex flex-column ${
+            className={`console-workspace d-flex flex-column ${
               isSidebarCollapsed ? "main-content-collapsed" : "main-content"
             }`}
-            style={{
-              background: "#e6e6e6",
-              maxHeight: "100%",
-              overflowY: "scroll",
-              height: "100%",
-              position: "absolute",
-              left: isSidebarCollapsed ? "60px" : "230px",
-            }}
           >
             <NavBar
               subPath={subPath}
@@ -352,13 +344,13 @@ const DashboardLayout = () => {
                   )}
                 </div>
               )}
-            <div style={{ paddingBottom: location.pathname.includes('/views/') ? '0' : '80px' }}>
+            <div className="flex-grow-1">
               <Outlet></Outlet>
             </div>
+            <LicenseFooter fixed={false} isSidebarCollapsed={isSidebarCollapsed} />
           </div>
         </ServiceProvider>
       </div>
-      <LicenseFooter isSidebarCollapsed={isSidebarCollapsed} />
     </>
   );
 };

@@ -1,0 +1,206 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("../assets/fonts/IBMPlexSans-Latin.woff2") format("woff2");
+}
+
+:root {
+  --console-font: "IBM Plex Sans", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --console-soft: #f8fafb;
+  --console-hover: #f0f5f3;
+  --console-shadow: 0 2px 6px #23334305;
+  --console-chart-grid: #e8edf2;
+  --console-chart-text: #637380;
+}
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 6px !important;
+  color: var(--console-muted) !important;
+  border-radius: 8px !important;
+  &::after { display: none; }
+  &:hover { background: var(--console-hover); }
+}
+.theme-switcher .dropdown-item { display: flex; align-items: center; gap: 22px; }
+.theme-switcher .dropdown-item.active { background: var(--console-accent-soft); color: var(--console-accent); }
+.directory-nav { background: var(--console-surface); border-color: var(--console-line); }
+
+:root[data-bs-theme="dark"] {
+  --console-bg: #0d1117;
+  --console-surface: #161b22;
+  --console-soft: #21262d;
+  --console-ink: #e6edf3;
+  --console-muted: #9da7b3;
+  --console-line: #30363d;
+  --console-accent: #7ee2b8;
+  --console-accent-soft: #203c33;
+  --console-hover: #24332f;
+  --console-shadow: 0 3px 12px #0002;
+  --console-chart-grid: #30363d;
+  --console-chart-text: #afbac6;
+  --bs-body-font-family: var(--console-font);
+  --bs-body-bg: var(--console-bg);
+  --bs-body-color: var(--console-ink);
+  --bs-secondary-color: var(--console-muted);
+  --bs-border-color: var(--console-line);
+  --bs-tertiary-bg: var(--console-soft);
+  --bs-link-color: var(--console-accent);
+  --bs-link-hover-color: #a0dec7;
+
+  body, #root { color: var(--console-ink); background: var(--console-bg) !important; }
+  .console-shell :is(h1, h2, h3, h4, p, label, button, a, small, td, th, select, input),
+  .modal-content, .offcanvas { font-family: var(--console-font) !important; }
+  .console-shell :is(code, pre, textarea, .monitoring-code) { font-family: "IBM Plex Mono", "Menlo", Consolas, monospace !important; }
+  .bg-white, .bg-light, .bg-very-light { background: var(--console-surface) !important; }
+  .text-black, .text-dark, .navbar-text { color: var(--console-ink) !important; }
+  .text-muted { color: var(--console-muted) !important; }
+  .border, .border-top, .border-bottom { border-color: var(--console-line) !important; }
+  .form-control, .form-select, .input-group-text {
+    background-color: var(--console-surface);
+    color: var(--console-ink);
+    border-color: var(--console-line);
+    &::placeholder { color: #93a2b2; opacity: 1; }
+    &:disabled { color: #93a2b2; background-color: #202b36; }
+  }
+  .form-check-input { background-color: var(--console-surface); border-color: #718294; }
+  .form-check-input:checked { background-color: #32856a; border-color: #32856a; }
+  .btn-primary, .btn-success {
+    --bs-btn-bg: #287959;
+    --bs-btn-color: #fff;
+    --bs-btn-border-color: #32876a;
+    --bs-btn-hover-bg: #328b69;
+    --bs-btn-hover-border-color: #489d7f;
+    --bs-btn-active-bg: #328b69;
+    --bs-btn-active-border-color: #489d7f;
+    --bs-btn-disabled-bg: #245c47;
+    --bs-btn-disabled-border-color: #245c47;
+  }
+  .btn-outline-secondary, .btn-secondary, .btn-light {
+    --bs-btn-color: var(--console-ink);
+    --bs-btn-bg: var(--console-soft);
+    --bs-btn-border-color: var(--console-line);
+    --bs-btn-hover-bg: #2b3948;
+    --bs-btn-hover-color: var(--console-ink);
+    --bs-btn-hover-border-color: #56697d;
+    --bs-btn-active-bg: #31483f;
+    --bs-btn-active-color: #e4f5ed;
+  }
+  .console-shell .btn-primary, .console-shell .btn-success {
+    --bs-btn-bg: #287959; --bs-btn-border-color: #32876a;
+    --bs-btn-hover-bg: #286b51; --bs-btn-hover-border-color: #489d7f;
+    --bs-btn-active-bg: #286b51; --bs-btn-active-border-color: #489d7f;
+    color: #fff !important;
+  }
+  .console-shell .btn-outline-secondary { --bs-btn-color: var(--console-ink); }
+  .btn-link, a { color: var(--console-accent); }
+  .card, .modal-content, .offcanvas, .dropdown-menu, .list-group-item {
+    color: var(--console-ink); background-color: var(--console-surface); border-color: var(--console-line);
+  }
+  .dropdown-menu { --bs-dropdown-link-color: var(--console-ink); --bs-dropdown-link-hover-bg: var(--console-soft); --bs-dropdown-link-hover-color: var(--console-ink); }
+  .dropdown-item { color: var(--console-ink); }
+  .btn-close { filter: invert(1) grayscale(1); }
+  .console-sidebar {
+    background: #0f141b !important;
+    img { filter: none; }
+    .sideitem { color: var(--console-muted) !important; }
+    .sideitem:hover { color: var(--console-accent) !important; background: var(--console-hover) !important; }
+    .selected-item { background: var(--console-accent-soft) !important; color: var(--console-accent) !important; }
+    .sidebar-global a { color: var(--console-muted); }
+    .dropdown-menu.bg-secondary { background: var(--console-surface) !important; }
+  }
+  .console-shell .table {
+    --bs-table-color: var(--console-ink);
+    --bs-table-bg: var(--console-surface);
+    --bs-table-border-color: var(--console-line);
+    --bs-table-striped-bg: #1d2935;
+    --bs-table-hover-bg: #23303c;
+    --bs-table-hover-color: var(--console-ink);
+    > thead > tr > th { background: var(--console-soft); color: var(--console-muted); }
+    td { color: var(--console-ink) !important; }
+    td.text-muted { color: var(--console-muted) !important; }
+    td.text-danger { color: #ffb4ac !important; }
+    td.text-warning { color: #f2d591 !important; }
+    td.text-success { color: #a7e9c0 !important; }
+  }
+  .text-light { color: var(--console-muted) !important; }
+  .text-success { color: #a7e9c0 !important; }
+  .text-danger { color: #ffb4ac !important; }
+  .text-warning { color: #f2d591 !important; }
+  .page-link { color: var(--console-ink); background: var(--console-surface); border-color: var(--console-line); }
+  .page-item.active .page-link { background: #28543e; border-color: #529877; color: #fff; }
+  .status-critical, .status-critical:hover, .status-critical:focus { background: #492327 !important; color: #ffb4ac !important; }
+  .status-warning, .status-warning:hover, .status-warning:focus { background: #392c16 !important; color: #f2d591 !important; }
+  .status-ok, .status-ok:hover, .status-ok:focus { background: #19382b !important; color: #a7e9c0 !important; }
+  .status-unknown, .status-unknown:hover, .status-unknown:focus { background: #29313b !important; color: #c3ceda !important; }
+  .status-none, .status-none:hover, .status-none:focus { background: #29313b !important; color: #c3ceda !important; }
+  .console-shell .badge.bg-success { color: #9bdabb !important; }
+  .console-shell .badge.bg-info { color: #adcbef !important; background: #213a56 !important; }
+  .console-shell #top-nav .console-breadcrumb [aria-current] { color: var(--console-ink); }
+  .console-shell .license-footer, .console-shell .license-footer a { color: #9dabb9 !important; }
+  .monitoring-panel, .dashboard-panel, .dashboard-chart-legend-table th,
+  .dashboard-empty-canvas, .dashboard-query-variable .dropdown-toggle,
+  .dashboard-editor-preview, .dashboard-editor-form, .dashboard-panel-editor,
+  .dashboard-workspace-editing, .dashboard-table-toolbar {
+    background: var(--console-surface);
+    color: var(--console-ink);
+    border-color: var(--console-line);
+  }
+  .dashboard-row-title { background: var(--console-accent-soft); }
+  .monitoring-query-editor textarea { background: var(--console-bg); }
+  .monitoring-refresh-notice { background: #352b1c; color: #e6c58c; border-color: #58452b; }
+  .dashboard-bar-gauge-track, .dashboard-bar-gauge-lcd i { background: #304252; }
+  .dashboard-stat-background { color: var(--console-ink); }
+  .nav-tabs, .nav-underline { --bs-nav-link-color: var(--console-muted); --bs-nav-link-hover-color: var(--console-accent); }
+  .ambari-tabs .nav-link, .directory-nav .nav-link { color: var(--console-muted); background: transparent; }
+  .ambari-tabs .nav-link.active, .directory-nav .nav-link.active { color: var(--console-accent); background: var(--console-surface); }
+  .console-shell .ambari-tabs .nav-link, .console-shell .nav-link-underlined {
+    color: var(--console-muted) !important;
+    text-transform: none !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+  }
+  .console-shell .ambari-tabs .nav-link.active, .console-shell .nav-link-underlined.active {
+    color: var(--console-accent) !important;
+    border-bottom-color: var(--console-accent) !important;
+  }
+  .console-shell .directory-nav .nav-link.active {
+    color: var(--console-accent) !important;
+    background-color: var(--console-surface) !important;
+    border-color: var(--console-line) !important;
+  }
+  .console-shell #top-nav .navbar-text > button { color: var(--console-ink) !important; }
+  .btn-white, .btn-dropdown, .version-card, .popup-arrow-up, #notifications-dropdown, .code-snippet {
+    background-color: var(--console-surface) !important;
+    color: var(--console-ink) !important;
+    border-color: var(--console-line) !important;
+  }
+  .config-group__control, .config-group__menu, .config-group__menu-list {
+    background-color: var(--console-surface);
+    color: var(--console-ink);
+    border-color: var(--console-line);
+  }
+  .config-group__single-value, .config-group__input-container, .config-group__input { color: var(--console-ink) !important; }
+  .config-group__option { background: var(--console-surface); color: var(--console-ink); }
+  .config-group__option--is-focused, .config-group__option--is-selected { background: var(--console-accent-soft); color: var(--console-accent); }
+  .wizard-content { background: var(--console-bg) !important; }
+}

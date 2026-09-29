@@ -17,6 +17,9 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
+const auth = vi.hoisted(() => ({ admin: true }));
+vi.mock("../../hooks/useAuth", () => ({ useAuth: () => ({ isAdmin: () => auth.admin, user: { user_name: "admin" } }) }));
+
 vi.mock("../../store/context.tsx", async () => {
   const { createContext } = await import("react");
   return { AppContext: createContext({ clusterName: "reference", supports: {},
@@ -42,9 +45,30 @@ vi.mock("./SidebarItem", () => ({
 }));
 vi.mock("./SidebarItemCollapsed", () => ({ default: () => null }));
 import SideBar from "./Sidebar";
+import { readWorkspace } from "../../Utils/workspaceNavigation";
 import "../../i18n";
 
 describe("declared service navigation", () => {
+  it("places global navigation before cluster features and remembers the exact route", () => {
+    render(<MemoryRouter initialEntries={["/clusters/reference/main/dashboard/metrics?range=60"]}>
+      <SideBar isSidebarCollapsed={false} setIsSidebarCollapsed={vi.fn()} />
+    </MemoryRouter>);
+    const clusters = screen.getByRole("link", { name: "Clusters" });
+    const dashboard = screen.getByRole("link", { name: "Dashboard" });
+    expect(clusters.compareDocumentPosition(dashboard) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(readWorkspace("admin")?.path).toBe("/clusters/reference/main/dashboard/metrics?range=60");
+  });
+  it("offers global navigation and an administrator-only management pack entry", () => {
+    auth.admin = true;
+    const view = render(<MemoryRouter><SideBar isSidebarCollapsed={false} setIsSidebarCollapsed={vi.fn()} /></MemoryRouter>);
+    expect(screen.getByRole("link", { name: "Management Packs" }).getAttribute("href")).toBe("/mpacks");
+    expect(screen.getByRole("link", { name: "Clusters" }).getAttribute("href")).toBe("/clusters");
+    auth.admin = false;
+    view.rerender(<MemoryRouter><SideBar isSidebarCollapsed setIsSidebarCollapsed={vi.fn()} /></MemoryRouter>);
+    expect(screen.queryByRole("link", { name: "Management Packs" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Clusters" })).toBeTruthy();
+    auth.admin = true;
+  });
   it("keeps API service identity independent of branded labels and capitalization", async () => {
     render(<MemoryRouter initialEntries={["/main/services/AIRFLOW/summary"]}>
       <SideBar isSidebarCollapsed={false} setIsSidebarCollapsed={vi.fn()} />

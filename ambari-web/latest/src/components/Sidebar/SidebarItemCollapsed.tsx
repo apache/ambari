@@ -49,7 +49,7 @@ const SidebarItemCollapsed = ({
         onMouseOver={() => setShowDropdown(true)}
         // style={{ width: "166px" }}
       >
-        <Dropdown.Toggle as="div" className="main-style" id="dropdown-basic">
+        <Dropdown.Toggle className="main-style" id={`sidebar-${ele.id}`} aria-label={typeof ele.name === "string" ? ele.name : ele.id} title={typeof ele.name === "string" ? ele.name : ele.id} onClick={() => setShowDropdown(value => !value)}>
           <div
             className={`d-flex justify-content-between ${
               ele.className
@@ -75,7 +75,9 @@ const SidebarItemCollapsed = ({
             {childElements?.map((ele) => {
               return (
                 <SidebarItem
+                  key={ele.id}
                   onClick={() => {
+                    setShowDropdown(false);
                     setSelectedOption(ele.id);
                   }}
                   ele={ele}
@@ -103,7 +105,7 @@ const SidebarItemCollapsed = ({
           setSelectedOption(ele.id);
         }}
       >
-        <Link to={scopedPath(ele.path)} className="sideitem">
+        <Link to={scopedPath(ele.path)} className="sideitem" aria-label={typeof ele.name === "string" ? ele.name : ele.id} title={typeof ele.name === "string" ? ele.name : ele.id}>
           <div style={{ fontSize: 20 }}>{ele.icon}</div>
         </Link>
       </div>
