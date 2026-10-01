@@ -75,7 +75,7 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.4</version>
+            <version>2.22.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -88,12 +88,12 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.9</version>
+            <version>1.22.1</version>
         </dependency>
         <dependency>
           <groupId>commons-validator</groupId>
           <artifactId>commons-validator</artifactId>
-          <version>1.4.1</version>
+          <version>1.11.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.ambari</groupId>
@@ -133,7 +133,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-clean-plugin</artifactId>
-        <version>2.5</version>
+        <version>2.6.1</version>
         <configuration>
           <filesets>
             <fileset>
@@ -151,7 +151,7 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.11.0</version>
+        <version>1.15.4</version>
         <configuration>
           <skip>${skipUiBuild}</skip>
           <nodeVersion>v22.23.1</nodeVersion>
