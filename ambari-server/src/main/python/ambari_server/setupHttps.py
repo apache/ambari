@@ -82,9 +82,9 @@ KEYTOOL_KEYSTORE = " -keystore '{0}'"
 
 # openssl command
 VALIDATE_KEYSTORE_CMD = (
-  "openssl pkcs12 -info -in '{0}' -password file:'{1}' -passout file:'{2}'"
+  "openssl pkcs12 -info -noout -in '{0}' -passin file:'{1}'"
 )
-EXPRT_KSTR_CMD = "openssl pkcs12 -export -in '{0}' -inkey '{1}' -certfile '{0}' -out '{4}' -password file:'{2}' -passin file:'{3}'"
+EXPRT_KSTR_CMD = "openssl pkcs12 -export -in '{0}' -inkey '{1}' -certfile '{0}' -out '{4}' -passout file:'{2}' -passin file:'{3}'"
 CHANGE_KEY_PWD_CMD = (
   "openssl rsa -in '{0}' -des3 -out '{1}' -passout file:'{2}'"
 )
@@ -104,6 +104,8 @@ SSL_CERT_FILE_NAME = "https.crt"
 SSL_KEY_FILE_NAME = "https.key"
 SSL_KEYSTORE_FILE_NAME = "https.keystore.p12"
 SSL_KEY_PASSWORD_FILE_NAME = "https.pass.txt"
+SSL_KEY_PASSIN_FILE_NAME = "https.passin.txt"
+SSL_KEY_PASSOUT_FILE_NAME = "https.passout.txt"
 SSL_KEY_PASSWORD_LENGTH = 50
 SSL_DATE_FORMAT = "%b  %d %H:%M:%S %Y GMT"
 
@@ -269,15 +271,17 @@ def import_cert_and_key(security_server_keys_dir, options):
       security_server_keys_dir, SSL_KEY_PASSWORD_FILE_NAME
     )
     temp_keystore_path = os.path.join(temp_dir, SSL_KEYSTORE_FILE_NAME)
-    temp_password_path = os.path.join(temp_dir, SSL_KEY_PASSWORD_FILE_NAME)
-    _write_private_file(temp_password_path, pem_password)
+    temp_passin_path = os.path.join(temp_dir, SSL_KEY_PASSIN_FILE_NAME)
+    temp_passout_path = os.path.join(temp_dir, SSL_KEY_PASSOUT_FILE_NAME)
+    _write_private_file(temp_passin_path, pem_password)
+    _write_private_file(temp_passout_path, pem_password)
 
     key_path_for_export = import_key_path
     if not pem_password_was_provided:
       key_path_for_export = os.path.join(temp_dir, SSL_KEY_FILE_NAME)
       retcode, _out, err = run_os_command(
         CHANGE_KEY_PWD_CMD.format(
-          import_key_path, key_path_for_export, temp_password_path
+          import_key_path, key_path_for_export, temp_passin_path
         )
       )
       if retcode != 0:
@@ -287,8 +291,8 @@ def import_cert_and_key(security_server_keys_dir, options):
       EXPRT_KSTR_CMD.format(
         import_cert_path,
         key_path_for_export,
-        temp_password_path,
-        temp_password_path,
+        temp_passout_path,
+        temp_passin_path,
         temp_keystore_path,
       )
     )
@@ -297,7 +301,7 @@ def import_cert_and_key(security_server_keys_dir, options):
 
     retcode, _out, err = run_os_command(
       VALIDATE_KEYSTORE_CMD.format(
-        temp_keystore_path, temp_password_path, temp_password_path
+        temp_keystore_path, temp_passout_path
       )
     )
     if retcode != 0:
@@ -307,7 +311,7 @@ def import_cert_and_key(security_server_keys_dir, options):
 
     print("Importing and saving Certificate...done.")
     import_file_to_keystore(temp_keystore_path, keystore_path)
-    import_file_to_keystore(temp_password_path, password_path)
+    import_file_to_keystore(temp_passout_path, password_path)
     import_file_to_keystore(
       import_cert_path, os.path.join(security_server_keys_dir, SSL_CERT_FILE_NAME)
     )
