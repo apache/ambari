@@ -233,7 +233,8 @@ dependency selection through `createManagedDependencyAdvisorRunner`. The runner
 holds the existing `withStateCheckpoint` callback around the exact blueprint or
 configuration request, adds the owned DRAFT or SERVICE_PLAN revision and the
 provider/consumer/snapshot fingerprints, and prevents a later autosave from
-overtaking advice. Step6 placement and Step7 configuration validation use local
+overtaking advice. Identical queued snapshots do not advance the draft revision
+again after the advisor checkpoint. Step6 placement and Step7 configuration validation use local
 request sequences plus semantic scope keys to discard delayed success and error
 responses after host, service, provider, stack, or workflow changes. Step7 keeps
 the edited form mounted on recommendation or validation failure and offers Retry
