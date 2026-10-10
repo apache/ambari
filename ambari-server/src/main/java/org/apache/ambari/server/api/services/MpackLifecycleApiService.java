@@ -45,6 +45,8 @@ import org.apache.ambari.server.security.authorization.AuthorizationException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 
+import io.swagger.annotations.ApiOperation;
+
 /** Global pack management is available before any cluster exists. */
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -55,6 +57,7 @@ public class MpackLifecycleApiService {
   @Inject private static com.google.inject.Provider<org.apache.ambari.server.mpack.MpackUsage> usage;
   @Inject private static com.google.inject.Provider<org.apache.ambari.server.mpack.MpackServiceCatalog> services;
 
+  @ApiOperation(value = "List management pack services")
   @GET
   @Path("mpack_services")
   public Response services() throws AuthorizationException {
@@ -62,6 +65,7 @@ public class MpackLifecycleApiService {
     return ok(services.get().view());
   }
 
+  @ApiOperation(value = "Plan a management pack service selection")
   @POST
   @Path("mpack_service_plans")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -83,6 +87,7 @@ public class MpackLifecycleApiService {
     initialize(() -> service, () -> inventory);
   }
 
+  @ApiOperation(value = "Get management pack capabilities")
   @GET
   @Path("mpack_capabilities")
   public Response capabilities() throws AuthorizationException {
@@ -95,6 +100,7 @@ public class MpackLifecycleApiService {
         "target_stack_versions", lifecycle.get().targets(), "required_agent_protocol", "MPACK_RESOURCES_V1"));
   }
 
+  @ApiOperation(value = "Get the management pack manifest schema")
   @GET
   @Path("mpack_capabilities/manifest_schema")
   public Response manifestSchema() throws AuthorizationException, java.io.IOException {
@@ -107,6 +113,7 @@ public class MpackLifecycleApiService {
     }
   }
 
+  @ApiOperation(value = "Upload a management pack archive")
   @POST
   @Path("mpack_uploads")
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
@@ -115,6 +122,7 @@ public class MpackLifecycleApiService {
     return Response.status(Response.Status.CREATED).entity(MpackJson.tree(lifecycle.get().upload(input, digest))).build();
   }
 
+  @ApiOperation(value = "Plan a management pack mutation")
   @POST
   @Path("mpack_plans")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -125,6 +133,7 @@ public class MpackLifecycleApiService {
     return Response.status(Response.Status.CREATED).entity(MpackJson.tree(lifecycle.get().plan(request))).build();
   }
 
+  @ApiOperation(value = "Get a management pack plan")
   @GET
   @Path("mpack_plans/{id}")
   public Response getPlan(@PathParam("id") String id) throws AuthorizationException {
@@ -132,6 +141,7 @@ public class MpackLifecycleApiService {
     return ok(catalog.get().plan(id).value());
   }
 
+  @ApiOperation(value = "Accept a management pack operation")
   @POST
   @Path("mpack_operations")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -151,6 +161,7 @@ public class MpackLifecycleApiService {
         .location(URI.create("/api/v1/mpack_operations/" + operation.id())).build();
   }
 
+  @ApiOperation(value = "List management pack operations")
   @GET
   @Path("mpack_operations")
   public Response operations() throws AuthorizationException {
@@ -166,48 +177,56 @@ public class MpackLifecycleApiService {
     }).toList()));
   }
 
+  @ApiOperation(value = "Get a management pack operation")
   @GET
   @Path("mpack_operations/{id}")
   public Response operation(@PathParam("id") String id) throws AuthorizationException {
     return ok(lifecycle.get().operation(id));
   }
 
+  @ApiOperation(value = "Recover a management pack operation")
   @POST
   @Path("mpack_operations/{id}/recover")
   public Response recover(@PathParam("id") String id) throws AuthorizationException {
     return Response.accepted(MpackJson.tree(lifecycle.get().recover(id))).build();
   }
 
+  @ApiOperation(value = "Retry failed management pack hooks")
   @POST
   @Path("mpack_operations/{id}/retry")
   public Response retry(@PathParam("id") String id) throws AuthorizationException {
     return Response.accepted(MpackJson.tree(lifecycle.get().retryFailedHooks(id))).build();
   }
 
+  @ApiOperation(value = "Cancel a management pack operation")
   @POST
   @Path("mpack_operations/{id}/cancel")
   public Response cancel(@PathParam("id") String id) throws AuthorizationException {
     return ok(lifecycle.get().cancel(id));
   }
 
+  @ApiOperation(value = "Get a management pack deployment handoff")
   @GET
   @Path("mpack_operations/{id}/deployment")
   public Response deployment(@PathParam("id") String id) throws AuthorizationException {
     return ok(lifecycle.get().deployment(id));
   }
 
+  @ApiOperation(value = "List management pack operation members")
   @GET
   @Path("mpack_operations/{id}/members")
   public Response members(@PathParam("id") String id) throws AuthorizationException {
     return ok(Map.of("schema_version", 1, "items", lifecycle.get().members(id)));
   }
 
+  @ApiOperation(value = "List management pack releases")
   @GET
   @Path("mpacks")
   public Response releases() throws AuthorizationException {
     return ok(Map.of("schema_version", 1, "items", lifecycle.get().releases()));
   }
 
+  @ApiOperation(value = "Get a management pack release")
   @GET
   @Path("mpacks/{name}/versions/{version}")
   public Response release(@PathParam("name") String name, @PathParam("version") String version)
@@ -216,12 +235,14 @@ public class MpackLifecycleApiService {
     return ok(catalog.get().release(MpackManifest.requireName(name) + "/" + MpackManifest.requireVersion(version)).value());
   }
 
+  @ApiOperation(value = "List management pack bindings")
   @GET
   @Path("mpack_bindings")
   public Response bindings() throws AuthorizationException {
     return ok(lifecycle.get().bindings());
   }
 
+  @ApiOperation(value = "Get management pack release usage")
   @GET
   @Path("mpacks/{name}/versions/{version}/usages")
   public Response usages(@PathParam("name") String name, @PathParam("version") String version)
