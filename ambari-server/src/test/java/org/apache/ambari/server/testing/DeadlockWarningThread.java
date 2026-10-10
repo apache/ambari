@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -39,6 +40,7 @@ public class DeadlockWarningThread extends Thread {
   private Collection<Thread> monitoredThreads = null;
   private boolean deadlocked = false;
   private static final ThreadMXBean mbean = ManagementFactory.getThreadMXBean();
+  private static final long MAX_MONITOR_NANOS = TimeUnit.MINUTES.toNanos(5);
 
   public List<String> getErrorMessages() {
     return errorMessages;
@@ -78,12 +80,13 @@ public class DeadlockWarningThread extends Thread {
   
   @Override
   public void run() {
+    long deadline = System.nanoTime() + MAX_MONITOR_NANOS;
     while (true) {
       try {
         Thread.sleep(SLEEP_TIME_MS);
       } catch (InterruptedException ex) {
       }
-      long[] ids = mbean.findMonitorDeadlockedThreads();
+      long[] ids = mbean.findDeadlockedThreads();
       StringBuilder errBuilder = new StringBuilder();
       if (ids != null && ids.length > 0) {
           errBuilder.append(getThreadsStacktraces(Arrays.asList(ArrayUtils.toObject(ids))));
@@ -95,31 +98,19 @@ public class DeadlockWarningThread extends Thread {
       } else {
         //Exit if all monitored threads were finished
         boolean hasLive = false;
-        boolean hasRunning = false;
         for (Thread monTh : monitoredThreads) {
           State state = monTh.getState();
           if (state != State.TERMINATED && state != State.NEW) {
             hasLive = true;
-          }
-          if (state == State.RUNNABLE || state == State.TIMED_WAITING) {
-            hasRunning = true;
-            break;
           }
         }
 
         if (!hasLive) {
           deadlocked = false;
           break;
-        } else if (!hasRunning) {
-          List<Long> tIds = new ArrayList<>();
-          for (Thread monitoredThread : monitoredThreads) {
-            State state = monitoredThread.getState();
-            if (state == State.WAITING || state == State.BLOCKED) {
-              tIds.add(monitoredThread.getId());
-            }
-          }
-          errBuilder.append(getThreadsStacktraces(tIds));
-          errorMessages.add(errBuilder.toString());
+        }
+        if (System.nanoTime() >= deadline) {
+          errorMessages.add("Monitored threads did not finish within five minutes");
           deadlocked = true;
           break;
         }
