@@ -267,6 +267,39 @@ class TestHiveServerCheck(unittest.TestCase):
 
 
 class TestHCatAndWebHCatChecks(unittest.TestCase):
+  def test_hcat_preserves_hive_java_home_through_hadoop_launcher(self):
+    params = module_with(
+      hive_hcatalog_home="/usr/bigtop/current/hive-webhcat",
+      smokeuser="ambari-qa",
+      java64_home="/usr/lib/jvm/java-1.8.0-openjdk",
+      hadoop_home="/usr/bigtop/current/hadoop-client",
+      hadoop_hdfs_home="/usr/bigtop/current/hadoop-hdfs-client",
+      hadoop_mapred_home="/usr/bigtop/current/hadoop-mapreduce-client",
+      hadoop_yarn_home="/usr/bigtop/current/hadoop-yarn-client",
+      execute_path="/usr/bin",
+    )
+    with patch.object(HCAT_CHECK.shell, "checked_call") as execute:
+      HCAT_CHECK._run_hcat(
+        params, "show databases", {"KRB5CCNAME": "FILE:/private/cache"}
+      )
+
+    self.assertEqual(
+      {
+        "JAVA_HOME": params.java64_home,
+        "HADOOP_ENV_PROCESSED": "true",
+        "HADOOP_COMMON_HOME": params.hadoop_home,
+        "HADOOP_HDFS_HOME": params.hadoop_hdfs_home,
+        "HADOOP_MAPRED_HOME": params.hadoop_mapred_home,
+        "HADOOP_YARN_HOME": params.hadoop_yarn_home,
+        "KRB5CCNAME": "FILE:/private/cache",
+      },
+      execute.call_args.kwargs["env"],
+    )
+    self.assertEqual(
+      ("/usr/bigtop/current/hive-webhcat/bin/hcat", "-e", "show databases"),
+      execute.call_args.args[0],
+    )
+
   def test_hcat_cleanup_runs_when_hdfs_validation_fails(self):
     params = module_with(
       purge_tables="true",
