@@ -23,8 +23,8 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.ambari.server.RandomPortJerseyTest;
 import org.apache.ambari.server.api.GsonJsonProvider;

@@ -24,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
+
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.junit.Test;
 

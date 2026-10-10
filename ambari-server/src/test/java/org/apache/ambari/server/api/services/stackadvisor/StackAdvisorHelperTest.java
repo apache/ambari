@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.api.services.stackadvisor;
 
-import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;

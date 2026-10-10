@@ -14,15 +14,21 @@
  */
 package org.apache.ambari.server.mpack;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.Set;
+
 import org.aopalliance.intercept.MethodInvocation;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.junit.Test;
 
 public class MpackMutationInterceptorTest {
