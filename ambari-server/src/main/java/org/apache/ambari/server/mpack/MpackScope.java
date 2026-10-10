@@ -18,7 +18,9 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+
 import org.apache.ambari.server.state.StackId;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /** An exact definition consumer, including contexts which have no cluster yet. */

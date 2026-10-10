@@ -16,6 +16,7 @@ package org.apache.ambari.server.mpack;
 
 import java.util.Collection;
 import java.util.concurrent.locks.Lock;
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor;
@@ -23,6 +24,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+
 import com.google.inject.Inject;
 
 /** Protects domain mutations, including callers which do not use the HTTP API. */
