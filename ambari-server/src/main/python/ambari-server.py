@@ -90,9 +90,6 @@ from ambari_server.setupActions import (
 )
 from ambari_server.setupHttps import setup_https, setup_truststore
 from ambari_server.setupMpacks import (
-  install_mpack,
-  uninstall_mpack,
-  upgrade_mpack,
   STACK_DEFINITIONS_RESOURCE_NAME,
   SERVICE_DEFINITIONS_RESOURCE_NAME,
   MPACKS_RESOURCE_NAME,
@@ -1311,6 +1308,14 @@ def _validate_database_port(options, parser):
       parser.error("Incorrect database port " + options.database_port)
 
 
+def http_only_mpack_action(options):
+  raise FatalException(
+    4,
+    "Management packs are managed through the HTTP API. Use ambari-mpack; "
+    "local install, upgrade, and uninstall commands are no longer supported.",
+  )
+
+
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def create_user_action_map(args, options):
   action_map = {
@@ -1337,9 +1342,9 @@ def create_user_action_map(args, options):
     ENABLE_STACK_ACTION: UserAction(enable_stack, options, args),
     SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
     DB_PURGE_ACTION: UserAction(database_purge, options),
-    INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
-    UNINSTALL_MPACK_ACTION: UserAction(uninstall_mpack, options),
-    UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),
+    INSTALL_MPACK_ACTION: UserAction(http_only_mpack_action, options),
+    UNINSTALL_MPACK_ACTION: UserAction(http_only_mpack_action, options),
+    UPGRADE_MPACK_ACTION: UserAction(http_only_mpack_action, options),
     PAM_SETUP_ACTION: UserAction(setup_pam, options),
     MIGRATE_LDAP_PAM_ACTION: UserAction(migrate_ldap_pam, options),
     KERBEROS_SETUP_ACTION: UserAction(setup_kerberos, options),

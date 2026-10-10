@@ -79,10 +79,18 @@ def _drop_smoke_table(params, table_name, purge, environment):
 
 
 def _run_hcat(params, statement, environment):
+  hadoop_environment = {
+    "JAVA_HOME": params.java64_home,
+    "HADOOP_ENV_PROCESSED": "true",
+    "HADOOP_COMMON_HOME": params.hadoop_home,
+    "HADOOP_HDFS_HOME": params.hadoop_hdfs_home,
+    "HADOOP_MAPRED_HOME": params.hadoop_mapred_home,
+    "HADOOP_YARN_HOME": params.hadoop_yarn_home,
+  }
   shell.checked_call(
     (os.path.join(params.hive_hcatalog_home, "bin", "hcat"), "-e", statement),
     user=params.smokeuser,
-    env={"JAVA_HOME": params.java64_home, **(environment or {})},
+    env={**hadoop_environment, **(environment or {})},
     path=params.execute_path,
     timeout=120,
     timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_GROUP,

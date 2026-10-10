@@ -26,6 +26,7 @@ import {
   useState,
 } from "react";
 import { Alert, Button, Card, Form } from "react-bootstrap";
+import HostAlertBadge from "./HostAlertBadge";
 import { cloneDeep, get, startCase } from "lodash";
 import DefaultButton from "../../components/DefaultButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -511,13 +512,6 @@ export default function HostsList() {
 
   const getHostNameColumn = (hostData: any) => {
     const hostName = get(hostData, "hostName", "");
-    const alertsCount =
-      get(hostData, "alertsSummary.CRITICAL", 0) +
-      get(hostData, "alertsSummary.WARNING", 0);
-    const alertsStyleClass =
-      get(hostData, "alertsSummary.CRITICAL", 0) > 0
-        ? "bg-danger"
-        : "bg-orange";
     const componentsToBeRestarted = getCmponentsToBeRestarted(hostData);
     const componentsToBeRestartedCount = componentsToBeRestarted.length;
     let restartTooltipMessage = "";
@@ -548,22 +542,14 @@ export default function HostsList() {
         get(component, "passiveState", "OFF") !== "OFF"
     );
     return (
-      <div className="d-flex">
+      <div className="d-flex align-items-center">
         <div className="me-1">{getHostStatusIcon(hostData)}</div>
         <ScopedLink to={`/main/hosts/${hostName}/summary`} className="custom-link">
           <div className="me-1">{hostName}</div>
         </ScopedLink>
-        <div className="me-1">
-          {alertsCount > 0 ? (
-            <ScopedLink to={`/main/hosts/${hostName}/alerts`}>
-              <Button
-                className={`me-1 ${alertsStyleClass} text-white fs-10 rounded-1 px-1 py-0`}
-              >
-                {alertsCount}
-              </Button>
-            </ScopedLink>
-          ) : null}
-        </div>
+        <HostAlertBadge hostName={hostName}
+          critical={get(hostData, "alertsSummary.CRITICAL", 0)}
+          warning={get(hostData, "alertsSummary.WARNING", 0)} />
         <div className="me-1">
           {restartTooltipMessage ? (
             <Tooltip message={restartTooltipMessage}>

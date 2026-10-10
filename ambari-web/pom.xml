@@ -349,6 +349,7 @@
                         <exclude>latest/tsconfig.app.tsbuildinfo</exclude>
                         <exclude>latest/tsconfig.node.tsbuildinfo</exclude>
                         <exclude>latest/public/vite.svg</exclude>
+                        <exclude>latest/public/licenses/IBM-Plex-Sans-OFL.txt</exclude>
                         <exclude>latest/public/**.svg</exclude>
                         <exclude>latest/src/assets/**.svg</exclude>
                         <exclude>latest/src/assets/fonts/**.svg</exclude>

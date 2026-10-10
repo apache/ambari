@@ -70,7 +70,7 @@ public class StackAdvisorRunnerTest {
     saRunner.setConfigs(configuration);
     stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
         .toReturn(processBuilder);
-    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(3);
+    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(4);
     expect(processBuilder.start()).andThrow(new IOException());
     replay(processBuilder);
     saRunner.runScript(ServiceInfo.ServiceAdvisorType.PYTHON, saCommandType, actionDirectory);
@@ -88,7 +88,7 @@ public class StackAdvisorRunnerTest {
     saRunner.setConfigs(configuration);
     stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
         .toReturn(processBuilder);
-    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(3);
+    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(4);
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(1);
     replay(processBuilder, process);
@@ -108,7 +108,7 @@ public class StackAdvisorRunnerTest {
 
     stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
         .toReturn(processBuilder);
-    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(3);
+    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(4);
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(2);
     replay(processBuilder, process);
@@ -128,7 +128,7 @@ public class StackAdvisorRunnerTest {
 
     stub(PowerMock.method(StackAdvisorRunner.class, "prepareShellCommand"))
         .toReturn(processBuilder);
-    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(3);
+    expect(processBuilder.environment()).andReturn(new HashMap<>()).times(4);
     expect(processBuilder.start()).andReturn(process);
     expect(process.waitFor()).andReturn(0);
     replay(processBuilder, process);

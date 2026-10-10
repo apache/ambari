@@ -78,7 +78,20 @@ export const serviceNameModelMapping: { [key: string]: string } = {
   PINOT: "pinot",
 };
 
-export const modelKeyNameToServiceNameMapping = {
+export const builtinServiceNames = new Set(Object.keys(serviceNameModelMapping));
+
+export function registerServiceModelIdentity(serviceName: string, displayName = serviceName): string {
+  if (!/^[A-Za-z][A-Za-z0-9_-]{0,127}$/.test(serviceName)) throw new Error("Invalid service identity");
+  if (!Object.prototype.hasOwnProperty.call(serviceNameModelMapping, serviceName)) {
+    const key = "service:" + serviceName;
+    serviceNameModelMapping[serviceName] = key;
+    modelKeyNameToServiceNameMapping[key] = serviceName;
+  }
+  if (!builtinServiceNames.has(serviceName)) serviceNameDisplayMapping[serviceName] = displayName;
+  return serviceNameModelMapping[serviceName];
+}
+
+export const modelKeyNameToServiceNameMapping: Record<string, string> = {
   hdfs: "HDFS",
   yarn: "YARN",
   mapreduce2: "MAPREDUCE2",
@@ -98,7 +111,7 @@ export const modelKeyNameToServiceNameMapping = {
   pinot: "PINOT",
 }
 
-export const serviceNameDisplayMapping = {
+export const serviceNameDisplayMapping: Record<string, string> = {
   HDFS: "HDFS",
   YARN: "YARN",
   RANGER: "Ranger",

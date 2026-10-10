@@ -18,6 +18,7 @@
 
 import { useContext, useState, useEffect } from "react";
 import ClusterSwitchMenu from "./ClusterSwitchMenu";
+import ThemeToggle from "./ThemeToggle";
 import UserSettingsModal from "./UserSettingsModal";
 import {
   Container,
@@ -36,7 +37,7 @@ import {
   faMedkit,
 } from "@fortawesome/free-solid-svg-icons";
 import { AppContext } from "../store/context.tsx";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AmbariAboutModal from "../AmbariAboutModal.tsx";
 import "../styles/app.scss";
 import {
@@ -271,12 +272,17 @@ export default function NavBar({
                   ))}
                 </div>
               ) : (
-                subPath
+                clusterNavigation ? <nav className="console-breadcrumb" aria-label="Breadcrumb">
+                  <Link to="/clusters">{t("directory.clusters")}</Link><span aria-hidden="true">/</span>
+                  <Link to={scopedPath("/main/dashboard")}>{clusterName}</Link><span aria-hidden="true">/</span>
+                  <span aria-current="page">{subPath.split("/").map(part => part.trim()).filter(Boolean).slice(-2).join(" / ")}</span>
+                </nav> : subPath
               )}
             </div>
           </Navbar.Brand>
           <div className="right-nav-container d-flex flex-wrap align-items-center row-gap-2">
             <div className="me-3"><LanguageSelector /></div>
+            <ThemeToggle />
             {shouldShowDigitalClock ? (
               <>
                 <DigitalClock

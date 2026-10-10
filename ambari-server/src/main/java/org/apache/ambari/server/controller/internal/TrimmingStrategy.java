@@ -52,10 +52,16 @@ public enum TrimmingStrategy {
       }
       return stringToTrim.replaceAll("\\s+$", "");
     }
+  },
+
+  CONTENT {
+    @Override
+    public String trim(String stringToTrim) {
+      return stringToTrim;
+    }
   }
   ;
 
   public abstract String trim(String stringToTrim);
 
 }
-

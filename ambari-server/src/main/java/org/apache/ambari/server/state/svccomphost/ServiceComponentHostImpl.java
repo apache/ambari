@@ -1541,7 +1541,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         stackEntity,
         version,
         stackId.getStackName() + "-" + version,
-        repositoryVersionHelper.createRepoOsEntities(stackInfo.getRepositories()));
+        repositoryVersionHelper.createRepoOsEntities(stackInfo.getRepositories()),
+        org.apache.ambari.spi.RepositoryType.STANDARD, stackInfo.getRepositoryVersionMode());
   }
 
   /**

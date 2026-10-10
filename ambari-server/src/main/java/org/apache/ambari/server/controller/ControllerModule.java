@@ -432,6 +432,10 @@ public class ControllerModule extends AbstractModule {
     InternalAuthenticationInterceptor ambariAuthenticationInterceptor = new InternalAuthenticationInterceptor();
     requestInjection(ambariAuthenticationInterceptor);
     bindInterceptor(any(), annotatedWith(RunWithInternalSecurityContext.class), ambariAuthenticationInterceptor);
+    org.apache.ambari.server.mpack.MpackMutationInterceptor mpackMutationInterceptor =
+        new org.apache.ambari.server.mpack.MpackMutationInterceptor();
+    requestInjection(mpackMutationInterceptor);
+    bindInterceptor(any(), annotatedWith(org.apache.ambari.server.mpack.MpackMutation.class), mpackMutationInterceptor);
   }
 
   // ----- helper methods ----------------------------------------------------

@@ -103,6 +103,17 @@ describe("configuration save lifecycle", () => {
     vi.clearAllMocks();
   });
 
+  it("preserves complete file content including significant trailing whitespace", async () => {
+    mocks.saveConfigs.mockResolvedValue({});
+    const content = "# comment\nkey=escaped\\ \n\n";
+    const files: ConfigPropertiesType = { HDFS: { site: { errors: 0, properties: {
+      content: { ...property("content", content, "old"), propertyAttributes: { type: "content" } },
+    } } } };
+    const { result } = renderHook(() => useConfigSaver(false, vi.fn(), "Default", files, "HDFS", [], "File edit"), { wrapper });
+    await act(async () => { expect(await result.current.saveStepConfigs()).toBe(true); });
+    expect(mocks.saveConfigs.mock.calls[0][1][0].Clusters.desired_config[0].properties.content).toBe(content);
+  });
+
   it("keeps saving state until the full replacement payload settles", async () => {
     let resolveSave!: (value: unknown) => void;
     mocks.saveConfigs.mockReturnValue(

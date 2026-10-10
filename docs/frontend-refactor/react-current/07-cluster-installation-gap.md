@@ -17,6 +17,23 @@
 
 # React Cluster Installation Comparison
 
+## Mpackstore Handoff: 2026-09-22
+
+The global package page now imports an entire mpackstore bundle before users
+select services. A completed ENABLE operation records exact catalog service IDs,
+service names, stack/version and an optional numeric existing-cluster ID. The
+deployment endpoint verifies those definitions before the installer/Add Service
+workflow consumes them. Step 1 preselects the declared environment; Step 4 selects
+only the requested services, preserves an existing workflow selection and rejects
+a foreign destination. This extends Classic's `serviceToInstall` handoff to a
+server-recorded multi-service selection without changing host deployment semantics.
+
+Source and focused regression evidence are in `MpackServiceCatalog`,
+`useMpackDeployment`, `Mpacks.test.tsx` and `Step4.test.tsx`. Actual command results
+are recorded in [mpack corrective verification](../../mpack/corrective-implementation.md).
+Authenticated browser, real host deployment and refresh during a live install
+remain pending acceptance; component tests do not establish complete parity.
+
 ## Comparison Scope
 
 | Item | Value |
@@ -36,6 +53,15 @@ definitions, AJAX call sites, direct HTTP, browser entry points, and realtime
 channels.
 
 ## Post-Implementation Static Conclusion
+
+Mpack V1 follow-up (2026-09-17): AssignMasters no longer synthesizes a
+`ZOOKEEPER_SERVER` assignment when it is absent from stack metadata and the
+advisor result. Classic `assign_master_components.js` constructs assignments
+only for known stack components returned by the advisor. GENERIC may therefore
+have no Hadoop master assignments. A focused GENERIC regression was added to
+AssignMasters.test.tsx; execution results belong to the mpack delivery baseline,
+not to the earlier Module 07 counts below. No live installation parity is
+claimed by this source change.
 
 | Status | Meaning | Count |
 | --- | --- | ---: |
@@ -207,7 +233,8 @@ dependency selection through `createManagedDependencyAdvisorRunner`. The runner
 holds the existing `withStateCheckpoint` callback around the exact blueprint or
 configuration request, adds the owned DRAFT or SERVICE_PLAN revision and the
 provider/consumer/snapshot fingerprints, and prevents a later autosave from
-overtaking advice. Step6 placement and Step7 configuration validation use local
+overtaking advice. Identical queued snapshots do not advance the draft revision
+again after the advisor checkpoint. Step6 placement and Step7 configuration validation use local
 request sequences plus semantic scope keys to discard delayed success and error
 responses after host, service, provider, stack, or workflow changes. Step7 keeps
 the edited form mounted on recommendation or validation failure and offers Retry

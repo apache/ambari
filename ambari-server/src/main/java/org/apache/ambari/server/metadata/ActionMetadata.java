@@ -20,6 +20,7 @@ package org.apache.ambari.server.metadata;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +86,7 @@ public class ActionMetadata {
     serviceClients.put("accumulo", Role.ACCUMULO_CLIENT.toString());
   }
 
-  public List<String> getActions(String serviceName) {
+  public synchronized List<String> getActions(String serviceName) {
     List<String> result = serviceActions.get(serviceName.toLowerCase());
     if (result != null) {
       return result;
@@ -98,7 +99,7 @@ public class ActionMetadata {
     return serviceClients.get(serviceName.toLowerCase());
   }
 
-  public String getServiceCheckAction(String serviceName) {
+  public synchronized String getServiceCheckAction(String serviceName) {
     return serviceCheckActions.get(serviceName.toLowerCase());
   }
 
@@ -107,7 +108,7 @@ public class ActionMetadata {
    * @param serviceCheckAction service check action name like ZOOKEEPER_QUORUM_SERVICE_CHECK
    * @return service name (capitalized) or null if not found
    */
-  public String getServiceNameByServiceCheckAction(String serviceCheckAction) {
+  public synchronized String getServiceNameByServiceCheckAction(String serviceCheckAction) {
     for (Map.Entry<String, String> entry : serviceCheckActions.entrySet()) {
       if (entry.getValue().equals(serviceCheckAction)) {
         return entry.getKey().toUpperCase();
@@ -116,7 +117,7 @@ public class ActionMetadata {
     return null;
   }
 
-  public void addServiceCheckAction(String serviceName) {
+  public synchronized void addServiceCheckAction(String serviceName) {
     String actionName = serviceName + SERVICE_CHECK_POSTFIX;
 
     if(SERVICE_CHECKS.containsKey(serviceName)) {
@@ -125,6 +126,12 @@ public class ActionMetadata {
 
     serviceCheckActions.put(serviceName.toLowerCase(), actionName);
     serviceActions.put(serviceName.toLowerCase(), Arrays.asList(actionName));
+  }
+
+  public synchronized void replaceServiceCheckActions(Collection<String> serviceNames) {
+    serviceCheckActions.keySet().forEach(serviceActions::remove);
+    serviceCheckActions.clear();
+    serviceNames.forEach(this::addServiceCheckAction);
   }
 
   public boolean isDefaultHostComponentCommand(String command) {

@@ -44,6 +44,7 @@ import SqoopService from "../models/sqoop.ts";
 import KyuubiService from "../models/kyuubi.ts";
 import TrinoGatewayService from "../models/trinogateway.ts";
 import PinotService from "../models/pinot.ts";
+import { genericServiceModels } from "../Utils/genericServiceModels";
 
 interface ServiceContextType {
   allServiceModels: { [key: string]: any };
@@ -146,6 +147,8 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
     parsedSocketMessages,
     alertSummary: socketAlertSummary,
     runtimeKey,
+    services,
+    serviceComponentInfo,
   } = useContext(AppContext);
 
   // Boot-fetched summary from AlertsContext; prefer the synchronous socket summary when available.
@@ -273,6 +276,10 @@ const ServiceProvider: React.FC<ServiceProviderProps> = ({ children }) => {
       return merged;
     });
   };
+  useEffect(() => {
+    const imported = genericServiceModels(services, serviceComponentInfo, polledHostComponentsData, clusterName, serviceStatesData);
+    if (Object.keys(imported).length) updateRegistry(imported);
+  }, [services, serviceComponentInfo, polledHostComponentsData, clusterName, runtimeKey, serviceStatesData]);
   useEffect(() => {
     updateQuickLinksApiResponseForAllServices();
     setAllModelsLoaded(false);

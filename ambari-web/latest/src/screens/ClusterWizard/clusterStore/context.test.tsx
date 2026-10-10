@@ -285,6 +285,13 @@ describe("ClusterCreationProvider scoped recovery", () => {
         }),
       }),
     }));
+
+    act(() => currentContext.dispatch({
+      type: ActionTypes.STORE_INFORMATION,
+      payload: { step: "MASTERS", data: { selectedHost: "host-b" } },
+    }));
+    await act(async () => currentContext.flushStateToDb());
+    expect(mocks.put).toHaveBeenCalledTimes(2);
   });
 
   it("does not run advisor work after a same-draft checkpoint conflict", async () => {

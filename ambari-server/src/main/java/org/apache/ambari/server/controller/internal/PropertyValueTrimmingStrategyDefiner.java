@@ -38,7 +38,9 @@ public class PropertyValueTrimmingStrategyDefiner {
       ValueAttributesInfo valueAttributesInfo = configProperty.getPropertyValueAttributes();
       if (valueAttributesInfo != null) {
         String type = valueAttributesInfo.getType();
-        if ("directory".equals(type) || "directories".equals(type)) {
+        if ("content".equals(type)) {
+          return TrimmingStrategy.CONTENT;
+        } else if ("directory".equals(type) || "directories".equals(type)) {
           return TrimmingStrategy.DIRECTORIES;
         } else if ("host".equals(type)) {
           return TrimmingStrategy.DEFAULT;

@@ -112,6 +112,8 @@ public class StackManager {
 
   private AmbariManagementHelper helper;
 
+  private final StackResolutionContext resolutionContext;
+
   /**
    * Constructor. Initialize stack manager.
    *
@@ -148,6 +150,29 @@ public class StackManager {
       ExtensionDAO extensionDao, ExtensionLinkDAO linkDao, AmbariManagementHelper helper)
       throws AmbariException {
 
+    this(stackRoot, commonServicesRoot, extensionRoot, osFamily, validate, metaInfoDAO,
+        actionMetadata, stackDao, extensionDao, linkDao, helper, null);
+  }
+
+  @AssistedInject
+  public StackManager(@Assisted("stackRoot") File stackRoot,
+      @Assisted("commonServicesRoot") @Nullable File commonServicesRoot,
+      @Assisted("extensionRoot") @Nullable File extensionRoot,
+      @Assisted OsFamily osFamily, @Assisted StackResolutionContext resolutionContext,
+      MetainfoDAO metaInfoDAO, ActionMetadata actionMetadata, StackDAO stackDao,
+      ExtensionDAO extensionDao, ExtensionLinkDAO linkDao, AmbariManagementHelper helper)
+      throws AmbariException {
+    this(stackRoot, commonServicesRoot, extensionRoot, osFamily, true, metaInfoDAO,
+        actionMetadata, stackDao, extensionDao, linkDao, helper,
+        java.util.Objects.requireNonNull(resolutionContext));
+  }
+
+  private StackManager(File stackRoot, File commonServicesRoot, File extensionRoot,
+      OsFamily osFamily, boolean validate, MetainfoDAO metaInfoDAO, ActionMetadata actionMetadata,
+      StackDAO stackDao, ExtensionDAO extensionDao, ExtensionLinkDAO linkDao,
+      AmbariManagementHelper helper, StackResolutionContext resolutionContext) throws AmbariException {
+    this.resolutionContext = resolutionContext;
+
     LOG.info("Initializing the stack manager...");
 
     if (validate) {
@@ -157,26 +182,37 @@ public class StackManager {
     }
 
     stackMap = new TreeMap<>();
-    stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
+    stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily, resolutionContext != null);
     extensionMap = new HashMap<>();
     this.helper = helper;
 
     parseDirectories(stackRoot, commonServicesRoot, extensionRoot);
 
-    //Read the extension links from the DB
-    for (StackModule module : stackModules.values()) {
-      StackInfo stack = module.getModuleInfo();
-      List<ExtensionLinkEntity> entities = linkDao.findByStack(stack.getName(), stack.getVersion());
-      for (ExtensionLinkEntity entity : entities) {
-        String name = entity.getExtension().getExtensionName();
-        String version = entity.getExtension().getExtensionVersion();
-        String key = name + StackManager.PATH_DELIMITER + version;
-        ExtensionModule extensionModule = extensionModules.get(key);
-        if (extensionModule != null) {
-          LOG.info("Adding extension to stack/version: " + stack.getName() + "/" + stack.getVersion() +
-                   " extension/version: " + name + "/" + version);
-          //Add the extension to the stack
-          module.getExtensionModules().put(key, extensionModule);
+    if (resolutionContext != null) {
+      for (StackResolutionContext.Binding binding : resolutionContext.bindings()) {
+        StackModule module = stackModules.get(binding.stackName() + PATH_DELIMITER + binding.stackVersion());
+        String extensionKey = binding.extensionName() + PATH_DELIMITER + binding.extensionVersion();
+        ExtensionModule extension = extensionModules.get(extensionKey);
+        if (module == null || extension == null) {
+          throw new AmbariException("Definition snapshot references a missing stack or extension");
+        }
+        module.getExtensionModules().put(extensionKey, extension);
+      }
+    } else {
+      // Legacy callers retain their existing database-backed resolution path.
+      for (StackModule module : stackModules.values()) {
+        StackInfo stack = module.getModuleInfo();
+        List<ExtensionLinkEntity> entities = linkDao.findByStack(stack.getName(), stack.getVersion());
+        for (ExtensionLinkEntity entity : entities) {
+          String name = entity.getExtension().getExtensionName();
+          String version = entity.getExtension().getExtensionVersion();
+          String key = name + StackManager.PATH_DELIMITER + version;
+          ExtensionModule extensionModule = extensionModules.get(key);
+          if (extensionModule != null) {
+            LOG.info("Adding extension to stack/version: " + stack.getName() + "/" + stack.getVersion() +
+                     " extension/version: " + name + "/" + version);
+            module.getExtensionModules().put(key, extensionModule);
+          }
         }
       }
     }
@@ -185,7 +221,46 @@ public class StackManager {
     fullyResolveExtensions(stackModules, commonServiceModules, extensionModules);
     fullyResolveStacks(stackModules, commonServiceModules, extensionModules);
 
+    if (resolutionContext == null) {
+      populateDB(stackDao, extensionDao);
+    } else {
+      validateResolvedCandidate();
+    }
+  }
+
+  public String getDefinitionSnapshotId() {
+    return resolutionContext == null ? null : resolutionContext.snapshotId();
+  }
+
+  /** Called only after the lifecycle service has recorded publication intent. */
+  public void registerCandidateDefinitions(StackDAO stackDao, ExtensionDAO extensionDao)
+      throws AmbariException {
+    if (resolutionContext == null) {
+      throw new IllegalStateException("Only an isolated candidate can be explicitly registered");
+    }
     populateDB(stackDao, extensionDao);
+  }
+
+  public void publishCandidateServiceChecks() {
+    stackContext.publishServiceChecks();
+  }
+
+  private void validateResolvedCandidate() throws AmbariException {
+    for (StackInfo stack : getStacks()) {
+      if (!stack.isValid()) {
+        throw new AmbariException("Invalid stack in definition snapshot: " + stack.getName() + "/" + stack.getVersion());
+      }
+      for (ServiceInfo service : stack.getServices()) {
+        if (!service.isValid()) {
+          throw new AmbariException("Invalid service in definition snapshot: " + service.getName());
+        }
+      }
+    }
+    for (ExtensionInfo extension : getExtensions()) {
+      if (!extension.isValid()) {
+        throw new AmbariException("Invalid extension in definition snapshot: " + extension.getName());
+      }
+    }
   }
 
   protected void parseDirectories(File stackRoot, File commonServicesRoot, File extensionRoot) throws AmbariException {
@@ -234,7 +309,9 @@ public class StackManager {
       }
     }
 
-    createLinks();
+    if (resolutionContext == null) {
+      createLinks();
+    }
   }
 
   /**
@@ -505,11 +582,20 @@ public class StackManager {
     Schema schema;
     ClassLoader classLoader = StackManager.class.getClassLoader();
     try {
+      factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+      factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
       schema = factory.newSchema(classLoader.getResource(PROPERTY_SCHEMA_PATH));
     } catch (SAXException e) {
       throw new AmbariException(String.format("Failed to parse property schema file %s", PROPERTY_SCHEMA_PATH), e);
     }
-    return schema.newValidator();
+    Validator validator = schema.newValidator();
+    try {
+      validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+      validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+    } catch (SAXException e) {
+      throw new AmbariException("Unable to restrict external XML resources", e);
+    }
+    return validator;
   }
 
   public static void validateAllPropertyXmlsInFolderRecursively(File stackRoot, Validator validator) throws AmbariException {
@@ -578,6 +664,10 @@ public class StackManager {
                 ServiceModule serviceModule = new ServiceModule(stackContext, serviceInfo, serviceDirectory, true);
 
                 String commonServiceKey = serviceInfo.getName() + StackManager.PATH_DELIMITER + serviceInfo.getVersion();
+                if (resolutionContext != null && commonServiceModules.containsKey(commonServiceKey)) {
+                  throw new DefinitionConflictException("common-services/" + commonServiceKey,
+                      commonServiceModules.get(commonServiceKey), serviceModule);
+                }
                 commonServiceModules.put(commonServiceKey, serviceModule);
               }
             } else {
@@ -631,10 +721,16 @@ public class StackManager {
   }
 
   public void linkStackToExtension(StackInfo stack, ExtensionInfo extension) throws AmbariException {
+    if (resolutionContext != null) {
+      throw new AmbariException("Managed definition bindings must be changed through the mpack lifecycle service");
+    }
     stack.addExtension(extension);
   }
 
   public void unlinkStackAndExtension(StackInfo stack, ExtensionInfo extension) throws AmbariException {
+    if (resolutionContext != null) {
+      throw new AmbariException("Managed definition bindings must be changed through the mpack lifecycle service");
+    }
     stack.removeExtension(extension);
   }
 

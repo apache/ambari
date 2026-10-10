@@ -22,9 +22,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -60,6 +62,9 @@ public class StackContext {
    */
   private LatestRepoQueryExecutor repoUpdateExecutor;
 
+  private final boolean isolated;
+  private final Set<String> candidateServiceChecks = new HashSet<>();
+
   private final static Logger LOG = LoggerFactory.getLogger(StackContext.class);
   private static final int THREAD_COUNT = 10;
 
@@ -72,9 +77,15 @@ public class StackContext {
    * @param osFamily        OS family information
    */
   public StackContext(MetainfoDAO metaInfoDAO, ActionMetadata actionMetaData, OsFamily osFamily) {
+    this(metaInfoDAO, actionMetaData, osFamily, false);
+  }
+
+  public StackContext(MetainfoDAO metaInfoDAO, ActionMetadata actionMetaData,
+      OsFamily osFamily, boolean isolated) {
     this.metaInfoDAO = metaInfoDAO;
     this.actionMetaData = actionMetaData;
-    repoUpdateExecutor = new LatestRepoQueryExecutor(osFamily);
+    this.isolated = isolated;
+    repoUpdateExecutor = isolated ? null : new LatestRepoQueryExecutor(osFamily);
   }
 
   /**
@@ -83,7 +94,18 @@ public class StackContext {
    * @param serviceName  name of the service
    */
   public void registerServiceCheck(String serviceName) {
-    actionMetaData.addServiceCheckAction(serviceName);
+    candidateServiceChecks.add(serviceName);
+    if (!isolated) {
+      actionMetaData.addServiceCheckAction(serviceName);
+    }
+  }
+
+  public void publishServiceChecks() {
+    actionMetaData.replaceServiceCheckActions(candidateServiceChecks);
+  }
+
+  public boolean isIsolated() {
+    return isolated;
   }
 
   /**
@@ -93,14 +115,18 @@ public class StackContext {
    * @param stack  stack module
    */
   public void registerRepoUpdateTask(URI uri, StackModule stack) {
-    repoUpdateExecutor.addTask(uri, stack);
+    if (!isolated) {
+      repoUpdateExecutor.addTask(uri, stack);
+    }
   }
 
   /**
    * Execute the registered repo update tasks.
    */
   public void executeRepoTasks() {
-    repoUpdateExecutor.execute();
+    if (!isolated) {
+      repoUpdateExecutor.execute();
+    }
   }
 
   /**
@@ -109,7 +135,7 @@ public class StackContext {
    * @return true if all tasks have completed; false otherwise
    */
   public boolean haveAllRepoTasksCompleted() {
-    return repoUpdateExecutor.hasCompleted();
+    return isolated || repoUpdateExecutor.hasCompleted();
   }
 
 

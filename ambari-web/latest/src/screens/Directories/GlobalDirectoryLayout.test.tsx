@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import type { ViewInstance } from "../../Utils/viewUtils";
@@ -29,6 +29,8 @@ const authorizedView = {
 vi.mock("../Views/ViewInstancesContext", () => ({
   useViewInstances: () => ({ instances: [authorizedView] }),
 }));
+const auth = vi.hoisted(() => ({ admin: true }));
+vi.mock("../../hooks/useAuth", () => ({ useAuth: () => ({ isAdmin: () => auth.admin, user: { user_name: "admin" } }) }));
 vi.mock("../../components/Navbar", () => ({
   default: ({ homePath, viewsList }: { homePath: string; viewsList: ViewInstance[] }) => (
     <div data-testid="directory-navbar">
@@ -38,8 +40,31 @@ vi.mock("../../components/Navbar", () => ({
 }));
 
 import GlobalDirectoryLayout from "./GlobalDirectoryLayout";
+import { rememberWorkspace } from "../../Utils/workspaceNavigation";
 
 describe("global directory layout", () => {
+  it("keeps the prior cluster page available across global directories", async () => {
+    rememberWorkspace("admin", "/clusters/reference/main/services/DORIS/configs?version=6");
+    render(<MemoryRouter initialEntries={["/clusters"]}><Routes><Route element={<GlobalDirectoryLayout />}>
+      <Route path="clusters" element={<div>Cluster directory</div>} />
+      <Route path="mpacks" element={<div>Pack directory</div>} />
+    </Route></Routes></MemoryRouter>);
+    expect(screen.getByRole("link", { name: /Return to workspace/ }).getAttribute("href")).toBe("/clusters/reference/main/services/DORIS/configs?version=6");
+    fireEvent.click(screen.getByRole("link", { name: "Management Packs" }));
+    await waitFor(() => expect(screen.getByText("Pack directory")).toBeTruthy());
+    expect(screen.getByRole("link", { name: /Return to workspace/ }).getAttribute("href")).toContain("DORIS/configs?version=6");
+  });
+  it("exposes management packs to administrators before a cluster exists", () => {
+    auth.admin = true;
+    const { unmount } = render(<MemoryRouter><GlobalDirectoryLayout /></MemoryRouter>);
+    expect(screen.getByRole("link", { name: "Management Packs" }).getAttribute("href")).toBe("/mpacks");
+    unmount();
+    auth.admin = false;
+    const rendered = render(<MemoryRouter><GlobalDirectoryLayout /></MemoryRouter>);
+    expect(screen.queryByRole("link", { name: "Management Packs" })).toBeNull();
+    rendered.unmount();
+    auth.admin = true;
+  });
   it("passes authorized Views to the global navbar and keeps the directory home", () => {
     render(
       <MemoryRouter initialEntries={["/clusters"]}>

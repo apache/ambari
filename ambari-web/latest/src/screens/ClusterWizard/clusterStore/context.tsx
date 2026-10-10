@@ -105,6 +105,11 @@ export const ClusterCreationProvider: React.FC<{
   const workflowSessionRef = useRef<ScopedWorkflowSession | null>(null);
   const workflowQueueRef = useRef(new WorkflowMutationQueue());
   const explicitlyPersistedStateRef = useRef<State | null>(null);
+  const lastSavedRef = useRef<{
+    session: ScopedWorkflowSession;
+    phase: string;
+    values: Record<string, any>;
+  } | null>(null);
   const reentrySteps = clusterCreationReentrySteps({ state });
 
   const dispatch: Dispatch<Action> = (action) => {
@@ -234,12 +239,14 @@ export const ClusterCreationProvider: React.FC<{
   ) {
     const session = workflowSessionRef.current;
     if (!session) throw new Error(t("workflow.persistence.clusterCreateNotLoaded"));
-    await session.save(
-      "CLUSTER_CREATE",
-      get(stepSnapshot, "clusterState") || get(stepSnapshot, "stepName") || "START",
-      projectClusterCreationValues({ state: stateSnapshot, step: stepSnapshot }),
-    );
+    const phase = get(stepSnapshot, "clusterState") || get(stepSnapshot, "stepName") || "START";
+    const values = projectClusterCreationValues({ state: stateSnapshot, step: stepSnapshot });
+    const lastSaved = lastSavedRef.current;
+    if (lastSaved?.session === session && lastSaved.phase === phase
+      && isEqual(lastSaved.values, values)) return;
+    await session.save("CLUSTER_CREATE", phase, values);
     if (workflowSessionRef.current === session) {
+      lastSavedRef.current = { session, phase, values };
       setDraftRevision(session.currentRevision);
     }
   }

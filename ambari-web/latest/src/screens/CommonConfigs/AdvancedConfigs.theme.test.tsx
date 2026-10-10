@@ -128,6 +128,30 @@ describe("Advanced Theme fallback permissions", () => {
 
   afterEach(cleanup);
 
+  it("renders the Add Property action for an empty custom category", () => {
+    renderAdvanced({ configPropertiesData: { SVC: { "Custom site": { errors: 0, properties: {} } } } });
+    fireEvent.click(screen.getByRole("button", { name: "Custom site" }));
+    expect(screen.getByText("Add Property ...")).toBeTruthy();
+    expect(screen.queryByText("No properties to display.")).toBeNull();
+  });
+
+  it.each(["readonly", "host", "env", "search", "forbidden"])("preserves empty category restrictions for %s", (context) => {
+    if (context === "readonly") mocks.hasAuthorization.mockReturnValue(false);
+    renderAdvanced({
+      configPropertiesData: { SVC: { [context === "env" ? "Custom service-env" : "Custom site"]: { errors: 0, properties: {}, canAddProperties: context !== "forbidden" } } },
+      hostConfigs: context === "host",
+      searchString: context === "search" ? "missing" : "",
+    });
+    expect(screen.getByText("No properties to display.")).toBeTruthy();
+    expect(screen.queryByText("Add Property ...")).toBeNull();
+  });
+
+  it("opens the available properties when no service layout exists", async () => {
+    renderAdvanced({ expandByDefault: true });
+    expect(screen.getByRole("button", { name: /Advanced site/ }).getAttribute("aria-expanded")).toBe("true");
+    expect((await screen.findByDisplayValue("group value")).closest(".accordion-collapse")?.classList.contains("show")).toBe(true);
+  });
+
   it("keeps an installed-service override read-only without modify permission", async () => {
     mocks.hasAuthorization.mockReturnValue(false);
     renderAdvanced();

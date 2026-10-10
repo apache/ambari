@@ -84,8 +84,8 @@ const victoriaMetricsComponents = [
   },
 ];
 
-function renderComponents(data: any[]) {
-  return render(
+function componentView(data: any[], serviceName = "VICTORIAMETRICS") {
+  return (
     <MemoryRouter>
       <HostsListStateProvider>
         <ServiceContext.Provider
@@ -97,11 +97,15 @@ function renderComponents(data: any[]) {
             >["value"]
           }
         >
-          <ServiceComponents serviceName="VICTORIAMETRICS" alerts={[]} />
+          <ServiceComponents serviceName={serviceName} alerts={[]} />
         </ServiceContext.Provider>
       </HostsListStateProvider>
     </MemoryRouter>
   );
+}
+
+function renderComponents(data: any[], serviceName = "VICTORIAMETRICS") {
+  return render(componentView(data, serviceName));
 }
 
 function renderHDFSSummary(hdfsModel: any) {
@@ -156,6 +160,39 @@ describe("generic service summary", () => {
     renderComponents([]);
 
     expect(screen.getByText("No components to display")).toBeTruthy();
+  });
+
+  it("keeps imported masters visible while host details load and recovers when they arrive", () => {
+    const component = {
+      ServiceComponentInfo: { category: "MASTER", component_name: "ELASTICSEARCH_NODE",
+        display_name: "Elasticsearch Node", service_name: "ELASTICSEARCH", total_count: 1 },
+      host_components: [],
+    };
+    const view = renderComponents([component], "ELASTICSEARCH");
+    expect(screen.getByText("Elasticsearch Node")).toBeTruthy();
+    expect(screen.getByText("Host details unavailable")).toBeTruthy();
+    expect(screen.queryByText("Started")).toBeNull();
+    view.rerender(componentView([{ ...component, host_components: [{ HostRoles: {
+      host_name: "search.test", state: "STARTED", maintenance_state: "OFF",
+    } }] }], "ELASTICSEARCH"));
+    expect(screen.getByText("Elasticsearch Node")).toBeTruthy();
+    expect(screen.getByText("Started")).toBeTruthy();
+    expect(screen.queryByText("Host details unavailable")).toBeNull();
+  });
+
+  it("renders an imported Kyuubi server using its declared component identity", () => {
+    renderComponents([{
+      ServiceComponentInfo: {
+        category: "MASTER", component_name: "KYUUBI_SERVER", display_name: "Kyuubi Server",
+        service_name: "KYUUBI", started_count: 1, total_count: 1,
+      },
+      host_components: [{ HostRoles: {
+        host_name: "worker4.bigtop.apache.org", maintenance_state: "OFF", state: "STARTED",
+      } }],
+    }], "KYUUBI");
+
+    expect(screen.getByText("Kyuubi Server")).toBeTruthy();
+    expect(screen.getByText("Started")).toBeTruthy();
   });
 });
 

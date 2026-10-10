@@ -45,8 +45,6 @@ import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -63,7 +61,7 @@ public class ModuleFileUnmarshaller {
    * Map of class to JAXB context
    */
   private static final Map<Class<?>, JAXBContext> jaxbContexts = new HashMap<>();
-  private static final Map<String, Schema> jaxbSchemas = new HashMap<>();
+  private static final Map<String, Schema> jaxbSchemas = new java.util.concurrent.ConcurrentHashMap<>();
 
 
   /**
@@ -99,54 +97,38 @@ public class ModuleFileUnmarshaller {
     Unmarshaller u = jaxbContexts.get(clz).createUnmarshaller();
 
     XMLInputFactory xmlFactory = XMLInputFactory.newInstance();
+    xmlFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+    xmlFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
 
-    FileReader reader = new FileReader(file);
-    XMLStreamReader xmlReader = xmlFactory.createXMLStreamReader(reader);
-
-    xmlReader.nextTag();
-    String xsdName = xmlReader.getAttributeValue(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "noNamespaceSchemaLocation");
-
-    InputStream xsdStream = null;
-
-    if (null != xsdName) {
-      if (logXsd) {
-        LOG.info("Processing " + file.getAbsolutePath() + " with " + xsdName);
-      }
-      if (jaxbSchemas.containsKey(xsdName)) {
-        u.setSchema(jaxbSchemas.get(xsdName));
-      } else {
-
-        xsdStream = clz.getClassLoader().getResourceAsStream(xsdName);
-
-        if (null != xsdStream) {
-          SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-          Schema schema = factory.newSchema(new StreamSource(xsdStream));
-
-          u.setSchema(schema);
-
-          jaxbSchemas.put(xsdName, schema);
-        } else if (logXsd) {
-          LOG.info("Schema '" + xsdName + "' for " + file.getAbsolutePath() + " was not found, ignoring");
+    try (FileReader reader = new FileReader(file)) {
+      XMLStreamReader xmlReader = xmlFactory.createXMLStreamReader(reader);
+      try {
+        xmlReader.nextTag();
+        String xsdName = xmlReader.getAttributeValue(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI,
+            "noNamespaceSchemaLocation");
+        if (xsdName != null) {
+          Schema schema = jaxbSchemas.get(xsdName);
+          if (schema == null) {
+            try (InputStream xsdStream = clz.getClassLoader().getResourceAsStream(xsdName)) {
+              if (xsdStream != null) {
+                SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+                schema = factory.newSchema(new StreamSource(xsdStream));
+                jaxbSchemas.putIfAbsent(xsdName, schema);
+              } else if (logXsd) {
+                LOG.info("Schema '{}' for {} was not found, ignoring", xsdName, file.getAbsolutePath());
+              }
+            }
+          }
+          if (schema != null) {
+            u.setSchema(schema);
+          }
         }
+        return u.unmarshal(xmlReader, clz).getValue();
+      } finally {
+        xmlReader.close();
       }
-    } else if (logXsd) {
-      LOG.info("NOT processing " + file.getAbsolutePath() + "; there is no XSD");
-    }
-
-    try {
-      return clz.cast(u.unmarshal(file));
-    } catch (Exception unmarshalException) {
-
-      Throwable cause = ExceptionUtils.getRootCause(unmarshalException);
-
-      LOG.error("Cannot parse {}", file.getAbsolutePath());
-      if (null != cause) {
-        LOG.error(cause.getMessage(), cause);
-      }
-
-      throw unmarshalException;
-    } finally {
-      IOUtils.closeQuietly(xsdStream);
     }
   }
 

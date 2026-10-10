@@ -18,11 +18,15 @@
 package org.apache.ambari.server.testing;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.junit.Assert;
+import org.junit.Test;
 
 /**
  *
@@ -30,6 +34,33 @@ import org.junit.Assert;
  */
 public class DeadlockedThreadsTest {
   static Set<Thread> threads = new HashSet<>();
+
+  @Test(timeout = 5000)
+  public void waitingWorkerIsNotADeadlock() throws Exception {
+    CountDownLatch waiting = new CountDownLatch(1);
+    CountDownLatch release = new CountDownLatch(1);
+    Thread worker = new Thread(() -> {
+      waiting.countDown();
+      try {
+        release.await();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    });
+    worker.start();
+    Assert.assertTrue(waiting.await(1, TimeUnit.SECONDS));
+
+    DeadlockWarningThread monitor = new DeadlockWarningThread(List.of(worker), 20, 10);
+    try {
+      Thread.sleep(150);
+      Assert.assertTrue(monitor.isAlive());
+    } finally {
+      release.countDown();
+    }
+    monitor.join(1000);
+    Assert.assertFalse(monitor.isAlive());
+    Assert.assertFalse(monitor.getErrorMessages().toString(), monitor.isDeadlocked());
+  }
   
   /**
    *

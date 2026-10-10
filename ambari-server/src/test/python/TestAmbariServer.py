@@ -5397,7 +5397,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
   @patch("ambari_server.serverUpgrade.update_ambari_env")
   @patch("ambari_server.serverUpgrade.migrate_java_home_properties")
-  @patch("ambari_server.serverUpgrade.replay_mpack_logs")
+  @patch("ambari_server.setupMpacks.replay_mpack_logs")
   @patch("os.path.samefile", return_value=True)
   def test_upgrade_linux(
     self,
@@ -5486,7 +5486,7 @@ class TestAmbariServer(TestCase):
     exists_mock.return_value = True
     upgrade(args)
     self.assertTrue(print_warning_msg_mock.called)
-    replay_mpack_logs_mock.assert_called_once_with()
+    replay_mpack_logs_mock.assert_not_called()
     warning_args = print_warning_msg_mock.call_args[0][0]
     self.assertTrue("custom ambari user" in warning_args)
     self.assertTrue(move_user_custom_actions.called)

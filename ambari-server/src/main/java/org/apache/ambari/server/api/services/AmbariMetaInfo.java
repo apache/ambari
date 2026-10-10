@@ -200,7 +200,19 @@ public class AmbariMetaInfo {
   /**
    * Singleton instance of the stack manager.
    */
-  private StackManager stackManager;
+  private volatile StackManager stackManager;
+
+  @Inject
+  private org.apache.ambari.server.mpack.MpackRuntime mpackRuntime;
+
+  @Inject
+  private com.google.inject.Provider<org.apache.ambari.server.mpack.MpackCatalog> mpackCatalog;
+
+  @Inject
+  private com.google.inject.Provider<org.apache.ambari.server.mpack.MpackSnapshots> mpackSnapshots;
+
+  @Inject
+  private com.google.inject.Provider<org.apache.ambari.server.mpack.MpackDefinitionLoader> mpackDefinitionLoader;
 
   /**
    * Factory for injecting {@link MpackManager} instances.
@@ -262,8 +274,42 @@ public class AmbariMetaInfo {
 
     readServerVersion();
 
-    stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
-        osFamily, false);
+    org.apache.ambari.server.mpack.MpackCatalog.Versioned<org.apache.ambari.server.mpack.MpackLifecycleState.Control>
+        managed = mpackCatalog == null ? null : mpackCatalog.get().control();
+    if (managed == null || (managed.value().activeReleases().isEmpty()
+        && managed.value().effectiveSnapshot().equals(managed.value().builtinSnapshot()))) {
+      stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot, extensionsRoot,
+          osFamily, false);
+      if (managed != null) {
+        java.util.concurrent.locks.Lock publication = mpackRuntime.writeLock();
+        publication.lock();
+        try {
+          mpackRuntime.restore(null, managed.value().pendingOperation());
+          if (managed.value().pendingOperation() != null) {
+            org.apache.ambari.server.mpack.MpackLifecycleState.Operation pending =
+                mpackCatalog.get().operation(managed.value().pendingOperation()).value();
+            mpackRuntime.reserve(pending.id(), mpackCatalog.get().plan(pending.planId()).value().affectedDefinitions());
+          }
+        } finally { publication.unlock(); }
+      }
+    } else {
+      org.apache.ambari.server.mpack.MpackSnapshots.Snapshot effective =
+          mpackSnapshots.get().load(managed.value().effectiveSnapshot());
+      StackManager restored = mpackDefinitionLoader.get().resolve(effective);
+      java.util.concurrent.locks.Lock publication = mpackRuntime.writeLock();
+      publication.lock();
+      try {
+        mpackRuntime.restore(effective, managed.value().pendingOperation());
+        if (managed.value().pendingOperation() != null) {
+          org.apache.ambari.server.mpack.MpackLifecycleState.Operation pending =
+              mpackCatalog.get().operation(managed.value().pendingOperation()).value();
+          mpackRuntime.reserve(pending.id(), mpackCatalog.get().plan(pending.planId()).value().affectedDefinitions());
+        }
+        publishMpackCandidate(restored, mpackSnapshots.get().resourceRoot(effective.id()));
+      } finally {
+        publication.unlock();
+      }
+    }
 
     mpackManager = mpackManagerFactory.create(mpacksV2Staging, stackRoot);
 
@@ -276,6 +322,35 @@ public class AmbariMetaInfo {
    */
   public StackManager getStackManager() {
     return stackManager;
+  }
+
+  /** Publishes an already resolved candidate inside the lifecycle publication barrier. */
+  public record DefinitionView(StackManager manager, File stacks, File services, File extensions) { }
+
+  public DefinitionView captureDefinitionView() {
+    mpackRuntime.requirePublicationLock();
+    return new DefinitionView(stackManager, stackRoot, commonServicesRoot, extensionsRoot);
+  }
+
+  public void restoreDefinitionView(DefinitionView previous) {
+    mpackRuntime.requirePublicationLock();
+    previous.manager().publishCandidateServiceChecks();
+    stackRoot = previous.stacks();
+    commonServicesRoot = previous.services();
+    extensionsRoot = previous.extensions();
+    stackManager = previous.manager();
+  }
+
+  public void publishMpackCandidate(StackManager candidate, java.nio.file.Path resourceRoot) {
+    mpackRuntime.requirePublicationLock();
+    if (candidate.getDefinitionSnapshotId() == null) {
+      throw new IllegalArgumentException("A versioned definition candidate is required");
+    }
+    stackRoot = resourceRoot.resolve("stacks").toFile();
+    commonServicesRoot = resourceRoot.resolve("common-services").toFile();
+    extensionsRoot = resourceRoot.resolve("extensions").toFile();
+    candidate.publishCandidateServiceChecks();
+    stackManager = candidate;
   }
 
   /**
