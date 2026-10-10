@@ -931,3 +931,4 @@ bound by the terms and conditions of this License Agreement.
 This product uses software based on SIL Open Font License (OFL)
 * Font-Awesome (SIL OFL 1.1) [http://fortawesome.github.io/Font-Awesome/]
 * Image clippy.svg from Octicon project (SIL OFL 1.1)  [https://octicons.github.com/]
+* IBM Plex Sans (SIL OFL 1.1) [https://github.com/IBM/plex]
