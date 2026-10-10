@@ -309,7 +309,9 @@ public class StackManager {
       }
     }
 
-    // Binding creation is an explicit lifecycle mutation, never a loading side effect.
+    if (resolutionContext == null) {
+      createLinks();
+    }
   }
 
   /**

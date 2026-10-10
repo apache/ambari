@@ -141,7 +141,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     this.serviceDirectory = serviceDirectory;
     this.isCommonService = isCommonService;
 
-    serviceInfo.addDefinitionResourceRoots(java.util.List.of(serviceDirectory.getAbsolutePath()));
+    String resourceRoot = serviceDirectory.getAbsolutePath();
+    if (resourceRoot != null) {
+      serviceInfo.addDefinitionResourceRoots(Collections.singleton(resourceRoot));
+    }
 
     serviceInfo.setMetricsFile(serviceDirectory.getMetricsFile(serviceInfo.getName()));
     serviceInfo.setTelemetryFile(serviceDirectory.getTelemetryFile(serviceInfo.getName()));

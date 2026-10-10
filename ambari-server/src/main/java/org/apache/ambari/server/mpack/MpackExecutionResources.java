@@ -63,11 +63,11 @@ public class MpackExecutionResources {
       throw new MpackException(MpackException.Code.OPERATION_CONFLICT, "Definition publication is in progress");
     }
     try {
-      requireReady(command);
       MpackSnapshots.Snapshot snapshot = runtime.snapshot();
       if (snapshot == null) {
         return;
       }
+      requireReady(command);
       verifyAgentProtocol(command);
       Map<String, String> params = command.getCommandParams() == null
           ? new TreeMap<>() : new TreeMap<>(command.getCommandParams());

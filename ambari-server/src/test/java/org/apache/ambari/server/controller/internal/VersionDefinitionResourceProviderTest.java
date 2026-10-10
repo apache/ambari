@@ -289,7 +289,9 @@ public class VersionDefinitionResourceProviderTest {
         VersionDefinitionResourceProvider.SHOW_AVAILABLE).equals("true").toPredicate();
 
     Set<Resource> results = versionProvider.getResources(getRequest, predicate);
-    Assert.assertEquals(3, results.size());
+    Assert.assertEquals(java.util.Set.of("HDP-2.2.0-2.2.1.0", "HDP-2.2.1", "HDP-2.2.0", "HDP-2.0.1"),
+        results.stream().map(resource -> resource.getPropertyValue("VersionDefinition/id"))
+            .collect(java.util.stream.Collectors.toSet()));
 
     boolean found1 = false;
     boolean found2 = false;

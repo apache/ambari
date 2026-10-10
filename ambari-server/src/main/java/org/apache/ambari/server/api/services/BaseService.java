@@ -154,6 +154,9 @@ public abstract class BaseService {
                                    MediaType mediaType, ResourceInstance resource) {
 
     Map<Resource.Type, String> keys = resource.getKeyValueMap();
+    if (keys == null) {
+      keys = java.util.Collections.emptyMap();
+    }
     boolean definitions = keys.containsKey(Resource.Type.Cluster) || keys.containsKey(Resource.Type.Stack)
         || keys.containsKey(Resource.Type.Extension) || keys.containsKey(Resource.Type.ExtensionLink);
     java.util.concurrent.locks.Lock read = definitionRuntime == null || !definitions ? null : definitionRuntime.readLock();

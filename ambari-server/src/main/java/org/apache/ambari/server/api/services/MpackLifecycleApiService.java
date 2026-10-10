@@ -50,8 +50,8 @@ import com.google.inject.Inject;
 @Produces(MediaType.APPLICATION_JSON)
 @StaticallyInject
 public class MpackLifecycleApiService {
-  private static MpackLifecycleService lifecycle;
-  private static MpackCatalog catalog;
+  private static com.google.inject.Provider<MpackLifecycleService> lifecycle;
+  private static com.google.inject.Provider<MpackCatalog> catalog;
   @Inject private static com.google.inject.Provider<org.apache.ambari.server.mpack.MpackUsage> usage;
   @Inject private static com.google.inject.Provider<org.apache.ambari.server.mpack.MpackServiceCatalog> services;
 
@@ -68,14 +68,19 @@ public class MpackLifecycleApiService {
   public Response servicePlan(String body) throws AuthorizationException {
     MpackLifecycleService.authorize();
     bounded(body);
-    return Response.status(Response.Status.CREATED).entity(MpackJson.tree(lifecycle.planServices(
+    return Response.status(Response.Status.CREATED).entity(MpackJson.tree(lifecycle.get().planServices(
         MpackJson.decode(body, org.apache.ambari.server.mpack.MpackServiceCatalog.Selection.class)))).build();
   }
 
   @Inject
-  public static void initialize(MpackLifecycleService service, MpackCatalog inventory) {
+  public static void initialize(com.google.inject.Provider<MpackLifecycleService> service,
+      com.google.inject.Provider<MpackCatalog> inventory) {
     lifecycle = service;
     catalog = inventory;
+  }
+
+  public static void initialize(MpackLifecycleService service, MpackCatalog inventory) {
+    initialize(() -> service, () -> inventory);
   }
 
   @GET
@@ -87,7 +92,7 @@ public class MpackLifecycleApiService {
         "binding_scope", "STACK_VERSION", "per_cluster_definition_versions", false,
         "operations", java.util.List.of("IMPORT", "ENABLE", "INSTALL", "UPDATE", "BIND", "UNBIND", "UNINSTALL"),
         "operation_recovery", "RECONCILE_RECEIPTS", "resource_identity", "IMMUTABLE_SNAPSHOT",
-        "target_stack_versions", lifecycle.targets(), "required_agent_protocol", "MPACK_RESOURCES_V1"));
+        "target_stack_versions", lifecycle.get().targets(), "required_agent_protocol", "MPACK_RESOURCES_V1"));
   }
 
   @GET
@@ -107,7 +112,7 @@ public class MpackLifecycleApiService {
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response upload(InputStream input, @HeaderParam("X-Content-SHA256") String digest)
       throws AuthorizationException {
-    return Response.status(Response.Status.CREATED).entity(MpackJson.tree(lifecycle.upload(input, digest))).build();
+    return Response.status(Response.Status.CREATED).entity(MpackJson.tree(lifecycle.get().upload(input, digest))).build();
   }
 
   @POST
@@ -117,14 +122,14 @@ public class MpackLifecycleApiService {
     MpackLifecycleService.authorize();
     bounded(body);
     MpackLifecycleState.Mutation request = MpackJson.decode(body, MpackLifecycleState.Mutation.class);
-    return Response.status(Response.Status.CREATED).entity(MpackJson.tree(lifecycle.plan(request))).build();
+    return Response.status(Response.Status.CREATED).entity(MpackJson.tree(lifecycle.get().plan(request))).build();
   }
 
   @GET
   @Path("mpack_plans/{id}")
   public Response getPlan(@PathParam("id") String id) throws AuthorizationException {
     MpackLifecycleService.authorize();
-    return ok(catalog.plan(id).value());
+    return ok(catalog.get().plan(id).value());
   }
 
   @POST
@@ -141,7 +146,7 @@ public class MpackLifecycleApiService {
         || request.get("schema_version").intValue() != 1) {
       throw new MpackException(MpackException.Code.UNSUPPORTED_SCHEMA, "Operation schema_version must be 1");
     }
-    MpackLifecycleState.Operation operation = lifecycle.accept(MpackJson.string(request, "plan_id"), idempotency);
+    MpackLifecycleState.Operation operation = lifecycle.get().accept(MpackJson.string(request, "plan_id"), idempotency);
     return Response.accepted(MpackJson.tree(operation))
         .location(URI.create("/api/v1/mpack_operations/" + operation.id())).build();
   }
@@ -149,8 +154,8 @@ public class MpackLifecycleApiService {
   @GET
   @Path("mpack_operations")
   public Response operations() throws AuthorizationException {
-    return ok(Map.of("schema_version", 1, "items", lifecycle.operations().stream().map(operation -> {
-      MpackLifecycleState.Plan plan = catalog.plan(operation.planId()).value();
+    return ok(Map.of("schema_version", 1, "items", lifecycle.get().operations().stream().map(operation -> {
+      MpackLifecycleState.Plan plan = catalog.get().plan(operation.planId()).value();
       com.fasterxml.jackson.databind.node.ObjectNode item = (com.fasterxml.jackson.databind.node.ObjectNode) MpackJson.tree(operation);
       item.put("action", plan.mutation().action().name());
       item.set("service_names", MpackJson.tree(plan.deployment() == null ? java.util.List.of() : plan.deployment().serviceNames()));
@@ -164,43 +169,43 @@ public class MpackLifecycleApiService {
   @GET
   @Path("mpack_operations/{id}")
   public Response operation(@PathParam("id") String id) throws AuthorizationException {
-    return ok(lifecycle.operation(id));
+    return ok(lifecycle.get().operation(id));
   }
 
   @POST
   @Path("mpack_operations/{id}/recover")
   public Response recover(@PathParam("id") String id) throws AuthorizationException {
-    return Response.accepted(MpackJson.tree(lifecycle.recover(id))).build();
+    return Response.accepted(MpackJson.tree(lifecycle.get().recover(id))).build();
   }
 
   @POST
   @Path("mpack_operations/{id}/retry")
   public Response retry(@PathParam("id") String id) throws AuthorizationException {
-    return Response.accepted(MpackJson.tree(lifecycle.retryFailedHooks(id))).build();
+    return Response.accepted(MpackJson.tree(lifecycle.get().retryFailedHooks(id))).build();
   }
 
   @POST
   @Path("mpack_operations/{id}/cancel")
   public Response cancel(@PathParam("id") String id) throws AuthorizationException {
-    return ok(lifecycle.cancel(id));
+    return ok(lifecycle.get().cancel(id));
   }
 
   @GET
   @Path("mpack_operations/{id}/deployment")
   public Response deployment(@PathParam("id") String id) throws AuthorizationException {
-    return ok(lifecycle.deployment(id));
+    return ok(lifecycle.get().deployment(id));
   }
 
   @GET
   @Path("mpack_operations/{id}/members")
   public Response members(@PathParam("id") String id) throws AuthorizationException {
-    return ok(Map.of("schema_version", 1, "items", lifecycle.members(id)));
+    return ok(Map.of("schema_version", 1, "items", lifecycle.get().members(id)));
   }
 
   @GET
   @Path("mpacks")
   public Response releases() throws AuthorizationException {
-    return ok(Map.of("schema_version", 1, "items", lifecycle.releases()));
+    return ok(Map.of("schema_version", 1, "items", lifecycle.get().releases()));
   }
 
   @GET
@@ -208,13 +213,13 @@ public class MpackLifecycleApiService {
   public Response release(@PathParam("name") String name, @PathParam("version") String version)
       throws AuthorizationException {
     MpackLifecycleService.authorize();
-    return ok(catalog.release(MpackManifest.requireName(name) + "/" + MpackManifest.requireVersion(version)).value());
+    return ok(catalog.get().release(MpackManifest.requireName(name) + "/" + MpackManifest.requireVersion(version)).value());
   }
 
   @GET
   @Path("mpack_bindings")
   public Response bindings() throws AuthorizationException {
-    return ok(lifecycle.bindings());
+    return ok(lifecycle.get().bindings());
   }
 
   @GET

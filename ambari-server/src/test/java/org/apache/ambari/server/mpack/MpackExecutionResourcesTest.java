@@ -29,6 +29,21 @@ import org.junit.Test;
 
 public class MpackExecutionResourcesTest {
   @Test
+  public void legacyTaskDoesNotRequireMpackDefinitionContext() {
+    MpackExecutionResources resources = new MpackExecutionResources(
+        new MpackRuntime(), mock(Configuration.class));
+    ExecutionCommand command = new ExecutionCommand();
+    command.setClusterName("legacy-cluster");
+    command.setServiceName("LEGACY_SERVICE");
+    Map<String, String> originalParams = command.getCommandParams();
+
+    resources.pin(command);
+
+    assertSame(originalParams, command.getCommandParams());
+    assertTrue(originalParams.isEmpty());
+  }
+
+  @Test
   public void unrelatedPublicationPreservesPreparedTaskIdentityAndOriginalArchives() throws Exception {
     String oldId = "a".repeat(64), currentId = "b".repeat(64), digest = "c".repeat(64);
     String path = "stacks/BASE/1.0/services/EXAMPLE/package";

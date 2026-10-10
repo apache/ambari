@@ -30,17 +30,17 @@ import com.google.inject.Inject;
 @AmbariService
 public class MpackLifecycleWorker extends AbstractScheduledService {
   private static final Logger LOG = LoggerFactory.getLogger(MpackLifecycleWorker.class);
-  @Inject private MpackLifecycleService lifecycle;
+  @Inject private com.google.inject.Provider<MpackLifecycleService> lifecycle;
 
   @Override
   protected void startUp() {
-    lifecycle.recoverOnStartup();
+    lifecycle.get().recoverOnStartup();
   }
 
   @Override
   protected void runOneIteration() {
     try {
-      lifecycle.advance();
+      lifecycle.get().advance();
     } catch (RuntimeException e) {
       // Keep the worker alive; durable work remains unresolved for the next iteration.
       LOG.error("Management pack reconciliation could not complete; durable state is retained", e);
