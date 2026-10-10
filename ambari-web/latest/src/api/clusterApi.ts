@@ -19,6 +19,7 @@
 import { apiPathSegment } from "./apiPath";
 import { set } from "lodash";
 import { ambariApi, supressErrorAmbariApi } from "./config/axiosConfig";
+import { decodePersistedMap } from "../Utils/persistedSettings";
 
 let pendingPersistDataRequest: Promise<any> | null = null;
 
@@ -27,7 +28,7 @@ const loadPersistData = async () => {
     pendingPersistDataRequest = supressErrorAmbariApi.request({
       url: "/persist",
       method: "GET",
-    }).then((response) => response.data).finally(() => {
+    }).then((response) => decodePersistedMap(response.data)).finally(() => {
       pendingPersistDataRequest = null;
     });
   }

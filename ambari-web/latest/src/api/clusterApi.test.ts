@@ -57,6 +57,27 @@ describe("cluster persisted data API", () => {
     });
   });
 
+  it("decodes the JSON encoded values the aggregate /persist response stores", async () => {
+    mocks.suppressedRequest.mockResolvedValue({
+      data: {
+        CLUSTER_CURRENT: '{"clusterCreationSteps":{"NAME":{"step":"NAME"}}}',
+        CLUSTER_STATE: '{"progressStatus":"PROVISIONING","stepName":"CONFIGURATION"}',
+        USER_REDIRECTION_URL: "/main/admin/kerberos",
+      },
+    });
+
+    await expect(ClusterApi.getPersistData("CLUSTER_CURRENT")).resolves.toEqual({
+      clusterCreationSteps: { NAME: { step: "NAME" } },
+    });
+    await expect(ClusterApi.getPersistData("CLUSTER_STATE")).resolves.toEqual({
+      progressStatus: "PROVISIONING",
+      stepName: "CONFIGURATION",
+    });
+    await expect(ClusterApi.getPersistData("USER_REDIRECTION_URL")).resolves.toBe(
+      "/main/admin/kerberos",
+    );
+  });
+
   it("deduplicates concurrent aggregate requests and treats missing keys as optional", async () => {
     let resolveRequest: (value: unknown) => void = () => undefined;
     mocks.suppressedRequest.mockReturnValue(new Promise((resolve) => {

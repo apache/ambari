@@ -58,7 +58,7 @@ public class TelemetryHolder extends AgentHostDataHolder<TelemetryUpdateEvent> {
   }
 
   @Override
-  protected TelemetryUpdateEvent getCurrentData(Long hostId) throws AmbariException {
+  public TelemetryUpdateEvent getCurrentData(Long hostId) throws AmbariException {
     return compiler.compile(hostId);
   }
 

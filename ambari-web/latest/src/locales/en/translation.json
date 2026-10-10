@@ -2383,6 +2383,7 @@
   "services.service.summary.nameNode":"NameNode Web UI",
   "services.service.summary.nameNode.active":"Active NameNode",
   "services.service.summary.nameNode.standby":"Standby NameNode",
+  "services.service.summary.nameNode.observer":"Observer NameNode",
   "services.service.summary.jobTracker":"JobTracker",
   "services.service.summary.jobTrackerWebUI":"JobTracker Web UI",
   "services.service.summary.hbaseMaster":"HBase Master Web UI",
