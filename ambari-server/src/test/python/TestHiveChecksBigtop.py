@@ -178,6 +178,38 @@ class TestHiveServerCheck(unittest.TestCase):
     )
     self.assertNotIn("secret;$(id)", repr(command))
 
+  def test_simple_auth_uses_explicit_url_without_sensitive_arguments(self):
+    params = self.params("NONE")
+    command = SERVICE_CHECK._beeline_command(
+      params, "/tmp/ambari-hive-beeline-private", "hs2.example.test"
+    )
+
+    self.assertEqual(
+      (
+        "/usr/bigtop/current/hive-client/bin/beeline",
+        "-u",
+        "jdbc:hive2://hs2.example.test:10000/;transportMode=binary",
+        "-n",
+        "hive",
+        "-e",
+        "show databases",
+      ),
+      command,
+    )
+    self.assertNotIn("--property-file", command)
+
+    params.hive_server2_authentication = "NOSASL"
+    self.assertIn(
+      "auth=noSasl",
+      SERVICE_CHECK._beeline_command(params, "/tmp/private", "hs2.example.test")[2],
+    )
+
+    params.hive_ssl = True
+    self.assertIn(
+      "--property-file",
+      SERVICE_CHECK._beeline_command(params, "/tmp/private", "hs2.example.test"),
+    )
+
   def test_kerberos_check_uses_one_private_cache_for_all_endpoints(self):
     params = self.params()
     context = CacheContext()
@@ -193,6 +225,7 @@ class TestHiveServerCheck(unittest.TestCase):
         "private_temporary_file",
         side_effect=private_properties,
       ) as private_file, \
+      patch.object(SERVICE_CHECK.Logger, "info"), \
       patch.object(SERVICE_CHECK.shell, "checked_call", return_value=(0, "ok")) as execute:
       check.check_hive_server(params)
 

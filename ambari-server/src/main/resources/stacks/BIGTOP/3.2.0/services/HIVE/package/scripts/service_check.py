@@ -83,7 +83,7 @@ class HiveServiceCheck(Script):
               prefix="ambari-hive-beeline-",
             ) as properties_file:
               shell.checked_call(
-                _beeline_command(params, properties_file),
+                _beeline_command(params, properties_file, address),
                 user=params.smokeuser,
                 env=environment,
                 path=params.execute_path,
@@ -106,26 +106,7 @@ class HiveServiceCheck(Script):
 
 
 def _beeline_connection_properties(params, address):
-  properties = [f"transportMode={params.hive_transport_mode}"]
-  if params.hive_transport_mode == "http":
-    properties.append(f"httpPath={params.hive_http_endpoint}")
-  if params.hive_server2_authentication == "NOSASL":
-    properties.append("auth=noSasl")
-  elif params.hive_server2_authentication == "KERBEROS":
-    properties.append(f"principal={params.hive_server_principal}")
-
-  if params.hive_ssl:
-    properties.extend(
-      (
-        "ssl=true",
-        f"sslTrustStore={params.hive_ssl_keystore_path}",
-        f"trustStorePassword={params.hive_ssl_keystore_password}",
-      )
-    )
-
-  url = f"jdbc:hive2://{address}:{params.hive_server_port}/;" + ";".join(
-    properties
-  )
+  url = _beeline_url(params, address)
   authentication = params.hive_server2_authentication
   username = params.hive_user
   password = ""
@@ -150,7 +131,45 @@ def _beeline_connection_properties(params, address):
   )
 
 
-def _beeline_command(params, properties_file):
+def _beeline_url(params, address):
+  properties = [f"transportMode={params.hive_transport_mode}"]
+  if params.hive_transport_mode == "http":
+    properties.append(f"httpPath={params.hive_http_endpoint}")
+  if params.hive_server2_authentication == "NOSASL":
+    properties.append("auth=noSasl")
+  elif params.hive_server2_authentication == "KERBEROS":
+    properties.append(f"principal={params.hive_server_principal}")
+
+  if params.hive_ssl:
+    properties.extend(
+      (
+        "ssl=true",
+        f"sslTrustStore={params.hive_ssl_keystore_path}",
+        f"trustStorePassword={params.hive_ssl_keystore_password}",
+      )
+    )
+
+  return f"jdbc:hive2://{address}:{params.hive_server_port}/;" + ";".join(
+    properties
+  )
+
+
+def _beeline_command(params, properties_file, address=None):
+  if (
+    address is not None
+    and params.hive_server2_authentication in ("NONE", "NOSASL")
+    and not params.hive_ssl
+  ):
+    # Beeline 3.1.3 falls through from --property-file to its default ZooKeeper URL.
+    return (
+      os.path.join(params.hive_bin_dir, "beeline"),
+      "-u",
+      _beeline_url(params, address),
+      "-n",
+      params.hive_user,
+      "-e",
+      "show databases",
+    )
   return (
     os.path.join(params.hive_bin_dir, "beeline"),
     "--property-file",
