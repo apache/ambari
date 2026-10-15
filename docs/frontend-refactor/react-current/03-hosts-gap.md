@@ -69,6 +69,8 @@ No known static implementation gap remains in the 46 runtime-gated IDs. `HOST-LI
 | `HOST-BULK-009` | `NEEDS_RUNTIME_VALIDATION` | Component deletion is available for Selected and Filtered, deliberately absent for All, and enforces state/minimum-count checks and dry-run results |
 | `HOST-BULK-010` | `PARTIAL` | Immediate/scheduled request creation and progress are present; complete pending-schedule/wizard/upgrade conflict enforcement remains shared with module 02 and owning flows |
 
+Bulk Recover Hosts is an intentional React extension; classic exposes Recover Host only on Host Details (`HOST-DETAIL-005`) and its bulk menu has no recover entry. The Hosts List entry reuses the classic single-host rule unchanged: a host qualifies only when every component is `INSTALLED`, `INSTALL_FAILED`, or `INIT`, and hosts with other states or no components are skipped and listed with the blocking components. Eligible hosts are submitted as one request schedule that sets every host to `INIT`, then every host to `INSTALLED`, then regenerates keytabs once for all recovered hosts on Kerberos clusters, so a single host produces the same batch as `HOST-DETAIL-005`. The response carries a request schedule id rather than a request id, so Background Operations opens at the request list, as it does for single-host recovery. `bulkRecoverHosts.test.tsx` covers eligibility, batch ordering, Kerberos regeneration, nothing-to-do, unconfirmed KDC sessions, submission failure, a missing schedule id, and single submission.
+
 ### Host Details and Actions
 
 | ID | Status | React implementation and remaining boundary |
@@ -186,7 +188,7 @@ Focused coverage includes:
 4. Start, stop, restart, install, refresh, decommission, recommission, maintain, set rack, and delete with eligible, skipped, no-op, heartbeat-lost, maintenance, and permission-denied targets.
 5. Stop/restart one and multiple NameNodes with recent, old, missing, failed, active, and standby checkpoint responses; ensure one warning/operation submission.
 6. Delete a component and host with last-master, running, unknown, special reconfiguration, config-load, config-save, component-delete, and host-delete failures.
-7. Recover hosts with every allowed/disallowed component-state mix in simple and Kerberized clusters, including expired KDC sessions and keytab failure.
+7. Recover hosts from Host Details and from the Hosts List bulk menu with every allowed/disallowed component-state mix in simple and Kerberized clusters, including expired KDC sessions and keytab failure.
 8. Validate Host Actions and component actions as Cluster User, service operator, cluster operator, cluster administrator, and Ambari administrator during normal, upgrade, wizard, and heartbeat-loss states.
 9. Validate single/all client-config downloads, encoded names, browser popup blocking, and archive contents.
 10. Run Check Host with every warning category, no warnings, create/poll failure, rerun, close, route change, and slow task response.

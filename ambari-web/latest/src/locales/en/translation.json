@@ -2647,6 +2647,12 @@
   "hosts.bulkOperation.delete.component.dryRun.message":"{0} could not be deleted from the following hosts(expand for reason)",
   "hosts.bulkOperation.delete.component.failed.header": "Delete Component failed",
   "hosts.bulkOperation.delete.component.failed.body": "Delete {0} component from {1} host failed",
+  "hosts.bulkOperation.recover.confirmation.header": "Confirm Bulk Recover Hosts",
+  "hosts.bulkOperation.recover.confirmation.body": "This action will completely re-install all components on the following hosts. <strong>Are you sure you want to continue?</strong>",
+  "hosts.bulkOperation.recover.confirmation.skip.body": "These hosts cannot be recovered unless every component is Stopped, Install Failed or Init. Please stop all components on these hosts and try again (expand for reason):",
+  "hosts.bulkOperation.recover.nothingToDo.body": "None of the selected hosts can be recovered. Please stop all components on the selected hosts and try again.",
+  "hosts.bulkOperation.recover.skipReason.components": "Components not in a recoverable state: {0}",
+  "hosts.bulkOperation.recover.skipReason.noComponents": "Host has no components to recover",
 
   "hosts.selectHostsDialog.title": "Select Configuration Group Hosts",
   "hosts.selectHostsDialog.message": "Select hosts that should belong to this {0} Configuration Group. All hosts belonging to this group will have the same set of configurations.",
