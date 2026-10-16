@@ -73,7 +73,7 @@ const LoginApi = {
     });
   },
   probeSession: async function() {
-    return ambariApi.request({
+    return supressErrorAmbariApi.request({
       url: "/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id",
       method: "GET",
     });

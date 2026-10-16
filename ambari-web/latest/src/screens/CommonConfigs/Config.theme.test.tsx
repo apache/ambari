@@ -64,7 +64,7 @@ vi.mock("../ConfigGroups/ManageConfigGroups", () => ({
   default: () => null,
 }));
 vi.mock("./AdvancedConfigs", () => ({
-  default: () => <div>Advanced configuration fallback</div>,
+  default: ({ expandByDefault }: { expandByDefault?: boolean }) => <div data-expand-default={String(expandByDefault)}>Advanced configuration fallback</div>,
 }));
 vi.mock("./TestConnection", () => ({
   default: (props: Record<string, unknown>) => {
@@ -558,6 +558,7 @@ describe("Ember Service Theme page integration", () => {
     renderConfig(directoriesTheme, configs(), { allThemes: true });
 
     expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+    expect(screen.getByText("Advanced configuration fallback").getAttribute("data-expand-default")).toBe("true");
     expect(screen.queryByRole("tab", { name: "Directories" })).toBeNull();
     expect(screen.queryByText("DATA DIRS")).toBeNull();
     expect(screen.queryByText("LOG DIRS")).toBeNull();
@@ -582,6 +583,70 @@ describe("Ember Service Theme page integration", () => {
 
     fireEvent.click(screen.getByText("Advanced"));
     expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+  });
+
+  it("keeps Advanced available for an empty custom category when every property is themed", async () => {
+    const source = configs();
+    source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
+    source.SVC.site.properties.primary.tabName = "first";
+    source.SVC["Custom site"] = { errors: 0, properties: {} };
+    renderConfig(topTabTheme(), source);
+
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    const advanced = screen.getByRole("tab", { name: "Advanced" });
+    expect(advanced.getAttribute("aria-disabled")).not.toBe("true");
+    fireEvent.click(advanced);
+    expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+  });
+
+  it.each(["readonly", "host", "env", "forbidden"])("hides an empty Advanced tab in %s context", async (context) => {
+    const source = configs();
+    source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
+    source.SVC.site.properties.primary.tabName = "first";
+    source.SVC[context === "env" ? "Custom service-env" : "Custom site"] = { errors: 0, properties: {}, canAddProperties: context !== "forbidden" };
+    if (context === "readonly") mocks.hasAuthorization.mockReturnValue(false);
+    renderConfig(topTabTheme(), source, { hostConfigs: context === "host" });
+
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.queryByRole("tab", { name: "Advanced" })).toBeNull();
+  });
+
+  it("hides Advanced when all configuration files are themed and no custom category exists", async () => {
+    const source = configs();
+    source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
+    source.SVC.site.properties.primary.tabName = "first";
+    renderConfig(topTabTheme(), source);
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.queryByRole("tab", { name: "Advanced" })).toBeNull();
+  });
+
+  it("returns to a file tab when the last Advanced action becomes unavailable", async () => {
+    const source = configs();
+    source.SVC.site.properties = { primary: source.SVC.site.properties.primary };
+    source.SVC.site.properties.primary.tabName = "first";
+    source.SVC["Custom site"] = { errors: 0, properties: {}, canAddProperties: true };
+    const view = renderConfig(topTabTheme(), source);
+    await screen.findByDisplayValue("primary value");
+    fireEvent.click(screen.getByRole("tab", { name: "Advanced" }));
+    expect(await screen.findByText("Advanced configuration fallback")).toBeTruthy();
+    const next = structuredClone(source);
+    next.SVC["Custom site"].canAddProperties = false;
+    view.rerender(configElement(topTabTheme(), next));
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.queryByRole("tab", { name: "Advanced" })).toBeNull();
+  });
+
+  it("retains Advanced when filtering hides an existing unthemed property", async () => {
+    const source = configs();
+    source.SVC.site.properties = {
+      primary: source.SVC.site.properties.primary,
+      secondary: { ...source.SVC.site.properties.secondary, isVisible: false, isHidden: true },
+    };
+    source.SVC.site.properties.primary.tabName = "first";
+    renderConfig(compactTheme([{ config: "site/primary", "subsection-name": "subsection" }],
+      [{ config: "site/primary", widget: { type: "text-field" } }]), source);
+    expect(await screen.findByDisplayValue("primary value")).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Advanced" }).getAttribute("aria-disabled")).toBe("true");
   });
 
   it("operates visible top-level tabs with the keyboard", async () => {

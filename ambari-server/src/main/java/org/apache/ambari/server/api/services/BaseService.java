@@ -105,9 +105,16 @@ public abstract class BaseService {
   private ResultSerializer m_serializer = new JsonSerializer();
 
   protected static RequestAuditLogger requestAuditLogger;
+  private static org.apache.ambari.server.mpack.MpackRuntime definitionRuntime;
 
   public static void init(RequestAuditLogger instance) {
     requestAuditLogger = instance;
+    definitionRuntime = null;
+  }
+
+  public static void init(RequestAuditLogger instance, org.apache.ambari.server.mpack.MpackRuntime runtime) {
+    requestAuditLogger = instance;
+    definitionRuntime = runtime;
   }
 
   /**
@@ -146,6 +153,29 @@ public abstract class BaseService {
                                    UriInfo uriInfo, Request.Type requestType,
                                    MediaType mediaType, ResourceInstance resource) {
 
+    Map<Resource.Type, String> keys = resource.getKeyValueMap();
+    if (keys == null) {
+      keys = java.util.Collections.emptyMap();
+    }
+    boolean definitions = keys.containsKey(Resource.Type.Cluster) || keys.containsKey(Resource.Type.Stack)
+        || keys.containsKey(Resource.Type.Extension) || keys.containsKey(Resource.Type.ExtensionLink);
+    java.util.concurrent.locks.Lock read = definitionRuntime == null || !definitions ? null : definitionRuntime.readLock();
+    if (read != null) read.lock();
+    try {
+      if (read != null) definitionRuntime.requireResourceReadable(keys);
+      return handleRequestWithDefinitions(headers, body, uriInfo, requestType, mediaType, resource);
+    } catch (org.apache.ambari.server.mpack.MpackException e) {
+      return new MpackExceptionMapper().toResponse(e);
+    } finally {
+      if (read != null) {
+        read.unlock();
+      }
+    }
+  }
+
+  private Response handleRequestWithDefinitions(HttpHeaders headers, String body,
+      UriInfo uriInfo, Request.Type requestType, MediaType mediaType, ResourceInstance resource) {
+
     // original request and initial result
     RequestBody rb = new RequestBody();
     rb.setBody(body);
@@ -154,6 +184,18 @@ public abstract class BaseService {
 
     try {
       Set<RequestBody> requestBodySet = getBodyParser().parse(body);
+
+      if (definitionRuntime != null && requestType != Request.Type.GET
+          && resource.getResourceDefinition().getType() != Resource.Type.Request
+          && resource.getResourceDefinition().getType() != Resource.Type.Task) {
+        if (requestBodySet.isEmpty()) definitionRuntime.requireResourceMutation(resource.getKeyValueMap(), java.util.Map.of());
+        for (RequestBody requestBody : requestBodySet) {
+          definitionRuntime.requireResourceMutation(resource.getKeyValueMap(), java.util.Map.of());
+          for (NamedPropertySet properties : requestBody.getNamedPropertySets()) {
+            definitionRuntime.requireResourceMutation(resource.getKeyValueMap(), properties.getProperties());
+          }
+        }
+      }
 
       Iterator<RequestBody> iterator = requestBodySet.iterator();
       while (iterator.hasNext() && result.getStatus().getStatus().equals(ResultStatus.STATUS.OK)) {

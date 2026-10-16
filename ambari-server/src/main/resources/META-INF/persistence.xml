@@ -111,6 +111,7 @@
     <class>org.apache.ambari.server.orm.entities.RemoteAmbariClusterServiceEntity</class>
     <class>org.apache.ambari.server.orm.entities.AmbariConfigurationEntity</class>
     <class>org.apache.ambari.server.orm.entities.MpackEntity</class>
+    <class>org.apache.ambari.server.orm.entities.MpackRecordEntity</class>
 
     <properties>
       <property name="eclipselink.cache.size.default" value="10000" />

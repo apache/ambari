@@ -71,6 +71,18 @@ public class ServiceInfo implements Validable {
   @XmlTransient
   private String schemaVersion;
 
+  @XmlTransient
+  private Set<String> definitionResourceRoots = new HashSet<>();
+
+  @JsonIgnore
+  public Set<String> getDefinitionResourceRoots() {
+    return Collections.unmodifiableSet(definitionResourceRoots);
+  }
+
+  public void addDefinitionResourceRoots(Collection<String> roots) {
+    definitionResourceRoots.addAll(roots);
+  }
+
   private String name;
   private String displayName;
   private String version;

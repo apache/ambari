@@ -37,7 +37,6 @@ import org.apache.ambari.server.controller.internal.MpackResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.http.HttpStatus;
 
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -49,8 +48,7 @@ import io.swagger.annotations.ApiResponses;
  * Service for Mpacks Management.
  * Endpoint for Mpack Data
  */
-@Path("/mpacks/")
-@Api(value = "Mpacks", description = "Endpoint for mpack-specific operations")
+@Deprecated
 public class MpacksService extends BaseService {
 
   private static final String MPACK_REQUEST_TYPE = "org.apache.ambari.server.api.services.MpackRequestSwagger";

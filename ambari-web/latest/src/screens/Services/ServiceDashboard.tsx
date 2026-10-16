@@ -149,6 +149,7 @@ function ServiceDashboard({
     <div className="p-4">
       <Row>
         <Col md={12} style={{ position: "relative" }}>
+          <Actions serviceName={serviceName!} className="action-btn" />
           <Tabs
             id="service-tabs"
             className="ambari-tabs"
@@ -203,7 +204,6 @@ function ServiceDashboard({
               </Tab>
             ) : null}
           </Tabs>
-          <Actions serviceName={serviceName!} className="action-btn" />
         </Col>
       </Row>
     </div>

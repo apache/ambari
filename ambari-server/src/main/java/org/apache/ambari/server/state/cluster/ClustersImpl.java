@@ -963,6 +963,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation(org.apache.ambari.server.mpack.MpackMutation.Kind.STACK)
   public void deleteCluster(String clusterName)
       throws AmbariException {
     Cluster requestedCluster = getCluster(clusterName);

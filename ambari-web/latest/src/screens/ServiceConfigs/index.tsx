@@ -67,6 +67,7 @@ import useEnhancedConfigs from "../../hooks/useEnhancedConfigs";
 import useHostComponents from "../ClusterWizard/hooks/useHostComponents";
 import Table from "../../components/Table";
 import useServerValidation from "../../hooks/useServerValidation";
+import { migrateConfigContent } from "../../Utils/contentConfigMigration";
 import { translate } from "../../Utils/Utility";
 import { kyuubi_properties } from "../../data/configs/services/kyuubi_properties";
 import { sqoop_properties } from "../../data/configs/services/sqoop_properties";
@@ -656,13 +657,17 @@ export default function ServiceConfigs({
     Object.keys(configPropertiesCopy).forEach(serviceName => {
       if (isObject(configPropertiesCopy[serviceName])) {
         Object.keys(configPropertiesCopy[serviceName]).forEach(configType => {
-          // if (!!!configType.endsWith("env")) {
+            const metadata = configs?.items?.find(
+              (item: any) => item.StackServices?.service_name === serviceName,
+            )?.StackServices?.config_types?.[configType];
+            const addingForbidden = metadata?.supports?.adding_forbidden;
             configPropertiesCopy[serviceName]["Custom " + configType] = {
               errors: 0,
               properties: {},
               displayName: "Custom " + configType,
+              canAddProperties: addingForbidden !== "true" && addingForbidden !== true &&
+                selectedVersion === defaultVersionNumber,
             };
-          // }
         });
       }
     });
@@ -1039,6 +1044,7 @@ export default function ServiceConfigs({
           result[serviceName][configType] = {
             errors: 0,
             properties: {},
+            canAddProperties: configPropertiesCopy[serviceName][configType].canAddProperties,
             displayName: !configType.includes("Custom")
               ? "Advanced " + configType
               : configType,
@@ -1074,7 +1080,20 @@ export default function ServiceConfigs({
     const result = cloneDeep(configPropertiesCopy);
 
     Object.keys(result).forEach((serviceName) => {
+      const defaultVersions = (propertyValues.items || []).filter(
+        (item: any) => item.service_name === serviceName && item.group_name === "Default",
+      );
+      const existingTypes = new Set<string>(
+        defaultVersions
+          .flatMap((item: any) => (item.configurations || []).map((config: any) => config.type)),
+      );
       Object.keys(result[serviceName]).forEach((configType) => {
+        // A newly introduced config type needs editable defaults on the current version.
+        // Missing properties in an existing type remain deleted, including in history.
+        if (selectedVersion === defaultVersionNumber && defaultVersions.length === 1 &&
+            Array.isArray(defaultVersions[0].configurations) && !existingTypes.has(configType.replace(/^Custom /, ""))) {
+          return;
+        }
         const propertiesToDelete: string[] = [];
 
         Object.keys(result[serviceName][configType].properties).forEach(
@@ -1230,6 +1249,8 @@ export default function ServiceConfigs({
 
     // Remove properties that don't have corresponding values in propertyValues
     configPropertiesCopy = removePropertiesWithoutValues(configPropertiesCopy);
+    configPropertiesCopy = migrateConfigContent(configPropertiesCopy, propertyValues,
+      selectedVersion === defaultVersionNumber, serviceName);
 
     // Create the updated configuration structure with host information
     let updatedConfigProperties =
@@ -1544,23 +1565,21 @@ export default function ServiceConfigs({
                 />
               </div>
             </div>
-            {themeLoadNotice && (
+            {themeLoadNotice && themeLoadNotice.kind !== "empty" && (
               <Alert
-                variant={themeLoadNotice.kind === "empty" ? "info" : "warning"}
+                variant="warning"
                 className="mx-3 d-flex justify-content-between align-items-center gap-3"
               >
                 <div>
                   <div>
-                    {themeLoadNotice.kind === "empty"
-                      ? `No Theme layout is defined for ${serviceName}.`
-                      : `Theme layout for ${serviceName} could not be loaded.`}
+                    {`Theme layout for ${serviceName} could not be loaded.`}
                     {" "}
                     Configuration properties remain available in the Advanced
                     tab.
                   </div>
                   <small>{themeLoadNotice.message}</small>
                 </div>
-                {themeLoadNotice.kind !== "empty" && (
+                {(
                   <Button
                     size="sm"
                     variant="outline-warning"

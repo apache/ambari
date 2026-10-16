@@ -36,6 +36,10 @@ public class MetadataServiceInfo {
   @JsonProperty("service_package_folder")
   private String servicePackageFolder;
 
+  @JsonProperty("mpack_definition_snapshot")
+  @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+  private String definitionSnapshot;
+
   public MetadataServiceInfo(String version, Boolean credentialStoreEnabled,
                              Map<String, Map<String, String>> credentialStoreEnabledProperties,
                              Long statusCommandsTimeout, String servicePackageFolder) {
@@ -44,6 +48,13 @@ public class MetadataServiceInfo {
     this.credentialStoreEnabledProperties = credentialStoreEnabledProperties;
     this.statusCommandsTimeout = statusCommandsTimeout;
     this.servicePackageFolder = servicePackageFolder;
+  }
+
+  public MetadataServiceInfo(String version, Boolean credentialStoreEnabled,
+      Map<String, Map<String, String>> credentialStoreEnabledProperties,
+      Long statusCommandsTimeout, String servicePackageFolder, String definitionSnapshot) {
+    this(version, credentialStoreEnabled, credentialStoreEnabledProperties, statusCommandsTimeout, servicePackageFolder);
+    this.definitionSnapshot = definitionSnapshot;
   }
 
   public String getVersion() {
@@ -92,6 +103,7 @@ public class MetadataServiceInfo {
     if (o == null || getClass() != o.getClass()) return false;
 
     MetadataServiceInfo that = (MetadataServiceInfo) o;
+    if (!java.util.Objects.equals(definitionSnapshot, that.definitionSnapshot)) return false;
 
     if (version != null ? !version.equals(that.version) : that.version != null) return false;
     if (credentialStoreEnabled != null ? !credentialStoreEnabled.equals(that.credentialStoreEnabled) : that.credentialStoreEnabled != null)
@@ -110,6 +122,7 @@ public class MetadataServiceInfo {
     result = 31 * result + (credentialStoreEnabledProperties != null ? credentialStoreEnabledProperties.hashCode() : 0);
     result = 31 * result + (statusCommandsTimeout != null ? statusCommandsTimeout.hashCode() : 0);
     result = 31 * result + (servicePackageFolder != null ? servicePackageFolder.hashCode() : 0);
+    result = 31 * result + java.util.Objects.hashCode(definitionSnapshot);
     return result;
   }
 }

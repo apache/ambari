@@ -24,19 +24,22 @@ import RoutesList from "./router/RoutesList";
 import { UserProvider } from "./store/UserContext";
 import Spinner from "./components/Spinner";
 import "./styles/app.scss";
+import "./styles/console.scss";
+import "./styles/theme.scss";
+import { ThemeProvider } from "./store/ThemeContext";
 
 const router = createHashRouter(RoutesList);
 
 function App() {
   return (
-    <HelmetProvider>
+    <ThemeProvider><HelmetProvider>
       <Suspense fallback={<Spinner />}>
         <UserProvider>
-          <Toaster />
+          <Toaster toastOptions={{ style: { background: "var(--console-surface)", color: "var(--console-ink)", border: "1px solid var(--console-line)" } }} />
           <RouterProvider router={router} />
         </UserProvider>
       </Suspense>
-    </HelmetProvider>
+    </HelmetProvider></ThemeProvider>
   );
 }
 

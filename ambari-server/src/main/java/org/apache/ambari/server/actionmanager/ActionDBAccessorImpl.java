@@ -146,6 +146,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   Provider<EntityManager> entityManagerProvider;
 
   @Inject
+  private org.apache.ambari.server.mpack.MpackRuntime mpackRuntime;
+
+  @Inject
   AmbariEventPublisher ambariEventPublisher;
 
   @Inject
@@ -352,6 +355,24 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Override
   @Transactional(rollbackOn = {RuntimeException.class, AmbariException.class})
   public void persistActions(Request request) throws AmbariException {
+    if (mpackRuntime != null) {
+      java.util.concurrent.locks.Lock definitionRead = mpackRuntime.readLock();
+      if (!definitionRead.tryLock()) {
+        throw new org.apache.ambari.server.mpack.MpackException(
+            org.apache.ambari.server.mpack.MpackException.Code.OPERATION_CONFLICT,
+            "Definitions changed while host tasks were being prepared");
+      }
+      try {
+        org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor.holdLockUntilTransactionCompletion(definitionRead);
+        for (HostRoleCommand command : request.getCommands()) {
+          if (command.getExecutionCommandWrapper() != null) {
+            command.getExecutionCommandWrapper().pinResourcesBeforePersistence();
+          }
+        }
+      } finally {
+        definitionRead.unlock();
+      }
+    }
     try {
       managedDependencyRuntimePlanner.get().executeWithPreparationParentLocks(request,
           () -> actionPersistenceTransaction.persist(this, request));
@@ -477,6 +498,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     }
 
     managedDependencyCredentialManager.associate(requestId, hostRoleCommands);
+
+    org.apache.ambari.server.orm.AmbariJpaLocalTxnInterceptor.afterCommit(() ->
+        hostRoleCommands.forEach(command -> {
+          if (command.getExecutionCommandWrapper() != null) {
+            command.getExecutionCommandWrapper().markPersisted();
+          }
+        }));
 
     requestEntity.setStages(stageEntities);
     requestDAO.merge(requestEntity);
@@ -909,6 +937,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation(org.apache.ambari.server.mpack.MpackMutation.Kind.TASK_CONTROL)
   public void resubmitTasks(List<Long> taskIds) {
     List<HostRoleCommandEntity> tasks = hostRoleCommandDAO.findByPKs(taskIds);
     Set<RequestEntity> requestEntities = new HashSet<>();

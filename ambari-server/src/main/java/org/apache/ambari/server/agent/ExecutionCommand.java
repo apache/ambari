@@ -368,6 +368,25 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   public void setCommandParams(Map<String, String> commandParams) {
+    if (this.commandParams != null && this.commandParams.containsKey(
+        org.apache.ambari.server.mpack.MpackExecutionResources.SNAPSHOT_ID)) {
+      Map<String, String> merged = new java.util.TreeMap<>(commandParams == null ? java.util.Map.of() : commandParams);
+      for (String key : org.apache.ambari.server.mpack.MpackExecutionResources.PINNED_KEYS) {
+        String pinned = this.commandParams.get(key);
+        if (pinned != null) {
+          if (merged.containsKey(key) && !pinned.equals(merged.get(key))) {
+            String prefix = "mpacks/" + this.commandParams.get(
+                org.apache.ambari.server.mpack.MpackExecutionResources.SNAPSHOT_ID) + "/";
+            if (!key.equals("service_package_folder") || !pinned.equals(prefix + merged.get(key))) {
+              throw new IllegalArgumentException("A command cannot change its pinned management pack resources");
+            }
+          }
+          merged.put(key, pinned);
+        }
+      }
+      this.commandParams = merged;
+      return;
+    }
     this.commandParams = commandParams;
   }
 

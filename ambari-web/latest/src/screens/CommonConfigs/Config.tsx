@@ -837,6 +837,11 @@ export default function Config({
           if (config.includes("Custom") && config.endsWith("env")) {
             return false;
           }
+          // Empty custom categories still contain the Add Property action.
+          if (config.startsWith("Custom ") && !hostConfigs && canEditConfigsInContext && !searchString &&
+              configProperties[serviceName][config].canAddProperties !== false) {
+            return true;
+          }
           const currentConfigValue = configProperties[serviceName][config];
           const filteredPropertiesCount = Object.keys(
             currentConfigValue.properties || {},
@@ -915,15 +920,32 @@ export default function Config({
   const hasVisiblePropertiesInCurrentTab = () =>
     hasVisiblePropertiesInTab(chosenService, chosenTab);
 
+  const configurationTabNames = (serviceName: string) => {
+    const names = Object.keys(theme[serviceName]?.tabs ?? {});
+    if (names.length <= 1) return names;
+    const hasAdvancedEntries = Object.entries(configProperties[serviceName] || {}).some(
+      ([name, section]: [string, any]) => {
+        if (name.includes("Custom") && name.endsWith("env")) return false;
+        if (name.startsWith("Custom ") && !hostConfigs && canEditConfigsInContext &&
+            section.canAddProperties !== false) return true;
+        // Keep tabs stable while a search temporarily hides their properties.
+        return Object.values(section.properties || {}).some(
+          (property: any) => !property.tabName && property.value !== null,
+        );
+      },
+    );
+    return names.filter(name => name !== "Advanced" || hasAdvancedEntries);
+  };
+
   useEffect(() => {
-    const tabNames = Object.keys(theme[chosenService]?.tabs ?? {});
+    const tabNames = configurationTabNames(chosenService);
     if (tabNames.length === 0) return;
     const visibleTabNames = tabNames.filter((tabName) =>
       hasVisiblePropertiesInTab(chosenService, tabName),
     );
     if (visibleTabNames.includes(chosenTab)) return;
     setChosenTab(visibleTabNames[0] ?? tabNames[0]);
-  }, [chosenService, chosenTab, configProperties, theme]);
+  }, [chosenService, chosenTab, configProperties, theme, hostConfigs, canEditConfigsInContext]);
 
   const renderWidgets = (
     widgetType: string,
@@ -2528,7 +2550,7 @@ export default function Config({
                                   {theme[serviceKey]?.tabs &&
                                     Object.keys(theme[serviceKey].tabs).length >
                                       1 &&
-                                    Object.keys(theme[serviceKey].tabs).map(
+                                    configurationTabNames(serviceKey).map(
                                       (tabName) => {
                                         const tabIsVisible =
                                           hasVisiblePropertiesInTab(
@@ -3610,6 +3632,7 @@ export default function Config({
                                         ) : (
                                           <div className="mt-4">
                                             <AdvancedConfigs
+                                              expandByDefault={Object.keys(theme?.[serviceKey]?.tabs || {}).every(name => name === "Advanced")}
                                               chosenService={chosenService}
                                               setTabErrors={setTabErrors}
                                               setConfigProperties={

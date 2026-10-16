@@ -22,13 +22,14 @@ import { useAuth } from "../../hooks/useAuth";
 import useClusterPath from "../../hooks/useClusterPath";
 import ScopedNavigate from "../../components/ScopedNavigate";
 import "./monitoring.scss";
+import { useWorkspaceText } from "./workspace";
 
 const links = [
-  ["Dashboards", "/main/monitoring/dashboards", "CLUSTER.VIEW_METRICS"],
-  ["Explore", "/main/monitoring/explorer", "CLUSTER.VIEW_METRICS"],
-  ["Targets", "/main/monitoring/targets", "HOST.VIEW_METRICS"],
-  ["Data sources", "/main/monitoring/data-sources", "CLUSTER.VIEW_METRICS"],
-];
+  ["dashboards", "/main/monitoring/dashboards", "CLUSTER.VIEW_METRICS"],
+  ["explore", "/main/monitoring/explorer", "CLUSTER.VIEW_METRICS"],
+  ["targets", "/main/monitoring/targets", "HOST.VIEW_METRICS"],
+  ["sources", "/main/monitoring/data-sources", "CLUSTER.VIEW_METRICS"],
+] as const;
 
 export function MonitoringIndexRedirect() {
   const { hasAuthorization } = useAuth();
@@ -42,6 +43,7 @@ export function MonitoringIndexRedirect() {
 }
 
 export default function MonitoringLayout() {
+  const text = useWorkspaceText();
   const { hasAuthorization } = useAuth();
   const scopedPath = useClusterPath();
 
@@ -49,13 +51,13 @@ export default function MonitoringLayout() {
     <div className="monitoring-shell">
       <header className="monitoring-header">
         <div>
-          <h1>Monitoring</h1>
-          <p>Prometheus queries, dashboards, scrape targets, and datasource connections</p>
+          <h1>{text("title")}</h1>
+          <p>{text("subtitle")}</p>
         </div>
         <Nav className="monitoring-nav" variant="underline">
           {links.filter(([, , permission]) => hasAuthorization(permission)).map(([label, to]) => (
             <NavLink key={to} className="nav-link" to={scopedPath(to)}>
-              {label}
+              {text(label)}
             </NavLink>
           ))}
         </Nav>

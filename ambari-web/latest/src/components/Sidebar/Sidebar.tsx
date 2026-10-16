@@ -24,7 +24,9 @@ import {
   faAngleDoubleLeft,
   faAngleDoubleRight,
   faBriefcase,
-  faSync
+  faSync,
+  faLayerGroup,
+  faCubes,
 } from "@fortawesome/free-solid-svg-icons";
 import { SideItemLabels, getSideItemList } from "./SideItemList";
 import { AppContext } from "../../store/context.tsx";
@@ -38,8 +40,11 @@ import {
 } from "../../constants.ts";
 import { displayOrder } from "../../screens/ClusterWizard/constants";
 import { isEmpty } from "lodash";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import { useTranslation } from "react-i18next";
+import { Fragment } from "react";
+import { rememberWorkspace } from "../../Utils/workspaceNavigation";
 type SideBarProps = {
   isRoot?: boolean;
   isSidebarCollapsed: boolean;
@@ -52,6 +57,18 @@ const SideBar = ({
   setIsSidebarCollapsed,
 }: SideBarProps) => {
   const { t } = useTranslation();
+  const { isAdmin, user } = useAuth();
+  const location = useLocation();
+  const returnTo = { pathname: location.pathname, search: location.search };
+  useEffect(() => { rememberWorkspace(user?.user_name || "", location.pathname + location.search); }, [user?.user_name, location.pathname, location.search]);
+  const globalLinks = <div className="sidebar-global">
+    <Link to="/clusters" state={{ workspaceReturn: { username: user?.user_name, path: returnTo.pathname + returnTo.search } }} title={t("directory.clusters")} aria-label={t("directory.clusters")}>
+      <FontAwesomeIcon icon={faLayerGroup} />{!isSidebarCollapsed && t("directory.clusters")}
+    </Link>
+    {isAdmin() && <Link to="/mpacks" state={{ workspaceReturn: { username: user?.user_name, path: returnTo.pathname + returnTo.search } }} title={t("mpack.title")} aria-label={t("mpack.title")}>
+      <FontAwesomeIcon icon={faCubes} />{!isSidebarCollapsed && t("mpack.title")}
+    </Link>}
+  </div>;
   const {
     clusterName,
     services: contextServices,
@@ -60,7 +77,6 @@ const SideBar = ({
   const [openOptions, setOpenOptions] = useState<string[]>([SideItemLabels.SERVICES]);
   const [selectedOption, setSelectedOption] = useState<string>("");
   const { allServiceModels, serviceStatesData, polledHostComponentsData } = useContext(ServiceContext);
-  const location = useLocation();
 
   // Derive the set of service names that currently have any host component with
   // stale_configs === true. This mirrors RestartWarning.tsx so the Sidebar restart
@@ -89,6 +105,7 @@ const SideBar = ({
   const [services, setServices] = useState<
     {
       name: string;
+      serviceName: string;
       state: string;
       alertsCountDisplay?: string;
       noAlerts?: boolean;
@@ -223,8 +240,8 @@ const SideBar = ({
       return {
         ...item,
         children: services.map((service) => ({
-          id: service.name,
-          path: `/main/services/${service?.name?.replace(" ","_")?.toUpperCase()}/summary`,
+          id: service.serviceName,
+          path: `/main/services/${encodeURIComponent(service.serviceName)}/summary`,
           name: (
             <div className="d-flex align-items-center w-100 pe-3">
                 <div
@@ -325,11 +342,12 @@ const SideBar = ({
   if (!isSidebarCollapsed) {
     return (
       <div
-        className="bg-secondary h-100 d-flex flex-column justify-content-between overflow-scroll no-scrollbar"
+        className="console-sidebar h-100 d-flex flex-column justify-content-between overflow-scroll no-scrollbar"
         style={{ width: 230, position: "fixed", zIndex: 10 }}
       >
         <div>
           {updatedSideItemList.map((ele) => {
+            if (ele.id === SideItemLabels.LOGO) return <Fragment key={ele.id}><SidebarItem ele={ele} isSelected={false} />{globalLinks}<div className="sidebar-cluster-label">{clusterName}</div></Fragment>;
             if (ele.children.length) {
               return (
                 <div key={ele.id}>
@@ -406,25 +424,26 @@ const SideBar = ({
             }
           })}
         </div>
-        <div
-          className="py-3 d-flex justify-content-center text-primary"
-          style={{ background: "#313d54", cursor: "pointer" }}
+        <div><button
+          className="sidebar-toggle"
+          aria-label={t("monitoringWorkspace.collapseNavigation")}
           onClick={() => {
             setIsSidebarCollapsed(!isSidebarCollapsed);
           }}
         >
           <FontAwesomeIcon icon={faAngleDoubleLeft} />
-        </div>
+        </button></div>
       </div>
     );
   } else {
     return (
       <div
-        className="bg-secondary h-100 d-flex flex-column justify-content-between"
+        className="console-sidebar h-100 d-flex flex-column justify-content-between"
         style={{ width: 60 }}
       >
         <div>
           {authorizedSideItemList.map((ele) => {
+            if (ele.id === SideItemLabels.LOGO) return <Fragment key={ele.id}><SidebarItemCollapsed ele={ele} isSelected={false} />{globalLinks}</Fragment>;
             return (
               <SidebarItemCollapsed
                 key={ele.id}
@@ -438,15 +457,15 @@ const SideBar = ({
             );
           })}
         </div>
-        <div
-          className="py-3 d-flex justify-content-center text-primary"
-          style={{ background: "#313d54", cursor: "pointer" }}
+        <div><button
+          className="sidebar-toggle"
+          aria-label={t("monitoringWorkspace.expandNavigation")}
           onClick={() => {
             setIsSidebarCollapsed(!isSidebarCollapsed);
           }}
         >
           <FontAwesomeIcon icon={faAngleDoubleRight} />
-        </div>
+        </button></div>
       </div>
     );
   }

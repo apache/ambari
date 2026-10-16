@@ -23,6 +23,15 @@ import com.google.gson.annotations.SerializedName;
  * Agent environment data.
  */
 public class AgentEnv {
+  private String[] resourceProtocols = new String[0];
+
+  public String[] getResourceProtocols() {
+    return resourceProtocols == null ? new String[0] : resourceProtocols.clone();
+  }
+
+  public void setResourceProtocols(String[] protocols) {
+    resourceProtocols = protocols == null ? new String[0] : protocols.clone();
+  }
 
   /**
    * Various directories, configurable in <code>ambari-agent.ini</code>

@@ -67,10 +67,7 @@ import {
   PANEL_TYPE_OPTIONS,
 } from "./dashboardWorkspace";
 
-const toLocalInput = (date: Date) => {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-};
+import { localDateTime as toLocalInput, readRefreshPreference, refreshPreferenceKey, saveRefreshPreference, useWorkspaceText } from "../workspace";
 
 const metadataSnapshot = (dashboard: Dashboard | null) => dashboard ? JSON.stringify({
   name: dashboard.name,
@@ -106,7 +103,9 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   const dashboardId = dashboardIdProp || routeDashboardId;
   const navigate = useClusterNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { clusterName } = useContext(AppContext);
+  const { clusterName, loginName } = useContext(AppContext);
+  const text = useWorkspaceText();
+  const refreshStorageKey = refreshPreferenceKey(clusterName || "", String(loginName || ""));
   const { hasAuthorization } = useAuth();
   const canManage = hasAuthorization("CLUSTER.MANAGE_USER_PERSISTED_DATA");
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -122,7 +121,7 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   const [start, setStart] = useState(toLocalInput(new Date(Date.now() - 60 * 60 * 1000)));
   const [end, setEnd] = useState(toLocalInput(new Date()));
   const [rangeMinutes, setRangeMinutes] = useState(60);
-  const [autoRefresh, setAutoRefresh] = useState(0);
+  const [autoRefresh, setAutoRefresh] = useState(() => readRefreshPreference(refreshStorageKey));
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -133,6 +132,7 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   const [panelEditor, setPanelEditor] = useState<Panel | null>(null);
   const [saving, setSaving] = useState(false);
   const [collapsedRows, setCollapsedRows] = useState<Set<string>>(new Set());
+  useEffect(() => { setAutoRefresh(readRefreshPreference(refreshStorageKey)); }, [refreshStorageKey]);
 
   const payloadDirty = JSON.stringify(payload) !== JSON.stringify(savedPayload);
   const metadataDirty = metadataSnapshot(dashboard) !== metadataSnapshot(savedDashboard);
@@ -232,10 +232,10 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
   }, [rangeMinutes]);
 
   useEffect(() => {
-    if (!autoRefresh) return undefined;
+    if (!autoRefresh || !rangeMinutes || isEditing) return undefined;
     const timer = window.setInterval(refresh, autoRefresh * 1000);
     return () => window.clearInterval(timer);
-  }, [autoRefresh, refresh]);
+  }, [autoRefresh, refresh, rangeMinutes, isEditing]);
 
   const beginEditing = () => {
     if (embedded && dashboard) {
@@ -350,7 +350,7 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
           <div className="dashboard-workspace-title">
             <div className="d-flex align-items-center gap-2">
               <h2>{dashboard.name}</h2>
-              {dashboard.built_in ? <Badge bg="info">Built in</Badge> : null}
+              {dashboard.built_in ? <Badge bg="info">{text("builtIn")}</Badge> : null}
               {isEditing && <Badge bg={dirty ? "warning" : "secondary"} text={dirty ? "dark" : undefined}>{dirty ? "Unsaved" : "Editing"}</Badge>}
             </div>
             <div className="dashboard-workspace-meta">{dashboard.tags || "No tags"}<span />Updated {new Date(dashboard.update_at * 1000).toLocaleString()}</div>
@@ -400,16 +400,17 @@ export default function DashboardPage({ dashboardId: dashboardIdProp, embedded =
               setStart(toLocalInput(new Date(now.getTime() - minutes * 60_000)));
             }
           }}>
-            <option value={15}>Last 15 minutes</option><option value={60}>Last hour</option><option value={360}>Last 6 hours</option><option value={1440}>Last 24 hours</option><option value={10080}>Last 7 days</option><option value={0}>Custom range</option>
+            <option value={15}>{text("last15")}</option><option value={60}>{text("last60")}</option><option value={360}>{text("last360")}</option><option value={1440}>{text("last1440")}</option><option value={10080}>{text("last10080")}</option><option value={0}>{text("customRange")}</option>
           </Form.Select>
           {rangeMinutes === 0 && <><Form.Control aria-label="Start time" size="sm" type="datetime-local" value={start} onChange={(event) => setStart(event.target.value)} /><Form.Control aria-label="End time" size="sm" type="datetime-local" value={end} onChange={(event) => setEnd(event.target.value)} /></>}
-          <Form.Select aria-label="Auto refresh" title="Auto refresh" size="sm" className="dashboard-auto-refresh" value={autoRefresh} onChange={(event) => setAutoRefresh(Number(event.target.value))}>
-            <option value={0}>Refresh off</option><option value={10}>Every 10s</option><option value={30}>Every 30s</option><option value={60}>Every 1m</option><option value={300}>Every 5m</option>
+          <Form.Select aria-label="Auto refresh" title={text("autoRefresh")} size="sm" className="dashboard-auto-refresh" disabled={rangeMinutes === 0 || isEditing} value={autoRefresh} onChange={(event) => { const value = Number(event.target.value); setAutoRefresh(value); saveRefreshPreference(refreshStorageKey, value); }}>
+            <option value={0}>{text("refreshOff")}</option><option value={10}>{text("every10")}</option><option value={30}>{text("every30")}</option><option value={60}>{text("every60")}</option><option value={300}>{text("every300")}</option>
           </Form.Select>
-          <Button size="sm" variant="outline-secondary" title="Refresh panels" onClick={refresh}><FontAwesomeIcon icon={faRotate} /></Button>
+          <Button size="sm" variant="outline-secondary" title="Refresh panels" aria-label={text("refresh")} onClick={refresh}><FontAwesomeIcon icon={faRotate} /></Button>
         </div>
       </div>
 
+      {autoRefresh === 0 && rangeMinutes > 0 && <div className="monitoring-refresh-notice">{text("paused")} <Button size="sm" variant="link" onClick={() => { setAutoRefresh(30); saveRefreshPreference(refreshStorageKey, 30); refresh(); }}>{text("resume")}</Button></div>}
       {panels.length === 0
         ? <div className="dashboard-empty-canvas"><strong>No panels yet</strong>{isEditing ? <Button variant="success" size="sm" onClick={() => openNewPanel("timeseries")}><FontAwesomeIcon icon={faPlus} className="me-2" />Add first panel</Button> : <span>This dashboard does not contain any panels.</span>}</div>
         : <DashboardLayout

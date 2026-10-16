@@ -186,6 +186,14 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   public RepositoryVersionEntity create(StackEntity stackEntity,
                                         String version, String displayName, List<RepoOsEntity> repoOsEntities,
                                         RepositoryType type) throws AmbariException {
+    return create(stackEntity, version, displayName, repoOsEntities, type,
+        org.apache.ambari.server.state.StackInfo.RepositoryVersionMode.DISTRIBUTION);
+  }
+
+  @Transactional
+  public RepositoryVersionEntity create(StackEntity stackEntity, String version, String displayName,
+      List<RepoOsEntity> repoOsEntities, RepositoryType type,
+      org.apache.ambari.server.state.StackInfo.RepositoryVersionMode versionMode) throws AmbariException {
 
     if (stackEntity == null || version == null || version.isEmpty()
         || displayName == null || displayName.isEmpty()) {
@@ -198,7 +206,9 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
       throw new AmbariException("Repository version with display name '" + displayName + "' already exists");
     }
 
-    RepositoryVersionEntity existingVersionInStack = findByStackNameAndVersion(stackEntity.getStackName(), version);
+    RepositoryVersionEntity existingVersionInStack = versionMode
+        == org.apache.ambari.server.state.StackInfo.RepositoryVersionMode.INDEPENDENT
+        ? findByStackAndVersion(stackEntity, version) : findByStackNameAndVersion(stackEntity.getStackName(), version);
 
     if (existingVersionInStack != null) {
       throw new AmbariException(MessageFormat.format("Repository Version for version {0} already exists, in stack {1}-{2}",
@@ -207,7 +217,8 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
 
 
     StackId stackId = new StackId(stackEntity.getStackName(), stackEntity.getStackVersion() );
-    if (!RepositoryVersionEntity.isVersionInStack(stackId, version)) {
+    if (versionMode != org.apache.ambari.server.state.StackInfo.RepositoryVersionMode.INDEPENDENT
+        && !RepositoryVersionEntity.isVersionInStack(stackId, version)) {
       throw new AmbariException(MessageFormat.format("Version {0} needs to belong to stack {1}", version, stackEntity.getStackName() + "-" + stackEntity.getStackVersion()));
     }
 

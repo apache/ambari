@@ -357,6 +357,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private ResourceManager resourceManager;
 
+  @Inject
+  private org.apache.ambari.server.mpack.MpackRuntime mpackRuntime;
+
+  @Inject
+  private org.apache.ambari.server.mpack.MpackExecutionResources mpackExecutionResources;
+
   private MaintenanceStateHelper maintenanceStateHelper;
 
   private AmbariManagementHelper helper;
@@ -592,6 +598,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public MpackResponse registerMpack(MpackRequest request)
     throws IOException, AuthorizationException, ResourceAlreadyExistsException{
+    if (mpackRuntime != null) {
+      mpackRuntime.requireLegacyMutationAllowed();
+    }
     MpackResponse mpackResponse = ambariMetaInfo.registerMpack(request);
     updateStacks();
     return mpackResponse;
@@ -3895,6 +3904,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public void removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException{
+    if (mpackRuntime != null) {
+      mpackRuntime.requireLegacyMutationAllowed();
+    }
 
     ambariMetaInfo.removeMpack(mpackEntity, stackEntity);
   }
@@ -4371,6 +4383,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public synchronized RequestStatusResponse updateStacks() throws AmbariException {
+
+    if (mpackRuntime != null && mpackRuntime.snapshot() != null) {
+      mpackRuntime.requireExecutionReady();
+      return null;
+    }
 
     try {
       ambariMetaInfo.init();
@@ -5499,6 +5516,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public void deleteExtensionLink(ExtensionLinkRequest request) throws AmbariException {
+    if (mpackRuntime != null) {
+      mpackRuntime.requireLegacyMutationAllowed();
+    }
     if (request.getLinkId() == null) {
       throw new IllegalArgumentException("Link ID should be provided");
     }
@@ -5546,6 +5566,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public void createExtensionLink(ExtensionLinkRequest request) throws AmbariException {
+    if (mpackRuntime != null) {
+      mpackRuntime.requireLegacyMutationAllowed();
+    }
     if (StringUtils.isBlank(request.getStackName())
             || StringUtils.isBlank(request.getStackVersion())
             || StringUtils.isBlank(request.getExtensionName())
@@ -5576,6 +5599,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public void updateExtensionLink(ExtensionLinkRequest request) throws AmbariException {
+    if (mpackRuntime != null) {
+      mpackRuntime.requireLegacyMutationAllowed();
+    }
     if (request.getLinkId() == null) {
       throw new AmbariException("Link ID should be provided");
     }
@@ -5596,6 +5622,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   @Override
   public void updateExtensionLink(ExtensionLinkEntity oldLinkEntity, ExtensionLinkRequest newLinkRequest) throws AmbariException {
+    if (mpackRuntime != null) {
+      mpackRuntime.requireLegacyMutationAllowed();
+    }
     StackInfo stackInfo = ambariMetaInfo.getStack(oldLinkEntity.getStack().getStackName(), oldLinkEntity.getStack().getStackVersion());
 
     if (stackInfo == null) {
@@ -5822,7 +5851,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     clusterLevelParams.putAll(getMetadataClusterLevelConfigsParams(cluster, stackId));
     clusterLevelParams.put(CLUSTER_NAME, cluster.getClusterName());
-    clusterLevelParams.put(HOOKS_FOLDER, configs.getProperty(Configuration.HOOKS_FOLDER));
+    String hooksFolder = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion()).getHooksFolder();
+    if (hooksFolder == null) {
+      hooksFolder = configs.getProperty(Configuration.HOOKS_FOLDER);
+    }
+    clusterLevelParams.put(HOOKS_FOLDER, mpackExecutionResources == null || hooksFolder.isEmpty()
+        ? hooksFolder : mpackExecutionResources.resolveCurrentResource(hooksFolder));
+    if (mpackRuntime != null && mpackRuntime.snapshot() != null) {
+      clusterLevelParams.put(org.apache.ambari.server.mpack.MpackExecutionResources.SNAPSHOT_ID,
+          mpackRuntime.snapshot().id());
+    }
 
     return clusterLevelParams;
   }
@@ -5891,6 +5929,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       String servicePackageFolder = serviceInfo.getServicePackageFolder();
+      if (mpackExecutionResources != null && servicePackageFolder != null) {
+        servicePackageFolder = mpackExecutionResources.resolveCurrentResource(servicePackageFolder);
+      }
 
       // Get the map of service config type to password properties for the service
       Map<String, Map<String, String>> configCredentials =
@@ -5901,7 +5942,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               service.isCredentialStoreEnabled(),
               configCredentials,
               statusCommandTimeout,
-              servicePackageFolder));
+              servicePackageFolder,
+              mpackRuntime == null || mpackRuntime.snapshot() == null ? null : mpackRuntime.snapshot().id()));
     }
     return serviceLevelParams;
   }
@@ -5911,6 +5953,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     clusterLevelParams.put(JDK_LOCATION, getJdkResourceUrl());
     clusterLevelParams.put(RESOURCE_ARCHIVE_DIGESTS,
         gson.toJson(resourceManager.getResourceArchiveDigests()));
+    if (mpackExecutionResources != null) {
+      clusterLevelParams.putAll(mpackExecutionResources.metadataParameters());
+    }
     clusterLevelParams.put(JAVA_HOME, getJavaHome());
     clusterLevelParams.put(AMBARI_JAVA_HOME, getAmbariJavaHome());
     clusterLevelParams.put(AMBARI_JAVA_VERSION, configs.getAmbariJavaVersion());

@@ -34,6 +34,7 @@ import { useUserContext } from "../../store/UserContext";
 import { LOCAL_LOGIN_PATH } from "../../Utils/authNavigation";
 import LoginMessageModal from "./LoginMessageModal";
 import { useTranslation } from "react-i18next";
+import ThemeToggle from "../../components/ThemeToggle";
 import LanguageSelector from "../../components/LanguageSelector";
 
 export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
@@ -94,7 +95,7 @@ export const Login = ({ isLocalLogin = false }: { isLocalLogin?: boolean }) => {
         <h2 className="logo-text  fs-16 mt-2 ms-3" style={{ color: "#b8bec4" }}>
           Ambari
         </h2>
-        <div className="ms-auto ps-3"><LanguageSelector /></div>
+        <div className="ms-auto ps-3 d-flex align-items-center gap-2"><ThemeToggle /><LanguageSelector /></div>
       </div>
       <Container fluid className=" h-100 w-100 mt-3">
         <Row className="justify-content-center w-100 d-flex justify-content-center align-items-start">

@@ -31,6 +31,7 @@ import urllib.request, urllib.error, urllib.parse
 import time
 import threading
 import tempfile
+import uuid
 
 from ambari_commons.network import build_url_opener
 from ambari_agent.Utils import execute_with_retries
@@ -61,6 +62,8 @@ class FileCache:
   ARCHIVE_NAME = "archive.zip"
   ARCHIVE_DIGEST_FILE = ".archive.sha256"
   RESOURCE_ARCHIVE_DIGESTS_KEY = "resource_archive_digests"
+  RESOURCE_REFERENCES_KEY = "mpack_resource_references"
+  DEFINITION_SNAPSHOT_KEY = "mpack_definition_snapshot"
   ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY = "agent.auto.cache.update"
 
   BLOCK_SIZE = 1024 * 16
@@ -96,6 +99,11 @@ class FileCache:
       return ""
 
   def get_trusted_archive_digest(self, command, subdirectory):
+    if (
+      self.DEFINITION_SNAPSHOT_KEY in command.get("commandParams", {})
+      and self.RESOURCE_ARCHIVE_DIGESTS_KEY not in command["commandParams"]
+    ):
+      raise CachingException("Pinned task metadata is missing its resource digests")
     raw_digests = command.get("commandParams", {}).get(
       self.RESOURCE_ARCHIVE_DIGESTS_KEY
     )
@@ -130,38 +138,27 @@ class FileCache:
       service_subpath = command["commandParams"]["service_package_folder"]
     else:
       service_subpath = command["serviceLevelParams"]["service_package_folder"]
-    return self.provide_directory(
-      self.cache_dir,
-      service_subpath,
-      self.get_server_url_prefix(command),
-      self.get_trusted_archive_digest(command, service_subpath),
-    )
+    return self.provide_resource(command, service_subpath)
 
   def get_hook_base_dir(self, command):
     """
     Returns a base directory for hooks
     """
     try:
-      hooks_path = command["clusterLevelParams"]["hooks_folder"]
+      hooks_path = command.get("commandParams", {}).get("mpack_hooks_folder")
+      if hooks_path is None:
+        hooks_path = command["clusterLevelParams"]["hooks_folder"]
+      if hooks_path == "":
+        return None
     except KeyError:
       return None
-    return self.provide_directory(
-      self.cache_dir,
-      hooks_path,
-      self.get_server_url_prefix(command),
-      self.get_trusted_archive_digest(command, hooks_path),
-    )
+    return self.provide_resource(command, hooks_path)
 
   def get_custom_actions_base_dir(self, command):
     """
     Returns a base directory for custom action scripts
     """
-    return self.provide_directory(
-      self.cache_dir,
-      self.CUSTOM_ACTIONS_CACHE_DIRECTORY,
-      self.get_server_url_prefix(command),
-      self.get_trusted_archive_digest(command, self.CUSTOM_ACTIONS_CACHE_DIRECTORY),
-    )
+    return self.provide_resource(command, self.CUSTOM_ACTIONS_CACHE_DIRECTORY)
 
   def get_custom_resources_subdir(self, command):
     """
@@ -172,24 +169,79 @@ class FileCache:
     except KeyError:
       return None
 
-    return self.provide_directory(
-      self.cache_dir,
-      custom_dir,
-      self.get_server_url_prefix(command),
-      self.get_trusted_archive_digest(command, custom_dir),
-    )
+    return self.provide_resource(command, custom_dir)
 
   def get_host_scripts_base_dir(self, command):
     """
     Returns a base directory for host scripts (host alerts, etc) which
     are scripts that are not part of the main agent code
     """
-    return self.provide_directory(
-      self.cache_dir,
-      self.HOST_SCRIPTS_CACHE_DIRECTORY,
-      self.get_server_url_prefix(command),
-      self.get_trusted_archive_digest(command, self.HOST_SCRIPTS_CACHE_DIRECTORY),
+    return self.provide_resource(command, self.HOST_SCRIPTS_CACHE_DIRECTORY)
+
+  def provide_resource(self, command, subdirectory):
+    resolved = self.resolve_resource_reference(command, subdirectory)
+    digest = self.get_trusted_archive_digest(command, resolved)
+    if resolved.startswith("mpacks/") and digest is None:
+      raise CachingException("A versioned resource requires its pinned archive digest")
+    directory = self.provide_directory(
+      self.cache_dir, resolved, self.get_server_url_prefix(command), digest
     )
+    # Repair verified caches created with mkdtemp's private staging permissions.
+    if os.name != "nt" and os.path.isdir(directory):
+      os.chmod(directory, 0o755)
+    return directory
+
+  def resolve_resource_reference(self, command, subdirectory):
+    parameters = command.get("commandParams", {})
+    if self.DEFINITION_SNAPSHOT_KEY not in parameters:
+      parameters = command.get("ambariLevelParams", {})
+    snapshot = parameters.get(self.DEFINITION_SNAPSHOT_KEY)
+    if snapshot is None:
+      if subdirectory.startswith("mpacks/"):
+        raise CachingException("A versioned resource has no definition snapshot identity")
+      return subdirectory
+    if not self.is_valid_archive_digest(snapshot) or snapshot != snapshot.lower():
+      raise CachingException("Invalid definition snapshot identity")
+    if parameters.get("mpack_resource_contract") != "MPACK_RESOURCES_V1":
+      raise CachingException("Unsupported pinned resource contract")
+    execution_id = parameters.get("mpack_execution_id")
+    try:
+      if not isinstance(execution_id, str) or str(uuid.UUID(execution_id)) != execution_id:
+        raise ValueError("Invalid execution identity")
+    except (TypeError, ValueError) as error:
+      raise CachingException("Pinned resource execution identity is invalid") from error
+    raw_references = parameters.get(self.RESOURCE_REFERENCES_KEY)
+    try:
+      references = (
+        json.loads(raw_references, object_pairs_hook=self.unique_resource_keys)
+        if isinstance(raw_references, str)
+        else raw_references
+      )
+    except (TypeError, ValueError) as error:
+      raise CachingException("Invalid pinned resource references") from error
+    if not isinstance(references, dict):
+      raise CachingException("Pinned resource references must be an object")
+    prefix = "mpacks/" + snapshot + "/"
+    for source, target in references.items():
+      if not isinstance(source, str) or not isinstance(target, str):
+        raise CachingException("Pinned resource references must contain string paths")
+      self.resolve_cache_path(self.cache_dir, source)
+      if target != prefix + source:
+        raise CachingException("Resource reference belongs to another definition snapshot")
+    source = subdirectory[len(prefix) :] if subdirectory.startswith(prefix) else subdirectory
+    resolved = references.get(source)
+    if resolved is None:
+      raise CachingException("Resource is absent from the pinned definition snapshot")
+    return resolved
+
+  @staticmethod
+  def unique_resource_keys(pairs):
+    result = {}
+    for key, value in pairs:
+      if key in result:
+        raise ValueError("Duplicate pinned resource identity")
+      result[key] = value
+    return result
 
   def auto_cache_update_enabled(self):
     from ambari_agent.AmbariConfig import AmbariConfig
@@ -558,6 +610,8 @@ class FileCache:
         encoding="ascii",
       ) as stream:
         stream.write(archive_digest)
+      if os.name != "nt":
+        os.chmod(staging_directory, 0o755)
       self.fsync_directory_tree(staging_directory)
 
       if os.path.exists(target_directory):

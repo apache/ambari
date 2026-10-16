@@ -26,6 +26,44 @@ from ambari_agent.InitializerModule import InitializerModule
 
 
 class TestConfigurationBuilder(TestCase):
+  def test_background_execution_pins_one_complete_definition_generation(self):
+    snapshot = "a" * 64
+    global_metadata = {
+      "mpack_definition_snapshot": snapshot,
+      "mpack_resource_contract": "MPACK_RESOURCES_V1",
+      "mpack_resource_references": "{}",
+      "resource_archive_digests": "{}",
+    }
+    command = {
+      "ambariLevelParams": global_metadata,
+      "clusterLevelParams": {"mpack_definition_snapshot": snapshot, "hooks_folder": ""},
+      "serviceLevelParams": {"mpack_definition_snapshot": snapshot},
+    }
+    ConfigurationBuilder._pin_definition_resources(command)
+    first_identity = command["commandParams"]["mpack_execution_id"]
+    self.assertEqual(snapshot, command["commandParams"]["mpack_definition_snapshot"])
+    self.assertEqual("", command["commandParams"]["mpack_hooks_folder"])
+    self.assertNotIn("mpack_execution_id", global_metadata)
+    ConfigurationBuilder._pin_definition_resources(command)
+    self.assertNotEqual(first_identity, command["commandParams"]["mpack_execution_id"])
+
+  def test_background_execution_rejects_partial_metadata_publication(self):
+    command = {
+      "ambariLevelParams": {
+        "mpack_definition_snapshot": "a" * 64,
+        "mpack_resource_contract": "MPACK_RESOURCES_V1",
+        "mpack_resource_references": "{}",
+        "resource_archive_digests": "{}",
+      },
+      "clusterLevelParams": {"mpack_definition_snapshot": "b" * 64},
+    }
+    with self.assertRaises(ValueError):
+      ConfigurationBuilder._pin_definition_resources(command)
+    command["clusterLevelParams"]["mpack_definition_snapshot"] = "a" * 64
+    command["serviceLevelParams"] = {"mpack_definition_snapshot": "b" * 64}
+    with self.assertRaises(ValueError):
+      ConfigurationBuilder._pin_definition_resources(command)
+
   @patch(
     "ambari_agent.hostname.public_hostname",
     new=MagicMock(return_value="c6401.ambari.apache.org"),

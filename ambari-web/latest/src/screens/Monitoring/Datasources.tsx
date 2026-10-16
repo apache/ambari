@@ -23,6 +23,7 @@ import {
   Button,
   Form,
   Modal,
+  Offcanvas,
   Spinner,
   Table,
 } from "react-bootstrap";
@@ -33,6 +34,8 @@ import MetricsApi from "../../api/metricsApi";
 import { AppContext } from "../../store/context";
 import { useAuth } from "../../hooks/useAuth";
 import { Datasource, DatasourceInput, JsonObject } from "./types";
+import { useWorkspaceText } from "./workspace";
+import { clusterPath } from "../../Utils/clusterRoute";
 
 const BUILTIN_PLUGINS = [
   ["prometheus", "Prometheus"],
@@ -117,6 +120,8 @@ const parseHeaders = (value: string): JsonObject | unknown[] => {
 };
 
 export default function Datasources() {
+  const text = useWorkspaceText();
+  const [selected, setSelected] = useState<Datasource | null>(null);
   const { clusterName } = useContext(AppContext);
   const { hasAuthorization } = useAuth();
   const canManage = hasAuthorization("AMBARI.MANAGE_SETTINGS");
@@ -260,12 +265,12 @@ export default function Datasources() {
     <section>
       <div className="monitoring-toolbar">
         <div>
-          <h2 className="h4 mb-1">Datasources</h2>
-          <div className="text-muted small">Connections are scoped to {clusterName || "the current cluster"}.</div>
+          <h2 className="h4 mb-1">{text("sources")}</h2>
+          <div className="text-muted small">{text("sourceHelp")}</div>
         </div>
         {canManage && (
           <Button variant="success" size="sm" onClick={openCreate}>
-            <FontAwesomeIcon icon={faPlus} className="me-2" />Add datasource
+            <FontAwesomeIcon icon={faPlus} className="me-2" />{text("addSource")}
           </Button>
         )}
       </div>
@@ -277,14 +282,14 @@ export default function Datasources() {
           <div className="monitoring-empty">No datasources are configured for this cluster.</div>
         ) : (
           <Table responsive hover className="mb-0 align-middle">
-            <thead><tr><th>Name</th><th>Type</th><th>Endpoint</th><th>Status</th><th>Updated</th><th aria-label="Actions" /></tr></thead>
+            <thead><tr><th>{text("name")}</th><th>{text("type")}</th><th>{text("endpoint")}</th><th>{text("status")}</th><th>{text("updated")}</th><th aria-label="Actions" /></tr></thead>
             <tbody>
               {datasources.map((datasource) => (
                 <tr key={datasource.id}>
-                  <td><strong>{datasource.name}</strong>{datasource.is_default && <Badge bg="secondary" className="ms-2">Default</Badge>}<div className="text-muted small">{datasource.description}</div></td>
+                  <td><Button variant="link" className="p-0 text-start" onClick={() => setSelected(datasource)}><strong>{datasource.name}</strong></Button>{datasource.is_default && <Badge bg="secondary" className="ms-2">{text("default")}</Badge>}<div className="text-muted small">{datasource.settings?.managed === true ? text("managed") : datasource.description}</div></td>
                   <td>{datasource.plugin_type_name || datasource.plugin_type}</td>
                   <td className="monitoring-code text-break">{String(datasource.http.url || "Not set")}</td>
-                  <td><Badge bg={datasource.status === "enabled" ? "success" : "secondary"}>{datasource.status}</Badge></td>
+                  <td><Badge bg="secondary">{text(datasource.status)}</Badge></td>
                   <td>{datasource.updated_at ? new Date(datasource.updated_at * 1000).toLocaleString() : "-"}</td>
                   <td className="text-end text-nowrap">
                     {canManage && <>
@@ -300,6 +305,11 @@ export default function Datasources() {
         )}
       </div>
 
+      <Offcanvas show={Boolean(selected)} onHide={() => setSelected(null)} placement="end"><Offcanvas.Header closeButton><Offcanvas.Title>{text("sourceDetails")}</Offcanvas.Title></Offcanvas.Header><Offcanvas.Body>{selected && <>
+        <h3 className="h5">{selected.name}</h3><p className="text-muted">{selected.settings?.managed === true ? text("managed") : selected.description}</p>
+        <dl className="monitoring-detail-list">{[[text("endpoint"), String(selected.http.url || "-")], [text("scope"), selected.cluster_name], [text("status"), text(selected.status)], [text("auth"), text(selected.auth_configured ? "yes" : "no")]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+        <p className="text-muted small">{text("sourceHelp")}</p><div className="d-flex flex-wrap gap-2 mt-4">{canManage && <Button onClick={() => { setSelected(null); openEdit(selected); }}>{text("editSource")}</Button>}<a className="btn btn-outline-secondary" href={`#${clusterPath(clusterName, "/main/monitoring/explorer")}?datasource=${selected.id}`}>{text("viewQuery")}</a></div>
+      </>}</Offcanvas.Body></Offcanvas>
       <Modal show={showEditor} onHide={() => setShowEditor(false)} size="lg" centered>
         <Form onSubmit={save}>
           <Modal.Header closeButton><Modal.Title>{editor.id ? "Edit datasource" : "Add datasource"}</Modal.Title></Modal.Header>

@@ -59,6 +59,27 @@ public class ExecutionCommandWrapper {
   private final static Logger LOG = LoggerFactory.getLogger(ExecutionCommandWrapper.class);
   String jsonExecutionCommand = null;
   ExecutionCommand executionCommand = null;
+  private org.apache.ambari.server.mpack.MpackExecutionResources mpackResources;
+  private boolean newlyCreated;
+
+  @Inject
+  void initializeMpackResources(org.apache.ambari.server.mpack.MpackExecutionResources resources) {
+    mpackResources = resources;
+    if (newlyCreated) {
+      resources.pin(executionCommand);
+    }
+  }
+
+  public void markPersisted() {
+    newlyCreated = false;
+  }
+
+  public void pinResourcesBeforePersistence() {
+    if (newlyCreated && mpackResources != null) {
+      mpackResources.pin(executionCommand);
+      jsonExecutionCommand = null;
+    }
+  }
 
   @Inject
   Clusters clusters;
@@ -89,6 +110,7 @@ public class ExecutionCommandWrapper {
   @AssistedInject
   public ExecutionCommandWrapper(@Assisted ExecutionCommand executionCommand) {
     this.executionCommand = executionCommand;
+    newlyCreated = true;
   }
 
   /**
@@ -271,6 +293,7 @@ public class ExecutionCommandWrapper {
   }
 
   public String getJson() {
+    pinResourcesBeforePersistence();
     if (jsonExecutionCommand != null) {
       return jsonExecutionCommand;
     } else if (executionCommand != null) {

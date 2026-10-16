@@ -43,6 +43,7 @@ import {
 } from "../Services/AddServiceWizard/addServiceNavigation";
 import { filterInstallableStackServices } from "../../Utils/stackMetadata";
 import { consumeAddServiceSelectionIntent } from "../../Utils/workflowSelectionIntent";
+import useMpackDeployment from "../../hooks/useMpackDeployment";
 import ManagedDependencySelector, {
   type DependencyConsumerScope,
 } from "./ManagedDependencySelector";
@@ -92,6 +93,7 @@ const hasFreshHBaseSelection = (candidateServices: { [key: string]: Service }) =
 
 export default function Step4({ wizardName = "clusterCreation" }) {
   const { t } = useTranslation();
+  const mpackSelection = useMpackDeployment();
   const [services, setServices] = useState<{ [key: string]: Service }>({});
   const [catalogAttempt, setCatalogAttempt] = useState(0);
   const [catalogError, setCatalogError] = useState("");
@@ -589,6 +591,13 @@ export default function Step4({ wizardName = "clusterCreation" }) {
       setCatalogLoading(true);
       setCatalogError("");
       try {
+        if (mpackSelection.error) throw new Error(mpackSelection.error);
+        const selectedDefinition = mpackSelection.deployment;
+        if (selectedDefinition && (selectedDefinition.stack_name !== stack || selectedDefinition.stack_version !== version ||
+          (wizardName === "addService" && selectedDefinition.cluster_id !== numericClusterId) ||
+          (wizardName !== "addService" && selectedDefinition.cluster_id !== null))) {
+          throw new Error("The imported service selection belongs to another environment");
+        }
         const chooseServices = await ChooseServicesApi.getServices(
           stack,
           version
@@ -614,6 +623,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
             version: service.StackServices.service_version,
             comments: service.StackServices.comments,
             selected: installed || Boolean(restoredService?.selected)
+              || (isEmpty(restoredServices) && !!selectedDefinition?.service_names.includes(serviceName))
               || Boolean(isServiceSelected(serviceName)),
             required: service.StackServices.required_services,
             isIgnored: Boolean(restoredService?.isIgnored),
@@ -639,6 +649,9 @@ export default function Step4({ wizardName = "clusterCreation" }) {
             ),
           };
         });
+        if (selectedDefinition && selectedDefinition.service_names.some(name => !transformedData[name])) {
+          throw new Error("A selected imported service is no longer available in this environment");
+        }
         combineCoSelectedServices(transformedData);
 
         const sortedServices = Object.keys(transformedData)
@@ -706,7 +719,7 @@ export default function Step4({ wizardName = "clusterCreation" }) {
         if (currentRequest) setCatalogLoading(false);
       }
     };
-    if (!serviceContextLoading && stack && version) void fetchServicesData();
+    if (!serviceContextLoading && !mpackSelection.loading && stack && version) void fetchServicesData();
     return () => {
       currentRequest = false;
     };
@@ -716,6 +729,9 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     stack,
     version,
     installedServices.join("\u0000"),
+    mpackSelection.loading,
+    mpackSelection.deployment,
+    mpackSelection.error,
   ]);
 
 
