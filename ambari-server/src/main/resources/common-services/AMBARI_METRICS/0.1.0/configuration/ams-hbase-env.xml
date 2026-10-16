@@ -1,0 +1,297 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_adding_forbidden="true">
+  <property>
+    <name>hbase_log_dir</name>
+    <display-name>HBase Log Dir Prefix</display-name>
+    <value>/var/log/ambari-metrics-collector</value>
+    <description>Log Directories for HBase.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-env</type>
+        <name>metrics_collector_log_dir</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase_pid_dir</name>
+    <display-name>HBase PID Dir</display-name>
+    <value>/var/run/ambari-metrics-collector</value>
+    <description>Pid Directory for HBase.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase_classpath_additional</name>
+    <value/>
+    <description>Additional directory or jar in classpath for HBase.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase_regionserver_heapsize</name>
+    <value>768</value>
+    <description>
+        HBase RegionServer Heap Size. In embedded mode, total heap size is
+        sum of master and regionserver heap sizes.
+    </description>
+    <display-name>HBase RegionServer Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>32768</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.rootdir</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>regionserver_xmn_size</name>
+    <value>128</value>
+    <description>HBase RegionServer maximum value for young generation heap size.</description>
+    <display-name>HBase RegionServer maximum value for Xmn</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>128</minimum>
+      <maximum>8192</maximum>
+      <unit>MB</unit>
+      <increment-step>128</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase_master_xmn_size</name>
+    <value>102</value>
+    <description>
+      HBase Master maximum value for young generation heap size.
+    </description>
+    <display-name>HBase Master maximum value for Xmn</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>64</minimum>
+      <maximum>1024</maximum>
+      <unit>MB</unit>
+      <increment-step>64</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase_master_maxperm_size</name>
+    <value>128</value>
+    <description>HBase RegionServer maximum value for perm heap size.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase_regionserver_xmn_ratio</name>
+    <value>0.2</value>
+    <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase_master_heapsize</name>
+    <value>512</value>
+    <description>
+        HBase Master Heap Size. In embedded mode, total heap size is
+        sum of master and regionserver heap sizes.
+    </description>
+    <display-name>HBase Master Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>256</minimum>
+      <maximum>4096</maximum>
+      <unit>MB</unit>
+      <increment-step>256</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.rootdir</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>max_open_files_limit</name>
+    <value>32768</value>
+    <description>
+        The maximum number of open file descriptors by process
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hbase_regionserver_shutdown_timeout</name>
+    <value>30</value>
+    <display-name>HBase RegionServer shutdown timeout</display-name>
+    <description>
+After this number of seconds waiting for graceful stop of HBase Master it will be forced to exit with SIGKILL.
+The timeout is introduced because there is a known bug when from time to time HBase RegionServer hangs forever on stop if NN safemode is on.
+    </description>
+    <value-attributes>
+      <type>int</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <!-- hbase-env.sh -->
+  <property>
+    <name>content</name>
+    <display-name>ams-hbase-env template</display-name>
+    <description>This is the jinja template for hbase-env.sh file</description>
+    <value>
+# Set environment variables here.
+
+# The java implementation to use. Java 1.6+ required.
+export JAVA_HOME={{java64_home}}
+
+# HBase Configuration directory
+export HBASE_CONF_DIR=${HBASE_CONF_DIR:-{{hbase_conf_dir}}}
+
+# Extra Java CLASSPATH elements. Optional.
+additional_cp={{hbase_classpath_additional}}
+if [  -n "$additional_cp" ];
+then
+  export HBASE_CLASSPATH=${HBASE_CLASSPATH}:$additional_cp
+else
+  export HBASE_CLASSPATH=${HBASE_CLASSPATH}
+fi
+
+# The maximum amount of heap to use for hbase shell.
+export HBASE_SHELL_OPTS="-Xmx256m"
+
+# Extra Java runtime options.
+# Below are what we set by default. May only work with SUN JVM.
+# For more on why as well as other possible settings,
+# see http://wiki.apache.org/hadoop/PerformanceTuning
+export HBASE_OPTS="-XX:+UseConcMarkSweepGC -XX:ErrorFile={{hbase_log_dir}}/hs_err_pid%p.log -Djava.io.tmpdir={{hbase_tmp_dir}}"
+export SERVER_GC_OPTS="-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{hbase_log_dir}}/gc.log-`date +'%Y%m%d%H%M'`"
+# Uncomment below to enable java garbage collection logging.
+# export HBASE_OPTS="$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log"
+
+# Uncomment and adjust to enable JMX exporting
+# See jmxremote.password and jmxremote.access in $JRE_HOME/lib/management to configure remote password access.
+# More details at: http://java.sun.com/javase/6/docs/technotes/guides/management/agent.html
+#
+# export HBASE_JMX_BASE="-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
+
+{% if java_version &lt; 8 %}
+export HBASE_MASTER_OPTS=" -XX:PermSize=64m -XX:MaxPermSize={{hbase_master_maxperm_size}} -Xms{{hbase_heapsize}} -Xmx{{hbase_heapsize}} -Xmn{{hbase_master_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly"
+export HBASE_REGIONSERVER_OPTS="-XX:MaxPermSize=128m -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
+{% else %}
+export HBASE_MASTER_OPTS=" -Xms{{hbase_heapsize}} -Xmx{{hbase_heapsize}} -Xmn{{hbase_master_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly"
+export HBASE_REGIONSERVER_OPTS=" -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
+{% endif %}
+
+
+# export HBASE_THRIFT_OPTS="$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103"
+# export HBASE_ZOOKEEPER_OPTS="$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10104"
+
+# File naming hosts on which HRegionServers will run. $HBASE_HOME/conf/regionservers by default.
+export HBASE_REGIONSERVERS=${HBASE_CONF_DIR}/regionservers
+
+# Extra ssh options. Empty by default.
+# export HBASE_SSH_OPTS="-o ConnectTimeout=1 -o SendEnv=HBASE_CONF_DIR"
+
+# Where log files are stored. $HBASE_HOME/logs by default.
+export HBASE_LOG_DIR={{hbase_log_dir}}
+
+# A string representing this instance of hbase. $USER by default.
+# export HBASE_IDENT_STRING=$USER
+
+# The scheduling priority for daemon processes. See 'man nice'.
+# export HBASE_NICENESS=10
+
+# The directory where pid files are stored. /tmp by default.
+export HBASE_PID_DIR={{hbase_pid_dir}}
+
+# Seconds to sleep between slave commands. Unset by default. This
+# can be useful in large clusters, where, e.g., slave rsyncs can
+# otherwise arrive faster than the master can service them.
+# export HBASE_SLAVE_SLEEP=0.1
+
+# Tell HBase whether it should manage it's own instance of Zookeeper or not.
+export HBASE_MANAGES_ZK=false
+
+{% if security_enabled %}
+export HBASE_OPTS="$HBASE_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{client_jaas_config_file}}"
+export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{master_jaas_config_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
+export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{regionserver_jaas_config_file}} -Djavax.security.auth.useSubjectCredsOnly=false"
+export HBASE_ZOOKEEPER_OPTS="$HBASE_ZOOKEEPER_OPTS -Dzookeeper.sasl.client.username={{zk_principal_user}} -Djava.security.auth.login.config={{ams_zookeeper_jaas_config_file}}"
+{% endif %}
+
+# use embedded native libs
+_HADOOP_NATIVE_LIB="/usr/lib/ams-hbase/lib/hadoop-native/"
+export HBASE_OPTS="$HBASE_OPTS -Djava.library.path=${_HADOOP_NATIVE_LIB}"
+
+# Unset HADOOP_HOME to avoid importing HADOOP installed cluster related configs like: /usr/hdp/2.2.0.0-2041/hadoop/conf/
+export HADOOP_HOME={{ams_hbase_home_dir}}
+
+# Explicitly Setting HBASE_HOME for AMS HBase so that there is no conflict
+export HBASE_HOME={{ams_hbase_home_dir}}
+
+    </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>
