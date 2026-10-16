@@ -741,6 +741,44 @@ public class Configuration {
       "ldap.sync.username.collision.behavior", "add");
 
   /**
+   * Determines whether the built-in, in-process periodic LDAP sync is enabled.
+   */
+  @Markdown(description = "Determines whether ambari-server periodically synchronizes LDAP users/groups itself, with no external scheduler required.")
+  public static final ConfigurationProperty<String> LDAP_SYNC_AUTO_ENABLED = new ConfigurationProperty<>(
+      "ldap.sync.auto.enabled", "false");
+
+  /**
+   * How often, in minutes, the built-in periodic LDAP sync runs.
+   */
+  @Markdown(description = "How often, in minutes, the built-in periodic LDAP sync runs. Only used when ldap.sync.auto.enabled is true.")
+  public static final ConfigurationProperty<String> LDAP_SYNC_AUTO_INTERVAL_MINUTES = new ConfigurationProperty<>(
+      "ldap.sync.auto.interval.minutes", "60");
+
+  /**
+   * Which sync mode the built-in periodic LDAP sync runs each time: "existing" or "all".
+   */
+  @Markdown(
+      description = "Which sync mode the built-in periodic LDAP sync runs each time.",
+      examples = {"existing", "all"}
+  )
+  public static final ConfigurationProperty<String> LDAP_SYNC_AUTO_TYPE = new ConfigurationProperty<>(
+      "ldap.sync.auto.type", "existing");
+
+  /**
+   * Delay, in minutes, before the first automatic LDAP sync runs after server startup.
+   */
+  @Markdown(description = "Delay, in minutes, before the first automatic LDAP sync runs after server startup.")
+  public static final ConfigurationProperty<String> LDAP_SYNC_AUTO_INITIAL_DELAY_MINUTES = new ConfigurationProperty<>(
+      "ldap.sync.auto.initial.delay.minutes", "5");
+
+  /**
+   * Determines whether the built-in periodic LDAP sync post-processes existing users.
+   */
+  @Markdown(description = "Determines whether the built-in periodic LDAP sync post-processes existing users, equivalent to the sync-ldap --post-process-existing-users option.")
+  public static final ConfigurationProperty<String> LDAP_SYNC_AUTO_POST_PROCESS_EXISTING_USERS = new ConfigurationProperty<>(
+      "ldap.sync.auto.post.process.existing.users", "false");
+
+  /**
    * The location on the Ambari Server where stack extensions exist.
    */
   @Markdown(
@@ -3380,6 +3418,65 @@ public class Configuration {
       }
     }
     return res;
+  }
+
+  /**
+   * Determines whether the built-in, in-process periodic LDAP sync is enabled.
+   *
+   * @return true if the automatic LDAP sync scheduler should run
+   */
+  public boolean isLdapAutoSyncEnabled() {
+    return Boolean.parseBoolean(getProperty(LDAP_SYNC_AUTO_ENABLED));
+  }
+
+  /**
+   * @return how often, in minutes, the built-in periodic LDAP sync should run
+   */
+  public int getLdapAutoSyncIntervalMinutes() {
+    return getPositiveMinutes(LDAP_SYNC_AUTO_INTERVAL_MINUTES);
+  }
+
+  /**
+   * @return the sync mode ("existing" or "all") the built-in periodic LDAP sync should use
+   */
+  public String getLdapAutoSyncType() {
+    return getProperty(LDAP_SYNC_AUTO_TYPE);
+  }
+
+  /**
+   * @return delay, in minutes, before the first automatic LDAP sync runs after server startup
+   */
+  public int getLdapAutoSyncInitialDelayMinutes() {
+    return getPositiveMinutes(LDAP_SYNC_AUTO_INITIAL_DELAY_MINUTES);
+  }
+
+  /**
+   * Determines whether the built-in periodic LDAP sync post-processes existing users.
+   *
+   * @return true if existing users should be post-processed on each automatic sync
+   */
+  public boolean isLdapAutoSyncPostProcessExistingUsers() {
+    return Boolean.parseBoolean(getProperty(LDAP_SYNC_AUTO_POST_PROCESS_EXISTING_USERS));
+  }
+
+  /**
+   * Reads a minute-valued property, falling back to the property's own default when the
+   * configured value is absent, non-numeric or not positive. A bad value must not be allowed
+   * to abort scheduling: 0 would busy-loop the scheduler and an exception would prevent the
+   * service from starting at all.
+   *
+   * @param property the property to read
+   * @return the configured number of minutes, or the property default
+   */
+  private int getPositiveMinutes(ConfigurationProperty<String> property) {
+    int defaultValue = Integer.parseInt(property.getDefaultValue());
+    String value = getProperty(property);
+    int minutes = NumberUtils.toInt(value, defaultValue);
+    if (minutes < 1) {
+      LOG.warn("Invalid value '{}' for {}; falling back to {}", value, property.getKey(), defaultValue);
+      return defaultValue;
+    }
+    return minutes;
   }
 
   /**
