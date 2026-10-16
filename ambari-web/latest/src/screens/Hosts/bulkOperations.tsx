@@ -50,6 +50,10 @@ import {
 import DeleteHostComponentsModal from "./DeleteHostComponentsModal";
 import { Alert } from "react-bootstrap";
 import ConfirmDeleteHostModal from "./ConfirmDeleteHostModal";
+import RecoverHostsModal, {
+  RecoverHost,
+  RecoverHostComponent,
+} from "./RecoverHostsModal";
 import { serviceNameDisplayMapping } from "../../constants";
 import { SelectedFilters } from "./HostComboSearch";
 
@@ -151,7 +155,11 @@ const getHostsForBulkOperationSuccessCallback = (
     return;
   }
 
-  if (["SET_RACK_INFO", "ADD", "DELETE"].includes(operationData.action)) {
+  if (
+    ["SET_RACK_INFO", "ADD", "DELETE", "RECOVER_HOST"].includes(
+      operationData.action
+    )
+  ) {
     return bulkOperation(
       operationData,
       hosts,
@@ -281,6 +289,173 @@ const getBulkOperationConfirmPopupModalBody = (
       )}
     </div>
   );
+};
+
+const RECOVERABLE_COMPONENT_STATES: string[] = [
+  ComponentStatus.STOPPED,
+  ComponentStatus.INSTALL_FAILED,
+  ComponentStatus.INIT,
+];
+
+/**
+ * Splits hosts into those that can be recovered and those that must be
+ * skipped. A host is recoverable only when every component is STOPPED
+ * (INSTALLED), INSTALL_FAILED, or INIT, the same rule as single-host Recover.
+ */
+export const partitionHostsForRecovery = <T extends RecoverHost>(
+  hosts: T[]
+): { eligible: T[]; skipped: { host: T; reason: string }[] } => {
+  const eligible: T[] = [];
+  const skipped: { host: T; reason: string }[] = [];
+
+  (hosts || []).forEach((host) => {
+    const components = host.allHostComponents;
+    if (!components || !components.length) {
+      skipped.push({
+        host,
+        reason: translate(
+          "hosts.bulkOperation.recover.skipReason.noComponents"
+        ) as string,
+      });
+      return;
+    }
+
+    const nonRecoverableComponentNames = components
+      .filter(
+        (component) =>
+          !RECOVERABLE_COMPONENT_STATES.includes(component.HostRoles.state)
+      )
+      .map((component) => component.HostRoles.component_name);
+
+    if (nonRecoverableComponentNames.length) {
+      skipped.push({
+        host,
+        reason: translateWithVariables(
+          "hosts.bulkOperation.recover.skipReason.components",
+          { "0": nonRecoverableComponentNames.join(", ") }
+        ) as string,
+      });
+      return;
+    }
+
+    eligible.push(host);
+  });
+
+  return { eligible, skipped };
+};
+
+export type RecoverBatchStep = {
+  order_id: number;
+  type: "PUT";
+  uri: string;
+  RequestBodyInfo: {
+    RequestInfo: {
+      context: string;
+      operation_level?: {
+        level: "HOST";
+        cluster_name: string;
+        host_name: string;
+      };
+      query: string;
+    };
+    Body: {
+      HostRoles?: { state: "INIT" | "INSTALLED" };
+      Clusters?: { security_type: "KERBEROS" };
+    };
+  };
+};
+
+const buildRecoverHostComponentsStep = (
+  orderId: number,
+  host: RecoverHost,
+  clusterName: string,
+  state: "INIT" | "INSTALLED",
+  context: string
+): RecoverBatchStep => {
+  const hostName = host.hostName;
+  const componentNames = host.allHostComponents.map(
+    (component: RecoverHostComponent) => component.HostRoles.component_name
+  );
+  return {
+    order_id: orderId,
+    type: "PUT",
+    uri: `/clusters/${clusterName}/hosts/${hostName}/host_components`,
+    RequestBodyInfo: {
+      RequestInfo: {
+        context: context,
+        operation_level: {
+          level: "HOST",
+          cluster_name: clusterName,
+          host_name: hostName,
+        },
+        query: `HostRoles/component_name.in(${componentNames.join(",")})`,
+      },
+      Body: {
+        HostRoles: {
+          state: state,
+        },
+      },
+    },
+  };
+};
+
+/**
+ * Builds one ordered request schedule for all eligible hosts: every host is
+ * moved to INIT first, then every host is installed, then (for Kerberos
+ * clusters) keytabs are regenerated once for all recovered hosts. For a single
+ * host this matches the batch submitted by single-host Recover Host.
+ */
+export const buildRecoverHostsBatches = (
+  eligibleHosts: RecoverHost[],
+  clusterName: string,
+  isKerberosEnabled: boolean
+): RecoverBatchStep[] => {
+  const hosts = eligibleHosts || [];
+  const hostCount = hosts.length;
+  const batches: RecoverBatchStep[] = [
+    ...hosts.map((host, index) =>
+      buildRecoverHostComponentsStep(
+        index + 1,
+        host,
+        clusterName,
+        "INIT",
+        translate("hosts.host.recover.initAllComponents.context") as string
+      )
+    ),
+    ...hosts.map((host, index) =>
+      buildRecoverHostComponentsStep(
+        hostCount + index + 1,
+        host,
+        clusterName,
+        "INSTALLED",
+        translate("hosts.host.recover.installAllComponents.context") as string
+      )
+    ),
+  ];
+
+  if (isKerberosEnabled && hostCount) {
+    const hostNames = hosts.map((host) => host.hostName);
+    batches.push({
+      order_id: hostCount * 2 + 1,
+      type: "PUT",
+      uri: `/clusters/${clusterName}`,
+      RequestBodyInfo: {
+        RequestInfo: {
+          context: translate("hosts.host.recover.regenerateKeytabs.context"),
+          query: `regenerate_keytabs=all&regenerate_hosts=${hostNames.join(
+            ","
+          )}&config_update_policy=none`,
+        },
+        Body: {
+          Clusters: {
+            security_type: "KERBEROS",
+          },
+        },
+      },
+    });
+  }
+
+  return batches;
 };
 
 const convertHostsObjects = (json: any) => {
@@ -423,6 +598,13 @@ const bulkOperation = (
           hosts,
           clusterName,
           serviceComponentInfo
+        );
+      } else if (operationData.action === "RECOVER_HOST") {
+        bulkOperationForHostsRecover(
+          operationData,
+          hosts,
+          clusterName,
+          getKDCSessionState
         );
       } else {
         if (operationData.action === "PASSIVE_STATE") {
@@ -734,6 +916,89 @@ const getComponentsFromServerForRefreshConfigsCallback = (
     translate("rollingrestart.context.configs.allOnSelectedHosts") as string,
     "HOST"
   );
+};
+
+const bulkOperationForHostsRecover = (
+  operationData: { message: string; isKerberosEnabled?: boolean },
+  hosts: RecoverHost[],
+  clusterName: string,
+  getKDCSessionState: (callback: () => Promise<void>) => Promise<void>
+) => {
+  const { eligible, skipped } = partitionHostsForRecovery(hosts);
+
+  if (!eligible.length) {
+    showRollingNothingToDoModal(
+      translate("hosts.bulkOperation.recover.nothingToDo.body")
+    );
+    return;
+  }
+
+  const skippedHosts = skipped.map((skippedHost) => ({
+    hostName: skippedHost.host.hostName,
+    reason: skippedHost.reason,
+  }));
+
+  modalManager.show(
+    <RecoverHostsModal
+      isOpen={true}
+      onClose={() => {
+        modalManager.hide();
+      }}
+      eligibleHosts={eligible}
+      skippedHosts={skippedHosts}
+      successCallback={() => {
+        modalManager.hide();
+        doBulkRecoverHosts(
+          operationData,
+          eligible,
+          clusterName,
+          getKDCSessionState
+        );
+      }}
+    />
+  );
+};
+
+export const doBulkRecoverHosts = async (
+  operationData: { message: string; isKerberosEnabled?: boolean },
+  eligibleHosts: RecoverHost[],
+  clusterName: string,
+  getKDCSessionState: (callback: () => Promise<void>) => Promise<void>
+) => {
+  const isKerberosEnabled = Boolean(operationData.isKerberosEnabled);
+  await getKDCSessionState(async () => {
+    const batches = buildRecoverHostsBatches(
+      eligibleHosts,
+      clusterName,
+      isKerberosEnabled
+    );
+    try {
+      const response = await HostsApi.batchRequest(clusterName, {
+        intervalTimeSeconds: 1,
+        tolerateSize: 0,
+        batches: batches,
+      });
+      bulkOperationForHostsRecoverSuccessCallback(response);
+    } catch (error) {
+      showErrorModal(operationData.message + " " + get(error, "message", ""));
+    }
+  });
+};
+
+// The batch API returns a request schedule id, not a request id, so open
+// Background Operations at the request list like single-host Recover Host.
+const bulkOperationForHostsRecoverSuccessCallback = (response: unknown) => {
+  const scheduleId = get(response, "data.resources.[0].RequestSchedule.id", -1);
+  if (scheduleId !== -1) {
+    modalManager.show(
+      <BackgroundOperations
+        isOpen={true}
+        onClose={() => {
+          modalManager.hide();
+        }}
+      />
+    );
+  }
 };
 
 const bulkOperationForHostsPassiveState = (

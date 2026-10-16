@@ -87,7 +87,8 @@ export const getCmponentsToBeRestarted = (data: IHost) => {
 };
 
 export default function HostsList() {
-  const { clusterName, serviceComponentInfo } = useContext(AppContext);
+  const { clusterName, serviceComponentInfo, isKerberosEnabled } =
+    useContext(AppContext);
   const { allServiceModels: serviceModels, polledHostComponentsData } = useContext(ServiceContext);
   const [loading, setLoading] = useState(true);
   const [paginationLoading, setPaginationLoading] = useState(false);
@@ -796,6 +797,27 @@ export default function HostsList() {
               action: "SET_RACK_INFO",
               message: "Set Rack",
               callback: setCurrentHostModels,
+            },
+            hostsNames,
+            selection,
+            clusterName,
+            stackVersionList,
+            serviceComponentInfo,
+            serviceModels,
+            getKDCSessionState,
+            selectedFilters
+          ),
+      });
+
+      // Matches single-host Recover Host, which has no extra authorization check.
+      result.push({
+        label: "Recover Hosts",
+        onClick: () =>
+          bulkOperationConfirm(
+            {
+              action: "RECOVER_HOST",
+              message: "Recover Hosts",
+              isKerberosEnabled,
             },
             hostsNames,
             selection,
