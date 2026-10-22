@@ -35,7 +35,7 @@ Ambari LDAP Configuration
     - [AmbariConfiguration class](#implementation-details-stack-advisor-ambariconfiguration)
     - [AmbariLDAPDetails class](#implementation-details-stack-advisor-ambarildapdetails)
     - [Example](#implementation-details-stack-advisor-example)
-- [Synching LDAP users with Ambari Using the CLI](#sync-using-cli)
+- [Syncing LDAP users with Ambari Using the CLI](#sync-using-cli)
 
 <a name="introduction"></a>
 ## Introduction
@@ -189,7 +189,7 @@ The following arguments must be supplied when **enabling** LDAP:
                         User Group Member Attribute for LDAP
   --ldap-group-class=<group object class>
                         Group Object Class attribute for LDAP
-  --ldap-group-attr=<group name attrbiute>
+  --ldap-group-attr=<group name attribute>
                         Group Name attribute for LDAP
   --ldap-member-attr=<group member attribute>
                         Group Membership attribute name for LDAP
@@ -526,7 +526,7 @@ The `AmbariLDAPDetails` class contains utility functions to get and interpret da
 ambari_ldap_details = ambari_configuration.get_ambari_ldap_details() if ambari_configuration else None
 ```
 
-The public API of this class mirrors above mentioned Java class's (`org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration`) public API; except for trust store related API and getLdapServerProperties which we do not need in Pyton side.
+The public API of this class mirrors above mentioned Java class's (`org.apache.ambari.server.ldap.domain.AmbariLdapConfiguration`) public API; except for trust store related API and getLdapServerProperties which we do not need in Python side.
 
  <a name="implementation-details-stack-advisor-example"></a>
  #### Stack Advisor Example
@@ -556,6 +556,6 @@ continue; else, there is nothing left to do but exit the function.
 to take. This is because even though Ambari is managing the LDAP configuration for installed services, it may not be managing the LDAP-configuration for the particular service. So one of the following actions are to be performed: enable or ignore.
 
 <a name="sync-using-cli"></a>
-## Synching LDAP users with Ambari Using the CLI
+## Syncing LDAP users with Ambari Using the CLI
 
 After setting up your LDAP integration, you must synchronize LDAP users and groups with Ambari, using the `ambari-server sync-ldap [option]` utility. Please read [this guide](https://docs.hortonworks.com/HDPDocuments/HDP3/HDP-3.0.1/ambari-authentication-ldap-ad/content/authe_ldapad_synchronizing_ldap_users_and_groups.html) carefully for further information.

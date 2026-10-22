@@ -60,7 +60,7 @@ It is possible to enable Kerberos using Ambari's REST API using the following AP
   - `curl ... http://.../CLUSTER/...`
   - The examples below use
     - CLUSTER:  CLUSTER_NAME
-- @./payload indicates the the payload data is stored in some file rather than declared inline
+- @./payload indicates the payload data is stored in some file rather than declared inline
   - `curl ... -d @./payload ...`
   - The examples below use `./payload` which should be replace with the actual file path
   - The contents of the payload file are indicated below the curl statement

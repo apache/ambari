@@ -62,7 +62,7 @@ Returns information for a specific role on the given host.
 **Example**
 
 
-Returns information for a the DATANODE role on the the host named "host1" on the cluster named "c1".
+Returns information for the DATANODE role on the host named "host1" on the cluster named "c1".
 
     GET /clusters/c1/hosts/host1/host_components/DATANODE
 

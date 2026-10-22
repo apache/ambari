@@ -203,7 +203,7 @@ The context interface provides access to information about the associated view i
       public ImpersonatorSetting getImpersonatorSetting();
  
 ###UI Components
-The view archive may contain components of a web application such as html or JavaSript. 
+The view archive may contain components of a web application such as html or JavaScript. 
 
 See [View UI](#View UI).
 
@@ -668,7 +668,7 @@ Packaging
 
 All views are packaged as a view archive.  The view archive contains the configuration file and various optional components of the view like resources and resource providers.
 
-The view resource also contains all of the view UI components such as html, JavaSript and servlets.
+The view resource also contains all of the view UI components such as html, JavaScript and servlets.
 
 ###Dependencies
 The view may include dependency classes and jars directly into the archive.  Classes should be included under **WEB-INF/classes**.  Jars should be included under **WEB-INF/lib**.
@@ -746,7 +746,7 @@ entity | An entity that may be persisted through the DataStore.
 #####entity
 Element | Description
 ---|---
-class | The class ot the JavaBean that contains the attributes of an entity.
+class | The class of the JavaBean that contains the attributes of an entity.
 id-property | The id field of the entity.
 
 For example …

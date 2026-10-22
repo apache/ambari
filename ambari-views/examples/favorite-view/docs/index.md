@@ -18,7 +18,7 @@ Favorite View Example
 
 Description
 -----
-The Favoriate View is a very simple view example. It demonstrates the very basics of how
+The Favorite View is a very simple view example. It demonstrates the very basics of how
 to write and expose a REST service which works with instance parameters and instance data.
 
 Package

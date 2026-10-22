@@ -22,7 +22,7 @@ View Component Information
 
 **Summary**
 
-Return the component identified by ":componentName" for for the service identifired by ":serviceName".
+Return the component identified by ":componentName" for the service identified by ":serviceName".
 
     GET /clusters/:name/services/:serviceName/components/:componentName
 

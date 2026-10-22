@@ -26,7 +26,7 @@ An upgrade consists of 4 distinct object types.
 An upgrade is the top-level object that maps to a Request.
 
 #### UpgradeGroup
-An upgrade group is a collection of UpgradeItem instances that are related.  For example, "Core Masters" can be a group that contains the master services for HDFS, HBase and YARN.  There are many groups associated with an Upgrade.  Groups do not match an existing Requst/Stage/Task object.
+An upgrade group is a collection of UpgradeItem instances that are related.  For example, "Core Masters" can be a group that contains the master services for HDFS, HBase and YARN.  There are many groups associated with an Upgrade.  Groups do not match an existing Request/Stage/Task object.
 
 #### UpgradeItem
 An upgrade item matches the framework Stage instance.  UpgradeItems must be processed sequentially.  There are several items associated to a group.
@@ -50,7 +50,7 @@ A sample hierarchy is as follows:
 ### API Summary
 
 ##### Create Upgrade
-Initiates the upgrade process.  Uses the repository version specfied and creates the groups, items and tasks.  You must have the correct version from [Repository Versions](repository-version-resources.md)
+Initiates the upgrade process.  Uses the repository version specified and creates the groups, items and tasks.  You must have the correct version from [Repository Versions](repository-version-resources.md)
 ###### Request:
 
     POST http://<server>:8080/api/v1/clusters/<cluster>/upgrades

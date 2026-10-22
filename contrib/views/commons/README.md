@@ -23,7 +23,7 @@ This has common code for:
 
 **Note: More to be added later**
 
-### How to Include it in dependant project
+### How to Include it in dependent project
 
 In the service class for the project use `commons` projects code in the way described in the below example for `files` view.
 
