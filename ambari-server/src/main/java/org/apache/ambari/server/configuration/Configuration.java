@@ -501,18 +501,18 @@ public class Configuration {
 
   /**
    * Used in conjunction with {@link #API_GZIP_COMPRESSION_ENABLED}, determines
-   * the mininum size (in bytes) that an HTTP request must be before it should be
+   * the minimum size (in bytes) that an HTTP request must be before it should be
    * compressed.
    */
-  @Markdown(description = "Used in conjunction with `api.gzip.compression.enabled`, determines the mininum size that an HTTP request must be before it should be compressed. This is measured in bytes.")
+  @Markdown(description = "Used in conjunction with `api.gzip.compression.enabled`, determines the minimum size that an HTTP request must be before it should be compressed. This is measured in bytes.")
   public static final ConfigurationProperty<String> API_GZIP_MIN_COMPRESSION_SIZE = new ConfigurationProperty<>(
       "api.gzip.compression.min.size", "10240");
 
   /**
-   * Determiens whether communication with the Ambari Agents should have the
+   * Determines whether communication with the Ambari Agents should have the
    * JSON payloads compressed with GZIP.
    */
-  @Markdown(description = "Determiens whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP.")
+  @Markdown(description = "Determines whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP.")
   public static final ConfigurationProperty<String> AGENT_API_GZIP_COMPRESSION_ENABLED = new ConfigurationProperty<>(
       "agent.api.gzip.compression.enabled", "true");
 
@@ -1134,7 +1134,7 @@ public class Configuration {
    */
   @Markdown(
       examples = { "local", "remote" },
-      description = "The type of database connection being used. Unless using an embedded PostgresSQL server, then this should be `remote`.")
+      description = "The type of database connection being used. Unless using an embedded PostgreSQL server, then this should be `remote`.")
   public static final ConfigurationProperty<String> SERVER_PERSISTENCE_TYPE = new ConfigurationProperty<>(
       "server.persistence.type", "local");
 
@@ -1153,9 +1153,9 @@ public class Configuration {
       "server.jdbc.user.passwd", "bigdata");
 
   /**
-   * The name of the PostgresSQL JDBC JAR connector.
+   * The name of the PostgreSQL JDBC JAR connector.
    */
-  @Markdown(description = "The name of the PostgresSQL JDBC JAR connector.")
+  @Markdown(description = "The name of the PostgreSQL JDBC JAR connector.")
   public static final ConfigurationProperty<String> SERVER_JDBC_DRIVER = new ConfigurationProperty<>(
       "server.jdbc.driver", "org.postgresql.Driver");
 
@@ -1427,10 +1427,10 @@ public class Configuration {
       "server.jdbc.rca.user.passwd", "mapred");
 
   /**
-   * The PostgresSQL driver name for the RCA database.
+   * The PostgreSQL driver name for the RCA database.
    */
   @Deprecated
-  @Markdown(description = "The PostgresSQL driver name for the RCA database.")
+  @Markdown(description = "The PostgreSQL driver name for the RCA database.")
   public static final ConfigurationProperty<String> SERVER_JDBC_RCA_DRIVER = new ConfigurationProperty<>(
       "server.jdbc.rca.driver", "org.postgresql.Driver");
 
@@ -2059,7 +2059,7 @@ public class Configuration {
    * request to a {@link PropertyProvider} can run before being terminated.
    */
   @Markdown(description = "The maximum time, in milliseconds, that federated requests for data can execute before being terminated. "
-      + "Increasing this value could result in degraded performanc from the REST APIs.")
+      + "Increasing this value could result in degraded performance from the REST APIs.")
   public static final ConfigurationProperty<Long> PROPERTY_PROVIDER_THREADPOOL_COMPLETION_TIMEOUT = new ConfigurationProperty<>(
       "server.property-provider.threadpool.completion.timeout", 5000L);
 

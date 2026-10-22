@@ -21,8 +21,8 @@ Different Ambari views can use this in their view. Common code should be usable 
 
 # How to use it
 
-### Including it in dependant project
-Add the following code in package.json of the dependant view
+### Including it in dependent project
+Add the following code in package.json of the dependent view
 
 ```javascript
 "name": "files",
@@ -44,7 +44,7 @@ As we are going to include the component using the `ember-addon` config in `pack
 "font-awesome": "~4.5.0"
 ```
 
-### Overriding configs in dependant project
+### Overriding configs in dependent project
 
 Create a util object in `utils` directory using `ember generate util <object name>` and override it as follows:
 
@@ -63,7 +63,7 @@ export default ViewerConfig.extend({
 });
 ```
 
-All the functions and attributes in `hdfs-directory-viewer/utils/viewer-config` can be overriden
+All the functions and attributes in `hdfs-directory-viewer/utils/viewer-config` can be overridden
 
 ### Passing the object to the view template
 

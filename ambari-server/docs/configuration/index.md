@@ -39,7 +39,7 @@ The following are the properties which can be used to configure Ambari.
 | active.instance | Indicates whether the current ambari server instance is active or not. |`true` | 
 | addservice.hostgroup.strategy | Fully qualified class name of the strategy used to form host groups for add service request layout recommendation. |`org.apache.ambari.server.topology.addservice.GroupByComponentsStrategy` | 
 | agent.api.acceptor.count | Count of acceptors to configure for the jetty connector used for Ambari agent. | | 
-| agent.api.gzip.compression.enabled | Determiens whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP. |`true` | 
+| agent.api.gzip.compression.enabled | Determines whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP. |`true` | 
 | agent.auto.cache.update | Determines whether the agents will automatically attempt to download updates to stack resources from the Ambari Server. |`true` | 
 | agent.check.mounts.timeout | The timeout, used by the `timeout` command in linux, when checking mounts for free capacity. |`0` | 
 | agent.check.remote.mounts | Determines whether the Ambari Agents will use the `df` or `df -l` command when checking disk mounts for capacity issues. Auto-mounted remote directories can cause long delays. |`false` | 
@@ -73,7 +73,7 @@ The following are the properties which can be used to configure Ambari.
 | api.authenticated.user | The username of the default user assumed to be executing API calls. When set, authentication is not required in order to login to Ambari or use the REST APIs.   | | 
 | api.csrfPrevention.enabled | Determines whether Cross-Site Request Forgery attacks are prevented by looking for the `X-Requested-By` header. |`true` | 
 | api.gzip.compression.enabled | Determines whether data sent to and from the Ambari service should be compressed. |`true` | 
-| api.gzip.compression.min.size | Used in conjunction with `api.gzip.compression.enabled`, determines the mininum size that an HTTP request must be before it should be compressed. This is measured in bytes. |`10240` | 
+| api.gzip.compression.min.size | Used in conjunction with `api.gzip.compression.enabled`, determines the minimum size that an HTTP request must be before it should be compressed. This is measured in bytes. |`10240` | 
 | api.heartbeat.interval | Server to API STOMP endpoint heartbeat interval in milliseconds. |`10000` | 
 | api.ssl | Determines whether SSL is used in for secure connections to Ambari. When enabled, ambari-server setup-https must be run in order to properly configure keystores. |`false` | 
 | auditlog.enabled | Determines whether audit logging is enabled. |`true` | 
@@ -219,10 +219,10 @@ The following are the properties which can be used to configure Ambari.
 | server.jdbc.connection-pool.max-size | The maximum number of connections that should exist in the database connection pool. Only used with c3p0.<br/><br/> This property is related to `server.jdbc.connection-pool`. |`32` | 
 | server.jdbc.connection-pool.min-size | The minimum number of connections that should always exist in the database connection pool. Only used with c3p0.<br/><br/> This property is related to `server.jdbc.connection-pool`. |`5` | 
 | server.jdbc.database_name | The name of the database. |`ambari` | 
-| server.jdbc.driver | The name of the PostgresSQL JDBC JAR connector. |`org.postgresql.Driver` | 
+| server.jdbc.driver | The name of the PostgreSQL JDBC JAR connector. |`org.postgresql.Driver` | 
 | server.jdbc.generateTables | The table generation strategy to use when initializing JPA. |`NONE` | 
 | server.jdbc.postgres.schema | The schema within a named PostgreSQL database where Ambari's tables, users, and constraints are stored.  | | 
-| server.jdbc.rca.driver | The PostgresSQL driver name for the RCA database. |`org.postgresql.Driver` | 
+| server.jdbc.rca.driver | The PostgreSQL driver name for the RCA database. |`org.postgresql.Driver` | 
 | server.jdbc.rca.url | The full JDBC URL for connecting to the RCA database. |`jdbc:postgresql://{hostname}/ambarirca` | 
 | server.jdbc.rca.user.name | The user name for connecting to the database which stores RCA information. |`mapred` | 
 | server.jdbc.rca.user.passwd | The password for the user when connecting to the database which stores RCA information. |`mapred` | 
@@ -237,8 +237,8 @@ The following are the properties which can be used to configure Ambari.
 | server.operations.retry-attempts | The number of retry attempts for failed API and blueprint operations. |`0` | 
 | server.os_family | The operating system family for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`redhat`<li>`ubuntu`</ul> | | 
 | server.os_type | The operating system version for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`6`<li>`7`</ul> | | 
-| server.persistence.type | The type of database connection being used. Unless using an embedded PostgresSQL server, then this should be `remote`.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`remote`</ul> |`local` | 
-| server.property-provider.threadpool.completion.timeout | The maximum time, in milliseconds, that federated requests for data can execute before being terminated. Increasing this value could result in degraded performanc from the REST APIs. |`5000` | 
+| server.persistence.type | The type of database connection being used. Unless using an embedded PostgreSQL server, then this should be `remote`.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`remote`</ul> |`local` | 
+| server.property-provider.threadpool.completion.timeout | The maximum time, in milliseconds, that federated requests for data can execute before being terminated. Increasing this value could result in degraded performance from the REST APIs. |`5000` | 
 | server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`4` | 
 | server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`8` | 
 | server.property-provider.threadpool.worker.size | The maximum size of pending federated datasource requests, such as those to JMX endpoints, which can be queued before rejecting new requests. |`2147483647` | 

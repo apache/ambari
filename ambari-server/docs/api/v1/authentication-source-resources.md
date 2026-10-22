@@ -76,7 +76,7 @@ by updating the relevant authentication source resource.
   <tr>
     <td>AuthenticationSourceInfo/key</td>
     <td>
-      The authencation type-specific key.  For example, if the authentcation type is LOCAL, than
+      The authentication type-specific key.  For example, if the authentication type is LOCAL, than
       the authentication key is the password.
       <p/><p/>
       The value is settable by an Ambari administrator and potentially the parent user (depending 
@@ -86,11 +86,11 @@ by updating the relevant authentication source resource.
   <tr>
     <td>AuthenticationSourceInfo/old_key</td>
     <td>       
-      This propery may be set when updating an authentication source resource if verification of the
-      current key is needed before being allowed to set a new one.  For eample if setting a new 
+      This property may be set when updating an authentication source resource if verification of the
+      current key is needed before being allowed to set a new one.  For example if setting a new 
       password for an authentication source of type LOCAL, this value is required when a user is 
       updating the value.  It is not used when an Ambari user administrator is updating a user's 
-      password.  The need for this property is specific to the requirments of the authentication 
+      password.  The need for this property is specific to the requirements of the authentication 
       source type.
       <p/><p/>
       The value is write-only.
@@ -99,7 +99,7 @@ by updating the relevant authentication source resource.
   <tr>
     <td>AuthenticationSourceInfo/created</td>
     <td>
-      The timestamp indicating when the authentcation source resource was created.
+      The timestamp indicating when the authentication source resource was created.
       <p/><p/>
       The value is generated internally and is read-only.
      </td>  
@@ -107,7 +107,7 @@ by updating the relevant authentication source resource.
   <tr>
     <td>AuthenticationSourceInfo/updated</td>
     <td>
-      The timestamp indicating when the authentcation source resource was updated.
+      The timestamp indicating when the authentication source resource was updated.
       <p/><p/>
       The value is generated internally and is read-only.
      </td>  
