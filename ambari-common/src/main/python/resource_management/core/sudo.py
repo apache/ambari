@@ -90,7 +90,7 @@ if os.geteuid() == 0:
     :type recursion_follow_links bool
     """
     dir_attrib = recursive_mode_flags["d"] if "d" in recursive_mode_flags else None
-    files_attrib = recursive_mode_flags["f"] if "d" in recursive_mode_flags else None
+    files_attrib = recursive_mode_flags["f"] if "f" in recursive_mode_flags else None
 
     for root, dirs, files in unicode_walk(path, followlinks=recursion_follow_links):
       if dir_attrib is not None:
@@ -386,14 +386,15 @@ else:
     files = out.splitlines()
     return files
 
-  def chmod_recursive(path, recursive_mode_flags, recursion_follow_links):
+  def chmod_recursive(path, recursive_mode_flags, recursion_follow_links=False):
     find_flags = []
     if recursion_follow_links:
       find_flags.append("-L")
 
     for key, flags in recursive_mode_flags.items():
       shell.checked_call(
-        ["find"] + find_flags + [path, "-type", key, "-exec", "chmod", flags, "{}", ";"]
+        ["find"] + find_flags + [path, "-type", key, "-exec", "chmod", flags, "{}", ";"],
+        sudo=True,
       )
 
 
