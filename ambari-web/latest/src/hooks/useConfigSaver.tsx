@@ -270,23 +270,24 @@ export const useConfigSaver = (
     configGroupName: string
   ) => {
     let overriddenConfigs: any[] = [];
+    // Config group names are unique only within a service, and configProperties
+    // holds every service, so look at the overrides of this service only.
+    const serviceConfigs = configProperties[serviceName] || {};
 
-    Object.keys(configProperties).forEach((serviceName) => {
-      Object.keys(configProperties[serviceName]).forEach((configType) => {
-        const properties = configProperties[serviceName][configType].properties;
+    Object.keys(serviceConfigs).forEach((configType) => {
+      const properties = serviceConfigs[configType].properties;
 
-        Object.keys(properties).forEach((propertyName) => {
-          const property = properties[propertyName];
-          if (property.overrideValues?.length) {
-            const groupOverrides = property.overrideValues.filter(
-              (override) => override.groupName === configGroupName
-            );
+      Object.keys(properties).forEach((propertyName) => {
+        const property = properties[propertyName];
+        if (property.overrideValues?.length) {
+          const groupOverrides = property.overrideValues.filter(
+            (override) => override.groupName === configGroupName
+          );
 
-            if (groupOverrides.length > 0) {
-              overriddenConfigs.push(property);
-            }
+          if (groupOverrides.length > 0) {
+            overriddenConfigs.push(property);
           }
-        });
+        }
       });
     });
 
