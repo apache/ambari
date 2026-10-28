@@ -99,4 +99,6 @@ def kill_process_tree(proc):
   current_directory = os.path.dirname(os.path.abspath(__file__))
   kill_tree_script = f"{current_directory}/files/killtree.sh"
   if proc.poll() == None:
-    shell.checked_call(["bash", kill_tree_script, str(proc.pid), str(signal.SIGKILL)])
+    shell.checked_call(
+      ["bash", kill_tree_script, str(proc.pid), str(signal.SIGKILL.value)]
+    )
