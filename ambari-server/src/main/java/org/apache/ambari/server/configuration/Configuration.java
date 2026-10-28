@@ -758,6 +758,22 @@ public class Configuration {
   public static final ConfigurationProperty<String> MPACKS_STAGING_DIR_PATH = new ConfigurationProperty<>(
       "mpacks.staging.path", null);
 
+  @Markdown(description = "Managed immutable mpack storage, writable by the Ambari Server account.")
+  public static final ConfigurationProperty<String> MPACK_MANAGED_PATH = new ConfigurationProperty<>(
+      "mpacks.managed.path", "/var/lib/ambari-server/mpack-store");
+
+  @Markdown(description = "Maximum compressed bytes accepted for an mpack or bundle upload.")
+  public static final ConfigurationProperty<Long> MPACK_UPLOAD_LIMIT = new ConfigurationProperty<>(
+      "mpacks.upload.max.bytes", 268435456L);
+
+  @Markdown(description = "Maximum expanded bytes accepted for an mpack or bundle archive.")
+  public static final ConfigurationProperty<Long> MPACK_EXPANDED_LIMIT = new ConfigurationProperty<>(
+      "mpacks.expanded.max.bytes", 1073741824L);
+
+  @Markdown(description = "Maximum member count accepted for an mpack or bundle archive.")
+  public static final ConfigurationProperty<Integer> MPACK_ENTRY_LIMIT = new ConfigurationProperty<>(
+      "mpacks.archive.max.entries", 100000);
+
   /**
    * The Ambari Management Pack v2 staging directory on the Ambari Server.
    */
@@ -3550,6 +3566,22 @@ public class Configuration {
    */
   public String getMpacksStagingPath() {
     return getProperty(MPACKS_STAGING_DIR_PATH);
+  }
+
+  public String getMpackManagedPath() {
+    return getProperty(MPACK_MANAGED_PATH);
+  }
+
+  public long getMpackUploadLimit() {
+    return Long.parseLong(getProperty(MPACK_UPLOAD_LIMIT));
+  }
+
+  public long getMpackExpandedLimit() {
+    return Long.parseLong(getProperty(MPACK_EXPANDED_LIMIT));
+  }
+
+  public int getMpackEntryLimit() {
+    return Integer.parseInt(getProperty(MPACK_ENTRY_LIMIT));
   }
 
   /**

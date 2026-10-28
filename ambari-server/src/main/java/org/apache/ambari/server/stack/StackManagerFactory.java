@@ -48,4 +48,9 @@ public interface StackManagerFactory {
       @Nullable @Assisted("commonServicesRoot") File commonServicesRoot,
       @Assisted("extensionRoot") @Nullable File extensionRoot,
       OsFamily osFamily, boolean validate);
+
+  StackManager createCandidate(@Assisted("stackRoot") File stackRoot,
+      @Nullable @Assisted("commonServicesRoot") File commonServicesRoot,
+      @Nullable @Assisted("extensionRoot") File extensionRoot,
+      OsFamily osFamily, StackResolutionContext resolutionContext) throws org.apache.ambari.server.AmbariException;
 }

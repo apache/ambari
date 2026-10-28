@@ -1157,8 +1157,18 @@ class ActionScheduler implements Runnable {
       commandParamsStageCache.put(stagePk, commandParams);
     }
     Map<String, String> commandParamsCmd = cmd.getCommandParams();
+    Map<String, String> pinnedResources = new java.util.HashMap<>();
+    if (commandParamsCmd.containsKey(org.apache.ambari.server.mpack.MpackExecutionResources.SNAPSHOT_ID)) {
+      org.apache.ambari.server.mpack.MpackExecutionResources.PINNED_KEYS.forEach(key -> {
+        if (commandParamsCmd.containsKey(key)) {
+          pinnedResources.put(key, commandParamsCmd.get(key));
+        }
+      });
+    }
     commandParamsCmd.putAll(commandParams);
-    if (resourceManager != null) {
+    commandParamsCmd.putAll(pinnedResources);
+    if (resourceManager != null
+        && !commandParamsCmd.containsKey(org.apache.ambari.server.mpack.MpackExecutionResources.SNAPSHOT_ID)) {
       commandParamsCmd.put(ExecutionCommand.KeyNames.RESOURCE_ARCHIVE_DIGESTS,
           StageUtils.getGson().toJson(resourceManager.getResourceArchiveDigests()));
     }

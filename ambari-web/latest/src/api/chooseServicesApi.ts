@@ -29,7 +29,7 @@ export const ChooseServicesApi = {
     return response.data;
   },
   servicesList: async function (clusterName: string) {
-    const url = `/clusters/${apiPathSegment(clusterName)}/services`;
+    const url = `/clusters/${apiPathSegment(clusterName)}/services?fields=ServiceInfo/service_name,ServiceInfo/state,ServiceInfo/maintenance_state,ServiceInfo/desired_repository_version_id`;
     const response = await ambariApi.request({
       url: url,
       method: "GET",

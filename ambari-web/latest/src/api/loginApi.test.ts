@@ -69,4 +69,15 @@ describe("login API", () => {
     });
     expect(mocks.request).not.toHaveBeenCalled();
   });
+
+  it("keeps an unauthenticated session probe available to the caller without a global error toast", async () => {
+    const denied = { response: { status: 401 } };
+    mocks.suppressedRequest.mockRejectedValue(denied);
+    await expect(LoginApi.probeSession()).rejects.toBe(denied);
+    expect(mocks.suppressedRequest).toHaveBeenCalledWith(expect.objectContaining({
+      url: "/clusters?fields=Clusters/provisioning_state,Clusters/security_type,Clusters/version,Clusters/cluster_id",
+      method: "GET",
+    }));
+    expect(mocks.request).not.toHaveBeenCalled();
+  });
 });

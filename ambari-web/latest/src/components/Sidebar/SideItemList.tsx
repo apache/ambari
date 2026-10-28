@@ -115,7 +115,7 @@ const getSideItemList = (
       name: <div className="fs-4">Ambari</div>,
       path: "/main/dashboard",
       children: [],
-      style: { background: "#313d54", height: "60px" },
+      style: { height: "60px" },
     },
     {
       id: SideItemLabels.DASHBOARD,
@@ -217,7 +217,7 @@ const SideItemList: SideItem[] = [
     name: <div className="fs-4">Ambari</div>,
     path: "/dashboard",
     children: [],
-    style: { background: "#313d54", height: "60px" },
+    style: { height: "60px" },
   },
   {
     id: SideItemLabels.DASHBOARD,

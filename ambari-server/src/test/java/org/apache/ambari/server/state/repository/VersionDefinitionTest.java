@@ -624,6 +624,35 @@ public class VersionDefinitionTest extends EasyMockSupport {
     verifyAll();
   }
 
+  @Test
+  public void testIndependentFoundationWithoutUpgradableServices() throws Exception {
+    ServiceInfo nginx = makeService("NGINX");
+    StackInfo stack = new StackInfo() {
+      @Override
+      public synchronized Collection<ServiceInfo> getServices() {
+        return List.of(nginx);
+      }
+    };
+    stack.setName("GENERIC");
+    stack.setVersion("1.0");
+    stack.setRepositoryVersionMode(StackInfo.RepositoryVersionMode.INDEPENDENT);
+    RepositoryXml repositories = new RepositoryXml();
+    File source = new File("src/test/resources/version_definition_test_all_services.xml");
+    repositories.getOses().addAll(VersionDefinitionXml.load(source.toURI().toURL()).repositoryInfo.getOses());
+    stack.setRepositoryXml(repositories);
+
+    VersionDefinitionXml definition = VersionDefinitionXml.build(stack);
+    assertTrue(definition.isStackDefault());
+    assertEquals("GENERIC-1.0", definition.release.stackId);
+    assertEquals("1.0", definition.release.version);
+    assertTrue(definition.manifestServices.isEmpty());
+    assertTrue(definition.getAvailableServices(stack).isEmpty());
+    assertEquals("NGINX", definition.getStackServices(stack).get(0).m_name);
+    VersionDefinitionXml reloaded = VersionDefinitionXml.load(definition.toXml());
+    assertTrue(reloaded.manifestServices.isEmpty());
+    assertEquals(repositories.getOses().size(), reloaded.repositoryInfo.getOses().size());
+  }
+
   private static ServiceInfo makeService(final String name) {
     return new ServiceInfo() {
       @Override

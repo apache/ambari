@@ -783,6 +783,9 @@ const executeCustomCommandCall = async (
 
 const executeCustomCommandSuccessCallback = (response: any) => {
   const requestId = get(response, "Requests.id", -1);
+  if (!Number.isSafeInteger(requestId) || requestId < 1) {
+    throw new Error("The custom command response has no valid request identity");
+  }
   defaultSuccessCallback(requestId);
 };
 

@@ -65,6 +65,8 @@ import com.google.inject.assistedinject.AssistedInject;
  * mpack information.
  */
 public class MpackManager {
+  @com.google.inject.Inject
+  private MpackRuntime lifecycleRuntime;
   protected Map<Long, Mpack> mpackMap = new HashMap<>();
   private File mpackStaging;
   private MpackDAO mpackDAO;
@@ -157,6 +159,9 @@ public class MpackManager {
    */
   public MpackResponse registerMpack(MpackRequest mpackRequest)
     throws IOException, IllegalArgumentException, ResourceAlreadyExistsException {
+    if (lifecycleRuntime != null) {
+      lifecycleRuntime.requireLegacyMutationAllowed();
+    }
 
     Long mpackResourceId;
     String mpackName = "";
@@ -549,6 +554,9 @@ public class MpackManager {
    * @throws IOException
    */
   public boolean removeMpack(MpackEntity mpackEntity, StackEntity stackEntity) throws IOException {
+    if (lifecycleRuntime != null) {
+      lifecycleRuntime.requireLegacyMutationAllowed();
+    }
 
     boolean stackDelete = false;
     File mpackDirToDelete = new File(

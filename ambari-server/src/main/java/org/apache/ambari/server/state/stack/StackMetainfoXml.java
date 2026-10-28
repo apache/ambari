@@ -53,6 +53,20 @@ public class StackMetainfoXml implements Validable{
   @XmlElement(name="extends")
   private String extendsVersion = null;
 
+  @XmlElement(name="hooksFolder")
+  private String hooksFolder;
+
+  @XmlElement(name="repositoryVersionMode")
+  private String repositoryVersionMode;
+
+  public String getRepositoryVersionMode() {
+    return repositoryVersionMode;
+  }
+
+  public String getHooksFolder() {
+    return hooksFolder;
+  }
+
   @XmlElement(name="versions")
   private Version version = new Version();
 
@@ -145,6 +159,4 @@ public class StackMetainfoXml implements Validable{
   }
 
 }
-
-
 

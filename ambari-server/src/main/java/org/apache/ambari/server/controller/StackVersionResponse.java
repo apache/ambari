@@ -33,6 +33,26 @@ public class StackVersionResponse implements Validable{
 
   private String minJdk;
   private String maxJdk;
+  private String repositoryVersionMode = "DISTRIBUTION";
+  private String hooksFolder;
+
+  @ApiModelProperty(name = "repository_version_mode")
+  public String getRepositoryVersionMode() {
+    return repositoryVersionMode;
+  }
+
+  public void setRepositoryVersionMode(String mode) {
+    repositoryVersionMode = mode;
+  }
+
+  @ApiModelProperty(name = "hooks_folder")
+  public String getHooksFolder() {
+    return hooksFolder;
+  }
+
+  public void setHooksFolder(String folder) {
+    hooksFolder = folder;
+  }
   private String stackName;
   private String stackVersion;
   private String minUpgradeVersion;

@@ -220,14 +220,6 @@ export default function AssignMasters({
           {},
         );
 
-        if (!hasManagedAdvisorDependency(prepared, "ZOOKEEPER")) {
-          Object.keys(hostsData).forEach((hostname) => {
-            if (!hostsData[hostname].components.includes("ZOOKEEPER_SERVER")) {
-              hostsData[hostname].components.push("ZOOKEEPER_SERVER");
-            }
-          });
-        }
-
         cpuResponse.data.items.forEach((item: any) => {
           const hostname = item.Hosts.host_name;
           if (hostsData[hostname]) {

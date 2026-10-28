@@ -37,8 +37,8 @@ import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 
-import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * Directory tree rescans and stack modules parsing take much time on every module init.
@@ -138,7 +138,7 @@ public class StackManagerMock extends StackManager {
     }
   }
 
-  @Inject
+  @AssistedInject
   public StackManagerMock(@Assisted("stackRoot") File stackRoot, @Nullable @Assisted("commonServicesRoot")
       File commonServicesRoot, @Assisted("extensionRoot") @Nullable File extensionRoot,
                           @Assisted OsFamily osFamily, @Assisted boolean validate, MetainfoDAO metaInfoDAO,
@@ -150,8 +150,26 @@ public class StackManagerMock extends StackManager {
     currentExtensionRoot = extensionRoot;
   }
 
+  @AssistedInject
+  public StackManagerMock(@Assisted("stackRoot") File stackRoot,
+      @Nullable @Assisted("commonServicesRoot") File commonServicesRoot,
+      @Nullable @Assisted("extensionRoot") File extensionRoot, @Assisted OsFamily osFamily,
+      @Assisted StackResolutionContext resolutionContext, MetainfoDAO metaInfoDAO,
+      ActionMetadata actionMetadata, StackDAO stackDao, ExtensionDAO extensionDao,
+      ExtensionLinkDAO linkDao, AmbariManagementHelper helper) throws AmbariException {
+    super(stackRoot, commonServicesRoot, extensionRoot, osFamily, resolutionContext,
+        metaInfoDAO, actionMetadata, stackDao, extensionDao, linkDao, helper);
+    currentStackRoot = stackRoot;
+    currentCommonServicesRoot = commonServicesRoot;
+    currentExtensionRoot = extensionRoot;
+  }
+
   @Override
   protected void parseDirectories(File stackRoot, File commonServicesRoot, File extensionRoot) throws AmbariException {
+    if (getDefinitionSnapshotId() != null) {
+      super.parseDirectories(stackRoot, commonServicesRoot, extensionRoot);
+      return;
+    }
     try {
       // Ensure correct behavior during the parallel test execution.
       lock.lock();

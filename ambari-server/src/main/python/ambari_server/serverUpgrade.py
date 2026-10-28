@@ -115,7 +115,6 @@ from ambari_server.userInput import (
   get_YN_input,
 )
 from ambari_server.serverClassPath import ServerClassPath
-from ambari_server.setupMpacks import replay_mpack_logs
 from ambari_commons.logging_utils import (
   get_debug_mode,
   set_debug_mode_from_options,
@@ -424,7 +423,7 @@ def upgrade(args):
     raise FatalException(retcode, err)
 
   restore_custom_services()
-  replay_mpack_logs()
+  # Managed definitions recover from their durable lifecycle records on server startup.
   try:
     update_database_name_property(upgrade=True)
   except FatalException:

@@ -394,6 +394,7 @@ class HostInfoLinux(HostInfo):
     """Return various details about the host"""
 
     metrics["hostHealth"] = {}
+    metrics["resourceProtocols"] = ["MPACK_RESOURCES_V1"]
 
     if checkJavaProcs:
       java = []

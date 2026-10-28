@@ -510,7 +510,7 @@ public class AmbariServer {
       cert.setInitOrder(4);
 
       File resourcesDirectory = new File(configs.getResourceDirPath());
-      configureResourcesServlet(root, resourcesDirectory);
+      configureResourcesServlet(root, resourcesDirectory, injector.getInstance(ResourceManager.class));
 
       if (configs.csrfProtectionEnabled()) {
         sh.setInitParameter("org.glassfish.jersey.server.ContainerRequestFilter",
@@ -846,6 +846,13 @@ public class AmbariServer {
     root.addAliasCheck(new SymlinkAllowedResourceAliasChecker(root, baseResource));
   }
 
+  static void configureResourcesServlet(ServletContextHandler root, File resourcesDirectory,
+      ResourceManager resourceManager) throws IOException {
+    configureResourcesServlet(root, resourcesDirectory);
+    root.addServlet(new ServletHolder(new org.apache.ambari.server.resources.MpackResourceServlet(resourceManager)),
+        "/resources/mpacks/*");
+  }
+
   /**
    * Performs GZIP compression configuration of the context handler
    * with static values and values from configuration file
@@ -968,7 +975,8 @@ public class AmbariServer {
     StackAdvisorBlueprintProcessor.init(injector.getInstance(StackAdvisorHelper.class));
     ThreadPoolEnabledPropertyProvider.init(injector.getInstance(Configuration.class));
 
-    BaseService.init(injector.getInstance(RequestAuditLogger.class));
+    BaseService.init(injector.getInstance(RequestAuditLogger.class),
+        injector.getInstance(org.apache.ambari.server.mpack.MpackRuntime.class));
 
     RetryHelper.init(injector.getInstance(Clusters.class), configs.getOperationsRetryAttempts());
 

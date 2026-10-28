@@ -40,9 +40,8 @@ export const useTrinoConfigUpdater = () => {
   const isTrinoInstalled = services && Array.isArray(services) && 
     services.some((service: any) => service.ServiceInfo.service_name === "TRINO");
 
-  if (!isTrinoInstalled) {
-    return;
-  }
+  const nativeModel = allServiceModels["trino"];
+  const canUpdate = isTrinoInstalled && Boolean(nativeModel);
 
   const fetchTrinoMasterSlaveClientsData = async () => {
     // 🚀 OPTIMIZATION: Try centralized cache first, fallback to masterSlaveClientsData
@@ -131,6 +130,7 @@ export const useTrinoConfigUpdater = () => {
     //   "TRINO"
     // );
     const response = quickLinksMapWithAPIResponse.get("TRINO");
+    if (!currentConfig || !Array.isArray(response?.data?.items)) return;
     const linksObj = fetchLinks(response.data.items);
     let quickLinks: any[] = [];
     let trinoCoordinators = [];
@@ -328,26 +328,34 @@ export const useTrinoConfigUpdater = () => {
 
   //usePolling(pollServiceComponentInfoApi, 3000);
   useEffect(() => {
+    if (!canUpdate) return;
     //@ts-ignore
     if (polledHostComponentsData?.items) {
       findMasterSlaveClientComponents();
       updateTrinoCoordinatorComponent();
       updateQuicklinksData();
     }
-  }, [polledHostComponentsData]);
+  }, [canUpdate, polledHostComponentsData, quickLinksMapWithAPIResponse]);
 
   useEffect(() => {
+    if (!canUpdate) return;
     //pollServiceComponentInfoApi();
     findMasterSlaveClientComponents();
     //updateSpark3HostComponentsData();
-  }, []);
+  }, [canUpdate]);
 
   useEffect(() => {
-    updateAlertsAndServiceStateData();
-  }, [allServiceModels]);
+    if (!canUpdate) return;
+    void updateAlertsAndServiceStateData().catch(() => {
+      // Keep the last observation; subsequent service updates retry the request.
+    });
+  }, [canUpdate, allServiceModels]);
 
   useEffect(() => {
-    parseWebSocketMessages();
-    parseAlertsWebSocketMessages();
-  }, [parsedSocketMessages]);
+    if (!canUpdate) return;
+    void parseWebSocketMessages();
+    void parseAlertsWebSocketMessages().catch(() => {
+      // A failed refresh must not replace the last known service observation.
+    });
+  }, [canUpdate, parsedSocketMessages]);
 };

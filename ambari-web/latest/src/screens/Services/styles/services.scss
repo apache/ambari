@@ -50,3 +50,10 @@
   top:-6px;
   right:15px;
 }
+
+@media (max-width: 575px) {
+  .action-btn {
+    position: static;
+    margin-bottom: 8px;
+  }
+}

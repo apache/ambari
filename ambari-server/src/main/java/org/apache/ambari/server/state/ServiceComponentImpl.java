@@ -331,6 +331,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public ServiceComponentHost addServiceComponentHost(String hostName) throws AmbariException {
     ServiceComponentHost hostComponent = serviceComponentHostFactory.createNew(this, hostName);
     addServiceComponentHost(hostComponent);
@@ -401,6 +402,7 @@ public class ServiceComponentImpl implements ServiceComponent {
    * {@inheritDoc}
    */
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public void setDesiredRepositoryVersion(RepositoryVersionEntity repositoryVersionEntity) {
     service.getCluster().executeUnderWriteLock(() -> {
       ServiceComponentDesiredStateEntity desiredStateEntity = serviceComponentDesiredStateDAO.findById(
@@ -554,6 +556,7 @@ public class ServiceComponentImpl implements ServiceComponent {
   }
 
   @Override
+  @org.apache.ambari.server.mpack.MpackMutation
   public void deleteServiceComponentHosts(String hostname, DeleteHostComponentStatusMetaData deleteMetaData) throws AmbariException {
     readWriteLock.writeLock().lock();
     try {

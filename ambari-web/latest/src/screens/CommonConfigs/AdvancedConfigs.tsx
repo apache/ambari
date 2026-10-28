@@ -79,6 +79,7 @@ type AdvancedConfigsType = {
   ) => void;
   searchString?: string;
   canEdit?: boolean;
+  expandByDefault?: boolean;
 };
 
 // Map propertyType to InputType for rendering
@@ -129,6 +130,7 @@ function AdvancedConfigs({
   onValueUpdateProp,
   searchString = "",
   canEdit,
+  expandByDefault = false,
 }: AdvancedConfigsType) {
   const [advancedConfigs, setAdvancedConfigs] = useState(configPropertiesData);
   const [configPropertiesLoading] = useState(false);
@@ -177,6 +179,7 @@ function AdvancedConfigs({
     (name) => {
       const displayName =
         advancedConfigs?.[chosenService]?.[name]?.displayName || name;
+      if (expandByDefault) return !displayName.startsWith("Custom ");
       return !displayName.includes("Advanced") &&
         !displayName.includes("CapacityScheduler") &&
         !displayName.includes("Custom");
@@ -791,6 +794,10 @@ function AdvancedConfigs({
       if (config.includes("Custom") && config.endsWith("env")) {
         return false;
       }
+      if (config.startsWith("Custom ") && !hostConfigs && canEditProperties && !searchString &&
+          advancedConfigs[chosenService][config].canAddProperties !== false) {
+        return true;
+      }
       const currentConfigValue = advancedConfigs[chosenService][config];
       const filteredPropertiesCount = Object.keys(currentConfigValue.properties || {}).filter(
         (property) =>
@@ -817,6 +824,7 @@ function AdvancedConfigs({
     <>
       <OverlayBackdrop isOpen={processingConfig} />
       <Accordion
+        key={JSON.stringify([chosenService, expandByDefault, configSectionNames])}
         alwaysOpen
         defaultActiveKey={defaultOpenSections}
         activeKey={
@@ -878,7 +886,7 @@ function AdvancedConfigs({
               // own but the folded-in capacity-scheduler.xml bucket does.
               if (
                 hasNoVisibleProperties &&
-                !config.includes("Custom") &&
+                (!config.includes("Custom") || currentConfigValue.canAddProperties === false) &&
                 !hasCapacitySchedulerProperties
               ) {
                 return null;
@@ -1374,7 +1382,7 @@ function AdvancedConfigs({
                           </Col>
                         </Row>
                       )}
-                    {!hostConfigs && canEditProperties && config.includes("Custom") ? (
+                    {!hostConfigs && canEditProperties && config.includes("Custom") && currentConfigValue.canAddProperties !== false ? (
                       <h4
                         className="text-info ms-2 mt-2"
                         onClick={() => {

@@ -17,7 +17,133 @@
 
 # React Services and Configs Comparison
 
+## Empty Advanced Navigation: 2026-09-28
+
+For services whose properties are all placed in Theme tabs, Advanced is omitted
+when it has neither an unthemed value nor an allowed custom-property action.
+The complete-file editors remain in Configuration Files. This intentionally
+replaces the misleading disabled Advanced entry seen in Doris and Trino after
+their content migration. Classic service_config_category.hbs still provides the
+baseline for permission-gated Add Property actions; those actions remain reachable
+for empty extensible categories. Existing unthemed fields keep their tab while
+search filters temporarily hide them, and services without a Theme retain the
+Advanced fallback.
+
+Validation: 66 focused Theme and Advanced tests passed; the production build
+passed. Browser checks reproduced disabled Advanced entries before deployment
+and verified their absence afterward in Doris and Trino, along with editable
+file contents and working Basic Settings navigation. No configuration values
+were changed by this acceptance.
+
+## Content File Migration: 2026-09-28
+
+The selected service's current scalar configuration can be converted to a
+single content property when the metadata explicitly declares a supported
+property-file-type and a content-only configuration type. The draft uses saved
+values, removes obsolete scalar counterparts only on Save, and preserves
+already saved content and historical versions. Other services loaded for
+recommendations are unchanged. Scalar host-group overrides and password-typed
+properties retain the compatible scalar path until explicitly migrated.
+
+Content fields preserve trailing whitespace through the React saver. This is
+an intentional difference from Classic utils/config.js#trimProperty, which
+trims trailing whitespace from ordinary strings. Whole-file properties can
+contain escaped trailing spaces and meaningful blank lines. The Server's
+Blueprint trimming strategy and package renderers preserve them as well.
+
+Coverage includes current values, unknown formats, ambiguous observations,
+history, existing content, passwords, host overrides, service scoping, native
+format serialization and exact save payload whitespace. Live browser acceptance
+saved complete content for all ten service packs, and Nginx's persisted API
+value and rendered file digest matched a document with trailing spaces and
+blank lines. The independent store records the deployment and failure-recovery
+evidence in docs/content-configuration-acceptance.md.
+
+## Native Mpack Configuration: 2026-09-28
+
+Imported definitions can place all predefined fields in Theme tabs while
+retaining extensible configuration types. Empty custom categories now keep
+Advanced and its Add Property action available. Both visibility layers preserve
+modify permission, Host read-only behavior and search filtering. Installed
+Service Configs propagates exact adding_forbidden metadata to the category;
+complete-file editors do not offer an unsupported Add Property action. Existing
+custom values remain available even when adding new values is forbidden.
+
+On the current configuration version, an entirely new configuration type keeps
+its stack defaults visible and pending save. Missing properties of an already
+saved type retain deletion semantics. Historical versions do not acquire new
+defaults and cannot add custom properties. This intentionally extends the old
+static-stack loading behavior to support online definition updates. It is
+covered by current-versus-history and deleted-property regression assertions.
+
+The Classic references reviewed are
+app/templates/common/configs/service_config_category.hbs and the common
+configuration saver, together with baseline SVC-CONFIG-011 and the Service Theme
+metadata contract. Final validation: 251 Vitest files / 1,409 tests passed;
+TypeScript and the production Vite build passed. Browser acceptance covers the
+eight imported service layouts and save/restart/native-readback workflows in
+the independent store's native configuration acceptance record.
+
+## Generic Package Services: 2026-09-22
+
+The 2026-09-24 live Kyuubi check found that the specialized Summary matched
+the old `KYUUBI` component name and displayed nothing for `KYUUBI_SERVER`.
+It now uses the generic component view, preserving the classic metadata-based
+master/slave/client behavior in `summary.js#setComponentsContent`. A focused
+regression checks the declared Kyuubi component and observed state. The focused
+47-test set and production build passed; assets are deployed, while real
+authenticated-browser validation remains outstanding.
+
+Imported services no longer require a new entry in the built-in model registry.
+Generic models use exact service identities, declared component categories and
+ServiceInfo/realtime service observations; existing specialized models remain in
+place. Client-only behavior is determined from metadata, not the mere presence of
+a model property. The service Actions menu exposes declared host-component commands
+using the existing permission checks, host applicability, confirmation and request
+tracking. Classic's component-command enumeration remains the comparison source;
+the new implementation does not claim support for arbitrary new workflow handlers.
+
+`genericServiceModels.test.ts`, `declaredServiceCommands.test.ts` and the Actions
+regressions provide local evidence. See [mpack corrective verification](../../mpack/corrective-implementation.md)
+for commands/results. Live custom-command execution and full service capability
+parity remain unverified until deployment acceptance.
+
 ## Comparison Scope
+
+The 2026-09-26 mpack expansion exposed a sidebar regression for imported
+services with branded display names. Classic constructs service navigation
+from the exact `content.id` and displays `content.displayName` separately;
+React now uses the exact `ServiceInfo.service_name` for link identity rather
+than uppercasing display text. A focused sidebar regression and authenticated
+Airflow/Celeborn browser checks cover these routes. Narrow viewports default
+to the collapsed sidebar so component and Quick Links content remains readable;
+the user can still expand it. This does not promote unrelated Module 04 gaps.
+The first 390px browser pass exposed an Actions/Configs overlap. The Actions
+control now precedes the tabs in the narrow layout, while retaining its desktop
+position. A second authenticated Airflow/Celeborn browser pass confirmed
+separate control bounds, an operable Actions menu, Configs navigation, and no
+horizontal document overflow. This is scoped navigation evidence, not full
+Service Configs parity.
+
+The 2026-09-28 expansion also covers partial component observations: an imported
+MASTER remains visible by its declared name when host details have not arrived,
+with an explicit unavailable state instead of an empty Components section. A
+focused regression supplies the partial response and then the complete host
+observation, checking recovery without inventing a healthy state. This differs
+intentionally from classic's host-only master list to make incomplete reads
+visible. Authenticated browser navigation across all seven imported services
+confirmed their names after cluster and service switches.
+
+Live Configs acceptance on 2026-09-28 found that imported services on an existing
+cluster had desired configs but no service config versions. The Server's cached
+configuration ownership is now refreshed when the immutable definition view
+changes; normal configuration writes create the missing service versions.
+Unthemed services intentionally use expanded property groups and do not report
+an absent Theme as an error. Browser checks display every declared property in
+the five new packs, and an Elasticsearch heap edit saved a new config version
+whose 2G value was verified through the JVM API after restart. This does not
+claim modeling of all upstream advanced properties.
+
 
 | Item | Value |
 | --- | --- |

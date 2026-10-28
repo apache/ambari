@@ -55,6 +55,9 @@ public class AmbariManagementHelper {
   private StackDAO stackDAO;
 
   @Inject
+  private org.apache.ambari.server.mpack.MpackRuntime mpackRuntime;
+
+  @Inject
   public AmbariManagementHelper(StackDAO stackDAO, ExtensionDAO extensionDAO, ExtensionLinkDAO linkDAO) {
     this.stackDAO = stackDAO;
     this.extensionDAO = extensionDAO;
@@ -69,6 +72,7 @@ public class AmbariManagementHelper {
    * the extension version.
    */
   public void createExtensionLink(StackManager stackManager, StackInfo stackInfo, ExtensionInfo extensionInfo) throws AmbariException {
+    requireLegacyBindingMutation();
     validateCreateExtensionLinkRequest(stackInfo, extensionInfo);
     ExtensionHelper.validateCreateLink(stackManager, stackInfo, extensionInfo);
     ExtensionLinkEntity linkEntity = createExtensionLinkEntity(stackInfo, extensionInfo);
@@ -166,6 +170,7 @@ public class AmbariManagementHelper {
    */
   public void updateExtensionLink(StackManager stackManager, ExtensionLinkEntity linkEntity, StackInfo stackInfo,
                                   ExtensionInfo oldExtensionInfo, ExtensionInfo newExtensionInfo) throws AmbariException {
+    requireLegacyBindingMutation();
     //validateUpdateExtensionLinkRequest(stackInfo, extensionInfo);
     ExtensionHelper.validateUpdateLink(stackManager, stackInfo, oldExtensionInfo, newExtensionInfo);
 
@@ -184,6 +189,12 @@ public class AmbariManagementHelper {
               + ", extensionVersion=" + newExtensionInfo.getVersion();
       LOG.warn(errorMessage);
       throw new AmbariException(errorMessage, e);
+    }
+  }
+
+  private void requireLegacyBindingMutation() {
+    if (mpackRuntime != null) {
+      mpackRuntime.requireLegacyMutationAllowed();
     }
   }
 

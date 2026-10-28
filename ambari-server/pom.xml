@@ -992,6 +992,11 @@
     </plugins>
     <resources>
       <resource>
+        <directory>${project.basedir}/../dev-support/mpack/src/ambari_mpack/schemas</directory>
+        <targetPath>mpack</targetPath>
+        <filtering>false</filtering>
+      </resource>
+      <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
         <excludes>

@@ -17,6 +17,7 @@
  */
 
 import { createContext, StrictMode } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ContextWrapper } from ".";
@@ -25,6 +26,7 @@ import { AppContext } from "../../store/context";
 
 const mocks = vi.hoisted(() => ({
   getServices: vi.fn(),
+  getMpackDeployment: vi.fn(),
   getDraftCandidates: vi.fn(),
   getServiceCandidates: vi.fn(),
   getServicePlanCandidates: vi.fn(),
@@ -37,6 +39,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("../../api/chooseServicesApi", () => ({
   ChooseServicesApi: { getServices: mocks.getServices },
+}));
+vi.mock("../../api/mpackApi", async importOriginal => ({
+  ...await importOriginal<typeof import("../../api/mpackApi")>(),
+  default: { deployment: mocks.getMpackDeployment },
 }));
 vi.mock("../../api/serviceDependenciesApi", () => ({
   default: {
@@ -114,6 +120,7 @@ describe("Choose Services stack metadata", () => {
     overrides: Record<string, unknown> = {},
     strict = false,
     appContextOverrides: Record<string, unknown> = {},
+    route = "/",
   ) {
     const value = {
       dispatch: vi.fn(),
@@ -154,7 +161,7 @@ describe("Choose Services stack metadata", () => {
         </ContextWrapper.Provider>
       </AppContext.Provider>
     );
-    render(strict ? <StrictMode>{tree}</StrictMode> : tree);
+    render(<MemoryRouter initialEntries={[route]}>{strict ? <StrictMode>{tree}</StrictMode> : tree}</MemoryRouter>);
     return value;
   }
 
@@ -182,6 +189,24 @@ describe("Choose Services stack metadata", () => {
 
     expect(await screen.findByText("HDFS")).toBeTruthy();
     expect(mocks.getServices).toHaveBeenCalledTimes(2);
+  });
+
+  it("hydrates only the services selected by the verified mpack operation", async () => {
+    mocks.getServices.mockResolvedValue({ items: [stackService("CUSTOM", "Example"), stackService("OTHER", "Other Service")] });
+    mocks.getMpackDeployment.mockResolvedValue({ deployment: { stack_name: "HDP", stack_version: "3.1",
+      cluster_id: 27, service_names: ["CUSTOM"], service_ids: ["a".repeat(64)] } });
+    renderStep("addService", vi.fn(), {}, false, {}, "/main/service/add/step1?mpack_operation=11111111-1111-4111-8111-111111111111");
+    await screen.findByText("Example");
+    expect((document.getElementById("service-step4-checkbox-CUSTOM") as HTMLInputElement).checked).toBe(true);
+    expect((document.getElementById("service-step4-checkbox-OTHER") as HTMLInputElement).checked).toBe(false);
+  });
+
+  it("rejects an mpack handoff to a different cluster before loading selectable services", async () => {
+    mocks.getMpackDeployment.mockResolvedValue({ deployment: { stack_name: "HDP", stack_version: "3.1",
+      cluster_id: 99, service_names: ["CUSTOM"], service_ids: ["a".repeat(64)] } });
+    renderStep("addService", vi.fn(), {}, false, {}, "/main/service/add/step1?mpack_operation=11111111-1111-4111-111111111111");
+    expect(await screen.findByText("The imported service selection belongs to another environment")).toBeTruthy();
+    expect(mocks.getServices).not.toHaveBeenCalled();
   });
 
   it("returns Add Service cancellation persistence to the confirmation dialog", async () => {

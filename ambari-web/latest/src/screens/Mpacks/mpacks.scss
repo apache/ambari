@@ -1,0 +1,82 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.mpack-workspace { max-width: 1520px; margin: 0 auto; padding: 32px; color: var(--console-ink); }
+.mpack-page-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+.mpack-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.mpack-heading h1 { font-size: 28px; letter-spacing: -.6px; font-weight: 600; margin: 0; }
+.mpack-page-header p { margin: 0; color: var(--console-muted); font-size: 13px; }
+.mpack-brand-icon { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--console-accent-soft); color: var(--console-accent); font-size: 22px; }
+.mpack-navigation { display: flex; gap: 8px; border-bottom: 1px solid var(--console-line); margin-bottom: 24px; padding-bottom: 12px; }
+.mpack-navigation button { display: inline-flex; align-items: center; gap: 9px; border: 0; background: transparent; border-radius: 8px; padding: 9px 14px; color: var(--console-muted); font-size: 14px; }
+.mpack-navigation button.active { background: var(--console-accent-soft); color: var(--console-accent); font-weight: 600; }
+.mpack-navigation button span { min-width: 22px; border-radius: 5px; padding: 1px 6px; background: var(--console-surface); font-size: 11px; font-variant-numeric: tabular-nums; }
+.mpack-catalog-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+.mpack-search { position: relative; width: min(510px, 100%); }
+.mpack-search > svg { position: absolute; top: 12px; left: 13px; color: var(--console-muted); }
+.mpack-search input { padding: 10px 14px 10px 38px; background: var(--console-surface); }
+.mpack-environment-filter { width: 205px; flex-shrink: 0; background-color: var(--console-surface); min-height: 40px !important; }
+.mpack-catalog-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 26px; align-items: start; }
+.mpack-catalog-caption { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0 0 15px; }
+.mpack-catalog-caption h2, .mpack-selection h2, .mpack-section-heading h2 { font-size: 17px; font-weight: 600; margin: 0; }
+.mpack-catalog-caption > span { color: var(--console-muted); font-size: 12px; }
+.mpack-service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 16px; }
+.mpack-service-card { min-width: 0; display: flex; flex-direction: column; gap: 13px; background: var(--console-surface); border: 1px solid var(--console-line); border-radius: 12px; padding: 20px; box-shadow: var(--console-shadow); transition: border-color 140ms ease; }
+.mpack-service-card:hover { border-color: #91b4a5; }
+.mpack-service-card.is-selected { border-color: var(--console-accent); box-shadow: 0 0 0 1px var(--console-accent); }
+.mpack-service-card.is-incompatible { border-style: dashed; }
+.mpack-service-card-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mpack-service-symbol { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; background: var(--console-soft); color: var(--console-accent); font-size: 15px; font-weight: 600; letter-spacing: -.4px; }
+.mpack-service-card .badge.bg-secondary { color: var(--console-muted); background: var(--console-soft) !important; font-size: 11px; }
+.mpack-service-title .form-check { display: flex; gap: 10px; align-items: baseline; padding: 0; min-height: 24px; margin: 0; }
+.mpack-service-title .form-check-input { margin: 0; float: none; flex-shrink: 0; width: 16px; height: 16px; }
+.mpack-service-title .form-check-label { font-size: 16px; font-weight: 600; line-height: 1.5; cursor: pointer; }
+.mpack-service-description { color: var(--console-muted); font-size: 12px; line-height: 1.65; min-height: 42px; margin: 0; overflow-wrap: anywhere; }
+.mpack-service-meta { display: flex; justify-content: space-between; gap: 8px; color: var(--console-muted); font-size: 11px; }
+.mpack-service-meta > span:first-child { border-radius: 5px; background: var(--console-soft); padding: 3px 7px; }
+.mpack-version { border-top: 1px solid var(--console-line); padding-top: 12px; margin-top: auto; }
+.mpack-version .form-label { display: block; font-size: 11px; color: var(--console-muted); margin-bottom: 7px; }
+.mpack-version .form-select { font-size: 12px; background-color: var(--console-soft); }
+.mpack-dependencies, .mpack-compatibility-note { font-size: 12px; color: var(--console-muted); margin: 0; }
+.mpack-dependencies summary { cursor: pointer; }
+.mpack-selection { position: sticky; top: 24px; padding: 22px; border: 1px solid var(--console-line); border-radius: 12px; background: var(--console-surface); box-shadow: var(--console-shadow); }
+.mpack-selection-heading { display: flex; align-items: center; justify-content: space-between; }
+.mpack-selection-heading > span { background: var(--console-accent-soft); color: var(--console-accent); border-radius: 6px; font-size: 12px; padding: 3px 9px; }
+.mpack-selection-empty { text-align: center; color: var(--console-muted); padding: 34px 8px 24px; }
+.mpack-selection-empty > svg { color: #97aaa1; margin-bottom: 14px; }
+.mpack-selection-empty p { font-size: 12px; margin: 0; line-height: 1.8; }
+.mpack-selection-help { font-size: 12px; line-height: 1.7; color: var(--console-muted); margin: 16px 0; }
+.mpack-selection ul { list-style: none; padding: 0; margin: 16px 0; max-height: 320px; overflow-y: auto; }
+.mpack-selection li { display: flex; align-items: center; gap: 9px; padding: 10px 0; border-bottom: 1px solid var(--console-line); }
+.mpack-selection li > svg { flex-shrink: 0; color: var(--console-accent); }
+.mpack-selection li > div { min-width: 0; flex: 1; }
+.mpack-selection strong { font-size: 12px; font-weight: 500; }
+.mpack-selection small { display: block; font-size: 11px; color: var(--console-muted); overflow-wrap: anywhere; }
+.mpack-selection li .btn { padding: 5px; min-height: 24px; }
+.mpack-selection .form-label { font-size: 12px; }
+.mpack-selection > .btn { margin-top: 16px; font-size: 12px; white-space: normal; }
+.mpack-empty { padding: 50px 24px; text-align: center; color: var(--console-muted); border: 1px dashed var(--console-line); border-radius: 12px; background: var(--console-surface); }
+.mpack-empty h3 { font-size: 18px; margin: 16px 0 10px; }
+.mpack-empty p { font-size: 13px; margin-bottom: 16px; }
+.mpack-import-area { padding: 10px 8px 16px; }
+.mpack-import-area > p { color: var(--console-muted); font-size: 13px; margin-bottom: 22px; line-height: 1.8; }
+.mpack-import-area input[type=file] { padding: 14px; border: 1px dashed var(--console-line); background: var(--console-soft); }
+.mpack-inventory, .mpack-history { padding: 24px; border-radius: 12px; border: 1px solid var(--console-line); background: var(--console-surface); }
+.mpack-section-heading p { font-size: 13px; color: var(--console-muted); margin: 10px 0 22px; }
+.mpack-advanced { padding: 14px 16px; border-radius: 8px; background: var(--console-soft); margin-bottom: 20px; font-size: 13px; }
+.mpack-advanced summary { cursor: pointer; }
+.mpack-history td:first-child { max-width: 780px; overflow-wrap: anywhere; }
+.mpack-history td:nth-child(2) { white-space: nowrap; }
+.mpack-history .small { margin-top: 6px; }

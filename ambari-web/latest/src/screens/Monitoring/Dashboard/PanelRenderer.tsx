@@ -37,6 +37,8 @@ interface RendererProps {
   results: DashboardPanelResult[];
   height?: number;
   graphTooltip?: string;
+  start?: number;
+  end?: number;
 }
 
 type Renderer = ComponentType<RendererProps>;
@@ -56,13 +58,13 @@ const rendererRegistry: Record<string, Renderer> = {
   iframe: IframeRenderer,
 };
 
-export default function PanelRenderer({ panel, results, height, graphTooltip }: RendererProps) {
+export default function PanelRenderer({ panel, results, height, graphTooltip, start, end }: RendererProps) {
   if (panel.type === "row") return <DashboardRow panel={panel} />;
   const Renderer = rendererRegistry[panel.type];
   if (!Renderer) {
     return <div className="monitoring-empty">Unsupported panel type: {panel.type}</div>;
   }
-  return <Renderer panel={panel} results={results} height={height} graphTooltip={graphTooltip} />;
+  return <Renderer panel={panel} results={results} height={height} graphTooltip={graphTooltip} start={start} end={end} />;
 }
 
 export { rendererRegistry };

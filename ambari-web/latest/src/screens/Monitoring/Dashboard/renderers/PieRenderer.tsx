@@ -18,13 +18,14 @@
 
 import { ArcElement, Chart as ChartJs, Legend, Tooltip } from "chart.js";
 import { Doughnut, Pie } from "react-chartjs-2";
+import { useTheme } from "../../../../store/ThemeContext";
 import type { DashboardPanel } from "../../types";
 import { formatMetricValue, getPanelDecimals, getPanelUnit } from "../../valueFormatter";
 import { calculatePanelValue, panelCustomOptions, type DashboardPanelResult } from "../data/panelData";
 
 ChartJs.register(ArcElement, Legend, Tooltip);
 
-const COLORS = ["#278541", "#1769aa", "#bd6418", "#8a4f9d", "#b33a3a", "#477178"];
+const LIGHT_COLORS = ["#278541", "#1769aa", "#bd6418", "#8a4f9d", "#b33a3a", "#477178"];
 
 interface PieRendererProps {
   panel: DashboardPanel;
@@ -33,6 +34,8 @@ interface PieRendererProps {
 }
 
 export default function PieRenderer({ panel, results, height }: PieRendererProps) {
+  const { resolved } = useTheme();
+  const COLORS = resolved === "dark" ? ["#7ee2b8", "#79c0ff", "#e3b341", "#bc8cff", "#ff7b72", "#76e3ea"] : LIGHT_COLORS;
   const unit = getPanelUnit(panel.options);
   const decimals = getPanelDecimals(panel.options);
   const custom = panelCustomOptions(panel);
@@ -54,7 +57,7 @@ export default function PieRenderer({ panel, results, height }: PieRendererProps
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: legendPosition },
+      legend: { position: legendPosition, labels: { color: resolved === "dark" ? "#afbdcb" : "#637380" } },
       tooltip: {
         callbacks: {
           label: (context: { label?: string; parsed: number }) => `${context.label || "Series"}: ${formatMetricValue(context.parsed, unit, decimals)}`,

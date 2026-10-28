@@ -194,10 +194,13 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     LOG.info(String.format("Resolve: %s:%s", stackInfo.getName(), stackInfo.getVersion()));
     String parentVersion = stackInfo.getParentStackVersion();
     mergeServicesWithExplicitParent(allStacks, commonServices, extensions);
+    if (stackContext.isIsolated() && parentVersion != null) {
+      mergeStackWithParent(parentVersion, allStacks, commonServices, extensions);
+    }
     addExtensionServices();
 
     // merge with parent version of same stack definition
-    if (parentVersion != null) {
+    if (!stackContext.isIsolated() && parentVersion != null) {
       mergeStackWithParent(parentVersion, allStacks, commonServices, extensions);
     }
 
@@ -237,6 +240,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   public void finalizeModule() {
     finalizeChildModules(serviceModules.values());
     finalizeChildModules(configurationModules.values());
+    if (stackContext.isIsolated()) {
+      stackInfo.setServices(serviceModules.values().stream().filter(module -> !module.isDeleted())
+          .map(ServiceModule::getModuleInfo).collect(java.util.stream.Collectors.toCollection(ArrayList::new)));
+    }
 
     // This needs to be merged during the finalize to avoid the RCO from services being inherited by the children stacks
     // The RCOs from a service should only be inherited through the service.
@@ -285,6 +292,12 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     }
 
     resolveStack(parentStack, allStacks, commonServices, extensions);
+    if (stackInfo.getHooksFolder() == null) {
+      stackInfo.setHooksFolder(parentStack.getModuleInfo().getHooksFolder());
+    }
+    if (!stackInfo.hasRepositoryVersionMode()) {
+      stackInfo.setRepositoryVersionMode(parentStack.getModuleInfo().getRepositoryVersionMode());
+    }
     mergeConfigurations(parentStack, allStacks, commonServices, extensions);
     mergeRoleCommandOrder(parentStack);
 
@@ -406,6 +419,16 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   private void addExtensionServices() throws AmbariException {
     for (ExtensionModule extension : extensionModules.values()) {
       for (Map.Entry<String, ServiceModule> entry : extension.getServiceModules().entrySet()) {
+        ServiceModule previous = serviceModules.get(entry.getKey());
+        if (stackContext.isIsolated() && previous != null && previous != entry.getValue()) {
+          String explicitParent = "extensions/" + extension.getModuleInfo().getName() + "/"
+              + extension.getModuleInfo().getVersion() + "/" + entry.getKey();
+          if (explicitParent.equals(previous.getModuleInfo().getParent())) {
+            continue;
+          }
+          throw new DefinitionConflictException(stackInfo.getName() + "/" + stackInfo.getVersion()
+              + "/services/" + entry.getKey(), previous, entry.getValue());
+        }
         serviceModules.put(entry.getKey(), entry.getValue());
       }
       stackInfo.addExtension(extension.getModuleInfo());
@@ -567,6 +590,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setMaxJdk(smx.getMaxJdk());
       stackInfo.setActive(smx.getVersion().isActive());
       stackInfo.setParentStackVersion(smx.getExtends());
+      stackInfo.setHooksFolder(smx.getHooksFolder());
+      if (smx.getRepositoryVersionMode() != null) {
+        stackInfo.setRepositoryVersionMode(StackInfo.RepositoryVersionMode.valueOf(smx.getRepositoryVersionMode()));
+      }
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
       stackInfo.setKerberosDescriptorPreConfigurationFileLocation(stackDirectory.getKerberosDescriptorPreconfigureFilePath());
       stackInfo.setUpgradesFolder(stackDirectory.getUpgradesDir());
@@ -594,6 +621,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       }
 
       //todo: shouldn't blindly catch Exception, re-evaluate this.
+    } catch (DefinitionConflictException e) {
+      throw e;
     } catch (Exception e) {
       String error = "Exception caught while populating services for stack: " +
           stackInfo.getName() + "-" + stackInfo.getVersion();
@@ -747,6 +776,9 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    */
   private void addService(ServiceModule service) {
     ServiceInfo serviceInfo = service.getModuleInfo();
+    if (stackContext.isIsolated() && serviceModules.containsKey(service.getId())) {
+      throw new DefinitionConflictException(id + "/services/" + service.getId(), serviceModules.get(service.getId()), service);
+    }
     Object previousValue = serviceModules.put(service.getId(), service);
     if (previousValue == null) {
       stackInfo.getServices().add(serviceInfo);

@@ -587,6 +587,16 @@ public class HostRoleCommandDAO {
     return daoUtils.selectList(query);
   }
 
+  @RequiresSession
+  public List<HostRoleCommandEntity> findActiveByClusters(Collection<Long> clusterIds) {
+    if (clusterIds.isEmpty()) return java.util.List.of();
+    return entityManagerProvider.get().createQuery(
+        "SELECT command FROM HostRoleCommandEntity command WHERE command.stage.clusterId IN :clusters "
+            + "AND command.status IN :statuses ORDER BY command.taskId", HostRoleCommandEntity.class)
+        .setParameter("clusters", clusterIds)
+        .setParameter("statuses", HostRoleStatus.IN_PROGRESS_STATUSES).getResultList();
+  }
+
   /**
    * Gets the number of commands in a particular status.
    *

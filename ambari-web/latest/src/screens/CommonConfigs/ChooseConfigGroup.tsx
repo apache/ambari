@@ -218,6 +218,7 @@ export default function ChooseConfigGroup({
               }
             }}
             className="config-group-select"
+            classNamePrefix="config-group"
             isLoading={loading}
             loadingMessage={() => "Loading config groups..."}
             placeholder={loading ? "Loading..." : "Select config group"}

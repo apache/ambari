@@ -503,7 +503,9 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       }
     }
 
-    if (!RepositoryVersionEntity.isVersionInStack(repositoryVersion.getStackId(), repositoryVersion.getVersion())) {
+    if (metaInfo.getStack(requiredStackName, requiredStackVersion).getRepositoryVersionMode()
+        == org.apache.ambari.server.state.StackInfo.RepositoryVersionMode.DISTRIBUTION
+        && !RepositoryVersionEntity.isVersionInStack(repositoryVersion.getStackId(), repositoryVersion.getVersion())) {
       throw new AmbariException(MessageFormat.format("Version {0} needs to belong to stack {1}",
           repositoryVersion.getVersion(), repositoryVersion.getStackName() + "-" + repositoryVersion.getStackVersion()));
     }
