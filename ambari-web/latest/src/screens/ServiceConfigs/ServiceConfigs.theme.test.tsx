@@ -396,8 +396,9 @@ describe("Service Configs Theme loading", () => {
       const states = JSON.parse(screen.getByTestId("property-states").textContent || "[]");
       expect(states.find((p: { name: string }) => p.name === "native.option")).toMatchObject({ value: "native-default", visible: true, found: false });
       expect(states.find((p: { name: string }) => p.name === "test.property")).toMatchObject({ value: null, visible: false, found: false });
+      // Save availability is updated in a transition after the properties render.
+      expect((screen.getByRole("button", { name: "SAVE" }) as HTMLButtonElement).disabled).toBe(false);
     });
-    expect((screen.getByRole("button", { name: "SAVE" }) as HTMLButtonElement).disabled).toBe(false);
     const historical = structuredClone(values);
     historical.items[0].service_config_version = 1;
     mocks.getVersionConfigValues.mockResolvedValue(historical);
