@@ -17,11 +17,13 @@
  */
 package org.apache.ambari.server.orm.db;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
@@ -34,6 +36,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.Resources;
 
 
 /**
@@ -63,6 +66,13 @@ public class DDLTests {
   @Test
   public void testVerifyOracle() throws Exception {
     verifyDDL("Oracle");
+  }
+
+  @Test
+  public void testOracleHasNoBigintType() throws Exception {
+    String ddl = Resources.toString(Resources.getResource("Ambari-DDL-Oracle-CREATE.sql"), StandardCharsets.UTF_8);
+    Assert.assertFalse("Oracle has no BIGINT type, use NUMBER(19)",
+        Pattern.compile("\\bBIGINT\\b", Pattern.CASE_INSENSITIVE).matcher(ddl).find());
   }
 
   @Test
