@@ -31,8 +31,10 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.slf4j.Logger;
@@ -48,6 +50,7 @@ import com.google.inject.Inject;
 public class RoleCommandOrder implements Cloneable {
 
   @Inject AmbariMetaInfo ambariMetaInfo;
+  @Inject ActionMetadata actionMetadata;
 
   private final static Logger LOG =
 			LoggerFactory.getLogger(RoleCommandOrder.class);
@@ -75,6 +78,7 @@ public class RoleCommandOrder implements Cloneable {
    * key -> blocked role command value -> set of blocker role commands.
    */
   private Map<RoleCommandPair, Set<RoleCommandPair>> dependencies = new HashMap<>();
+  private Map<Role, Set<String>> componentServices = new HashMap<>();
 
   /**
    * Add a pair of tuples where the tuple defined by the first two parameters are blocked on
@@ -133,6 +137,7 @@ public class RoleCommandOrder implements Cloneable {
     // clean RCO instance
     this.sectionKeys = sectionKeys;
     dependencies.clear();
+    componentServices = new HashMap<>();
 
     Set<StackId> stackIds = new HashSet<>();
     for (Service service : cluster.getServices().values()) {
@@ -149,6 +154,14 @@ public class RoleCommandOrder implements Cloneable {
       }
 
       Map<String,Object> userData = stack.getRoleCommandOrder().getContent();
+      for (ServiceInfo service : stack.getServices()) {
+        for (ComponentInfo component : service.getComponents()) {
+          if (!component.isClient()) {
+            componentServices.computeIfAbsent(Role.valueOf(component.getName()), key -> new HashSet<>())
+                .add(service.getName());
+          }
+        }
+      }
       Map<String,Object> generalSection =
         (Map<String, Object>) userData.get(GENERAL_DEPS_KEY);
 
@@ -183,10 +196,29 @@ public class RoleCommandOrder implements Cloneable {
     } else if ((dependencies.get(rcp2) != null)
         && (dependencies.get(rcp2).contains(rcp1))) {
       return -1;
+    } else if (serviceCheckFollowsStart(rcp1, rcp2)) {
+      return 1;
+    } else if (serviceCheckFollowsStart(rcp2, rcp1)) {
+      return -1;
     } else if (!rgn2.getCommand().equals(rgn1.getCommand())) {
       return compareCommands(rgn1, rgn2);
     }
     return 0;
+  }
+
+  private boolean serviceCheckFollowsStart(RoleCommandPair check, RoleCommandPair start) {
+    if (check.getCmd() != RoleCommand.SERVICE_CHECK || start.getCmd() != RoleCommand.START
+        || componentServices.isEmpty() || dependencies.containsKey(check)) {
+      return false;
+    }
+    // Preserve checks explicitly used as startup prerequisites, including transitive ones.
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> entry : dependencies.entrySet()) {
+      if (entry.getKey().getCmd() == RoleCommand.START && entry.getValue().contains(check)) {
+        return false;
+      }
+    }
+    String service = actionMetadata.getServiceNameByServiceCheckAction(check.getRole().toString());
+    return service != null && componentServices.getOrDefault(start.getRole(), Collections.emptySet()).contains(service);
   }
 
   /**
@@ -383,6 +415,8 @@ public class RoleCommandOrder implements Cloneable {
     RoleCommandOrder clone = (RoleCommandOrder) super.clone();
     clone.sectionKeys = new LinkedHashSet<>(sectionKeys);
     clone.dependencies = new HashMap<>(dependencies);
+    clone.componentServices = new HashMap<>();
+    componentServices.forEach((role, services) -> clone.componentServices.put(role, new HashSet<>(services)));
 
     return clone;
   }
