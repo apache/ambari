@@ -214,4 +214,4 @@ The most common use-case for actual configuration is knowing when a service or c
       ]
     }
 
-The actual configurations are used at the host_component level to indicate which services are different from the desired configurations.  Any differences requires a restart of the component (or the entire service, if needed).  This is because components of the the same service may be on different hosts.
+The actual configurations are used at the host_component level to indicate which services are different from the desired configurations.  Any differences requires a restart of the component (or the entire service, if needed).  This is because components of the same service may be on different hosts.

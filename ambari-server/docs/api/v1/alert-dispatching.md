@@ -265,10 +265,10 @@ The target from the query has the following attributes:
     }
     
 #### Validation
-Before a target is created, it is possible to have Ambari validate whether the properties being specified are correct. Ambari will attempt to execise the target and return a response with the validation information.
+Before a target is created, it is possible to have Ambari validate whether the properties being specified are correct. Ambari will attempt to exercise the target and return a response with the validation information.
 
 ###### Request
-Use the `validate_config` directive to have Ambari connect to the backend dispatcher in order to verify the the target's properties are valid.
+Use the `validate_config` directive to have Ambari connect to the backend dispatcher in order to verify that the target's properties are valid.
 
     POST api/v1/alert_targets?validate_config=true
     

@@ -24,7 +24,7 @@ Ambari Kerberos Automation
     - [Stack-level Properties](#stack-level-properties)
     - [Stack-level Identities](#stack-level-identities)
     - [Stack-level Auth-to-local-properties](#stack-level-auth-to-local-properties)
-    - [Stack-level Configurations](#stack-level-configuratons)
+    - [Stack-level Configurations](#stack-level-configurations)
     - [Services](#services)
     - [Service-level Identities](#service-level-identities)
     - [Service-level Auth-to-local-properties](#service-level-auth-to-local-properties)
@@ -346,7 +346,7 @@ The `name` property of an `identity` descriptor should be a concrete name that i
 previous versions of Ambari, it may be a reference identifier to some other identity in the
 Kerberos Descriptor. This feature is deprecated and may not be available in future versions of Ambari.
 
-The `reference` property of an `identitiy` descriptor is optional. If it exists, it indicates that the
+The `reference` property of an `identity` descriptor is optional. If it exists, it indicates that the
 properties from referenced identity is to be used as the base for the current identity and any properties
 specified in the local identity block overrides the base data. In this scenario, the base data is copied
 to the local identities and therefore changes are realized locally, not globally. Referenced identities
@@ -404,7 +404,7 @@ not available for the service. Examples: `smokeuser@${realm}`, `service/_HOST@${
 The `type` property of the principal may be either `user` or `service`. If not specified, the type is
 assumed to be `user`. This value dictates how the identity is to be created in the KDC or Active Directory.
 It is especially important in the Active Directory case due to how accounts are created. It also,
-indicates to Ambari how to handle the principal and relevant keytab file reguarding the user interface
+indicates to Ambari how to handle the principal and relevant keytab file regarding the user interface
 behavior and data caching.
 
 The `configuration` property is an optional configuration specification (`config-type/property_name`)
@@ -579,7 +579,7 @@ JSON-formatted file.
       // however if it is desired that multiple keytab files are
       // created, these values may be overridden in a reference
       // within a service or component. Since no configuration
-      // specification is set, the the keytab file location will not
+      // specification is set, the keytab file location will not
       // be set in any configuration file by default. Services and
       // components need to reference this identity to update this
       // value as needed.

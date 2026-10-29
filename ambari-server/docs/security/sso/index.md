@@ -514,7 +514,7 @@ ambari_sso_details = ambari_configuration.get_ambari_sso_details() if ambari_con
 The following functions are available:
  
 - `is_managing_services()`
-  - Tests the configuration data to determine if Ambari should be configuring servcies to enable SSO 
+  - Tests the configuration data to determine if Ambari should be configuring services to enable SSO 
   integration.
   - The relevant property is "sso-configuration/ambari.sso.manage_services", which is expected to be 
   a "true" or "false".

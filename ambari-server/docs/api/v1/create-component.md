@@ -23,7 +23,7 @@ Create Component
 
 **Summary**
 
-Create the component identified by ":componentName" for for the service identifired by ":serviceName" and the cluster identified by ":clusterName".
+Create the component identified by ":componentName" for the service identified by ":serviceName" and the cluster identified by ":clusterName".
 
     POST /clusters/:clusterName/services/:serviceName/components/:componentName
     

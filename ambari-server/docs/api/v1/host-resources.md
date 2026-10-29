@@ -53,7 +53,7 @@ limitations under the License.
   </tr>
   <tr>
     <td>Hosts/os_arch</td>
-    <td>The OS architechture of the host (e.g. x86_64)</td>  
+    <td>The OS architecture of the host (e.g. x86_64)</td>  
   </tr>
   <tr>
     <td>Hosts/os_type</td>
@@ -73,7 +73,7 @@ limitations under the License.
   </tr>
   <tr>
     <td>Hosts/last_registration_time</td>
-    <td>The time of the last registration of the host in milliseconds since Unix epoc</td>  
+    <td>The time of the last registration of the host in milliseconds since Unix epoch</td>  
   </tr>
   <tr>
     <td>Hosts/disk_info</td>

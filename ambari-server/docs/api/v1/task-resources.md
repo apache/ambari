@@ -75,7 +75,7 @@ limitations under the License.
   </tr>
   <tr>
     <td>Tasks/stderr</td>
-    <td>The stderr from running the taks</td>  
+    <td>The stderr from running the task</td>  
   </tr>
   <tr>
     <td>Tasks/stdout</td>

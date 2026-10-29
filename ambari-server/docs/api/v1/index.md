@@ -128,7 +128,7 @@ Create the HDFS service.
     201 Created
 
 ### PUT
-Use the PUT method to update resources.  If an existing resource is modified then a 200 response code is retrurned to indicate successful completion of the request.  The response code 202 can also be returned to indicate that the instruction was accepted by the server (see [asynchronous response](#asynchronous-response)).
+Use the PUT method to update resources.  If an existing resource is modified then a 200 response code is returned to indicate successful completion of the request.  The response code 202 can also be returned to indicate that the instruction was accepted by the server (see [asynchronous response](#asynchronous-response)).
 
 **Example**
 
@@ -161,7 +161,7 @@ The response code 202 indicates that the server has accepted the instruction to 
 
 
 ### DELETE
-Use the DELETE method to delete a resource. If an existing resource is deleted then a 200 response code is retrurned to indicate successful completion of the request.  The response code 202 can also be returned which indicates that the instruction was accepted by the server and the resource was marked for deletion (see [asynchronous response](#asynchronous-response)).
+Use the DELETE method to delete a resource. If an existing resource is deleted then a 200 response code is returned to indicate successful completion of the request.  The response code 202 can also be returned which indicates that the instruction was accepted by the server and the resource was marked for deletion (see [asynchronous response](#asynchronous-response)).
 
 **Example**
 

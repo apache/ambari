@@ -17,7 +17,7 @@ limitations under the License.
 
 # User Resources
 User resources represent user accounts in Ambari.  Each user account has a set of authentication 
-sources and is is given permission to perform tasks within Ambari.
+sources and is given permission to perform tasks within Ambari.
 <p/>
 Users with the <code>AMBARI.MANAGE_USERS</code> privilege (currently, Ambari Administrators) can 
 view and update all user resources.  Any other user can only view and (partially) update their own 
@@ -68,7 +68,7 @@ user resource.
     <td>Users/display_name</td>
     <td>
       The user's local user name - this value is used for display purposes in messages and user 
-      intefaces. If not set, the username value will be used.
+      interfaces. If not set, the username value will be used.
       <p/><p/>
       The value is settable by the user or an Ambari administrator.
     </td>  
@@ -110,8 +110,8 @@ user resource.
   <tr>
     <td>Users/admin</td>
     <td>
-      Indicates wheather the user has administrative privilieges (<code>true</code>) or not 
-      (<code>false</code>). This propery is deprecated and is provided to maintain the REST API V1 
+      Indicates whether the user has administrative privileges (<code>true</code>) or not 
+      (<code>false</code>). This property is deprecated and is provided to maintain the REST API V1 
       contract. This information may be found by querying for the user's permissions (or roles).
       <p/><p/>
       The value is settable by an Ambari administrator; otherwise it is read-only.
@@ -120,7 +120,7 @@ user resource.
   <tr>
     <td>Users/ldap_user</td>
     <td>
-      Indicates wheather the user was imported from an LDAP server. This propery is deprecated 
+      Indicates whether the user was imported from an LDAP server. This property is deprecated 
       and is provided to maintain the REST API V1 contract. This information may be found by querying
       for the user's authentication sources.
       <p/><p/>
@@ -138,7 +138,7 @@ user resource.
         <li>PAM - the user authenticates using PAM</li>
         <li>JWT - the user authenticates using a JWT token from Knox</li>
       </ul>
-      This propery is deprecated and is provided to maintain the REST API V1 contract. This 
+      This property is deprecated and is provided to maintain the REST API V1 contract. This 
       information may be found by querying for the user's authentication sources.  
       <p/><p/>
       Since this value contains a single entry, it does not properly indicate what authentication 
@@ -151,8 +151,8 @@ user resource.
   <tr>
     <td>Users/password</td>
     <td>
-      This propery is deprecated and is provided to maintain the REST API V1 contract.  
-      This propery may be set when creating or updating a user resource to set it's (Ambari) local 
+      This property is deprecated and is provided to maintain the REST API V1 contract.  
+      This property may be set when creating or updating a user resource to set it's (Ambari) local 
       password. However, it is expected that a LOCAL authentication source resource is created and
       updated instead.
       <p/><p/>
@@ -162,8 +162,8 @@ user resource.
   <tr>
     <td>Users/old_password</td>
     <td>
-      This propery is deprecated and is provided to maintain the REST API V1 contract.  
-      This propery may be set when updating a user resource to set a new password for a (Ambari) local 
+      This property is deprecated and is provided to maintain the REST API V1 contract.  
+      This property may be set when updating a user resource to set a new password for a (Ambari) local 
       password. This value is required when a user is updating their own password.  It is not used
       when an Ambari administrator is updating a user's password.  However, it is expected that a 
       LOCAL authentication source resource is updated instead.

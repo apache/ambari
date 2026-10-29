@@ -2030,7 +2030,7 @@ GET host_component
               "host":{
                 "type":"object",
                 "title":"Host",
-                "description":"The associateed host.",
+                "description":"The associated host.",
                 "required":true,
                 "properties":{
                   "href":{
