@@ -254,4 +254,77 @@ describe("configuration save lifecycle", () => {
       }),
     );
   });
+
+  it("does not save overrides of a same-named config group of another service", async () => {
+    mocks.updateConfigGroupProperties.mockResolvedValue({ saved: true });
+    const groupConfigs = structuredClone(configProperties);
+    const changed = groupConfigs.HDFS["Advanced hdfs-site"].properties.changed;
+    changed.value = "default-value";
+    changed.previousValue = "default-value";
+    changed.overrideValues = [
+      {
+        groupName: "Blue",
+        value: "group-value",
+        previousValue: "old-group-value",
+        final: "false",
+        savedFinal: "false",
+      },
+    ];
+    // Config group names are unique only within a service: YARN has its own "Blue"
+    groupConfigs.YARN["Advanced shared hdfs-site"].properties.yarnOnly = {
+      ...property("yarnOnly", "keep-yarn", "keep-yarn"),
+      fileName: "yarn-site.xml",
+      overrideValues: [
+        {
+          groupName: "Blue",
+          value: "yarn-group-value",
+          previousValue: "yarn-group-value",
+          final: "false",
+          savedFinal: "false",
+        },
+      ],
+    };
+    const { result } = renderHook(
+      () =>
+        useConfigSaver(
+          false,
+          vi.fn(),
+          "Blue",
+          groupConfigs,
+          "HDFS",
+          [
+            {
+              ConfigGroup: {
+                id: 17,
+                group_name: "Blue",
+                tag: "HDFS",
+                description: "Blue hosts",
+                hosts: [{ host_name: "host1" }],
+              },
+            },
+          ],
+          "Same-named group of another service",
+        ),
+      { wrapper },
+    );
+
+    await act(async () => {
+      expect(await result.current.saveStepConfigs()).toBe(true);
+    });
+
+    expect(mocks.updateConfigGroupProperties).toHaveBeenCalledWith(
+      "c1",
+      17,
+      expect.objectContaining({
+        ConfigGroup: expect.objectContaining({
+          desired_configs: [
+            expect.objectContaining({
+              type: "hdfs-site",
+              properties: { changed: "group-value" },
+            }),
+          ],
+        }),
+      }),
+    );
+  });
 });
