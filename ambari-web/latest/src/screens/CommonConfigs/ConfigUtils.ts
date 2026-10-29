@@ -153,6 +153,9 @@ const validateInput = (property: PropertyType, newValue: any) => {
   }
 
   switch (displayType) {
+    case InputType.CONTENT:
+      // Configuration files can require trailing newlines and whitespace.
+      return "";
     case InputType.CHECKBOX:
     case InputType.CUSTOM:
       return "";

@@ -20,6 +20,7 @@ limitations under the License.
 from ambari_commons import import_utils
 import json
 import os
+import xml.etree.ElementTree as ET
 from unittest import TestCase
 
 
@@ -191,6 +192,40 @@ class TestServiceAdvisor(TestCase):
         "victoriametrics": {"properties": {"deployment_mode": mode}}
       }
     }
+
+  def test_victoria_metrics_default_installation_and_conditional_credentials(self):
+    service_path = os.path.dirname(self.victoria_metrics_advisor_path)
+    configurations = {}
+    for filename in (
+      "victoriametrics.xml", "victoriametrics-env.xml",
+      "victoriametrics-auth.xml", "victoriametrics-scrape.xml",
+    ):
+      properties = {}
+      for element in ET.parse(os.path.join(service_path, "configuration", filename)).getroot().findall("property"):
+        name = element.findtext("name")
+        value = element.findtext("value", "")
+        properties[name] = value
+        if value == "":
+          self.assertEqual("true", element.findtext("value-attributes/empty-value-valid"), name)
+      configurations[filename[:-4]] = {"properties": properties}
+
+    advisor = self.victoria_metrics_advisor_impl.VictoriaMetricsServiceAdvisor()
+    services = {"services": [{
+      "StackServices": {"service_name": "VICTORIAMETRICS"},
+      "components": [self._component("VMAGENT", "SLAVE", "1+", ["host1"])],
+    }]}
+    validate = lambda: advisor.getServiceConfigurationsValidationItems(configurations, {}, services, {})
+    self.assertEqual([], validate())
+    configurations["victoriametrics-auth"]["properties"]["require_authentication"] = "true"
+    self.assertIn("api_password", {item["config-name"] for item in validate()})
+    configurations["victoriametrics-auth"]["properties"].update({
+      "api_username": "test-user", "api_password": "test-only-password",
+    })
+    self.assertEqual([], validate())
+    configurations["victoriametrics-scrape"]["properties"]["managed_discovery_identity"] = "false"
+    self.assertIn("ambari_sd_password", {item["config-name"] for item in validate()})
+    configurations["victoriametrics-scrape"]["properties"]["ambari_sd_password"] = "test-only-password"
+    self.assertEqual([], validate())
 
   @staticmethod
   def _component(name, category, cardinality, hostnames=None):

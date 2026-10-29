@@ -37,6 +37,7 @@
   <property>
     <name>api_username</name>
     <value></value>
+    <value-attributes><empty-value-valid>true</empty-value-valid></value-attributes>
     <display-name>API User</display-name>
     <description>Basic authentication user for the unified query and ingestion endpoint.</description>
     <on-ambari-upgrade add="false"/>
@@ -49,6 +50,7 @@
     <value-attributes>
       <type>password</type>
       <hidden>CONFIG_DOWNLOAD</hidden>
+      <empty-value-valid>true</empty-value-valid>
     </value-attributes>
     <description>Basic authentication password. Generated VMAUTH configuration is restricted to mode 0600.</description>
     <on-ambari-upgrade add="false"/>

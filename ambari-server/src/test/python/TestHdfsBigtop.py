@@ -533,7 +533,7 @@ class TestHdfsBigtop(unittest.TestCase):
       )
       self.assertEqual("", property_element.findtext("value", ""))
       self.assertEqual(
-        "false",
+        "true",
         property_element.findtext("value-attributes/empty-value-valid"),
       )
 

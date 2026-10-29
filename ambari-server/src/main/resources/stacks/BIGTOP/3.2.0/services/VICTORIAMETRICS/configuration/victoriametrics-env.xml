@@ -62,6 +62,7 @@
   <property>
     <name>server_extra_args</name>
     <value></value>
+    <value-attributes><empty-value-valid>true</empty-value-valid></value-attributes>
     <display-name>Single-node Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VICTORIAMETRICS_SERVER.</description>
     <on-ambari-upgrade add="false"/>
@@ -69,6 +70,7 @@
   <property>
     <name>vmstorage_extra_args</name>
     <value></value>
+    <value-attributes><empty-value-valid>true</empty-value-valid></value-attributes>
     <display-name>VMSTORAGE Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMSTORAGE.</description>
     <on-ambari-upgrade add="false"/>
@@ -76,6 +78,7 @@
   <property>
     <name>vminsert_extra_args</name>
     <value></value>
+    <value-attributes><empty-value-valid>true</empty-value-valid></value-attributes>
     <display-name>VMINSERT Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMINSERT.</description>
     <on-ambari-upgrade add="false"/>
@@ -83,6 +86,7 @@
   <property>
     <name>vmselect_extra_args</name>
     <value></value>
+    <value-attributes><empty-value-valid>true</empty-value-valid></value-attributes>
     <display-name>VMSELECT Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMSELECT.</description>
     <on-ambari-upgrade add="false"/>
@@ -90,6 +94,7 @@
   <property>
     <name>vmagent_extra_args</name>
     <value></value>
+    <value-attributes><empty-value-valid>true</empty-value-valid></value-attributes>
     <display-name>VMAGENT Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMAGENT.</description>
     <on-ambari-upgrade add="false"/>
@@ -97,6 +102,7 @@
   <property>
     <name>vmauth_extra_args</name>
     <value></value>
+    <value-attributes><empty-value-valid>true</empty-value-valid></value-attributes>
     <display-name>VMAUTH Extra Arguments</display-name>
     <description>Additional trusted command-line arguments for VMAUTH.</description>
     <on-ambari-upgrade add="false"/>
