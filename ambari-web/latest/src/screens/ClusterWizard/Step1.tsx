@@ -70,7 +70,7 @@ import { getStepData } from "../../Utils/Utility";
 import wizardSteps from "./wizardSteps";
 import { ContextWrapper } from ".";
 import { AppContext } from "../../store/context";
-import { isJdkCompatible } from "./versionSelection";
+import { isJdkCompatible, sortVersionDefinitions } from "./versionSelection";
 import { copyRepositoryCredentials } from "../../Utils/repositoryCredentials";
 import { clearResolvedReentryMarkers } from "../../Utils/scopedWorkflow";
 import useMpackDeployment from "../../hooks/useMpackDeployment";
@@ -213,12 +213,7 @@ export default function Step1({ wizardName = "clusterCreation" }) {
             dedupedByRepoVersion.set(key, item);
           }
         });
-        const sortedItems = Array.from(dedupedByRepoVersion.values()).sort((a: any, b: any) => {
-          const versionA = parseFloat(a.VersionDefinition.id.split("-")[1]);
-          const versionB = parseFloat(b.VersionDefinition.id.split("-")[1]);
-
-          return versionB - versionA;
-        });
+        const sortedItems = sortVersionDefinitions(Array.from(dedupedByRepoVersion.values()));
         if (!sortedItems.length) {
           throw new Error(`No installable version definition is available for ${stackName}.`);
         }

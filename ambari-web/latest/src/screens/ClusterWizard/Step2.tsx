@@ -205,12 +205,14 @@ export default function Step2({
     if (!submission || hosts.length === 0) {
       return;
     }
+    const { sshKey, ...registration } = submission;
     dispatch({
       type: ActionTypes.STORE_INFORMATION,
       payload: {
         step: currentStep.name,
         data: {
-          ...submission,
+          ...registration,
+          ...(submission.isSshRegistration ? { sshKey } : {}),
           targetHosts: hosts,
           installedHosts: installedHosts,
           useSsh: submission.isSshRegistration,

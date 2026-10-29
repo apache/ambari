@@ -18,7 +18,7 @@
 
 import { createContext, StrictMode } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ContextWrapper } from ".";
 import "../../i18n";
@@ -217,6 +217,26 @@ describe("Choose Services stack metadata", () => {
     await waitFor(() => expect(mocks.onCancel).toBeTypeOf("function"));
     expect(mocks.onCancel?.()).toBe(cancellation);
     expect(flushStateToDb).toHaveBeenCalledWith("cancel");
+  });
+
+  it("installs a standalone service when the stack has no filesystem", async () => {
+    mocks.getServices.mockResolvedValue({ items: [stackService("POSTGRESQL", "PostgreSQL")] });
+    const value = renderStep("clusterCreation");
+    fireEvent.click(await screen.findByText("PostgreSQL"));
+    await waitFor(() => expect(mocks.isNextEnabled).toBe(true));
+    await act(async () => { await mocks.onNext?.(); });
+    await waitFor(() => expect(value.stepWizardUtilities.handleNextImperitive).toHaveBeenCalledOnce());
+    expect(screen.queryByText("A Hadoop Compatible File System Needed")).toBeNull();
+  });
+
+  it("retains filesystem validation when the stack offers HDFS", async () => {
+    mocks.getServices.mockResolvedValue({ items: [stackService("HDFS", "HDFS"), stackService("ZOOKEEPER", "ZooKeeper")] });
+    const value = renderStep("clusterCreation");
+    fireEvent.click(await screen.findByText("ZooKeeper"));
+    await waitFor(() => expect(mocks.isNextEnabled).toBe(true));
+    await act(async () => { await mocks.onNext?.(); });
+    expect(await screen.findByText("A Hadoop Compatible File System Needed")).toBeTruthy();
+    expect(value.stepWizardUtilities.handleNextImperitive).not.toHaveBeenCalled();
   });
 
   it("persists an HBase provider choice before previewing the exact draft revision", async () => {

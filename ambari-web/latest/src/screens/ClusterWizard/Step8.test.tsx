@@ -598,6 +598,8 @@ describe("cluster deployment Review", () => {
     );
     expect(mocks.previewManagedDependencyPlan.mock.invocationCallOrder[0])
       .toBeLessThan(mocks.applyClusterConfigs.mock.invocationCallOrder[0]);
+    expect(mocks.registerHostToCluster.mock.invocationCallOrder.at(-1))
+      .toBeLessThan(mocks.applyClusterConfigs.mock.invocationCallOrder[0]);
     expect(mocks.previewManagedDependencyPlan).toHaveBeenCalledWith(
       expect.objectContaining({
         consumer: expect.objectContaining({ scope: "DRAFT" }),
@@ -1229,6 +1231,20 @@ describe("cluster deployment Review", () => {
     expect(mocks.deleteRepositoryVersion).not.toHaveBeenCalled();
   });
 
+  it.each([51, "HDP-3.0-3.0.1"])("uses stack identity rather than definition ID %s when creating a cluster", async (id) => {
+    const steps = structuredClone(clusterCreationSteps);
+    (steps.VERSION.data.selectedStack as any).id = id;
+    mocks.createCluster.mockResolvedValue({ Clusters: { cluster_id: 72 } });
+    renderStep({ steps });
+
+    fireEvent.click(await screen.findByRole("button", { name: "DEPLOY" }));
+    await waitFor(() => expect(mocks.handleNextImperitive).toHaveBeenCalledOnce());
+
+    expect(mocks.createCluster).toHaveBeenCalledWith("cluster1", {
+      Clusters: { creation_draft_id: CLUSTER_DRAFT_ID, version: "HDP-3.0" },
+    });
+  });
+
   it("blocks an exact cluster-name collision without mutating either resource", async () => {
     mocks.getAllClusters.mockResolvedValue({
       items: [{ Clusters: { cluster_id: 72, cluster_name: "cluster1" } }],
@@ -1258,6 +1274,11 @@ describe("cluster deployment Review", () => {
   });
 
   it("reuses an identical repository definition without updating it", async () => {
+    const steps = structuredClone(clusterCreationSteps);
+    (steps.VERSION.data.operatingSystems as Record<string, unknown[]>)["HDP-3.0"] = [{
+      os: "redhat8", isAdded: true,
+      repos: [{ id: "HDP", name: "HDP", baseUrl: "https://repo.example/hdp" }],
+    }];
     mocks.getVersionDefinitions.mockResolvedValue({
       items: [{
         VersionDefinition: {
@@ -1266,11 +1287,14 @@ describe("cluster deployment Review", () => {
           stack_name: "HDP",
           stack_version: "3.0",
         },
-        operating_systems: [],
+        operating_systems: [{
+          OperatingSystems: { os_type: "redhat8", ambari_managed_repositories: true },
+          repositories: [{ Repositories: { repo_id: "HDP", repo_name: "HDP", base_url: "https://repo.example/hdp", mirrors_list: "" } }],
+        }],
       }],
     });
     mocks.createCluster.mockResolvedValue({ Clusters: { cluster_id: 72 } });
-    renderStep();
+    renderStep({ steps });
 
     fireEvent.click(await screen.findByRole("button", { name: "DEPLOY" }));
     await waitFor(() => expect(mocks.handleNextImperitive).toHaveBeenCalledOnce());

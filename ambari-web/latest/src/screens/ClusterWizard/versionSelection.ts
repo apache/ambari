@@ -33,6 +33,15 @@ export function compareVersions(left: string, right: string): number {
   return 0;
 }
 
+export function sortVersionDefinitions<T extends {
+  VersionDefinition: { repository_version?: string; stack_version?: string };
+}>(definitions: T[]): T[] {
+  return [...definitions].sort((left, right) => compareVersions(
+    right.VersionDefinition.repository_version || right.VersionDefinition.stack_version || "",
+    left.VersionDefinition.repository_version || left.VersionDefinition.stack_version || "",
+  ));
+}
+
 function jdkFeatureVersion(value: string): number | undefined {
   const parts = versionParts(value);
   return parts[0] === 1 ? parts[1] : parts[0];
