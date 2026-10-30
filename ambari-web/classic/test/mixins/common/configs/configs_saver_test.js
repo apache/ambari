@@ -563,6 +563,33 @@ describe('App.ConfigsSaverMixin', function() {
       ]);
     });
 
+    it("stepConfigs has overrides of other groups", function() {
+      var stepConfigs = [
+        Em.Object.create({
+          overrides: [
+            Em.Object.create({
+              group: {name: 'g1'}
+            }),
+            Em.Object.create({
+              group: {name: 'g2'}
+            })
+          ]
+        }),
+        Em.Object.create({
+          overrides: [
+            Em.Object.create({
+              group: {name: 'g2'}
+            })
+          ]
+        })
+      ];
+      expect(mixin.getConfigsForGroup(stepConfigs, 'g1')).to.be.eql([
+        Em.Object.create({
+          group: {name: 'g1'}
+        })
+      ]);
+    });
+
     it("stepConfigs has group", function() {
       var stepConfigs = [
         Em.Object.create({

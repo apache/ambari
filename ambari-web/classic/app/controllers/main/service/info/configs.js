@@ -560,19 +560,22 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
             } else {
               var isEditable = self.get('canEdit') && configGroup.get('name') === self.get('selectedConfigGroup.name');
               var propValue = config.properties[prop];
+              var isCustomFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
               var newConfig = App.ServiceConfigProperty.create(App.config.createDefaultConfig(prop, fileName, false, {
                 overrides: [],
                 displayType: 'label',
                 value: 'Undefined',
                 isPropertyOverridable: false,
                 overrideValues: [propValue],
-                overrideIsFinalValues: [false]
+                overrideIsFinalValues: [isCustomFinal]
               }));
               newConfig.get('overrides').push(App.config.createCustomGroupConfig({
                 propertyName: prop,
                 filename: fileName,
                 value: propValue,
                 savedValue: propValue,
+                isFinal: isCustomFinal,
+                savedIsFinal: isCustomFinal,
                 isEditable: isEditable
               }, configGroup));
               allConfigs.push(newConfig);

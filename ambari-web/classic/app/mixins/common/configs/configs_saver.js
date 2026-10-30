@@ -302,8 +302,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   getConfigsForGroup: function(stepConfigs, configGroupName) {
     var overridenConfigs = [];
 
+    // stepConfigs hold overrides of every group of the service, take only the selected group's ones
     stepConfigs.filterProperty('overrides').forEach(function (config) {
-      overridenConfigs = overridenConfigs.concat(config.get('overrides'));
+      overridenConfigs = overridenConfigs.concat(config.get('overrides').filterProperty('group.name', configGroupName));
     });
     // find custom original properties that assigned to selected config group
     return overridenConfigs.concat(
