@@ -29,6 +29,33 @@ describe("versions API", () => {
     mocks.request.mockResolvedValue({ data: { Requests: { id: 17 } } });
   });
 
+  it("combines available templates with registered definitions for the same stack", async () => {
+    const template = { VersionDefinition: { id: "HDP-3.0", stack_name: "HDP", stack_version: "3.0", repository_version: "3.0" } };
+    const registered = { VersionDefinition: { ...template.VersionDefinition, id: 101 } };
+    mocks.request.mockResolvedValueOnce({ data: { items: [template] } })
+      .mockResolvedValueOnce({ data: { items: [registered] } });
+    expect((await VersionsApi.getVersionDefinitions("HDP")).items).toEqual([template, registered]);
+  });
+
+  it("keeps a registered custom stack installable without an available template", async () => {
+    const registered = { VersionDefinition: { id: 51, stack_name: "GENERIC", stack_version: "1.0", repository_version: "1.0-1" } };
+    mocks.request.mockResolvedValueOnce({ data: { items: [] } })
+      .mockResolvedValueOnce({ data: { items: [registered] } });
+    expect((await VersionsApi.getVersionDefinitions("GENERIC")).items).toEqual([registered]);
+  });
+
+  it.each([null, {}, { items: null }, { items: [{ VersionDefinition: { id: 51, stack_name: "OTHER", stack_version: "1.0", repository_version: "1.0" } }] }])(
+    "rejects invalid or foreign registered observations: %j", async data => {
+      mocks.request.mockResolvedValueOnce({ data: { items: [] } }).mockResolvedValueOnce({ data });
+      await expect(VersionsApi.getVersionDefinitions("GENERIC")).rejects.toThrow();
+    },
+  );
+
+  it("does not silently drop a failed registered-version read", async () => {
+    mocks.request.mockResolvedValueOnce({ data: { items: [] } }).mockRejectedValueOnce(new Error("offline"));
+    await expect(VersionsApi.getVersionDefinitions("GENERIC")).rejects.toThrow("offline");
+  });
+
   it("installs a repository version on one encoded host", async () => {
     const response = await VersionsApi.installHostStackVersion(
       "cluster/name",
@@ -178,6 +205,7 @@ describe("versions API", () => {
   });
 
   it("loads version definitions and operating systems for the selected stack", async () => {
+    mocks.request.mockResolvedValue({ data: { items: [] } });
     await VersionsApi.getVersionDefinitions("HDP/name");
     await VersionsApi.getVersionOperatingSystems("HDP/name", "3.1 version");
 
@@ -188,7 +216,7 @@ describe("versions API", () => {
       method: "GET",
     });
     expect(mocks.request.mock.calls[0][0].url).not.toContain("_=");
-    expect(mocks.request).toHaveBeenNthCalledWith(2, {
+    expect(mocks.request).toHaveBeenNthCalledWith(3, {
       url: "/stacks/HDP%2Fname/versions/3.1%20version?fields=operating_systems/repositories/Repositories",
       method: "GET",
     });

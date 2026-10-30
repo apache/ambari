@@ -97,6 +97,23 @@ describe("repository version resolution", () => {
     })).toEqual(expect.objectContaining({ kind: "conflict" }));
   });
 
+  it.each([undefined, null, ""])("reuses absent mirror metadata serialized as an empty string: %s", (mirrorsList) => {
+    const existing = definition("https://repo.example/hdp");
+    existing.operating_systems[0].repositories[0].Repositories.mirrors_list = "";
+    const selection = {
+      ...desired,
+      operatingSystems: desired.operatingSystems.map(os => ({
+        ...os, repos: os.repos.map(repo => ({ ...repo, mirrorsList })),
+      })),
+    };
+    expect(resolveRepositoryVersion({ ...selection, items: [existing] })).toEqual({
+      kind: "reuse", repositoryVersionId: "101", stackName: "HDP", stackVersion: "3.0",
+    });
+    expect(resolveRepositoryVersion({
+      ...desired, items: [existing],
+    })).toEqual(expect.objectContaining({ kind: "conflict" }));
+  });
+
   it("treats Satellite mode as part of repository compatibility", () => {
     expect(resolveRepositoryVersion({
       ...desired,

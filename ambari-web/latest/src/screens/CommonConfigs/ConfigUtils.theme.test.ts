@@ -664,4 +664,22 @@ describe("MISC > Notifications properties default to optional (matches classic's
       "This is required",
     );
   });
+
+  it("accepts file whitespace while retaining required content validation", () => {
+    const property = {
+      ...configProperty("content", ""),
+      propertyValue: "",
+      previousValue: "",
+      value: "",
+      propertyAttributes: { type: "content", empty_value_valid: false },
+    };
+    expect(validateInput(property, "export JAVA_HOME=/usr/lib/jvm/java-17\n")).toBe("");
+    expect(validateInput(property, "line with significant space  \n\n")).toBe("");
+    expect(validateInput(property, "")).toBe("This is required");
+    expect(validateInput({
+      ...property,
+      propertyName: "directory",
+      propertyAttributes: { type: "directory" },
+    }, "/data ")).not.toBe("");
+  });
 });

@@ -85,6 +85,9 @@ const stableValue = (value: any): any => {
   );
 };
 
+const normalizedMirrorsList = (value: unknown) =>
+  value === "" ? null : stableValue(value);
+
 const normalizedRepositories = (
   operatingSystems: OperatingSystem[],
   ambariManagedRepositories: boolean,
@@ -101,7 +104,7 @@ const normalizedRepositories = (
           components: stableValue(repository.components),
           distribution: stableValue(repository.distribution),
           id: normalizedText(repository.id),
-          mirrorsList: stableValue(repository.mirrorsList),
+          mirrorsList: normalizedMirrorsList(repository.mirrorsList),
           name: normalizedText(repository.name),
           tags: stableValue(repository.tags || []),
           unique: repository.unique === true,
@@ -123,7 +126,7 @@ const normalizedExistingRepositories = (item: VersionDefinitionItem) =>
           components: stableValue(repository.Repositories?.components),
           distribution: stableValue(repository.Repositories?.distribution),
           id: normalizedText(repository.Repositories?.repo_id),
-          mirrorsList: stableValue(repository.Repositories?.mirrors_list),
+          mirrorsList: normalizedMirrorsList(repository.Repositories?.mirrors_list),
           name: normalizedText(repository.Repositories?.repo_name),
           tags: stableValue(repository.Repositories?.tags || []),
           unique: repository.Repositories?.unique === true,

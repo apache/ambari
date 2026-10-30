@@ -887,7 +887,12 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   }
 
   async function createCluster() {
-    const selectedStackVersion = getStepData("VERSION", "selectedStack.id");
+    const selectedStack = getStepData("VERSION", "selectedStack");
+    if (typeof selectedStack?.stack_name !== "string" || !selectedStack.stack_name.trim()
+      || typeof selectedStack?.stack_version !== "string" || !selectedStack.stack_version.trim()) {
+      throw new Error("The selected stack name and version are missing.");
+    }
+    const selectedStackVersion = `${selectedStack.stack_name}-${selectedStack.stack_version}`;
     const targetClusterName = getStepData("NAME", "clusterName");
     if (!draftId) {
       throw new Error(t("installer.step8.draftMissing"));
@@ -2544,10 +2549,7 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
   const resolveOrCreateRepositoryVersion = async () => {
     const selectedStack = getStepData("VERSION", "selectedStack");
     const selectedVersion = getStepData("VERSION", "selectedVersion");
-    const operatingSystems = getStepData(
-      "VERSION",
-      `operatingSystems.${selectedVersion.id}`,
-    ) || [];
+    const operatingSystems = getStepData("VERSION", "operatingSystems")?.[selectedVersion.id] || [];
     const definitions = await VersionsApi.getVersionDefinitions(
       selectedStack.stack_name,
     );
@@ -2663,9 +2665,13 @@ function Step8({ wizardName = "clusterCreation" }: Step8Props) {
       { operations: [scoped({ id: "validate-cluster-target", label: t("installer.step8.checkingClusterName"), run: validateClusterTarget })] },
       { operations: [scoped({ id: "resolve-repository-version", label: t("installer.step8.resolvingRepositoryVersion"), run: resolveOrCreateRepositoryVersion })] },
       { operations: [scoped({ id: "create-cluster", label: "Creating the cluster", run: createCluster })] },
-      ...commonOperations.slice(0, 4).map((operation) => ({ operations: [scoped(operation)] })),
+      ...commonOperations.slice(0, 2).map((operation) => ({ operations: [scoped(operation)] })),
       { operations: [scoped({ id: "register-hosts", label: "Adding hosts to the cluster", run: registerHostsToCluster })] },
-      ...commonOperations.slice(4).map((operation) => ({ operations: [scoped(operation)] })),
+      { operations: [scoped(commonOperations[3])] },
+      ...commonOperations.slice(5).map((operation) => ({ operations: [scoped(operation)] })),
+      // A new checkpoint also repairs resumes whose configs preceded host registration.
+      { operations: [scoped({ ...commonOperations[2], id: `apply-host-configurations-${managedPlanOperationKey}` })] },
+      { operations: [scoped(commonOperations[4])] },
       ...managedDependencyOperations.map((operation) => ({ operations: [scoped(operation)] })),
     ];
   };

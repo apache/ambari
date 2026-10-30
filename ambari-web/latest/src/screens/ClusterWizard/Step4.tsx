@@ -511,6 +511,9 @@ export default function Step4({ wizardName = "clusterCreation" }) {
     selectedServices: Service[],
     errorStackCopy: ErrorType[]
   ) => {
+    if (!Object.values(services).some((service) => isDFS(service.serviceName))) {
+      return;
+    }
     const selectedFileSystems = selectedServices.filter((service) =>
       dfsServices.includes(service.serviceName)
     );

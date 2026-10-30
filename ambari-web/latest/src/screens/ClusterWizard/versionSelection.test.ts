@@ -17,9 +17,22 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { compareVersions, isJdkCompatible } from "./versionSelection";
+import { compareVersions, isJdkCompatible, sortVersionDefinitions } from "./versionSelection";
 
 describe("cluster version selection", () => {
+  it("sorts registered definitions by numeric version segments without parsing IDs", () => {
+    const definitions = [
+      { VersionDefinition: { id: 51, repository_version: "3.9.0-1" } },
+      { VersionDefinition: { id: 2, repository_version: "3.10.0-1" } },
+      { VersionDefinition: { id: "template", stack_version: "1.0" } },
+      { VersionDefinition: { id: 99 } },
+    ];
+    expect(sortVersionDefinitions(definitions).map(({ VersionDefinition }) => VersionDefinition.id))
+      .toEqual([2, 51, "template", 99]);
+    expect(definitions.map(({ VersionDefinition }) => VersionDefinition.id))
+      .toEqual([51, 2, "template", 99]);
+  });
+
   it("compares numeric version segments", () => {
     expect(compareVersions("1.8.0_352", "1.8")).toBe(1);
     expect(compareVersions("17.0.2", "17.0.10")).toBe(-1);

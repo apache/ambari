@@ -22,6 +22,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AppContext } from "../../store/context";
 import { ContextWrapper } from ".";
 import { ActionTypes } from "./clusterStore/types";
+import { reducer } from "./clusterStore/reducer";
+import { containsReentryMarker, sanitizeWorkflowValues } from "../../Utils/scopedWorkflow";
 
 const mocks = vi.hoisted(() => ({
   dispatch: vi.fn(),
@@ -101,5 +103,35 @@ describe("Install Options host registration", () => {
     }));
     expect(mocks.flushStateToDb).toHaveBeenCalledWith("next");
     expect(mocks.handleNextImperitive).toHaveBeenCalledOnce();
+  });
+
+  it("recovers manual registration without requesting an unused SSH private key", async () => {
+    const contextValue = {
+      state: { clusterCreationSteps: { HOSTS: { data: {
+        targetHosts: ["worker.example.com"], isSshRegistration: false, requires_reentry: true,
+      } } } },
+      dispatch: mocks.dispatch, flushStateToDb: mocks.flushStateToDb,
+      stepWizardUtilities: {
+        currentStep: { canGoBack: true, name: "HOSTS" },
+        handleBackImperitive: vi.fn(), handleNextImperitive: mocks.handleNextImperitive,
+      },
+    };
+    const WizardContext = createContext(contextValue);
+    render(
+      <AppContext.Provider value={{ supports: {} } as unknown as ComponentProps<typeof AppContext.Provider>["value"]}>
+        <ContextWrapper.Provider value={{ Context: WizardContext }}>
+          <WizardContext.Provider value={contextValue}><Step2 /></WizardContext.Provider>
+        </ContextWrapper.Provider>
+      </AppContext.Provider>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: "OK" }));
+    fireEvent.click(screen.getByRole("button", { name: "NEXT" }));
+    fireEvent.click(await screen.findByRole("button", { name: "OK" }));
+    await waitFor(() => expect(mocks.handleNextImperitive).toHaveBeenCalledOnce());
+    const action = mocks.dispatch.mock.calls.at(-1)?.[0];
+    expect(action.payload.data.useSsh).toBe(false);
+    expect(action.payload.data).not.toHaveProperty("sshKey");
+    const saved = sanitizeWorkflowValues(reducer(contextValue.state, action));
+    expect(containsReentryMarker(saved)).toBe(false);
   });
 });

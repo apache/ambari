@@ -478,3 +478,41 @@ Module 06, or any other module's gap document or implementation. Shared router,
 wizard, API, and application-state files may receive only the minimum changes
 needed to enforce Module 07 contracts, and those changes must be listed in the
 pull request.
+
+## Local Installation Recording Regression
+
+The October 29 local-package rehearsal found that preserved file-template
+newlines were rejected by generic scalar whitespace validation. Content controls
+now retain the required-empty check while accepting significant file whitespace.
+Classic property metadata and the INST-7/SVC-CONFIG baseline were inspected.
+VictoriaMetrics optional or managed values explicitly allow empty input, while
+the service advisor still rejects missing credentials for manual discovery or
+enabled API authentication. HDFS TLS passwords use the existing advisor policy:
+they are required for HTTPS_ONLY and HTTP_AND_HTTPS, not HTTP_ONLY.
+
+Validation: 50 focused React tests and the production frontend build passed;
+the ServiceAdvisor and HdfsBigtop Python selections passed 5 and 64 tests.
+Packaged Web installation acceptance is still in progress. The local demo RPM
+is repackaged from the existing binary payload; no Hadoop component is rebuilt.
+
+Registered version definitions have numeric persistent IDs. Step 1 now sorts
+using repository/stack version fields, and Step 8 builds the cluster stack ID
+from `stack_name` and `stack_version` rather than the definition ID. Classic's
+Step 8 submits `App.currentStackVersion`; this preserves that stack identity
+contract for registered definitions. Numeric IDs and multi-digit version
+segments have focused regression coverage. The combined Step8/versionSelection
+run passed 33 tests, and the production frontend build passed.
+
+Live local-package installation request 17 completed all 21 tasks. After
+service-check ordering repair, request 21 started the services; its MapReduce
+check still failed because the demo sort buffer exceeded the task heap. Saving
+100 MB in configuration version 2, restarting through request 22, and checking
+through request 23 completed successfully. Failed historical requests remain
+failed. Host and service API observations verified all three hosts HEALTHY and
+all five services STARTED. Standalone PostgreSQL cluster `demo_apps` completed
+installation request 30 and startup/check request 31 on worker7. Independent
+HDFS/ZooKeeper/VictoriaMetrics cluster `demo_storage` completed installation
+request 32 (11 tasks) and startup/check request 33 (12 tasks) on worker4-6.
+Structured API observations verified all tasks COMPLETED, all services STARTED,
+all hosts HEALTHY and disjoint host ownership across the three demo clusters.
+These focused acceptance results do not establish full installer parity.

@@ -1700,10 +1700,21 @@ public class ConfigHelper {
       AgentConfigsUpdateEvent currentConfigData = currentConfigEvents.get(hostId);
       AgentConfigsUpdateEvent previousConfigsData = previousConfigEvents.get(hostId);
 
-      SortedMap<String, SortedMap<String, String>> currentConfigs =
-          currentConfigData.getClustersConfigs().get(Long.toString(cluster.getClusterId())).getConfigurations();
-      SortedMap<String, SortedMap<String, String>> previousConfigs =
-          previousConfigsData.getClustersConfigs().get(Long.toString(cluster.getClusterId())).getConfigurations();
+      String clusterId = Long.toString(cluster.getClusterId());
+      ClusterConfigs currentClusterConfigs = currentConfigData.getClustersConfigs() == null
+          ? null : currentConfigData.getClustersConfigs().get(clusterId);
+      if (currentClusterConfigs == null || currentClusterConfigs.getConfigurations() == null) {
+        throw new AmbariException("Configurations for cluster " + clusterId + " are unavailable for host " + hostId);
+      }
+      ClusterConfigs previousClusterConfigs = previousConfigsData.getClustersConfigs() == null
+          ? null : previousConfigsData.getClustersConfigs().get(clusterId);
+      if (previousClusterConfigs != null && previousClusterConfigs.getConfigurations() == null) {
+        throw new AmbariException("Cached configurations for cluster " + clusterId + " are invalid for host " + hostId);
+      }
+      SortedMap<String, SortedMap<String, String>> currentConfigs = currentClusterConfigs.getConfigurations();
+      // Hosts registered before cluster creation have no previous entry for this cluster.
+      SortedMap<String, SortedMap<String, String>> previousConfigs = previousClusterConfigs == null
+          ? Collections.emptySortedMap() : previousClusterConfigs.getConfigurations();
 
       Map<String, Collection<String>> changedConfigsHost = new HashMap<>();
       for (String currentConfigType : currentConfigs.keySet()) {

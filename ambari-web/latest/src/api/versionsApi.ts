@@ -51,12 +51,29 @@ const VersionsApi = {
     return response.data;
   },
   getVersionDefinitions: async function (stackName: string) {
-    const url = `/version_definitions?fields=VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/show_available=true&VersionDefinition/stack_name=${encodeURIComponent(stackName)}`;
-    const response = await ambariApi.request({
-      url: url,
-      method: "GET",
-    });
-    return response.data;
+    const url = `/version_definitions?fields=VersionDefinition/id,VersionDefinition/stack_name,VersionDefinition/stack_version,VersionDefinition/stack_default,VersionDefinition/stack_repo_update_link_exists,VersionDefinition/max_jdk,VersionDefinition/min_jdk,operating_systems/repositories/Repositories/*,operating_systems/OperatingSystems/*,VersionDefinition/stack_services,VersionDefinition/repository_version&VersionDefinition/stack_name=${encodeURIComponent(stackName)}`;
+    // Available stack templates and registered definitions are separate collections.
+    const responses = await Promise.all([
+      ambariApi.request({ url: `${url}&VersionDefinition/show_available=true`, method: "GET" }),
+      ambariApi.request({ url, method: "GET" }),
+    ]);
+    const items = new Map<string, any>();
+    for (const response of responses) {
+      if (!Array.isArray(response.data?.items)) {
+        throw new Error("Malformed version-definition collection");
+      }
+      for (const item of response.data.items) {
+        const definition = item?.VersionDefinition;
+        if (!definition || definition.stack_name !== stackName
+          || !["string", "number"].includes(typeof definition.id)
+          || String(definition.id) === "" || !definition.stack_version
+          || !definition.repository_version) {
+          throw new Error("Invalid version-definition identity");
+        }
+        items.set(String(definition.id), item);
+      }
+    }
+    return { ...responses[0].data, items: [...items.values()] };
   },
   getAllVersionDefinitions: async function () {
     const url = `/version_definitions`;
