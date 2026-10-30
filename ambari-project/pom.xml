@@ -32,30 +32,30 @@
     <solr.version>5.5.2</solr.version>
     <ambari.dir>${project.parent.basedir}</ambari.dir>
     <powermock.version>2.0.9</powermock.version>
-    <jetty.version>12.0.39</jetty.version>
+    <jetty.version>12.1.13</jetty.version>
     <kerby.version>2.1.2</kerby.version>
     <checkstyle.version>10.26.1</checkstyle.version>
-    <swagger.version>1.6.8</swagger.version>
-    <swagger.maven.plugin.version>3.1.5</swagger.maven.plugin.version>
-    <slf4j.version>2.0.18</slf4j.version>
-    <slf4j.bom.version>2.0.18</slf4j.bom.version>
-    <logback.version>1.5.38</logback.version>
+    <swagger.version>1.6.16</swagger.version>
+    <swagger.maven.plugin.version>3.1.8</swagger.maven.plugin.version>
+    <slf4j.version>1.7.36</slf4j.version>
+    <slf4j.bom.version>2.0.20</slf4j.bom.version>
+    <logback.version>1.6.4</logback.version>
     <guice.version>7.0.0</guice.version>
     <spring.version>6.2.19</spring.version>
     <spring.security.version>6.5.11</spring.security.version>
     <spring.ldap.version>3.3.8</spring.ldap.version>
-    <fasterxml.jackson.version>2.18.9</fasterxml.jackson.version>
-    <fasterxml.jackson.databind.version>2.18.9</fasterxml.jackson.databind.version>
+    <fasterxml.jackson.version>2.22</fasterxml.jackson.version>
+    <fasterxml.jackson.databind.version>2.22.3</fasterxml.jackson.databind.version>
     <postgres.version>42.7.13</postgres.version>
     <mariadb.jdbc.version>2.7.15</mariadb.jdbc.version>
-    <mssql.jdbc.version>13.4.0.jre11</mssql.jdbc.version>
+    <mssql.jdbc.version>13.6.0.jre11</mssql.jdbc.version>
     <testContainers.version>1.21.4</testContainers.version>
     <forkCount>4</forkCount>
     <reuseForks>false</reuseForks>
     <surefire.argLine>-Xmx1024m -Xms512m</surefire.argLine>
     <jersey.version>3.1.12</jersey.version>
     <junit.jupiter.version>5.14.4</junit.jupiter.version>
-    <commons-lang3.version>3.20.0</commons-lang3.version>
+    <commons-lang3.version>3.21.0</commons-lang3.version>
     <jakarta.xml.bind.version>4.0.5</jakarta.xml.bind.version>
   </properties>
   <profiles>
@@ -162,12 +162,12 @@
       <dependency>
         <groupId>commons-cli</groupId>
         <artifactId>commons-cli</artifactId>
-        <version>1.3.1</version>
+        <version>1.11.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-collections4</artifactId>
-        <version>4.4</version>
+        <version>4.6.0</version>
       </dependency>
       <dependency>
         <groupId>commons-beanutils</groupId>
@@ -183,7 +183,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.21.0</version>
+        <version>2.22.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -198,7 +198,7 @@
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.13</version>
+        <version>4.5.14</version>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
@@ -239,7 +239,7 @@
       <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.13</version>
+        <version>8.0.33</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -276,7 +276,7 @@
       <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.9.0</version>
+        <version>2.14.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.derby</groupId>
@@ -301,7 +301,7 @@
       <dependency>
         <groupId>org.springframework.security.kerberos</groupId>
         <artifactId>spring-security-kerberos-web</artifactId>
-        <version>2.1.0</version>
+        <version>2.2.0</version>
       </dependency>
       <dependency>
         <groupId>org.springframework</groupId>
@@ -362,7 +362,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>32.1.3-jre</version>
+        <version>27.1-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
@@ -372,7 +372,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.5.10</version>
+        <version>3.12.4</version>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
@@ -383,7 +383,7 @@
       <dependency>
         <groupId>org.awaitility</groupId>
         <artifactId>awaitility</artifactId>
-        <version>3.1.0</version>
+        <version>3.1.6</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -474,17 +474,17 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant</artifactId>
-        <version>1.10.11</version>
+        <version>1.10.18</version>
       </dependency>
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant-launcher</artifactId>
-        <version>1.10.11</version>
+        <version>1.10.18</version>
       </dependency>
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.1.1</version>
+        <version>1.4.0</version>
       </dependency>
       <dependency>
         <groupId>commons-codec</groupId>
@@ -645,7 +645,7 @@
       <dependency>
         <groupId>org.easymock</groupId>
         <artifactId>easymock</artifactId>
-        <version>5.2.0</version>
+        <version>3.6</version>
       </dependency>
       <dependency>
         <groupId>io.swagger</groupId>
@@ -690,12 +690,12 @@
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.5.5</version>
+        <version>3.9.6</version>
       </dependency>
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper-jute</artifactId>
-        <version>3.5.5</version>
+        <version>3.9.6</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -768,7 +768,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>3.2.5</version>
+          <version>3.6.0</version>
         </plugin>
         <plugin>
           <groupId>org.vafer</groupId>
