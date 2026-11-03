@@ -1127,7 +1127,7 @@ public class AmbariServer {
     } catch (Throwable t) {
       // Writing to system console is needed because loggers may not get flushed on exit and diagnostic information
       // may get lost.
-      System.err.println("An unexpected error occured during starting Ambari Server.");
+      System.err.println("An unexpected error occurred during starting Ambari Server.");
       t.printStackTrace();
       LOG.error("Failed to run the Ambari Server", t);
       if (server != null) {

@@ -518,7 +518,7 @@ def run_component_https_cmd(cmd):
   retcode, out, err = run_os_command(cmd)
 
   if not retcode == 0:
-    err = "Error occured during truststore setup ! :" + out + " : " + err
+    err = "Error occurred during truststore setup ! :" + out + " : " + err
     raise FatalException(1, err)
 
 

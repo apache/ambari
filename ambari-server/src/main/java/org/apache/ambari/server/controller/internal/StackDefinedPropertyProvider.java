@@ -270,7 +270,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
         Object o = ct.newInstance(definition.getProperties(), definition.getMetrics());
         return PropertyProvider.class.cast(o);
       } catch (Exception e) {
-        LOG.info("Could not find contructor for type '" +
+        LOG.info("Could not find constructor for type '" +
             definition.getType());
       }
 
@@ -335,7 +335,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
             componentNamePropertyId, statePropertyId, componentName);
         return PropertyProvider.class.cast(o);
       } catch (Exception e) {
-        LOG.info("Could not find contructor for type '" +
+        LOG.info("Could not find constructor for type '" +
             definition.getType());
       }
 

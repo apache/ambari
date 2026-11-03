@@ -4710,7 +4710,7 @@ public class Configuration {
     }
 
     if (sleepTime > 60) {
-      LOG.warn("Value of {} ({}) should be a number between 1 adn 60, " +
+      LOG.warn("Value of {} ({}) should be a number between 1 and 60, " +
           "falling back to maximum value ({})",
           EXECUTION_SCHEDULER_WAIT, sleepTime, 60);
       sleepTime = 60L;

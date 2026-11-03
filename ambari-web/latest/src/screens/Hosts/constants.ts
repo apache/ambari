@@ -110,9 +110,9 @@ export const checkHostIssues = {
     count: 0,
     data: [],
     dataMessage:
-      "The following repositories has OS type mis-match with registered hosts",
+      "The following repositories has OS type mismatch with registered hosts",
     noDataMessage:
-      "There were no repositories OS type mis-match with registered hosts",
+      "There were no repositories OS type mismatch with registered hosts",
   },
   firewall: {
     displayName: "Firewall Issues",

@@ -58,7 +58,7 @@ public class ClusterConfigTypeValidator implements TopologyValidator {
       Set<String> invalidConfigTypes = new HashSet<>(topologyClusterConfigTypes);
       invalidConfigTypes.removeAll(configTypeIntersection);
 
-      LOGGER.error("The following config typess are wrong: {}", invalidConfigTypes);
+      LOGGER.error("The following config types are wrong: {}", invalidConfigTypes);
       throw new InvalidTopologyException("The following configuration types are invalid: " + invalidConfigTypes);
     }
   }

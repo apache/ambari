@@ -116,7 +116,7 @@ public class ViewDirectoryWatcher implements DirectoryWatcher {
             WatchKey key = watchService.take();
             LOG.info("Watcher Key was signalled");
             for (WatchEvent<?> event : key.pollEvents()) {
-              LOG.info("Watcher recieved poll event");
+              LOG.info("Watcher received poll event");
               WatchEvent<Path> ev = cast(event);
               Path resolvedPath = path.resolve(ev.context());
               LOG.info(String.format("Event %s: %s\n", ev.kind(), resolvedPath));

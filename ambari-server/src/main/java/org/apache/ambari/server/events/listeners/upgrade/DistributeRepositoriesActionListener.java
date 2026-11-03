@@ -113,7 +113,7 @@ public class DistributeRepositoriesActionListener {
       }
 
       if (null == structuredOutput || null == structuredOutput.repositoryVersionId) {
-        LOG.error("Received an installation reponse, but it did not contain a repository version id");
+        LOG.error("Received an installation response, but it did not contain a repository version id");
       } else {
         newHostState = RepositoryVersionState.INSTALLED;
 

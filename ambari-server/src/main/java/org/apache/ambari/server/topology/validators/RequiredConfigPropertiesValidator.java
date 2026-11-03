@@ -98,7 +98,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
           Collection<String> operationalConfigsForType = operationalConfigurations.get(configType).keySet();
           requiredPropertiesForType.removeAll(operationalConfigsForType);
           if (!requiredPropertiesForType.isEmpty()) {
-            LOGGER.info("Found missing properties in hostgroup: {}, config type: {}, mising properties: {}", hostGroup.getName(),
+            LOGGER.info("Found missing properties in hostgroup: {}, config type: {}, missing properties: {}", hostGroup.getName(),
               configType, requiredPropertiesForType);
             missingProperties = addTomissingProperties(missingProperties, hostGroup.getName(), requiredPropertiesForType);
           }

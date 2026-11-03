@@ -242,7 +242,7 @@ public class WorkflowResourceProvider extends
         try {
           ps.close();
         } catch (SQLException e) {
-          LOG.error("Exception while closing statment", e);
+          LOG.error("Exception while closing statement", e);
         }
 
       if (db != null)

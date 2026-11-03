@@ -91,7 +91,7 @@ public final class SecurityCondition extends Condition {
             return kerberosDetails.getKdcType() == kdctype;
           } catch (AmbariException | KerberosInvalidConfigurationException kerberosException) {
             LOG.error(
-                "Unable to determine if this upgrade condition is met because there was a problem parsing the Kerberos configruations for the KDC Type",
+                "Unable to determine if this upgrade condition is met because there was a problem parsing the Kerberos configurations for the KDC Type",
                 kerberosException);
             return false;
           }

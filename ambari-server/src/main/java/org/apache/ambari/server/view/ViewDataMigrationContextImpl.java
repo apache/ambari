@@ -155,7 +155,7 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
         getCurrentDataStore().store(newInstance);
       }
     } catch (PersistenceException | InstantiationException | IllegalAccessException e) {
-      String msg = "Error occured during copying data. Persistence entities are not compatible.";
+      String msg = "Error occurred during copying data. Persistence entities are not compatible.";
       LOG.error(msg);
       throw new ViewDataMigrationException(msg, e);
     }

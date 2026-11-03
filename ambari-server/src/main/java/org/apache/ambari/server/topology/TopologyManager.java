@@ -1031,7 +1031,7 @@ public class TopologyManager {
     }
     ensureInitialized();
     synchronized (availableHosts) {
-      LOG.info("Hearbeat for host {} lost thus removing it from available hosts.", host.getHostName());
+      LOG.info("Heartbeat for host {} lost thus removing it from available hosts.", host.getHostName());
       availableHosts.remove(host);
     }
   }
@@ -1312,7 +1312,7 @@ public class TopologyManager {
         }
       });
     } catch (AmbariException e) {
-      LOG.error("Exception ocurred while registering host name", e);
+      LOG.error("Exception occurred while registering host name", e);
       throw new RuntimeException(e);
     }
 

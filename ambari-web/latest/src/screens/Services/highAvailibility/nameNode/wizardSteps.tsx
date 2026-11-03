@@ -145,7 +145,7 @@ export default {
     ],
   },
   7: {
-    label: "Initilize Metadata",
+    label: "Initialize Metadata",
     completed: false,
     Component: <Step8 />,
     canGoBack: false,

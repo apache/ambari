@@ -234,7 +234,7 @@ class CertificateManager:
         "Install the trusted CA before starting the Agent."
       )
     else:
-      logger.info("Server certicate exists, ok")
+      logger.info("Server certificate exists, ok")
 
     agent_key = self.getAgentKeyName()
     agent_crt = self.getAgentCrtName()
