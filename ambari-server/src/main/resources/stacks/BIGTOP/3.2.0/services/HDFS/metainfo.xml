@@ -91,6 +91,14 @@
           </logs>
           <customCommands>
             <customCommand>
+              <name>SWITCH_ACTIVE_NAMENODE</name>
+              <commandScript>
+                <script>scripts/namenode.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+            <customCommand>
               <name>DECOMMISSION</name>
               <commandScript>
                 <script>scripts/namenode.py</script>
