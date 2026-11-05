@@ -821,6 +821,53 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * On click handler for rebalance Hdfs command from items menu
    */
+  switchActiveNameNode: function () {
+    var controller = this;
+    var plan = require('utils/namenode_role_switch');
+    function snapshot() {
+      return App.Service.find('HDFS').get('hostComponents').map(function (c) {
+        return {componentName: c.get('componentName'), hostName: c.get('hostName'),
+          workStatus: c.get('workStatus'), staleConfigs: c.get('staleConfigs'), haStatus: c.get('haStatus')};
+      });
+    }
+    if (!App.isAuthorized('SERVICE.RUN_CUSTOM_COMMAND') || !App.get('isHaEnabled')) { return; }
+    var reviewed;
+    try { reviewed = plan(snapshot()); }
+    catch (error) { App.showAlertPopup(Em.I18n.t('common.error'), error.message); return; }
+    App.ModalPopup.show({
+      header: Em.I18n.t('services.service.actions.switchNN.title'),
+      primary: Em.I18n.t('services.service.actions.switchNN.submit'),
+      secondary: Em.I18n.t('common.cancel'),
+      sourceHost: reviewed.source,
+      targets: reviewed.targets,
+      targetHost: null,
+      confirmed: false,
+      submitting: false,
+      errorMessage: '',
+      disablePrimary: function () {
+        return this.get('submitting') || !this.get('confirmed') || reviewed.targets.indexOf(this.get('targetHost')) < 0;
+      }.property('submitting', 'confirmed', 'targetHost'),
+      bodyClass: Em.View.extend({templateName: require('templates/common/modal_popups/namenode_role_switch')}),
+      onPrimary: function () {
+        if (this.get('disablePrimary')) { return; }
+        var target = this.get('targetHost');
+        try {
+          var current = plan(snapshot());
+          if (current.source !== reviewed.source || current.targets.indexOf(target) < 0) {
+            throw new Error('HA roles changed. Close and reopen this dialog.');
+          }
+        } catch (error) { this.set('errorMessage', error.message); return; }
+        this.set('submitting', true);
+        App.ajax.send({
+          name: 'service.item.switchActiveNameNode', sender: controller,
+          data: {sourceHost: reviewed.source, targetHost: target},
+          success: 'rebalanceHdfsNodesSuccessCallback', error: 'requestErrorCallback'
+        });
+        this.hide();
+      }
+    });
+  },
+
   rebalanceHdfsNodes: function () {
     var controller = this;
     App.ModalPopup.show({
