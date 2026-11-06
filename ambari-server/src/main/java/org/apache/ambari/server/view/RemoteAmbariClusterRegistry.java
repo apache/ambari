@@ -100,6 +100,9 @@ public class RemoteAmbariClusterRegistry {
    * @throws AmbariHttpException
    */
   public void saveOrUpdate(RemoteAmbariClusterEntity entity, boolean update) throws IOException, AmbariHttpException {
+    if (update) {
+      delete(entity);
+    }
 
     RemoteAmbariCluster cluster = new RemoteAmbariCluster(entity, configuration);
     Set<String> services = cluster.getServices();
