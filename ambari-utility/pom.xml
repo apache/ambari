@@ -90,7 +90,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
-      <version>4.4</version>
+      <version>4.6.0</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -125,7 +125,7 @@
     <dependency>
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
-      <version>1.4.4</version>
+      <version>1.4.5</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -135,7 +135,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>32.1.3-jre</version>
+      <version>27.1-jre</version>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
@@ -157,7 +157,7 @@
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-multipart</artifactId>
-      <version>1.13</version>
+      <version>1.19.4</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
