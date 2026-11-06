@@ -728,7 +728,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       // Setting Maintenance state for service
       if (null != request.getMaintenanceState()) {
         if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE)) {
-          throw new AuthorizationException("The authenticated user is not authorized to toggle the maintainence state of services");
+          throw new AuthorizationException("The authenticated user is not authorized to toggle the maintenance state of services");
         }
 
         MaintenanceState newMaint = MaintenanceState.valueOf(request.getMaintenanceState());

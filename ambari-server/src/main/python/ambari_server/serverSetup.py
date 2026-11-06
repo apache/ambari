@@ -1091,7 +1091,7 @@ def _reset_database(options):
   persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
   if persistence_type == "remote":
     err = (
-      "Ambari doesn't support resetting exernal DB automatically. "
+      "Ambari doesn't support resetting external DB automatically. "
       "To reset Ambari Server schema you must first drop and then create it "
       'using DDL scripts from "{0}"'.format(
         AmbariPath.get("/var/lib/ambari-server/resources/")

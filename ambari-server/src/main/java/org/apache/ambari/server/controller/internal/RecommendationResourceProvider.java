@@ -158,10 +158,10 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
     try {
       response = saHelper.recommend(recommendationRequest);
     } catch (StackAdvisorRequestException e) {
-      LOG.warn("Error occured during recommendation", e);
+      LOG.warn("Error occurred during recommendation", e);
       throw new IllegalArgumentException(e.getMessage(), e);
     } catch (StackAdvisorException | AmbariException e) {
-      LOG.warn("Error occured during recommendation", e);
+      LOG.warn("Error occurred during recommendation", e);
       throw new SystemException(e.getMessage(), e);
     }
 

@@ -176,7 +176,7 @@ public class ContentTypeOverrideFilter implements Filter {
                 }
             }
         } catch (Exception e) {
-            logger.error("Failed to discover URLs that are excluded from Content-Type override. Falling back to pre-defined list of exluded URLs.", e);
+            logger.error("Failed to discover URLs that are excluded from Content-Type override. Falling back to pre-defined list of excluded URLs.", e);
 
             /* Do not fail here, but fallback to manual definition of excluded endpoints. */
             excludedUrls.add(Pattern.compile("/bootstrap"));

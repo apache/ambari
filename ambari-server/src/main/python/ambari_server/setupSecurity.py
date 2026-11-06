@@ -1236,7 +1236,7 @@ def query_ldap_type(ldap_type_option):
     f"Please select the type of LDAP you want to use [{'/'.join(LDAP_TYPES)}]({LDAP_GENERIC}):",
     LDAP_GENERIC,
     REGEX_LDAP_TYPE,
-    "Please enter one of the followings '{}'!".format("', '".join(LDAP_TYPES)),
+    "Please enter one of the following '{}'!".format("', '".join(LDAP_TYPES)),
     False,
     False,
     answer=ldap_type_option,

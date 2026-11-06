@@ -549,7 +549,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
           line = reader.readLine();
         }
 
-        LOG.debug("Sucessfully retrieved response from server, response = {}", buffer);
+        LOG.debug("Successfully retrieved response from server, response = {}", buffer);
 
         return buffer;
       } finally {

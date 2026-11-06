@@ -898,7 +898,7 @@ public class AlertsDAO implements Cleanable {
       }
 
     } catch (Exception ambariException) {
-      LOG.warn("Unable to recalcuate aggregate alerts after removing host {}", hostName);
+      LOG.warn("Unable to recalculate aggregate alerts after removing host {}", hostName);
     }
 
     return removedItems;

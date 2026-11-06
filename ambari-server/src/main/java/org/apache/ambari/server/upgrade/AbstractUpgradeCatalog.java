@@ -242,7 +242,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       builder = factory.newDocumentBuilder();
       doc = builder.parse( new InputSource( new StringReader( xmlStr ) ) );
     } catch (Exception e) {
-      LOG.error("Error during convertation from String \"" + xmlStr + "\" to Xml!", e);
+      LOG.error("Error during conversion from String \"" + xmlStr + "\" to Xml!", e);
     }
     return doc;
   }

@@ -150,13 +150,13 @@ public class JDBCResourceProvider extends BaseProvider implements ResourceProvid
             try {
                 if (statement != null) statement.close();
             } catch (SQLException e) {
-                LOG.error("Exception while closing statment", e);
+                LOG.error("Exception while closing statement", e);
             }
 
             try {
                 if (connection != null) connection.close();
             } catch (SQLException e) {
-                LOG.error("Exception while closing statment", e);
+                LOG.error("Exception while closing statement", e);
             }
 
         }

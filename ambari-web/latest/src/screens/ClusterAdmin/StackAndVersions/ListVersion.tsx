@@ -1487,7 +1487,7 @@ export default function Versions() {
     } else {
       return (
         <div>
-          <div>You are about to install packages for version <strong>{displayName}</strong> on all hosts which contain the following servcies.</div>
+          <div>You are about to install packages for version <strong>{displayName}</strong> on all hosts which contain the following services.</div>
           <div className="mt-2">
             <ul>
               {Object.entries(selectedStackRef.current?.ClusterStackVersions.repository_summary.services || {}).map(([serviceName, serviceInfo]: [string, any]) => (

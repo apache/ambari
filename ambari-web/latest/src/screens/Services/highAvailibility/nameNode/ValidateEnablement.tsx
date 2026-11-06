@@ -50,7 +50,7 @@ function ValidateEnablement() {
         <div className="d-flex justify-content-center align-items-center flex-column p-4">
           <Spinner />
           <small className="text-muted mt-2">
-            Validating the components for high Availibility enablement...
+            Validating the components for high availability enablement...
           </small>
         </div>
       );

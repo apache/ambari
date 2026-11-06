@@ -172,8 +172,8 @@ public class MpackInstallChecker {
         }
       }
     } catch (SQLException e) {
-      System.err.println("SQL Exception occured during check for validating installed clusters. Reason: " + e.getMessage());
-      LOG.error("SQL Exception occured during check for validating installed clusters. Reason: ", e);
+      System.err.println("SQL Exception occurred during check for validating installed clusters. Reason: " + e.getMessage());
+      LOG.error("SQL Exception occurred during check for validating installed clusters. Reason: ", e);
       errorsFound = true;
     } finally {
       if (rs != null) {

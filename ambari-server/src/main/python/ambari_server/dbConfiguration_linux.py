@@ -1034,7 +1034,7 @@ class PGConfig(LinuxDBMSConfig):
     time.sleep(5)
     result = process.poll()
     if result is None:
-      print_info_msg("Killing restart PostgresSQL process")
+      print_info_msg("Killing restart PostgreSQL process")
       process.kill()
       pg_status, retcode, out, err = PGConfig._get_postgre_status()
       # SUSE linux set status of stopped postgresql proc to unused

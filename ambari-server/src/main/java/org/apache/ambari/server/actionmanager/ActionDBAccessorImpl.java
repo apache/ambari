@@ -979,7 +979,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
    */
   @Subscribe
   public void invalidateCommandCacheOnHostRemove(HostsRemovedEvent event) {
-    LOG.info("Invalidating HRC cache after receiveing {}", event);
+    LOG.info("Invalidating HRC cache after receiving {}", event);
     hostRoleCommandCache.invalidateAll();
   }
 

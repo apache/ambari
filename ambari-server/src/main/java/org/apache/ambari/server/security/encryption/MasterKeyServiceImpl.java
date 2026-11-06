@@ -67,7 +67,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
           LOG.error(String.format("Cannot initialize master key from %s: %s", masterKeyFile.getAbsolutePath(), e.getLocalizedMessage()), e);
         }
       } else {
-        LOG.error(String.format("The file at %s is not a master ket file", masterKeyFile.getAbsolutePath()));
+        LOG.error(String.format("The file at %s is not a master key file", masterKeyFile.getAbsolutePath()));
       }
     } else {
       LOG.error(String.format("Cannot open master key file, %s", masterKeyFile.getAbsolutePath()));

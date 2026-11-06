@@ -361,7 +361,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
     } catch (StackAdvisorException ex) {
       throw ex;
     } catch (Exception e) {
-      String message = "Error occured during stack advisor command invocation: ";
+      String message = "Error occurred during stack advisor command invocation: ";
       LOG.warn(message, e);
       throw new StackAdvisorException(message + e.getMessage());
     }
@@ -447,7 +447,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
       if (response.getStatus() != Status.OK.getStatusCode()) {
         String message = String.format(
-            "Error occured during hosts information retrieving, status=%s, response=%s",
+            "Error occurred during hosts information retrieving, status=%s, response=%s",
             response.getStatus(), (String) response.getEntity());
         LOG.warn(message);
         throw new StackAdvisorException(message);
@@ -472,7 +472,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
             resultInfos.add(next);
           }
         } catch (IOException e) {
-          throw new StackAdvisorException("Error occured during parsing result host infos", e);
+          throw new StackAdvisorException("Error occurred during parsing result host infos", e);
         }
       }
 
@@ -514,7 +514,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
       return CollectionUtils.subtract(hosts, registeredHosts);
     } catch (Exception e) {
-      throw new StackAdvisorException("Error occured during calculating unregistered hosts", e);
+      throw new StackAdvisorException("Error occurred during calculating unregistered hosts", e);
     }
   }
 
@@ -529,7 +529,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     if (response.getStatus() != Status.OK.getStatusCode()) {
       String message = String.format(
-          "Error occured during services information retrieving, status=%s, response=%s",
+          "Error occurred during services information retrieving, status=%s, response=%s",
           response.getStatus(), (String) response.getEntity());
       LOG.warn(message);
       throw new StackAdvisorException(message);

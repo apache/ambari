@@ -102,7 +102,7 @@ public class UpdateActiveRepoVersionOnStartup {
     }
     catch(Exception ex) {
       throw new AmbariException(
-          "An error occured during updating current repository versions with stack repositories.",
+          "An error occurred during updating current repository versions with stack repositories.",
           ex);
     }
   }

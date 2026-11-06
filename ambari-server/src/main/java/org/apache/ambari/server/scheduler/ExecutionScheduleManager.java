@@ -743,7 +743,7 @@ public class ExecutionScheduleManager {
     Map<String, Object> httpResponseMap;
     try {
       httpResponseMap = gson.<Map<String, Object>>fromJson(responseString, Map.class);
-      LOG.debug("Processing responce as JSON");
+      LOG.debug("Processing response as JSON");
     } catch (JsonSyntaxException e) {
       LOG.debug("Response is not valid JSON object. Recording as is");
       httpResponseMap = new HashMap<>();

@@ -72,7 +72,7 @@ public class DefaultLdapConfigurationService implements LdapConfigurationService
       throw new AmbariLdapException("Could not connect to the LDAP server. Configuration: " + ambariLdapConfiguration);
     }
 
-    LOGGER.info("Successfully conencted to the LDAP.");
+    LOGGER.info("Successfully connected to the LDAP.");
 
   }
 

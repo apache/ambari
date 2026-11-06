@@ -1907,7 +1907,7 @@ export default function Config({
               </Badge>
             </div>
             <div className="text-muted my-2 fs-12">
-              Please review the folowing recommended changes, and click on the
+              Please review the following recommended changes, and click on the
               property name to change its value.
             </div>
             <Table

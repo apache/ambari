@@ -346,7 +346,7 @@ class BSRunner extends Thread {
         try {
           scheduler.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-          LOG.info("Interruped while waiting for scheduler");
+          LOG.info("Interrupted while waiting for scheduler");
         }
         process.destroy();
       }

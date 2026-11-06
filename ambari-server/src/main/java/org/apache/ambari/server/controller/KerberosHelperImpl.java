@@ -319,7 +319,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                 updateConfigurationsPolicy = UpdateConfigurationPolicy.translate(policyValue);
 
                 if(updateConfigurationsPolicy== null) {
-                  throw new AmbariException(String.format("Unexpected comfiguration policy value: %s", policyValue));
+                  throw new AmbariException(String.format("Unexpected configuration policy value: %s", policyValue));
                 }
               }
               else if(requestProperties.containsKey(DIRECTIVE_IGNORE_CONFIGS)) {

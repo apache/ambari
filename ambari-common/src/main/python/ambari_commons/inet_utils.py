@@ -91,7 +91,7 @@ def download_file_anyway(link, destination, chunk_size=16 * 1024, progress_func=
 
   if not os.path.exists(destination):
     print_error_msg(f"Unable to download file {link}!")
-    print(f"ERROR: unable to donwload file {link}!")
+    print(f"ERROR: unable to download file {link}!")
 
 
 def download_progress(file_name, downloaded_size, blockSize, totalSize):

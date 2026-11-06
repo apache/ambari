@@ -90,7 +90,7 @@ public class AlertHelper {
 
       if (waitFactor < 2 || waitFactor > 10) {
         LOG.warn(
-            "The interval multipler of {} is outside the valid range for {} and will be set to 2",
+            "The interval multiplier of {} is outside the valid range for {} and will be set to 2",
             waitFactor, definition.getLabel());
 
         waitFactor = 2;
