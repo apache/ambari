@@ -1,0 +1,505 @@
+{#
+ # Licensed to the Apache Software Foundation (ASF) under one
+ # or more contributor license agreements.  See the NOTICE file
+ # distributed with this work for additional information
+ # regarding copyright ownership.  The ASF licenses this file
+ # to you under the Apache License, Version 2.0 (the
+ # "License"); you may not use this file except in compliance
+ # with the License.  You may obtain a copy of the License at
+ #
+ #   http://www.apache.org/licenses/LICENSE-2.0
+ #
+ # Unless required by applicable law or agreed to in writing, software
+ # distributed under the License is distributed on an "AS IS" BASIS,
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ #}
+{
+  "service": {
+    "accumulo": {
+      "label": "Accumulo",
+      "components": [
+        {
+          "name": "accumulo_gc"
+        },
+        {
+          "name": "accumulo_master"
+        },
+        {
+          "name": "accumulo_monitor"
+        },
+        {
+          "name": "accumulo_tracer"
+        },
+        {
+          "name": "accumulo_tserver"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "atlas": {
+      "label": "Atlas",
+      "components": [
+        {
+          "name": "atlas_app"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "ambari": {
+      "label": "Ambari",
+      "components": [
+        {
+          "name": "ambari_agent"
+        },
+        {
+          "name": "ambari_server"
+        },
+        {
+          "name": "ambari_alerts"
+        },
+        {
+          "name": "ambari_audit"
+        },
+        {
+          "name": "ambari_config_changes"
+        },
+        {
+          "name": "ambari_eclipselink"
+        },
+        {
+          "name": "ambari_server_check_database"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "ams": {
+      "label": "AMS",
+      "components": [
+        {
+          "name": "ams_hbase_master"
+        },
+        {
+          "name": "ams_hbase_regionserver"
+        },
+        {
+          "name": "ams_collector"
+        },
+        {
+          "name": "ams_monitor"
+        },
+        {
+          "name": "ams_grafana"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "falcon": {
+      "label": "Falcon",
+      "components": [
+        {
+          "name": "falcon_app"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "flume": {
+      "label": "Flume",
+      "components": [
+        {
+          "name": "flume_handler"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "hbase": {
+      "label": "HBase",
+      "components": [
+        {
+          "name": "hbase_master"
+        },
+        {
+          "name": "hbase_regionserver"
+        },
+        {
+          "name": "hbase_phoenix_server"
+        }
+      ],
+      "dependencies": [
+        {
+          "service": "hdfs",
+          "components": [
+            "hdfs_namenode"
+          ]
+        }
+      ]
+    },
+    "hdfs": {
+      "label": "HDFS",
+      "components": [
+        {
+          "name": "hdfs_datanode"
+        },
+        {
+          "name": "hdfs_namenode"
+        },
+        {
+          "name": "hdfs_journalnode"
+        },
+        {
+          "name": "hdfs_secondarynamenode"
+        },
+        {
+          "name": "hdfs_zkfc"
+        },
+        {
+          "name": "hdfs_nfs3"
+        },
+        {
+          "name": "hdfs_audit",
+          "rowtype": "audit"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "hive": {
+      "label": "Hive",
+      "components": [
+        {
+          "name": "hive_hiveserver2"
+        },
+        {
+          "name": "hive_metastore"
+        },
+        {
+          "name": "webhcat_server"
+        }
+      ],
+      "dependencies": [
+        {
+          "service": "hdfs",
+          "components": [
+            "hdfs_namenode"
+          ]
+        }
+      ]
+    },
+    "infra" : {
+      "label" : "Infra",
+      "components": [
+        {
+          "name": "infra_solr"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "kafka": {
+      "label": "Kafka",
+      "components": [
+        {
+          "name": "kafka_controller"
+        },
+        {
+          "name": "kafka_request"
+        },
+        {
+          "name": "kafka_logcleaner"
+        },
+        {
+          "name": "kafka_server"
+        },
+        {
+          "name": "kafka_statechange"
+        }
+      ],
+      "dependencies": [
+        {
+          "service": "zookeeper",
+          "components": [
+            "zookeeper"
+          ]
+        }
+      ]
+    },
+    "knox": {
+      "label": "Knox",
+      "components": [
+        {
+          "name": "knox_gateway"
+        },
+        {
+          "name": "knox_cli"
+        },
+        {
+          "name": "knox_ldap"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "nifi": {
+      "label": "NiFi",
+      "components": [
+        {
+          "name": "nifi_app"
+        },
+        {
+          "name": "nifi_bootstrap"
+        },
+        {
+          "name": "nifi_setup"
+        },
+        {
+          "name": "nifi_user"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "mapred": {
+      "label": "MapReduce",
+      "components": [
+        {
+          "name": "mapred_historyserver"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "logsearch": {
+      "label": "Logsearch",
+      "components": [
+        {
+          "name": "logsearch_app"
+        },
+        {
+          "name": "logsearch_feeder"
+        },
+        {
+          "name": "logsearch_perf"
+        },
+        {
+          "name": "logsearch_solr"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "ranger": {
+      "label": "Ranger",
+      "components": [
+        {
+          "name": "ranger_admin"
+        },
+        {
+          "name": "ranger_dbpatch"
+        },
+        {
+          "name": "ranger_kms"
+        },
+        {
+          "name": "ranger_usersync"
+        }
+      ],
+      "dependencies": [
+        {
+          "service": "hdfs",
+          "required": "optional",
+          "components": [
+            "hdfs_namenode"
+          ]
+        },
+        {
+          "service": "hbase",
+          "required": "optional",
+          "components": [
+            "hbase_master",
+            "hbase_regionserver"
+          ]
+        },
+        {
+          "service": "hive",
+          "required": "optional",
+          "components": [
+            "hive_hiveserver2"
+          ]
+        },
+        {
+          "service": "kafka",
+          "required": "optional",
+          "components": [
+            "kafka_ranger"
+          ]
+        },
+        {
+          "service": "knox",
+          "required": "optional",
+          "components": [
+            "knox_gateway"
+          ]
+        },
+        {
+          "service": "storm",
+          "required": "optional",
+          "components": [
+            "storm_supervisor"
+          ]
+        },
+        {
+          "service": "yarn",
+          "required": "optional",
+          "components": [
+            "yarn_resourcemanager"
+          ]
+        }
+      ]
+    },
+    "oozie": {
+      "label": "Oozie",
+      "components": [
+        {
+          "name": "oozie_app"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "hst": {
+      "label": "SmartSense",
+      "components": [
+        {
+          "name": "hst_server"
+        },
+        {
+          "name": "hst_agent"
+        },
+        {
+          "name": "activity_analyzer"
+        },
+        {
+          "name": "activity_explorer"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "spark": {
+      "label": "Spark",
+      "components": [
+        {
+          "name": "spark_jobhistory_server"
+        },
+        {
+          "name": "spark_thriftserver"
+        },
+        {
+          "name": "livy_server"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "spark2": {
+      "label": "Spark 2",
+      "components": [
+        {
+          "name": "spark2_jobhistory_server"
+        },
+        {
+          "name": "spark2_thriftserver"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "storm": {
+      "label": "Storm",
+      "components": [
+        {
+          "name": "storm_drpc"
+        },
+        {
+          "name": "storm_logviewer"
+        },
+        {
+          "name": "storm_nimbus"
+        },
+        {
+          "name": "storm_supervisor"
+        },
+        {
+          "name": "storm_ui"
+        },
+        {
+          "name": "storm_worker"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "yarn": {
+      "label": "YARN",
+      "components": [
+        {
+          "name": "yarn_nodemanager"
+        },
+        {
+          "name": "yarn_resourcemanager"
+        },
+        {
+          "name": "yarn_timelineserver"
+        },
+        {
+          "name": "yarn_historyserver"
+        },
+        {
+          "name": "yarn_jobsummary"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "zeppelin": {
+      "label": "Zeppelin",
+      "components": [
+        {
+          "name": "zeppelin"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "zookeeper": {
+      "label": "ZooKeeper",
+      "components": [
+        {
+          "name": "zookeeper"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
+    "System": {
+      "label": "System",
+      "components": [
+        {
+          "name": "system_message"
+        },
+        {
+          "name": "secure_log"
+        }
+      ],
+      "dependencies": [
+      ]
+    }
+  }
+}
