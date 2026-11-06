@@ -1,0 +1,31 @@
+# Ambari Kavach Configuration — copy this file to ambari_kavach.ini and fill in your values.
+
+[Kavachlog]
+file_log_level=DEBUG
+log_format=[%%(asctime)s] - %%(levelname)s - %%(message)s
+ambari_user_audit_file=../logs/ambari_user_audit.log
+kavach_server_log_file=../logs/ambari_kavach.log
+
+[KavachDB]
+mysql_hostname=127.0.0.1
+kavach_database=ambari_kavach
+kavach_db_user_name=kavach
+kavach_db_password=your_db_password_here
+
+[sudo_powers]
+# Super admins have the highest privilege level:
+#   - Can register and DELETE clusters
+#   - Can update the per-cluster manager list
+#   - All cluster-manager powers as well
+super_admin_list=["admin@yourcompany.com"]
+
+# Per-cluster managers are specified during cluster registration in the UI.
+# They can: delete users from their cluster, re-register their cluster.
+# (manager_list is kept for backward compatibility; if super_admin_list is present it takes precedence)
+manager_list=["admin@yourcompany.com","manager@yourcompany.com"]
+
+[auth]
+# Comma-separated list of allowed Google OAuth domains
+# Personal Gmail users: add "gmail.com"
+# Google Workspace users: add your company domain, e.g. "yourcompany.com"
+allowed_domains=yourcompany.com,gmail.com
