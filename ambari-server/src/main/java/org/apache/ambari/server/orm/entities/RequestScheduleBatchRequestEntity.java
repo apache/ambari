@@ -36,7 +36,8 @@ import jakarta.persistence.Table;
 @Table(name = "requestschedulebatchrequest")
 @NamedQueries({
   @NamedQuery(name = "findByScheduleId", query = "SELECT batchreqs FROM " +
-    "RequestScheduleBatchRequestEntity  batchreqs WHERE batchreqs.scheduleId=:id")
+    "RequestScheduleBatchRequestEntity  batchreqs WHERE batchreqs.scheduleId=:id"),
+  @NamedQuery(name = "RequestScheduleBatchRequestEntity.removeByScheduleIds", query = "DELETE FROM RequestScheduleBatchRequestEntity batchreqs WHERE batchreqs.scheduleId IN :scheduleIds")
 })
 public class RequestScheduleBatchRequestEntity {
   @Id
