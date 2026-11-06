@@ -292,13 +292,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const expireSession = () => {
-      clearSession();
+      void logout();
       setSessionError(null);
       setIsLoading(false);
     };
     window.addEventListener(SESSION_EXPIRED_EVENT, expireSession);
     return () => window.removeEventListener(SESSION_EXPIRED_EVENT, expireSession);
-  }, [clearSession]);
+  }, [logout]);
 
   useEffect(() => {
     void initializeUser();
