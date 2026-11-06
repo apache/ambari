@@ -610,6 +610,19 @@ var urls = {
       };
     }
   },
+  'service.item.switchActiveNameNode': {
+    real: '/clusters/{clusterName}/requests', mock: '',
+    format: function (data) {
+      return {type: 'POST', data: JSON.stringify({
+        RequestInfo: {
+          context: 'Switch Active NameNode: ' + data.sourceHost + ' -> ' + data.targetHost,
+          command: 'SWITCH_ACTIVE_NAMENODE',
+          namenode: JSON.stringify({source_host: data.sourceHost, target_host: data.targetHost})
+        },
+        'Requests/resource_filters': [{service_name: 'HDFS', component_name: 'NAMENODE', hosts: data.sourceHost}]
+      })};
+    }
+  },
   'service.item.rebalanceHdfsNodes': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '',

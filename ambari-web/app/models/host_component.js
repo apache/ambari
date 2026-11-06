@@ -473,6 +473,13 @@ App.HostComponentActionMap = {
         label: Em.I18n.t('services.service.actions.run.restartLLAP') + ' ∞',
         cssClass: 'glyphicon glyphicon-refresh'
       },
+      SWITCH_ACTIVE_NAMENODE: {
+        action: 'switchActiveNameNode',
+        hideFromComponentView: true,
+        label: Em.I18n.t('services.service.actions.switchNN.title'),
+        cssClass: 'glyphicon glyphicon-transfer',
+        disabled: !App.get('isHaEnabled')
+      },
       REBALANCEHDFS: {
         action: 'rebalanceHdfsNodes',
         customCommand: 'REBALANCEHDFS',

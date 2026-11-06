@@ -33,7 +33,7 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
    * in order to make more changes to them like icons and rules.
    */
   mastersExcludedCommands: {
-    'NAMENODE': ['DECOMMISSION', 'REBALANCEHDFS'],
+    'NAMENODE': ['DECOMMISSION', 'REBALANCEHDFS', 'SWITCH_ACTIVE_NAMENODE'],
     'RESOURCEMANAGER': ['DECOMMISSION', 'REFRESHQUEUES'],
     'HBASE_MASTER': ['DECOMMISSION', 'UPDATE_REPLICATION', 'STOP_REPLICATION'],
     'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP'],
@@ -256,6 +256,10 @@ App.MainServiceItemView = Em.View.extend(App.HiveInteractiveCheck, {
         var knoxGatewayComponent = App.StackServiceComponent.find().findProperty('componentName', 'KNOX_GATEWAY');
         if (serviceName === 'HDFS' && nnComponent && this.get('hasMasterOrSlaveComponent')) {
           var namenodeCustomCommands = nnComponent.get('customCommands');
+          if (namenodeCustomCommands && namenodeCustomCommands.contains('SWITCH_ACTIVE_NAMENODE') &&
+              App.isAuthorized('SERVICE.RUN_CUSTOM_COMMAND')) {
+            options.push(actionMap.SWITCH_ACTIVE_NAMENODE);
+          }
           if (namenodeCustomCommands && namenodeCustomCommands.contains('REBALANCEHDFS')) {
             options.push(actionMap.REBALANCEHDFS);
           }

@@ -319,6 +319,14 @@ class NameNodeDefault(NameNode):
     dfsadmin_cmd = dfsadmin_base_command + " -report -live"
     Execute(dfsadmin_cmd, user=params.hdfs_user, tries=60, try_sleep=10)
 
+  def switch_active_namenode(self, env):
+    import params
+    from namenode_role_switch import execute
+
+    env.set_params(params)
+    result = execute(params, self.get_hdfs_binary())
+    self.put_structured_out({"namenode_role_switch": result})
+
   def rebalancehdfs(self, env):
     import params
 
