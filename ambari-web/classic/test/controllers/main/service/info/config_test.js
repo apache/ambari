@@ -823,6 +823,40 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
+  describe("#addOverrides()", function () {
+    var configGroup = Em.Object.create({name: 'g1', serviceName: 'S1'});
+
+    beforeEach(function () {
+      sinon.stub(App.ServiceConfigGroup, 'find').returns([configGroup]);
+      mainServiceInfoConfigsController.set('selectedConfigGroup', Em.Object.create({isDefault: false, name: 'g2'}));
+    });
+
+    afterEach(function () {
+      App.ServiceConfigGroup.find.restore();
+    });
+
+    [
+      {final: undefined, expected: false, m: 'not final'},
+      {final: {p1: 'true'}, expected: true, m: 'final'}
+    ].forEach(function (t) {
+      it('override of a property missing in default group keeps saved final state (' + t.m + ')', function () {
+        var allConfigs = [];
+        mainServiceInfoConfigsController.addOverrides({
+          items: [{
+            group_name: 'g1',
+            service_name: 'S1',
+            configurations: [{type: 'file1', properties: {p1: 'v1'}, properties_attributes: {final: t.final}}]
+          }]
+        }, allConfigs);
+        var override = allConfigs[0].get('overrides')[0];
+        expect(override.get('savedValue')).to.equal(override.get('value'));
+        expect(override.get('isFinal')).to.equal(t.expected);
+        expect(override.get('savedIsFinal')).to.equal(t.expected);
+        expect(allConfigs[0].get('overrideIsFinalValues')).to.eql([t.expected]);
+      });
+    });
+  });
+
   describe("#trackRequest()", function () {
     after(function(){
       mainServiceInfoConfigsController.get('requestsInProgress').clear();
