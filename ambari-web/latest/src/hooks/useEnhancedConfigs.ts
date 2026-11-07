@@ -46,6 +46,7 @@ import useHostComponents from "../screens/ClusterWizard/hooks/useHostComponents"
 import { buildAddServiceRecommendationPayload } from "./addServiceRecommendationPayload";
 import type { RunWithStackAdvisorRequest } from "../screens/ClusterWizard/managedDependencyAdvisor";
 import { responseErrorMessage } from "../Utils/httpError";
+import { addRecommendedConfigProperty } from "./recommendedConfigProperty";
 
 export type EnhancedConfigRecommendationState = {
   pending: boolean;
@@ -689,6 +690,21 @@ function useEnhancedConfigs(
           }
           
           if (shouldIncludeProperty && allowUpdateProperty(propertyName, configType + ".xml", "Default", null, null)) {
+            // Like Ember's _createNewProperty: a recommended property the stack does not
+            // define (e.g. hadoop.proxyuser.*) must join the configs, or it is never deployed.
+            if (
+              targetServiceName
+              && targetServiceName !== "MISC"
+              && !deletedProperties.has(`${propertyName}_${configType}`)
+            ) {
+              addRecommendedConfigProperty(
+                configProperties,
+                targetServiceName,
+                configType,
+                propertyName,
+                recommendedValue,
+              );
+            }
             recommededConfigsRef.current[propertyName + configType + ".xml"] = {
               propertyName: propertyName,
               recommendedValue: recommendedValue,
