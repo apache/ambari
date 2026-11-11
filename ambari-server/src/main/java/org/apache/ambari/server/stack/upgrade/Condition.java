@@ -24,7 +24,7 @@ import org.apache.ambari.server.stack.upgrade.orchestrate.UpgradeContext;
 
 /**
  * The {@link Condition} interface represents a condition in an
- * {@link UpgradePack} which must be satisified in order for a {@link Grouping}
+ * {@link UpgradePack} which must be satisfied in order for a {@link Grouping}
  * or {@link ExecuteStage} to be scheduled.
  */
 @XmlRootElement

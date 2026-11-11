@@ -188,7 +188,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
    * <p/>
    * If a KerberosServiceDescriptor with the same name does not exist in the services Map, a new
    * entry will be added; else if it one already exists and <code>overwrite</code> is
-   * <code>true</code>, it will be replaced; else the exsting entry will be updated.
+   * <code>true</code>, it will be replaced; else the existing entry will be updated.
    *
    * @param service the KerberosServiceDescriptor to put
    */

@@ -48,7 +48,7 @@ public interface ClusterTopology {
   /**
    * Get the blueprint associated with the cluster.
    *
-   * @return assocaited blueprint
+   * @return associated blueprint
    */
   Blueprint getBlueprint();
 

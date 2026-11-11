@@ -74,7 +74,7 @@ public class StageDAO {
     manualTransitionMap.put(HostRoleStatus.HOLDING_TIMEDOUT,
         EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.TIMEDOUT, HostRoleStatus.ABORTED));
 
-    // todo: perhaps add a CANCELED status that just affects a stage and wont
+    // todo: perhaps add a CANCELED status that just affects a stage and won't
     // abort the request
     // todo: so, if I scale 10 nodes and actually provision 5 and then later
     // decide I don't want those

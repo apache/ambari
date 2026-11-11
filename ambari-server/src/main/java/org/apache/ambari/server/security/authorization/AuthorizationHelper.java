@@ -236,7 +236,7 @@ public class AuthorizationHelper {
             resourceOK = false;
           }
 
-          // The the authority is for the relevant resource, see if one of the authorizations matches
+          // The authority is for the relevant resource, see if one of the authorizations matches
           // one of the required authorizations...
           if (resourceOK) {
             PermissionEntity permission = privilegeEntity.getPermission();
@@ -267,7 +267,7 @@ public class AuthorizationHelper {
 
   /**
    * Determines if the authenticated user (from application's security context) is authorized to
-   * perform an operation on the the specific resource by matching the authenticated user's
+   * perform an operation on the specific resource by matching the authenticated user's
    * authorizations with one from the provided set of authorizations.
    * <p/>
    * If not authorized, an {@link AuthorizationException} will be thrown.

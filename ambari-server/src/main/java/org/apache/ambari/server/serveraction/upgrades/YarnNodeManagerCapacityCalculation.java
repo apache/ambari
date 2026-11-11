@@ -33,7 +33,7 @@ import org.apache.ambari.server.state.Host;
 import com.google.common.collect.Sets;
 
 /**
- * Determines the current cluster capacity in terms of NodeManagers mulitplied
+ * Determines the current cluster capacity in terms of NodeManagers multiplied
  * by their total memory. If the cluster is considered to be large, then this
  * will create a new system queue if it does not exist.
  */

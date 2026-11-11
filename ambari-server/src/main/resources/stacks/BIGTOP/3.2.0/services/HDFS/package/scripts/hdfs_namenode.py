@@ -680,7 +680,7 @@ def bootstrap_standby_namenode(params, use_path=False):
         "-force",
       )
     elif is_namenode_bootstrapped(params):
-      # Once out of INITIAL_START phase bootstrap only if we couldnt bootstrap during cluster deployment
+      # Once out of INITIAL_START phase bootstrap only if we couldn't bootstrap during cluster deployment
       return True
     Logger.info(f"Boostrapping standby namenode: {bootstrap_cmd}")
     with hdfs_kerberos_environment(
@@ -795,9 +795,9 @@ def is_this_namenode_active(name_service):
     if params.namenode_id in entry:
       return False
 
-  # this this point, this NameNode is neither active nor standby - we must wait to ensure it
+  # at this point, this NameNode is neither active nor standby - we must wait to ensure it
   # enters at least one of these roles before returning a verdict - the annotation will catch
-  # this failure and retry the fuction automatically
+  # this failure and retry the function automatically
   raise Fail(
     format("The NameNode {namenode_id} is not listed as Active or Standby, waiting...")
   )

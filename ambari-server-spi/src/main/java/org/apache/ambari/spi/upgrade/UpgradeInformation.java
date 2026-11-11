@@ -62,7 +62,7 @@ public class UpgradeInformation {
    *          the orchestration type of the upgrade.
    * @param targetVersion
    *          the target version for all services and components in the upgrade
-   *          or downgrade. If this is an upgrade, then this is the version tha
+   *          or downgrade. If this is an upgrade, then this is the version that
    *          all services are moving to. If this is a downgrade, then this is
    *          the version that all services are coming back from.
    * @param sourceVersions
@@ -101,7 +101,7 @@ public class UpgradeInformation {
 
   /**
    * The target version for all services and components in the upgrade or
-   * downgrade. If this is an upgrade, then this is the version tha all services
+   * downgrade. If this is an upgrade, then this is the version that all services
    * are moving to. If this is a downgrade, then this is the version that all
    * services are coming back from.
    *

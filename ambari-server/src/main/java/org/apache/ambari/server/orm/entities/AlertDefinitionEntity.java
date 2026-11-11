@@ -540,7 +540,7 @@ public class AlertDefinitionEntity {
    * tolerance.
    *
    * @param enabled
-   *          {@code true} to override the defautlt value and use the value
+   *          {@code true} to override the default value and use the value
    *          returned from {@link #getRepeatTolerance()}.
    */
   public void setRepeatToleranceEnabled(boolean enabled) {

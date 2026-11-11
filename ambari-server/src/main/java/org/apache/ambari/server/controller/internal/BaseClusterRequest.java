@@ -183,7 +183,7 @@ public abstract class BaseClusterRequest implements TopologyRequest {
   /**
    * Get the host resource provider instance.
    *
-   * @return host resourece provider instance
+   * @return host resource provider instance
    */
   private static synchronized ResourceProvider ensureHostProvider() {
     if (hostResourceProvider == null) {

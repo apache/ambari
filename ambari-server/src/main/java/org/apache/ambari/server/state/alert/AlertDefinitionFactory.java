@@ -169,7 +169,7 @@ public class AlertDefinitionFactory {
    * @param entity
    *          the entity to use to construct the {@link AlertDefinition} (not
    *          {@code null}).
-   * @return the definiion or {@code null} if it could not be coerced.
+   * @return the definition or {@code null} if it could not be coerced.
    */
   public AlertDefinition coerce(AlertDefinitionEntity entity) {
     if (null == entity) {
@@ -220,7 +220,7 @@ public class AlertDefinitionFactory {
    * @param definition
    *          the definition to use to construct the
    *          {@link AlertDefinitionEntity} (not {@code null}).
-   * @return the definiion or {@code null} if it could not be coerced.
+   * @return the definition or {@code null} if it could not be coerced.
    */
   public AlertDefinitionEntity coerce(long clusterId, AlertDefinition definition) {
     if (null == definition) {

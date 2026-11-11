@@ -770,7 +770,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
   }
 
   /**
-   * Transforms a XML version defintion to an entity
+   * Transforms a XML version definition to an entity
    *
    * @throws AmbariException if some properties are missing or json has incorrect structure
    */

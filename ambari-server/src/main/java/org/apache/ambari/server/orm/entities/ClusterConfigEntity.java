@@ -119,7 +119,7 @@ public class ClusterConfigEntity {
 
   /**
    * The most recent time that this configuration was marked as
-   * {@link #selected}. This is useful when configruations are being reverted
+   * {@link #selected}. This is useful when configurations are being reverted
    * since a reversion does not create a new instance. Another configuration may
    * technically be newer via its creation date ({@link #timestamp}), however
    * that does not indicate it was the most recently enabled configuration.

@@ -61,7 +61,7 @@ import com.nimbusds.jwt.SignedJWT;
 /**
  * AmbariJwtAuthenticationFilter is used to validate JWT token and authenticate users.
  * <p>
- * This authentication filter is expected to be used withing an {@link AmbariDelegatingAuthenticationFilter}.
+ * This authentication filter is expected to be used within an {@link AmbariDelegatingAuthenticationFilter}.
  *
  * @see AmbariDelegatingAuthenticationFilter
  */
@@ -114,7 +114,7 @@ public class AmbariJwtAuthenticationFilter implements AmbariAuthenticationFilter
   }
 
   /**
-   * Tests to see if this JwtAuthenticationFilter shold be applied in the authentication
+   * Tests to see if this JwtAuthenticationFilter should be applied in the authentication
    * filter chain.
    *
    * <code>true</code> will be returned if JWT authentication is enabled and the HTTP request contains

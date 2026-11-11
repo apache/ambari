@@ -3622,7 +3622,7 @@ public class AmbariManagementControllerTest {
       new HashSet<>();
     ServiceComponentRequest req1, req2, req3;
 
-    // confirm an UNKOWN doesn't fail
+    // confirm an UNKNOWN doesn't fail
     req1 = new ServiceComponentRequest(cluster1, serviceName1,
         sc3.getName(), State.INSTALLED.toString());
     reqs.add(req1);
@@ -3718,7 +3718,7 @@ public class AmbariManagementControllerTest {
 
     // FIXME verify stages content - execution commands, etc
 
-    // maually set live state
+    // manually set live state
     sch1.setState(State.INSTALLED);
     sch2.setState(State.INSTALLED);
     sch3.setState(State.INSTALLED);
@@ -7835,7 +7835,7 @@ public class AmbariManagementControllerTest {
     sch2.setState(State.UNKNOWN);
     sch3.setState(State.INSTALLED);
 
-    // an UNKOWN failure will throw an exception
+    // an UNKNOWN failure will throw an exception
     ServiceRequest req = new ServiceRequest(cluster1, serviceName1, repositoryVersion02.getId(),
         State.INSTALLED.toString());
     ServiceResourceProviderTest.updateServices(controller, Collections.singleton(req), Collections.emptyMap(), true, false);
@@ -10186,7 +10186,7 @@ public class AmbariManagementControllerTest {
     assertEquals(v3.getProperties().get("test.password"), "brandNewPassword");
     assertFalse(v4.getProperties().containsKey("test.password"));
 
-    // check if we have masked secret in responce
+    // check if we have masked secret in response
     final ConfigurationRequest configRequest = new ConfigurationRequest(cluster1, "hdfs-site", null, null, null);
     configRequest.setIncludeProperties(true);
     Set<ConfigurationResponse> requestedConfigs = controller.getConfigurations(new HashSet<ConfigurationRequest>() {{

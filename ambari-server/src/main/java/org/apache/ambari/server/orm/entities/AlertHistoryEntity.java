@@ -208,7 +208,7 @@ public class AlertHistoryEntity {
   }
 
   /**
-   * Gets the time that the alert instace was received. This will be the value,
+   * Gets the time that the alert instance was received. This will be the value,
    * in milliseconds, since the UNIX/Java epoch, represented in UTC time.
    *
    * @return the time of the alert instance (never {@code null}).
@@ -218,7 +218,7 @@ public class AlertHistoryEntity {
   }
 
   /**
-   * Sets the time that the alert instace was received. This should be the
+   * Sets the time that the alert instance was received. This should be the
    * value, in milliseconds, since the UNIX/Java epoch, represented in UTC time.
    *
    * @param alertTimestamp

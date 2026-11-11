@@ -493,7 +493,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   /**
    * Create a new cluster scoped configuration with the new properties added
-   * with the values from the coresponding xml files.
+   * with the values from the corresponding xml files.
    *
    * If xml owner service is not in the cluster, the configuration won't be added.
    *
@@ -735,7 +735,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    * Iterates through a collection of AbstractKerberosDescriptorContainers to find and update
    * identity descriptor references.
    *
-   * @param descriptorMap    a String to AbstractKerberosDescriptorContainer map to iterate trough
+   * @param descriptorMap    a String to AbstractKerberosDescriptorContainer map to iterate through
    * @param referenceName    the reference name to change
    * @param newReferenceName the new reference name
    */

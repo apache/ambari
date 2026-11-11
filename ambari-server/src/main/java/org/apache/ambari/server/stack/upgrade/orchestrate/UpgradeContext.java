@@ -438,7 +438,7 @@ public class UpgradeContext {
           m_services.addAll(serviceNames);
 
           /*
-           * For the unit tests tests, there are multiple upgrade packs for the same
+           * For the unit tests, there are multiple upgrade packs for the same
            * type, so allow picking one of them. In prod, this is empty.
            */
           String preferredUpgradePackName = (String) upgradeRequestMap.get(UPGRADE_PACK);
@@ -488,8 +488,8 @@ public class UpgradeContext {
         upgradeRequestMap);
 
     // optionally skip failures - this can be supplied on either the request or
-    // in the upgrade pack explicitely, however the request will always override
-    // the upgrade pack if explicitely specified
+    // in the upgrade pack explicitly, however the request will always override
+    // the upgrade pack if explicitly specified
     boolean skipComponentFailures = m_upgradePack.isComponentFailureAutoSkipped();
     boolean skipServiceCheckFailures = m_upgradePack.isServiceCheckFailureAutoSkipped();
 
@@ -575,7 +575,7 @@ public class UpgradeContext {
   }
 
   /**
-   * Getting stackId from the set of versions. Is is possible until we upgrading components on the same stack.
+   * Getting stackId from the set of versions. It is possible until we upgrading components on the same stack.
    *
    * Note: Function should be modified for cross-stack upgrade.
    *
@@ -655,7 +655,7 @@ public class UpgradeContext {
    * participating. This is the version that the service will be on if the
    * upgrade or downgrade succeeds.
    * <p/>
-   * With a {@link Direction#UPGRADE}, all services should be targetting the
+   * With a {@link Direction#UPGRADE}, all services should be targeting the
    * same repository version. However, {@link Direction#DOWNGRADE} will target
    * the original repository that the service was on.
    *
@@ -685,7 +685,7 @@ public class UpgradeContext {
    * This is the version that the service will be on if the upgrade or downgrade
    * succeeds.
    * <p/>
-   * With a {@link Direction#UPGRADE}, all services should be targetting the
+   * With a {@link Direction#UPGRADE}, all services should be targeting the
    * same repository version. However, {@link Direction#DOWNGRADE} will target
    * the original repository that the service was on.
    *
@@ -918,7 +918,7 @@ public class UpgradeContext {
     if (null != getType()) {
       // use the serialized attributes of the enum to convert it to a string,
       // but first we must convert it into an element so that we don't get a
-      // quoted string - using toString() actually returns a quoted stirng which
+      // quoted string - using toString() actually returns a quoted string which
       // is bad
       JsonElement json = m_gson.toJsonTree(getType());
       parameters.put(COMMAND_PARAM_UPGRADE_TYPE, json.getAsString());
@@ -941,7 +941,7 @@ public class UpgradeContext {
   /**
    * Gets whether a downgrade is allowed for this upgrade. If the direction is
    * {@link Direction#DOWNGRADE}, then this method always returns false.
-   * Otherwise it will consule {@link UpgradePack#isDowngradeAllowed()}.
+   * Otherwise it will consult {@link UpgradePack#isDowngradeAllowed()}.
    *
    * @return {@code true} of a downgrade is allowed for this upgrade,
    *         {@code false} otherwise.
@@ -1077,7 +1077,7 @@ public class UpgradeContext {
    * in the cluster to arrive at the final subset.
    * <p/>
    * In some cases, such as with a {@link RepositoryType#MAINT} repository, the
-   * subset can be further trimmed by determing that an installed service is
+   * subset can be further trimmed by determining that an installed service is
    * already at a high enough version and doesn't need to be upgraded.
    * <p/>
    * This method will also populate the source ({@link #m_sourceRepositoryMap})

@@ -62,7 +62,7 @@ public abstract class AmbariServerConfiguration {
    *
    * @param propertyName     the property name for which to retrieve a value
    * @param configurationMap a map of configuration property names to values
-   * @param defaultValue     the default value to use in the event the propery was not set in the configuration map
+   * @param defaultValue     the default value to use in the event the property was not set in the configuration map
    * @return the requested configuration value
    */
   protected String getValue(String propertyName, Map<String, String> configurationMap, String defaultValue) {

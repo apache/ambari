@@ -118,7 +118,7 @@ public class AlertDefinitionHash {
     new ConcurrentHashMap<>();
 
   /**
-   * Gets a unique hash value reprssenting all of the alert definitions that
+   * Gets a unique hash value representing all of the alert definitions that
    * should be scheduled to run on a given host.
    * <p/>
    * This will not include alert definitions where the type is defined as
@@ -253,7 +253,7 @@ public class AlertDefinitionHash {
    * return an empty set since aggregates do not affect hosts.
    *
    * @param definition
-   *          the definition to use to find the hosts to invlidate (not
+   *          the definition to use to find the hosts to invalidate (not
    *          {@code null}).
    * @return the hosts that were invalidated, or an empty set (never
    *         {@code null}).
@@ -271,7 +271,7 @@ public class AlertDefinitionHash {
    * return an empty set since aggregates do not affect hosts.
    *
    * @param definition
-   *          the definition to use to find the hosts to invlidate (not
+   *          the definition to use to find the hosts to invalidate (not
    *          {@code null}).
    * @return the hosts that were invalidated, or an empty set (never
    *         {@code null}).

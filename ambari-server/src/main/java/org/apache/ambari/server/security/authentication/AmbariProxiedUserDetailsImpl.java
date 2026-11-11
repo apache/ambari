@@ -41,7 +41,7 @@ public class AmbariProxiedUserDetailsImpl implements AmbariUserDetails {
   /**
    * Details about the proxy user that was authenticated.
    * <p>
-   * This user that authenticated wth Ambari but specified a doAs or proxied user to be used as the acting user for operations.
+   * This user that authenticated with Ambari but specified a doAs or proxied user to be used as the acting user for operations.
    */
   private final AmbariProxyUserDetails proxyUserDetails;
 

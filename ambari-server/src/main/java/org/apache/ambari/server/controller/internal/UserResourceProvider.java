@@ -657,7 +657,7 @@ public class UserResourceProvider extends AbstractControllerResourceProvider imp
         UserEntity u = users.getUserEntity(requestedUsername);
         if (null == u) {
           if (requests.size() == 1) {
-            // only throw exceptin if there is a single request
+            // only throw exception if there is a single request
             // if there are multiple requests, this indicates an OR predicate
             throw new ObjectNotFoundException("Cannot find user '"
                 + requestedUsername + "'");

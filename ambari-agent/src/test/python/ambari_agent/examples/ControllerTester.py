@@ -38,7 +38,7 @@ disable_python = True
 
 agent_version = "1.3.0"
 
-# Values from the list below are returned in responce to agent requests (one per
+# Values from the list below are returned in response to agent requests (one per
 # request). When every value has been returned, the last element of list is
 # returned on every subsequent request.
 responces = [

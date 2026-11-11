@@ -267,7 +267,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     }) : true;
   }.property("overrides.@each.errorMessage"),
   /**
-   * No override capabilities for fields which are not edtiable
+   * No override capabilities for fields which are not editable
    * and fields which represent master hosts.
    */
   isPropertyOverridable: function () {

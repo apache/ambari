@@ -142,7 +142,7 @@ public class Configuration {
   private static final String MARKDOWN_CONFIGURATION_TABLE_KEY = "$configuration-properties";
 
   /**
-   * The key to replace with the content of recomended baseline values.
+   * The key to replace with the content of recommended baseline values.
    */
   private static final String MARKDOWN_BASELINE_VALUES_KEY = "$baseline-values";
 
@@ -192,7 +192,7 @@ public class Configuration {
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
 
   /**
-   * A prefix for any EclipseLink-specifc properties which are passed into
+   * A prefix for any EclipseLink-specific properties which are passed into
    * EclipseLink to alter its behavior. For example:
    * {@code server.persistence.properties.eclipselink.jdbc.batch-writing.size=25 ->
    * eclipselink.jdbc.batch-writing.size=25}
@@ -1252,7 +1252,7 @@ public class Configuration {
 
   /**
    * If a host is shutdown or ambari-agent is stopped, then Ambari Server will
-   * still keep waiting til the task timesout, say 10-20 mins. If the host comes
+   * still keep waiting til the task times out, say 10-20 mins. If the host comes
    * back online and ambari-agent is started, then need this retry property to
    * be greater; ideally, it should be greater than 2 * command_timeout in order
    * to retry at least 3 times in that amount of mins. Suggested value is 15-30
@@ -1415,7 +1415,7 @@ public class Configuration {
   /**
    * The maximum amount of time in {@link TimeUnit#SECONDS} that connections
    * beyond the minimum pool size should remain in the pool. This should always
-   * be less than than the value returned from
+   * be less than the value returned from
    * {@link #getConnectionPoolMaximumIdle()}. Only used with
    * {@link ConnectionPoolType#C3P0}.
    */
@@ -1648,7 +1648,7 @@ public class Configuration {
       "server.execution.scheduler.start.delay.seconds", 120);
 
   /**
-   * The time that the executions schduler will wait before checking for new
+   * The time that the executions scheduler will wait before checking for new
    * commands to schedule. Measure in {@link TimeUnit#SECONDS}.
    */
   @Markdown(description = "The time, in seconds, that the Quartz execution scheduler will wait before checking for new commands to schedule, such as rolling restarts.")
@@ -2436,7 +2436,7 @@ public class Configuration {
       "metrics.retrieval-service.cache.timeout", 30);
 
   /**
-   * The priorty of the {@link Thread}s used by the
+   * The priority of the {@link Thread}s used by the
    * {@link MetricsRetrievalService}. This is a value in between
    * {@link Thread#MIN_PRIORITY} and {@link Thread#MAX_PRIORITY}.
    */
@@ -4419,7 +4419,7 @@ public class Configuration {
 
   /**
    * Gets all properties that begin with {@value #SERVER_JDBC_PROPERTIES_PREFIX}
-   * , removing the prefix. The properties are then pre-pending with
+   * , removing the prefix. The properties are then prepended with
    * {@code eclipselink.jdbc.property.} before being returned.
    * <p/>
    * These properties are used to pass JDBC driver-specific connection
@@ -4991,7 +4991,7 @@ public class Configuration {
    * completion of submitted {@link Callable}s. This will return 5000
    * if not specified.
    *
-   * @return the property-providers' completion srevice timeout, in millis.
+   * @return the property-providers' completion service timeout, in millis.
    */
   public long getPropertyProvidersCompletionServiceTimeout() {
     return Long.parseLong(getProperty(PROPERTY_PROVIDER_THREADPOOL_COMPLETION_TIMEOUT));
@@ -5269,7 +5269,7 @@ public class Configuration {
   /**
    * Gets the maximum amount of time in seconds that connections beyond the
    * minimum pool size should remain in the pool. This should always be less
-   * than than the value returned from {@link #getConnectionPoolMaximumIdle()}
+   * than the value returned from {@link #getConnectionPoolMaximumIdle()}
    */
   public int getConnectionPoolMaximumExcessIdle() {
     return Integer.parseInt(getProperty(SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS));
@@ -6054,7 +6054,7 @@ public class Configuration {
    * Creates an AmbariKerberosAuthenticationProperties instance containing the Kerberos authentication-specific
    * properties.
    *
-   * The relevant properties are processed to set any default values or translate the propery values
+   * The relevant properties are processed to set any default values or translate the property values
    * into usable data for the Kerberos authentication logic.
    *
    * @return

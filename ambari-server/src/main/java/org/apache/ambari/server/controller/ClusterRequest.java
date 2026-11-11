@@ -103,7 +103,7 @@ public class ClusterRequest {
   /**
    * Gets the cluster's security type.
    *
-   * @return a SecurityType declaring the security type; or {@code null} if not set set on the request
+   * @return a SecurityType declaring the security type; or {@code null} if not set on the request
    */
   @ApiModelProperty(name = ClusterResourceProvider.SECURITY_TYPE)
   public SecurityType getSecurityType() {

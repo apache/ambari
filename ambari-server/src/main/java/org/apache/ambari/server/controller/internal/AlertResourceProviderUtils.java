@@ -325,7 +325,7 @@ public class AlertResourceProviderUtils {
     if (null == clusterResourceId) {
       // Do not let clusterResourceId be null because that indicates we don't care about which cluster
       // we are checking authorization for, but we do.  Setting this to -1 ensures that no cluster
-      // will match will will give only Ambari administrators access to this.
+      // will match, which will give only Ambari administrators access to this.
       clusterResourceId = -1L;
     }
 
@@ -382,7 +382,7 @@ public class AlertResourceProviderUtils {
     if (null == clusterResourceId) {
       // Do not let clusterResourceId be null because that indicates we don't care about which cluster
       // we are checking authorization for, but we do.  Setting this to -1 ensures that no cluster
-      // will match will will give only Ambari administrators access to this.
+      // will match, which will give only Ambari administrators access to this.
       clusterResourceId = -1L;
     }
 

@@ -108,7 +108,7 @@ class ComponentVersionReporter(threading.Thread):
       )
       return None
 
-    # TODO: check if no strout or version if not there
+    # TODO: check if no stdout or version if not there
 
     result = {
       "serviceName": service_name,

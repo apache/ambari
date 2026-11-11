@@ -54,7 +54,7 @@ import org.apache.commons.lang3.StringUtils;
  * <ul>
  * <li>STACK - the default descriptor for the relevant stack</li>
  * <li>USER - the user-supplied updates to be applied to the default descriptor</li>
- * <li>COMPOSITE - the default descriptor for the relevant stack with the the user-supplied updates applied</li>
+ * <li>COMPOSITE - the default descriptor for the relevant stack with the user-supplied updates applied</li>
  * </ul>
  */
 public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceProvider {
@@ -68,7 +68,7 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
 
   /**
    * A directive to indicate additional services to consider when evaluating <code>when</code>
-   * clauses.  This value is expcected to be a comma-delimited string that is only used when
+   * clauses.  This value is expected to be a comma-delimited string that is only used when
    * <code>evaluate_when</code> is <code>true</code>.
    */
   public static final String DIRECTIVE_ADDITIONAL_SERVICES = "additional_services";
@@ -205,7 +205,7 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
    * for expected values.
    *
    * @param propertyMap the request property map
-   * @return a KerberosDescriptorType; or null is not specified in the request propery map
+   * @return a KerberosDescriptorType; or null is not specified in the request property map
    * @throws IllegalArgumentException if the Kerberos descriptor type value is specified but not an expected value.
    */
   private KerberosHelper.KerberosDescriptorType getKerberosDescriptorType(Map<String, Object> propertyMap) {
@@ -224,14 +224,14 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
   }
 
   /**
-   * Determine if <code>when</code> chauses should be evaluated or not.
+   * Determine if <code>when</code> clauses should be evaluated or not.
    * <p>
-   * This is determined by the existance and value of the <code>evaluate_when</code> directive.
+   * This is determined by the existence and value of the <code>evaluate_when</code> directive.
    * If it exists and is set to "true", then <code>when</code> clauses should be evaluated, else
    * they should not.
    *
    * @param requestInfoProperties a map a request info properties
-   * @return true if <code>when</code> clauses are to be evaluted; false otherwise
+   * @return true if <code>when</code> clauses are to be evaluated; false otherwise
    */
   private boolean getEvaluateWhen(Map<String, String> requestInfoProperties) {
     return (requestInfoProperties != null) && "true".equalsIgnoreCase(requestInfoProperties.get(DIRECTIVE_EVALUATE_WHEN_CLAUSE));
@@ -239,7 +239,7 @@ public class ClusterKerberosDescriptorResourceProvider extends ReadOnlyResourceP
 
   /**
    * Get the optional list of services indicated as <code>additional_servides</code> which are to be
-   * used in addtion to currently installed services when evaluating <code>when</code> clauses.
+   * used in addition to currently installed services when evaluating <code>when</code> clauses.
    *
    * @param requestInfoProperties a map a request info properties
    * @return a collection of service names, or <code>null</code> if not specified

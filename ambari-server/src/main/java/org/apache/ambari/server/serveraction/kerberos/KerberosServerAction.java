@@ -155,7 +155,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   public static final String OPERATION_TYPE = "operation_type";
 
   /**
-   * Key used in kerberosCommandParams in ExecutionCommand to indicate whether to include Ambari server indetity
+   * Key used in kerberosCommandParams in ExecutionCommand to indicate whether to include Ambari server identity
    * ("true") or ignore it ("false")
    */
   public static final String INCLUDE_AMBARI_IDENTITY = "include_ambari_identity";
@@ -545,7 +545,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
    * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
-   * @param includedInFilter         a Boolean value indicating whather the principal is included in
+   * @param includedInFilter         a Boolean value indicating whether the principal is included in
    *                                 the current filter or not
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request  @return a CommandReport, indicating an error
@@ -566,7 +566,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
       File dataDirectory = new File(dataDirectoryPath);
       File dataDirectoryParent = dataDirectory.getParentFile();
 
-      // Make sure this directory has a parent and it is writeable, else we wont be able to
+      // Make sure this directory has a parent and it is writeable, else we won't be able to
       // delete the directory
       if ((dataDirectoryParent != null) && dataDirectory.isDirectory() &&
           dataDirectoryParent.isDirectory() && dataDirectoryParent.canWrite()) {
@@ -574,7 +574,7 @@ public abstract class KerberosServerAction extends AbstractServerAction {
           FileUtils.deleteDirectory(dataDirectory);
         } catch (IOException e) {
           // We should log this exception, but don't let it fail the process since if we got to this
-          // KerberosServerAction it is expected that the the overall process was a success.
+          // KerberosServerAction it is expected that the overall process was a success.
           String message = String.format("The data directory (%s) was not deleted due to an error condition - {%s}",
               dataDirectory.getAbsolutePath(), e.getMessage());
           LOG.warn(message, e);

@@ -209,7 +209,7 @@ public class UpgradeTest {
       schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);
     } catch (Exception e) {
       // In UpgradeCatalog210, a lot of the classes had host_name removed, but the catalog makes raw SQL queries from Ambari 2.0.0
-      // which still had that column, in order to populate the host_id. Therfore, ignore this exception type.
+      // which still had that column, in order to populate the host_id. Therefore, ignore this exception type.
       if (e.getMessage().contains("Column 'T.HOST_NAME' is either not in any table in the FROM list") || e.getMessage().contains("Column 'T.HOSTNAME' is either not in any table in the FROM list")) {
         System.out.println("Ignoring on purpose, " + e.getMessage());
       } else {

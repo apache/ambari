@@ -20,7 +20,7 @@ var App = require('app');
 /**
  * @class
  *
- * This is a a base for views showing data for HBase RegionServer
+ * This is a base for views showing data for HBase RegionServer
  *
  * @extends App.ChartLinearTimeView
  * @extends Ember.Object

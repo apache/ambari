@@ -145,7 +145,7 @@ public class Link{
     if (null == parentLink)
         return;
 
-    /* merge happens when a child link has some infor but not all of them.
+    /* merge happens when a child link has some info but not all of them.
      * If a child link has nothing but a name, it's treated as being removed from the link list
      */
     if(null == label && null != parentLink.getLabel())

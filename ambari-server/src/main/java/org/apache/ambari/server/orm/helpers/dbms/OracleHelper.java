@@ -72,7 +72,7 @@ public class OracleHelper extends GenericDbmsHelper {
    * ALTER TABLE foo ADD COLUMN bar varchar2(32) DEFAULT 'baz' NOT NULL
    * </pre>
    *
-   * This syntax doesn't allow contraints added after the {@code NULL}
+   * This syntax doesn't allow constraints added after the {@code NULL}
    * constraint.
    */
   @Override

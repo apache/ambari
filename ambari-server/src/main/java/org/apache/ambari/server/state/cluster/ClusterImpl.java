@@ -1163,7 +1163,7 @@ public class ClusterImpl implements Cluster {
           }
         }
 
-        // now that the correct state is determdined for the host version,
+        // now that the correct state is determined for the host version,
         // either update or create it
         HostVersionEntity hostVersionEntity = null;
         Collection<HostVersionEntity> hostVersions = hostEntity.getHostVersionEntities();
@@ -2010,7 +2010,7 @@ public class ClusterImpl implements Cluster {
       // Here was fixed bug with entity changes revert. More you can find here AMBARI-21173.
       // This issue reproduces only if you are changing same entity in first and second loop.
       // In that case eclipselink will revert changes to cached, if entity has fluchGroup and it
-      // needs to be refreshed. Actually we don't need to change same antities in few steps, so i
+      // needs to be refreshed. Actually we don't need to change same entities in few steps, so i
       // decided to filter out. duplicates and do not change them. It will be better for performance and bug will be fixed.
       Collection<String> configTypes = currentServiceConfigTypes().get(serviceName);
       List<ClusterConfigEntity> enabledConfigs = clusterDAO.getEnabledConfigsByTypes(clusterId, configTypes);

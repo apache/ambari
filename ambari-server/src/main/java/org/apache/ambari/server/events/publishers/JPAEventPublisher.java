@@ -28,7 +28,7 @@ import com.google.inject.Singleton;
  * The {@link JPAEventPublisher} is used to publish events pertaining to
  * EclipseLink and the persistence layer. This class uses a synchronized bus and
  * will therefore run on the current thread. This is desirable since JPA events
- * are time-senstive and cannot be executed in an asynchronous manner most of
+ * are time-sensitive and cannot be executed in an asynchronous manner most of
  * the time.
  * <p/>
  * This publisher was created specifically for AMBARI-17970. The headless server

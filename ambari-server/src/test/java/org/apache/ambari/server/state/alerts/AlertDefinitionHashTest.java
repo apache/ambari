@@ -323,7 +323,7 @@ public class AlertDefinitionHashTest extends TestCase {
     assertFalse(m_hash.isHashCached("foo", HOSTNAME));
 
     // invalidate the fake cluster and ensure the original cluster still
-    // contains a cached valie
+    // contains a cached value
     m_hash.invalidate("foo", HOSTNAME);
     assertTrue(m_hash.isHashCached(CLUSTERNAME, HOSTNAME));
     assertFalse(m_hash.isHashCached("foo", HOSTNAME));

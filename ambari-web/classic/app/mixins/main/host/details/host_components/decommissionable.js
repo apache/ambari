@@ -63,7 +63,7 @@ App.Decommissionable = Em.Mixin.create({
   POLLING_INTERVAL: 6000,
 
   /**
-   * Component with stopped masters can't be docommissioned
+   * Component with stopped masters can't be decommissioned
    * @type {bool}
    */
   isComponentDecommissionDisable: function () {

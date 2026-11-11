@@ -33,7 +33,7 @@ import com.google.inject.persist.Transactional;
 
 /**
  * The {@link TransactionalLocks} class is used to manage the locks associated
- * with each {@link LockArea}. It's a singlegon that shoudl always be injected.
+ * with each {@link LockArea}. It's a singleton that should always be injected.
  */
 @Singleton
 public class TransactionalLocks {
@@ -88,7 +88,7 @@ public class TransactionalLocks {
 
   /**
    * A dummy implementation of a {@link ReadWriteLock} that returns locks which
-   * only NOOP. This is used for cases where dependant code doesn't want to
+   * only NOOP. This is used for cases where dependent code doesn't want to
    * {@code if/else} all over the place.
    */
   private final static class NoOperationReadWriteLock implements ReadWriteLock {
@@ -115,7 +115,7 @@ public class TransactionalLocks {
 
   /**
    * A dummy implementation of a {@link Lock} that only NOOPs. This is used for
-   * cases where dependant code doesn't want to {@code if/else} all over the
+   * cases where dependent code doesn't want to {@code if/else} all over the
    * place.
    */
   private final static class NoOperationLock implements Lock {

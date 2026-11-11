@@ -22,7 +22,7 @@ import org.apache.ambari.funtest.server.AmbariHttpWebRequest;
 import org.apache.ambari.funtest.server.ConnectionParams;
 
 /**
- * Gets the host identitied by the cluster name and host name.
+ * Gets the host identified by the cluster name and host name.
  */
 public class GetHostWebRequest extends AmbariHttpWebRequest {
     private String clusterName = null;

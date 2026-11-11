@@ -28,7 +28,7 @@ public class AmbariAuthenticationException extends AuthenticationException {
   private final String username;
 
   /**
-   * A boolean value indicating whether the faulire was due to invalid credentials (<code>true</code>) or not (<code>false</code>)
+   * A boolean value indicating whether the failure was due to invalid credentials (<code>true</code>) or not (<code>false</code>)
    * <p>
    * An invalid credential failure will count towards a user's authentication failure count.
    */

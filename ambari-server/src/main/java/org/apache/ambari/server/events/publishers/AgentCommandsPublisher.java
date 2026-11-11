@@ -301,7 +301,7 @@ public class AgentCommandsPublisher {
      *
      * @param targetHost the hostname of the target host
      * @param desiredConfigs desired config map
-     * @return a map of propoperties to set as the Kerberos command parameters
+     * @return a map of properties to set as the Kerberos command parameters
      * @throws AmbariException
      */
     public List<Map<String, String>> process(String targetHost,
@@ -465,10 +465,10 @@ public class AgentCommandsPublisher {
     }
 
     /**
-     * Determines if the keytab file for a given Kerberos identitiy should be removed from the target
+     * Determines if the keytab file for a given Kerberos identity should be removed from the target
      * host.
      * <p>
-     * This is determined by comparing the service/component filter with the metadata about the relavent
+     * This is determined by comparing the service/component filter with the metadata about the relevant
      * Kerberos identity. If it is determined that more components than the ones specified in the filer
      * are linked to the identity, than the keytab file will not be flagged for removal.
      *

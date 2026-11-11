@@ -92,7 +92,7 @@ public class SecurityConfigurationFactory {
 
     if (securityType == SecurityType.KERBEROS) {
 
-      // get security information from the request propertie if any
+      // get security information from the request property if any
       String descriptorReference = Strings.emptyToNull((String)
           securityProperties.get(KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID));
 

@@ -74,7 +74,7 @@ App.LocalStorage = Em.Mixin.create({
 
   /**
    * Delete the dbNamespace from the localStorage
-   * Usually this function is called on quiting/completing the wizard
+   * Usually this function is called on quitting/completing the wizard
    */
   resetDbNamespace: function() {
     App.db.resetWorkflowNamespace(this.get('dbNamespace'));

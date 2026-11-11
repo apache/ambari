@@ -344,7 +344,7 @@ public class ExecutionCommand extends AgentCommand {
   }
 
   /**
-   * Gets whether configuration tags shoudl be refreshed right before the
+   * Gets whether configuration tags should be refreshed right before the
    * command is scheduled.
    */
   public boolean isOverrideConfigs() {
@@ -520,7 +520,7 @@ public class ExecutionCommand extends AgentCommand {
 
   /**
    * Contains key name strings. These strings are used inside maps
-   * incapsulated inside command.
+   * encapsulated inside command.
    */
   public interface KeyNames {
     String COMMAND_TIMEOUT = "command_timeout";

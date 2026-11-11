@@ -126,7 +126,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   private static AmbariEventPublisher eventPublisher;
 
   /**
-   * The property ids for an alert defintion resource.
+   * The property ids for an alert definition resource.
    */
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
@@ -652,7 +652,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    * }
    * </pre>
    *
-   * Where the the following {@link JsonObject} instances are created:
+   * Where the following {@link JsonObject} instances are created:
    *
    * <pre>
    * AlertDefinition/source
@@ -669,7 +669,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    *          a mapping of flattened property to {@link JsonObject}.
    * @param propertyKey
    *          the key to get the {@link JsonObject} for.
-   * @return the {@link JsonObject} that cooresponds to the specified key.
+   * @return the {@link JsonObject} that corresponds to the specified key.
    */
   private JsonObject getJsonObjectMapping(String root,
       Map<String, JsonObject> jsonObjectMapping, String propertyKey) {

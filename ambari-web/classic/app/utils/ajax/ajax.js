@@ -3506,7 +3506,7 @@ var ajax = Em.Object.extend({
     };
 
     /**
-     * run this handler when click cancle on KDC error popup
+     * run this handler when click cancel on KDC error popup
      */
     if (config.kdcCancelHandler) {
       opt.kdcCancelHandler = config.kdcCancelHandler;

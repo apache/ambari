@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  * Each token contains type and value information.
  *
  * First, the query expression is broken down into string tokens using
- * a regular expression which splits on a set of deliminators which includes
+ * a regular expression which splits on a set of delimiters which includes
  * operators and brackets.
  *
  * Second, each string token is converted into a Token with type and value information.
@@ -56,7 +56,7 @@ public class QueryLexer {
   public static final String QUERY_DOAS      = "doAs";
 
   /**
-   * All valid deliminators.
+   * All valid delimiters.
    */
   private static final String[] ALL_DELIMS =
       {".matches\\(",".in\\(",".isEmpty\\(","<=",">=","!=","=","<",">","&","|","!","(", ")"};

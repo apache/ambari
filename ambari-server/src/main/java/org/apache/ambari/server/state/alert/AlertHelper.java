@@ -49,7 +49,7 @@ public class AlertHelper {
   private static final int INTERVAL_WAIT_FACTOR_DEFAULT = 2;
 
   /**
-   * A parameter which exposes the interval multipler to use for calculating
+   * A parameter which exposes the interval multiplier to use for calculating
    * staleness. If this does not exist, then
    * {@link #INTERVAL_WAIT_FACTOR_DEFAULT} will be used.
    */

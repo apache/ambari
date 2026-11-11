@@ -253,7 +253,7 @@ public class UriInfo {
   public class HighAvailability {
     /**
      * The key that represents the name service. The alert will use the
-     * existance of this key as the marker for HA mode.
+     * existence of this key as the marker for HA mode.
      */
     @SerializedName("nameservice")
     private String m_nameservice;

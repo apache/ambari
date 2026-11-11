@@ -146,7 +146,7 @@ public class UserEventCreator implements RequestAuditEventCreator {
 
 
   /**
-   * Returns fromt he request if the user has admin rights
+   * Returns from he request if the user has admin rights
    * @param request
    * @return
    */

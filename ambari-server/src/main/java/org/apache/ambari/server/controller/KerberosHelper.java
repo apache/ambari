@@ -177,7 +177,7 @@ public interface KerberosHelper {
    * the security type is NONE, an attempt will be made to disable Kerberos; otherwise, no operations
    * will be performed.
    * <p/>
-   * It is expected tht the "kerberos-env" configuration type is available.   It is used to obtain
+   * It is expected that the "kerberos-env" configuration type is available.   It is used to obtain
    * information about the Kerberos configuration, generally specific to the KDC being used.
    * <p/>
    * This process is idempotent such that it may be called several times, each time only affecting
@@ -237,7 +237,7 @@ public interface KerberosHelper {
    * what type of KDC is being used so that the appropriate actions maybe taken in order interact
    * with it properly.
    * <p/>
-   * It is expected tht the "kerberos-env" configuration type is available.   It is used to obtain
+   * It is expected that the "kerberos-env" configuration type is available.   It is used to obtain
    * information about the Kerberos configuration, generally specific to the KDC being used.
    *
    * @param cluster                        the relevant Cluster
@@ -286,7 +286,7 @@ public interface KerberosHelper {
    * what type of KDC is being used so that the appropriate actions maybe taken in order interact
    * with it properly.
    * <p/>
-   * It is expected tht the "kerberos-env" configuration type is available.   It is used to obtain
+   * It is expected that the "kerberos-env" configuration type is available.   It is used to obtain
    * information about the Kerberos configuration, generally specific to the KDC being used.
    *
    * @param cluster                the relevant Cluster
@@ -818,7 +818,7 @@ public interface KerberosHelper {
   boolean getForceToggleKerberosDirective(Map<String, String> requestProperties);
 
   /**
-   * Given a list of KerberosIdentityDescriptors, returns a Map fo configuration types to property
+   * Given a list of KerberosIdentityDescriptors, returns a Map of configuration types to property
    * names and values.
    * <p/>
    * The property names and values are not expected to have any variable replacements done.

@@ -20,7 +20,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 /**
  * KerberosPrincipalAlreadyExistsException is a KerberosOperationException thrown in the event a
- * request to create a new princip7als was made but the princial already exists in the KDC.
+ * request to create a new principal was made but the principal already exists in the KDC.
  */
 public class KerberosPrincipalAlreadyExistsException extends KerberosOperationException {
 

@@ -243,7 +243,7 @@ class TestFileCache(TestCase):
       )
       fileCache = FileCache(self.config)
 
-      # Test uptodate dirs after start
+      # Test up-to-date dirs after start
       with tempfile.TemporaryDirectory() as cache_root:
         path = os.path.join(cache_root, "subdirectory")
         os.makedirs(path)
@@ -277,7 +277,7 @@ class TestFileCache(TestCase):
     membuffer.getvalue.return_value.strip.return_value = HASH1
     fileCache = FileCache(self.config)
 
-    # Test uptodate dirs after start
+    # Test up-to-date dirs after start
     self.assertFalse(fileCache.uptodate_paths)
     path = os.path.abspath(os.path.join("cache_path", "subdirectory"))
     # Test initial downloading (when dir does not exist)

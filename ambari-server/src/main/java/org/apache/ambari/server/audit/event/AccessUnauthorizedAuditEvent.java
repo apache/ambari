@@ -44,7 +44,7 @@ public class AccessUnauthorizedAuditEvent extends AbstractUserAuditEvent {
     }
 
     /**
-     * Appends to the aduit event detail the list of the privileges
+     * Appends to the audit event detail the list of the privileges
      * possessed by the principal requesting access to a resource.
      *
      * @param builder builder for the audit event details.

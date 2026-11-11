@@ -145,7 +145,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
    * <b>Important! It's not the same as <code>_updateInitializers</code>!</b>
    * Main diff - this initializer used for configs
    * with names that come with some "predicates" in their names. <code>_updateInitializers</code> is used to determine needed
-   * config name that depends on other config values or someting else
+   * config name that depends on other config values or something else
    *
    * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
@@ -171,7 +171,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
   },
 
   /**
-   * Initializer for configs wih value equal to the <code>namespaceId</code> (user input this value on the wizard's 1st step)
+   * Initializer for configs with value equal to the <code>namespaceId</code> (user input this value on the wizard's 1st step)
    * Value may be customized with prefix and suffix (see <code>initializer.modifier</code>)
    * Value-examples: 'SOME_COOL_PREFIXmy_namespaceSOME_COOL_SUFFIX', 'my_namespace'
    *

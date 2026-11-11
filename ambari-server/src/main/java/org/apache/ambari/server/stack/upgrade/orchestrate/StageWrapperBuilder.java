@@ -85,7 +85,7 @@ public abstract class StageWrapperBuilder {
       boolean clientOnly, ProcessingComponent pc, Map<String, String> params);
 
   /**
-   * Builds the stage wrappers, including any pre- and post-procesing that needs
+   * Builds the stage wrappers, including any pre- and post-processing that needs
    * to be performed.
    *
    * @param upgradeContext

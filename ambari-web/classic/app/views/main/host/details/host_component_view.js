@@ -238,7 +238,7 @@ App.HostComponentView = Em.View.extend({
   },
 
   /**
-   * Check if component may be reassinged to another host
+   * Check if component may be reassigned to another host
    * @type {bool}
    */
   isReassignable: function () {

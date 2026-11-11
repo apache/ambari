@@ -212,7 +212,7 @@ public class CheckHelper {
 
   /**
    * The {@link ServiceQualification} class is used to determine if the
-   * service(s) associated with an upgraade check are both installed in the
+   * service(s) associated with an upgrade check are both installed in the
    * cluster and included in thr upgrade.
    * <p/>
    * If a service is installed but not included in the upgrade (for example of

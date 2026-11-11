@@ -66,7 +66,7 @@ public class UpdateDesiredRepositoryAction extends AbstractUpgradeServerAction {
   private Configuration m_configuration;
 
   /**
-   * Used for restting host version states on downgrade.
+   * Used for resetting host version states on downgrade.
    */
   @Inject
   private HostVersionDAO m_hostVersionDAO;

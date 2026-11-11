@@ -66,7 +66,7 @@ import com.google.inject.Singleton;
  * It seems counter-intuitive to have a liveliness check which allows a
  * percentage of the slaves to be down. The goal is to be able to start an
  * upgrade, even if some slave components on healthy hosts are down. We still
- * want hosts to be scehdule for upgrade of their other components.
+ * want hosts to be scheduled for upgrade of their other components.
  */
 @Singleton
 @UpgradeCheckInfo(

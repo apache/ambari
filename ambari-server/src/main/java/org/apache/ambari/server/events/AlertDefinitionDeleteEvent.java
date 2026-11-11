@@ -26,7 +26,7 @@ import org.apache.ambari.server.state.alert.AlertDefinition;
 public class AlertDefinitionDeleteEvent extends ClusterEvent {
 
   /**
-   * The removed alert defintiion
+   * The removed alert definition
    */
   private final AlertDefinition m_definition;
 

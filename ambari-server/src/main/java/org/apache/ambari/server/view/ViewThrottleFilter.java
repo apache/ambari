@@ -81,7 +81,7 @@ public class ViewThrottleFilter implements Filter {
   private Configuration m_configuration;
 
   /**
-   * Used to restrict how many REST API threads can be utilizied concurrently by
+   * Used to restrict how many REST API threads can be utilized concurrently by
    * view requests.
    */
   private Semaphore m_semaphore;

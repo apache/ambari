@@ -396,7 +396,7 @@ class ExecutionCommand(object):
     """
     return self.__get_value("commandParams/command_retry_enabled", False)
 
-  # TODO : Doesnt exist as of now.  Evaluate if we would be having these
+  # TODO : Doesn't exist as of now.  Evaluate if we would be having these
   """
     def check_upgrade_direction(self):
         return self.__get_value('commandParams/upgrade_direction')
@@ -416,7 +416,7 @@ class ExecutionCommand(object):
   def get_module_package_folder(self):
     return self.__get_value("commandParams/service_package_folder")
 
-  # TODO : Doesnt exist as of now. Evaluate if we need them.
+  # TODO : Doesn't exist as of now. Evaluate if we need them.
   '''
     def get_ambari_java_home(self):
         return self.__get_value('commandParams/ambari_java_home')

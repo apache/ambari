@@ -82,7 +82,7 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
   }
 
   /**
-   * Obtain a collection of of configuration modules representing each configuration
+   * Obtain a collection of configuration modules representing each configuration
    * file contained in this configuration directory.
    *
    * @return collection of configuration modules

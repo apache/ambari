@@ -132,7 +132,7 @@ public class AlertStateChangedListener {
     AlertDefinitionEntity definition = history.getAlertDefinition();
 
     // log to the alert audit log so there is physical record even if
-    // definitions and historical enties are removed
+    // definitions and historical entries are removed
     ALERT_LOG.info(ALERT_LOG_MESSAGE, alert.getState(), current.getFirmness(),
         definition.getServiceName(), definition.getDefinitionName(),
         definition.getLabel(), alert.getText());

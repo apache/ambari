@@ -100,7 +100,7 @@ public class LdapSyncRequest {
   }
 
   /**
-   * Gets whether to (re)exectue the post user creation hook on previously existing users
+   * Gets whether to (re)execute the post user creation hook on previously existing users
    * (if the post user creation hook feature has been enabled), on not.
    *
    * @return true, to process existing users; false, otherwise

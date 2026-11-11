@@ -39,7 +39,7 @@ public class CreateKeyTabKerberosAuditEvent extends AbstractKerberosAuditEvent {
     private String hostName;
 
     /**
-     * Principal that belons to the keytab file
+     * Principal that belongs to the keytab file
      */
     private String principal;
 

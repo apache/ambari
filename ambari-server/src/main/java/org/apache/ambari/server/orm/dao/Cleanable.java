@@ -30,7 +30,7 @@ import org.apache.ambari.server.cleanup.TimeBasedCleanupPolicy;
 public interface Cleanable {
 
   /**
-   * Performs the cleanup for the entiries the implementing DAO is responsible for.
+   * Performs the cleanup for the entries the implementing DAO is responsible for.
    *
    * @param policy the policy with the parameters of the cleanup
    * @return the number of affected records if available

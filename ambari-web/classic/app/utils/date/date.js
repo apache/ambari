@@ -22,7 +22,7 @@ var App = require('app');
 module.exports = {
 
   /**
-   * List of monthes short names
+   * List of months short names
    * @type {string[]}
    */
   dateMonths: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],

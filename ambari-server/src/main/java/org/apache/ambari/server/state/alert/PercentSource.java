@@ -49,7 +49,7 @@ public class PercentSource extends Source {
   }
 
   /**
-   * Gets the denomintor for the percent calculation.
+   * Gets the denominator for the percent calculation.
    *
    * @return a metric value representing the denominator (never {@code null}).
    */

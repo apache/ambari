@@ -37,7 +37,7 @@ public interface HttpURLConnectionProvider {
    * @param headers
    *          the HTTP headers to use in the request.
    *
-   * @return an iniitalized HTTP connection which is ready to read.
+   * @return an initialized HTTP connection which is ready to read.
    * @throws IOException
    *           if the URL could not be opened.
    */

@@ -226,7 +226,7 @@ public class AuthToLocalBuilderTest {
     builder = new AuthToLocalBuilder("EXAMPLE.COM", Collections.emptyList(), false);
     // set previously existing rules
     builder.addRules(existingRules);
-    // more specific host qualifed rule exists for dn
+    // more specific host qualified rule exists for dn
     // non-host specific rule should still be generated but occur later in generated string
     builder.addRule("dn/_HOST@EXAMPLE.COM", "hdfs");
     builder.addRule("nn/_HOST@EXAMPLE.COM", "hdfs");

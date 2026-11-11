@@ -42,7 +42,7 @@ public class RegistrationResponse extends StompResponse {
   private RegistrationStatus response;
 
   /**
-   * {@link AlertDefinitionCommand}s are used to isntruct the agent as to which
+   * {@link AlertDefinitionCommand}s are used to instruct the agent as to which
    * alert definitions it needs to schedule.
    */
   @JsonProperty("alertDefinitionCommands")
@@ -50,7 +50,7 @@ public class RegistrationResponse extends StompResponse {
   private List<AlertDefinitionCommand> alertDefinitionCommands = new ArrayList<>();
 
   /**
-   * exitstatus is a code of error which was rised on server side.
+   * exitstatus is a code of error which was raised on server side.
    * exitstatus = 0 (OK - Default)
    * exitstatus = 1 (Registration failed because
    *                different version of agent and server)

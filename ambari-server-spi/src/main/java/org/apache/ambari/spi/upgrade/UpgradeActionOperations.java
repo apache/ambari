@@ -236,7 +236,7 @@ public class UpgradeActionOperations {
     }
 
     /**
-     * Gets the name of the configuration tyoe, such as {@code foo-site}.
+     * Gets the name of the configuration type, such as {@code foo-site}.
      *
      * @return the config type name.
      */

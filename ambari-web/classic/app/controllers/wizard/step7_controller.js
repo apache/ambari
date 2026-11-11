@@ -425,7 +425,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * add overriden configs to stepConfigs
+   * add overridden configs to stepConfigs
    *
    * @param data
    */
@@ -1024,7 +1024,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       this._setUID(miscSvc, 'zk');
       //the user property name is mapred_user and not mapreduce2_user for mapreduce2 service, hence set the uid for mapred_user separately
       this._setUID(miscSvc, 'mapred');
-      //for haddop, the group property name does not follow the convention that groups for other services do. i.e. the group property name is not servicename_group as is the case with other services
+      //for hadoop, the group property name does not follow the convention that groups for other services do. i.e. the group property name is not servicename_group as is the case with other services
       //the group property name is user_group and not zookeeper_group, hence set the gid for user_group separately
       this._setGID(miscSvc, 'user');
 

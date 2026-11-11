@@ -127,7 +127,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable {
   private List<String> removedServices = new ArrayList<>();
 
   /**
-  * List of services withnot configurations
+  * List of services without configurations
   * */
   private List<String> servicesWithNoConfigs = new ArrayList<>();
 

@@ -459,7 +459,7 @@ public class HostRoleCommand {
    * commands.
    *
    * @return {@code true} if this command runs in the background, {@code false}
-   *         otherise.
+   *         otherwise.
    */
   public boolean isBackgroundCommand() {
     return isBackgroundCommand;
@@ -471,7 +471,7 @@ public class HostRoleCommand {
    *
    * @param isBackgroundCommand
    *          {@code true} if this command runs in the background, {@code false}
-   *          otherise.
+   *          otherwise.
    */
   public void setBackgroundCommand(boolean isBackgroundCommand) {
     this.isBackgroundCommand = isBackgroundCommand;

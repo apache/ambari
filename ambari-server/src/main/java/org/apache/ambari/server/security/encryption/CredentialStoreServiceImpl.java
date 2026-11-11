@@ -241,7 +241,7 @@ public class CredentialStoreServiceImpl implements CredentialStoreService {
    *
    * @param clusterName the name of the cluster
    * @param alias       a string declaring the alias (or name) of the credential
-   * @return a ccanonicalized alias name
+   * @return a canonicalized alias name
    */
   public static String canonicalizeAlias(String clusterName, String alias) {
     String canonicaizedAlias;

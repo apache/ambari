@@ -188,7 +188,7 @@ public class ConfigurableHelper {
 
 
   /**
-   * Transform attibutes map from <i>attributeName -> propertyName -> value</i> to <i>propertyName -> attributeName -> value</i>
+   * Transform attributes map from <i>attributeName -> propertyName -> value</i> to <i>propertyName -> attributeName -> value</i>
    * or vice versa
    * @param input the input map
    * @return the output map

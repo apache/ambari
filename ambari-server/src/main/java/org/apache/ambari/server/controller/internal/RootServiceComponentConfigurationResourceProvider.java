@@ -221,7 +221,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
    * <p>
    * Each group of properties is expected to have a category (<code>AmbariConfiguration/category</code>)
    * value and one or more property (<code>AmbariConfiguration/properties/property.name</code>) values.
-   * If a category cannot be determined from the propery set, the default category value (passed in)
+   * If a category cannot be determined from the property set, the default category value (passed in)
    * is used.  If a default category is set, it is assumed that it was parsed from the request predicate
    * (if available).
    *
@@ -229,7 +229,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
    * @param defaultComponentName           the default component name to use if needed
    * @param defaultCategoryName            the default category to use if needed
    * @param requestProperties              a collection of property maps parsed from the request
-   * @param removePropertiesIfNotSpecified <code>true</code> to remove existing properties that have not been specifed in the request;
+   * @param removePropertiesIfNotSpecified <code>true</code> to remove existing properties that have not been specified in the request;
    *                                       <code>false</code> append or update the existing set of properties with values from the request
    * @throws SystemException if an error occurs saving the configuration data
    */
@@ -256,13 +256,13 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
   }
 
   /**
-   * Performs the requested operation on the set of data for the specified configration data.
+   * Performs the requested operation on the set of data for the specified configuration data.
    *
    * @param defaultServiceName      the default service name to use if needed
    * @param defaultComponentName    the default component name to use if needed
    * @param defaultCategoryName     the default category to use if needed
    * @param requestProperties       a collection of property maps parsed from the request
-   * @param mergeExistingProperties <code>true</code> to use the the set of existing properties along with the specified set of properties;
+   * @param mergeExistingProperties <code>true</code> to use the set of existing properties along with the specified set of properties;
    *                                <code>false</code>  to use set of specified properties only
    * @param operationType           the operation to perform
    * @param operationParameters     parameters to supply the name operation
@@ -360,7 +360,7 @@ public class RootServiceComponentConfigurationResourceProvider extends AbstractA
   /**
    * Creates a map of the operation parameters from the data in the request info map.
    * <p>
-   * Operation parmaters are set under the "parameters" category.
+   * Operation parameters are set under the "parameters" category.
    *
    * @param requestInfoProperties a map of request info properties
    * @return a map of operation request parameters

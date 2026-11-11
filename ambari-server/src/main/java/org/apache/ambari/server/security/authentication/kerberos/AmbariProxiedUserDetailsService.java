@@ -59,7 +59,7 @@ import com.google.inject.Provider;
  * Trusted Proxy protocol.
  * <p>
  * If trusted proxy support is enabled and a proxied user is declared, the proxy user and remote host is validated.
- * If all criteria is met and  a user account with the the proxied user's username exist, that user
+ * If all criteria is met and  a user account with the proxied user's username exist, that user
  * account will be set as the authenticated user.
  */
 @Component
@@ -252,7 +252,7 @@ public class AmbariProxiedUserDetailsService implements UserDetailsService {
   /**
    * Determines if an IP address is in the subnet specified by the CIDR value.
    * <p>
-   * The logic for ths method comes from an example found at
+   * The logic for this method comes from an example found at
    * https://stackoverflow.com/questions/4209760/validate-an-ip-address-with-mask.
    * <p>
    * A CIDR is an IP address with a mask, denoting a subnet.  For example, <code>192.168.1.0/24</code> contains all
@@ -261,7 +261,7 @@ public class AmbariProxiedUserDetailsService implements UserDetailsService {
    *
    * @param cidr      a CIDR
    * @param ipAddress the IP address to test
-   * @return <code>true</code> if the IP Address is withing the range specified by the CIDR; <code>false</code> otherwise.
+   * @return <code>true</code> if the IP Address is within the range specified by the CIDR; <code>false</code> otherwise.
    */
   boolean isInIpAddressRange(String cidr, String ipAddress) {
     Matcher matcher = IP_ADDRESS_RANGE_PATTERN.matcher(cidr);

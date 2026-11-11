@@ -174,7 +174,7 @@ public class AlertGroupEntity {
   /**
    * Gets whether this is a default group and is mostly read-only. Default
    * groups cannot have their alert definition groupings changed. New alert
-   * definitions are automtaically added to the default group that belongs to
+   * definitions are automatically added to the default group that belongs to
    * the service of that definition.
    *
    * @return {@code true} if this is a default group, {@code false} otherwise.

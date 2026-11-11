@@ -110,7 +110,7 @@ public class GroupDAO {
    *
    * @param principal the principal entity
    *
-   * @return the matching gropu entity
+   * @return the matching group entity
    */
   @RequiresSession
   public GroupEntity findGroupByPrincipal(PrincipalEntity principal) {

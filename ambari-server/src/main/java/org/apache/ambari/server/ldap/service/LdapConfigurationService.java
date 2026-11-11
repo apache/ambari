@@ -43,7 +43,7 @@ public interface LdapConfigurationService {
    * @param testPassword  the test password
    * @param configuration the available ldap configuration
    * @return The DN of the found user entry
-   * @throws AmbariException if the connection couldn't be estabilisheds
+   * @throws AmbariException if the connection couldn't be established
    */
   String checkUserAttributes(String testUserName, String testPassword, AmbariLdapConfiguration configuration) throws AmbariLdapException;
 

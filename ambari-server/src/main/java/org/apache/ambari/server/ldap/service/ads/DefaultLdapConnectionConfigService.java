@@ -66,7 +66,7 @@ public class DefaultLdapConnectionConfigService implements LdapConnectionConfigS
   /**
    * Configure the trust managers to use the custom keystore.
    *
-   * @param ambariLdapConfiguration congiguration instance holding current values
+   * @param ambariLdapConfiguration configuration instance holding current values
    * @return the array of trust managers
    * @throws AmbariLdapException if an error occurs while setting up the connection
    */

@@ -80,7 +80,7 @@ module.exports = {
   },
 
   /**
-   * Hack to dowload text data in Safari
+   * Hack to download text data in Safari
    * @param data {String}
    * @param fileType {String}
    * @param fileName {String}

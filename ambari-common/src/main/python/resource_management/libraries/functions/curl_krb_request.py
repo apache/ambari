@@ -47,7 +47,7 @@ logger = logging.getLogger()
 # the default time in between forced kinit calls (4 hours)
 DEFAULT_KERBEROS_KINIT_TIMER_MS = 14400000
 
-# a parameter which can be used to pass around the above timout value
+# a parameter which can be used to pass around the above timeout value
 KERBEROS_KINIT_TIMER_PARAMETER = "kerberos.kinit.timer"
 
 

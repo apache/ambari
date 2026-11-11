@@ -159,7 +159,7 @@ public class UpgradeEntity {
    * successful finalization of the upgrade, if the upgrade was the correct type
    * and direction, then it becomes a candidate for reversion and this value is
    * set to {@code true}. If an upgrade is reverted after being finalized, then
-   * this value to should set to {@code false} explicitely.
+   * this value to should set to {@code false} explicitly.
    * <p/>
    * There can exist <i>n</i> number of upgrades with this value set to
    * {@code true}. The idea is that only the most recent upgrade with this value
@@ -286,7 +286,7 @@ public class UpgradeEntity {
    * {@link RepositoryType#MAINT} or {@link RepositoryType#PATCH} and have never
    * been previously downgraded.
    *
-   * @return {@code true} if this upgrade can potentially be revereted.
+   * @return {@code true} if this upgrade can potentially be reverted.
    */
   public Boolean isRevertAllowed() {
     return revertAllowed != null ? (revertAllowed != 0) : null;
@@ -295,7 +295,7 @@ public class UpgradeEntity {
   /**
    * Sets whether this upgrade supports being reverted. This should only ever be
    * called from the finalization of an upgrade. {@link RepositoryType#MAINT} or
-   * {@link RepositoryType#PATCH} upgrades can be revereted only if they have
+   * {@link RepositoryType#PATCH} upgrades can be reverted only if they have
    * not previously been downgraded.
    *
    * @param revertable

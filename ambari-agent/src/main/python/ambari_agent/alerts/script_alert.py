@@ -77,7 +77,7 @@ class ScriptAlert(BaseAlert):
       self.extensions_dir = alert_source_meta["extensions_directory"]
 
     # convert a list of script parameters, like timeouts, into a dictionary
-    # so the the scripts can easily lookup the data
+    # so the scripts can easily lookup the data
     if "parameters" in alert_source_meta:
       parameters = alert_source_meta["parameters"]
       for parameter in parameters:

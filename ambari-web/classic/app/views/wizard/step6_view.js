@@ -67,7 +67,7 @@ App.WizardStep6View = App.TableView.extend({
         hostColumnWidth = 210, // from ambari-web/app/styles/wizard.less
         columnWidth = Math.floor((table.width() - hostColumnWidth) / columnsCount);
       table.find("th:not('.freeze'), td:not('.freeze')").width(columnWidth);
-      // a trick to keep checkbox abd label on the single line
+      // a trick to keep checkbox and label on the single line
       table.find('.host-component-checkbox').css({
         display: 'inline-block',
         width: '0'

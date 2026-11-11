@@ -47,7 +47,7 @@ App.NodeManagerComponentView = App.HostComponentView.extend(App.Decommissionable
       // Update RESOURCEMANAGER status
       var nodeManagersArray = App.parseJSON(curObj.rm_metrics.cluster.nodeManagers);
       if (nodeManagersArray.findProperty('HostName', hostName)) {
-        // decommisioning ..
+        // decommissioning ..
         this.setStatusAs('DECOMMISSIONING');
       } else {
         // decommissioned ..

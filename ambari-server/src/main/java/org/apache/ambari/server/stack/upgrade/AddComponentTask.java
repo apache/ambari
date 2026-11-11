@@ -80,7 +80,7 @@ public class AddComponentTask extends ServerSideActionTask {
   public String hostService;
 
   /**
-   * Specifies the hosts which are valid for adding teh new component,
+   * Specifies the hosts which are valid for adding the new component,
    * restricted by component.
    */
   @Expose

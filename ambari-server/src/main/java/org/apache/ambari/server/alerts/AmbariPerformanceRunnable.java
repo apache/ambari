@@ -213,13 +213,13 @@ public class AmbariPerformanceRunnable extends AlertRunnable {
      *          {@code null})
      * @param defaultWarningThreshold
      *          the default value to use if the definition does not have a
-     *          warning threshold paramter.
+     *          warning threshold parameter.
      * @param criticalParameter
      *          the definition parameter name for the critical threshold (not
      *          {@code null})
      * @param defaultCriticalThreshold
      *          the default value to use if the definition does not have a
-     *          critical threshold paramter.
+     *          critical threshold parameter.
      */
     PerformanceArea(String label, String warningParameter, int defaultWarningThreshold,
                     String criticalParameter, int defaultCriticalThreshold) {

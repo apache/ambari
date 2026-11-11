@@ -212,11 +212,11 @@ public class ConfigHelper {
    *          the host overrides applied using config groups
    * @param clusterDesired
    *          the desired configurations for the cluster. Obtaining these can be
-   *          expensive, ans since this method could be called 10,000's of times
+   *          expensive, and since this method could be called 10,000's of times
    *          when generating cluster/host responses. Therefore, the caller
    *          should build these once and pass them in. If {@code null}, then
    *          this method will retrieve them at runtime, incurring a performance
-   *          penality.
+   *          penalty.
    * @return a map of tag type to tag names with overrides
    */
   private Map<String, Map<String, String>> getEffectiveDesiredTags(Cluster cluster, Map<String,
@@ -566,14 +566,14 @@ public class ConfigHelper {
    * </ul>
    *
    * @param sch
-   *          the SCH to calcualte config staleness for (not {@code null}).
+   *          the SCH to calculate config staleness for (not {@code null}).
    * @param requestDesiredConfigs
    *          the desired configurations for the cluster. Obtaining these can be
    *          expensive and since this method operates on SCH's, it could be
    *          called 10,000's of times when generating cluster/host responses.
    *          Therefore, the caller should build these once and pass them in. If
    *          {@code null}, then this method will retrieve them at runtime,
-   *          incurring a performance penality.
+   *          incurring a performance penalty.
    *
    * @return <code>true</code> if the actual configs are stale
    */
@@ -997,7 +997,7 @@ public class ConfigHelper {
    */
   public String getPlaceholderValueFromDesiredConfigurations(Cluster cluster,
                                                              String placeholder) {
-    // remove the {{ and }} from the placholder
+    // remove the {{ and }} from the placeholder
     if (placeholder.startsWith("{{") && placeholder.endsWith("}}")) {
       placeholder = placeholder.substring(2, placeholder.length() - 2).trim();
     }
@@ -1983,7 +1983,7 @@ public class ConfigHelper {
    * Calculates refresh command for a set of changed properties as follows:
    *  - if a property has no refresh command return null
    *  - in case of multiple refresh commands: as REFRESH_CONFIGS is executed by default in case of any other command as well,
-   *  can be overriden by RELOAD_CONFIGS or any other custom command, however in case of any other different commands return null
+   *  can be overridden by RELOAD_CONFIGS or any other custom command, however in case of any other different commands return null
    *  as it's not possible to refresh all properties with one command.
    *
    *  examples:

@@ -405,11 +405,11 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
   }
 
   /**
-   * Determines whether this {@link KerberosIdentityDescriptor} indicates it is a refrence to some
+   * Determines whether this {@link KerberosIdentityDescriptor} indicates it is a reference to some
    * other {@link KerberosIdentityDescriptor}.
    * <p>
-   * A KerberosIdentityDescriptor is a reference if it's <code>reference</code> attibute is set
-   * or if (for backwards compatibility), its name indicates a path. For exmaple:
+   * A KerberosIdentityDescriptor is a reference if it's <code>reference</code> attribute is set
+   * or if (for backwards compatibility), its name indicates a path. For example:
    * <ul>
    * <li><code>SERVICE/COMPONENT/identitiy_name</code></li>
    * <li><code>/identity_name</code></li>

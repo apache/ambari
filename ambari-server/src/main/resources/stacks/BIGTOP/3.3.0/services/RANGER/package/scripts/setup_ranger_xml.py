@@ -874,7 +874,7 @@ def create_core_site_xml(conf_dir):
 
   if params.stack_supports_ranger_kerberos:
     if params.has_namenode:
-      # if there is the viewFS mount table content, create separate xml config and include in in the core-site
+      # if there is the viewFS mount table content, create separate xml config and include it in the core-site
       # else just create core-site
       if params.mount_table_content:
         XmlConfig(

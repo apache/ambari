@@ -49,7 +49,7 @@ public interface Cluster {
    */
   public Map<String,String> getConfigByType(String type);
   /**
-   * Get the hosts for service and componet
+   * Get the hosts for service and component
    *
    * @param serviceName
    * @param componentName

@@ -101,7 +101,7 @@ App.TestAliases = {
     /**
      * Stub <code>get</code>-method for <code>App</code> or <code>self</code> (depends on </code>hash</code>-keys)
      * If some key is starts with 'App.' it will be used in the App-stub,
-     * otherwise it will be used in thw self-stub
+     * otherwise it will be used in the self-stub
      *
      * @param {Ember.Object} self
      * @param {object} hash

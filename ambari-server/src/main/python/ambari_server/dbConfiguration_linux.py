@@ -861,7 +861,7 @@ class PGConfig(LinuxDBMSConfig):
   @staticmethod
   def _get_postgre_status():
     retcode, out, err = run_os_command(PGConfig.PG_ST_CMD)
-    # on RHEL and SUSE PG_ST_COMD returns RC 0 for running and 3 for stoppped
+    # on RHEL and SUSE PG_ST_COMD returns RC 0 for running and 3 for stopped
     if retcode == 0:
       if out.strip() == "Running clusters:" or "active: inactive" in out.lower():
         pg_status = PGConfig.PG_STATUS_STOPPED
