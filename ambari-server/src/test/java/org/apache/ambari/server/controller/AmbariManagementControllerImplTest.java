@@ -263,6 +263,79 @@ public class AmbariManagementControllerImplTest {
   }
 
   @Test
+  public void testAddedHostComponentsRefreshAgentConfigsOfTheirHosts() throws Exception {
+    // Config pushes skip hosts without a component of the owning service, so a host that gains
+    // components (e.g. a new service whose configs were saved first) must be refreshed here.
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
+    constructorInit(injector, controllerCapture, createNiceMock(KerberosHelper.class));
+
+    ConfigHelper localConfigHelper = createMock(ConfigHelper.class);
+    Cluster cluster = createMock(Cluster.class);
+    Host host1 = createMock(Host.class);
+    Host host2 = createMock(Host.class);
+    Capture<List<Long>> pushedHostIds = EasyMock.newCapture();
+
+    expect(clusters.getHost("host1")).andReturn(host1).times(2);
+    expect(clusters.getHost("host2")).andReturn(host2);
+    expect(host1.getHostId()).andReturn(1L).times(2);
+    expect(host2.getHostId()).andReturn(2L);
+    expect(clusters.getCluster("cluster1")).andReturn(cluster);
+    localConfigHelper.updateAgentConfigs(eq(cluster), capture(pushedHostIds));
+    expectLastCall().once();
+
+    replay(injector, clusters, cluster, host1, host2, localConfigHelper);
+
+    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    Field configHelperField = AmbariManagementControllerImpl.class.getDeclaredField("configHelper");
+    configHelperField.setAccessible(true);
+    configHelperField.set(controller, localConfigHelper);
+
+    controller.updateAgentConfigsForAddedComponents(new HashSet<>(Arrays.asList(
+        new ServiceComponentHostRequest("cluster1", "RANGER", "RANGER_ADMIN", "host1", null),
+        new ServiceComponentHostRequest("cluster1", "RANGER", "RANGER_USERSYNC", "host1", null),
+        new ServiceComponentHostRequest("cluster1", "RANGER", "RANGER_TAGSYNC", "host2", null))));
+
+    // One push per cluster, each host that received a component exactly once.
+    assertEquals(2, pushedHostIds.getValue().size());
+    assertEquals(new HashSet<>(Arrays.asList(1L, 2L)), new HashSet<>(pushedHostIds.getValue()));
+    verify(injector, clusters, cluster, host1, host2, localConfigHelper);
+  }
+
+  @Test
+  public void testAddedHostComponentsFailWhenAgentConfigsCannotBeRefreshed() throws Exception {
+    Injector injector = createStrictMock(Injector.class);
+    Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
+    constructorInit(injector, controllerCapture, createNiceMock(KerberosHelper.class));
+
+    ConfigHelper localConfigHelper = createMock(ConfigHelper.class);
+    Cluster cluster = createMock(Cluster.class);
+    Host host1 = createMock(Host.class);
+
+    expect(clusters.getHost("host1")).andReturn(host1);
+    expect(host1.getHostId()).andReturn(1L);
+    expect(clusters.getCluster("cluster1")).andReturn(cluster);
+    localConfigHelper.updateAgentConfigs(eq(cluster), eq(Collections.singletonList(1L)));
+    expectLastCall().andThrow(new AmbariException("Configurations for cluster 2 are unavailable for host 1"));
+
+    replay(injector, clusters, cluster, host1, localConfigHelper);
+
+    AmbariManagementControllerImpl controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    Field configHelperField = AmbariManagementControllerImpl.class.getDeclaredField("configHelper");
+    configHelperField.setAccessible(true);
+    configHelperField.set(controller, localConfigHelper);
+
+    try {
+      controller.updateAgentConfigsForAddedComponents(Collections.singleton(
+          new ServiceComponentHostRequest("cluster1", "RANGER", "RANGER_ADMIN", "host1", null)));
+      fail("A failed config refresh must not be reported as success");
+    } catch (AmbariException expected) {
+      assertTrue(expected.getMessage().contains("unavailable for host 1"));
+    }
+    verify(injector, clusters, cluster, host1, localConfigHelper);
+  }
+
+  @Test
   public void testGetClusters() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);

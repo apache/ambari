@@ -786,6 +786,32 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // now doing actual work
     persistServiceComponentHosts(requests, isBlueprintProvisioned);
     m_topologyHolder.get().updateData(getAddedComponentsTopologyEvent(requests));
+    updateAgentConfigsForAddedComponents(requests);
+  }
+
+  /**
+   * Config changes are pushed only to hosts that already run a component depending on, or owned
+   * by the service of, a changed config type (see
+   * {@link ConfigHelper#getHostsAffectedByConfigTypes}). A host that gains a component may
+   * therefore hold missing or stale configs for it, for example a new service whose configs were
+   * saved before its host components existed. Recompute and push the configs of every host that
+   * received a component so the following INSTALL command sees the current desired configs.
+   * Hosts whose configs did not change are not sent an update.
+   *
+   * @param requests the host component requests that were just persisted
+   * @throws AmbariException if the configs cannot be computed or published
+   */
+  void updateAgentConfigsForAddedComponents(Set<ServiceComponentHostRequest> requests)
+      throws AmbariException {
+    Map<String, Set<Long>> hostIdsByCluster = new HashMap<>();
+    for (ServiceComponentHostRequest request : requests) {
+      hostIdsByCluster.computeIfAbsent(request.getClusterName(), name -> new HashSet<>())
+          .add(clusters.getHost(request.getHostname()).getHostId());
+    }
+    for (Map.Entry<String, Set<Long>> entry : hostIdsByCluster.entrySet()) {
+      configHelper.updateAgentConfigs(clusters.getCluster(entry.getKey()),
+          new ArrayList<>(entry.getValue()));
+    }
   }
 
   /**
