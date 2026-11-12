@@ -141,7 +141,7 @@ public class StackVersionListener {
       ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(
           sch.getServiceComponentName());
 
-      // proces the UNKNOWN version
+      // process the UNKNOWN version
       if (StringUtils.equalsIgnoreCase(UNKNOWN_VERSION, newVersion)) {
         processUnknownDesiredVersion(cluster, sc, sch, newVersion);
         return;

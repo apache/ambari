@@ -529,7 +529,7 @@ public class AlertTargetResourceProvider extends
   }
 
   /**
-   * Looks through the flat list of propery keys in the supplied map and builds
+   * Looks through the flat list of property keys in the supplied map and builds
    * a JSON string of key:value pairs for the {@link #ALERT_TARGET_PROPERTIES}
    * key.
    *

@@ -808,7 +808,7 @@ public class UpgradeHelper {
    * </ul>
    *
    * @param upgradeContext
-   *          the upgrade context holding all relevent upgrade information (not
+   *          the upgrade context holding all relevant upgrade information (not
    *          {@code null}).
    * @throws AmbariException
    */
@@ -964,7 +964,7 @@ public class UpgradeHelper {
 
       // populate a map of default configurations for the service on the old
       // stack (this is used when determining if a property has been
-      // customized and should be overriden with the new stack value)
+      // customized and should be overridden with the new stack value)
       Map<String, Map<String, String>> oldServiceDefaultConfigsByType = configHelper.getDefaultProperties(
           sourceStackId, serviceName);
 
@@ -1010,7 +1010,7 @@ public class UpgradeHelper {
         }
       }
 
-      // now that we have found, old, new, and existing confgs, overlay the
+      // now that we have found, old, new, and existing configs, overlay the
       // existing on top of the new
       for (Config existingServiceConfig : existingServiceConfigs) {
         String configurationType = existingServiceConfig.getType();
@@ -1142,7 +1142,7 @@ public class UpgradeHelper {
    * @param stackId
    *          the stack to get read-only properties for (not {@code null}).
    * @param serviceName
-   *          the namee of the service (not {@code null}).
+   *          the name of the service (not {@code null}).
    * @return a map of configuration type to set of property names which are
    *         read-only
    * @throws AmbariException

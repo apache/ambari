@@ -108,7 +108,7 @@ class Master(Script):
                    owner = params.nifi_user,
                    group = params.nifi_group)
 
-    #write out boostrap.conf
+    #write out bootstrap.conf
     bootstrap_content=InlineTemplate(params.nifi_boostrap_content)
     File(format("{params.nifi_config_dir}/bootstrap.conf"), content=bootstrap_content, owner=params.nifi_user, group=params.nifi_group, mode=0o400)
 

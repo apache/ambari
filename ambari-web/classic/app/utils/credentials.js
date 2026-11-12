@@ -166,7 +166,7 @@ module.exports = {
   },
 
   /**
-   * Get credenial list from server by specified cluster name
+   * Get credential list from server by specified cluster name
    *
    * @param {string} clusterName cluster name
    * @param {function} callback

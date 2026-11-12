@@ -78,7 +78,7 @@ public class RoleAuthorizationService extends BaseService {
   /**
    * Handles: GET  /permissions/{permission_id}/authorizations/{authorization_id}
    * Get a specific authorization, potentially limited to the set of authorizations for a permission
-   * if this RoleAuthorizationService is linked ot a particular permission.
+   * if this RoleAuthorizationService is linked to a particular permission.
    *
    * @param headers         http headers
    * @param ui              uri info

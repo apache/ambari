@@ -418,7 +418,7 @@ public interface Host extends Comparable {
    *          called 1,000's of times when generating host responses. Therefore,
    *          the caller should build these once and pass them in. If
    *          {@code null}, then this method will retrieve them at runtime,
-   *          incurring a performance penality.
+   *          incurring a performance penalty.
    * @return
    * @throws AmbariException
    */

@@ -113,7 +113,7 @@ public class HostRoleCommandDAOTest {
 
   /**
    * Tests that setting the auto-skip feature of a {@link HostRoleCommandEntity}
-   * is somewhat dependenant on the {@link StageEntity}'s support for it.
+   * is somewhat dependent on the {@link StageEntity}'s support for it.
    */
   @Test
   public void testAutoSkipSupport() {

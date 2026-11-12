@@ -497,7 +497,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, App.Check
   },
 
   /**
-   * Success-callback for each boostrap request
+   * Success-callback for each bootstrap request
    * @param {object} data
    * @method doBootstrapSuccessCallback
    */

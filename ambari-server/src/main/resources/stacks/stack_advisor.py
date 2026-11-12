@@ -660,7 +660,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     :return: List of errors
     """
-    # To be overriden by subclass or Service Advisor
+    # To be overridden by subclass or Service Advisor
     raise Fail("Must be overriden by subclass or Service Advisor")
 
   def getActiveHosts(self, hosts):
@@ -1314,7 +1314,7 @@ class DefaultStackAdvisor(StackAdvisor):
               )
 
               # Client dependencies are not included in validation
-              # Client dependencies are auto-deployed in both UI deployements and blueprint deployments
+              # Client dependencies are auto-deployed in both UI deployments and blueprint deployments
               if (dependentComponent is None) or (
                 dependentComponent["component_category"] != "CLIENT"
               ):
@@ -4015,7 +4015,7 @@ class DefaultStackAdvisor(StackAdvisor):
         if cap_sched_props_as_str:
           cap_sched_props_as_str = str(cap_sched_props_as_str).split("\n")
           if len(cap_sched_props_as_str) > 0 and cap_sched_props_as_str[0] != "null":
-            # Received confgs as one "\n" separated string
+            # Received configs as one "\n" separated string
             for property in cap_sched_props_as_str:
               key, sep, value = property.partition("=")
               capacity_scheduler_properties[key] = value

@@ -125,7 +125,7 @@ public class DesiredConfig {
     }
 
     /**
-     * @return the override tag tag
+     * @return the override tag
      */
     @JsonProperty("tag")
     public String getVersionTag() {

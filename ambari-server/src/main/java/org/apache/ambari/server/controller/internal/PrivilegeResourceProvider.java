@@ -297,7 +297,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedRes
    *
    * @param entity  the privilege entity
    *
-   * @throws AmbariException if the the privilege permission is not allowable for the resource type
+   * @throws AmbariException if the privilege permission is not allowable for the resource type
    */
   protected boolean checkResourceTypes(PrivilegeEntity entity) throws AmbariException {
     Integer resourceType           = entity.getResource().getResourceType().getId();

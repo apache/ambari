@@ -213,7 +213,7 @@ public class Extension {
    *
    * @param component  component name
    *
-   * @return service name that contains tha specified component
+   * @return service name that contains the specified component
    */
   public String getServiceForComponent(String component) {
     return componentService.get(component);

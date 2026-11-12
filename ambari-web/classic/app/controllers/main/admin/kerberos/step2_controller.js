@@ -238,7 +238,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     var properties = {};
     var content = this.get('stepConfigs')[0].get('configs');
     var configs = content.filterProperty('filename', site + '.xml');
-    // properties that should be formated as hosts
+    // properties that should be formatted as hosts
     var hostProperties = ['kdc_hosts', 'realm'];
 
     configs.forEach(function (_configProperty) {

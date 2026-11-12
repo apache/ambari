@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Generates a collection of tasks that need to run on a set of hosts during an upgarde.
+ * Generates a collection of tasks that need to run on a set of hosts during an upgrade.
  */
 public class TaskWrapperBuilder {
 

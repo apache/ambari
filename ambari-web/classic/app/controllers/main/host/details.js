@@ -315,7 +315,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * PUTs a command to server to start/stop a component. If no
    * specific component is provided, all components are started.
    * @param {object} component  When <code>null</code> all startable components are started.
-   * @param {String} context  Context under which this command is beign sent.
+   * @param {String} context  Context under which this command is being sent.
    * @param {String} state - desired state of component can be 'STARTED' or 'STOPPED'
    * @method sendComponentCommand
    */
@@ -1631,7 +1631,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
-   * Send command to server to resfresh configs of selected component
+   * Send command to server to refresh configs of selected component
    * @param {object} event
    * @method refreshComponentConfigs
    */
@@ -1647,7 +1647,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   /**
    * PUTs a command to server to refresh configs of host component.
    * @param {object} component
-   * @param {object} context Context under which this command is beign sent.
+   * @param {object} context Context under which this command is being sent.
    * @method sendRefreshComponentConfigsCommand
    */
   sendRefreshComponentConfigsCommand: function (component, context) {
@@ -2055,7 +2055,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method doDecommissionRegionServer
    * @param {string} hostNames - list of host when run from bulk operations or current host
    * @param {string} serviceName - serviceName
-   * @param {string} componentName - master compoent name
+   * @param {string} componentName - master component name
    * @param {string} slaveType - slave component name
    */
   doDecommissionRegionServer: function (hostNames, serviceName, componentName, slaveType) {

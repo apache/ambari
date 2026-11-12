@@ -159,7 +159,7 @@ public class AmbariLdapBindAuthenticator extends AbstractLdapAuthenticator {
       }
 
       // Find the user data where the supplied username matches the value of the configured LDAP
-      // attribute for the user's username. If a user is found, use the DN fro the returned data
+      // attribute for the user's username. If a user is found, use the DN from the returned data
       // and the supplied password to attempt authentication.
       DirContextOperations userFromSearch = userSearch.searchForUser(username);
 

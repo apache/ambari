@@ -1176,7 +1176,7 @@ class Script(object):
     """
     To be overridden by subclasses
     """
-    # Mostly Actions are the same for both of these cases. If they are different this method should be overriden.
+    # Mostly Actions are the same for both of these cases. If they are different this method should be overridden.
     self.post_upgrade_restart(env, UPGRADE_TYPE_ROLLING)
 
   def configure(self, env, upgrade_type=None, config_dir=None):

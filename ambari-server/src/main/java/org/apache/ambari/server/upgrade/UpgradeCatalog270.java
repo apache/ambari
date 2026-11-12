@@ -563,7 +563,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    * <li>creating a temporary column where we store the numeric representation of
    * the timestamp
    * <li>populating data in the temporary column
-   * <li>removing original column column
+   * <li>removing original column
    * <li>renaming the temporary column to the original column
    * </ol>
    *
@@ -697,7 +697,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Update the <code>users</code> table by adjusting the relevant columns, contained data, and indicies.
+   * Update the <code>users</code> table by adjusting the relevant columns, contained data, and indices.
    * <p>
    * This method should be executed after creating the <code>user_authentication</code> table and
    * adjusting the <code>members</code> and <code>adminprivilege</code> data by merging data while
@@ -705,7 +705,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    * <p>
    * <ol>
    * <li>
-   * Orphaned data is removed.  These will be the records where the usernamne is duplicated but
+   * Orphaned data is removed.  These will be the records where the username is duplicated but
    * the user type is different.  Only a single record with a given username should be left.
    * </li>
    * <li>
@@ -767,7 +767,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
   /**
    * Update the <code>members</code> table to ensure records for the same username but different user
-   * records are referencing the main user record. Duplicate records will be be ignored when updating
+   * records are referencing the main user record. Duplicate records will be ignored when updating
    * the <code>members</code> table.
    * <p>
    * If <code>UserA:LOCAL</code>, <code>usera:LOCAL</code> and <code>usera:LDAP</code> all belong to
@@ -844,7 +844,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
   /**
    * Update the <code>adminprivilege</code> table to ensure records for the same username but different user
-   * records are referencing the main user record. Duplicate records will be be ignored when updating
+   * records are referencing the main user record. Duplicate records will be ignored when updating
    * the <code>adminprivilege</code> table.
    * <p>
    * If <code>UserA:LOCAL</code>, <code>usera:LOCAL</code> and <code>usera:LDAP</code> are assigned
@@ -1585,7 +1585,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
           if (config != null) {
             Map<String, String> properties = config.getProperties();
             if (properties.containsKey("group")) {
-              // Covert kerberos-env/group to kerberos-env/ipa_user_group
+              // Convert kerberos-env/group to kerberos-env/ipa_user_group
               updateConfigurationPropertiesForCluster(cluster, "kerberos-env",
                 Collections.singletonMap("ipa_user_group", properties.get("group")), Collections.singleton("group"),
                 true, false);

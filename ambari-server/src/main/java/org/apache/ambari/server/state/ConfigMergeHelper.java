@@ -130,7 +130,7 @@ public class ConfigMergeHelper {
         }
       }
 
-      // Also, conflict occurs if all four coditions are met:
+      // Also, conflict occurs if all four conditions are met:
       // a) property is defined both in old and in new stack
       // b) property value in new stack differs from current
       // the property value

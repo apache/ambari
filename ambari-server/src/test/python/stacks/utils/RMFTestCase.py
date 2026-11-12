@@ -385,7 +385,7 @@ class RMFTestCase(TestCase):
         before_bracket = ""
       # Add assertion
       s = f"self.assertResourceCalled({s}{before_bracket})"
-      # Intendation
+      # Indentation
       s = self.reindent(s, intendation)
       print(s)
     print(self.reindent("self.assertNoMoreResources()", intendation))

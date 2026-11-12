@@ -32,7 +32,7 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * The {@link ParameterizedSource} is used for alerts where the logic of
- * computing the {@link AlertState} is dependant on user-specified parameters.
+ * computing the {@link AlertState} is dependent on user-specified parameters.
  * For example, the parameters might be threshold values.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -114,7 +114,7 @@ public abstract class ParameterizedSource extends Source {
     }
 
     /**
-     * Gets the display units of the paramter.
+     * Gets the display units of the parameter.
      *
      * @return the units
      */
@@ -210,7 +210,7 @@ public abstract class ParameterizedSource extends Source {
     NUMERIC,
 
     /**
-     * A percent value, expessed as a float.
+     * A percent value, expressed as a float.
      */
     PERCENT
   }

@@ -142,7 +142,7 @@ public class AlertsDAO implements Cleanable {
   /**
    * A cache of current alert information. The {@link AlertCurrentEntity}
    * instances cached are currently managed. This allows the cached instances to
-   * be easiler flushed from the cache to JPA.
+   * be easier flushed from the cache to JPA.
    * <p/>
    * This also means that the cache is holding onto a rather large map of JPA
    * entities. This could lead to OOM errors over time if the indirectly
@@ -275,7 +275,7 @@ public class AlertsDAO implements Cleanable {
 
   /**
    * Gets all alerts stored in the database for the given cluster and that fall
-   * withing the specified date range. Dates are expected to be in milliseconds
+   * within the specified date range. Dates are expected to be in milliseconds
    * since the epoch, normalized to UTC time.
    *
    * @param clusterId
@@ -733,7 +733,7 @@ public class AlertsDAO implements Cleanable {
   }
 
   /**
-   * Removes alert history and current alerts for the specified alert defintiion
+   * Removes alert history and current alerts for the specified alert definition
    * ID. This will invoke {@link EntityManager#clear()} when completed since the
    * JPQL statement will remove entries without going through the EM.
    *
@@ -765,7 +765,7 @@ public class AlertsDAO implements Cleanable {
   }
 
   /**
-   * Remove a current alert whose history entry matches the specfied ID.
+   * Remove a current alert whose history entry matches the specified ID.
    *
    * @param   historyId the ID of the history entry.
    * @return  the number of alerts removed.
@@ -979,7 +979,7 @@ public class AlertsDAO implements Cleanable {
   }
 
   /**
-   * Merge the speicified alert with the existing alert in the database.
+   * Merge the specified alert with the existing alert in the database.
    *
    * @param alert
    *          the alert to merge (not {@code null}).
@@ -1037,7 +1037,7 @@ public class AlertsDAO implements Cleanable {
   }
 
   /**
-   * Merge the speicified current alert with the existing alert in the database.
+   * Merge the specified current alert with the existing alert in the database.
    *
    * @param alert
    *          the current alert to merge (not {@code null}).

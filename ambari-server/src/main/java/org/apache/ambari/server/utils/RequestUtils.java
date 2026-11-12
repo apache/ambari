@@ -104,7 +104,7 @@ public class RequestUtils {
   }
 
   /**
-   * Posts an informational message the the supplied {@link Logger} showing the request headers and
+   * Posts an informational message to the supplied {@link Logger} showing the request headers and
    * query parameters
    * <p>
    * For example:
@@ -204,7 +204,7 @@ public class RequestUtils {
   /**
    * Returns the value parsed from the request's query string for the given parameter name.
    * <p>
-   * If more than one value for the given parameter name is found, the first value will be retured.
+   * If more than one value for the given parameter name is found, the first value will be returned.
    *
    * @param request the {@link HttpServletRequest}
    * @return the value for the specified query parameter; or <code>null</code> if the

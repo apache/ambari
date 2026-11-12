@@ -1465,7 +1465,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           boolean preconfigure = includePreconfigureData && serviceDescriptor.shouldPreconfigure();
           boolean explicitlyAdded = installedServices.containsKey(serviceName);
 
-          // Add this service's identities if we are implicitly preconfigurring the service or if the
+          // Add this service's identities if we are implicitly preconfiguring the service or if the
           // service has been explicitly added to the cluster
           if (preconfigure || explicitlyAdded) {
             LOG.info("Adding identities for service {} to auth to local mapping [{}]",
@@ -2942,7 +2942,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       throw new AmbariException(message);
     }
 
-    // Set the KDCType to the the MIT_KDC as a fallback.
+    // Set the KDCType to MIT_KDC as a fallback.
     kerberosDetails.setKdcType((kdcType == null) ? KDCType.MIT_KDC : kdcType);
 
     return kerberosDetails;
@@ -3147,7 +3147,7 @@ public class KerberosHelperImpl implements KerberosHelper {
   /**
    * Given a Collection of ServiceComponentHosts generates a unique list of hosts.
    *
-   * @param serviceComponentHosts a Collection of ServiceComponentHosts from which to to retrieve host names
+   * @param serviceComponentHosts a Collection of ServiceComponentHosts from which to retrieve host names
    * @param allowedStates         a Set of HostStates to use to filter the list of hosts, if null, no filter is applied
    * @return a List of (unique) host names
    * @throws org.apache.ambari.server.AmbariException
@@ -3161,7 +3161,7 @@ public class KerberosHelperImpl implements KerberosHelper {
       for (ServiceComponentHost sch : serviceComponentHosts) {
         String hostname = sch.getHostName();
         if (!visitedHostNames.contains(hostname)) {
-          // If allowedStates is null, assume the caller doesnt care about the state of the host
+          // If allowedStates is null, assume the caller doesn't care about the state of the host
           // so skip the call to get the relevant Host data and just add the host to the list
           if (allowedStates == null) {
             hostNames.add(hostname);
@@ -3662,7 +3662,7 @@ public class KerberosHelperImpl implements KerberosHelper {
   }
 
   /**
-   * Combines a stack-level Kerberos descriptor with a user-suppled Kerberos descriptor to creae a
+   * Combines a stack-level Kerberos descriptor with a user-supplied Kerberos descriptor to create a
    * composite {@link KerberosDescriptor} using the following logic:
    * <p>
    * <ul>
@@ -4636,7 +4636,7 @@ public class KerberosHelperImpl implements KerberosHelper {
   }
 
   /**
-   * Filter out ServiceComponentHosts that are on on hosts in the specified set of host names.
+   * Filter out ServiceComponentHosts that are on hosts in the specified set of host names.
    * <p/>
    * It is expected that the supplied collection is modifiable. It will be modified inplace.
    *
@@ -4668,7 +4668,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * hosts from the set of hosts specified in the collection of relevant {@link ServiceComponentHost}.
    *
    * @param cluster                      the cluster
-   * @param serviceComponentHosts        a collction of {@link ServiceComponentHost}s that are
+   * @param serviceComponentHosts        a collection of {@link ServiceComponentHost}s that are
    *                                     relevant to the current operation
    * @param hostsWithValidKerberosClient the collection of hosts know to have the Kerberos client
    *                                     component installed

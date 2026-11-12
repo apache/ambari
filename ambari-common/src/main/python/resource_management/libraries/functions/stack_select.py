@@ -265,7 +265,7 @@ def get_packages(scope, service_name=None, component_name=None):
           f"The package {package} is not supported by this version of the stack-select tool."
         )
 
-  # transform the array bcak to a single element
+  # transform the array back to a single element
   if scope == PACKAGE_SCOPE_STACK_SELECT:
     packages = packages[0]
 

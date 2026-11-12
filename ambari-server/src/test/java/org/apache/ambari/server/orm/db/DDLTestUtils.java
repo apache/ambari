@@ -47,7 +47,7 @@ import com.google.common.io.Resources;
 
 /**
  * <p>
- * Utility to parse DDL scripts for verification and comparision. Parsing is not complete, only things relevant for
+ * Utility to parse DDL scripts for verification and comparison. Parsing is not complete, only things relevant for
  * the unit tests are considered, e.g. the column data types are not captured as they may differ across different SQL
  * dialects.
  * </p>
@@ -56,7 +56,7 @@ import com.google.common.io.Resources;
  * </p>
  * <ul>
  *   <li>Multiple statements in a single line are not supported, e.g: CREATE TABLE X(...); CREATE TABLE Y(...)</li>
- *   <li>Mutiple definitions in the same line within a create statement is supported though, e.g: name varchar(255), id bigint, ...</li>
+ *   <li>Multiple definitions in the same line within a create statement is supported though, e.g: name varchar(255), id bigint, ...</li>
  *   <li>Statements must be terminated by ;</li>
  * </ul>
  *
@@ -77,16 +77,16 @@ public class DDLTestUtils {
   private static final Pattern CreateIndex =  Pattern.compile("^\\s*create\\s+index.*$");
   private static final Pattern EndStatement = Pattern.compile("(.*\\;)\\s*$");
 
-  // These patterns are used to match column/constraint definitons in a create table statement
+  // These patterns are used to match column/constraint definitions in a create table statement
   // to capture the table name
   private static final Pattern TableName =   Pattern.compile("^\\s*create table\\s+([\\`\\w\\.\\_\\`]+).*$");
   // to capture the name and columns in a primary key
   private static final Pattern PK =          Pattern.compile("^.*constraint\\s+([\\w\\.\\_]+)\\s+primary\\s+key\\s*\\(([^\\)]+)\\).*$");
-  // to capture the name and columns in a clusterd primary key
+  // to capture the name and columns in a clustered primary key
   private static final Pattern PKClustered = Pattern.compile("^.*constraint\\s+([\\w\\.\\_]+)\\s+primary\\s+key\\s+clustered\\s*\\(([^\\)]+)\\).*$");
   // to capture the name and columns in a unique constraint
   private static final Pattern UQ =          Pattern.compile("^.*constraint\\s+([\\w\\.\\_]+)\\s+unique\\s*\\(([^\\)]+)\\).*$");
-  // to capture the name and columns and the referred columnd in a foreign key
+  // to capture the name and columns and the referred columns in a foreign key
   private static final Pattern FK =          Pattern.compile("^.*constraint\\s+([\\w\\.\\_]+)\\s+foreign\\s+key\\s*\\(([^\\)]*)\\)\\s*references\\s+([\\`\\w\\_\\.\\`]+)\\s*\\(([^\\)]+)\\).*$");
   // to capture the name of a columns
   private static final Pattern Col =         Pattern.compile("^\\s*([\\`\\\"\\[\\]\\w\\.\\_]+)\\s+.*$");
@@ -366,7 +366,7 @@ class DDL {
 }
 
 /**
- * Represents a datbase table
+ * Represents a database table
  */
 class Table {
   final String name;

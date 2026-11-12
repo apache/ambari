@@ -290,7 +290,7 @@ public class AmbariLdapAuthenticationProvider extends AmbariAuthenticationProvid
   /**
    * Given a DN from the LDAP server, find the owning UserEntity.
    * <p>
-   * DNs are case sensitive. Internally they are execpted to be stored as the bytes of the lowercase
+   * DNs are case sensitive. Internally they are expected to be stored as the bytes of the lowercase
    * string.
    * <p>
    * DN's are expected to be unique across all {@link UserAuthenticationEntity} records for type

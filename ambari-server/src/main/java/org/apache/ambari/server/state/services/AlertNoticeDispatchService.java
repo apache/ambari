@@ -182,7 +182,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
   private Configuration m_configuration;
 
   /**
-   * Ambari meta information used fro alert {@link Notification}s.
+   * Ambari meta information used for alert {@link Notification}s.
    */
   @Inject
   private Provider<AmbariMetaInfo> m_metaInfo;
@@ -1183,7 +1183,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
   }
 
   /**
-   * The {@link AlertTemplates} class represnts the {@link AlertTemplates} that
+   * The {@link AlertTemplates} class represents the {@link AlertTemplates} that
    * have been loaded, either by the {@link Configuration} or by the backup
    * {@code alert-templates.xml} file.
    */

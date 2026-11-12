@@ -896,13 +896,13 @@ App.BulkOperationsController = Em.Controller.extend({
       var slaveName = operationData.realComponentName;
       var hostNames = hostsWithComponentInProperState.join(',');
       if (turn_off) {
-        // For recommession
+        // For recommission
         if (svcName === "YARN" || svcName === "HBASE" || svcName === "HDFS") {
           App.router.get('mainHostDetailsController').doRecommissionAndStart(hostNames, svcName, masterName, slaveName);
         }
       } else {
         hostsWithComponentInProperState = components.filterProperty('workStatus', 'STARTED').mapProperty('hostName');
-        //For decommession
+        //For decommission
         if (svcName == "HBASE") {
           // HBASE service, decommission RegionServer in batch requests
           this.warnBeforeDecommission(hostNames);

@@ -1010,9 +1010,9 @@ public class HostRoleCommandDAO {
   }
 
   /**
-   * Gets a lists of hosts with commands in progress which occurr before the
+   * Gets a lists of hosts with commands in progress which occur before the
    * specified request ID. This will only return commands which are not
-   * {@link AgentCommandType#BACKGROUND_EXECUTION_COMMAND} as thsee commands do
+   * {@link AgentCommandType#BACKGROUND_EXECUTION_COMMAND} as these commands do
    * not block future requests.
    *
    * @param lowerRequestIdInclusive

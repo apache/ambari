@@ -50,7 +50,7 @@ import io.swagger.annotations.ApiResponses;
  * <p/>
  * The result sets returned by this service represent the set of authorizations assigned to a given user.
  * Authorizations are tied to a resource, so a user may have the multiple authorization entries for the
- * same authorization id (for example VIEW.USE), however each will represnet a different view instance.
+ * same authorization id (for example VIEW.USE), however each will represent a different view instance.
  */
 @Path("/users/{userName}/authorizations")
 @Api(value = "Users", description = "Endpoint for user specific operations")

@@ -245,7 +245,7 @@ angular.module('ambariAdminConsole')
    */
   $scope.addOS = function($event) {
     var dropdownEl = $event.target.parentElement.parentElement;
-    // close the dopdown when an OS is added.
+    // close the dropdown when an OS is added.
     $timeout(function () {
       dropdownEl.click();
     });
@@ -561,20 +561,20 @@ angular.module('ambariAdminConsole')
 
   $scope.setStackIds = function(stacks) {
     var stackIds = [];
-    // sort stacks as per per {stack_name}-{stack_version}
+    // sort stacks as per {stack_name}-{stack_version}
     stacks.sort(function(a,b){
       if (a.stackName === b.stackName) {
         var aStackVersion = parseFloat(a.stackVersion);
         var bStackVersion = parseFloat(b.stackVersion);
         if (aStackVersion === bStackVersion) {
-          // sort numerically as per per {repository_version}
+          // sort numerically as per {repository_version}
           return Utility.compareVersions(a.repositoryVersion, b.repositoryVersion);
         } else {
-          //sort numerically as per per {stack_version}
+          //sort numerically as per {stack_version}
           return aStackVersion > bStackVersion;
         }
       } else {
-        //sort lexicographically as per per {stack_name}
+        //sort lexicographically as per {stack_name}
         return  (a.stackName > b.stackName);
       }
     }).reverse();

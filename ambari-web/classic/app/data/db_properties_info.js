@@ -62,7 +62,7 @@ module.exports = {
   dpPropertiesMap: {
     'MYSQL': {
       'connection_url': 'jdbc:mysql://{0}/{1}',
-      /** in case property has different default value for specific service it can be overriden in such way **/
+      /** in case property has different default value for specific service it can be overridden in such way **/
       'HIVE': {
         'connection_url': 'jdbc:mysql://{0}/{1}?createDatabaseIfNotExist=true'
       },

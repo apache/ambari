@@ -1080,7 +1080,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
 
     // Get the changes so that the user's intention can be determined. For example, maybe
-    // the user wants to change the run-as user for a service or maybe the the cluster-wide
+    // the user wants to change the run-as user for a service or maybe the cluster-wide
     // recovery mode setting.
     Map<String, String[]> propertyChanges = getPropertyChanges(cluster, request);
 
@@ -2254,7 +2254,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    *
    * @param cluster the relevant cluster
    * @param request the request data
-   * @return a map lf property names to String arrays indicating the requsted changes ({current value, requested valiue})
+   * @return a map lf property names to String arrays indicating the requested changes ({current value, requested value})
    */
   private Map<String, String[]> getPropertyChanges(Cluster cluster, ConfigurationRequest request) {
     Map<String, String[]>  changedProperties = new HashMap<>();
@@ -2273,7 +2273,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       existingProperties = Collections.emptyMap();
     }
 
-    // Ensure all propery names are captured, including missing ones from either set.
+    // Ensure all property names are captured, including missing ones from either set.
     Set<String> propertyNames = new HashSet<>();
     propertyNames.addAll(requestedProperties.keySet());
     propertyNames.addAll(existingProperties.keySet());
@@ -3017,7 +3017,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                         // Since the KERBEROS/KERBEROS_CLIENT is about to be moved from the INIT to the
                         // INSTALLED state (and it should be by the time the stages (in this request)
                         // that need to be execute), collect the relevant hostname to make sure the
-                        // Kerberos logic doest not skip operations for it.
+                        // Kerberos logic does not skip operations for it.
                         hostsToForceKerberosOperations.add(scHost.getHostName());
                       }
                     }
@@ -3646,7 +3646,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return requestStages;
   }
 
-  //todo: for now made this public since is is still used by createHostComponents
+  //todo: for now made this public since it is still used by createHostComponents
   //todo: delete after all host component logic is in HostComponentResourceProvider
   public void validateServiceComponentHostRequest(ServiceComponentHostRequest request) {
     if (request.getClusterName() == null
@@ -5349,7 +5349,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   /**
    * Queries the CredentialStoreService to gather properties about it.
    * <p/>
-   * In particular, the details about which storage facilities are avaialble are returned via Boolean
+   * In particular, the details about which storage facilities are available are returned via Boolean
    * properties.
    *
    * @return a map of properties
@@ -5451,16 +5451,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * Validates that the authenticated user can modify configurations for either a service or the
    * cluster.
    * <p>
-   * Since some properties have special meaning, they may be ignored when perfoming this authorization
+   * Since some properties have special meaning, they may be ignored when performing this authorization
    * check. For example, to change the cluster's overall auto-start setting (cluster-env/recovery_enabled)
    * requires a specific permission that is not the same as the ability to set cluster-wide properties
-   * (in general).  Because of this, the <code>cluster-env/recovery_enabled</code> propery should be
+   * (in general).  Because of this, the <code>cluster-env/recovery_enabled</code> property should be
    * ignored in this check since permission to change it is expected to be validated elsewhere.
    *
    * @param cluster                the relevant cluster
    * @param configType             the changed configuration type
    * @param propertyChanges        a map of the property changes for the relevant configuration type
-   * @param changesToIgnore        a map of configuration type names to sets of propery names to be ignored
+   * @param changesToIgnore        a map of configuration type names to sets of property names to be ignored
    * @param isServiceConfiguration <code>true</code>, if the configuration type is a service-level configuration;
    *                               <code>false</code>, if the configuration type is a cluster-level configuration
    * @throws AuthorizationException if the authenticated user is not authorized to change the requested configuration

@@ -1103,7 +1103,7 @@ App.logger = function() {
 }();
 
 /**
- * Replce cruuent window location.
+ * Replace current window location.
  * `window.location.replace` is a native function and cannot be intercepted by Sinon,
  * it needs to be intercepted manually. See https://stackoverflow.com/a/52141931/14792586.
  * 

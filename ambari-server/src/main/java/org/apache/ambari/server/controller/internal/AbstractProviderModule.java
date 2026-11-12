@@ -473,7 +473,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   }
 
   /**
-   * Post process property value. If value has one ore some substrings
+   * Post process property value. If value has one or some substrings
    * started with "${" and ended with "}" these substrings will replace
    * with properties from current propertiesMap. It is doing recursively.
    *
@@ -647,7 +647,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   }
 
   // TODO: Fix for multi-service feature support (trunk)
-  // Called from a synchornized block !
+  // Called from a synchronized block !
   private void initProviderMaps() throws SystemException {
 
     jmxPortMap.clear();

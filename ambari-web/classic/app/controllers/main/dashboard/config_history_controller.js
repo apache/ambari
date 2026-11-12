@@ -171,7 +171,7 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   },
 
   /**
-   * get sort properties from local db. A overridden funtion from parent
+   * get sort properties from local db. A overridden function from parent
    * @return {Array}
    */
   getSortProps: function () {

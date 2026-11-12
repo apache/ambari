@@ -199,7 +199,7 @@ public class InitialAlertEventTest {
      */
     @Override
     public void configure(Binder binder) {
-      // sychronize on the ambari event bus for this test to work properly
+      // synchronize on the ambari event bus for this test to work properly
       EventBusSynchronizer.synchronizeAmbariEventPublisher(binder);
     }
   }

@@ -40,7 +40,7 @@ public abstract class AgentCommand {
   }
 
   /**
-   * Constructor. Must be invoked by all concrete subsclasses to properly set
+   * Constructor. Must be invoked by all concrete subclasses to properly set
    * the type.
    */
   public AgentCommand(AgentCommandType type) {

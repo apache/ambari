@@ -56,7 +56,7 @@ public interface CredentialStore {
    * Returns a list of the alias names for the credentials stored in the CredentialStore
    *
    * @return a Set of Strings representing alias names for the credentials stored in the CredentialStore
-   * @throws AmbariException if an error occurs while searching forthe credential
+   * @throws AmbariException if an error occurs while searching for the credential
    */
   Set<String> listCredentials() throws AmbariException;
 
@@ -65,7 +65,7 @@ public interface CredentialStore {
    *
    * @param alias a string declaring the alias (or name) of the credential
    * @return true if the alias exists; otherwise false
-   * @throws AmbariException if an error occurs while searching forthe credential
+   * @throws AmbariException if an error occurs while searching for the credential
    */
   boolean containsCredential(String alias) throws AmbariException;
 

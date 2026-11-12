@@ -96,7 +96,7 @@ public class KerberosKeytabsAction extends AbstractUpgradeServerAction {
     stdout.append(String.format("Ambari is managing Kerberos keytabs.  Regenerate " +
         "keytabs after upgrade is complete."));
 
-    // !!! make this holding, as the user must manually acknowlege.
+    // !!! make this holding, as the user must manually acknowledge.
     return createCommandReport(0, HostRoleStatus.HOLDING, "{}", stdout.toString(), "");
   }
 

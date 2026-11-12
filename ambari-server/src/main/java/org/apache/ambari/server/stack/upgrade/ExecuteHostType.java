@@ -35,7 +35,7 @@ public enum ExecuteHostType {
   MASTER,
 
   /**
-   * Run on a single host that satifies the condition of the {@link ExecuteTask}
+   * Run on a single host that satisfies the condition of the {@link ExecuteTask}
    * .
    */
   @XmlEnumValue("any")

@@ -97,7 +97,7 @@ public class MpackManagerMock extends MpackManager {
   }
 
   /**
-   * Parses mpackdirectories during boostrap/ambari-server restart
+   * Parses mpackdirectories during bootstrap/ambari-server restart
    * Reads from /var/lib/ambari-server/mpacks-v2/
    *
    * @throws IOException

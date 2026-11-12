@@ -115,7 +115,7 @@ App.EditableList = Ember.View.extend({
         });
         self.clearInput();
       } else {
-        // Load typeahed items based on current input
+        // Load typeahead items based on current input
         var items = self.get('availableItemsToAdd');
         self.set('typeahead', items);
         self.set('selectedTypeahed', 0);

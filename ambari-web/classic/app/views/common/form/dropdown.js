@@ -48,7 +48,7 @@ App.DropdownView = Em.View.extend({
   },
 
   /**
-   * value should be updated after updating selection and vise versa
+   * value should be updated after updating selection and vice versa
    */
   onValueOrSelectionUpdate: function (context, property) {
     var selection = this.get('selection');

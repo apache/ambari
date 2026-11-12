@@ -137,7 +137,7 @@ public interface DbmsHelper {
   String getSetNullableStatement(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable);
 
   /**
-   * Get's the {@code UPDATE} statement for {@code sourceTable} for copy column from {@code targetTable} by matching
+   * Gets the {@code UPDATE} statement for {@code sourceTable} for copy column from {@code targetTable} by matching
    * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
    *
    * @param sourceTable
@@ -158,7 +158,7 @@ public interface DbmsHelper {
                                               String targetTable, String targetColumnName, String targetIDColumnName);
 
   /**
-   * Get's the {@code UPDATE} statement for {@code sourceTable} for copy column from {@code targetTable} by matching
+   * Gets the {@code UPDATE} statement for {@code sourceTable} for copy column from {@code targetTable} by matching
    * table keys {@code sourceIDColumnName} and {@code targetIDColumnName}
    * and condition {@code sourceConditionFieldName} = {@code condition}
    *
@@ -185,11 +185,11 @@ public interface DbmsHelper {
                                               String sourceConditionFieldName, String condition);
 
   /**
-   * Gets whether the database platform supports adding contraints after the
+   * Gets whether the database platform supports adding constraints after the
    * {@code NULL} constraint. Some database, such as Oracle, don't allow this.
    * Unfortunately, EclipsLink hard codes the order of constraints.
    *
-   * @return {@code true} if contraints can be added after the {@code NULL}
+   * @return {@code true} if constraints can be added after the {@code NULL}
    *         constraint, {@code false} otherwise.
    */
   boolean isConstraintSupportedAfterNullability();

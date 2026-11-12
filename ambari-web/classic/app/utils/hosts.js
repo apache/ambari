@@ -32,7 +32,7 @@ module.exports = {
    *
    * @param initialHosts  {App.Host[]} List of hosts to pick from
    * @param selectedHosts {App.Host[]} List of hosts already selected from the available hosts
-   * @param selectAtleastOneHost  {boolean} If true atleast one host has to be selected
+   * @param selectAtleastOneHost  {boolean} If true at least one host has to be selected
    * @param validComponents {App.HostComponent[]} List of host-component types to pick from.
    * @param callback  Callback function which is invoked when dialog
    * @param popupDescription {Object} Consist header and message for popup

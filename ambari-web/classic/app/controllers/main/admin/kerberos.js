@@ -25,7 +25,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
   /**
    * @type {boolean}
-   * @deafult false
+   * @default false
    */
   securityEnabled: false,
 
@@ -224,7 +224,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   }.observes('controllers.backgroundOperationsController.runningOperationsCount'),
 
   /**
-   * performs cluster check before kerbefos security
+   * performs cluster check before kerberos security
    * wizard starts if <code>preKerberizeCheck<code> supports is true
    * otherwise runs <code>startKerberosWizard<code>
    * @method checkAndStartKerberosWizard
@@ -501,7 +501,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   isSaveButtonDisabled: Em.computed.or('isSubmitDisabled', '!isPropertiesChanged'),
 
   /**
-   * Determines if the `Disbale Kerberos` and `Regenerate Keytabs` button are disabled
+   * Determines if the `Disable Kerberos` and `Regenerate Keytabs` button are disabled
    */
   isKerberosButtonsDisabled: Em.computed.not('isSaveButtonDisabled'),
 

@@ -102,7 +102,7 @@ App.MoveRmConfigInitializer = App.MoveComponentConfigInitializerClass.create({
    * }
    *
    * dependencies is defined by ReassignMasterWizardStep4Controller._getRmAdditionalDependencies()
-   * Move RM Wizard has 2 combobox in HA case, but it seems to gurantee users can change only one of them.
+   * Move RM Wizard has 2 combobox in HA case, but it seems to guarantee users can change only one of them.
    * (Thus, there is only one pair of sourceHostName and targetHostName)
    *
    */

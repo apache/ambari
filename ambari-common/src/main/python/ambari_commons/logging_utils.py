@@ -73,7 +73,7 @@ def set_debug_mode_from_options(options):
 
 
 #
-# Prints an "info" messsage.
+# Prints an "info" message.
 #
 def print_info_msg(msg, forced=False):
   if forced:
@@ -84,14 +84,14 @@ def print_info_msg(msg, forced=False):
 
 
 #
-# Prints an "error" messsage.
+# Prints an "error" message.
 #
 def print_error_msg(msg):
   print("ERROR: " + msg)
 
 
 #
-# Prints a "warning" messsage.
+# Prints a "warning" message.
 #
 def print_warning_msg(msg, bold=False):
   if bold:

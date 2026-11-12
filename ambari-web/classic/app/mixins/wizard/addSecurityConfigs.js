@@ -242,7 +242,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var identities = kerberosDescriptor.identities;
 
     /**
-     * Returns indentity object with additional attribute `referencePath`.
+     * Returns identity object with additional attribute `referencePath`.
      * Reference path depends on how deep identity is. Each level separated by `/` sign.
      *
      * @param {object} identity
@@ -711,7 +711,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
       var propertyMap = acc;
       var recommendedProperties = Em.getWithDefault(recommendedConfigurations, fileName + '.properties', {});
       var recommendedAttributes = Em.getWithDefault(recommendedConfigurations, fileName + '.property_attributes', {});
-      // check for properties that should be delted
+      // check for properties that should be deleted
       Em.keys(recommendedAttributes).forEach(function(propertyName) {
         var attribute = recommendedAttributes[propertyName];
         // delete properties which are present in kerberos descriptor
@@ -791,7 +791,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
 
   /**
    * Callback executed when all configs specified by tags are loaded.
-   * Here we handle configurations for instlled services and Kerberos.
+   * Here we handle configurations for installed services and Kerberos.
    * Gather needed info for recommendation request such as configurations object.
    *
    * @override
@@ -808,7 +808,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
       return Object.keys(service.get('configTypes'));
     }, this).compact()).uniq(); // cleanup <code>null</code>
 
-    // take all configs for selected services by config types recieved from API response
+    // take all configs for selected services by config types received from API response
     var serviceConfigTags = Em.keys(data.Clusters.desired_configs).reduce(function(tags, site) {
       if (data.Clusters.desired_configs.hasOwnProperty(site)) {
         // push cluster-env.xml also since it not associated with any service but need to further processing

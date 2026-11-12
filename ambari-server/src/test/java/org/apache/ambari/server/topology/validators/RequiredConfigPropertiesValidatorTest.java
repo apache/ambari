@@ -86,7 +86,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
   /**
    * Assembles the basic default fixture of the test:
    * The blueprint has 2 hostgroups, both of them contains the KERBEROS service (or KERBEROS_CLIENT)
-   * The changing items are the configurations, that my come from the topology (bp + cct) or the hostg roups
+   * The changing items are the configurations, that may come from the topology (bp + cct) or the host groups
    */
 
   @Before
@@ -164,7 +164,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     }
 
     // THEN
-    // Exception is thrown, as the krb5-conf typeeis not provided
+    // Exception is thrown, as the krb5-conf type is not provided
     Assert.assertEquals("The exception message should be the expected one", expectedMsg, actualMsg);
   }
 
@@ -176,7 +176,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     topologyConfigurationMap.put("kerberos-env", new HashMap<>());
     topologyConfigurationMap.get("kerberos-env").put("realm", "etwas");
 
-    // note, that tehe kdc_type is mssing from the operational config
+    // note, that the kdc_type is missing from the operational config
 
     topologyConfigurationMap.put("krb5-conf", new HashMap<>());
     topologyConfigurationMap.get("krb5-conf").put("domains", "smthg");
@@ -196,7 +196,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     }
 
     // THEN
-    // Exception is thrown, as the krb5-conf typee is not provideds
+    // Exception is thrown, as the krb5-conf type is not provided
     Assert.assertEquals("The exception message should be the expected one", expectedMsg, actualMsg);
 
   }
@@ -249,7 +249,7 @@ public class RequiredConfigPropertiesValidatorTest extends EasyMockSupport {
     }
 
     // THEN
-    // Exception is thrown, as the krb5-conf typee is not provideds
+    // Exception is thrown, as the krb5-conf type is not provided
     Assert.assertEquals("The exception message should be the expected one", expectedMsg, actualMsg);
   }
 

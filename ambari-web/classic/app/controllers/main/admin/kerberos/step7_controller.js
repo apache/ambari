@@ -33,7 +33,7 @@ App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend(Ap
   isBackButtonDisabled: true,
 
   /**
-   * Start cluster kerberization. On retry just unkerberize and kerbrize cluster.
+   * Start cluster kerberization. On retry just unkerberize and kerberize cluster.
    * @param {bool} isRetry
    */
   setRequest: function (isRetry) {
@@ -62,7 +62,7 @@ App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend(Ap
   },
 
   /**
-   * Send request to unkerberisze cluster
+   * Send request to unkerberize cluster
    * @returns {$.ajax}
    */
   unkerberizeCluster: function () {

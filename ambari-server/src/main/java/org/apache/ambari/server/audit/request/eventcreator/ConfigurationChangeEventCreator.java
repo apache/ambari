@@ -121,7 +121,7 @@ public class ConfigurationChangeEventCreator implements RequestAuditEventCreator
   }
 
   /**
-   * Returns service configurationv ersion note from the result
+   * Returns service configuration version note from the result
    * @param result
    * @return
    */

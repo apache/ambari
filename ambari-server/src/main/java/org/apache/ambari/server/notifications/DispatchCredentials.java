@@ -19,7 +19,7 @@ package org.apache.ambari.server.notifications;
 
 /**
  * The {@link DispatchCredentials} represent a generic username/password model
- * that can be passed to a {@link NotificationDispatcher} in order to authentice
+ * that can be passed to a {@link NotificationDispatcher} in order to authenticate
  * with a backend dispatcher.
  */
 public class DispatchCredentials {

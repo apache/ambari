@@ -548,7 +548,7 @@ public class ViewRegistry {
    * Determine whether or not the given view instance exists.
    *
    * @param instanceEntity the view instance entity
-   * @return true if the the given view instance exists; false otherwise
+   * @return true if the given view instance exists; false otherwise
    */
   public boolean instanceExists(ViewInstanceEntity instanceEntity) {
 
@@ -1984,7 +1984,7 @@ public class ViewRegistry {
    * Set access to the a particular view instance based on a set of roles.
    * <p>
    * View access to the specified view instances will be granted to anyone directly or indirectly
-   * assigned to one of the roles in the suppled set of role names.
+   * assigned to one of the roles in the supplied set of role names.
    *
    * @param viewInstanceEntity a view instance entity
    * @param roles              the set of roles to use to for granting access
@@ -2217,7 +2217,7 @@ public class ViewRegistry {
 
   /**
    * Get baseurl of the cluster
-   * baseurl wil be http://host:port
+   * baseurl will be http://host:port
    *
    * @param url will be in format like http://host:port/api/v1/clusters/clusterName
    * @return baseurl

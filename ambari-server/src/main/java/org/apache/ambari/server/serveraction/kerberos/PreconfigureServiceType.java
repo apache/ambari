@@ -40,7 +40,7 @@ public enum PreconfigureServiceType {
   ALL,
 
   /**
-   * Do not preconfiure any services, even if flagged.
+   * Do not preconfigure any services, even if flagged.
    */
   NONE
 }

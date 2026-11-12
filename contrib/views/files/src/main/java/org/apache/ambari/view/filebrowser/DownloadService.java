@@ -86,7 +86,7 @@ public class DownloadService extends HdfsService {
   /**
    * Download entire file
    * @param path path to file
-   * @param download download as octet strem or as file mime type
+   * @param download download as octet stream or as file mime type
    * @param checkperm used to check if the file can be downloaded. Takes precedence when both download and checkperm
    *                  is set.
    * @param headers http headers
@@ -321,7 +321,7 @@ public class DownloadService extends HdfsService {
   /**
    * Generate link for zip
    * @param request download request
-   * @return response wth request id
+   * @return response with request id
    * @see #zipByRequestId(String)
    */
   @POST
@@ -359,7 +359,7 @@ public class DownloadService extends HdfsService {
   /**
    * Generate link for concat
    * @param request download request
-   * @return response wth request id
+   * @return response with request id
    * @see #concatByRequestId(String)
    */
   @POST

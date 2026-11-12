@@ -115,7 +115,7 @@ public class RequestAuditLoggerImpl implements RequestAuditLogger {
   }
 
   /**
-   * Calculates the creator priority for the actual resouce type, result status and request type
+   * Calculates the creator priority for the actual resource type, result status and request type
    * @param creator
    * @param resourceType
    * @param resultStatus

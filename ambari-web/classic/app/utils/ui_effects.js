@@ -22,7 +22,7 @@ module.exports = {
    * @param node {DOMElement} - DOM element which blinking
    * @param delay {number} - overall time of blinking
    * @param callback {function}
-   * @param interval {number} - change frequence of blinking
+   * @param interval {number} - change frequency of blinking
    */
   pulsate: function (node, delay, callback, interval) {
     var self = this;

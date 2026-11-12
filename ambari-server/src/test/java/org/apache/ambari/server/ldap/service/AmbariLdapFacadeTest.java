@@ -67,7 +67,7 @@ public class AmbariLdapFacadeTest extends EasyMockSupport {
 
   /**
    * Tests whether the facade method call delegates to the proper service call.
-   * The thest is success if the same instance is passed to the service.
+   * The test is success if the same instance is passed to the service.
    *
    * @throws Exception
    */

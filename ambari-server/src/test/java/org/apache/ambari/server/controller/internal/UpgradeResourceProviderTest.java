@@ -326,7 +326,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   /**
    * Obtain request id from the {@code RequestStatus}
    *
-   * @param requestStatus reqult of the {@code createResources}
+   * @param requestStatus result of the {@code createResources}
    * @return id of the request
    */
   private long getRequestId(RequestStatus requestStatus) {
@@ -695,7 +695,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
 
-    // push a ZK server foward to the new repo version, leaving the old one on
+    // push a ZK server forward to the new repo version, leaving the old one on
     // the old version
     ServiceComponent component = service.getServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h2");
@@ -999,7 +999,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
     assertTrue(commands.size() > 5);
 
     // now, set some status of the commands to reflect an actual aborted upgrade
-    // (some completed, some faiures, some timeouts)
+    // (some completed, some failures, some timeouts)
     HostRoleCommandDAO dao = injector.getInstance(HostRoleCommandDAO.class);
     for (int i = 0; i < commands.size(); i++) {
       HostRoleCommand command = commands.get(i);
@@ -1483,7 +1483,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
   }
 
   /**
-   * Tests that an error while commiting the data cleanly rolls back the transaction so that
+   * Tests that an error while committing the data cleanly rolls back the transaction so that
    * no request/stage/tasks are created.
    *
    * @throws Exception
@@ -1583,7 +1583,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
   /**
    * Exercises that a component that goes from upgrade->downgrade that switches
-   * {@code versionAdvertised} between will go to UKNOWN. This exercises
+   * {@code versionAdvertised} between will go to UNKNOWN. This exercises
    * {@link UpgradeHelper#updateDesiredRepositoriesAndConfigs(UpgradeContext)}
    *
    * @throws Exception
@@ -1854,7 +1854,7 @@ public class UpgradeResourceProviderTest extends EasyMockSupport {
 
   /**
    * Tests that when there is no revertable upgrade, a reversion of a specific
-   * ugprade ID is not allowed.
+   * upgrade ID is not allowed.
    */
   @Test(expected = SystemException.class)
   public void testRevertFailsWhenNoRevertableUpgradeIsFound() throws Exception {

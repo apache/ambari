@@ -99,7 +99,7 @@ public class RetryUpgradeActionServiceTest {
   }
 
   /**
-   * Test the gauva service allows retrying certain failed actions during a stack upgrade.
+   * Test the guava service allows retrying certain failed actions during a stack upgrade.
    * Case 1: No cluster => no-op
    * Case 2: Cluster and valid timeout, but no active upgrade => no-op
    * Case 3: Cluster with an active upgrade, but no HOLDING_FAILED|HOLDING_TIMEDOUT commands => no-op
@@ -108,7 +108,7 @@ public class RetryUpgradeActionServiceTest {
    * Case 5: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that
    * DOES meet conditions to be retried and has values for start time and original start time => retries the task
    * * Case 6: Cluster with an active upgrade that contains a failed task in HOLDING_TIMEDOUT that
-   * DOES meet conditions to be retriedand does not have values for start time or original start time => retries the task
+   * DOES meet conditions to be retried and does not have values for start time or original start time => retries the task
    * Case 7: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED that
    * was already retried and has now expired => no-op
    * Case 8: Cluster with an active upgrade that contains a failed task in HOLDING_FAILED, but it is a critical task

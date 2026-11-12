@@ -20,7 +20,7 @@ var App = require('app');
 var credentialsUtils = require('utils/credentials');
 
 /**
- * @param {Object} ajaxOpt - callbek funciton when clicking save
+ * @param {Object} ajaxOpt - callback function when clicking save
  * @param {Object} message - warning message
  * @return {*}
  */

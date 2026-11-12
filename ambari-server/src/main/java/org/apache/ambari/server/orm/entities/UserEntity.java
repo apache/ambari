@@ -216,7 +216,7 @@ public class UserEntity {
   /**
    * Returns the version number of the relevant data stored in the database.
    * <p>
-   * This is used to help ensure that collisions updatin the relevant data in the database are
+   * This is used to help ensure that collisions updating the relevant data in the database are
    * handled properly via Optimistic locking.
    *
    * @return a version number
@@ -228,7 +228,7 @@ public class UserEntity {
   /**
    * Sets the version number of the relevant data stored in the database.
    * <p>
-   * This is used to help ensure that collisions updatin the relevant data in the database are
+   * This is used to help ensure that collisions updating the relevant data in the database are
    * handled properly via Optimistic locking.  It is recommended that this value is <b>not</b>
    * manually updated, else issues may occur when persisting the data.
    *

@@ -124,7 +124,7 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
   private String ownerAccess = null;
 
   /**
-   * A String declaring the local groip name that should be set as the group owner of the keytab file
+   * A String declaring the local group name that should be set as the group owner of the keytab file
    */
   private String groupName = null;
 

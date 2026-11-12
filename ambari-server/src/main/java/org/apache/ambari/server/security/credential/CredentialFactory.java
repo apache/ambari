@@ -19,7 +19,7 @@
 package org.apache.ambari.server.security.credential;
 
 /**
- * CredentialFactory create Credential instances after determing what type of Credential is represented
+ * CredentialFactory create Credential instances after determining what type of Credential is represented
  * by the value data.
  */
 public class CredentialFactory {

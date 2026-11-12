@@ -679,7 +679,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
-   * load version for services to display on Choose Servoces page
+   * load version for services to display on Choose Services page
    * should load from VersionDefinition endpoint
    */
   loadServiceVersionFromVersionDefinitions: function () {

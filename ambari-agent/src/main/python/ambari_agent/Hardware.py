@@ -149,7 +149,7 @@ class Hardware:
 
     for el in blacklist:
       el_list = el.split(self.LINUX_PATH_SEP)
-      # making patch elements comparision
+      # making patch elements comparison
       if el_list == mount_point_elements[: len(el_list)]:
         return True
 

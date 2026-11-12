@@ -90,7 +90,7 @@ public class DDLTests {
    * <ul>
    *   <li>There are no unnamed constraints</li>
    *   <li>Alter tables are only used in exceptional cases</li>
-   *   <li>Table and constraint name lenghts doesn't exceed 30 (a restriction imposed by Oracle)</li>
+   *   <li>Table and constraint name lengths doesn't exceed 30 (a restriction imposed by Oracle)</li>
    * </ul>
    *
    */

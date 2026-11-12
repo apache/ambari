@@ -208,7 +208,7 @@ public class MetricsRetrievalService extends AbstractService {
           TimeUnit.SECONDS).build();
     }
 
-    // iniitalize the executor service
+    // initialize the executor service
     int corePoolSize = m_configuration.getMetricsServiceThreadPoolCoreSize();
     int maxPoolSize = m_configuration.getMetricsServiceThreadPoolMaxSize();
     m_queueMaximumSize = m_configuration.getMetricsServiceWorkerQueueSize();
@@ -470,7 +470,7 @@ public class MetricsRetrievalService extends AbstractService {
 
     /**
      * Reads data from the specified {@link InputStream} and processes that into
-     * a cachable value. The value will then be cached by this method.
+     * a cacheable value. The value will then be cached by this method.
      *
      * @param inputStream
      * @throws Exception

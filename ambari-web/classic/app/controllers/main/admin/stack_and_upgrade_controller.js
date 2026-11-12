@@ -1310,7 +1310,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   /**
-   * send request to get available upgrade tye names
+   * send request to get available upgrade type names
    */
   getSupportedUpgradeTypes: function(data) {
     this.set('isUpgradeTypesLoaded', false);
@@ -1575,7 +1575,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * sends request to install repoVersion to the cluster
-   * and create clusterStackVersion resourse
+   * and create clusterStackVersion resource
    * @param {Em.Object} repo
    * @return {$.ajax}
    * @method installRepoVersion
@@ -1751,7 +1751,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * perform validation if <code>skip<code> is  false and run save if
-   * validation successfull or run save without validation is <code>skip<code> is true
+   * validation successful or run save without validation is <code>skip<code> is true
    * @param {Em.Object} repo
    * @param {boolean} skip
    * @returns {$.Deferred}

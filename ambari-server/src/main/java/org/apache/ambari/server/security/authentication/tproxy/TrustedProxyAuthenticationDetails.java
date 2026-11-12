@@ -28,7 +28,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetails;
  * contains information from an {@link HttpServletRequest} that can be used for handling trusted
  * proxy authentication requests.
  * <p>
- * If the request is not from a trusted proxy, the internal valiues will be null.
+ * If the request is not from a trusted proxy, the internal values will be null.
  */
 public class TrustedProxyAuthenticationDetails extends WebAuthenticationDetails {
   private final String doAs;

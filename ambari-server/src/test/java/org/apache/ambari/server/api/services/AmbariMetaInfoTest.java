@@ -383,7 +383,7 @@ public class AmbariMetaInfoTest {
 
 
   /**
-   * Make sure global mapping is avaliable when global.xml is
+   * Make sure global mapping is available when global.xml is
    * in the path.
    */
   @Test

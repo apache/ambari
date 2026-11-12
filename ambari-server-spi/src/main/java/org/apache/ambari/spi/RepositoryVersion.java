@@ -18,7 +18,7 @@
 package org.apache.ambari.spi;
 
 /**
- * A simple POJO to encapslate information about a repository.
+ * A simple POJO to encapsulate information about a repository.
  */
 public class RepositoryVersion {
 

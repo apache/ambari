@@ -252,7 +252,7 @@ public class ViewDirectoryWatcher implements DirectoryWatcher {
     Path path = Paths.get(viewsDir.getAbsolutePath());
 
     watchService = path.getFileSystem().newWatchService();
-    //Watch vews directory for creation events
+    //Watch views directory for creation events
     path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE);
     return path;
 

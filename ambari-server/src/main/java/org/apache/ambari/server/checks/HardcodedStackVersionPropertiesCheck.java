@@ -113,7 +113,7 @@ public class HardcodedStackVersionPropertiesCheck extends ClusterCheck {
   }
 
   /**
-   * Returns pattern that looks for hdp version hardcoded occurences, except
+   * Returns pattern that looks for hdp version hardcoded occurrences, except
    * those that start with "-Dhdp.version=" string
    * @param hdpVersion hdp version to search for
    * @return compiled pattern

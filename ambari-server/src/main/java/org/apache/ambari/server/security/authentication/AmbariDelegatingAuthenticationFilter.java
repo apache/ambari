@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  * For {@link Filter#init(FilterConfig)} and {@link Filter#destroy()} operations, all contained filters
  * will be called.  For {@link Filter#doFilter(ServletRequest, ServletResponse, FilterChain)}, each
  * filter will be accessed in order to test whether is should be used or skipped.  Once a filter
- * claims it is to be used for the operation, interation stops ensuring at most only one of the contained
+ * claims it is to be used for the operation, iteration stops ensuring at most only one of the contained
  * filters is invoked.
  */
 @Component

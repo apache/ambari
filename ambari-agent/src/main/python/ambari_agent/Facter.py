@@ -77,7 +77,7 @@ class Facter(object):
       log.warning(err)
     return config
 
-  # Return first ip adress
+  # Return first ip address
   def getIpAddress(self):
     return socket.gethostbyname(self.getFqdn().lower())
 

@@ -23,7 +23,7 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
   serviceName: 'STORM',
 
   /**
-   * this parameter is used to fiter hosts by component name
+   * this parameter is used to filter hosts by component name
    * used in mainHostController.filterByComponent() method
    */
   filterComponent: Em.Object.create({componentName: 'SUPERVISOR'}),

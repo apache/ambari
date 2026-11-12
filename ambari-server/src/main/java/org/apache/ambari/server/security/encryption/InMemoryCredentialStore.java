@@ -40,7 +40,7 @@ import com.google.common.cache.CacheBuilder;
  * encrypted using the key from the supplied {@link MasterKeyService}.
  * <p/>
  * This class handles the details of the in-memory storage buffer and associated input and output
- * streams. Each credential is stored in its own KeyStore that may be be purged upon some
+ * streams. Each credential is stored in its own KeyStore that may be purged upon some
  * retention timeout - if specified.
  */
 public class InMemoryCredentialStore extends AbstractCredentialStore {
@@ -188,7 +188,7 @@ public class InMemoryCredentialStore extends AbstractCredentialStore {
    * This implementation is thread-safe, allowing one thread at a time to access the credential store.
    *
    * @return a Set of Strings representing alias names for the credentials stored in the CredentialStore
-   * @throws AmbariException if an error occurs while searching forthe credential
+   * @throws AmbariException if an error occurs while searching for the credential
    */
   @Override
   public Set<String> listCredentials() throws AmbariException {
@@ -208,7 +208,7 @@ public class InMemoryCredentialStore extends AbstractCredentialStore {
    *
    * @param alias a string declaring the alias (or name) of the credential
    * @return true if the alias exists; otherwise false
-   * @throws AmbariException if an error occurs while searching forthe credential
+   * @throws AmbariException if an error occurs while searching for the credential
    */
   @Override
   public boolean containsCredential(String alias) throws AmbariException {

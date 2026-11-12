@@ -45,7 +45,7 @@ import com.google.inject.Singleton;
  * upgrade that they are included in the repository.
  * <p/>
  * This check is to prevent problems which can be caused by trying to patch
- * upgrade services which have known depdenencies on other services because of
+ * upgrade services which have known dependencies on other services because of
  * things like hard coded versions.
  */
 @Singleton

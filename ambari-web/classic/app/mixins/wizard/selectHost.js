@@ -36,7 +36,7 @@ App.SelectHost = Em.Mixin.create({
   component: null,
 
   /**
-   * List of avaiable host names
+   * List of available host names
    * @type {string[]}
    */
   content: [],
@@ -90,7 +90,7 @@ App.SelectHost = Em.Mixin.create({
   /**
    * Handler for value changing
    * Should be redeclared in child views
-   * Each redeclarion should contains code:
+   * Each redeclaration should contains code:
    * <code>
    *   if (!this.shouldChangeHandlerBeCalled()) return;
    * </code>

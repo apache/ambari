@@ -156,7 +156,7 @@ public class AlertNoticeEntity {
   /**
    * Gets the associated alert history entry for this alert notice.
    *
-   * @return the historical event that traiggered this notice's creation (never
+   * @return the historical event that triggered this notice's creation (never
    *         {@code null}).
    */
   public AlertHistoryEntity getAlertHistory() {
@@ -167,7 +167,7 @@ public class AlertNoticeEntity {
    * Sets the associated alert history entry for this alert notice.
    *
    * @param alertHistory
-   *          the historical event that traiggered this notice's creation (not
+   *          the historical event that triggered this notice's creation (not
    *          {@code null}).
    */
   public void setAlertHistory(AlertHistoryEntity alertHistory) {

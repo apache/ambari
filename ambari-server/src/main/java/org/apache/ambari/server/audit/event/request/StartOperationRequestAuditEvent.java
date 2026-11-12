@@ -58,7 +58,7 @@ public class StartOperationRequestAuditEvent extends AbstractUserAuditEvent {
 
     /**
      * Appends to the audit event the identifier of the
-     * operation through whcih the operation progress can be tracked.
+     * operation through which the operation progress can be tracked.
      *
      * @param builder builder for the audit event details.
      */

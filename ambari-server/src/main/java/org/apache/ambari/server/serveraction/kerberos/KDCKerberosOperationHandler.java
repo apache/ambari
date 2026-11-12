@@ -70,15 +70,15 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
   /**
    * The absolute path to the KDC administrator's Kerberos ticket cache.
    * <p>
-   * This path is created as as temporary file with a randomized name when this {@link KerberosOperationHandler}
-   * is open.  It is destoryed when this {@link KerberosOperationHandler} is closed.
+   * This path is created as a temporary file with a randomized name when this {@link KerberosOperationHandler}
+   * is open.  It is destroyed when this {@link KerberosOperationHandler} is closed.
    */
   private File credentialsCacheFile = null;
 
   /**
-   * A Map of environmet values to send to system command invocations.
+   * A Map of environment values to send to system command invocations.
    * <p>
-   * This map is to be appened to any map of environment values passed in when
+   * This map is to be appended to any map of environment values passed in when
    * invoking {@link KerberosOperationHandler#executeCommand(String[], Map, ShellCommandUtil.InteractiveHandler)}
    */
   private Map<String, String> environmentMap = null;
@@ -90,7 +90,7 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
     super.open(administratorCredentials, realm, kerberosConfiguration);
 
     if (kerberosConfiguration != null) {
-      // Spit the host and port from the the admin_server_host value
+      // Split the host and port from the admin_server_host value
       String value = kerberosConfiguration.get(KERBEROS_ENV_ADMIN_SERVER_HOST);
       HostAndPort hostAndPort = HTTPUtils.getHostAndPortFromProperty(value);
 
@@ -263,11 +263,11 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
   }
 
   /**
-   * Return an array of Strings containing the command and the relavant arguments needed authenticate
+   * Return an array of Strings containing the command and the relevant arguments needed authenticate
    * with the KDC and create the Kerberos ticket/credential cache.
    *
    * @param executableKinit  the absolute path to the kinit executable
-   * @param credentials      the KDC adminisrator's credentials
+   * @param credentials      the KDC administrator's credentials
    * @param credentialsCache the absolute path to the expected location of the Kerberos ticket/credential cache file
    * @param kerberosConfigurations  a Map of key/value pairs containing data from the kerberos-env configuration set
    * @throws KerberosOperationException in case there was any error during kinit command creation
@@ -280,7 +280,7 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
    *
    * @param principal                 the principal name
    * @param keytabFileDestinationPath the absolute path to the keytab file
-   * @param keyEncryptionTypes        a collection of encrption algorithm types indicating which ketyab entries are requested
+   * @param keyEncryptionTypes        a collection of encryption algorithm types indicating which keytab entries are requested
    * @throws KerberosOperationException
    */
   protected abstract void exportKeytabFile(String principal, String keytabFileDestinationPath, Set<EncryptionType> keyEncryptionTypes) throws KerberosOperationException;
@@ -289,7 +289,7 @@ abstract class KDCKerberosOperationHandler extends KerberosOperationHandler {
    * Initialize the Kerberos ticket cache using the supplied KDC administrator's credentials.
    * <p>
    * A randomly named temporary file is created to store the Kerberos ticket cache for this {@link KerberosOperationHandler}'s
-   * session. The file will be removed upon closing when the session is complete.  The geneated ticket cache
+   * session. The file will be removed upon closing when the session is complete.  The generated ticket cache
    * filename is set in the environment variable map using the variable name "KRB5CCNAME". This will be passed
    * in for all relevant-system commands.
    *

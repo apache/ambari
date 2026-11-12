@@ -177,7 +177,7 @@ public class AddComponentActionTest extends EasyMockSupport {
   }
 
   /**
-   * Tests that we fail when the candidateg service isn't installed in the
+   * Tests that we fail when the candidate service isn't installed in the
    * cluster.
    *
    * @throws Exception

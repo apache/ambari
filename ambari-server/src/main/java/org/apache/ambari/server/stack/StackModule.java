@@ -1248,7 +1248,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    *   <li>It has the same id as another service repo</li>
    * </ul>
    * Duplicate repo url's only results in warnings in the log. Duplicates are checked per os type, so e.g. the same repo
-   * can exsist for centos5 and centos6.
+   * can exist for centos5 and centos6.
    * @param stackRepos the list of stack repositories
    * @return the service repos with duplicates filtered out.
    */

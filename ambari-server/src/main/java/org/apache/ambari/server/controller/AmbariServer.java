@@ -447,7 +447,7 @@ public class AmbariServer {
 
       Map<String, String> configsMap = configs.getConfigsMap();
 
-      // Agents download cert on on-way connector but always communicate on
+      // Agents download cert on one-way connector but always communicate on
       // two-way connector for server-agent communication
       ServerConnector agentOneWayConnector = createSelectChannelConnectorForAgent(serverForAgent, configs.getOneWayAuthPort(), false, agentAcceptors);
       ServerConnector agentTwoWayConnector = createSelectChannelConnectorForAgent(serverForAgent, configs.getTwoWayAuthPort(), configs.isTwoWaySsl(), agentAcceptors);
@@ -749,7 +749,7 @@ public class AmbariServer {
    * The {@link SelectChannelConnector} uses the
    * {@link Runtime#availableProcessors()} as a way to determine how many
    * acceptors and selectors to create. If the number of processors is too
-   * great, then there will be no threads left to fullfil connection requests.
+   * great, then there will be no threads left to fulfill connection requests.
    * This method ensures that the pool size is configured correctly, taking into
    * account the number of available processors (sockets x core x
    * threads-per-core).

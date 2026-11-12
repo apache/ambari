@@ -272,7 +272,7 @@ class MetricAlert(BaseAlert):
             f"[Alert][{self.get_name()}] Unable to make a web request: {str(exception)}"
           )
       finally:
-        # explicitely close the connection as we've seen python hold onto these
+        # explicitly close the connection as we've seen python hold onto these
         if response is not None:
           try:
             response.close()

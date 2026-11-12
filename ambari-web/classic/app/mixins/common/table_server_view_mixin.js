@@ -48,7 +48,7 @@ App.TableServerViewMixin = Em.Mixin.create({
    */
   filteredContent: Em.computed.alias('content'),
   /**
-   * sort and slice recieved content by pagination parameters
+   * sort and slice received content by pagination parameters
    */
   pageContent: function () {
     var content = this.get('filteredContent').toArray();

@@ -142,7 +142,7 @@ public class RepoUtil {
   }
 
   /**
-   * Given a list of VDF repositorie and stack repositories (grouped by os) returns the service repositories.
+   * Given a list of VDF repositories and stack repositories (grouped by os) returns the service repositories.
    * A repository is considered a service repo if present in the stack model but missing in the VDF (check is performed
    * by repository name, per operating system).
    * @param vdfRepos the repositories coming from a version definition

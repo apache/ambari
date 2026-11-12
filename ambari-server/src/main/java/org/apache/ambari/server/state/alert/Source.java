@@ -58,7 +58,7 @@ public abstract class Source {
   }
 
   /**
-   * Sets the OK/WARNING/CRTICAL structures.
+   * Sets the OK/WARNING/CRITICAL structures.
    *
    * @param reporting
    *          the reporting structure or {@code null} for none.

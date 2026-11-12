@@ -268,7 +268,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     cluster.executeUnderWriteLock(() -> {
       hostLock.writeLock().lock();
       try {
-        // persist enitites in a transaction first, then update internal state
+        // persist entities in a transaction first, then update internal state
         replaceHostMappings(hosts);
         m_hosts = new ConcurrentHashMap<>(hosts);
       } finally {

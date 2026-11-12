@@ -79,7 +79,7 @@ public abstract class AbstractUpgradeServerAction extends AbstractServerAction {
   protected Provider<AmbariMetaInfo> m_metainfoProvider;
 
   /**
-   * Used for manipulting configurations, such as removing entire types and
+   * Used for manipulating configurations, such as removing entire types and
    * creating new ones.
    */
   @Inject

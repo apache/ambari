@@ -139,7 +139,7 @@ public class UpgradeCheckRegistry {
     }
 
     // for any checks defined in the upgrade pack, add them since they have been
-    // explicitely defined
+    // explicitly defined
     PluginUpgradeChecks pluginChecks = m_pluginChecks.get(upgradePack);
 
     // see if the upgrade checks have been processes for this pack yet
@@ -177,7 +177,7 @@ public class UpgradeCheckRegistry {
   }
 
   /**
-   * Uses the library classloader from the the target stack in order to find any
+   * Uses the library classloader from the target stack in order to find any
    * plugin-in {@link UpgradeCheck}s which are declared in the upgrade pack as
    * well as any upgrade checks which are found in the classloader and marked as
    * {@link UpgradeCheckInfo#required()} for this {@link UpgradeType}.
@@ -205,7 +205,7 @@ public class UpgradeCheckRegistry {
     URLClassLoader classLoader = stackInfo.getLibraryClassLoader();
     if (null != classLoader) {
 
-      // first find all of the plugins which are explicitely defined in the
+      // first find all of the plugins which are explicitly defined in the
       // upgrade pack and attempt to load and register them
       for (String pluginCheckClassName : pluginCheckClassNames) {
         try {
@@ -237,7 +237,7 @@ public class UpgradeCheckRegistry {
       if(null != upgradeChecksFromLoader && !upgradeChecksFromLoader.isEmpty()) {
         for (Class<? extends UpgradeCheck> clazz : upgradeChecksFromLoader) {
           // first check to make sure we didn't already try to load this one if it
-          // was explicitely defined in the upgrade pack (from above)
+          // was explicitly defined in the upgrade pack (from above)
           if (pluginCheckClassNames.contains(clazz.getName())) {
             continue;
           }

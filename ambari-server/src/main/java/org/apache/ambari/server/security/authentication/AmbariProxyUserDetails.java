@@ -33,7 +33,7 @@ public interface AmbariProxyUserDetails {
   String getUsername();
 
   /**
-   * Returns the authentication type used to peform authentication.
+   * Returns the authentication type used to perform authentication.
    *
    * @return a {@link UserAuthenticationType}
    */

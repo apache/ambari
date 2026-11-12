@@ -1324,7 +1324,7 @@ App.CheckDBConnectionView = Ember.View.extend({
   },
 
   /**
-   * send ajax request to perforn kdc host check
+   * send ajax request to perform kdc host check
    * @return {App.ajax}
    * @method runKDCCheck
    */

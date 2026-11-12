@@ -373,7 +373,7 @@ public class KerberosKeytabPrincipalDAO {
   /**
    * Used to return a keytab principal and whether or not it was created. This
    * is required so that callers know whether associated keytabs and principals
-   * need bi-direcitonal merges.
+   * need bi-directional merges.
    */
   public static class KeytabPrincipalFindOrCreateResult {
     public KerberosKeytabPrincipalEntity kkp;

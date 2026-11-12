@@ -102,7 +102,7 @@ public class RequestResourceDefinition extends BaseResourceDefinition {
 
     /**
      * Get cluster name
-     * Remove query paramter string if there is any
+     * Remove query parameter string if there is any
      *
      * @param token
      * @return String
