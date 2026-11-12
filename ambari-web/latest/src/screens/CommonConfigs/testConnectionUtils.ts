@@ -64,11 +64,49 @@ export const findRequiredConfigProperty = (
   return undefined;
 };
 
+// Hosts per component from wizard master assignments (MASTERS step mastersData).
+export const masterHostsByComponent = (
+  mastersData: unknown,
+): Record<string, string[]> => {
+  const result: Record<string, string[]> = {};
+  if (!Array.isArray(mastersData)) return result;
+  mastersData.forEach((hostGroup) => {
+    const groupHost = (hostGroup as { host_name?: unknown })?.host_name;
+    const masters = (hostGroup as { masterServices?: unknown })?.masterServices;
+    if (!Array.isArray(masters)) return;
+    masters.forEach((master) => {
+      const record = (master ?? {}) as Record<string, unknown>;
+      const component = String(record.component_name ?? record.component ?? "");
+      const host = String(
+        record.movedHost ?? record.selectedHost ?? record.hostName ?? groupHost ?? "",
+      ).trim();
+      if (!component || !host) return;
+      result[component] ||= [];
+      if (!result[component].includes(host)) result[component].push(host);
+    });
+  });
+  return result;
+};
+
+// Theme host properties such as ranger-site/ranger_admin_hosts are not stack configs.
+// Like Classic App.config.getComponentName + getComponentHostValue, derive the
+// component (RANGER_ADMIN) from the name and use its assigned hosts.
+const componentHostsForPath = (
+  configPath: string,
+  componentHosts?: Record<string, string[]>,
+) => {
+  const propertyName = configPath.slice(configPath.indexOf("/") + 1);
+  if (!componentHosts || !propertyName.endsWith("_hosts")) return undefined;
+  const hosts = componentHosts[propertyName.slice(0, -"_hosts".length).toUpperCase()];
+  return hosts?.length ? hosts : undefined;
+};
+
 export const resolveRequiredPropertyValues = (
   configProperties: ConfigPropertiesType,
   serviceName: string,
   requiredProperties: Record<string, string>,
   sourceHostFallback?: unknown,
+  componentHosts?: Record<string, string[]>,
 ): { values: RequiredPropertyValues; valid: boolean } => {
   const values: RequiredPropertyValues = {};
   let valid = true;
@@ -80,9 +118,9 @@ export const resolveRequiredPropertyValues = (
       configPath,
     );
     const fallback =
-      semanticName === "db.connection.source.host"
+      (semanticName === "db.connection.source.host"
         ? sourceHostFallback
-        : undefined;
+        : undefined) ?? (property ? undefined : componentHostsForPath(configPath, componentHosts));
     const value = property?.value ?? fallback;
     values[semanticName] = value;
     if (

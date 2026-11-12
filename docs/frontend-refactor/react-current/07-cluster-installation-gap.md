@@ -148,6 +148,31 @@ cluster runtime. Stack-launched Add Service and Kerberos returns use one-shot
 session keys scoped by authenticated principal, numeric cluster ID, workflow,
 and browser tab; unsafe or unverifiable destinations use the scoped fallback.
 
+Add Service Configs apply Stack Advisor recommendations to properties of the
+services being added, matching Classic `_updateConfigByRecommendation` with
+Step 7 `allowUpdateProperty`. The config being edited and values the user
+overrode keep their value. Installed-service changes remain reviewable
+dependent recommendations. Step 7 tab children scope every in-scope service as
+`installedServices` (it also feeds the advisor request), so Step 7 passes the
+cluster's real installed list separately as `clusterInstalledServices` for
+this decision. Previously React only recorded the recommendation,
+so derived values such as Ranger `ranger.jpa.jdbc.url` stayed at the stack
+default (`jdbc:mysql://localhost`) after `admin-properties/db_host` changed.
+
+Theme `test-db-connection` widgets name host properties that are not stack
+configs, such as RANGER `ranger-site/ranger_admin_hosts`. Like Classic
+`App.config.getComponentName` with `getComponentHostValue`, React now derives
+the component (`RANGER_ADMIN`) from the property name and uses the hosts
+assigned in the wizard's Masters step. Without them, Test Connection stayed
+disabled for a new Ranger.
+
+Add Service Configs renders no category tabs. Classic `step7.hbs` binds its Next
+button to `isSubmitDisabled`: errors on shown services, critical issues, and
+in-flight advisor work. React kept a hidden `credentials` category selected
+when a credentials Theme existed. Its Next gate skipped that category, so Next
+stayed disabled after any recommendation or validation finished. Add Service
+now always uses the All Configurations rule.
+
 ## Feature Status
 
 ### Modes, Entries, and Recovery
@@ -219,7 +244,7 @@ and browser tab; unsafe or unverifiable destinations use the scoped fallback.
 | `INST-6-004` | `PARTIAL` | Persisted selections are consumed and stale placement responses are scoped out; refresh/back recommendation preservation remains focused source evidence pending execution |
 | `INST-7-001` | `PARTIAL` | Service/theme/category configuration exists; all stack control types and fallback themes remain |
 | `INST-7-002` | `PARTIAL` | Accounts and Credentials are dedicated; complete Database/Directory tab and validation semantics remain |
-| `INST-7-003` | `PARTIAL` | New-cluster DRAFT and Add Service SERVICE_PLAN recommendations use the queue-held revisioned managed plan, preserve local HDFS/Hive settings, and expose retry/review on failure; rejection/required matrices remain |
+| `INST-7-003` | `PARTIAL` | New-cluster DRAFT and Add Service SERVICE_PLAN recommendations use the queue-held revisioned managed plan, preserve local HDFS/Hive settings, and expose retry/review on failure. Recommended properties the stack does not define (for example `hadoop.proxyuser.*` in `core-site`) are added to the service's `Custom <type>` section like Classic `config_recommendation_parser#addByRecommendations`/`_createNewProperty`, so they reach the deploy payload (`hooks/recommendedConfigProperty.ts`, `hooks/useEnhancedConfigs.addByRecommendations.test.tsx`); previously they were only listed as recommendations and never deployed. Rejection/required matrices remain |
 | `INST-7-004` | `PARTIAL` | Shared connection test paths exist; all conditional services and recovery remain |
 | `INST-7-005` | `PARTIAL` | Existing values/overrides are loaded for Add Service; host override/config-group parity is incomplete |
 | `INST-7-006` | `STATICALLY_ALIGNED` | The new-cluster-only `preInstallChecks` flag exposes Classic's placeholder and warns before an unchecked Next |
