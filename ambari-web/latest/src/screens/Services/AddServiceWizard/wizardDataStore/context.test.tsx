@@ -27,6 +27,7 @@ import WorkflowStateApi, {
   type WorkflowScope,
 } from "../../../../api/workflowStateApi";
 import { ServiceApi } from "../../../../api/serviceApi";
+import { HostsApi } from "../../../../api/hostsApi";
 import VersionsApi from "../../../../api/versionsApi";
 import modalManager from "../../../../store/ModalManager";
 import { AppContext } from "../../../../store/context";
@@ -359,6 +360,18 @@ describe("Add Service scoped recovery", () => {
       installedServices: ["HBASE"],
       workflowMaterializedServices: [],
     });
+  });
+
+  it("loads installed hosts after a checkpoint that already holds host and master steps", async () => {
+    getState.mockResolvedValue(workflowState("cluster-a"));
+    const getHosts = vi.spyOn(HostsApi, "getHostComponentsDetails")
+      .mockResolvedValue({ items: [{ Hosts: { host_name: "host-a" } }] } as any);
+    const utilities = createWizardUtilities();
+    const context = { ...appContext("cluster-a", 11), serviceComponentInfo: { HDFS: {} } };
+    render(providerTree(context, utilities));
+
+    await waitFor(() => expect(getHosts).toHaveBeenCalledWith(
+      "cluster-a", expect.any(String)));
   });
 
   it("restores redacted configuration at the editable step and keeps fresh secrets volatile", async () => {

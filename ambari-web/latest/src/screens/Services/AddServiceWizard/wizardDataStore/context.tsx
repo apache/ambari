@@ -45,6 +45,7 @@ import useClusterWorkflowPersistence from "../../../../hooks/useClusterWorkflowP
 import Spinner from "../../../../components/Spinner";
 import {
   containsReentryMarker,
+  projectAddServiceValues,
   WorkflowQueueInvalidatedError,
   workflowErrorMessage,
   WorkflowMutationQueue,
@@ -330,7 +331,8 @@ export const AddServiceProvider: React.FC<{
       hasCurrentHydration
       && clusterName
       && !isEmpty(serviceComponentInfo)
-      && (!state.addServiceSteps?.HOST_STATUS || !state.addServiceSteps?.MASTERS)
+      && (!state.addServiceSteps?.HOST_STATUS || !state.addServiceSteps?.MASTERS
+        || installedHosts.length === 0)
     ) {
       const generation = scopeGeneration.current;
       void getHostComponents(generation).catch((error) =>
@@ -519,13 +521,13 @@ export const AddServiceProvider: React.FC<{
       return;
     }
     if (!persistence) throw new Error(String(translate("workflow.persistence.explicitCluster")));
-    await persistence.savePersistData({
+    await persistence.savePersistData(projectAddServiceValues({
       ADD_SERVICE: {
         ...stateSnapshot,
         activeStep: get(stepSnapshot, "stepName", ""),
       },
       CLUSTER_STATE: stepSnapshot,
-    }, String(get(stepSnapshot, "clusterState") || get(stepSnapshot, "stepName") || "ADD_SERVICE"));
+    }), String(get(stepSnapshot, "clusterState") || get(stepSnapshot, "stepName") || "ADD_SERVICE"));
     setReentryRequired(false);
   }
 

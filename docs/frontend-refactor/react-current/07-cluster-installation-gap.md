@@ -148,6 +148,20 @@ cluster runtime. Stack-launched Add Service and Kerberos returns use one-shot
 session keys scoped by authenticated principal, numeric cluster ID, workflow,
 and browser tab; unsafe or unverifiable destinations use the scoped fallback.
 
+The Add Service checkpoint stores only mutable Configs data, matching Classic
+`saveServiceConfigProperties` ("only mutable info to avoid localStorage
+overflow"). `projectAddServiceValues` drops the stack `configs`,
+`stackLevelConfigs`, and `themes` catalogs. It also drops per-property stack
+metadata (description, display name, dependency lists, raw stack default,
+derived theme state, and non-managed `recommendedValue`), which Configs
+rebuilds from the stack on restore. Identity, value, change-tracking, and
+`propertyAttributes` fields remain, so Review rebuilds the same deploy payload
+and the sanitizer still recognizes password properties. Without this, a
+multi-service Configs step exceeded the server's 2 MB scoped-state request
+limit (`WORKFLOW_STATE_TOO_LARGE`). Unset fields are no longer reported as
+redacted credentials, so restored checkpoints request re-entry only for
+values that were actually removed.
+
 ## Feature Status
 
 ### Modes, Entries, and Recovery

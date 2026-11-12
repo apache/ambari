@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { cloneDeep } from "lodash";
 import WorkflowStateApi, {
   type ScopedWorkflowState,
   type WorkflowScope,
@@ -90,6 +91,9 @@ const sanitizeValue = (
   const sanitized: Record<string, any> = {};
   let redacted = false;
   Object.entries(value).forEach(([key, item]) => {
+    // Unset fields are not stored credentials and JSON drops them anyway; treating them as
+    // removed would mark checkpoints as needing re-entry with nothing to re-enter.
+    if (item === undefined) return;
     const normalizedKey = key.toLowerCase();
     const sensitiveKey = SENSITIVE_KEY.test(key);
     if ((mapSensitive && VALUE_FIELDS.has(normalizedKey) && !safePathMetadata(value, item, key))
@@ -193,6 +197,58 @@ export const projectClusterCreationValues = (values: Record<string, any>) => {
     delete configuration.configs;
     delete configuration.stackLevelConfigs;
     delete configuration.themes;
+  }
+  return projected;
+};
+
+// Static stack metadata and derived theme state on each Customize Services property.
+// Step 7 rebuilds them from the stack on restore and copies back only the edited fields;
+// Review and deploy read identity, value and change-tracking fields only. Like the
+// classic wizard's saveServiceConfigProperties, keep only mutable info in the checkpoint.
+// propertyAttributes stays: the sanitizer uses its password type to drop secrets.
+const STACK_DERIVED_PROPERTY_FIELDS = [
+  "propertyDescription",
+  "propertyDisplayname",
+  "propertyDependsOn",
+  "propertyDependedBy",
+  "propertyValue",
+  "__themeAttributeState",
+];
+
+const compactConfigProperties = (configProperties: unknown) => {
+  if (!configProperties || typeof configProperties !== "object") return;
+  Object.values(configProperties).forEach((sections) => {
+    if (!sections || typeof sections !== "object") return;
+    Object.values(sections).forEach((section: unknown) => {
+      const properties = (section as { properties?: unknown } | null)?.properties;
+      if (!properties || typeof properties !== "object") return;
+      Object.values(properties).forEach((value: unknown) => {
+        if (!value || typeof value !== "object") return;
+        const property = value as Record<string, unknown>;
+        STACK_DERIVED_PROPERTY_FIELDS.forEach((field) => delete property[field]);
+        // Managed dependency rows restore their recommended value; others recompute it.
+        if (property.isManagedDependency !== true) delete property.recommendedValue;
+      });
+    });
+  });
+};
+
+// Add Service keeps the whole wizard state in the workflow. The CONFIGURATION
+// step's stack config definitions, stack-level config definitions and theme trees
+// are static stack metadata that the server rejects as too large or too deep, and
+// that the sanitizer would mark as credentials to re-enter (password properties
+// carry stack defaults that are removed on save). Step 7 refetches them from the
+// stack API on mount, so only user-edited values need persisting.
+// Works on a deep copy and does not sanitize: savePersistData must still see
+// re-entry markers and fresh secrets exactly as the wizard holds them.
+export const projectAddServiceValues = (values: Record<string, any>) => {
+  const projected = cloneDeep(values);
+  const configuration = projected?.ADD_SERVICE?.addServiceSteps?.CONFIGURATION?.data;
+  if (configuration && typeof configuration === "object") {
+    delete configuration.configs;
+    delete configuration.stackLevelConfigs;
+    delete configuration.themes;
+    compactConfigProperties(configuration.configProperties);
   }
   return projected;
 };
