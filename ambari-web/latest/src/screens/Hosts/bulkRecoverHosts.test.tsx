@@ -22,6 +22,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   batchRequest: vi.fn(),
   getHostsBulkOperations: vi.fn(),
+  getHostComponents: vi.fn(),
   hide: vi.fn(),
   show: vi.fn(),
   showErrorModal: vi.fn(),
@@ -32,6 +33,7 @@ vi.mock("../../api/hostsApi", () => ({
   HostsApi: {
     batchRequest: mocks.batchRequest,
     getHostsBulkOperations: mocks.getHostsBulkOperations,
+    getHostComponents: mocks.getHostComponents,
   },
 }));
 vi.mock("../../store/ModalManager", () => ({
@@ -213,9 +215,11 @@ describe("bulk Recover Hosts flow", () => {
   });
 
   const openRecoverConfirmation = async (
-    items: ReturnType<typeof apiHost>[]
+    items: ReturnType<typeof apiHost>[],
+    unfilteredItems: ReturnType<typeof apiHost>[] = items
   ) => {
     mocks.getHostsBulkOperations.mockResolvedValue({ items });
+    mocks.getHostComponents.mockResolvedValue({ items: unfilteredItems });
     const getKDCSessionState = vi.fn(runKdcCallback);
     bulkOperationConfirm(
       recoverOperation(),
@@ -272,6 +276,32 @@ describe("bulk Recover Hosts flow", () => {
     ).toEqual(["h1", "h1"]);
     await vi.waitFor(() => expect(mocks.show).toHaveBeenCalledTimes(2));
     expect(mocks.show.mock.calls[1][0].type).toBe(BackgroundOperations);
+  });
+
+  it("re-checks recoverability against every component on the host, not just a filtered subset", async () => {
+    // The "Filtered Hosts" selection narrows the first fetch to the
+    // filtered component. h1's filtered view looks fully recoverable, but
+    // the unfiltered refetch exposes a second, non-recoverable component on
+    // the same host, so h1 must be skipped and only its filtered component
+    // must never be reinstalled on its own.
+    mocks.batchRequest.mockResolvedValue(scheduleResponse(7));
+    const getKDCSessionState = await openRecoverConfirmation(
+      [apiHost("h1", [component("DATANODE", "INSTALLED")])],
+      [
+        apiHost("h1", [
+          component("DATANODE", "INSTALLED"),
+          component("NODEMANAGER", "STARTED"),
+        ]),
+      ]
+    );
+
+    expect(mocks.getHostComponents).toHaveBeenCalledTimes(1);
+    expect(mocks.showRollingNothingToDoModal).toHaveBeenCalledWith(
+      "None of the selected hosts can be recovered. Please stop all components on the selected hosts and try again."
+    );
+    expect(mocks.show).not.toHaveBeenCalled();
+    expect(mocks.batchRequest).not.toHaveBeenCalled();
+    expect(getKDCSessionState).not.toHaveBeenCalled();
   });
 
   it("does not open a confirmation or submit anything when no host is recoverable", async () => {
