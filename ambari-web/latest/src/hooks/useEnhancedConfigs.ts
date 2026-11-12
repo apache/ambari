@@ -139,7 +139,12 @@ function useEnhancedConfigs(
   checkpointConfigProperties?: (
     configProperties: ConfigPropertiesType,
   ) => Promise<unknown>,
+  // Services already installed on the cluster. Wizard children pass every in-scope
+  // service as installedServices (it also feeds the advisor request), so Add Service
+  // passes the real installed list here to decide which recommendations apply directly.
+  clusterInstalledServices?: string[],
 ) {
+  const alreadyInstalledServices = clusterInstalledServices ?? installedServices;
   const {
     cluster: { stack, versionNum, cluster_id: clusterId },
     services,
@@ -311,7 +316,7 @@ function useEnhancedConfigs(
     if (isAddServiceMode) {
       const stackProperty = property; // TODO: Should get from stack definition
       
-      if (!stackProperty || !stackProperty.serviceName || !installedServices?.includes(stackProperty.serviceName)) {
+      if (!stackProperty || !stackProperty.serviceName || !alreadyInstalledServices?.includes(stackProperty.serviceName)) {
         return true;
       }
       
@@ -325,7 +330,7 @@ function useEnhancedConfigs(
             return false;
           }
           
-          const isNewService = !installedServices?.includes(dependentServiceName);
+          const isNewService = !alreadyInstalledServices?.includes(dependentServiceName);
           return isNewService;
         });
         
@@ -617,6 +622,19 @@ function useEnhancedConfigs(
                 
                 if (isAllowed) {
                   updateConfigByRecommendation(property, formattedRecommendedValue);
+                  // Classic _updateConfigByRecommendation sets the value of every allowed property
+                  // except the config being edited and values the user overrode. Add Service keeps
+                  // installed-service changes as reviewable dependent recommendations, but the
+                  // services being added take the recommended value, e.g. Ranger's
+                  // ranger.jpa.jdbc.url follows admin-properties/db_host.
+                  const owningService = property.serviceName || serviceName;
+                  const isCurrentlyChanged = Boolean(currentlyChangedConfig)
+                    && `${currentlyChangedConfig?.name}_${currentlyChangedConfig?.fileName}`
+                      === `${propertyName}_${fileName || ""}`;
+                  const applyToNewService = controllerName === "addService"
+                    && !alreadyInstalledServices?.includes(owningService)
+                    && property.didUserOverrideValue !== true
+                    && !isCurrentlyChanged;
                   const existingRecommendation = recommededConfigsRef.current[propertyName + (fileName || "")];
                   const originalValue = existingRecommendation ? existingRecommendation.initialValue : property.previousValue;
                   if (!areValuesEquivalent(originalValue, formattedRecommendedValue)) {
@@ -631,7 +649,9 @@ function useEnhancedConfigs(
                       serviceDisplayName: serviceName||property.serviceName,
                       isChanged: true,
                       configGroup: "Default",
-                      saveRecommended: controllerName === "clusterCreation" || !isWizard(), // Auto-save for cluster creation and service configs, show as recommendation for add service
+                      // Auto-save for cluster creation, service configs, and services being added;
+                      // installed-service changes in Add Service stay reviewable recommendations.
+                      saveRecommended: controllerName === "clusterCreation" || !isWizard() || applyToNewService,
                       isEditable: property.isEditable !== false,
                       propertyDependsOn: property.propertyDependsOn || [],
                       propertyDependedBy: property.propertyDependedBy || [],
@@ -640,7 +660,7 @@ function useEnhancedConfigs(
                   
                   // Apply recommendations to field values for cluster creation and service dashboard configs
                   // Do this AFTER creating the recommendation entry to preserve original value
-                  if (controllerName === "clusterCreation" || !isWizard()) {
+                  if (controllerName === "clusterCreation" || !isWizard() || applyToNewService) {
                     property.value = formattedRecommendedValue;
                   }
                 }

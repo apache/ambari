@@ -39,6 +39,8 @@ type RestAllTabsProps = {
   selectedService?: string;
   onServiceChange?: (serviceName: string) => void;
   conditionServices?: string[];
+  clusterInstalledServices?: string[];
+  componentHosts?: Record<string, string[]>;
   runWithAdvisorRequest?: RunWithStackAdvisorRequest;
   advisorScopeKey?: string;
   checkpointConfigProperties?: (
@@ -66,6 +68,8 @@ export default function RestAllTabs({
   selectedService,
   onServiceChange,
   conditionServices,
+  clusterInstalledServices,
+  componentHosts,
   runWithAdvisorRequest,
   advisorScopeKey,
   checkpointConfigProperties,
@@ -82,6 +86,8 @@ export default function RestAllTabs({
         configPropertiesData={configs}
         servicesList={services}
         installedServices={conditionServices || services}
+        clusterInstalledServices={clusterInstalledServices}
+        componentHosts={componentHosts}
         recommendationsDataToSend={recommendationsDataToSend}
         installer={true}
         wizardName={wizardName}

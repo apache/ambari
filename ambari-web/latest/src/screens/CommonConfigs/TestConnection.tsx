@@ -50,6 +50,8 @@ interface TestConnectionProps {
   configProperties: ConfigPropertiesType;
   requiredProperties?: Record<string, string>;
   disabled?: boolean;
+  // Hosts assigned per component in the wizard, for theme host properties.
+  componentHosts?: Record<string, string[]>;
 }
 
 // Service-specific error modal titles
@@ -165,6 +167,7 @@ export default function TestConnection({
   configProperties,
   requiredProperties: themeRequiredProperties,
   disabled = false,
+  componentHosts,
 }: TestConnectionProps) {
   const [taskID, setTaskID] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
@@ -348,6 +351,7 @@ export default function TestConnection({
     serviceName,
     selectedRequiredProperties,
     getMasterHosts(serviceName),
+    componentHosts,
   );
 
   useEffect(() => {
