@@ -155,11 +155,34 @@ const getHostsForBulkOperationSuccessCallback = (
     return;
   }
 
-  if (
-    ["SET_RACK_INFO", "ADD", "DELETE", "RECOVER_HOST"].includes(
-      operationData.action
-    )
-  ) {
+  if (operationData.action === "RECOVER_HOST") {
+    // The host list above can be fetched with a component/service filter
+    // applied (selection === "filtered"), which would narrow each host's
+    // host_components to only the matching component. Recoverability must be
+    // judged on every component on the host, so always refetch host_components
+    // here with no component/service filter before partitioning or building
+    // batches, regardless of which selection mode was used.
+    const data = {
+      hosts: hosts.map((host: any) => host.hostName),
+      displayParams: [
+        "host_components/HostRoles/component_name",
+        "host_components/HostRoles/state",
+      ],
+    };
+    getComponentsFromServer(data, clusterName, (responseData: any) => {
+      bulkOperation(
+        operationData,
+        convertHostsObjects(responseData),
+        clusterName,
+        serviceComponentInfo,
+        serviceModels,
+        getKDCSessionState
+      );
+    });
+    return;
+  }
+
+  if (["SET_RACK_INFO", "ADD", "DELETE"].includes(operationData.action)) {
     return bulkOperation(
       operationData,
       hosts,

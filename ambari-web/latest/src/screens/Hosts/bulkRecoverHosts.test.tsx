@@ -22,6 +22,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   batchRequest: vi.fn(),
   getHostsBulkOperations: vi.fn(),
+  getHostComponents: vi.fn(),
   hide: vi.fn(),
   show: vi.fn(),
   showErrorModal: vi.fn(),
@@ -32,6 +33,7 @@ vi.mock("../../api/hostsApi", () => ({
   HostsApi: {
     batchRequest: mocks.batchRequest,
     getHostsBulkOperations: mocks.getHostsBulkOperations,
+    getHostComponents: mocks.getHostComponents,
   },
 }));
 vi.mock("../../store/ModalManager", () => ({
@@ -86,6 +88,15 @@ const recoverOperation = (isKerberosEnabled = false) => ({
 const scheduleResponse = (id: number) => ({
   data: { resources: [{ RequestSchedule: { id } }] },
 });
+
+const expectUnfilteredRefetch = (hostNames: string[]) => {
+  expect(mocks.getHostComponents).toHaveBeenCalledTimes(1);
+  const [, , data] = mocks.getHostComponents.mock.calls[0];
+  const params: string = data.parameters;
+  expect(params).toContain(`Hosts/host_name.in(${hostNames.join(",")})`);
+  expect(params).not.toContain("host_components/HostRoles/component_name.in");
+  expect(params).not.toContain("host_components/HostRoles/service_name.in");
+};
 
 describe("partitionHostsForRecovery", () => {
   it("accepts hosts whose components are all INSTALLED, INSTALL_FAILED, or INIT", () => {
@@ -213,9 +224,11 @@ describe("bulk Recover Hosts flow", () => {
   });
 
   const openRecoverConfirmation = async (
-    items: ReturnType<typeof apiHost>[]
+    items: ReturnType<typeof apiHost>[],
+    unfilteredItems: ReturnType<typeof apiHost>[] = items
   ) => {
     mocks.getHostsBulkOperations.mockResolvedValue({ items });
+    mocks.getHostComponents.mockResolvedValue({ items: unfilteredItems });
     const getKDCSessionState = vi.fn(runKdcCallback);
     bulkOperationConfirm(
       recoverOperation(),
@@ -243,6 +256,8 @@ describe("bulk Recover Hosts flow", () => {
       apiHost("h1", [component("DATANODE", "INSTALLED")]),
       apiHost("h2", [component("DATANODE", "STARTED")]),
     ]);
+
+    expectUnfilteredRefetch(["h1", "h2"]);
 
     const confirmation = mocks.show.mock.calls[0][0];
     expect(confirmation.type).toBe(RecoverHostsModal);
@@ -272,6 +287,98 @@ describe("bulk Recover Hosts flow", () => {
     ).toEqual(["h1", "h1"]);
     await vi.waitFor(() => expect(mocks.show).toHaveBeenCalledTimes(2));
     expect(mocks.show.mock.calls[1][0].type).toBe(BackgroundOperations);
+  });
+
+  it("re-checks recoverability against every component on the host, not just a filtered subset", async () => {
+    // The "Filtered Hosts" selection narrows the first fetch to the
+    // filtered component. h1's filtered view looks fully recoverable, but
+    // the unfiltered refetch exposes a second, non-recoverable component on
+    // the same host, so h1 must be skipped and only its filtered component
+    // must never be reinstalled on its own.
+    mocks.batchRequest.mockResolvedValue(scheduleResponse(7));
+    const getKDCSessionState = await openRecoverConfirmation(
+      [apiHost("h1", [component("DATANODE", "INSTALLED")])],
+      [
+        apiHost("h1", [
+          component("DATANODE", "INSTALLED"),
+          component("NODEMANAGER", "STARTED"),
+        ]),
+      ]
+    );
+
+    expectUnfilteredRefetch(["h1"]);
+    expect(mocks.showRollingNothingToDoModal).toHaveBeenCalledWith(
+      "None of the selected hosts can be recovered. Please stop all components on the selected hosts and try again."
+    );
+    expect(mocks.show).not.toHaveBeenCalled();
+    expect(mocks.batchRequest).not.toHaveBeenCalled();
+    expect(getKDCSessionState).not.toHaveBeenCalled();
+  });
+
+  it("reinstalls every component on the host, not just the filtered one, once the unfiltered refetch reveals it", async () => {
+    // The "Filtered Hosts" selection narrows the first fetch to the
+    // filtered component (DATANODE). The unfiltered refetch reveals a
+    // second, equally recoverable component (NODEMANAGER) on the same
+    // host, so the recover batch must cover both, not just DATANODE.
+    mocks.batchRequest.mockResolvedValue(scheduleResponse(7));
+    const getKDCSessionState = await openRecoverConfirmation(
+      [apiHost("h1", [component("DATANODE", "INSTALLED")])],
+      [
+        apiHost("h1", [
+          component("DATANODE", "INSTALLED"),
+          component("NODEMANAGER", "INSTALLED"),
+        ]),
+      ]
+    );
+
+    expectUnfilteredRefetch(["h1"]);
+
+    const confirmation = mocks.show.mock.calls[0][0];
+    expect(confirmation.type).toBe(RecoverHostsModal);
+    expect(
+      confirmation.props.eligibleHosts.map((h: RecoverHost) => h.hostName)
+    ).toEqual(["h1"]);
+    expect(confirmation.props.skippedHosts).toEqual([]);
+
+    confirmation.props.successCallback();
+
+    await vi.waitFor(() => expect(mocks.batchRequest).toHaveBeenCalledTimes(1));
+    expect(getKDCSessionState).toHaveBeenCalledTimes(1);
+    const [, payload] = mocks.batchRequest.mock.calls[0];
+    const queries = payload.batches.map(
+      (batch: RecoverBatchStep) => batch.RequestBodyInfo.RequestInfo.query
+    );
+    expect(queries).toEqual([
+      "HostRoles/component_name.in(DATANODE,NODEMANAGER)",
+      "HostRoles/component_name.in(DATANODE,NODEMANAGER)",
+    ]);
+  });
+
+  it("shows an error and submits nothing when the unfiltered refetch fails", async () => {
+    mocks.getHostsBulkOperations.mockResolvedValue({
+      items: [apiHost("h1", [component("DATANODE", "INSTALLED")])],
+    });
+    mocks.getHostComponents.mockRejectedValue(new Error("refetch failed"));
+    const getKDCSessionState = vi.fn(runKdcCallback);
+
+    bulkOperationConfirm(
+      recoverOperation(),
+      ["h1"],
+      "selected",
+      "c1",
+      [],
+      {},
+      {},
+      getKDCSessionState,
+      []
+    );
+
+    await vi.waitFor(() =>
+      expect(mocks.showErrorModal).toHaveBeenCalledWith("refetch failed")
+    );
+    expect(mocks.show).not.toHaveBeenCalled();
+    expect(mocks.batchRequest).not.toHaveBeenCalled();
+    expect(getKDCSessionState).not.toHaveBeenCalled();
   });
 
   it("does not open a confirmation or submit anything when no host is recoverable", async () => {
