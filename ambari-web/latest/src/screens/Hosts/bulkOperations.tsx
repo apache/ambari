@@ -156,11 +156,12 @@ const getHostsForBulkOperationSuccessCallback = (
   }
 
   if (operationData.action === "RECOVER_HOST") {
-    // The host list above may have been fetched with a component/service
-    // filter applied (selection === "filtered"), which narrows each host's
+    // The host list above can be fetched with a component/service filter
+    // applied (selection === "filtered"), which would narrow each host's
     // host_components to only the matching component. Recoverability must be
-    // judged on every component on the host, so refetch host_components here
-    // with no component/service filter before partitioning or building batches.
+    // judged on every component on the host, so always refetch host_components
+    // here with no component/service filter before partitioning or building
+    // batches, regardless of which selection mode was used.
     const data = {
       hosts: hosts.map((host: any) => host.hostName),
       displayParams: [
