@@ -62,7 +62,7 @@ public class Release {
   public String hotfix;
 
   /**
-   * The compatability regex.  This is used to relate the release to another release.
+   * The compatibility regex.  This is used to relate the release to another release.
    */
   @XmlElement(name="compatible-with")
   public String compatibleWith;

@@ -971,7 +971,7 @@ App.config = Em.Object.create({
 
   /**
    * trim trailing spaces for all properties.
-   * trim both trailing and leading spaces for host displayType and hive/oozie datebases url.
+   * trim both trailing and leading spaces for host displayType and hive/oozie databases url.
    * for directory or directories displayType format string for further using.
    * for password and values with spaces only do nothing.
    * @param {Object} property

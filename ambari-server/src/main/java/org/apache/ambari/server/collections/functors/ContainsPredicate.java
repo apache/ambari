@@ -32,7 +32,7 @@ import org.apache.ambari.server.collections.Predicate;
  * {@link ContainsPredicate} is a predicate implementation testing whether a string value exists
  * within some set of strings.
  * <p>
- * It it expected that the data supplied to the {@link #evaluate(Object)} method is as {@link Set}
+ * It is expected that the data supplied to the {@link #evaluate(Object)} method is as {@link Set}
  * of {@link String}s retrieved from a context (a {@link Map} of keys to values, where each value
  * can be an explicit value or a {@link Map} of values creating a tree structure.
  */

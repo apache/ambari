@@ -41,7 +41,7 @@ public class LdapSyncSpecEntity {
   private List<String> principalNames;
 
   /**
-   * A Boolean value indicating whether to (re)exectue the post user creation hook on previously
+   * A Boolean value indicating whether to (re)execute the post user creation hook on previously
    * existing users (if the post user creation hook feature has been enabled)
    */
   private boolean postProcessExistingUsers;

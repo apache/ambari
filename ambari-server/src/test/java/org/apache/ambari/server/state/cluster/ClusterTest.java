@@ -1233,7 +1233,7 @@ public class ClusterTest {
     Assert.assertEquals("admin", hdfsResponse.getUserName());
     assertEquals(Long.valueOf(2), hdfsResponse.getVersion());
 
-    // Rollback , clonning version1 config, created new ServiceConfigVersion
+    // Rollback , cloning version1 config, created new ServiceConfigVersion
     c1.setServiceConfigVersion("HDFS", 1L, "admin", "test_note");
     serviceConfigVersions = c1.getServiceConfigVersions();
     Assert.assertNotNull(serviceConfigVersions);

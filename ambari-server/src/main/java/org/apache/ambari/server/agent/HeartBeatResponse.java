@@ -52,7 +52,7 @@ public class HeartBeatResponse extends StompResponse {
   private List<CancelCommand> cancelCommands = new ArrayList<>();
 
   /**
-   * {@link AlertDefinitionCommand}s are used to isntruct the agent as to which
+   * {@link AlertDefinitionCommand}s are used to instruct the agent as to which
    * alert definitions it needs to schedule. A {@code null} value here indicates
    * that no data is to be sent and no change is required on the agent. This is
    * different from sending an empty list where the empty list would instruct

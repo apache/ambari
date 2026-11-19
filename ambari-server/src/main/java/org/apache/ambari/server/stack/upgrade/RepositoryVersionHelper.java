@@ -457,12 +457,12 @@ public class RepositoryVersionHelper {
 
 
   /**
-   * This method builds and adds repo infoto hostLevelParams of action
+   * This method builds and adds repo info to hostLevelParams of action
    *
    * @param cluster cluster to which host level params belongs
    * @param actionContext context of the action. Must be not {@code null}
    * @param repositoryVersion repository version entity to use
-   * @param hostLevelParams hasgmap with host level params. Must be not {@code null}
+   * @param hostLevelParams hashmap with host level params. Must be not {@code null}
    * @param hostName host name to which add repo onfo
    * @throws AmbariException
    */

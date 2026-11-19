@@ -205,7 +205,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       }
 
     } catch (AuthorizationException e) {
-      // Need to rethrow the catched 'AuthorizationException'.
+      // Need to rethrow the caught 'AuthorizationException'.
       throw e;
     } catch (Exception e) {
       e.printStackTrace();

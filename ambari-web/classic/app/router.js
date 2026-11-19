@@ -189,7 +189,7 @@ App.Router = Em.Router.extend({
    */
   clusterInstallCompleted: false,
   /**
-   * user prefered path to route
+   * user preferred path to route
    */
   preferedPath: null,
 
@@ -776,7 +776,7 @@ App.Router = Em.Router.extend({
   },
 
   /**
-   * save prefered path
+   * save preferred path
    * @param {string} path
    * @param {string} key
    */
@@ -941,7 +941,7 @@ App.Router = Em.Router.extend({
               });
             });
           } else {
-            //key to parse URI for prefered path to route
+            //key to parse URI for preferred path to route
             router.savePreferedPath(location, '?targetURI=');
           }
         });

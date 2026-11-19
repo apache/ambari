@@ -312,7 +312,7 @@ class CertificateManager:
       self.enrollment_passphrase = None
       register_data["passphrase"] = None
     else:
-      # Possible exception is catched higher at Controller
+      # Possible exception is caught higher at Controller
       logger.error(
         "Certificate signing failed."
         "\nIn order to receive a new agent"

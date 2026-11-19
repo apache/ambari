@@ -165,7 +165,7 @@ class BaseAlert(object):
         logger.warning(f"[Alert][{self.get_name()}] - {str(value_error)}")
 
         # if there is a ValueError, it's probably because the text doesn't match the type of
-        # positional arguemtns (ie {0:d} with a float)
+        # positional arguments (ie {0:d} with a float)
         res_base_text = res_base_text.replace("d}", "s}")
         data_as_strings = list(map(str, res[1]))
         data["text"] = res_base_text.format(*data_as_strings)

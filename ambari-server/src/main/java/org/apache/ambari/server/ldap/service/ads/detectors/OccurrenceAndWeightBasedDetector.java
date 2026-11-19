@@ -52,9 +52,9 @@ public abstract class OccurrenceAndWeightBasedDetector implements AttributeDetec
 
 
   /**
-   * Checks whether the provided atribute is present in the entry.s
+   * Checks whether the provided attribute is present in the entry.
    *
-   * @param entry     the entry being procesed
+   * @param entry     the entry being processed
    * @param attribute the attribute being detected
    * @return true if the attribute is present, false otherwise
    */
@@ -96,7 +96,7 @@ public abstract class OccurrenceAndWeightBasedDetector implements AttributeDetec
       }
     }
 
-    // check whether the selected entry is valid (has occured in the sample result set)
+    // check whether the selected entry is valid (has occurred in the sample result set)
     String detectedVal = "N/A";
 
     if (selectedEntry.getValue() > 0) {

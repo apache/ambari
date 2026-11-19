@@ -62,7 +62,7 @@ abstract class RootServiceComponentConfigurationHandler {
   public abstract void updateComponentCategory(String categoryName, Map<String, String> properties, boolean removePropertiesIfNotSpecified) throws AmbariException;
 
   /**
-   * Preform some operation on the set of data for a category.
+   * Perform some operation on the set of data for a category.
    * <p>
    * If <code>mergeExistingProperties</code> is <code>false</code>, the operation is to include the union of the existing and specified properties.
    * <p>
@@ -70,7 +70,7 @@ abstract class RootServiceComponentConfigurationHandler {
    *
    * @param categoryName            the category name
    * @param properties              a map of properties to set
-   * @param mergeExistingProperties <code>true</code> to use the the set of existing properties along with the specified set of properties;
+   * @param mergeExistingProperties <code>true</code> to use the set of existing properties along with the specified set of properties;
    *                                <code>false</code>  to use set of specified properties only
    * @param operation               the operation to perform
    * @param operationParameters     parameters to supply the name operation

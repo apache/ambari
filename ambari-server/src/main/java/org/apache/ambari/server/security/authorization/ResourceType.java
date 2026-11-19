@@ -42,7 +42,7 @@ public enum ResourceType {
   }
 
   /**
-   * Get's ID value for this ResourceType.
+   * Gets ID value for this ResourceType.
    * <p/>
    * This value represents the <code>adminresourcetype.resource_type_id</code> value for the resource type.
    *
@@ -55,7 +55,7 @@ public enum ResourceType {
   /**
    * Safely translates a resource type to a ResourceType
    * <p/>
-   * If a non-empty name is specified and does not match an enumerated value, assume that is is a
+   * If a non-empty name is specified and does not match an enumerated value, assume that it is a
    * view since view types are declared as separate resource types.
    *
    * @param resourceTypeName an resource type name

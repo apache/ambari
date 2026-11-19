@@ -64,7 +64,7 @@ public interface Request {
    * id for this request, if any.
    *
    * @param id the property id
-   * @return the temporal information for the given property id; null if noe exists
+   * @return the temporal information for the given property id; null if none exists
    */
   TemporalInfo getTemporalInfo(String id);
 

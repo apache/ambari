@@ -509,7 +509,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var serviceConfigProperties = this.get('content.serviceConfigProperties');
     var dbFull = serviceConfigProperties.findProperty('name', serviceName.toLowerCase() + '_database');
       //db = serviceConfigProperties.findProperty('name', serviceName.toLowerCase() + '_ambari_database');
-    //since db.value contains the intial default value of <service>_admin_database (MySQL) and not the actual db type selected,
+    //since db.value contains the initial default value of <service>_admin_database (MySQL) and not the actual db type selected,
     //ignore the value when displaying the database name on the summary page
     return dbFull ? dbFull.value : '';
   },

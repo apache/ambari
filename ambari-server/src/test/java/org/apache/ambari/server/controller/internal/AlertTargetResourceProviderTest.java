@@ -319,7 +319,7 @@ public class AlertTargetResourceProviderTest {
     assertTrue(CollectionPresentationUtils.isJsonsEquals(ALERT_TARGET_PROPS, entity.getProperties()));
     assertEquals(false, entity.isGlobal());
 
-    // no alert states were set explicitely in the request, so all should be set
+    // no alert states were set explicitly in the request, so all should be set
     // by the backend
     assertNotNull(entity.getAlertStates());
     assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
@@ -396,7 +396,7 @@ public class AlertTargetResourceProviderTest {
     assertEquals(false, entity.isGlobal());
     assertEquals(3, entity.getAlertGroups().size());
 
-    // no alert states were set explicitely in the request, so all should be set
+    // no alert states were set explicitly in the request, so all should be set
     // by the backend
     assertNotNull(entity.getAlertStates());
     assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
@@ -463,7 +463,7 @@ public class AlertTargetResourceProviderTest {
     assertTrue(CollectionPresentationUtils.isJsonsEquals(ALERT_TARGET_PROPS, entity.getProperties()));
     assertEquals(true, entity.isGlobal());
 
-    // no alert states were set explicitely in the request, so all should be set
+    // no alert states were set explicitly in the request, so all should be set
     // by the backend
     assertNotNull(entity.getAlertStates());
     assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
@@ -528,7 +528,7 @@ public class AlertTargetResourceProviderTest {
         "{\"ambari.dispatch.recipients\":\"[\\\"ambari@ambari.apache.org\\\"]\"}",
         entity.getProperties());
 
-    // no alert states were set explicitely in the request, so all should be set
+    // no alert states were set explicitly in the request, so all should be set
     // by the backend
     assertNotNull(entity.getAlertStates());
     assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
@@ -945,7 +945,7 @@ public class AlertTargetResourceProviderTest {
     assertTrue(CollectionPresentationUtils.isJsonsEquals(ALERT_TARGET_PROPS, entity.getProperties()));
     assertEquals(false, entity.isGlobal());
 
-    // no alert states were set explicitely in the request, so all should be set
+    // no alert states were set explicitly in the request, so all should be set
     // by the backend
     assertNotNull(entity.getAlertStates());
     assertEquals(EnumSet.allOf(AlertState.class), entity.getAlertStates());
@@ -1147,7 +1147,7 @@ public class AlertTargetResourceProviderTest {
   }
 
   /**
-   * Gets the maps of properties that simulate a deserialzied JSON request to
+   * Gets the maps of properties that simulate a deserialized JSON request to
    * create an alert target.
    *
    * @return
@@ -1175,7 +1175,7 @@ public class AlertTargetResourceProviderTest {
   }
 
   /**
-   * Gets the maps of properties that simulate a deserialzied JSON request with
+   * Gets the maps of properties that simulate a deserialized JSON request with
    * a nested JSON array.
    *
    * @return

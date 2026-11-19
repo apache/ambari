@@ -84,8 +84,8 @@ public enum RepositoryType {
    * Gets whether this repository type can be used to upgrade only a subset of
    * services.
    *
-   * @return {@code true} if the repository can be be applied to a subset of
-   *         isntalled services, {@code false} otherwise.
+   * @return {@code true} if the repository can be applied to a subset of
+   *         installed services, {@code false} otherwise.
    */
   public boolean isPartial() {
     return PARTIAL.contains(this);

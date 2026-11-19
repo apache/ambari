@@ -162,7 +162,7 @@ App.MainController = Em.Controller.extend({
     }
   },
 
-  /* this will be triggerred by user driven events: 'mousemove', 'keypress' and 'click' */
+  /* this will be triggered by user driven events: 'mousemove', 'keypress' and 'click' */
   keepActive: function() {
     var scope = App.router.get('mainController');
     if (scope.get('isUserActive')) {

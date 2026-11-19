@@ -288,7 +288,7 @@ Ember.Route.reopen({
 
   /**
    * Query Params serializer. This method should be used inside <code>serialize</code> method.
-   * You need to specify `:query` dynamic sygment in your route's <code>route</code> attribute
+   * You need to specify `:query` dynamic segment in your route's <code>route</code> attribute
    * e.g. Em.Route.extend({ route: '/login:query'}) and return result of this method.
    * This method will set <code>serializedQuery</code> property to specified controller by name.
    * For concrete example see `app/routes/main.js`.

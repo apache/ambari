@@ -351,7 +351,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
   }
 
   /**
-   * Gets any host components which have not been propertly upgraded or
+   * Gets any host components which have not been properly upgraded or
    * downgraded.
    *
    * @param upgradeContext
@@ -398,7 +398,7 @@ public class FinalizeUpgradeAction extends AbstractUpgradeServerAction {
    * Moves any {@link HostVersionEntity}s which are
    * {@link RepositoryVersionState#CURRENT} to either
    * {@link RepositoryVersionState#INSTALLED} or
-   * {@link RepositoryVersionState#NOT_REQUIRED} if their assocaited
+   * {@link RepositoryVersionState#NOT_REQUIRED} if their associated
    * repositories are no longer in use.
    * <p/>
    * If this is a patch reversion, then this method will also attempt to

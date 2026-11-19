@@ -112,7 +112,7 @@ public class JcePolicyInfo {
   }
 
   /**
-   * Display the list of available ciphers and their maximum suported key lengths.
+   * Display the list of available ciphers and their maximum supported key lengths.
    */
   private static void listCiphers() {
     System.out.println("Available ciphers:");

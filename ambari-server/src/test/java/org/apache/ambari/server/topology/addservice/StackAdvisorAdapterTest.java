@@ -365,7 +365,7 @@ public class StackAdvisorAdapterTest {
     assertSame(clusterConfig, userConfig.getParentConfiguration());
     assertSame(stackConfig, clusterConfig.getParentConfiguration());
 
-    // Yarn/Mapred config is excpected to be removed as it does not belong to newly added services
+    // Yarn/Mapred config is expected to be removed as it does not belong to newly added services
     assertEquals(
       ImmutableMap.of(
         "kafka-broker", ImmutableMap.of(
@@ -421,7 +421,7 @@ public class StackAdvisorAdapterTest {
     assertSame(clusterConfig, userConfig.getParentConfiguration());
     assertSame(stackConfig, clusterConfig.getParentConfiguration());
 
-    // Yarn/Mapred config is excpected to be removed as it does not belong to newly added services
+    // Yarn/Mapred config is expected to be removed as it does not belong to newly added services
     assertEquals(
       ImmutableMap.of(
         "kafka-broker", ImmutableMap.of(
@@ -477,7 +477,7 @@ public class StackAdvisorAdapterTest {
     assertSame(clusterConfig, recommendedConfig.getParentConfiguration());
     assertSame(stackConfig, clusterConfig.getParentConfiguration());
 
-    // Yarn/Mapred config is excpected to be removed as it does not belong to newly added services
+    // Yarn/Mapred config is expected to be removed as it does not belong to newly added services
     assertEquals(
       ImmutableMap.of(
         "kafka-broker", ImmutableMap.of(

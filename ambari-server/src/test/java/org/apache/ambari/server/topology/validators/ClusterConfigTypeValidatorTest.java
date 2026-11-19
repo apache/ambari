@@ -139,7 +139,7 @@ public class ClusterConfigTypeValidatorTest extends EasyMockSupport {
   @Test(expected = InvalidTopologyException.class)
   public void testShouldValidationFailWhenThereIsAnInvalidConfigGroupProvided() throws Exception {
     // GIVEN
-    // oozzie-type is wrong!
+    // oozie-type is wrong!
     clusterRequestConfigTypes = new HashSet<>(Arrays.asList("core-site", "yarn-site", "oozie-site"));
     EasyMock.expect(clusterConfigurationMock.getAllConfigTypes()).andReturn(clusterRequestConfigTypes).anyTimes();
 

@@ -130,7 +130,7 @@ public class StackAdvisorAdapter {
   }
 
   /**
-   * Gets all services from the cluster together together with services from AddServiceInfo.
+   * Gets all services from the cluster together with services from AddServiceInfo.
    * @param info
    * @return A map of <i>service name -> component name -> hosts</i> for all services in the cluster and the input
    *  AddServiceInfo combined.

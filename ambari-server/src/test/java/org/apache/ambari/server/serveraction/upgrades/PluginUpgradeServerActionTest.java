@@ -181,7 +181,7 @@ public class PluginUpgradeServerActionTest extends EasyMockSupport {
 
   /**
    * Tests that when a new configuration type is specified in the list of
-   * configurattion changes, that the new type is created first.
+   * configuration changes, that the new type is created first.
    *
    * @throws Exception
    */

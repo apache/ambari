@@ -219,7 +219,7 @@ public class VersionUtils {
 
   /**
    * Compares versions, using a build number using a dash separator, if one
-   * exists. This is is useful when comparing repository versions with one
+   * exists. This is useful when comparing repository versions with one
    * another that include build number
    *
    * @param version1

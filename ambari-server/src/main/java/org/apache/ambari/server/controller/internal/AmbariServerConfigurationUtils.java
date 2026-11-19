@@ -135,7 +135,7 @@ public class AmbariServerConfigurationUtils {
   /**
    * Indicates whether the given property's type is a {@link ConfigurationPropertyType#PASSWORD}
    *
-   * @param configurationKey the Ambari Server configiration key
+   * @param configurationKey the Ambari Server configuration key
    * @return {@code true} in case the given property's type is
    * {@link ConfigurationPropertyType#PASSWORD}; {@code false} otherwise
    */

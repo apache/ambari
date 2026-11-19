@@ -1374,7 +1374,7 @@ class TestAmbariServer(TestCase):
     get_ambari_repo_file_full_name_mock,
     get_file_owner_mock,
   ):
-    # Testing boostrap dir wipe
+    # Testing bootstrap dir wipe
     properties_mock = Properties()
     properties_mock.process_pair(AMBARI_JDK_NAME_PROPERTY, "dummy_jdk")
     properties_mock.process_pair(AMBARI_JCE_NAME_PROPERTY, "dummy_jce")
@@ -1913,7 +1913,7 @@ class TestAmbariServer(TestCase):
     setup_truststore(options)
     self.assertEqual("setup-security is not enabled in silent mode.\n", out.getvalue())
     sys.stdout = sys.__stdout__
-    # Verbouse mode and jdk_path is None
+    # Verbose mode and jdk_path is None
     set_silent(False)
     p = get_ambari_properties_mock.return_value
     # Dont disable ssl
@@ -1923,7 +1923,7 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_YN_input_mock.called)
     p.get_property.reset_mock()
     get_YN_input_mock.reset_mock()
-    # Cant find jdk
+    # Can't find jdk
     find_jdk_mock.return_value = None
     try:
       setup_truststore(options)
@@ -1936,7 +1936,7 @@ class TestAmbariServer(TestCase):
         in fe.reason
       )
       pass
-    # Verbouse mode and jdk_path is not None (use_https = true)
+    # Verbose mode and jdk_path is not None (use_https = true)
     find_jdk_mock.return_value = "/jdk_path"
     p.get_property.side_effect = ["true"]
     get_YN_input_mock.side_effect = [True, True]
@@ -1960,7 +1960,7 @@ class TestAmbariServer(TestCase):
     find_properties_file_mock.reset_mock()
     open_mock.reset_mock()
     p.store.reset_mock()
-    # Verbouse mode and jdk_path is not None (use_https = false) and import cert
+    # Verbose mode and jdk_path is not None (use_https = false) and import cert
     p.get_property.side_effect = ["false"]
     get_YN_input_mock.side_effect = [True, True]
     setup_truststore(options, True)
@@ -2105,7 +2105,7 @@ class TestAmbariServer(TestCase):
     # Testing call under root
     is_root_mock.return_value = True
     read_ambari_user_method.return_value = "user"
-    # Case #1: if client ssl is on and user didnt choose
+    # Case #1: if client ssl is on and user didn't choose
     # disable ssl option and choose import certs and keys
     p.get_property.side_effect = ["key_dir", "5555", "true"]
     get_YN_input_mock.side_effect = [False, True]
@@ -2205,7 +2205,7 @@ class TestAmbariServer(TestCase):
     p.store.reset_mock()
     import_cert_and_key_action_mock.reset_mock()
 
-    # Case #5: if cert must be imported but didnt imported
+    # Case #5: if cert must be imported but didn't imported
     p.get_property.side_effect = ["key_dir", "", "false"]
     get_YN_input_mock.side_effect = [True]
     import_cert_and_key_action_mock.side_effect = [False]

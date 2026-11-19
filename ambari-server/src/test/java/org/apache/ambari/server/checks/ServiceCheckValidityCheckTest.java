@@ -227,7 +227,7 @@ public class ServiceCheckValidityCheckTest {
   }
 
   /**
-   * Tests that old, oudated service checks for the FOO2 service doesn't cause
+   * Tests that old, outdated service checks for the FOO2 service doesn't cause
    * problems when checking values for the FOO service.
    * <p/>
    * The specific test case here is that the FOO2 service was added a long time

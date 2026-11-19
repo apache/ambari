@@ -27,7 +27,7 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * The {@link UpgradeSummary} class is a simple POJO used to serialize the
- * infomration about and upgrade.
+ * information about and upgrade.
  */
 public class UpgradeSummary {
   @SerializedName("direction")
@@ -68,7 +68,7 @@ public class UpgradeSummary {
 
   /**
    * The ID of the repository associated with the upgrade. For an
-   * {@link Direction#UPGRADE}, this is the target versopm, for a
+   * {@link Direction#UPGRADE}, this is the target version, for a
    * {@link Direction#DOWNGRADE} this was the version that is being downgraded
    * from.
    */

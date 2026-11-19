@@ -209,7 +209,7 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
-   * Gets all host version entities assocaited with the specified cluster and
+   * Gets all host version entities associated with the specified cluster and
    * repository.
    *
    * @param clusterId
@@ -253,7 +253,7 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
-   * Gets the {@link HostVersionEntity} associted with the specified host and
+   * Gets the {@link HostVersionEntity} associated with the specified host and
    * repository.
    *
    * @param host

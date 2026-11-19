@@ -48,7 +48,7 @@ import com.google.inject.util.Modules;
 /**
  * Test for the GUICE LdapModule setup
  *
- * - checks the module's bindings (can the GUICE context be created properely)
+ * - checks the module's bindings (can the GUICE context be created properly)
  * - checks for specific instances in the GUICE context (re they constructed properly, what is the instance' scope)
  *
  * It's named functional test as it creates a GUICE context. ("Real" unit tests only mock a class' collaborators, and

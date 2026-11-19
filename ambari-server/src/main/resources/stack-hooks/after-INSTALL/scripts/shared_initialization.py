@@ -103,7 +103,7 @@ def setup_config():
     or stackversion.find("Gluster") >= 0
     or params.dfs_type == "HCFS"
   ):
-    # create core-site only if the hadoop config diretory exists
+    # create core-site only if the hadoop config directory exists
     XmlConfig(
       "core-site.xml",
       conf_dir=params.hadoop_conf_dir,

@@ -77,7 +77,7 @@ public class AppCookieManager {
    * @param endpoint
    *          the URL of the Hadoop service
    * @param refresh
-   *          flag indicating wehther to refresh the cookie, if
+   *          flag indicating whether to refresh the cookie, if
    *          <code>true</code>, we do a new SPNego authentication and refresh
    *          the cookie even if the cookie already exists in local cache
    * @return hadoop.auth cookie value

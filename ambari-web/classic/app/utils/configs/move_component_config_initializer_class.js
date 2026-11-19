@@ -49,7 +49,7 @@ App.MoveComponentConfigInitializerClass = App.ConfigInitializerClass.extend({
   },
 
   /**
-   * Initializer for configs with vlaue equal to the hostName where component will be moved (with port)
+   * Initializer for configs with value equal to the hostName where component will be moved (with port)
    *
    * @param {object} configProperty
    * @param {extendedTopologyLocalDB} localDB

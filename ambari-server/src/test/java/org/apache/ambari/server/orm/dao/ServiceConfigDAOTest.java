@@ -623,7 +623,7 @@ public class ServiceConfigDAOTest {
   }
 
   /**
-   * Createa a cluster with 5 configurations for Oozie. Each configuration will
+   * Creates a cluster with 5 configurations for Oozie. Each configuration will
    * have a tag of "version" plus a count. 3 configs will be for
    * {@link #HDP_01}, and 2 will be for {@link #HDP_02}. Only the most recent
    * configuration, {@code version5}, will be enabled.
@@ -683,7 +683,7 @@ public class ServiceConfigDAOTest {
   }
 
   /**
-   * Createa a cluster with 3 configurations for Oozie in the {@link #HDP_01}
+   * Creates a cluster with 3 configurations for Oozie in the {@link #HDP_01}
    * stack. Only {@code version2}, will be enabled. {@code version3} will be for
    * a new configuration group.
    *

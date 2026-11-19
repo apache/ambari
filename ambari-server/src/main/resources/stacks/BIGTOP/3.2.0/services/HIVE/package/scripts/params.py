@@ -138,7 +138,7 @@ hostname = config["agentLevelParams"]["hostname"]
 stack_version_formatted_major = status_params.stack_version_formatted_major
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade.
-# It cannot be used during the initial Cluser Install because the version is not yet known.
+# It cannot be used during the initial Cluster Install because the version is not yet known.
 version = default("/commandParams/version", None)
 
 

@@ -368,7 +368,7 @@ App.InstallerController = App.WizardController.extend(App.Persist, {
   },
 
   /**
-   * Get the the repo version (to install) info, this data will be POST
+   * Get the repo version (to install) info, this data will be POST
    * @method startDeploy
    */
   getSelectedRepoVersionData: function () {

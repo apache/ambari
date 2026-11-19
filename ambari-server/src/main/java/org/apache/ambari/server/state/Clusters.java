@@ -135,7 +135,7 @@ public interface Clusters {
 
   /**
    * Get a Host object managed by this server
-   * @param hostId Host Id from the {@link org.apache.ambari.server.orm.entities.HostEntity} objecty
+   * @param hostId Host Id from the {@link org.apache.ambari.server.orm.entities.HostEntity} object
    * @return Host object
    * @throws AmbariException
    */

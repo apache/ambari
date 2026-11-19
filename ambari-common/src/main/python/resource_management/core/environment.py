@@ -79,7 +79,7 @@ class Environment(object):
         "backup.path": "/tmp/resource_management/backup",
         # prefix for this files
         "backup.prefix": datetime.now().strftime("%Y%m%d%H%M%S"),
-        # dir where templates,failes dirs are
+        # dir where templates,files dirs are
         "basedir": basedir,
         # variables, which can be used in templates
         "params": {},

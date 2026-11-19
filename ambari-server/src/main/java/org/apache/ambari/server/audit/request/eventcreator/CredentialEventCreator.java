@@ -31,7 +31,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * This creator handles crednetial requests
+ * This creator handles credential requests
  * For resource type {@link Resource.Type#Upgrade}
  * and request types {@link Request.Type#POST}
  */

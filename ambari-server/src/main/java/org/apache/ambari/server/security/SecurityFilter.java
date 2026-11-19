@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class SecurityFilter implements Filter {
 
-  //Allowed pathes for one way auth https
+  //Allowed paths for one way auth https
   private static String CA = "/ca";
 
   private static Configuration config;

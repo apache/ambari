@@ -554,7 +554,7 @@ App.AssignMasterComponents = Em.Mixin.create(App.HostComponentValidationMixin, A
   },
 
   /**
-   * Returns true if there is no new master components which need assigment to host
+   * Returns true if there is no new master components which need assignment to host
    */
   thereIsNoMasters: function() {
     return !this.get("selectedServicesMasters").filterProperty('isInstalled', false).length;

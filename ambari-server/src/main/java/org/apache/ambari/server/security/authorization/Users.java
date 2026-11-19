@@ -1156,7 +1156,7 @@ public class Users {
       }
     }
 
-    // If the collections of assigned roles is not empty find the inherited priviliges.
+    // If the collections of assigned roles is not empty find the inherited privileges.
     if (!rolePrincipals.isEmpty()) {
       // For each "role" see if any privileges have been granted...
       implicitPrivileges.addAll(privilegeDAO.findAllByPrincipal(rolePrincipals));
@@ -1692,7 +1692,7 @@ public class Users {
    * @param userEntity the user entity
    * @param command  a command to perform on the user entity object that changes it state thus needing
    *                 to be persisted
-   * @param maxRetries the maximum number of reties to peform before failing
+   * @param maxRetries the maximum number of retries to perform before failing
    */
   public UserEntity safelyUpdateUserEntity(UserEntity userEntity, Command command, int maxRetries) {
     int retriesLeft = maxRetries;
@@ -1724,7 +1724,7 @@ public class Users {
 
             retriesLeft--;
 
-            // The the number of attempts has been exhausted, re-throw the exception
+            // The number of attempts has been exhausted, re-throw the exception
             if (retriesLeft == 0) {
               LOG.error("Failed to update the user's ({}) consecutive failures value due to an OptimisticLockException.  Aborting.",
                   userEntity.getUserName());

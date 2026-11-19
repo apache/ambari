@@ -139,7 +139,7 @@ module.exports = {
    * Get hardcoded properties from site_properties.js which UI use to display host name and database name.
    *
    * @method getPropsByOptions
-   * @param {object} databaseTypeProperty - hardcoded property from site_properties.js usualy used as radiobutton
+   * @param {object} databaseTypeProperty - hardcoded property from site_properties.js usually used as radiobutton
    * @param {App.ServiceConfigProperty[]} configs - loaded and processed configs
    * @returns {object[]} - hardcoded properties from site_properties.js related to database name and location
    */

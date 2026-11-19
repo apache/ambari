@@ -28,7 +28,7 @@ import org.apache.ambari.server.state.alert.AlertDefinition;
 public class AlertDefinitionRegistrationEvent extends ClusterEvent {
 
   /**
-   * The newly registered alert defintiion
+   * The newly registered alert definition
    */
   private final AlertDefinition m_definition;
 

@@ -21,7 +21,7 @@ var App = require('app');
 App.ServiceConfigCategory = Ember.Object.extend({
   name: null,
   /**
-   *  We cant have spaces in the name as this is being used as HTML element id while rendering. Hence we introduced 'displayName' where we can have spaces like 'Secondary Name Node' etc.
+   *  We can't have spaces in the name as this is being used as HTML element id while rendering. Hence we introduced 'displayName' where we can have spaces like 'Secondary Name Node' etc.
    */
   displayName: null,
   /**

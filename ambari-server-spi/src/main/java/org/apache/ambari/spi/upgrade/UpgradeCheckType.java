@@ -33,7 +33,7 @@ public enum UpgradeCheckType {
   HOST,
 
   /**
-   * The check is for the cluster's state and is not dependendant on a stack or
+   * The check is for the cluster's state and is not dependent on a stack or
    * service installed.
    */
   CLUSTER

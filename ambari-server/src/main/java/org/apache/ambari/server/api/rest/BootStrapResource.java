@@ -78,7 +78,7 @@ public class BootStrapResource {
   }
 
   /**
-   * Current BootStrap Information thats running.
+   * Current BootStrap Information that is running.
    * @response.representation.200.doc
    *
    * @response.representation.200.mediaType application/json

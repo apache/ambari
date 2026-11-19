@@ -132,7 +132,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
           COMPONENT_NAME);
 
   /**
-   * The property ids for an servce resource.
+   * The property ids for an service resource.
    */
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
 

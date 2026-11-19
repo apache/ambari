@@ -116,7 +116,7 @@ class RefreshHeaderProcessor(BaseHandler):
         )
       )
 
-      # follow the new new and return the response
+      # follow the new URL and return the response
       return self.parent.open(redirect_url)
     except Exception as exception:
       logger.error(

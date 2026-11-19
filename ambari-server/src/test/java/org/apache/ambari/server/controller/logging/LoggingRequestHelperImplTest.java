@@ -364,7 +364,7 @@ public class LoggingRequestHelperImplTest {
     HostLogFilesResponse result =
       helper.sendGetLogFileNamesRequest(EXPECTED_HOST_NAME);
 
-    // verify that the HttpURLConnection was created with the propert values
+    // verify that the HttpURLConnection was created with the property values
     HttpURLConnection httpURLConnection =
       captureURLConnection.getValue();
 
@@ -445,7 +445,7 @@ public class LoggingRequestHelperImplTest {
     HostLogFilesResponse result =
       helper.sendGetLogFileNamesRequest(EXPECTED_HOST_NAME);
 
-    // verify that the HttpURLConnection was created with the propert values
+    // verify that the HttpURLConnection was created with the property values
     HttpURLConnection httpURLConnection =
       captureURLConnection.getValue();
 

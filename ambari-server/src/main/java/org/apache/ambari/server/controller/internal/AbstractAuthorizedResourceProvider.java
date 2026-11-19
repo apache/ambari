@@ -44,7 +44,7 @@ import org.springframework.security.core.Authentication;
 /**
  * AbstractAuthorizedResourceProvider helps to provide an authorization layer for a resource provider.
  * <p/>
- * Resource providers that need to perform authorization checks should extend ths abstract class and
+ * Resource providers that need to perform authorization checks should extend this abstract class and
  * then override the <code>*ResourcesAuthorized</code> methods and set the <code>required*Authorizations</code>
  * properties.  For more sophisticated authorization checks, the <code>isAuthorizedTo*Resources</code>
  * methods may be overwritten.
@@ -512,7 +512,7 @@ public abstract class AbstractAuthorizedResourceProvider extends AbstractResourc
   }
 
   /**
-   * Gets the identifier, relative to the the effected ResourceType that is effected by the relevant
+   * Gets the identifier, relative to the effected ResourceType that is effected by the relevant
    * request and predicate.
    * <p/>
    * Implementations should override this method return the proper resource id.

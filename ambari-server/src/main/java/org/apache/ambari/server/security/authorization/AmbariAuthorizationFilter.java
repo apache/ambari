@@ -118,7 +118,7 @@ public class AmbariAuthorizationFilter implements Filter {
   private final AuditLogger auditLogger;
 
   /**
-   * A Permission Helper used to provided inforamtion for the Audit Logger
+   * A Permission Helper used to provided information for the Audit Logger
    */
   private final PermissionHelper permissionHelper;
 

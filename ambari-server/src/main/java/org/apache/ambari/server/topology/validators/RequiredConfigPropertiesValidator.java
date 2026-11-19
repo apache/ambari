@@ -44,7 +44,7 @@ public class RequiredConfigPropertiesValidator implements TopologyValidator {
 
   /**
    * Validates the configuration coming from the blueprint and cluster creation template and ensures that all the required properties are provided.
-   * It's expected, that a in hostrgroup containing components for a given service all required configuration for the given service is available.
+   * It's expected, that a hostgroup containing components for a given service all required configuration for the given service is available.
    *
    * @param topology the topology instance holding the configuration for cluster provisioning
    * @throws InvalidTopologyException when there are missing configuration types or properties related to services in the blueprint

@@ -79,7 +79,7 @@ public interface ActionDBAccessor {
    * Returns the next stage which is in-progress for every in-progress request
    * in the system. Since stages are always synchronous, there is no reason to
    * return more than the most recent stage per request. Returning every single
-   * stage in the requesrt would be extremely inffecient and wasteful. However,
+   * stage in the request would be extremely inefficient and wasteful. However,
    * since requests can run in parallel, this method must return the most recent
    * stage for every request. The results will be sorted by request ID.
    * <p/>

@@ -169,7 +169,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var result;
     var self = this;
 
-    // callback function to reset `isAccepted` needs to be called everytime when a popup from errorStack is dismissed/proceed by user action
+    // callback function to reset `isAccepted` needs to be called every time when a popup from errorStack is dismissed/proceed by user action
     var callback = function (id) {
       var check = self.get('errorStack').findProperty('id', id);
       if (check) {

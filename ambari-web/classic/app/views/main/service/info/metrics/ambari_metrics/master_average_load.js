@@ -20,7 +20,7 @@ var App = require('app');
 /**
  * @class
  *
- * This is a view for showing HBase master avereage load
+ * This is a view for showing HBase master average load
  *
  * @extends App.ChartLinearTimeView
  * @extends Ember.Object

@@ -360,7 +360,7 @@ enable_ranger_kafka = as_yes_no(
   "ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled",
 )
 
-# ranger kafka-plugin supported flag, instead of dependending on is_supported_kafka_ranger/kafka-env.xml, using stack feature
+# ranger kafka-plugin supported flag, instead of depending on is_supported_kafka_ranger/kafka-env.xml, using stack feature
 is_supported_kafka_ranger = check_stack_feature(
   StackFeature.KAFKA_RANGER_PLUGIN_SUPPORT, version_for_stack_feature_checks
 )

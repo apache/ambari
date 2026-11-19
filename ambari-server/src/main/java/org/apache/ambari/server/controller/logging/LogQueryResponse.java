@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * This class respresents the results of a LogSearch query, as returned by
+ * This class represents the results of a LogSearch query, as returned by
  * a call to the LogSearch service.
  *
  */

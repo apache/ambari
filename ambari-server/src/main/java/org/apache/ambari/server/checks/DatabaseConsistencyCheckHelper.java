@@ -109,7 +109,7 @@ public class DatabaseConsistencyCheckHelper {
       "having sum(cc.selected) > 1";
 
   /**
-   * @return The result of the DB cheks run so far.
+   * @return The result of the DB checks run so far.
    */
   public static DatabaseConsistencyCheckResult getLastCheckResult() {
     return checkResult;
@@ -158,7 +158,7 @@ public class DatabaseConsistencyCheckHelper {
 
   public static void setInjector(Injector injector) {
     DatabaseConsistencyCheckHelper.injector = injector;
-    // Clean up: new injector means static fields should be reinitalized, though in real life it only occurs during testing
+    // Clean up: new injector means static fields should be reinitialized, though in real life it only occurs during testing
     closeConnection();
     connection = null;
     metainfoDAO = null;
@@ -649,7 +649,7 @@ public class DatabaseConsistencyCheckHelper {
   * of desired host component states. According to ambari logic these
   * two tables should have the same count of rows. If not then we are
   * adding missed host components.
-  * hard to predict root couse of inconsistency, so it can be dangerous
+  * hard to predict root cause of inconsistency, so it can be dangerous
   */
   @Transactional
   static void fixHostComponentStatesCountEqualsHostComponentsDesiredStates() {
@@ -716,7 +716,7 @@ public class DatabaseConsistencyCheckHelper {
    *   <li>Check if the connection's schema (first item on search path) is the one set in ambari.properties</li>
    *   <li>Check if the connection's schema is present in the DB</li>
    *   <li>Check if the ambari tables exist in the schema configured in ambari.properties</li>
-   *   <li>Check if ambari tables don't exist in other shemas</li>
+   *   <li>Check if ambari tables don't exist in other schemas</li>
    * </ol>
    * The purpose of these checks is to avoid that tables and constraints in ambari's schema get confused with tables
    * and constraints in other schemas on the DB user's search path. This can happen after an improperly made DB restore

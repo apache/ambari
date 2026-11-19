@@ -68,7 +68,7 @@ public class ServiceVersionSummary {
   }
 
   /**
-   * @return the relase version field
+   * @return the release version field
    */
   @JsonIgnore
   public String getReleaseVersion() {

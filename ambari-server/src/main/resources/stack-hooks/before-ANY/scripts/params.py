@@ -360,7 +360,7 @@ host_sys_prepped = default("/ambariLevelParams/host_sys_prepped", False)
 tez_am_view_acls = default("/configurations/tez-site/tez.am.view-acls", "*")
 override_uid = str(default("/configurations/cluster-env/override_uid", "true")).lower()
 
-# if NN HA on secure clutser, access Zookeper securely
+# if NN HA on secure cluster, access Zookeper securely
 if stack_supports_zk_security and dfs_ha_enabled and security_enabled:
   hadoop_zkfc_opts = format(
     "-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username=zookeeper -Djava.security.auth.login.config={hadoop_conf_secure_dir}/hdfs_jaas.conf -Dzookeeper.sasl.clientconfig=Client"

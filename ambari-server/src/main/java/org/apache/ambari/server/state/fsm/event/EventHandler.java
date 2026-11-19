@@ -21,7 +21,7 @@ package org.apache.ambari.server.state.fsm.event;
 /**
  * Interface for handling events of type T
  *
- * @param <T> paremeterized event of type T
+ * @param <T> parameterized event of type T
  */
 public interface EventHandler<T extends Event<?> > {
 

@@ -132,7 +132,7 @@ public class StackDAO {
   }
 
   /**
-   * Merge the speicified stack with the existing stack in the database.
+   * Merge the specified stack with the existing stack in the database.
    *
    * @param stack
    *          the stack to merge (not {@code null}).

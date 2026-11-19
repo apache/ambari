@@ -44,7 +44,7 @@ import com.google.inject.Singleton;
  * The {@link org.apache.ambari.server.events.listeners.upgrade.DistributeRepositoriesActionListener} class
  * handles {@link org.apache.ambari.server.events.ActionFinalReportReceivedEvent}
  * for "Distribute repositories/install packages" action.
- * It processes command reports and and updates host stack version state acordingly.
+ * It processes command reports and updates host stack version state accordingly.
  */
 @Singleton
 @EagerSingleton

@@ -739,7 +739,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
 
   /**
    * Onclick handler for button <-Operations
-   * TODO: This is still used somewhere outside the Background Operations heirarchy.
+   * TODO: This is still used somewhere outside the Background Operations hierarchy.
    *
    * @method backToServiceList
    */

@@ -80,7 +80,7 @@ public class ResourceManagerHttpPropertyRequest extends JsonHttpPropertyRequest 
 
   // ----- helper methods --------------------------------------------------
 
-  // get the protocal - http or https
+  // get the protocol - http or https
   private String getProtocol(boolean useHttps) {
     return useHttps ? "https" : "http";
   }
@@ -115,7 +115,7 @@ public class ResourceManagerHttpPropertyRequest extends JsonHttpPropertyRequest 
     return null;
   }
 
-  // get the port for the HTTP request by splitting off of the property specifed from the given config
+  // get the port for the HTTP request by splitting off of the property specified from the given config
   private String getConfigPortValue(Map<String, String> yarnConfig, String property, String defaultValue) {
     return yarnConfig.containsKey(property) ? yarnConfig.get(property).split(":")[1] : defaultValue;
   }

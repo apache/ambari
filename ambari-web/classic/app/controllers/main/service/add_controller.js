@@ -423,7 +423,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   },
 
   /**
-   * genarates data for ajax request to launch install services
+   * generates data for ajax request to launch install services
    * @method generateDataForInstallServices
    * @param {Array} selectedServices
    * @returns {{context: *, ServiceInfo: {state: string}, urlParams: string}}

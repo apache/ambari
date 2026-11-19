@@ -64,7 +64,7 @@ public @interface UpgradeCheckInfo {
    * <p>
    * Leaving this blank assumes that the check is not required.
    *
-   * @return the upgrade types which do not need the check to be explicitely
+   * @return the upgrade types which do not need the check to be explicitly
    *         defined in the upgrade pack or an empty array for none.
    */
   UpgradeType[] required() default {};

@@ -40,7 +40,7 @@ public class AmbariTProxyConfiguration extends AmbariServerConfiguration {
   /**
    * Constructor
    * <p>
-   * Copies the given configuration propery map into an {@link ImmutableMap} and pulls out propery
+   * Copies the given configuration property map into an {@link ImmutableMap} and pulls out property
    * values upon request.
    *
    * @param configurationMap a map of property names to values

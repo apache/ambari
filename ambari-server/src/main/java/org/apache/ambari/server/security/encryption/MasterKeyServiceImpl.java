@@ -93,7 +93,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   public MasterKeyServiceImpl(){}
 
   /**
-   * Constructs a new MasterKeyServiceImpl using prefered source according config.
+   * Constructs a new MasterKeyServiceImpl using preferred source according config.
    * masterKey > masterKeyLocation > environment
    */
   public MasterKeyServiceImpl(Configuration configuration) {
@@ -142,7 +142,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   /**
    * Initializes the master key file.
    * <p/>
-   * If the specified file already exists, it it tested to see if it is a master key file. If so, it
+   * If the specified file already exists, it is tested to see if it is a master key file. If so, it
    * will be truncated and the new master key will be stored in the new file. If the file appears
    * to not be a master key file,no changes will be made. The user must manually remove the file if
    * deemed appropriate.
@@ -207,7 +207,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    * it is assumed to be a "master key" file, otherwise it is assumed to not be.
    *
    * @param file the file to test
-   * @return true if the file is identitified as "master key" file; otherwise false
+   * @return true if the file is identified as "master key" file; otherwise false
    */
   private static boolean isMasterKeyFile(File file) {
     try (FileReader reader = new FileReader(file)) {

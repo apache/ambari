@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Represents a cluster topology.
- * Topology includes the the associated blueprint, cluster configuration and hostgroup -> host mapping.
+ * Topology includes the associated blueprint, cluster configuration and hostgroup -> host mapping.
  */
 public class ClusterTopologyImpl implements ClusterTopology {
 

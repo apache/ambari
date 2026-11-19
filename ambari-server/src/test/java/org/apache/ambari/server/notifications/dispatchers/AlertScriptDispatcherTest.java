@@ -276,7 +276,7 @@ public class AlertScriptDispatcherTest {
   }
 
   /**
-   * Tests a successfull invocation of the script.
+   * Tests a successful invocation of the script.
    *
    * @throws Exception
    */

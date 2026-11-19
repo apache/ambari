@@ -59,7 +59,7 @@ public class HostStackVersionService extends BaseService {
   }
 
   /**
-   * Gets all host host version.
+   * Gets all host versions.
    * Handles: GET /hosts/{hostname}/stack_versions requests.
    *
    * @param headers http headers
@@ -126,7 +126,7 @@ public class HostStackVersionService extends BaseService {
    * @param clusterName
    * @param hostName host name
    * @param stackVersionId host stack version id
-   * @return a host host version resource instance
+   * @return a host version resource instance
    */
   private ResourceInstance createResource(UriInfo ui, String clusterName, String hostName, String stackVersionId) {
     final Map<Resource.Type, String> mapIds = new HashMap<>();

@@ -271,7 +271,7 @@ public class FeedResourceProvider extends AbstractDRResourceProvider {
    * @param resource     the resource
    * @param propertyMap  the map of property updates
    *
-   * @return the map of properies to use for the update
+   * @return the map of properties to use for the update
    */
   protected static Map<String, Object> getUpdateMap(Resource resource, Map<String, Object> propertyMap) {
     Map<String, Object> updateMap = new HashMap<>();

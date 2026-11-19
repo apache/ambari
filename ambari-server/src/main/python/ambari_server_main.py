@@ -218,7 +218,7 @@ def wait_for_server_start(pidFile, scmStatus):
   sys.stdout.flush()
   pids = []
   pid = None
-  # looking_for_pid() might return partrial pid list on slow hardware
+  # looking_for_pid() might return partial pid list on slow hardware
   for i in range(1, SERVER_START_RETRIES):
     pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_START_TIMEOUT)
     pid = save_main_pid_ex(

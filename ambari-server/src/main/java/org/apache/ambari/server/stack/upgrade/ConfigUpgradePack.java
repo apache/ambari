@@ -106,7 +106,7 @@ public class ConfigUpgradePack {
   }
 
   /**
-   * Merges few config upgrade packs into one and returs result. During merge,
+   * Merges few config upgrade packs into one and returns result. During merge,
    * a deep copy of AffectedService and AffectedComponent lists is added to resulting
    * config upgrade pack. The only level that is not copied deeply is a list of
    * per-component config changes.

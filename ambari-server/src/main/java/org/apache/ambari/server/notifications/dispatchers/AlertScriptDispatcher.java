@@ -277,7 +277,7 @@ public class AlertScriptDispatcher implements NotificationDispatcher {
    * @param script
    *          the absolute path to the script (not {@code null}).
    * @param notification
-   *          the notification to parameterie (not {@code null}).
+   *          the notification to parameterize (not {@code null}).
    * @return
    */
   ProcessBuilder getProcessBuilder(String script, AlertNotification notification) {

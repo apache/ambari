@@ -41,7 +41,7 @@ import org.apache.ambari.server.controller.spi.Resource;
  * <ul>
  * <li>STACK - the default descriptor for the relevant stack</li>
  * <li>USER - the user-supplied updates to be applied to the default descriptor</li>
- * <li>COMPOSITE - the default descriptor for the relevant stack with the the user-supplied updates applied</li>
+ * <li>COMPOSITE - the default descriptor for the relevant stack with the user-supplied updates applied</li>
  * </ul>
  */
 public class ClusterKerberosDescriptorService extends BaseService {

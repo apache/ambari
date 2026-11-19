@@ -138,7 +138,7 @@ public interface ServiceComponentHost {
    *          called 10,000's of times when generating cluster/host responses.
    *          Therefore, the caller should build these once and pass them in. If
    *          {@code null}, then this method will retrieve them at runtime,
-   *          incurring a performance penality.
+   *          incurring a performance penalty.
    * @return
    */
   ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs);

@@ -987,7 +987,7 @@ buildAndInstall
 # (( RESULT = RESULT + $? ))
 
 echo "before runTests $RESULT"
-### Run tests for Jenkins or if explictly asked for by a developer
+### Run tests for Jenkins or if explicitly asked for by a developer
 if [[ $JENKINS == "true" || $RUN_TESTS == "true" ]] ; then
   runTests
   (( RESULT = RESULT + $? ))

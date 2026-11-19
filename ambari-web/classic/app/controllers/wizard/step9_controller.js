@@ -76,7 +76,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * <code>
    *   {
    *     hostName: {String} Name of host that has stopped heartbeating to ambari-server
-   *     componentNames: {Sting} Name of all components that are on the host
+   *     componentNames: {String} Name of all components that are on the host
    *   }
    * </code>
    * @type {Object[]}

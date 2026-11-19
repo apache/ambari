@@ -59,7 +59,7 @@ import com.google.inject.assistedinject.AssistedInject;
  * This is because the REST API workflow will attempt to read data from this
  * provider during the context of a live Jetty thread. As a result, any attempt
  * to read remote resources will cause a delay in returning a response code. On
- * small clusters this mormally isn't a problem. However, as the cluster
+ * small clusters this normally isn't a problem. However, as the cluster
  * increases in size, the thread pool would not be able to keep pace and would
  * eventually cause REST API request threads to wait while remote JMX data is
  * retrieved.

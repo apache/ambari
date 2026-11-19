@@ -262,7 +262,7 @@ public class PermissionEntity {
    * This value is used to help explicitly order permission entities. For example, order from most
    * permissive to least permissive.
    *
-   * @return the explict sorting order value
+   * @return the explicit sorting order value
    */
   public Integer getSortOrder() {
     return sortOrder;

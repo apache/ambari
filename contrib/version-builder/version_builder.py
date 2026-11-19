@@ -250,7 +250,7 @@ class VersionBuilder:
     return None
 
   def useNewSyntax(self):
-     #Python2.7 and newer shipps with ElementTree that supports a different syntax for XPath queries
+     #Python2.7 and newer ships with ElementTree that supports a different syntax for XPath queries
      major=sys.version_info[0]
      minor=sys.version_info[1]
      if major > 3 :

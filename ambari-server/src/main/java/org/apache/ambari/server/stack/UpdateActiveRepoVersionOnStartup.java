@@ -45,7 +45,7 @@ import com.google.inject.persist.Transactional;
 /**
  * This class should be instantiated on server startup and its {@link #process()} method invoked.
  * The class is part of management pack support. Management packs can contain services which define
- * their own (yum/apt/ect) repositories. If a management pack is installed on an Ambari with an existing
+ * their own (yum/apt/etc) repositories. If a management pack is installed on an Ambari with an existing
  * cluster, the cluster's repository version entity must be updated with the custom repos provided by the
  * management pack. The class takes care of this.
  */

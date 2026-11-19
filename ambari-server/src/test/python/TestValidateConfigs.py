@@ -29,7 +29,7 @@ from validate_configs import ValidateConfigs
 class TestValidateConfigs(TestCase):
   @patch("os.geteuid")
   def test_check_users(self, geteuid_mock):
-    # if excecuting not by root
+    # if executing not by root
     geteuid_mock.return_value = 1
 
     vc = ValidateConfigs()

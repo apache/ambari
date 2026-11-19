@@ -636,7 +636,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
     }
 
     /**
-     * Returns commandLine that starts pyton process
+     * Returns commandLine that starts python process
      * @return {@link #commandLine}
      */
     private String getCommandLine() {
@@ -717,7 +717,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
   }
 
   /**
-   * Class to run python process to compress config files as seperate thread
+   * Class to run python process to compress config files as separate thread
    */
   private static class CommandLineThread extends Thread {
     private final Process process;

@@ -320,7 +320,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
         identities = new ArrayList<>();
       }
 
-      // If the identity has a name, ensure that one one with that name is in the List
+      // If the identity has a name, ensure that one with that name is in the List
       // Note: this cannot be enforced since any AbstractKerberosDescriptor+'s name property can be
       // changed
       if ((name != null) && !name.isEmpty()) {
@@ -335,7 +335,7 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
   }
 
   /**
-   * Remove all KerberosIdentityDescriptors have have the specified name
+   * Remove all KerberosIdentityDescriptors that have the specified name
    * <p/>
    * One or more KerberosIdentityDescriptors may be removed if multiple KerberosIdentityDescriptors
    * have the same name.

@@ -111,7 +111,7 @@ public class AmbariConfigurationDAO extends CrudDAO<AmbariConfigurationEntity, A
   }
 
   /**
-   * Reconciles the properties associted with an Ambari confgiration category (for example, ldap-configuration)
+   * Reconciles the properties associated with an Ambari configuration category (for example, ldap-configuration)
    * using persisted properties and the supplied properties.
    * <p>
    * if <code>removeIfNotProvided</code> is <code>true</code>, only properties that exist in the new set of
@@ -122,7 +122,7 @@ public class AmbariConfigurationDAO extends CrudDAO<AmbariConfigurationEntity, A
    *
    * @param categoryName        the category name for the set of properties
    * @param properties          a map of name to value pairs
-   * @param removeIfNotProvided <code>true</code> to explicitly set the set of properties for the category; <code>false</code> to upadate the set of properties for the category
+   * @param removeIfNotProvided <code>true</code> to explicitly set the set of properties for the category; <code>false</code> to update the set of properties for the category
    * @return <code>true</code> if changes were made; <code>false</code> if not changes were made.
    */
   @Transactional

@@ -45,7 +45,7 @@ import com.google.inject.Inject;
  * The {@link CreateAndConfigureAction} is used to alter a configuration property during
  * an upgrade. It also creates the config type if it does not exist as a desired config for the cluster.
  * It will only produce a new configuration if an actual change is
- * occuring. For some configure tasks, the value is already at the desired
+ * occurring. For some configure tasks, the value is already at the desired
  * property or the conditions of the task are not met. In these cases, a new
  * configuration will not be created. This task can perform any of the following
  * actions in a single declaration:

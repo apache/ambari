@@ -177,7 +177,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
    *
    * @param commandParameters map of command parameters
    * @param propertyName      property name to find value for
-   * @return value of given proeprty name, would return <code>null</code>
+   * @return value of given property name, would return <code>null</code>
    * if the provided commandParameters is null or  if the requested property is not found
    * in commandParams
    */

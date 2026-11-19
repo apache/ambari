@@ -539,7 +539,7 @@ public class StackAdvisorCommandTest {
       return response;
     }
 
-    // Overridden to ensure visiblity in tests
+    // Overridden to ensure visibility in tests
     @Override
     public jakarta.ws.rs.core.Response handleRequest(HttpHeaders headers, String body,
                                                                   UriInfo uriInfo, Request.Type requestType,

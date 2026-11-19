@@ -196,7 +196,7 @@ public class ViewContextImplTest {
     replay(viewRegistry);
 
     Assert.assertEquals(urlStreamProvider, viewContext.getURLStreamProvider());
-    // make sure the the provider is not cached
+    // make sure the provider is not cached
     Assert.assertEquals(urlStreamProvider2, viewContext.getURLStreamProvider());
 
     verify(viewRegistry);

@@ -326,7 +326,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   }
 
   /**
-   * Merges service properties from parent into the the service properties of this this service.
+   * Merges service properties from parent into the service properties of this service.
    * Current properties overrides properties with same name from parent
    * @param other service properties to merge with the current service property list
    */

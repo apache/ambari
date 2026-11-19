@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 
 /**
- * Provides support for JSON serializaion of {@link Configuration} objects. Can handle both plain JSON and Ambari style
+ * Provides support for JSON serialization of {@link Configuration} objects. Can handle both plain JSON and Ambari style
  * flattened JSON such as {@code "hdfs-site/properties/dfs.replication": "3"}. Objects may implement this interface or
  * call its static utility methods.
  */

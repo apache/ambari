@@ -1120,7 +1120,7 @@ public class TopologyManager {
   /**
    * Gets a map of components keyed by host which have operations in the
    * {@link HostRoleStatus#PENDING} state. This could either be because hosts
-   * have not registered or becuase the operations are actually waiting to be
+   * have not registered or because the operations are actually waiting to be
    * queued.
    *
    * @return a mapping of host with pending components.

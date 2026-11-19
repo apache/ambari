@@ -45,7 +45,7 @@ angular.module('ambariAdminConsole')
           }
         });
 
-        // After all builded - return object
+        // After all built - return object
         deferred.resolve(permissionsInner);
       }).
       catch(function(data) {

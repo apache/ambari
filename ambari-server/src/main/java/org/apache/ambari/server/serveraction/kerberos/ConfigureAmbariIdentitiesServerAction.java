@@ -116,7 +116,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
    * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
-   * @param includedInFilter         a Boolean value indicating whather the principal is included in
+   * @param includedInFilter         a Boolean value indicating whether the principal is included in
    *                                 the current filter or not
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request  @return a CommandReport, indicating an error
@@ -335,7 +335,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
    * the group does not exist when performing this operation. It is expected this issue will be remedied
    * when the group becomes available.
    * <p>
-   * Access for other users is denied and the file is assumed to not be executeable by anyone.
+   * Access for other users is denied and the file is assumed to not be executable by anyone.
    *
    * @param filePath      the path to the file
    * @param ownerName     the username for the owner of the generated keytab file
@@ -344,7 +344,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
    * @param groupName     the name of the group for the generated keytab file
    * @param groupWritable true if the group should be able to write to this file; otherwise false
    * @param groupReadable true if the group should be able to read this file; otherwise false
-   * @throws AmbariException if an error occurs setting the permissions on the fils
+   * @throws AmbariException if an error occurs setting the permissions on the files
    */
   void setFileACL(String filePath,
                           String ownerName, boolean ownerReadable, boolean ownerWritable,

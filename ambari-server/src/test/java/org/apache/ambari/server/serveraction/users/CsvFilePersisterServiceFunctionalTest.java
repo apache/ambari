@@ -36,7 +36,7 @@ import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
- * Test cases for the persiter service implementation.
+ * Test cases for the persister service implementation.
  * For fully testing the behavior it builds up  GUICE context.
  */
 public class CsvFilePersisterServiceFunctionalTest {

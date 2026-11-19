@@ -448,7 +448,7 @@ public class Stage {
    * @param command
    *          the RoleCommand for this command
    * @param clusterName
-   *          a String identifying the cluster on which to to execute this
+   *          a String identifying the cluster on which to execute this
    *          command
    * @param event
    *          a ServiceComponentHostServerActionEvent

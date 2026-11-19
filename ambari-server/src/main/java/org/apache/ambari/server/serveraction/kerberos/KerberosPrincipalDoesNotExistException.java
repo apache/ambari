@@ -20,7 +20,7 @@ package org.apache.ambari.server.serveraction.kerberos;
 
 /**
  * KerberosPrincipalDoesNotExistException is a KerberosOperationException thrown in the event a
- * request to modify an existing principal was made but the princial does not exist in the KDC.
+ * request to modify an existing principal was made but the principal does not exist in the KDC.
  */
 public class KerberosPrincipalDoesNotExistException extends KerberosOperationException {
 

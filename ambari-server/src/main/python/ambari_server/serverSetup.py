@@ -779,14 +779,14 @@ class JDKSetup(object):
 
     properties.process_pair(AMBARI_JCE_NAME_PROPERTY, dest_jcpol_file)
 
-  # Base implementation, overriden in the subclasses
+  # Base implementation, overridden in the subclasses
   def _install_jdk(self, java_inst_file, java_home_dir):
     pass
 
   def adjust_jce_permissions(self, jdk_path):
     pass
 
-  # Base implementation, overriden in the subclasses
+  # Base implementation, overridden in the subclasses
   def _ensure_java_home_env_var_is_set(self, java_home_dir):
     pass
 

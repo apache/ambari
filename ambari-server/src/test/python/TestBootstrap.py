@@ -482,7 +482,7 @@ class TestBootstrap(TestCase):
     self.assertEqual(retcode["exitstatus"], 0)
 
     log["text"] = ""
-    # unsuccessfull run
+    # unsuccessful run
     process.returncode = 1
 
     retcode = scp.run()
@@ -545,7 +545,7 @@ class TestBootstrap(TestCase):
     self.assertEqual(retcode["exitstatus"], 0)
 
     log["text"] = ""
-    # unsuccessfull run
+    # unsuccessful run
     process.returncode = 1
 
     retcode = ssh.run()

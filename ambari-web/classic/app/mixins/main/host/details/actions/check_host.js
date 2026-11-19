@@ -475,7 +475,7 @@ App.CheckHostMixin = Em.Mixin.create({
   },
 
   /**
-   * generates data for reuest to perform check
+   * generates data for request to perform check
    * @param {string} checkExecuteList - for now supported:
    *  <code>"last_agent_env_check"<code>
    *  <code>"host_resolution_check"<code>
@@ -511,7 +511,7 @@ App.CheckHostMixin = Em.Mixin.create({
   },
 
   /**
-   * Show popup with regitration error-message
+   * Show popup with registration error-message
    * @param {string} header
    * @param {string} message
    * @return {App.ModalPopup}
@@ -1030,7 +1030,7 @@ App.CheckHostMixin = Em.Mixin.create({
    * @param {Ember.Object} host
    * @returns {object}
    * @private
-   * @methos _setHostDataWithSkipBootstrap
+   * @method _setHostDataWithSkipBootstrap
    */
   _setHostDataWithSkipBootstrap: function(host) {
     host.set('cpu', 2);

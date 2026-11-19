@@ -173,7 +173,7 @@ public class AmbariPerformanceRunnableTest {
   }
 
   /**
-   * Tests that the event is triggerd with a status of OK if all performance
+   * Tests that the event is triggered with a status of OK if all performance
    * areas pass.
    */
   @Test
@@ -202,7 +202,7 @@ public class AmbariPerformanceRunnableTest {
   }
 
   /**
-   * Tests that the event is triggerd with a status of UNKNOWN.
+   * Tests that the event is triggered with a status of UNKNOWN.
    */
   @Test
   public void testAlertFiresUnknownEvent() {

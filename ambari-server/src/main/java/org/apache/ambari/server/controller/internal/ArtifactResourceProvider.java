@@ -600,7 +600,7 @@ public class ArtifactResourceProvider extends AbstractResourceProvider {
      * Convert the foreign key value to a value that is persisted to the database.
      * In most cases this will be the original value.
      * <p>
-     * An example of when this will be different is when the fk value value needs
+     * An example of when this will be different is when the fk value needs
      * to be converted to the unique id for the resource.
      * <p>
      * For example, the cluster_name to the cluster_id.

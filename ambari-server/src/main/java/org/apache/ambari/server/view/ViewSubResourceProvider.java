@@ -315,7 +315,7 @@ public class ViewSubResourceProvider extends AbstractResourceProvider {
   // ----- inner class : ViewReadRequest -------------------------------------
 
   /**
-   * A read request to pass the the view resource provider.  Serves
+   * A read request to pass to the view resource provider.  Serves
    * as a bridge from the ambari-server API framework request to the
    * view framework request.
    */

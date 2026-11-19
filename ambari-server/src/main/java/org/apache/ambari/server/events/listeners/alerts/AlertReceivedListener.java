@@ -213,7 +213,7 @@ public class AlertReceivedListener {
       if( null == current ){
 
         // if there is no current alert and the state is skipped, then simply
-        // skip over this one as there is nothing to update in the databse
+        // skip over this one as there is nothing to update in the database
         if (alertState == AlertState.SKIPPED) {
           continue;
         }
@@ -428,7 +428,7 @@ public class AlertReceivedListener {
   }
 
   /**
-   * Gets the {@link AlertCurrentEntity} which cooresponds to the new alert being received, if any.
+   * Gets the {@link AlertCurrentEntity} which corresponds to the new alert being received, if any.
    *
    * @param clusterId the ID of the cluster.
    * @param alert the alert being received (not {@code null}).

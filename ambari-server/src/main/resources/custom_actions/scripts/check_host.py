@@ -614,7 +614,7 @@ class CheckHost(Script):
     try:
       download_file(jdbc_url, jdbc_path)
       if db_name == DB_SQLA:
-        # unpack tar.gz jdbc which was donaloaded
+        # unpack tar.gz jdbc which was downloaded
         untar_sqla_type2_driver = ("tar", "-xvf", jdbc_path, "-C", agent_cache_dir)
         Execute(untar_sqla_type2_driver, sudo=True)
     except Exception as e:

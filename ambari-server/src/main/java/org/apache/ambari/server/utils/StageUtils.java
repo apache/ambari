@@ -156,7 +156,7 @@ public class StageUtils {
   /**
    * Even though this map is populated systematically, we still need this map
    * since components like Atlas Client that are missing from this map
-   * and cleint components are handled differently
+   * and client components are handled differently
    */
   static {
     put2componentToClusterInfoKeyMap("NAMENODE");
