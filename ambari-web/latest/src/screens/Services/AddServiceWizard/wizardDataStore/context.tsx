@@ -45,6 +45,7 @@ import useClusterWorkflowPersistence from "../../../../hooks/useClusterWorkflowP
 import Spinner from "../../../../components/Spinner";
 import {
   containsReentryMarker,
+  projectAddServiceValues,
   WorkflowQueueInvalidatedError,
   workflowErrorMessage,
   WorkflowMutationQueue,
@@ -330,7 +331,6 @@ export const AddServiceProvider: React.FC<{
       hasCurrentHydration
       && clusterName
       && !isEmpty(serviceComponentInfo)
-      && (!state.addServiceSteps?.HOST_STATUS || !state.addServiceSteps?.MASTERS)
     ) {
       const generation = scopeGeneration.current;
       void getHostComponents(generation).catch((error) =>
@@ -458,6 +458,11 @@ export const AddServiceProvider: React.FC<{
       get(item, "Hosts.host_name")
     );
     setInstalledHosts(hostsList);
+    // A restored checkpoint may already hold edited HOST_STATUS/MASTERS; never overwrite them.
+    const steps = stateRef.current.addServiceSteps;
+    const needsHostStatus = !steps?.HOST_STATUS;
+    const needsMasters = !steps?.MASTERS;
+    if (!needsHostStatus && !needsMasters) return;
     const data = get(response, "items", []).map((item: any) => {
       return {
         name: get(item, "Hosts.host_name"),
@@ -465,13 +470,16 @@ export const AddServiceProvider: React.FC<{
         isInstalled: true,
       };
     });
-    dispatch({
-      type: ActionTypes.STORE_INFORMATION,
-      payload: {
-        step: "HOST_STATUS",
-        data: { hosts: data },
-      },
-    });
+    if (needsHostStatus) {
+      dispatch({
+        type: ActionTypes.STORE_INFORMATION,
+        payload: {
+          step: "HOST_STATUS",
+          data: { hosts: data },
+        },
+      });
+    }
+    if (!needsMasters) return;
     let mastersData: any[] = [];
     const allComponents = getAllComponents(serviceComponentInfo).filter(
       (c) => get(c, "HostRoles.is_master") === true
@@ -519,13 +527,13 @@ export const AddServiceProvider: React.FC<{
       return;
     }
     if (!persistence) throw new Error(String(translate("workflow.persistence.explicitCluster")));
-    await persistence.savePersistData({
+    await persistence.savePersistData(projectAddServiceValues({
       ADD_SERVICE: {
         ...stateSnapshot,
         activeStep: get(stepSnapshot, "stepName", ""),
       },
       CLUSTER_STATE: stepSnapshot,
-    }, String(get(stepSnapshot, "clusterState") || get(stepSnapshot, "stepName") || "ADD_SERVICE"));
+    }), String(get(stepSnapshot, "clusterState") || get(stepSnapshot, "stepName") || "ADD_SERVICE"));
     setReentryRequired(false);
   }
 

@@ -26,11 +26,13 @@ import {
   clearResolvedReentryMarkers,
   clusterCreationReentrySteps,
   containsReentryMarker,
+  projectAddServiceValues,
   projectClusterCreationValues,
   runAfterWorkflowCheckpoint,
   sanitizeWorkflowValues,
   workflowErrorMessage,
 } from "./scopedWorkflow";
+import { buildClusterConfigurationPayload } from "../screens/ClusterWizard/clusterConfigPayload";
 
 describe("scoped workflow persistence", () => {
   it("preserves shared intent references while sanitizing every credential occurrence", () => {
@@ -44,6 +46,22 @@ describe("scoped workflow persistence", () => {
     expect(values.config.value).toBeUndefined();
     expect(values.reviewedConfig.value).toBeUndefined();
     expect(JSON.stringify(values)).not.toContain("test-only-sensitive-value");
+  });
+
+  it("does not require re-entry for fields that are simply unset", () => {
+    const values = sanitizeWorkflowValues({
+      masterServices: [{ component: "NAMENODE", serviceId: undefined, host_id: undefined }],
+    });
+    expect(values.masterServices[0]).toEqual({ component: "NAMENODE" });
+    expect(containsReentryMarker(values)).toBe(false);
+  });
+
+  it("keeps re-entry for a credential that was present and removed", () => {
+    const values = sanitizeWorkflowValues({
+      config: { propertyName: "admin_password", value: "test-only-sensitive-value" },
+    });
+    expect(values.config.requires_reentry).toBe(true);
+    expect(containsReentryMarker(values)).toBe(true);
   });
 
   it("terminates object and array cycles without discarding non-cyclic siblings", () => {
@@ -243,6 +261,244 @@ describe("scoped workflow persistence", () => {
     expect(configuration).not.toHaveProperty("stackLevelConfigs");
     expect(configuration).not.toHaveProperty("themes");
     expect(configuration.configProperties.HDFS.site.properties.edited.value).toBe("yes");
+  });
+
+  it("drops stack theme metadata from the Add Service configuration step before saving", () => {
+    const configProperties = { HDFS: { site: { properties: { edited: { value: "yes" } } } } };
+    const theme = { layouts: [{ tabs: [{ sections: [{ name: "section" }] }] }] };
+    const projected = projectAddServiceValues({
+      ADD_SERVICE: {
+        addServiceSteps: {
+          CONFIGURATION: {
+            step: "CONFIGURATION",
+            data: {
+              configProperties,
+              configs: {},
+              stackLevelConfigs: { items: ["stack catalog"] },
+              themes: { items: [theme] },
+            },
+          },
+        },
+        activeStep: "CONFIGURATION",
+      },
+      CLUSTER_STATE: { stepName: "CONFIGURATION" },
+    });
+
+    const configuration = projected.ADD_SERVICE.addServiceSteps.CONFIGURATION.data;
+    expect(configuration).not.toHaveProperty("themes");
+    expect(configuration).not.toHaveProperty("stackLevelConfigs");
+    expect(configuration.configProperties.HDFS.site.properties.edited.value).toBe("yes");
+    expect(projected.ADD_SERVICE.activeStep).toBe("CONFIGURATION");
+    expect(projected.CLUSTER_STATE).toEqual({ stepName: "CONFIGURATION" });
+  });
+
+  it("does not ask for re-entry because of stack config definitions after projecting Add Service", () => {
+    const stackDefinition = {
+      StackConfigurations: {
+        property_name: "ranger_kms_password",
+        property_value: "",
+        property_value_attributes: { type: "password" },
+      },
+    };
+    const values = {
+      ADD_SERVICE: {
+        addServiceSteps: {
+          CONFIGURATION: {
+            data: {
+              configProperties: { RANGER_KMS: { dbks: { properties: { edited: { value: "yes" } } } } },
+              configs: { items: [{ configurations: [stackDefinition] }] },
+              themes: { items: [] },
+            },
+          },
+        },
+      },
+    };
+    expect(containsReentryMarker(sanitizeWorkflowValues(values))).toBe(true);
+    expect(containsReentryMarker(sanitizeWorkflowValues(projectAddServiceValues(values)))).toBe(false);
+  });
+
+  it("drops stack-derived property metadata but keeps what Review, deploy and restore read", () => {
+    const stackProperty = {
+      propertyName: "dfs.replication",
+      propertyDisplayname: "Block replication",
+      propertyDescription: "Default block replication.",
+      propertyValue: "3",
+      propertyDependsOn: [{ type: "hdfs-site", name: "dfs.namenode.name.dir" }],
+      propertyDependedBy: [{ propertyName: "dfs.blocksize", type: "hdfs-site" }],
+      propertyAttributes: { type: "int" },
+      __themeAttributeState: { base: {}, lastApplied: {}, managed: ["isVisible"] },
+      recommendedValue: "3",
+      previousValue: "3",
+      initialValue: "3",
+      value: "2",
+      confirmPassword: undefined,
+      final: "true",
+      overrideValues: [{ value: "1" }],
+      errorMessage: "",
+      warnMessage: "Lower than recommended",
+      hasError: false,
+      didUserOverrideValue: true,
+      displayType: "int",
+      isRequiredByAgent: true,
+      type: "hdfs-site",
+      fileName: "hdfs-site.xml",
+      serviceName: "HDFS",
+    };
+    const managedProperty = {
+      propertyName: "hbase.zookeeper.quorum",
+      recommendedValue: "zk-1",
+      isManagedDependency: true,
+      _managedDependencyBase: { value: "zk-0" },
+      isEditable: false,
+      value: "zk-1",
+      type: "hbase-site",
+    };
+    const projected = projectAddServiceValues({
+      ADD_SERVICE: {
+        addServiceSteps: {
+          CONFIGURATION: {
+            data: {
+              configProperties: {
+                HDFS: { "hdfs-site": { errors: 0, properties: { "dfs.replication": stackProperty } } },
+                HBASE: { "hbase-site": { errors: 0, properties: { "hbase.zookeeper.quorum": managedProperty } } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const sections = projected.ADD_SERVICE.addServiceSteps.CONFIGURATION.data.configProperties;
+    const kept = sections.HDFS["hdfs-site"].properties["dfs.replication"];
+    [
+      "propertyDisplayname", "propertyDescription", "propertyValue", "propertyDependsOn",
+      "propertyDependedBy", "__themeAttributeState", "recommendedValue",
+    ].forEach((field) => expect(kept).not.toHaveProperty(field));
+    expect(kept).toMatchObject({
+      propertyName: "dfs.replication",
+      propertyAttributes: { type: "int" },
+      previousValue: "3",
+      initialValue: "3",
+      value: "2",
+      final: "true",
+      overrideValues: [{ value: "1" }],
+      warnMessage: "Lower than recommended",
+      hasError: false,
+      didUserOverrideValue: true,
+      displayType: "int",
+      isRequiredByAgent: true,
+      type: "hdfs-site",
+      fileName: "hdfs-site.xml",
+      serviceName: "HDFS",
+    });
+    expect(sections.HDFS["hdfs-site"].errors).toBe(0);
+    // The live wizard tree keeps its metadata; only the checkpoint copy is compacted.
+    expect(stackProperty.propertyDescription).toBe("Default block replication.");
+    expect(stackProperty.recommendedValue).toBe("3");
+    expect(sections.HBASE["hbase-site"].properties["hbase.zookeeper.quorum"])
+      .toEqual(managedProperty);
+  });
+
+  it("builds the same deploy payload from a projected Add Service checkpoint", () => {
+    const property = (propertyName: string, value: string, previousValue: string) => ({
+      propertyName,
+      propertyDescription: `${propertyName} description`,
+      propertyDisplayname: propertyName,
+      propertyValue: previousValue,
+      propertyDependedBy: [],
+      propertyDependsOn: [],
+      propertyAttributes: {},
+      recommendedValue: previousValue,
+      previousValue,
+      value,
+      final: "false",
+      type: "core-site",
+      fileName: "core-site.xml",
+      serviceName: "HDFS",
+    });
+    const configProperties = {
+      HDFS: {
+        "core-site": {
+          errors: 0,
+          properties: {
+            "hadoop.proxyuser.kms.hosts": property("hadoop.proxyuser.kms.hosts", "*", ""),
+            "fs.trash.interval": property("fs.trash.interval", "360", "360"),
+          },
+        },
+      },
+      RANGER_KMS: {
+        "kms-site": {
+          errors: 0,
+          properties: {
+            "hadoop.kms.key.provider.uri": {
+              ...property("hadoop.kms.key.provider.uri", "dbks://http@localhost:9292/kms", "dbks://http@localhost:9292/kms"),
+              type: "kms-site",
+              fileName: "kms-site.xml",
+              serviceName: "RANGER_KMS",
+            },
+          },
+        },
+      },
+    };
+    const projected = projectAddServiceValues({
+      ADD_SERVICE: { addServiceSteps: { CONFIGURATION: { data: { configProperties } } } },
+    });
+    const build = (tree: any) => buildClusterConfigurationPayload({
+      configProperties: tree,
+      includeInstalledChanges: true,
+      installedServices: ["HDFS"],
+    });
+
+    const expected = build(configProperties);
+    expect(expected).toEqual([
+      { Clusters: { desired_config: [expect.objectContaining({
+        type: "core-site", properties: { "hadoop.proxyuser.kms.hosts": "*" } })] } },
+      { Clusters: { desired_config: [expect.objectContaining({
+        type: "kms-site", properties: { "hadoop.kms.key.provider.uri": "dbks://http@localhost:9292/kms" } })] } },
+    ]);
+    expect(build(projected.ADD_SERVICE.addServiceSteps.CONFIGURATION.data.configProperties))
+      .toEqual(expected);
+  });
+
+  it("still keeps password values out of a projected Add Service checkpoint", () => {
+    const projected = projectAddServiceValues({
+      ADD_SERVICE: {
+        addServiceSteps: {
+          CONFIGURATION: {
+            data: {
+              configProperties: {
+                RANGER_KMS: {
+                  "dbks-site": {
+                    properties: {
+                      "ranger.ks.jpa.jdbc.credential": {
+                        propertyName: "db_root_pwd",
+                        propertyAttributes: { type: "password" },
+                        propertyDescription: "Root password",
+                        value: "test-only-sensitive-value",
+                        confirmPassword: "test-only-sensitive-value",
+                        previousValue: "",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    const saved = sanitizeWorkflowValues(projected);
+    expect(JSON.stringify(saved)).not.toContain("test-only-sensitive-value");
+    expect(containsReentryMarker(saved)).toBe(true);
+  });
+
+  it("keeps the live Add Service state intact when projecting for save", () => {
+    const themes = { items: [{ layouts: [] }] };
+    const input = {
+      ADD_SERVICE: { addServiceSteps: { CONFIGURATION: { data: { themes } } } },
+    };
+    projectAddServiceValues(input);
+    expect(input.ADD_SERVICE.addServiceSteps.CONFIGURATION.data.themes).toBe(themes);
   });
 
   it("requires VDF file reentry without persisting opaque XML", () => {

@@ -17,7 +17,7 @@
  */
 
 import "../../../../i18n";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useContext, useRef } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
@@ -27,6 +27,7 @@ import WorkflowStateApi, {
   type WorkflowScope,
 } from "../../../../api/workflowStateApi";
 import { ServiceApi } from "../../../../api/serviceApi";
+import { HostsApi } from "../../../../api/hostsApi";
 import VersionsApi from "../../../../api/versionsApi";
 import modalManager from "../../../../store/ModalManager";
 import { AppContext } from "../../../../store/context";
@@ -359,6 +360,34 @@ describe("Add Service scoped recovery", () => {
       installedServices: ["HBASE"],
       workflowMaterializedServices: [],
     });
+  });
+
+  it("loads installed hosts after a checkpoint that already holds host and master steps", async () => {
+    const restoredMasters = {
+      mastersData: [{
+        host_name: "worker-a",
+        masterServices: [{ component: "HBASE_MASTER", isInstalled: false }],
+      }],
+      advisorInputKey: "restored-key",
+    };
+    const checkpoint = workflowState("cluster-a");
+    checkpoint.values.ADD_SERVICE.addServiceSteps.MASTERS = {
+      step: "MASTERS",
+      data: restoredMasters,
+    };
+    getState.mockResolvedValue(checkpoint);
+    const getHosts = vi.spyOn(HostsApi, "getHostComponentsDetails")
+      .mockResolvedValue({ items: [{ Hosts: { host_name: "host-a" } }] } as any);
+    const utilities = createWizardUtilities();
+    const context = { ...appContext("cluster-a", 11), serviceComponentInfo: { HDFS: {} } };
+    render(providerTree(context, utilities));
+
+    await waitFor(() => expect(getHosts).toHaveBeenCalledWith(
+      "cluster-a", expect.any(String)));
+    await act(async () => { await Promise.resolve(); });
+    const steps = JSON.parse(screen.getByTestId("state").textContent!).addServiceSteps;
+    expect(steps.MASTERS.data).toEqual(restoredMasters);
+    expect(steps.HOST_STATUS.data).toEqual({ hosts: [] });
   });
 
   it("restores redacted configuration at the editable step and keeps fresh secrets volatile", async () => {
