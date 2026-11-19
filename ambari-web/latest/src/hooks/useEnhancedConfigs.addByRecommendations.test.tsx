@@ -151,8 +151,10 @@ describe("useEnhancedConfigs addByRecommendations", () => {
       includeInstalledChanges: true,
       installedServices: ["HDFS"],
     }));
-    // Only the changes reach installed HDFS: the new properties, not the unchanged fs.defaultFS.
+    // The server replaces the desired config with exactly what is sent, so the full
+    // core-site (including the unchanged fs.defaultFS) must go along with the new keys.
     expect(coreSite).toEqual({
+      "fs.defaultFS": "hdfs://nn:8020",
       "hadoop.proxyuser.hdfs.hosts": "*",
       "hadoop.proxyuser.hdfs.groups": "*",
       "hadoop.proxyuser.hive.hosts": "hs2.example",
