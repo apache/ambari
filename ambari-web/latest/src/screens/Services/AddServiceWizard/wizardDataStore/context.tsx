@@ -331,8 +331,6 @@ export const AddServiceProvider: React.FC<{
       hasCurrentHydration
       && clusterName
       && !isEmpty(serviceComponentInfo)
-      && (!state.addServiceSteps?.HOST_STATUS || !state.addServiceSteps?.MASTERS
-        || installedHosts.length === 0)
     ) {
       const generation = scopeGeneration.current;
       void getHostComponents(generation).catch((error) =>
@@ -460,6 +458,11 @@ export const AddServiceProvider: React.FC<{
       get(item, "Hosts.host_name")
     );
     setInstalledHosts(hostsList);
+    // A restored checkpoint may already hold edited HOST_STATUS/MASTERS; never overwrite them.
+    const steps = stateRef.current.addServiceSteps;
+    const needsHostStatus = !steps?.HOST_STATUS;
+    const needsMasters = !steps?.MASTERS;
+    if (!needsHostStatus && !needsMasters) return;
     const data = get(response, "items", []).map((item: any) => {
       return {
         name: get(item, "Hosts.host_name"),
@@ -467,13 +470,16 @@ export const AddServiceProvider: React.FC<{
         isInstalled: true,
       };
     });
-    dispatch({
-      type: ActionTypes.STORE_INFORMATION,
-      payload: {
-        step: "HOST_STATUS",
-        data: { hosts: data },
-      },
-    });
+    if (needsHostStatus) {
+      dispatch({
+        type: ActionTypes.STORE_INFORMATION,
+        payload: {
+          step: "HOST_STATUS",
+          data: { hosts: data },
+        },
+      });
+    }
+    if (!needsMasters) return;
     let mastersData: any[] = [];
     const allComponents = getAllComponents(serviceComponentInfo).filter(
       (c) => get(c, "HostRoles.is_master") === true
