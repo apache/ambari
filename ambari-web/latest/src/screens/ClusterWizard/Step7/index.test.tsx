@@ -67,6 +67,7 @@ const mocks = vi.hoisted(() => ({
   recommendedChanges: {},
   setRecommendedChanges: vi.fn(),
   useEnhancedConfigsArgs: [] as unknown[],
+  enhancedState: { recommendationsInProgress: false },
   updateVisibilityForDependsOn: vi.fn((configProperties: object) =>
     configProperties
   ),
@@ -123,7 +124,7 @@ vi.mock("../../../hooks/useEnhancedConfigs", () => ({
     processRecommendations: mocks.processRecommendations,
     recommendedChanges: mocks.recommendedChanges,
     setRecommendedChanges: mocks.setRecommendedChanges,
-      recommendationsInProgress: false,
+      recommendationsInProgress: mocks.enhancedState.recommendationsInProgress,
       processingConfig: false,
       recommendationError: null,
     };
@@ -391,7 +392,7 @@ function renderStep(
   };
   const WizardContext = createContext(contextValue);
 
-  return render(
+  const tree = () => (
     <AppContext.Provider
       value={
         {
@@ -416,12 +417,15 @@ function renderStep(
       </ServiceContext.Provider>
     </AppContext.Provider>
   );
+  const result = render(tree());
+  return Object.assign(result, { rerenderStep: () => result.rerender(tree()) });
 }
 
 describe("Step 7 Theme fallback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.useEnhancedConfigsArgs.length = 0;
+    mocks.enhancedState.recommendationsInProgress = false;
     mocks.flushStateToDb.mockResolvedValue(undefined);
     mocks.getConfigValues.mockResolvedValue(existingClusterValues);
     mocks.getConfigsByTags.mockResolvedValue({ items: [] });
@@ -923,6 +927,26 @@ describe("Step 7 Theme fallback", () => {
       mocks.flushStateToDb.mock.invocationCallOrder[0]
     );
     expect(mocks.jumpToStep).toHaveBeenCalledWith(5, true);
+  });
+
+  it("re-enables Add Service Next after a recommendation settles", async () => {
+    // Classic Add Service Step 7 has no category tabs; Next follows isSubmitDisabled
+    // (all-configurations errors, critical issues, and in-flight advisor work).
+    // A credentials Theme keeps the hidden default category on "credentials".
+    mocks.getStackThemes.mockReset();
+    mocks.getStackThemes.mockResolvedValue(themedServicesResponse(["HDFS"]));
+    const view = renderStep("addService");
+    await screen.findByTestId("config-default");
+    const next = () => screen.getByRole("button", { name: "Next" }) as HTMLButtonElement;
+    await waitFor(() => expect(next().disabled).toBe(false));
+
+    mocks.enhancedState.recommendationsInProgress = true;
+    view.rerenderStep();
+    await waitFor(() => expect(next().disabled).toBe(true));
+
+    mocks.enhancedState.recommendationsInProgress = false;
+    view.rerenderStep();
+    await waitFor(() => expect(next().disabled).toBe(false));
   });
 
   it("loads installed and newly selected Add Service context while recommending only new services", async () => {

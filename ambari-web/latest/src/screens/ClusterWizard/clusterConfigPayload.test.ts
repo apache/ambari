@@ -87,7 +87,7 @@ describe("cluster configuration payload", () => {
     expect(JSON.stringify(result)).not.toContain("confirmPassword");
   });
 
-  it("saves only intentional dependent changes for installed services", () => {
+  it("sends the full config type for an installed service when any property changed", () => {
     const configProperties = {
       HDFS: {
         General: {
@@ -113,7 +113,46 @@ describe("cluster configuration payload", () => {
       installedServices: ["HDFS"],
     });
     expect(result[0].Clusters.desired_config[0].properties).toEqual({
+      unchanged: "same",
       changed: "new",
+    });
+  });
+
+  it("keeps existing core-site keys when only a recommended proxyuser is added", () => {
+    const configProperties = {
+      HDFS: {
+        "Custom core-site": {
+          errors: 0,
+          properties: {
+            "fs.defaultFS": canonicalProperty("fs.defaultFS", "core-site", "hdfs://nn", {
+              initialValue: "hdfs://nn",
+              serviceName: "HDFS",
+            }),
+            "hadoop.proxyuser.hive.hosts": canonicalProperty(
+              "hadoop.proxyuser.hive.hosts", "core-site", "*",
+              { initialValue: null, previousValue: null, serviceName: "HDFS" },
+            ),
+            "hdfs-only": canonicalProperty("hdfs-only", "hdfs-site", "keep", {
+              initialValue: "keep",
+              serviceName: "HDFS",
+            }),
+          },
+        },
+      },
+      MISC: { "Users and Groups": { errors: 0, properties: {} } },
+    } as ConfigPropertiesType;
+
+    const result = buildClusterConfigurationPayload({
+      configProperties,
+      includeInstalledChanges: true,
+      installedServices: ["HDFS"],
+    });
+    const desired = result.flatMap(({ Clusters }) => Clusters.desired_config);
+    expect(desired).toHaveLength(1);
+    expect(desired[0].type).toBe("core-site");
+    expect(desired[0].properties).toEqual({
+      "fs.defaultFS": "hdfs://nn",
+      "hadoop.proxyuser.hive.hosts": "*",
     });
   });
 

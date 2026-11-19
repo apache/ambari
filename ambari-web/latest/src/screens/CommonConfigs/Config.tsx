@@ -215,6 +215,8 @@ type ConfigProps = {
   hostConfigs?: boolean;
   displayUndoRedo?: boolean;
   installedServices?: string[];
+  clusterInstalledServices?: string[];
+  componentHosts?: Record<string, string[]>;
   stack?: string;
   stackVersion?: string;
   hosts?: string[];
@@ -259,6 +261,8 @@ export default function Config({
   hostConfigs = false,
   displayUndoRedo = true,
   installedServices,
+  clusterInstalledServices,
+  componentHosts,
   stack,
   stackVersion,
   hosts = [],
@@ -376,6 +380,7 @@ export default function Config({
     runWithAdvisorRequest,
     advisorScopeKey,
     checkpointConfigProperties,
+    clusterInstalledServices,
   );
 
   useEffect(() => {
@@ -1520,6 +1525,7 @@ export default function Config({
             configProperties={configProperties}
             requiredProperties={widget.requiredProperties}
             disabled={actionsDisabled}
+            componentHosts={componentHosts}
           />
         );
       case "label":

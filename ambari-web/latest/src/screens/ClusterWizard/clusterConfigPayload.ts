@@ -71,31 +71,25 @@ export const buildClusterConfigurationPayload = ({
     const isInstalledService = installedServices.includes(serviceName);
     if (isInstalledService && !includeInstalledChanges) return;
     const propertiesByType = new Map<string, Record<string, unknown>>();
+    const candidates: Array<{ property: CanonicalProperty; type: string }> = [];
 
-    const addProperty = (
-      property: CanonicalProperty,
-      sectionName: string,
-      installedChangeOnly: boolean,
-    ) => {
+    const collect = (property: CanonicalProperty, sectionName: string) => {
       const type = configType(property, sectionName);
       if (
         !property.propertyName ||
         !type ||
         type === "hosts" ||
         property.value === null ||
-        property.isRequiredByAgent === false ||
-        (installedChangeOnly && !changedFromLoadedValue(property))
+        property.isRequiredByAgent === false
       ) {
         return;
       }
-      const typeProperties = propertiesByType.get(type) || {};
-      typeProperties[property.propertyName] = formattedValue(property);
-      propertiesByType.set(type, typeProperties);
+      candidates.push({ property, type });
     };
 
     Object.entries(sections).forEach(([sectionName, section]) => {
       Object.values(section.properties || {}).forEach((property) =>
-        addProperty(property, sectionName, isInstalledService),
+        collect(property, sectionName),
       );
     });
 
@@ -103,8 +97,26 @@ export const buildClusterConfigurationPayload = ({
       configProperties.MISC?.["Users and Groups"]?.properties || {};
     Object.values(accountProperties).forEach((property) => {
       if (property.serviceName === serviceName) {
-        addProperty(property, "Users and Groups", isInstalledService);
+        collect(property, "Users and Groups");
       }
+    });
+
+    // The server creates a new config version from exactly the properties sent,
+    // without merging the desired config. For an installed service, a config type
+    // with any change must therefore carry its full property set (as Classic does),
+    // otherwise the untouched keys (e.g. fs.defaultFS) would be dropped.
+    const changedTypes = new Set(
+      isInstalledService
+        ? candidates
+            .filter(({ property }) => changedFromLoadedValue(property))
+            .map(({ type }) => type)
+        : [],
+    );
+    candidates.forEach(({ property, type }) => {
+      if (isInstalledService && !changedTypes.has(type)) return;
+      const typeProperties = propertiesByType.get(type) || {};
+      typeProperties[property.propertyName] = formattedValue(property);
+      propertiesByType.set(type, typeProperties);
     });
 
     const desiredConfigs = [...propertiesByType].map(([type, properties]) => ({
