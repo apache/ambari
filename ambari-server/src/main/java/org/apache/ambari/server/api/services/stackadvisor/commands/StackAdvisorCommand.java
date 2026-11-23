@@ -167,7 +167,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   /**
    * Name with the result JSON, e.g. "component-layout.json" or
-   * "validations.json" .
+   * "validations.json".
    *
    * @return the file name
    */
@@ -221,9 +221,9 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   }
 
   /**
-   * Retrieves the Ambari configuration if exists and adds it to services.json
+   * Retrieves the Ambari configuration if it exists and adds it to services.json
    *
-   * @param root The JSON document that will become service.json when passed to the stack advisor engine
+   * @param root The JSON document that will become services.json when passed to the stack advisor engine
    */
   void populateAmbariConfiguration(ObjectNode root) {
     root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, mapper.valueToTree(ambariServerConfigurationHandler.getConfigurations()));
